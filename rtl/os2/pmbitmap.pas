@@ -2,37 +2,22 @@
 
     $Id$
 
-              Copyright (c) 1999-2000 by Florian Klaempfl
-                  Copyright (c) 1999-2000 by Ramon Bosque
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2002 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by Ramon Bosque
 
- The Free Pascal runtime library is distributed under the Library GNU Public
- License v2. So is this unit. The Library GNU Public License requires you to
- distribute the source code of this unit with any product that uses it.
- Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the Free Pascal compiler,
- you do not need to ship source code with that program, AS LONG AS YOU ARE
- USING UNMODIFIED CODE! If you modify this code, you MUST change the next
- line:
+    Types and constants for bitmap images manipulation
+    plus functions implemented in PMPIC.DLL.
 
- <This an official, unmodified Free Pascal source code file.>
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
- Send us your modified files, we can work together if you want!
-
- Free Pascal is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- Library GNU General Public License for more details.
-
- You should have received a copy of the Library GNU General Public License
- along with Free Pascal; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ****************************************************************************}
-unit pmbitmap;
-
-{Warning: This code is alfa. Future versions of this unit will propably
- not be compatible.}
+unit PMBitmap;
 
 interface
 
@@ -62,31 +47,32 @@ type    TBitmapInfoHeader=record
             cy:word;
             cPlanes:word;
             cBitCount:word;
-            aRgbColor:array[0..1-1] of TRgb;
+            aRgbColor:array[0..0] of TRgb;
         end;
         PBitmapInfo=^TBitmapInfo;
         BitmapInfo=TBitmapInfo;
 
         TBitmapInfoHeader2=record
-            cbFix:cardinal;
-            cx:cardinal;
-            cy:cardinal;
-            cPlanes:word;
-            cBitCount:word;
-            ulCompression:cardinal;
-            cbImage:cardinal;
-            cxResolution:cardinal;
-            cyResolution:cardinal;
-            cClrUsed:cardinal;
-            cClrImportant:cardinal;
-            usUnits:word;
+            cbFix:cardinal;         { Length of structure }
+            cx:cardinal;            { Bitmap width in pels }
+            cy:cardinal;            { Bitmap height in pels }
+            cPlanes:word;           { Number of bit planes }
+            cBitCount:word;         { Number of bits per pel within a plane }
+            ulCompression:cardinal; { Compression scheme used
+                                      to store the bitmap }
+            cbImage:cardinal;       { Length of bitmap storage data in bytes }
+            cxResolution:cardinal;  { X resolution of target device }
+            cyResolution:cardinal;  { Y resolution of target device }
+            cClrUsed:cardinal;      { Number of color indices used }
+            cClrImportant:cardinal; { Number of important color indices }
+            usUnits:word;           { Units of measure }
             usReserved:word;
-            usRecording:word;
-            usRendering:word;
-            cSize1:cardinal;
-            cSize2:cardinal;
-            ulColorEncoding:cardinal;
-            ulIdentifier:cardinal;
+            usRecording:word;       { Recording algorithm }
+            usRendering:word;       { Halftoning algorithm }
+            cSize1:cardinal;        { Size value 1 }
+            cSize2:cardinal;        { Size value 2 }
+            ulColorEncoding:cardinal;   { Color encoding }
+            ulIdentifier:cardinal;  { Reserved for application use }
         end;
         PBitmapInfoHeader2=^TBitmapInfoHeader2;
         BitmapInfoHeader2=TBitmapInfoHeader2;
@@ -95,7 +81,7 @@ type    TBitmapInfoHeader=record
             bBlue,
             bGreen,
             bRed,
-            fcOptions:byte;
+            fcOptions:byte; { Reserved, must be zero }
         end;
         PRgb2=^TRgb2;
         Rgb2=TRgb2;
@@ -120,7 +106,7 @@ type    TBitmapInfoHeader=record
             cSize2:cardinal;
             ulColorEncoding:cardinal;
             ulIdentifier:cardinal;
-            aRgbColor:array[0..1-1] of TRgb2;
+            aRgbColor:array[0..0] of TRgb2;
         end;
         PBitmapInfo2=^TBitmapInfo2;
         BitmapInfo2=TBitmapInfo2;
@@ -169,24 +155,36 @@ type    TBitmapInfoHeader=record
         PBitmapArrayFileHeader2=^TBitmapArrayFileHeader2;
         BitmapArrayFileHeader2=TBitmapArrayFileHeader2;
 
+{ Constants for compression/decompression command }
 const   CBD_COMPRESSION         =       1;
         CBD_DECOMPRESSION       =       2;
         CBD_BITS                =       0;
+        
+{ Flags for compression/decompression option }
         CBD_COLOR_CONVERSION    =$0000001;
+        
+{ Compression scheme in the ulCompression field of the bitmapinfo structure }
         BCA_UNCOMP              =       0;
         BCA_HUFFMAN1D           =       3;
         BCA_RLE4                =       2;
         BCA_RLE8                =       1;
         BCA_RLE24               =       4;
+
         BRU_METRIC              =       0;
+
         BRA_BOTTOMUP            =       0;
+
         BRH_NOTHALFTONED        =       0;
         BRH_ERRORDIFFUSION      =       1;
         BRH_PANDA               =       2;
         BRH_SUPERCIRCLE         =       3;
-        BCE_PALETTE             =    (-1);
+
+        BCE_PALETTE             =      -1;
         BCE_RGB                 =       0;
 
+{ Values identifying bitmap types used in usType field
+  of BITMAPFILEHEADER(2) and BITMAPARRAYFILEHEADER(2).
+  (BFT_ => Bitmap File Type) }
         BFT_ICON                =   $4349;
         BFT_BMAP                =   $4d42;
         BFT_POINTER             =   $5450;
@@ -194,13 +192,36 @@ const   CBD_COMPRESSION         =       1;
         BFT_COLORPOINTER        =   $5043;
         BFT_BITMAPARRAY         =   $4142;
 
+{ type of picture to print }
+const   PIP_MF       = 1;
+        PIP_PIF      = 2;
 
+{ type of conversion required }
+        PIC_PIFTOMET = 0;
+        PIC_SSTOFONT = 2;
+
+function PicPrint (ahab: longint; var pszFilename: PChar; lType: longint;
+                                        var pszParams: PChar): Longbool; cdecl;
+
+function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
+                                              lType: longint): Longbool; cdecl;
+
+    
 implementation
+
+function PicPrint (ahab: longint; var pszFilename: PChar; lType: longint;
+             var pszParams: PChar): Longbool; cdecl; external 'PMPIC' index 11;
+                  
+function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
+                   lType: longint): Longbool; cdecl; external 'PMPIC' index 12;
 
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:25  peter
+  Revision 1.4  2002-11-02 11:16:38  hajny
+    + PMPIC.DLL functions added
+
+  Revision 1.3  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
 }
