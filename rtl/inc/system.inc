@@ -391,7 +391,7 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  If ErrorAddr<>nil Then
+  If DoError Then
    Begin
      Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
@@ -440,7 +440,10 @@ End;
 
 {
   $Log$
-  Revision 1.16  1998-07-02 12:11:50  carl
+  Revision 1.17  1998-07-02 12:53:09  carl
+    * DOERROR RESOTRED! DON'T TOUCH :)
+
+  Revision 1.16  1998/07/02 12:11:50  carl
     * no SINGLE in m68k and other processors!
 
   Revision 1.15  1998/07/02 09:25:05  peter
