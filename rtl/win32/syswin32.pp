@@ -330,10 +330,15 @@ begin
      if p[i]='/' then p[i]:='\';
 end;
 
+function do_isdevice(handle:longint):boolean;
+begin
+  do_isdevice:=(getfiletype(handle)=2);
+end;
+
 
 procedure do_close(h : longint);
 begin
-  if H<=4 then
+  if do_isdevice(h) then
    exit;
   CloseHandle(h);
 end;
@@ -549,11 +554,6 @@ begin
 end;
 
 
-function do_isdevice(handle:longint):boolean;
-begin
-  do_isdevice:=(getfiletype(handle)=2);
-end;
-
 
 
 {*****************************************************************************
@@ -751,6 +751,11 @@ end;
 *****************************************************************************}
 Procedure system_exit;
 begin
+  { don't call ExitProcess inside
+    the DLL exit code !!
+    This crashes Win95 at least PM }
+  if IsLibrary then
+    Exit;
   if not IsConsole then
    begin
      Close(stderr);
@@ -1161,7 +1166,13 @@ end.
 
 {
   $Log$
-  Revision 1.56  2000-01-16 23:05:03  peter
+  Revision 1.57  2000-01-18 09:03:04  pierre
+    * DLL crash fixed : ExitProcess can not be called in DLL system_exit
+      Problem : Halt or RunError code inside DLL will return to caller !!
+    * Changed the "if h<4 then" into "if do_isdevice(h) then " in do_close
+      to avoid closing of standard files
+
+  Revision 1.56  2000/01/16 23:05:03  peter
     * fixed typo
 
   Revision 1.55  2000/01/16 22:25:38  peter
