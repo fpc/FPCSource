@@ -444,9 +444,19 @@ implementation
            {Do not bother to recycle the existing register. The register
             allocator eliminates unnecessary moves, so it's not needed
             and trying to recycle registers can cause problems because
-            the registers changes size and may need aditional constraints.}
-           location_release(list,l);
-           hregister:=cg.getintregister(list,dst_size);
+            the registers changes size and may need aditional constraints.
+            
+            Not if it's about LOC_CREGISTER's (JM)
+            }
+           if (l.loc <> LOC_CREGISTER) or
+              (l.size <> dst_size) or
+              not(maybeconst) then
+             begin
+               location_release(list,l);
+               hregister:=cg.getintregister(list,dst_size)
+             end
+           else
+             hregister :=l.register;
            { load value in new register }
            case l.loc of
              LOC_FLAGS :
@@ -489,6 +499,7 @@ implementation
                end;
            end;
            if (l.loc <> LOC_CREGISTER) or
+              (l.size <> dst_size) or
               not maybeconst then
              location_reset(l,LOC_REGISTER,dst_size)
            else
@@ -2134,7 +2145,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.203  2004-05-28 21:14:13  peter
+  Revision 1.204  2004-05-30 21:18:22  jonas
+    * some optimizations and associated fixes for better regvar code
+
+  Revision 1.203  2004/05/28 21:14:13  peter
     * first load para's to temps before calling entry code (profile
 
   Revision 1.202  2004/05/23 15:23:30  peter

@@ -415,7 +415,7 @@ implementation
                  addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
               else
                 begin
-                  location_force_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,cgsize,false);
+                  location_force_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,cgsize,addvalue<=1);
                   hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
 {$ifndef cpu64bit}
                   hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.registerhigh;
@@ -678,7 +678,10 @@ end.
 
 {
   $Log$
-  Revision 1.57  2004-05-22 23:34:28  peter
+  Revision 1.58  2004-05-30 21:18:22  jonas
+    * some optimizations and associated fixes for better regvar code
+
+  Revision 1.57  2004/05/22 23:34:28  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.56  2004/03/02 00:36:33  olle

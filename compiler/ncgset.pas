@@ -134,6 +134,8 @@ implementation
   procedure tcginnode.emit_bit_test_reg_reg(list : taasmoutput;
                                             bitsize: tcgsize; bitnumber,value : tregister;
                                             ressize: tcgsize; res :tregister);
+    var
+      newres: tregister;
     begin
       { first make sure that the bit number is modulo 32 }
 
@@ -141,23 +143,14 @@ implementation
       { be caught when range checking is on! (JM)                        }
       { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
 
-      if bitsize<>ressize then
-        begin
-          { FIX ME! We're not allowed to modify the value register here! }
-
-          { shift value register "bitnumber" bits to the right }
-          cg.a_op_reg_reg(list,OP_SHR,bitsize,bitnumber,value);
-          { extract the bit we want }
-          cg.a_op_const_reg(list,OP_AND,bitsize,1,value);
-          cg.a_load_reg_reg(list,bitsize,ressize,value,res);
-        end
-      else
-        begin
-          { rotate value register "bitnumber" bits to the right }
-          cg.a_op_reg_reg_reg(list,OP_SHR,OS_32,bitnumber,value,res);
-          { extract the bit we want }
-          cg.a_op_const_reg(list,OP_AND,OS_32,1,res);
-        end;
+      if (bitsize <> OS_32) then
+        internalerror(2004053010);
+      newres := cg.makeregsize(list,res,OS_32);
+      { rotate value register "bitnumber" bits to the right }
+      cg.a_op_reg_reg_reg(list,OP_SHR,OS_32,bitnumber,value,newres);
+      { extract the bit we want }
+      cg.a_op_const_reg(list,OP_AND,OS_32,1,newres);
+      cg.a_load_reg_reg(list,OS_32,ressize,newres,res);
     end;
 
 
@@ -375,7 +368,7 @@ implementation
                {****************************  SMALL SET **********************}
                if left.nodetype=ordconstn then
                 begin
-                  location_force_reg(exprasmlist,right.location,OS_32,true);
+                  location_force_reg(exprasmlist,right.location,OS_32,false);
                   { first SHR the register }
                   cg.a_op_const_reg(exprasmlist,OP_SHR,OS_32,tordconstnode(left).value and 31,right.location.register);
                   { then extract the lowest bit }
@@ -390,7 +383,7 @@ implementation
                   { allocate a register for the result }
                   location.register:=cg.getintregister(exprasmlist,location.size);
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,right.location.size,left.location.register,
+                  emit_bit_test_reg_reg(exprasmlist,left.location.size,left.location.register,
                       right.location.register,location.size,location.register);
                 end;
                location_release(exprasmlist,left.location);
@@ -991,7 +984,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-02-27 10:21:05  florian
+  Revision 1.61  2004-05-30 21:18:22  jonas
+    * some optimizations and associated fixes for better regvar code
+
+  Revision 1.60  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
