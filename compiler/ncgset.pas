@@ -549,15 +549,11 @@ implementation
                 end
                else
                 begin
-                  if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    pleftreg:=rg.makeregsize(left.location.register,OS_INT)
-                  else
-                    pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
-                  cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
+                  location_force_reg(exprasmlist,left.location,OS_INT,true);
+                  pleftreg := left.location.register;
 
                   location_freetemp(exprasmlist,left.location);
                   hr := rg.getaddressregister(exprasmlist);
-                  location_release(exprasmlist,left.location);
                   cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,5,pleftreg,hr);
                   cg.a_op_const_reg(exprasmlist,OP_SHL,OS_32,2,hr);
 
@@ -576,10 +572,8 @@ implementation
                     end;
                   reference_release(exprasmlist,href);
                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,location.register);
-                  if left.location.loc = LOC_CREGISTER then
-                    hr := rg.getregisterint(exprasmlist,OS_32)
-                  else
-                    hr := pleftreg;
+                  rg.ungetregisterint(exprasmlist,pleftreg);
+                  hr := rg.getregisterint(exprasmlist,OS_32);
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_32,31,pleftreg,hr);
                   cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_32,hr,location.register);
                   rg.ungetregisterint(exprasmlist,hr);
@@ -1086,7 +1080,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-07-20 18:03:27  jonas
+  Revision 1.46  2003-07-23 11:02:53  jonas
+    * final (?) fix to in-code
+
+  Revision 1.45  2003/07/20 18:03:27  jonas
     * fixed bug in tcginnode.pass_2
 
   Revision 1.44  2003/07/06 14:28:04  jonas
