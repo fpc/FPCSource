@@ -82,7 +82,7 @@ implementation
             { pass the same framepointer as the current procedure got }
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
-            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
+            reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister2);
             { it must be adjusted! }
          end
@@ -100,7 +100,7 @@ implementation
        else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
-            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
+            reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
             { the previous frame pointer is always saved at }
             { previous_framepointer+12 (in the link area)   }
@@ -125,7 +125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-06-13 21:19:32  peter
+  Revision 1.19  2003-07-06 20:25:03  jonas
+    * fixed ppc compiler
+
+  Revision 1.18  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.17  2003/06/04 11:58:58  jonas

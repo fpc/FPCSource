@@ -1280,7 +1280,7 @@ const
           begin
              r.enum:=R_INTREGISTER;
              r.number:=NR_R11;
-             reference_reset_base(href,rsp,current_procinfo.framepointer_offset);
+             reference_reset_base(href,rsp,PARENT_FRAMEPOINTER_OFFSET);
              list.concat(taicpu.op_reg_ref(A_STW,r,href));
           end;
       end;
@@ -2702,7 +2702,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2003-07-05 20:11:42  jonas
+  Revision 1.113  2003-07-06 20:25:03  jonas
+    * fixed ppc compiler
+
+  Revision 1.112  2003/07/05 20:11:42  jonas
     * create_paraloc_info() is now called separately for the caller and
       callee info
     * fixed ppc cycle

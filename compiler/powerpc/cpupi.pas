@@ -36,12 +36,13 @@ unit cpupi;
        tppcprocinfo = class(tcgprocinfo)
           { overall size of allocated stack space, currently this is used for the PowerPC only }
           localsize : aword;
-
           { max. of space need for parameters, currently used by the PowerPC port only }
           maxpushedparasize : aword;
 
           constructor create(aparent:tprocinfo);override;
           procedure after_pass1;override;
+          procedure allocate_push_parasize(size: longint);override;
+          function calc_stackframe_size:longint;override;
        end;
 
 
@@ -70,8 +71,6 @@ unit cpupi;
            begin
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
-             { use space reserved for compilers in link area }
-             framepointer_offset := 12;
              // inc(selfpointer_offset,ofs);
              // inc(vmtpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
@@ -93,12 +92,32 @@ unit cpupi;
            end;
       end;
 
+
+    procedure tppcprocinfo.allocate_push_parasize(size:longint);
+      begin
+        if size>maxpushedparasize then
+          maxpushedparasize:=size;
+      end;
+
+
+    function tppcprocinfo.calc_stackframe_size:longint;
+      var
+        savearea : longint;
+      begin
+        { more or less copied from cgcpu.pas/g_stackframe_entry }
+        result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp,16);
+      end;
+
+
 begin
    cprocinfo:=tppcprocinfo;
 end.
 {
   $Log$
-  Revision 1.23  2003-06-13 21:19:32  peter
+  Revision 1.24  2003-07-06 20:25:03  jonas
+    * fixed ppc compiler
+
+  Revision 1.23  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.22  2003/06/02 21:42:05  jonas

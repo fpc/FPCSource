@@ -712,6 +712,8 @@ uses
       LA_LR = 8;
       { offset in the linkage area for the saved RTOC register}
       LA_RTOC = 20;
+      
+      PARENT_FRAMEPOINTER_OFFSET = 12;
 
 {*****************************************************************************
                                   Helpers
@@ -880,7 +882,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-07-06 15:28:24  jonas
+  Revision 1.61  2003-07-06 20:25:03  jonas
+    * fixed ppc compiler
+
+  Revision 1.60  2003/07/06 15:28:24  jonas
     * VOLATILE_REGISTERS was wrong (it was more or less the inverted set
       of what it had to be :/ )
 
