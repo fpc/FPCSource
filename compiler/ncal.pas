@@ -24,7 +24,7 @@
 unit ncal;
 
 {$i fpcdefs.inc}
-{$define nice_ncal}
+{ define nice_ncal}
 
 interface
 
@@ -1394,7 +1394,7 @@ implementation
          end;
       var
          hp,procs,hp2 : pprocdefcoll;
-         pd : pprocdeflist;
+         pd : tprocdef;
          oldcallprocdef : tabstractprocdef;
          def_from,def_to,conv_to : tdef;
          hpt : tnode;
@@ -1467,7 +1467,7 @@ implementation
         end;
 
       var
-        i : longint;
+        i,j : longint;
         found,
         is_const : boolean;
         bestord  : torddef;
@@ -1542,30 +1542,29 @@ implementation
                     search_class_overloads(symtableprocentry);
 
                    { link all procedures which have the same # of parameters }
-                   pd:=symtableprocentry.defs;
-                   while assigned(pd) do
+                   for j:=1 to symtableprocentry.procdef_count do
                      begin
-                        { only when the # of parameter are supported by the
-                          procedure }
-                        if (paralength>=pd^.def.minparacount) and
-                           ((po_varargs in pd^.def.procoptions) or { varargs }
-                            (paralength<=pd^.def.maxparacount)) then
-                          begin
-                             new(hp);
-                             hp^.data:=pd^.def;
-                             hp^.next:=procs;
-                             hp^.firstpara:=tparaitem(pd^.def.Para.first);
-                             if not(po_varargs in pd^.def.procoptions) then
-                              begin
-                                { if not all parameters are given, then skip the
-                                  default parameters }
-                                for i:=1 to pd^.def.maxparacount-paralength do
-                                 hp^.firstpara:=tparaitem(hp^.firstPara.next);
-                              end;
-                             hp^.nextpara:=hp^.firstpara;
-                             procs:=hp;
-                          end;
-                        pd:=pd^.next;
+                       pd:=symtableprocentry.procdef[j];
+                       { only when the # of parameter are supported by the
+                         procedure }
+                       if (paralength>=pd.minparacount) and
+                          ((po_varargs in pd.procoptions) or { varargs }
+                           (paralength<=pd.maxparacount)) then
+                         begin
+                            new(hp);
+                            hp^.data:=pd;
+                            hp^.next:=procs;
+                            hp^.firstpara:=tparaitem(pd.Para.first);
+                            if not(po_varargs in pd.procoptions) then
+                             begin
+                               { if not all parameters are given, then skip the
+                                 default parameters }
+                               for i:=1 to pd.maxparacount-paralength do
+                                hp^.firstpara:=tparaitem(hp^.firstPara.next);
+                             end;
+                            hp^.nextpara:=hp^.firstpara;
+                            procs:=hp;
+                         end;
                      end;
 
                    { when the definition has overload directive set, we search for
@@ -1591,20 +1590,20 @@ implementation
                                 if not(po_overload in srprocsym.first_procdef.procoptions) then
                                  break;
                                 { process all overloaded definitions }
-                                pd:=srprocsym.defs;
-                                while assigned(pd) do
+                                for j:=1 to srprocsym.procdef_count do
                                  begin
+                                   pd:=srprocsym.procdef[j];
                                    { only when the # of parameter are supported by the
                                      procedure }
-                                   if (paralength>=pd^.def.minparacount) and
-                                      ((po_varargs in pd^.def.procoptions) or { varargs }
-                                      (paralength<=pd^.def.maxparacount)) then
+                                   if (paralength>=pd.minparacount) and
+                                      ((po_varargs in pd.procoptions) or { varargs }
+                                      (paralength<=pd.maxparacount)) then
                                     begin
                                       found:=false;
                                       hp:=procs;
                                       while assigned(hp) do
                                        begin
-                                         if equal_paras(hp^.data.para,pd^.def.para,cp_value_equal_const) then
+                                         if equal_paras(hp^.data.para,pd.para,cp_value_equal_const) then
                                           begin
                                             found:=true;
                                             break;
@@ -1614,21 +1613,20 @@ implementation
                                       if not found then
                                        begin
                                          new(hp);
-                                         hp^.data:=pd^.def;
+                                         hp^.data:=pd;
                                          hp^.next:=procs;
-                                         hp^.firstpara:=tparaitem(pd^.def.Para.first);
-                                         if not(po_varargs in pd^.def.procoptions) then
+                                         hp^.firstpara:=tparaitem(pd.Para.first);
+                                         if not(po_varargs in pd.procoptions) then
                                           begin
                                             { if not all parameters are given, then skip the
                                               default parameters }
-                                            for i:=1 to pd^.def.maxparacount-paralength do
+                                            for i:=1 to pd.maxparacount-paralength do
                                              hp^.firstpara:=tparaitem(hp^.firstPara.next);
                                           end;
                                          hp^.nextpara:=hp^.firstpara;
                                          procs:=hp;
                                        end;
                                     end;
-                                   pd:=pd^.next;
                                  end;
                               end;
                            end;
@@ -2597,7 +2595,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2002-09-03 21:32:49  daniel
+  Revision 1.96  2002-09-05 14:53:41  peter
+    * fixed old callnode.det_resulttype code
+    * old ncal code is default again
+
+  Revision 1.95  2002/09/03 21:32:49  daniel
     * Small bugfix for procdef selection
 
   Revision 1.94  2002/09/03 19:27:22  daniel
