@@ -41,7 +41,7 @@
                          ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
                          var ThreadId : Longint) : DWord;
       begin
-        BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,creationFlags,Dword(THreadId));
+        BeginThread:=BeginThread(nil,StackSize,ThreadFunction,p,creationFlags,Dword(THreadId));
       end;
 
 
@@ -81,7 +81,11 @@
 
 {
   $Log$
-  Revision 1.2  2002-10-16 19:04:27  michael
+  Revision 1.3  2002-11-14 12:40:06  jonas
+    * the BeginThread() variant that allowed you to specify the stacksize
+      still passed DefaultStackSize to the OS-specific routines
+
+  Revision 1.2  2002/10/16 19:04:27  michael
   + More system-independent thread routines
 
   Revision 1.1  2002/10/14 19:39:17  peter
