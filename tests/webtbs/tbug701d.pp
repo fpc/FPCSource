@@ -8,9 +8,9 @@ var
    startmem : longint;
 
 initialization
-   // startmem:=memavail;
+   startmem:=memavail;
 finalization
-   // if startmem<>memavail then
+   if startmem<>memavail then
      begin      
        writeln('Problem with ansistrings in units');
        halt(1);

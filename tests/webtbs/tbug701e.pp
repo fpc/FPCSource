@@ -1,10 +1,12 @@
-unit tbug701c;
+unit tbug701e;
 
-  interface  
+  interface
+
     procedure TestProc(arg: AnsiString);
 
     var
        s1: array[0..9] of AnsiString;
+
   implementation
 
     var
@@ -18,5 +20,6 @@ unit tbug701c;
          s2[4] := arg + '!s24';
          s2[7] := arg + '!s27';
       end;
-
+initialization
+finalization
 end.
