@@ -1272,6 +1272,13 @@ begin
               Result:=TGetExtendedProc(AMethod)()
             else
               Result:=TGetExtendedProcIndex(AMethod)(PropInfo^.Index);
+          {$ifdef HASCURRENCY}
+          ftCurr:
+            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+              Result:=TGetCurrencyProc(AMethod)()
+            else
+              Result:=TGetCurrencyProcIndex(AMethod)(PropInfo^.Index);
+          {$endif HASCURRENCY}
         end;
       end;
   end;
@@ -1338,6 +1345,13 @@ begin
               TSetExtendedProc(AMethod)(Value)
             else
               TSetExtendedProcIndex(AMethod)(PropInfo^.Index,Value);
+          {$ifdef HASCURRENCY}
+          ftCurr:
+            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+              TSetCurrencyProc(AMethod)(Value)
+            else
+              TSetCurrencyProcIndex(AMethod)(PropInfo^.Index,Value);
+          {$endif HASCURRENCY}
         end;
       end;
   end;
@@ -1529,7 +1543,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  2005-04-03 11:50:58  marco
+  Revision 1.43  2005-04-05 06:44:25  marco
+   * Currency property patch from Dean Zobec
+
+  Revision 1.42  2005/04/03 11:50:58  marco
    * patch for 3854 added. There are probably more places that need explicit
   currency handling.
 
