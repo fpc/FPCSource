@@ -128,6 +128,7 @@ unit typinfo;
         // bit 0..1 GetProc
         //     2..3 SetProc
         //     4..5 StoredProc
+        //     6 : true, constant index property 
         PropProcs : Byte;
 
         Name : ShortString;
@@ -366,7 +367,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-09-19 15:25:45  florian
+  Revision 1.10  1998-09-20 08:25:34  florian
+    + description of tpropinfo.propprocs bit 6 added
+
+  Revision 1.9  1998/09/19 15:25:45  florian
     * procedure GetOrdProp added
 
   Revision 1.8  1998/09/19 08:33:53  florian
