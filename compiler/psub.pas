@@ -326,6 +326,9 @@ begin
           consume(_ID);
           procinfo._class:=pobjectdef(ptypesym(sym)^.definition);
           aktprocsym:=pprocsym(procinfo._class^.symtable^.search(sp));
+          {The procedure has been found. So it is
+           a global one. Set the flags to mark this.}
+          procinfo.flags:=procinfo.flags or pi_is_global;
           aktobjectdef:=nil;
           { we solve this below }
           if not(assigned(aktprocsym)) then
@@ -1296,7 +1299,7 @@ end;
 
 {***************************************************************************}
 
-function check_identical : boolean;
+function check_identical(var p : pprocdef) : boolean;
 {
   Search for idendical definitions,
   if there is a forward, then kill this.
@@ -1312,6 +1315,7 @@ var
   s : string;
 begin
   check_identical:=false;
+  p:=nil;
   pd:=aktprocsym^.definition;
   if assigned(pd) then
    begin
@@ -1440,6 +1444,10 @@ begin
                         hd^.parast:=aktprocsym^.definition^.parast;
                         aktprocsym^.definition^.parast:=storeparast;
                      end;
+                   if pd=aktprocsym^.definition then
+                     p:=nil
+                   else
+                     p:=pd;
                    aktprocsym^.definition:=hd;
                    check_identical:=true;
                  end
@@ -1893,8 +1901,9 @@ var
   oldprocinfo      : tprocinfo;
   oldconstsymtable : Psymtable;
   oldfilepos       : tfileposinfo;
-  names     : Pstringcontainer;
+  names           : Pstringcontainer;
   pdflags         : word;
+  prevdef,stdef   : pprocdef;
 begin
 { save old state }
    oldprocsym:=aktprocsym;
@@ -1953,7 +1962,7 @@ begin
    aktfilepos:=aktprocsym^.definition^.fileinfo;
 
 { search for forward declarations }
-   if not check_identical then
+   if not check_identical(prevdef) then
      begin
      { A method must be forward defined (in the object declaration) }
        if assigned(procinfo._class) and (not assigned(oldprocinfo._class)) then
@@ -2024,6 +2033,14 @@ begin
    { from now on all refernece to mangledname means
      that the function is already used }
    aktprocsym^.definition^.count:=true;
+   { restore the interface order to maintain CRC values PM }
+   if assigned(prevdef) and assigned(aktprocsym^.definition^.nextoverloaded) then
+     begin
+       stdef:=aktprocsym^.definition;
+       aktprocsym^.definition:=stdef^.nextoverloaded;
+       stdef^.nextoverloaded:=prevdef^.nextoverloaded;
+       prevdef^.nextoverloaded:=stdef;
+     end;
    aktprocsym:=oldprocsym;
    procprefix:=oldprefix;
    procinfo:=oldprocinfo;
@@ -2034,7 +2051,13 @@ end.
 
 {
   $Log$
-  Revision 1.15  1999-08-19 13:02:11  pierre
+  Revision 1.16  1999-08-27 10:41:46  pierre
+    * pi_is_global was missing for global methods
+    + code to restore overloaded list order
+      (necessary to get same CRC values after interface and after
+      implementation)
+
+  Revision 1.15  1999/08/19 13:02:11  pierre
     + label faillabel added for _FAIL support
 
   Revision 1.14  1999/08/10 16:24:44  pierre
