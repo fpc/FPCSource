@@ -83,6 +83,12 @@ begin
 end;
 
 
+Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Var
   res : dword;
@@ -664,7 +670,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.18  2003-01-01 20:56:57  florian
+  Revision 1.19  2003-01-03 20:41:04  peter
+    * FileCreate(string,mode) overload added
+
+  Revision 1.18  2003/01/01 20:56:57  florian
     + added invalid instruction exception
 
   Revision 1.17  2002/12/15 20:24:17  peter

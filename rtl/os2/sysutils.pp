@@ -284,6 +284,12 @@ begin
 end;
 
 
+Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+
 function FileRead (Handle: longint; var Buffer; Count: longint): longint;
                                                                      assembler;
 asm
@@ -952,7 +958,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2002-11-18 19:51:00  hajny
+  Revision 1.20  2003-01-03 20:41:04  peter
+    * FileCreate(string,mode) overload added
+
+  Revision 1.19  2002/11/18 19:51:00  hajny
     * another bunch of type corrections
 
   Revision 1.18  2002/09/23 17:42:37  hajny

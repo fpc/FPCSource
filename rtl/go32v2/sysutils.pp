@@ -108,6 +108,12 @@ begin
 end;
 
 
+Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 var
   regs     : registers;
@@ -724,7 +730,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.10  2002-09-07 16:01:19  peter
+  Revision 1.11  2003-01-03 20:41:04  peter
+    * FileCreate(string,mode) overload added
+
+  Revision 1.10  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/05/09 08:42:24  carl

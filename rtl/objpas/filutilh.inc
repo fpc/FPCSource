@@ -61,6 +61,7 @@ Const
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : String; Mode : Integer) : Longint;
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
@@ -83,7 +84,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:22  peter
+  Revision 1.7  2003-01-03 20:41:04  peter
+    * FileCreate(string,mode) overload added
+
+  Revision 1.6  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
 }

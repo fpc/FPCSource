@@ -61,6 +61,21 @@ begin
 end;
 
 
+Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
+
+Var LinuxFlags : longint;
+
+BEGIN
+  LinuxFlags:=0;
+  Case (Mode and 3) of
+    0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
+    1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
+    2 : LinuxFlags:=LinuxFlags or Open_RdWr;
+  end;
+  FileCreate:=fdOpen(FileName,LinuxFlags or Open_Creat or Open_Trunc);
+end;
+
+
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
 begin
@@ -466,7 +481,10 @@ end.
 {
 
   $Log$
-  Revision 1.13  2002-09-07 16:01:28  peter
+  Revision 1.14  2003-01-03 20:41:04  peter
+    * FileCreate(string,mode) overload added
+
+  Revision 1.13  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.12  2002/01/25 16:23:03  peter
