@@ -351,8 +351,8 @@ used, because contains a lot of unnessary fields.}
                                  Constants
 *****************************************************************************}
 
-CONST
-  general_registers = [R_L0..R_L7];
+const
+  general_registers = [R_G0..R_I7];
   { legEND:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
   {           generator                                                    }
@@ -371,11 +371,11 @@ CONST
   usableregsmm=[];
   c_countusableregsmm=8;
   
-  firstsaveintreg = R_G0;
+  firstsaveintreg = R_I0;
   lastsaveintreg = R_I7;
   firstsavefpureg = R_F0;
   lastsavefpureg = R_F31;
-  firstsavemmreg = R_G0;
+  firstsavemmreg = R_I0;
   lastsavemmreg = R_I7;
   lowsavereg = R_G0;
   highsavereg = R_I7;
@@ -523,7 +523,10 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.16  2002-10-28 20:59:17  mazen
+  Revision 1.17  2003-01-05 20:39:53  mazen
+  * warnings about FreeTemp already free fixed with appropriate registers handling
+
+  Revision 1.16  2002/10/28 20:59:17  mazen
   * TOpSize values changed S_L --> S_SW
 
   Revision 1.15  2002/10/28 20:37:44  mazen
