@@ -93,8 +93,6 @@ implementation
          { memory sizes }
          if heapsize=0 then
           heapsize:=target_info.heapsize;
-         if maxheapsize=0 then
-          maxheapsize:=target_info.maxheapsize;
          if stacksize=0 then
           stacksize:=target_info.stacksize;
 
@@ -627,7 +625,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-04-19 15:46:02  peter
+  Revision 1.29  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.28  2002/04/19 15:46:02  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

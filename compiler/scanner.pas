@@ -746,11 +746,9 @@ implementation
            found:=findincludefile(path,name,ext,foundfile);
            if (ext='') then
             begin
-              { try default extensions .pp and .pas }
+              { try default with .inc extension }
               if (not found) then
-               found:=findincludefile(path,name,target_info.sourceext,foundfile);
-              if (not found) then
-               found:=findincludefile(path,name,target_info.pasext,foundfile);
+               found:=findincludefile(path,name,'.inc',foundfile);
             end;
          { save old postion and decrease linebreak }
            if c=newline then
@@ -2756,7 +2754,16 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.32  2002-04-19 15:42:11  peter
+  Revision 1.33  2002-04-20 21:32:25  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.32  2002/04/19 15:42:11  peter
     * default extension checking for include files
 
   Revision 1.31  2002/03/01 14:39:44  peter

@@ -81,7 +81,7 @@ implementation
        { linking }
        import,gendef,
        { codegen }
-       cgbase
+       cpuinfo,cgbase
        ;
 
 
@@ -552,7 +552,7 @@ implementation
         aktprocdef.proctypeoption:=options;
 
         { calculate the offset of the parameters }
-        paramoffset:=8;
+        paramoffset:=target_info.first_parm_offset;
 
         { calculate frame pointer offset }
         if lexlevel>normal_function_level then
@@ -1487,7 +1487,7 @@ const
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
                  { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(target_info.size_of_longint);
+                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
             end;
           pocall_cppdecl :
@@ -1507,7 +1507,7 @@ const
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
                  { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(target_info.size_of_longint);
+                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
             end;
           pocall_stdcall :
@@ -1517,7 +1517,7 @@ const
                  assigned(tprocdef(def).parast) then
                begin
                  { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(target_info.size_of_longint);
+                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
             end;
           pocall_safecall :
@@ -1585,7 +1585,7 @@ const
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara);
                  { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(target_info.size_of_longint);
+                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
                end;
             end;
           pocall_inline :
@@ -1932,7 +1932,16 @@ const
 end.
 {
   $Log$
-  Revision 1.51  2002-04-20 15:27:05  carl
+  Revision 1.52  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.51  2002/04/20 15:27:05  carl
   - remove ifdef i386 define
 
   Revision 1.50  2002/04/19 15:46:02  peter

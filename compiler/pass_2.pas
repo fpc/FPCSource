@@ -279,7 +279,7 @@ implementation
                                           (lexlevel>=normal_function_level) then
                                          begin
                                           { use ESP as frame pointer }
-                                           procinfo^.framepointer:=stack_pointer;
+                                           procinfo^.framepointer:=STACK_POINTER_REG;
                                            use_esp_stackframe:=true;
 
                                           { calc parameter distance new }
@@ -320,7 +320,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-04-07 13:30:13  carl
+  Revision 1.25  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.24  2002/04/07 13:30:13  carl
   - removed unused variable
 
   Revision 1.23  2002/04/02 17:11:29  peter

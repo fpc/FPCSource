@@ -218,7 +218,7 @@ uses
 {$endif}
   types,systems,verbose,globals,
   symsym,symtable,cpuasm,
-  cgbase;
+  cpuinfo,cgbase;
 
 {*************************************************************************
                               TExprParse
@@ -819,7 +819,7 @@ Begin
                 that %esi is valid there }
               else
                 begin
-                  opr.ref.base:=self_pointer;
+                  opr.ref.base:=SELF_POINTER_REG;
                   opr.ref.offset:=tvarsym(sym).address;
                 end;
               hasvar:=true;
@@ -1585,7 +1585,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2002-04-15 19:02:35  carl
+  Revision 1.30  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.29  2002/04/15 19:02:35  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.28  2002/04/02 17:11:29  peter

@@ -26,6 +26,8 @@ unit cginfo;
 
 interface
 
+  uses cpuinfo;
+
     type
        TOpCg = (OP_NONE,
                 OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,OP_NOT,
@@ -85,8 +87,11 @@ interface
 
     const
       TCGSize2Size : Array[tcgsize] of integer =
+         { integer values }
         (0,1,2,4,8,1,2,4,8,
-         4,8,10,8,
+         { floating point values } 
+         4,8,EXTENDED_SIZE,8,
+         { multimedia values }
          1,2,4,8,16,1,2,4,8,16);
 
 
@@ -95,7 +100,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-04-19 15:46:01  peter
+  Revision 1.3  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.2  2002/04/19 15:46:01  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

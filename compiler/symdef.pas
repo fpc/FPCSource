@@ -1193,7 +1193,7 @@ implementation
          string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -1203,7 +1203,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=ppufile.getlongint;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -1213,7 +1213,7 @@ implementation
          string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -1223,7 +1223,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=ppufile.getlongint;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -1233,7 +1233,7 @@ implementation
          string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -1243,7 +1243,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=ppufile.getlongint;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -1554,7 +1554,7 @@ implementation
         memsize := memsizeinc;
         getmem(st,memsize);
         { we can specify the size with @s<size>; prefix PM }
-        if savesize <> target_info.size_of_longint then
+        if savesize <> std_param_align then
           strpcopy(st,'@s'+tostr(savesize*8)+';e')
         else
           strpcopy(st,'e');
@@ -2193,7 +2193,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=false;
-        savesize:=pointer_size;
+        savesize:=POINTER_SIZE;
       end;
 
 
@@ -2203,7 +2203,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=true;
-        savesize:=pointer_size;
+        savesize:=POINTER_SIZE;
       end;
 
 
@@ -2213,7 +2213,7 @@ implementation
          deftype:=pointerdef;
          ppufile.gettype(pointertype);
          is_far:=(ppufile.getbyte<>0);
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -2321,7 +2321,7 @@ implementation
          deftype:=classrefdef;
          ppufile.gettype(pointertype);
          is_far:=false;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -2523,7 +2523,7 @@ implementation
               tsymtable(current_module.localsymtable).registerdef(self)
             else if assigned(current_module.globalsymtable) then
               tsymtable(current_module.globalsymtable).registerdef(self);
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -2531,7 +2531,7 @@ implementation
       begin
          inherited loaddef(ppufile);
          deftype:=formaldef;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -2688,7 +2688,7 @@ implementation
       begin
         if IsDynamicArray then
           begin
-            size:=pointer_size;
+            size:=POINTER_SIZE;
             exit;
           end;
         {Tarraydef.size may never be called for an open array!}
@@ -3064,7 +3064,7 @@ implementation
          rettype:=voidtype;
          symtablelevel:=0;
          fpu_used:=0;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
       end;
 
 
@@ -3139,7 +3139,7 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
          count:=ppufile.getword;
-         savesize:=pointer_size;
+         savesize:=POINTER_SIZE;
          for i:=1 to count do
           begin
             hp:=TParaItem.Create;
@@ -3197,10 +3197,10 @@ implementation
           begin
             case pdc.paratyp of
               vs_out,
-              vs_var   : inc(l,pointer_size);
+              vs_var   : inc(l,POINTER_SIZE);
               vs_value,
               vs_const : if push_addr_param(pdc.paratype.def) then
-                          inc(l,pointer_size)
+                          inc(l,POINTER_SIZE)
                          else
                           inc(l,pdc.paratype.def.size);
             end;
@@ -3920,9 +3920,9 @@ implementation
     function tprocvardef.size : longint;
       begin
          if (po_methodpointer in procoptions) then
-           size:=2*pointer_size
+           size:=2*POINTER_SIZE
          else
-           size:=pointer_size;
+           size:=POINTER_SIZE;
       end;
 
 
@@ -4253,7 +4253,7 @@ implementation
                   inc(symtable.datasize,c.symtable.datasize);
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
-                    dec(symtable.datasize,pointer_size);
+                    dec(symtable.datasize,POINTER_SIZE);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -4277,7 +4277,7 @@ implementation
           begin
              symtable.datasize:=align(symtable.datasize,symtable.dataalignment);
              vmt_offset:=symtable.datasize;
-             inc(symtable.datasize,pointer_size);
+             inc(symtable.datasize,POINTER_SIZE);
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -4364,7 +4364,7 @@ implementation
     function tobjectdef.size : longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          size:=pointer_size
+          size:=POINTER_SIZE
         else
           size:=symtable.datasize;
       end;
@@ -4381,14 +4381,14 @@ implementation
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
-          vmtmethodoffset:=(index+12)*pointer_size;
+          vmtmethodoffset:=(index+12)*POINTER_SIZE;
         odt_interfacecom,odt_interfacecorba:
-          vmtmethodoffset:=index*pointer_size;
+          vmtmethodoffset:=index*POINTER_SIZE;
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=(index+4)*pointer_size;
+          vmtmethodoffset:=(index+4)*POINTER_SIZE;
 {$else WITHDMT}
-          vmtmethodoffset:=(index+3)*pointer_size;
+          vmtmethodoffset:=(index+3)*POINTER_SIZE;
 {$endif WITHDMT}
         end;
       end;
@@ -5468,7 +5468,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-04-19 15:46:03  peter
+  Revision 1.72  2002-04-20 21:32:25  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.71  2002/04/19 15:46:03  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of
@@ -5539,7 +5548,7 @@ end.
     * torddef low/high range changed to int64
 
   Revision 1.58  2001/11/30 15:01:51  jonas
-    * tarraydef.size returns pointer_size instead of 4 for
+    * tarraydef.size returns POINTER_SIZE instead of 4 for
       dynamic arrays
 
   Revision 1.57  2001/11/18 18:43:14  peter

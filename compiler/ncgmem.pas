@@ -75,7 +75,7 @@ implementation
       symconst,symdef,symsym,aasm,
       cginfo,cgbase,pass_2,
       nld,ncon,nadd,
-      cpubase,cgobj,cgcpu,
+      cpuinfo,cpubase,cgobj,cgcpu,
       tgobj,rgobj
 {$ifdef GDB}
   {$ifdef delphi}
@@ -237,7 +237,12 @@ implementation
                  cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
               end;
          end;
-         { still needs generic checkpointer() support! }
+         if (cs_gdb_heaptrc in aktglobalswitches) and
+            (cs_checkpointer in aktglobalswitches) then
+              begin
+                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,1);
+                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER',0);
+              end;
       end;
 
 
@@ -297,17 +302,17 @@ implementation
 
     procedure tcgselfnode.pass_2;
       begin
-         rg.getexplicitregisterint(exprasmlist,SELF_POINTER);
+         rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
          if (resulttype.def.deftype=classrefdef) or
             is_class(resulttype.def) then
           begin
             location_reset(location,LOC_CREGISTER,OS_ADDR);
-            location.register:=SELF_POINTER;
+            location.register:=SELF_POINTER_REG;
           end
          else
            begin
              location_reset(location,LOC_CREFERENCE,OS_ADDR);
-             location.reference.base:=SELF_POINTER;
+             location.reference.base:=SELF_POINTER_REG;
            end;
       end;
 
@@ -450,7 +455,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-04-15 18:58:47  carl
+  Revision 1.8  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.7  2002/04/15 18:58:47  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.6  2002/04/04 19:05:57  peter

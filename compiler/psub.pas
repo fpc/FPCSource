@@ -520,7 +520,7 @@ implementation
           { clear flags }
             flags:=0;
           { standard frame pointer }
-            framepointer:=frame_pointer;
+            framepointer:=frame_pointer_reg;
           { is this a nested function of a method ? }
             if assigned(oldprocinfo) then
               _class:=oldprocinfo^._class;
@@ -811,7 +811,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-04-19 15:46:02  peter
+  Revision 1.49  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.48  2002/04/19 15:46:02  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

@@ -1349,30 +1349,30 @@ begin
 
   { some stuff for TP compatibility }
   case target_info.cpu of
-   i386:
+   cpu_i386:
         begin
          def_symbol('CPU86');
          def_symbol('CPU87');
          def_symbol('CPUI386');
         end;
-   m68k:
+   cpu_m68k:
         begin
           def_symbol('CPU68');
           def_symbol('CPU68K');
         end;
-   alpha:
+   cpu_alpha:
         begin
           def_symbol('CPUALPHA');
         end;
-   powerpc:
+   cpu_powerpc:
         begin
           def_symbol('CPUPOWERPC');
         end;
-   sparc:
+   cpu_sparc:
         begin
           def_symbol('CPUSPARC');
         end;
-   vm:
+   cpu_vm:
         begin
           def_symbol('CPUVIS');
         end;
@@ -1656,7 +1656,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.67  2002-04-07 10:22:35  carl
+  Revision 1.68  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.67  2002/04/07 10:22:35  carl
   + CPU defines now depends on current target
 
   Revision 1.66  2002/04/04 19:05:58  peter

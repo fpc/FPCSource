@@ -639,8 +639,8 @@ implementation
         with procinfo^ do
          begin
            _class:=nil;
-           para_offset:=8;
-           framepointer:=frame_pointer;
+           para_offset:=target_info.first_parm_offset;
+           framepointer:=FRAME_POINTER_REG;
            flags:=0;
            procdef:=aktprocdef;
          end;
@@ -1388,7 +1388,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-04-19 15:46:02  peter
+  Revision 1.62  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.61  2002/04/19 15:46:02  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of

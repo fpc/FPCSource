@@ -256,18 +256,18 @@ implementation
                     ccallparanode.create(cordconstnode.create
                        (tpointerdef(resulttype.def).pointertype.def.size,s32bittype),nil));
             newstatement.left := cstatementnode.create(nil,cassignmentnode.create(
-              ctemprefnode.create(tempcode),
-              ccallnode.createintern('fpc_initialize',sizepara)));
+            ctemprefnode.create(tempcode),
+            ccallnode.createintern('fpc_initialize',sizepara)));
             newstatement := tstatementnode(newstatement.left);
-                   new(r);
-                   reset_reference(r^);
-                   r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti);
-                   emitpushreferenceaddr(r^);
-                   dispose(r);
-                   { push pointer we just allocated, we need to initialize the
-                     data located at that pointer not the pointer self (PFV) }
-                   emit_push_loc(location);
-                   emitcall('FPC_INITIALIZE');
+            new(r);
+            reset_reference(r^);
+            r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_rtti_label(initrtti);
+            emitpushreferenceaddr(r^);
+            dispose(r);
+            { push pointer we just allocated, we need to initialize the
+              data located at that pointer not the pointer self (PFV) }
+            emit_push_loc(location);
+            emitcall('FPC_INITIALIZE');
           end;
 
          { and return it }
@@ -1040,7 +1040,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-04-02 17:11:29  peter
+  Revision 1.28  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.27  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

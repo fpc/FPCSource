@@ -99,10 +99,10 @@ End;
 Procedure TRegInfo.Clear;
 Begin
   RegsLoadedForRef   := [];
-  NewRegsEncountered := [ProcInfo.FramePointer, stack_pointer];
-  OldRegsEncountered := [ProcInfo.FramePointer, stack_pointer];
+  NewRegsEncountered := [ProcInfo.FramePointer, STACK_POINTER_REG];
+  OldRegsEncountered := [ProcInfo.FramePointer, STACK_POINTER_REG];
   New2OldReg[ProcInfo.FramePointer] := ProcInfo.FramePointer;
-  New2OldReg[stack_pointer] := stack_pointer;
+  New2OldReg[STACK_POINTER_REG] := STACK_POINTER_REG;
 End;
 
 Procedure TRegInfo.AddReg(OldReg, NewReg: TRegister);
@@ -250,11 +250,11 @@ Begin
               Begin
                 With PInstr(NewP)^.oper[LoadSrc].ref^ Do
                   Begin
-                    If Not(Base in [ProcInfo.FramePointer, R_NO, stack_pointer])
+                    If Not(Base in [ProcInfo.FramePointer, R_NO, STACK_POINTER_REG])
 { it won't do any harm if the register is already in RegsLoadedForRef }
                       Then RegsLoadedForRef := RegsLoadedForRef + [Base];
 {$ifdef RefsHaveIndexReg}
-                    If Not(Index in [ProcInfo.FramePointer, R_NO, stack_pointer])
+                    If Not(Index in [ProcInfo.FramePointer, R_NO, STACK_POINTER_REG])
                       Then RegsLoadedForRef := RegsLoadedForRef + [Index];
 {$endif RefsHaveIndexReg}
                   End;
@@ -282,7 +282,7 @@ Begin
               Begin
                 If Not(Base in [ProcInfo.FramePointer,
                                 RegMaxSize(PInstr(NewP)^.oper[LoadDst].reg),
-                                R_NO,stack_pointer])
+                                R_NO,STACK_POINTER_REG])
 { It won't do any harm if the register is already in RegsLoadedForRef }
                   Then
                     Begin
@@ -309,7 +309,7 @@ Begin
 { RegsLoadedForReg, since if it's loaded with a new value, it certainly     }
 { will still be used later on                                               }
             If Not(RegMaxSize(PInstr(NewP)^.oper[LoadDst].reg) In
-                [ProcInfo.FramePointer,R_NO,stack_pointer])
+                [ProcInfo.FramePointer,R_NO,STACK_POINTER_REG])
               Then
                 Begin
                   RegsLoadedForRef := RegsLoadedForRef -
@@ -850,7 +850,16 @@ End.
 
 {
   $Log$
-  Revision 1.3  2002-04-15 18:55:39  carl
+  Revision 1.4  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.3  2002/04/15 18:55:39  carl
   + change reg2str array use
 
   Revision 1.2  2002/04/14 16:49:30  carl

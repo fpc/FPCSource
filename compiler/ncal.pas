@@ -119,7 +119,7 @@ implementation
       cutils,globtype,systems,
       verbose,globals,
       symconst,types,
-      htypechk,pass_1,cpubase,
+      htypechk,pass_1,cpuinfo,cpubase,
       ncnv,nld,ninl,nadd,ncon,
       rgobj,cgbase
       ;
@@ -1773,11 +1773,11 @@ implementation
       begin
          inherited create(procinlinen);
          inlineprocdef:=tcallnode(callp).symtableprocentry.defs^.def;
-         retoffset:=-pointer_size; { less dangerous as zero (PM) }
+         retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
          para_offset:=0;
          para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
          if ret_in_param(inlineprocdef.rettype.def) then
-           inc(para_size,pointer_size);
+           inc(para_size,POINTER_SIZE);
          { copy args }
          if assigned(code) then
            inlinetree:=code.getcopy
@@ -1844,7 +1844,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2002-04-16 16:09:08  peter
+  Revision 1.71  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.70  2002/04/16 16:09:08  peter
     * allow passing the address of a procedure to a formal parameter
       in delphi mode
 
@@ -1857,7 +1866,7 @@ end.
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
 
   Revision 1.68  2002/04/15 18:57:22  carl
-  + target_info.size_of_pointer -> pointer_Size
+  + target_info.size_of_pointer -> POINTER_SIZE
 
   Revision 1.67  2002/04/02 17:11:28  peter
     * tlocation,treference update

@@ -41,7 +41,7 @@ unit cgbase;
     const
        tcgsize2size: Array[tcgsize] of longint = (0,
           8,16,32,64,8,16,32,64,
-          32,64,80,64,
+          32,64,EXTENDED_SIZE*8,64,
           8,16,32,64,128,8,16,32,64,128);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
@@ -529,7 +529,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-04-07 09:13:39  carl
+  Revision 1.11  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.10  2002/04/07 09:13:39  carl
   + documentation
   - remove unused variables
 

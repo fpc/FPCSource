@@ -40,13 +40,13 @@ interface
      }
        ttargetcpu=
        (
-             no_cpu,                   { 0 }
-             i386,                     { 1 }
-             m68k,                     { 2 }
-             alpha,                    { 3 }
-             powerpc,                  { 4 }
-             sparc,                    { 5 }
-             vm                        { 6 }
+             cpu_no,                       { 0 }
+             cpu_i386,                     { 1 }
+             cpu_m68k,                     { 2 }
+             cpu_alpha,                    { 3 }
+             cpu_powerpc,                  { 4 }
+             cpu_sparc,                    { 5 }
+             cpu_vm                        { 6 }
        );
 
        tprocessors = (no_processor
@@ -191,7 +191,7 @@ interface
        end;
 
        ttargetflags = (tf_none,
-            tf_under_development,tf_supports_stack_checking,
+            tf_under_development,
             tf_need_export,tf_needs_isconsole
 {$ifdef m68k}
             ,tf_code_small,tf_static_a5_based
@@ -240,9 +240,14 @@ interface
           script       : tscripttype;
           endian       : tendian;
           alignment    : talignmentinfo;
-          size_of_longint : byte;
+          { 
+            Offset from the argument pointer register to the first 
+            argument's address. On some machines it may depend on 
+            the data type of the function. 
+            (see also FIRST_PARM_OFFSET in GCC source)
+          }
+          first_parm_offset : longint;
           heapsize,
-          maxheapsize,
           stacksize       : longint;
           DllScanSupported : boolean;
           use_bound_instruction : boolean;
@@ -679,7 +684,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2002-04-15 19:08:22  carl
+  Revision 1.40  2002-04-20 21:32:26  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.39  2002/04/15 19:08:22  carl
   + target_info.size_of_pointer -> pointer_size
   + some cleanup of unused types/variables
 

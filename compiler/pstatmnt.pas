@@ -1068,6 +1068,13 @@ implementation
 
     function assembler_block : tnode;
 
+      {# Optimize the assembler block by removing all references
+         which are via the frame pointer by replacing them with
+         references via the stack pointer.
+         
+         This is only available to certain cpu targets where
+         the frame pointer saving must be done explicitly.
+      }
       procedure OptimizeFramePointer(p:tasmnode);
       var
         hp : tai;
@@ -1075,7 +1082,7 @@ implementation
         i : longint;
       begin
         { replace framepointer with stackpointer }
-        procinfo^.framepointer:=stack_pointer;
+        procinfo^.framepointer:=STACK_POINTER_REG;
         { set the right value for parameters }
         dec(aktprocdef.parast.address_fixup,pointer_size);
         dec(procinfo^.para_offset,pointer_size);
@@ -1099,7 +1106,7 @@ implementation
                        ref_parafixup :
                          begin
                            ref^.offsetfixup:=parafixup;
-                           ref^.base:=stack_pointer;
+                           ref^.base:=STACK_POINTER_REG;
                          end;
                      end;
                    end;
@@ -1171,14 +1178,18 @@ implementation
            following conditions are met:
            - if the are no local variables
            - no reference to the result variable (refcount<=1)
-           - result is not stored as parameter }
+           - result is not stored as parameter 
+           - target processor has optional frame pointer save 
+             (vm, i386, vm only currently)
+         }
          if (po_assembler in aktprocdef.procoptions) and
             (not haslocals) and
             (not hasparas) and
             (aktprocdef.owner.symtabletype<>objectsymtable) and
             (not assigned(aktprocdef.funcretsym) or
              (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
-            not(ret_in_param(aktprocdef.rettype.def))
+            not(ret_in_param(aktprocdef.rettype.def)) and
+            (target_cpu in [cpu_i386,cpu_m68k,cpu_vm])
 {$ifdef CHECKFORPUSH}
             and not(UsesPush(tasmnode(p)))
 {$endif CHECKFORPUSH}
@@ -1202,7 +1213,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-04-16 16:11:17  peter
+  Revision 1.53  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.52  2002/04/16 16:11:17  peter
     * using inherited; without a parent having the same function
       will do nothing like delphi
 

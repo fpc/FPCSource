@@ -50,7 +50,7 @@ implementation
        { parser specific stuff }
        pbase,pexpr,
        { codegen }
-       cgbase
+       cpuinfo,cgbase
        ;
 
 {$ifdef fpc}
@@ -970,7 +970,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-04-15 19:01:53  carl
+  Revision 1.44  2002-04-20 21:32:24  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.43  2002/04/15 19:01:53  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.42  2002/04/04 19:06:03  peter

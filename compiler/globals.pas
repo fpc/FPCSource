@@ -86,7 +86,7 @@ interface
        end;
 
 
-   { the ordinal type used when evaluating constant integer expressions }
+   {# the ordinal type used when evaluating constant integer expressions }
    TConstExprInt = int64;
    { ... the same unsigned }
    TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
@@ -191,7 +191,6 @@ interface
 
      { Memory sizes }
        heapsize,
-       maxheapsize,
        stacksize    : longint;
 
 {$Ifdef EXTDEBUG}
@@ -1441,7 +1440,6 @@ implementation
         in options or init_parser }
         stacksize:=0;
         heapsize:=0;
-        maxheapsize:=0;
 
       { compile state }
         in_args:=false;
@@ -1462,7 +1460,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-04-07 13:24:30  carl
+  Revision 1.55  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.54  2002/04/07 13:24:30  carl
   + moved constant from cpuinfo, these are NOT cpu specific
     constant, but more related to compiler functionality.
 

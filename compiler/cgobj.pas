@@ -842,7 +842,7 @@ unit cgobj;
            end;
         { omit stack frame ? }
         if not inlined then
-          if procinfo^.framepointer=stack_pointer then
+          if procinfo^.framepointer=STACK_POINTER_REG then
             begin
                CGMessage(cg_d_stackframe_omited);
                nostackframe:=true;
@@ -1025,7 +1025,7 @@ unit cgobj;
                        reset_reference(hr);
                        hr.symbol:=procinfo^._class^.get_inittable_label;
                        a_paramaddr_ref(list,hr,2);
-                       a_param_reg(list,OS_ADDR,self_pointer,1);
+                       a_param_reg(list,OS_ADDR,self_pointer_reg,1);
                        a_call_name(list,'FPC_FINALIZE',0);
                        a_label(list,nofinal);
                     end;
@@ -1090,8 +1090,8 @@ unit cgobj;
                   { return self in EAX }
                   a_label(list,quickexitlabel);
                   a_reg_alloc(list,accumulator);
-                  a_load_reg_reg(list,OS_ADDR,self_pointer,accumulator);
-                  a_reg_dealloc(list,self_pointer);
+                  a_load_reg_reg(list,OS_ADDR,self_pointer_reg,accumulator);
+                  a_reg_dealloc(list,self_pointer_reg);
                   a_label(list,quickexitlabel);
                   { we can't clear the zero flag because the Alpha     }
                   { for example doesn't have flags, we have to compare }
@@ -1660,7 +1660,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.14  2002-04-15 19:44:18  peter
+  Revision 1.15  2002-04-20 21:32:23  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.14  2002/04/15 19:44:18  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

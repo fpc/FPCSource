@@ -520,7 +520,7 @@ unit rgobj;
             begin
               if saved[r].ofs <> reg_not_saved then
                 begin
-                  reference_reset_base(hr,frame_pointer,saved[r].ofs);
+                  reference_reset_base(hr,FRAME_POINTER_REG,saved[r].ofs);
                   cg.a_reg_alloc(list,r);
                   cg.a_loadmm_ref_reg(list,hr,r);
                   if not (r in unusedregsmm) then
@@ -542,7 +542,7 @@ unit rgobj;
             begin
               if saved[r].ofs <> reg_not_saved then
                 begin
-                  reference_reset_base(hr,frame_pointer,saved[r].ofs);
+                  reference_reset_base(hr,FRAME_POINTER_REG,saved[r].ofs);
                   cg.a_reg_alloc(list,r);
                   cg.a_loadfpu_ref_reg(list,OS_FLOAT,hr,r);
                   if not (r in unusedregsfpu) then
@@ -563,7 +563,7 @@ unit rgobj;
           begin
             if saved[r].ofs <> reg_not_saved then
               begin
-                reference_reset_base(hr,frame_pointer,saved[r].ofs);
+                reference_reset_base(hr,FRAME_POINTER_REG,saved[r].ofs);
                 cg.a_reg_alloc(list,r);
                 cg.a_load_ref_reg(list,OS_INT,hr,r);
                 if not (r in unusedregsint) then
@@ -842,7 +842,16 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-04-15 19:03:31  carl
+  Revision 1.7  2002-04-20 21:32:25  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+
+  Revision 1.6  2002/04/15 19:03:31  carl
   + reg2str -> std_reg2str()
 
   Revision 1.5  2002/04/06 18:13:01  jonas
