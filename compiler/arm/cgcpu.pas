@@ -117,7 +117,8 @@ unit cgcpu;
        globtype,globals,verbose,systems,cutils,
        symconst,symdef,symsym,
        tgobj,
-       procinfo,cpupi;
+       procinfo,cpupi,
+       paramgr;
 
 
     procedure tcgarm.init_register_allocators;
@@ -707,7 +708,7 @@ unit cgcpu;
         b : byte;
       begin
         if is_shifter_const(a,b) then
-          list.concat(taicpu.op_reg_const(A_CMN,reg,a))
+          list.concat(taicpu.op_reg_const(A_CMP,reg,a))
         { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
           and CMP reg,$7fffffff regarding the flags according to the ARM manual }
         else if is_shifter_const(not(a),b) and (a<>$7fffffff) and (a<>$ffffffff) then
@@ -776,7 +777,7 @@ unit cgcpu;
         reference_reset(ref);
         ref.index:=NR_STACK_POINTER_REG;
         ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_FD));
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
@@ -808,7 +809,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R13,RS_R15]),PF_EA));
           end;
       end;
 
@@ -1199,7 +1200,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-01-20 23:18:00  florian
+  Revision 1.31  2004-01-21 01:22:35  florian
+    * fixed a_cmp_const_reg_label
+    * fixed volatile register handling which was broken by my last patch
+
+  Revision 1.30  2004/01/20 23:18:00  florian
     * fixed a_call_reg
     + implemented paramgr.get_volative_registers
 
