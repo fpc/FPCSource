@@ -1,5 +1,7 @@
+{$ifdef go32v2}
 uses
    dpmiexcp;
+{$endif}
 
 var
    e : extended;
