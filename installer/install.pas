@@ -697,9 +697,15 @@ program install;
            Replace(s,'%basepath%',data.basepath);
            Replace(s,'%targetname%',targetname);
            if pos('-',targetname)=0 then
-             Replace(s,'%fpctargetmacro%','$FPCOS')
+	     begin
+	       Replace(s,'%targetos%',targetname);
+               Replace(s,'%fpctargetmacro%','$FPCOS')
+	     end  
            else
-             Replace(s,'%fpctargetmacro%','$FPCTARGET');
+	     begin
+	       Replace(s,'%targetos%',Copy(targetname,pos('-',targetname)+1,255));
+               Replace(s,'%fpctargetmacro%','$FPCTARGET');
+	     end;  
            writeln(t,s);
          end
        else
@@ -2040,7 +2046,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2005-01-05 21:27:55  hajny
+  Revision 1.28  2005-01-07 16:48:14  peter
+    * fix writing of -T<targetos>
+
+  Revision 1.27  2005/01/05 21:27:55  hajny
     * error message boxes instead of writeln
 
   Revision 1.26  2005/01/05 17:43:44  armin

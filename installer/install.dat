@@ -565,7 +565,7 @@ endcfg
 
 defaultidecfg=
 #IFDEF NORMAL
- -T$3
+ -T%targetos%
  -Sg
  -O1
  -OG
@@ -582,7 +582,7 @@ defaultidecfg=
 #ENDIF
 
 #IFDEF DEBUG
- -T$3
+ -T%targetos%
  -Sg
  -Cr
  -Ci
@@ -601,7 +601,7 @@ defaultidecfg=
 #ENDIF
 
 #IFDEF RELEASE
- -T$3
+ -T%targetos%
  -Sg
  -O1
  -O2
