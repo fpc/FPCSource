@@ -747,7 +747,7 @@ begin
        openfiles[handle]:=false;
        if assigned(opennames[handle]) and free_closed_names then
          begin
-            sysfreemem(opennames[handle],strlen(opennames[handle])+1);
+            sysfreememsize(opennames[handle],strlen(opennames[handle])+1);
             opennames[handle]:=nil;
          end;
     end;
@@ -1040,7 +1040,7 @@ begin
           assigned(opennames[regs.realeax]) then
          begin
             Writeln(stderr,'file ',opennames[regs.realeax],'(',regs.realeax,') not closed but handle reused!');
-            sysfreemem(opennames[regs.realeax],strlen(opennames[regs.realeax])+1);
+            sysfreememsize(opennames[regs.realeax],strlen(opennames[regs.realeax])+1);
          end;
        openfiles[regs.realeax]:=true;
        sysgetmem(opennames[regs.realeax],strlen(p)+1);
@@ -1288,7 +1288,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.18  1999-09-10 17:14:09  peter
+  Revision 1.19  1999-09-20 12:40:20  pierre
+   * adapted to new heaph
+
+  Revision 1.18  1999/09/10 17:14:09  peter
     * better errorcode returning using int21h,5900
 
   Revision 1.17  1999/09/10 15:40:33  peter
