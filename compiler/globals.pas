@@ -975,7 +975,11 @@ implementation
      {$ifdef hasunix}
        {$IFDEF VER1_0}
         FStat (F,Info);
-        L:=Info.Mtime;
+        {$ifdef BSD} 
+ 	L:=Info.st_Mtime;
+ 	{$else}
+ 	L:=Info.Mtime;
+	{$endif}
        {$ELSE}
         FPFStat (F,Info);
 	L:=Info.st_Mtime;
@@ -1679,7 +1683,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-09-16 16:17:01  peter
+  Revision 1.102  2003-09-18 15:38:17  marco
+   * BSD 1.0.x still uses st_ prefixes.
+
+  Revision 1.101  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.100  2003/09/15 20:11:06  marco
