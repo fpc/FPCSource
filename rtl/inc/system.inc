@@ -84,6 +84,7 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 {$ifdef FPC_USE_LIBC}
 { prefer libc implementations over our own, as they're most likely faster }
 {$i cgeneric.inc}
+{$i cgenstr.inc}
 {$endif FPC_USE_LIBC}
 
 {$ifdef cpui386}
@@ -881,7 +882,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  2004-04-22 19:43:43  peter
+  Revision 1.57  2004-05-01 15:26:33  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.56  2004/04/22 19:43:43  peter
     * fix 64bit address printing
 
   Revision 1.55  2004/04/22 17:10:38  peter

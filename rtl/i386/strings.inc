@@ -17,6 +17,7 @@
 
 {$ASMMODE ATT}
 
+{$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
 function strcopy(dest,source : pchar) : pchar;assembler;
 var
@@ -92,8 +93,10 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRCOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRECOPY}
 {$define FPC_UNIT_HAS_STRECOPY}
 function strecopy(dest,source : pchar) : pchar;assembler;
 var
@@ -124,8 +127,10 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRECOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 var
@@ -155,13 +160,17 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRLCOPY}
 
 
+{$ifndef FPC_UNIT_HAS_STRLEN}
 {$define FPC_UNIT_HAS_STRLEN}
 function strlen(p : pchar) : longint;assembler;
 {$i strlen.inc}
+{$endif FPC_UNIT_HAS_STRLEN}
 
 
+{$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
 var
@@ -182,9 +191,11 @@ asm
 .LStrEndNil:
         movl    saveedi,%edi
 end;
+{$endif FPC_UNIT_HAS_STREND}
 
 
 
+{$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 var
@@ -218,9 +229,11 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STREND}
 
 
 
+{$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 var
@@ -263,9 +276,11 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRLCOMP}
 
 
 
+{$ifndef FPC_UNIT_HAS_STRICOMP}
 {$define FPC_UNIT_HAS_STRICOMP}
 function stricomp(str1,str2 : pchar) : longint;assembler;
 var
@@ -315,9 +330,11 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRICOMP}
 
 
 
+{$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 var
@@ -376,9 +393,11 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRLICOMP}
 
 
 
+{$ifndef FPC_UNIT_HAS_STRSCAN}
 {$define FPC_UNIT_HAS_STRSCAN}
 function strscan(p : pchar;c : char) : pchar;assembler;
 var
@@ -504,8 +523,10 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRSCAN}
 
 
+{$ifndef FPC_UNIT_HAS_STRRSCAN}
 {$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 var
@@ -538,8 +559,10 @@ asm
 .LSTRRSCAN:
         movl    saveedi,%edi
 end;
+{$endif FPC_UNIT_HAS_STRRSCAN}
 
 
+{$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;
 var
@@ -571,8 +594,10 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRUPPER}
 
 
+{$ifndef FPC_UNIT_HAS_STRLOWER}
 {$define FPC_UNIT_HAS_STRLOWER}
 function strlower(p : pchar) : pchar;assembler;
 var
@@ -604,10 +629,14 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRLOWER}
 
 {
   $Log$
-  Revision 1.13  2003-12-19 09:28:00  michael
+  Revision 1.14  2004-05-01 15:26:33  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.13  2003/12/19 09:28:00  michael
   + Patch from Peter to fix strlcomp
 
   Revision 1.12  2003/12/17 21:56:33  peter

@@ -16,10 +16,13 @@
  **********************************************************************}
 
 
+{$ifndef FPC_UNIT_HAS_STRPAS}
 {$define FPC_UNIT_HAS_STRPAS}
 function strpas(p : pchar) : string; assembler;
 {$i strpas.inc}
+{$endif FPC_UNIT_HAS_STRPAS}
 
+{$ifndef FPC_UNIT_HAS_STRPCOPY}
 {$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 var
@@ -46,10 +49,14 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_UNIT_HAS_STRPCOPY}
 
 {
   $Log$
-  Revision 1.11  2003-11-19 16:58:44  peter
+  Revision 1.12  2004-05-01 15:26:33  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.11  2003/11/19 16:58:44  peter
     * make strpas assembler function
 
   Revision 1.10  2003/11/11 21:08:17  peter

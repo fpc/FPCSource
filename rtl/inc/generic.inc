@@ -652,8 +652,11 @@ end;
 { also add a strpas alias for internal use in the system unit (JM) }
 function strpas(p:pchar):shortstring; [external name 'FPC_PCHAR_TO_SHORTSTR'];
 
-{ also add a strlen alias for internal use in the system unit (JM) }
+{$ifndef FPC_UNIT_HAS_STRLEN}
+
+{ if strlen is not yet defined, we need a forward declaration here }
 function strlen(p:pchar):longint; [external name 'FPC_PCHAR_LENGTH'];
+{$endif FPC_UNIT_HAS_STRLEN}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
@@ -1158,7 +1161,10 @@ end;
 
 {
   $Log$
-  Revision 1.73  2004-04-29 19:50:13  peter
+  Revision 1.74  2004-05-01 15:26:33  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.73  2004/04/29 19:50:13  peter
     * x86-64 fixes
 
   Revision 1.72  2004/04/28 21:01:29  florian

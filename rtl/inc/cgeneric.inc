@@ -124,7 +124,7 @@ end;
 {$define FPC_SYSTEM_HAS_COMPARECHAR0}
 function strncmp_comparechar0(Const buf1,buf2;len:cardinal):longint; cdecl; external 'c' name 'strncmp';
 
-function CompareChar0(Const buf1,buf2;len:longint):longint;
+function CompareChar0(Const buf1,buf2;len:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if len <= 0 then
     exit(0);
@@ -134,9 +134,26 @@ end;
 {$endif not FPC_SYSTEM_HAS_COMPARECHAR0}
 
 
+
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+function libc_pchar_length(p:pchar):cardinal; cdecl; external 'c' name 'strlen';
+
+function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  fpc_pchar_length:=libc_pchar_length(p);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+
 {
   $Log$
-  Revision 1.1  2004-01-11 11:10:07  jonas
+  Revision 1.2  2004-05-01 15:26:33  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.1  2004/01/11 11:10:07  jonas
     + cgeneric.inc: implementations of rtl routines based on libc
     * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
       FPC_USE_LIBC is defined

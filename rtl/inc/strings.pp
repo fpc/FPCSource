@@ -93,6 +93,10 @@ interface
 
 implementation
 
+{$ifdef FPC_USE_LIBC}
+{$i cgenstr.inc}
+{$endif FPC_USE_LIBC}
+
 {  Read Processor dependent part, shared with sysutils unit }
 {$i strings.inc }
 
@@ -144,7 +148,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-02-18 22:00:59  peter
+  Revision 1.7  2004-05-01 15:26:33  jonas
+    * use some more string routines from libc if FPC_USE_LIBC is used
+
+  Revision 1.6  2004/02/18 22:00:59  peter
     * use strlenint instead of longint
 
   Revision 1.5  2003/07/07 20:22:05  peter
