@@ -244,7 +244,7 @@ begin
 {$endif i386}
 
 {$ifdef x86_64}
-     DynamicLinker:='/lib/ld-linux-x86-64.so.2';
+     DynamicLinker:='/lib64/ld-linux-x86-64.so.2';
      libctype:=glibc2;
 {$endif x86_64}
 
@@ -578,7 +578,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2004-11-17 22:22:12  peter
+  Revision 1.31  2004-12-19 14:03:16  florian
+    * dyn. linker path fixed for x86_64
+
+  Revision 1.30  2004/11/17 22:22:12  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 
