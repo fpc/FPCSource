@@ -34,8 +34,10 @@ type
   TConfig = record
     NeedOptions,
     NeedCPU,
-    NeedVersion   : string;
+    NeedVersion,
+    KnownRunNote  : string;
     ResultCode    : longint;
+    KnownRunError : longint;
     NeedRecompile : boolean;
     IsInteractive : boolean;
     IsKnown       : boolean;
@@ -63,6 +65,7 @@ const
   DoInteractive : boolean = false;
   DoExecute : boolean = false;
   DoKnown : boolean = false;
+  DoAll : boolean = false;
   DoUsual : boolean = true;
 
 procedure Verbose(lvl:TVerboseLevel;const s:string);
@@ -269,7 +272,8 @@ end;
 function GetConfig(const fn:string;var r:TConfig):boolean;
 var
   t : text;
-  code : integer;
+  part,code : integer;
+  l : longint;
   s,res : string;
 
   function GetEntry(const entry:string):boolean;
@@ -352,8 +356,26 @@ begin
                if GetEntry('NORUN') then
                 r.NoRun:=true
               else
+               if GetEntry('KNOWNRUNERROR') then
+                begin
+                  if res<>'' then
+                    begin
+                      val(res,l,code);
+                      if code>1 then
+                        begin
+                          part:=code;
+                          val(copy(res,1,code-1),l,code);
+                          delete(res,1,part);
+                        end;
+                      if code=0 then
+                        r.KnownRunError:=l;
+                      if res<>'' then
+                        r.KnownRunNote:=res;
+                    end;
+                end
+              else
                if GetEntry('KNOWN') then
-                r.IsKnown:=true
+                 r.IsKnown:=true
               else
                if GetEntry('INTERACTIVE') then
                 r.IsInteractive:=true
@@ -550,12 +572,26 @@ begin
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   if ExecuteResult<>Config.ResultCode then
    begin
-     AddLog(FailLogFile,TestName);
-     AddLog(ResLogFile,failed_to_run+PPFileInfo);
-     AddLog(LongLogFile,line_separation);
-     AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
-     Copyfile(OutName,LongLogFile,true);
-     Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
+     if (ExecuteResult<>0) and
+        (ExecuteResult=Config.KnownRunError) then
+       begin
+         AddLog(FailLogFile,TestName+known_problem+Config.KnownRunNote);
+         AddLog(ResLogFile,failed_to_run+PPFileInfo+known_problem+Config.KnownRunNote);
+         AddLog(LongLogFile,line_separation);
+         AddLog(LongLogFile,known_problem+Config.KnownRunNote);
+         AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+         Copyfile(OutName,LongLogFile,true);
+         Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
+       end
+     else
+       begin
+         AddLog(FailLogFile,TestName);
+         AddLog(ResLogFile,failed_to_run+PPFileInfo);
+         AddLog(LongLogFile,line_separation);
+         AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+         Copyfile(OutName,LongLogFile,true);
+         Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
+       end
    end
   else
    begin
@@ -605,6 +641,7 @@ begin
              DoGraph:=true;
              DoInteractive:=true;
              DoKnown:=true;
+             DoAll:=true;
            end;
          'C' : CompilerBin:=Para;
          'E' : DoExecute:=true;
@@ -692,7 +729,7 @@ begin
 
   if Res then
    begin
-     if Config.NeedVersion<>'' then
+     if (Config.NeedVersion<>'') and not DoAll then
       begin
         Verbose(V_Debug,'Required compiler version: '+Config.NeedVersion);
         Res:=GetCompilerVersion;
@@ -766,7 +803,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-11-18 01:31:07  pierre
+  Revision 1.20  2002-11-18 16:42:43  pierre
+   + KNOWNRUNERROR added
+
+  Revision 1.19  2002/11/18 01:31:07  pierre
    + use -n option
    + use -G- for only graph
    + use -I- for only interactive

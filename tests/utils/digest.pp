@@ -27,6 +27,7 @@ const
   failed_compilation_successful_count : longint = 0;
   successfully_compiled_count : longint = 0;
   failed_to_run_count : longint = 0;
+  known_run_problem : longint = 0;
   successfully_run_count : longint = 0;
   skipping_graph_test_count : longint = 0;
   skipping_interactive_test_count : longint = 0;
@@ -81,6 +82,8 @@ begin
       inc(failed_to_run_count);
       if not should_be_run then
         inc(unexpected_run);
+      if pos(known_problem,st)>0 then
+        inc(known_run_problem);
     end
   else if pos(successfully_run,st)=1 then
     begin
@@ -163,6 +166,8 @@ begin
     successfully_run_count,')');
   Writeln('Successful runs = ', successfully_run_count);
   Writeln('Failed runs = ', failed_to_run_count);
+  if known_run_problem>0 then
+    Writeln('From these ',known_run_problem,' known problems');
 
   if successfully_compiled_count <>
      number_runs+skipping_run_unit_count+skipping_run_test_count then
@@ -223,7 +228,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-13 15:26:24  pierre
+  Revision 1.2  2002-11-18 16:42:43  pierre
+   + KNOWNRUNERROR added
+
+  Revision 1.1  2002/11/13 15:26:24  pierre
    + digest program added
 
 }

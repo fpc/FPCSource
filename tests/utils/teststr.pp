@@ -34,7 +34,7 @@ const
   skipping_other_cpu = 'Skipping test because for other cpu ';
   skipping_run_unit = 'Skipping test run because it is a unit ';
   skipping_run_test = 'Skipping run test ';
-
+  known_problem = ' known problem: ';
   line_separation = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
   ResLogfile  : string[32] = 'log';
@@ -45,7 +45,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-13 15:26:24  pierre
+  Revision 1.3  2002-11-18 16:42:43  pierre
+   + KNOWNRUNERROR added
+
+  Revision 1.2  2002/11/13 15:26:24  pierre
    + digest program added
 
 }
