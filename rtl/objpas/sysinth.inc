@@ -53,21 +53,21 @@ Const
    
    
    { Short names of months. }
-   ShortMonthNames: array[1..12] of string =
+   ShortMonthNames: array[1..12] of string[128]} =
      ('Jan','Feb','Mar','Apr','May','Jun',
       'Jul','Aug','Sep','Oct','Nov','Dec');
       
    { Long names of months. }   
-   LongMonthNames: array[1..12] of string =
+   LongMonthNames: array[1..12] of string[128] =
      ('January','February','March','April','May','June',
       'July','August','September','October','November','December');
    
    { Short names of days }   
-   ShortDayNames: array[1..7] of string =
-     ('Sun','Mon','Tue','Wen','Thu','Fri','Sat');
+   ShortDayNames: array[1..7] of string[128] =
+     ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
      
    { Full names of days }  
-   LongDayNames: array[1..7] of string =
+   LongDayNames: array[1..7] of string[128] =
      ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
   
    { Format used for short time notation }

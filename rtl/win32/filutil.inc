@@ -296,8 +296,131 @@ begin
   st.second:=syst.wSecond;
   st.millisecond:=syst.wMilliSeconds;
 end;
+Procedure InitAnsi;
 
+Var i : longint;
 
+begin
+{  Fill table entries 0 to 127  }
+for i := 0 to 96 do
+  UpperCaseTable[i] := chr(i);
+for i := 97 to 122 do
+  UpperCaseTable[i] := chr(i - 32);
+for i := 123 to 191 do
+  UpperCaseTable[i] := chr(i);
+Move (CPISO88591UCT,UpperCaseTable[192],SizeOf(CPISO88591UCT));
+
+for i := 0 to 64 do
+  LowerCaseTable[i] := chr(i);
+for i := 65 to 90 do
+  LowerCaseTable[i] := chr(i + 32);
+for i := 91 to 191 do
+  LowerCaseTable[i] := chr(i);
+Move (CPISO88591LCT,UpperCaseTable[192],SizeOf(CPISO88591UCT));
+end;
+
+function GetLocaleStr(LID, LT: Longint; const Def: string): ShortString;
+
+var
+  L: Integer;
+  Buf: array[0..255] of Char;
+  
+begin
+  L := GetLocaleInfo(LID, LT, Buf, SizeOf(Buf));
+  if L > 0 then 
+    SetString(Result, @Buf[0], L - 1) 
+  else 
+    Result := Def;
+end;
+        
+function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
+
+var
+  Buf: array[0..1] of Char;
+begin
+  if GetLocaleInfo(LID, LT, Buf, 2) > 0 then
+    Result := Buf[0] 
+  else
+    Result := Def;
+end;
+Function GetLocaleInt(LID,TP,Def: LongInt): LongInt;
+
+Var
+  S: String;
+  C: Integer;
+
+Begin
+  S:=GetLocaleStr(LID,TP,'0');
+  Val(S,Result,C);
+  If C<>0 Then 
+    Result:=Def;
+End;
+                                        
+procedure GetFormatSettings;
+
+var
+  HF  : Shortstring;
+  LID : LCID;
+  I,Day,DateOrder : longint;
+   
+begin
+  LID := GetThreadLocale;
+  { Date stuff }
+  for I := 1 to 12 do
+    begin
+    ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
+    LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
+    Writeln ('Have : ',GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]));
+    Writeln ('Have : ',GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]));
+    end;
+  for I := 1 to 12 do
+    begin
+    Writeln ('Month short : ',ShortMonthNames[I]);
+    Writeln ('Month long : ',LongMonthNames[I]);
+    end;
+  for I := 1 to 7 do
+    begin
+    Day := (I + 5) mod 7;
+    ShortDayNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVDAYNAME1+Day,ShortDayNames[i]);
+    LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
+    end;
+  DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
+  DateOrder := GetLocaleInt(LID, LOCALE_IDate, 0);
+  Case DateOrder Of
+     1: Begin
+        ShortDateFormat := 'dd/mm/yyyy';
+        LongDateFormat := 'dddd, d. mmmm yyyy';
+        End;
+     2: Begin
+        ShortDateFormat := 'yyyy/mm/dd';
+        LongDateFormat := 'dddd, yyyy mmmm d.';
+        End;
+  else
+    // Default american settings...
+    ShortDateFormat := 'mm/dd/yyyy';
+    LongDateFormat := 'dddd, mmmm d. yyyy';
+  End;
+  { Time stuff }
+  TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
+  TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
+  TimePMString := GetLocaleStr(LID, LOCALE_S2359, 'PM');
+  if StrToIntDef(GetLocaleStr(LID, LOCALE_ITLZERO, '0'), 0) = 0 then
+    HF:='h' 
+  else
+    HF:='hh';
+  // No support for 12 hour stuff at the moment...
+  ShortTimeFormat := HF+':mm';
+  LongTimeFormat := HF + ':mm:ss';
+  { Currency stuff }
+  CurrencyString:=GetLocaleStr(LID, LOCALE_SCURRENCY, '');
+  CurrencyFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRENCY, '0'), 0);
+  NegCurrFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_INEGCURR, '0'), 0);
+  { Number stuff }
+  ThousandSeparator:=GetLocaleChar(LID, LOCALE_STHOUSAND, ',');
+  DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
+  CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
+end;
+                                                                      
 Procedure InitInternational;
 
 {
@@ -306,11 +429,16 @@ Procedure InitInternational;
 }
 
 begin
+ InitAnsi;
+ GetFormatSettings;
 end;
 
 {
   $Log$
-  Revision 1.5  1999-02-28 13:18:11  michael
+  Revision 1.6  1999-03-03 15:22:40  michael
+  Fixed internationalization support
+
+  Revision 1.5  1999/02/28 13:18:11  michael
   + Added internationalization support
 
   Revision 1.4  1999/02/24 15:57:30  michael
