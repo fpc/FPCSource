@@ -6,7 +6,7 @@ to pascal was done by Carl Eric Codere in 2002 (ccodere@ieee.org).
 ===============================================================================
 
 This C source file is part of the SoftFloat IEC/IEEE Floating-Point
-Arithmetic Package, Release 2a. 
+Arithmetic Package, Release 2a.
 
 Written by John R. Hauser.  This work was made possible in part by the
 International Computer Science Institute, located at Suite 600, 1947 Center
@@ -15,7 +15,7 @@ National Science Foundation under grant MIP-9311980.  The original version
 of this code was written as part of a project to build a fixed-point vector
 processor in collaboration with the University of California at Berkeley,
 overseen by Profs. Nelson Morgan and John Wawrzynek.  More information
-is available through the Web page 
+is available through the Web page
 `http://HTTP.CS.Berkeley.EDU/~jhauser/arithmetic/SoftFloat.html'.
 
 THIS SOFTWARE IS DISTRIBUTED AS IS, FOR FREE.  Although reasonable effort
@@ -36,7 +36,7 @@ unit softfpu;
 { Overflow checking must be disabled,
   since some operations expect overflow!
 }
-{$Q-}  
+{$Q-}
 
 interface
 
@@ -69,7 +69,7 @@ TYPE
   uint64 = qword;
   bits64 = qword;
   sbits64 = int64;
-  
+
 {$ifdef ENDIAN_LITTLE}
   float64 = packed record
     low: bits32;
@@ -98,7 +98,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_lt(a: float64;b: float64): flag; 
+Function float64_lt(a: float64;b: float64): flag;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the double-precision floating-point value `a' is less than
@@ -107,7 +107,7 @@ is performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_le(a: float64;b: float64): flag; 
+Function float64_le(a: float64;b: float64): flag;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the double-precision floating-point value `a' is equal to
@@ -115,7 +115,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_eq(a: float64;b: float64): flag; 
+Function float64_eq(a: float64;b: float64): flag;
 {*
 -------------------------------------------------------------------------------
 Returns the square root of the double-precision floating-point value `a'.
@@ -123,7 +123,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 ); 
+Procedure float64_sqrt( a: float64; var out: float64 );
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the double-precision floating-point value `a'
@@ -131,7 +131,7 @@ with respect to the corresponding value `b'.  The operation is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_rem(a: float64; b : float64; var out: float64); 
+Procedure float64_rem(a: float64; b : float64; var out: float64);
 {*
 -------------------------------------------------------------------------------
 Returns the result of dividing the double-precision floating-point value `a'
@@ -139,7 +139,7 @@ by the corresponding value `b'.  The operation is performed according to the
 IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_div(a: float64; b : float64 ; var out: float64 ); 
+Procedure float64_div(a: float64; b : float64 ; var out: float64 );
 {*
 -------------------------------------------------------------------------------
 Returns the result of multiplying the double-precision floating-point values
@@ -147,7 +147,7 @@ Returns the result of multiplying the double-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_mul( a: float64; b:float64; Var out: float64); 
+Procedure float64_mul( a: float64; b:float64; Var out: float64);
 {*
 -------------------------------------------------------------------------------
 Returns the result of subtracting the double-precision floating-point values
@@ -155,7 +155,7 @@ Returns the result of subtracting the double-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sub(a: float64; b : float64; var out: float64); 
+Procedure float64_sub(a: float64; b : float64; var out: float64);
 {*
 -------------------------------------------------------------------------------
 Returns the result of adding the double-precision floating-point values `a'
@@ -163,7 +163,7 @@ and `b'.  The operation is performed according to the IEC/IEEE Standard for
 Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_add( a: float64; b : float64; Var out : float64); 
+Procedure float64_add( a: float64; b : float64; Var out : float64);
 {*
 -------------------------------------------------------------------------------
 Rounds the double-precision floating-point value `a' to an integer,
@@ -172,7 +172,7 @@ operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_round_to_int(a: float64; var out: float64 ); 
+Procedure float64_round_to_int(a: float64; var out: float64 );
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the double-precision floating-point value
@@ -181,7 +181,7 @@ performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_float32(a: float64 ): float32; 
+Function float64_to_float32(a: float64 ): float32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the double-precision floating-point value
@@ -193,7 +193,7 @@ the conversion overflows, the largest integer with the same sign as `a' is
 returned.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_int32_round_to_zero(a: float64 ): int32; 
+Function float64_to_int32_round_to_zero(a: float64 ): int32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the double-precision floating-point value
@@ -205,7 +205,7 @@ positive integer is returned.  Otherwise, if the conversion overflows, the
 largest integer with the same sign as `a' is returned.
 -------------------------------------------------------------------------------
 *}
-Function float64_to_int32(a: float64): int32; 
+Function float64_to_int32(a: float64): int32;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the single-precision floating-point value `a' is less than
@@ -213,7 +213,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_lt( a:float32 ; b : float32): flag; 
+Function float32_lt( a:float32 ; b : float32): flag;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the single-precision floating-point value `a' is less than
@@ -222,7 +222,7 @@ is performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_le( a: float32; b : float32 ):flag; 
+Function float32_le( a: float32; b : float32 ):flag;
 {*
 -------------------------------------------------------------------------------
 Returns 1 if the single-precision floating-point value `a' is equal to
@@ -230,7 +230,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_eq( a:float32; b:float32): flag; 
+Function float32_eq( a:float32; b:float32): flag;
 {*
 -------------------------------------------------------------------------------
 Returns the square root of the single-precision floating-point value `a'.
@@ -238,7 +238,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_sqrt(a: float32 ): float32; 
+Function float32_sqrt(a: float32 ): float32;
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the single-precision floating-point value `a'
@@ -246,7 +246,7 @@ with respect to the corresponding value `b'.  The operation is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_rem(a: float32; b: float32 ):float32; 
+Function float32_rem(a: float32; b: float32 ):float32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of dividing the single-precision floating-point value `a'
@@ -254,7 +254,7 @@ by the corresponding value `b'.  The operation is performed according to the
 IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_div(a: float32;b: float32 ): float32; 
+Function float32_div(a: float32;b: float32 ): float32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of multiplying the single-precision floating-point values
@@ -262,7 +262,7 @@ Returns the result of multiplying the single-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_mul(a: float32; b: float32 ) : float32; 
+Function float32_mul(a: float32; b: float32 ) : float32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of subtracting the single-precision floating-point values
@@ -270,7 +270,7 @@ Returns the result of subtracting the single-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_sub( a: float32 ; b:float32 ): float32; 
+Function float32_sub( a: float32 ; b:float32 ): float32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of adding the single-precision floating-point values `a'
@@ -278,7 +278,7 @@ and `b'.  The operation is performed according to the IEC/IEEE Standard for
 Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_add( a: float32; b:float32 ): float32; 
+Function float32_add( a: float32; b:float32 ): float32;
 {*
 -------------------------------------------------------------------------------
 Rounds the single-precision floating-point value `a' to an integer,
@@ -287,7 +287,7 @@ operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float32_round_to_int( a: float32): float32; 
+Function float32_round_to_int( a: float32): float32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the single-precision floating-point value
@@ -296,7 +296,7 @@ performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float32_to_float64( a : float32; var out: Float64); 
+Procedure float32_to_float64( a : float32; var out: Float64);
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the single-precision floating-point value
@@ -308,7 +308,7 @@ the conversion overflows, the largest integer with the same sign as `a' is
 returned.
 -------------------------------------------------------------------------------
 *}
-Function float32_to_int32_round_to_zero( a: Float32 ): int32; 
+Function float32_to_int32_round_to_zero( a: Float32 ): int32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the single-precision floating-point value
@@ -320,7 +320,7 @@ positive integer is returned.  Otherwise, if the conversion overflows, the
 largest integer with the same sign as `a' is returned.
 -------------------------------------------------------------------------------
 *}
-Function float32_to_int32( a : float32) : int32; 
+Function float32_to_int32( a : float32) : int32;
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the 32-bit two's complement integer `a' to
@@ -328,7 +328,7 @@ the double-precision floating-point format.  The conversion is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure int32_to_float64( a: int32; var c: float64 ); 
+Procedure int32_to_float64( a: int32; var c: float64 );
 {*
 -------------------------------------------------------------------------------
 Returns the result of converting the 32-bit two's complement integer `a' to
@@ -336,7 +336,7 @@ the single-precision floating-point format.  The conversion is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function int32_to_float32( a: int32): float32; 
+Function int32_to_float32( a: int32): float32;
 
 {*----------------------------------------------------------------------------
 | Returns the result of converting the 64-bit two's complement integer `a'
@@ -367,28 +367,28 @@ Software IEC/IEEE floating-point rounding mode.
 -------------------------------------------------------------------------------
 *}
 {
-Round to nearest. 
-This is the default mode. It should be used unless there is a specific 
-need for one of the others. In this mode results are rounded to the 
-nearest representable value. If the result is midway between two 
-representable values, the even representable is chosen. Even here 
-means the lowest-order bit is zero. This rounding mode prevents 
-statistical bias and guarantees numeric stability: round-off errors 
-in a lengthy calculation will remain smaller than half of FLT_EPSILON. 
+Round to nearest.
+This is the default mode. It should be used unless there is a specific
+need for one of the others. In this mode results are rounded to the
+nearest representable value. If the result is midway between two
+representable values, the even representable is chosen. Even here
+means the lowest-order bit is zero. This rounding mode prevents
+statistical bias and guarantees numeric stability: round-off errors
+in a lengthy calculation will remain smaller than half of FLT_EPSILON.
 
-Round toward plus Infinity. 
-All results are rounded to the smallest representable value which is 
-greater than the result. 
+Round toward plus Infinity.
+All results are rounded to the smallest representable value which is
+greater than the result.
 
-Round toward minus Infinity. 
-All results are rounded to the largest representable value which is 
-less than the result. 
+Round toward minus Infinity.
+All results are rounded to the largest representable value which is
+less than the result.
 
-Round toward zero. 
-All results are rounded to the largest representable value whose 
-magnitude is less than that of the result. In other words, if the 
-result is negative it is rounded up; if it is positive, it is 
-rounded down. 
+Round toward zero.
+All results are rounded to the largest representable value whose
+magnitude is less than that of the result. In other words, if the
+result is negative it is rounded up; if it is positive, it is
+rounded down.
 }
     float_round_nearest_even = 0;
     float_round_down         = 1;
@@ -443,7 +443,7 @@ Begin
   float_exception_flags := float_exception_flags or i;
   if (float_exception_flags and float_flag_invalid) <> 0 then
      RunError(207)
-  else  
+  else
   if (float_exception_flags and float_flag_divbyzero) <> 0 then
      RunError(200)
   else
@@ -479,7 +479,7 @@ var
 Begin
     if ( count = 0 ) then
         z := a
-   else 
+   else
     if ( count < 32 ) then
     Begin
         z := ( a shr count ) or bits32( (( a shl ( ( - count ) AND 31 )) ) <> 0);
@@ -557,7 +557,7 @@ Begin
         z1 := a1;
         z0 := a0;
     End
-   else 
+   else
     if ( count < 32 ) then
     Begin
         z1 := ( a0 shl negCount ) OR ( a1 shr count ) OR bits32( ( a1 shl negCount ) <> 0 );
@@ -569,7 +569,7 @@ Begin
         Begin
             z1 := a0 OR bits32( a1 <> 0 );
         End
-       else 
+       else
         if ( count < 64 ) Then
         Begin
             z1 := ( a0 shr ( count AND 31 ) ) OR bits32( ( ( a0 shl negCount ) OR a1 ) <> 0 );
@@ -1081,7 +1081,7 @@ End;
 function countLeadingZeros64( a : bits64): int8;
 var
  shiftcount : int8;
-Begin 
+Begin
     shiftCount := 0;
     if ( a <  (bits64(1)  shl 32 )) then
         shiftCount := shiftcount + 32
@@ -1441,7 +1441,7 @@ End;
   sign : flag;
   high, low : bits32;
  end;
- 
+
 (*----------------------------------------------------------------------------
 | The pattern for a default generated single-precision NaN.
 *----------------------------------------------------------------------------*)
@@ -1464,7 +1464,7 @@ function float32_is_signaling_nan(a: float32):flag;
  begin
    float32_is_signaling_nan := flag( ( ( a shr 22 ) and $1FF ) = $1FE ) and ( (a and $003FFFFF)<>0 );
  end;
- 
+
 (*----------------------------------------------------------------------------
 | Returns the result of converting the single-precision floating-point NaN
 | `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
@@ -1490,7 +1490,7 @@ function CommonNanToFloat32(a : CommonNaNT): float32;
  begin
     CommonNanToFloat32:= ( ( (bits32) a.sign ) shl 31 ) OR $7FC00000 OR ( a.high shr 9 );
  end;
- 
+
 (*----------------------------------------------------------------------------
 | Takes two single-precision floating-point values `a' and `b', one of which
 | is a NaN, and returns the appropriate NaN result.  If either `a' or `b' is a
@@ -1607,7 +1607,7 @@ var
         c := a;
  end;
 
-{$ENDIF} 
+{$ENDIF}
 
 (****************************************************************************)
 (*                        END ENDIAN SPECIFIC CODE                          *)
@@ -4573,14 +4573,14 @@ Begin
       begin
         int64_to_float32:= packFloat32( zSign, $95 - shiftCount, absA shl shiftCount );
       end
-    else 
+    else
        begin
         shiftCount := shiftCount + 7;
         if ( shiftCount < 0 ) then
           begin
             intval.low := int64rec(AbsA).low;
             intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.low, intval.high, - shiftCount, 
+            shift64RightJamming( intval.low, intval.high, - shiftCount,
                intval.low, intval.high);
             int64rec(absA).low := intval.low;
             int64rec(absA).high := intval.high;
@@ -4597,51 +4597,47 @@ End;
 | to the double-precision floating-point format.  The conversion is performed
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
-
 function int64_to_float64( a: int64 ): float64;
 var
  zSign : flag;
  float_result : float64;
  intval : int64rec;
+ AbsA : bits64;
+ shiftcount : int8;
+ zSig0, zSig1 : bits32;
 Begin
     if ( a = 0 ) then
-      begin
-        int64_to_float64.low := 0;
-        int64_to_float64.high := 0;
-        exit;
+      Begin
+       packFloat64( 0, 0, 0, 0, float_result );
+       exit;
       end;
-    if ( a =  sbits64 ( 1 shl 64 ) ) then
-      begin
-        packFloat64(1, $43E, 0, 0, float_result);
-        int64_to_float64 := float_result;
-        exit;
-      end;  
-    if a < 0 then
-      zSign := flag(TRUE)
+    zSign := flag( a < 0 );
+    if ZSign<>0 then
+      AbsA := -a
     else
-      zSign := flag(FALSE);
-    if zSign<>0 then 
-      a := -a;
-    if zSign <> 0 then
-     begin
-       a:=-a;
-       intval.low := int64rec(a).low;
-       intval.high := int64rec(a).high;
-       normalizeRoundAndPackFloat64( zSign, $43C, intval.low, intval.high , float_result )
-     end
+      AbsA := a;
+    shiftCount := countLeadingZeros64( absA ) - 11;
+    if ( 0 <= shiftCount ) then
+      Begin
+        absA := absA shl shiftcount;
+        zSig0:=int64rec(absA).high;
+        zSig1:=int64rec(absA).low;
+      End
     else
-     begin 
-       intval.low := int64rec(a).low;
-       intval.high := int64rec(a).high;
-       normalizeRoundAndPackFloat64( zSign, $43C, intval.low, intval.high , float_result );
-     end;
+      Begin
+        shift64Right( absA, 0, - shiftCount, zSig0, zSig1 );
+      End;
+    packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
     int64_to_float64:= float_result;
 End;
 
 end.
 {
    $Log$
-   Revision 1.3  2002-10-12 20:24:22  carl
+   Revision 1.4  2002-10-13 15:47:39  carl
+      * bugfix for int64 to float conversion
+
+   Revision 1.3  2002/10/12 20:24:22  carl
      + int64_tof_loat conversion routines
 
    Revision 1.2  2002/10/08 20:07:08  carl
