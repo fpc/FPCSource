@@ -110,7 +110,7 @@ function DayOfWeek(DateTime: TDateTime): integer;
 function Date: TDateTime;
 function Time: TDateTime;
 function Now: TDateTime;
-function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
+function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer {$ifndef ver1_0} = 1 {$endif}): TDateTime;
 function IsLeapYear(Year: Word): boolean;
 function DateToStr(Date: TDateTime): string;
 function TimeToStr(Time: TDateTime): string;
@@ -128,7 +128,10 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  Revision 1.4  2005-03-17 15:21:10  marco
+   * fixed incmonths default param. Thnks nldelphi
+
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
 }

@@ -258,7 +258,7 @@ end ;
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
 
-function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
+function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer {$ifndef ver1_0} = 1 {$endif}): TDateTime;
 var
   Year, Month, Day: word;
   S : Integer;
@@ -754,7 +754,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-03-10 19:48:27  florian
+  Revision 1.8  2005-03-17 15:21:10  marco
+   * fixed incmonths default param. Thnks nldelphi
+
+  Revision 1.7  2005/03/10 19:48:27  florian
     * fixed compatibility problem of DateTimeToString
 
   Revision 1.6  2005/02/14 17:13:31  peter
