@@ -24,6 +24,9 @@
      - locals dependend upper/lowercase routines
      - extend the interface
 }
+
+{$mode objfpc}
+
 unit regexpr;
 
   interface
@@ -590,7 +593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-07-30 14:58:04  sg
+  Revision 1.4  2002-01-22 13:13:14  pierre
+   + add mode objfpc to avoid problems if compiling from IDE dir
+
+  Revision 1.3  2000/07/30 14:58:04  sg
   * Added modifications by Markus Kaemmerer:
     - Unit now compiles with Delphi
     - Removed debug output when not compiled with -dDEBUG
