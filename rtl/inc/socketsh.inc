@@ -12,21 +12,46 @@
 
  **********************************************************************}
 Const
-  { Socket Types }
+  { Socket types }
   SOCK_STREAM     = 1;               { stream (connection) socket   }
   SOCK_DGRAM      = 2;               { datagram (conn.less) socket  }
   SOCK_RAW        = 3;               { raw socket                   }
   SOCK_RDM        = 4;               { reliably-delivered message   }
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
 
-  AF_UNSPEC       = 0;
-  AF_UNIX         = 1;      { Unix domain sockets          }
-  AF_INET         = 2;      { Internet IP Protocol         }
+  { Protocol families }
+  PF_UNSPEC    = 0;                  { Unspecified }
+  PF_LOCAL     = 1;                  { Local to host (pipes and file-domain) }
+  PF_UNIX      = PF_LOCAL;           { Old BSD name for PF_LOCAL }
+  PF_FILE      = PF_LOCAL;           { Another non-standard name for PF_LOCAL }
+  PF_INET      = 2;                  { IP protocol family }
 
-  {  Protocol Families }
-  PF_UNSPEC       = AF_UNSPEC;
-  PF_UNIX         = AF_UNIX;
-  PF_INET         = AF_INET;
+  { Address families }
+  AF_UNSPEC    = PF_UNSPEC;
+  AF_LOCAL     = PF_LOCAL;
+  AF_UNIX      = PF_UNIX;
+  AF_FILE      = PF_FILE;
+  AF_INET      = PF_INET;
+
+  { Flags for send, recv etc. }
+  MSG_OOB      = $0001;              { Process out-of-band data}
+  MSG_PEEK     = $0002;              { Peek at incoming messages }
+  MSG_DONTROUTE= $0004;              { Don't use local routing }
+  MSG_TRYHARD  = MSG_DONTROUTE;
+  MSG_CTRUNC   = $0008;              { Control data lost before delivery }
+  MSG_PROXY    = $0010;              { Supply or ask second address }
+  MSG_TRUNC    = $0020;
+  MSG_DONTWAIT = $0040;              { Non-blocking I/O }
+  MSG_EOR      = $0080;              { End of record }
+  MSG_WAITALL  = $0100;              { Wait for a full request }
+  MSG_FIN      = $0200;
+  MSG_SYN      = $0400;
+  MSG_CONFIRM  = $0800;              { Confirm path validity }
+  MSG_RST      = $1000;
+  MSG_ERRQUERE = $2000;              { Fetch message from error queue }
+  MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
+  MSG_MORE     = $8000;              { Sender will send more }
+
 
 {$Ifdef Unix}
 {$ifndef BSD}
@@ -170,7 +195,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.10  2003-11-09 21:43:15  michael
+  Revision 1.11  2003-11-22 16:28:56  michael
+  + Added several constants
+
+  Revision 1.10  2003/11/09 21:43:15  michael
   + Added some missing socket options and the shut_* constants
 
   Revision 1.9  2003/03/23 17:47:15  armin
