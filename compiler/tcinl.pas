@@ -105,10 +105,7 @@ implementation
          store_count_ref:=count_ref;
          count_ref:=false;
          if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
-            in_typeof_x,in_ord_x,in_str_x_string,
-{$IfnDef OLDVAL}
-            in_val_x,
-{$EndIf OLDVAL}
+            in_typeof_x,in_ord_x,in_str_x_string,in_val_x,
             in_reset_typedfile,in_rewrite_typedfile]) then
            must_be_valid:=true
          else
@@ -871,7 +868,6 @@ implementation
                   left_right_max(p);
                end;
 
-{$IfnDef OLDVAL}
              in_val_x :
                begin
                   procinfo.flags:=procinfo.flags or pi_do_call;
@@ -952,7 +948,6 @@ implementation
                   else
                     inc(p^.registers32,1);
                end;
-{$EndIf OLDVAL}
 
              in_include_x_y,
              in_exclude_x_y:
@@ -1121,7 +1116,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-07-03 14:14:31  florian
+  Revision 1.40  1999-07-05 20:13:18  peter
+    * removed temp defines
+
+  Revision 1.39  1999/07/03 14:14:31  florian
     + start of val(int64/qword)
     * longbool, wordbool constants weren't written, fixed
 

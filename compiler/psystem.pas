@@ -63,9 +63,7 @@ begin
   p^.insert(new(psyssym,init('INC',in_inc_x)));
   p^.insert(new(psyssym,init('STR',in_str_x_string)));
   p^.insert(new(psyssym,init('ASSERT',in_assert_x_y)));
-{$IfnDef OLDVAL}
   p^.insert(new(psyssym,init('VAL',in_val_x)));
-{$EndIf OLDVAL}
   p^.insert(new(psyssym,init('ADDR',in_addr_x)));
 end;
 
@@ -240,7 +238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-07-01 15:49:20  florian
+  Revision 1.25  1999-07-05 20:13:17  peter
+    * removed temp defines
+
+  Revision 1.24  1999/07/01 15:49:20  florian
     * int64/qword type release
     + lo/hi for int64/qword
 

@@ -982,22 +982,8 @@ begin
   def_symbol('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
-{$ifdef TESTOBJEXT}
-  def_symbol('FPC_TESTOBJEXT');
-{$endif def TESTOBJEXT}
-{$IfnDef OLDVAL}
-  def_symbol('VALINTERNCOMPILED');
-{$EndIf OLDVAL}
-  def_symbol('NEWATT');
-  def_symbol('NOSTRANSI');  { use SHORTSTR,ANSISTR etc. }
-{$ifndef OLDREAD}
-  def_symbol('NEWREADINT'); { use SHORTSTR,ANSISTR etc. }
-{$endif}
-  def_symbol('HASFINALIZE');
-  def_symbol('INTERNALADDR');
-  def_symbol('NEWWRITEARRAY');
-  def_symbol('INTERNDOUBLE');
   def_symbol('INT64');
+  
 { some stuff for TP compatibility }
 {$ifdef i386}
   def_symbol('CPU86');
@@ -1153,7 +1139,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-07-03 00:29:54  peter
+  Revision 1.4  1999-07-05 20:13:14  peter
+    * removed temp defines
+
+  Revision 1.3  1999/07/03 00:29:54  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

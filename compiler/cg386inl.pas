@@ -620,10 +620,8 @@ implementation
            popusedregisters(pushed);
         end;
 
-{$IfnDef OLDVAL}
 
         Procedure Handle_Val;
-
         var
            hp,node, code_para, dest_para : ptree;
            hreg,hreg2: TRegister;
@@ -832,7 +830,6 @@ implementation
            disposetree(dest_para);
            UnGetIfTemp(hr);
         end;
-{$EndIf OLDVAL}
 
       var
          r : preference;
@@ -1227,12 +1224,10 @@ implementation
                  handle_str;
                  maybe_loadesi;
               end;
-{$IfnDef OLDVAL}
             in_val_x :
               Begin
                 handle_val;
               End;
-{$EndIf OLDVAL}
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -1318,7 +1313,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-07-03 14:14:27  florian
+  Revision 1.62  1999-07-05 20:13:10  peter
+    * removed temp defines
+
+  Revision 1.61  1999/07/03 14:14:27  florian
     + start of val(int64/qword)
     * longbool, wordbool constants weren't written, fixed
 

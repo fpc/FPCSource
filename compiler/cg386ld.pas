@@ -218,24 +218,6 @@ implementation
                               simple_loadn:=false;
                               if hregister=R_NO then
                                 hregister:=getregister32;
-{$ifdef OLDHIGH}
-                              if is_open_array(pvarsym(p^.symtableentry)^.definition) or
-                                 is_open_string(pvarsym(p^.symtableentry)^.definition) then
-                                begin
-                                   if (p^.location.reference.base=procinfo.framepointer) then
-                                     begin
-                                        highframepointer:=p^.location.reference.base;
-                                        highoffset:=p^.location.reference.offset;
-                                     end
-                                   else
-                                     begin
-                                        highframepointer:=R_EDI;
-                                        highoffset:=p^.location.reference.offset;
-                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                                          p^.location.reference.base,R_EDI)));
-                                     end;
-                                end;
-{$endif}
                               if p^.location.loc=LOC_CREGISTER then
                                 begin
                                    exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
@@ -852,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-06-30 15:43:18  florian
+  Revision 1.63  1999-07-05 20:13:12  peter
+    * removed temp defines
+
+  Revision 1.62  1999/06/30 15:43:18  florian
     * two bugs regarding method variables fixed
       - if you take in a method the address of another method
         don't need self anymore

@@ -593,7 +593,7 @@ implementation
 
       var
          r : preference;
-         hregister,hregister2 : tregister;
+         hregister : tregister;
          l1,l2 : pasmlabel;
 
       begin
@@ -1392,7 +1392,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  1999-07-04 16:37:08  florian
+  Revision 1.78  1999-07-05 20:13:07  peter
+    * removed temp defines
+
+  Revision 1.77  1999/07/04 16:37:08  florian
     + qword/int64 -> floating point type cast
 
   Revision 1.76  1999/06/28 22:29:10  florian

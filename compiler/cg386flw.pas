@@ -186,7 +186,7 @@ implementation
          getlabel(l3);
 
          { could we spare the first comparison ? }
-             omitfirstcomp:=false;
+         omitfirstcomp:=false;
          if p^.right^.treetype=ordconstn then
            if p^.left^.right^.treetype=ordconstn then
              omitfirstcomp:=(p^.backward and (p^.left^.right^.value>=p^.right^.value))
@@ -195,10 +195,9 @@ implementation
          { only calculate reference }
          cleartempgen;
          secondpass(p^.t2);
-{$ifndef OLDFORVER}
          hs:=p^.t2^.resulttype^.size;
          cmp32:=getregister32;
-             case hs of
+         case hs of
             1 : begin
                    opsize:=S_B;
                    cmpreg:=reg32toreg8(cmp32);
@@ -212,10 +211,6 @@ implementation
                    cmpreg:=cmp32;
                 end;
          end;
-         (*
-         if not(simple_loadn) then
-          CGMessage(cg_e_illegal_count_var);
-         already done in firstfor !! *)
 
          { first set the to value
            because the count var can be in the expression !! }
@@ -237,51 +232,13 @@ implementation
               else
                  concatcopy(p^.right^.location.reference,temp1,hs,false,false);
            end
-         else temptovalue:=false;
-{$endif OLDFORVER}
+         else
+	   temptovalue:=false;
 
          { produce start assignment }
          cleartempgen;
          secondpass(p^.left);
          count_var_is_signed:=is_signed(porddef(p^.t2^.resulttype));
-{$ifdef OLDFORVER}
-         hs:=p^.t2^.resulttype^.size;
-         cmp32:=getregister32;
-             case hs of
-            1 : begin
-                   opsize:=S_B;
-                   cmpreg:=reg32toreg8(cmp32);
-                end;
-            2 : begin
-                   opsize:=S_W;
-                   cmpreg:=reg32toreg16(cmp32);
-                end;
-            4 : begin
-                   opsize:=S_L;
-                   cmpreg:=cmp32;
-                end;
-         end;
-         cleartempgen;
-         secondpass(p^.right);
-         { calculate pointer value and check if changeable and if so }
-         { load into temporary variable                       }
-         if p^.right^.treetype<>ordconstn then
-           begin
-              temp1.symbol:=nil;
-              gettempofsizereference(hs,temp1);
-              temptovalue:=true;
-              if (p^.right^.location.loc=LOC_REGISTER) or
-                 (p^.right^.location.loc=LOC_CREGISTER) then
-                begin
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,p^.right^.location.register,
-                      newreference(temp1))));
-                 end
-              else
-                 concatcopy(p^.right^.location.reference,temp1,hs,false,false);
-           end
-         else temptovalue:=false;
-
-{$endif OLDFORVER}
          if temptovalue then
              begin
               if p^.t2^.location.loc=LOC_CREGISTER then
@@ -349,7 +306,7 @@ implementation
             4 : opsize:=S_L;
          end;
 
-          { produce comparison and the corresponding }
+         { produce comparison and the corresponding }
          { jump                              }
          if temptovalue then
            begin
@@ -396,10 +353,10 @@ implementation
          if p^.t2^.location.loc=LOC_CREGISTER then
            exprasmlist^.concat(new(pai386,op_reg(hop,opsize,p^.t2^.location.register)))
          else
-             exprasmlist^.concat(new(pai386,op_ref(hop,opsize,newreference(p^.t2^.location.reference))));
+           exprasmlist^.concat(new(pai386,op_ref(hop,opsize,newreference(p^.t2^.location.reference))));
          emitjmp(C_None,l3);
 
-           { this is the break label: }
+         { this is the break label: }
          emitlab(aktbreaklabel);
          ungetregister32(cmp32);
 
@@ -795,7 +752,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.40  1999-06-14 00:43:35  peter
+  Revision 1.41  1999-07-05 20:13:09  peter
+    * removed temp defines
+
+  Revision 1.40  1999/06/14 00:43:35  peter
     * merged
 
   Revision 1.39.2.1  1999/06/14 00:39:29  peter

@@ -453,7 +453,6 @@ unit pexpr;
               pd:=voiddef;
             end;
 
-{$IfnDef OLDVAL}
           in_val_x:
             Begin
               consume(LKLAMMER);
@@ -473,7 +472,6 @@ unit pexpr;
               statement_syssym := p2;
               pd := voiddef;
             End;
-{$EndIf OLDVAL}
 
           in_include_x_y,
           in_exclude_x_y :
@@ -2044,7 +2042,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.118  1999-07-01 21:33:57  peter
+  Revision 1.119  1999-07-05 20:13:16  peter
+    * removed temp defines
+
+  Revision 1.118  1999/07/01 21:33:57  peter
     * merged
 
   Revision 1.117  1999/06/30 15:43:20  florian

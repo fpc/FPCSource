@@ -2091,9 +2091,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-07-02 12:18:46  jonas
-    * released setconstnot (changed to {$ifndef nosetconstnot})
-    * released shlmul (changed to {$ifndef no shlmul})
+  Revision 1.69  1999-07-05 20:13:06  peter
+    * removed temp defines
+
+  Revision 1.68  1999/07/02 12:18:46  jonas
+    * released setconstnot (changed to $ifndef nosetconstnot)
+    * released shlmul (changed to $ifndef no shlmul)
 
   Revision 1.67  1999/06/14 17:47:45  peter
     * merged

@@ -26,9 +26,6 @@ interface
     uses
       tree;
 
-{$define SMALLSETORD}
-
-
     procedure secondrealconst(var p : ptree);
     procedure secondfixconst(var p : ptree);
     procedure secondordconst(var p : ptree);
@@ -300,7 +297,6 @@ implementation
          i         : longint;
          neededtyp   : tait;
       begin
-{$ifdef SMALLSETORD}
         { small sets are loaded as constants }
         if psetdef(p^.resulttype)^.settype=smallset then
          begin
@@ -309,7 +305,6 @@ implementation
            p^.location.reference.offset:=plongint(p^.value_set)^;
            exit;
          end;
-{$endif}
         if psetdef(p^.resulttype)^.settype=smallset then
          neededtyp:=ait_const_32bit
         else
@@ -406,7 +401,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-05-27 19:44:10  peter
+  Revision 1.37  1999-07-05 20:13:08  peter
+    * removed temp defines
+
+  Revision 1.36  1999/05/27 19:44:10  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -74,12 +74,6 @@ unit cgai386;
     procedure finalize(t : pdef;const ref : treference);
     procedure decrstringref(t : pdef;const ref : treference);
 
-{$ifdef unused}
-    procedure copyansistring(const dref,sref : treference);
-    procedure copyansistringtoshortstring(const dref,sref : treference;len : longint);
-    procedure copyshortstringtoansistring(const dref,sref : treference);
-{$endif}
-
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
     procedure push_int(l : longint);
     procedure emit_push_mem(const ref : treference);
@@ -285,7 +279,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           end;
         ai^.is_jmp:=true;
         exprasmlist^.concat(ai);
-      end; 
+      end;
 {$endif nojmpfix}
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
@@ -757,65 +751,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            ungetiftemp(p^.right^.location.reference);
       end;
 
-{$ifdef unused}
-    procedure copyansistring(const dref,sref : treference);
-      var
-         pushed : tpushed;
-      begin
-         pushusedregisters(pushed,$ff);
-         emitpushreferenceaddr(dref);
-         emitpushreferenceaddr(sref);
-         { should we cut to the length specified in the declaration ?? }
-         emitcall('FPC_ANSISTR_ASSIGN');
-         maybe_loadesi;
-         popusedregisters(pushed);
-      end;
-
-
-    procedure copyansistringtoshortstring(const dref,sref : treference;len : longint);
-      var
-         pushed : tpushed;
-      begin
-         pushusedregisters(pushed,$ff);
-         emitpushreferenceaddr(dref);
-         emit_push_mem(sref);
-         push_int(len);
-         { should we cut to the length specified in the declaration ?? }
-         emitcall('FPC_ANSISTR_TO_SHORTSTR_COPY');
-         maybe_loadesi;
-         popusedregisters(pushed);
-      end;
-
-
-    procedure copyshortstringtoansistring(const dref,sref : treference);
-      var
-         pushed : tpushed;
-      begin
-         pushusedregisters(pushed,$ff);
-         emitpushreferenceaddr(dref);
-         emit_push_mem(sref);
-         {push_int(len);}
-         { should we cut to the length specified in the declaration ?? }
-         emitcall('FPC_SHORTSTR_TO_ANSISTR_COPY');
-         maybe_loadesi;
-         popusedregisters(pushed);
-      end;
-{$endif}
-
 
 {*****************************************************************************
                            Emit Push Functions
 *****************************************************************************}
 
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
-
       var
          pushed : boolean;
          {hregister : tregister; }
 {$ifdef TEMPS_NOT_PUSH}
          href : treference;
 {$endif TEMPS_NOT_PUSH}
-
       begin
          if needed>usablereg32 then
            begin
@@ -923,6 +870,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 {$endif TEMPS_NOT_PUSH}
 
+
     procedure push_int(l : longint);
       begin
          if (l = 0) and
@@ -966,12 +914,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               { push_int(ref.offset)}
               gettempofsizereference(4,href);
-{$ifndef NO_TESTGETTEMP}
-              { ungetiftemp does not check if is_immediate is set }
-              { so this should work }
-              { the temptoremove list is currently disabled }
-              {!!!!!!! addtemptodestroy(s32bitdef,href); }
-{$endif  NO_TESTGETTEMP}
               exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,ref.offset,newreference(href))));
               emitpushreferenceaddr(href);
               del_reference(href);
@@ -3112,7 +3054,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.11  1999-07-05 11:56:56  jonas
+  Revision 1.12  1999-07-05 20:13:13  peter
+    * removed temp defines
+
+  Revision 1.11  1999/07/05 11:56:56  jonas
     * merged
 
   Revision 1.5.2.4  1999/07/04 23:55:52  jonas
