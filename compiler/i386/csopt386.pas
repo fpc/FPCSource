@@ -845,9 +845,9 @@ end;
 procedure RestoreRegContentsTo(supreg: tsuperregister; const c: TContent; p, endP: tai);
 var
 {$ifdef replaceregdebug}
-  hp: tai;
   l: longint;
 {$endif replaceregdebug}
+  hp: tai;
   dummyregs: tregset;
   tmpState, newrstate: byte;
   prevcontenttyp: byte;
@@ -878,7 +878,12 @@ begin
     end;
   tmpState := ptaiprop(p.optinfo)^.Regs[supreg].wState;
   if (newrstate = ptaiprop(p.optinfo)^.Regs[supreg].rState) then
-    internalerror(2004101012);
+    begin
+      incstate(ptaiprop(p.optinfo)^.regs[supreg].rstate,63);
+      if getnextinstruction(p,hp) and
+         (ptaiprop(hp.optinfo)^.regs[supreg].rstate = ptaiprop(p.optinfo)^.regs[supreg].rstate) then
+        internalerror(2004122710);
+     end;
   dummyregs := [supreg];
   repeat
     newrstate := ptaiprop(p.optinfo)^.Regs[supreg].rState;
@@ -2177,7 +2182,10 @@ end.
 
 {
   $Log$
-  Revision 1.70  2004-12-18 15:16:10  jonas
+  Revision 1.71  2004-12-27 15:20:03  jonas
+    * fixed internalerror when cycling with -O3p3u
+
+  Revision 1.70  2004/12/18 15:16:10  jonas
     * fixed tracking of usage of flags register
     * fixed destroying of "memwrite"'s
     * fixed checking of entire sequences in all cases (previously this was
