@@ -39,7 +39,7 @@ Report bugs,suggestions etc to:
 ; +---- Processor   [ 3,6,*(all) ]
 ;
 **0*_+ switch option on, - off
-**1a_the compiler doesn''t delete the generated assembler file
+**1a_the compiler doesn't delete the generated assembler file
 *t1b_use EMS
 **1B+_build
 **1C_code generation options
@@ -133,29 +133,29 @@ Report bugs,suggestions etc to:
 3*2Rintel_read Intel style assembler
 3*2Rdirect_copy assembler text directly to assembler file
 3*1O_optimizations
-3*2Oa_simple optimizations
-3*2Og_optimize for size
-3*2OG_optimize for time
-3*2Ox_optimize maximum
-3*2Oz_uncertain optimizes (see docs)
-3*2O2_optimize for the Pentium II (tm)
-3*2O3_optimize for the i386
-3*2O4_optimize for the i486
-3*2O5_optimize for the Pentium (tm)
-3*2O6_optimize for the PentiumPro (tm)
-3*2O7_optimize for the Cyrix 6x86
-3*2O8_optimize for the AMD K6
+3*2Oa_turn on the optimizer
+3*2Og_generate smaller code
+3*2OG_generate faster code (default)
+3*2Ox_optimize maximum (still BUGGY!!!)
+3*2Oz_uncertain optimizations (see docs)
+3*2O2_set target processor to Pentium II (tm)
+3*2O3_set target processor to i386
+3*2O4_set target processor to i486
+3*2O5_set target processor to Pentium (tm)
+3*2O6_set target processor to PentiumPro (tm)
+3*2O7_set target processor to Cyrix 6x86
+3*2O8_set target processor to AMD K6
 6*1A_output format
 6*2Ao_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
 6*1O_optimizations
-6*2Oa_simple optimizations
-6*2Og_optimize for size
-6*2OG_optimize for time
-6*2Ox_optimize maximum
-6*2O2_target is a MC68020+ processor
+6*2Oa_ turn on the optimizer
+6*2Og_ generate smaller code
+6*2OG_ generate faster code (default)
+6*2Ox_optimize maximum (still BUGGY!!!)
+6*2O2_set target processor to a MC68020+
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting
