@@ -3683,7 +3683,7 @@ The memory allocated looks as in \seet{ObjMem}.
 \begin{FPCltable}{ll}{Object memory layout (32-bit model)}{ObjMem} \hline
 Offset & What \\ \hline
 +0 & Pointer to VMT (optional). \\
-+4 & Data. All fields in the order the've been declared. \\
++4 & Data. All fields in the order they've been declared. \\
 \dots & \\
 \hline
 \end{FPCltable}
@@ -3720,7 +3720,7 @@ The memory allocated looks as in \seet{ClassMem}.
 \begin{FPCltable}{ll}{Class memory layout (32-bit model)}{ClassMem} \hline
 Offset & What \\ \hline
 +0 & Pointer to VMT. \\
-+4 & Data. All fields in the order the've been declared. \\
++4 & Data. All fields in the order they've been declared. \\
 \dots & \\
 \hline
 \end{FPCltable}
@@ -5627,10 +5627,13 @@ units as well as generic versions of processor specific routines.
 \label{ch:AppC}
 There are certain compiler limits inherent to the compiler:
 \begin{enumerate}
-\item Procedure or Function definitions can be nested to a level of 32.
+\item Procedure or Function definitions can be nested to a level of 32. This
+can be changed by changing the \var{maxnesting} constant.
 \item Maximally 1024 units can be used in a program when using the compiler.
 You can change this by redefining the \var{maxunits} constant in the compiler 
 source file.
+\item The maximum nesting level of pre-processor macros is 16. This can be
+changed by changing the value of \var{max_macro_nesting}.
 \item Arrays are limited to 2 GBytes in size in the default processor mode.
 \end{enumerate}
 
