@@ -310,6 +310,16 @@ implementation
          temp  : ttempcreatenode;
          newstatement : tstatementnode;
        begin
+         { Properties are not allowed, because the write can
+           be different from the read }
+         if (nf_isproperty in p1.flags) then
+           begin
+             Message(type_e_variable_id_expected);
+             { We can continue with the loading,
+               it'll not create errors. Only the expected
+               result can be wrong }
+           end;
+
          hp:=p1;
          while assigned(hp) and
                (hp.nodetype in [derefn,subscriptn,vecn,typeconvn]) do
@@ -2517,7 +2527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.177  2004-12-26 16:22:01  peter
+  Revision 1.178  2005-01-04 16:38:07  peter
+    * don't allow properties in C style operators
+
+  Revision 1.177  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.176  2004/12/06 19:23:05  peter
