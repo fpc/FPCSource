@@ -405,6 +405,9 @@ var
            (status.errornote and ((l and V_Note)<>0)) or
            (status.errorhint and ((l and V_Hint)<>0)) then
          inc(status.errorcount);
+      { check verbosity level }
+        if (status.verbosity and l)<>l then
+         exit;
       { Create status info }
         UpdateStatus;
       { Fix replacements }
@@ -499,6 +502,9 @@ var
              end;
           end;
         Delete(s,1,idx);
+      { check verbosity level }
+        if (status.verbosity and v)<>v then
+         exit;
       { fix status }
         UpdateStatus;
       { Fix replacements }
@@ -624,7 +630,10 @@ var
 end.
 {
   $Log$
-  Revision 1.10  2000-12-25 00:07:30  peter
+  Revision 1.11  2000-12-26 15:58:29  peter
+    * check for verbosity in verbose instead of comphook
+
+  Revision 1.10  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

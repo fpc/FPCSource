@@ -234,82 +234,79 @@ var
   hs : string;
 begin
   def_comment:=false; { never stop }
-  if (status.verbosity and Level)=Level then
+  hs:='';
+  if not(status.use_gccoutput) then
+    begin
+      if (status.verbosity and Level)=V_Hint then
+        hs:=hintstr;
+      if (status.verbosity and Level)=V_Note then
+        hs:=notestr;
+      if (status.verbosity and Level)=V_Warning then
+        hs:=warningstr;
+      if (status.verbosity and Level)=V_Error then
+        hs:=errorstr;
+      if (status.verbosity and Level)=V_Fatal then
+        hs:=fatalstr;
+    end
+  else
+    begin
+      if (status.verbosity and Level)=V_Hint then
+        hs:=rh_warningstr;
+      if (status.verbosity and Level)=V_Note then
+        hs:=rh_warningstr;
+      if (status.verbosity and Level)=V_Warning then
+        hs:=rh_warningstr;
+      if (status.verbosity and Level)=V_Error then
+        hs:=rh_errorstr;
+      if (status.verbosity and Level)=V_Fatal then
+        hs:=rh_errorstr;
+    end;
+  if (Level<=V_ShowFile) and (status.currentsource<>'') and (status.currentline>0) then
    begin
-     hs:='';
-     if not(status.use_gccoutput) then
-       begin
-         if (status.verbosity and Level)=V_Hint then
-           hs:=hintstr;
-         if (status.verbosity and Level)=V_Note then
-           hs:=notestr;
-         if (status.verbosity and Level)=V_Warning then
-           hs:=warningstr;
-         if (status.verbosity and Level)=V_Error then
-           hs:=errorstr;
-         if (status.verbosity and Level)=V_Fatal then
-           hs:=fatalstr;
-       end
-     else
-       begin
-         if (status.verbosity and Level)=V_Hint then
-           hs:=rh_warningstr;
-         if (status.verbosity and Level)=V_Note then
-           hs:=rh_warningstr;
-         if (status.verbosity and Level)=V_Warning then
-           hs:=rh_warningstr;
-         if (status.verbosity and Level)=V_Error then
-           hs:=rh_errorstr;
-         if (status.verbosity and Level)=V_Fatal then
-           hs:=rh_errorstr;
-       end;
-     if (Level<=V_ShowFile) and (status.currentsource<>'') and (status.currentline>0) then
+     { Adding the column should not confuse RHIDE,
+     even if it does not yet use it PM
+     but only if it is after error or warning !! PM }
+     if status.currentcolumn>0 then
       begin
-        { Adding the column should not confuse RHIDE,
-        even if it does not yet use it PM
-        but only if it is after error or warning !! PM }
-        if status.currentcolumn>0 then
-         begin
-           if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs+' '+
-                 tostr(status.currentcolumn)+': '+s
-           else
-             hs:=status.currentsource+'('+tostr(status.currentline)+
-                 ','+tostr(status.currentcolumn)+') '+hs+' '+s;
-         end
+        if status.use_gccoutput then
+          hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs+' '+
+              tostr(status.currentcolumn)+': '+s
         else
-         begin
-           if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '+s
-           else
-             hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' '+s;
-         end;
+          hs:=status.currentsource+'('+tostr(status.currentline)+
+              ','+tostr(status.currentcolumn)+') '+hs+' '+s;
       end
      else
       begin
-        if hs<>'' then
-         hs:=hs+' '+s
+        if status.use_gccoutput then
+          hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '+s
         else
-         hs:=s;
+          hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' '+s;
       end;
-{$ifdef FPC}
-     if status.use_stderr then
-      begin
-        writeln(stderr,hs);
-        flush(stderr);
-      end
+   end
+  else
+   begin
+     if hs<>'' then
+      hs:=hs+' '+s
      else
-{$endif}
-      begin
-        if status.use_redir then
-         writeln(status.redirfile,hs)
-        else
-         writeln(hs);
-      end;
-{$ifdef DEBUG}
-     def_gdb_stop(level);
-{$endif DEBUG}
+      hs:=s;
    end;
+{$ifdef FPC}
+  if status.use_stderr then
+   begin
+     writeln(stderr,hs);
+     flush(stderr);
+   end
+  else
+{$endif}
+   begin
+     if status.use_redir then
+      writeln(status.redirfile,hs)
+     else
+      writeln(hs);
+   end;
+{$ifdef DEBUG}
+  def_gdb_stop(level);
+{$endif DEBUG}
 end;
 
 
@@ -366,7 +363,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-12-25 00:07:25  peter
+  Revision 1.11  2000-12-26 15:58:29  peter
+    * check for verbosity in verbose instead of comphook
+
+  Revision 1.10  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
