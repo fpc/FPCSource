@@ -486,7 +486,7 @@ unit pstatmnt;
 
       var
          p_try_block,p_finally_block,first,last,
-         p_default,p_specific : ptree;
+         p_default,p_specific,hp : ptree;
          ot : pobjectdef;
          sym : pvarsym;
          old_in_except_block : boolean;
@@ -552,11 +552,12 @@ unit pstatmnt;
                           if token=COLON then
                             begin
                                consume(COLON);
-                               getsym(pattern,false);
+                               getsym(pattern,true);
                                consume(ID);
                                if srsym^.typ=unitsym then
                                  begin
                                     consume(POINT);
+                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                                     consume(ID);
                                  end;
                                if (srsym^.typ=typesym) and
@@ -599,14 +600,20 @@ unit pstatmnt;
                      else
                        consume(ID);
                      consume(_DO);
+                     hp:=gennode(onn,nil,statement);
+                     if ot^.deftype=errordef then
+                       begin
+                          disposetree(hp);
+                          hp:=genzeronode(errorn);
+                       end;
                      if p_specific=nil then
                        begin
-                          last:=gennode(onn,nil,statement);
+                          last:=hp;
                           p_specific:=last;
                        end
                      else
                        begin
-                          last^.left:=gennode(onn,nil,statement);
+                          last^.left:=hp;
                           last:=last^.left;
                        end;
                      { set the informations }
@@ -1246,7 +1253,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.60  1999-01-23 23:29:38  florian
+  Revision 1.61  1999-01-25 22:49:09  peter
+    * more fixes for the on bug with unknown id
+
+  Revision 1.60  1999/01/23 23:29:38  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 
