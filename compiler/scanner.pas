@@ -388,7 +388,6 @@ unit scanner;
         if compilestatusproc(status) then
          stop;
         inc(current_module^.current_inputfile^.line_no);
-{         inc(current_module^.current_inputfile^.line_count);}
         inc(abslines);
         lastlinepos:=longint(inputpointer);
       end;
@@ -559,10 +558,6 @@ unit scanner;
                     if found=1 then
                      found:=2;
                   end;
-        #10,#13 : begin
-                    linebreak;
-                    found:=0;
-                  end;
            else
             found:=0;
            end;
@@ -571,6 +566,8 @@ unit scanner;
             reload
            else
             inc(longint(inputpointer));
+           if c in [#10,#13] then
+            linebreak;
          until (found=2);
       end;
 
@@ -589,7 +586,6 @@ unit scanner;
            case c of
             '{' : inc_comment_level;
             '}' : dec_comment_level;
-        #10,#13 : linebreak;
             #26 : Message(scan_f_end_of_file);
            end;
            c:=inputpointer^;
@@ -597,6 +593,8 @@ unit scanner;
             reload
            else
             inc(longint(inputpointer));
+           if c in [#10,#13] then
+            linebreak;
          end;
       end;
 
@@ -650,10 +648,6 @@ unit scanner;
                        end;
                     end;
               '(' : found:=3;
-          #10,#13 : begin
-                      linebreak;
-                      found:=0;
-                    end;
              else
               found:=0;
              end;
@@ -662,6 +656,8 @@ unit scanner;
               reload
              else
               inc(longint(inputpointer));
+             if c in [#10,#13] then
+              linebreak;
            until (found=2);
          end;
       end;
@@ -1302,20 +1298,17 @@ unit scanner;
       begin
          if lastasmgetchar<>#0 then
           begin
-            asmgetchar:=lastasmgetchar;
+            c:=lastasmgetchar;
             lastasmgetchar:=#0;
-            exit;
-          end;
-         readchar;
+          end
+         else
+          readchar;
          case c of
-      #10,#13 : begin
-                  linebreak;
-                  asmgetchar:=c;
-                end;
           '{' : begin
                   skipcomment;
-                  asmgetchar:=';';
                   lastasmgetchar:=c;
+                  asmgetchar:=';';
+                  exit;
                 end;
           '/' : begin
                   readchar;
@@ -1392,7 +1385,11 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.12  1998-04-29 10:34:04  pierre
+  Revision 1.13  1998-04-29 13:42:27  peter
+    + $IOCHECKS and $ALIGN to test already, other will follow soon
+    * fixed the wrong linecounting with comments
+
+  Revision 1.12  1998/04/29 10:34:04  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

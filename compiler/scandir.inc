@@ -26,11 +26,12 @@ type
    directivestr=string[directivelen];
    tdirectivetoken=(
      _DIR_NONE,
-     _DIR_D,_DIR_DEFINE,
+     _DIR_ALIGN,
+     _DIR_D,_DIR_DEFINE,_DIR_DESCRIPTION,
      _DIR_ELSE,_DIR_ENDIF,_DIR_ERROR,
      _DIR_FATAL,
-     _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,
-     _DIR_INFO,
+     _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
+       _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INFO,
      _DIR_L,_DIR_LINKLIB,
      _DIR_MESSAGE,_DIR_MMX,
      _DIR_NOTE,
@@ -45,10 +46,12 @@ const
    lastdirective=_DIR_WARNING;
    directive:array[tdirectivetoken] of directivestr=(
      '',
-     'D','DEFINE',
+     'ALIGN',
+     'D','DEFINE','DESCRIPTION',
      'ELSE','ENDIF','ERROR',
      'FATAL',
-     'I','I386_ATT','I386_DIRECT','I386_INTEL','IF','IFDEF','IFNDEF','IFOPT','INFO',
+     'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
+       'IF','IFDEF','IFNDEF','IFOPT','INFO',
      'L','LINKLIB',
      'MESSAGE','MMX',
      'NOTE',
@@ -588,9 +591,9 @@ const
       begin
         skipspace;
         hs:=readcomment;
-	while (hs<>'') and (hs[length(hs)]=' ') do
-	 dec(byte(hs[0]));
-	hs:=FixFileName(hs);
+        while (hs<>'') and (hs[length(hs)]=' ') do
+         dec(byte(hs[0]));
+        hs:=FixFileName(hs);
         fsplit(hs,path,name,ext);
       { first look in the path of _d then currentmodule }
         path:=search(hs,path+';'+current_module^.current_inputfile^.path^+';'+includesearchpath,found);
@@ -714,13 +717,31 @@ const
       end;
 
 
+    procedure dir_delphiswitch(t:tdirectivetoken);
+      var
+        sw : char;
+      begin
+        case t of
+         _DIR_ALIGN : sw:='A';
+      _DIR_IOCHECKS : sw:='I';
+        else
+         exit;
+        end;
+      { c contains the next char, a + or - would be fine }
+        HandleSwitch(sw,c);
+        ReadComment;
+      end;
+
+
       type
         tdirectiveproc=procedure(t:tdirectivetoken);
       const
         directiveproc:array[tdirectivetoken] of tdirectiveproc=(
          {_DIR_NONE} nil,
+         {_DIR_ALIGN} dir_delphiswitch,
          {_DIR_D} dir_description,
          {_DIR_DEFINE} dir_define,
+         {_DIR_DESCRIPTION} dir_description,
          {_DIR_ELSE} dir_conditional,
          {_DIR_ENDIF} dir_conditional,
          {_DIR_ERROR} dir_message,
@@ -729,6 +750,7 @@ const
          {_DIR_I386_ATT} dir_asmmode,
          {_DIR_I386_DIRECT} dir_asmmode,
          {_DIR_I386_INTEL} dir_asmmode,
+         {_DIR_IOCHECKS} dir_delphiswitch,
          {_DIR_IF} dir_conditional,
          {_DIR_IFDEF} dir_conditional,
          {_DIR_IFNDEF} dir_conditional,
@@ -801,7 +823,11 @@ const
 
 {
   $Log$
-  Revision 1.3  1998-04-28 11:45:53  florian
+  Revision 1.4  1998-04-29 13:42:27  peter
+    + $IOCHECKS and $ALIGN to test already, other will follow soon
+    * fixed the wrong linecounting with comments
+
+  Revision 1.3  1998/04/28 11:45:53  florian
     * make it compilable with TP
     + small COM problems solved to compile classes.pp
 
