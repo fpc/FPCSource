@@ -55,7 +55,7 @@ type
     FontStyle: TSHFontStyle;
   end;
 
-  TSHStyleArray = array[1..1] of TSHStyle;  // Notice the 1!
+  TSHStyleArray = array[1..255] of TSHStyle;  // Notice the 1!
   PSHStyleArray = ^TSHStyleArray;
 
 
@@ -111,6 +111,7 @@ type
     Widget: PGtkWidget;  // this is the outer editor widget
 
     constructor Create(ADoc: TTextDoc; AEditClass: TSHTextEditClass);
+    destructor Destroy; override;
 
     procedure SetFocus;
 
@@ -321,6 +322,13 @@ begin
   FEdit.AddKeyDef(@FEdit.EditDelLine, selClear, 'Delete current line', Ord('y'), [ssCtrl]);
   FEdit.AddKeyDef(@FEdit.EditUndo, selClear, 'Undo last action', GDK_Backspace, [ssAlt]);
   FEdit.AddKeyDef(@FEdit.EditRedo, selClear, 'Redo last undone action', GDK_Backspace, [ssShift, ssAlt]);
+end;
+
+destructor TGtkSHWidget.Destroy;
+begin
+  FreeMem(SHStyles);
+  FEdit.Free;
+  inherited Destroy;
 end;
 
 
@@ -565,7 +573,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-31 19:26:13  sg
+  Revision 1.4  2000-02-22 14:31:04  sg
+  * Added destructor, to fix memory leaks
+
+  Revision 1.3  2000/01/31 19:26:13  sg
   * Changed to the new interface
 
   Revision 1.2  2000/01/07 01:24:34  peter
