@@ -542,7 +542,7 @@ end;
 
 function KeyPressed : boolean;
 var
-  nevents, nread: longint;
+  nevents,nread : dword;
   buf : TINPUTRECORD;
   AltKey: Boolean;
 begin
@@ -1006,7 +1006,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.7  2001-04-10 21:28:36  peter
+  Revision 1.8  2001-04-14 14:05:42  peter
+    * fixed for stricter checking
+
+  Revision 1.7  2001/04/10 21:28:36  peter
     * removed warnigns
 
   Revision 1.6  2001/01/03 21:01:50  florian

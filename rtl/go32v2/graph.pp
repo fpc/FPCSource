@@ -1978,11 +1978,11 @@ const CrtAddress: word = 0;
 {$endif logging}
      if VGADetected then
        begin
-         SaveVideoState := SaveStateVGA;
+         SaveVideoState := @SaveStateVGA;
 {$ifdef logging}
          LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
 {$endif logging}
-         RestoreVideoState := RestoreStateVGA;
+         RestoreVideoState := @RestoreStateVGA;
 {$ifdef logging}
          LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
@@ -2126,11 +2126,11 @@ const CrtAddress: word = 0;
          { otherwise, if we use the VGA BIOS only function  }
          { there might be a crash under DPMI, such as in the}
          { ATI Mach64                                       }
-         SaveVideoState := SaveStateVESA;
+         SaveVideoState := @SaveStateVESA;
 {$ifdef logging}
          LogLn('Setting SaveVideoState to '+strf(longint(SaveVideoState)));
 {$endif logging}
-         RestoreVideoState := RestoreStateVESA;
+         RestoreVideoState := @RestoreStateVESA;
 {$ifdef logging}
          LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
@@ -2653,7 +2653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-16 15:57:17  jonas
+  Revision 1.6  2001-04-14 14:05:42  peter
+    * fixed for stricter checking
+
+  Revision 1.5  2000/12/16 15:57:17  jonas
     * removed 64bit evaluations when range checking is on
 
   Revision 1.4  2000/11/11 15:57:54  jonas
