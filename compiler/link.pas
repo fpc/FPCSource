@@ -579,18 +579,29 @@ begin
     Replace(s,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
   DoExec(arbin,s,false,true);
 { Clean up }
-  if not(cs_asm_leave in aktglobalswitches) and not(cs_link_extern in aktglobalswitches) then
-   begin
-     if filescnt=0 then
-      RemoveFile(current_module^.objfilename^)
-     else
-      begin
-        for cnt:=1 to filescnt do
-         if not RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+tostr(cnt)+target_info.objext)) then
-          RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+'e'+tostr(cnt)+target_info.objext));
-        RemoveDir(smartpath);
-      end;
-   end;
+  if not(cs_asm_leave in aktglobalswitches) then
+   if not(cs_link_extern in aktglobalswitches) then
+    begin
+      if filescnt=0 then
+       RemoveFile(current_module^.objfilename^)
+      else
+       begin
+         for cnt:=1 to filescnt do
+          if not RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+tostr(cnt)+target_info.objext)) then
+           RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+'e'+tostr(cnt)+target_info.objext));
+         RemoveDir(smartpath);
+       end;
+    end
+   else
+    begin
+      if filescnt=0 then
+       AsmRes.AddDeleteCommand(current_module^.objfilename^)
+      else
+       begin
+         AsmRes.AddDeleteCommand(smartpath+current_module^.asmprefix^+'*'+target_info.objext);
+         AsmRes.Add('rmdir '+smartpath);
+       end;
+    end;
 end;
 
 
@@ -609,7 +620,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  1999-04-25 14:31:48  daniel
+  Revision 1.51  1999-04-28 23:42:33  pierre
+   * removing of temporary directory with -s option
+
+  Revision 1.50  1999/04/25 14:31:48  daniel
   * Bug fixed in linking: compiling files on another drive than the one you
   currently use you is done correctly.
 
