@@ -481,3 +481,4 @@ already_forced:
 	.global ___djgpp_hw_lock_end
 ___djgpp_hw_lock_end:
         ret                                     /* LD does weird things */
+
