@@ -360,28 +360,41 @@ implementation
         { create a blocknode in which the successive write/read statements will be  }
         { put, since they belong together. Also create a dummy statement already to }
         { make inserting of additional statements easier                            }
-        newstatement := cstatementnode.create(nil,cnothingnode.create);
-        newblock := cblocknode.create(newstatement);
+        newblock:=internalstatements(newstatement);
 
         { if we don't have a filepara, create one containing the default }
         if not assigned(filepara) then
           begin
-
-            { create a loadnode for the standard input/output handle }
+            { retrieve the symbols for standard input/output handle }
             if do_read then
               name := 'INPUT'
             else
               name := 'OUTPUT';
-
-            { if we are compiling the system unit, the systemunit symtable is nil. }
-            { however, if we aren't compiling the system unit, another unit could  }
-            { also have defined the INPUT or OUTPUT symbols. Therefore we need the }
-            { separate cases (JM)                                                  }
             if not searchsysvar(name,srsym,tempowner) then
               internalerror(200108141);
 
-            { create the file parameter }
-            filepara := ccallparanode.create(cloadnode.create(srsym,tempowner),nil);
+            { since the input/output variables are threadvars loading them into
+              a temp once is faster. Create a temp which will hold a pointer to the file }
+            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
+            addstatement(newstatement,filetemp);
+
+            { make sure the resulttype of the temp (and as such of the }
+            { temprefs coming after it) is set (necessary because the  }
+            { temprefs will be part of the filepara, of which we need  }
+            { the resulttype later on and temprefs can only be         }
+            { resulttypepassed if the resulttype of the temp is known) }
+            resulttypepass(tnode(filetemp));
+
+            { assign the address of the file to the temp }
+            addstatement(newstatement,
+              cassignmentnode.create(ctemprefnode.create(filetemp),
+                caddrnode.create(cloadnode.create(srsym,tempowner))));
+
+            { create a new fileparameter as follows: file_type(temp^)    }
+            { (so that we pass the value and not the address of the temp }
+            { to the read/write routine)                                 }
+            filepara := ccallparanode.create(ctypeconvnode.create_explicit(
+              cderefnode.create(ctemprefnode.create(filetemp)),srsym.vartype),nil);
           end
         else
           { remove filepara from the parameter chain }
@@ -398,8 +411,7 @@ implementation
                 filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
 
                 { add it to the statements }
-                newstatement.left := cstatementnode.create(nil,filetemp);
-                newstatement := tstatementnode(newstatement.left);
+                addstatement(newstatement,filetemp);
 
                 { make sure the resulttype of the temp (and as such of the }
                 { temprefs coming after it) is set (necessary because the  }
@@ -409,30 +421,26 @@ implementation
                 resulttypepass(tnode(filetemp));
 
                 { assign the address of the file to the temp }
-                newstatement.left := cstatementnode.create(nil,
+                addstatement(newstatement,
                   cassignmentnode.create(ctemprefnode.create(filetemp),
                     caddrnode.create(filepara.left)));
-                newstatement := tstatementnode(newstatement.left);
                 resulttypepass(newstatement.right);
                 { create a new fileparameter as follows: file_type(temp^)    }
                 { (so that we pass the value and not the address of the temp }
                 { to the read/write routine)                                 }
-                nextpara := ccallparanode.create(ctypeconvnode.create(
+                nextpara := ccallparanode.create(ctypeconvnode.create_explicit(
                   cderefnode.create(ctemprefnode.create(filetemp)),filepara.left.resulttype),nil);
-                { make sure the type conversion is explicit, otherwise this }
-                { typecast won't work                                       }
-                nextpara.left.toggleflag(nf_explizit);
 
                 { replace the old file para with the new one }
                 filepara.left := nil;
                 filepara.free;
                 filepara := nextpara;
-
-                { the resulttype of the filepara must be set since it's }
-                { used below                                            }
-                filepara.get_paratype;
               end;
           end;
+
+        { the resulttype of the filepara must be set since it's }
+        { used below                                            }
+        filepara.get_paratype;
 
         { now, filepara is nowhere referenced anymore, so we can safely dispose it }
         { if something goes wrong or at the end of the procedure                   }
@@ -513,13 +521,11 @@ implementation
                     { create temp for result }
                     temp := ctempcreatenode.create(para.left.resulttype,
                       para.left.resulttype.def.size,true);
-                    newstatement.left := cstatementnode.create(nil,temp);
+                    addstatement(newstatement,temp);
                     { assign result to temp }
-                    newstatement := tstatementnode(newstatement.left);
-                    newstatement.left := cstatementnode.create(nil,
+                    addstatement(newstatement,
                       cassignmentnode.create(ctemprefnode.create(temp),
-                      para.left));
-                    newstatement := tstatementnode(newstatement.left);
+                        para.left));
                     { replace (reused) paranode with temp }
                     para.left := ctemprefnode.create(temp);
                   end;
@@ -529,17 +535,11 @@ implementation
                 { create call statment                                             }
                 { since the parameters are in the correct order, we have to insert }
                 { the statements always at the end of the current block            }
-                newstatement.left := cstatementnode.create(nil,
-                  ccallnode.createintern(procprefix,para));
-                newstatement := tstatementnode(newstatement.left);
+                addstatement(newstatement,ccallnode.createintern(procprefix,para));
 
                 { if we used a temp, free it }
                 if para.left.nodetype = temprefn then
-                  begin
-                    newstatement.left := cstatementnode.create(nil,
-                      ctempdeletenode.create(temp));
-                    newstatement := tstatementnode(newstatement.left);
-                  end;
+                  addstatement(newstatement,ctempdeletenode.create(temp));
 
                 { process next parameter }
                 para := nextpara;
@@ -746,29 +746,24 @@ implementation
 
                         { create the parameter list: the temp ... }
                         temp := ctempcreatenode.create(restype^,restype^.def.size,true);
-                        newstatement.left := cstatementnode.create(nil,temp);
-                        newstatement := tstatementnode(newstatement.left);
+                        addstatement(newstatement,temp);
 
                         { ... and the file }
                         p1 := ccallparanode.create(ctemprefnode.create(temp),
                           filepara.getcopy);
 
                         { create the call to the helper }
-                        newstatement.left := cstatementnode.create(nil,
+                        addstatement(newstatement,
                           ccallnode.createintern(name,tcallparanode(p1)));
-                        newstatement := tstatementnode(newstatement.left);
 
                         { assign the result to the original var (this automatically }
                         { takes care of range checking)                             }
-                        newstatement.left := cstatementnode.create(nil,
+                        addstatement(newstatement,
                           cassignmentnode.create(para.left,
-                           ctemprefnode.create(temp)));
-                        newstatement := tstatementnode(newstatement.left);
+                            ctemprefnode.create(temp)));
 
                         { release the temp location }
-                        newstatement.left := cstatementnode.create(nil,
-                          ctempdeletenode.create(temp));
-                        newstatement := tstatementnode(newstatement.left);
+                        addstatement(newstatement,ctempdeletenode.create(temp));
 
                         { statement of para is used }
                         para.left := nil;
@@ -787,9 +782,8 @@ implementation
                         { with it if necessary)                                     }
                         tcallparanode(para.right).right := lenpara;
                         { create the call statement }
-                        newstatement.left := cstatementnode.create(nil,
+                        addstatement(newstatement,
                           ccallnode.createintern(name,para));
-                        newstatement := tstatementnode(newstatement.left);
                       end
                   end
                 else
@@ -819,16 +813,15 @@ implementation
               begin
                 case inlinenumber of
                   in_read_x:
-                    newstatement.left := ccallnode.createintern('fpc_read_end',filepara);
+                    name:='fpc_read_end';
                   in_write_x:
-                    newstatement.left := ccallnode.createintern('fpc_write_end',filepara);
+                    name:='fpc_write_end';
                   in_readln_x:
-                    newstatement.left := ccallnode.createintern('fpc_readln_end',filepara);
+                    name:='fpc_readln_end';
                   in_writeln_x:
-                    newstatement.left := ccallnode.createintern('fpc_writeln_end',filepara);
+                    name:='fpc_writeln_end';
                 end;
-                newstatement.left := cstatementnode.create(nil,newstatement.left);
-                newstatement := tstatementnode(newstatement.left);
+                addstatement(newstatement,ccallnode.createintern(name,filepara));
               end;
           end;
 
@@ -839,11 +832,7 @@ implementation
             begin
               { deallocate the temp for the file para if we used one }
               if assigned(filetemp) then
-                begin
-                  newstatement.left := cstatementnode.create(nil,
-                    ctempdeletenode.create(filetemp));
-                  newstatement := tstatementnode(newstatement.left);
-                end;
+                addstatement(newstatement,ctempdeletenode.create(filetemp));
               { otherwise return the newly generated block of instructions, }
               { but first free the errornode we generated at the beginning }
               result.free;
@@ -2412,7 +2401,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2002-11-15 01:58:52  peter
+  Revision 1.95  2002-11-16 17:59:31  peter
+    * load threadvar input/output variable in temp
+
+  Revision 1.94  2002/11/15 01:58:52  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
