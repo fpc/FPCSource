@@ -178,7 +178,7 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : $(DOSDEPS) $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
 	$(COMPILER) dos $(REDIR)
 
 #objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
@@ -382,7 +382,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.9  1998-10-12 08:36:32  pierre
+# Revision 1.10  1998-10-14 12:49:42  peter
+#   * fixed dos dependency
+#
+# Revision 1.9  1998/10/12 08:36:32  pierre
 #  * wrong 'objpas' target in all removed
 #
 # Revision 1.8  1998/10/11 13:45:03  michael
