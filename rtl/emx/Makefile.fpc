@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 prt1
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
-      pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl \
+      pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock \
       dos crt objects printer \
       sysutils math typinfo varutils \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
@@ -128,6 +128,10 @@ pmdev$(PPUEXT) : $(OS2INC)/pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmspl$(PPUEXT) : $(OS2INC)/pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmshl$(PPUEXT) : $(OS2INC)/pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+pmwp$(PPUEXT) : $(OS2INC)/pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+pmwsock$(PPUEXT) : $(OS2INC)/pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
