@@ -299,10 +299,20 @@ end;
 
 
 { checks for a correct vmt pointer }
+{$ifdef SYSTEMDEBUG}
+{ we want the stack for debugging !! PM }
+procedure int_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT'];
+begin
+{$else not SYSTEMDEBUG}
 procedure int_check_object;assembler;[public,alias:'FPC_CHECK_OBJECT'];
+{$endif not SYSTEMDEBUG}
 asm
         pushl   %edi
+{$ifdef SYSTEMDEBUG}
+        movl    obj,%edi
+{$else not SYSTEMDEBUG}
         movl    8(%esp),%edi
+{$endif not SYSTEMDEBUG}
         pushl   %eax
         { Here we must check if the VMT pointer is nil before  }
         { accessing it...                                      }
@@ -318,8 +328,13 @@ asm
         popl    %eax
         popl    %edi
         { the adress is pushed : it needs to be removed from stack !! PM }
+{$ifdef SYSTEMDEBUG}
+end;{ of asm }
+end;
+{$else SYSTEMDEBUG}
         ret     $4
 end;
+{$endif not SYSTEMDEBUG}
 
 {$ifdef FPC_TESTOBJEXT}
 { checks for a correct vmt pointer }
@@ -701,7 +716,13 @@ end;
                                Bounds Check
 ****************************************************************************}
 
+{$ifdef SYSTEMDEBUG}
+{ we want the stack for debugging !! PM }
+procedure int_boundcheck;[public,alias: 'FPC_BOUNDCHECK'];
+begin
+{$else not SYSTEMDEBUG}
 procedure int_boundcheck;assembler;[public,alias: 'FPC_BOUNDCHECK'];
+{$endif not SYSTEMDEBUG}
 {
   called with:
     %ecx - value
@@ -717,6 +738,9 @@ asm
         call    HandleError
 .Lbc_ok:
 end;
+{$ifdef SYSTEMDEBUG}
+end;
+{$endif def SYSTEMDEBUG}
 
 
 {****************************************************************************
@@ -745,7 +769,10 @@ end;
 
 {
   $Log$
-  Revision 1.41  1999-03-01 15:40:55  peter
+  Revision 1.42  1999-04-07 16:21:10  pierre
+   + no assembler if systemdebug defined
+
+  Revision 1.41  1999/03/01 15:40:55  peter
     * use external names
     * removed all direct assembler modes
 
