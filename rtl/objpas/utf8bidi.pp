@@ -26,6 +26,8 @@ function UnicodeToUTF8(aChar:WideChar):TUTF8Char;
 function UnicodeToUTF8(const Src:TString):TUTF8String;
 {Converts an UTF8 character to UCS 32 bits character}
 function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
+{Converts an UTF8 character to UCS 16 bits character}
+function UTF8ToUCS16(const UTF8Char:TUTF8Char):TUCS16Char;
 {Converts an UTF8 string to UCS 16 bits string}
 function UTF8ToUnicode(const Src:TUTF8String):TString;
 {Converts an UTF8 string to a double byte string}
@@ -298,7 +300,7 @@ end;
 {****************************Visual aspects************************************}
 function VLength(const Src:TUTF8String; pDir:TDirection):Cardinal;
 begin
-  Result := VLength(UTF8ToUnicode(Src), pDir);
+  Result := FreeBIDI.VLength(UTF8ToUnicode(Src), pDir);
 end;
 
 function VPos(const UTF8Str:TUTF8String; lp:Integer; pDir, cDir:TDirection):Cardinal;
@@ -429,45 +431,13 @@ end;
 
 function InsertChar(Src:TUTF8Char; var Dest:TUTF8String; vp:Integer; pDir:TDirection):Integer;
 var
-  v2l:TVisualToLogical;
-  lp,rvp:Integer;
-  c:TUTF8Char;
+  temp:TString;
+  c:TCharacter;
 begin
-  v2l := VisualToLogical(Dest, pDir);
-  rvp := v2l[0];
-  if vp > rvp
-  then
-    begin
-      lp := Length(Dest) + 1
-    end
-  else
-    lp := v2l[vp];
-  c := LCharOf(Dest, lp);
-  if DirectionOf(c) = drRTL
-  then
-    begin
-      lp := lp + Length(c);
-      rvp := rvp + 1;
-    end;
-  case DirectionOf(Src) of
-    drRTL:
-      begin
-        Result := vp;
-        while (Result > 0) and (DirectionOf(LCharOf(Dest, v2l[Result])) <> drLTR) do
-          Result := Result - 1;
-        while (Result < vp) and (DirectionOf(LCharOf(Dest, v2l[Result])) <> drRTL) do
-          Result := Result + 1;
-      end;
-    drLTR:
-      begin
-        Result := rvp + 1;
-      end;
-  else
-    begin
-      Result := rvp + 1;
-    end;
-  end;
-  Insert(Src, Dest, lp);
+  temp := UTF8ToUnicode(Dest);
+  c := WideChar(UTF8ToUCS16(Src));
+  Result := FreeBIDI.InsertChar(c, temp, vp, pDir);
+  Dest := UnicodeToUTF8(temp);
 end;
 
 procedure VInsert(const Src:TUTF8String;var Dest:TUTF8String; vp:Integer; pDir:TDirection);
