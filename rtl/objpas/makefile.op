@@ -11,4 +11,3 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
-
