@@ -752,6 +752,9 @@ var W: PWindow;
     OK: boolean;
 begin
   W:=nil;
+  { we have a crash here because of the TStatusLine
+    that can also have one of these values
+    but is not a Window object PM }
   if (P^.HelpCtx=hcSourceWindow) or
      (P^.HelpCtx=hcHelpWindow) or
      (P^.HelpCtx=hcClipboardWindow) or
@@ -772,8 +775,13 @@ begin
 end;
 var W: PView;
 begin
-  W:=Application^.FirstThat(@Match);
-  if Assigned(W)=false then W:=Desktop^.FirstThat(@Match);
+  { W:=Application^.FirstThat(@Match);
+    This is wrong because TStatusLine is also considered PM }
+  W:=Desktop^.FirstThat(@Match);
+  { But why do we need to check all ??
+    Probably because of the ones which were not inserted into
+    Desktop as the Messages view
+  if Assigned(W)=false then W:=Desktop^.FirstThat(@Match);}
   SearchWindow:=PWindow(W);
 end;
 
@@ -3394,7 +3402,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.69  2000-05-02 08:42:29  pierre
+  Revision 1.70  2000-05-16 21:50:53  pierre
+   * avoid to typecast the status line to a TWindow
+
+  Revision 1.69  2000/05/02 08:42:29  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.68  2000/04/25 08:42:34  pierre
