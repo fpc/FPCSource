@@ -391,8 +391,7 @@ implementation
               if (right.location.loc=LOC_REGISTER) or
                  (right.location.loc=LOC_CREGISTER) then
                 begin
-                   cg.a_load_reg_ref(exprasmlist,opsize,
-                     right.location.register,temp1);
+                   cg.a_load_reg_ref(exprasmlist,opsize,opsize,right.location.register,temp1);
                    rg.ungetregisterint(exprasmlist,right.location.register);
                  end
               else
@@ -1156,8 +1155,7 @@ implementation
          { what a hack ! }
          if assigned(exceptsymtable) then
            tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
-         cg.a_load_reg_ref(exprasmlist, OS_ADDR, r, ref);
-
+         cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,ref);
 
          { in the case that another exception is risen }
          { we've to destroy the old one                }
@@ -1421,7 +1419,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-06-01 21:38:06  peter
+  Revision 1.68  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.67  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

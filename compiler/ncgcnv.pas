@@ -83,7 +83,7 @@ interface
 
         { insert range check if not explicit conversion }
         if not(nf_explicit in flags) then
-          cg.g_rangecheck(exprasmlist,left,resulttype.def);
+          cg.g_rangecheck(exprasmlist,left.location,left.resulttype.def,resulttype.def);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is
@@ -143,7 +143,7 @@ interface
                else
                 begin
                   location.register:=rg.getaddressregister(exprasmlist);
-                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                 end;
              end;
            st_longstring:
@@ -167,7 +167,7 @@ interface
 {$ifdef fpc}
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
 {$endif}
-                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_INT,left.location.reference,
                     location.register);
                 end;
              end;
@@ -236,7 +236,7 @@ interface
             begin
               location_release(exprasmlist,left.location);
               location.reference.base:=rg.getaddressregister(exprasmlist);
-              cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
+              cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,
                 location.reference.base);
               location_freetemp(exprasmlist,left.location);
             end;
@@ -253,7 +253,7 @@ interface
            st_shortstring :
              begin
                tg.GetTemp(exprasmlist,256,tt_normal,location.reference);
-               cg.a_load_loc_ref(exprasmlist,left.location,
+               cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,
                  location.reference);
                location_release(exprasmlist,left.location);
                location_freetemp(exprasmlist,left.location);
@@ -377,7 +377,7 @@ interface
               begin
                 location_release(exprasmlist,left.location);
                 location.register:=rg.getaddressregister(exprasmlist);
-                cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,location.register);
+                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                 location_freetemp(exprasmlist,left.location);
               end;
             else
@@ -403,7 +403,7 @@ interface
               begin
                  location_release(exprasmlist,left.location);
                  location.register:=rg.getaddressregister(exprasmlist);
-                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
+                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                  location_freetemp(exprasmlist,left.location);
               end;
             LOC_CREGISTER:
@@ -510,7 +510,12 @@ end.
 
 {
   $Log$
-  Revision 1.43  2003-06-01 21:38:06  peter
+  Revision 1.44  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.43  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

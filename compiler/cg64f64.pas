@@ -35,7 +35,7 @@ unit cg64f64;
        aasmbase,aasmtai,aasmcpu,
        cpuinfo, cpubase,
        cginfo, cgobj,
-       node,symtype;
+       symtype;
 
     type
       {# Defines all the methods required on 32-bit processors
@@ -77,8 +77,7 @@ unit cg64f64;
         function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
 
         { override to catch 64bit rangechecks }
-        procedure g_rangecheck64(list: taasmoutput; const p: tnode;
-          const todef: tdef); override;
+        procedure g_rangecheck64(list: taasmoutput; const l: tlocation;fromdef,todef: tdef); override;
       end;
 
   implementation
@@ -198,8 +197,7 @@ unit cg64f64;
       begin
       end;
 
-    procedure tcg64f64.g_rangecheck64(list: taasmoutput; const p: tnode;
-      const todef: tdef);
+    procedure tcg64f64.g_rangecheck64(list: taasmoutput; const p: tnode;def: tdef);
       begin
       end;
 
@@ -225,7 +223,12 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.7  2003-05-30 23:49:18  jonas
+  Revision 1.8  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.7  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

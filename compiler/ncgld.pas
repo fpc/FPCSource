@@ -119,7 +119,7 @@ implementation
                     begin
                        hregister:=rg.getaddressregister(exprasmlist);
                        location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
-                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,location.reference,hregister);
+                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
                        reference_reset_base(location.reference,hregister,0);
                     end
                   { external variable }
@@ -135,7 +135,7 @@ implementation
                        { we've to allocate the register before we save the used registers }
                        hregister:=rg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
-                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_NE,0,hregister,dorelocatelab);
                        { no relocation needed, load the address of the variable only, the
                          layout of a threadvar is (4 bytes pointer):
@@ -189,7 +189,7 @@ implementation
                                if (supreg in general_superregisters) and
                                   not (supreg in rg.regvar_loaded_int) then
                                  load_regvar(exprasmlist,tvarsym(symtableentry));
-                               location_reset(location,LOC_CREGISTER,cg.reg_cgsize(tvarsym(symtableentry).reg));
+                               location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
                                location.register:=tvarsym(symtableentry).reg;
                                exclude(rg.unusedregsint,supreg);
                              end
@@ -212,7 +212,7 @@ implementation
                                        hregister:=rg.getaddressregister(exprasmlist);
                                        { make a reference }
                                        reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                                        { walk parents }
                                        i:=current_procdef.parast.symtablelevel-1;
                                        while (i>symtable.symtablelevel) do
@@ -223,7 +223,7 @@ implementation
 {$else powerpc}
                                             reference_reset_base(href,hregister,target_info.first_parm_offset);
 {$endif powerpc}
-                                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                                             dec(i);
                                          end;
                                        location.reference.base:=hregister;
@@ -298,7 +298,7 @@ implementation
                            begin
                               hregister:=rg.getaddressregister(exprasmlist);
                               if is_class_or_interface(left.resulttype.def) then
-                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister)
+                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,hregister)
                               else
                                 cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister);
                               location_release(exprasmlist,left.location);
@@ -311,7 +311,7 @@ implementation
                       { store the class instance address }
                       href:=location.reference;
                       inc(href.offset,POINTER_SIZE);
-                      cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
+                      cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,href);
 
                       { virtual method ? }
                       if (po_virtualmethod in procdef.procoptions) then
@@ -320,7 +320,7 @@ implementation
                           reference_reset_base(href,hregister,0);
                           reference_release(exprasmlist,href);
                           hregister:=rg.getaddressregister(exprasmlist);
-                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
 
 
                           reference_reset_base(href,hregister,
@@ -329,9 +329,9 @@ implementation
 
                           { load method address }
                           hregister:=rg.getaddressregister(exprasmlist);
-                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                           { ... and store it }
-                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
+                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
                           rg.ungetaddressregister(exprasmlist,hregister);
                         end
                       else
@@ -346,7 +346,7 @@ implementation
                           hregister:=cg.get_scratch_reg_address(exprasmlist);
                         {$endif}
                           cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
-                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
+                          cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
                         {$ifdef newra}
                           rg.ungetregisterint(exprasmlist,hregister);
                         {$else newra}
@@ -517,13 +517,12 @@ implementation
                       LOC_REGISTER,
                       LOC_CREGISTER :
                         begin
-                          r.enum:=R_INTREGISTER;
-                          r.number:=(right.location.register.number and not $ff) or R_SUBL;
-                          cg.a_load_reg_ref(exprasmlist,OS_8,r,href);
+                          r:=rg.makeregsize(right.location.register,OS_8);
+                          cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,r,href);
                         end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :
-                        cg.a_load_ref_ref(exprasmlist,OS_8,right.location.reference,href);
+                        cg.a_load_ref_ref(exprasmlist,OS_8,OS_8,right.location.reference,href);
                       else
                         internalerror(200205111);
                     end;
@@ -554,7 +553,7 @@ implementation
                          cg64.a_load64_ref_reg(exprasmlist,
                              right.location.reference,left.location.register64{$ifdef newra},false{$endif})
                         else
-                         cg.a_load_ref_reg(exprasmlist,cgsize,
+                         cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
                              right.location.reference,left.location.register);
                         location_release(exprasmlist,right.location);
                       end;
@@ -870,7 +869,7 @@ implementation
                        tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      {$endif}
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                      {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,tmpreg);
                      {$else}
@@ -883,7 +882,7 @@ implementation
                     else
                      begin
                        location_release(exprasmlist,hp.left.location);
-                       cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
+                       cg.a_load_loc_ref(exprasmlist,OS_ADDR,hp.left.location,href);
                      end;
                     { update href to the vtype field and write it }
                     dec(href.offset,4);
@@ -917,7 +916,7 @@ implementation
                        if hp.left.location.size in [OS_64,OS_S64] then
                          cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href)
                        else
-                         cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
+                         cg.a_load_loc_ref(exprasmlist,hp.left.location.size,hp.left.location,href);
                      end;
                  end;
                  inc(href.offset,elesize);
@@ -935,7 +934,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-06-03 13:01:59  daniel
+  Revision 1.66  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.65  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.64  2003/05/30 23:57:08  peter

@@ -112,6 +112,25 @@ unit cgcpu;
       var
         op1,op2 : TAsmOp;
       begin
+        case op of
+          OP_NEG :
+            begin
+              if (regsrc.reglo.number<>regdst.reglo.number) then
+                a_load64_reg_reg(list,regsrc,regdst);
+              list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
+              list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
+              list.concat(taicpu.op_const_reg(A_SBB,S_L,aword(-1),regdst.reghi));
+              exit;
+            end;
+          OP_NOT :
+            begin
+              if (regsrc.reglo.number<>regdst.reglo.number) then
+                a_load64_reg_reg(list,regsrc,regdst);
+              list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
+              list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
+              exit;
+            end;
+        end;
         get_64bit_ops(op,op1,op2);
         list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
@@ -174,7 +193,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-06-01 21:38:06  peter
+  Revision 1.35  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.34  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

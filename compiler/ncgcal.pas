@@ -166,7 +166,7 @@ implementation
                     {$endif}
                        cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                        reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                     {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,tmpreg);
                     {$else}
@@ -205,7 +205,7 @@ implementation
                   if calloption=pocall_inline then
                     begin
                        reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_loc_ref(exprasmlist,left.location,href);
+                       cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,href);
                     end
                   else
                     cg.a_param_loc(exprasmlist,left.location,paraitem.paraloc);
@@ -225,7 +225,7 @@ implementation
                      {$endif newra}
                        cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                        reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                      {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,tmpreg);
                      {$else}
@@ -263,7 +263,7 @@ implementation
                 {$endif}
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                    reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                 {$ifdef newra}
                    rg.ungetregisterint(exprasmlist,tmpreg);
                 {$else}
@@ -293,7 +293,7 @@ implementation
                        begin
                          tg.GetTemp(exprasmlist,tcgsize2size[left.location.size],tt_normal,href);
                          if not (left.location.size in [OS_64,OS_S64]) then
-                           cg.a_load_loc_ref(exprasmlist,left.location,href)
+                           cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,href)
                          else
                            cg64.a_load64_loc_ref(exprasmlist,left.location,href);
                          location_reset(left.location,LOC_REFERENCE,left.location.size);
@@ -313,7 +313,7 @@ implementation
                      {$endif}
                         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                         reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                        cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                        cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                      {$ifdef newra}
                         rg.ungetregisterint(exprasmlist,tmpreg);
                      {$else}
@@ -391,12 +391,12 @@ implementation
           begin
             hregister:=rg.getaddressregister(exprasmlist);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
             i:=current_procdef.parast.symtablelevel;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
                 reference_reset_base(href,hregister,current_procinfo.framepointer_offset);
-                cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                 dec(i);
               end;
             cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(1));
@@ -409,7 +409,6 @@ implementation
       var
         cgsize : tcgsize;
         r,hregister : tregister;
-        nr:Tnewregister;
       begin
         { structured results are easy to handle.... }
         { needed also when result_no_used !! }
@@ -429,7 +428,7 @@ implementation
             r.enum:=R_INTREGISTER;
             r.number:=NR_FUNCTION_RETURN_REG;
             cg.a_reg_alloc(exprasmlist,r);
-            cg.a_load_reg_ref(exprasmlist,OS_ADDR,r,location.reference);
+            cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,location.reference);
             cg.a_reg_dealloc(exprasmlist,r);
           end
         else
@@ -504,9 +503,9 @@ implementation
                     begin
                       {Move the function result to a free register, preferably the
                        FUNCTION_RESULT_REG, so no move is necessary.}
-                      nr:=(RS_FUNCTION_RESULT_REG shl 8) or cgsize2subreg(cgsize);
                       r.enum:=R_INTREGISTER;
-                      r.number:=nr;
+                      r.number:=NR_FUNCTION_RESULT_REG;
+                      r:=rg.makeregsize(r,cgsize);
 {$ifdef newra}
 {                      rg.getexplicitregisterint(exprasmlist,nr);}
                       rg.ungetregisterint(exprasmlist,r);
@@ -514,7 +513,10 @@ implementation
 {$else newra}
                       cg.a_reg_alloc(exprasmlist,r);
                       if RS_FUNCTION_RESULT_REG in rg.unusedregsint then
-                        location.register:=rg.getexplicitregisterint(exprasmlist,nr)
+                        begin
+                          location.register:=rg.makeregsize(rg.getexplicitregisterint(
+                             exprasmlist,NR_FUNCTION_RESULT_REG),cgsize);
+                        end
                       else
                         location.register:=rg.getregisterint(exprasmlist,cgsize);
 {$endif newra}
@@ -858,7 +860,7 @@ implementation
                 end
               else
                 rg.ungetregisterint(exprasmlist,right.location.register);
-              
+
               reference_release(exprasmlist,helpref);
               location_freetemp(exprasmlist,right.location);
               for i:=first_supreg to last_supreg do
@@ -1378,7 +1380,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-06-03 20:27:02  daniel
+  Revision 1.84  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.83  2003/06/03 20:27:02  daniel
     * Restored original methodpointer code for non newra case
 
   Revision 1.82  2003/06/03 13:01:59  daniel

@@ -413,8 +413,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr.enum:=R_INTREGISTER;
-                          hr.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
+                          hr:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                        end;
                   else
@@ -619,14 +618,13 @@ implementation
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aword(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,aword(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aword(max_),hregister,elselabel);
           end;
         objectlibrary.getlabel(table);
         { make it a 32bit register }
-        indexreg.enum:=R_INTREGISTER;
-        indexreg.number:=(hregister.number and not $ff) or R_SUBWHOLE;
+        indexreg:=rg.makeregsize(hregister,OS_INT);
         cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
@@ -657,15 +655,15 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
-                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aword(t^._low),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement)
+                    cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
                   else
                     begin
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, OS_INT, aword(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aword(t^._low-last), hregister);
                       emitjmp(C_Z,t^.statement);
                     end;
                   last:=t^._low;
@@ -680,7 +678,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resulttype.def)) then
-                         cg.a_op_const_reg(exprasmlist, OP_SUB, OS_INT, longint(t^._low), hregister);
+                         cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, longint(t^._low), hregister);
                     end
                   else
                     begin
@@ -688,7 +686,7 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, OS_INT, longint(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, longint(t^._low-last), hregister);
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
@@ -739,7 +737,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-06-01 21:38:06  peter
+  Revision 1.61  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.60  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

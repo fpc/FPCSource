@@ -84,8 +84,7 @@ unit cg64f32;
         }
         function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
 
-        procedure g_rangecheck64(list: taasmoutput; const p: tnode;
-          const todef: tdef); override;
+        procedure g_rangecheck64(list: taasmoutput; const l:tlocation;fromdef,todef: tdef); override;
       end;
 
     {# Creates a tregister64 record from 2 32 Bit registers. }
@@ -131,10 +130,10 @@ unit cg64f32;
             reg.reglo:=reg.reghi;
             reg.reghi:=tmpreg;
           end;
-        cg.a_load_reg_ref(list,OS_32,reg.reglo,ref);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,ref);
         tmpref := ref;
         inc(tmpref.offset,4);
-        cg.a_load_reg_ref(list,OS_32,reg.reghi,tmpref);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
       end;
 
     procedure tcg64f32.a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);
@@ -190,7 +189,7 @@ unit cg64f32;
             cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.index,tmpreg);
             tmpref.index:=tmpreg;
           end;
-        cg.a_load_ref_reg(list,OS_32,tmpref,reg.reglo);
+        cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reglo);
         inc(tmpref.offset,4);
 {$ifdef newra}
         if delete then
@@ -199,7 +198,7 @@ unit cg64f32;
             reference_release(list,tmpref);
           end;
 {$endif}
-        cg.a_load_ref_reg(list,OS_32,tmpref,reg.reghi);
+        cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reghi);
 {$ifdef newra}
         if got_scratch then
           rg.ungetregisterint(list,tmpreg);
@@ -295,12 +294,12 @@ unit cg64f32;
         tmpref: treference;
       begin
         if target_info.endian = endian_big then
-          cg.a_load_reg_ref(list,OS_32,reg,ref)
+          cg.a_load_reg_ref(list,OS_32,OS_32,reg,ref)
         else
           begin
             tmpref := ref;
             inc(tmpref.offset,4);
-            cg.a_load_reg_ref(list,OS_32,reg,tmpref)
+            cg.a_load_reg_ref(list,OS_32,OS_32,reg,tmpref)
           end;
       end;
 
@@ -309,12 +308,12 @@ unit cg64f32;
         tmpref: treference;
       begin
         if target_info.endian = endian_little then
-          cg.a_load_reg_ref(list,OS_32,reg,ref)
+          cg.a_load_reg_ref(list,OS_32,OS_32,reg,ref)
         else
           begin
             tmpref := ref;
             inc(tmpref.offset,4);
-            cg.a_load_reg_ref(list,OS_32,reg,tmpref)
+            cg.a_load_reg_ref(list,OS_32,OS_32,reg,tmpref)
           end;
       end;
 
@@ -323,12 +322,12 @@ unit cg64f32;
         tmpref: treference;
       begin
         if target_info.endian = endian_big then
-          cg.a_load_ref_reg(list,OS_32,ref,reg)
+          cg.a_load_ref_reg(list,OS_32,OS_32,ref,reg)
         else
           begin
             tmpref := ref;
             inc(tmpref.offset,4);
-            cg.a_load_ref_reg(list,OS_32,tmpref,reg)
+            cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg)
           end;
       end;
 
@@ -337,12 +336,12 @@ unit cg64f32;
         tmpref: treference;
       begin
         if target_info.endian = endian_little then
-          cg.a_load_ref_reg(list,OS_32,ref,reg)
+          cg.a_load_ref_reg(list,OS_32,OS_32,ref,reg)
         else
           begin
             tmpref := ref;
             inc(tmpref.offset,4);
-            cg.a_load_ref_reg(list,OS_32,tmpref,reg)
+            cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg)
           end;
       end;
 
@@ -623,7 +622,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.g_rangecheck64(list : taasmoutput;const p : tnode;const todef : tdef);
+    procedure tcg64f32.g_rangecheck64(list : taasmoutput;const l:tlocation;fromdef,todef:tdef);
 
       var
         neglabel,
@@ -631,14 +630,13 @@ unit cg64f32;
         endlabel: tasmlabel;
         hreg   : tregister;
         hdef   :  torddef;
-        fromdef : tdef;
         opsize   : tcgsize;
         oldregisterdef: boolean;
         from_signed,to_signed: boolean;
         got_scratch: boolean;
+        temploc : tlocation;
 
       begin
-         fromdef:=p.resulttype.def;
          from_signed := is_signed(fromdef);
          to_signed := is_signed(todef);
 
@@ -648,9 +646,9 @@ unit cg64f32;
              registerdef := false;
 
              { get the high dword in a register }
-             if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+             if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                begin
-                 hreg := p.location.registerhigh;
+                 hreg := l.registerhigh;
                  got_scratch := false
                end
              else
@@ -661,7 +659,7 @@ unit cg64f32;
                  hreg := cg.get_scratch_reg_int(list,OS_INT);
                {$endif}
                  got_scratch := true;
-                 a_load64high_ref_reg(list,p.location.reference,hreg);
+                 a_load64high_ref_reg(list,l.reference,hreg);
                end;
              objectlibrary.getlabel(poslabel);
 
@@ -689,14 +687,12 @@ unit cg64f32;
              { simple cardinal                                          }
              cg.a_label(list,poslabel);
              hdef:=torddef.create(u32bit,0,cardinal($ffffffff));
-             { the real p.resulttype.def is already saved in fromdef }
-             p.resulttype.def := hdef;
              { no use in calling just "g_rangecheck" since that one will }
              { simply call the inherited method too (JM)                 }
-             cg.g_rangecheck(list,p,todef);
+             location_copy(temploc,l);
+             temploc.size:=OS_32;
+             cg.g_rangecheck(list,temploc,hdef,todef);
              hdef.free;
-             { restore original resulttype.def }
-             p.resulttype.def := fromdef;
 
              if from_signed and to_signed then
                begin
@@ -705,9 +701,9 @@ unit cg64f32;
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
                  cg.a_label(list,neglabel);
-                 if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                 if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                    begin
-                     hreg := p.location.registerlow;
+                     hreg := l.registerlow;
                      got_scratch := false
                    end
                  else
@@ -718,7 +714,7 @@ unit cg64f32;
                      hreg := cg.get_scratch_reg_int(list,OS_INT);
                    {$endif}
                      got_scratch := true;
-                     a_load64low_ref_reg(list,p.location.reference,hreg);
+                     a_load64low_ref_reg(list,l.reference,hreg);
                    end;
                  { get a new neglabel (JM) }
                  objectlibrary.getlabel(neglabel);
@@ -738,14 +734,13 @@ unit cg64f32;
                  { longint($80000000) and -1 (JM)               }
                  cg.a_label(list,neglabel);
                  hdef:=torddef.create(s32bit,longint($80000000),-1);
-                 p.resulttype.def := hdef;
-                 cg.g_rangecheck(list,p,todef);
+                 location_copy(temploc,l);
+                 temploc.size:=OS_32;
+                 cg.g_rangecheck(list,temploc,hdef,todef);
                  hdef.free;
                  cg.a_label(list,endlabel);
                end;
              registerdef := oldregisterdef;
-             p.resulttype.def := fromdef;
-             { restore p's resulttype.def }
            end
          else
            { todef = 64bit int }
@@ -759,17 +754,17 @@ unit cg64f32;
                (torddef(fromdef).typ = u64bit)) then
              begin
                { in all cases, there is only a problem if the higest bit is set }
-               if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+               if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                  begin
                    if is_64bit(fromdef) then
                      begin
-                       hreg := p.location.registerhigh;
+                       hreg := l.registerhigh;
                        opsize := OS_32;
                      end
                    else
                      begin
-                       hreg := p.location.register;
-                       opsize := def_cgsize(p.resulttype.def);
+                       hreg := l.register;
+                       opsize := def_cgsize(fromdef);
                      end;
                    got_scratch := false;
                  end
@@ -782,11 +777,11 @@ unit cg64f32;
                  {$endif}
                    got_scratch := true;
 
-                   opsize := def_cgsize(p.resulttype.def);
+                   opsize := def_cgsize(fromdef);
                    if opsize in [OS_64,OS_S64] then
-                     a_load64high_ref_reg(list,p.location.reference,hreg)
+                     a_load64high_ref_reg(list,l.reference,hreg)
                    else
-                     cg.a_load_ref_reg(list,opsize,p.location.reference,hreg);
+                     cg.a_load_ref_reg(list,opsize,OS_INT,l.reference,hreg);
                  end;
                objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
@@ -909,7 +904,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-06-03 13:01:59  daniel
+  Revision 1.47  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.46  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.45  2003/06/01 21:38:06  peter

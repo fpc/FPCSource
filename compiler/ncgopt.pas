@@ -122,7 +122,7 @@ begin
         reference_release(exprasmlist,right.location.reference);
         { get register for the char }
         hreg := rg.getregisterint(exprasmlist,OS_8);
-        cg.a_load_ref_reg(exprasmlist,OS_8,right.location.reference,hreg);
+        cg.a_load_ref_reg(exprasmlist,OS_8,OS_8,right.location.reference,hreg);
         { I don't think a temp char exists, but it won't hurt (JM) }
         tg.ungetiftemp(exprasmlist,right.location.reference);
       end
@@ -130,7 +130,7 @@ begin
 
   { load the current string length }
   lengthreg := rg.getregisterint(exprasmlist,OS_INT);
-  cg.a_load_ref_reg(exprasmlist,OS_8,left.location.reference,lengthreg);
+  cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
   if tg.istemp(left.location.reference) then
@@ -181,7 +181,7 @@ begin
     begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
-      cg.a_load_reg_ref(exprasmlist,OS_8,hreg,href2);
+      cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,hreg,href2);
       rg.ungetregisterint(exprasmlist,hreg);
     end
   else
@@ -189,7 +189,7 @@ begin
   lengthreg.number:=(lengthreg.number and not $ff) or R_SUBL;
   { increase the string length }
   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
-  cg.a_load_reg_ref(exprasmlist,OS_8,lengthreg,left.location.reference);
+  cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
     cg.a_label(exprasmlist,l);
@@ -202,7 +202,12 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-06-03 13:01:59  daniel
+  Revision 1.6  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.5  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.4  2003/06/01 21:38:06  peter

@@ -34,7 +34,7 @@ unit cgx86;
        cginfo,cgbase,cgobj,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
-       node,symconst;
+       symconst,symtype;
 
     type
       tcgx86 = class(tcg)
@@ -67,11 +67,11 @@ unit cgx86;
           size: tcgsize; src1, src2, dst: tregister); override;
 
         { move instructions }
-        procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
-        procedure a_load_const_ref(list : taasmoutput; size: tcgsize; a : aword;const ref : treference);override;
-        procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
-        procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;reg : tregister);override;
-        procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
+        procedure a_load_const_reg(list : taasmoutput; tosize: tcgsize; a : aword;reg : tregister);override;
+        procedure a_load_const_ref(list : taasmoutput; tosize: tcgsize; a : aword;const ref : treference);override;
+        procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize: tcgsize; reg : tregister;const ref : treference);override;
+        procedure a_load_ref_reg(list : taasmoutput;fromsize,tosize: tcgsize;const ref : treference;reg : tregister);override;
+        procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         { fpu move instructions }
@@ -121,11 +121,13 @@ unit cgx86;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
-        procedure g_overflowcheck(list: taasmoutput; const p: tnode);override;
+        procedure g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);override;
 
-      private
+      protected
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
-        procedure sizes2load(s1 : tcgsize;s2 : topsize; var op: tasmop; var s3: topsize);
+        procedure check_register_size(size:tcgsize;reg:tregister);
+      private
+        procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
         procedure floatload(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
@@ -164,23 +166,24 @@ unit cgx86;
                        This is private property, keep out! :)
 ****************************************************************************}
 
-    procedure tcgx86.sizes2load(s1 : tcgsize;s2: topsize; var op: tasmop; var s3: topsize);
+    procedure tcgx86.sizes2load(s1,s2 : tcgsize; var op: tasmop; var s3: topsize);
 
        begin
          case s2 of
-           S_B:
+           OS_8,OS_S8 :
              if S1 in [OS_8,OS_S8] then
                s3 := S_B
              else internalerror(200109221);
-           S_W:
+           OS_16,OS_S16:
              case s1 of
                OS_8,OS_S8:
                  s3 := S_BW;
                OS_16,OS_S16:
                  s3 := S_W;
-               else internalerror(200109222);
+               else
+                 internalerror(200109222);
              end;
-           S_L:
+           OS_32,OS_S32:
              case s1 of
                OS_8,OS_S8:
                  s3 := S_BL;
@@ -188,11 +191,11 @@ unit cgx86;
                  s3 := S_WL;
                OS_32,OS_S32:
                  s3 := S_L;
-               else internalerror(200109223);
+               else
+                 internalerror(200109223);
              end;
 {$ifdef x86_64}
-           S_D,
-           S_Q:
+           OS_64,OS_S64:
              case s1 of
                OS_8,OS_S8:
                  s3 := S_BQ;
@@ -202,10 +205,12 @@ unit cgx86;
                  s3 := S_LQ;
                OS_64,OS_S64:
                  s3 := S_Q;
-               else internalerror(200304302);
+               else
+                 internalerror(200304302);
              end;
 {$endif x86_64}
-           else internalerror(200109227);
+           else
+             internalerror(200109227);
          end;
          if s3 in [S_B,S_W,S_L,S_Q] then
            op := A_MOV
@@ -303,6 +308,15 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.check_register_size(size:tcgsize;reg:tregister);
+      begin
+        if (reg.enum<>R_INTREGISTER) then
+          internalerror(200301081);
+        if TCGSize2OpSize[size]<>TCGSize2OpSize[reg_cgsize(reg)] then
+          internalerror(200306031);
+      end;
+
+
 {****************************************************************************
                               Assembler code
 ****************************************************************************}
@@ -331,6 +345,7 @@ unit cgx86;
 
     procedure tcgx86.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
       begin
+        check_register_size(size,r);
         case size of
           OS_8,OS_S8,
           OS_16,OS_S16:
@@ -375,26 +390,25 @@ unit cgx86;
     procedure tcgx86.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
 
       var
-        tmpreg: tregister;
+        pushsize : tcgsize;
+        tmpreg : tregister;
 
       begin
         case size of
           OS_8,OS_S8,
           OS_16,OS_S16:
             begin
+              if target_info.alignment.paraalign = 2 then
+                pushsize:=OS_16
+              else
+                pushsize:=OS_32;
             {$ifdef newra}
-              if target_info.alignment.paraalign = 2 then
-                tmpreg:=rg.getregisterint(list,OS_16)
-              else
-                tmpreg:=rg.getregisterint(list,OS_32);
+              tmpreg:=rg.getregisterint(list,pushsize)
             {$else}
-              if target_info.alignment.paraalign = 2 then
-                tmpreg:=get_scratch_reg_int(list,OS_16)
-              else
-                tmpreg:=get_scratch_reg_int(list,OS_32);
+              tmpreg:=get_scratch_reg_int(list,pushsize);
             {$endif}
-              a_load_ref_reg(list,size,r,tmpreg);
-              list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
+              a_load_ref_reg(list,size,pushsize,r,tmpreg);
+              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
             {$ifdef newra}
               rg.ungetregisterint(list,tmpreg);
             {$else}
@@ -474,41 +488,41 @@ unit cgx86;
 
 {********************** load instructions ********************}
 
-    procedure tcgx86.a_load_const_reg(list : taasmoutput; size: TCGSize; a : aword; reg : TRegister);
+    procedure tcgx86.a_load_const_reg(list : taasmoutput; tosize: TCGSize; a : aword; reg : TRegister);
 
       begin
+        check_register_size(tosize,reg);
         { the optimizer will change it to "xor reg,reg" when loading zero, }
         { no need to do it here too (JM)                                   }
-        list.concat(taicpu.op_const_reg(A_MOV,TCGSize2OpSize[size],a,reg))
+        list.concat(taicpu.op_const_reg(A_MOV,TCGSize2OpSize[tosize],a,reg))
       end;
 
 
-    procedure tcgx86.a_load_const_ref(list : taasmoutput; size: tcgsize; a : aword;const ref : treference);
+    procedure tcgx86.a_load_const_ref(list : taasmoutput; tosize: tcgsize; a : aword;const ref : treference);
 
       begin
-          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[size],a,ref));
+          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[tosize],a,ref));
       end;
 
 
-    procedure tcgx86.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref : treference);
-
-      begin
-        list.concat(taicpu.op_reg_ref(A_MOV,TCGSize2OpSize[size],reg,
-          ref));
-      end;
-
-
-    procedure tcgx86.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
-
+    procedure tcgx86.a_load_reg_ref(list : taasmoutput; fromsize,tosize: TCGSize; reg : tregister;const ref : treference);
       var
         op: tasmop;
-        o,s: topsize;
-
+        s: topsize;
       begin
-        if reg.enum<>R_INTREGISTER then
-          internalerror(200302058);
-        o:=reg2opsize(reg);
-        sizes2load(size,o,op,s);
+        check_register_size(fromsize,reg);
+        sizes2load(fromsize,tosize,op,s);
+        list.concat(taicpu.op_reg_ref(op,s,reg,ref));
+      end;
+
+
+    procedure tcgx86.a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref: treference;reg : tregister);
+      var
+        op: tasmop;
+        s: topsize;
+      begin
+        check_register_size(tosize,reg);
+        sizes2load(fromsize,tosize,op,s);
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
 
@@ -522,13 +536,10 @@ unit cgx86;
         instr:Taicpu;
 
       begin
-        if (reg1.enum=R_INTREGISTER) and (reg2.enum=R_INTREGISTER) then
-          begin
-            sizes2load(fromsize,reg2opsize(reg2),op,s);
-            eq:=(reg1.number shr 8)=(reg2.number shr 8);
-          end
-        else
-          internalerror(200301081);
+        check_register_size(fromsize,reg1);
+        check_register_size(tosize,reg2);
+        sizes2load(fromsize,tosize,op,s);
+        eq:=(reg1.number shr 8)=(reg2.number shr 8);
         if eq then
          begin
            { "mov reg1, reg1" doesn't make sense }
@@ -651,8 +662,7 @@ unit cgx86;
         power: longint;
 
       begin
-        if reg.enum<>R_INTREGISTER then
-          internalerror(200302034);
+        check_register_size(size,reg);
         case op of
           OP_DIV, OP_IDIV:
             begin
@@ -822,18 +832,15 @@ unit cgx86;
           instr:Taicpu;
 
         begin
-          if src.enum<>R_INTREGISTER then
-            internalerror(200302025);
-          if dst.enum<>R_INTREGISTER then
-            internalerror(200302025);
+          check_register_size(size,src);
+          check_register_size(size,dst);
           r.enum:=R_INTREGISTER;
           dstsize := tcgsize2opsize[size];
-          dst.number:=(dst.number and not $ff) or cgsize2subreg(size);
           case op of
             OP_NEG,OP_NOT:
               begin
-                if src.number <> NR_NO then
-                  internalerror(200112291);
+                if src.number<>dst.number then
+                  a_load_reg_reg(list,size,size,src,dst);
                 list.concat(taicpu.op_reg(TOpCG2AsmOp[op],dstsize,dst));
               end;
             OP_MUL,OP_DIV,OP_IDIV:
@@ -917,68 +924,62 @@ unit cgx86;
         end;
 
 
-     procedure tcgx86.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
-       begin
-          case op of
-            OP_NEG,OP_NOT,OP_IMUL:
-              begin
-                inherited a_op_ref_reg(list,op,size,ref,reg);
-              end;
-            OP_MUL,OP_DIV,OP_IDIV:
-              { special stuff, needs separate handling inside code }
-              { generator                                          }
-              internalerror(200109239);
-            else
-              begin
-                reg := rg.makeregsize(reg,size);
-                list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],tcgsize2opsize[size],ref,reg));
-              end;
-          end;
-       end;
+    procedure tcgx86.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
+      begin
+        check_register_size(size,reg);
+        case op of
+          OP_NEG,OP_NOT,OP_IMUL:
+            begin
+              inherited a_op_ref_reg(list,op,size,ref,reg);
+            end;
+          OP_MUL,OP_DIV,OP_IDIV:
+            { special stuff, needs separate handling inside code }
+            { generator                                          }
+            internalerror(200109239);
+          else
+            begin
+              reg := rg.makeregsize(reg,size);
+              list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],tcgsize2opsize[size],ref,reg));
+            end;
+        end;
+      end;
 
 
-     procedure tcgx86.a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference);
-       begin
-         if reg.enum<>R_INTREGISTER then
-          internalerror(200302036);
-         case op of
-           OP_NEG,OP_NOT:
-             begin
-               if reg.number<>NR_NO then
-                 internalerror(200109237);
-               list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],ref));
-             end;
-           OP_IMUL:
-             begin
-               { this one needs a load/imul/store, which is the default }
-               inherited a_op_ref_reg(list,op,size,ref,reg);
-             end;
-           OP_MUL,OP_DIV,OP_IDIV:
-             { special stuff, needs separate handling inside code }
-             { generator                                          }
-             internalerror(200109238);
-           else
-             begin
-               list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],reg,ref));
-             end;
-         end;
-       end;
+    procedure tcgx86.a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference);
+      begin
+        check_register_size(size,reg);
+        case op of
+          OP_NEG,OP_NOT:
+            begin
+              if reg.number<>NR_NO then
+                internalerror(200109237);
+              list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],ref));
+            end;
+          OP_IMUL:
+            begin
+              { this one needs a load/imul/store, which is the default }
+              inherited a_op_ref_reg(list,op,size,ref,reg);
+            end;
+          OP_MUL,OP_DIV,OP_IDIV:
+            { special stuff, needs separate handling inside code }
+            { generator                                          }
+            internalerror(200109238);
+          else
+            begin
+              list.concat(taicpu.op_reg_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],reg,ref));
+            end;
+        end;
+      end;
 
 
-    procedure tcgx86.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-        size: tcgsize; a: aword; src, dst: tregister);
+    procedure tcgx86.a_op_const_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; a: aword; src, dst: tregister);
       var
         tmpref: treference;
         power: longint;
-        opsize: topsize;
       begin
-        if src.enum<>R_INTREGISTER then
-          internalerror(200302057);
-        if dst.enum<>R_INTREGISTER then
-          internalerror(200302057);
-        opsize := reg2opsize(src);
-        if (opsize <> S_L) or
-           not (size in [OS_32,OS_S32]) then
+        check_register_size(size,src);
+        check_register_size(size,dst);
+        if not (size in [OS_32,OS_S32]) then
           begin
             inherited a_op_const_reg_reg(list,op,size,a,src,dst);
             exit;
@@ -1016,22 +1017,15 @@ unit cgx86;
         end;
       end;
 
-    procedure tcgx86.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
-        size: tcgsize; src1, src2, dst: tregister);
+
+    procedure tcgx86.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;size: tcgsize; src1, src2, dst: tregister);
       var
         tmpref: treference;
-        opsize: topsize;
       begin
-        if src1.enum>lastreg then
-          internalerror(200201081);
-        if src2.enum>lastreg then
-          internalerror(200201081);
-        if dst.enum>lastreg then
-          internalerror(200201081);
-        opsize := reg2opsize(src1);
-        if (opsize <> S_L) or
-           (reg2opsize(src2) <> S_L) or
-           not (size in [OS_32,OS_S32]) then
+        check_register_size(size,src1);
+        check_register_size(size,src2);
+        check_register_size(size,dst);
+        if not(size in [OS_32,OS_S32]) then
           begin
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
             exit;
@@ -1058,72 +1052,65 @@ unit cgx86;
 
 {*************** compare instructructions ****************}
 
-      procedure tcgx86.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-        l : tasmlabel);
+    procedure tcgx86.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+      l : tasmlabel);
 
-        begin
-          if reg.enum=R_INTREGISTER then
-            begin
-              if (a = 0) then
-                list.concat(taicpu.op_reg_reg(A_TEST,tcgsize2opsize[size],reg,reg))
-              else
-                list.concat(taicpu.op_const_reg(A_CMP,tcgsize2opsize[size],a,reg));
-            end
-          else
-            internalerror(200303131);
-          a_jmp_cond(list,cmp_op,l);
-        end;
-
-
-      procedure tcgx86.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
-        l : tasmlabel);
-
-        begin
-          list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,ref));
-          a_jmp_cond(list,cmp_op,l);
-        end;
-
-      procedure tcgx86.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;
-        reg1,reg2 : tregister;l : tasmlabel);
-
-        begin
-          if reg1.enum<>R_INTREGISTER then
-            internalerror(200101081);
-          if reg2.enum<>R_INTREGISTER then
-            internalerror(200101081);
-          if reg2opsize(reg1) <> reg2opsize(reg2) then
-            internalerror(200109226);
-          list.concat(taicpu.op_reg_reg(A_CMP,reg2opsize(reg1),reg1,reg2));
-          a_jmp_cond(list,cmp_op,l);
-        end;
+      begin
+        if reg.enum=R_INTREGISTER then
+          begin
+            if (a = 0) then
+              list.concat(taicpu.op_reg_reg(A_TEST,tcgsize2opsize[size],reg,reg))
+            else
+              list.concat(taicpu.op_const_reg(A_CMP,tcgsize2opsize[size],a,reg));
+          end
+        else
+          internalerror(200303131);
+        a_jmp_cond(list,cmp_op,l);
+      end;
 
 
-     procedure tcgx86.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister;l : tasmlabel);
-        begin
-          if reg.enum<>R_INTREGISTER then
-            internalerror(200302059);
-          reg.number:=(reg.number and not $ff) or cgsize2subreg(size);
-          list.concat(taicpu.op_ref_reg(A_CMP,tcgsize2opsize[size],ref,reg));
-          a_jmp_cond(list,cmp_op,l);
-        end;
+    procedure tcgx86.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
+      l : tasmlabel);
+
+      begin
+        list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,ref));
+        a_jmp_cond(list,cmp_op,l);
+      end;
 
 
-     procedure tcgx86.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+    procedure tcgx86.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;
+      reg1,reg2 : tregister;l : tasmlabel);
 
-       var
-         ai : taicpu;
+      begin
+        check_register_size(size,reg1);
+        check_register_size(size,reg2);
+        list.concat(taicpu.op_reg_reg(A_CMP,TCgSize2OpSize[size],reg1,reg2));
+        a_jmp_cond(list,cmp_op,l);
+      end;
 
-       begin
-         if cond=OC_None then
-           ai := Taicpu.Op_sym(A_JMP,S_NO,l)
-         else
-           begin
-             ai:=Taicpu.Op_sym(A_Jcc,S_NO,l);
-             ai.SetCondition(TOpCmp2AsmCond[cond]);
-           end;
-         ai.is_jmp:=true;
-         list.concat(ai);
-       end;
+
+    procedure tcgx86.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister;l : tasmlabel);
+      begin
+        check_register_size(size,reg);
+        list.concat(taicpu.op_ref_reg(A_CMP,TCgSize2OpSize[size],ref,reg));
+        a_jmp_cond(list,cmp_op,l);
+      end;
+
+
+    procedure tcgx86.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+      var
+        ai : taicpu;
+      begin
+        if cond=OC_None then
+          ai := Taicpu.Op_sym(A_JMP,S_NO,l)
+        else
+          begin
+            ai:=Taicpu.Op_sym(A_Jcc,S_NO,l);
+            ai.SetCondition(TOpCmp2AsmCond[cond]);
+          end;
+        ai.is_jmp:=true;
+        list.concat(ai);
+      end;
 
 
      procedure tcgx86.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
@@ -1137,26 +1124,21 @@ unit cgx86;
        end;
 
 
-     procedure tcgx86.g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister);
-
-       var
-         ai : taicpu;
-         hreg : tregister;
-       begin
-          if reg.enum<>R_INTREGISTER then
-            internalerror(200202031);
-          hreg.enum:=R_INTREGISTER;
-          hreg.number:=(reg.number and not $ff) or R_SUBL;
-          ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
-          ai.setcondition(flags_to_cond(f));
-          list.concat(ai);
-          if (reg.number <> hreg.number) then
-            a_load_reg_reg(list,OS_8,size,hreg,reg);
-       end;
+    procedure tcgx86.g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister);
+      var
+        ai : taicpu;
+        hreg : tregister;
+      begin
+        hreg:=rg.makeregsize(reg,OS_8);
+        ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
+        ai.setcondition(flags_to_cond(f));
+        list.concat(ai);
+        if (reg.number <> hreg.number) then
+          a_load_reg_reg(list,OS_8,size,hreg,reg);
+      end;
 
 
      procedure tcgx86.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref: TReference);
-
        var
          ai : taicpu;
        begin
@@ -1311,10 +1293,10 @@ unit cgx86;
               for i:=1 to helpsize do
                 begin
                    r:=rg.getexplicitregisterint(list,NR_EDI);
-                   a_load_ref_reg(list,OS_32,srcref,r);
+                   a_load_ref_reg(list,OS_32,OS_32,srcref,r);
                    If (len = 4) and delsource then
                      reference_release(list,source);
-                   a_load_reg_ref(list,OS_32,r,dstref);
+                   a_load_reg_ref(list,OS_32,OS_32,r,dstref);
                    inc(srcref.offset,4);
                    inc(dstref.offset,4);
                    dec(len,4);
@@ -1323,10 +1305,10 @@ unit cgx86;
               if len>1 then
                 begin
                    r:=rg.getexplicitregisterint(list,NR_DI);
-                   a_load_ref_reg(list,OS_16,srcref,r);
+                   a_load_ref_reg(list,OS_16,OS_16,srcref,r);
                    If (len = 2) and delsource then
                      reference_release(list,source);
-                   a_load_reg_ref(list,OS_16,r,dstref);
+                   a_load_reg_ref(list,OS_16,OS_16,r,dstref);
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
                    dec(len,2);
@@ -1370,10 +1352,10 @@ unit cgx86;
                        r:=rg.getexplicitregisterint(list,NR_EDI);
                        a_load_reg_reg(list,OS_32,OS_32,reg32,r);
                      end;
-                   a_load_ref_reg(list,OS_8,srcref,reg8);
+                   a_load_ref_reg(list,OS_8,OS_8,srcref,reg8);
                    If delsource and (len=1) then
                      reference_release(list,source);
-                   a_load_reg_ref(list,OS_8,reg8,dstref);
+                   a_load_reg_ref(list,OS_8,OS_8,reg8,dstref);
                    if swap then
                      begin
                        r.number:=NR_EDI;
@@ -1391,7 +1373,7 @@ unit cgx86;
               if loadref then
                 begin
                   srcreg:=maybepush(NR_ESI,esipushed);
-                  a_load_ref_reg(list,OS_ADDR,source,srcreg)
+                  a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,srcreg)
                 end
               else
                 begin
@@ -1585,11 +1567,11 @@ unit cgx86;
 
         { load count }
         r2.number:=NR_ECX;
-        a_load_ref_reg(list,OS_INT,lenref,r2);
+        a_load_ref_reg(list,OS_INT,OS_INT,lenref,r2);
 
         { load source }
         r2.number:=NR_ESI;
-        a_load_ref_reg(list,OS_INT,ref,r2);
+        a_load_ref_reg(list,OS_INT,OS_INT,ref,r2);
 
         { scheduled .... }
         r2.number:=NR_ECX;
@@ -1627,7 +1609,7 @@ unit cgx86;
         list.concat(Taicpu.op_reg(A_POP,S_L,r2));
 
         { patch the new address }
-        a_load_reg_ref(list,OS_INT,rsp,ref);
+        a_load_reg_ref(list,OS_INT,OS_INT,rsp,ref);
       end;
 
 
@@ -1924,7 +1906,7 @@ unit cgx86;
 
 
     { produces if necessary overflowcode }
-    procedure tcgx86.g_overflowcheck(list: taasmoutput; const p: tnode);
+    procedure tcgx86.g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);
       var
          hl : tasmlabel;
          ai : taicpu;
@@ -1933,10 +1915,10 @@ unit cgx86;
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
          objectlibrary.getlabel(hl);
-         if not ((p.resulttype.def.deftype=pointerdef) or
-                ((p.resulttype.def.deftype=orddef) and
-                 (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                                    bool8bit,bool16bit,bool32bit]))) then
+         if not ((def.deftype=pointerdef) or
+                ((def.deftype=orddef) and
+                 (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                       bool8bit,bool16bit,bool32bit]))) then
            cond:=C_NO
          else
            cond:=C_NB;
@@ -1953,7 +1935,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.50  2003-06-03 13:01:59  daniel
+  Revision 1.51  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.50  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.49  2003/06/01 21:38:07  peter

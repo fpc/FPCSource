@@ -136,12 +136,12 @@ implementation
                 begin
                   href:=left.location.reference;
                   inc(href.offset,4);
-                  cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
+                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
                   exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
-                  cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,hregister);
+                  cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
                 end
                else
-                cg.a_load_ref_reg(exprasmlist,left.location.size,left.location.reference,hregister);
+                cg.a_load_ref_reg(exprasmlist,left.location.size,OS_INT,left.location.reference,hregister);
              end;
            else
              internalerror(2002032218);
@@ -358,7 +358,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-04-30 20:53:32  florian
+  Revision 1.62  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.61  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

@@ -251,7 +251,7 @@ implementation
                    begin
                      { load VMT pointer }
                      reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resulttype.def).vmt_offset);
-                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,hrefvmt,hregister);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                 end;
               LOC_REFERENCE,
@@ -260,18 +260,18 @@ implementation
                   if is_class(left.resulttype.def) then
                    begin
                      { deref class }
-                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                      cg.g_maybe_testself(exprasmlist,hregister);
                      { load VMT pointer }
                      reference_reset_base(hrefvmt,hregister,tobjectdef(left.resulttype.def).vmt_offset);
-                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,hrefvmt,hregister);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                   else
                    begin
                      { load VMT pointer, but not for classrefdefs }
                      if (left.resulttype.def.deftype=objectdef) then
                        inc(left.location.reference.offset,tobjectdef(left.resulttype.def).vmt_offset);
-                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                    end;
                 end;
               else
@@ -284,7 +284,7 @@ implementation
              reference_reset_base(href,hregister,0);
              rg.ungetaddressregister(exprasmlist,hregister);
              hregister:=rg.getregisterint(exprasmlist,OS_INT);
-             cg.a_load_ref_reg(exprasmlist,OS_INT,href,hregister);
+             cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
            end;
         location.register:=hregister;
      end;
@@ -315,7 +315,7 @@ implementation
            objectlibrary.getlabel(lengthlab);
            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
            reference_reset_base(href,hregister,-8);
-           cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
+           cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hregister);
            cg.a_label(exprasmlist,lengthlab);
            location_reset(location,LOC_REGISTER,OS_32);
            location.register:=hregister;
@@ -349,7 +349,7 @@ implementation
         else
           cg.a_op_const_reg(exprasmlist,cgop,location.size,1,location.register);
 
-        cg.g_rangecheck(exprasmlist,self,resulttype.def);
+        cg.g_rangecheck(exprasmlist,location,resulttype.def,resulttype.def);
       end;
 
 
@@ -435,8 +435,9 @@ implementation
                location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
              end;
           location_release(exprasmlist,tcallparanode(left).left.location);
-          cg.g_overflowcheck(exprasmlist,tcallparanode(left).left);
-          cg.g_rangecheck(exprasmlist,tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
+          cg.g_overflowcheck(exprasmlist,tcallparanode(left).left.location,tcallparanode(left).resulttype.def);
+          cg.g_rangecheck(exprasmlist,tcallparanode(left).left.location,tcallparanode(left).left.resulttype.def,
+              tcallparanode(left).left.resulttype.def);
         end;
 
 
@@ -536,7 +537,7 @@ implementation
                  LOC_REFERENCE:
                    begin
                      cgsize := def_cgsize(tcallparanode(tcallparanode(left).right).left.resulttype.def);
-                     cg.a_load_ref_reg(exprasmlist,cgsize,
+                     cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
                        tcallparanode(tcallparanode(left).right).left.location.reference,hregister);
                    end;
                else
@@ -681,7 +682,12 @@ end.
 
 {
   $Log$
-  Revision 1.34  2003-06-01 21:38:06  peter
+  Revision 1.35  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.34  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

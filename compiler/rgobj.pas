@@ -464,7 +464,7 @@ unit rgobj;
      procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
      procedure location_release(list: taasmoutput; const l : tlocation);
      procedure location_freetemp(list: taasmoutput; const l : tlocation);
-     procedure location_copy(var destloc,sourceloc : tlocation);
+     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
      procedure location_swap(var destloc,sourceloc : tlocation);
 
     type
@@ -990,7 +990,7 @@ unit rgobj;
               saved[r].ofs:=hr.offset;
               r2.enum:=R_INTREGISTER;
               r2.number:=r shl 8 or R_SUBWHOLE;
-              cg.a_load_reg_ref(list,OS_INT,r2,hr);
+              cg.a_load_reg_ref(list,OS_INT,OS_INT,r2,hr);
               cg.a_reg_dealloc(list,r2);
               include(unusedregsint,r);
               inc(countunusedregsint);
@@ -1080,7 +1080,7 @@ unit rgobj;
                 r2.enum:=R_INTREGISTER;
                 r2.number:=r shl 8 or R_SUBWHOLE;
                 cg.a_reg_alloc(list,r2);
-                cg.a_load_ref_reg(list,OS_INT,hr,r2);
+                cg.a_load_ref_reg(list,OS_INT,OS_INT,hr,r2);
                 if not (r in unusedregsint) then
                   { internalerror(10)
                     in n386cal we always save/restore the reg *state*
@@ -2050,7 +2050,7 @@ unit rgobj;
     {Remove node u from the interference graph and remove all collected
      move instructions it is associated with.}
 
-    var i:byte; 
+    var i:byte;
         j,k,count:cardinal;
         v:Tsuperregister;
         m,n:Tmoveins;
@@ -2439,7 +2439,7 @@ unit rgobj;
       end;
 
 
-    procedure location_copy(var destloc,sourceloc : tlocation);
+    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
       begin
         destloc:=sourceloc;
       end;
@@ -2463,7 +2463,12 @@ end.
 
 {
   $Log$
-  Revision 1.49  2003-06-03 13:01:59  daniel
+  Revision 1.50  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.49  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.48  2003/06/01 21:38:06  peter

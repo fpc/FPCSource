@@ -154,7 +154,7 @@ implementation
             reference_release(exprasmlist,href);
             location.register:=rg.getaddressregister(exprasmlist);
             cg.g_maybe_testself(exprasmlist,href.base);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,location.register);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
           end
          else
           begin
@@ -195,7 +195,7 @@ implementation
             assigned(tloadnode(left).symtableentry) and
             (tloadnode(left).symtableentry.typ=varsym) and
             (tvarsym(tloadnode(left).symtableentry).vartype.def.deftype=procvardef) then
-           cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
+           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,
              location.register)
          else
           begin
@@ -312,7 +312,7 @@ implementation
          else if is_interfacecom(left.resulttype.def) then
            begin
               tg.GetTemp(exprasmlist,pointer_size,tt_interfacecom,location.reference);
-              cg.a_load_loc_ref(exprasmlist,left.location,location.reference);
+              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
              if (cs_gdb_heaptrc in aktglobalswitches) and
                 (cs_checkpointer in aktglobalswitches) and
@@ -538,7 +538,7 @@ implementation
             {$endif}
             end
          else
-           cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
+           cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
        end;
 
 
@@ -611,8 +611,8 @@ implementation
                 LOC_REFERENCE :
                   begin
                     location_release(exprasmlist,left.location);
-                    location.reference.base:=rg.getregisterint(exprasmlist,OS_INT);
-                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.reference.base);
+                    location.reference.base:=rg.getaddressregister(exprasmlist);
+                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
                   end;
                 else
                   internalerror(2002032218);
@@ -667,7 +667,7 @@ implementation
                   begin
                      location_release(exprasmlist,left.location);
                      location.reference.base:=rg.getaddressregister(exprasmlist);
-                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,
                       left.location.reference,location.reference.base);
                   end;
                 else
@@ -937,7 +937,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-06-03 13:01:59  daniel
+  Revision 1.59  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.58  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.57  2003/06/02 22:35:45  florian

@@ -117,7 +117,7 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
     r.number:=NR_ESP;
     reference_reset_base(href,r,getselfoffsetfromsp(procdef));
     r.number:=NR_EAX;
-    cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
+    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,r);
   end;
 
   procedure loadvmttoeax;
@@ -247,7 +247,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2003-05-15 18:58:54  peter
+  Revision 1.20  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.19  2003/05/15 18:58:54  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

@@ -111,68 +111,6 @@ unit rgcpu;
        tgobj;
 
 {************************************************************************}
-{                         routine helpers                                }
-{************************************************************************}
-  const
-    reg2reg32 : array[firstreg..lastreg] of Toldregister = (R_NO,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-    reg2reg16 : array[firstreg..lastreg] of Toldregister = (R_NO,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-    reg2reg8 : array[firstreg..lastreg] of Toldregister = (R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-
-    { convert a register to a specfied register size }
-    function changeregsize(r:tregister;size:topsize):tregister;
-      var
-        reg : tregister;
-      begin
-        case size of
-          S_B :
-            reg.enum:=reg2reg8[r.enum];
-          S_W :
-            reg.enum:=reg2reg16[r.enum];
-          S_L :
-            reg.enum:=reg2reg32[r.enum];
-          else
-            internalerror(200204101);
-        end;
-        if reg.enum=R_NO then
-         internalerror(200204102);
-        changeregsize:=reg;
-      end;
-
-
-{************************************************************************}
 {                               trgcpu                                   }
 {************************************************************************}
 
@@ -564,27 +502,11 @@ unit rgcpu;
 
 
     function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
-
-      var
-        _result : topsize;
       begin
-        case size of
-          OS_32,OS_S32:
-            begin
-              _result := S_L;
-            end;
-          OS_8,OS_S8:
-            begin
-              _result := S_B;
-            end;
-          OS_16,OS_S16:
-            begin
-              _result := S_W;
-            end;
-          else
-            internalerror(2001092312);
-        end;
-        makeregsize := changeregsize(reg,_result);
+        if reg.enum<>R_INTREGISTER then
+          internalerror(200306032);
+        result.enum:=R_INTREGISTER;
+        result.number:=(reg.number and (not $ff)) or cgsize2subreg(size);
       end;
 
 
@@ -595,7 +517,12 @@ end.
 
 {
   $Log$
-  Revision 1.24  2003-06-03 13:01:59  daniel
+  Revision 1.25  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.24  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.23  2003/06/01 21:38:06  peter

@@ -31,7 +31,6 @@ interface
 
 type
       tcgunaryminusnode = class(tunaryminusnode)
-         procedure pass_2;override;
       protected
          { This routine is called to change the sign of the
            floating point value in the floating point
@@ -44,6 +43,14 @@ type
            in IEEE-754 format.
          }
          procedure emit_float_sign_change(r: tregister; _size : tcgsize);virtual;
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;virtual;abstract;
+{$endif SUPPORT_MMX}
+         procedure second_64bit;virtual;
+         procedure second_integer;virtual;
+         procedure second_float;virtual;
+      public
+         procedure pass_2;override;
       end;
 
       tcgmoddivnode = class(tmoddivnode)
@@ -96,6 +103,10 @@ type
       tcgnotnode = class(tnotnode)
       protected
          procedure second_boolean;virtual;abstract;
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;virtual;abstract;
+{$endif SUPPORT_MMX}
+         procedure second_64bit;virtual;
          procedure second_integer;virtual;
       public
          procedure pass_2;override;
@@ -116,10 +127,11 @@ implementation
 {*****************************************************************************
                           TCGUNARYMINUSNODE
 *****************************************************************************}
+
     procedure tcgunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
-     var
-       href : treference;
-       hreg : tregister;
+      var
+        href : treference;
+        hreg : tregister;
       begin
         { get a temporary memory reference to store the floating
           point value
@@ -141,7 +153,7 @@ implementation
            internalerror(20020814);
         hreg := rg.getregisterint(exprasmlist,OS_32);
         { load value }
-        cg.a_load_ref_reg(exprasmlist,OS_32,href,hreg);
+        cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hreg);
         { bitwise complement copied value }
         cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,hreg,hreg);
         { sign-bit is bit 31/63 of single/double }
@@ -162,81 +174,73 @@ implementation
       end;
 
 
+    procedure tcgunaryminusnode.second_64bit;
+      begin
+        secondpass(left);
+        { load left operator in a register }
+        location_copy(location,left.location);
+        location_force_reg(exprasmlist,location,OS_64,false);
+        cg64.a_op64_loc_reg(exprasmlist,OP_NEG,
+           location,joinreg64(location.registerlow,location.registerhigh));
+      end;
+
+
+    procedure tcgunaryminusnode.second_float;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        case left.location.loc of
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+              reference_release(exprasmlist,left.location.reference);
+              location.register:=rg.getregisterfpu(exprasmlist,location.size);
+              cg.a_loadfpu_ref_reg(exprasmlist,
+                 def_cgsize(left.resulttype.def),
+                 left.location.reference,location.register);
+              emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
+            end;
+          LOC_FPUREGISTER:
+            begin
+               location.register:=left.location.register;
+               emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
+            end;
+          LOC_CFPUREGISTER:
+            begin
+               location.register:=rg.getregisterfpu(exprasmlist,location.size);
+               cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,location.register);
+               emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
+            end;
+          else
+            internalerror(200306021);
+        end;
+      end;
+
+
+    procedure tcgunaryminusnode.second_integer;
+      begin
+        secondpass(left);
+        { load left operator in a register }
+        location_copy(location,left.location);
+        location_force_reg(exprasmlist,location,OS_INT,false);
+        cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,location.register);
+      end;
+
+
     procedure tcgunaryminusnode.pass_2;
-
-
       begin
          if is_64bit(left.resulttype.def) then
-           begin
-              secondpass(left);
-
-              { load left operator in a register }
-              location_copy(location,left.location);
-              location_force_reg(exprasmlist,location,OS_64,false);
-              cg64.a_op64_loc_reg(exprasmlist,OP_NEG,
-                 location,joinreg64(location.registerlow,location.registerhigh));
-           end
+           second_64bit
+{$ifdef SUPPORT_MMX}
          else
-           begin
-              secondpass(left);
-              location_reset(location,LOC_REGISTER,OS_INT);
-              case left.location.loc of
-                 LOC_REGISTER:
-                   begin
-                      location.register:=left.location.register;
-                      cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,
-                         location.register);
-                   end;
-                 LOC_CREGISTER:
-                   begin
-                      location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,left.location.register,
-                        location.register);
-                      cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,
-                         location.register);
-                   end;
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE:
-                   begin
-                      reference_release(exprasmlist,left.location.reference);
-                      if (left.resulttype.def.deftype=floatdef) then
-                        begin
-                           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                           location.register:=rg.getregisterfpu(exprasmlist,location.size);
-                           cg.a_loadfpu_ref_reg(exprasmlist,
-                              def_cgsize(left.resulttype.def),
-                              left.location.reference,location.register);
-                           emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
-                        end
-                      else
-                        begin
-                           location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                           { why is the size is OS_INT, since in pass_1 we convert
-                             everything to a signed natural value anyways
-                           }
-                           cg.a_load_ref_reg(exprasmlist,OS_INT,
-                               left.location.reference,location.register);
-                           cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,
-                               location.register);
-                        end;
-                   end;
-                 LOC_FPUREGISTER:
-                   begin
-                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                      location.register:=left.location.register;
-                      emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
-                   end;
-                 LOC_CFPUREGISTER:
-                   begin
-                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                      location.register:=rg.getregisterfpu(exprasmlist,location.size);
-                      cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,location.register);
-                      emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
-                   end;
-                 else
-                    internalerror(200203225);
-              end;
-           end;
+           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
+             second_mmx
+{$endif SUPPORT_MMX}
+         else
+           if (left.resulttype.def.deftype=floatdef) then
+             second_float
+         else
+           second_integer;
       end;
 
 
@@ -341,7 +345,7 @@ implementation
               location_reset(location,LOC_REGISTER,OS_INT);
               location.register:=hreg1;
            end;
-        cg.g_overflowcheck(exprasmlist,self);
+        cg.g_overflowcheck(exprasmlist,location,resulttype.def);
       end;
 
 
@@ -468,24 +472,23 @@ implementation
                                TCGNOTNODE
 *****************************************************************************}
 
+    procedure tcgnotnode.second_64bit;
+      begin
+        secondpass(left);
+        location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+        location_copy(location,left.location);
+        { perform the NOT operation }
+        cg64.a_op64_reg_reg(exprasmlist,OP_NOT,left.location.register64,location.register64);
+      end;
+
+
     procedure tcgnotnode.second_integer;
       begin
-        if is_64bit(left.resulttype.def) then
-          begin
-            secondpass(left);
-            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-            location_copy(location,left.location);
-            { perform the NOT operation }
-            cg64.a_op64_reg_reg(exprasmlist,OP_NOT,left.location.register64,location.register64);
-          end
-        else
-          begin
-            secondpass(left);
-            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-            location_copy(location,left.location);
-            { perform the NOT operation }
-            cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,location.register,location.register);
-         end;
+        secondpass(left);
+        location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+        location_copy(location,left.location);
+        { perform the NOT operation }
+        cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,location.register,location.register);
       end;
 
 
@@ -493,6 +496,12 @@ implementation
       begin
         if is_boolean(resulttype.def) then
           second_boolean
+{$ifdef SUPPORT_MMX}
+        else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
+          second_mmx
+{$endif SUPPORT_MMX}
+        else if is_64bit(left.resulttype.def) then
+          second_64bit
         else
           second_integer;
       end;
@@ -505,7 +514,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-06-01 21:38:06  peter
+  Revision 1.13  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.12  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

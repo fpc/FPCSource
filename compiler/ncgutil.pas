@@ -64,7 +64,7 @@ interface
                               const locpara : tparalocation);
 
     procedure genentrycode(list:TAAsmoutput;inlined:boolean);
-    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:cardinal);
+    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
     procedure genexitcode(list:Taasmoutput;inlined:boolean);
 
     procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
@@ -430,7 +430,7 @@ implementation
                   rg.isaddressregister(hregister)} then
                  hregister:=rg.getregisterint(list,dst_size);
              end;
-           hregister.number:=(hregister.number and not $ff) or cgsize2subreg(dst_size);
+           hregister:=rg.makeregsize(hregister,dst_size);
         {$ifdef newra}
            rg.add_constraints(hregister.number);
         {$endif}
@@ -456,7 +456,7 @@ implementation
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                   begin
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                      l.register.number:=(l.register.number and not $ff) or cgsize2subreg(dst_size);
+                      l.register:=rg.makeregsize(l.register,dst_size);
                     { for big endian systems, the reference's offset must }
                     { be increased in this case, since they have the      }
                     { MSB first in memory and e.g. byte(word_var) should  }
@@ -665,9 +665,9 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               if l.size in [OS_64,OS_S64] then
-               cg64.a_load64_loc_ref(list,l,r)
+                cg64.a_load64_loc_ref(list,l,r)
               else
-               cg.a_load_loc_ref(list,l,r);
+                cg.a_load_loc_ref(list,l.size,l,r);
               location_release(list,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -709,7 +709,7 @@ implementation
 {$endif cpu64bit}
                   begin
                     tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,s.ref);
-                    cg.a_load_reg_ref(list,l.size,l.register,s.ref);
+                    cg.a_load_reg_ref(list,l.size,l.size,l.register,s.ref);
                   end;
                  location_release(list,l);
                  s.saved:=true;
@@ -739,7 +739,7 @@ implementation
                      end;
                     { save base register }
                     tg.GetTemp(list,TCGSize2Size[OS_ADDR],tt_normal,s.ref);
-                    cg.a_load_reg_ref(list,OS_ADDR,l.reference.base,s.ref);
+                    cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,l.reference.base,s.ref);
                     { release }
                     location_release(list,l);
                     s.saved:=true;
@@ -773,7 +773,7 @@ implementation
 {$endif cpu64bit}
                begin
                  l.register:=rg.getregisterint(list,OS_INT);
-                 cg.a_load_ref_reg(list,OS_INT,s.ref,l.register);
+                 cg.a_load_ref_reg(list,OS_INT,OS_INT,s.ref,l.register);
                end;
             end;
           LOC_CREFERENCE,
@@ -781,7 +781,7 @@ implementation
             begin
               reference_reset(l.reference);
               l.reference.base:=rg.getaddressregister(list);
-              cg.a_load_ref_reg(list,OS_ADDR,s.ref,l.reference.base);
+              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,s.ref,l.reference.base);
             end;
         end;
         tg.ungetiftemp(list,s.ref);
@@ -888,7 +888,7 @@ implementation
                         if calloption=pocall_inline then
                          begin
                            reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                           cg.a_load_ref_ref(list,cgsize,tempreference,href);
+                           cg.a_load_ref_ref(list,cgsize,cgsize,tempreference,href);
                          end
                         else
                          cg.a_param_ref(list,cgsize,tempreference,locpara);
@@ -949,28 +949,6 @@ implementation
                      end
                     else
                      begin
-                       case cgsize of
-                         OS_8,OS_S8 :
-                           begin
-                             if alignment=4 then
-                              cgsize:=OS_32
-                             else
-                              cgsize:=OS_16;
-                           end;
-                         OS_16,OS_S16 :
-                           begin
-                             if alignment=4 then
-                              cgsize:=OS_32;
-                           end;
-                       end;
-                       { update register to use to match alignment }
-                       if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        begin
-                          if p.location.register.enum<>R_INTREGISTER then
-                            internalerror(200302024);
-                          hreg:=p.location.register;
-                          p.location.register.number:=(p.location.register.number and not $ff) or cgsize2subreg(cgsize);
-                        end;
                        inc(pushedparasize,alignment);
                        if calloption=pocall_inline then
                         begin
@@ -981,13 +959,10 @@ implementation
                               cg.g_concatcopy(list,p.location.reference,href,size,false,false)
                             end
                           else
-                            cg.a_load_loc_ref(list,p.location,href);
+                            cg.a_load_loc_ref(list,p.location.size,p.location,href);
                         end
                        else
                         cg.a_param_loc(list,p.location,locpara);
-                       { restore old register }
-                       if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                         p.location.register:=hreg;
                      end;
                     location_release(list,p.location);
                   end;
@@ -1143,7 +1118,7 @@ implementation
                {$else}
                  tmpreg:=cg.get_scratch_reg_address(list);
                {$endif}
-                 cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
+                 cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
                {$ifdef newra}
@@ -1239,7 +1214,6 @@ implementation
 
     procedure initretvalue(list:taasmoutput);
       var
-        paraloc : tparalocation;
         href    : treference;
       begin
         if not is_void(current_procdef.rettype.def) then
@@ -1257,7 +1231,7 @@ implementation
                   cg.g_initialize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
                   { load the pointer to the initialized retvalue in te register }
                   if (tvarsym(current_procdef.funcretsym).reg.enum <> R_NO) then
-                    cg.a_load_ref_reg(list,OS_ADDR,href,tvarsym(current_procdef.funcretsym).reg);
+                    cg.a_load_ref_reg(list,OS_ADDR,def_cgsize(current_procdef.rettype.def),href,tvarsym(current_procdef.funcretsym).reg);
                end;
           end;
       end;
@@ -1283,7 +1257,7 @@ implementation
                    location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
                resloc.register := ressym.reg;
              end
-           else 
+           else
              begin
                location_reset(resloc,LOC_REFERENCE,def_cgsize(current_procdef.rettype.def));
                reference_reset_base(resloc.reference,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
@@ -1312,7 +1286,8 @@ implementation
 {$endif cpu64bit}
                   begin
                     hreg.enum:=R_INTREGISTER;
-                    hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(resloc.size);
+                    hreg.number:=NR_FUNCTION_RETURN_REG;
+                    hreg:=rg.makeregsize(hreg,resloc.size);
                     cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                   end;
                end;
@@ -1400,7 +1375,7 @@ implementation
                          LOC_CREFERENCE:
                            begin
                              reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                             cg.a_load_ref_reg(list,hp.paraloc.size,href,tvarsym(hp.parasym).reg);
+                             cg.a_load_ref_reg(list,hp.paraloc.size,hp.paraloc.size,href,tvarsym(hp.parasym).reg);
                            end;
                          else
                            internalerror(2003053010);
@@ -1414,7 +1389,7 @@ implementation
                            LOC_CREGISTER,
                            LOC_REGISTER:
                             if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href)
+                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.size,hp.paraloc.register,href)
                             else
                                cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
                            LOC_FPUREGISTER,
@@ -1448,7 +1423,7 @@ implementation
            tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_stackptr_ref);
            rsp.enum:=R_INTREGISTER;
            rsp.number:=NR_STACK_POINTER_REG;
-           cg.a_load_reg_ref(list,OS_ADDR,rsp,current_procinfo.save_stackptr_ref);
+           cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,rsp,current_procinfo.save_stackptr_ref);
          end;
 
         { the actual profile code can clobber some registers,
@@ -1533,7 +1508,7 @@ implementation
 
       end;
 
-    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:cardinal);
+    procedure gen_stackalloc_code(list:Taasmoutput;stackframe:longint);
 
     var hs:string;
 
@@ -1617,14 +1592,10 @@ implementation
         srsym : tsym;
         usesacc,
         usesacchi,
-        usesself,usesfpu : boolean;
-        pd : tprocdef;
-        rsp,tmpreg,r  : Tregister;
-        retsize:cardinal;
-        nostackframe:boolean;
+        usesfpu : boolean;
+        rsp,r : Tregister;
+        retsize : longint;
       begin
-{        nostackframe:=current_procinfo.framepointer.number=NR_STACK_POINTER_REG;}
-
         if aktexitlabel.is_used then
           cg.a_label(list,aktexitlabel);
 
@@ -1685,7 +1656,7 @@ implementation
                 if not assigned(srsym) then
                   internalerror(200305058);
                 reference_reset_base(href,current_procinfo.framepointer,tvarsym(srsym).adjusted_address);
-                cg.a_load_ref_reg(list,OS_ADDR,href,r);
+                cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,r);
                 cg.a_reg_dealloc(list,r);
                 usesacc:=true;
               end
@@ -1709,7 +1680,7 @@ implementation
          begin
            rsp.enum:=R_INTREGISTER;
            rsp.number:=NR_STACK_POINTER_REG;
-           cg.a_load_ref_reg(list,OS_ADDR,current_procinfo.save_stackptr_ref,rsp);
+           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_stackptr_ref,rsp);
            tg.UngetTemp(list,current_procinfo.save_stackptr_ref);
          end;
 
@@ -1850,7 +1821,7 @@ implementation
                    location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
                resloc.register := ressym.reg;
              end
-           else   
+           else
              begin
                location_reset(resloc,LOC_CREGISTER,def_cgsize(current_procdef.rettype.def));
                reference_reset_base(resloc.reference,current_procinfo.framepointer,tvarsym(current_procdef.funcretsym).adjusted_address);
@@ -1971,7 +1942,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-06-03 15:49:49  jonas
+  Revision 1.121  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.120  2003/06/03 15:49:49  jonas
     * fixed ref/loc problems
 
   Revision 1.119  2003/06/03 15:06:37  daniel

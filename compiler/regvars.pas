@@ -307,6 +307,7 @@ implementation
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     var
       i: longint;
+      cgsize : tcgsize;
       r : tregister;
       hr: treference;
       regvarinfo: pregvarinfo;
@@ -330,7 +331,8 @@ implementation
                     if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
                       begin
                         reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-                        cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+                        cgsize:=def_cgsize(vsym.vartype.def);
+                        cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.reg,hr);
                       end;
                     asml.concat(tai_regalloc.dealloc(vsym.reg));
                     exclude(rg.regvar_loaded_int,reg.number shr 8);
@@ -354,7 +356,8 @@ implementation
                         if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
                           begin
                             reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-                            cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+                            cgsize:=def_cgsize(vsym.vartype.def);
+                            cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.reg,hr);
                           end;
                         asml.concat(tai_regalloc.dealloc(vsym.reg));
                         rg.regvar_loaded_other[r.enum] := false;
@@ -389,7 +392,7 @@ implementation
                 opsize := OS_ADDR
               else
                 opsize := def_cgsize(vsym.vartype.def);
-              cg.a_load_ref_reg(asml,opsize,hr,reg);
+              cg.a_load_ref_reg(asml,opsize,opsize,hr,reg);
               include(rg.regvar_loaded_int,reg.number shr 8);
             end;
         end
@@ -406,7 +409,7 @@ implementation
                 opsize := OS_ADDR
               else
                 opsize := def_cgsize(vsym.vartype.def);
-              cg.a_load_ref_reg(asml,opsize,hr,reg);
+              cg.a_load_ref_reg(asml,opsize,opsize,hr,reg);
               rg.regvar_loaded_other[r.enum] := true;
             end;
         end;
@@ -608,7 +611,12 @@ end.
 
 {
   $Log$
-  Revision 1.54  2003-06-03 13:01:59  daniel
+  Revision 1.55  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.54  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.53  2003/05/31 20:33:57  jonas

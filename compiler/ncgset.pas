@@ -283,7 +283,7 @@ implementation
          { location is always LOC_JUMP }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
          { allocate a register for the result }
-         location.register := rg.getregisterint(exprasmlist,OS_INT);
+         location.register := rg.getregisterint(exprasmlist,location.size);
 
          if genjumps then
           begin
@@ -291,7 +291,7 @@ implementation
             objectlibrary.getlabel(l);
 
             { clear the register value, indicating result is FALSE }
-            cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
+            cg.a_load_const_reg(exprasmlist,location.size,0,location.register);
             opsize := def_cgsize(left.resulttype.def);
             { If register is used, use only lower 8 bits }
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
@@ -317,13 +317,13 @@ implementation
             else
              begin
                { load the value in a register }
-             {$ifdef newra}
-               pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
-             {$else}
-               pleftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-             {$endif}
                opsize := OS_INT;
-               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,pleftreg);
+             {$ifdef newra}
+               pleftreg:=rg.getregisterint(exprasmlist,opsize);
+             {$else}
+               pleftreg := cg.get_scratch_reg_int(exprasmlist,opsize);
+             {$endif}
+               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),opsize,left.location.reference,pleftreg);
              end;
 
 
@@ -362,7 +362,7 @@ implementation
                         begin
                           { otherwise, the value is already in a register   }
                           { that can be modified                            }
-                          cg.a_op_const_reg(exprasmlist,OP_SUB,OS_INT,
+                          cg.a_op_const_reg(exprasmlist,OP_SUB,opsize,
                              setparts[i].start-adjustment,pleftreg)
                         end;
                     { new total value substracted from x:           }
@@ -396,7 +396,7 @@ implementation
              { Now place the end label if IN success }
              cg.a_label(exprasmlist,l);
              { result register is 1 }
-             cg.a_load_const_reg(exprasmlist,OS_INT,1,location.register);
+             cg.a_load_const_reg(exprasmlist,location.size,1,location.register);
              { in case value is not found }
              cg.a_label(exprasmlist,l3);
              case left.location.loc of
@@ -432,7 +432,7 @@ implementation
                if left.nodetype=ordconstn then
                 begin
                   { clear the register value, indicating result is FALSE }
-                  cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
+                  cg.a_load_const_reg(exprasmlist,location.size,0,location.register);
                   case right.location.loc of
                     LOC_REGISTER:
                       hr:=right.location.register;
@@ -440,7 +440,7 @@ implementation
                       begin
                          hr:=rg.getregisterint(exprasmlist,OS_INT);
                          { load set value into register }
-                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,
+                         cg.a_load_reg_reg(exprasmlist,right.location.size,OS_INT,
                             right.location.register,hr);
                          location_release(exprasmlist,right.location);
                       end;
@@ -449,7 +449,7 @@ implementation
                       begin
                          hr:=rg.getregisterint(exprasmlist,OS_INT);
                          { load set value into register }
-                         cg.a_load_ref_reg(exprasmlist,OS_32,
+                         cg.a_load_ref_reg(exprasmlist,OS_INT,opsize,
                             right.location.reference,hr);
                          location_release(exprasmlist,right.location);
                       end;
@@ -470,8 +470,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr3.enum:=R_INTREGISTER;
-                          hr3.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
+                          hr3:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
                         {$ifdef newra}
                           hr:=rg.getregisterint(exprasmlist,OS_INT);
@@ -487,34 +486,30 @@ implementation
                     {$else}
                       hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                     {$endif}
-                      cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
+                      cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),OS_INT,
                          left.location.reference,hr);
                       location_release(exprasmlist,left.location);
                     end;
                   end;
 
                   case right.location.loc of
-                 LOC_REGISTER,
-                LOC_CREGISTER :
-                          begin
-                            hr2:=right.location.register;
-                          end;
-                   LOC_CONSTANT :
-                       begin
-                         hr2:=rg.getregisterint(exprasmlist,OS_32);
-                         cg.a_load_const_reg(exprasmlist,OS_32,
-                            right.location.value,hr2);
-                       end;
-                   LOC_CREFERENCE,
-                   LOC_REFERENCE :
-                       begin
-                         location_release(exprasmlist,right.location);
-                         hr2:=rg.getregisterint(exprasmlist,OS_32);
-                         cg.a_load_ref_reg(exprasmlist, OS_32,
-                           right.location.reference,hr2);
-                       end;
-                     else
-                       internalerror(2002032210);
+                    LOC_REGISTER,
+                    LOC_CREGISTER :
+                      hr2:=right.location.register;
+                    LOC_CONSTANT :
+                      begin
+                        hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                        cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
+                      end;
+                    LOC_CREFERENCE,
+                    LOC_REFERENCE :
+                      begin
+                        location_release(exprasmlist,right.location);
+                        hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,right.location.reference,hr2);
+                      end;
+                    else
+                      internalerror(2002032210);
                   end;
                   { emit bit test operation }
                   emit_bit_test_reg_reg(exprasmlist,hr,hr2,location.register);
@@ -564,19 +559,19 @@ implementation
                           hr2:=rg.getregisterint(exprasmlist,OS_INT);
                           cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        end;
-                     LOC_REFERENCE,LOC_CREFERENCE:
+                     LOC_REFERENCE,
+                     LOC_CREFERENCE:
                        begin
                           cg.a_cmp_const_ref_label(exprasmlist,OS_8,OC_BE,31,left.location.reference,l);
                           cg.a_jmp_always(exprasmlist,l2);
                           cg.a_label(exprasmlist,l);
                           location_release(exprasmlist,left.location);
-                          hr:=rg.getregisterint(exprasmlist,OS_32);
-                          cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,hr);
+                          hr:=rg.getregisterint(exprasmlist,OS_INT);
+                          cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hr);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
                           hr2:=rg.getregisterint(exprasmlist,OS_INT);
-                          cg.a_load_const_reg(exprasmlist,OS_INT,
-                            right.location.value,hr2);
+                          cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        end;
                      else
                        internalerror(2002081002);
@@ -598,7 +593,7 @@ implementation
                   else
                     { adjust for endianess differences }
                     inc(right.location.reference.offset,(tordconstnode(left).value shr 3) xor 3);
-                  cg.a_load_ref_reg(exprasmlist,OS_8,right.location.reference, location.register);
+                  cg.a_load_ref_reg(exprasmlist,OS_8,location.size,right.location.reference, location.register);
                   location_release(exprasmlist,right.location);
                   cg.a_op_const_reg(exprasmlist,OP_SHR,location.size,tordconstnode(left).value and 7,
                     location.register);
@@ -678,16 +673,16 @@ implementation
            { need we to test the first value }
            if first and (t^._low>get_min_value(left.resulttype.def)) then
              begin
-                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
+                cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aword(t^._low),hregister,elselabel);
              end;
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement)
+                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
                 else
                   begin
                       gensub(longint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,aword(t^._low-last),scratch_reg,t^.statement);
+                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,aword(t^._low-last),scratch_reg,t^.statement);
                   end;
                 last:=t^._low;
              end
@@ -708,10 +703,10 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     gensub(longint(t^._low-last));
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lt,aword(t^._low-last),scratch_reg,elselabel);
+                    cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_lt,aword(t^._low-last),scratch_reg,elselabel);
                   end;
                 gensub(longint(t^._high-t^._low));
-                cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,aword(t^._high-t^._low),scratch_reg,t^.statement);
+                cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_le,aword(t^._high-t^._low),scratch_reg,t^.statement);
                 last:=t^._high;
              end;
            first:=false;
@@ -728,9 +723,9 @@ implementation
               last:=0;
               first:=true;
             {$ifdef newra}
-              scratch_reg:=rg.getregisterint(exprasmlist,OS_INT);
+              scratch_reg:=rg.getregisterint(exprasmlist,opsize);
             {$else newra}
-              scratch_reg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+              scratch_reg := cg.get_scratch_reg_int(exprasmlist,opsize);
             {$endif}
               genitem(hp);
             {$ifdef newra}
@@ -763,17 +758,17 @@ implementation
                   begin
                      objectlibrary.getlabel(l1);
 {$ifdef Delphi}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, hi((t^._low)),hregister2,l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, lo((t^._low)),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, hi((t^._low)),hregister2,l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, lo((t^._low)),hregister, t^.statement);
 {$else}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, aword(hi(int64(t^._low))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, aword(lo(int64(t^._low))),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, aword(hi(int64(t^._low))),hregister2,l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, aword(lo(int64(t^._low))),hregister, t^.statement);
 {$endif}
                      cg.a_label(exprasmlist,l1);
                   end
                 else
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, aword(t^._low),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aword(t^._low),hregister, t^.statement);
                      last:=t^._low;
                   end;
              end
@@ -788,25 +783,25 @@ implementation
                        begin
                           objectlibrary.getlabel(l1);
 {$ifdef Delphi}
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi((t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi((t^._low))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi((t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi((t^._low))),
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, aword(lo((t^._low))), hregister, elselabel);
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_B, aword(lo((t^._low))), hregister, elselabel);
 {$else}
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(int64(t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi(int64(t^._low))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi(int64(t^._low))),
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, aword(lo(int64(t^._low))), hregister, elselabel);
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_B, aword(lo(int64(t^._low))), hregister, elselabel);
 {$endif}
                           cg.a_label(exprasmlist,l1);
                        end
                      else
                        begin
-                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(t^._low), hregister,
+                        cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_lt, aword(t^._low), hregister,
                            elselabel);
                        end;
                   end;
@@ -815,23 +810,23 @@ implementation
                   begin
                      objectlibrary.getlabel(l1);
 {$ifdef Delphi}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(t^._high)), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi(t^._high)), hregister2,
                            t^.statement);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(t^._high)), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi(t^._high)), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, aword(lo(t^._high)), hregister, t^.statement);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aword(lo(t^._high)), hregister, t^.statement);
 {$else}
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(int64(t^._high))), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aword(hi(int64(t^._high))), hregister2,
                            t^.statement);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._high))), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aword(hi(int64(t^._high))), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, aword(lo(int64(t^._high))), hregister, t^.statement);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aword(lo(int64(t^._high))), hregister, t^.statement);
 {$endif}
                     cg.a_label(exprasmlist,l1);
                   end
                 else
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, aword(t^._high), hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_le, aword(t^._high), hregister, t^.statement);
                   end;
 
                 last:=t^._high;
@@ -869,19 +864,19 @@ implementation
           begin
              if greaterlabel=lesslabel then
                begin
-                 cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE,p^._low,hregister, lesslabel);
+                 cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_NE,p^._low,hregister, lesslabel);
                end
              else
                begin
-                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_lt,p^._low,hregister, lesslabel);
-                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_gt,p^._low,hregister, greaterlabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,opsize, jmp_lt,p^._low,hregister, lesslabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,opsize, jmp_gt,p^._low,hregister, greaterlabel);
                end;
              cg.a_jmp_always(exprasmlist,p^.statement);
           end
         else
           begin
-             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,p^._low, hregister, lesslabel);
-             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,p^._high,hregister, greaterlabel);
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,p^._low, hregister, lesslabel);
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,p^._high,hregister, greaterlabel);
              cg.a_jmp_always(exprasmlist,p^.statement);
           end;
          if assigned(p^.less) then
@@ -1121,7 +1116,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-06-01 21:38:06  peter
+  Revision 1.40  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.39  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates

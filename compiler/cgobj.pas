@@ -41,7 +41,7 @@ unit cgobj;
        cclasses,aasmbase,aasmtai,aasmcpu,symtable,
        cpubase,cpuinfo,
        cginfo,
-       symconst,symbase,symtype,symdef,node
+       symconst,symbase,symtype,symdef
 {$ifdef delphi}
        ,dmisc
 {$endif}
@@ -193,13 +193,13 @@ unit cgobj;
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
           procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
           procedure a_load_const_loc(list : taasmoutput;a : aword;const loc : tlocation);
-          procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual; abstract;
-          procedure a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
-          procedure a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
-          procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
-          procedure a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);virtual;
-          procedure a_load_loc_reg(list : taasmoutput; dstsize: tcgsize; const loc: tlocation; reg : tregister);
-          procedure a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
+          procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual; abstract;
+          procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
+          procedure a_load_reg_loc(list : taasmoutput;fromsize : tcgsize;reg : tregister;const loc: tlocation);
+          procedure a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual; abstract;
+          procedure a_load_ref_ref(list : taasmoutput;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);virtual;
+          procedure a_load_loc_reg(list : taasmoutput;tosize: tcgsize; const loc: tlocation; reg : tregister);
+          procedure a_load_loc_ref(list : taasmoutput;tosize: tcgsize; const loc: tlocation; const ref : treference);
           procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
 
           { fpu move instructions }
@@ -356,11 +356,10 @@ unit cgobj;
              @param(p Node which contains the value to check)
              @param(todef Type definition of node to range check)
           }
-          procedure g_rangecheck(list: taasmoutput; const p: tnode;
-            const todef: tdef); virtual;
+          procedure g_rangecheck(list: taasmoutput; const l:tlocation; fromdef,todef: tdef); virtual;
 
           {# Generates overflow checking code for a node }
-          procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
+          procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); virtual; abstract;
 
           procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);virtual;abstract;
           {# Emits instructions which should be emitted when entering
@@ -484,8 +483,7 @@ unit cgobj;
 
 
         { override to catch 64bit rangechecks }
-        procedure g_rangecheck64(list: taasmoutput; const p: tnode;
-          const todef: tdef);virtual;abstract;
+        procedure g_rangecheck64(list: taasmoutput; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
 
     var
@@ -613,7 +611,7 @@ unit cgobj;
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
-                 a_load_reg_ref(list,size,r,ref);
+                 a_load_reg_ref(list,size,size,r,ref);
               end
             else
               internalerror(2002071004);
@@ -649,7 +647,7 @@ unit cgobj;
       {$else}
          hr:=get_scratch_reg_int(list,size);
       {$endif}
-         a_load_ref_reg(list,size,r,hr);
+         a_load_ref_reg(list,size,size,r,hr);
          a_param_reg(list,size,hr,locpara);
       {$ifdef newra}
          rg.ungetregisterint(list,hr);
@@ -714,7 +712,7 @@ unit cgobj;
                        some generic implementations
 ****************************************************************************}
 
-    procedure tcg.a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);
+    procedure tcg.a_load_ref_ref(list : taasmoutput;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
 
       var
         tmpreg: tregister;
@@ -732,7 +730,7 @@ unit cgobj;
         { doesn't have an 8bit component which is directly addressable) }
         pushed_reg.enum:=R_INTREGISTER;
         pushed_reg.number:=NR_NO;
-        if size in [OS_8,OS_S8] then
+        if tosize in [OS_8,OS_S8] then
         {$ifndef newra}
           if (rg.countunusedregsint = 0) then
             begin
@@ -755,19 +753,19 @@ unit cgobj;
             end
           else
         {$endif}
-            tmpreg := rg.getregisterint(list,size)
+            tmpreg := rg.getregisterint(list,tosize)
         else
 {$endif i386}
 {$ifdef newra}
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=rg.getregisterint(list,tosize);
 {$else}
-        tmpreg := get_scratch_reg_int(list,size);
+        tmpreg := get_scratch_reg_int(list,tosize);
 {$endif}
-        a_load_ref_reg(list,size,sref,tmpreg);
-        a_load_reg_ref(list,size,tmpreg,dref);
+        a_load_ref_reg(list,fromsize,tosize,sref,tmpreg);
+        a_load_reg_ref(list,tosize,tosize,tmpreg,dref);
 {$ifdef i386}
 {$ifndef newra}
-        if size in [OS_8,OS_S8] then
+        if tosize in [OS_8,OS_S8] then
           begin
             if (pushed_reg.number<>NR_NO) then
               list.concat(taicpu.op_reg(A_POP,S_L,pushed_reg))
@@ -797,7 +795,7 @@ unit cgobj;
         tmpreg := get_scratch_reg_int(list,size);
 {$endif}
         a_load_const_reg(list,size,a,tmpreg);
-        a_load_reg_ref(list,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,ref);
 {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
 {$else}
@@ -819,45 +817,45 @@ unit cgobj;
       end;
 
 
-    procedure tcg.a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
+    procedure tcg.a_load_reg_loc(list : taasmoutput;fromsize : tcgsize;reg : tregister;const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_reg_ref(list,loc.size,reg,loc.reference);
+            a_load_reg_ref(list,fromsize,loc.size,reg,loc.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,size,loc.size,reg,loc.register);
+            a_load_reg_reg(list,fromsize,loc.size,reg,loc.register);
           else
             internalerror(200203271);
         end;
       end;
 
 
-    procedure tcg.a_load_loc_reg(list : taasmoutput; dstsize: tcgsize; const loc: tlocation; reg : tregister);
+    procedure tcg.a_load_loc_reg(list : taasmoutput; tosize: tcgsize; const loc: tlocation; reg : tregister);
 
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_ref_reg(list,loc.size,loc.reference,reg);
+            a_load_ref_reg(list,loc.size,tosize,loc.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,loc.size,dstsize,loc.register,reg);
+            a_load_reg_reg(list,loc.size,tosize,loc.register,reg);
           LOC_CONSTANT:
-            a_load_const_reg(list,loc.size,loc.value,reg);
+            a_load_const_reg(list,tosize,loc.value,reg);
           else
             internalerror(200109092);
         end;
       end;
 
 
-    procedure tcg.a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
+    procedure tcg.a_load_loc_ref(list : taasmoutput;tosize: tcgsize; const loc: tlocation; const ref : treference);
 
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_ref_ref(list,loc.size,loc.reference,ref);
+            a_load_ref_ref(list,loc.size,tosize,loc.reference,ref);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_ref(list,loc.size,loc.register,ref);
+            a_load_reg_ref(list,loc.size,tosize,loc.register,ref);
           LOC_CONSTANT:
-            a_load_const_ref(list,loc.size,loc.value,ref);
+            a_load_const_ref(list,tosize,loc.value,ref);
           else
             internalerror(200109302);
         end;
@@ -873,7 +871,7 @@ unit cgobj;
 {$else}
         tmpreg := get_scratch_reg_address(list);
 {$endif}
-        a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tmpreg);
         a_call_reg(list,tmpreg);
 {$ifdef newra}
         rg.ungetaddressregister(list,tmpreg);
@@ -1028,9 +1026,9 @@ unit cgobj;
       {$else}
         tmpreg := get_scratch_reg_int(list,size);
       {$endif}
-        a_load_ref_reg(list,size,ref,tmpreg);
-        a_op_const_reg(list,op,OS_INT,a,tmpreg);
-        a_load_reg_ref(list,size,tmpreg,ref);
+        a_load_ref_reg(list,size,size,ref,tmpreg);
+        a_op_const_reg(list,op,size,a,tmpreg);
+        a_load_reg_ref(list,size,size,tmpreg,ref);
       {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
       {$else}
@@ -1064,9 +1062,9 @@ unit cgobj;
       {$else}
         tmpreg := get_scratch_reg_int(list,size);
       {$endif}
-        a_load_ref_reg(list,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,ref,tmpreg);
         a_op_reg_reg(list,op,size,reg,tmpreg);
-        a_load_reg_ref(list,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,ref);
       {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
       {$else}
@@ -1085,7 +1083,7 @@ unit cgobj;
           OP_NOT,OP_NEG:
             { handle it as "load ref,reg; op reg" }
             begin
-              a_load_ref_reg(list,size,ref,reg);
+              a_load_ref_reg(list,size,size,ref,reg);
               a_op_reg_reg(list,op,size,reg,reg);
             end;
           else
@@ -1095,7 +1093,7 @@ unit cgobj;
             {$else}
               tmpreg := get_scratch_reg_int(list,size);
             {$endif}
-              a_load_ref_reg(list,size,ref,tmpreg);
+              a_load_ref_reg(list,size,size,ref,tmpreg);
               a_op_reg_reg(list,op,size,tmpreg,reg);
             {$ifdef newra}
               rg.ungetregisterint(list,tmpreg);
@@ -1137,7 +1135,7 @@ unit cgobj;
             {$else}
               tmpreg := get_scratch_reg_int(list,loc.size);
             {$endif}
-              a_load_ref_reg(list,loc.size,ref,tmpreg);
+              a_load_ref_reg(list,loc.size,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
             {$ifdef newra}
               rg.ungetregisterint(list,tmpreg);
@@ -1197,7 +1195,7 @@ unit cgobj;
       {$else}
         tmpreg := get_scratch_reg_int(list,size);
       {$endif}
-        a_load_ref_reg(list,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,ref,tmpreg);
         a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
       {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
@@ -1231,7 +1229,7 @@ unit cgobj;
       {$else}
         tmpreg := get_scratch_reg_int(list,size);
       {$endif}
-        a_load_ref_reg(list,size,ref,tmpreg);
+        a_load_ref_reg(list,size,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
       {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
@@ -1284,8 +1282,7 @@ unit cgobj;
               else
 {$endif i386}
                 tmpreg := get_scratch_reg_int(list,size);
-              {tmpreg := rg.makeregsize(tmpreg,size);}
-              a_load_ref_reg(list,size,loc.reference,tmpreg);
+              a_load_ref_reg(list,size,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
 {$ifdef i386}
               if size in [OS_8,OS_S8] then
@@ -1450,7 +1447,7 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_rangecheck(list: taasmoutput; const p: tnode;const todef: tdef);
+    procedure tcg.g_rangecheck(list: taasmoutput; const l:tlocation;fromdef,todef: tdef);
     { generate range checking code for the value at location p. The type     }
     { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
     { is the original type used at that location. When both defs are equal   }
@@ -1464,24 +1461,22 @@ unit cgobj;
       var
         neglabel : tasmlabel;
         hreg : tregister;
-        fromdef : tdef;
         lto,hto,
         lfrom,hfrom : TConstExprInt;
         from_signed: boolean;
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
-           not(todef.deftype in [orddef,enumdef,arraydef]) then
+           not(fromdef.deftype in [orddef,enumdef,arraydef]) then
           exit;
-        if is_64bit(p.resulttype.def) or is_64bit(todef) then
+        if is_64bit(fromdef) or is_64bit(todef) then
           begin
-             cg64.g_rangecheck64(list,p,todef);
+             cg64.g_rangecheck64(list,l,fromdef,todef);
              exit;
           end;
         { only check when assigning to scalar, subranges are different, }
         { when todef=fromdef then the check is always generated         }
-        fromdef:=p.resulttype.def;
-        getrange(p.resulttype.def,lfrom,hfrom);
+        getrange(fromdef,lfrom,hfrom);
         getrange(todef,lto,hto);
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
@@ -1553,17 +1548,10 @@ unit cgobj;
 {$ifdef newra}
         hreg:=rg.getregisterint(list,OS_INT);
 {$else}
-        hreg := get_scratch_reg_int(list,OS_INT);
+        hreg:=get_scratch_reg_int(list,OS_INT);
 {$endif}
-        if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-          a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
-           aword(lto),p.location.register,hreg)
-        else
-          begin
-            a_load_ref_reg(list,def_cgsize(p.resulttype.def),
-              p.location.reference,hreg);
-            a_op_const_reg(list,OP_SUB,OS_INT,aword(lto),hreg);
-          end;
+        a_load_loc_reg(list,OS_INT,l,hreg);
+        a_op_const_reg(list,OP_SUB,OS_INT,aword(lto),hreg);
         objectlibrary.getlabel(neglabel);
         a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
@@ -1596,7 +1584,7 @@ unit cgobj;
         tmpreg := get_scratch_reg_int(list,size);
       {$endif}
         g_flags2reg(list,size,f,tmpreg);
-        a_load_reg_ref(list,size,tmpreg,ref);
+        a_load_reg_ref(list,size,size,tmpreg,ref);
       {$ifdef newra}
         rg.ungetregisterint(list,tmpreg);
       {$else}
@@ -1667,7 +1655,7 @@ unit cgobj;
      begin
        r.enum:=R_INTREGISTER;;
        r.number:=NR_FUNCTION_RETURN_REG;
-       a_load_reg_ref(list, OS_S32, r, href);
+       a_load_reg_ref(list, OS_S32, OS_32, r, href);
      end;
 
 
@@ -1684,7 +1672,7 @@ unit cgobj;
      begin
        r.enum:=R_INTREGISTER;
        r.number:=NR_FUNCTION_RETURN_REG;
-       a_load_ref_reg(list, OS_S32, href, r);
+       a_load_ref_reg(list, OS_S32, OS_S32, href, r);
      end;
 
 
@@ -1712,7 +1700,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.106  2003-06-03 13:01:59  daniel
+  Revision 1.107  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.106  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.105  2003/06/01 21:38:06  peter

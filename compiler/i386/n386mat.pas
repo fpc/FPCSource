@@ -27,7 +27,7 @@ unit n386mat;
 interface
 
     uses
-      node,nmat;
+      node,nmat,ncgmat;
 
     type
       ti386moddivnode = class(tmoddivnode)
@@ -40,14 +40,21 @@ interface
          function first_shlshr64bitint: tnode; override;
       end;
 
-      ti386unaryminusnode = class(tunaryminusnode)
-         function pass_1 : tnode;override;
-         procedure pass_2;override;
+      ti386unaryminusnode = class(tcgunaryminusnode)
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;override;
+{$endif SUPPORT_MMX}
+         procedure second_float;override;
+         function pass_1:tnode;override;
       end;
 
-      ti386notnode = class(tnotnode)
-         procedure pass_2;override;
+      ti386notnode = class(tcgnotnode)
+         procedure second_boolean;override;
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;override;
+{$endif SUPPORT_MMX}
       end;
+
 
 implementation
 
@@ -866,12 +873,6 @@ implementation
          if codegenerror then
            exit;
 
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-
          if (left.resulttype.def.deftype=floatdef) then
            begin
              if (registersfpu < 1) then
@@ -879,166 +880,111 @@ implementation
              expectloc:=LOC_FPUREGISTER;
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktlocalswitches) and
-           is_mmx_able_array(left.resulttype.def) then
+         else
+           if (cs_mmx in aktlocalswitches) and
+              is_mmx_able_array(left.resulttype.def) then
              begin
+               registers32:=left.registers32;
+               registersfpu:=left.registersfpu;
+               registersmmx:=left.registersmmx;
                if (left.location.loc<>LOC_MMXREGISTER) and
                   (registersmmx<1) then
                  registersmmx:=1;
              end
 {$endif SUPPORT_MMX}
-         else if is_64bitint(left.resulttype.def) then
-           begin
-              if (left.location.loc<>LOC_REGISTER) and
-                 (registers32<2) then
-                registers32:=2;
-              expectloc:=LOC_REGISTER;
-           end
-         else if (left.resulttype.def.deftype=orddef) then
-           begin
-              if (left.location.loc<>LOC_REGISTER) and
-                 (registers32<1) then
-                registers32:=1;
-              expectloc:=LOC_REGISTER;
-           end;
+         else
+           inherited pass_1;
       end;
 
 
-    procedure ti386unaryminusnode.pass_2;
-
-    var r:Tregister;
-
 {$ifdef SUPPORT_MMX}
-      procedure do_mmx_neg;
-        var
-           op : tasmop;
-           r: Tregister;
-        begin
-           location_reset(location,LOC_MMXREGISTER,OS_NO);
-           if cs_mmx_saturation in aktlocalswitches then
-             case mmx_type(resulttype.def) of
-                mmxs8bit:
-                  op:=A_PSUBSB;
-                mmxu8bit:
-                  op:=A_PSUBUSB;
-                mmxs16bit,mmxfixed16:
-                  op:=A_PSUBSW;
-                mmxu16bit:
-                  op:=A_PSUBUSW;
-             end
-           else
-             case mmx_type(resulttype.def) of
-                mmxs8bit,mmxu8bit:
-                  op:=A_PSUBB;
-                mmxs16bit,mmxu16bit,mmxfixed16:
-                  op:=A_PSUBW;
-                mmxs32bit,mmxu32bit:
-                  op:=A_PSUBD;
-             end;
-           r.enum:=R_MM7;
-           emit_reg_reg(op,S_NO,location.register,r);
-           emit_reg_reg(A_MOVQ,S_NO,r,location.register);
-        end;
-{$endif}
-
+    procedure ti386unaryminusnode.second_mmx;
+      var
+        r : Tregister;
+        op : tasmop;
       begin
-         if is_64bitint(left.resulttype.def) then
-           begin
-              secondpass(left);
-
-              { load left operator in a register }
-              location_copy(location,left.location);
-              location_force_reg(exprasmlist,location,OS_64,false);
-
-              emit_reg(A_NOT,S_L,location.registerhigh);
-              emit_reg(A_NEG,S_L,location.registerlow);
-              emit_const_reg(A_SBB,S_L,-1,location.registerhigh);
-           end
-         else
-           begin
-              secondpass(left);
-              location_reset(location,LOC_REGISTER,OS_INT);
-              case left.location.loc of
-                 LOC_REGISTER:
-                   begin
-                      location.register:=left.location.register;
-                      emit_reg(A_NEG,S_L,location.register);
-                   end;
-                 LOC_CREGISTER:
-                   begin
-                      location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                      emit_reg_reg(A_MOV,S_L,left.location.register,
-                        location.register);
-                      emit_reg(A_NEG,S_L,location.register);
-                   end;
-{$ifdef SUPPORT_MMX}
-                 LOC_MMXREGISTER:
-                   begin
-                      location_copy(location,left.location);
-                      r.enum:=R_MM7;
-                      emit_reg_reg(A_PXOR,S_NO,r,r);
-                      do_mmx_neg;
-                   end;
-                 LOC_CMMXREGISTER:
-                   begin
-                      location.register:=rg.getregistermm(exprasmlist);
-                      r.enum:=R_MM7;
-                      emit_reg_reg(A_PXOR,S_NO,r,r);
-                      emit_reg_reg(A_MOVQ,S_NO,left.location.register,
-                        location.register);
-                      do_mmx_neg;
-                   end;
+        secondpass(left);
+        location_reset(location,LOC_MMXREGISTER,OS_NO);
+        case left.location.loc of
+          LOC_MMXREGISTER:
+            begin
+               location.register:=left.location.register;
+               r.enum:=R_MM7;
+               emit_reg_reg(A_PXOR,S_NO,r,r);
+            end;
+          LOC_CMMXREGISTER:
+            begin
+               location.register:=rg.getregistermm(exprasmlist);
+               r.enum:=R_MM7;
+               emit_reg_reg(A_PXOR,S_NO,r,r);
+               emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
+            end;
+          LOC_REFERENCE,
+          LOC_CREFERENCE:
+            begin
+               reference_release(exprasmlist,left.location.reference);
+               r.enum:=R_MM7;
+               location.register:=rg.getregistermm(exprasmlist);
+               emit_reg_reg(A_PXOR,S_NO,r,r);
+               emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
+            end;
+          else
+            internalerror(200203225);
+        end;
+        if cs_mmx_saturation in aktlocalswitches then
+          case mmx_type(resulttype.def) of
+             mmxs8bit:
+               op:=A_PSUBSB;
+             mmxu8bit:
+               op:=A_PSUBUSB;
+             mmxs16bit,mmxfixed16:
+               op:=A_PSUBSW;
+             mmxu16bit:
+               op:=A_PSUBUSW;
+          end
+        else
+          case mmx_type(resulttype.def) of
+             mmxs8bit,mmxu8bit:
+               op:=A_PSUBB;
+             mmxs16bit,mmxu16bit,mmxfixed16:
+               op:=A_PSUBW;
+             mmxs32bit,mmxu32bit:
+               op:=A_PSUBD;
+          end;
+        r.enum:=R_MM7;
+        emit_reg_reg(op,S_NO,location.register,r);
+        emit_reg_reg(A_MOVQ,S_NO,r,location.register);
+      end;
 {$endif SUPPORT_MMX}
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE:
-                   begin
-                      reference_release(exprasmlist,left.location.reference);
-                      if (left.resulttype.def.deftype=floatdef) then
-                        begin
-                           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                           location.register.enum:=R_ST;
-                           cg.a_loadfpu_ref_reg(exprasmlist,
-                              def_cgsize(left.resulttype.def),
-                              left.location.reference,location.register);
-                           emit_none(A_FCHS,S_NO);
-                        end
-{$ifdef SUPPORT_MMX}
-                      else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
-                        begin
-                           r.enum:=R_MM7;
-                           location.register:=rg.getregistermm(exprasmlist);
-                           emit_reg_reg(A_PXOR,S_NO,r,r);
-                           emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
-                           do_mmx_neg;
-                        end
-{$endif SUPPORT_MMX}
-                      else
-                        begin
-                           location.register:=rg.getregisterint(exprasmlist,OS_INT);
-                           emit_ref_reg(A_MOV,S_L,left.location.reference,location.register);
-                           emit_reg(A_NEG,S_L,location.register);
-                        end;
-                   end;
-                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                   begin
-                      { "load st,st" is ignored by the code generator }
-                      r.enum:=R_ST;
-                      cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,r);
-                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                      location.register.enum:=R_ST;
-                      emit_none(A_FCHS,S_NO);
-                   end;
-                 else
-                    internalerror(200203225);
-              end;
-           end;
-         { Here was a problem...     }
-         { Operand to be negated always     }
-         { seems to be converted to signed  }
-         { 32-bit before doing neg!!     }
-         { So this is useless...     }
-         { that's not true: -2^31 gives an overflow error if it is negaded (FK) }
-         { emitoverflowcheck(p);}
+
+
+    procedure ti386unaryminusnode.second_float;
+      var
+        r : tregister;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        case left.location.loc of
+          LOC_REFERENCE,
+          LOC_CREFERENCE:
+            begin
+              reference_release(exprasmlist,left.location.reference);
+              location.register.enum:=R_ST;
+              cg.a_loadfpu_ref_reg(exprasmlist,
+                 def_cgsize(left.resulttype.def),
+                 left.location.reference,location.register);
+              emit_none(A_FCHS,S_NO);
+            end;
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER:
+            begin
+               { "load st,st" is ignored by the code generator }
+               r.enum:=R_ST;
+               cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,r);
+               location.register.enum:=R_ST;
+               emit_none(A_FCHS,S_NO);
+            end;
+        end;
       end;
 
 
@@ -1046,124 +992,99 @@ implementation
                                TI386NOTNODE
 *****************************************************************************}
 
-    procedure ti386notnode.pass_2;
-      const
-         flagsinvers : array[F_E..F_BE] of tresflags =
-            (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
-             F_BE,F_B,F_AE,F_A);
+    procedure ti386notnode.second_boolean;
       var
          hl : tasmlabel;
          opsize : topsize;
-{$ifdef SUPPORT_MMX}
-         r,r2 : tregister;
-{$endif SUPPORT_MMX}
       begin
-         if is_boolean(resulttype.def) then
-          begin
-            opsize:=def_opsize(resulttype.def);
+        opsize:=def_opsize(resulttype.def);
 
-            if left.expectloc=LOC_JUMP then
-             begin
-               location_reset(location,LOC_JUMP,OS_NO);
-               hl:=truelabel;
-               truelabel:=falselabel;
-               falselabel:=hl;
-               secondpass(left);
-               maketojumpbool(exprasmlist,left,lr_load_regvars);
-               hl:=truelabel;
-               truelabel:=falselabel;
-               falselabel:=hl;
-             end
-            else
-             begin
-               { the second pass could change the location of left }
-               { if it is a register variable, so we've to do      }
-               { this before the case statement                    }
-               secondpass(left);
-               case left.expectloc of
-                 LOC_FLAGS :
-                   begin
-                     location_release(exprasmlist,left.location);
-                     location_reset(location,LOC_FLAGS,OS_NO);
-                     location.resflags:=flagsinvers[left.location.resflags];
-                   end;
-                 LOC_CONSTANT,
-                 LOC_REGISTER,
-                 LOC_CREGISTER,
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   begin
-                     location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
-                     emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
-                     location_release(exprasmlist,left.location);
-                     location_reset(location,LOC_FLAGS,OS_NO);
-                     location.resflags:=F_E;
-                   end;
-                else
-                   internalerror(200203224);
+        if left.expectloc=LOC_JUMP then
+         begin
+           location_reset(location,LOC_JUMP,OS_NO);
+           hl:=truelabel;
+           truelabel:=falselabel;
+           falselabel:=hl;
+           secondpass(left);
+           maketojumpbool(exprasmlist,left,lr_load_regvars);
+           hl:=truelabel;
+           truelabel:=falselabel;
+           falselabel:=hl;
+         end
+        else
+         begin
+           { the second pass could change the location of left }
+           { if it is a register variable, so we've to do      }
+           { this before the case statement                    }
+           secondpass(left);
+           case left.expectloc of
+             LOC_FLAGS :
+               begin
+                 location_release(exprasmlist,left.location);
+                 location_reset(location,LOC_FLAGS,OS_NO);
+                 location.resflags:=left.location.resflags;
+                 inverse_flags(location.resflags);
                end;
-             end;
-          end
-{$ifdef SUPPORT_MMX}
-         else
-          if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
-           begin
-             secondpass(left);
-             location_reset(location,LOC_MMXREGISTER,OS_NO);
-             { prepare EDI }
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_EDI;
-             r2.enum:=R_MM7;
-             rg.getexplicitregisterint(exprasmlist,NR_EDI);
-             emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
-             { load operand }
-             case left.location.loc of
-               LOC_MMXREGISTER:
-                 location_copy(location,left.location);
-               LOC_CMMXREGISTER:
-                 begin
-                   location.register:=rg.getregistermm(exprasmlist);
-                   emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
-                 end;
-               LOC_REFERENCE,
-               LOC_CREFERENCE:
-                 begin
-                   location_release(exprasmlist,left.location);
-                   location.register:=rg.getregistermm(exprasmlist);
-                   emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
-                 end;
-             end;
-             { load mask }
-             emit_reg_reg(A_MOVD,S_NO,r,r2);
-             rg.ungetregisterint(exprasmlist,r);
-             { lower 32 bit }
-             emit_reg_reg(A_PXOR,S_D,r2,location.register);
-             { shift mask }
-             emit_const_reg(A_PSLLQ,S_NO,32,r2);
-             { higher 32 bit }
-             emit_reg_reg(A_PXOR,S_D,r2,location.register);
-           end
-{$endif SUPPORT_MMX}
-         else if is_64bitint(left.resulttype.def) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-              location_force_reg(exprasmlist,location,OS_64,false);
-
-              emit_reg(A_NOT,S_L,location.registerlow);
-              emit_reg(A_NOT,S_L,location.registerhigh);
-           end
-         else
-          begin
-            secondpass(left);
-            location_copy(location,left.location);
-            location_force_reg(exprasmlist,location,def_cgsize(resulttype.def),false);
-
-            opsize:=def_opsize(resulttype.def);
-            emit_reg(A_NOT,opsize,location.register);
-          end;
+             LOC_CONSTANT,
+             LOC_REGISTER,
+             LOC_CREGISTER,
+             LOC_REFERENCE,
+             LOC_CREFERENCE :
+               begin
+                 location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
+                 emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
+                 location_release(exprasmlist,left.location);
+                 location_reset(location,LOC_FLAGS,OS_NO);
+                 location.resflags:=F_E;
+               end;
+            else
+               internalerror(200203224);
+           end;
+         end;
       end;
 
+
+{$ifdef SUPPORT_MMX}
+    procedure ti386notnode.second_mmx;
+      var
+         r,r2 : tregister;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_MMXREGISTER,OS_NO);
+        { prepare EDI }
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EDI;
+        r2.enum:=R_MM7;
+        rg.getexplicitregisterint(exprasmlist,NR_EDI);
+        emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
+        { load operand }
+        case left.location.loc of
+          LOC_MMXREGISTER:
+            location_copy(location,left.location);
+          LOC_CMMXREGISTER:
+            begin
+              location.register:=rg.getregistermm(exprasmlist);
+              emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
+            end;
+          LOC_REFERENCE,
+          LOC_CREFERENCE:
+            begin
+              location_release(exprasmlist,left.location);
+              location.register:=rg.getregistermm(exprasmlist);
+              emit_ref_reg(A_MOVQ,S_NO,left.location.reference,location.register);
+            end;
+        end;
+        { load mask }
+        emit_reg_reg(A_MOVD,S_NO,r,r2);
+        rg.ungetregisterint(exprasmlist,r);
+        { lower 32 bit }
+        emit_reg_reg(A_PXOR,S_D,r2,location.register);
+        { shift mask }
+        emit_const_reg(A_PSLLQ,S_NO,32,r2);
+        { higher 32 bit }
+        emit_reg_reg(A_PXOR,S_D,r2,location.register);
+      end;
+{$endif SUPPORT_MMX}
 
 begin
    cmoddivnode:=ti386moddivnode;
@@ -1173,7 +1094,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-06-03 13:01:59  daniel
+  Revision 1.57  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.56  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.55  2003/05/31 15:04:31  peter

@@ -543,6 +543,7 @@ uses
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     function reg2opsize(r:tregister):topsize;
     function is_calljmp(o:tasmop):boolean;
+    procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
 
 
@@ -704,6 +705,15 @@ implementation
       end;
 
 
+    procedure inverse_flags(var f: TResFlags);
+      const
+        inv_flags: array[TResFlags] of TResFlags =
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,F_BE,F_B,F_AE,F_A);
+      begin
+        f:=inv_flags[f];
+      end;
+
+
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
@@ -716,7 +726,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-06-03 13:01:59  daniel
+  Revision 1.7  2003-06-03 21:11:09  peter
+    * cg.a_load_* get a from and to size specifier
+    * makeregsize only accepts newregister
+    * i386 uses generic tcgnotnode,tcgunaryminus
+
+  Revision 1.6  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.5  2003/05/30 23:57:08  peter
