@@ -1,3 +1,7 @@
+To create a release, follow these steps:
+
+Build compiler and rtl by make cycle. (with MPW make)
+
 Run the MPW script 'prepare' to create an installer package (as a stuffit archive).
 
 The installer package will consist of:
@@ -8,6 +12,8 @@ The installer package will consist of:
               that when doubleclicked, it will be run by ToolServer )
 
 3) A FreePascal folder, containing all files to be installed.
+
+NOTE maccopy is a help script for prepare.
 
 NOTE If you have a fresh checkout from cvs, you might need to set the filetypes
 of the scripts so that MPW eats them:

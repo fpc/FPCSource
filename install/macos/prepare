@@ -32,7 +32,11 @@ SetFile -c 'MPSX' -t 'TEXT' "{stuffolder}INSTALL"
 NewFolder "{stuffolder}FreePascal"
 NewFolder "{stuffolder}FreePascal:bin"
 Duplicate "{compilerdir}"ppcppc  "{stuffolder}FreePascal:bin"
-maccopy "{compilerdir}"utils:fpc.mpw  "{stuffolder}FreePascal:bin:fpc"
+Duplicate "{compilerdir}":utils:fpc  "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}":utils:ppudump  "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}":utils:ppufiles  "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}":utils:ppumove  "{stuffolder}FreePascal:bin"
+#maccopy "{compilerdir}"utils:fpc.mpw  "{stuffolder}FreePascal:bin:fpc"
 
 NewFolder "{stuffolder}FreePascal:docs"
 maccopy ::doc:readme.txt "{stuffolder}FreePascal:docs:README" 1 1
