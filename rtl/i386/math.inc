@@ -195,12 +195,22 @@
          if (bas<0) and (frac(expo) <> 0) then
           handleerror(207)
          else
-          power:=exp(ln(bas)*expo);
+           begin
+             power:=exp(ln(abs(bas))*expo);
+             if (bas < 0) and
+                odd(trunc(expo)) then
+               begin
+                 power := -power;
+               end;
+           end;
      end;
 
 {
   $Log$
-  Revision 1.17  2003-11-24 21:57:43  michael
+  Revision 1.18  2003-11-29 16:40:12  jonas
+    * fix power() for negative base
+
+  Revision 1.17  2003/11/24 21:57:43  michael
   + Patch from Johannes Berg for bug 2759
 
   Revision 1.16  2003/11/11 21:08:17  peter
