@@ -213,7 +213,10 @@ begin
     Inc(RandSeed);
     RandSeed := (RandSeed * 998) mod 1000003;
     OldRandSeed:=RandSeed;
-    Random := RandSeed mod l;
+    if l=0 then
+     Random:=0
+    else
+     Random := RandSeed mod l;
 end;
 
 
@@ -547,7 +550,10 @@ end;
 
 {
   $Log$
-  Revision 1.59  1999-06-05 20:45:12  michael
+  Revision 1.60  1999-06-11 11:47:00  peter
+    * random doesn't rte 200 with random(0)
+
+  Revision 1.59  1999/06/05 20:45:12  michael
   + AbstractErro should call HandleError, not runerror.
 
   Revision 1.58  1999/05/17 21:52:39  florian
