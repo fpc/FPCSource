@@ -447,6 +447,11 @@ implementation
         while true do
           begin
             case p.nodetype of
+              temprefn:
+                begin
+                  result := 1;
+                  exit;
+                end;
               loadn:
                 begin
                   if not(vo_is_thread_var in tvarsym(tloadnode(p).symtableentry).varoptions) then
@@ -457,16 +462,20 @@ implementation
                     result := NODE_COMPLEXITY_INF;
                   exit;
                 end;
-              subscriptn:
+              subscriptn,
+              blockn:
                 p := tunarynode(p).left;
-              derefn:
+              derefn,
+              { may be more complex in some cases }
+              typeconvn:
                 begin
                   inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;
                   p := tunarynode(p).left;
                 end;
-              vecn:
+              vecn,
+              statementn:
                 begin
                   inc(result,node_complexity(tbinarynode(p).left));
                   if (result >= NODE_COMPLEXITY_INF) then
@@ -476,6 +485,20 @@ implementation
                     end;
                   p := tbinarynode(p).right;
                 end;
+              { better: make muln/divn/modn more expensive }
+              addn,subn,orn,andn,xorn,muln,divn,modn,symdifn,
+              assignn:
+                begin
+                  inc(result,node_complexity(tbinarynode(p).left)+1);
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                  p := tbinarynode(p).right;
+                end;
+              tempcreaten,
+              tempdeleten,
               ordconstn,
               pointerconstn:
                 exit;
@@ -493,7 +516,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-07-15 20:59:58  jonas
+  Revision 1.18  2004-08-04 08:35:59  jonas
+    * some improvements to node complexity calculations
+
+  Revision 1.17  2004/07/15 20:59:58  jonas
     * fixed complexity function so it doesn't always return infinity when a
       load node is encountered
 
