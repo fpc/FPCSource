@@ -1458,6 +1458,7 @@
                          readnormalset(ps^);
                          value:=longint(ps);
                        end;
+            constnil : ;
          else
            Message1(unit_f_ppu_invalid_entry,tostr(ord(consttype)));
          end;
@@ -1493,6 +1494,7 @@
          tsym.write;
          writebyte(byte(consttype));
          case consttype of
+            constnil : ;
            constint,
            constbool,
            constchar : writelong(value);
@@ -1803,7 +1805,10 @@
 
 {
   $Log$
-  Revision 1.64  1998-12-08 10:18:15  peter
+  Revision 1.65  1998-12-26 15:35:44  peter
+    + read/write of constnil
+
+  Revision 1.64  1998/12/08 10:18:15  peter
     + -gh for heaptrc unit
 
   Revision 1.63  1998/11/28 16:20:56  peter
