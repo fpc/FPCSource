@@ -37,7 +37,11 @@ Coding style:
 interface
 
 {Link the startup code.}
-{$l prt1.oo2}
+{$ifdef VER1_0}
+ {$l prt1.oo2}
+{$else}
+ {$l prt1.o}
+{$endif}
 
 {$I systemh.inc}
 
@@ -1237,7 +1241,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-01-15 22:16:12  hajny
+  Revision 1.32  2003-03-30 09:20:30  hajny
+    * platform extension unification
+
+  Revision 1.31  2003/01/15 22:16:12  hajny
     * default sharing mode changed to DenyNone
 
   Revision 1.30  2002/12/15 22:41:41  hajny
