@@ -467,6 +467,7 @@ begin
   Case FieldType of
      ftUnknown : Result:=Tfield;
      ftString: Result := TStringField;
+     ftLargeint: Result := TLargeintField;
      ftSmallint: Result := TSmallIntField;
      ftInteger: Result := TLongintField;
      ftWord: Result := TWordField;
@@ -486,7 +487,9 @@ begin
      ftParadoxOle: Result := Nil;
      ftDBaseOle: Result := Nil;
      ftTypedBinary: Result := Nil;
-     ftCursor: Result := Nil;
+     ftCursor: Result := Nil
+  else
+     Result := nil;
   end;
 end;
 
@@ -586,13 +589,13 @@ end;
 Function TDataset.GetRecNo: Longint;
 
 begin
-  //!! To be implemented
+  Result := -1;
 end;
 
 Function TDataset.GetRecordCount: Longint;
 
 begin
-  //!! To be implemented
+  Result := -1;
 end;
 
 Procedure TDataset.InitFieldDefs;
@@ -1355,7 +1358,7 @@ end;
 Function TDataset.IsSequenced: Boolean;
 
 begin
-  //!! To be implemented
+  Result := True;
 end;
 
 Procedure TDataset.Last;
@@ -1741,7 +1744,13 @@ end;
 
 {
   $Log$
-  Revision 1.28  2004-11-05 08:32:02  michael
+  Revision 1.29  2004-12-13 19:18:51  michael
+    * Patch from Joost van der Sluis
+    - TDataset.IsSequenced returns True, like Delphi does
+    - TDataset.RecNo returns -1, just like Delphi
+    - TDataset.GetRecordCount returns -1, just like Delphi
+
+  Revision 1.28  2004/11/05 08:32:02  michael
   TBufDataset.inc:
     - replaced Freemem by Reallocmem, Free by FreeAndNil
 
