@@ -84,6 +84,7 @@ interface
 
      SHORT = integer;
      INT   = longint;
+     WINT  = longint;
      LONG  = longint;
      DWORD = cardinal;
 
@@ -963,7 +964,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:35  peter
+  Revision 1.6  2000-03-20 11:42:46  pierre
+   + WINT = longint to avoid errors
+
+  Revision 1.5  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:54  daniel
