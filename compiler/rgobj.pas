@@ -1967,8 +1967,6 @@ unit rgobj;
       { retain their value                                              }
       for i := 1 to first_supreg-1 do
         colour[i] := i;
-      for i := last_supreg+1 to high(colour) do
-        colour[i] := i;
     {$ifdef ra_debug}
       for i:=first_imreg to maxintreg do
         writeln(i:4,'   ',colour[i]:4)
@@ -2461,7 +2459,11 @@ end.
 
 {
   $Log$
-  Revision 1.58  2003-07-06 14:45:05  jonas
+  Revision 1.59  2003-07-06 15:00:47  jonas
+    * fixed my previous completely broken commit. It's not perfect though,
+      registers > last_supreg and < max_intreg may still be "translated"
+
+  Revision 1.58  2003/07/06 14:45:05  jonas
     * support integer registers that are not managed by newra (ie. don't
       translate register numbers that fall outside the range
       first_supreg..last_supreg)
