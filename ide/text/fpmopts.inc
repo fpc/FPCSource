@@ -975,6 +975,9 @@ begin
       ColorItem('Selected item'   , 225,
       ColorItem('Divider'         , 226,
       nil)))))))))))),
+    ColorGroup('Clock',
+      ColorItem('clock view'      , 227,
+      nil),
     ColorGroup('Desktop', DesktopColorItems(nil),
     ColorGroup('Dialogs', DialogColorItems(dpGrayDialog,nil),
     ColorGroup('Editor',
@@ -1014,7 +1017,7 @@ begin
       ColorItem('Directives'      , 211,
       ColorItem('Tabs'            , 213,
       nil))))))))))),
-    nil)))))))));
+    nil))))))))));
   if ExecuteDialog(D, @AppPalette)=cmOK then
     begin
       DoneMemory;
@@ -1073,7 +1076,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  1999-08-16 18:25:21  peter
+  Revision 1.26  1999-10-14 10:22:50  pierre
+   + color selection for ClockView
+
+  Revision 1.25  1999/08/16 18:25:21  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
