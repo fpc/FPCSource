@@ -80,9 +80,9 @@ implementation
              orddef:
                begin
                   if p^.inlinenumber=in_low_x then
-                    v:=porddef(Adef)^.low
+                    v:=porddef(adef)^.low
                   else
-                    v:=porddef(Adef)^.high;
+                    v:=porddef(adef)^.high;
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
                   disposetree(p);
@@ -1080,8 +1080,10 @@ implementation
              in_high_x:
                begin
                   set_varstate(p^.left,false);
+                  { this fixes tests\webtbs\tbug879.pp (FK)
                   if p^.left^.treetype in [typen,loadn,subscriptn] then
                     begin
+                  }
                        case p^.left^.resulttype^.deftype of
                           orddef,enumdef:
                             begin
@@ -1155,9 +1157,11 @@ implementation
                          else
                            CGMessage(type_e_mismatch);
                          end;
+                  {
                     end
                   else
                     CGMessage(type_e_varid_or_typeid_expected);
+                  }
                end;
 
              in_cos_extended:
@@ -1299,7 +1303,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2000-02-18 13:52:38  jonas
+  Revision 1.70  2000-03-21 09:12:40  florian
+    * fixed bug 879: high and low take now any kind of expression
+
+  Revision 1.69  2000/02/18 13:52:38  jonas
     * fixed crash when using undeclared variable in ord construct
 
   Revision 1.68  2000/02/17 15:39:29  jonas
