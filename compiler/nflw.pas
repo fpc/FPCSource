@@ -639,10 +639,14 @@ implementation
 
          {Can we spare the first comparision?}
          if (right.nodetype=ordconstn) and (Tassignmentnode(left).right.nodetype=ordconstn) then
-            if not(((nf_backward in flags) and
-             (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value))
-             or (not(nf_backward in flags) and
-             (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value))) then
+            if (
+                (nf_backward in flags) and 
+                (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value)
+               )
+             or not(
+                    (nf_backward in flags) and
+                    (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value)
+                   ) then
                 exclude(flags,nf_testatbegin);
 
          { save counter var }
@@ -1361,7 +1365,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-08-19 19:36:43  peter
+  Revision 1.48  2002-08-22 15:15:20  daniel
+   * Fixed the detection wether the first check of a for loop can be skipped
+
+  Revision 1.47  2002/08/19 19:36:43  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
