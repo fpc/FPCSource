@@ -79,6 +79,13 @@ Type
   
   TTableColumns = Class(TCollection)
     Constructor Create;
+  private
+    function GetColumn(Index : Integer): TTableColumn;
+    procedure SetColumn(Index : Integer; const AValue: TTableColumn);
+  Public
+    Function FindColumn(ColumnName : String) : TTableColumn;
+    Function ColumnByName(ColumnName : String) : TTableColumn;
+    Property Items[Index : Integer] : TTableColumn Read GetColumn Write SetColumn;
   end;
 
   THTMLProducer = Class(TComponent)
@@ -172,14 +179,50 @@ Type
     Procedure CreateTable(Dataset : TDataset; Producer : TTableProducer);
   end;
   
+  EDBWriter = Class(Exception);
 
 Implementation
+
+Resourcestring
+  SErrColumnNotFound = 'Column "%s" not found.';
 
 { TTableColumns }
 
 constructor TTableColumns.Create;
 begin
   inherited Create(TTableColumn);
+end;
+
+function TTableColumns.GetColumn(Index : Integer): TTableColumn;
+begin
+  Result:=TTableColumn(Inherited Items[Index]);
+end;
+
+procedure TTableColumns.SetColumn(Index : Integer; const AValue: TTableColumn);
+begin
+  Inherited Items[Index]:=AValue;
+end;
+
+function TTableColumns.FindColumn(ColumnName: String): TTableColumn;
+
+Var
+  I : Integer;
+
+begin
+  Result:=Nil;
+  I:=Count-1;
+  While (I>=0) and (CompareText(Items[i].FieldName,ColumnName)<>0) do
+    Dec(I);
+  If (I>=0) then
+    Result:=Items[I];
+end;
+
+function TTableColumns.ColumnByName(ColumnName: String): TTableColumn;
+
+begin
+  Result:=FindColumn(ColumnName);
+  If (Result=Nil) then
+    Raise EDBWriter.CreateFmt(SErrColumnNotFound,[ColumnName]);
 end;
 
 { TTableProducer }
@@ -347,7 +390,7 @@ begin
   If (C.FField<>Nil) then
     CellA:=C.FField.AsString;
   If Assigned(C.FGetCellContent) then
-    C.FGetCellContent(C,CellA);    
+    C.FGetCellContent(Self,CellA);
   With C.FField Do
     begin
     URL:=C.ActionURL;
@@ -652,8 +695,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2003-10-27 22:38:12  michael
-  + Added setting of row/cell attributes
+  Revision 1.6  2003-10-28 08:42:01  michael
+  + Added ColumnByName method to TTAbleColumns
 
   Revision 1.4  2003/10/03 22:43:17  michael
   + Published tablecolumns property in tableproducer
