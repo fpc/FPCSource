@@ -258,6 +258,8 @@ Var
   s,s1,s2      : string;
   linkdynamic,
   linklibc     : boolean;
+  Fl1,Fl2      : Boolean;
+
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
@@ -381,12 +383,15 @@ begin
   { objects which must be at the end }
   if linklibc then
    begin
-     if librarysearchpath.FindFile('crtend.o',s1) or
-        librarysearchpath.FindFile('crtn.o',s2) then
+     Fl1:=librarysearchpath.FindFile('crtend.o',s1)
+     Fl2:=librarysearchpath.FindFile('crtn.o',s2)
+     if Fl1 or Fl2 then
       begin
         LinkRes.Add('INPUT(');
+         If Fl1 Then 
         LinkRes.AddFileName(s1);
-        LinkRes.AddFileName(s2);
+        If Fl2 Then
+         LinkRes.AddFileName(s2);
         LinkRes.Add(')');
       end;
    end;
@@ -707,7 +712,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-07-01 18:46:34  peter
+  Revision 1.23  2002-07-24 13:10:22  marco
+   * urgent fix.
+
+  Revision 1.22  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 
