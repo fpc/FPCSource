@@ -61,7 +61,7 @@ unit systems;
             target_i386_OS2,target_i386_Win32
             ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
             target_m68k_linux,target_m68k_PalmOS,target_alpha_linux,
-            target_powerpc_linux
+            target_powerpc_linux,target_powerpc_macos
        );
 
        ttargetflags = (tf_none,
@@ -72,7 +72,7 @@ unit systems;
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
        {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
-       {$ifdef powerpc} powerpctargetcnt=1; {$else} powerpctargetcnt=0; {$endif}
+       {$ifdef powerpc} powerpctargetcnt=2; {$else} powerpctargetcnt=0; {$endif}
        targetcnt=i386targetcnt+m68ktargetcnt+alphatargetcnt+powerpctargetcnt+1;
 
      type
@@ -83,14 +83,14 @@ unit systems;
             as_i386_tasm,as_i386_masm,
             as_i386_dbg,as_i386_coff,as_i386_pecoff
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw,
-            as_alpha_as,as_powerpc_as
+            as_alpha_as,as_powerpc_as,as_powerpc_mpw
        );
        { binary assembler writers, needed to test for -a }
      const
        {$ifdef i386} i386asmcnt=12; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        {$ifdef alpha} alphaasmcnt=1; {$else} alphaasmcnt=0; {$endif}
-       {$ifdef powerpc} powerpcasmcnt=1; {$else} powerpcasmcnt=0; {$endif}
+       {$ifdef powerpc} powerpcasmcnt=2; {$else} powerpcasmcnt=0; {$endif}
        asmcnt=i386asmcnt+m68kasmcnt+alphaasmcnt+powerpcasmcnt+1;
 
        binassem : set of tasm = [
@@ -111,13 +111,13 @@ unit systems;
 
      type
        tres = (res_none
-            ,res_i386_windres
+            ,res_i386_windres,res_m68k_mpw,res_powerpc_mpw
        );
      const
        {$ifdef i386} i386rescnt=1; {$else} i386rescnt=0; {$endif}
-       {$ifdef m68k} m68krescnt=0; {$else} m68krescnt=0; {$endif}
+       {$ifdef m68k} m68krescnt=1; {$else} m68krescnt=0; {$endif}
        {$ifdef alpha} alpharescnt=0; {$else} alpharescnt=0; {$endif}
-       {$ifdef powerpc} powerpcrescnt=0; {$else} powerpcrescnt=0; {$endif}
+       {$ifdef powerpc} powerpcrescnt=1; {$else} powerpcrescnt=0; {$endif}
        rescnt=i386rescnt+m68krescnt+alpharescnt+powerpcrescnt+1;
 
      type
@@ -125,13 +125,13 @@ unit systems;
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
             os_i386_Win32,
             os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
-            os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux
+            os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux,os_powerpc_macos
        );
      const
        i386oscnt=5;
        m68koscnt=5;
        alphaoscnt=1;
-       powerpcoscnt=1;
+       powerpcoscnt=2;
        oscnt=i386oscnt+m68koscnt+alphaoscnt+powerpcoscnt+1;
 
    type
@@ -398,11 +398,11 @@ implementation
             id     : os_m68k_mac;
             name         : 'Macintosh m68k';
             shortname    : 'mac';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
+            sharedlibext : 'Lib';
+            staticlibext : 'Lib';
             sourceext    : '.pp';
             pasext       : '.pas';
-            exeext       : '.tpp';
+            exeext       : '';
             defext       : '';
             scriptext    : '';
             libprefix    : '';
@@ -483,7 +483,7 @@ implementation
             name         : 'Linux for PowerPC';
             shortname    : 'linuxppc';
             sharedlibext : '.so';
-            staticlibext : '.a';
+            staticlibext : '.s';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -492,6 +492,27 @@ implementation
             libprefix    : 'lib';
             Cprefix      : '';
             newline      : #10;
+            endian       : endian_big;
+            stackalignment : 8;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          ),
+          (
+            id     : os_powerpc_macos;
+            name         : 'MacOs (PowerPC)';
+            shortname    : 'MacOs/PPC';
+            sharedlibext : 'Lib';
+            staticlibext : 'Lib';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '';
+            scriptext    : '';
+            libprefix    : '';
+            Cprefix      : '';
+            newline      : #13;
             endian       : endian_big;
             stackalignment : 8;
             size_of_pointer : 4;
@@ -764,7 +785,7 @@ implementation
             externals : false;
             needar : true;
             labelprefix : '__L';
-            comment : '| ';
+            comment : '* ';
             secnames : ('',
               '.text','.data','.bss',
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -799,6 +820,21 @@ implementation
             needar : true;
             labelprefix : '.L';
             comment : '# ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '','','','','','',
+              '.stab','.stabstr')
+          )
+          ,(
+            id     : as_powerpc_mpw;
+            idtxt  : 'PPCAsm';
+            asmbin : 'PPCAsm';
+            asmcmd : '-o $OBJ $ASM';
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix : '.L';
+            comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
               '','','','','','',
@@ -860,6 +896,20 @@ implementation
             rescmd : '--include $INC -O coff -o $OBJ $RES'
           )
 {$endif i386}
+{$ifdef m68k}
+          ,(
+            id     : res_m68k_mpw;
+            resbin : 'rez';
+            rescmd : '-i $INC -o $OBJ $RES'
+          )
+{$endif m68}
+{$ifdef powerpc}
+          ,(
+            id     : res_powerpc_mpw;
+            resbin : 'rez';
+            rescmd : '-i $INC -o $OBJ $RES'
+          )
+{$endif powerpc}
           );
 
 
@@ -1147,9 +1197,9 @@ implementation
           ,(
             target      : target_powerpc_LINUX;
             flags       : [];
-            cpu         : alpha;
+            cpu         : powerpc;
             short_name  : 'LINUX';
-            unit_env    : 'LINUXUNITS';
+            unit_env    : '';
             system_unit : 'syslinux';
             smartext    : '.sl';
             unitext     : '.ppu';
@@ -1164,6 +1214,30 @@ implementation
             assemsrc    : as_powerpc_as;
             ar          : ar_powerpc_ar;
             res         : res_none;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192
+          ),
+          (
+            target      : target_powerpc_MACOS;
+            flags       : [];
+            cpu         : powerpc;
+            short_name  : 'MACOS';
+            unit_env    : '';
+            system_unit : 'sysmac';
+            smartext    : '.sl';
+            unitext     : '.ppt';
+            unitlibext  : '.ppl';
+            asmext      : '.a';
+            objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
+            exeext      : '';
+            os          : os_powerpc_macos;
+            assem       : as_powerpc_mpw;
+            assemsrc    : as_powerpc_mpw;
+            ar          : ar_powerpc_ar;
+            res         : res_powerpc_mpw;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1525,7 +1599,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2000-04-04 14:18:15  pierre
+  Revision 1.102  2000-04-22 14:25:03  jonas
+    * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
+    + systems.pas: info for macos/ppc
+    * new/cgobj.pas: compiles again without newst define
+    * new/powerpc/cgcpu: generate different entry/exit code depending on
+      whether target_os is MacOs or Linux
+
+  Revision 1.101  2000/04/04 14:18:15  pierre
    * nasmwin32 is 9 chars long, idtxt changed accordingly
 
   Revision 1.100  2000/04/04 13:54:58  pierre

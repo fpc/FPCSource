@@ -759,7 +759,7 @@ unit cgobj;
                else
                  parasize:=aktprocdef^.localst^.paramdatasize+procinfo^.para_offset-pointersize;
             {$ELSE}
-               if (aktproc^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
                  parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize;
@@ -773,7 +773,7 @@ unit cgobj;
                else
                  parasize:=aktprocdef^.localst^.paramdatasize+procinfo^.para_offset-pointersize*2;
             {$ELSE}
-               if (aktprocdef^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
                  parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize*2;
@@ -783,7 +783,7 @@ unit cgobj;
                if (pointerrupt in aktprocdef^.options) then
                  g_interrupt_stackframe_entry(list);
             {$ELSE}
-               if (po_interrupt in aktprocdef^.procoptions) then
+               if (po_interrupt in aktprocsym^.definition^.procoptions) then
                  g_interrupt_stackframe_entry(list);
             {$ENDIF NEWST}
 
@@ -1020,7 +1020,7 @@ unit cgobj;
 
          {$IFNDEF NEWST}
          { finalize paras data }
-         if assigned(aktprocdef^.parast) then
+         if assigned(aktprocsym^.definition^.parast) then
            aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}_finalize_data);
          {$ENDIF NEWST}
 
@@ -1329,7 +1329,14 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.36  2000-03-11 21:11:24  daniel
+  Revision 1.37  2000-04-22 14:25:03  jonas
+    * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
+    + systems.pas: info for macos/ppc
+    * new/cgobj.pas: compiles again without newst define
+    * new/powerpc/cgcpu: generate different entry/exit code depending on
+      whether target_os is MacOs or Linux
+
+  Revision 1.36  2000/03/11 21:11:24  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object

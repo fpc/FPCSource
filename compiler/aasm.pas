@@ -195,8 +195,13 @@ unit aasm;
 
        { alignment for operator }
 
+{$ifdef i386}
        pai_align_abstract = ^tai_align_abstract;
        tai_align_abstract = object(tai)
+{$else i386}
+       pai_align = ^tai_align;
+       tai_align = object(tai)
+{$endif i386}
           buf       : array[0..63] of char; { buf used for fill }
           aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
           fillsize  : byte;   { real size to fill }
@@ -715,7 +720,11 @@ uses
                               TAI_ALIGN
  ****************************************************************************}
 
+{$ifdef i386}
      constructor tai_align_abstract.init(b: byte);
+{$else i386}
+     constructor tai_align.init(b: byte);
+{$endif i386}
        begin
           inherited init;
           typ:=ait_align;
@@ -729,7 +738,11 @@ uses
        end;
 
 
+{$ifdef i386}
      constructor tai_align_abstract.init_op(b: byte; _op: byte);
+{$else i386}
+     constructor tai_align.init_op(b: byte; _op: byte);
+{$endif i386}
        begin
           inherited init;
           typ:=ait_align;
@@ -744,7 +757,11 @@ uses
        end;
 
 
+{$ifdef i386}
      function tai_align_abstract.getfillbuf:pchar;
+{$else i386}
+     function tai_align.getfillbuf:pchar;
+{$endif i386}
        begin
          getfillbuf:=@buf;
        end;
@@ -1050,7 +1067,14 @@ uses
 end.
 {
   $Log$
-  Revision 1.81  2000-04-10 12:21:33  jonas
+  Revision 1.82  2000-04-22 14:25:03  jonas
+    * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
+    + systems.pas: info for macos/ppc
+    * new/cgobj.pas: compiles again without newst define
+    * new/powerpc/cgcpu: generate different entry/exit code depending on
+      whether target_os is MacOs or Linux
+
+  Revision 1.81  2000/04/10 12:21:33  jonas
     * added ait_symbol_end to SkipInstr
 
   Revision 1.80  2000/02/29 23:55:53  pierre

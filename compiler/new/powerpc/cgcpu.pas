@@ -62,11 +62,11 @@ unit cgcpu;
 
           procedure g_stackframe_entry_sysv(list : paasmoutput;localsize : longint);
           procedure g_stackframe_entry_mac(list : paasmoutput;localsize : longint);
-{          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;}
+          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
-{          procedure g_return_from_proc(list : paasmoutput;parasize : aword); virtual;}
-          procedure g_return_from_proc_sysv(list : paasmoutput;parasize : aword); virtual;
-          procedure g_return_from_proc_mac(list : paasmoutput;parasize : aword); virtual;
+          procedure g_return_from_proc(list : paasmoutput;parasize : aword); virtual;
+          procedure g_return_from_proc_sysv(list : paasmoutput;parasize : aword);
+          procedure g_return_from_proc_mac(list : paasmoutput;parasize : aword);
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);virtual;
 
@@ -123,7 +123,7 @@ const
   implementation
 
     uses
-       globtype,globals,verbose;
+       globtype,globals,verbose,systems;
 
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
@@ -365,6 +365,19 @@ const
 
 { *********** entry/exit code and address loading ************ }
 
+    procedure tcgppc.g_stackframe_entry(list : paasmoutput;localsize : longint);
+    begin
+      case target_os.id of
+        os_powerpc_macos:
+          g_stackframe_entry_mac(list,localsize);
+        os_powerpc_linux:
+          g_stackframe_entry_sysv(list,localsize)
+        else
+          internalerror(2204001);
+      end;
+    end;
+
+
     procedure tcgppc.g_stackframe_entry_sysv(list : paasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
  { sum of the size necessary for local variables and the maximum possible   }
@@ -481,6 +494,19 @@ const
  { no frame pointer on the PowerPC (maybe there is one in the SystemV ABI?)}
       end;
 
+    procedure tcgppc.g_return_from_proc(list : paasmoutput;parasize : aword);
+    begin
+      case target_os.id of
+        os_powerpc_macos:
+          g_return_from_proc_mac(list,parasize);
+        os_powerpc_linux:
+          g_return_from_proc_sysv(list,parasize)
+        else
+          internalerror(2204001);
+      end;
+    end;
+
+
      procedure tcgppc.g_return_from_proc_sysv(list : paasmoutput;parasize : aword);
 
      var regcounter: TRegister;
@@ -491,7 +517,7 @@ const
          a_reg_dealloc(list,regcounter);
        { AltiVec context restore, not yet implemented !!! }
 
-       { address if gpr save area to r11 }
+       { address of gpr save area to r11 }
        list^.concat(new(paicpu,op_reg_reg_const(A_ADDI,R_11,R_31,-144)));
        { restore gprs }
        list^.concat(new(paicpu,op_sym_ofs(A_BL,newasmsymbol('_restgpr_14'),0)));
@@ -719,7 +745,14 @@ const
 end.
 {
   $Log$
-  Revision 1.11  2000-01-07 01:14:57  peter
+  Revision 1.12  2000-04-22 14:25:04  jonas
+    * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
+    + systems.pas: info for macos/ppc
+    * new/cgobj.pas: compiles again without newst define
+    * new/powerpc/cgcpu: generate different entry/exit code depending on
+      whether target_os is MacOs or Linux
+
+  Revision 1.11  2000/01/07 01:14:57  peter
     * updated copyright to 2000
 
   Revision 1.10  1999/12/24 22:48:10  jonas
