@@ -1,3 +1,5 @@
+{ %KNOWN }
+
 { Old file: tbs0243.pp }
 { Arguments of functions are computed from right to left this }
 

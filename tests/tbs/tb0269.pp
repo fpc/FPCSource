@@ -1,3 +1,5 @@
+{ %CPU=i386}
+
 { Old file: tbs0313.pp }
 {  }
 
