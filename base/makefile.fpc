@@ -621,16 +621,17 @@ LIBPREFIX=
 endif
 
 # determine which .pas extension is used
+ifndef PASEXT
 ifdef EXEOBJECTS
 override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(EXEOBJECTS)))))
 else
 override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(UNITOBJECTS)))))
 endif
-
 ifeq ($(TESTPAS),)
 PASEXT=.pp
 else
 PASEXT=.pas
+endif
 endif
 
 # also call ppas if with command option -s
@@ -961,7 +962,10 @@ endif
 
 #
 # $Log$
-# Revision 1.12  1999-03-29 16:04:58  peter
+# Revision 1.13  1999-04-01 22:52:28  peter
+#   * don't override pasext if set
+#
+# Revision 1.12  1999/03/29 16:04:58  peter
 #   * place -T as the first parameter on the commandline so a OPT=-A can
 #     overwrite it
 #
