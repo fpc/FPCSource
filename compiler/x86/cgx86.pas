@@ -498,10 +498,25 @@ unit cgx86;
       var
         op: tasmop;
         s: topsize;
+        tmpreg : tregister;
       begin
         check_register_size(fromsize,reg);
         sizes2load(fromsize,tosize,op,s);
-        list.concat(taicpu.op_reg_ref(op,s,reg,ref));
+        case s of
+          S_BW,S_BL,S_WL
+{$ifdef x86_64}
+          ,S_BQ,S_WQ,S_LQ
+{$endif x86_64}
+          :
+            begin
+              tmpreg:=rg.getregisterint(list,tosize);
+              list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
+              a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
+              rg.ungetregisterint(list,tmpreg);
+            end;
+        else
+          list.concat(taicpu.op_reg_ref(op,s,reg,ref));
+        end;
       end;
 
 
@@ -1580,7 +1595,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.73  2003-10-07 15:17:07  peter
+  Revision 1.74  2003-10-07 16:09:03  florian
+    * x86 supports only mem/reg to reg for movsx and movzx
+
+  Revision 1.73  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed
