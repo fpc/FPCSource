@@ -93,7 +93,6 @@ type
       TypeID     : longint;
       RelatedTypeID : longint;
       DebuggerCount : longint;
-      DebuggerValue : PString;
       Ancestor   : PSymbol;
       Flags      : longint;
       MemInfo    : PSymbolMemInfo;
@@ -374,7 +373,13 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
-  R:=0;
+    begin
+      S1:=K1^.GetName;
+      S2:=K2^.GetName;
+      if S1<S2 then R:=-1 else
+      if S1>S2 then R:=1 else
+        R:=0;
+    end;
   Compare:=R;
 end;
 
@@ -666,8 +671,6 @@ begin
         S:=S+'('+Params^+')';
       if Assigned(VType) then
         S:=S+': '+VType^;
-      if Assigned(DebuggerValue) then
-        S:=S+' = '+DebuggerValue^;
     end;
   GetText:=S;
 end;
@@ -711,8 +714,6 @@ begin
     Dispose(Items, Done);
   if assigned(Name) then
     DisposeStr(Name);
-  if assigned(DebuggerValue) then
-    DisposeStr(DebuggerValue);
 {  if assigned(Params) then
     DisposeStr(Params);
   if assigned(VType) then
@@ -1789,7 +1790,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2000-03-13 20:28:12  pierre
+  Revision 1.37  2000-03-14 15:04:19  pierre
+   * DebuggerValue moved to fpsymbol unit
+
+  Revision 1.36  2000/03/13 20:28:12  pierre
    * X was not found in TSortedSymbolCollection.LookUp
 
   Revision 1.35  2000/03/08 12:25:29  pierre
