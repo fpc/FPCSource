@@ -595,7 +595,7 @@ unit files;
          fsplit(fn,p,n,e);
          n:=FixFileName(n);
          { set path }
-         path:=stringdup(FixPath(p));
+         path:=stringdup(FixPath(p,false));
          { obj,asm,ppu names }
          p:=path^;
          if AllowOutput then
@@ -766,7 +766,7 @@ unit files;
            i:=pos(';',unitpath);
            if i=0 then
             i:=length(unitpath)+1;
-           singlepathstring:=FixPath(copy(unitpath,start,i-start));
+           singlepathstring:=FixPath(copy(unitpath,start,i-start),false);
            delete(unitpath,start,i-start+1);
          { Check for PPL file }
            if not Found then
@@ -1022,7 +1022,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.66  1998-10-19 18:07:11  peter
+  Revision 1.67  1998-10-26 22:23:29  peter
+    + fixpath() has an extra option to allow a ./ as path
+
+  Revision 1.66  1998/10/19 18:07:11  peter
     + external dll_name name func support for linux
 
   Revision 1.65  1998/10/15 12:22:25  pierre

@@ -462,7 +462,7 @@ var
   arfound : boolean;
   cnt     : longint;
 begin
-  smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext);
+  smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext,false);
 { find ar binary }
   if utilsdirectory<>'' then
     begin
@@ -514,7 +514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1998-10-22 15:18:44  florian
+  Revision 1.37  1998-10-26 22:23:31  peter
+    + fixpath() has an extra option to allow a ./ as path
+
+  Revision 1.36  1998/10/22 15:18:44  florian
     + switch -vx for win32 added
 
   Revision 1.35  1998/10/19 18:06:23  peter

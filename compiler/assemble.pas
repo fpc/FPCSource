@@ -445,7 +445,7 @@ begin
       mkdir(path);
      {$I+}
      i:=ioresult;
-     path:=FixPath(path);
+     path:=FixPath(path,false);
    end
   else
    path:=current_module^.path^;
@@ -528,7 +528,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  1998-10-16 13:37:14  florian
+  Revision 1.31  1998-10-26 22:23:28  peter
+    + fixpath() has an extra option to allow a ./ as path
+
+  Revision 1.30  1998/10/16 13:37:14  florian
     + switch -FD added to specify the path for utilities
 
   Revision 1.29  1998/10/15 16:19:42  peter
