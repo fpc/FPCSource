@@ -85,6 +85,12 @@ interface
          function  FindFile(const f : string;var foundfile:string):boolean;
        end;
 
+
+   { the ordinal type used when evaluating constant integer expressions }
+   TConstExprInt = int64;
+   { ... the same unsigned }
+   TConstExprUInt = {$ifdef fpc}qword{$else}int64{$endif};
+
     var
        { specified inputfile }
        inputdir       : dirstr;
@@ -1456,7 +1462,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-04-02 17:11:28  peter
+  Revision 1.54  2002-04-07 13:24:30  carl
+  + moved constant from cpuinfo, these are NOT cpu specific
+    constant, but more related to compiler functionality.
+
+  Revision 1.53  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
