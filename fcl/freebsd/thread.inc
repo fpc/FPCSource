@@ -73,7 +73,7 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
-  {$ifndef ver_1_0}
+  {$ifndef ver1_0}
     Act^.sa_handler := @SIGCHLDHandler;
     fillchar(Act^.sa_mask,sizeof(sigset_t),#0);
   {$else}
@@ -292,7 +292,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-11-17 21:09:44  marco
+  Revision 1.9  2003-01-17 19:01:07  marco
+   * small fix
+
+  Revision 1.8  2002/11/17 21:09:44  marco
    * 16byte sigset
 
   Revision 1.7  2002/10/24 12:47:54  marco
