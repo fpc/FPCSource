@@ -61,7 +61,7 @@ End;
 function modifiesConflictingMemLocation(p1: pai; reg: tregister; c: tregContent;
    var regsStillValid: tregset): boolean;
 var
-  p: paicpu;
+  p, hp: paicpu;
   tmpRef: treference;
   regCounter: tregister;
   opCount: byte;
@@ -82,21 +82,57 @@ begin
                 modifiesConflictingMemLocation := not(reg in regsStillValid);
               end;
           end
- {      else
-        for regCounter := R_EAX to R_EDI do
+       else
+        if is_reg_var[reg32(p^.oper[1].reg)] then
+          for regCounter := R_EAX to R_EDI do
+            begin
+              if writeDestroysContents(p^.oper[1],regCounter,c[regCounter]) then
+                begin
+                  exclude(regsStillValid,regCounter);
+                  modifiesConflictingMemLocation := not(reg in regsStillValid);
+                end
+            end;
+    A_DIV, A_IDIV, A_MUL, A_IMUL:
+      begin
+        if (p^.ops = 1) then
           begin
-            if writeDestroysContents(p^.oper[1],regCounter,c[regCounter]) then
+            if is_reg_var[R_EDX] and
+               (not getNextInstruction(p,hp) or
+                not((hp^.typ = ait_instruction) and
+                    (hp^.opcode = A_MOV) and
+                    (hp^.oper[0].typ = top_reg) and
+                    (reg32(hp^.oper[0].reg) = R_EDX) and
+                    getNextInstruction(hp,hp) and
+                    (hp^.typ = ait_instruction) and
+                    (hp^.opcode = A_POP) and
+                    (hp^.oper[0].reg = R_EDX))) then
+              for regCounter := R_EAX to R_EDI do
+                if writeToRegDestroysContents(R_EDX,regCounter,c[regCounter]) then
+                  begin
+                    exclude(regsStillValid,R_EDX);
+                    modifiesConflictingMemLocation := not(reg in regsStillValid);
+                  end
+          end
+        else
+          { only possible for imul }
+          { last operand is always destination }
+          if is_reg_var[reg32(p^.oper[p^.ops-1].reg)] then
+            for regCounter := R_EAX to R_EDI do
               begin
-                exclude(regsStillValid,regCounter);
-                modifiesConflictingMemLocation := not(reg in regsStillValid);
+                if writeDestroysContents(p^.oper[p^.ops-1],regCounter,c[regCounter]) then
+                  begin
+                    exclude(regsStillValid,regCounter);
+                    modifiesConflictingMemLocation := not(reg in regsStillValid);
+                  end
               end
-          end};
-    A_IMUL,A_DIV, A_IDIV, A_MUL:; { they never write to memory }
+      end;
     else
-	    for opCount := 1 to MaxCh do
+      for opCount := 1 to MaxCh do
         case InsProp[p^.opcode].Ch[opCount] of
           Ch_MOp1,CH_WOp1,CH_RWOp1:
-            if paicpu(p)^.oper[0].typ = top_ref then
+            if (p^.oper[0].typ = top_ref) or
+               ((p^.oper[0].typ = top_reg) and
+                is_reg_var[reg32(p^.oper[0].reg)]) then
               for regCounter := R_EAX to R_EDI do
                 if writeDestroysContents(p^.oper[0],regCounter,c[regCounter]) then
                   begin
@@ -104,7 +140,9 @@ begin
                     modifiesConflictingMemLocation := not(reg in regsStillValid);
                   end;
           Ch_MOp2,CH_WOp2,CH_RWOp2:
-            if paicpu(p)^.oper[1].typ = top_ref then
+            if (p^.oper[1].typ = top_ref) or
+               ((p^.oper[1].typ = top_reg) and
+                is_reg_var[reg32(p^.oper[1].reg)]) then
               for regCounter := R_EAX to R_EDI do
                 if writeDestroysContents(p^.oper[1],regCounter,c[regCounter]) then
                   begin
@@ -112,7 +150,9 @@ begin
                     modifiesConflictingMemLocation := not(reg in regsStillValid);
                   end;
           Ch_MOp3,CH_WOp3,CH_RWOp3:
-            if paicpu(p)^.oper[2].typ = top_ref then
+            if (p^.oper[2].typ = top_ref) or
+               ((p^.oper[2].typ = top_reg) and
+                is_reg_var[reg32(p^.oper[2].reg)]) then
               for regCounter := R_EAX to R_EDI do
                 if writeDestroysContents(p^.oper[2],regCounter,c[regCounter]) then
                   begin
@@ -1532,7 +1572,7 @@ Begin
                         End;
                       End;
                   End;
-                  
+
                 End;
               A_STD: If GetLastInstruction(p, hp1) And
                         (PPaiProp(hp1^.OptInfo)^.DirFlag = F_Set) Then
@@ -1590,7 +1630,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2000-09-29 23:14:45  jonas
+  Revision 1.14  2000-09-30 13:07:23  jonas
+    * fixed support for -Or with new features of CSE
+
+  Revision 1.13  2000/09/29 23:14:45  jonas
     * search much further back for CSE sequences (non-conflicting stores are
       now passed)
     * remove more unnecessary loads of registers (especially the self pointer)

@@ -167,6 +167,8 @@ function RegInOp(Reg: TRegister; const o:toper): Boolean;
 
 function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
   reg: tregister; const c: tcontent): boolean;
+function writeToRegDestroysContents(destReg: tregister; reg: tregister;
+  const c: tcontent): boolean;
 function writeDestroysContents(const op: toper; reg: tregister;
   const c: tcontent): boolean;
 
@@ -1594,7 +1596,7 @@ begin
      {  * with uncertain optimizations off:                                    }
      {    - also destroy registers that contain any pointer                    }
       with c do
-        writeToMemDestroysContents := 
+        writeToMemDestroysContents :=
           (typ in [con_ref,con_noRemoveRef]) and
           ((not(cs_uncertainOpts in aktglobalswitches) and
             (nrOfMods <> 1)
@@ -1618,7 +1620,7 @@ begin
     {   * with uncertain optimzations off:                                    }
     {     - destroy every register which contains a memory location           }
     with c do
-      writeToMemDestroysContents := 
+      writeToMemDestroysContents :=
         (typ in [con_ref,con_noRemoveRef]) and
         (not(cs_UncertainOpts in aktglobalswitches) or
        { for movsl }
@@ -1633,6 +1635,15 @@ begin
        )
 end;
 
+function writeToRegDestroysContents(destReg: tregister; reg: tregister;
+  const c: tcontent): boolean;
+{ returns whether the contents c of reg are invalid after destReg is }
+{ modified                                                           }
+begin
+  writeToRegDestroysContents :=
+    (c.typ <> con_unknown) and
+    sequenceDependsOnReg(c,reg,reg32(destReg));
+end;
 
 function writeDestroysContents(const op: toper; reg: tregister;
   const c: tcontent): boolean;
@@ -1643,10 +1654,9 @@ begin
   case op.typ of
     top_reg:
       writeDestroysContents :=
-        (c.typ <> con_unknown) and
-        sequenceDependsOnReg(c,reg,reg32(op.reg));
+        writeToRegDestroysContents(op.reg,reg,c);
     top_ref:
-      writeDestroysContents := 
+      writeDestroysContents :=
         writeToMemDestroysContents(R_NO,op.ref^,reg,c);
   else
     writeDestroysContents := false;
@@ -2349,7 +2359,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2000-09-29 23:14:11  jonas
+  Revision 1.15  2000-09-30 13:07:23  jonas
+    * fixed support for -Or with new features of CSE
+
+  Revision 1.14  2000/09/29 23:14:11  jonas
     + writeToMemDestroysContents() and writeDestroysContents() to support the
       new features of the CSE
 
