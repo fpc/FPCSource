@@ -427,11 +427,23 @@ implementation
                        end
                       else
                        begin
-                      { Single value }
+                         { Single value }
                          if p2.nodetype=ordconstn then
                           begin
                             if not(is_integer(p2.resulttype.def)) then
-                              update_constsethi(p2.resulttype)
+                              begin
+                                { for constant set elements, delphi allows the usage of elements of enumerations which
+                                  have value>255 if there is no element with a value > 255 used }
+                                if (m_delphi in aktmodeswitches) and (p2.resulttype.def.deftype=enumdef) then
+                                  begin
+                                    if tordconstnode(p2).value>constsethi then
+                                      constsethi:=tordconstnode(p2).value;
+                                    if htype.def=nil then
+                                      htype:=p2.resulttype;
+                                  end
+                                else
+                                  update_constsethi(p2.resulttype)
+                              end
                             else
                               inserttypeconv(p2,u8inttype);
 
@@ -2583,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.175  2005-01-30 11:26:40  peter
+  Revision 1.176  2005-02-03 18:43:59  florian
+    * in delphi mode const sets from enumerations with values > 255 are allowed if these elements aren't used
+
+  Revision 1.175  2005/01/30 11:26:40  peter
     * add info that a procedure is local in error messages
 
   Revision 1.174  2005/01/09 15:04:36  peter
