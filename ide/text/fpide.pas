@@ -45,9 +45,9 @@ type
       function    GetPalette: PPalette; virtual;
       procedure   DosShell; virtual;
       destructor  Done; virtual;
-    public
-      procedure ShowUserScreen;
-      procedure ShowIDEScreen;
+      procedure   ShowUserScreen;
+      procedure   ShowIDEScreen;
+      function    IsClosing : boolean;
     private
       procedure NewEditor;
       procedure NewFromTemplate;
@@ -113,14 +113,13 @@ type
       procedure HelpFiles;
       procedure About;
     private
+      SaveCancelled: boolean;
+      InsideDone : boolean;
+      LastEvent: longint;
       function  DoExecute(ProgramPath, Params, InFile, OutFile: string; ExecType: TExecType): boolean;
-    private
       procedure AddRecentFile(AFileName: string; CurX, CurY: integer);
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
-    private
-      SaveCancelled: boolean;
-      LastEvent: longint;
       procedure CurDirChanged;
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
@@ -130,7 +129,7 @@ type
 
 
 var
-  MyApp: TIDEApp;
+  IDEApp: TIDEApp;
 
 implementation
 
@@ -174,6 +173,7 @@ begin
 {$endif TP}
   {$endif}
   inherited Init;
+  InsideDone:=false;
   MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
   New(ClockView, Init(R));
   Application^.Insert(ClockView);
@@ -613,7 +613,7 @@ begin
         ErrorBox('Error saving configuration.',nil);
     end;
   if (AutoSaveOptions and asEditorFiles)=0 then
-      SOK:=MyApp.SaveAll;
+      SOK:=SaveAll;
   if (AutoSaveOptions and asDesktop)<>0 then
     begin
       { destory all help & browser windows - we don't want to store them }
@@ -845,8 +845,14 @@ begin
   GetPalette:=@P;
 end;
 
+function TIDEApp.IsClosing: Boolean;
+begin
+  IsClosing:=InsideDone;
+end;
+
 destructor TIDEApp.Done;
 begin
+  InsideDone:=true;
   inherited Done;
   RemoveBrowsersCollection;
   DoneHelpSystem;
@@ -855,7 +861,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.46  1999-12-17 15:07:01  florian
+  Revision 1.47  1999-12-20 14:23:17  pierre
+    * MyApp renamed IDEApp
+    * TDebugController.ResetDebuggerRows added to
+      get resetting of debugger rows
+
+  Revision 1.46  1999/12/17 15:07:01  florian
     + TIDEApp.Idle does always call GiveUpTimeSlice
 
   Revision 1.45  1999/12/10 13:02:05  pierre

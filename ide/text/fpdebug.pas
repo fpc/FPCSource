@@ -45,6 +45,7 @@ type
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
     procedure Reset;virtual;
+    procedure ResetDebuggerRows;
     procedure Run;virtual;
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
@@ -442,7 +443,7 @@ begin
   UserScreen;
   inherited Run;
   DebuggerScreen;
-  MyApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
+  IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
   If assigned(StackWindow) then
     StackWindow^.Update;
 end;
@@ -500,30 +501,30 @@ function  TDebugController.AllowQuit : boolean;
 begin
   if ConfirmBox('Really quit editor ?',nil,true)=cmOK then
     begin
-      Message(@MyApp,evCommand,cmQuit,nil);
+      Message(@IDEApp,evCommand,cmQuit,nil);
     end
   else
     AllowQuit:=false;
 end;
 
-procedure TDebugController.Reset;
-var
-  W : PSourceWindow;
-  procedure ResetDebugerRow(P: PView); {$ifndef FPC}far;{$endif}
+procedure TDebugController.ResetDebuggerRows;
+  procedure ResetDebuggerRow(P: PView); {$ifndef FPC}far;{$endif}
   begin
     if assigned(P) and
        (TypeOf(P^)=TypeOf(TSourceWindow)) then
-      Message(P,evCommand,cmResetDebuggerRow,nil);
+       PSourceWindow(P)^.Editor^.SetDebuggerRow(-1);
   end;
 
 begin
+  Desktop^.ForEach(@ResetDebuggerRow);
+end;
+
+procedure TDebugController.Reset;
+begin
   inherited Reset;
   NoSwitch:=false;
-  MyApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
-  W:=PSourceWindow(LastSource);
-  if assigned(W) then
-     W^.Editor^.SetDebuggerRow(-1);
-  Desktop^.ForEach(@ResetDebugerRow);
+  IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
+  ResetDebuggerRows;
 end;
 
 procedure TDebugController.AnnotateError;
@@ -591,7 +592,7 @@ begin
       else
        begin
          Desktop^.UnLock;
-         Found:=MyApp.OpenSearch(fn);
+         Found:=IDEApp.OpenSearch(fn);
          Desktop^.Lock;
          if not Found then
            begin
@@ -654,10 +655,8 @@ procedure TDebugController.DoEndSession(code:longint);
 var P :Array[1..2] of longint;
     W : PSourceWindow;
 begin
-   MyApp.SetCmdState([cmResetDebugger],false);
-   W:=PSourceWindow(LastSource);
-   if assigned(W) then
-     W^.Editor^.SetDebuggerRow(-1);
+   IDEApp.SetCmdState([cmResetDebugger],false);
+   ResetDebuggerRows;
    LastExitCode:=Code;
    If HiddenStepsCount=0 then
      InformationBox(#3'Program exited with '#13#3'exitcode = %d',@code)
@@ -677,7 +676,7 @@ begin
   if NoSwitch then
     PopStatus
   else
-    MyApp.ShowIDEScreen;
+    IDEApp.ShowIDEScreen;
 end;
 
 
@@ -686,7 +685,7 @@ begin
   if NoSwitch then
     PushStatus('Executable running in another window..')
   else
-    MyApp.ShowUserScreen;
+    IDEApp.ShowUserScreen;
 end;
 
 {****************************************************************************
@@ -824,7 +823,8 @@ begin
           GDBIndex:=Debugger^.last_breakpoint_number;
           GDBState:=bs_enabled;
           Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+GetStr(Conditions));
-          Debugger^.Command('ignore '+IntToStr(GDBIndex)+' '+IntToStr(IgnoreCount));
+          If IgnoreCount>0 then
+            Debugger^.Command('ignore '+IntToStr(GDBIndex)+' '+IntToStr(IgnoreCount));
           If Assigned(Commands) then
             begin
               {Commands are not handled yet }
@@ -835,7 +835,7 @@ begin
         begin
           GDBIndex:=0;
           ErrorBox(#3'Could not set Breakpoint'#13+
-            #3+BreakpointTypeStr[typ]+' '+Name^,nil);
+            #3+BreakpointTypeStr[typ]+' '+GetStr(Name),nil);
           state:=bs_disabled;
         end;
     end
@@ -947,7 +947,7 @@ function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : 
 
   function IsThis(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
-    IsThis:=(P^.typ=typ) and (P^.Name^=S);
+    IsThis:=(P^.typ=typ) and (GetStr(P^.Name)=S);
   end;
 
 begin
@@ -2168,6 +2168,8 @@ end;
   procedure TFramesListBox.Update;
 
     var i : longint;
+        W : PSourceWindow;
+
     begin
       { call backtrace command }
       If not assigned(Debugger) then
@@ -2180,12 +2182,17 @@ end;
       Debugger^.Command('backtrace');
       { generate list }
       { all is in tframeentry }
-      for i:=0 to Debugger^.frame_count-1 do
+      for i:=Debugger^.frame_count-1 downto 0 do
         begin
           with Debugger^.frames[i]^ do
             begin
               AddItem(new(PMessageItem,init(0,GetPChar(function_name)+GetPChar(args),
                 AddModuleName(GetPChar(file_name)),line_number,1)));
+              W:=SearchOnDesktop(GetPChar(file_name),false);
+              If assigned(W) then
+                begin
+                  W^.editor^.SetDebuggerRow(line_number);
+                end;
             end;
         end;
       if List^.Count > 0 then
@@ -2401,7 +2408,12 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-11-24 14:03:16  pierre
+  Revision 1.36  1999-12-20 14:23:16  pierre
+    * MyApp renamed IDEApp
+    * TDebugController.ResetDebuggerRows added to
+      get resetting of debugger rows
+
+  Revision 1.35  1999/11/24 14:03:16  pierre
    + Executing... in status line if in another window
 
   Revision 1.34  1999/11/10 17:19:58  pierre

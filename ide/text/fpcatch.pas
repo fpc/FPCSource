@@ -50,7 +50,7 @@ var CanQuit: boolean;
 begin
   case Sig of
    SIGSEGV : begin
-               if Assigned(Application) then MyApp.Done;
+               if Assigned(Application) then IDEApp.Done;
                Writeln('Internal Error caught');
                Halt;
              end;
@@ -61,7 +61,7 @@ begin
                  CanQuit:=true;
                if CanQuit then
                 begin
-                  if Assigned(Application) then MyApp.Done;
+                  if Assigned(Application) then IDEApp.Done;
                   Halt;
                 end;
              end;
@@ -87,7 +87,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-04-07 21:55:42  peter
+  Revision 1.3  1999-12-20 14:23:16  pierre
+    * MyApp renamed IDEApp
+    * TDebugController.ResetDebuggerRows added to
+      get resetting of debugger rows
+
+  Revision 1.2  1999/04/07 21:55:42  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

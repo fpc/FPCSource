@@ -157,31 +157,31 @@ BEGIN
   InitTemplates;
 
   ReadSwitches(SwitchesPath);
-  MyApp.Init;
+  IDEApp.Init;
   { load all options after init because of open files }
   ReadINIFile;
   InitDesktopFile;
   LoadDesktop;
 
   { Update IDE }
-  MyApp.Update;
-  MyApp.UpdateTarget;
+  IDEApp.Update;
+  IDEApp.UpdateTarget;
 
   ProcessParams(false);
 
   repeat
-    MyApp.Run;
+    IDEApp.Run;
     if (AutoSaveOptions and asEditorFiles)=0 then
       CanExit:=true
     else
-      CanExit:=MyApp.SaveAll;
+      CanExit:=IDEApp.SaveAll;
   until CanExit;
 
-  MyApp.AutoSave;
+  IDEApp.AutoSave;
 
   DoneDesktopFile;
 
-  MyApp.Done;
+  IDEApp.Done;
   WriteSwitches(SwitchesPath);
 
   DoneTemplates;
@@ -202,7 +202,12 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.33  1999-12-20 09:36:49  pierre
+  Revision 1.34  1999-12-20 14:23:16  pierre
+    * MyApp renamed IDEApp
+    * TDebugController.ResetDebuggerRows added to
+      get resetting of debugger rows
+
+  Revision 1.33  1999/12/20 09:36:49  pierre
    * get the mouse visible on win32 fp
 
   Revision 1.32  1999/12/10 13:02:05  pierre

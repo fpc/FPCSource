@@ -343,6 +343,7 @@ procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
 function GetNextEditorBounds(var Bounds: TRect): boolean;
 function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
+function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
@@ -386,7 +387,7 @@ uses
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp,
-  FPTools;
+  FPTools,FPIde;
 
 const
   RSourceEditor: TStreamRec = (
@@ -1216,9 +1217,13 @@ end;
 
 destructor TSourceWindow.Done;
 begin
-  Message(Application,evBroadcast,cmSourceWndClosing,@Self);
+  PushStatus('Closing '+GetStr(Title));
+  if not IDEApp.IsClosing then
+    Message(Application,evBroadcast,cmSourceWndClosing,@Self);
   inherited Done;
-  Message(Application,evBroadcast,cmUpdate,@Self);
+  if not IDEApp.IsClosing then
+    Message(Application,evBroadcast,cmUpdate,@Self);
+  PopStatus;
 end;
 
 function TGDBSourceEditor.Valid(Command: Word): Boolean;
@@ -2404,6 +2409,60 @@ begin
   OpenEditorWindow:=W;
 end;
 
+function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
+var
+    V: PView;
+    W: PWindow;
+    I: integer;
+    D,DS : DirStr;
+    N,NS : NameStr;
+    E,ES : ExtStr;
+    Found : boolean;
+    SName : string;
+
+function IsSearchedFile(W : PSourceWindow) : boolean;
+  var Found: boolean;
+  begin
+    Found:=false;
+    if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
+      begin
+        if (D='') then
+          SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
+        else
+          SName:=PSourceWindow(W)^.Editor^.FileName;
+        FSplit(SName,DS,NS,ES);
+        SName:=UpcaseStr(NS+ES);
+
+        if (E<>'') or (not tryexts) then
+          begin
+            if D<>'' then
+              Found:=UpCaseStr(DS)+SName=UpcaseStr(D+N+E)
+            else
+              Found:=SName=UpcaseStr(N+E);
+          end
+        else
+          begin
+            Found:=SName=UpcaseStr(N+'.pp');
+            if Found=false then
+              Found:=SName=UpcaseStr(N+'.pas');
+          end;
+      end;
+    IsSearchedFile:=found;
+  end;
+function IsSearchedSource(P: PView) : boolean; {$ifndef FPC}far;{$endif}
+begin
+  if assigned(P) and
+     (TypeOf(P^)=TypeOf(TSourceWindow)) then
+       IsSearchedSource:=IsSearchedFile(PSourceWindow(P))
+     else
+       IsSearchedSource:=false;
+end;
+
+begin
+  FSplit(FileName,D,N,E);
+  SearchOnDesktop:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
+end;
+
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
 var D : DirStr;
     N : NameStr;
@@ -2457,64 +2516,10 @@ var D : DirStr;
     TryToOpen:=W;
   end;
 
-  function SearchOnDesktop: PSourceWindow;
-  var
-      V: PView;
-      W: PWindow;
-      I: integer;
-      DS : DirStr;
-      NS : NameStr;
-      ES : ExtStr;
-      Found : boolean;
-      SName : string;
-
-  function IsSearchedFile(W : PSourceWindow) : boolean;
-    var Found: boolean;
-    begin
-      Found:=false;
-      if (W<>nil) and (W^.HelpCtx=hcSourceWindow) then
-        begin
-          if (D='') then
-            SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
-          else
-            SName:=PSourceWindow(W)^.Editor^.FileName;
-          FSplit(SName,DS,NS,ES);
-          SName:=UpcaseStr(NS+ES);
-
-          if (E<>'') or (not tryexts) then
-            begin
-              if D<>'' then
-                Found:=UpCaseStr(DS)+SName=UpcaseStr(D+N+E)
-              else
-                Found:=SName=UpcaseStr(N+E);
-            end
-          else
-            begin
-              Found:=SName=UpcaseStr(N+'.pp');
-              if Found=false then
-                Found:=SName=UpcaseStr(N+'.pas');
-            end;
-        end;
-      IsSearchedFile:=found;
-    end;
-  function IsSearchedSource(P: PView) : boolean; {$ifndef FPC}far;{$endif}
-  begin
-    if assigned(P) and
-       (TypeOf(P^)=TypeOf(TSourceWindow)) then
-         IsSearchedSource:=IsSearchedFile(PSourceWindow(P))
-       else
-         IsSearchedSource:=false;
-  end;
-
-  begin
-    SearchOnDesktop:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
-  end;
-
 var
   W : PSourceWindow;
 begin
-  FSplit(FileName,D,N,E);
-  W:=SearchOnDesktop;
+  W:=SearchOnDesktop(FileName,tryexts);
   if W<>nil then
     begin
       NewEditorOpened:=false;
@@ -2524,6 +2529,7 @@ begin
     end
   else
     begin
+      FSplit(FileName,D,N,E);
       DrStr:=GetSourceDirectories;
       While pos(';',DrStr)>0 do
         Begin
@@ -2863,7 +2869,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.50  1999-12-16 16:55:52  pierre
+  Revision 1.51  1999-12-20 14:23:17  pierre
+    * MyApp renamed IDEApp
+    * TDebugController.ResetDebuggerRows added to
+      get resetting of debugger rows
+
+  Revision 1.50  1999/12/16 16:55:52  pierre
    * fix of web bug 756
 
   Revision 1.49  1999/11/25 00:25:43  pierre
