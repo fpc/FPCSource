@@ -250,6 +250,7 @@ begin
 {$endif USEEXCEPT}
 {$ifdef EXTDEBUG}
   Comment(V_Info,'Memory Lost = '+tostr(EntryMemAvail-MemAvail));
+  Comment(V_Info,'Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif EXTDEBUG}
 
 { Restore Heap }
@@ -266,7 +267,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-08-29 13:51:10  peter
+  Revision 1.7  1998-09-01 07:54:17  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.6  1998/08/29 13:51:10  peter
     * moved get_exepath to globals
     + date_string const with the current date for 0.99.7+
 

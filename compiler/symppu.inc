@@ -197,7 +197,7 @@
             if target_os.endian=en_big_endian then
              flags:=flags or uf_big_endian;
 {$ifdef UseBrowser}
-            if cs_browser in aktswitches then
+            if cs_browser in aktmoduleswitches then
              flags:=flags or uf_has_browser;
 {$endif UseBrowser}
           end;
@@ -321,12 +321,11 @@
     procedure readsourcefiles;
       var
         temp,hs       : string;
-{        incfile_found : boolean; }
+        incfile_found : boolean;
         ppufiletime,
         source_time   : longint;
 {$ifdef UseBrowser}
-        hp : pextfile;
-        _d,_n,_e : string;
+        hp : pinputfile;
 {$endif UseBrowser}
       begin
         ppufiletime:=getnamedfiletime(current_module^.ppufilename^);
@@ -354,7 +353,9 @@
                 can't be done, becuase a .inc file with the same name as
                 used by a unit will cause the unit to recompile which is
                 not the intention (PFV) }
-            { if Source_Time=-1 then
+              { OK but then only the last filename
+                should not be searched in include files (PM)}
+              if (Source_Time=-1) and not current_ppu^.endofentry  then
                 begin
                   temp:=search(hs,includesearchpath,incfile_found);
                   if incfile_found then
@@ -363,8 +364,8 @@
                      Source_Time:=GetNamedFileTime(hs);
                    end;
                 end
-              else }
-              hs:=current_module^.path^+hs;
+              else
+                hs:=current_module^.path^+hs;
               if Source_Time=-1 then
                begin
                  current_module^.sources_avail:=false;
@@ -382,8 +383,7 @@
             end;
            Message1(unit_t_ppu_source,hs+temp);
 {$ifdef UseBrowser}
-           fsplit(hs,_d,_n,_e);
-           new(hp,init(_d,_n,_e));
+           new(hp,init(hs));
            { the indexing should match what is done in writeasunit }
            current_module^.sourcefiles.register_file(hp);
 {$endif UseBrowser}
@@ -441,7 +441,14 @@
 
 {
   $Log$
-  Revision 1.13  1998-08-17 10:10:11  peter
+  Revision 1.14  1998-09-01 07:54:24  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.13  1998/08/17 10:10:11  peter
     - removed OLDPPU
 
   Revision 1.12  1998/08/17 09:17:53  peter

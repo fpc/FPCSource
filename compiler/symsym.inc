@@ -109,17 +109,6 @@
          end;
         lastwritten:=lastref;
         current_ppu^.writeentry(ibsymref);
-      { when it's a procsym then write also the refs to the definition
-        due the overloading }
-        if typ=procsym then
-         begin
-           prdef:=pprocsym(@self)^.definition;
-           while assigned(prdef) do
-            begin
-              pprocdef(prdef)^.write_references;
-              prdef:=pprocdef(prdef)^.nextoverloaded;
-            end;
-         end;
       end;
 
 
@@ -131,17 +120,6 @@
          begin
            Browse.AddLog('***'+name+'***');
            Browse.AddLogRefs(defref);
-         end;
-      { when it's a procsym then write also the refs to the definition
-        due the overloading }
-        if typ=procsym then
-         begin
-           prdef:=pprocsym(@self)^.definition;
-           while assigned(prdef) do
-            begin
-              pprocdef(prdef)^.add_to_browserlog;
-              prdef:=pprocdef(prdef)^.nextoverloaded;
-            end;
          end;
       end;
 {$endif UseBrowser}
@@ -161,15 +139,6 @@
            dispose(left,done);
          if assigned(right) then
            dispose(right,done);
-      end;
-
-
-    destructor tsym.single_done;
-      begin
-{$ifdef tp}
-         if not(use_big) then
-{$endif tp}
-           strdispose(_name);
       end;
 
     procedure tsym.write;
@@ -423,6 +392,48 @@
          writedefref(pdef(definition));
          current_ppu^.writeentry(ibprocsym);
       end;
+
+{$ifdef UseBrowser}
+    procedure tprocsym.load_references;
+      var
+        prdef : pprocdef;
+      begin
+         inherited load_references;
+         prdef:=definition;
+         { take care about operators !!  }
+         while assigned(prdef) and (prdef^.owner=definition^.owner) do
+          begin
+            prdef^.load_references;
+            prdef:=prdef^.nextoverloaded;
+          end;
+      end;
+
+    procedure tprocsym.write_references;
+      var
+        prdef : pprocdef;
+      begin
+         inherited write_references;
+         prdef:=definition;
+         while assigned(prdef) and (prdef^.owner=definition^.owner) do
+          begin
+            prdef^.write_references;
+            prdef:=prdef^.nextoverloaded;
+          end;
+      end;
+
+    procedure tprocsym.add_to_browserlog;
+      var
+        prdef : pprocdef;
+      begin
+         inherited add_to_browserlog;
+         prdef:=definition;
+         while assigned(prdef) do
+           begin
+              pprocdef(prdef)^.add_to_browserlog;
+              prdef:=pprocdef(prdef)^.nextoverloaded;
+           end;
+      end;
+{$endif UseBrowser}
 
 {$ifdef GDB}
     function tprocsym.stabstring : pchar;
@@ -1490,6 +1501,43 @@
          current_ppu^.writeentry(ibtypesym);
       end;
 
+
+{$ifdef UseBrowser}
+
+    procedure ttypesym.load_references;
+      var
+        prdef : pdef;
+      begin
+         inherited load_references;
+         if (definition^.deftype=recorddef) then
+            precdef(definition)^.symtable^.load_browser;
+         if (definition^.deftype=objectdef) then
+             pobjectdef(definition)^.publicsyms^.load_browser;
+      end;
+
+    procedure ttypesym.write_references;
+      var
+        prdef : pdef;
+      begin
+         inherited write_references;
+         if (definition^.deftype=recorddef) then
+            precdef(definition)^.symtable^.write_browser;
+         if (definition^.deftype=objectdef) then
+             pobjectdef(definition)^.publicsyms^.write_browser;
+      end;
+
+    procedure ttypesym.add_to_browserlog;
+      var
+        aktobjdef : pobjectdef;
+      begin
+         inherited add_to_browserlog;
+         if (definition^.deftype=recorddef) then
+            precdef(definition)^.symtable^.writebrowserlog;
+         if (definition^.deftype=objectdef) then
+             pobjectdef(definition)^.publicsyms^.writebrowserlog;
+      end;
+{$endif UseBrowser}
+
 {$ifdef GDB}
     function ttypesym.stabstring : pchar;
     var stabchar : string[2];
@@ -1558,7 +1606,14 @@
 
 {
   $Log$
-  Revision 1.36  1998-08-25 13:09:26  pierre
+  Revision 1.37  1998-09-01 07:54:25  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.36  1998/08/25 13:09:26  pierre
     * corrected mangling sheme :
       cvar add Cprefix to the mixed case name whereas
       export or public use direct name

@@ -3047,9 +3047,6 @@ unit pass_1;
          exactmatch,inlined : boolean;
          paralength,l : longint;
          pdc : pdefcoll;
-     {$ifdef UseBrowser}
-         curtokenpos : tfileposinfo;
-     {$endif UseBrowser}
 
          { only Dummy }
          hcvt : tconverttype;
@@ -3487,8 +3484,7 @@ unit pass_1;
      {$ifdef UseBrowser}
                    if make_ref then
                      begin
-                        get_cur_file_pos(curtokenpos);
-                        procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@curtokenpos));
+                        procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@p^.fileinfo));
                      end;
      {$endif UseBrowser}
 
@@ -3770,11 +3766,7 @@ unit pass_1;
                 firstcallparan(p^.left,nil)
               else
                 firstpass(p^.left);
-              p^.registers32:=p^.left^.registers32;
-              p^.registersfpu:=p^.left^.registersfpu;
-{$ifdef SUPPORT_MMX}
-              p^.registersmmx:=p^.left^.registersmmx;
-{$endif SUPPORT_MMX}
+              left_right_max(p);
               set_location(p^.location,p^.left^.location);
            end;
            case p^.inlinenumber of
@@ -4051,6 +4043,9 @@ unit pass_1;
                          end;
                        { pass all parameters again }
                        firstcallparan(p^.left,nil);
+                       { this was missing to get the right
+                         registers32 value at first pass PM }
+                       left_right_max(p);
                     end;
                end;
             in_settextbuf_file_x :
@@ -5254,6 +5249,7 @@ unit pass_1;
 
       begin
 {$ifdef extdebug}
+         inc(total_of_firstpass);
          if (p^.firstpasscount>0) and only_one_pass then
            exit;
 {$endif extdebug}
@@ -5268,6 +5264,7 @@ unit pass_1;
               new(oldp);
               oldp^:=p^;
               not_first:=true;
+              inc(firstpass_several);
            end
          else
            not_first:=false;
@@ -5327,7 +5324,14 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.66  1998-08-31 08:52:05  peter
+  Revision 1.67  1998-09-01 07:54:20  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.66  1998/08/31 08:52:05  peter
     * fixed error 10 with succ() and pref()
 
   Revision 1.65  1998/08/28 12:51:40  florian

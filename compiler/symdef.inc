@@ -1930,6 +1930,10 @@
           begin
             Browse.AddLog('***'+mangledname);
             Browse.AddLogRefs(defref);
+            if assigned(parast) then
+              parast^.writebrowserlog;
+            if assigned(localst) then
+              localst^.writebrowserlog;
           end;
       end;
 
@@ -2579,7 +2583,14 @@
 
 {
   $Log$
-  Revision 1.27  1998-08-28 12:51:43  florian
+  Revision 1.28  1998-09-01 07:54:22  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.27  1998/08/28 12:51:43  florian
     + ansistring to pchar type cast fixed
 
   Revision 1.26  1998/08/25 12:42:44  pierre

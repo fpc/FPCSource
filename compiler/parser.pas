@@ -354,7 +354,7 @@ unit parser;
              end;
 {$ifdef UseBrowser}
           { Write Browser }
-            if cs_browser in initswitches then
+            if cs_browser in aktmoduleswitches then
              begin
                Message1(parser_i_writing_browser_log,Browse.Fname);
                Browse.CreateLog;
@@ -370,7 +370,14 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.39  1998-08-26 10:07:09  peter
+  Revision 1.40  1998-09-01 07:54:19  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.39  1998/08/26 10:07:09  peter
     * dispose trees is now default for all > 0.99.5 compiles
 
   Revision 1.38  1998/08/18 20:52:20  peter

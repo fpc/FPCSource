@@ -74,7 +74,7 @@ var
 implementation
 
   uses
-    globals,systems,verbose;
+    comphook,globals,systems,verbose;
 
 {****************************************************************************
                                TRef
@@ -115,14 +115,14 @@ implementation
         get_file_line:='';
         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
         if assigned(inputfile) then
-          if Use_Rhide then
-            get_file_line:=lower(inputfile^.name^+inputfile^.ext^)
+          if status.use_gccoutput then
+            get_file_line:=lower(inputfile^.name^)
               +':'+tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
           else
-            get_file_line:=inputfile^.name^+inputfile^.ext^
+            get_file_line:=inputfile^.name^
               +'('+tostr(posinfo.line)+','+tostr(posinfo.column)+')'
         else
-          if Use_Rhide then
+          if status.use_gccoutput then
             get_file_line:='file_unknown:'
               +tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
           else
@@ -271,7 +271,7 @@ implementation
                    get_source_file:=f;
                    exit;
                 end;
-              f:=pinputfile(f^._next);
+              f:=pinputfile(f^.next);
            end;
       end;
 
@@ -280,7 +280,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-06-13 00:10:04  peter
+  Revision 1.6  1998-09-01 07:54:16  pierre
+    * UseBrowser a little updated (might still be buggy !!)
+    * bug in psub.pas in function specifier removed
+    * stdcall allowed in interface and in implementation
+      (FPC will not yet complain if it is missing in either part
+      because stdcall is only a dummy !!)
+
+  Revision 1.5  1998/06/13 00:10:04  peter
     * working browser and newppu
     * some small fixes against crashes which occured in bp7 (but not in
       fpc?!)
