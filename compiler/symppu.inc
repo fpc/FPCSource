@@ -536,6 +536,7 @@
     procedure readsourcefiles;
       var
         temp,hs       : string;
+        temp_dir      : string;
 {$ifdef ORDERSOURCES}
         main_dir      : string;
 {$endif ORDERSOURCES}
@@ -558,7 +559,7 @@
 {$ifndef ORDERSOURCES}
            is_main:=current_ppu^.endofentry;
 {$endif ORDERSOURCES}
-           temp:='';
+           temp_dir:='';
            if (current_module^.flags and uf_in_library)<>0 then
             begin
               current_module^.sources_avail:=false;
@@ -575,6 +576,7 @@
               { check the date of the source files }
               Source_Time:=GetNamedFileTime(current_module^.path^+hs);
               incfile_found:=false;
+              main_found:=false;
               if Source_Time<>-1 then
                 hs:=current_module^.path^+hs
 {$ifdef ORDERSOURCES}
@@ -589,12 +591,12 @@
               if (Source_Time=-1) then
                 begin
                   if is_main then
-                    temp:=unitsearchpath.FindFile(hs,main_found)
+                    temp_dir:=unitsearchpath.FindFile(hs,main_found)
                   else
-                    temp:=includesearchpath.FindFile(hs,incfile_found);
+                    temp_dir:=includesearchpath.FindFile(hs,incfile_found);
                   if incfile_found or main_found then
                    begin
-                     hs:=temp+hs;
+                     hs:=temp_dir+hs;
                      Source_Time:=GetNamedFileTime(hs);
                    end
                 end;
@@ -605,6 +607,8 @@
                end
               else
                begin
+                 if main_found then
+                   main_dir:=temp_dir;
                  { time newer? But only allow if the file is not searched
                    in the include path (PFV), else you've problems with
                    units which use the same includefile names }
@@ -630,8 +634,6 @@
              begin
                stringdispose(current_module^.mainsource);
                current_module^.mainsource:=stringdup(hs);
-               if main_found then
-                 main_dir:=temp;
              end;
 {$endif ORDERSOURCES}
            Message1(unit_u_ppu_source,hs+temp);
@@ -734,7 +736,10 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-09-21 20:56:19  pierre
+   * fix for bugs 1084/1128 (merged)
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
- 
+
 }
