@@ -23,5 +23,11 @@ var
 
 
 begin
+  value_u8bit:=133;
   proc_value_smallarray_const_1_inline([value_u8bit]);
+  if global_u8bit <> 133 then
+    begin
+      Writeln('Error in inline code generation');
+      Halt(1);
+    end;
 end.
