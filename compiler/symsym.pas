@@ -349,14 +349,14 @@ interface
 
        tmacro = class(tstoredsym)
           {Normally true, but false when a previously defined macro is undef-ed}
-          defined : boolean; 
+          defined : boolean;
           {True if this is a mac style compiler variable, in which case no macro
            substitutions shall be done.}
-          is_compiler_var : boolean; 
+          is_compiler_var : boolean;
           {Whether the macro was used. NOTE: A use of a macro which was never defined}
           {e. g. an IFDEF which returns false, will not be registered as used,}
           {since there is no place to register its use. }
-          is_used : boolean; 
+          is_used : boolean;
           buftext : pchar;
           buflen  : longint;
           constructor create(const n : string);
@@ -1846,7 +1846,7 @@ implementation
                 { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                 { this is the register order for GDB}
                 if regidx<>0 then
-                  stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+                  stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(longint(regstabs_table[regidx]))]);
               end;
             LOC_REFERENCE :
               { offset to ebp => will not work if the framepointer is esp
@@ -2649,7 +2649,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.199  2005-01-09 20:24:43  olle
+  Revision 1.200  2005-02-03 21:43:25  peter
+    * fix range check error when compiled with 1.9.6
+
+  Revision 1.199  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 
