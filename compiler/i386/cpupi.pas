@@ -47,7 +47,7 @@ unit cpupi;
          { we push Flags and CS as long
            to cope with the IRETD
            and we save 6 register + 4 selectors }
-         inc(procdef.parast.datasize,8+6*4+4*2);
+         inc(procdef.parast.address_fixup,8+6*4+4*2);
       end;
 
 begin
@@ -55,7 +55,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-05-22 21:32:29  peter
+  Revision 1.5  2003-05-25 10:26:15  peter
+    * fix interrupt stack allocation
+
+  Revision 1.4  2003/05/22 21:32:29  peter
     * removed some unit dependencies
 
   Revision 1.3  2003/04/27 11:21:35  peter
