@@ -334,15 +334,15 @@ interface
         begin
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
-             A_BA,A_BLA:
+             A_B,A_BA,A_BLA:
                s:=#9+op2str[op]+#9;
-             A_B,A_BL:
+             A_BL:
                s:=#9+op2str[op]+#9'.';
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
           s:=s+getopstr_jmp(taicpu(hp).oper[0]);
-          if (op=A_B) or (op=A_BL) then
+          if op=A_BL then
             s:=s+'[PR]';
         end
       else
@@ -977,7 +977,7 @@ ait_stab_function_name : ;
             allowdirect : true;
             needar : true;
             labelprefix_only_inside_procedure : true;
-            labelprefix : '@@';
+            labelprefix : '@';
             comment : '; ';
             secnames : ('',
               'csect','csect','csect',  {TODO: Perhaps use other section types.}
@@ -990,7 +990,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2002-10-19 23:52:40  olle
+  Revision 1.12  2002-10-23 15:31:01  olle
+    * branch b does not jump to dotted symbol now
+
+  Revision 1.11  2002/10/19 23:52:40  olle
     * import directive changed
 
   Revision 1.10  2002/10/10 19:39:37  florian
