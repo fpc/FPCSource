@@ -188,6 +188,7 @@ Procedure Globfree (var p:pglob);
 procedure SigRaise (sig:integer);
 
 {$ifdef FPC_USE_LIBC}
+const clib = 'c';
 {$i unxdeclh.inc}
 {$else}
 {$i unxsysch.inc} //  calls used in system and not reexported from baseunix
@@ -1410,7 +1411,11 @@ End.
 
 {
   $Log$
-  Revision 1.57  2004-01-04 20:53:02  jonas
+  Revision 1.58  2004-01-04 21:05:01  jonas
+    * declare C-library routines as external in libc so we generate proper
+      import entries for Darwin
+
+  Revision 1.57  2004/01/04 20:53:02  jonas
     * don't use systypes if FPC_USE_LIBC is defined
 
   Revision 1.56  2004/01/04 16:24:05  jonas

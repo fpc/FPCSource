@@ -18,74 +18,80 @@
  ***********************************************************************}
 
 {   var
-     Errno : cint; external name 'errno';}
+     Errno : cint; external clib name 'errno';}
 
 Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pGrpArr = ^TGrpArr;
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
-    function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external name 'access';
-    function  FpChdir	(path : pchar): cint; cdecl; external name 'chdir';
-    function  FpClose	(fd : cint): cint; cdecl; external name 'close';
-    Function  FpClosedir (var dirp : Dir): cInt; cdecl; external name 'closedir';
-    function  FpClosedir (dirp : pdir): cint; cdecl; external name 'closedir';
-    function  FpDup	(oldd:cint):cint; cdecl; external name 'dup';
-    function  FpDup2	(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
-    function  FpExecve	(path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external name 'execve';
-    function  FpFork  : TPid; cdecl; external name 'fork';
-    function  FpFstat	(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
-    function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external name 'ftruncate';
-    function  FpLseek	(fd : cint; offset : TOff; whence : cint): TOff; cdecl; external name 'lseek';
-    function  FpMkdir	(path : pchar; mode: TMode):cint; cdecl; external name 'mkdir';
-    function  FpOpen	(path: pchar; flags : cint; mode: TMode):cint; cdecl; external name 'open';
-    function  FpOpendir	(dirname : pchar): pdir; cdecl; external name 'opendir';
-    function  FpRead	(fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external name 'read';
-    function  FpReaddir	(dirp : pdir) : pdirent;cdecl; external name 'readdir';
-    Function  FpReaddir    (var dirp : Dir) : pDirent;cdecl; external name 'readdir';
-    function  FpRename	(old : pchar; newpath: pchar): cint; cdecl;external name 'rename';
-    function  FpRmdir	(path : pchar): cint; cdecl; external name 'rmdir';
-    function  FpSigaction (sig: cint;var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
-    Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external name 'sigaction';
+    function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external clib name 'access';
+    function  FpChdir	(path : pchar): cint; cdecl; external clib name 'chdir';
+    function  FpClose	(fd : cint): cint; cdecl; external clib name 'close';
+    Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir';
+    function  FpClosedir (dirp : pdir): cint; cdecl; external clib name 'closedir';
+    function  FpDup	(oldd:cint):cint; cdecl; external clib name 'dup';
+    function  FpDup2	(oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';
+    function  FpExecve	(path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
+    function  FpFork  : TPid; cdecl; external clib name 'fork';
+    function  FpFstat	(fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat';
+    function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external clib name 'ftruncate';
+    function  FpLseek	(fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek';
+    function  FpMkdir	(path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';
+    function  FpOpen	(path: pchar; flags : cint; mode: TMode):cint; cdecl; external clib name 'open';
+    function  FpOpendir	(dirname : pchar): pdir; cdecl; external clib name 'opendir';
+    function  FpRead	(fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external clib name 'read';
+    function  FpReaddir	(dirp : pdir) : pdirent;cdecl; external clib name 'readdir';
+    Function  FpReaddir    (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir';
+    function  FpRename	(old : pchar; newpath: pchar): cint; cdecl;external clib name 'rename';
+    function  FpRmdir	(path : pchar): cint; cdecl; external clib name 'rmdir';
+    function  FpSigaction (sig: cint;var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external clib name 'sigaction';
+    Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external clib name 'sigaction';
+    Function  FpChmod      (path : pChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
+    Function  FPUtime(path:pchar;times:putimbuf):cint; cdecl; external clib name 'utime';
 
     {$ifdef BSD}
-    function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external name 'sigprocmask';
+    function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     {$endif}
-    function  FpStat	  (path: pchar; var buf : stat): cint; cdecl; external name 'stat';
+    function  FpStat	  (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
 //    {$ifdef FPC_IS_SYSTEM}
-    function  FpTime	   (tloc:ptime_t): time_t; cdecl; external name 'time';
+    function  FpTime	   (tloc:ptime_t): time_t; cdecl; external clib name 'time';
 //    {$else}
-    Function  FpTime       (var tloc : TTime): TTime; cdecl; external name 'time';
+    Function  FpTime       (var tloc : TTime): TTime; cdecl; external clib name 'time';
 //    {$endif}
-    function  FpUname	(var name: utsname): cint; cdecl; external name 'uname';
-    function  FpUnlink	(path: pchar): cint; cdecl; external name 'unlink';
-    function  FpWaitpid	(pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external name 'waitpid';
-    function  FpWrite	(fd: cint;buf:pchar; nbytes : TSize): TSSize; cdecl; external name 'write';
-    procedure FpExit	(status : cint); cdecl; external name '_exit';
-    function  fpmmap	(addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external name 'mmap';
-    function  FpIOCtl   (Handle:cint;Ndx: culong;Data: Pointer):cint; cdecl; external name 'ioctl';
-    Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external name 'select';
-    function  fpgetenv  (name : pchar):pchar; cdecl; external name 'getenv';
-    Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external name 'kill';
-    Function  FpGetpid  : TPid; cdecl;external name 'getpid';
-    Function  FpGetppid : TPid;cdecl;external name 'getppid';
-    Function  FpGetuid  : TUid;cdecl;external name 'getuid';
-    Function  FpGeteuid : TUid;cdecl;external name 'geteuid';
-    Function  FpGetgid  : TGid;cdecl;external name 'getgid';
-    Function  FpGetegid : TGid;cdecl;external name 'getegid';
-    Function  FpSetuid     (uid : TUid): cInt;cdecl;external name 'setuid';
-    Function  FpSetgid     (gid : TGid): cInt;cdecl;external name 'setgid';
-    Function  FpGetgroups  (gidsetsize : cInt; var grouplist : tgrparr):cint; cdecl;external name 'getgroups';
-    Function  FpGetpgrp : TPid;  cdecl;external name 'getpgrp';
-    Function  FpSetsid  : TPid; cdecl;external name 'setsid';
-    Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external name 'pipe';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl external name 'fcntl';   
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl external name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external name 'fcntl';
+    function  FpUname	(var name: utsname): cint; cdecl; external clib name 'uname';
+    function  FpUnlink	(path: pchar): cint; cdecl; external clib name 'unlink';
+    function  FpWaitpid	(pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';
+    function  FpWrite	(fd: cint;buf:pchar; nbytes : TSize): TSSize; cdecl; external clib name 'write';
+    procedure FpExit	(status : cint); cdecl; external clib name '_exit';
+    function  fpmmap	(addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap';
+    function  FpIOCtl   (Handle:cint;Ndx: culong;Data: Pointer):cint; cdecl; external clib name 'ioctl';
+    Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
+    function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
+    Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external clib name 'kill';
+    Function  FpGetpid  : TPid; cdecl;external clib name 'getpid';
+    Function  FpGetppid : TPid;cdecl;external clib name 'getppid';
+    Function  FpGetuid  : TUid;cdecl;external clib name 'getuid';
+    Function  FpGeteuid : TUid;cdecl;external clib name 'geteuid';
+    Function  FpGetgid  : TGid;cdecl;external clib name 'getgid';
+    Function  FpGetegid : TGid;cdecl;external clib name 'getegid';
+    Function  FpSetuid     (uid : TUid): cInt;cdecl;external clib name 'setuid';
+    Function  FpSetgid     (gid : TGid): cInt;cdecl;external clib name 'setgid';
+    Function  FpGetgroups  (gidsetsize : cInt; var grouplist : tgrparr):cint; cdecl;external clib name 'getgroups';
+    Function  FpGetpgrp : TPid;  cdecl;external clib name 'getpgrp';
+    Function  FpSetsid  : TPid; cdecl;external clib name 'setsid';
+    Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl external clib name 'fcntl';   
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl external clib name 'fcntl';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
 
 {
    $Log$
-   Revision 1.5  2004-01-01 16:10:23  marco
+   Revision 1.6  2004-01-04 21:05:01  jonas
+     * declare C-library routines as external in libc so we generate proper
+       import entries for Darwin
+
+   Revision 1.5  2004/01/01 16:10:23  marco
     * fpreadlink(pathstr) moved to unxovl (since not platform specific),
    	small fixes for "make all OPT='-dFPC_USE_LIBC'
 
