@@ -722,6 +722,12 @@ var
    edata : longword; external name 'edata';
 {$endif go32v2}
 
+{$ifdef linux}
+var
+   etext: ptruint; external name '_etext';
+   edata : ptruint; external name '_edata';
+{$endif}
+
 
 procedure CheckPointer(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif}[public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -765,6 +771,19 @@ begin
      (ptruint(p)<Win32StackTop) then
     goto _exit;
 {$endif win32}
+
+{$ifdef linux}
+  { inside stack ? }
+  asm
+     movl %ebp,get_ebp
+  end;
+  if (ptruint(p)>get_ebp) and
+     (ptruint(p)<$c0000000) then      //todo: 64bit!
+    goto _exit;
+  { inside data ? }
+  if (ptruint(p)>=ptruint(@etext)) and (ptruint(p)<ptruint(@edata)) then
+    goto _exit;
+{$endif linux}
 
   { first try valid list faster }
 
@@ -1138,7 +1157,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2004-10-24 20:01:41  peter
+  Revision 1.35  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.34  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.33  2004/09/21 14:49:29  peter

@@ -242,22 +242,6 @@ end;
                               Heap Management
 *****************************************************************************}
 
-var
-  int_heap : pointer;external name 'HEAP';
-  int_heapsize : longint;external name 'HEAPSIZE';
-
-{ first address of heap }
-function getheapstart:pointer;
-begin
-  getheapstart := int_heap;
-end;
-
-{ current length of heap }
-function getheapsize:longint;
-begin
-  getheapsize := int_heapsize;
-end;
-
 {$ifdef autoHeapRelease}
 
 const HeapInitialMaxBlocks = 32;
@@ -1194,7 +1178,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2004-09-26 19:23:34  armin
+  Revision 1.5  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.4  2004/09/26 19:23:34  armin
   * exiting threads at nlm unload
   * renamed some libc functions
 

@@ -827,27 +827,14 @@ begin
   randseed:=hl*$10000+ lo(regs.realecx);
 end;
 
+
 {*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-var int_heapsize:longint; external name 'HEAPSIZE';
-    int_heap:pointer; external name 'HEAP';
-
-function getheapstart:pointer;
-begin
-  getheapstart:=int_heap;
-end;
-
-
-function getheapsize:longint;
-begin
-  getheapsize:=int_heapsize;
-end;
+      OS Memory allocation / deallocation
+ ****************************************************************************}
 
 function ___sbrk(size:longint):pointer;cdecl; external name '___sbrk';
 
-function Sbrk(size : longint):pointer;assembler;
+function SysOSAlloc(size: ptrint): pointer;assembler;
 asm
 {$ifdef SYSTEMDEBUG}
         cmpb    $1,accept_sbrk
@@ -865,20 +852,10 @@ asm
 {$endif}
 end;
 
-{*****************************************************************************
-      OS Memory allocation / deallocation 
- ****************************************************************************}
-
-function SysOSAlloc(size: ptrint): pointer;
-begin
-  result := sbrk(size);
-end;
-
-{$define HAS_SYSOSFREE}
+{ define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptrint);
 begin
-  fpmunmap(p, size);
 end;
 
 { include standard heap management }
@@ -1554,7 +1531,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  2004-09-03 19:27:16  olle
+  Revision 1.16  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.15  2004/09/03 19:27:16  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 

@@ -112,48 +112,14 @@ begin
   randseed:=0;
 end;
 
-{*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-{ first address of heap }
-function getheapstart:pointer;{assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];}
-begin
-   getheapstart:=0;
-end;
-
-{ current length of heap }
-function getheapsize:longint;{assembler;
-asm
-        movl    HEAPSIZE,%eax
-end ['EAX'];}
-begin
-   getheapsize:=0;
-end;
-
-{ function to allocate size bytes more for the program }
-{ must return the first address of new data space or nil if fail }
-function Sbrk(size : longint):pointer;{assembler;
-asm
-        movl    size,%eax
-        pushl   %eax
-        call    ___sbrk
-        addl    $4,%esp
-end;}
-begin
-  Sbrk:=nil;
-end;
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
 begin
-  result := sbrk(size);
+  // code to allocate memory block
 end;
 
 // If the OS is capable of freeing memory, define HAS_SYSOSFREE and implement
@@ -320,7 +286,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.12  2004-09-03 19:26:57  olle
+  Revision 1.13  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.12  2004/09/03 19:26:57  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 

@@ -289,7 +289,7 @@ function sbrk(size:longint):pointer;
 var
   L: longword;
 begin
-  WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
+  WriteLn ('Trying to grow heap by ', Size);
 {$IFDEF CONTHEAP}
   WriteLn ('BrkLimit is ', BrkLimit);
 {$ENDIF CONTHEAP}
@@ -322,18 +322,6 @@ asm
 .LSbrk_End:
 end {['eax', 'edx']};
 {$ENDIF DUMPGROW}
-
-function getheapstart:pointer;assembler;
-
-asm
-    movl heap_base,%eax
-end {['EAX']};
-
-function getheapsize:longint;assembler;
-asm
-    movl heap_brk,%eax
-end {['EAX']};
-
 
 function SysOSAlloc (Size: ptrint): pointer;
 begin
@@ -1333,7 +1321,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-09-18 11:12:49  hajny
+  Revision 1.29  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.28  2004/09/18 11:12:49  hajny
     * handle type changed to thandle in do_isdevice
 
   Revision 1.27  2004/09/03 19:25:41  olle

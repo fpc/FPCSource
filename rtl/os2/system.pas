@@ -487,98 +487,10 @@ function DosFreeMem (P: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 304;
 
 var
-{  Int_Heap_End: pointer;}
-  Int_Heap: pointer;
-{$IFNDEF VER1_0}
-                     external name 'HEAP';
-{$ENDIF VER1_0}
-  Int_HeapSize: cardinal; external name 'HEAPSIZE';
   HighMemSupported: boolean;
-{  PreviousHeap: cardinal;
-  AllocatedMemory: cardinal;
+  Int_Heap : Pointer;
+  Int_heapSize : longint;
 
-
-function GetHeapSize: longint;
-begin
-  GetHeapSize := PreviousHeap + longint (Int_Heap_End) - longint (Int_Heap);
-end;
-}
-
-function GetHeapSize: longint; assembler;
-asm
-  movl Int_HeapSize, %eax
-end ['EAX'];
-
-(*
-function Sbrk (Size: longint): pointer;
-var
-  P: pointer;
-  RC: cardinal;
-const
-  MemAllocBlock = 4 * 1024 * 1024;
-begin
-{ $IFDEF DUMPGROW}
-  WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
-{ $ENDIF}
-  // commit memory
-  RC := DosSetMem (Int_Heap_End, Size, $13);
-
-  if RC <> 0 then
-
-( * Not enough memory was allocated - let's try to allocate more
-   (4 MB steps or as much as requested if more than 4 MB needed). * )
-
-   begin
-    if Size > MemAllocBlock then
-     begin
-      RC := DosAllocMem (P, Size, 3);
-      if RC = 0 then Inc (AllocatedMemory, Size);
-     end
-    else
-     begin
-      RC := DosAllocMem (P, MemAllocBlock, 3);
-      if RC = 0 then Inc (AllocatedMemory, MemAllocBlock);
-     end;
-    if RC = 0 then
-     begin
-      PreviousHeap := GetHeapSize;
-      Int_Heap := P;
-      Int_Heap_End := P;
-      RC := DosSetMem (Int_Heap_End, Size, $13);
-     end
-    else
-     begin
-      Sbrk := nil;
-{ $IFDEF DUMPGROW}
-      WriteLn ('Error ', RC, ' during additional memory allocation!');
-      WriteLn ('Total allocated memory is ', cardinal (AllocatedMemory), ', ',
-                                                   GetHeapSize, ' committed.');
-{ $ENDIF DUMPGROW}
-      Exit;
-     end;
-   end;
-
-  if RC <> 0 then
-   begin
-{ $IFDEF DUMPGROW}
-    WriteLn ('Error ', RC, ' while trying to commit more memory!');
-    WriteLn ('Current memory object starts at ', cardinal (Int_Heap),
-                             ' and committed until ', cardinal (Int_Heap_End));
-    WriteLn ('Total allocated memory is ', cardinal (AllocatedMemory), ', ',
-                                                   GetHeapSize, ' committed.');
-{ $ENDIF DUMPGROW}
-    Sbrk := nil;
-   end
-  else
-   begin
-    Sbrk := Int_Heap_End;
-{ $IFDEF DUMPGROW}
-    WriteLn ('New heap at ', cardinal (Int_Heap_End));
-{ $ENDIF DUMPGROW}
-    Inc (Int_Heap_End, Size);
-   end;
-end;
-*)
 {$IFDEF DUMPGROW}
  {$DEFINE EXTDUMPGROW}
 {$ENDIF DUMPGROW}
@@ -589,8 +501,7 @@ var
   RC: cardinal;
 begin
 {$IFDEF EXTDUMPGROW}
-  WriteLn ('Trying to grow heap by ', Size, ' to ', Int_HeapSize
-                                                            + cardinal (Size));
+  WriteLn ('Trying to grow heap by ', Size);
 {$ENDIF}
 
   if HighMemSupported then
@@ -662,12 +573,6 @@ begin
    end;
 {$ENDIF EXTDUMPGROW}
 end;
-
-function GetHeapStart: pointer;
-begin
-  GetHeapStart := Int_Heap;
-end;
-
 
 {$i heap.inc}
 
@@ -1621,7 +1526,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2004-09-18 11:12:09  hajny
+  Revision 1.75  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.74  2004/09/18 11:12:09  hajny
     * handle type changed to thandle in do_isdevice
 
   Revision 1.73  2004/09/11 19:43:11  hajny

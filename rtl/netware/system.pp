@@ -251,24 +251,6 @@ end;
                               Heap Management
 *****************************************************************************}
 
-var
-  heap : longint;external name 'HEAP';
-  intern_heapsize : longint;external name 'HEAPSIZE';
-
-{ first address of heap }
-function getheapstart:pointer;
-assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];
-
-{ current length of heap }
-function getheapsize:longint;
-assembler;
-asm
-        movl    intern_HEAPSIZE,%eax
-end ['EAX'];
-
 {$ifdef autoHeapRelease}
 
 const HeapInitialMaxBlocks = 32;
@@ -985,7 +967,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.27  2004-09-26 19:25:49  armin
+  Revision 1.28  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.27  2004/09/26 19:25:49  armin
   * exiting threads at nlm unload
 
   Revision 1.26  2004/09/17 18:29:07  armin

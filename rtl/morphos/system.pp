@@ -4,11 +4,11 @@
     Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
 
     System unit for MorphOS/PowerPC
-  
-    Uses parts of the Commodore Amiga/68k port by Carl Eric Codere 
+
+    Uses parts of the Commodore Amiga/68k port by Carl Eric Codere
     and Nils Sjoholm
 
-    MorphOS port was done on a free Pegasos II/G4 machine 
+    MorphOS port was done on a free Pegasos II/G4 machine
     provided by Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -28,7 +28,7 @@ interface
 
 {$I systemh.inc}
 
-type 
+type
   THandle = LongInt;
 
 {$I heaph.inc}
@@ -62,10 +62,10 @@ var
 
   MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   MOS_origDir  : LongInt; { original directory on startup }
-  MOS_ambMsg   : Pointer; 
+  MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
-  
+
   argc: LongInt;
   argv: PPChar;
   envp: PPChar;
@@ -121,7 +121,7 @@ var
 
 { Function to be called at program shutdown, to close all opened files }
 procedure CloseList(l: PFileList);
-var 
+var
   tmpNext   : PFileList;
   tmpHandle : LongInt;
 begin
@@ -131,13 +131,13 @@ begin
   tmpNext:=l^.next;
   while tmpNext<>nil do begin
     tmpHandle:=tmpNext^.handle;
-    if (tmpHandle<>StdInputHandle) and (tmpHandle<>StdOutputHandle) 
+    if (tmpHandle<>StdInputHandle) and (tmpHandle<>StdOutputHandle)
        and (tmpHandle<>StdErrorHandle) then begin
       dosClose(tmpHandle);
     end;
     tmpNext:=tmpNext^.next;
   end;
- 
+
   { Next, erase the linked list }
   while l<>nil do begin
     tmpNext:=l;
@@ -279,7 +279,7 @@ begin
   end;
 end;
 
-{ Generates correct argument array on startup } 
+{ Generates correct argument array on startup }
 procedure GenerateArgs;
 var
   argvlen : longint;
@@ -318,7 +318,7 @@ begin
   argv[0][length(temp)]:=#0;
 
   { check if we're started from Ambient }
-  if MOS_ambMsg<>nil then 
+  if MOS_ambMsg<>nil then
     begin
       argc:=0;
       exit;
@@ -408,7 +408,7 @@ function paramstr(l : longint) : string;
 var
   s1: String;
 begin
-  paramstr:='';  
+  paramstr:='';
   if MOS_ambMsg<>nil then exit;
 
   if l=0 then begin
@@ -430,39 +430,12 @@ end;
 
 
 {*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-var
-  int_heap     : LongInt; external name 'HEAP';
-  int_heapsize : LongInt; external name 'HEAPSIZE';
-
-{ first address of heap }
-function getheapstart:pointer;
-begin
-  getheapstart:=@int_heap;
-end;
-
-{ current length of heap }
-function getheapsize:longint;
-begin
-  getheapsize:=int_heapsize;
-end;
-
-{ function to allocate size bytes more for the program }
-{ must return the first address of new data space or nil if fail }
-function Sbrk(size : longint):pointer;
-begin
-  Sbrk:=AllocPooled(MOS_heapPool,size);
-end;
-
-{*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
 begin
-  result := sbrk(size);
+  result := AllocPooled(MOS_heapPool,size);
 end;
 
 {$define HAS_SYSOSFREE}
@@ -560,7 +533,7 @@ begin
 
   FIB:=nil;
   new(FIB);
- 
+
   if (Examine(alock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
     alock := CurrentDir(alock);
     if MOS_OrigDir=0 then begin
@@ -594,7 +567,7 @@ end;
 procedure do_close(handle : longint);
 begin
   RemoveFromList(MOS_fileList,handle);
-  { Do _NOT_ check CTRL_C on Close, because it will conflict 
+  { Do _NOT_ check CTRL_C on Close, because it will conflict
     with System_Exit! }
   if not dosClose(handle) then
     dosError2InOut(IoErr);
@@ -618,9 +591,9 @@ function do_write(h:longint; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
-  do_write:=0; 
-  if len<=0 then exit; 
-  
+  do_write:=0;
+  if len<=0 then exit;
+
   dosResult:=dosWrite(h,addr,len);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
@@ -633,9 +606,9 @@ function do_read(h:longint; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
-  do_read:=0; 
-  if len<=0 then exit; 
-  
+  do_read:=0;
+  if len<=0 then exit;
+
   dosResult:=dosRead(h,addr,len);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
@@ -649,7 +622,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_filepos:=0;
-  
+
   { Seeking zero from OFFSET_CURRENT to find out where we are }
   dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
   if dosResult<0 then begin
@@ -672,7 +645,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_seekend:=0;
-  
+
   { Seeking to OFFSET_END }
   dosResult:=dosSeek(handle,0,OFFSET_END);
   if dosResult<0 then begin
@@ -752,7 +725,7 @@ begin
   buffer[length(path)]:=#0;
 
    { close first if opened }
-  if ((flags and $10000)=0) then 
+  if ((flags and $10000)=0) then
     begin
       case filerec(f).mode of
         fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
@@ -781,10 +754,10 @@ begin
   if (flags and $1000)<>0 then openflags := 1006;
 
   { empty name is special }
-  if p[0]=#0 then 
+  if p[0]=#0 then
     begin
       case filerec(f).mode of
-        fminput : 
+        fminput :
           filerec(f).handle:=StdInputHandle;
         fmappend,
         fmoutput : begin
@@ -794,9 +767,9 @@ begin
       end;
       exit;
     end;
-  
+
   i:=Open(buffer,openflags);
-  if i=0 then 
+  if i=0 then
     begin
       dosError2InOut(IoErr);
     end else begin
@@ -879,7 +852,7 @@ begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
- 
+
   { * MorphOS doesn't have a separate stderr, just like AmigaOS (???) * }
   StdErrorHandle:=StdOutputHandle;
   // OpenStdIO(StdErr,fmOutput,StdErrorHandle);
@@ -918,7 +891,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-09-03 19:26:15  olle
+  Revision 1.20  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.19  2004/09/03 19:26:15  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
@@ -971,7 +947,7 @@ end.
   Revision 1.3  2004/05/01 15:09:47  karoly
     * first working system unit (very limited yet)
 
-  Revision 1.2  2004/04/08 06:28:29  karoly 
+  Revision 1.2  2004/04/08 06:28:29  karoly
     * first steps to have a morphos system unit
 
   Revision 1.1  2004/02/13 07:19:53  karoly

@@ -35,7 +35,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ',';  {Is used in MPW and OzTeX}
  FileNameCaseSensitive = false;
- 
+
  maxExitCode = 65535;
 
 { include heap support headers }
@@ -65,7 +65,7 @@ var
 {To be called at regular intervals, for lenghty tasks.
  Yield might give time for other tasks to run under the cooperative
  multitasked macos. For an MPW Tool, it also spinns the cursor.}
- 
+
 procedure Yield;
 
 {To set mac file type and creator codes, to be used for files created
@@ -94,23 +94,23 @@ procedure SetDefaultMacOSCreator(creator: ShortString);
 
     macosHasFSSpec: Boolean;
     macosHasFindFolder: Boolean;
-    
+
 
     macosHasScriptMgr: Boolean;
     macosNrOfScriptsInstalled: Integer;
-    
+
     macosHasAppearance: Boolean;
     macosHasAppearance101: Boolean;
     macosHasAppearance11: Boolean;
-    
+
     macosBootVolumeVRefNum: Integer;
     macosBootVolumeName: String[31];
-    
+
 {
  MacOS paths
  ===========
  MacOS directory separator is a colon ":" which is the only character not
- allowed in filenames. 
+ allowed in filenames.
  A path containing no colon or which begins with a colon is a partial path.
  E g ":kalle:petter" ":kalle" "kalle"
  All other paths are full (absolute) paths. E g "HD:kalle:" "HD:"
@@ -195,8 +195,8 @@ Perhaps handle readonly filesystems, as in sysunix.inc
 {Some MacOS API routines and StdCLib included for internal use:}
 {$I macostp.inc}
 
-{Note, because the System unit is the most low level, it should not 
-depend on any other units, and thus the macos api must be accessed 
+{Note, because the System unit is the most low level, it should not
+depend on any other units, and thus the macos api must be accessed
 as an include file and not a unit.}
 
 {The reason StdCLib is used is that it can easily be connected
@@ -378,30 +378,9 @@ begin
   randseed:= Cardinal(TickCount);
 end;
 
-{*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-var
-  { Pointer to a block allocated with the MacOS Memory Manager, which
-    is used as the initial FPC heap. }
-  theHeap: Mac_Ptr;
-  intern_heapsize : longint;external name 'HEAPSIZE';
-
-{ first address of heap }
-function getheapstart:pointer;
-begin
-   getheapstart:= theHeap;
-end;
-
-{ current length of heap }
-function getheapsize:longint;
-begin
-  getheapsize:= intern_heapsize ;
-end;
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 { function to allocate size bytes more for the program }
@@ -453,7 +432,7 @@ var
   spec: FSSpec;
   err: OSErr;
   res: Integer;
-  
+
 begin
   res:= PathArgToFSSpec(p, spec);
 
@@ -627,7 +606,7 @@ var
   fullPath: AnsiString;
 
   finderInfo: FInfo;
-  
+
 begin
   // AllowSlash(p);
 
@@ -700,12 +679,12 @@ begin
 
       if InOutRes <> 0 then
         exit;
-        
+
       p:= PChar(fullPath);
-      
+
       if FileRec(f).mode in [fmoutput, fminout, fmappend] then
         begin
-         {Since opening of an existing file will not change filetype and creator, 
+         {Since opening of an existing file will not change filetype and creator,
           it is set here. Otherwise overwritten darwin files will not get filetype
           TEXT. This is not done when only opening file for reading.}
           FSpGetFInfo(spec, finderInfo);
@@ -790,7 +769,7 @@ begin
   If (s='') or (InOutRes <> 0) then
     exit;
 
-  res:= PathArgToFSSpec(s, spec); 
+  res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin
       err:= FSpDirCreate(spec, smSystemScript, createdDirID);
@@ -806,7 +785,7 @@ var
   spec: FSSpec;
   err: OSErr;
   res: Integer;
-  
+
 begin
   If (s='') or (InOutRes <> 0) then
     exit;
@@ -836,10 +815,10 @@ begin
   if (s='') or (InOutRes <> 0) then
     exit;
 
-  res:= PathArgToFSSpec(s, spec); 
+  res:= PathArgToFSSpec(s, spec);
   if (res = 0) or (res = 2) then
     begin
-      { The fictive file x is appended to the directory name to make 
+      { The fictive file x is appended to the directory name to make
         FSMakeFSSpec return a FSSpec to a file in the directory.
         Then by clearing the name, the FSSpec then
         points to the directory. It doesn't matter whether x exists or not.}
@@ -873,8 +852,8 @@ begin
   if Length(fullPath) <= 255 then {because dir is ShortString}
     InOutRes := 0
   else
-    InOutRes := 1; //TODO Exchange to something better 
-    
+    InOutRes := 1; //TODO Exchange to something better
+
   dir:= fullPath;
 end;
 
@@ -904,8 +883,8 @@ procedure setup_arguments;
 procedure setup_environment;
          begin
          end;
-         
-     
+
+
 { FindSysFolder returns the (real) vRefNum, and the DirID of the current
 system folder. It uses the Folder Manager if present, otherwise it falls
 back to SysEnvirons. It returns zero on success, otherwise a standard
@@ -1012,10 +991,10 @@ begin
       macosHasCFM := false;
       macosHasAppleEvents := false;
       macosHasAliasMgr := false;
-      
+
       macosHasFSSpec := false;
       macosHasFindFolder := false;
-      
+
       macosHasAppearance := false;
       macosHasAppearance101 := false;
       macosHasAppearance11 := false;
@@ -1043,7 +1022,7 @@ begin
         macosHasSysDebugger := BitIsSet(response, gestaltSysDebuggerSupport)
       else
         macosHasSysDebugger := false;
-      
+
       if Gestalt(FourCharCodeToLongword(gestaltQuickdrawVersion), response) = noErr then
         macosHasColorQD := (response >= $0100)
       else
@@ -1058,16 +1037,16 @@ begin
         macosHasCFM := BitIsSet(response, gestaltCFMPresent)
       else
         macosHasCFM := false;
-      
+
       macosHasAppleEvents := Gestalt(FourCharCodeToLongword(gestaltAppleEventsAttr), response) = noErr;
       macosHasAliasMgr := Gestalt(FourCharCodeToLongword(gestaltAliasMgrAttr), response) = noErr;
-    
+
       if Gestalt(FourCharCodeToLongword(gestaltFSAttr), response) = noErr then
         macosHasFSSpec := BitIsSet(response, gestaltHasFSSpecCalls)
       else
         macosHasFSSpec := false;
       macosHasFindFolder := Gestalt(FourCharCodeToLongword(gestaltFindFolderAttr), response) = noErr;
-      
+
       if macosHasScriptMgr then
         begin
           err := Gestalt(FourCharCodeToLongword(gestaltScriptCount), response);
@@ -1112,7 +1091,7 @@ begin
           else
             {Be quiet}
         end;
-      
+
   {$ifndef MACOS_USE_STDCLIB}
   if StandAlone <> 0 then
     ExitToShell;
@@ -1138,10 +1117,10 @@ var
   dirStr: string[2];
   err: OSErr;
   dummySysFolderDirID: Longint;
-  
+
 begin
   InvestigateSystem; {Must be first}
-  
+
   {Check requred features for system.pp to work.}
   if not macosHasFSSpec then
     Halt(3);  //exit code 3 according to MPW
@@ -1161,7 +1140,7 @@ begin
       IsConsole := (resHdl <> nil); {A SIOW app is also a console}
       ReleaseResource(resHdl);
     end;
-    
+
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
 
@@ -1176,26 +1155,21 @@ begin
     end
   else
     begin
-      { The fictive file x is used to make 
+      { The fictive file x is used to make
         FSMakeFSSpec return a FSSpec to a file in the directory.
         Then by clearing the name, the FSSpec then
         points to the directory. It doesn't matter whether x exists or not.}
       dirStr:= ':x';
-      err:= ResolveFolderAliases(0, 0, @dirStr, true, 
+      err:= ResolveFolderAliases(0, 0, @dirStr, true,
            workingDirectorySpec, isFolder, hadAlias, leafIsAlias);
       workingDirectorySpec.name:='';
       if (err <> noErr) and (err <> fnfErr) then
         Halt(3);  //exit code 3 according to MPW
     end;
-  
+
   { Setup heap }
   if StandAlone <> 0 then
     MaxApplZone;
-  if Mac_FreeMem - intern_heapsize < 30000 then
-    Halt(3);  //exit code 3 according to MPW
-  theHeap:= NewPtr(intern_heapsize);
-  if theHeap = nil then
-    Halt(3);  //exit code 3 according to MPW
 
   InitHeap;
   SysInitExceptions;
@@ -1225,7 +1199,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-10-19 19:56:59  olle
+  Revision 1.24  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.23  2004/10/19 19:56:59  olle
     * Interface to StdLibC moved from system to macostp
 
   Revision 1.22  2004/09/30 19:58:42  olle

@@ -83,30 +83,6 @@ End;
 
 
 {*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-var
-  _HEAP : longint;external name 'HEAP';
-  _HEAPSIZE : longint;external name 'HEAPSIZE';
-
-{$ifndef SYSTEM_HAS_GETHEAPSTART}
-function getheapstart:pointer;
-begin
-  getheapstart := @_HEAP;
-end;
-{$endif}
-
-
-{$ifndef SYSTEM_HAS_GETHEAPSIZE}
-function getheapsize:longint;
-begin
-  getheapsize := _HEAPSIZE;
-end;
-{$endif}
-
-
-{*****************************************************************************
                           Low Level File Routines
 *****************************************************************************}
 
@@ -589,7 +565,10 @@ end;
 
 {
  $Log$
- Revision 1.20  2004-08-04 19:27:09  florian
+ Revision 1.21  2004-10-25 15:38:59  peter
+   * compiler defined HEAP and HEAPSIZE removed
+
+ Revision 1.20  2004/08/04 19:27:09  florian
    * fixed floating point and integer exception handling on sparc/linux
 
  Revision 1.19  2004/05/31 20:25:04  peter

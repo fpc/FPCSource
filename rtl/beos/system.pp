@@ -143,18 +143,6 @@ var myheapstart:pointer;
     heap_handle:longint;
     zero:longint;
 
-{ first address of heap }
-function getheapstart:pointer;
-begin
-   getheapstart:=myheapstart;
-end;
-
-{ current length of heap }
-function getheapsize:longint;
-begin
-   getheapsize:=myheapsize;
-end;
-
 { function to allocate size bytes more for the program }
 { must return the first address of new data space or nil if fail }
 function Sbrk(size : longint):pointer;
@@ -177,7 +165,7 @@ begin
 end;
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
@@ -550,7 +538,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2004-09-18 11:18:44  hajny
+  Revision 1.17  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.16  2004/09/18 11:18:44  hajny
     * handle type changed to thandle in do_isdevice
 
   Revision 1.15  2004/09/03 19:25:32  olle

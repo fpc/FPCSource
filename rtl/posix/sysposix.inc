@@ -109,30 +109,6 @@ End;
 
 
 {*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-var
-  _HEAP : longint;external name 'HEAP';
-  _HEAPSIZE : longint;external name 'HEAPSIZE';
-
-{$ifndef SYSTEM_HAS_GETHEAPSTART}
-function getheapstart:pointer;
-begin
-  getheapstart := @_HEAP;
-end;
-{$endif}
-
-
-{$ifndef SYSTEM_HAS_GETHEAPSIZE}
-function getheapsize:longint;
-begin
-  getheapsize := _HEAPSIZE;
-end;
-{$endif}
-
-
-{*****************************************************************************
                           Low Level File Routines
 *****************************************************************************}
 
@@ -450,7 +426,7 @@ var
 begin
 {$ifdef usegetcwd}
  sys_getcwd(@tmp[1],255);
- dir:=tmp;		
+ dir:=tmp;
 {$else}
   dir:='';
   thedir:='';
@@ -655,7 +631,10 @@ End.
 *)
 {
  $Log$
- Revision 1.7  2002-11-14 12:18:03  marco
+ Revision 1.8  2004-10-25 15:38:59  peter
+   * compiler defined HEAP and HEAPSIZE removed
+
+ Revision 1.7  2002/11/14 12:18:03  marco
   * fixed sys_time call to (NIL)
 
  Revision 1.6  2002/10/27 17:21:29  marco

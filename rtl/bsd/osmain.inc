@@ -80,29 +80,6 @@ Begin
   randseed:=longint(Fptime(nil));
 End;
 
-{*****************************************************************************
-                              Heap Management
-*****************************************************************************}
-
-var
-  _HEAP : longint;external name 'HEAP';
-  _HEAPSIZE : longint;external name 'HEAPSIZE';
-
-{$ifndef SYSTEM_HAS_GETHEAPSTART}
-function getheapstart:pointer;
-begin
-  getheapstart := @_HEAP;
-end;
-{$endif}
-
-
-{$ifndef SYSTEM_HAS_GETHEAPSIZE}
-function getheapsize:longint;
-begin
-  getheapsize := _HEAPSIZE;
-end;
-{$endif}
-
 
 {*****************************************************************************
                           Low Level File Routines
@@ -593,7 +570,10 @@ end;
 
 {
    $Log$
-   Revision 1.15  2004-07-17 15:20:55  jonas
+   Revision 1.16  2004-10-25 15:38:59  peter
+     * compiler defined HEAP and HEAPSIZE removed
+
+   Revision 1.15  2004/07/17 15:20:55  jonas
      * don't use O_CREATE when opening a file for appending (fixes tw1744)
 
    Revision 1.14  2004/05/16 18:51:20  peter

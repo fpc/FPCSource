@@ -1329,13 +1329,16 @@ begin
   freelist_var := nil;
   freeoslist := nil;
   freeoslistcount := 0;
-  internal_heapsize := GetHeapSize;
-  internal_memavail := internal_heapsize;
+  internal_heapsize := 0;
+  internal_memavail := 0;
 end;
 
 {
   $Log$
-  Revision 1.36  2004-08-10 18:58:36  jonas
+  Revision 1.37  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.36  2004/08/10 18:58:36  jonas
     * changed formatting to conform to the rest of the compiler/rtl
     * fixed SysMaxAvail so it also looks at the free fixed size blocks
 

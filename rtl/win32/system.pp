@@ -265,22 +265,6 @@ end;
      stdcall;external 'kernel32' name 'HeapSize';
 {$ENDIF}
 
-var
-  heap : longint;external name 'HEAP';
-  intern_heapsize : longint;external name 'HEAPSIZE';
-
-function getheapstart:pointer;
-assembler;
-asm
-        leal    HEAP,%eax
-end ['EAX'];
-
-
-function getheapsize:longint;
-assembler;
-asm
-        movl    intern_HEAPSIZE,%eax
-end ['EAX'];
 
 {*****************************************************************************
       OS Memory allocation / deallocation
@@ -1622,7 +1606,10 @@ end.
 
 {
   $Log$
-  Revision 1.61  2004-09-03 19:27:25  olle
+  Revision 1.62  2004-10-25 15:38:59  peter
+    * compiler defined HEAP and HEAPSIZE removed
+
+  Revision 1.61  2004/09/03 19:27:25  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
