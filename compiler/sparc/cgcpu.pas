@@ -911,7 +911,7 @@ procedure TCgSparc.a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);
   var
     ai:taicpu;
   begin
-    ai := Taicpu.op_sym(A_JMPL,S_NO,l);
+    ai := Taicpu.op_sym(A_BA,S_NO,l);
     ai.SetCondition(flags_to_cond(f));
     with List do
       begin
@@ -1449,7 +1449,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.46  2003-05-06 15:02:40  mazen
+  Revision 1.47  2003-05-06 20:25:20  mazen
+  * Invalid genrated code : A_JMPL changed to A_BA
+
+  Revision 1.46  2003/05/06 15:02:40  mazen
   * fixed a bug in a_load_const_reg related to max 13bit value limit
     for immediat value ==> use of A_SETHI for greater values
 
