@@ -32,8 +32,9 @@ endif
 
 .PHONY: all tex clean
 
-OBJECTS=mouse1 mouse2 mouse3 mouse4 mouse5 mouse6 mouse7 mouse8 mouse9 \
-        mouse10
+OBJECTS=ex1 ex2 ex3 ex4 ex5 ex6 ex7 logmouse
+# mouse8 mouse9 \
+#        mouse10
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 

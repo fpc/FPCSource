@@ -24,7 +24,7 @@
 % The Mouse unit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The MOUSE unit}
-\FPCexampledir{mousex}
+\FPCexampledir{mouseex}
 The \var{Mouse} unit implements a platform independent mouse handling 
 interface. It is implemented identically on all platforms supported by 
 \fpc{} and can be enhanced with custom drivers, should this be needed.
@@ -333,3 +333,11 @@ For an example, see \seep{HideMouse}
 
 \section{Writing a custom mouse driver}
 \label{se:mousedrv}
+The \file{mouse} has support for adding a custom mouse driver. This can be
+used to add support for mouses not supported by the standard \fpc{} driver,
+but also to enhance an existing driver for instance to log mouse events or
+to implement a record and playback function. 
+
+The following unit shows how a mouse driver can be enhanced by adding some
+logging capabilities to the driver.
+\FPCexample{logmouse}

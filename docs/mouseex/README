@@ -1,5 +1,7 @@
 This directory contains the examples for the mouse unit.
 
+logmouse.pp  contains and example of how to write a custom mouse driver.
+
 ex1.pp contains an example of the DetectMouse function.
 ex2.pp contains an example of the GetMouseButtons function.
 ex3.pp contains an example of the GetMouseEvent function.
