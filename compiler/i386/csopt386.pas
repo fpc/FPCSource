@@ -1253,7 +1253,8 @@ Begin
        end;
 {$endif testing}
   until tmpresult or (Counter = R_EDI);
-  res := counter;
+  if tmpResult then
+    res := paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.oper[1].reg;
   FindRegWithConst := tmpResult;
 End;
 
@@ -1701,7 +1702,11 @@ End.
 
 {
   $Log$
-  Revision 1.8  2000-11-29 00:30:43  florian
+  Revision 1.9  2000-12-05 09:33:42  jonas
+    * when searching for constants in registers, the returned register
+      sometimes didn't have the same size as the requested size
+
+  Revision 1.8  2000/11/29 00:30:43  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
