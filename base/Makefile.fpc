@@ -82,7 +82,9 @@ man_install:
 # Packaging targets
 #######################################
 
+ifndef DESTZIPDIR
 export DESTZIPDIR:=$(BASEDIR)
+endif
 
 idezips: clean ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
 
