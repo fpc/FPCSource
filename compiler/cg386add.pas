@@ -205,8 +205,9 @@ implementation
 
                         popusedregisters(pushedregs);
                         maybe_loadesi;
+                        { done with temptoremove !! (PM)
                         ungetiftemp(p^.left^.location.reference);
-                        ungetiftemp(p^.right^.location.reference);
+                        ungetiftemp(p^.right^.location.reference); }
                         reset_reference(hr);
                         gettempansistringreference(hr);
                         addtemptodestroy(p^.resulttype,hr);
@@ -259,8 +260,9 @@ implementation
                         emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                         popusedregisters(pushedregs);
                         maybe_loadesi;
+                        { done in temptoremove (PM)
                         ungetiftemp(p^.left^.location.reference);
-                        ungetiftemp(p^.right^.location.reference);
+                        ungetiftemp(p^.right^.location.reference); }
                      end;
                 end;
                { the result of ansicompare is signed }
@@ -2032,7 +2034,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-04-16 20:44:34  florian
+  Revision 1.52  1999-04-19 09:39:01  pierre
+   * fixes for tempansi
+
+  Revision 1.51  1999/04/16 20:44:34  florian
     * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
       operands fixed, small things for new ansistring management
 
