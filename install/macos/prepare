@@ -7,13 +7,13 @@ If {1} == ''
   Echo '#ERROR FPC version must be given as parameter (e. g. 1.9.6)'
   Exit 1
 Else
-	Set fpcversion "{1}"
+  Set fpcversion "{1}"
 End
 
 Set compilerdir :::compiler:
 Set rtlunitsdir :::rtl:units:powerpc-macos:
 
-Set units "charset cmem dos getopts heaptrc macostp macpas macutils matrix objects objpas strings system unixutil"
+Set units "charset cmem dos getopts heaptrc macostp macpas macutils matrix objects objpas strings system unixutil macos"
 
 #Obtain path to compression program
 Set -e stuffapp `getFileName -m 'Tell me where the DroppStuff application is'`
@@ -32,11 +32,10 @@ SetFile -c 'MPSX' -t 'TEXT' "{stuffolder}INSTALL"
 NewFolder "{stuffolder}FreePascal"
 NewFolder "{stuffolder}FreePascal:bin"
 Duplicate "{compilerdir}"ppcppc  "{stuffolder}FreePascal:bin"
-Duplicate "{compilerdir}":utils:fpc  "{stuffolder}FreePascal:bin"
-Duplicate "{compilerdir}":utils:ppudump  "{stuffolder}FreePascal:bin"
-Duplicate "{compilerdir}":utils:ppufiles  "{stuffolder}FreePascal:bin"
-Duplicate "{compilerdir}":utils:ppumove  "{stuffolder}FreePascal:bin"
-#maccopy "{compilerdir}"utils:fpc.mpw  "{stuffolder}FreePascal:bin:fpc"
+Duplicate "{compilerdir}"utils:ppudump  "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}"utils:ppufiles  "{stuffolder}FreePascal:bin"
+Duplicate "{compilerdir}"utils:ppumove  "{stuffolder}FreePascal:bin"
+maccopy   "{compilerdir}"utils:fpc  "{stuffolder}FreePascal:bin:fpc"
 
 NewFolder "{stuffolder}FreePascal:docs"
 maccopy ::doc:readme.txt "{stuffolder}FreePascal:docs:README" 1 1
@@ -54,6 +53,17 @@ For unit In {units}
   Duplicate "{rtlunitsdir}"{unit}.ppu  "{stuffolder}FreePascal:units:rtl"
   Duplicate "{rtlunitsdir}"{unit}.o  "{stuffolder}FreePascal:units:rtl"
 End
+
+NewFolder "{stuffolder}FreePascal:demo"
+NewFolder "{stuffolder}FreePascal:demo:text"
+maccopy :::demo:text:blackbox.pp "{stuffolder}FreePascal:demo:text:blackbox.pp"
+maccopy :::demo:text:eratos.pp "{stuffolder}FreePascal:demo:text:eratos.pp"
+maccopy :::demo:text:hello.pp "{stuffolder}FreePascal:demo:text:hello.pp"
+maccopy :::demo:text:magic.pp "{stuffolder}FreePascal:demo:text:magic.pp"
+maccopy :::demo:text:qsort.pp "{stuffolder}FreePascal:demo:text:qsort.pp"
+NewFolder "{stuffolder}FreePascal:demo:macos"
+maccopy :::demo:macos:HelloMac.pp "{stuffolder}FreePascal:demo:macos:HelloMac.pp"
+maccopy :::demo:macos:HelloMac.r "{stuffolder}FreePascal:demo:macos:HelloMac.r"
 
 If "{stuffapp}" != ""
   "{stuffapp}" "{stuffolder}"
