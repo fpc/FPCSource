@@ -53,6 +53,7 @@ Begin
   PaiInSequence := TmpResult;
 End;
 }
+
 Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: TRegInfo): Boolean;
 {checks whether the current instruction sequence (starting with p) and the
  one between StartMod and EndMod of Reg are the same. If so, the number of
@@ -240,6 +241,7 @@ End;
 
 {$ifdef alignreg}
 Procedure SetAlignReg(p: Pai);
+Const alignSearch = 12;
 var regsUsable: TRegSet;
     prevInstrCount, nextInstrCount: Longint;
     prevState, nextWState,nextRState: Array[R_EAX..R_EDI] of byte;
@@ -263,18 +265,29 @@ begin
   prevInstrCount := 0;
   while ((assigned(prev) and
           assigned(prev^.optInfo) and
-          (prevInstrCount < 10)) or
+          (prevInstrCount < alignSearch)) or
          (assigned(next) and
           assigned(next^.optInfo) and
-          (nextInstrCount < 10))) And
-        (regsUsable <> []) Do
+          (nextInstrCount < alignSearch))) And
+        (regsUsable <> []) do
     begin
+{$ifdef alignregdebug}
+      if assigned(prev) then
+        begin
+          temp := new(pai_asm_comment,init(strpnew('got here')));
+          temp^.next := prev^.next;
+          temp^.previous := prev;
+          prev^.next := temp;
+          if assigned(temp^.next) then
+            temp^.next^.previous := temp;
+        end;
+{$endif alignregdebug}
       if assigned(prev) and assigned(prev^.optinfo) and
-         (prevInstrCount < 10) then
+         (prevInstrCount < alignSearch) then
         begin
           if (prev^.typ = ait_instruction) And
              (insProp[PaiCpu(prev)^.opcode].ch[1] <> Ch_ALL) and
-             (PaiCpu(prev)^.opcode <> a_jmp) then
+             (PaiCpu(prev)^.opcode <> A_JMP) then
             begin
               inc(prevInstrCount);
               for regCounter := R_EAX to R_EDI do
@@ -285,7 +298,14 @@ begin
                     begin
                       lastRemoved := regCounter;
                       exclude(regsUsable,regCounter);
-  {$ifdef alignregdebug}
+{$ifdef alignregdebug}
+                      temp := new(pai_asm_comment,init(strpnew(
+                                att_reg2str[regCounter]+' removed')));
+                      temp^.next := prev^.next;
+                      temp^.previous := prev;
+                      prev^.next := temp;
+                      if assigned(temp^.next) then
+                        temp^.next^.previous := temp;
                       if regsUsable = [] then
                         begin
                           temp := new(pai_asm_comment,init(strpnew(
@@ -296,24 +316,26 @@ begin
                           if assigned(temp^.next) then
                             temp^.next^.previous := temp;
                         end;
-  {$endif alignregdebug}
+{$endif alignregdebug}
                     end;
                   prevState[regCounter] :=
                     PPaiProp(prev^.optInfo)^.Regs[regCounter].wState;
-                end
+                end;
+              getLastInstruction(prev,prev);
             end
           else
-            for regCounter := R_EAX to R_EDI do
-              prevState[regCounter] :=
-                PPaiProp(prev^.optInfo)^.Regs[regCounter].wState;
-          getLastInstruction(prev,prev);
+            If GetLastInstruction(prev,prev) and
+               assigned(prev^.optinfo) then
+              for regCounter := R_EAX to R_EDI do
+                prevState[regCounter] :=
+                  PPaiProp(prev^.optInfo)^.Regs[regCounter].wState
         end;
       if assigned(next) and assigned(next^.optInfo) and
-         (nextInstrCount < 10) then
+         (nextInstrCount < alignSearch) then
         begin
           if (next^.typ = ait_instruction) and
              (insProp[PaiCpu(next)^.opcode].ch[1] <> Ch_ALL) and
-             (PaiCpu(next)^.opcode <> a_jmp) then
+             (PaiCpu(next)^.opcode <> A_JMP) then
             begin
               inc(nextInstrCount);
               for regCounter := R_EAX to R_EDI do
@@ -327,6 +349,13 @@ begin
                       lastRemoved := regCounter;
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
+                      temp := new(pai_asm_comment,init(strpnew(
+                                att_reg2str[regCounter]+' removed')));
+                      temp^.next := next^.next;
+                      temp^.previous := next;
+                      next^.next := temp;
+                      if assigned(temp^.next) then
+                        temp^.next^.previous := temp;
                       if regsUsable = [] then
                         begin
                           temp := new(pai_asm_comment,init(strpnew(
@@ -360,15 +389,6 @@ begin
     for regCounter := R_EAX to R_EDI do
       if regCounter in regsUsable then
         begin
-{$ifdef alignregdebug}
-          next := new(pai_asm_comment,init(strpnew('regsusable not empty')));
-          next^.next := p^.next;
-          next^.previous := p;
-          p^.next := next;
-          if assigned(next^.next) then
-            next^.next^.previous := next;
-{$endif alignregdebug}
-
           lastRemoved := regCounter;
           break
         end;
@@ -681,7 +701,12 @@ End.
 
 {
  $Log$
- Revision 1.30  1999-11-06 14:34:20  peter
+ Revision 1.31  1999-11-06 16:21:57  jonas
+   + search optimial register to use in alignment code (compile with
+     -dalignreg, -dalignregdebug to see chosen register in
+     assembler code). Still needs support in ag386bin.
+
+ Revision 1.30  1999/11/06 14:34:20  peter
    * truncated log to 20 revs
 
  Revision 1.29  1999/11/05 16:01:46  jonas

@@ -445,6 +445,9 @@ implementation
 {$ifdef BrowserLog}
      ,browlog
 {$endif BrowserLog}
+{$ifdef alignreg}
+     ,cpuasm
+{$endif alignreg}
      ;
 
   var
@@ -2465,7 +2468,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-11-06 14:34:28  peter
+  Revision 1.59  1999-11-06 16:21:57  jonas
+    + search optimial register to use in alignment code (compile with
+      -dalignreg, -dalignregdebug to see chosen register in
+      assembler code). Still needs support in ag386bin.
+
+  Revision 1.58  1999/11/06 14:34:28  peter
     * truncated log to 20 revs
 
   Revision 1.57  1999/11/05 17:18:03  pierre
