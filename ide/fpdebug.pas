@@ -939,7 +939,7 @@ begin
   while (st[p] in ['0'..'9']) do
     inc(p);
   Delete(st,p,High(st));
-  GetFramePointer:=StrToInt(st);
+  GetFramePointer:=StrToCard(st);
 {$else not FrameNameKnown}
   GetFramePointer:=0;
 {$endif not FrameNameKnown}
@@ -981,7 +981,7 @@ begin
   while (st[p] in ['0'..'9','A'..'F','a'..'f']) do
     inc(p);
   Delete(st,p,High(st));
-  GetPointerAt:=HexToInt(st);
+  GetPointerAt:=HexToCard(st);
 end;
 
 procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
@@ -1600,7 +1600,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
           end
         else
           begin
-            If (P^.typ=bt_address) and (PDL^.Address=HexToInt(P^.Name^)) then
+            If (P^.typ=bt_address) and (PDL^.Address=HexToCard(P^.Name^)) then
               PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
           end;
       end;
@@ -4055,7 +4055,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-04-02 12:20:58  pierre
+  Revision 1.13  2002-04-02 13:23:54  pierre
+   * Use StrToCard and HexToCard functions to avoid signed/unsigned overflows
+
+  Revision 1.12  2002/04/02 12:20:58  pierre
    * fix problem with breakpoints in subdirs
 
   Revision 1.11  2002/04/02 11:10:29  pierre
