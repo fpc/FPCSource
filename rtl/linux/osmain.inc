@@ -435,63 +435,46 @@ begin
   { get root directory information }
   tmp := '/'+#0;
   if Fpstat(@tmp[1],rootinfo)<0 then
-      Begin
-      Errno2Inoutres;
-      Exit
-     End
-    Else
-     InOutRes:=0;
+    Exit;
   repeat
     tmp := dummy+'.'+#0;
     { get current directory information }
     if Fpstat(@tmp[1],cwdinfo)<0 then
-      Begin
-        Errno2Inoutres;
-        Exit
-      End
-    Else
-      InOutRes:=0;
+      Exit;
     tmp:=dummy+'..'+#0;
     { open directory stream }
     { try to find the current inode number of the cwd }
     dirstream:=Fpopendir(@tmp[1]);
     if dirstream=nil then
-       exit;
+      exit;
     repeat
       name:='';
       d:=Fpreaddir(dirstream);
       { no more entries to read ... }
       if not assigned(d) then
-        begin
-          break;
-        end;
+        break;
       tmp:=dummy+'../'+strpas(d^.d_name) + #0;
-      if Fpstat(@tmp[1],thisdir)<0 then
-        begin
-          Errno2Inoutres;
-          Exit
-        End
-      Else
-        InOutRes:=0;
-      { found the entry for this directory name }
-      if (cwdinfo.st_dev=thisdir.st_dev) and (cwdinfo.st_ino=thisdir.st_ino) then
-        begin
-          { are the filenames of type '.' or '..' ? }
-          { then do not set the name.               }
-          if (not ((d^.d_name[0]='.') and ((d^.d_name[1]=#0) or
-                  ((d^.d_name[1]='.') and (d^.d_name[2]=#0))))) then
-            begin
+      if (Fpstat(@tmp[1],thisdir)=0) then
+       begin
+         { found the entry for this directory name }
+         if (cwdinfo.st_dev=thisdir.st_dev) and (cwdinfo.st_ino=thisdir.st_ino) then
+          begin
+            { are the filenames of type '.' or '..' ? }
+            { then do not set the name.               }
+            if (not ((d^.d_name[0]='.') and ((d^.d_name[1]=#0) or
+                    ((d^.d_name[1]='.') and (d^.d_name[2]=#0))))) then
               name:='/'+strpas(d^.d_name);
-            end;
-        end
+          end;
+       end
+      else
+       begin
+         { Ignore possible broken symlinks }
+         if (Errno<>ESysENOENT) then
+          Exit;
+       end;
     until (name<>'');
     If Fpclosedir(dirstream)<0 THen
-      Begin
-        Errno2Inoutres;
-        Exit
-      End
-    Else
-      InOutRes:=0;
+      Exit;
     thedir:=name+thedir;
     dummy:=dummy+'../';
     if ((cwdinfo.st_dev=rootinfo.st_dev) and (cwdinfo.st_ino=rootinfo.st_ino)) then
@@ -631,7 +614,12 @@ End.
 *)
 {
  $Log$
- Revision 1.2  2002-12-18 20:43:27  peter
+ Revision 1.3  2002-12-23 22:23:43  peter
+   * fixed Getdir to not set Inoutres
+   * broken symlinks are now ignored in getdir instead of aborting
+     the search
+
+ Revision 1.2  2002/12/18 20:43:27  peter
    * removed stackcheck, the generic stackcheck is used
    * fixed return value for error conversion when no error was passed
 
