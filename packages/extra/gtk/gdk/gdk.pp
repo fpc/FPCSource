@@ -44,6 +44,7 @@ uses
   {$ifdef os2}
     const
       gdkdll='gdk12';
+      {$linklib gdk12}
     {$define gtkos2}
 
     {$packrecords C}
@@ -51,8 +52,16 @@ uses
     const
     {$ifdef FreeBSD}
       gdkdll='gdk12';
+      {$linklib gdk12}
+    {$else}
+    {$ifdef darwin}
+      {$define gtkdarwin}
+      gdkdll='gdk-1.2.0';
+      {$linklib gdk-1.2.0}
     {$else}
       gdkdll='gdk';
+      {$linklib gdk}
+    {$endif}
     {$endif}
     {$linklib c}
     {$linklib X11}
@@ -98,7 +107,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-08-06 07:28:21  michael
+  Revision 1.7  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.6  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.5  2002/08/18 19:36:58  marco

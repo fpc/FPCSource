@@ -27,7 +27,9 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
 
 function  gdkx_visual_get(xvisualid:TVisualID):PGdkVisual;cdecl;external gdkdll name 'gdkx_visual_get';
 function  gdkx_colormap_get(xcolormap:TColormap):PGdkColormap;cdecl;external gdkdll name 'gdkx_colormap_get';
+{$ifndef gtkdarwin}
 function  gdk_get_client_window(dpy:pDisplay; win:TWindow):TWindow;cdecl;external gdkdll name 'gdk_get_client_window';
+{$endif not gtkdarwin}
   {$endif}
 {$endif}
 
@@ -124,7 +126,10 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
 
 {
   $Log$
-  Revision 1.4  2003-08-06 07:28:21  michael
+  Revision 1.5  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.4  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.3  2003/03/02 02:08:50  hajny

@@ -54,8 +54,10 @@ procedure gtk_accel_group_handle_remove(_object:PGtkObject; accel_group:PGtkAcce
 function  gtk_accel_group_create_add(class_type:TGtkType; signal_flags:TGtkSignalRunType; handler_offset:guint):guint;cdecl;external gtkdll name 'gtk_accel_group_create_add';
 function  gtk_accel_group_create_remove(class_type:TGtkType; signal_flags:TGtkSignalRunType; handler_offset:guint):guint;cdecl;external gtkdll name 'gtk_accel_group_create_remove';
 {$ifndef gtkwin}
+{$ifndef darwin}
 procedure gtk_accel_group_marshal_add(_object:PGtkObject; func:TGtkSignalFunc; func_data:gpointer; args:PGtkArg);cdecl;external gtkdll name 'gtk_accel_group_marshal_add';
 procedure gtk_accel_group_marshal_remove(_object:PGtkObject; func:TGtkSignalFunc; func_data:gpointer; args:PGtkArg);cdecl;external gtkdll name 'gtk_accel_group_marshal_remove';
+{$endif}
 {$endif}
 function  gtk_accel_groups_from_object(_object:PGtkObject):PGSList;cdecl;external gtkdll name 'gtk_accel_groups_from_object';
 function  gtk_accel_group_entries_from_object(_object:PGtkObject):PGSList;cdecl;external gtkdll name 'gtk_accel_group_entries_from_object';
@@ -78,7 +80,10 @@ function  gtk_accelerator_get_default_mod_mask:guint;cdecl;external gtkdll name 
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:08  peter

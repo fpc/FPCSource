@@ -51,9 +51,17 @@ uses
     const
     {$ifdef FreeBSD}
       gtkdll='gtk12';
+      {$linklib gtk12}
+    {$else}
+    {$ifdef darwin}
+      {$define gtkdarwin}
+      gtkdll='gtk-1.2.0';
+      {$linklib gtk-1.2.0}
     {$else}
       gtkdll='gtk';
-    {$endif}
+      {$linklib gtk}
+    {$endif darwin}
+    {$endif freebsd}
     {$linklib c}
     {$linklib Xi}
     {$linklib Xext}
@@ -90,7 +98,10 @@ Type
 end.
 {
   $Log$
-  Revision 1.6  2003-08-06 07:28:21  michael
+  Revision 1.7  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.6  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.5  2002/08/18 19:36:58  marco

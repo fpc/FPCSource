@@ -285,7 +285,10 @@ procedure gdk_draw_pixmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xs
 procedure gdk_draw_bitmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_drawable';
 {$else}
 procedure gdk_draw_pixmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_pixmap';
+{$ifdef dummy}
+{ this routine doesn't exist in gdk 1.2, it's an error in the headers }
 procedure gdk_draw_bitmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_bitmap';
+{$endif dummy}
 {$endif}
 procedure gdk_draw_image(drawable:PGdkDrawable; gc:PGdkGC; image:PGdkImage; xsrc:gint; ysrc:gint; xdest:gint; ydest:gint; width:gint; height:gint);cdecl;external gdkdll name 'gdk_draw_image';
 procedure gdk_draw_points(drawable:PGdkDrawable; gc:PGdkGC; points:PGdkPoint; npoints:gint);cdecl;external gdkdll name 'gdk_draw_points';
@@ -387,7 +390,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.5  2004-04-01 12:25:37  michael
+  Revision 1.6  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.5  2004/04/01 12:25:37  michael
   + Fixed gdk_ic_new,gdk_ic_attr_new,  gdk_ic_attr_destroy gdk_ic_set_attr gdk_ic_get_attr, noted by marc weustink
 
   Revision 1.4  2003/08/06 07:28:21  michael

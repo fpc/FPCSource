@@ -48,7 +48,9 @@ procedure gtk_scale_set_draw_value(scale:PGtkScale; draw_value:gboolean);cdecl;e
 procedure gtk_scale_set_value_pos(scale:PGtkScale; pos:TGtkPositionType);cdecl;external gtkdll name 'gtk_scale_set_value_pos';
 procedure gtk_scale_draw_value(scale:PGtkScale);cdecl;external gtkdll name 'gtk_scale_draw_value';
 {$ifndef gtkwin}
+{$ifndef gtkdarwin}
 function  gtk_scale_value_width(scale:PGtkScale):gint;cdecl;external gtkdll name 'gtk_scale_value_width';
+{$endif not gtkdarwin}
 {$endif}
 
 {$endif read_interface}
@@ -95,7 +97,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-08-06 07:28:21  michael
+  Revision 1.4  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.3  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.2  2002/09/07 15:43:00  peter

@@ -108,8 +108,13 @@ Uses
 
 {$Ifdef FPC}
   var
+{$ifndef darwin}
     gdk_pixbuf_major_version : guint; cvar; external;
     gdk_pixbuf_version : Pchar; cvar; external;
+{$else darwin}
+    gdk_pixbuf_major_version : guint; external libgdkpixbuf name 'gdk_pixbuf_major_version';
+    gdk_pixbuf_version : Pchar; external libgdkpixbuf name 'gdk_pixbuf_version';
+{$endif darwin}
 {$EndIf}
 
 {From gdk-pixbuf.h}
@@ -440,7 +445,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-03-02 02:08:50  hajny
+  Revision 1.4  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.3  2003/03/02 02:08:50  hajny
     + OS/2 support for GTK and X11 added by Yuri
 
   Revision 1.2  2002/09/07 15:42:58  peter

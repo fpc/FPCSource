@@ -226,7 +226,9 @@ procedure gdk_window_add_colormap_windows(window:PGdkWindow);cdecl;external gdkd
 procedure gdk_window_destroy_notify(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_destroy_notify';
 procedure gdk_xid_table_remove(xid:TXID);cdecl;external gdkdll name 'gdk_xid_table_remove';
 function  gdk_send_xevent(window:TWindow; propagate:gboolean; event_mask:glong; event_send:pXEvent):gint;cdecl;external gdkdll name 'gdk_send_xevent';
+{$ifndef gtkdarwin}
 procedure gdk_dnd_display_drag_cursor(x:gint; y:gint; drag_ok:gboolean; change_made:gboolean);cdecl;external gdkdll name 'gdk_dnd_display_drag_cursor';
+{$endif not gtkdarwin}
 function  gdk_window_xid_at(base:TWindow; bx:gint; by:gint; x:gint; y:gint; excludes:PGList; excl_child:gboolean):TWindow;cdecl;external gdkdll name 'gdk_window_xid_at';
 function  gdk_window_xid_at_coords(x:gint; y:gint; excludes:PGList; excl_child:gboolean):TWindow;cdecl;external gdkdll name 'gdk_window_xid_at_coords';
 
@@ -320,7 +322,10 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 {
   $Log$
-  Revision 1.4  2003-08-06 07:28:21  michael
+  Revision 1.5  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.4  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.3  2003/03/02 02:08:50  hajny

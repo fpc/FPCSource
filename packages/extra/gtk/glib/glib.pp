@@ -47,8 +47,15 @@ interface
     const
      {$ifdef FreeBSD}
       glibdll='glib12';
+      {$linklib glib12}
      {$else}
+     {$ifdef darwin}
+      glibdll='glib-1.2.0';
+      {$linklib glib-1.2.0}
+     {$else darwin}
       glibdll='glib';
+      {$linklib glib}
+     {$endif darwin}
      {$endif}
     {$linklib c}
 
@@ -1648,7 +1655,10 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.6  2003-08-06 07:28:21  michael
+  Revision 1.7  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.6  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.5  2002/08/18 19:36:58  marco

@@ -8,6 +8,10 @@
 
 {$ifdef read_interface}
 
+{$ifdef gtkdarwin}
+{$define gtkwin}
+{$endif gtkdarwin}
+
 procedure gtk_marshal_BOOL__NONE(theobject:PGtkObject; func:TGtkSignalFunc; func_data:gpointer; args:PGtkArg);cdecl;external gtkdll name 'gtk_marshal_BOOL__NONE';
 procedure gtk_marshal_BOOL__POINTER(theobject:PGtkObject; func:TGtkSignalFunc; func_data:gpointer; args:PGtkArg);cdecl;external gtkdll name 'gtk_marshal_BOOL__POINTER';
 procedure gtk_marshal_BOOL__POINTER_POINTER_INT_INT(theobject:PGtkObject; func:TGtkSignalFunc; func_data:gpointer; args:PGtkArg);cdecl;external gtkdll name 'gtk_marshal_BOOL__POINTER_POINTER_INT_INT';
@@ -88,6 +92,10 @@ procedure gtk_marshal_NONE__UINT_STRING(theobject:PGtkObject; func:TGtkSignalFun
 {$endif}
 procedure gtk_marshal_NONE__INT_POINTER(theobject:PGtkObject; func:TGtkSignalFunc; func_data:gpointer; args:PGtkArg);cdecl;external gtkdll name 'gtk_marshal_NONE__INT_POINTER';
 
+{$ifdef gtkdarwin}
+{$undef gtkwin}
+{$endif gtkdarwin}
+
 {$endif read_interface}
 
 
@@ -101,7 +109,10 @@ procedure gtk_marshal_NONE__INT_POINTER(theobject:PGtkObject; func:TGtkSignalFun
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2004-05-02 19:14:47  jonas
+    * fixed darwin incompatibilities
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:12  peter
