@@ -25,12 +25,17 @@
 				// of userland getdents stuff.
 {$define usedomain}		// Allow uname with "domain" entry.
 				// (which is a GNU extension)
-{$define posixworkaround}	// Temporary ugly workaround for signal handler.
-				// (mainly until baseunix migration is complete)
+{$ifdef FPC_USE_LIBC}
+  {$define usegetcwd}
+{$endif}
+
 
 {
   $Log$
-  Revision 1.1  2005-02-13 20:01:38  peter
+  Revision 1.1  2005-02-13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.1  2005/02/13 20:01:38  peter
     * include file cleanup
 
 }

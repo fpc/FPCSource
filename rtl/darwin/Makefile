@@ -1836,7 +1836,7 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -1845,15 +1845,15 @@ dateutils$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT) mat
 strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
-baseunix$(PPUEXT) : unixtype$(PPUEXT) sysctl$(PPUEXT) errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/ostypes.inc \
+baseunix$(PPUEXT) : unixtype$(PPUEXT) sysctl$(PPUEXT) errno.inc ptypes.inc $(BSDINC)/ctypes.inc \
+  signal.inc $(UNIXINC)/bunxh.inc \
   $(BSDINC)/bunxsysc.inc \
-  $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
+  $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 unixtype$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(UNIXINC)/unixtype.pp ptypes.inc $(BSDINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-		 sysconst.inc $(UNIXINC)/timezone.inc \
-		 unixfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+		 unxconst.inc $(UNIXINC)/timezone.inc \
+		 unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 dynlibs$(PPUEXT) : dl$(PPUEXT)
 ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)

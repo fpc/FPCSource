@@ -20,18 +20,8 @@ Uses BaseUnix,UnixType;
 
 {$i aliasptp.inc}
 
-//type
-//   pathstr = string[255];
-
-{$define POSIXWORKAROUND}
-{ Get Types and Constants }
-{$i sysconst.inc}
-
-{Get error numbers, some more signal definitions and other OS dependant
- types (that are not POSIX) }
-{i errno.inc}
-{$I signal.inc}
-{$i ostypes.inc}
+{ Get Types and Constants only exported in this unit }
+{$i unxconst.inc}
 
 // We init to zero to be able to put timezone stuff under IFDEF, and still
 // keep the code working.
@@ -200,10 +190,10 @@ Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 procedure SigRaise (sig:integer);
 
 {$ifdef FPC_USE_LIBC}
-const clib = 'c';
-{$i unxdeclh.inc}
+  const clib = 'c';
+  {$i unxdeclh.inc}
 {$else}
-{$i unxsysch.inc} //  calls used in system and not reexported from baseunix
+  {$i unxsysch.inc} //  calls used in system and not reexported from baseunix
 {$endif}
 
 {******************************************************************************
@@ -219,16 +209,15 @@ Uses Strings{$ifndef FPC_USE_LIBC},Syscall{$endif};
 {$i unxovl.inc}
 
 {$ifndef FPC_USE_LIBC}
-{$i syscallh.inc}
-{$i ossysch.inc}
-{$i unxsysc.inc}
+  {$i syscallh.inc}
+  {$i unxsysc.inc}
 {$endif}
 
 { Get the definitions of textrec and filerec }
 {$i textrec.inc}
 {$i filerec.inc}
 
-{$i unixfunc.inc}   { Platform specific implementations }
+{$i unxfunc.inc}   { Platform specific implementations }
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 
@@ -1228,7 +1217,10 @@ End.
 
 {
   $Log$
-  Revision 1.82  2005-02-13 20:01:38  peter
+  Revision 1.83  2005-02-13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.82  2005/02/13 20:01:38  peter
     * include file cleanup
 
   Revision 1.81  2005/02/06 11:20:52  peter

@@ -17,6 +17,8 @@ unit System;
 
 interface
 
+{$define FPC_IS_SYSTEM}
+
 { include system-independent routine headers }
 
 {$I sysunixh.inc}
@@ -84,7 +86,10 @@ End.
 
 {
  $Log$
- Revision 1.2  2005-02-10 17:30:54  peter
+ Revision 1.3  2005-02-13 21:47:56  peter
+   * include file cleanup part 2
+
+ Revision 1.2  2005/02/10 17:30:54  peter
    * renamed to solaris
 
  Revision 1.5  2005/02/07 22:17:26  peter

@@ -19,7 +19,7 @@ Interface
 
 Uses UnixType;
 
-{$i bunxdefs.inc}       { Compile time defines }
+{$i osdefs.inc}       { Compile time defines }
 
 {$i aliasptp.inc}
 
@@ -30,8 +30,8 @@ Uses UnixType;
 {$endif}
 
 {$i errno.inc}          { Error numbers }
-{$i bunxtype.inc}       { Types }
 {$i ostypes.inc}
+
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
   {$i oscdeclh.inc}
@@ -86,13 +86,16 @@ end;
   {$i settimeo.inc}
 {$endif}
 
-{$i bunxmacr.inc}       { macro implenenations }
+{$i osmacro.inc}        { macro implenenations }
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
 end.
 {
   $Log$
-  Revision 1.1  2005-02-13 20:01:38  peter
+  Revision 1.2  2005-02-13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.1  2005/02/13 20:01:38  peter
     * include file cleanup
 
   Revision 1.14  2004/12/02 18:24:35  marco

@@ -71,7 +71,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 20:01:37  peter
+  Revision 1.1  2005-02-13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.1  2005/02/13 20:01:37  peter
     * include file cleanup
 
   Revision 1.20  2004/04/23 19:16:24  marco

@@ -2181,7 +2181,7 @@ cprt21$(OEXT) : $(CPU_TARGET)/cprt21.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(CPU_TARGET)/cprt21.as
 gprt21$(OEXT) : $(CPU_TARGET)/gprt21.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(CPU_TARGET)/gprt21.as
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -2191,13 +2191,13 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-		 sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-		 unixfunc.inc
+		 unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
+		 unxfunc.inc
 unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
-baseunix$(PPUEXT) : errno.inc bunxtype.inc ptypes.inc ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc ostypes.inc \
+baseunix$(PPUEXT) : errno.inc ptypes.inc ctypes.inc \
+  $(UNIXINC)/bunxh.inc \
   bunxsysc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
-  ostypes.inc ossysch.inc bunxmacr.inc $(UNIXINC)/gensigset.inc \
+  ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 ports$(PPUEXT) : ports.pp unix$(PPUEXT) objpas$(PPUEXT)
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)

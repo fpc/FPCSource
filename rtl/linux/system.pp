@@ -25,13 +25,10 @@
 Unit {$ifdef VER1_0}Syslinux{$else}System{$endif};
 
 Interface
-{$define oldreaddir}
-{$define usedomain}
-{$define posixworkaround}
+
 {$define FPC_IS_SYSTEM}
-{$ifdef FPC_USE_LIBC}
-{$define usegetcwd}
-{$endif}
+
+{$i osdefs.inc}
 
 {$I sysunixh.inc}
 
@@ -39,6 +36,149 @@ Implementation
 
 
 {$I system.inc}
+
+
+{*****************************************************************************
+                       Misc. System Dependent Functions
+*****************************************************************************}
+
+procedure haltproc(e:longint);cdecl;external name '_haltproc';
+
+procedure System_exit;
+begin
+  haltproc(ExitCode);
+End;
+
+
+Function ParamCount: Longint;
+Begin
+  Paramcount:=argc-1
+End;
+
+
+function BackPos(c:char; const s: shortstring): integer;
+var
+ i: integer;
+Begin
+  for i:=length(s) downto 0 do
+    if s[i] = c then break;
+  if i=0 then
+    BackPos := 0
+  else
+    BackPos := i;
+end;
+
+
+ { variable where full path and filename and executable is stored }
+ { is setup by the startup of the system unit.                    }
+var
+ execpathstr : shortstring;
+
+function paramstr(l: longint) : string;
+ begin
+   { stricly conforming POSIX applications  }
+   { have the executing filename as argv[0] }
+   if l=0 then
+     begin
+       paramstr := execpathstr;
+     end
+   else
+     paramstr:=strpas(argv[l]);
+ end;
+
+Procedure Randomize;
+Begin
+  randseed:=longint(Fptime(nil));
+End;
+
+
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+// signal handler is arch dependant due to processorexception to language
+// exception translation
+
+{$i sighnd.inc}
+
+var
+  act: SigActionRec;
+
+Procedure InstallSignals;
+begin
+  { Initialize the sigaction structure }
+  { all flags and information set to zero }
+  FillChar(act, sizeof(SigActionRec),0);
+  { initialize handler                    }
+  act.sa_handler := SigActionHandler(@SignalToRunError);
+  act.sa_flags:=SA_SIGINFO
+{$ifdef cpux86_64}
+    or $4000000
+{$endif cpux86_64}
+    ;
+  FpSigAction(SIGFPE,@act,nil);
+  FpSigAction(SIGSEGV,@act,nil);
+  FpSigAction(SIGBUS,@act,nil);
+  FpSigAction(SIGILL,@act,nil);
+end;
+
+procedure SetupCmdLine;
+var
+  bufsize,
+  len,j,
+  size,i : longint;
+  found  : boolean;
+  buf    : pchar;
+
+  procedure AddBuf;
+  begin
+    reallocmem(cmdline,size+bufsize);
+    move(buf^,cmdline[size],bufsize);
+    inc(size,bufsize);
+    bufsize:=0;
+  end;
+
+begin
+  GetMem(buf,ARG_MAX);
+  size:=0;
+  bufsize:=0;
+  i:=0;
+  while (i<argc) do
+   begin
+     len:=strlen(argv[i]);
+     if len>ARG_MAX-2 then
+      len:=ARG_MAX-2;
+     found:=false;
+     for j:=1 to len do
+      if argv[i][j]=' ' then
+       begin
+         found:=true;
+         break;
+       end;
+     if bufsize+len>=ARG_MAX-2 then
+      AddBuf;
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     move(argv[i]^,buf[bufsize],len);
+     inc(bufsize,len);
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     if i<argc then
+      buf[bufsize]:=' '
+     else
+      buf[bufsize]:=#0;
+     inc(bufsize);
+     inc(i);
+   end;
+  AddBuf;
+  FreeMem(buf,ARG_MAX);
+end;
 
 
 procedure SysInitStdIO;
@@ -98,7 +238,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  2005-02-06 11:20:52  peter
+  Revision 1.23  2005-02-13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.22  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 

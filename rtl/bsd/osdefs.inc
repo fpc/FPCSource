@@ -22,13 +22,14 @@
 
 {$define usedomain}		// Allow uname with "domain" entry.
 				// (which is a GNU extension)
-{$define posixworkaround}	// Temporary ugly workaround for signal handler.
-				// (mainly until baseunix migration is complete)
 {$define hassysctl}             // Use sysctl unit
 
 {
   $Log$
-  Revision 1.1  2005-02-13 20:01:37  peter
+  Revision 1.1  2005-02-13 21:47:56  peter
+    * include file cleanup part 2
+
+  Revision 1.1  2005/02/13 20:01:37  peter
     * include file cleanup
 
 }

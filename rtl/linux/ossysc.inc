@@ -15,27 +15,10 @@
 
  ****************************************************************************
 }
-{$I syscallh.inc}
-{$I ostypes.inc}
-
-{$ifdef FPC_USE_LIBC}
-
-  {$Linklib c}
-
-  {$ifdef FPC_IS_SYSTEM}
-    {$i oscdeclh.inc}
-  {$endif}
-  {$I bunxmacr.inc}
-
-{$else}
 
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
-
-{$I syscall.inc}
-{$I sysnr.inc}
-{$I bunxmacr.inc}
 
 function Fptime(tloc:pTime): TTime; [public, alias : 'FPC_SYSC_TIME'];
 
@@ -491,36 +474,12 @@ begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
-{$ENDIF}
-
-CONST
-  {Constansts Termios/Ioctl (used in Do_IsDevice) }
-  {$ifdef PowerPC}
-  IOCtl_TCGETS=$402c7413;
-  {$else}
-  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
-  {$endif}
-
-
-Function Do_IsDevice(Handle:THandle):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-
-var
-  Data : array[0..255] of byte; {Large enough for termios info}
-begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
-end;
-
-
 {
  $Log$
- Revision 1.34  2005-02-13 20:01:38  peter
+ Revision 1.35  2005-02-13 21:47:56  peter
+   * include file cleanup part 2
+
+ Revision 1.34  2005/02/13 20:01:38  peter
    * include file cleanup
 
  Revision 1.33  2005/02/06 12:16:52  peter
