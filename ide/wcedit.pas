@@ -1334,9 +1334,12 @@ begin
               begin
                 { reinsert deleted text }
                 SetCurPtr(EndPos.X,EndPos.Y);
+                WasInserting:=GetInsertMode;
+                SetInsertMode(true);
                 if assigned(text) then
                   for Temp := 1 to length(Text^) do
                     AddChar(Text^[Temp]);
+                SetInsertMode(WasInserting);
                 SetMinMax(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
               end;
@@ -2047,7 +2050,10 @@ end;
 END.
 {
  $Log$
- Revision 1.10  2002-08-26 13:01:39  pierre
+ Revision 1.11  2002-08-26 13:40:15  pierre
+  * fix for bug report 2000
+
+ Revision 1.10  2002/08/26 13:01:39  pierre
   + fill the Now field for Editor actions
 
  Revision 1.9  2002/04/20 20:27:44  pierre
