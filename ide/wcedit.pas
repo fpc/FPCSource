@@ -1718,7 +1718,7 @@ var OK: boolean;
     PA : Array[1..2] of pointer;
 begin
   OK:=LoadFromFile(FileName);
-  if GetModified then
+  if GetModified and (Core^.GetBindingCount=1) then
     begin
       PA[1]:=@FileName;
       longint(PA[2]):=Core^.GetChangedLine;
@@ -1992,7 +1992,10 @@ end;
 END.
 {
  $Log$
- Revision 1.4  2001-09-14 23:47:08  pierre
+ Revision 1.5  2001-09-27 22:32:24  pierre
+  * avoid to get unnecessary warnings about modified files if file already open
+
+ Revision 1.4  2001/09/14 23:47:08  pierre
   + more regexp, options now in Find/Replace dialogs
 
  Revision 1.3  2001/09/14 16:33:06  pierre
