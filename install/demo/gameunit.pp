@@ -25,7 +25,9 @@ INTERFACE
  MouseAPI undef   : RTL unit MsMouse. API not required, but doesn't work under
                     Linux }
 
-{$UNDEF MouseAPI}
+{$ifdef linux}
+  {$define MouseAPI}
+{$endif}
 
 TYPE CHARSET=SET OF CHAR;
 
@@ -454,7 +456,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  1999-06-01 19:24:33  peter
+  Revision 1.2  1999-06-11 12:51:29  peter
+    * updated for linux
+
+  Revision 1.1  1999/06/01 19:24:33  peter
     * updates from marco
 
 }
