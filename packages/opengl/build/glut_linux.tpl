@@ -250,7 +250,7 @@ end;
 
 function InitGLUT: Boolean;
 begin
-  Result := InitGLUTFromLibrary('libglut.so');
+  Result := InitGLUTFromLibrary('libglut.so.1');
 end;
 
 

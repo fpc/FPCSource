@@ -2122,12 +2122,12 @@ end;
 
 function InitGL: Boolean;
 begin
-  Result := InitGLFromLibrary('libGL.so') or InitGLFromLibrary('libMesaGL.so');
+  Result := InitGLFromLibrary('libGL.so.1') or InitGLFromLibrary('libMesaGL.so.1');
 end;
 
 function InitGLU: Boolean;
 begin
-  Result := InitGLUFromLibrary('libGLU.so') or InitGLUFromLibrary('libMesaGLU.so');
+  Result := InitGLUFromLibrary('libGLU.so.1') or InitGLUFromLibrary('libMesaGLU.so.1');
 end;
 
 
@@ -2141,7 +2141,8 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-12-23 19:41:28  peter
-    * use new x11 package
+  Revision 1.3  2000-01-26 21:21:49  peter
+    * link with .so.1 files, the .so files are for development only and
+      not available in runtime installs.
 
 }

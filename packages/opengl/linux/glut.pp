@@ -384,7 +384,7 @@ end;
 
 function InitGLUT: Boolean;
 begin
-  Result := InitGLUTFromLibrary('libglut.so');
+  Result := InitGLUTFromLibrary('libglut.so.1');
 end;
 
 
@@ -396,7 +396,8 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-12-23 19:41:28  peter
-    * use new x11 package
+  Revision 1.3  2000-01-26 21:21:50  peter
+    * link with .so.1 files, the .so files are for development only and
+      not available in runtime installs.
 
 }

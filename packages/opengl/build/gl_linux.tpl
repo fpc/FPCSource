@@ -129,12 +129,12 @@ end;
 
 function InitGL: Boolean;
 begin
-  Result := InitGLFromLibrary('libGL.so') or InitGLFromLibrary('libMesaGL.so');
+  Result := InitGLFromLibrary('libGL.so.1') or InitGLFromLibrary('libMesaGL.so.1');
 end;
 
 function InitGLU: Boolean;
 begin
-  Result := InitGLUFromLibrary('libGLU.so') or InitGLUFromLibrary('libMesaGLU.so');
+  Result := InitGLUFromLibrary('libGLU.so.1') or InitGLUFromLibrary('libMesaGLU.so.1');
 end;
 
 
