@@ -959,7 +959,7 @@ begin
           write(', ')
         else
           first := false;
-        write(gas_reg2str[r])
+        write(std_reg2str[r])
       end;
   if (firstsavefpureg <> R_NO) then
     for r := firstsavefpureg to lastsavefpureg do
@@ -969,7 +969,7 @@ begin
             write(', ')
           else
             first := false;
-          write(gas_reg2str[r])
+          write(std_reg2str[r])
         end;
   if (firstsavemmreg <> R_NO) then
     for r := firstsavemmreg to lastsavemmreg do
@@ -979,7 +979,7 @@ begin
             write(', ')
           else
             first := false;
-          write(gas_reg2str[r])
+          write(std_reg2str[r])
         end;
   writeln;
 end;
@@ -1700,7 +1700,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-04-14 17:02:19  carl
+  Revision 1.20  2002-04-15 19:15:09  carl
+  + write std_reg2str instead of gas registers
+
+  Revision 1.19  2002/04/14 17:02:19  carl
   + att_reg2str -> gas_reg2str
 
   Revision 1.18  2002/04/07 10:23:36  carl
