@@ -40,7 +40,7 @@ implementation
     uses
       systems,
       cpubase,
-      cga,rgobj,rgcpu;
+      cga,cgbase,rgobj,rgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -64,14 +64,14 @@ implementation
          if (value_real=1.0) then
            begin
               emit_none(A_FLD1,S_NO);
-              location.loc:=LOC_FPUREGISTER;
+              location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
               location.register.enum:=R_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
          else if (value_real=0.0) then
            begin
               emit_none(A_FLDZ,S_NO);
-              location.loc:=LOC_FPUREGISTER;
+              location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
               location.register.enum:=R_ST;
               inc(trgcpu(rg).fpuvaroffset);
            end
@@ -85,7 +85,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-01-08 18:43:57  daniel
+  Revision 1.18  2003-04-22 09:54:18  peter
+    * use location_reset
+
+  Revision 1.17  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.16  2002/05/18 13:34:25  peter
