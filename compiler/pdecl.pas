@@ -59,7 +59,7 @@ implementation
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
-       ncgutil,
+       ncgutil,gdb,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
@@ -283,6 +283,10 @@ implementation
         again  : boolean;
         srsym  : tsym;
         srsymtable : tsymtable;
+      {$ifdef gdb}
+        stab_str:Pchar;
+      {$endif}
+
       begin
          { Check only typesyms or record/object fields }
          case tsym(p).typ of
@@ -339,8 +343,15 @@ implementation
                        if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                           (tsym(p).owner.symtabletype in [globalsymtable,staticsymtable]) then
                         begin
-                          ttypesym(p).isusedinstab := true;
-                          ttypesym(p).concatstabto(debuglist);
+                          ttypesym(p).isusedinstab:=true;
+{                          ttypesym(p).concatstabto(debuglist);}
+                          if not Ttypesym(p).isstabwritten then
+                            begin
+                              stab_str:=Ttypesym(p).stabstring;
+                              if assigned(stab_str) then
+                                debuglist.concat(Tai_stabs.create(stab_str));
+                              Ttypesym(p).isstabwritten:=true;
+                            end;
                         end;
 {$endif GDB}
                        { we need a class type for classrefdef }
@@ -662,7 +673,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2003-12-15 21:25:48  peter
+  Revision 1.76  2004-01-31 18:40:15  daniel
+    * Last steps before removal of aasmtai dependency in symsym can be
+      accomplished.
+
+  Revision 1.75  2003/12/15 21:25:48  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

@@ -95,9 +95,6 @@ interface
       { this object is the base for all symbol objects }
       tsym = class(tsymentry)
       protected
-{$ifdef GDB}
-{         isstabwritten : boolean;}
-{$endif GDB}
       public
          _realname  : pstring;
          fileinfo   : tfileposinfo;
@@ -108,10 +105,10 @@ interface
          lastwritten : tref;
          refcount    : longint;
 {$ifdef GDB}
-{         function  get_var_value(const s:string):string;
+         isstabwritten : boolean;
+         function  get_var_value(const s:string):string;
          function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
          function  stabstring : pchar;virtual;
-         procedure concatstabto(asmlist : taasmoutput);virtual;}
 {$endif GDB}
          constructor create(const n : string);
          constructor loadsym(ppufile:tcompilerppufile);
@@ -119,10 +116,10 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
          procedure writesym(ppufile:tcompilerppufile);
          function  realname:string;
-         procedure buildderef;virtual;abstract;
-         procedure buildderefimpl;virtual;abstract;
-         procedure deref;virtual;abstract;
-         procedure derefimpl;virtual;abstract;
+         procedure buildderef;virtual;
+{         procedure buildderefimpl;virtual;abstract;}
+         procedure deref;virtual;
+{         procedure derefimpl;virtual;abstract;}
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
@@ -228,7 +225,8 @@ implementation
     uses
        verbose,
        fmodule,
-       symdef;
+       symdef,
+       gdb;
 
 {****************************************************************************
                                 Tdef
@@ -351,7 +349,17 @@ implementation
          ppufile.putsmallset(symoptions);
       end;
 
-{$ifdef xGDB}
+    procedure Tsym.buildderef;
+
+    begin
+    end;
+
+    procedure Tsym.deref;
+
+    begin
+    end;
+
+{$ifdef GDB}
     function Tsym.get_var_value(const s:string):string;
 
     begin
@@ -359,8 +367,6 @@ implementation
         get_var_value:=name
       else if s='ownername' then
         get_var_value:=owner.name^
-      else if s='mangledname' then
-        get_var_value:=mangledname
       else if s='line' then
         get_var_value:=tostr(fileinfo.line)
       else if s='N_LSYM' then
@@ -388,9 +394,10 @@ implementation
     function Tsym.stabstring : pchar;
 
     begin
-      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
+{      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);}
+       stabstring:=nil;
     end;
-
+{
     procedure Tsym.concatstabto(asmlist : taasmoutput);
       var
         stab_str : pchar;
@@ -402,8 +409,8 @@ implementation
                 asmList.concat(Tai_stabs.Create(stab_str));
               isstabwritten:=true;
           end;
-    end;
-{$endif xGDB}
+    end;}
+{$endif GDB}
 
 
     function tsym.realname : string;
@@ -1520,7 +1527,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2004-01-26 16:12:28  daniel
+  Revision 1.36  2004-01-31 18:40:15  daniel
+    * Last steps before removal of aasmtai dependency in symsym can be
+      accomplished.
+
+  Revision 1.35  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

@@ -819,25 +819,46 @@ implementation
 {$ifdef GDB}
 
     procedure TStoredSymtable.concatstab(p : TNamedIndexItem;arg:pointer);
-      begin
-        if tsym(p).typ <> procsym then
-          tstoredsym(p).concatstabto(TAAsmOutput(arg));
-      end;
+
+    var stabstr:Pchar;
+        ao:Taasmoutput;
+
+    begin
+      if Tsym(p).typ<>procsym then
+        begin
+          ao:=Taasmoutput(arg);
+          if not Tsym(p).isstabwritten then
+            begin
+              stabstr:=Tsym(p).stabstring;
+              if stabstr<>nil then
+                ao.concat(Tai_stabs.create(stabstr));
+              Tsym(p).isstabwritten:=true;
+            end;
+        end;
+    end;
 
     procedure TStoredSymtable.resetstab(p : TNamedIndexItem;arg:pointer);
       begin
         if tsym(p).typ <> procsym then
-          tstoredsym(p).isstabwritten:=false;
+          Tstoredsym(p).isstabwritten:=false;
       end;
 
     procedure TStoredSymtable.concattypestab(p : TNamedIndexItem;arg:pointer);
-      begin
-        if tsym(p).typ = typesym then
-         begin
-           tstoredsym(p).isstabwritten:=false;
-           tstoredsym(p).concatstabto(TAAsmOutput(arg));
-         end;
-      end;
+
+    var stabstr:Pchar;
+        ao:Taasmoutput;
+
+    begin
+      if Tsym(p).typ=typesym then
+        begin
+          ao:=Taasmoutput(arg);
+          Tsym(p).isstabwritten:=false;
+          stabstr:=Tsym(p).stabstring;
+          if stabstr<>nil then
+            ao.concat(Tai_stabs.create(stabstr));
+          Tsym(p).isstabwritten:=true;
+        end;
+    end;
 
    function tstoredsymtable.getnewtypecount : word;
       begin
@@ -2338,7 +2359,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2004-01-30 14:33:06  florian
+  Revision 1.132  2004-01-31 18:40:15  daniel
+    * Last steps before removal of aasmtai dependency in symsym can be
+      accomplished.
+
+  Revision 1.131  2004/01/30 14:33:06  florian
     * fixed more alignment issues
 
   Revision 1.130  2004/01/30 13:42:03  florian

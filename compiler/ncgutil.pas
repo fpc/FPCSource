@@ -1816,6 +1816,8 @@ implementation
         storefilepos : tfileposinfo;
         curconstsegment : taasmoutput;
         l : longint;
+        stabstr:Pchar;
+
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
@@ -1830,7 +1832,15 @@ implementation
         curconstSegment.concat(Tai_align.create(const_align(l)));
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
-          sym.concatstabto(curconstsegment);
+          begin
+            if not sym.isstabwritten then
+              begin
+                stabstr:=sym.stabstring;
+                if stabstr<>nil then
+                  curconstsegment.concat(Tai_stabs.create(stabstr));
+                sym.isstabwritten:=true;
+              end;
+          end;
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
@@ -1848,6 +1858,7 @@ implementation
       var
         l,varalign : longint;
         storefilepos : tfileposinfo;
+        stabstr:Pchar;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
@@ -1865,7 +1876,15 @@ implementation
         bssSegment.concat(Tai_align.create(varalign));
 {$ifdef GDB}
         if cs_debuginfo in aktmoduleswitches then
-           sym.concatstabto(bsssegment);
+          begin
+            if not sym.isstabwritten then
+              begin
+                stabstr:=sym.stabstring;
+                if stabstr<>nil then
+                  bsssegment.concat(Tai_stabs.create(stabstr));
+                sym.isstabwritten:=true;
+              end;
+          end;
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
@@ -2098,7 +2117,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.185  2004-01-31 17:45:17  peter
+  Revision 1.186  2004-01-31 18:40:15  daniel
+    * Last steps before removal of aasmtai dependency in symsym can be
+      accomplished.
+
+  Revision 1.185  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

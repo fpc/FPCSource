@@ -43,26 +43,19 @@ interface
     type
 {************************************************
                    TSym
-************************************************}
+***********************************************}
 
        { this object is the base for all symbol objects }
        tstoredsym = class(tsym)
        protected
           _mangledname : pstring;
        public
-{$ifdef GDB}
-          isstabwritten : boolean;
-{$endif GDB}
           constructor create(const n : string);
           constructor loadsym(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure buildderef;override;
-          procedure deref;override;
 {$ifdef GDB}
           function  get_var_value(const s:string):string;
           function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);
 {$endif GDB}
           function  mangledname : string;
           procedure generate_mangledname;virtual;abstract;
@@ -78,17 +71,15 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           procedure generate_mangledname;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function  stabstring : pchar;override;
        end;
 
-       tunitsym = class(tstoredsym)
+       tunitsym = class(Tsym)
           unitsymtable : tsymtable;
           constructor create(const n : string;ref : tsymtable);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-{$ifdef GDB}
-          function  stabstring:Pchar;override;
-{$endif GDB}
        end;
 
        terrorsym = class(Tsym)
@@ -144,7 +135,7 @@ interface
 {$endif GDB}
        end;
 
-       ttypesym = class(tstoredsym)
+       ttypesym = class(Tsym)
           restype    : ttype;
 {$ifdef GDB}
           isusedinstab : boolean;
@@ -198,7 +189,7 @@ interface
           property vartype: ttype read _vartype write setvartype;
       end;
 
-       tpropertysym = class(tstoredsym)
+       tpropertysym = class(Tsym)
           propoptions   : tpropertyoptions;
           propoverriden : tpropertysym;
           propoverridenderef : tderef;
@@ -218,12 +209,9 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure dooverride(overriden:tpropertysym);
-{$ifdef GDB}
-          function  stabstring : pchar;override;
-{$endif GDB}
        end;
 
-       tabsolutesym = class(tvarsym)
+       tabsolutesym = class(Tvarsym)
           abstyp  : absolutetyp;
 {$ifdef i386}
           absseg  : boolean;
@@ -238,9 +226,9 @@ interface
           procedure deref;override;
           function  mangledname : string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-{$ifdef GDB}
-          function  stabstring : pchar;override;
-{$endif GDB}
+       {$ifdef gdb}
+          function stabstring:Pchar;override;
+       {$endif}
        end;
 
        ttypedconstsym = class(tstoredsym)
@@ -280,7 +268,7 @@ interface
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          function  mangledname : string;
+{          function  mangledname : string;}
           procedure buildderef;override;
           procedure deref;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -289,7 +277,7 @@ interface
 {$endif GDB}
        end;
 
-       tenumsym = class(tstoredsym)
+       tenumsym = class(Tsym)
           value      : longint;
           definition : tenumdef;
           definitionderef : tderef;
@@ -300,20 +288,14 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure order;
-{$ifdef GDB}
-          function stabstring:Pchar;
-{$endif GDB}
        end;
 
-       tsyssym = class(tstoredsym)
+       tsyssym = class(Tsym)
           number : longint;
           constructor create(const n : string;l : longint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-{$ifdef GDB}
-          function stabstring:Pchar;
-{$endif GDB}
        end;
 
        { compiler generated symbol to point to rtti and init/finalize tables }
@@ -412,14 +394,14 @@ implementation
 {$endif GDB}
       end;
 
-    procedure tstoredsym.buildderef;
+{    procedure tstoredsym.buildderef;
       begin
       end;
 
 
     procedure tstoredsym.deref;
       begin
-      end;
+      end;}
 
 
     destructor tstoredsym.destroy;
@@ -452,28 +434,10 @@ implementation
     function Tstoredsym.get_var_value(const s:string):string;
 
     begin
-      if s='name' then
-        get_var_value:=name
-      else if s='ownername' then
-        get_var_value:=owner.name^
-      else if s='mangledname' then
+      if s='mangledname' then
         get_var_value:=mangledname
-      else if s='line' then
-        get_var_value:=tostr(fileinfo.line)
-      else if s='N_LSYM' then
-        get_var_value:=tostr(N_LSYM)
-      else if s='N_LCSYM' then
-        get_var_value:=tostr(N_LCSYM)
-      else if s='N_RSYM' then
-        get_var_value:=tostr(N_RSYM)
-      else if s='N_TSYM' then
-        get_var_value:=tostr(N_TSYM)
-      else if s='N_STSYM' then
-        get_var_value:=tostr(N_STSYM)
-      else if s='N_FUNCTION' then
-        get_var_value:=tostr(N_FUNCTION)
-      else
-        internalerror(200401152);
+      else 
+        get_var_value:=inherited get_var_value(s);
     end;
 
     function Tstoredsym.stabstr_evaluate(const s:string;vars:array of string):Pchar;
@@ -481,41 +445,23 @@ implementation
     begin
       stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
     end;
-
-    function tstoredsym.stabstring : pchar;
-
-    begin
-      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
-    end;
-
-    procedure tstoredsym.concatstabto(asmlist : taasmoutput);
-      var
-        stab_str : pchar;
-      begin
-         if not isstabwritten then
-           begin
-              stab_str := stabstring;
-              if assigned(stab_str) then
-                asmlist.concat(Tai_stabs.create(stab_str));
-              isstabwritten:=true;
-          end;
-    end;
 {$endif GDB}
 
     function tstoredsym.mangledname : string;
-      begin
-        if not assigned(_mangledname) then
-         begin
-           generate_mangledname;
-           if not assigned(_mangledname) then
+
+    begin
+      if not assigned(_mangledname) then
+        begin
+          generate_mangledname;
+          if not assigned(_mangledname) then
             internalerror(200204171);
-         end;
-      {$ifdef compress}
-        mangledname:=minilzw_decode(_mangledname^)
-      {$else}
-        mangledname:=_mangledname^
-      {$endif}
-      end;
+        end;
+   {$ifdef compress}
+      mangledname:=minilzw_decode(_mangledname^);
+   {$else}
+      mangledname:=_mangledname^;
+   {$endif}
+    end;
 
 
 {****************************************************************************
@@ -575,6 +521,11 @@ implementation
            end;
       end;
 
+    function Tlabelsym.stabstring : pchar;
+
+    begin
+      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
+    end;
 
 {****************************************************************************
                                   TUNITSYM
@@ -611,14 +562,6 @@ implementation
          inherited writesym(ppufile);
          ppufile.writeentry(ibunitsym);
       end;
-
-{$ifdef GDB}
-    function Tunitsym.stabstring:Pchar;
-
-    begin
-      stabstring:=nil;
-    end;
-{$endif GDB}
 
 {****************************************************************************
                                   TPROCSYM
@@ -1369,15 +1312,6 @@ implementation
       end;
 
 
-{$ifdef GDB}
-    function tpropertysym.stabstring : pchar;
-      begin
-         { !!!! don't know how to handle }
-         stabstring:=nil;
-      end;
-{$endif GDB}
-
-
 {****************************************************************************
                                   TABSOLUTESYM
 ****************************************************************************}
@@ -2084,12 +2018,6 @@ implementation
       end;
 
 
-    function tconstsym.mangledname : string;
-      begin
-         mangledname:=name;
-      end;
-
-
     procedure tconstsym.buildderef;
       begin
         if consttyp in [constord,constpointer,constset] then
@@ -2265,15 +2193,6 @@ implementation
       end;
 
 
-{$ifdef GDB}
-    function Tenumsym.stabstring:Pchar;
-
-    begin
-      {enum elements have no stab !}
-    end;
-{$EndIf GDB}
-
-
 {****************************************************************************
                                   TTYPESYM
 ****************************************************************************}
@@ -2417,14 +2336,6 @@ implementation
          ppufile.writeentry(ibsyssym);
       end;
 
-{$ifdef GDB}
-    function Tsyssym.stabstring:Pchar;
-
-    begin
-      stabstring:=nil
-    end;
-{$endif GDB}
-
 
 {****************************************************************************
                                   TRTTISYM
@@ -2555,7 +2466,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2004-01-31 17:45:17  peter
+  Revision 1.149  2004-01-31 18:40:15  daniel
+    * Last steps before removal of aasmtai dependency in symsym can be
+      accomplished.
+
+  Revision 1.148  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 
