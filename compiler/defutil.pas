@@ -423,6 +423,7 @@ implementation
                         ((tarraydef(p).IsVariant) or
                          (tarraydef(p).IsArrayOfConst) or
                          (tarraydef(p).IsConstructor) or
+                         (tarraydef(p).IsDynamicArray) or
                          is_open_array(p)
                         );
       end;
@@ -738,7 +739,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-12-23 20:58:03  peter
+  Revision 1.3  2003-03-17 19:05:08  peter
+    * dynamic array is also a special array
+
+  Revision 1.2  2002/12/23 20:58:03  peter
     * remove unused global var
 
   Revision 1.1  2002/11/25 17:43:17  peter
