@@ -793,14 +793,16 @@ begin
 end;
 
 function changeOp(var o: toper; newReg, orgReg: tregister): boolean;
+var
+  tmpresult: boolean;
 begin
+  changeOp := false;
   case o.typ of
     top_reg: changeOp := changeReg(o.reg,newReg,orgReg);
     top_ref:
       begin
-        changeOp :=
-          changeReg(o.ref^.base,newReg,orgReg) or
-          changeReg(o.ref^.index,newReg,orgReg);
+        tmpresult := changeReg(o.ref^.base,newReg,orgReg);
+        changeop := changeReg(o.ref^.index,newReg,orgReg) or tmpresult;
       end;
   end;
 end;
@@ -1716,7 +1718,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2001-04-02 21:20:36  peter
+  Revision 1.15  2001-04-06 16:24:38  jonas
+    * fixed bug due to short boolean evaluation
+
+  Revision 1.14  2001/04/02 21:20:36  peter
     * resulttype rewrite
 
   Revision 1.13  2001/01/10 08:52:40  michael
