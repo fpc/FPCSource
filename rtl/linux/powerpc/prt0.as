@@ -28,7 +28,16 @@ _start:
 	mtlr	0
 	stw	0,0(1)
 	bl	PASCALMAIN
-	
+
+        .globl  _haltproc
+        .type   _haltproc,@function
+_haltproc:
+        li      0,1	         /* exit call */
+	lis	r3,U_SYSTEM_EXITCODE@h
+	stw	r3,U_SYSTEM_EXITCODE@l(r3)
+        sc
+        b	_haltproc
+
 	/* Define a symbol for the first piece of initialized data.  */
 	.section ".data"
 	.globl	__data_start
@@ -41,7 +50,10 @@ ___fpc_brk_addr:
         .long   0
 /*
   $Log$
-  Revision 1.4  2002-08-31 13:11:11  florian
+  Revision 1.5  2002-08-31 14:01:28  florian
+    * _haltproc to prt0.as added (Linux/PPC)
+
+  Revision 1.4  2002/08/31 13:11:11  florian
     * several fixes for Linux/PPC compilation
 
   Revision 1.3  2002/08/19 21:19:15  florian
