@@ -143,7 +143,6 @@ implementation
                   { normal variable }
                   else
                     begin
-                       symtabletype:=symtable.symtabletype;
                        { in case it is a register variable: }
                        if tvarsym(symtableentry).reg<>R_NO then
                          begin
@@ -165,109 +164,111 @@ implementation
                          end
                        else
                          begin
-                            { first handle local and temporary variables }
-                            if (symtabletype in [parasymtable,inlinelocalsymtable,
-                                                 inlineparasymtable,localsymtable]) then
-                              begin
-                                 location.reference.base:=procinfo.framepointer;
-                                 if (symtabletype in [inlinelocalsymtable,
-                                                      localsymtable])
+                           symtabletype:=symtable.symtabletype;
+                           case symtabletype of
+                              localsymtable,
+                              parasymtable,
+                              inlinelocalsymtable,
+                              inlineparasymtable :
+                                begin
+                                  location.reference.base:=procinfo.framepointer;
+                                  if (symtabletype in [inlinelocalsymtable,
+                                                       localsymtable])
 {$ifdef powerpc}
-                                   { the ifdef is only for speed reasons }
-                                   and not(target_info.system in [system_powerpc_linux,system_powerpc_macos])
+                                    { the ifdef is only for speed reasons }
+                                    and not(target_info.system in [system_powerpc_linux,system_powerpc_macos])
 {$endif powerpc}
-                                   then
-                                   location.reference.offset:=
-                                     tvarsym(symtableentry).address-symtable.address_fixup
-                                 else
-                                   location.reference.offset:=
-                                     tvarsym(symtableentry).address+symtable.address_fixup;
+                                    then
+                                    location.reference.offset:=
+                                      tvarsym(symtableentry).address-symtable.address_fixup
+                                  else
+                                    location.reference.offset:=
+                                      tvarsym(symtableentry).address+symtable.address_fixup;
 
 {$ifndef powerpc}
-                                 if (symtabletype in [localsymtable,inlinelocalsymtable]) then
-                                   begin
-                                      if use_esp_stackframe then
-                                        dec(location.reference.offset,
-                                          tvarsym(symtableentry).getvaluesize)
-                                      else
-                                        location.reference.offset:=-location.reference.offset;
-                                   end;
+                                  if (symtabletype in [localsymtable,inlinelocalsymtable]) then
+                                    begin
+                                       if use_esp_stackframe then
+                                         dec(location.reference.offset,
+                                           tvarsym(symtableentry).getvaluesize)
+                                       else
+                                         location.reference.offset:=-location.reference.offset;
+                                    end;
 {$endif powerpc}
-                                 if (lexlevel>symtable.symtablelevel) then
-                                   begin
-                                      hregister:=rg.getaddressregister(exprasmlist);
-                                      { make a reference }
-                                      reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
-                                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-                                      { walk parents }
-                                      i:=lexlevel-1;
-                                      while (i>symtable.symtablelevel) do
+                                  if (lexlevel>symtable.symtablelevel) then
+                                    begin
+                                       hregister:=rg.getaddressregister(exprasmlist);
+                                       { make a reference }
+                                       reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                                       { walk parents }
+                                       i:=lexlevel-1;
+                                       while (i>symtable.symtablelevel) do
+                                         begin
+                                            { make a reference }
+                                            reference_reset_base(href,hregister,target_info.first_parm_offset);
+                                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+                                            dec(i);
+                                         end;
+                                       location.reference.base:=hregister;
+                                    end;
+
+                                  if (symtabletype in [parasymtable,inlineparasymtable]) then
+                                    begin
+                                      { in case call by reference, then calculate. Open array
+                                        is always an reference! }
+                                      if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
+                                         is_open_array(tvarsym(symtableentry).vartype.def) or
+                                         is_array_of_const(tvarsym(symtableentry).vartype.def) or
+                                         paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,
+                                             (tprocdef(symtable.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl])) then
                                         begin
-                                           { make a reference }
-                                           reference_reset_base(href,hregister,target_info.first_parm_offset);
-                                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-                                           dec(i);
-                                        end;
-                                      location.reference.base:=hregister;
-                                   end;
-                              end
-                            else
-                              case symtabletype of
-                                 globalsymtable,
-                                 staticsymtable :
-                                   begin
-                                     location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname);
-                                   end;
-                                 stt_exceptsymtable:
-                                   begin
-                                      location.reference.base:=procinfo.framepointer;
-                                      location.reference.offset:=tvarsym(symtableentry).address;
-                                   end;
-                                 objectsymtable:
-                                   begin
-                                      if (sp_static in tvarsym(symtableentry).symoptions) then
-                                        location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname)
-                                      else
-                                        begin
-                                           rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
-                                           location.reference.base:=SELF_POINTER_REG;
-                                           location.reference.offset:=tvarsym(symtableentry).address;
-                                        end;
-                                   end;
-                                 withsymtable:
-                                   begin
-                                      if nf_islocal in tnode(twithsymtable(symtable).withnode).flags then
-                                        location.reference:=twithnode(twithsymtable(symtable).withnode).withreference
-                                      else
-                                        begin
-                                          location.reference.base:=rg.getaddressregister(exprasmlist);
-                                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,
-                                             twithnode(twithsymtable(symtable).withnode).withreference,
-                                             location.reference.base);
-                                        end;
-                                      inc(location.reference.offset,tvarsym(symtableentry).address);
-                                   end;
-                              end;
+                                           if hregister=R_NO then
+                                             hregister:=rg.getaddressregister(exprasmlist);
+                                           { we need to load only an address }
+                                           location.size:=OS_ADDR;
+                                           cg.a_load_loc_reg(exprasmlist,location,hregister);
+                                           location_reset(location,LOC_REFERENCE,newsize);
+                                           location.reference.base:=hregister;
+                                       end;
+                                    end;
+                                end;
+                              globalsymtable,
+                              staticsymtable :
+                                begin
+                                  location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname);
+                                end;
+                              stt_exceptsymtable:
+                                begin
+                                   location.reference.base:=procinfo.framepointer;
+                                   location.reference.offset:=tvarsym(symtableentry).address;
+                                end;
+                              objectsymtable:
+                                begin
+                                   if (sp_static in tvarsym(symtableentry).symoptions) then
+                                     location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname)
+                                   else
+                                     begin
+                                        rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
+                                        location.reference.base:=SELF_POINTER_REG;
+                                        location.reference.offset:=tvarsym(symtableentry).address;
+                                     end;
+                                end;
+                              withsymtable:
+                                begin
+                                   if nf_islocal in tnode(twithsymtable(symtable).withnode).flags then
+                                     location.reference:=twithnode(twithsymtable(symtable).withnode).withreference
+                                   else
+                                     begin
+                                       location.reference.base:=rg.getaddressregister(exprasmlist);
+                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,
+                                          twithnode(twithsymtable(symtable).withnode).withreference,
+                                          location.reference.base);
+                                     end;
+                                   inc(location.reference.offset,tvarsym(symtableentry).address);
+                                end;
+                           end;
                          end;
-                       { cdecl procedure }
-                       is_cdecl:=(symtabletype=parasymtable) and
-                                 (tprocdef(symtable.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]);
-                       { in case call by reference, then calculate. Open array
-                         is always an reference! }
-                       if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                          is_open_array(tvarsym(symtableentry).vartype.def) or
-                          is_array_of_const(tvarsym(symtableentry).vartype.def) or
-                          ((tvarsym(symtableentry).varspez=vs_const) and
-                           paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,is_cdecl)) then
-                         begin
-                            if hregister=R_NO then
-                              hregister:=rg.getaddressregister(exprasmlist);
-                            { we need to load only an address }
-                            location.size:=OS_ADDR;
-                            cg.a_load_loc_reg(exprasmlist,location,hregister);
-                            location_reset(location,LOC_REFERENCE,newsize);
-                            location.reference.base:=hregister;
-                        end;
                     end;
                end;
             procsym:
@@ -292,7 +293,9 @@ implementation
                        if left.nodetype=typen then
                         begin
                           { there is no instance, we return 0 }
-                          cg.a_load_const_ref(exprasmlist,OS_ADDR,0,location.reference);
+                          href:=location.reference;
+                          inc(href.offset,POINTER_SIZE);
+                          cg.a_load_const_ref(exprasmlist,OS_ADDR,0,href);
                         end
                        else
                         begin
@@ -944,7 +947,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-08-25 19:25:18  peter
+  Revision 1.27  2002-09-01 12:15:40  peter
+    * fixed loading of procvar of object when the object is initialized
+      with 0
+
+  Revision 1.26  2002/08/25 19:25:18  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be
