@@ -40,7 +40,7 @@ implementation
 
 uses
   Dos,Video,
-  Objects,Drivers,Views,App,
+  Objects,Drivers,Views,App,Commands,
   CompHook,
 {$ifdef go32v2}
   FPRedir,
@@ -160,7 +160,8 @@ procedure DoCompile(Mode: TCompileMode);
   function IsExitEvent(E: TEvent): boolean;
   begin
     IsExitEvent:=(E.What=evKeyDown) and
-                 ((E.KeyCode=kbEnter) or (E.KeyCode=kbEsc));
+                 ((E.KeyCode=kbEnter) or (E.KeyCode=kbEsc)) or
+                 ((E.What=evCommand) and (E.command=cmClose));
   end;
 
 
@@ -225,6 +226,8 @@ begin
      else CompilationPhase:=cpFailed;
   SD^.Update;
 
+  SD^.SetState(sfModal,false);
+
   if ((CompilationPhase in[cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
    repeat
      SD^.GetEvent(E);
@@ -233,7 +236,6 @@ begin
    until IsExitEvent(E);
 
   Application^.Delete(SD);
-  SD^.SetState(sfModal,false);
   Dispose(SD, Done); SD:=nil;
 
 {  if (WasVisible=false) and (status.errorcount=0) then
@@ -244,7 +246,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-02-04 13:32:01  pierre
+  Revision 1.9  1999-02-05 13:06:28  pierre
+   * allow cmClose for Compilation Dialog box
+
+  Revision 1.8  1999/02/04 13:32:01  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
