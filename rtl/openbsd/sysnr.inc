@@ -27,6 +27,7 @@ Const
 	syscall_nr_open		= 5  ;
 	syscall_nr_close	= 6  ;
 	syscall_nr_wait4	= 7  ;
+	syscall_nr_waitpid	= 8  ;	// added: ease of notation purposes
 	syscall_nr_link		= 9  ;
 	syscall_nr_unlink	= 10 ;
 	syscall_nr_chdir	= 12 ;

@@ -206,7 +206,7 @@ end;
 
 function GetDomainName(Name:PChar; NameLen:Cint):cint; [public,alias:'FPC_SYSC_GETDOMAINNAME'];
 
-Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,KERN_NISDOMAINNAME);
+Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,{$ifdef OpenBSD}KERN_DOMAINNAME{$ELSE}KERN_NISDOMAINNAME{$endif});
 
 VAR
         tsize : size_t;
@@ -458,7 +458,10 @@ end;
 
 {
  $Log$
- Revision 1.7  2003-12-30 12:26:21  marco
+ Revision 1.8  2004-01-22 13:46:14  marco
+ bsd
+
+ Revision 1.7  2003/12/30 12:26:21  marco
   * FPC_USE_LIBC
 
  Revision 1.6  2003/11/18 10:12:25  marco

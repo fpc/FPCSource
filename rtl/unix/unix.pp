@@ -20,9 +20,7 @@ Uses UnixUtil,BaseUnix;
 
 { Get Types and Constants }
 {$i sysconst.inc}
-{$ifndef FPC_USE_LIBC}
 {$i systypes.inc}
-{$endif not FPC_USE_LIBC}
 
 {Get error numbers, some more signal definitions and other OS dependant
  types (that are not POSIX) }
@@ -1411,7 +1409,10 @@ End.
 
 {
   $Log$
-  Revision 1.58  2004-01-04 21:05:01  jonas
+  Revision 1.59  2004-01-22 13:46:14  marco
+  bsd
+
+  Revision 1.58  2004/01/04 21:05:01  jonas
     * declare C-library routines as external in libc so we generate proper
       import entries for Darwin
 

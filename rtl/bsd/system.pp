@@ -57,6 +57,18 @@ function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 {$ifdef Darwin}
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$else}
+{$ifdef OpenBSD}
+
+var libcerrno : libcint; cvar;
+
+function geterrnolocation: Plibcint; cdecl;
+
+begin
+ geterrnolocation:=@libcerrno;
+end;
+
+{$else}
+{$endif}
 {$endif}
 {$endif}
 {$endif}
@@ -173,7 +185,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2004-01-20 23:09:14  hajny
+  Revision 1.14  2004-01-22 13:46:14  marco
+  bsd
+
+  Revision 1.13  2004/01/20 23:09:14  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.12  2004/01/04 20:32:05  jonas
