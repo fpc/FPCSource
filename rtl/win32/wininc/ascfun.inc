@@ -13,7 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
 {
   ASCIIFunctions.h
 
@@ -165,6 +164,10 @@ function GetComputerNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'kern
 function SetComputerNameA(lpComputerName:LPCSTR):WINBOOL; external 'kernel32' name 'SetComputerNameA';
 function GetUserNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameA';
 function wvsprintfA(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfA';
+function wsprintfA(_para1:LPSTR; _para2:LPCSTR; const args:array of const):longint; cdecl; external 'user32' name 'wsprintfA';
+function wsprintfA(_para1:LPSTR; _para2:LPCSTR):longint; external 'user32' name 'wsprintfA';
+function wsprintf(_para1:LPSTR; _para2:LPCSTR; const args:array of const):longint; external 'user32' name 'wsprintfA';
+function wsprintf(_para1:LPSTR; _para2:LPCSTR):longint; cdecl; external 'user32' name 'wsprintfA';
 function LoadKeyboardLayoutA(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutA';
 function GetKeyboardLayoutNameA(pwszKLID:LPSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameA';
 function CreateDesktopA(lpszDesktop:LPSTR; lpszDevice:LPSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD;lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32' name 'CreateDesktopA';
@@ -491,7 +494,13 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-05-02 14:46:45  marco
+  Revision 1.10  2004-08-08 16:52:51  florian
+    * tried to fix some wsprintf issues
+    + now compiled in objfpc mode
+      so some integer => smallint changes where necessary; hopefully,
+      I didn't forget one
+
+  Revision 1.9  2004/05/02 14:46:45  marco
    * some confusion over createfont, cleaned up (bug 3056)
 
   Revision 1.8  2002/12/12 17:34:35  peter

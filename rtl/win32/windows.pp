@@ -19,6 +19,8 @@ unit windows;
 {$smartlink on}
 {$endif}
 
+{ stuff like array of const is used }
+{$mode objfpc}
 {$calling stdcall}
 
 interface
@@ -64,7 +66,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-09-17 15:06:36  peter
+  Revision 1.7  2004-08-08 16:52:51  florian
+    * tried to fix some wsprintf issues
+    + now compiled in objfpc mode
+      so some integer => smallint changes where necessary; hopefully,
+      I didn't forget one
+
+  Revision 1.6  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.5  2002/11/04 12:19:01  marco

@@ -180,8 +180,6 @@ function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCritica
 function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
 
-function _lcreat(const lpPathName: LPCSTR; iAttribute: Integer): HFILE; external 'kernel32' name '_lcreat';
-function _lopen(const lpPathName: LPCSTR; iReadWrite: Integer): HFILE; external 'kernel32' name '_lopen';
 //function _lwrite(hFile: HFILE; const lpBuffer: LPCSTR; uBytes: UINT): UINT; external 'kernel32' name '_lwrite';
 //function AccessCheck(pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess: DWORD; const GenericMapping: TGenericMapping; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD;
 //  var AccessStatus: BOOL): BOOL; external 'advapi32' name 'AccessCheck';
@@ -339,7 +337,7 @@ function DispatchMessageA(const lpMsg: TMsg): Longint; external 'user32' name 'D
 function DispatchMessageW(const lpMsg: TMsg): Longint; external 'user32' name 'DispatchMessageW';
 function DosDateTimeToFileTime(wFatDate, wFatTime: Word; var lpFileTime: TFileTime): BOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function DPtoLP(DC: HDC; var Points; Count: Integer): BOOL; external 'gdi32' name 'DPtoLP';
-function DrawAnimatedRects(hwnd: HWND; idAni: Integer; const lprcFrom, lprcTo: TRect): BOOL; external 'user32' name 'DrawAnimatedRects';
+// function DrawAnimatedRects(hwnd: HWND; idAni: Integer; const lprcFrom, lprcTo: TRect): BOOL; external 'user32' name 'DrawAnimatedRects';
 //function DrawCaption(p1: HWND; p2: HDC; const p3: TRect; p4: UINT): BOOL; external 'user32' name 'DrawCaption';
 function DrawEdge(hdc: HDC; var qrc: TRect; edge: UINT; grfFlags: UINT): BOOL; external 'user32' name 'DrawEdge';
 //function DrawFocusRect(hDC: HDC; const lprc: TRect): BOOL; external 'user32' name 'DrawFocusRect';
@@ -366,7 +364,7 @@ function EnumDisplaySettingsA(lpszDeviceName: LPCSTR; iModeNum: DWORD; var lpDev
 //function EqualRect(const lprc1, lprc2: TRect): BOOL; external 'user32' name 'EqualRect';
 function ExtCreatePen(PenStyle, Width: DWORD; const Brush: TLogBrush; StyleCount: DWORD; Style: Pointer): HPEN; external 'gdi32' name 'ExtCreatePen';
 function ExtCreateRegion(p1: PXForm; p2: DWORD; const p3: TRgnData): HRGN; external 'gdi32' name 'ExtCreateRegion';
-function ExtEscape(DC: HDC; p2, p3: Integer; const p4: LPCSTR; p5: Integer; p6: LPSTR): Integer; external 'gdi32' name 'ExtEscape';
+// function ExtEscape(DC: HDC; p2, p3: Integer; const p4: LPCSTR; p5: Integer; p6: LPSTR): Integer; external 'gdi32' name 'ExtEscape';
 function FileTimeToDosDateTime(const lpFileTime: TFileTime; var lpFatDate, lpFatTime: Word): BOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function FileTimeToLocalFileTime(const lpFileTime: TFileTime; var lpLocalFileTime: TFileTime): BOOL; external 'kernel32' name 'FileTimeToLocalFileTime';
 function FileTimeToSystemTime(const lpFileTime: TFileTime; var lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'FileTimeToSystemTime';
@@ -464,7 +462,6 @@ function GetDiskFreeSpaceW(lpRootPathName: LPWSTR; var lpSectorsPerCluster, lpBy
 function GetDiskFreeSpaceEx(lpDirectoryName: PChar;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes:pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
 function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
 function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR;  lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: pLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
-function GetDlgItemInt(hDlg: HWND; nIDDlgItem: Integer; var lpTranslated: BOOL; bSigned: BOOL): UINT; external 'user32' name 'GetDlgItemInt';
 //function GetEnhMetaFilePixelFormat(p1: HENHMETAFILE; p2: Cardinal; var p3: TPixelFormatDescriptor): UINT;external 'gdi32' name 'GetEnhMetaFilePixelFormat';
 function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external 'kernel32' name 'GetExitCodeProcess';
 function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external 'kernel32' name 'GetExitCodeThread';
@@ -663,7 +660,7 @@ function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; 
 {$ifdef support_smartlink}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
 {$endif support_smartlink}
-function MultiByteToWideChar(CodePage: UINT; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lLPWSTRStr: LPWSTR; cchWideChar: Integer): Integer; external 'kernel32' name 'MultiByteToWideChar';
+// function MultiByteToWideChar(CodePage: UINT; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lLPWSTRStr: LPWSTR; cchWideChar: Integer): Integer; external 'kernel32' name 'MultiByteToWideChar';
 function ObjectOpenAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName: PChar; ObjectName: PChar; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet;
   ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL;external 'advapi32' name 'ObjectOpenAuditAlarmA';
 function ObjectOpenAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName: LPCSTR; ObjectName: LPCSTR; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet;
@@ -777,7 +774,7 @@ function ScreenToClient(hWnd: HWND; var lpPoint: TPoint): BOOL; external 'user32
 function ScrollConsoleScreenBuffer(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL;external 'kernel32' name 'ScrollConsoleScreenBufferA';
 function ScrollConsoleScreenBufferA(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL; external 'kernel32' name 'ScrollConsoleScreenBufferA';
 function ScrollConsoleScreenBufferW(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL; external 'kernel32' name 'ScrollConsoleScreenBufferW';
-function ScrollDC(DC: HDC; DX, DY: Integer; var Scroll, Clip: TRect; Rgn: HRGN; Update: PRect): BOOL; external 'user32' name 'ScrollDC';
+//function ScrollDC(DC: HDC; DX, DY: Integer; var Scroll, Clip: TRect; Rgn: HRGN; Update: PRect): BOOL; external 'user32' name 'ScrollDC';
 //function SearchPath(lpPath, lpFileName, lpExtension: PChar; nBufferLength: DWORD; lpBuffer: PChar; var lpFilePart: PChar): DWORD;external 'kernel32' name 'SearchPathA';
 //function SearchPathA(lpPath, lpFileName, lpExtension: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'SearchPathA';
 //function SearchPathW(lpPath, lpFileName, lpExtension: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'SearchPathW';
@@ -798,7 +795,7 @@ function SetCriticalSectionSpinCount(var lpCriticalSection: TRTLCriticalSection;
 function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'SetDeviceGammaRamp';
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
 function SetDIBits(DC: HDC; Bitmap: HBITMAP; StartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBits';
-function SetDIBitsToDevice(DC: HDC; DestX, DestY: Integer; Width, Height: DWORD; SrcX, SrcY: Integer; nStartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBitsToDevice';
+//function SetDIBitsToDevice(DC: HDC; DestX, DestY: Integer; Width, Height: DWORD; SrcX, SrcY: Integer; nStartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBitsToDevice';
 function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external 'kernel32' name 'SetFileTime';
 //function SetKeyboardState(var KeyState: TKeyboardState): BOOL; external 'user32' name 'SetKeyboardState';
 //function SetLocalTime(const lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'SetLocalTime';
@@ -827,7 +824,7 @@ function SetWinMetaFileBits(p1: UINT; p2: PChar; p3: HDC; const p4: TMetaFilePic
 function StartDoc(DC: HDC; const p2: TDocInfo): Integer;external 'gdi32' name 'StartDocA';
 function StartDocA(DC: HDC; const p2: TDocInfoA): Integer; external 'gdi32' name 'StartDocA';
 //function StartDocW(DC: HDC; const p2: TDocInfoW): Integer; external 'gdi32' name 'StartDocW';
-function StretchDIBits(DC: HDC; DestX, DestY, DestWidth, DestHegiht, SrcX, SrcY, SrcWidth, SrcHeight: Integer; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT; Rop: DWORD): Integer; external 'gdi32' name 'StretchDIBits';
+//function StretchDIBits(DC: HDC; DestX, DestY, DestWidth, DestHegiht, SrcX, SrcY, SrcWidth, SrcHeight: Integer; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT; Rop: DWORD): Integer; external 'gdi32' name 'StretchDIBits';
 function SubtractRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external 'user32' name 'SubtractRect';
 function SystemTimeToFileTime(const lpSystemTime: TSystemTime; var lpFileTime: TFileTime): BOOL; external 'kernel32' name 'SystemTimeToFileTime';
 function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation: PTimeZoneInformation; var lpUniversalTime, lpLocalTime: TSystemTime): BOOL; external 'kernel32' name 'SystemTimeToTzSpecificLocalTime';
@@ -1062,7 +1059,13 @@ end;
 
 {
   $Log$
-  Revision 1.24  2004-07-26 06:48:30  michael
+  Revision 1.25  2004-08-08 16:52:52  florian
+    * tried to fix some wsprintf issues
+    + now compiled in objfpc mode
+      so some integer => smallint changes where necessary; hopefully,
+      I didn't forget one
+
+  Revision 1.24  2004/07/26 06:48:30  michael
   + Added trackmouseevent call and structures
 
   Revision 1.23  2004/05/09 10:46:34  peter

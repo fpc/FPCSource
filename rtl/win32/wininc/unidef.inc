@@ -164,7 +164,7 @@ function GetComputerName(lpBuffer:LPWSTR; nSize:LPDWORD):WINBOOL; external 'kern
 function SetComputerName(lpComputerName:LPCWSTR):WINBOOL; external 'kernel32' name 'SetComputerNameW';
 function GetUserName(lpBuffer:LPWSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameW';
 function wvsprintf(_para1:LPWSTR; _para2:LPCWSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfW';
-{function wsprintf(_para1:LPWSTR; _para2:LPCWSTR; const args:array of const):longint;CDECL; external 'user32' name 'wsprintfW';}
+function wsprintf(_para1:LPWSTR; _para2:LPCWSTR; const args:array of const):longint;cdecl; external 'user32' name 'wsprintfW';
 function wsprintf(_para1:LPWSTR; _para2:LPCWSTR):longint;CDECL; external 'user32' name 'wsprintfW';
 function LoadKeyboardLayout(pwszKLID:LPCWSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutW';
 function GetKeyboardLayoutName(pwszKLID:LPWSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameW';
@@ -492,7 +492,13 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-05-02 14:46:45  marco
+  Revision 1.9  2004-08-08 16:52:52  florian
+    * tried to fix some wsprintf issues
+    + now compiled in objfpc mode
+      so some integer => smallint changes where necessary; hopefully,
+      I didn't forget one
+
+  Revision 1.8  2004/05/02 14:46:45  marco
    * some confusion over createfont, cleaned up (bug 3056)
 
   Revision 1.7  2002/12/12 17:34:36  peter

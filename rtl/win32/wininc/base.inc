@@ -62,7 +62,7 @@
      COLORREF = cardinal;
      TCOLORREF = cardinal;
 
-     SHORT = integer;
+     SHORT = smallint;
      WINT  = longint;
      LONG  = longint;
      DWORD = cardinal;
@@ -190,7 +190,7 @@
 
      PINT = ^longint;
      PLONG = ^longint;
-     PSHORT = ^integer;
+     PSHORT = ^SHORT;
 
      PSTR = Pchar;
 
@@ -218,7 +218,7 @@
 
      PVOID = pointer;
 
-     RETCODE = integer;
+     RETCODE = SHORT;
 
      SC_HANDLE = HANDLE;
      SC_LOCK = LPVOID;
@@ -776,7 +776,7 @@ type
   { argument types are unknown }
   function SEXT_LOWORD(l : longint) : longint;
     begin
-       SEXT_LOWORD:=longint(integer(l));
+       SEXT_LOWORD:=longint(SHORT(l));
     end;
 
   { was #define dname(params) def_expr }
@@ -939,7 +939,13 @@ type
 
 {
   $Log$
-  Revision 1.21  2003-12-08 21:23:24  peter
+  Revision 1.22  2004-08-08 16:52:52  florian
+    * tried to fix some wsprintf issues
+    + now compiled in objfpc mode
+      so some integer => smallint changes where necessary; hopefully,
+      I didn't forget one
+
+  Revision 1.21  2003/12/08 21:23:24  peter
     * hmodule added
 
   Revision 1.20  2003/12/05 11:53:12  marco
