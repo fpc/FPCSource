@@ -115,6 +115,9 @@ const
      cmToolsMsgPrev      = 232;
      cmGrep              = 233;
      cmCompilerMessages  = 234;
+     cmSymbol            = 235;
+     cmStack             = 236;
+     cmBreakpointList    = 237;                                                                                                                                                                                                           
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -244,6 +247,7 @@ const
      hcObjects           = hcShift+cmObjects;
      hcModules           = hcShift+cmModules;
      hcGlobals           = hcShift+cmGlobals;
+     hcSymbol            = hcShift+cmSymbol;
      hcRun               = hcShift+cmRun;
      hcParameters        = hcShift+cmParameters;
      hcResetDebugger     = hcShift+cmResetDebugger;
@@ -275,6 +279,8 @@ const
      hcEvaluate          = hcShift+cmEvaluate;
      hcAddWatch          = hcShift+cmAddWatch;
      hcGrep              = hcShift+cmGrep;
+     hcStack             = hcShift+cmStack;
+     hcBreakPointList    = hcShift+cmBreakpointList;
 
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
@@ -325,7 +331,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.17  1999-04-07 21:55:44  peter
+  Revision 1.18  1999-06-25 00:38:59  pierre
+   +cmSymbol,cmStack,cmBreakpointList
+
+  Revision 1.17  1999/04/07 21:55:44  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
