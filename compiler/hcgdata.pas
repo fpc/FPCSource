@@ -30,6 +30,8 @@ interface
     { generates the message tables for a class }
     function genstrmsgtab(_class : pobjectdef) : pasmlabel;
     function genintmsgtab(_class : pobjectdef) : pasmlabel;
+    { generates the method name table }
+    function genpublishedmethodstable(_class : pobjectdef) : pasmlabel;
 
     { generates a VMT for _class }
     procedure genvmt(list : paasmoutput;_class : pobjectdef);
@@ -255,6 +257,56 @@ implementation
            end;
       end;
 
+    procedure do_count(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+
+      begin
+         if (psym(p)^.typ=procsym) and (sp_published in psym(p)^.symoptions) then
+           inc(count);
+      end;
+
+    procedure genpubmethodtableentry(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+
+      var
+         hp : pprocdef;
+         pt : pprocdeftree;
+         l : pasmlabel;
+
+      begin
+         if (psym(p)^.typ=procsym) and (sp_published in psym(p)^.symoptions) then
+           begin
+              hp:=pprocsym(p)^.definition;
+              if assigned(hp^.nextoverloaded) then
+                internalerror(1209992);
+              getlabel(l);
+
+              consts^.concat(new(pai_label,init(l)));
+              consts^.concat(new(pai_const,init_8bit(length(p^.name))));
+              consts^.concat(new(pai_string,init(p^.name)));
+
+              datasegment^.concat(new(pai_const_symbol,init(l)));
+              datasegment^.concat(new(pai_const_symbol,initname(hp^.mangledname)));
+           end;
+      end;
+
+    function genpublishedmethodstable(_class : pobjectdef) : pasmlabel;
+
+      var
+         l : pasmlabel;
+
+      begin
+         count:=0;
+         _class^.symtable^.foreach({$ifndef TP}@{$endif}do_count);
+         if count>0 then
+           begin
+              getlabel(l);
+              datasegment^.concat(new(pai_label,init(l)));
+              datasegment^.concat(new(pai_const,init_32bit(count)));
+              _class^.symtable^.foreach({$ifndef TP}@{$endif}genpubmethodtableentry);
+              genpublishedmethodstable:=l;
+           end
+         else
+           genpublishedmethodstable:=nil;
+      end;
 
 {*****************************************************************************
                                     VMT
@@ -563,7 +615,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-09-01 13:44:56  florian
+  Revision 1.16  1999-09-12 14:50:50  florian
+    + implemented creation of methodname/address tables
+
+  Revision 1.15  1999/09/01 13:44:56  florian
     * fixed writing of class rtti: vmt offset were written wrong
 
   Revision 1.14  1999/08/03 22:02:52  peter

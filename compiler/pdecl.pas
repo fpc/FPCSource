@@ -1386,7 +1386,8 @@ unit pdecl;
          hp1    : pdef;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
-         intmessagetable,strmessagetable,classnamelabel : pasmlabel;
+         methodnametable,intmessagetable,
+         strmessagetable,classnamelabel : pasmlabel;
          storetypeforwardsallowed : boolean;
          vmtlist : taasmoutput;
 
@@ -1731,6 +1732,7 @@ unit pdecl;
                 class is written, because we need the labels defined }
               if is_a_class then
                begin
+                 methodnametable:=genpublishedmethodstable(aktclass);
                  { rtti }
                  if (oo_can_have_published in aktclass^.objectoptions) then
                   aktclass^.generate_rtti;
@@ -1786,7 +1788,10 @@ unit pdecl;
                  else
                    datasegment^.concat(new(pai_const,init_32bit(0)));
                  { pointer to method table }
-                 datasegment^.concat(new(pai_const,init_32bit(0)));
+                 if assigned(methodnametable) then
+                   datasegment^.concat(new(pai_const_symbol,init(methodnametable)))
+                 else
+                   datasegment^.concat(new(pai_const,init_32bit(0)));
                  { pointer to field table }
                  datasegment^.concat(new(pai_const,init_32bit(0)));
                  { pointer to type info of published section }
@@ -2527,7 +2532,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.151  1999-09-12 08:48:09  florian
+  Revision 1.152  1999-09-12 14:50:50  florian
+    + implemented creation of methodname/address tables
+
+  Revision 1.151  1999/09/12 08:48:09  florian
     * bugs 593 and 607 fixed
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method
