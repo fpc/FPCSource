@@ -750,7 +750,7 @@ Implementation
                 { the symbol can be external
                   so we must use newasmsymbol and
                   not getasmsymbol !! PM }
-                ps:=objectlibrary.newasmsymbol(copy(s,1,j-1),AB_EXTERNAL,AT_FUNCTION);
+                ps:=objectlibrary.newasmsymbol(copy(s,1,j-1),AB_EXTERNAL,AT_NONE);
                 if not assigned(ps) then
                   internalerror(33006)
                 else
@@ -1660,7 +1660,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-03-15 21:50:09  peter
+  Revision 1.66  2004-03-22 09:28:34  michael
+  + Patch from peter for stack overflow
+
+  Revision 1.65  2004/03/15 21:50:09  peter
     * start with bssline
 
   Revision 1.64  2004/03/02 17:32:12  florian

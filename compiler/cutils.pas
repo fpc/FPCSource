@@ -201,9 +201,14 @@ uses
       begin
         { for 0 and 1 no aligning is needed }
         if a<=1 then
-         align:=i
+          result:=i
         else
-         align:=((i+a-1) div a) * a;
+          begin
+            if i<0 then
+              result:=((i-a+1) div a) * a
+            else  
+              result:=((i+a-1) div a) * a;
+          end;  
       end;
 
 
@@ -1136,7 +1141,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2004-02-27 10:21:05  florian
+  Revision 1.37  2004-03-22 09:28:34  michael
+  + Patch from peter for stack overflow
+
+  Revision 1.36  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
