@@ -39,8 +39,8 @@ LStrPasLoop:
         { get remaining count for length }
         mfctr   r10
         { if r10 was zero (-> stopped because of zero byte), then r4 will be 32 }
-        { (32 leading zero bits) -> shr 31 = 1, otherwise this will be zero     }
-        srwi    r4,r4,31
+        { (32 leading zero bits) -> shr 5 = 1, otherwise this will be zero      }
+        srwi    r4,r4,5
         subfic  r10,r10,255
         sub     r10,r10,r4
 
@@ -50,7 +50,10 @@ end ['R0','R3','R4','R10','R11','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.7  2002-09-11 07:49:40  jonas
+  Revision 1.8  2002-10-17 10:14:46  jonas
+    * fixed srwi's after cntlzw instructions (should be 5 instead of 31)
+
+  Revision 1.7  2002/09/11 07:49:40  jonas
     * fixed assembler errors
 
   Revision 1.6  2002/09/07 16:01:26  peter

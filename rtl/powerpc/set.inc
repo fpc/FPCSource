@@ -331,7 +331,7 @@ asm
        sub.     r0,r0,r10
        bdnzt    cr0*4+eq,LMCOMPSETS1
        cntlzw   r3,r0
-       srwi.    r3,r3,31
+       srwi.    r3,r3,5
 end ['R0','R3','R4','R10','CR0','CTR'];
 
 
@@ -353,7 +353,7 @@ asm
        andc.    r0,r0,r10
        bdnzt    cr0*4+eq,LMCONTAINSSETS1
        cntlzw   r3,r0
-       srwi.    r3,r3,31
+       srwi.    r3,r3,5
 end ['R0','R3','R4','R10','CR0','CTR'];
 
 
@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2002-09-07 16:01:26  peter
+  Revision 1.16  2002-10-17 10:14:46  jonas
+    * fixed srwi's after cntlzw instructions (should be 5 instead of 31)
+
+  Revision 1.15  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.14  2002/08/18 22:11:10  florian
