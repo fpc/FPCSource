@@ -51,35 +51,38 @@ end;
 
 function wifexited(status : cint): cint;
 begin
- wifexited:=cint((status AND &177) =0);
+ wifexited:=cint((status AND 127) =0);
 end;
 
 function wexitstatus(status : cint): cint;
 begin
- wexitstatus:=(status and &177) shr 8;
+ wexitstatus:=(status and 127) shr 8;
 end;
 
 function wstopsig(status : cint): cint;
 begin
- wstopsig:=(status and &177) shr 8;
+ wstopsig:=(status and 127) shr 8;
 end;
 
-const wstopped=&177;
+const wstopped=127;
 
 function wifsignaled(status : cint): cint;
 begin
- wifsignaled:=cint(((status and &177)<>wstopped) and ((status and &177)<>0));
+ wifsignaled:=cint(((status and 127)<>wstopped) and ((status and 127)<>0));
 end;
 
 function wtermsig(status : cint):cint;
 
 begin
- wtermsig:=cint(status and &177);
+ wtermsig:=cint(status and 127);
 end;
 
 {
   $Log$
-  Revision 1.1  2003-01-05 19:01:28  marco
+  Revision 1.2  2003-01-21 15:34:59  marco
+   * fix octal that broke 1.0.x
+
+  Revision 1.1  2003/01/05 19:01:28  marco
    * FreeBSD compiles now with baseunix mods.
 
   Revision 1.4  2002/11/12 14:19:46  marco
