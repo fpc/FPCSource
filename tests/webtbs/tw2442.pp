@@ -26,7 +26,7 @@ PROCEDURE anObject.A( c : cardinal );
 
         PROCEDURE B;
         BEGIN
-                WriteLn('B called (cardinal)')
+                WriteLn('B called (cardinal)');
         writeln('error!');
         halt(1);
         END
