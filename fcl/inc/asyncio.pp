@@ -46,7 +46,7 @@ type
     TimeoutNotify: TAsyncIONotifyInfo;
     procedure CalcHighestHandle(max: Integer);
     procedure ExecuteNotify(const Notify: TAsyncIONotifyInfo);
-    function  GetHandleAsync(AHandle: Integer): Boolean;
+    function GetHandleAsync(AHandle: Integer): Boolean;
     procedure SetHandleAsync(AHandle: Integer; AValue: Boolean);
   public
     constructor Create;
@@ -54,12 +54,15 @@ type
     procedure BreakRun;
     procedure SetReadHandler(AHandle: Integer; AMethod: TAsyncIONotify; AUserData: TObject);
     procedure ClearReadHandler(AHandle: Integer);
+    function GetReadHandler(AHandle: Integer): TAsyncIONotify;
     procedure SetWriteHandler(AHandle: Integer; AMethod: TAsyncIONotify; AUserData: TObject);
     procedure ClearWriteHandler(AHandle: Integer);
+    function GetWriteHandler(AHandle: Integer): TAsyncIONotify;
     procedure SetTimeoutHandler(AMethod: TAsyncIONotify; AUserData: TObject);
     procedure ClearTimeoutHandler;
-    property  Timeout: Integer read FTimeout write FTimeout;
-    property  HandleAsync[AHandle: Integer]: Boolean read GetHandleAsync write SetHandleAsync;
+    function GetTimeoutHandler: TAsyncIONotify;
+    property Timeout: Integer read FTimeout write FTimeout;
+    property HandleAsync[AHandle: Integer]: Boolean read GetHandleAsync write SetHandleAsync;
   end;
 
 
@@ -69,8 +72,11 @@ type
 
   TLineNotify = procedure(const line: String) of object;
 
+  PBoolean = ^Boolean;
+
   TGenericLineReader = class
   protected
+    FDestroyedFlag: PBoolean;
     RealBuffer, FBuffer: PChar;
     FBytesInBuffer: Integer;
     FOnLine: TLineNotify;
@@ -169,6 +175,8 @@ type
 
 implementation
 
+uses SysUtils;
+
 {$i asyncio.inc}
 
 // -------------------------------------------------------------------
@@ -192,6 +200,11 @@ begin
   TimeoutNotify.Method := nil;
 end;
 
+function TAsyncIOManager.GetTimeoutHandler: TAsyncIONotify;
+begin
+  Result := TimeoutNotify.Method;
+end;
+
 
 // -------------------------------------------------------------------
 //   TGenericLineReader
@@ -199,7 +212,10 @@ end;
 
 destructor TGenericLineReader.Destroy;
 begin
-  if Assigned(RealBuffer) then begin
+  if Assigned(FDestroyedFlag) then
+    FDestroyedFlag^ := True;
+  if Assigned(RealBuffer) then
+  begin
     FreeMem(RealBuffer);
     RealBuffer := nil;
   end;
@@ -212,10 +228,12 @@ var
   p: PChar;
   BytesRead, OldBufSize, CurBytesInBuffer, LastEndOfLine, i, LineLength: Integer;
   line: String;
-  FirstRun: Boolean;
+  FirstRun, DestroyedFlag: Boolean;
 begin
   FirstRun := True;
-  while True do begin
+  DestroyedFlag := False;
+  while True do
+  begin
     BytesRead := Read(NewData, SizeOf(NewData));
     //WriteLn('Linereader: ', BytesRead, ' bytes read');
     if BytesRead <= 0 then begin
@@ -242,24 +260,28 @@ begin
 
     CurBytesInBuffer := FBytesInBuffer;
 
-    while i <= CurBytesInBuffer - 2 do begin
-      if (RealBuffer[i] = #13) or (RealBuffer[i] = #10) then begin
+    while i <= CurBytesInBuffer - 2 do
+    begin
+      if (RealBuffer[i] = #13) or (RealBuffer[i] = #10) then
+      begin
         LineLength := i - LastEndOfLine;
 	SetLength(line, LineLength);
 	if LineLength > 0 then
 	  Move(RealBuffer[LastEndOfLine], line[1], LineLength);
 
-	if ((RealBuffer[i] = #13) and (RealBuffer[i + 1] = #10)) or
-	   ((RealBuffer[i] = #10) and (RealBuffer[i + 1] = #13)) then
+	if (RealBuffer[i] = #13) and (RealBuffer[i + 1] = #10) then
 	  Inc(i);
 	LastEndOfLine := i + 1;
 
-	if Assigned(FOnLine) then begin
+	if Assigned(FOnLine) then
+	begin
 	  FBuffer := RealBuffer + LastEndOfLine;
 	  FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
+	  FDestroyedFlag := @DestroyedFlag;
 	  FOnLine(line);
-	  // Check if <this> has been destroyed by FOnLine:
-	  if not Assigned(FBuffer) then exit;
+	  FDestroyedFlag := nil;
+	  if DestroyedFlag then
+	    exit;
 	end;
       end;
       Inc(i);
@@ -267,7 +289,8 @@ begin
 
     FBytesInBuffer := CurBytesInBuffer;
 
-    if LastEndOfLine > 0 then begin
+    if LastEndOfLine > 0 then
+    begin
       // Remove all processed lines from the buffer
       Dec(FBytesInBuffer, LastEndOfLine);
       GetMem(p, FBytesInBuffer);
@@ -293,9 +316,11 @@ procedure TAsyncStreamLineReader.NoData;
 var
   s: String;
 begin
-  if (FDataStream = FBlockingStream) or (FDataStream.Position = FDataStream.Size) then begin
+  if (FDataStream = FBlockingStream) or (FDataStream.Position = FDataStream.Size) then
+  begin
 
-    if (FBytesInBuffer > 0) and Assigned(FOnLine) then begin
+    if (FBytesInBuffer > 0) and Assigned(FOnLine) then
+    begin
       if FBuffer[FBytesInBuffer - 1] in [#13, #10] then
         Dec(FBytesInBuffer);
       SetLength(s, FBytesInBuffer);
@@ -333,8 +358,13 @@ begin
 end;
 
 destructor TAsyncStreamLineReader.Destroy;
+var
+  Handler: TMethod;
 begin
-  FManager.ClearReadHandler(FBlockingStream.Handle);
+  Handler := TMethod(FManager.GetReadHandler(FBlockingStream.Handle));
+  if (Handler.Code = Pointer(@StreamDataAvailable)) and
+    (Handler.Data = Pointer(Self)) then
+    FManager.ClearReadHandler(FBlockingStream.Handle);
   inherited Destroy;
 end;
 
@@ -482,7 +512,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-02-18 23:14:48  michael
+  Revision 1.2  2000-07-09 11:49:05  sg
+  * Added methods for reading event handlers in TAsyncIOManager
+  * Fixed problems when LineReader gets destroyed while it still was
+    parsing input data.
+
+  Revision 1.1  2000/02/18 23:14:48  michael
   + Initial implementation
 
   Revision 1.1  2000/02/17 22:40:05  sg
