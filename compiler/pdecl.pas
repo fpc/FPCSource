@@ -34,7 +34,7 @@ interface
       { pass_1 }
       node;
 
-    function  readconstant(const name:string;const filepos:tfileposinfo):tconstsym;
+    function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
 
     procedure const_dec;
     procedure label_dec;
@@ -62,7 +62,7 @@ implementation
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj;
 
 
-    function readconstant(const name:string;const filepos:tfileposinfo):tconstsym;
+    function readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
       var
         hp : tconstsym;
         p : tnode;
@@ -72,7 +72,7 @@ implementation
         storetokenpos : tfileposinfo;
       begin
         readconstant:=nil;
-        if name='' then
+        if orgname='' then
          internalerror(9584582);
         hp:=nil;
         p:=comp_expr(true);
@@ -82,44 +82,44 @@ implementation
            ordconstn:
              begin
                 if is_constintnode(p) then
-                  hp:=tconstsym.create_ord_typed(name,constint,tordconstnode(p).value,tordconstnode(p).resulttype)
+                  hp:=tconstsym.create_ord_typed(orgname,constint,tordconstnode(p).value,tordconstnode(p).resulttype)
                 else if is_constcharnode(p) then
-                  hp:=tconstsym.create_ord(name,constchar,tordconstnode(p).value)
+                  hp:=tconstsym.create_ord(orgname,constchar,tordconstnode(p).value)
                 else if is_constboolnode(p) then
-                  hp:=tconstsym.create_ord(name,constbool,tordconstnode(p).value)
+                  hp:=tconstsym.create_ord(orgname,constbool,tordconstnode(p).value)
                 else if is_constwidecharnode(p) then
-                  hp:=tconstsym.create_ord(name,constwchar,tordconstnode(p).value)
+                  hp:=tconstsym.create_ord(orgname,constwchar,tordconstnode(p).value)
                 else if p.resulttype.def.deftype=enumdef then
-                  hp:=tconstsym.create_ord_typed(name,constord,tordconstnode(p).value,p.resulttype)
+                  hp:=tconstsym.create_ord_typed(orgname,constord,tordconstnode(p).value,p.resulttype)
                 else if p.resulttype.def.deftype=pointerdef then
-                  hp:=tconstsym.create_ordptr_typed(name,constpointer,tordconstnode(p).value,p.resulttype)
+                  hp:=tconstsym.create_ordptr_typed(orgname,constpointer,tordconstnode(p).value,p.resulttype)
                 else internalerror(111);
              end;
            stringconstn:
              begin
                 getmem(sp,tstringconstnode(p).len+1);
                 move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                hp:=tconstsym.create_string(name,conststring,sp,tstringconstnode(p).len);
+                hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len);
              end;
            realconstn :
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=tconstsym.create_ptr(name,constreal,pd);
+                hp:=tconstsym.create_ptr(orgname,constreal,pd);
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=tconstsym.create_ptr_typed(name,constset,ps,p.resulttype);
+               hp:=tconstsym.create_ptr_typed(orgname,constset,ps,p.resulttype);
              end;
            pointerconstn :
              begin
-               hp:=tconstsym.create_ordptr_typed(name,constpointer,tpointerconstnode(p).value,p.resulttype);
+               hp:=tconstsym.create_ordptr_typed(orgname,constpointer,tpointerconstnode(p).value,p.resulttype);
              end;
            niln :
              begin
-               hp:=tconstsym.create_ord_typed(name,constnil,0,p.resulttype);
+               hp:=tconstsym.create_ord_typed(orgname,constnil,0,p.resulttype);
              end;
            else
              Message(cg_e_illegal_expression);
@@ -132,7 +132,7 @@ implementation
 
     procedure const_dec;
       var
-         name : stringid;
+         orgname : stringid;
          tt  : ttype;
          sym : tsym;
          storetokenpos,filepos : tfileposinfo;
@@ -143,7 +143,7 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
-           name:=pattern;
+           orgname:=orgpattern;
            filepos:=akttokenpos;
            consume(_ID);
            case token of
@@ -151,7 +151,7 @@ implementation
              _EQUAL:
                 begin
                    consume(_EQUAL);
-                   sym:=readconstant(name,filepos);
+                   sym:=readconstant(orgname,filepos);
                    if assigned(sym) then
                     symtablestack.insert(sym);
                    try_consume_hintdirective(sym.symoptions);
@@ -176,14 +176,14 @@ implementation
                    if m_delphi in aktmodeswitches then
                      begin
                        if assigned(readtypesym) then
-                        sym:=ttypedconstsym.createsym(name,readtypesym,true)
+                        sym:=ttypedconstsym.createsym(orgname,readtypesym,true)
                        else
-                        sym:=ttypedconstsym.create(name,def,true)
+                        sym:=ttypedconstsym.create(orgname,def,true)
                      end
                    else
 {$endif DELPHI_CONST_IN_RODATA}
                      begin
-                       sym:=ttypedconstsym.createtype(name,tt,false)
+                       sym:=ttypedconstsym.createtype(orgname,tt,false)
                      end;
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
@@ -253,7 +253,7 @@ implementation
                   end
                 else
                   getlabel(hl);
-                symtablestack.insert(tlabelsym.create(pattern,hl));
+                symtablestack.insert(tlabelsym.create(orgpattern,hl));
                 consume(token);
              end;
            if token<>_SEMICOLON then consume(_COMMA);
@@ -497,8 +497,6 @@ implementation
               if (tt.def.deftype=objectdef) and
                  not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
                begin
-                 if (cs_create_smart in aktmoduleswitches) then
-                   dataSegment.concat(Tai_cut.Create);
                  ch:=cclassheader.create(tobjectdef(tt.def));
                  if is_interface(tobjectdef(tt.def)) then
                    ch.writeinterfaceids;
@@ -538,7 +536,7 @@ implementation
 
     procedure resourcestring_dec;
       var
-         name : stringid;
+         orgname : stringid;
          p : tnode;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
@@ -550,7 +548,7 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
-           name:=pattern;
+           orgname:=orgpattern;
            filepos:=akttokenpos;
            consume(_ID);
            case token of
@@ -568,7 +566,7 @@ implementation
                                 getmem(sp,2);
                                 sp[0]:=chr(tordconstnode(p).value);
                                 sp[1]:=#0;
-                                symtablestack.insert(tconstsym.create_string(name,constresourcestring,sp,1));
+                                symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,1));
                              end
                            else
                              Message(cg_e_illegal_expression);
@@ -577,7 +575,7 @@ implementation
                         begin
                            getmem(sp,tstringconstnode(p).len+1);
                            move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                           symtablestack.insert(tconstsym.create_string(name,constresourcestring,sp,tstringconstnode(p).len));
+                           symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,tstringconstnode(p).len));
                         end;
                       else
                         Message(cg_e_illegal_expression);
@@ -595,7 +593,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-09-02 21:18:28  peter
+  Revision 1.34  2001-09-19 11:06:03  michael
+  * realname updated for some hints
+  * realname used for consts,labels
+
+  Revision 1.33  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.

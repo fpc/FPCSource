@@ -67,7 +67,7 @@ implementation
          strlength : longint;
          curconstsegment : TAAsmoutput;
          ll        : tasmlabel;
-         s         : string;
+         s,sorg    : string;
          c         : char;
          ca        : pchar;
          tmpguid   : tguid;
@@ -741,6 +741,7 @@ implementation
                    while token<>_RKLAMMER do
                      begin
                         s:=pattern;
+                        sorg:=orgpattern;
                         consume(_ID);
                         consume(_COLON);
                         error := false;
@@ -777,13 +778,13 @@ implementation
                             { Delphi allows you to skip fields }
                             else if (m_delphi in aktmodeswitches) then
                               begin
-                                Message1(parser_w_skipped_fields_before,s);
+                                Message1(parser_w_skipped_fields_before,sorg);
                                 srsym := recsym;
                               end
                             { FPC and TP don't }
                             else
                               begin
-                                Message1(parser_e_skipped_fields_before,s);
+                                Message1(parser_e_skipped_fields_before,sorg);
                                 error := true;
                               end;
                           end;
@@ -857,6 +858,7 @@ implementation
                    while token<>_RKLAMMER do
                      begin
                         s:=pattern;
+                        sorg:=orgpattern;
                         consume(_ID);
                         consume(_COLON);
                         srsym:=nil;
@@ -875,7 +877,7 @@ implementation
 
                         if srsym=nil then
                           begin
-                             Message1(sym_e_id_not_found,s);
+                             Message1(sym_e_id_not_found,sorg);
                              consume_all_until(_SEMICOLON);
                           end
                         else
@@ -945,7 +947,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-09-17 21:29:12  peter
+  Revision 1.34  2001-09-19 11:06:03  michael
+  * realname updated for some hints
+  * realname used for consts,labels
+
+  Revision 1.33  2001/09/17 21:29:12  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.32  2001/09/02 21:18:28  peter

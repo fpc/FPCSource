@@ -735,7 +735,7 @@ implementation
                     MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_not_used,tsym(p).realname);
                   end
                 else if (tsym(p).owner.symtabletype=objectsymtable) then
-                  MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_not_used,tsym(p).owner.name^,tsym(p).realname)
+                  MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_not_used,tsym(p).owner.realname^,tsym(p).realname)
                 else
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_not_used,tsym(p).realname);
              end
@@ -752,7 +752,7 @@ implementation
                       MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_only_set,tsym(p).realname);
                   end
                 else if (tsym(p).owner.symtabletype=objectsymtable) then
-                  MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_only_set,tsym(p).owner.name^,tsym(p).realname)
+                  MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_only_set,tsym(p).owner.realname^,tsym(p).realname)
                 else if (tsym(p).owner.symtabletype<>parasymtable) then
                   if not (vo_is_exported in tvarsym(p).varoptions) then
                     MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
@@ -765,7 +765,7 @@ implementation
              exit;
            { do not claim for inherited private fields !! }
            if (tstoredsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
-             MessagePos2(tsym(p).fileinfo,sym_n_private_method_not_used,tsym(p).owner.name^,tsym(p).realname)
+             MessagePos2(tsym(p).fileinfo,sym_n_private_method_not_used,tsym(p).owner.realname^,tsym(p).realname)
            { units references are problematic }
            else if (tstoredsym(p).refs=0) and not(tsym(p).typ in [funcretsym,enumsym,unitsym]) then
              if (tsym(p).typ<>procsym) or not (tprocsym(p).is_global) or
@@ -2103,7 +2103,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2001-09-04 11:38:55  jonas
+  Revision 1.45  2001-09-19 11:06:03  michael
+  * realname updated for some hints
+  * realname used for consts,labels
+
+  Revision 1.44  2001/09/04 11:38:55  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead
