@@ -128,6 +128,29 @@ begin
     end;
 end;
 
+
+procedure set_default_link_type;
+begin
+  if (target_os.id=os_i386_win32) then
+    begin
+      def_symbol('FPC_LINK_SMART');
+      undef_symbol('FPC_LINK_STATIC');
+      undef_symbol('FPC_LINK_DYNAMIC');
+      initglobalswitches:=initglobalswitches+[cs_link_smart];
+      initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
+    end
+  else
+    begin
+      undef_symbol('FPC_LINK_SMART');
+      def_symbol('FPC_LINK_STATIC');
+      undef_symbol('FPC_LINK_DYNAMIC');
+      initglobalswitches:=initglobalswitches+[cs_link_static];
+      initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
+    end;
+end;
+
+
+
 {****************************************************************************
                                  Toption
 ****************************************************************************}
@@ -187,13 +210,10 @@ var
   s     : string;
   p     : pchar;
 begin
-  MaybeLoadMessageFile;
+  WriteLogo;
+  Lines:=4;
   Message1(option_usage,system.paramstr(0));
   lastident:=0;
-  if DoWriteLogo then
-   lines:=3
-  else
-   lines:=1;
   p:=MessagePChar(option_help_pages);
   while assigned(p) do
    begin
@@ -203,6 +223,12 @@ begin
      show:=false;
    { parse options }
      case s[1] of
+{$ifdef UNITALIASES}
+      'a',
+{$endif}
+{$ifdef EXTDEBUG}
+      'e',
+{$endif EXTDEBUG}
 {$ifdef i386}
       '3',
 {$endif}
@@ -241,11 +267,11 @@ begin
                  outline:=7;
                end;
          '2' : begin
-                 ident:=11;
+                 ident:=6;
                  outline:=11;
                end;
          '3' : begin
-                 ident:=21;
+                 ident:=9;
                  outline:=6;
                end;
         end;
@@ -335,7 +361,8 @@ begin
                         'l' : initglobalswitches:=initglobalswitches+[cs_asm_source];
                         'r' : initglobalswitches:=initglobalswitches+[cs_asm_regalloc];
                         't' : initglobalswitches:=initglobalswitches+[cs_asm_tempalloc];
-                        '-' : initglobalswitches:=initglobalswitches-[cs_asm_leave,cs_asm_source,cs_asm_regalloc];
+                        '-' : initglobalswitches:=initglobalswitches-
+                                [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc];
                        else
                          IllegalPara(opt);
                        end;
@@ -370,19 +397,19 @@ begin
                           IllegalPara(opt);
 {$endif}
                     end;
-              'B' : if more='' then
-                      do_build:=true
+              'B' : if UnSetBool(more,0) then
+                      do_build:=false
                     else
-                      if more = '-' then
-                        do_build := False
-                      else
-                        IllegalPara(opt);
+                      do_build:=true;
               'C' : begin
                       j := 1;
                       while j <= length(more) Do
                         Begin
                           case more[j] of
-                            'a' : Simplify_ppu:=true;
+                            'a' : If UnsetBool(More, j) then
+                                    Simplify_ppu:=false
+                                  else
+                                    Simplify_ppu:=true;
                             'h' :
                                begin
                                  val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -499,6 +526,11 @@ begin
                                 break;
                               end;
                         'w' : usewindowapi:=true;
+                        '-' : begin
+                                initglobalswitches:=initglobalswitches-
+                                  [cs_link_deffile];
+                                usewindowapi:=false;
+                              end;
                        else
                          IllegalPara(opt);
                        end;
@@ -595,11 +627,14 @@ begin
                      ParaLinkOptions:=ParaLinkOptions+' '+More
                     else
                      IllegalPara(opt);
-              'l' : if more='' then
-                      DoWriteLogo:=true
+              'l' : if UnSetBool(more,0) then
+                      DoWriteLogo:=false
                     else
-                      IllegalPara(opt);
-              'm' : parapreprocess:=true;
+                      DoWriteLogo:=true;
+              'm' : if UnSetBool(more,0) then
+                      parapreprocess:=false
+                    else
+                      parapreprocess:=true;
               'n' : if More='' then
                      begin
                        read_configfile:=false;
@@ -634,9 +669,15 @@ begin
                         end;
                     end;
 {$ifdef Unix}
-              'P' : initglobalswitches:=initglobalswitches+[cs_asm_pipe];
-{$endif}
-              's' : initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
+              'P' : if UnsetBool(More, 0) then
+                      initglobalswitches:=initglobalswitches-[cs_asm_pipe]
+                    else
+                      initglobalswitches:=initglobalswitches+[cs_asm_pipe];
+{$endif Unix}
+              's' : if UnsetBool(More, 0) then
+                      initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern]
+                    else
+                      initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
               'S' : begin
                       if more[1]='I' then
                         begin
@@ -666,7 +707,16 @@ begin
                           'p' : SetCompileMode('GPC',true);
                           's' : initglobalswitches:=initglobalswitches+[cs_constructor_name];
                           't' : initmoduleswitches:=initmoduleswitches+[cs_static_keyword];
-                          'v' : Message1(option_obsolete_switch,'-Sv');
+                          '-' : begin
+                                  initglobalswitches:=initglobalswitches -
+                                    [cs_constructor_name];
+                                  initlocalswitches:=InitLocalswitches -
+                                    [cs_do_assertion, cs_ansistrings];
+                                  initmoduleswitches:=initmoduleswitches -
+                                    [cs_support_c_operators, cs_support_goto,
+                                     cs_support_inline, cs_support_macro,
+                                     cs_static_keyword];
+                                end;
                          else
                           IllegalPara(opt);
                          end;
@@ -719,6 +769,11 @@ begin
                                 break;
                               end;
                         's' : initmoduleswitches:=initmoduleswitches+[cs_compilesystem];
+                        '-' : begin
+                                initmoduleswitches:=initmoduleswitches
+                                  - [cs_compilesystem]
+                                  + [cs_check_unit_name];
+                              end;
                        else
                          IllegalPara(opt);
                        end;
@@ -747,14 +802,16 @@ begin
                                break;
                              end;
                         'C': apptype:=app_cui;
-                        'D': ForceDeffileForExport:=true;
+                        'D': if UnsetBool(More, j) then
+                              ForceDeffileForExport:=false
+                             else
+                              ForceDeffileForExport:=true;
                         'F': apptype:=app_fs;
                         'G': apptype:=app_gui;
                         'N': begin
                                RelocSection:=false;
                                RelocSectionSetExplicitly:=true;
                              end;
-
                         'R': begin
                                RelocSection:=true;
                                RelocSectionSetExplicitly:=true;
@@ -792,6 +849,10 @@ begin
                                 initglobalswitches:=initglobalswitches+[cs_link_smart];
                                 initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
                                 LinkTypeSetExplicitly:=true;
+                              end;
+                        '-' : begin
+                                initglobalswitches:=initglobalswitches-[cs_link_toc, cs_link_strip, cs_link_staticflag];
+                                set_default_link_type;
                               end;
                        else
                          IllegalPara(opt);
@@ -1208,11 +1269,6 @@ var
   configpath : pathstr;
 begin
   option:=coption.create;
-
-{ Load messages }
-  if (cmd='') and (paramcount=0) then
-   option.WriteHelpPages;
-
   disable_configfile:=false;
 
 { default defines }
@@ -1363,6 +1419,10 @@ begin
        option.writequickinfo;
     end;
 
+{ Write help pages }
+  if (cmd='') and (paramcount=0) then
+   Option.WriteHelpPages;
+
 { Stop if errors in options }
   if ErrorCount>0 then
    StopOptions;
@@ -1481,24 +1541,8 @@ begin
     initglobalswitches:=initglobalswitches-[cs_link_strip];
 
   if not LinkTypeSetExplicitly then
-    begin
-      if (target_os.id=os_i386_win32) then
-        begin
-          def_symbol('FPC_LINK_SMART');
-          undef_symbol('FPC_LINK_STATIC');
-          undef_symbol('FPC_LINK_DYNAMIC');
-          initglobalswitches:=initglobalswitches+[cs_link_smart];
-          initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
-        end
-      else
-        begin
-          undef_symbol('FPC_LINK_SMART');
-          def_symbol('FPC_LINK_STATIC');
-          undef_symbol('FPC_LINK_DYNAMIC');
-          initglobalswitches:=initglobalswitches+[cs_link_static];
-          initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
-        end;
-    end;
+   set_default_link_type;
+
 { Set defines depending on the target }
   if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
    def_symbol('DPMI'); { MSDOS is not defined in BP when target is DPMI }
@@ -1518,7 +1562,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2001-01-20 18:36:51  hajny
+  Revision 1.28  2001-02-05 21:26:36  peter
+    * applied patches from Sergey Korshunoff
+
+  Revision 1.27  2001/01/20 18:36:51  hajny
     + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
 
   Revision 1.26  2001/01/12 19:21:09  peter
