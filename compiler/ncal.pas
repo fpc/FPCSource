@@ -977,20 +977,11 @@ type
                   hp:=tprocsym(p).procdef[j];
                   { If this is an abstract method insert into the list }
                   if (po_abstractmethod in hp.procoptions) then
-                     AbstractMethodsList.Insert(hp.procsym.name)
+                     AbstractMethodsList.Insert(hp.procsym.realname)
                   else
-                    { If this symbol is already in the list, and it is
-                      an overriding method or dynamic, then remove it from the list
-                    }
-                    begin
-                       { symbol was found }
-                       if AbstractMethodsList.Find(hp.procsym.name) <> nil then
-                         begin
-                            if po_overridingmethod in hp.procoptions then
-                              AbstractMethodsList.Remove(hp.procsym.name);
-                         end;
-
-                  end;
+                    { If this symbol is an overriding method, then remove it from the list }
+                    if po_overridingmethod in hp.procoptions then
+                      AbstractMethodsList.Remove(hp.procsym.realname);
                end;
            end;
       end;
@@ -2393,7 +2384,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.246  2004-08-28 20:00:50  peter
+  Revision 1.247  2004-09-13 20:29:00  peter
+    * use realname for abstract procs found
+
+  Revision 1.246  2004/08/28 20:00:50  peter
     * use objrealname in Message1
 
   Revision 1.245  2004/08/22 10:17:13  peter
