@@ -16,8 +16,11 @@ Const
     Password : pchar = '';
 {$endif}
 
-Const
-  ODBCSuccess = [SQL_SUCCESS,SQL_SUCCESS_WITH_INFO];
+Function ODBCSuccess (Res : Integer) : Boolean;
+
+begin
+  ODBCSuccess:= (res=SQL_SUCCESS) or (res=SQL_SUCCESS_WITH_INFO);
+end;
 
 Var
   EnvHandle  : SQLHandle;
@@ -60,7 +63,7 @@ begin
   if Res <> SQL_SUCCESS then
     DoError('Could allocate ODBC handle',Res);
   Res:=SQLSetEnvAttr(EnvHandle,SQL_ATTR_ODBC_VERSION, SQLPOINTER(SQL_OV_ODBC3), 0);
-  If Not (res in ODBCSuccess) then
+  If Not ODBCSuccess(res) then
     DoError('Could not set environment',Res);
   Res:=SQLAllocHandle(SQL_HANDLE_DBC, envHandle, DBHandle);
   If res<>SQL_SUCCESS then
@@ -68,7 +71,7 @@ begin
   Res:=SQLConnect(DBHandle,PSQLCHAR(DBDSN),SQL_NTS,
                         PSQLChar(UserName),SQL_NTS,
                         PSQLCHAR(Password),SQL_NTS);
-  If Not res in [SQL_SUCCESS,SQL_SUCCESS_WITH_INFO] then
+  If Not OdbcSuccess(res) then
     DoError('Could not connect to datasource.',Res);
 end;
 
@@ -79,7 +82,7 @@ Var
 
 begin
   Res:=SQLAllocHandle(SQL_HANDLE_STMT,DBHandle,stmtHandle);
-  If not res in ODBCSuccess then
+  If not ODBCSuccess(res) then
     DoError('Could not allocate statement handle.',Res);
   { Bind result buffers.
     Note that for many queries, the result is not known on beforehand,
@@ -90,7 +93,7 @@ begin
   SQLBindCol(stmtHandle,3,SQL_CHAR,SQLPointer(@ResEmail),256,@ErrCode);
   // Now actually do it.
   Res:=SQLExecDirect(StmtHandle,Query,SQL_NTS);
-  if not Res in ODBCSuccess then
+  if not ODBCSuccess(res) then
     DoError('Execute of statement failed.',Res);
 end;
 
