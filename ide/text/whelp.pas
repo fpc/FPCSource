@@ -49,6 +49,9 @@ const
       hscCenter      = #10;
       hscRight       = #11;
       hscNamedMark   = #12;
+      hscTextAttr    = #13;
+      hscTextColor   = #14;
+      hscNormText    = #15;
 
 type
       FileStamp      = array [0..32] of char; {+ null terminator + $1A }
@@ -1124,7 +1127,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  2000-05-29 10:44:59  pierre
+  Revision 1.21  2000-05-30 07:18:33  pierre
+   + colors for HTML help by Gabor
+
+  Revision 1.20  2000/05/29 10:44:59  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.19  2000/04/25 08:42:35  pierre

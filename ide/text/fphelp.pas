@@ -431,8 +431,27 @@ begin
   PAdvancedStatusLine(StatusLine)^.ClearStatusText;
 end;
 
+function FPHTMLGetSectionColor(Section: THTMLSection; var Color: byte): boolean;
+var OK: boolean;
+    S: string;
+begin
+  Color:=0;
+  OK:=(ord(Section) in [1..length(CHTMLSectionAttrs)]);
+  if OK then
+  begin
+    S:=#0;
+    S:=copy(CHTMLSectionAttrs,ord(Section),1);
+    if Assigned(Application)=false then Color:=0 else
+    Color:=Application^.GetColor(ord(S[1]));
+    if (Color and $0f) = ((Color and $f0) shr 4) then { same color ? }
+      OK:=false;
+  end;
+  FPHTMLGetSectionColor:=OK;
+end;
+
 procedure InitHelpFiles;
 begin
+  HTMLGetSectionColor:={$ifdef FPC}@{$endif}FPHTMLGetSectionColor;
   New(HelpFiles, Init(10,10));
 end;
 
@@ -459,7 +478,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  2000-05-29 10:44:56  pierre
+  Revision 1.32  2000-05-30 07:18:33  pierre
+   + colors for HTML help by Gabor
+
+  Revision 1.31  2000/05/29 10:44:56  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.30  2000/05/02 08:42:27  pierre

@@ -52,6 +52,7 @@ type
       THelpColorArea = record
         Color    : byte;
         Bounds   : TRect;
+        AttrMask : byte;
       end;
 
       PHelpKeyword = ^THelpKeyword;
@@ -122,6 +123,7 @@ type
         function    GetColorAreaCount: sw_integer; virtual;
         procedure   GetColorAreaBounds(Index: sw_integer; var R: TRect); virtual;
         function    GetColorAreaColor(Index: sw_integer): word; virtual;
+        function    GetColorAreaMask(Index: sw_integer): word; virtual;
         destructor  Done; virtual;
       private
         Width,Margin: sw_integer;
@@ -158,6 +160,7 @@ type
         function    GetColorAreaCount: sw_integer; virtual;
         procedure   GetColorAreaBounds(Index: sw_integer; var R: TRect); virtual;
         function    GetColorAreaColor(Index: sw_integer): word; virtual;
+        function    GetColorAreaMask(Index: sw_integer): word; virtual;
         procedure   SelectNextLink(ANext: boolean); virtual;
         procedure   SwitchToIndex; virtual;
         procedure   SwitchToTopic(SourceFileID: word; Context: THelpCtx); virtual;
@@ -228,11 +231,12 @@ begin
   if P<>nil then Dispose(P);
 end;
 
-function NewColorArea(Color: byte; StartP, EndP: TPoint): PHelpColorArea;
+function NewColorArea(Color, AttrMask: byte; StartP, EndP: TPoint): PHelpColorArea;
 var P: PHelpColorArea;
 begin
   New(P); FillChar(P^, SizeOf(P^), 0);
-  P^.Color:=Color; P^.Bounds.A:=StartP; P^.Bounds.B:=EndP;
+  P^.Color:=Color; P^.AttrMask:=AttrMask;
+  P^.Bounds.A:=StartP; P^.Bounds.B:=EndP;
   NewColorArea:=P;
 end;
 
@@ -409,13 +413,17 @@ procedure THelpTopic.ReBuild;
 var TextPos,LinkNo,NamedMarkNo: sw_word;
     Line,CurWord: string;
     C: char;
-    InLink,InColorArea: boolean;
-    LinkStart,LinkEnd,ColorAreaStart,ColorAreaEnd: TPoint;
+    InLink,InCodeArea,InColorArea: boolean;
+    LinkStart,LinkEnd,CodeAreaStart,CodeAreaEnd: TPoint;
+    ColorAreaStart,ColorAreaEnd: TPoint;
+    ColorAreaType: (atText,atFull);
     CurPos: TPoint;
     ZeroLevel: sw_integer;
     LineStart,NextLineStart: sw_integer;
     LineAlign : (laLeft,laCenter,laRight);
     FirstLink,LastLink: sw_integer;
+    AreaColor: word;
+    NextByte: (nbNormal,nbAreaColor);
 procedure ClearLine;
 begin
   Line:='';
@@ -485,80 +493,116 @@ begin
        ZeroLevel:=0;
      end;
 end;
+procedure EndColorArea;
+var Mask: word;
 begin
-  Lines^.FreeAll; Links^.FreeAll; NamedMarks^.FreeAll;
+  if ColorAreaType=atText then Mask:=$f0 else Mask:=$00;
+  if CurWord<>'' then AddWord(CurWord); CurWord:='';
+  ColorAreaEnd:=CurPos; Dec(ColorAreaEnd.X);
+  ColorAreas^.Insert(NewColorArea(AreaColor,Mask,ColorAreaStart,ColorAreaEnd));
+  InColorArea:=false; AreaColor:=0;
+end;
+begin
+  Lines^.FreeAll; Links^.FreeAll; NamedMarks^.FreeAll; ColorAreas^.FreeAll;
   if Topic=nil then Lines^.Insert(NewStr('No help available for this topic.')) else
   begin
     LineStart:=0; NextLineStart:=0;
     TextPos:=0; ClearLine; CurWord:=''; Line:='';
     CurPos.X:=Margin+LineStart; CurPos.Y:=0; LinkNo:=0;
     NamedMarkNo:=0;
-    InLink:=false; InColorArea:=false; ZeroLevel:=0;
+    InLink:=false; InCodeArea:=false; InColorArea:=false; ZeroLevel:=0;
     LineAlign:=laLeft;
-    FirstLink:=0; LastLink:=0;
+    FirstLink:=0; LastLink:=0; NextByte:=nbNormal;
     while (TextPos<Topic^.TextSize) do
     begin
       C:=chr(PByteArray(Topic^.Text)^[TextPos]);
-      case C of
-        hscLineBreak :
-            {if ZeroLevel=0 then ZeroLevel:=1 else
-                begin FlushLine; FlushLine; ZeroLevel:=0; end;}
-             if InLink then CurWord:=CurWord+' ' else
-               begin
-                 NextLineStart:=0;
-                 FlushLine;
-                 LineStart:=0;
-                 LineAlign:=laLeft;
-               end;
-        #1 : Break;
-        hscLink :
-             begin
-               CheckZeroLevel;
-               if InLink=false then
-                  begin LinkStart:=CurPos; InLink:=true; end else
-                begin
-                  if CurWord<>'' then AddWord(CurWord); CurWord:='';
-                  LinkEnd:=CurPos; Dec(LinkEnd.X);
-                  if Topic^.Links<>nil then
-                    begin
-                      Inc(LastLink);
-                      if LinkNo<Topic^.LinkCount then
-                      Links^.Insert(NewLink(Topic^.Links^[LinkNo].FileID,
-                        Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
-                      Inc(LinkNo);
+      case NextByte of
+        nbAreaColor :
+          begin
+            AreaColor:=ord(C);
+            NextByte:=nbNormal;
+          end;
+        nbNormal :
+          begin
+            case C of
+              hscLineBreak :
+                  {if ZeroLevel=0 then ZeroLevel:=1 else
+                      begin FlushLine; FlushLine; ZeroLevel:=0; end;}
+                   if InLink then CurWord:=CurWord+' ' else
+                     begin
+                       NextLineStart:=0;
+                       FlushLine;
+                       LineStart:=0;
+                       LineAlign:=laLeft;
+                     end;
+              #1 : Break;
+              hscLink :
+                   begin
+                     CheckZeroLevel;
+                     if InLink=false then
+                        begin LinkStart:=CurPos; InLink:=true; end else
+                      begin
+                        if CurWord<>'' then AddWord(CurWord); CurWord:='';
+                        LinkEnd:=CurPos; Dec(LinkEnd.X);
+                        if Topic^.Links<>nil then
+                          begin
+                            Inc(LastLink);
+                            if LinkNo<Topic^.LinkCount then
+                            Links^.Insert(NewLink(Topic^.Links^[LinkNo].FileID,
+                              Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
+                            Inc(LinkNo);
+                          end;
+                        InLink:=false;
+                      end;
                     end;
-                  InLink:=false;
-                end;
-              end;
-        hscLineStart :
-             begin
-               NextLineStart:=length(Line)+length(CurWord);
-{               LineStart:=LineStart+(NextLineStart-LineStart);}
-             end;
-        hscCode :
-             begin
-               if InColorArea=false then
-                  ColorAreaStart:=CurPos else
-                begin
-                  if CurWord<>'' then AddWord(CurWord); CurWord:='';
-                  ColorAreaEnd:=CurPos; Dec(ColorAreaEnd.X);
-                  ColorAreas^.Insert(NewColorArea(CommentColor,ColorAreaStart,ColorAreaEnd));
-                end;
-               InColorArea:=not InColorArea;
-             end;
-        hscCenter :
-             LineAlign:=laCenter;
-        hscRight  :
-             LineAlign:=laCenter;
-        hscNamedMark :
-             begin
-               if NamedMarkNo<Topic^.NamedMarks^.Count then
-                 NamedMarks^.Add(GetStr(Topic^.NamedMarks^.At(NamedMarkNo)),CurPos);
-               Inc(NamedMarkNo);
-             end;
-        #32: if InLink then CurWord:=CurWord+C else
-                begin CheckZeroLevel; AddWord(CurWord+C); CurWord:=''; end;
-      else begin CheckZeroLevel; CurWord:=CurWord+C; end;
+              hscLineStart :
+                   begin
+                     NextLineStart:=length(Line)+length(CurWord);
+      {               LineStart:=LineStart+(NextLineStart-LineStart);}
+                   end;
+              hscCode :
+                   begin
+                     if InCodeArea=false then
+                        CodeAreaStart:=CurPos else
+                      begin
+                        if CurWord<>'' then AddWord(CurWord); CurWord:='';
+                        CodeAreaEnd:=CurPos; Dec(CodeAreaEnd.X);
+                        ColorAreas^.Insert(NewColorArea(CommentColor,$f0,CodeAreaStart,CodeAreaEnd));
+                      end;
+                     InCodeArea:=not InCodeArea;
+                   end;
+              hscCenter :
+                   LineAlign:=laCenter;
+              hscRight  :
+                   LineAlign:=laCenter;
+              hscNamedMark :
+                   begin
+                     if NamedMarkNo<Topic^.NamedMarks^.Count then
+                       NamedMarks^.Add(GetStr(Topic^.NamedMarks^.At(NamedMarkNo)),CurPos);
+                     Inc(NamedMarkNo);
+                   end;
+              hscTextAttr,hscTextColor :
+                   begin
+                     if InColorArea then
+                       EndColorArea;
+                     if C=hscTextAttr then
+                       ColorAreaType:=atFull
+                     else
+                       ColorAreaType:=atText;
+                     NextByte:=nbAreaColor;
+                     ColorAreaStart:=CurPos;
+                     InColorArea:=true;
+                   end;
+              hscNormText :
+                   begin
+                     if InColorArea then
+                       EndColorArea;
+                   end;
+              #32: if InLink then CurWord:=CurWord+C else
+                      begin CheckZeroLevel; AddWord(CurWord+C); CurWord:=''; end;
+            else begin CheckZeroLevel; CurWord:=CurWord+C; end;
+            end;
+          end;
       end;
       CurPos.X:=Margin+length(Line)+length(CurWord);
       Inc(TextPos);
@@ -622,6 +666,13 @@ var P: PHelpColorArea;
 begin
   P:=ColorAreas^.At(Index);
   GetColorAreaColor:=P^.Color;
+end;
+
+function THelpTopic.GetColorAreaMask(Index: sw_integer): word;
+var P: PHelpColorArea;
+begin
+  P:=ColorAreas^.At(Index);
+  GetColorAreaMask:=P^.AttrMask;
 end;
 
 destructor THelpTopic.Done;
@@ -765,6 +816,11 @@ end;
 function THelpViewer.GetColorAreaColor(Index: sw_integer): word;
 begin
   GetColorAreaColor:=HelpTopic^.GetColorAreaColor(Index);
+end;
+
+function THelpViewer.GetColorAreaMask(Index: sw_integer): word;
+begin
+  GetColorAreaMask:=HelpTopic^.GetColorAreaMask(Index);
 end;
 
 procedure THelpViewer.SelectNextLink(ANext: boolean);
@@ -1058,8 +1114,9 @@ var NormalColor, LinkColor,
 {$ifndef EDITORS}
     SelR : TRect;
 {$endif}
-    C: word;
+    C,Mask: word;
     CurP: TPoint;
+    ANDSB,ORSB: word;
 begin
   if LockFlag>0 then
     begin
@@ -1095,6 +1152,7 @@ begin
         if (R.A.Y<=Y) and (Y<=R.B.Y) then
         begin
           C:=GetColorAreaColor(I);
+          Mask:=GetColorAreaMask(I);
           for DX:=MinX to MaxX do
           begin
             X:=DX;
@@ -1103,7 +1161,10 @@ begin
             begin
 {              CurP.X:=X; CurP.Y:=Y;
               if LinkAreaContainsPoint(R,CurP) then}
-              B[ScreenX]:=(B[ScreenX] and $f0ff) or (C shl 8);
+(*              B[ScreenX]:=(B[ScreenX] and $f0ff) or (C shl 8);*)
+              ANDSB:=(Mask shl 8)+$ff;
+              ORSB:=(C shl 8);
+              B[ScreenX]:=(B[ScreenX] and ANDSB) or ORSB;
             end;
           end;
         end;
@@ -1257,7 +1318,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2000-05-29 10:45:00  pierre
+  Revision 1.16  2000-05-30 07:18:33  pierre
+   + colors for HTML help by Gabor
+
+  Revision 1.15  2000/05/29 10:45:00  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.14  2000/04/25 08:42:35  pierre

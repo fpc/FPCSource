@@ -371,6 +371,8 @@ const
 
      CFPCodeMemo    = #26#26#26#28#26#29#26#26#26#27#26#26#26#26#26#26#26;
 
+     CHTMLSectionAttrs = #229#230#231#232#233#234;
+
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -386,14 +388,19 @@ const
          { CFPClockView }
 {227-227}#$70 +
          { CToolTip }
-{228-228}#$20;
+{228-228}#$20 +
+         { CHTMLSectionAttrs }
+{229-234}#$ff#$3a#$37#$ff#$ff#$ff;
 
 implementation
 
 END.
 {
   $Log$
-  Revision 1.38  2000-05-02 08:42:27  pierre
+  Revision 1.39  2000-05-30 07:18:33  pierre
+   + colors for HTML help by Gabor
+
+  Revision 1.38  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.37  2000/04/25 08:42:33  pierre

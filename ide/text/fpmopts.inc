@@ -1134,7 +1134,13 @@ begin
       ColorItem(label_colors_helplinks      , 161,
       ColorItem(label_colors_selectedlink   , 162,
       ColorItem(label_colors_selectedtext   , 163,
-      nil))))))))),
+      ColorItem(label_colors_html_heading1  , 229,
+      ColorItem(label_colors_html_heading2  , 230,
+      ColorItem(label_colors_html_heading3  , 231,
+      ColorItem(label_colors_html_heading4  , 232,
+      ColorItem(label_colors_html_heading5  , 233,
+      ColorItem(label_colors_html_heading6  , 234,
+      nil))))))))))))))),
     ColorGroup(label_colors_grp_menus,   MenuColorItems(nil),
     ColorGroup(label_colors_grp_syntax,
       ColorItem(label_colors_whitespace      , 200,
@@ -1208,7 +1214,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2000-05-02 08:42:28  pierre
+  Revision 1.34  2000-05-30 07:18:33  pierre
+   + colors for HTML help by Gabor
+
+  Revision 1.33  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.32  2000/04/25 08:42:33  pierre

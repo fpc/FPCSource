@@ -462,6 +462,12 @@ const
       label_colors_symbols = 'Szimb¢lumok';
       label_colors_directives = 'Direkt¡v k';
       label_colors_tabs = 'Tabul torok';
+      label_colors_html_heading1 = 'HTML Heading 1';
+      label_colors_html_heading2 = 'HTML Heading 2';
+      label_colors_html_heading3 = 'HTML Heading 3';
+      label_colors_html_heading4 = 'HTML Heading 4';
+      label_colors_html_heading5 = 'HTML Heading 5';
+      label_colors_html_heading6 = 'HTML Heading 6';
 
       dialog_linker = 'Linker';
       label_linker_preferredlibtype = 'Preferr lt k”nyvt r-t¡pus';
@@ -944,7 +950,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-05-29 10:44:57  pierre
+  Revision 1.3  2000-05-30 07:18:33  pierre
+   + colors for HTML help by Gabor
+
+  Revision 1.2  2000/05/29 10:44:57  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.1  2000/05/02 08:42:28  pierre
