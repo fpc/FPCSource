@@ -27,22 +27,19 @@ unit version;
 interface
 
     const
-       { word version for ppu file }
-       wordversion = (1 shl 14)+(9 shl 7) + 5;
-
        { version string }
        version_nr = '1';
        release_nr = '9';
        patch_nr   = '7';
        minorpatch = '';
 
-       { date string }
-{$ifdef FPC}
-       date_string = {$I %DATE%};
-{$else}
-       date_string = 'N/A';
-{$endif}
+       { word version for ppu file }
+       wordversion = ((ord(version_nr)-ord('0')) shl 14)+
+                     ((ord(release_nr)-ord('0')) shl 7)+
+                     (ord(patch_nr)-ord('0'));
 
+       { date string }
+       date_string = {$I %DATE%};
 
        { source cpu string }
 {$ifdef cpu86}
@@ -93,7 +90,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2005-01-02 10:20:08  florian
+  Revision 1.30  2005-01-19 21:10:15  peter
+    * build wordversion from constants
+
+  Revision 1.29  2005/01/02 10:20:08  florian
     * version and copyright increased
 
   Revision 1.28  2004/12/30 19:01:29  peter
