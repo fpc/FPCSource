@@ -136,6 +136,8 @@ implementation
       with taicpu(instr) do
        begin
          case ops of
+           0:
+             ;
            1:
              begin
                if (oper[0]^.typ=top_reg) and
@@ -474,9 +476,9 @@ implementation
                  end;
              end;
            3:
-             begin
-               {$warning todo!!}
-             end;
+             internalerror(200409201);
+           else
+             internalerror(200409202);
          end;
        end;
     end;
@@ -614,7 +616,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:32  florian
+  Revision 1.5  2004-09-26 07:15:07  florian
+    * ie checking in spilling code improved
+
+  Revision 1.4  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.3  2004/06/16 20:07:11  florian
