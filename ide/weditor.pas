@@ -5523,7 +5523,7 @@ begin
       DelChar;
     for Y:=0 to CodeLines^.Count-1 do
     begin
-      Line:=CodeLines^.At(Y)^;
+      Line:=GetStr(CodeLines^.At(Y));
       CanJump:=false;
       if (Y>0) then
         begin
@@ -7104,7 +7104,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2002-08-26 14:00:48  pierre
+  Revision 1.25  2002-09-02 10:33:37  pierre
+   * fix web bug report 2099
+
+  Revision 1.24  2002/08/26 14:00:48  pierre
    * fix for bug report 2025
 
   Revision 1.23  2002/08/26 13:01:38  pierre
