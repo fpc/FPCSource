@@ -28,12 +28,12 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (1 shl 14)+(9 shl 7) + 0;
+       wordversion = (1 shl 14)+(9 shl 7) + 3;
 
        { version string }
        version_nr = '1';
        release_nr = '9';
-       patch_nr   = '2';
+       patch_nr   = '3';
        minorpatch = '';
 
        { date string }
@@ -47,19 +47,19 @@ interface
        { source cpu string }
 {$ifdef cpu86}
         source_cpu_string = 'i386';
-{$endif}
+{$endif cpu86}
 {$ifdef cpupowerpc}
         source_cpu_string = 'powerpc';
-{$endif}
+{$endif cpupowerpc}
 {$ifdef cpum68k}
         source_cpu_string = 'm68k';
 {$endif cpum68k}
 {$ifdef cpuia64}
-       target_cpu_string = 'ia64';
-{$endif}
+        source_cpu_string = 'ia64';
+{$endif cpuia64}
 {$ifdef cpu86_64}
         source_cpu_string = 'x86_64';
-{$endif}
+{$endif cpu86_64}
 {$ifdef cpusparc}
         source_cpu_string = 'sparc';
 {$endif cpusparc}
@@ -69,6 +69,9 @@ interface
 {$ifdef cpuvis}
         source_cpu_string = 'vis';
 {$endif cpuvis}
+{$ifdef cpuarm}
+        source_cpu_string = 'arm';
+{$endif cpuarm}
 
 function version_string:string;
 function full_version_string:string;
@@ -90,7 +93,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-01-03 12:31:44  michael
+  Revision 1.22  2004-01-11 20:59:41  florian
+    * version changed to 1.9.3
+
+  Revision 1.21  2004/01/03 12:31:44  michael
   + Changed version to 1.9.2
 
   Revision 1.20  2003/11/06 15:58:27  peter
