@@ -118,7 +118,7 @@ implementation
          resultset : Tconstset;
          i       : longint;
          b       : boolean;
-         c1,c2   :char;
+         c1,c2   : array[0..1] of char;
          s1,s2   : pchar;
          ws1,ws2 : pcompilerwidestring;
          l1,l2   : longint;
@@ -572,9 +572,11 @@ implementation
          if (lt=ordconstn) and (rt=ordconstn) and
             is_char(ld) and is_char(rd) then
            begin
-              c1:=char(byte(tordconstnode(left).value));
+              c1[0]:=char(byte(tordconstnode(left).value));
+              c1[1]:=#0;
               l1:=1;
-              c2:=char(byte(tordconstnode(right).value));
+              c2[0]:=char(byte(tordconstnode(right).value));
+              c2[1]:=#0;
               l2:=1;
               s1:=@c1;
               s2:=@c2;
@@ -584,14 +586,16 @@ implementation
            begin
               s1:=tstringconstnode(left).value_str;
               l1:=tstringconstnode(left).len;
-              c2:=char(byte(tordconstnode(right).value));
+              c2[0]:=char(byte(tordconstnode(right).value));
+              c2[1]:=#0;
               s2:=@c2;
               l2:=1;
               concatstrings:=true;
            end
          else if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
            begin
-              c1:=char(byte(tordconstnode(left).value));
+              c1[0]:=char(byte(tordconstnode(left).value));
+              c1[1]:=#0;
               l1:=1;
               s1:=@c1;
               s2:=tstringconstnode(right).value_str;
@@ -1306,7 +1310,7 @@ implementation
 	       end;
 	    if (ld.deftype=procvardef) and
 	       (not tprocvardef(ld).is_addressonly) then
-	      begin   	
+	      begin
                 left:=csubscriptnode.create(
                           hsym,
                           ctypeconvnode.create_internal(left,methodpointertype));
@@ -2191,7 +2195,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2005-03-25 22:20:18  peter
+  Revision 1.144  2005-04-06 07:31:51  michael
+  + * fix constant folding for string+char (from Peter)
+
+  Revision 1.143  2005/03/25 22:20:18  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.142  2005/03/14 20:18:22  peter
