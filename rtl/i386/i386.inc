@@ -264,10 +264,6 @@ asm
         popal
 end;
 
-{$ifndef NEWATT}
-  {$asmmode DIRECT}
-{$endif}
-
 {$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
@@ -332,10 +328,6 @@ asm
         popl   %edi
 end;
 
-{$ifndef NEWATT}
-  {$asmmode att}
-{$endif}
-
 
 { checks for a correct vmt pointer }
 
@@ -378,7 +370,6 @@ end;
 end;
 {$endif not SYSTEMDEBUG}
 
-{$ifdef FPC_TESTOBJEXT}
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
@@ -421,7 +412,6 @@ asm
         popl    %ebp
         ret     $8
 end;
-{$endif  FPC_TESTOBJEXT}
 
 
 {****************************************************************************
@@ -565,10 +555,6 @@ end;
 
 function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
-{$ifndef NEWATT}
-  { remove warning }
-  strpas:='';
-{$endif}
   asm
         cld
         movl    p,%edi
@@ -584,11 +570,7 @@ begin
         scasb
 .LStrPasNil:
         movl    %ecx,%eax
-{$ifdef NEWATT}
         movl    __RESULT,%edi
-{$else}
-        movl    8(%ebp),%edi
-{$endif}
         notb    %al
         decl    %eax
         stosb
@@ -840,7 +822,10 @@ end;
 
 {
   $Log$
-  Revision 1.48  1999-07-03 09:03:47  florian
+  Revision 1.49  1999-07-06 10:53:52  peter
+    * removed temp defines
+
+  Revision 1.48  1999/07/03 09:03:47  florian
     * int_new_class returned with zero flag=1, if at the entrance eax was zero
       and newinstance wasn't called, fixed
 
