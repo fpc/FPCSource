@@ -187,8 +187,17 @@ implementation
          l,j,
          i,mylength  : longint;
       begin
-         lastlabel:=nil;
+         { for empty ansistrings we could return a constant 0 }
+         if is_ansistring(p^.resulttype) and
+            (p^.length=0) then
+          begin
+            p^.location.loc:=LOC_MEM;
+            p^.location.reference.is_immediate:=true;
+            p^.location.reference.offset:=0;
+            exit;
+          end;
          { const already used ? }
+         lastlabel:=nil;
          if not assigned(p^.lab_str) then
            begin
               if is_shortstring(p^.resulttype) then
@@ -431,7 +440,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2000-02-09 13:22:46  peter
+  Revision 1.46  2000-06-18 18:09:31  peter
+    * empty ansistring now use constant value of 0
+
+  Revision 1.45  2000/02/09 13:22:46  peter
     * log truncated
 
   Revision 1.44  2000/01/07 01:14:20  peter
