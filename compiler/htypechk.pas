@@ -176,7 +176,9 @@ implementation
                      if (doconv=tc_not_possible) or
                         ((doconv=tc_int_2_bool) and
                          (not explicit) and
-                         (not is_boolean(def_from))) then
+                         (not is_boolean(def_from))) or
+                        ((doconv=tc_bool_2_int) and
+                         (not explicit)) then
                        b:=false;
 {$else}
                      doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
@@ -716,7 +718,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-01-19 15:55:32  pierre
+  Revision 1.15  1999-01-27 13:12:10  pierre
+   * bool to int must be explicit
+
+  Revision 1.14  1999/01/19 15:55:32  pierre
    * fix for boolean to comp conversion (now disabled)
 
   Revision 1.13  1998/12/15 17:11:37  peter
