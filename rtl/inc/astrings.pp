@@ -123,22 +123,15 @@ Procedure Decr_Ansi_Ref (Var S : Pointer);
 Type plongint = ^longint;
 Var l : plongint;
 Begin
-//  dumpansirec(s);
   { Zero string }
-  If S=Nil then
-    exit;
-
+  If S=Nil then exit;
   { check for constant strings ...}
-  l:=S-FirstOff+8;
+  l:=@PANSIREC(S-FirstOff)^.Ref;
   If l^<0 then exit;
   Dec(l^);
-//  dumpansirec(s);
   If l^=0 then
     { Ref count dropped to zero }
-    begin
-//    Writeln ('Calling disposestring');
     DisposeAnsiString (S);        { Remove...}
-    end
 end;
 
 Procedure Incr_Ansi_Ref (Var S : Pointer);
@@ -184,6 +177,11 @@ begin
   If S2<>nil then
     If PAnsiRec(S2-FirstOff)^.Ref>0 then
       Inc(PAnsiRec(S2-FirstOff)^.ref);
+      Temp:=S2;
+      end;
+    end
+  else
+    temp:=S2;
   { Decrease the reference count on the old S1 }
   Decr_Ansi_Ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
@@ -704,7 +702,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  1998-10-30 21:42:48  michael
+  Revision 1.26  1998-11-02 09:46:12  michael
+  + Fix for assign of null string
+
+  Revision 1.25  1998/10/30 21:42:48  michael
   Fixed assignment of NIL string.
 
   Revision 1.24  1998/10/22 11:32:23  michael
