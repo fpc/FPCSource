@@ -57,6 +57,7 @@ Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
+Function Length(c : char) : byte;   [INTERNPROC: In_Length_string];
 
 Procedure Reset(var f : TypedFile);   [INTERNPROC: In_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
@@ -461,7 +462,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  1998-11-04 20:34:02  michael
+  Revision 1.41  1998-11-05 10:29:36  pierre
+   * fix for length(char) in const expressions
+
+  Revision 1.40  1998/11/04 20:34:02  michael
   + Removed ifdef useansistrings
 
   Revision 1.39  1998/10/12 22:11:28  jonas

@@ -126,11 +126,12 @@ begin
 end;
 
 
+{ removed must be internal to be accepted in const expr !! PM
 function length(c:char):StrLenInt;
 begin
   Length:=1;
 end;
-
+}
 
 {$ifdef IBM_CHAR_SET}
 const
@@ -936,7 +937,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1998-11-04 10:20:50  peter
+  Revision 1.16  1998-11-05 10:29:34  pierre
+   * fix for length(char) in const expressions
+
+  Revision 1.15  1998/11/04 10:20:50  peter
     * ansistring fixes
 
   Revision 1.14  1998/10/11 14:30:19  peter

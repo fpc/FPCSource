@@ -198,7 +198,7 @@ Procedure SetLength(var s:shortstring;len:StrLenInt);
 { Char functions to overcome overloading problem with ansistrings }
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 function  pos(const substr : shortstring;c:char): StrLenInt;
-function  length(c:char):StrLenInt;
+function  length(c:char):byte;
 
 Function  upCase(const s:shortstring):shortstring;
 Function  upCase(c:Char):Char;
@@ -430,7 +430,10 @@ const
 
 {
   $Log$
-  Revision 1.39  1998-11-04 20:34:01  michael
+  Revision 1.40  1998-11-05 10:29:37  pierre
+   * fix for length(char) in const expressions
+
+  Revision 1.39  1998/11/04 20:34:01  michael
   + Removed ifdef useansistrings
 
   Revision 1.38  1998/11/04 10:20:51  peter
