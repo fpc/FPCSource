@@ -799,8 +799,13 @@ end ['R3'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;
 asm
-   {$warning FIX ME!}
-   mr r3,r1
+   cmplwi  r3,0
+   beq     Lcaller_addr_frame_null
+   lwz r3,0(r3)
+   cmplwi  r3,0
+   beq     Lcaller_addr_frame_null
+   lwz r3,4(r3)
+Lcaller_addr_frame_null:
     //     !!!!!!! depends on ABI !!!!!!!!
 end ['R3'];
 
@@ -808,9 +813,10 @@ end ['R3'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
-    {$warning FIX ME!}
-    mr  r3,r1
-   //     !!!!!!! depends on ABI !!!!!!!!
+    cmplwi  r3,0
+    beq     Lcaller_frame_null
+    lwz  r3,0(r3)
+Lcaller_frame_null:
 end ['R3'];
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
@@ -887,7 +893,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.40  2003-05-10 17:33:06  jonas
+  Revision 1.41  2003-05-10 20:33:39  jonas
+    * fixed get_caller_frame and get_caller_addr
+
+  Revision 1.40  2003/05/10 17:33:06  jonas
     * final (? :) fix to move, passes new tests/test/tmove test
 
   Revision 1.39  2003/05/02 19:03:25  jonas
