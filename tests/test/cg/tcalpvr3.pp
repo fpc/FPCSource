@@ -1,3 +1,4 @@
+{%KNOWNCOMPILE10ERROR=v1.0 compiler does not akllow cdecl modifier for virtual methods }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -527,7 +528,10 @@ end.
 
 {
    $Log$
-   Revision 1.8  2003-05-15 20:34:29  peter
+   Revision 1.9  2003-06-17 08:31:34  pierre
+    * add known 1.0 compile time error
+
+   Revision 1.8  2003/05/15 20:34:29  peter
      * removed po_containsself tests
 
    Revision 1.4  2003/01/16 22:14:49  peter
