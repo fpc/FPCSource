@@ -308,6 +308,7 @@ Fixed bugs:
   bug0253.pp   problem with overloaded procedures and forward       OK 0.99.11 (PFV)
   bug0254.pp   problem of endless loop if string at end of main
                file without new line.                               OK 0.99.11 (PM)
+  bug0255.pp   internal error 10 with in and function calls         OK 0.99.12 (FK)
   bug0256.pp   problem with conditionnals in TP mode                OK 0.99.11 (PM)
   bug0257.pp   problem with procvars in tp mode                     OK 0.99.11 (PM)
 
@@ -345,5 +346,4 @@ bug0244.pp   nested procedures can't have same name as global ones (same as bug0
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !)
 bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
-bug0255.pp   internal error 10 with in and function calls
 bug0258.pp   bug in small const set extension to large sets
