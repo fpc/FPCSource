@@ -15,7 +15,7 @@ open conditional at the end of the file
 ;
 ; Logo
 ;
-Free Pascal Compiler version 0.99.0 for $1
+Free Pascal Compiler version 0.99.5 for $1
 Copyright (c) 1993-98 by Florian Klaempfl
 ;
 ; Info
