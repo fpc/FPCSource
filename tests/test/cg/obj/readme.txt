@@ -9,5 +9,6 @@ Tested compilers (OK)
 ---------------------
 go32v2 : 2.95.3 20010315/djgpp (release)
 Win32 :  2.95.3-5 (cygwin special)
-Amiga :  GCC 2.91.66
+Amiga :  GCC 2.91.66 
+ (long long/double support is buggy in this version of GCC, so it cannot be used)
 Linux-m68k :  GCC 2.95.4 and 3.0.4
