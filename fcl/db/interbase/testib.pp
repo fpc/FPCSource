@@ -15,8 +15,10 @@
 
 program TestIB;
 
+{$ifdef linux}
 {$linklib dl}
 {$linklib crypt}
+{$endif}
 
 uses Interbase, SysUtils;
 
@@ -90,7 +92,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:15:23  peter
+  Revision 1.5  2003-07-19 15:36:24  michael
+  + dl and crypt only needed on Linux
+
+  Revision 1.4  2002/09/07 15:15:23  peter
     * old logs removed and tabs fixed
 
 }
