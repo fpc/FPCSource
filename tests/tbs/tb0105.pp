@@ -21,11 +21,6 @@ var
     end;
 
 begin
-{$asmmode direct}
-  asm
-    movl $5,l
-  end;
-  if l<>5 then error;
 {$asmmode att}
  asm
    movl  l,%eax
