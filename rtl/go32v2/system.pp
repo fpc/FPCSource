@@ -69,8 +69,8 @@ const
 var
 { Mem[] support }
   mem  : array[0..$7fffffff] of byte absolute $0:$0;
-  memw : array[0..$7fffffff] of word absolute $0:$0;
-  meml : array[0..$7fffffff] of longint absolute $0:$0;
+  memw : array[0..$7fffffff div sizeof(word)] of word absolute $0:$0;
+  meml : array[0..$7fffffff div sizeof(longint)] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc  : longint;
   argv  : ppchar;
@@ -1482,7 +1482,7 @@ end;
 var
   temp_int : tseginfo;
 Begin
-  StackBottom := __stkbottom; 
+  StackBottom := __stkbottom;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
   { To be set if this is a library and not a program  }
@@ -1529,7 +1529,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.17  2002-04-21 15:52:58  carl
+  Revision 1.18  2002-05-05 10:23:54  peter
+    * fixed memw and meml array sizes
+
+  Revision 1.17  2002/04/21 15:52:58  carl
   + initialize some global variables
 
   Revision 1.16  2002/04/12 17:34:05  carl
