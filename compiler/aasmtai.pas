@@ -150,6 +150,20 @@ interface
 {$endif GDB}
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end];
 
+{ ait_* types which do not have line information (and hence which are of type
+  tai, otherwise, they are of type tailineinfo }
+{ ait_* types which do not have line information (and hence which are of type
+  tai, otherwise, they are of type tailineinfo }
+      SkipLineInfo =[ait_label,
+                     ait_regalloc,ait_tempalloc,
+{$ifdef GDB}
+                  ait_stabn,ait_stabs,ait_stab_function_name,
+{$endif GDB}
+                  ait_cut,ait_marker,ait_align,ait_section,ait_comment,
+                  ait_const_8bit,ait_const_16bit,ait_const_32bit,
+                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit
+                  ];
+
 
     type
        { cut type, required for alphanumeric ordering of the assembler filenames }
@@ -159,13 +173,15 @@ interface
                   AsmBlockStart,AsmBlockEnd,
                   InlineStart,InlineEnd);
 
-       { the short name makes typing easier }
+       { Buffer type used for alignment }
+       tfillbuffer = array[0..63] of char;
+
+       { abstract assembler item }
        tai = class(TLinkedListItem)
 {$ifndef NOOPT}
           { pointer to record with optimizer info about this tai object }
           optinfo  : pointer;
 {$endif NOOPT}
-          fileinfo : tfileposinfo;
           typ      : taitype;
           constructor Create;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);virtual;
@@ -175,12 +191,21 @@ interface
           procedure checkredefinesym(sym:tasmsymbol);
        end;
 
+       { abstract assembler item with line information }
+       tailineinfo = class(tai)
+        fileinfo : tfileposinfo;
+        constructor Create;
+        constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+        procedure ppuwrite(ppufile:tcompilerppufile);override;
+       end;
+    
+
        taiclass = class of tai;
 
        taiclassarray = array[taitype] of taiclass;
 
        { Generates an assembler string }
-       tai_string = class(tai)
+       tai_string = class(tailineinfo)
           str : pchar;
           { extra len so the string can contain an \0 }
           len : longint;
@@ -194,7 +219,7 @@ interface
        end;
 
        { Generates a common label }
-       tai_symbol = class(tai)
+       tai_symbol = class(tailineinfo)
           is_global : boolean;
           sym       : tasmsymbol;
           size      : longint;
@@ -208,7 +233,7 @@ interface
           procedure derefimpl;override;
        end;
 
-       tai_symbol_end = class(tai)
+       tai_symbol_end = class(tailineinfo)
           sym : tasmsymbol;
           constructor Create(_sym:tasmsymbol);
           constructor Createname(const _name : string);
@@ -228,7 +253,7 @@ interface
        end;
 
        { Directly output data to final assembler file }
-       tai_direct = class(tai)
+       tai_direct = class(tailineinfo)
           str : pchar;
           constructor Create(_str : pchar);
           destructor Destroy; override;
@@ -258,7 +283,7 @@ interface
 
 
        { Generates an uninitializised data block }
-       tai_datablock = class(tai)
+       tai_datablock = class(tailineinfo)
           is_global : boolean;
           sym       : tasmsymbol;
           size      : longint;
@@ -280,7 +305,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
-       tai_const_symbol = class(tai)
+       tai_const_symbol = class(tailineinfo)
           sym    : tasmsymbol;
           offset : longint;
           constructor Create(_sym:tasmsymbol);
@@ -376,7 +401,7 @@ interface
 
        { Class template for assembler instructions
        }
-       taicpu_abstract = class(tai)
+       taicpu_abstract = class(tailineinfo)
        protected
           procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;abstract;
           procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;abstract;
@@ -411,7 +436,6 @@ interface
 
        { alignment for operator }
        tai_align_abstract = class(tai)
-          buf       : array[0..63] of char; { buf used for fill }
           aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
           fillsize  : byte;   { real size to fill }
           fillop    : byte;   { value to fill with - optional }
@@ -420,7 +444,7 @@ interface
           constructor Create_op(b: byte; _op: byte);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getfillbuf:pchar;virtual;
+          function calculatefillbuf(var buf : tfillbuffer):pchar;virtual;
        end;
 
        taasmoutput = class(tlinkedlist)
@@ -512,7 +536,6 @@ uses
 
     constructor tai.Create;
       begin
-        fileinfo:=aktfilepos;
 {$ifndef NOOPT}
         optinfo:=nil;
 {$endif NOOPT}
@@ -522,7 +545,6 @@ uses
     constructor tai.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         typ:=t;
-        ppufile.getposinfo(fileinfo);
 {$ifndef NOOPT}
         optinfo:=nil;
 {$endif}
@@ -531,7 +553,6 @@ uses
 
     procedure tai.ppuwrite(ppufile:tcompilerppufile);
       begin
-        ppufile.putposinfo(fileinfo);
       end;
 
 
@@ -542,13 +563,37 @@ uses
 
     procedure tai.checkredefinesym(sym:tasmsymbol);
       begin
-        if assigned(sym.taiowner) then
+{        if assigned(sym.taiowner) then
          begin
            Message1(asmw_e_redefined_label,sym.name);
-           MessagePos(tai(sym.taiowner).fileinfo,asmw_e_first_defined_label);
          end
         else
-         sym.taiowner:=self;
+         sym.taiowner:=self;}
+      end;
+
+
+{****************************************************************************
+                              TAILINEINFO
+ ****************************************************************************}
+
+    constructor tailineinfo.create;
+     begin
+       inherited create;
+       fileinfo:=aktfilepos;
+     end;
+
+
+    constructor tailineinfo.ppuload(t:taitype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.getposinfo(fileinfo);
+      end;
+
+
+    procedure tailineinfo.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putposinfo(fileinfo);
       end;
 
 
@@ -588,7 +633,7 @@ uses
          inherited Create;
          typ:=ait_datablock;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -602,7 +647,7 @@ uses
          inherited Create;
          typ:=ait_datablock;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -644,7 +689,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=_sym;
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          size:=siz;
          is_global:=(sym.defbind=AB_GLOBAL);
       end;
@@ -654,7 +699,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          size:=siz;
          is_global:=false;
       end;
@@ -664,7 +709,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          size:=siz;
          is_global:=true;
       end;
@@ -674,7 +719,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          size:=siz;
          is_global:=false;
       end;
@@ -684,7 +729,7 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
-         checkredefinesym(sym);
+{         checkredefinesym(sym);}
          size:=siz;
          is_global:=true;
       end;
@@ -1077,7 +1122,7 @@ uses
         inherited Create;
         typ:=ait_label;
         l:=_l;
-        checkredefinesym(l);
+{        checkredefinesym(l);}
         l.is_set:=true;
         is_global:=(l.defbind=AB_GLOBAL);
       end;
@@ -1602,13 +1647,13 @@ uses
           fillsize:=0;
           fillop:=_op;
           use_op:=true;
-          fillchar(buf,sizeof(buf),_op)
        end;
 
 
-     function tai_align_abstract.getfillbuf:pchar;
+     function tai_align_abstract.calculatefillbuf(var buf : tfillbuffer):pchar;
        begin
-         getfillbuf:=@buf;
+         fillchar(buf,high(buf),fillop);
+         calculatefillbuf:=pchar(@buf);
        end;
 
 
@@ -1636,17 +1681,39 @@ uses
 *****************************************************************************}
 
     function taasmoutput.getlasttaifilepos : pfileposinfo;
+      var
+       hp : tlinkedlistitem;
       begin
+         getlasttaifilepos := nil;
          if assigned(last) then
-           getlasttaifilepos:=@tai(last).fileinfo
-         else
-           getlasttaifilepos:=nil;
+           begin
+              { find the last file information record }
+              if not (tai(last).typ in SkipLineInfo) then
+                 getlasttaifilepos:=@tailineinfo(last).fileinfo
+              else 
+               { go through list backwards to find the first entry 
+                 with line information
+               }
+               begin
+                 hp:=tai(last);
+                 while assigned(hp) and (tai(hp).typ in SkipLineInfo) do
+                    hp:=hp.Previous;
+                 { found entry }
+                 if assigned(hp) then
+                     getlasttaifilepos:=@tailineinfo(hp).fileinfo
+               end;
+           end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.12  2002-11-15 16:29:30  peter
+  Revision 1.13  2002-11-17 16:31:55  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.12  2002/11/15 16:29:30  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.11  2002/11/15 01:58:45  peter

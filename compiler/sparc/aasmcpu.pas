@@ -36,7 +36,6 @@ type
  reg:tregister;
  constructor create(b:byte);
  constructor create_op(b:byte; _op:byte);
- function getfillbuf:pchar;override;
   end;
   taicpu = class(taicpu_abstract)
     opsize:topsize;
@@ -109,35 +108,6 @@ constructor tai_align.create_op(b:byte; _op:byte);
   begin
     inherited create_op(b,_op);
     reg:= R_NONE;
-  end;
-function tai_align.getfillbuf:pchar;
-  const
-    alignarray:array[0..5] of string[8]=(
-      #$8D#$B4#$26#$00#$00#$00#$00,
-      #$8D#$B6#$00#$00#$00#$00,
-      #$8D#$74#$26#$00,
-      #$8D#$76#$00,
-      #$89#$F6,
-      #$90
-    );
-  var
-    bufptr:pchar;
-    j:longint;
-  begin
-    if not use_op then
-     begin
-       bufptr:=@buf;
-       while (fillsize>0) do
-        begin
-          for j:=0 to 5 do
-           if (fillsize>=length(alignarray[j])) then
-            break;
-          move(alignarray[j][1],bufptr^,length(alignarray[j]));
-          inc(bufptr,length(alignarray[j]));
-          dec(fillsize,length(alignarray[j]));
-        end;
-     end;
-    getfillbuf:=pchar(@buf);
   end;
 {*****************************************************************************
                              Taicpu Constructors
@@ -212,16 +182,16 @@ constructor taicpu.op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
      loadreg(1,_op2);
   end;
 constructor TAiCpu.op_ref_reg(Op:TAsmOp;const Ref:TReference;Reg:TRegister);
-	begin
+  begin
     if not(Op in [A_JMPL,A_FLUSH,A_LDSB..A_LDDC,A_RETT,A_SWAP])
     then
       fail;
-		inherited Create(Op);
-		Init(S_SW);
-		Ops:=2;
-		LoadRef(0,Ref);
-		LoadReg(1,Reg);
-	end;
+    inherited Create(Op);
+    Init(S_SW);
+    Ops:=2;
+    LoadRef(0,Ref);
+    LoadReg(1,Reg);
+  end;
 constructor taicpu.op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
   begin
      inherited create(op);
@@ -1113,7 +1083,12 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.12  2002-11-10 19:07:46  mazen
+    Revision 1.13  2002-11-17 16:32:04  carl
+      * memory optimization (3-4%) : cleanup of tai fields,
+         cleanup of tdef and tsym fields.
+      * make it work for m68k
+
+    Revision 1.12  2002/11/10 19:07:46  mazen
     * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
     Revision 1.11  2002/11/06 11:31:24  mazen

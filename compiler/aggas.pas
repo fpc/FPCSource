@@ -295,12 +295,6 @@ var
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
-      nolinetai =[ait_label,
-                  ait_regalloc,ait_tempalloc,
-{$ifdef GDB}
-                  ait_stabn,ait_stabs,ait_stab_function_name,
-{$endif GDB}
-                  ait_cut,ait_marker,ait_align,ait_section];
     type
       t80bitarray = array[0..9] of byte;
       t64bitarray = array[0..7] of byte;
@@ -308,6 +302,7 @@ var
     var
       ch       : char;
       hp       : tai;
+      hp1      : tailineinfo; 
       consttyp : taitype;
       s        : string;
       found    : boolean;
@@ -333,23 +328,24 @@ var
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-         aktfilepos:=hp.fileinfo;
 
-         if not(hp.typ in nolinetai) then
+         if not(hp.typ in SkipLineInfo) then
           begin
+            hp1 := hp as tailineinfo;
+            aktfilepos:=hp1.fileinfo;
 {$ifdef GDB}
              { write stabs }
              if (cs_debuginfo in aktmoduleswitches) or
                 (cs_gdb_lineinfo in aktglobalswitches) then
-               WriteFileLineInfo(hp.fileinfo);
+               WriteFileLineInfo(hp1.fileinfo);
 {$endif GDB}
              { no line info for inlined code }
              if do_line and (inlinelevel=0) then
               begin
                 { load infile }
-                if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+                if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
                  begin
-                   infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+                   infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
                    if assigned(infile) then
                     begin
                       { open only if needed !! }
@@ -357,7 +353,7 @@ var
                        infile.open;
                     end;
                    { avoid unnecessary reopens of the same file !! }
-                   lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+                   lastfileinfo.fileindex:=hp1.fileinfo.fileindex;
                    { be sure to change line !! }
                    lastfileinfo.line:=-1;
                  end;
@@ -371,20 +367,20 @@ var
                        if assigned(lastinfile) then
                          lastinfile.close;
                      end;
-                   if (hp.fileinfo.line<>lastfileinfo.line) and
-                      ((hp.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
+                   if (hp1.fileinfo.line<>lastfileinfo.line) and
+                      ((hp1.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
                      begin
-                       if (hp.fileinfo.line<>0) and
-                          ((infile.linebuf^[hp.fileinfo.line]>=0) or (InlineLevel>0)) then
-                         AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
-                           fixline(infile.GetLineStr(hp.fileinfo.line)));
+                       if (hp1.fileinfo.line<>0) and
+                          ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
+                         AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
+                           fixline(infile.GetLineStr(hp1.fileinfo.line)));
                        { set it to a negative value !
                        to make that is has been read already !! PM }
-                       if (infile.linebuf^[hp.fileinfo.line]>=0) then
-                         infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
+                       if (infile.linebuf^[hp1.fileinfo.line]>=0) then
+                         infile.linebuf^[hp1.fileinfo.line]:=-infile.linebuf^[hp1.fileinfo.line]-1;
                      end;
                  end;
-                lastfileinfo:=hp.fileinfo;
+                lastfileinfo:=hp1.fileinfo;
                 lastinfile:=infile;
               end;
           end;
@@ -718,7 +714,7 @@ var
                   FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
                   includecount:=0;
                   funcname:=nil;
-                  WriteFileLineInfo(hp.fileinfo);
+                  WriteFileLineInfo(aktfilepos);
 {$endif GDB}
                   if lasTSec<>sec_none then
                     AsmWriteLn(ait_section2str(lasTSec));
@@ -819,7 +815,12 @@ var
 end.
 {
   $Log$
-  Revision 1.15  2002-11-15 01:58:45  peter
+  Revision 1.16  2002-11-17 16:31:55  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.15  2002/11/15 01:58:45  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

@@ -1896,7 +1896,7 @@ implementation
                    else if (def_to=tdef(rec_tguid)) and
                            (fromtreetype=typen) and
                            is_interface(def_from) and
-                           tobjectdef(def_from).isiidguidvalid then
+                           assigned(tobjectdef(def_from).iidguid) then
                      begin
                        b:=1;
                        doconv:=tc_equal;
@@ -2040,7 +2040,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-11-16 18:00:53  peter
+  Revision 1.26  2002-11-17 16:31:55  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.25  2002/11/16 18:00:53  peter
     * fix merged proc-procvar check
 
   Revision 1.24  2002/11/15 01:58:46  peter

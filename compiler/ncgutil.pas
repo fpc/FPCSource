@@ -1417,7 +1417,7 @@ implementation
          begin
            { Align, gprof uses 16 byte granularity }
            if (cs_profile in aktmoduleswitches) then
-            stackalloclist.concat(Tai_align.Create_op(16,$90))
+            stackalloclist.concat(Tai_align.Create(16))
            else
             stackalloclist.concat(Tai_align.Create(aktalignment.procalign));
 
@@ -1867,7 +1867,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-11-15 01:58:51  peter
+  Revision 1.60  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.59  2002/11/15 01:58:51  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

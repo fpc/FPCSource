@@ -65,9 +65,7 @@ interface
          { pointer to objectdata that is the owner of this symbol }
          objectdata : pointer;
          { pointer to the tai that is the owner of this symbol }
-         taiowner : pointer;
-         { TRUE if the symbol is local for a procedure/function }
-         proclocal : boolean;
+{         taiowner : pointer;}
          { Is the symbol in the used list }
          inusedlist : boolean;
          { assembler pass label is set, used for detecting multiple labels }
@@ -254,6 +252,7 @@ implementation
 
     procedure tasmsymbol.reset;
       begin
+{        WriteLn(ClassName,' InstanceSize :',InstanceSize);}
         { reset section info }
         section:=sec_none;
         address:=0;
@@ -261,9 +260,8 @@ implementation
         indexnr:=-1;
         pass:=255;
         currbind:=AB_EXTERNAL;
-        proclocal:=false;
         altsymbol:=nil;
-        taiowner:=nil;
+{        taiowner:=nil;}
       end;
 
 
@@ -313,7 +311,6 @@ implementation
       begin;
         labelnr:=nr;
         inherited create(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_FUNCTION);
-        proclocal:=true;
         is_set:=false;
         is_addr := false;
       end;
@@ -329,7 +326,6 @@ implementation
           inherited create(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
         is_set:=false;
         is_addr := false;
-        proclocal := false;
         { write it always }
         increfs;
       end;
@@ -888,7 +884,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-11-15 16:29:30  peter
+  Revision 1.12  2002-11-17 16:31:55  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.11  2002/11/15 16:29:30  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.10  2002/11/15 01:58:45  peter

@@ -2031,7 +2031,6 @@ option_help_pages=11025_[
 **0*_Processor specific options:
 3*1A<x>_output format:
 3*2Aas_assemble using GNU AS
-3*2Aasaout_assemble using GNU AS for aout (Go32v1)
 3*2Anasmcoff_coff (Go32v2) file using Nasm
 3*2Anasmelf_elf32 (Linux) file using Nasm
 3*2Anasmobj_obj file using Nasm

@@ -191,7 +191,7 @@ Implementation
       finput,
       gdb,
 {$endif GDB}
-      cpubase,aasmcpu
+      cpubase,cpuinfo,aasmcpu
       ;
 
     var
@@ -1005,12 +1005,8 @@ Implementation
                (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectalloc.currsec<>sec_none) and
-                 not(hp.typ in  [
-                     ait_label,
-                     ait_regalloc,ait_tempalloc,
-                     ait_stabn,ait_stabs,ait_section,
-                     ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-               WriteFileLineInfo(hp.fileinfo);
+                 not(hp.typ in SkipLineInfo) then
+               WriteFileLineInfo(tailineinfo(hp).fileinfo);
             end;
 {$endif GDB}
            case hp.typ of
@@ -1175,6 +1171,7 @@ Implementation
 
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
+        fillbuffer : tfillbuffer;
         InlineLevel,
         l  : longint;
 {$ifdef i386}
@@ -1192,12 +1189,8 @@ Implementation
                (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectdata.currsec<>sec_none) and
-                 not(hp.typ in [
-                     ait_label,
-                     ait_regalloc,ait_tempalloc,
-                     ait_stabn,ait_stabs,ait_section,
-                     ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-               WriteFileLineInfo(hp.fileinfo);
+                 not(hp.typ in SkipLineInfo) then
+               WriteFileLineInfo(tailineinfo(hp).fileinfo);
             end;
 {$endif GDB}
            case hp.typ of
@@ -1206,7 +1199,7 @@ Implementation
                  if objectdata.currsec=sec_bss then
                    objectdata.alloc(Tai_align(hp).fillsize)
                  else
-                   objectdata.writebytes(Tai_align(hp).getfillbuf^,Tai_align(hp).fillsize);
+                   objectdata.writebytes(Tai_align(hp).calculatefillbuf(fillbuffer)^,Tai_align(hp).fillsize);
                end;
              ait_section :
                begin
@@ -1621,7 +1614,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-11-15 01:58:46  peter
+  Revision 1.47  2002-11-17 16:31:55  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.46  2002/11/15 01:58:46  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

@@ -795,59 +795,58 @@ const msgtxt : array[0..000146,1..240] of char=(
   '**0*_Processor specific options:'#010+
   '3*1A<x>_output format:'#010+
   '3*2Aas_assemble using GNU AS'#010+
-  '3*2Aasaout_assemble using GNU AS for aout (Go32v1)'#010+
-  '3*2Anasmcoff_coff (Go32v','2) file using Nasm'#010+
-  '3*2Anasmelf_elf32 (Linux) file using Nasm'#010+
+  '3*2Anasmcoff_coff (Go32v2) file using Nasm'#010+
+  '3*2Anasmelf_elf32 (Linux) file u','sing Nasm'#010+
   '3*2Anasmobj_obj file using Nasm'#010+
   '3*2Amasm_obj file using Masm (Microsoft)'#010+
   '3*2Atasm_obj file using Tasm (Borland)'#010+
   '3*2Acoff_coff (Go32v2) using internal writer'#010+
-  '3*2Apecoff_pecoff (Win','32) using internal writer'#010+
-  '3*1R<x>_assembler reading style:'#010+
+  '3*2Apecoff_pecoff (Win32) using internal writer'#010+
+  '3*1R<x>_assembler reading',' style:'#010+
   '3*2Ratt_read AT&T style assembler'#010+
   '3*2Rintel_read Intel style assembler'#010+
   '3*2Rdirect_copy assembler text directly to assembler file'#010+
   '3*1O<x>_optimizations:'#010+
   '3*2Og_generate smaller code'#010+
-  '3','*2OG_generate faster code (default)'#010+
-  '3*2Or_keep certain variables in registers'#010+
+  '3*2OG_generate faster code (default)'#010+
+  '3*2Or_keep cert','ain variables in registers'#010+
   '3*2Ou_enable uncertain optimizations (see docs)'#010+
   '3*2O1_level 1 optimizations (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
-  '3*2O3_l','evel 3 optimizations (-O2 repeatedly, max 5 times)'#010+
+  '3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)'#010,
   '3*2Op<x>_target processor:'#010+
   '3*3Op1_set target processor to 386/486'#010+
   '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
-  '3*1T<x>_Target',' operating system:'#010+
-  '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#010+
+  '3*1T<x>_Target operating system:'#010+
+  '3*2TGO32V2_version 2 of DJ Delor','ie DOS extender'#010+
   '3*2TWDOSX DOS 32 Bit Extender'#010+
   '3*2TLINUX_Linux'#010+
   '3*2Tnetware_Novell Netware Module (experimental)'#010+
   '3*2TOS2_OS/2 2.x'#010+
   '3*2TSUNOS_SunOS/Solaris'#010+
   '3*2TWin32_Windows 32 Bit'#010+
-  '3*1W<x>_Win3','2 target options'#010+
-  '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
+  '3*1W<x>_Win32 target options'#010+
+  '3*2WB<x>_Set Image base to Hexadec','imal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Specify graphic type a','pplication'#010+
-  '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
+  '3*2WG_Specify graphic type application'#010+
+  '3*2WN_Do not generate relocation code (n','ecessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
-  '6*2Amot_Standard Mot','orola assembler'#010+
+  '6*2Amot_Standard Motorola assembler'#010+
   '6*1O_optimizations:'#010+
-  '6*2Oa_turn on the optimizer'#010+
+  '6*2Oa_turn on t','he optimizer'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
-  '6*2O2_set target processor to a',' MC68020+ (default)'#010+
-  '6*1R<x>_assembler reading style:'#010+
+  '6*2O2_set target processor to a MC68020+ (default)'#010+
+  '6*1R<x>_assembler reading style',':'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2TAMIGA_Commodore Amiga'#010+
@@ -855,7 +854,7 @@ const msgtxt : array[0..000146,1..240] of char=(
   '6*2TMACOS_Macintosh m68k'#010+
   '6*2TLINUX_Linux-68k'#010+
   '6*2TPALMOS_PalmOS'#010+
-  '*','*1*_'#010+
+  '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows this help without waiting'#000
+  '**1h_shows this help with','out waiting'#000
 );

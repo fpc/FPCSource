@@ -110,7 +110,7 @@ interface
 
       procedure ReLabel(var p:tasmsymbol);
         begin
-          if p.proclocal then
+          if p.defbind = AB_LOCAL then
            begin
              if not assigned(p.altsymbol) then
                objectlibrary.GenerateAltSymbol(p);
@@ -288,7 +288,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-11-15 16:29:30  peter
+  Revision 1.26  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.25  2002/11/15 16:29:30  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.24  2002/11/15 01:58:51  peter

@@ -858,8 +858,8 @@ implementation
     function ttypeconvnode.resulttype_interface_to_guid : tnode;
 
       begin
-        if tobjectdef(left.resulttype.def).isiidguidvalid then
-          result:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid);
+        if assigned(tobjectdef(left.resulttype.def).iidguid) then
+          result:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid^);
       end;
 
 
@@ -2026,9 +2026,9 @@ implementation
             { load the GUID of the interface }
             if (right.nodetype=typen) then
              begin
-               if tobjectdef(right.resulttype.def).isiidguidvalid then
+               if assigned(tobjectdef(right.resulttype.def).iidguid) then
                  begin
-                   hp:=cguidconstnode.create(tobjectdef(right.resulttype.def).iidguid);
+                   hp:=cguidconstnode.create(tobjectdef(right.resulttype.def).iidguid^);
                    right.free;
                    right:=hp;
                  end
@@ -2098,7 +2098,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2002-10-10 16:07:57  florian
+  Revision 1.88  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.87  2002/10/10 16:07:57  florian
     + several widestring/pwidechar related stuff added
 
   Revision 1.86  2002/10/06 16:10:23  florian

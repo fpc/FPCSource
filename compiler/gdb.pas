@@ -67,7 +67,7 @@ Const
        end;
 
        { insert a cut to split into several smaller files }
-       tai_force_line = class(tai)
+       tai_force_line = class(tailineinfo)
           constructor Create;
        end;
 
@@ -233,7 +233,12 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-08-12 15:08:39  carl
+  Revision 1.16  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.15  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

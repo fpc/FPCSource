@@ -65,7 +65,7 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule
+    fmodule,dos
 {$ifdef i386}
     ,aasmbase,aasmtai,aasmcpu,cpubase
 {$endif i386}
@@ -89,7 +89,6 @@ begin
   if name<>'' then
    begin
      aktprocdef.setmangledname(name);
-     aktprocdef.has_mangledname:=true;
    end
   else
     message(parser_e_empty_import_name);
@@ -545,7 +544,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-11-15 01:59:02  peter
+  Revision 1.4  2002-11-17 16:32:04  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.3  2002/11/15 01:59:02  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

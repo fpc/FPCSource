@@ -605,7 +605,10 @@ Begin
             new_one.next := foll;
             prev.next := new_one;
             foll.previous := new_one;
-            Tai(new_one).fileinfo := Tai(foll).fileinfo;
+            { shgould we update line information }
+            if (not (Tai(new_one).typ in SkipLineInfo)) and 
+               (not (Tai(foll).typ in SkipLineInfo)) then
+            Tailineinfo(new_one).fileinfo := Tailineinfo(foll).fileinfo;
           End;
       End
     Else asml.Concat(new_one)
@@ -2591,7 +2594,12 @@ End.
 
 {
   $Log$
-  Revision 1.43  2002-08-18 20:06:29  peter
+  Revision 1.44  2002-11-17 16:31:59  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.43  2002/08/18 20:06:29  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

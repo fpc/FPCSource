@@ -484,19 +484,12 @@ function getreferencestring(var ref : treference) : string;
 
 
     procedure TPPCMPWAssembler.WriteTree(p:TAAsmoutput);
-    const
-      nolinetai =[ait_label,
-                  ait_regalloc,ait_tempalloc,
-{$ifdef GDB}
-                  ait_stabn,ait_stabs,ait_stab_function_name,
-{$endif GDB}
-                  ait_cut,ait_marker,ait_align,ait_section];
-
     var
       s,
       prefix,
       suffix   : string;
       hp       : tai;
+      hp1      : tailineinfo;
       counter,
       lines,
       InlineLevel : longint;
@@ -520,13 +513,14 @@ function getreferencestring(var ref : treference) : string;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-         if do_line and not(hp.typ in nolinetai) and
+         if do_line and not(hp.typ in SkipLineInfo) and
             not DoNotSplitLine then
            begin
+             hp1 := hp as tailineinfo;
            { load infile }
-             if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+             if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
               begin
-                infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+                infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
                 if assigned(infile) then
                  begin
                    { open only if needed !! }
@@ -534,7 +528,7 @@ function getreferencestring(var ref : treference) : string;
                     infile.open;
                  end;
                 { avoid unnecessary reopens of the same file !! }
-                lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+                lastfileinfo.fileindex:=hp1.fileinfo.fileindex;
                 { be sure to change line !! }
                 lastfileinfo.line:=-1;
               end;
@@ -548,20 +542,20 @@ function getreferencestring(var ref : treference) : string;
                     if assigned(lastinfile) then
                       lastinfile.close;
                   end;
-                if (hp.fileinfo.line<>lastfileinfo.line) and
-                   ((hp.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
+                if (hp1.fileinfo.line<>lastfileinfo.line) and
+                   ((hp1.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
                   begin
-                    if (hp.fileinfo.line<>0) and
-                       ((infile.linebuf^[hp.fileinfo.line]>=0) or (InlineLevel>0)) then
-                      AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
-                        fixline(infile.GetLineStr(hp.fileinfo.line)));
+                    if (hp1.fileinfo.line<>0) and
+                       ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
+                      AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
+                        fixline(infile.GetLineStr(hp1.fileinfo.line)));
                     { set it to a negative value !
                     to make that is has been read already !! PM }
-                    if (infile.linebuf^[hp.fileinfo.line]>=0) then
-                      infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
+                    if (infile.linebuf^[hp1.fileinfo.line]>=0) then
+                      infile.linebuf^[hp1.fileinfo.line]:=-infile.linebuf^[hp1.fileinfo.line]-1;
                   end;
               end;
-             lastfileinfo:=hp.fileinfo;
+             lastfileinfo:=hp1.fileinfo;
              lastinfile:=infile;
            end;
          DoNotSplitLine:=false;
@@ -1028,7 +1022,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-11-07 15:50:23  jonas
+  Revision 1.15  2002-11-17 16:31:59  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.14  2002/11/07 15:50:23  jonas
     * fixed bctr(l) problems
 
   Revision 1.13  2002/11/04 18:24:53  olle

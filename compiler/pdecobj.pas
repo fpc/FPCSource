@@ -779,7 +779,14 @@ implementation
             if aktclass.implementedinterfaces.searchintf(implintf)<>-1 then
               Message1(sym_e_duplicate_id,implintf.name)
             else
-              aktclass.implementedinterfaces.addintf(implintf);
+              begin
+                 { allocate and prepare the GUID only if the class 
+                   implements some interfaces. 
+                 }
+                 if aktclass.implementedinterfaces.count = 0 then
+                   aktclass.prepareguid;
+                 aktclass.implementedinterfaces.addintf(implintf);
+              end;
         end;
 
       procedure readimplementedinterfaces;
@@ -801,6 +808,7 @@ implementation
       procedure readinterfaceiid;
         var
           p : tnode;
+          valid : boolean;
         begin
           p:=comp_expr(true);
           if p.nodetype=stringconstn then
@@ -808,8 +816,8 @@ implementation
               stringdispose(aktclass.iidstr);
               aktclass.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
               p.free;
-              aktclass.isiidguidvalid:=string2guid(aktclass.iidstr^,aktclass.iidguid);
-              if (classtype=odt_interfacecom) and not aktclass.isiidguidvalid then
+              valid:=string2guid(aktclass.iidstr^,aktclass.iidguid^);
+              if (classtype=odt_interfacecom) and not assigned(aktclass.iidguid) and not valid then
                 Message(parser_e_improper_guid_syntax);
             end
           else
@@ -1161,7 +1169,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-10-05 12:43:25  carl
+  Revision 1.56  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.55  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -133,7 +133,7 @@ interface
          reg       : tregister;
          constructor create(b:byte);
          constructor create_op(b: byte; _op: byte);
-         function getfillbuf:pchar;override;
+         function calculatefillbuf(var buf : tfillbuffer):pchar;override;
       end;
 
       taicpu = class(taicpu_abstract)
@@ -324,7 +324,7 @@ implementation
       end;
 
 
-    function tai_align.getfillbuf:pchar;
+    function tai_align.calculatefillbuf(var buf : tfillbuffer):pchar;
       const
         alignarray:array[0..5] of string[8]=(
           #$8D#$B4#$26#$00#$00#$00#$00,
@@ -338,9 +338,10 @@ implementation
         bufptr : pchar;
         j : longint;
       begin
+        inherited calculatefillbuf(buf);
         if not use_op then
          begin
-           bufptr:=@buf;
+           bufptr:=pchar(@buf);
            while (fillsize>0) do
             begin
               for j:=0 to 5 do
@@ -351,7 +352,7 @@ implementation
               dec(fillsize,length(alignarray[j]));
             end;
          end;
-        getfillbuf:=pchar(@buf);
+        calculatefillbuf:=pchar(@buf);
       end;
 
 
@@ -1799,7 +1800,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-08-13 18:01:53  carl
+  Revision 1.4  2002-11-17 16:32:04  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.3  2002/08/13 18:01:53  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

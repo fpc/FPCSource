@@ -155,9 +155,10 @@ interface
        end;
 
        tforwarddef = class(tstoreddef)
-          tosymname : string;
+          tosymname : pstring;
           forwardpos : tfileposinfo;
           constructor create(const s:string;const pos : tfileposinfo);
+          destructor destroy;override;
           function  gettypename:string;override;
        end;
 
@@ -260,8 +261,7 @@ interface
           writing_class_record_stab : boolean;
 {$endif GDB}
           objecttype : tobjectdeftype;
-          isiidguidvalid: boolean;
-          iidguid: TGUID;
+          iidguid: pguid;
           iidstr: pstring;
           lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
@@ -275,6 +275,8 @@ interface
           function  alignment:longint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  members_need_inittable : boolean;
+          { this should be called when this class implements an interface }
+          procedure prepareguid;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  vmt_mangledname : string;
@@ -342,7 +344,6 @@ interface
        end;
 
        tarraydef = class(tstoreddef)
-          rangenr    : longint;
           lowrange,
           highrange  : longint;
           rangetype  : ttype;
@@ -375,7 +376,6 @@ interface
        end;
 
        torddef = class(tstoreddef)
-          rangenr  : longint;
           low,high : TConstExprInt;
           typ      : tbasetype;
           constructor create(t : tbasetype;v,b : TConstExprInt);
@@ -411,12 +411,12 @@ interface
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           rettype         : ttype;
+          para            : tparalinkedlist;
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
-          para            : tparalinkedlist;
           maxparacount,
-          minparacount    : longint;
+          minparacount    : byte;
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
           constructor create;
@@ -487,7 +487,6 @@ interface
           { browser info }
           lastref,
           defref,
-          crossref,
           lastwritten : tref;
           refcount : longint;
           _class : tobjectdef;
@@ -565,7 +564,6 @@ interface
        end;
 
        tenumdef = class(tstoreddef)
-          rangenr,
           minval,
           maxval    : longint;
           has_jumps : boolean;
@@ -1407,7 +1405,6 @@ implementation
          calcsavesize;
          has_jumps:=false;
          basedef:=nil;
-         rangenr:=0;
          firstenum:=nil;
          correct_owner_symtable;
       end;
@@ -1421,7 +1418,6 @@ implementation
          basedef:=_basedef;
          calcsavesize;
          has_jumps:=false;
-         rangenr:=0;
          firstenum:=basedef.firstenum;
          while assigned(firstenum) and (tenumsym(firstenum).value<>minval) do
           firstenum:=tenumsym(firstenum).nextenum;
@@ -1622,7 +1618,6 @@ implementation
          low:=v;
          high:=b;
          typ:=t;
-         rangenr:=0;
          setsize;
       end;
 
@@ -1666,7 +1661,6 @@ implementation
           end
          else
           high:=ppufile.getlongint;
-         rangenr:=0;
          setsize;
       end;
 
@@ -1688,8 +1682,6 @@ implementation
             else
               savesize:=0;
          end;
-       { there are no entrys for range checking }
-         rangenr:=0;
       end;
 
 
@@ -2530,7 +2522,6 @@ implementation
          IsConstructor:=false;
          IsArrayOfConst:=false;
          IsDynamicArray:=false;
-         rangenr:=0;
       end;
 
 
@@ -2547,7 +2538,6 @@ implementation
          IsDynamicArray:=boolean(ppufile.getbyte);
          IsVariant:=false;
          IsConstructor:=false;
-         rangenr:=0;
       end;
 
 
@@ -3096,7 +3086,8 @@ implementation
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
-         count:=ppufile.getword;
+         { get the number of parameters }
+         count:=ppufile.getbyte;
          savesize:=POINTER_SIZE;
          for i:=1 to count do
           begin
@@ -3132,7 +3123,7 @@ implementation
          ppufile.putbyte(ord(proccalloption));
          ppufile.putsmallset(procoptions);
          ppufile.do_interface_crc:=oldintfcrc;
-         ppufile.putword(maxparacount);
+         ppufile.putbyte(maxparacount);
          hp:=TParaItem(Para.first);
          while assigned(hp) do
           begin
@@ -3300,7 +3291,6 @@ implementation
            to check same names in parast and localst }
          localst.next:=parast;
          defref:=nil;
-         crossref:=nil;
          lastwritten:=nil;
          refcount:=0;
          if (cs_browser in aktmoduleswitches) and make_ref then
@@ -4106,12 +4096,8 @@ implementation
         set_parent(c);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
-
-        { set up guid }
-        isiidguidvalid:=true; { default null guid }
-        fillchar(iidguid,sizeof(iidguid),0); { default null guid }
-        iidstr:=stringdup(''); { default is empty string }
-
+        if objecttype in [odt_interfacecorba,odt_interfacecom] then
+          prepareguid;
         { setup implemented interfaces }
         if objecttype in [odt_class,odt_interfacecorba] then
           implementedinterfaces:=timplementedinterfaces.create
@@ -4143,8 +4129,8 @@ implementation
          iidstr:=nil;
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
-              isiidguidvalid:=boolean(ppufile.getbyte);
-              ppufile.getguid(iidguid);
+              new(iidguid); 
+              ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
               lastvtableindex:=ppufile.getlongint;
            end;
@@ -4194,9 +4180,12 @@ implementation
           symtable.free;
         stringdispose(objname);
         stringdispose(objrealname);
-        stringdispose(iidstr);
+        if assigned(iidstr) then
+          stringdispose(iidstr);
         if assigned(implementedinterfaces) then
           implementedinterfaces.free;
+        if assigned(iidguid) then
+          dispose(iidguid);
         inherited destroy;
      end;
 
@@ -4216,8 +4205,7 @@ implementation
          ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
-              ppufile.putbyte(byte(isiidguidvalid));
-              ppufile.putguid(iidguid);
+              ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
               ppufile.putlongint(lastvtableindex);
            end;
@@ -4254,6 +4242,20 @@ implementation
          aktrecordsymtable:=oldrecsyms;
          if objecttype in [odt_class,odt_interfacecorba] then
            implementedinterfaces.deref;
+      end;
+
+    
+    procedure tobjectdef.prepareguid;
+      begin
+        { set up guid }
+        if not assigned(iidguid) then
+         begin
+            new(iidguid);
+            fillchar(iidguid^,sizeof(iidguid^),0); { default null guid }
+         end;
+        { setup iidstring }
+        if not assigned(iidstr) then
+          iidstr:=stringdup(''); { default is empty string }
       end;
 
 
@@ -5326,14 +5328,21 @@ implementation
         inherited create;
         registerdef:=oldregisterdef;
         deftype:=forwarddef;
-        tosymname:=s;
+        tosymname:=stringdup(s);
         forwardpos:=pos;
      end;
 
 
     function tforwarddef.gettypename:string;
       begin
-        gettypename:='unresolved forward to '+tosymname;
+        gettypename:='unresolved forward to '+tosymname^;
+      end;
+
+     destructor tforwarddef.destroy;
+      begin
+        if assigned(tosymname) then
+          stringdispose(tosymname);
+        inherited destroy;
       end;
 
 
@@ -5438,12 +5447,6 @@ implementation
               ttypesym(def.typesym).isusedinstab:=false;
             def.is_def_stab_written:=not_written;
 {$endif GDB}
-            { reset rangenr's }
-            case def.deftype of
-              orddef   : torddef(def).rangenr:=0;
-              enumdef  : tenumdef(def).rangenr:=0;
-              arraydef : tarraydef(def).rangenr:=0;
-            end;
             if assigned(def.rttitablesym) then
               trttisym(def.rttitablesym).lab := nil;
             if assigned(def.inittablesym) then
@@ -5517,7 +5520,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2002-11-16 19:53:18  carl
+  Revision 1.105  2002-11-17 16:31:57  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.104  2002/11/16 19:53:18  carl
     * avoid Range check errors
 
   Revision 1.103  2002/11/15 16:29:09  peter

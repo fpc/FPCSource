@@ -827,7 +827,6 @@ end;
 procedure pd_asmname;
 begin
   aktprocdef.setmangledname(target_info.Cprefix+pattern);
-  aktprocdef.has_mangledname:=true;
   if token=_CCHAR then
     consume(_CCHAR)
   else
@@ -1036,7 +1035,6 @@ begin
          consume(_NAME);
          import_name:=get_stringconst;
          aktprocdef.setmangledname(import_name);
-         aktprocdef.has_mangledname:=true;
        end;
     end;
 end;
@@ -1898,7 +1896,6 @@ const
                         MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
                       { restore interface settings }
                       aprocdef.proccalloption:=hd.proccalloption;
-                      aprocdef.has_mangledname:=hd.has_mangledname;
                       if hd.has_mangledname then
                         aprocdef.setmangledname(hd.mangledname);
                     end;
@@ -1949,8 +1946,6 @@ const
                     begin
                       { rename also asmsymbol first, because the name can already be used }
                       objectlibrary.renameasmsymbol(hd.mangledname,aprocdef.mangledname);
-                      { update the mangledname }
-                      hd.has_mangledname:=true;
                       hd.setmangledname(aprocdef.mangledname);
                     end;
                    { for compilerproc defines we need to rename and update the
@@ -2059,7 +2054,12 @@ const
 end.
 {
   $Log$
-  Revision 1.79  2002-11-16 14:20:50  peter
+  Revision 1.80  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.79  2002/11/16 14:20:50  peter
     * fix infinite loop in pd_inline
 
   Revision 1.78  2002/11/15 01:58:53  peter

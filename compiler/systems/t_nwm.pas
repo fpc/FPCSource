@@ -140,7 +140,6 @@ begin
   if name<>'' then
    begin
      aktprocdef.setmangledname(name);
-     aktprocdef.has_mangledname:=true;
    end
   else
     message(parser_e_empty_import_name);
@@ -484,7 +483,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-09 17:34:17  peter
+  Revision 1.3  2002-11-17 16:32:04  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.2  2002/09/09 17:34:17  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

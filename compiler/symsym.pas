@@ -114,10 +114,10 @@ interface
           defs : pprocdeflist; { linked list of overloaded procdefs }
           function getprocdef(nr:cardinal):Tprocdef;
        public
-          procdef_count : cardinal;
+          procdef_count : byte;
           is_global : boolean;
           overloadchecked : boolean;
-          overloadcount : longint; { amount of overloaded functions in this module }
+          overloadcount : word;    { amount of overloaded functions in this module }
           property procdef[nr:cardinal]:Tprocdef read getprocdef;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -822,7 +822,7 @@ implementation
          until false;
          is_global:=false;
          overloadchecked:=false;
-         overloadcount:=-1; { invalid, not used anymore }
+         overloadcount:=$ffff; { invalid, not used anymore }
       end;
 
 
@@ -2506,7 +2506,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-11-09 15:30:07  carl
+  Revision 1.72  2002-11-17 16:31:57  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.71  2002/11/09 15:30:07  carl
     + align RTTI tables
 
   Revision 1.70  2002/10/13 21:33:37  peter

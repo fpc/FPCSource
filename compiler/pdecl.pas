@@ -129,10 +129,10 @@ implementation
              begin
                if is_interface(p.resulttype.def) then
                 begin
-                  if tobjectdef(p.resulttype.def).isiidguidvalid then
+                  if assigned(tobjectdef(p.resulttype.def).iidguid) then
                    begin
                      new(pg);
-                     pg^:=tobjectdef(p.resulttype.def).iidguid;
+                     pg^:=tobjectdef(p.resulttype.def).iidguid^;
                      hp:=tconstsym.create_ptr(orgname,constguid,pg);
                    end
                   else
@@ -316,7 +316,9 @@ implementation
                     akttokenpos:=tforwarddef(hpd).forwardpos;
                     resolving_forward:=true;
                     make_ref:=false;
-                    searchsym(tforwarddef(hpd).tosymname,srsym,srsymtable);
+                    if not assigned(tforwarddef(hpd).tosymname) then
+                      internalerror(20021120);
+                    searchsym(tforwarddef(hpd).tosymname^,srsym,srsymtable);
                     make_ref:=true;
                     resolving_forward:=false;
                     akttokenpos:=stpos;
@@ -624,7 +626,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-11-15 16:29:30  peter
+  Revision 1.59  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.58  2002/11/15 16:29:30  peter
     * made tasmsymbol.refs private (merged)
 
   Revision 1.57  2002/10/20 15:34:16  peter

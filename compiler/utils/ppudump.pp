@@ -709,7 +709,7 @@ begin
        end;
      writeln;
    end;
-  params:=ppufile.getword;
+  params:=ppufile.getbyte;
   writeln(space,' Nr of parameters : ',params);
   if params>0 then
    begin
@@ -1374,7 +1374,6 @@ begin
 
              if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba] then
                begin
-                  writeln(space,'       GUID Valid : ',(getbyte<>0));
                   { IIDGUID }
                   for j:=1to 16 do
                    getbyte;
@@ -1898,7 +1897,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-10-20 14:49:31  peter
+  Revision 1.34  2002-11-17 16:32:04  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.33  2002/10/20 14:49:31  peter
     * store original source time in ppu so it can be compared instead of
       comparing with the ppu time
 

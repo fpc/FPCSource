@@ -859,11 +859,11 @@ implementation
             objectlibrary.getdatalabel(tmplabel);
             rawdata.concat(tai_align.create(const_align(pointer_size)));
             rawdata.concat(Tai_label.Create(tmplabel));
-            rawdata.concat(Tai_const.Create_32bit(curintf.iidguid.D1));
-            rawdata.concat(Tai_const.Create_16bit(curintf.iidguid.D2));
-            rawdata.concat(Tai_const.Create_16bit(curintf.iidguid.D3));
-            for i:=Low(curintf.iidguid.D4) to High(curintf.iidguid.D4) do
-              rawdata.concat(Tai_const.Create_8bit(curintf.iidguid.D4[i]));
+            rawdata.concat(Tai_const.Create_32bit(curintf.iidguid^.D1));
+            rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D2));
+            rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D3));
+            for i:=Low(curintf.iidguid^.D4) to High(curintf.iidguid^.D4) do
+              rawdata.concat(Tai_const.Create_8bit(curintf.iidguid^.D4[i]));
             dataSegment.concat(Tai_const_symbol.Create(tmplabel));
           end
         else
@@ -1114,16 +1114,16 @@ implementation
     var
       i: longint;
     begin
-      if _class.isiidguidvalid then
+      if assigned(_class.iidguid) then
         begin
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
           dataSegment.concat(Tai_symbol.Createname_global(mangledname_prefix('IID',_class.owner)+_class.objname^,0));
-          dataSegment.concat(Tai_const.Create_32bit(longint(_class.iidguid.D1)));
-          dataSegment.concat(Tai_const.Create_16bit(_class.iidguid.D2));
-          dataSegment.concat(Tai_const.Create_16bit(_class.iidguid.D3));
-          for i:=Low(_class.iidguid.D4) to High(_class.iidguid.D4) do
-            dataSegment.concat(Tai_const.Create_8bit(_class.iidguid.D4[i]));
+          dataSegment.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
+          dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
+          dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
+          for i:=Low(_class.iidguid^.D4) to High(_class.iidguid^.D4) do
+            dataSegment.concat(Tai_const.Create_8bit(_class.iidguid^.D4[i]));
         end;
       if (cs_create_smart in aktmoduleswitches) then
         dataSegment.concat(Tai_cut.Create);
@@ -1333,7 +1333,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2002-11-15 01:58:52  peter
+  Revision 1.37  2002-11-17 16:31:56  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.36  2002/11/15 01:58:52  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

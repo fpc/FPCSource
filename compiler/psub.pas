@@ -623,7 +623,7 @@ implementation
          { pointer to the return value ? }
          if paramanager.ret_in_param(aktprocdef.rettype.def)
 {$ifdef m68k}
-            and not(pocall_cdecl in aktprocsym^.definition^.proccalloptions)
+            and not (aktprocdef.proccalloption in [pocall_cdecl])
 {$endif m68k}
             then
           begin
@@ -802,7 +802,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-11-15 01:58:53  peter
+  Revision 1.75  2002-11-17 16:31:57  carl
+    * memory optimization (3-4%) : cleanup of tai fields,
+       cleanup of tdef and tsym fields.
+    * make it work for m68k
+
+  Revision 1.74  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
