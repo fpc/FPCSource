@@ -378,6 +378,7 @@ implementation
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          ch       : tclassheader;
+         istyperenaming : boolean;
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
@@ -387,6 +388,7 @@ implementation
            typename:=pattern;
            orgtypename:=orgpattern;
            defpos:=akttokenpos;
+           istyperenaming:=false;
            consume(_ID);
            consume(_EQUAL);
            { support 'ttype=type word' syntax }
@@ -430,7 +432,9 @@ implementation
               read_type(tt,orgtypename);
               { update the definition of the type }
               newtype.restype:=tt;
-              if not assigned(tt.sym) then
+              if assigned(tt.sym) then
+                istyperenaming:=true
+              else
                 tt.sym:=newtype;
               if assigned(tt.def) and not assigned(tt.def.typesym) then
                 tt.def.typesym:=newtype;
@@ -454,9 +458,15 @@ implementation
                   end;
                 procvardef :
                   begin
-                    if not is_proc_directive(token) then
-                     consume(_SEMICOLON);
-                    parse_var_proc_directives(tsym(newtype));
+                    { in case of type renaming, don't parse proc directives }
+                    if istyperenaming then
+                     consume(_SEMICOLON)
+                    else
+                     begin
+                       if not is_proc_directive(token) then
+                        consume(_SEMICOLON);
+                       parse_var_proc_directives(tsym(newtype));
+                     end;
                   end;
                 objectdef,
                 recorddef :
@@ -593,7 +603,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-10-20 20:30:21  peter
+  Revision 1.38  2001-10-24 10:26:53  marco
+   * Don't parse proc directives after type renaming of procvars
+
+  Revision 1.37  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.36  2001/10/20 19:28:39  peter
