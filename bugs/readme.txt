@@ -284,7 +284,9 @@ Fixed bugs:
   bug0223.pp   wrong boolean evaluation in writeln                  OK 0.99.11 (PFV)
   bug0224.pp   I/O-Error generation in readln can't be switched off OK 0.99.11 (PFV)
   bug0225.pp   Sigsegv when run with range checks on open arrays    OK 0.99.11 (PFV)
+  bug0226.pp   Asm, offset of var is not allowed as constant        OK 0.99.11 (PFV)
   bug0227.pp   external var does strange things when declared in localsymtable OK 0.99.11 (PFV)
+  bug0228.pp   Asm, wrong warning for size                          OK 0.99.11 (PFV)
   bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV)
   bug0230.pp   several strange happen on the ln function: ln(0): no
                FPE and writeln can't write non numeric values
@@ -301,6 +303,8 @@ Fixed bugs:
   bug0242.pp   Crash when passing a procedure to formal parameter   OK 0.99.11 (PM)
   bug0247.pp   var with initial value not supprted (Delphi var x : integer = 5;)
                allowed in -Sd mode OK 0.99.11 (PM)
+  bug0248.pp   Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV)
+  
 
 Unproducable bugs:
 ------------------
@@ -326,8 +330,6 @@ bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
 
 Unfixed bugs:
 -------------
-bug0226.pp   Asm, offset of var is not allowed as constant
-bug0228.pp   Asm, wrong warning for size
 
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
@@ -340,4 +342,3 @@ bug0243.pp   Arguments of functions are computed from right to left this
 bug0244.pp   nested procedures can't have same name as global ones
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) 
 bug0246.pp   const para can be changed without error
-bug0248.pp   Wrong assembler code accepted by new assembler reader 
