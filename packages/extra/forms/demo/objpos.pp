@@ -1,6 +1,6 @@
 program objpos;
 
-uses forms;
+uses xforms;
 
 const
   dx : TFL_Coord = 11 ;
@@ -43,11 +43,14 @@ begin
 
   fl_do_forms();
 
-end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:57  peter
-end.    * old logs removed and tabs fixed
 end.
-end.  Revision 1.1  2002/01/29 17:55:01  peter
-end.    * splitted to base and extra
-end.
+{
+  $Log$
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
+  Revision 1.2  2002/09/07 15:42:57  peter
+    * old logs removed and tabs fixed
+
 }

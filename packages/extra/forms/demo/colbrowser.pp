@@ -1,6 +1,6 @@
 Program colbrowser;
 
-uses forms,strings;
+uses xforms,strings;
 
 Const  MAX_RGB = 3000;
 
@@ -279,8 +279,13 @@ begin
 
     while (fl_do_forms()<>nil) do;
 end.
+{
   $Log$
-  Revision 1.2  2002-09-07 15:42:54  peter
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
+  Revision 1.2  2002/09/07 15:42:54  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:00  peter

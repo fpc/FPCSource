@@ -1,6 +1,6 @@
 program colsel1;
 
-uses forms;
+uses xforms;
 
 var form : PFL_FORM;
     topbox : PFL_OBJECT;
@@ -45,8 +45,13 @@ begin
   while ret<>topbox do ret := fl_do_forms();
   fl_hide_form(form);
 end.
+{
   $Log$
-  Revision 1.2  2002-09-07 15:42:55  peter
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
+  Revision 1.2  2002/09/07 15:42:55  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:00  peter

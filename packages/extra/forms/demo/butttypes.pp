@@ -93,8 +93,13 @@ begin
    fl_show_form(fd_form0^.form0,FL_PLACE_CENTER,FL_FULLBORDER,'form0');
    fl_do_forms();
 end.
+{
   $Log$
-  Revision 1.2  2002-09-07 15:42:54  peter
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
+  Revision 1.2  2002/09/07 15:42:54  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:00  peter

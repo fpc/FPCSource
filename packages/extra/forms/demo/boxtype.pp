@@ -3,7 +3,7 @@
  }
 program boxtype;
 
-uses forms;
+uses xforms;
 
 const border = FL_TRANSIENT;
 
@@ -219,11 +219,11 @@ begin
   fl_set_choice (modeob, fl_vmode+1);
    fl_show_form (form, FL_PLACE_MOUSE, border, 'Box types');
   while (fl_do_forms <> exitob) do;
-end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:54  peter
-end.    * old logs removed and tabs fixed
 end.
-end.  Revision 1.1  2002/01/29 17:55:00  peter
-end.    * splitted to base and extra
-end.
+{
+  $Log$
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
 }

@@ -5,7 +5,7 @@
  * changed stub button to crossbutton
  }
 
-uses forms;
+uses xforms;
 
 Const FL_CROSSBUTTON=2000;
       FL_CROSSBUTTON_BW = 2;
@@ -149,9 +149,13 @@ begin
       fl_show_form(cbform^.newbut, FL_PLACE_CENTER, 0, nil);
       while(fl_do_forms <> cbform^.bexit) do ;
 end.
-
+{
   $Log$
-  Revision 1.2  2002-09-07 15:42:57  peter
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
+  Revision 1.2  2002/09/07 15:42:57  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:01  peter

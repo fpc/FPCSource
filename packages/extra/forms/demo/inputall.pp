@@ -1,6 +1,6 @@
 program inputall;
 
-uses forms;
+uses xforms;
 
 type TFD_INPUT = record
         input : PFL_FORM;
@@ -95,9 +95,13 @@ begin
    fl_show_form(fd_input^.input,FL_PLACE_CENTERFREE,FL_FULLBORDER,'input');
    while (fl_do_forms<>nil) do;
 end.
-
+{
   $Log$
-  Revision 1.2  2002-09-07 15:42:57  peter
+  Revision 1.3  2003-10-27 15:48:13  peter
+    * renamed forms unit to xforms to prevent conflict with Forms
+      from the LCL
+
+  Revision 1.2  2002/09/07 15:42:57  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:01  peter
