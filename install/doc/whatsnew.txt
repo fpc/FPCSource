@@ -18,6 +18,7 @@ Compiler:
   * Fixed some reported bugs
 
 RTL:
+  + keyboard, mouse and video units added (originally in API)
   + Lot of FreeBSD updates
   * FindFirst/FindClose fixes
   * Termios updates for FreeBSD and Linux
@@ -35,6 +36,9 @@ Utils:
 
 Docs:
   + IDE documentation
+
+API:
+  - standalone API removed from distribution, units added to RTL
 
 
 ******************************************************************************
