@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 2000-2001 by the Free Pascal development team.
 
@@ -612,6 +613,7 @@ end ['R0','R3','R4','R9','R10','CR0','CTR'];
                                  String
 ****************************************************************************}
 
+{!!! working but uses same define as SHORTSTR_ASSIGN
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 assembler;
@@ -639,8 +641,9 @@ LShortStrCopyLoop:
         bdnz    LShortStrCopyLoop
 LShortStrCopyDone:
 end ['R0','R3','R4','R5','R6','R7','R10','CR0','CTR'];
+}
 
-
+{!!!! buggy
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$ifdef interncopy}
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
@@ -673,8 +676,10 @@ LShortStrCopyLoop2:
 LShortStrCopyDone2:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
-{define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+}
+
 (*
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 BUGGY!! Probably the min is wrong, see fpc_shortstr_to_shortstr above
 
@@ -710,6 +715,7 @@ LShortStrConcatDone:
 end ['R3','R4','R8','R9','R10','CTR'];
 *)
 
+{!!!!!!!
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 assembler;
@@ -720,10 +726,10 @@ asm
       lbz     r10,0(r3)
       { save their difference for later and      }
       { calculate min(length(sstr),length(dstr)) }
-      subc    r0,r9,r10    { r0 := r9 - r10                               }
-      subfme  r9,r9        { if r9 >= r10 then r9' := 0 else r9' := -1    }
-      and     r9,r0,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
-      add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9  }
+      subfc    r7,r10,r9    { r0 := r9 - r10                               }
+      subfe    r6,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
+      and      r7,r7,r6     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
+      add      r9,r10,r7    { if r9 >= r10 then r9' := r10 else r9' := r9  }
 
       { first compare dwords (length/4) }
       srwi.   r8,r9,2
@@ -762,8 +768,8 @@ LShortStrCompareLen:
       { also return result in flags, maybe we can use this in the CG }
       mr.     r3,r0
 LShortStrCompareDone:
-end ['R0','R3','R4','R8','R9','R10','CR0','CR1','CTR'];
-
+end ['R0','R3','R4','R6','R7','R8','R9','R10','CR0','CR1','CTR'];
+}
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
@@ -875,7 +881,11 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.35  2003-04-26 17:35:15  jonas
+  Revision 1.36  2003-04-26 17:46:49  florian
+    * commented out not working routines
+    * reactivated assembler fillchar
+
+  Revision 1.35  2003/04/26 17:35:15  jonas
     * fixed FillChar
 
   Revision 1.34  2003/04/26 12:05:10  florian
