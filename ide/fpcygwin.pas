@@ -17,7 +17,8 @@ uses
 var
   ModuleH,DummyH : Handle;
   CygwinFullName : pchar;
-  fileinfosize,size : longint;
+  fileinfosize : cardinal;
+  size : longint;
   InfoData : pointer;
   FileInfo : VS_FIXEDFILEINFO;
   PFileInfo : ^VS_FIXEDFILEINFO;
