@@ -157,15 +157,15 @@ uses strings,globals;
                            --- Conversion ---
 ******************************************************************************}
 
-   function GetLastError : DWORD;
+   function GetLastError : DWORD;stdcall;
      external 'Kernel32.dll' name 'GetLastError';
-   function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : boolean;
+   function FileTimeToDosDateTime(const ft :TFileTime;var data,time : word) : boolean;stdcall;
      external 'Kernel32.dll' name 'FileTimeToDosDateTime';
-   function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : boolean;
+   function DosDateTimeToFileTime(date,time : word;var ft :TFileTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'DosDateTimeToFileTime';
-   function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : boolean;
+   function FileTimeToLocalFileTime(const ft : TFileTime;var lft : TFileTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'FileTimeToLocalFileTime';
-   function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : boolean;
+   function LocalFileTimeToFileTime(const lft : TFileTime;var ft : TFileTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'LocalFileTimeToFileTime';
 
 type
@@ -228,11 +228,11 @@ end;
                         --- Info / Date / Time ---
 ******************************************************************************}
 
-   function GetVersion : longint;
+   function GetVersion : longint;stdcall;
      external 'Kernel32.dll' name 'GetVersion';
-   procedure GetLocalTime(var t : TSystemTime);
+   procedure GetLocalTime(var t : TSystemTime);stdcall;
      external 'Kernel32.dll' name 'GetLocalTime';
-   function SetLocalTime(const t : TSystemTime) : boolean;
+   function SetLocalTime(const t : TSystemTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'SetLocalTime';
 
 function dosversion : word;
@@ -446,12 +446,11 @@ end;
 ******************************************************************************}
 
 { Needed kernel calls }
-
-   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
+   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;stdcall
      external 'Kernel32.dll' name 'FindFirstFileA';
-   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;
+   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;stdcall;
      external 'Kernel32.dll' name 'FindNextFileA';
-   function FindCloseFile (hFindFile: THandle): Boolean;
+   function FindCloseFile (hFindFile: THandle): Boolean;stdcall;
      external 'Kernel32.dll' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
@@ -534,13 +533,13 @@ end;
                                --- File ---
 ******************************************************************************}
 
-   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
+   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'GetFileTime';
-   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
+   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'SetFileTime';
-   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;
+   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;stdcall;
      external 'Kernel32.dll' name 'SetFileAttributesA';
-   function GetFileAttributes(lpFileName : pchar) : longint;
+   function GetFileAttributes(lpFileName : pchar) : longint;stdcall;
      external 'Kernel32.dll' name 'GetFileAttributesA';
 
 procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
@@ -753,9 +752,9 @@ end;
   terminated by a #0
 }
 
-   function GetEnvironmentStrings : pchar;
+   function GetEnvironmentStrings : pchar;stdcall;
      external 'Kernel32.dll' name 'GetEnvironmentStringsA';
-   function FreeEnvironmentStrings(p : pchar) : boolean;
+   function FreeEnvironmentStrings(p : pchar) : boolean;stdcall;
      external 'Kernel32.dll' name 'FreeEnvironmentStringsA';
 
 function envcount : longint;
@@ -848,7 +847,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-05 08:20:12  michael
+  Revision 1.4  1999-05-05 09:19:05  florian
+    * more fixes to get it with delphi running
+
+  Revision 1.3  1999/05/05 08:20:12  michael
   * kernel32 changed to kernel32.dll
 
   Revision 1.2  1999/05/04 21:44:41  florian

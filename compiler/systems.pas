@@ -130,7 +130,7 @@ unit systems;
           id        : tos;
           name      : string[30];
           shortname : string[8];
-          sharedlibext,
+          sharedlibext : string[10];
           staticlibext,
           sourceext,
           pasext,
@@ -1467,7 +1467,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  1999-05-03 18:03:29  peter
+  Revision 1.70  1999-05-05 09:19:18  florian
+    * more fixes to get it with delphi running
+
+  Revision 1.69  1999/05/03 18:03:29  peter
     * no ar.exe running field in target_asm
 
   Revision 1.68  1999/05/02 22:41:59  peter

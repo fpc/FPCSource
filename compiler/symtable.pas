@@ -648,7 +648,7 @@ const localsymtablestack : psymtable = nil;
 
     procedure resolvesym(var d : psym);
       begin
-        if longint(d)=$ffffffff then
+        if longint(d)=-1 then
           d:=nil
         else
           begin
@@ -670,7 +670,7 @@ const localsymtablestack : psymtable = nil;
 
     procedure resolvedef(var d : pdef);
       begin
-        if longint(d)=$ffffffff then
+        if longint(d)=-1 then
           d:=nil
         else
           begin
@@ -3204,7 +3204,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.5  1999-05-01 13:24:43  peter
+  Revision 1.6  1999-05-05 09:19:16  florian
+    * more fixes to get it with delphi running
+
+  Revision 1.5  1999/05/01 13:24:43  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -367,20 +367,23 @@ unit cobjects;
 
   implementation
 
-{$ifdef FPC}
+{$ifndef TP}
     function getspeedvalue(const s : string) : longint;
       var
         p1,p2:^byte;
+        i : longint;
+
       begin
         p1:=@s;
         longint(p2):=longint(p1)+p1^+1;
         inc(longint(p1));
-        getspeedvalue:=0;
+        i:=0;
         while p1<>p2 do
          begin
-           inc(getspeedvalue,p1^);
+           inc(i,p1^);
            inc(longint(p1));
          end;
+        getspeedvalue:=i;
       end;
 {$else}
     function getspeedvalue(const s : string) : longint;
@@ -1433,7 +1436,7 @@ end;
       var
         i : longint;
       begin
-        for i:=1to count do
+        for i:=1 to count do
          if assigned(data^[i]) then
           begin
             dispose(data^[i],done);
@@ -1932,7 +1935,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-04-21 09:43:31  peter
+  Revision 1.27  1999-05-05 09:19:03  florian
+    * more fixes to get it with delphi running
+
+  Revision 1.26  1999/04/21 09:43:31  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

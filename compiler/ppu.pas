@@ -235,11 +235,19 @@ implementation
 *****************************************************************************}
 
 var
+{$ifdef Delphi}
+  Crc32Tbl : array[0..255] of longword;
+{$else Delphi}
   Crc32Tbl : array[0..255] of longint;
+{$endif Delphi}
 
 procedure MakeCRC32Tbl;
 var
+{$ifdef Delphi}
+  crc : longword;
+{$else Delphi}
   crc : longint;
+{$endif Delphi}
   i,n : byte;
 begin
   for i:=0 to 255 do
@@ -874,7 +882,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-05-04 21:44:59  florian
+  Revision 1.32  1999-05-05 09:19:15  florian
+    * more fixes to get it with delphi running
+
+  Revision 1.31  1999/05/04 21:44:59  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.30  1999/04/26 18:30:00  peter
