@@ -1598,7 +1598,8 @@ implementation
                       regidx:=findreg_by_number(localloc.register);
                       { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                       { this is the register order for GDB}
-                      stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+                      if regidx<>0 then
+                        stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
                     end;
                   LOC_REFERENCE :
                     { offset to ebp => will not work if the framepointer is esp
@@ -2215,7 +2216,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.177  2004-09-26 17:45:30  peter
+  Revision 1.178  2004-10-01 15:22:22  peter
+    * don't add stabs for register variables
+
+  Revision 1.177  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.176  2004/09/21 17:25:12  peter
