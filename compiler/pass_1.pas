@@ -43,7 +43,12 @@ implementation
       tcadd,tccal,tccnv,tccon,tcflw,
       tcinl,tcld,tcmat,tcmem,tcset
 {$ifdef i386}
-      ,i386,tgeni386
+{$ifdef Ag386Bin}
+      ,i386base,i386asm
+{$else}
+      ,i386
+{$endif}
+      ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -367,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  1998-12-11 00:03:27  peter
+  Revision 1.100  1999-02-22 02:44:07  peter
+    * ag386bin doesn't use i386.pas anymore
+
+  Revision 1.99  1998/12/11 00:03:27  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.98  1998/11/23 17:49:03  pierre

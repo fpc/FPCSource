@@ -41,7 +41,11 @@ unit ptconst;
        ,pbase,pexpr
        { processor specific stuff }
 {$ifdef i386}
+{$ifdef Ag386Bin}
+       ,i386base
+{$else}
        ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -702,7 +706,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.36  1999-02-17 10:15:26  peter
+  Revision 1.37  1999-02-22 02:44:13  peter
+    * ag386bin doesn't use i386.pas anymore
+
+  Revision 1.36  1999/02/17 10:15:26  peter
     * fixed error messages when parsing typed const array
 
   Revision 1.35  1999/01/20 14:09:28  pierre

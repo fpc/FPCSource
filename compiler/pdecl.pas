@@ -64,7 +64,11 @@ unit pdecl;
        ,pbase,ptconst,pexpr,psub,pexports
        { processor specific stuff }
 {$ifdef i386}
+{$ifdef Ag386Bin}
+       ,i386base
+{$else}
        ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -2149,7 +2153,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.96  1999-02-17 14:20:40  pierre
+  Revision 1.97  1999-02-22 02:44:10  peter
+    * ag386bin doesn't use i386.pas anymore
+
+  Revision 1.96  1999/02/17 14:20:40  pierre
    * Reference specific bug in recompiling unit solved
 
   Revision 1.95  1999/01/25 20:13:48  peter

@@ -66,7 +66,6 @@ unit pexports;
                         if ((srsym^.typ<>procsym) or
                           ((pprocdef(pprocsym(srsym)^.definition)^.options and poexports)=0)) and
                           (srsym^.typ<>varsym) and (srsym^.typ<>typedconstsym) then
-{* Changes made by Ozerski 23.10.1998}
                           Message(parser_e_illegal_symbol_exported)
                         else
                          begin
@@ -75,39 +74,30 @@ unit pexports;
                           delete(InternalProcName,1,1);
                           DefString:=ProcName+'='+InternalProcName;
                          end;
-{* End changes}
                         if (idtoken=_INDEX) then
                           begin
                              consume(_INDEX);
                              hp^.options:=hp^.options or eo_index;
                              val(pattern,hp^.index,code);
                              consume(INTCONST);
-{* Changes made by Ozerski 23.10.1998}
                              DefString:=ProcName+'='+InternalProcName;{Index ignored!}
-{* End changes}
                           end;
                         if (idtoken=_NAME) then
                           begin
                              consume(_NAME);
                              hp^.name:=stringdup(pattern);
                              hp^.options:=hp^.options or eo_name;
-{* Changes made by Ozerski 23.10.1998}
                              consume(CSTRING); {Bug fixed?}
                              DefString:=hp^.name^+'='+InternalProcName;
-{* End changes}
                           end;
                         if (idtoken=_RESIDENT) then
                           begin
                              consume(_RESIDENT);
                              hp^.options:=hp^.options or eo_resident;
-{* Changes made by Ozerski 23.10.1998}
                              DefString:=ProcName+'='+InternalProcName;{Resident ignored!}
-{* End changes}
                           end;
-{* Changes made by Ozerski 23.10.1998}
                         if DefString<>''then
                          DefFile.AddExport(DefString);
-{* End changes}
                         if srsym^.typ=procsym then
                           exportlib^.exportprocedure(hp)
                         else
@@ -122,20 +112,21 @@ unit pexports;
                 break;
            end;
          consume(SEMICOLON);
-{* Changes made by Ozerski 23.10.1998}
         if not DefFile.exportlist.empty then
          begin
-          deffile.fname:='DEF.$$$';
-          deffile.writefile;
+           deffile.fname:='DEF.$$$';
+           deffile.writefile;
          end;
-{* End changes}
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.6  1998-12-11 00:03:31  peter
+  Revision 1.7  1999-02-22 02:44:12  peter
+    * ag386bin doesn't use i386.pas anymore
+
+  Revision 1.6  1998/12/11 00:03:31  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.5  1998/11/30 13:26:25  pierre

@@ -58,7 +58,11 @@ unit win_targ;
        ,gdb
 {$endif}
 {$ifdef i386}
+{$ifdef Ag386Bin}
+       ,i386base,i386asm
+{$else}
        ,i386
+{$endif}
 {$endif}
        ;
 
@@ -696,7 +700,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.19  1998-12-11 00:04:06  peter
+  Revision 1.20  1999-02-22 02:44:14  peter
+    * ag386bin doesn't use i386.pas anymore
+
+  Revision 1.19  1998/12/11 00:04:06  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.18  1998/12/02 10:26:13  pierre
