@@ -149,6 +149,18 @@
      NCCS = 20;
 {$ifndef _POSIX_VDISABLE}
 
+// as in linux freebsd netbsd and openbsd
+// Start
+Type
+  winsize = packed record
+    ws_row,
+    ws_col,
+    ws_xpixel,
+    ws_ypixel : word;
+  end;
+  TWinSize=winsize;
+//End
+
   const
      _POSIX_VDISABLE = $ff;
 {$endif}
@@ -156,8 +168,12 @@
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
   { return type might be wrong }   
-  function CCEQ(val,c : longint) : longint;
+//  function CCEQ(val,c : longint) : longint;
+// as in freebsd netbsd and openbsd and in /usr/include/sys/termios.h
+{
 
+  #define CCEQ(val, c)    ((c) == (val) ? (val) != _POSIX_VDISABLE : 0)
+}
 {$endif}
   {
      Input flags - software input processing
@@ -420,6 +436,102 @@
      TCIOFF = 3;
      TCION = 4;
 
+// as in freebsd netbsd and openbsd and in 
+// /usr/include/sys/ttycom.h und ioccom.h
+     
+       IOCTLREAD        = $40000000;
+       IOCTLWRITE       = $80000000;
+       IOCTLVOID        = $20000000;
+
+        TIOCMODG        = IOCTLREAD+$47400+ 3;  { get modem control state }
+        TIOCMODS        = IOCTLWRITE+$47400+ 4; { set modem control state }
+                TIOCM_LE        =$0001;         { line enable }
+                TIOCM_DTR       =$0002;         { data terminal ready }
+                TIOCM_RTS       =$0004;         { request to send }
+                TIOCM_ST        =$0010;         { secondary transmit }
+                TIOCM_SR        =$0020;         { secondary receive }
+                TIOCM_CTS       =$0040;         { clear to send }
+                TIOCM_CAR       =$0100;         { carrier detect }
+                TIOCM_CD        =TIOCM_CAR;
+                TIOCM_RNG       =$0200;         { ring }
+                TIOCM_RI        =TIOCM_RNG;
+                TIOCM_DSR       =$0400;         { data set ready }
+                                                { 8-10 compat }
+        TIOCEXCL         =IOCTLVOID+$7400+ 13;          { set exclusive use of tty }
+        TIOCNXCL         =IOCTLVOID+$7400+ 14;          { reset exclusive use of tty }
+                                                { 15 unused }
+        TIOCFLUSH        =IOCTLWRITE+$47400+ 16;        { flush buffers }
+                                                { 17-18 compat }
+        TIOCGETA         =IOCTLREAD+$2C7400+ 19; { get termios struct }
+        TIOCSETA         =IOCTLWRITE+$2C7400+ 20; { set termios struct }
+        TIOCSETAW        =IOCTLWRITE+$2C7400+ 21; { drain output, set }
+        TIOCSETAF        =IOCTLWRITE+$2C7400+ 22; { drn out, fls in, set }
+        TIOCGETD         =IOCTLREAD+$47400+ 26; { get line discipline }
+        TIOCSETD         =IOCTLWRITE+$47400+ 27;        { set line discipline }
+                                                { 127-124 compat }
+        TIOCSBRK         =IOCTLVOID+$7400+ 123;         { set break bit }
+        TIOCCBRK         =IOCTLVOID+$7400+ 122;         { clear break bit }
+        TIOCSDTR         =IOCTLVOID+$7400+ 121;         { set data terminal ready }
+        TIOCCDTR         =IOCTLVOID+$7400+ 120;         { clear data terminal ready }
+        TIOCGPGRP        =IOCTLREAD+$47400+ 119;        { get pgrp of tty }
+        TIOCSPGRP        =IOCTLWRITE+$47400+ 118;       { set pgrp of tty }
+                                                { 117-116 compat }
+        TIOCOUTQ         =IOCTLREAD+$47400+ 115;        { output queue size }
+        TIOCSTI          =IOCTLWRITE+$17400+ 114;       { simulate terminal input }
+        TIOCNOTTY        =IOCTLVOID+$7400+ 113;         { void tty association }
+        TIOCPKT          =IOCTLWRITE+$47400+ 112;       { pty: set/clear packet mode }
+                TIOCPKT_DATA            =$00;   { data packet }
+                TIOCPKT_FLUSHREAD       =$01;   { flush packet }
+                TIOCPKT_FLUSHWRITE      =$02;   { flush packet }
+                TIOCPKT_STOP            =$04;   { stop output }
+                TIOCPKT_START           =$08;   { start output }
+                TIOCPKT_NOSTOP          =$10;   { no more ^S, ^Q }
+                TIOCPKT_DOSTOP          =$20;   { now do ^S ^Q }
+                TIOCPKT_IOCTL           =$40;   { state change of pty driver }
+        TIOCSTOP         =IOCTLVOID+$7400+ 111;         { stop output, like ^S }
+        TIOCSTART        =IOCTLVOID+$7400+ 110;         { start output, like ^Q }
+        TIOCMSET         =IOCTLWRITE+$47400+ 109;       { set all modem bits }
+        TIOCMBIS         =IOCTLWRITE+$47400+ 108;       { bis modem bits }
+        TIOCMBIC         =IOCTLWRITE+$47400+ 107;       { bic modem bits }
+        TIOCMGET         =IOCTLREAD+$47400+ 106;        { get all modem bits }
+        TIOCREMOTE       =IOCTLWRITE+$47400+ 105;       { remote input editing }
+        TIOCGWINSZ       =IOCTLREAD+$87400+ 104;        { get window size }
+        TIOCSWINSZ       =IOCTLWRITE+$87400+ 103;       { set window size }
+        TIOCUCNTL        =IOCTLWRITE+$47400+ 102;       { pty: set/clr usr cntl mode }
+        TIOCSTAT         =IOCTLVOID+$7400+ 101;         { simulate ^T status message }
+  //                       UIOCCMD(n)   _IO('u', n)     { usr cntl op "n" }	    		
+        TIOCSCONS        =IOCTLWRITE+$47400+ 99;		{ 4.2 compatibility } // added from ttycom.h
+        TIOCCONS         =IOCTLWRITE+$47400+ 98;        { become virtual console }
+        TIOCSCTTY        =IOCTLVOID+$7400+ 97;          { become controlling tty }
+        TIOCEXT          =IOCTLWRITE+$47400+ 96;        { pty: external processing }
+        TIOCSIG          =IOCTLVOID+$7400+ 95;          { pty: generate signal }
+        TIOCDRAIN        =IOCTLVOID+$7400+ 94;          { wait till output drained }
+        TIOCMSDTRWAIT    =IOCTLWRITE+$47400+ 91;        { modem: set wait on close }
+        TIOCMGDTRWAIT    =IOCTLREAD+$47400+ 90;         { modem: get wait on close }
+        TIOCTIMESTAMP    =IOCTLREAD+$87400+ 89;         { enable/get timestamp
+                                                 * of last input event }
+        TIOCDCDTIMESTAMP =IOCTLREAD+$87400+ 88; { enable/get timestamp
+                                                 * of last DCd rise }
+        TIOCSDRAINWAIT   =IOCTLWRITE+$47400+ 87;        { set ttywait timeout }
+        TIOCGDRAINWAIT   =IOCTLREAD+$47400+ 86; { get ttywait timeout }
+        TIOCDSIMICROCODE =IOCTLREAD+$47400+ 85; { download microcode to DSI Softmodem } // added from ttycom.h
+
+        TTYDISC          =0;            { termios tty line discipline }
+        TABLDISC	     =3;		    { tablet discipline } // added from ttycom.h
+        SLIPDISC         =4;            { serial IP discipline }
+        PPPDISC          =5;            { PPP discipline }
+        NETGRAPHDISC     =6;            { Netgraph tty node discipline }
+
+
+{
+ * Defaults on "first" open.
+ }
+       TTYDEF_IFLAG      =(BRKINT       or ICRNL        or IMAXBEL or IXON or IXANY);
+       TTYDEF_OFLAG      =(OPOST or ONLCR);
+       TTYDEF_LFLAG      =(ECHO or ICANON or ISIG or IEXTEN or ECHOE or ECHOKE or ECHOCTL);
+       TTYDEF_CFLAG      =(CREAD or CS8 or HUPCL);
+       TTYDEF_SPEED      =(B9600);
+
 {
  * Control Character Defaults
  }
@@ -456,9 +568,20 @@
         chr(_POSIX_VDISABLE), CINTR,  CQUIT,  CSUSP,  CDSUSP, CSTART, CSTOP,  CLNEXT,
         CDISCARD, CMIN, CTIME,  CSTATUS, chr(_POSIX_VDISABLE));
 
+{$endif}
+
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
+  Revision 1.2  2004-02-05 14:00:45  jonas
+    + some declarations added from other bsds and /usr/include/sys/termios.h
+      to termios.inc and termiosproc.inc (by Karl-Michael Schindler)
+    + added crt, mouse (because required by keyboard), keyboard, termio,
+      console to Darwin makefile (thanks to the above they now compile,
+      functionality untested)
+    * fixed wrong dependency for sysconst unit (it was always recompiled)
+
+
+  Revision 1.1  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 

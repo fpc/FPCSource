@@ -19,11 +19,64 @@
                          IOCtl and Termios calls
 ******************************************************************************}
 
-Function TCGetAttr(fd:cint;var tios:TermIOS):cint; cdecl; external 'c' name 'tcgetattr';
-Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint; cdecl; external 'c' name 'tcsetattr';
-Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetispeed';
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetospeed';
-Procedure CFMakeRaw(var tios:TermIOS); cdecl; external 'c' name 'cfmakeraw';
+Function TCGetAttr(fd:cint;var tios:TermIOS):cint;
+begin
+  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios);
+end;
+
+Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
+var
+  nr:cint;
+begin
+  case OptAct of
+   TCSANOW   : nr:=TIOCSETA;
+   TCSADRAIN : nr:=TIOCSETAW;
+   TCSAFLUSH : nr:=TIOCSETAF;
+  else
+   begin
+     fpsetErrNo(ESysEINVAL);
+     TCSetAttr:=-1;
+     exit;
+   end;
+  end;
+  TCSetAttr:=fpIOCtl(fd,nr,@Tios);
+end;
+
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
+begin
+  tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
+end;
+
+
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
+begin
+   tios.c_ospeed:=speed;
+end;
+
+
+
+Procedure CFMakeRaw(var tios:TermIOS);
+begin
+  with tios do
+   begin
+     c_iflag:=c_iflag and (not (IMAXBEL or IXOFF or INPCK or BRKINT or
+                PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
+                IGNPAR));
+     c_iflag:=c_iflag OR IGNBRK;
+     c_oflag:=c_oflag and (not OPOST);
+     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or
+                                ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
+     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or (CS8 OR cread);
+     c_cc[VMIN]:=1;
+     c_cc[VTIME]:=0;
+   end;
+end;
+
+//Function TCGetAttr(fd:cint;var tios:TermIOS):cint; cdecl; external 'c' name 'tcgetattr';
+//Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint; cdecl; external 'c' name 'tcsetattr';
+//Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetispeed';
+//Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); cdecl; external 'c' name 'cfsetospeed';
+//Procedure CFMakeRaw(var tios:TermIOS); cdecl; external 'c' name 'cfmakeraw';
 
 Function TCSendBreak(fd,duration:cint):cint;
 begin
@@ -83,7 +136,15 @@ end;
 
 {
    $Log$
-   Revision 1.1  2004-01-04 20:05:38  jonas
+   Revision 1.2  2004-02-05 14:00:45  jonas
+     + some declarations added from other bsds and /usr/include/sys/termios.h
+       to termios.inc and termiosproc.inc (by Karl-Michael Schindler)
+     + added crt, mouse (because required by keyboard), keyboard, termio,
+       console to Darwin makefile (thanks to the above they now compile,
+       functionality untested)
+     * fixed wrong dependency for sysconst unit (it was always recompiled)
+
+   Revision 1.1  2004/01/04 20:05:38  jonas
      * first working version of the Darwin/Mac OS X (for PowerPC) RTL
        Several non-essential units are still missing, but make cycle works
 

@@ -5,7 +5,7 @@
 [package]
 main=rtl
 
-# disabled units: termio crt video keyboard serial sockets ipc mouse console
+# disabled units: serial sockets ipc mouse console
 [target]
 loaders=
 units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil \
@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil \
       dos dl objects printer \
       sysutils typinfo systhrds classes math varutils \
       charset ucomplex getopts heaptrc lineinfo \
-      errors terminfo \
+      errors terminfo termio video crt mouse keyboard console \
       variants types sysctl dateutils \
       sysconst cthreads strutils rtlconst
 
@@ -161,7 +161,7 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) 
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) 
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

@@ -229,7 +229,7 @@ GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil unix initc   dos dl objects printer sysutils typinfo systhrds classes math varutils charset ucomplex getopts heaptrc lineinfo errors terminfo variants types sysctl dateutils sysconst cthreads strutils rtlconst
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil unix initc   dos dl objects printer sysutils typinfo systhrds classes math varutils charset ucomplex getopts heaptrc lineinfo errors terminfo termio video crt mouse keyboard console variants types sysctl dateutils sysconst cthreads strutils rtlconst
 override TARGET_RSTS+=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(OSPROCINC)
@@ -1355,7 +1355,7 @@ crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) 
+		    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) 
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
