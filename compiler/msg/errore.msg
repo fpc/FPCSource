@@ -2307,17 +2307,15 @@ S*2Tlinux_Linux
 **2Ur_generate release unit files
 **2Us_compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_e : Show errors (default)       d : Show debug info
+**2*_e : Show errors (default)       0 : Show nothing (except errors)
 **2*_w : Show warnings               u : Show unit info
 **2*_n : Show notes                  t : Show tried/used files
-**2*_h : Show hints                  m : Show defined macros
-**2*_i : Show general info           p : Show compiled procedures
-**2*_l : Show linenumbers            c : Show conditionals
-**2*_a : Show everything             0 : Show nothing (except errors)
-**2*_b : Show all procedure          r : Rhide/GCC compatibility mode
-**2*_    declarations if an error    x : Executable info (Win32 only)
-**2*_    occurs
-**1V_write fpcdebug.txt file with lots of debugging info
+**2*_h : Show hints                  c : Show conditionals
+**2*_i : Show general info           d : Show debug info
+**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
+**2*_a : Show everything             x : Executable info (Win32 only)
+**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
+**2*_    lots of debugging info      
 3*1W<x>_Win32-like target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application

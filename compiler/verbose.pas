@@ -266,7 +266,7 @@ var
                          status.verbosity:=status.verbosity and (not V_Executable)
                        else
                          status.verbosity:=status.verbosity or V_Executable;
-                 'v' : PrepareReport;
+                 'V' : PrepareReport;
                  end;
                 inc(i);
              end;
@@ -870,7 +870,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2004-11-15 23:35:31  peter
+  Revision 1.36  2005-01-20 17:29:07  peter
+    * fixed -vv
+
+  Revision 1.35  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

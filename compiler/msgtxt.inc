@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000158] of string[240]=(
+const msgtxt : array[0..000157] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000158,1..240] of char=(
+const msgtxt : array[0..000157,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -885,40 +885,39 @@ const msgtxt : array[0..000158,1..240] of char=(
   '**2Ur_generate release unit files'#010+
   '**2Us_compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
-  '**2*_e : Show errors (defau','lt)       d : Show debug info'#010+
+  '**2*_e : Show errors (defau','lt)       0 : Show nothing (except errors'+
+  ')'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
-  '**2*_h : Show hints                  m : Show defined macros'#010+
-  '**2*_i : Show general info    ','       p : Show compiled procedures'#010+
-  '**2*_l : Show linenumbers            c : Show conditionals'#010+
-  '**2*_a : Show everything             0 : Show nothing (except errors)'#010+
-  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#010+
-  '**2*_','    declarations if an error    x : Executable info (Win32 only'+
-  ')'#010+
-  '**2*_    occurs'#010+
-  '**1V_write fpcdebug.txt file with lots of debugging info'#010+
+  '**2*_h : Show hints                  c : Show conditionals'#010+
+  '**2*_i : Show gener','al info           d : Show debug info'#010+
+  '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
+  '**2*_a : Show everything             x : Executable info (Win32 only)'#010+
+  '**2*_v : write fpcdebug.txt with     p : Write tree.log with p','arse t'+
+  'ree'#010+
+  '**2*_    lots of debugging info      '#010+
   '3*1W<x>_Win32-like target options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
-  '3*2WC_Specify conso','le type application'#010+
+  '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
-  '3*2WF_Specify full-screen type application (OS/2 only)'#010+
+  '3*2WF_Specify full','-screen type application (OS/2 only)'#010+
   '3*2WG_Specify graphic type application'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
-  '3*2WR_Gene','rate relocation code'#010+
+  '3*2WR_Generate relocation code'#010+
   'P*2WC_Specify console type application (MacOS only)'#010+
-  'P*2WG_Specify graphic type application (MacOS only)'#010+
+  'P*2WG_Specify gra','phic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1X_executable options:'#010+
   '**2Xc_link with the c library'#010+
-  '*','*2Xd_don'#039't use standard library search path (needed for cross c'+
-  'ompile)'#010+
-  '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xd_don'#039't use standard library search path (needed for cross com'+
+  'pile)'#010+
+  '**2XD_try to link u','nits dynamic          (defines FPC_LINK_DYNAMIC)'#010+
   '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_set library search path to <x> (need','ed for cross compile)'#010+
+  '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
   '**2Xs_strip all symbols from executable'#010+
-  '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
+  '**2XS_try to link units stat','ic (default) (defines FPC_LINK_STATIC)'#010+
   '**2Xt_link with static libraries (-static is passed to linker)'#010+
-  '**2XX_try to link units smart            (define','s FPC_LINK_SMART)'#010+
+  '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
   '**1h_shows this help without waiting'#000
