@@ -1089,6 +1089,8 @@ unit cgcpu;
         end;
 
       begin
+        if len=0 then
+          exit;
         helpsize:=12;
         dstref:=dest;
         srcref:=source;
@@ -1329,7 +1331,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2004-03-29 19:19:35  florian
+  Revision 1.51  2004-03-31 19:13:04  florian
+    * concatcopy with len=0 exits now immediatly
+
+  Revision 1.50  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added
