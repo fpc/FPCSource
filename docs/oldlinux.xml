@@ -1,0 +1,4609 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="crt">
+<short>1.0.X version of the Linux unit - for compatibility only.</short>
+<!-- \FPCexampledir{linuxex} -->
+<descr>
+This document describes the LINUX unit for Free Pascal. The unit was written
+by Michael van Canneyt. It works only on the Linux/BSD operating systems.
+</descr>
+
+<
+\label{sec:types}
+PGlob and TGlob are 2 types used in the <link id="Glob"/> function:
+</p>
+<code>
+PGlob = ^TGlob;
+TGlob = record
+  Name : PChar;
+  Next : PGlob;
+  end;
+</code>
+<p>
+The following types are used in the signal-processing procedures.
+</p>
+<code>
+tfpreg = record
+  significand: array[0..3] of word;
+  exponent: word;
+end;
+
+pfpstate = ^tfpstate;
+tfpstate = record
+  cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+  st: array[0..7] of tfpreg;                            
+  status: cardinal;
+end;
+
+PSigContextRec = ^SigContextRec;
+SigContextRec = record
+  gs, __gsh: word;
+  fs, __fsh: word;
+  es, __esh: word;
+  ds, __dsh: word;
+  edi: cardinal;   
+  esi: cardinal;   
+  ebp: cardinal;   
+  esp: cardinal;   
+  ebx: cardinal;   
+  edx: cardinal;   
+  ecx: cardinal;   
+  eax: cardinal;   
+  trapno: cardinal;
+  err: cardinal;   
+  eip: cardinal;   
+  cs, __csh: word; 
+  eflags: cardinal;
+  esp_at_signal: cardinal;
+  ss, __ssh: word;
+  fpstate: pfpstate;
+  oldmask: cardinal;
+  cr2: cardinal;
+  end;
+</code>
+<p>
+The above records contain information about the processor state and process
+state at the moment a signal is sent to your program.
+
+The records below are used in catching signals.
+</p>
+<code>
+TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
+SignalHandler   = Procedure ( Sig : Integer);cdecl;
+
+PSignalHandler  = SignalHandler;
+SignalRestorer  = Procedure;cdecl;
+PSignalrestorer = SignalRestorer;
+SigActionRec = packed record
+  Handler  : record
+    case byte of   
+      0: (Sh: SignalHandler);
+      1: (Sa: TSigAction);   
+    end;
+  Sa_Mask     : SigSet;
+  Sa_Flags    : Longint;
+  Sa_restorer : SignalRestorer; { Obsolete - Don't use }
+end;
+  PSigActionRec = ^SigActionRec;
+</code>
+<p>
+Stat is used to store information about a file. It is defined in the
+syscalls unit.
+</p>
+<code>
+  stat = record
+     dev    : word;
+     pad1   : word;
+     ino    : longint;
+     mode   : word;
+     nlink  : word;
+     uid    : word;
+     gid    : word;
+     rdev   : word;
+     pad2   : word;
+     size   : longint;
+     blksze : Longint;
+     blocks : Longint;
+     atime  : Longint;
+     unused1 : longint;
+     mtime   : Longint;
+     unused2 : longint;
+     ctime   : Longint;
+     unused3 : longint;
+     unused4 : longint;
+     unused5 : longint;
+     end;
+ </code>
+<p>
+Statfs is used to store information about a filesystem. It is defined in
+the syscalls unit.
+</p>
+<code>
+   statfs = record
+     fstype   : longint;
+     bsize    : longint;
+     blocks   : longint;
+     bfree    : longint;
+     bavail   : longint;
+     files    : longint;
+     ffree    : longint;
+     fsid     : longint;
+     namelen  : longint; 
+     spare    : array [0..6] of longint;
+     end
+</code>
+<p>
+<var>Dir and PDir</var> are used in the <link id="OpenDir"/> and <link id="ReadDir"/>
+functions. 
+</p>
+<code>
+  TDir =record
+    fd     : integer;
+    loc    : longint;
+    size   : integer;
+    buf    : pdirent;
+    nextoff: longint;
+    dd_max : integer; 
+    lock   : pointer;
+  end;
+  PDir =^TDir;
+</code>
+<p>
+<var>Dirent, PDirent</var> are used in the <link id="ReadDir"/> function to return files in a directory.
+</p>
+<code>
+ PDirent = ^Dirent;
+ Dirent = Record  
+   ino,
+   off    : longint;
+   reclen : word;
+   name   : string[255]
+ end; 
+</code>
+<p>
+Termio and Termios are used with iotcl() calls for terminal handling.
+</p>
+<code>
+Const  NCCS = 19;
+       NCC = 8;
+         
+Type termio = record
+	c_iflag,		{ input mode flags }
+	c_oflag,		{ output mode flags }
+	c_cflag,		{ control mode flags }
+	c_lflag : Word;		{ local mode flags }
+	c_line : Word;		{ line discipline - careful, only High byte in use}
+	c_cc : array [0..NCC-1] of char;	{ control characters }
+end;
+termios = record
+  c_iflag,              { input mode flags }
+  c_oflag,              { output mode flags }
+  c_cflag,              { control mode flags }
+  c_lflag : Cardinal;	{ local mode flags }
+  c_line : char;          { line discipline }
+  c_cc : array [0..NCCS-1] of char;      { control characters }
+end;
+</code>
+<p>
+<var>Utimbuf</var> is used in the <link id="Utime"/> call to set access and modificaton time
+of a file.
+</p>
+<code>
+utimbuf = record
+  actime,modtime : Longint;
+  end;
+</code>
+<p>
+For the <link id="Select"/> call, the following 4 types are needed:
+</p>
+<code>
+FDSet = Array [0..31] of longint;
+PFDSet = ^FDSet;
+TimeVal = Record
+   sec,usec : Longint;
+end;
+PTimeVal = ^TimeVal;
+</code>
+<p>
+The <var>timespec</var> record is needed in the <link id="NanoSleep"/> function:
+</p>
+<code>
+timespec = packed record
+  tv_sec,tv_nsec:longint;
+end;
+</code>
+<p>
+
+The <link id="Uname"/> function uses the <var>utsname</var> to return information about
+the current kernel :
+</p>
+<code>
+utsname =record
+  sysname,nodename,release,
+  version,machine,domainname : Array[0..64] of char;
+end;
+</code>
+<p>
+Its elements are null-terminated C style strings, you cannot access them
+directly !
+
+<!--  -->
+<topic><short>Variables</short>
+<var>Linuxerror</var> is the variable in which the procedures in the linux unit
+report errors.
+</p>
+<code>
+LinuxError : Longint;
+</code>
+<p>
+<var>StdErr</var> Is a <var>Text</var> variable, corresponding to Standard Error or
+diagnostic output. It is connected to file descriptor 2. It can be freely
+used, and will be closed on exit.
+</p>
+<code>
+StdErr : Text;
+</code>
+<p>
+
+<!--  -->
+<topic><short>Constants</short>
+Constants for setting/getting process priorities :
+</p>
+<code>
+      Prio_Process = 0;
+      Prio_PGrp    = 1;
+      Prio_User    = 2;
+</code>
+<p>
+For testing  access rights:
+</p>
+<code>
+      R_OK = 4; 
+      W_OK = 2;
+      X_OK = 1;
+      F_OK = 0;
+</code>
+<p>
+For signal handling functions :
+</p>
+<code>
+      SA_NOCLDSTOP = 1;
+      SA_SHIRQ	   = $04000000;
+      SA_STACK	   = $08000000;      
+      SA_RESTART   = $10000000;
+      SA_INTERRUPT = $20000000;
+      SA_NOMASK	   = $40000000;
+      SA_ONESHOT   = $80000000;
+      
+      SIG_BLOCK	  = 0;
+      SIG_UNBLOCK = 1;
+      SIG_SETMASK = 2;
+      SIG_DFL = 0 ;
+      SIG_IGN = 1 ;
+      SIG_ERR = -1;
+      
+      SIGHUP		= 1;
+      SIGINT		= 2;
+      SIGQUIT		= 3;
+      SIGILL		= 4;
+      SIGTRAP		= 5;
+      SIGABRT		= 6;
+      SIGIOT		= 6;
+      SIGBUS		= 7;
+      SIGFPE		= 8;
+      SIGKILL		= 9;
+      SIGUSR1		= 10;
+      SIGSEGV		= 11;
+      SIGUSR2		= 12;
+      SIGPIPE		= 13;
+      SIGALRM		= 14;
+      SIGTERM		= 15;
+      SIGSTKFLT		= 16;
+      SIGCHLD		= 17;
+      SIGCONT		= 18;
+      SIGSTOP		= 19;
+      SIGTSTP		= 20;
+      SIGTTIN		= 21;
+      SIGTTOU		= 22;
+      SIGURG		= 23;
+      SIGXCPU		= 24;
+      SIGXFSZ		= 25;
+      SIGVTALRM		= 26;
+      SIGPROF		= 27;
+      SIGWINCH		= 28;
+      SIGIO		= 29;
+      SIGPOLL		= SIGIO;
+      SIGPWR		= 30;
+      SIGUNUSED		= 31;
+</code>
+<p>
+For file control mechanism :
+</p>
+<code>
+      F_GetFd  = 1;
+      F_SetFd  = 2;
+      F_GetFl  = 3;
+      F_SetFl  = 4;
+      F_GetLk  = 5;
+      F_SetLk  = 6;
+      F_SetLkW = 7;
+      F_GetOwn = 8;
+      F_SetOwn = 9;
+</code>
+<p>
+For Terminal handling :
+</p>
+<code>
+   TCGETS	= $5401 ;
+   TCSETS	= $5402 ;
+   TCSETSW	= $5403 ;
+   TCSETSF	= $5404 ;
+   TCGETA	= $5405 ;
+   TCSETA	= $5406 ;
+   TCSETAW	= $5407 ;
+   TCSETAF	= $5408 ;
+   TCSBRK	= $5409 ;
+   TCXONC	= $540A ;
+   TCFLSH	= $540B ;
+   TIOCEXCL	= $540C ;
+   TIOCNXCL	= $540D ;
+   TIOCSCTTY	= $540E ;
+   TIOCGPGRP	= $540F ;
+   TIOCSPGRP	= $5410 ;
+   TIOCOUTQ	= $5411 ;
+   TIOCSTI	= $5412 ;
+   TIOCGWINSZ	= $5413 ;
+   TIOCSWINSZ	= $5414 ;
+   TIOCMGET	= $5415 ;
+   TIOCMBIS	= $5416 ;
+   TIOCMBIC	= $5417 ;
+   TIOCMSET	= $5418 ;
+   TIOCGSOFTCAR	= $5419 ;
+   TIOCSSOFTCAR	= $541A ;
+   FIONREAD	= $541B ;
+   TIOCINQ	= FIONREAD;
+   TIOCLINUX	= $541C ;
+   TIOCCONS	= $541D ;
+   TIOCGSERIAL	= $541E ;
+   TIOCSSERIAL	= $541F ;
+   TIOCPKT	= $5420 ;
+   FIONBIO	= $5421 ;
+   TIOCNOTTY	= $5422 ;
+   TIOCSETD	= $5423 ;
+   TIOCGETD	= $5424 ;
+   TCSBRKP		= $5425	 ;
+   TIOCTTYGSTRUCT	= $5426  ;
+   FIONCLEX	= $5450  ;
+   FIOCLEX		= $5451 ;
+   FIOASYNC	= $5452 ;
+   TIOCSERCONFIG	= $5453 ;
+   TIOCSERGWILD	= $5454 ;
+   TIOCSERSWILD	= $5455 ;
+   TIOCGLCKTRMIOS	= $5456 ;
+   TIOCSLCKTRMIOS	= $5457 ;
+   TIOCSERGSTRUCT	= $5458  ;
+   TIOCSERGETLSR   = $5459  ;
+   TIOCSERGETMULTI = $545A  ;
+   TIOCSERSETMULTI = $545B  ;
+   TIOCMIWAIT	= $545C	;
+   TIOCGICOUNT	= $545D	;
+   TIOCPKT_DATA		= 0;
+   TIOCPKT_FLUSHREAD	= 1;
+   TIOCPKT_FLUSHWRITE	= 2;
+   TIOCPKT_STOP		= 4;
+   TIOCPKT_START	= 8;
+   TIOCPKT_NOSTOP	= 16;
+   TIOCPKT_DOSTOP	= 32;
+</code>
+<p>
+Other than that, all constants for setting the speed and control flags of a
+terminal line, as described in the \seem{termios}{2} man
+page, are defined in the linux unit. It would take too much place to list
+them here. 
+To check the <var>mode</var> field of a <var>stat</var> record, you ca use the
+following constants :
+</p>
+<code>
+  { Constants to check stat.mode }
+  STAT_IFMT   = $f000; {00170000}
+  STAT_IFSOCK = $c000; {0140000}
+  STAT_IFLNK  = $a000; {0120000}
+  STAT_IFREG  = $8000; {0100000}
+  STAT_IFBLK  = $6000; {0060000}
+  STAT_IFDIR  = $4000; {0040000}
+  STAT_IFCHR  = $2000; {0020000}
+  STAT_IFIFO  = $1000; {0010000}
+  STAT_ISUID  = $0800; {0004000}
+  STAT_ISGID  = $0400; {0002000}
+  STAT_ISVTX  = $0200; {0001000}
+  { Constants to check permissions }
+  STAT_IRWXO = $7;
+  STAT_IROTH = $4;
+  STAT_IWOTH = $2;
+  STAT_IXOTH = $1;
+  STAT_IRWXG = STAT_IRWXO shl 3;
+  STAT_IRGRP = STAT_IROTH shl 3;
+  STAT_IWGRP = STAT_IWOTH shl 3;
+  STAT_IXGRP = STAT_IXOTH shl 3;
+  STAT_IRWXU = STAT_IRWXO shl 6;
+  STAT_IRUSR = STAT_IROTH shl 6;
+  STAT_IWUSR = STAT_IWOTH shl 6;
+  STAT_IXUSR = STAT_IXOTH shl 6;
+</code>
+<p>
+You can test the type of a filesystem returned by a <link id="FSStat"/> call with
+the following constants:
+</p>
+<code>
+  fs_old_ext2 = $ef51;
+  fs_ext2     = $ef53;
+  fs_ext      = $137d;
+  fs_iso      = $9660;
+  fs_minix    = $137f;
+  fs_minix_30 = $138f;
+  fs_minux_V2 = $2468;
+  fs_msdos    = $4d44;
+  fs_nfs      = $6969;
+  fs_proc     = $9fa0;
+  fs_xia      = $012FD16D;
+</code>
+<p>
+the <link id="FLock"/> call uses the following mode constants :
+</p>
+<code>
+  LOCK_SH = 1;
+  LOCK_EX = 2;
+  LOCK_UN = 8;
+  LOCK_NB = 4;
+</code>
+<p>
+The <link id="MMap"/> function uses the following constants to specify access to
+mapped memory:
+</p>
+<code>
+  PROT_READ  = $1;   { page can be read }
+  PROT_WRITE = $2;   { page can be written } 
+  PROT_EXEC  = $4;   { page can be executed }
+  PROT_NONE  = $0;   { page can not be accessed }
+</code>
+<p>
+and the following constants to specify the type of mapping.
+</p>
+<code>
+  MAP_SHARED    = $1;  { Share changes }
+  MAP_PRIVATE   = $2;  { Changes are private }
+  MAP_TYPE      = $f;  { Mask for type of mapping }
+  MAP_FIXED     = $10; { Interpret addr exactly }
+  MAP_ANONYMOUS = $20; { don't use a file }
+</code>
+<p>
+
+<!--<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% --> -->
+<!--  Functions and procedures by category -->
+<topic><short>Function list by category</short>
+What follows is a listing of the available functions, grouped by category.
+For each function there is a reference to the page where you can find the
+function.
+<topic><short>File Input/Output routines</short>
+Functions for handling file input/output.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="Dup"/></td><td>Duplicate a file handle</td></tr>
+<tr><td><link id="Dup2"/></td><td>Copy one file handle to another</td></tr>
+<tr><td><link id="Fcntl"/></td><td>General file control</td></tr>
+<tr><td><link id="fdClose"/></td><td>Close file descriptor</td></tr>
+<tr><td><link id="fdFlush"/></td><td>Flush file descriptor</td></tr>
+<tr><td><link id="fdOpen"/></td><td>Open new file descriptor</td></tr>
+<tr><td><link id="fdRead"/></td><td>Read from file descriptor</td></tr>
+<tr><td><link id="fdSeek"/></td><td>Position in file</td></tr>
+<tr><td><link id="fdTruncate"/></td><td>Truncate file</td></tr>
+<tr><td><link id="fdWrite"/></td><td>Write to file descriptor</td></tr>
+<tr><td><link id="GetFS"/></td><td>Get file descriptor of pascal file</td></tr>
+<tr><td><link id="Select"/></td><td>Wait for input from file descriptor</td></tr>
+<tr><td><link id="SelectText"/></td><td>Wait for input from pascal file</td></tr>
+</table>
+
+<topic><short>General File handling routines</short>
+Functions for handling files on disk.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="Access"/></td><td>Check access rights on file</td></tr>
+<tr><td><link id="BaseName"/></td><td>Return name part of file</td></tr>
+<tr><td><link id="Chown"/></td><td>Change owner of file</td></tr>
+<tr><td><link id="Chmod"/></td><td>Change access rights on file</td></tr>
+<tr><td><link id="DirName"/></td><td>Return directory part of file</td></tr>
+<tr><td><link id="LFsplit">FSplit</link></td><td>Split filename in parts</td></tr>
+<tr><td><link id="FExpand"/></td><td>Return full-grown filename</td></tr>
+<tr><td><link id="FLock"/></td><td>Set lock on a file</td></tr>
+<tr><td><link id="FNMatch"/></td><td>Match filename to searchpattern</td></tr>
+<tr><td><link id="FSearch"/></td><td>Search for a file in a path</td></tr>
+<tr><td><link id="FSStat"/></td><td>Return filesystem information</td></tr>
+<tr><td><link id="FStat"/></td><td>Return file information</td></tr>
+<tr><td><link id="FRename"/></td><td>Rename file</td></tr>
+<tr><td><link id="LStat"/></td><td>Return information on a link</td></tr>
+<tr><td><link id="Link"/></td><td>Create a link</td></tr>
+<tr><td><link id="ReadLink"/></td><td>Read contents of a symbolic link</td></tr>
+<tr><td><link id="SymLink"/></td><td>Create a symbolic link</td></tr>
+<tr><td><link id="Umask"/></td><td>Set the file creation mask</td></tr>
+<tr><td><link id="UnLink"/></td><td>Remove a file</td></tr>
+<tr><td><link id="Utime"/></td><td>Change file timestamps</td></tr>
+</table>
+
+<topic><short>Pipes, FIFOs and streams </short>
+Functions for creating and managing pipes.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="AssignPipe"/></td><td>Create a pipe</td></tr>
+<tr><td><link id="AssignStream"/></td><td>Create pipes to program's input and output</td></tr>
+<tr><td><link id="MkFifo"/></td><td>Make a fifo</td></tr>
+<tr><td><link id="PClose"/></td><td>Close a pipe</td></tr>
+<tr><td><link id="POpen"/></td><td>Open a pipe for to program's input or output</td></tr>
+</table>
+
+<topic><short>Directory handling routines</short>
+Functions for reading and searching directories.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="CloseDir"/></td><td>Close directory handle</td></tr>
+<tr><td><link id="Glob"/></td><td>Return files matching a search expression</td></tr>
+<tr><td><link id="GlobFree"/></td><td>Free result of Glob</td></tr>
+<tr><td><link id="OpenDir"/></td><td>Open directory for reading</td></tr>
+<tr><td><link id="ReadDir"/></td><td>Read directory entry</td></tr>
+<tr><td><link id="SeekDir"/></td><td>Seek directory</td></tr>
+<tr><td><link id="TellDir"/></td><td>Seek directory</td></tr>
+</table>
+
+<topic><short>Process handling</short>
+Functions for managing processes and programs.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="Clone"/></td><td>Create a thread</td></tr>
+<tr><td><link id="Execl"/></td><td>Execute process with command-line list</td></tr>
+<tr><td><link id="Execle"/></td><td>Execute process with command-line list and environment</td></tr>
+<tr><td><link id="Execlp"/></td><td>Search in path and execute process with command list</td></tr>
+<tr><td><link id="Execv"/></td><td>Execute process</td></tr>
+<tr><td><link id="Execve"/></td><td>Execute process with environment</td></tr>
+<tr><td><link id="Execvp"/></td><td>Search in path and execute process</td></tr>
+<tr><td><link id="Fork"/></td><td>Spawn child process</td></tr>
+<tr><td><link id="GetEGid"/></td><td>Get effective group id</td></tr>
+<tr><td><link id="GetEnv"/></td><td>Get environment variable</td></tr>
+<tr><td><link id="GetEUid"/></td><td>Get effective user id</td></tr>
+<tr><td><link id="GetGid"/></td><td>Get group id</td></tr>
+<tr><td><link id="GetPid"/></td><td>Get process id</td></tr>
+<tr><td><link id="GetPPid"/></td><td>Get parent process id</td></tr>
+<tr><td><link id="GetPriority"/></td><td>Get process priority</td></tr>
+<tr><td><link id="GetUid"/></td><td>Get user id</td></tr>
+<tr><td><link id="Nice"/></td><td>Change priority of process</td></tr>
+<tr><td><link id="SetPriority"/></td><td>Change priority of process</td></tr>
+<tr><td><link id="Shell"/></td><td>Execute shell command</td></tr>
+<tr><td><link id="WaitPid"/></td><td>Wait for child process to terminate</td></tr>
+</table>
+
+<topic><short>Signals</short>
+Functions for managing and responding to signals.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="Alarm"/></td><td>Send alarm signal to self</td></tr>
+<tr><td><link id="Kill"/></td><td>Send arbitrary signal to process</td></tr>
+<tr><td><link id="pause"/></td><td>Wait for signal to arrive</td></tr>
+<tr><td><link id="SigAction"/></td><td>Set signal action</td></tr>
+<tr><td><link id="Signal"/></td><td>Set signal action</td></tr>
+<tr><td><link id="SigPending"/></td><td>See if signals are waiting</td></tr>
+<tr><td><link id="SigProcMask"/></td><td>Set signal processing mask</td></tr>
+<tr><td><link id="SigRaise"/></td><td>Send signal to self</td></tr>
+<tr><td><link id="SigSuspend"/></td><td>Sets signal mask and waits for signal</td></tr>
+<tr><td><link id="NanoSleep"/></td><td>Waits for a specific amount of time</td></tr>
+</table>
+
+<topic><short>System information</short>
+Functions for retrieving system information such as date and time.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="GetDate"/></td><td>Return system date</td></tr>
+<tr><td><link id="GetDateTime"/></td><td>Return system date and time</td></tr>
+<tr><td><link id="GetDomainName"/></td><td>Return system domain name</td></tr>
+<tr><td><link id="GetEpochTime"/></td><td>Return epoch time</td></tr>
+<tr><td><link id="GetHostName"/></td><td>Return system host name</td></tr>
+<tr><td><link id="GetLocalTimezone"/></td><td>Return system timezone</td></tr>
+<tr><td><link id="GetTime"/></td><td>Return system time</td></tr>
+<tr><td><link id="GetTimeOfDay"/></td><td>Return system time</td></tr>
+<tr><td><link id="GetTimezoneFile"/></td><td>Return name of timezone file</td></tr>
+<tr><td><link id="ReadTimezoneFile"/></td><td>Read timezone file contents</td></tr>
+<tr><td><link id="SysInfo"/></td><td>Return general system information</td></tr>
+<tr><td><link id="Uname"/></td><td>Return system information</td></tr>
+</table>
+
+<topic><short>Terminal functions</short>
+Functions for controlling the terminal to which the process is connected.
+
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="CFMakeRaw"/></td><td>Set terminal to raw mode</td></tr>
+<tr><td><link id="CFSetISpeed"/></td><td>Set terminal reading speed</td></tr>
+<tr><td><link id="CFSetOSpeed"/></td><td>Set terminal writing speed</td></tr>
+<tr><td><link id="IOCtl"/></td><td>General IO control call</td></tr>
+<tr><td><link id="IsATTY"/></td><td>See if filedescriptor is a terminal</td></tr>
+<tr><td><link id="TCDrain"/></td><td>Wait till all output was written</td></tr>
+<tr><td><link id="TCFlow"/></td><td>Suspend transmission or receipt of data</td></tr>
+<tr><td><link id="TCFlush"/></td><td>Discard data written to terminal</td></tr>
+<tr><td><link id="TCGetAttr"/></td><td>Get terminal attributes</td></tr>
+<tr><td><link id="TCGetPGrp"/></td><td>Return PID of foreground process</td></tr>
+<tr><td><link id="TCSendBreak"/></td><td>Send data for specific time</td></tr>
+<tr><td><link id="TCSetAttr"/></td><td>Set terminal attributes</td></tr>
+<tr><td><link id="TCSetPGrp"/></td><td>Set foreground process</td></tr>
+<tr><td><link id="TTYName"/></td><td>Name of tty file</td></tr>
+</table>
+
+<topic><short>Port input/output</short>
+Functions for reading and writing to the hardware ports.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="IOperm"/></td><td>Set permissions for port access</td></tr>
+<tr><td><link id="ReadPort"/></td><td>Read data from port</td></tr>
+<tr><td><link id="ReadPortB"/></td><td>Read 1 byte from port</td></tr>
+<tr><td><link id="ReadPortL"/></td><td>Read 4 bytes from port</td></tr>
+<tr><td><link id="ReadPortW"/></td><td>Read 2 bytes from port</td></tr>
+<tr><td><link id="WritePort"/></td><td>Write data to port</td></tr>
+<tr><td><link id="WritePortB"/></td><td>Write 1 byte to port</td></tr>
+<tr><td><link id="WritePortL"/></td><td>Write 4 bytes to port</td></tr>
+<tr><td><link id="WritePortW"/></td><td>Write 2 bytes to port</td></tr>
+</table>
+
+<topic><short>Utility routines</short>
+Auxiliary functions that are useful in connection with the other functions.
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="CreateShellArgV"/></td><td>Create an array of pchars from string</td></tr>
+<tr><td><link id="EpochToLocal"/></td><td>Convert epoch time to local time</td></tr>
+<tr><td><link id="FDClr">FD_Clr</link></td><td>Clear item of select filedescriptors</td></tr>
+<tr><td><link id="FDIsSet">FD_IsSet</link></td><td>Check item of select filedescriptors</td></tr>
+<tr><td><link id="FDSet">FD_Set</link></td><td>Set item of select filedescriptors</td></tr>
+<tr><td><link id="FDZero">FD_ZERO</link></td><td>Clear all items in select filedecriptors</td></tr>
+<tr><td><link id="LocalToEpoch"/></td><td>Convert local time to epoch time</td></tr>
+<tr><td><link id="MMap"/></td><td>Map a file into memory</td></tr>
+<tr><td><link id="MUnMap"/></td><td>Unmap previously mapped memory file</td></tr>
+<tr><td><link id="Octal"/></td><td>Convert octal to digital</td></tr>
+<tr><td><link id="ISBLK">S_ISBLK</link></td><td>Check file mode for block device</td></tr>
+<tr><td><link id="ISCHR">S_ISCHR</link></td><td>Check file mode for character device</td></tr>
+<tr><td><link id="ISDIR">S_ISDIR</link></td><td>Check file mode for directory</td></tr>
+<tr><td><link id="ISFIFO">S_ISFIFO</link></td><td>Check file mode for FIFO</td></tr>
+<tr><td><link id="ISLNK">S_ISLNK</link></td><td>Check file mode for symboloc link</td></tr>
+<tr><td><link id="ISREG">S_ISREG</link></td><td>Check file mode for regular file</td></tr>
+<tr><td><link id="ISSOCK">S_ISSOCK</link></td><td>Check file mode for socket</td></tr>
+<tr><td><link id="StringToPPchar"/></td><td>Create an array of pchars from string</td></tr>
+</table>
+
+<!--<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% --> -->
+<!--  Functions and procedures -->
+<topic><short>Functions and procedures</short>
+
+<element name="Access">
+<short></short>
+<descr>
+Tests user's access rights on the specified file. Mode is a mask existing of
+one or more of
+<dl>
+</dd>
+<dt>R_OK</dt>
+<dd> User has read rights.
+</dd>
+<dt>W_OK</dt>
+<dd> User has write rights.
+</dd>
+<dt>X_OK</dt>
+<dd> User has execute rights.
+</dd>
+<dt>F_OK</dt>
+<dd> User has search rights in the directory where the file is.
+</dd>
+</dl>
+<p>
+The test is done with the real user ID, instead of the effective user ID.
+If access is denied, or an error occurred, false is returned.
+</descr>
+<errors>
+ <var>LinuxError</var> is used to report errors:
+<dl>
+</dd>
+<dt>sys_eaccess</dt>
+<dd> The requested access is denied, either to the file or one
+of the directories in its path.
+</dd>
+<dt>sys_einval</dt>
+<dd> <var>Mode</var> was incorrect.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A directory component in <var>Path</var> doesn't exist or is a
+dangling symbolic link.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory component in <var>Path</var> is not a directory.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.
+</dd>
+<dt>sys_eloop</dt>
+<dd> <var>Path</var> has a circular symbolic link.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="Chown"/>
+<link id="Chmod"/>, \seem{Access}{2} 
+</seealso>
+</element>
+
+
+<example file="ex26"/>
+
+
+<element name="Alarm">
+<short></short>
+<descr>
+Alarm schedules an alarm signal to be delivered to your process in <var>Sec</var>
+seconds. When <var>Sec</var> seconds have elapsed, Linux will send a <var>SIGALRM</var>
+signal to the current process.  If <var>Sec</var> is zero, then no new alarm will
+be set. Whatever the value of <var>Sec</var>, any previous alarm is cancelled.
+
+The function returns the number of seconds till the previously scheduled
+alarm was due to be delivered, or zero if there was none.
+</descr>
+<errors>{None}
+</seealso>
+</element>
+
+
+<example file="ex59"/>
+
+
+<element name="AssignPipe">
+<short></short>
+<descr>
+<var>AssignePipe</var> creates a pipe, i.e. two file objects, one for input, 
+one for output. What is written to <var>Pipe_out</var>, can be read from 
+<var>Pipe_in</var>. 
+
+This call is overloaded. The in and out pipe can take three forms:
+an typed or untyped file, a text file or a file descriptor.
+
+If a text file is passed then reading and writing from/to the pipe 
+can be done through the usual <var>Readln(Pipe_in,...)</var> and
+<var>Writeln (Pipe_out,...)</var> procedures.
+
+The function returns <var>True</var> if everything went succesfully,
+<var>False</var> otherwise.
+</descr>
+<errors>
+In case the function fails and returns <var>False</var>, <var>LinuxError</var> 
+is used to report errors:
+<dl>
+</dd>
+<dt>sys_emfile</dt>
+<dd> Too many file descriptors for this process.
+</dd>
+<dt>sys_enfile</dt>
+<dd> The system file table is full.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="POpen"/>
+<link id="MkFifo"/>, \seem{pipe}{2}
+</seealso>
+</element>
+
+
+<example file="ex36"/>
+
+
+<element name="AssignStream">
+<short></short>
+<descr>
+<var>AssignStream</var> creates a 2 or 3 pipes, i.e. two (or three) file objects, one for 
+input, one for output,(and one for standard error) the other ends of these 
+pipes are connected to standard input and output (and standard error) of 
+<var>Prog</var>. <var>Prog</var> is the name of a program (including path) with options,
+ which will be executed.
+
+What is written to <var>StreamOut</var>, will go to the standard input of
+<var>Prog</var>. Whatever is written by <var>Prog</var> to it's standard output 
+can be read from <var>StreamIn</var>. 
+Whatever is written by <var>Prog</var> to it's standard error read from 
+<var>StreamErr</var>, if present. 
+
+Reading and writing happens through the usual <var>Readln(StreamIn,...)</var> and
+<var>Writeln (StreamOut,...)</var> procedures.
+
+<em> Remark:</em> You should <em> not</em> use <var>Reset</var> or <var>Rewrite</var> on a 
+file opened with <var>POpen</var>. This will close the file before re-opening 
+it again, thereby closing the connection with the program.
+
+The function returns the process ID of the spawned process, or -1 in case of
+error.
+
+</descr>
+<errors>
+In case of error (return value -1) <var>LinuxError</var> is used to report 
+errors:
+<dl>
+</dd>
+<dt>sys_emfile</dt>
+<dd> Too many file descriptors for this process.
+</dd>
+<dt>sys_enfile</dt>
+<dd> The system file table is full.
+</dd>
+</dl>
+<p>
+Other errors include the ones by the fork and exec programs
+</errors>
+<seealso>
+<link id="AssignPipe"/>
+<link id="POpen"/>,\seem{pipe}{2}
+</seealso>
+</element>
+
+
+<example file="ex38"/>
+
+
+<element name="BaseName">
+<short></short>
+<descr>
+Returns the filename part of <var>Path</var>, stripping off <var>Suf</var> if it
+exists.
+The filename part is the whole name if <var>Path</var> contains no slash,
+or the part of <var>Path</var> after the last slash.
+The last character of the result is not a slash, unless the directory is the
+root directory.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DirName"/>
+<link id="FExpand"/>, \seem{Basename}{1}
+</seealso>
+</element>
+
+<example file="ex48"/>
+
+<element name="CFMakeRaw">
+<short></short>
+<descr>
+ <var>CFMakeRaw</var>
+  Sets the flags in the <var>Termios</var> structure <var>Tios</var> to a state so that 
+  the terminal will function in Raw Mode.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+ <link id="CFSetOSpeed"/>
+<link id="CFSetISpeed"/>, \seem{termios}{2}
+</seealso>
+</element>
+For an example, see <link id="TCGetAttr"/>.
+
+<element name="CFSetISpeed">
+<short></short>
+<descr>
+ <var>CFSetISpeed</var>
+  Sets the input baudrate in the <var>TermIOS</var> structure <var>Tios</var> to 
+  <var>Speed</var>.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CFSetOSpeed"/>
+<link id="CFMakeRaw"/>, \seem{termios}{2}
+</seealso>
+</element>
+
+<element name="CFSetOSpeed">
+<short></short>
+<descr>
+ <var>CFSetOSpeed</var>
+  Sets the output baudrate in the <var>Termios</var> structure <var>Tios</var> to
+  <var>Speed</var>.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CFSetISpeed"/>
+<link id="CFMakeRaw"/>, \seem{termios}{2}
+</seealso>
+</element>
+
+<element name="Chown">
+<short></short>
+<descr>
+ <var>Chown</var> sets the User ID and Group ID of the file in <var>Path</var> to \var{NewUid,
+NewGid}.
+The function returns <var>True</var> if the call was succesfull, <var>False</var> if the call
+failed.
+</descr>
+<errors>
+Errors are returned in <var>LinuxError</var>.
+<dl>
+</dd>
+<dt>sys_eperm</dt>
+<dd> The effective UID doesn't match the ownership of the file,
+and is not zero. Owner or group were not specified correctly.
+</dd>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> is
+nor a directory.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.
+</dd>
+<dt>sys_erofs</dt>
+<dd> The file is on a read-only filesystem.
+</dd>
+<dt>sys_eloop</dt>
+<dd> <var>Path</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Chmod"/>
+<link id="Access"/>, \seem{Chown}(2)
+</seealso>
+</element>
+
+<example file="ex24"/>
+
+<element name="Chmod">
+<short></short>
+<descr>
+ <var>Chmod</var>
+Sets the Mode bits of the file in <var>Path</var> to <var>NewMode</var>. Newmode can be
+specified by 'or'-ing the following:
+<dl>
+</dd>
+<dt>S_ISUID</dt>
+<dd> Set user ID on execution.
+</dd>
+<dt>S_ISGID</dt>
+<dd> Set Group ID on execution.
+</dd>
+<dt>S_ISVTX</dt>
+<dd> Set sticky bit.
+</dd>
+<dt>S_IRUSR</dt>
+<dd> Read by owner.
+</dd>
+<dt>S_IWUSR</dt>
+<dd> Write by owner.
+</dd>
+<dt>S_IXUSR</dt>
+<dd> Execute by owner.
+</dd>
+<dt>S_IRGRP</dt>
+<dd> Read by group.
+</dd>
+<dt>S_IWGRP</dt>
+<dd> Write by group.
+</dd>
+<dt>S_IXGRP</dt>
+<dd> Execute by group.
+</dd>
+<dt>S_IROTH</dt>
+<dd> Read by others.
+</dd>
+<dt>S_IWOTH</dt>
+<dd> Write by others.
+</dd>
+<dt>S_IXOTH</dt>
+<dd> Execute by others.
+</dd>
+<dt>S_IRWXO</dt>
+<dd> Read, write, execute by others.
+</dd>
+<dt>S_IRWXG</dt>
+<dd> Read, write, execute by groups.
+</dd>
+<dt>S_IRWXU</dt>
+<dd> Read, write, execute by user.
+</dd>
+</dl>
+<p>
+
+</descr>
+<errors>
+Errors are returned in <var>LinuxError</var>.
+<dl>
+</dd>
+<dt>sys_eperm</dt>
+<dd> The effective UID doesn't match the ownership of the file,
+and is not zero. Owner or group were not specified correctly.
+</dd>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> is
+nor a directory.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.
+</dd>
+<dt>sys_erofs</dt>
+<dd> The file is on a read-only filesystem.
+</dd>
+<dt>sys_eloop</dt>
+<dd> <var>Path</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="Chown"/>
+<link id="Access"/>, \seem{Chmod}(2), <link id="Octal"/>
+</seealso>
+</element>
+
+<example file="ex23"/>
+
+<element name="Clone">
+<short></short>
+<descr>
+Clone creates a child process which is a copy of the parent process, just
+like <link id="Fork"/> does. In difference with <var>Fork</var>, however, the child
+process shares some parts of it's execution context with its parent, so it
+is suitable for the implementation of threads: many instances of a program
+that share the same memory.
+
+When the child process is created, it starts executing the function
+<var>Func</var>, and passes it <var>Args</var>. The return value of <var>Func</var> is 
+either the explicit return value of the function, or the exit code of
+the child process.
+
+The <var>sp</var> pointer points to the memory reserved as stack space for the
+child process. This address should be the top of the memory block to be used
+as stack.
+
+The <var>Flags</var> determine the behaviour of the <var>Clone</var> call. The low
+byte of the Flags contains the number of the signal that will be  sent to 
+the parent when  the child dies. 
+This may be bitwise OR'ed with the following constants:
+<dl>
+</dd>
+<dt>CLONE_VM</dt>
+<dd> Parent and child share the same memory space, including
+memory (un)mapped with subsequent <var>mmap</var> calls.
+</dd>
+<dt>CLONE_FS</dt>
+<dd> Parent and child have the same view of the filesystem;
+the <var>chroot</var>, <var>chdir</var> and <var>umask</var> calls affect both processes.
+</dd>
+<dt>CLONE_FILES</dt>
+<dd> the file descriptor table of parent and child is shared. 
+</dd>
+<dt>CLONE_SIGHAND</dt>
+<dd> the parent and child share the same table of signal
+handlers. The signal masks are different, though.
+</dd>
+<dt>CLONE_PID</dt>
+<dd> PArent and child have the same process ID.
+</dd>
+</dl>
+<p>
+
+Clone returns the process ID in the parent process, and -1 if an error
+occurred.
+</descr>
+<errors>
+On error, -1 is returned to the parent, and no child is created.
+<dl>
+\item [sys_eagain] Too many processes are running.
+\item [sys_enomem] Not enough memory to create child process.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Fork"/>, \seem{clone}{2}
+</seealso>
+</element>
+
+<example file="ex71"/>
+
+<element name="CloseDir">
+<short></short>
+<descr>
+ <var>CloseDir</var> closes the directory pointed to by <var>p</var>.
+It returns zero if the directory was closed succesfully, -1 otherwise.
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="OpenDir"/>
+<link id="ReadDir"/>
+<link id="SeekDir"/>
+<link id="TellDir"/>,
+\seem{closedir}{3}
+</seealso>
+</element>
+For an example, see <link id="OpenDir"/>.
+
+<element name="CreateShellArgV">
+<short></short>
+<descr>
+<var>CreateShellArgV</var> creates an array of 3 <var>PChar</var> pointers that can
+be used as arguments to <var>ExecVE</var> the first elements in the array 
+will contain  <var>/bin/sh</var>, the second will contain <var>-c</var>, and the third
+will contain <var>prog</var>.
+
+The function returns a pointer to this array, of type <var>PPChar</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Shell"/>
+</seealso>
+</element>
+
+<example file="ex61"/>
+
+<element name="DirName">
+<short></short>
+<descr>
+Returns the directory part of <var>Path</var>.
+The directory is the part of <var>Path</var> before the last slash,
+or empty if there is no slash.
+The last character of the result is not a slash, unless the directory is the
+root directory.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="BaseName"/>
+<link id="FExpand"/>, \seem{Dirname}{1}
+</seealso>
+</element>
+
+<example file="ex47"/>
+
+
+<element name="Dup">
+<short></short>
+<descr>
+Makes <var>NewFile</var> an exact copy of <var>OldFile</var>, after having flushed the
+buffer of <var>OldFile</var> in case it is a Text file or untyped file. 
+Due to the buffering mechanism of Pascal, this has not the same functionality
+as the \seem{dup}{2} call in C. The internal Pascal buffers are not the same 
+after this call, but when the buffers are flushed (e.g. after output), 
+the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change 
+the fileposition in both files.
+
+The function returns <var>False</var> in case of an error, <var>True</var> if
+successful.
+</descr>
+<errors>
+In case of errors, <var>Linuxerror</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_ebadf</dt>
+<dd> <var>OldFile</var> hasn't been assigned.
+</dd>
+<dt>sys_emfile</dt>
+<dd> Maximum number of open files for the process is reached.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Dup2"/>, \seem{Dup}{2} 
+</seealso>
+</element>
+
+
+<example file="ex31"/>
+
+
+<element name="Dup2">
+<short></short>
+<descr>
+Makes <var>NewFile</var> an exact copy of <var>OldFile</var>, after having flushed the
+buffer of <var>OldFile</var> in the case of text or untyped files. 
+
+<var>NewFile</var> can be an assigned file. If <var>newfile</var> was open, it is 
+closed first. Due to the buffering mechanism of Pascal, this has not
+the same functionality as the \seem{dup2}{2} call in C. The internal Pascal
+buffers are not the same after this call, but when the buffers are flushed
+(e.g. after output), the output is sent to the same file.
+Doing an lseek will, however, work as in C, i.e. doing a lseek will change the
+fileposition in both files.
+
+The function returns <var>True</var> if succesful, false otherwise.
+</descr>
+<errors>
+In case of error, <var>Linuxerror</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_ebadf</dt>
+<dd> <var>OldFile</var> hasn't been assigned.
+</dd>
+<dt>sys_emfile</dt>
+<dd> Maximum number of open files for the process is reached.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+ <link id="Dup"/>, \seem{Dup2}{2} 
+</seealso>
+</element>
+
+
+<example file="ex32"/>
+
+
+<element name="EpochToLocal">
+<short></short>
+<descr>
+Converts the epoch time (=Number of seconds since 00:00:00 , January 1,
+1970, corrected for your time zone ) to local date and time.
+
+This function takes into account the timzeone settings of your system.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="GetEpochTime"/>
+<link id="LocalToEpoch"/>
+<link id="GetTime"/>
+<link id="GetDate"/> 
+</seealso>
+</element>
+
+<example file="ex3"/>
+
+<element name="Execl">
+<short></short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>. Path is split into a command and it's options.
+The executable in <var>path</var> is NOT searched in the path.
+The current environment is passed to the program.
+On success, <var>execl</var> does not return.
+
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var>:
+<dl>
+</dd>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted \textit{noexec}.
+</dd>
+<dt>sys_e2big</dt>
+<dd> Argument list too big.
+</dd>
+<dt>sys_enoexec</dt>
+<dd> The magic number in the file is incorrect.
+</dd>
+<dt>sys_enoent</dt>
+<dd> The file does not exist.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of the path is not a directory.
+</dd>
+<dt>sys_eloop</dt>
+<dd> The path contains a circular reference (via symlinks).
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Execv"/>
+<link id="Execvp"/>
+<link id="Execle"/>,
+ <link id="Execlp"/>, \seef {Fork}, \seem{execvp}{3} 
+</seealso>
+</element>
+
+<example file="ex10"/>
+
+<element name="Execle">
+<short></short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>. Path is split into a command and it's options.
+The executable in <var>path</var> is searched in the path, if it isn't
+an absolute filename.
+The environment in <var>ep</var> is passed to the program.
+On success, <var>execle</var> does not return.
+
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var>:
+<dl>
+</dd>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted \textit{noexec}.
+</dd>
+<dt>sys_e2big</dt>
+<dd> Argument list too big.
+</dd>
+<dt>sys_enoexec</dt>
+<dd> The magic number in the file is incorrect.
+</dd>
+<dt>sys_enoent</dt>
+<dd> The file does not exist.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of the path is not a directory.
+</dd>
+<dt>sys_eloop</dt>
+<dd> The path contains a circular reference (via symlinks).
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Execv"/>
+<link id="Execvp"/>,
+<link id="Execl"/>
+<link id="Execlp"/>, \seef {Fork}, \seem{execvp}{3} 
+</seealso>
+</element>
+
+<example file="ex11"/>
+
+<element name="Execlp">
+<short></short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>. Path is split into a command and it's options.
+The executable in <var>path</var> is searched in the path, if it isn't
+an absolute filename.
+The current environment is passed to the program.
+On success, <var>execlp</var> does not return.
+
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var>:
+<dl>
+</dd>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted \textit{noexec}.
+</dd>
+<dt>sys_e2big</dt>
+<dd> Argument list too big.
+</dd>
+<dt>sys_enoexec</dt>
+<dd> The magic number in the file is incorrect.
+</dd>
+<dt>sys_enoent</dt>
+<dd> The file does not exist.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel, or to split command line.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of the path is not a directory.
+</dd>
+<dt>sys_eloop</dt>
+<dd> The path contains a circular reference (via symlinks).
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Execv"/>
+<link id="Execvp"/>
+<link id="Execle"/>,
+<link id="Execl"/>, \seef {Fork}, \seem{execvp}{3} 
+</seealso>
+</element>
+
+<example file="ex12"/>
+
+<element name="Execv">
+<short></short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>.
+It gives the program the options in <var>args</var>.
+This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>execv</var> does not return.
+
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var>:
+<dl>
+</dd>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted \textit{noexec}.
+</dd>
+<dt>sys_e2big</dt>
+<dd> Argument list too big.
+</dd>
+<dt>sys_enoexec</dt>
+<dd> The magic number in the file is incorrect.
+</dd>
+<dt>sys_enoent</dt>
+<dd> The file does not exist.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of the path is not a directory.
+</dd>
+<dt>sys_eloop</dt>
+<dd> The path contains a circular reference (via symlinks).
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Execvp"/>
+<link id="Execle"/>,
+<link id="Execl"/>
+<link id="Execlp"/>, \seef {Fork}, \seem{execv}{3} 
+</seealso>
+</element>
+
+<example file="ex8"/>
+
+
+<element name="Execve">
+<short></short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>.
+It gives the program the options in <var>args</var>, and the environment in
+<var>ep</var>. They are pointers to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+On success, <var>execve</var> does not return.
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var>:
+<dl>
+</dd>
+<dt>eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+</dd>
+<dt>sys_ eperm</dt>
+<dd> The file system is mounted \textit{noexec}.
+</dd>
+<dt>sys_ e2big</dt>
+<dd> Argument list too big.
+</dd>
+<dt>sys_ enoexec</dt>
+<dd> The magic number in the file is incorrect.
+</dd>
+<dt>sys_ enoent</dt>
+<dd> The file does not exist.
+</dd>
+<dt>sys_ enomem</dt>
+<dd> Not enough memory for kernel.
+</dd>
+<dt>sys_ enotdir</dt>
+<dd> A component of the path is not a directory.
+</dd>
+<dt>sys_ eloop</dt>
+<dd> The path contains a circular reference (via symlinks).
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Execv"/>
+<link id="Execvp"/> <link id="Execle"/>,
+<link id="Execl"/>
+<link id="Execlp"/>, \seef {Fork}, \seem{execve}{2} 
+</seealso>
+</element>
+
+<example file="ex7"/>
+
+<element name="Execvp">
+<short></short>
+<descr>
+Replaces the currently running program with the program, specified in
+<var>path</var>. The executable in <var>path</var> is searched in the path, if it isn't
+an absolute filename.
+It gives the program the options in <var>args</var>. This is a pointer to an array of pointers to null-terminated
+strings. The last pointer in this array should be nil.
+The current environment is passed to the program.
+On success, <var>execvp</var> does not return.
+
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var>:
+<dl>
+</dd>
+<dt>sys_eacces</dt>
+<dd> File is not a regular file, or has no execute permission.
+A compononent of the path has no search permission.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The file system is mounted \textit{noexec}.
+</dd>
+<dt>sys_e2big</dt>
+<dd> Argument list too big.
+</dd>
+<dt>sys_enoexec</dt>
+<dd> The magic number in the file is incorrect.
+</dd>
+<dt>sys_enoent</dt>
+<dd> The file does not exist.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Not enough memory for kernel.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of the path is not a directory.
+</dd>
+<dt>sys_eloop</dt>
+<dd> The path contains a circular reference (via symlinks).
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Execv"/>
+<link id="Execle"/>,
+<link id="Execl"/>
+<link id="Execlp"/>, \seef {Fork}, \seem{execvp}{3} 
+</seealso>
+</element>
+
+<example file="ex9"/>
+
+
+<element name="FD_ZERO">
+<short></short>
+<descr>
+<var>FD_ZERO</var> clears all the filedescriptors in the file descriptor 
+set <var>fds</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Select"/>, 
+<link id="SelectText"/>, 
+<link id="GetFS"/>, 
+<link id="FDClr">FD_Clr</link>,
+<link id="FDSet">FD_Set</link>, 
+<link id="FDIsSet">FD_IsSet</link>
+
+</seealso>
+</element>
+For an example, see <link id="Select"/>.
+
+<element name="FD_Clr">
+<short></short>
+<descr>
+ <var>FD_Clr</var> clears file descriptor <var>fd</var> in filedescriptor s
+  et <var>fds</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Select"/>, 
+<link id="SelectText"/>, 
+<link id="GetFS"/>,
+<link id="FDZero">FD_ZERO</link>, 
+<link id="FDSet">FD_Set</link>, 
+<link id="FDIsSet">FD_IsSet</link>
+</seealso>
+</element>
+
+For an example, see <link id="Select"/>.
+
+<element name="FD_IsSet">
+<short></short>
+<descr>
+<var>FD_Set</var> Checks whether file descriptor <var>fd</var> in filedescriptor set <var>fds</var>
+is set.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Select"/>
+<link id="SelectText"/>
+<link id="GetFS"/>,
+<link id="FDZero">FD_ZERO</link>, 
+<link id="FDClr">FD_Clr</link>,
+<link id="FDSet">FD_Set</link>
+</seealso>
+</element>
+
+For an example, see <link id="Select"/>.
+
+<element name="FD_Set">
+<short></short>
+<descr>
+<var>FD_Set</var> sets file descriptor <var>fd</var> in filedescriptor set <var>fds</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Select"/>
+<link id="SelectText"/>
+<link id="GetFS"/>
+<link id="FDZero">FD_ZERO</link>, 
+<link id="FDClr">FD_Clr</link>
+<link id="FDIsSet">FD_IsSet</link>
+</seealso>
+</element>
+
+For an example, see <link id="Select"/>.
+
+<element name="fdClose">
+<short></short>
+<descr>
+<var>fdClose</var> closes a file with file descriptor <var>Fd</var>. The function
+returns <var>True</var> if the file was closed successfully, <var>False</var>
+otherwise. 
+
+</descr>
+<errors>
+Errors are returned in LinuxError
+</errors>
+<seealso>
+<link id="fdOpen"/>
+<link id="fdRead"/>
+<link id="fdWrite"/>
+<link id="fdTruncate"/>,
+<link id="fdFlush"/>, seef{FdSeek}
+</seealso>
+</element>
+For an example, see <link id="fdOpen"/>.
+
+<element name="fdFlush">
+<short></short>
+<descr>
+<var>fdflush</var> flushes the Linux kernel file buffer, so the file is actually
+written to disk. This is NOT the same as the internal buffer, maintained by
+Free Pascal. 
+The function returns <var>True</var> if the call was successful, <var>false</var> if
+an error occurred.
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="fdOpen"/>
+<link id="fdClose"/>
+<link id="fdRead"/>
+<link id="fdWrite"/>,
+<link id="fdTruncate"/>
+<link id="fdSeek"/>
+</seealso>
+</element>
+For an example, see <link id="fdRead"/>.
+
+<element name="fdOpen">
+<short></short>
+<descr>
+<var>fdOpen</var> opens a file in <var>PathName</var> with flags <var>flags</var> 
+One of the following:
+<dl>
+\item [Open_RdOnly] File is opened Read-only.
+\item [Open_WrOnly] File is opened Write-only.
+\item [Open_RdWr] File is opened Read-Write.
+</dd>
+</dl>
+<p>
+The flags may be<var>OR</var>-ed with one of the following constants:
+<dl>
+\item [Open_Accmode] File is opened
+\item [Open_Creat] File is created if it doesn't exist.
+\item [Open_Excl] If the file is opened with <var>Open_Creat</var> and it 
+already exists, the call wil fail.
+\item [Open_NoCtty] If the file is a terminal device, it will NOT become
+the process' controlling terminal.
+\item [Open_Trunc] If the file exists, it will be truncated.
+\item [Open_Append] the file is opened in append mode. {\em Before each
+write}, the file pointer is positioned at the end of the file.
+\item [Open_NonBlock] The file is opened in non-blocking mode. No operation
+on the file descriptor will cause the calling process to wait till.
+\item [Open_NDelay] Idem as <var>Open_NonBlock</var>
+\item [Open_Sync] The file is opened for synchronous IO. Any write
+operation on the file will not return untill the data is physically written
+to disk.
+\item [Open_NoFollow] if the file is a symbolic link, the open fails.
+(linux 2.1.126 and higher only)
+\item [Open_Directory] if the file is not a directory, the open fails.
+(linux 2.1.126 and higher only)
+</dd>
+</dl>
+<p>
+<var>PathName</var> can be of type <var>PChar</var> or <var>String</var>.
+The optional <var>mode</var> argument specifies the permissions to set when opening
+the file. This is modified by the umask setting. The real permissions are
+<var>Mode and not umask</var>.
+The return value of the function is the filedescriptor, or a negative 
+value if there was an error.
+
+</descr>
+<errors>
+Errors are returned in LinuxError
+</errors>
+<seealso>
+<link id="fdClose"/>
+<link id="fdRead"/>
+<link id="fdWrite"/>
+<link id="fdTruncate"/>,
+<link id="fdFlush"/>
+<link id="fdSeek"/>
+</seealso>
+</element>
+
+<example file="ex19"/>
+
+<element name="fdRead">
+<short></short>
+<descr>
+ <var>fdRead</var> reads at most <var>size</var> bytes from the file descriptor
+<var>fd</var>, and stores them in <var>buf</var>. 
+The function returns the number of bytes actually read, or -1 if
+an error occurred.
+No checking on the length of <var>buf</var> is done.
+
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="fdOpen"/>
+<link id="fdClose"/>
+<link id="fdWrite"/>
+<link id="fdTruncate"/>,
+<link id="fdFlush"/>
+<link id="fdSeek"/>
+</seealso>
+</element>
+
+<example file="ex20"/>
+
+<element name="fdSeek">
+<short></short>
+<descr>
+<var>fdSeek</var> sets the current fileposition of file <var>fd</var> to
+<var>Pos</var>, starting from <var>SeekType</var>, which can be one of the following:
+<dl>
+\item [Seek_Set] \ <var>Pos</var> is the absolute position in the file.
+\item [Seek_Cur] \ <var>Pos</var> is relative to the current position.
+\item [Seek_end] \ <var>Pos</var> is relative to the end of the file.
+</dd>
+</dl>
+<p>
+The function returns the new fileposition, or -1 of an error occurred.
+
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="fdOpen"/>
+<link id="fdWrite"/>
+<link id="fdClose"/>,
+<link id="fdRead"/>
+<link id="fdTruncate"/>,
+ <link id="fdFlush"/>
+</seealso>
+</element>
+For an example, see <link id="fdOpen"/>.
+
+<element name="fdTruncate">
+<short></short>
+<descr>
+<var>fdTruncate</var> sets the length of a file in <var>fd</var> on <var>size</var>
+bytes, where <var>size</var> must be less than or equal to the current length of
+the file in <var>fd</var>.
+The function returns <var>True</var> if the call was successful, <var>false</var> if
+an error occurred.
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="fdOpen"/>
+<link id="fdClose"/>
+<link id="fdRead"/>
+<link id="fdWrite"/>
+<link id="fdFlush"/>,
+<link id="fdSeek"/>
+</seealso>
+</element>
+
+<element name="fdWrite">
+<short></short>
+<descr>
+<var>fdWrite</var> writes at most <var>size</var> bytes from <var>buf</var> to
+file descriptor <var>fd</var>.
+The function returns the number of bytes actually written, or -1 if an error
+occurred.
+
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="fdOpen"/>
+<link id="fdClose"/>
+<link id="fdRead"/>
+<link id="fdTruncate"/>,
+<link id="fdSeek"/>
+<link id="fdFlush"/>
+</seealso>
+</element>
+
+<element name="FExpand">
+<short></short>
+<descr>
+ Expands \var {Path} to a full path, starting from root,
+eliminating directory references such as . and .. from the result.
+
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="BaseName"/>
+<link id="DirName"/> 
+</seealso>
+</element>
+
+<example file="ex45"/>
+
+<element name="FLock">
+<short></short>
+<descr>
+<var>FLock</var> implements file locking. it sets or removes a lock on the file
+<var>F</var>. F can be of type <var>Text</var> or <var>File</var>, or it can be a linux
+filedescriptor (a longint)
+<var>Mode</var> can be one of the following constants :
+<dl>
+\item [LOCK_SH] \ sets a shared lock.
+\item [LOCK_EX] \ sets an exclusive lock.
+\item [LOCK_UN] \ unlocks the file.
+\item [LOCK_NB] \ This can be OR-ed together with the other. 
+If this is done the application doesn't block when locking.
+</dd>
+</dl>
+<p>
+
+The function returns <var>True</var> if successful, <var>False</var> otherwise.
+</descr>
+<errors>
+If an error occurs, it is reported in <var>LinuxError</var>.
+</errors>
+<seealso>
+<link id="Fcntl"/>, \seem{flock}{2}
+</seealso>
+</element>
+
+<element name="FNMatch">
+<short></short>
+<descr>
+<var>FNMatch</var> returns <var>True</var> if the filename in <var>Name</var>
+matches the wildcard pattern in <var>Pattern</var>, <var>False</var> otherwise.
+
+<var>Pattern</var> can contain the wildcards <var>*</var> (match zero or more 
+arbitrary characters) or <var>?</var> (match a single character).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FSearch"/>
+<link id="FExpand"/>
+</seealso>
+</element>
+
+<example file="ex69"/>
+
+<element name="FSearch">
+<short></short>
+<descr>
+ Searches in <var>DirList</var>, a colon separated list of directories,
+for a file named <var>Path</var>. It then returns a path to the found file.
+</descr>
+<errors>
+An empty string if no such file was found.
+</errors>
+<seealso>
+<link id="BaseName"/>
+<link id="DirName"/>
+<link id="FExpand"/>
+<link id="FNMatch"/>
+</seealso>
+</element>
+
+<example file="ex46"/>
+
+<element name="FSplit">
+<short></short>
+<descr>
+<var>FSplit</var> splits a full file name into 3 parts : A <var>Path</var>, a
+<var>Name</var> and an extension  (in <var>ext</var>). 
+The extension is taken to be all letters after the last dot (.).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FSearch"/>
+</seealso>
+</element>
+
+<example file="ex67"/>
+
+<element name="FSStat">
+<short></short>
+<descr>
+ Return in <var>Info</var> information about the filesystem on which the file
+<var>Path</var> resides, or on which the file with file descriptor <var>fd</var>
+resides. 
+Info is of type <var>statfs</var>. The function returns <var>True</var> if the call 
+was succesfull, <var>False</var> if the call failed.
+</descr>
+<errors>
+ <var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A component of <var>Path</var> is not a directory.
+</dd>
+<dt>sys_einval</dt>
+<dd> Invalid character in <var>Path</var>.
+</dd>
+<dt>sys_enoent</dt>
+<dd> <var>Path</var> does not exist.
+</dd>
+<dt>sys_eaccess</dt>
+<dd> Search permission is denied for  component in
+<var>Path</var>.
+</dd>
+<dt>sys_eloop</dt>
+<dd> A circular symbolic link was encountered in <var>Path</var>.
+</dd>
+<dt>sys_eio</dt>
+<dd> An error occurred while reading from the filesystem.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="FStat"/>
+<link id="LStat"/>, \seem{statfs}{2}
+</seealso>
+</element>
+
+<example file="ex30"/>
+
+
+<element name="FStat">
+<short></short>
+<descr>
+<var>FStat</var> gets information about the file specified in one of the
+following:
+<dl>
+\item [Path] a file on the filesystem.
+\item [Fd] a valid file descriptor.
+\item [F] an opened text file or untyped file.
+</dd>
+</dl>
+<p>
+and stores it in  <var>Info</var>, which is of type <var>stat</var>.
+The function returns <var>True</var> if the call was succesfull, 
+<var>False</var> if the call failed.
+
+</descr>
+<errors>
+ <var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_enoent</dt>
+<dd> <var>Path</var> does not exist.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="FSStat"/>
+<link id="LStat"/>, \seem{stat}{2}
+</seealso>
+</element>
+
+<example file="ex28"/>
+
+<element name="Fcntl">
+<short></short>
+<descr>
+Read a file's attributes. <var>Fd</var> is an assigned file, or a valid file
+descriptor.
+<var>Cmd</var> speciefies what to do, and is one of the following:
+<dl>
+</dd>
+<dt>F_GetFd</dt>
+<dd> Read the close_on_exec flag. If the low-order bit is 0, then
+the file will remain open across execve calls.
+</dd>
+<dt>F_GetFl</dt>
+<dd> Read the descriptor's flags.
+</dd>
+<dt>F_GetOwn</dt>
+<dd> Get the Process ID of the owner of a socket.
+</dd>
+</dl>
+<p>
+
+</descr>
+<errors>
+<var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_ebadf</dt>
+<dd> <var>Fd</var> has a bad file descriptor.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="Fcntl"/>, \seem{Fcntl}{2} 
+</seealso>
+</element>
+
+<element name="Fcntl">
+<short></short>
+<descr>
+Read or Set a file's attributes. <var>Fd</var> is an assigned file or a
+valid file descriptor.
+<var>Cmd</var> speciefies what to do, and is one of the following:
+<dl>
+</dd>
+<dt>F_SetFd</dt>
+<dd> Set the close_on_exec flag of <var>Fd</var>. (only the least
+siginificant bit is used).
+</dd>
+<dt>F_GetLk</dt>
+<dd> Return the <var>flock</var> record that prevents this process from
+obtaining the lock, or set the <var>l_type</var> field of the lock of there is no
+obstruction. Arg is a pointer to a flock record.
+</dd>
+<dt>F_SetLk</dt>
+<dd> Set the lock or clear it (depending on <var>l_type</var> in the
+<var>flock</var> structure). if the lock is held by another process, an error
+occurs.
+</dd>
+<dt>F_GetLkw</dt>
+<dd> Same as for \textbf{F_Setlk}, but wait until the lock is
+released.
+</dd>
+<dt>F_SetOwn</dt>
+<dd> Set the Process or process group that owns a socket.
+</dd>
+</dl>
+<p>
+
+</descr>
+<errors>
+
+<var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_ebadf</dt>
+<dd> <var>Fd</var> has a bad file descriptor.
+</dd>
+<dt>sys_eagain or sys_eaccess</dt>
+<dd> For \textbf{F_SetLk}, if the lock is
+held by another process.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="Fcntl"/>, \seem{Fcntl}{2}, seef{FLock}
+</seealso>
+</element>
+
+<element name="Fork">
+<short></short>
+<descr>
+Fork creates a child process which is a copy of the parent process.
+Fork returns the process ID in the parent process, and zero in the child's
+process. (you can get the parent's PID with <link id="GetPPid"/>).
+
+</descr>
+<errors>
+On error, -1 is returned to the parent, and no child is created.
+<dl>
+\item [sys_eagain] Not enough memory to create child process.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Execve"/>
+<link id="Clone"/>, \seem{fork}{2}
+</seealso>
+</element>
+
+<element name="FRename">
+<short></short>
+<descr>
+<var>FRename</var> renames the file <var>OldName</var> to <var>NewName</var>. <var>NewName</var>
+can be in a different directory than <var>OldName</var>, but it cannot be on
+another partition (device). Any existing file on the new location will be replaced.
+
+If the operation fails, then the <var>OldName</var> file will be preserved. 
+
+The function returns <var>True</var> on succes, <var>False</var> on failure.
+</descr>
+<errors>
+On error, errors are reported in <var>LinuxError</var>. Possible errors include:
+<dl>
+</dd>
+<dt>sys_eisdir</dt>
+<dd> <var>NewName</var> exists and is a directory, but <var>OldName</var>
+is not a directory.
+</dd>
+<dt>sys_exdev</dt>
+<dd> <var>NewName</var> and <var>OldName</var> are on different devices.
+</dd>
+<dt>sys_enotempty or sys_eexist</dt>
+<dd> <var>NewName</var> is an existing, non-empty
+directory. 
+</dd>
+<dt>sys_ebusy</dt>
+<dd> <var>OldName</var> or <var>NewName</var> is a directory and is in
+use by another process.
+</dd>
+<dt>sys_einval</dt>
+<dd> <var>NewName</var> is part of <var>OldName</var>.
+</dd>
+<dt>sys_emlink</dt>
+<dd> <var>OldPath</var> or <var>NewPath</var> already have tha maximum
+amount of links pointing to them.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> part of <var>OldName</var> or <var>NewName</var> is not
+directory.
+</dd>
+<dt>sys_efault</dt>
+<dd> For the <var>pchar</var> case: One of the pointers points to
+an invalid address.
+</dd>
+<dt>sys_eaccess</dt>
+<dd> access is denied when attempting to move the file.
+</dd>
+<dt>sys_enametoolong</dt>
+<dd> Either <var>OldName</var> or <var>NewName</var> is too long.
+</dd>
+<dt>sys_enoent</dt>
+<dd> a directory component in <var>OldName</var> or <var>NewName</var>
+didn't exist.
+</dd>
+<dt>sys_enomem</dt>
+<dd> not enough kernel memory.
+</dd>
+<dt>sys_erofs</dt>
+<dd> <var>NewName</var> or <var>OldName</var> is on a read-only file
+system.
+</dd>
+<dt>sys_eloop</dt>
+<dd> too many symbolic links were encountered trying to expand
+<var>OldName</var> or <var>NewName</var>
+</dd>
+<dt>sys_enospc</dt>
+<dd> the filesystem has no room for the new directory entry.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="UnLink"/>
+</seealso>
+</element>
+
+
+<element name="GetDate">
+<short></short>
+<descr>
+Returns the current date.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="GetEpochTime"/>
+<link id="GetTime"/>
+<link id="GetDateTime"/>
+<link id="EpochToLocal"/> 
+</seealso>
+</element>
+
+<example file="ex6"/>
+
+<element name="GetDateTime">
+<short></short>
+<descr>
+Returns the current date and time. The time is corrected for the local time
+zone. This procedure is equivalent to the <link id="GetDate"/> and <var>GetTime</var>
+calls.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="GetEpochTime"/>
+<link id="GetTime"/>
+<link id="EpochToLocal"/>
+<link id="GetDate"/> 
+</seealso>
+</element>
+
+<example file="ex60"/>
+
+<element name="GetDomainName">
+<short></short>
+<descr>
+Get the domain name of the machine on which the process is running.
+An empty string is returned if the domain is not set.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+ <link id="GetHostName"/>,seem{Getdomainname}{2} 
+</seealso>
+</element>
+
+<example file="ex39"/>
+
+<element name="GetEGid">
+<short></short>
+<descr>
+ Get the effective group ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetGid"/>, \seem{getegid}{2} 
+</seealso>
+</element>
+
+<example file="ex18"/>
+
+<element name="GetEUid">
+<short></short>
+<descr>
+ Get the effective user ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetEUid"/>, \seem{geteuid}{2} 
+</seealso>
+</element>
+
+<example file="ex17"/>
+
+<element name="GetEnv">
+<short></short>
+<descr>
+Returns the value of the environment variable in <var>P</var>. If the variable is
+not defined, nil is returned. The value of the environment variable may be
+the empty string.
+A PChar is returned to accomodate for strings longer than 255 bytes,
+<var>TERMCAP</var> and <var>LS_COLORS</var>, for instance.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+\seem{sh}{1}, \seem{csh}{1} 
+</seealso>
+</element>
+
+<example file="ex41"/>
+
+<element name="GetEpochTime">
+<short></short>
+<descr>
+returns the number of seconds since 00:00:00 gmt, january 1, 1970.
+it is adjusted to the local time zone, but not to DST.
+
+</descr>
+<errors>
+no errors
+</errors>
+<seealso>
+<link id="EpochToLocal"/>
+<link id="GetTime"/>, \seem{time}{2}
+</seealso>
+</element>
+
+<example file="ex1"/>
+
+<element name="GetFS">
+<short></short>
+<descr>
+<var>GetFS</var> returns the file selector that the kernel provided for your
+file. In principle you don' need this file selector. Only for some calls
+it is needed, such as the <link id="Select"/> call or so.
+</descr>
+<errors>
+In case the file was not opened, then -1 is returned.
+</errors>
+<seealso>
+<link id="Select"/>
+</seealso>
+</element>
+
+<example file="ex34"/>
+
+<element name="GetGid">
+<short></short>
+<descr>
+ Get the real group ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetEGid"/>, \seem{getgid}{2} 
+</seealso>
+</element>
+
+<example file="ex18"/>
+
+<element name="GetHostName">
+<short></short>
+<descr>
+Get the hostname of the machine on which the process is running.
+An empty string is returned if hostname is not set.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+ <link id="GetDomainName"/>,seem{Gethostname}{2} 
+</seealso>
+</element>
+
+<example file="ex40"/>
+
+<element name="GetLocalTimezone">
+<short></short>
+<descr>
+<var>GetLocalTimeZone</var> returns the local timezone information. It also
+initializes the <var>TZSeconds</var> variable, which is used to correct the epoch time
+to local time. 
+
+There should never be any need to call this function directly. It is called by the
+initialization routines of the Linux unit.
+</errors>
+<seealso>
+<link id="GetTimezoneFile"/>
+<link id="ReadTimezoneFile"/>
+</seealso>
+</element>
+
+<element name="GetPid">
+<short></short>
+<descr>
+ Get the Process ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetPPid"/>, \seem{getpid}{2}
+</seealso>
+</element>
+
+<example file="ex16"/>
+
+<element name="GetPPid">
+<short></short>
+<descr>
+ Get the Process ID of the parent process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetPid"/>, \seem{getppid}{2}
+</seealso>
+</element>
+
+<example file="ex16"/>
+
+<element name="GetPriority">
+<short></short>
+<descr>
+GetPriority returns the priority with which a process is running.
+Which process(es) is determined by the <var>Which</var> and <var>Who</var> variables.
+<var>Which</var> can be one of the pre-defined \var{Prio_Process, Prio_PGrp,
+Prio_User}, in which case <var>Who</var> is the process ID, Process group ID or
+User ID, respectively.
+
+</descr>
+<errors>
+
+ Error checking must be done on LinuxError, since a priority can be negative.
+ <dl>
+ </dd>
+<dt>sys_esrch</dt>
+<dd> No process found using <var>which</var> and <var>who</var>.
+ </dd>
+<dt>sys_einval</dt>
+<dd> <var>Which</var> was not one of \var{Prio_Process, Prio_Grp
+or Prio_User}.
+ </dd>
+</dl>
+<p>
+ 
+</errors>
+<seealso>
+<link id="SetPriority"/>
+<link id="Nice"/>, \seem{Getpriority}{2}
+</seealso>
+</element>
+For an example, see <link id="Nice"/>.
+
+<element name="GetTime">
+<short></short>
+<descr>
+Returns the current time of the day, adjusted to local time.
+Upon return, the parameters are filled with
+<dl>
+</dd>
+<dt>hour</dt>
+<dd> Hours since 00:00 today.
+</dd>
+<dt>min</dt>
+<dd> minutes in current hour.
+</dd>
+<dt>sec</dt>
+<dd> seconds in current minute.
+</dd>
+<dt>sec100</dt>
+<dd> hundreds of seconds in current second.
+</dd>
+<dt>msec</dt>
+<dd> milliseconds in current second.
+</dd>
+<dt>usec</dt>
+<dd> microseconds in current second.
+</dd>
+</dl>
+<p>
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="GetEpochTime"/>
+<link id="GetDate"/>
+<link id="GetDateTime"/>
+<link id="EpochToLocal"/> 
+</seealso>
+</element>
+
+<example file="ex5"/>
+
+<element name="GetTimeOfDay">
+<short></short>
+<descr>
+<var>GetTimeOfDay</var> returns the number of seconds since 00:00, January 1 
+1970, GMT in a <var>timeval</var> record. This time NOT corrected any way, 
+not taking into account timezones, daylight savings time and so on.
+
+It is simply a wrapper to the kernel system call. To get the local time,
+<link id="GetTime"/>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetTime"/>
+<link id="GetTimeOfDay"/>
+</seealso>
+</element>
+
+<element name="GetTimeOfDay">
+<short></short>
+<descr>
+<var>GetTimeOfDay</var> returns the number of seconds since 00:00, January 1
+1970, GMT. This time NOT corrected any way, not taking into account
+timezones, daylight savings time and so on.
+
+It is simply a wrapper to the kernel system call. To get the local time,
+<link id="GetTime"/>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetTimeOfDay"/>
+<link id="GetTime"/>
+</seealso>
+</element>
+
+<element name="GetTimezoneFile">
+<short></short>
+<descr>
+<var>GetTimezoneFile</var> returns the location of the current timezone file.
+The location of file is determined as follows:
+</p><ol>
+</li>
+<li> If <file>/etc/timezone</file> exists, it is read, and the contents of this
+file is returned. This should work on Debian systems.
+</li>
+<li> If <file>/usr/lib/zoneinfo/localtime</file> exists, then it is returned.
+(this file is a symlink to the timezone file on SuSE systems)
+</li>
+<li> If <file>/etc/localtime</file> exists, then it is returned. 
+(this file is a symlink to the timezone file on RedHat systems)
+</li>
+</ol>
+<p>
+</descr>
+<errors>
+If no file was found, an empty string is returned.
+</errors>
+<seealso>
+<link id="ReadTimezoneFile"/>
+</seealso>
+</element>
+
+<element name="GetUid">
+<short></short>
+<descr>
+ Get the real user ID of the currently running process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetEUid"/>, \seem{getuid}{2} 
+</seealso>
+</element>
+
+<example file="ex17"/>
+
+<element name="Glob">
+<short></short>
+<descr>
+Glob returns a pointer to a glob structure which contains all filenames which
+exist and match the pattern in <var>Path</var>.
+The pattern can contain wildcard characters, which have their
+usual meaning.
+
+</descr>
+<errors>
+ Returns nil on error, and <var>LinuxError</var> is set.
+<dl>
+</dd>
+<dt>sys_enomem</dt>
+<dd> No memory on heap for glob structure.
+</dd>
+<dt>others</dt>
+<dd> As returned by the opendir call, and sys_readdir.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="GlobFree"/>, \seem{Glob}{3} 
+</seealso>
+</element>
+
+<example file="ex49"/>
+
+<element name="GlobFree">
+<short></short>
+<descr>
+Releases the memory, occupied by a pglob structure. <var>P</var> is set to nil.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+ <link id="Glob"/> 
+</seealso>
+</element>
+For an example, see <link id="Glob"/>.
+
+<element name="IOCtl">
+<short></short>
+<descr>
+This is a general interface to the Unix/ linux ioctl call.
+It performs various operations on the filedescriptor <var>Handle</var>.
+<var>Ndx</var> describes the operation to perform.
+<var>Data</var> points to data needed for the <var>Ndx</var> function. 
+The structure of this data is function-dependent, so we don't elaborate on
+this here. 
+For more information on this, see various manual pages under linux.
+
+</descr>
+<errors>
+
+Errors are reported in LinuxError. They are very dependent on the used
+function, that's why we don't list them here
+
+</errors>
+<seealso>
+\seem{ioctl}{2}
+</seealso>
+</element>
+
+<example file="ex54"/>
+
+<element name="IOperm">
+<short></short>
+<descr>
+<var>IOperm</var>
+  sets permissions on <var>Num</var> ports starting with port <var>From</var> to 
+  <var>Value</var>. The function returns <var>True</var> if the call was successfull,
+  <var>False</var> otherwise.
+<em> Remark:</em>
+</p>
+<ul>
+</li>
+<li> This works ONLY as root.
+</li>
+<li> Only the first <var>0x03ff</var> ports can be set.
+</li>
+<li> When doing a <link id="Fork"/>, the permissions are reset. When doing a
+<link id="Execve"/> they are kept.
+</li>
+</ul>
+<p>
+
+</descr>
+<errors>
+Errors are returned in <var>LinuxError</var>
+</errors>
+<seealso>
+\seem{ioperm}{2}
+</seealso>
+</element>
+
+<element name="IsATTY">
+<short></short>
+<descr>
+Check if the filehandle described by <var>f</var> is a terminal.
+f can be of type
+</p><ol>
+</li>
+<li> <var>longint</var> for file handles;
+</li>
+<li> <var>Text</var> for <var>text</var> variables such as <var>input</var> etc.
+</li>
+</ol>
+<p>
+Returns <var>True</var> if <var>f</var> is a terminal, <var>False</var> otherwise.
+
+</descr>
+<errors>
+No errors are reported
+</errors>
+<seealso>
+<link id="IOCtl"/>
+<link id="TTYName"/>
+</seealso>
+</element>
+<element name="S_ISBLK">
+<short></short>
+<descr>
+ <var>S_ISBLK</var> checks the file mode <var>m</var> to see whether the file is a
+block device file. If so it returns <var>True</var>.
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISLNK">S_ISLNK</link>, 
+ <link id="ISREG">S_ISREG</link>,
+ <link id="ISDIR">S_ISDIR</link>,
+ <link id="ISCHR">S_ISCHR</link>,
+ <link id="ISFIFO">S_ISFIFO</link>,
+ <link id="ISSOCK">S_ISSOCK</link>
+
+</errors>
+<seealso>
+ISLNK.
+</seealso>
+</element>
+<element name="S_ISCHR">
+<short></short>
+<descr>
+ <var>S_ISCHR</var> checks the file mode <var>m</var> to see whether the file is a
+character device file. If so it returns <var>True</var>.
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISLNK">S_ISLNK</link>, 
+ <link id="ISREG">S_ISREG</link>,
+ <link id="ISDIR">S_ISDIR</link>,
+ <link id="ISBLK">S_ISBLK</link>,
+ <link id="ISFIFO">S_ISFIFO</link>,
+ <link id="ISSOCK">S_ISSOCK</link>
+
+</errors>
+<seealso>
+ISLNK.
+</seealso>
+</element>
+<element name="S_ISDIR">
+<short></short>
+<descr>
+ <var>S_ISDIR</var> checks the file mode <var>m</var> to see whether the file is a
+directory. If so it returns <var>True</var>
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISLNK">S_ISLNK</link>, 
+ <link id="ISREG">S_ISREG</link>,
+ <link id="ISCHR">S_ISCHR</link>,
+ <link id="ISBLK">S_ISBLK</link>,
+ <link id="ISFIFO">S_ISFIFO</link>,
+ <link id="ISSOCK">S_ISSOCK</link>
+
+</errors>
+<seealso>
+ISLNK.
+</seealso>
+</element>
+<element name="S_ISFIFO">
+<short></short>
+<descr>
+ <var>S_ISFIFO</var> checks the file mode <var>m</var> to see whether the file is a
+fifo (a named pipe). If so it returns <var>True</var>.
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISLNK">S_ISLNK</link>, 
+ <link id="ISREG">S_ISREG</link>,
+ <link id="ISDIR">S_ISDIR</link>,
+ <link id="ISCHR">S_ISCHR</link>,
+ <link id="ISBLK">S_ISBLK</link>,
+ <link id="ISSOCK">S_ISSOCK</link>
+
+</errors>
+<seealso>
+ISLNK.
+</seealso>
+</element>
+
+<element name="S_ISLNK">
+<short></short>
+<descr>
+ <var>S_ISLNK</var> checks the file mode <var>m</var> to see whether the file is a
+symbolic link. If so it returns <var>True</var>
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISREG">S_ISREG</link>,
+ <link id="ISDIR">S_ISDIR</link>,
+ <link id="ISCHR">S_ISCHR</link>,
+ <link id="ISBLK">S_ISBLK</link>,
+ <link id="ISFIFO">S_ISFIFO</link>,
+ <link id="ISSOCK">S_ISSOCK</link>
+
+</errors>
+<seealso>
+</seealso>
+</element>
+
+
+<example file="ex53"/>
+
+<element name="S_ISREG">
+<short></short>
+<descr>
+ <var>S_ISREG</var> checks the file mode <var>m</var> to see whether the file is a
+regular file. If so it returns <var>True</var>
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISLNK">S_ISLNK</link>, 
+ <link id="ISDIR">S_ISDIR</link>,
+ <link id="ISCHR">S_ISCHR</link>,
+ <link id="ISBLK">S_ISBLK</link>,
+ <link id="ISFIFO">S_ISFIFO</link>,
+ <link id="ISSOCK">S_ISSOCK</link>
+
+</errors>
+<seealso>
+ISLNK.
+</seealso>
+</element>
+<element name="S_ISSOCK">
+<short></short>
+<descr>
+ <var>S_ISSOCK</var> checks the file mode <var>m</var> to see whether the file is a
+socket. If so it returns <var>True</var>.
+
+</descr>
+<errors>
+<link id="FStat"/>,
+ <link id="ISLNK">S_ISLNK</link>, 
+ <link id="ISREG">S_ISREG</link>,
+ <link id="ISDIR">S_ISDIR</link>,
+ <link id="ISCHR">S_ISCHR</link>,
+ <link id="ISBLK">S_ISBLK</link>,
+ <link id="ISFIFO">S_ISFIFO</link>
+
+</errors>
+<seealso>
+ISLNK.
+</seealso>
+</element>
+
+<element name="Kill">
+<short></short>
+<descr>
+ Send a signal <var>Sig</var> to a process or process group. If <var>Pid</var>&gt;0 then
+the signal is sent to <var>Pid</var>, if it equals -1, then the signal is sent to
+all processes except process 1. If <var>Pid</var>&lt;-1 then the signal is sent to
+process group -Pid.
+The return value is zero, except in case three, where the return value is the
+number of processes to which the signal was sent.
+
+</descr>
+<errors>
+<var>LinuxError</var> is used to report errors:
+<dl>
+</dd>
+<dt>sys_einval</dt>
+<dd> An invalid signal is sent.
+</dd>
+<dt>sys_esrch</dt>
+<dd> The <var>Pid</var> or process group don't exist.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The effective userid of the current process doesn't math
+the one of process <var>Pid</var>.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="SigAction"/>
+<link id="Signal"/>, \seem{Kill}{2} 
+</seealso>
+</element>
+
+<element name="LStat">
+<short></short>
+<descr>
+<var>LStat</var> gets information about the link specified in <var>Path</var>, and stores it in 
+<var>Info</var>, which is of type <var>stat</var>. Contrary to <var>FStat</var>, it stores
+information about the link, not about the file the link points to.
+The function returns <var>True</var> if the call was succesfull, <var>False</var> if the call
+failed.
+
+</descr>
+<errors>
+ <var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_enoent</dt>
+<dd> <var>Path</var> does not exist.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="FStat"/>
+<link id="FSStat"/>, \seem{stat}{2}
+</seealso>
+</element>
+
+<example file="ex29"/>
+
+<element name="Link">
+<short></short>
+<descr>
+<var>Link</var> makes <var>NewPath</var> point to the same file als <var>OldPath</var>. The two files
+then have the same inode number. This is known as a 'hard' link.
+The function returns <var>True</var> if the call was succesfull, <var>False</var> if the call
+failed.
+
+</descr>
+<errors>
+ Errors are returned in <var>LinuxError</var>.
+<dl>
+</dd>
+<dt>sys_exdev</dt>
+<dd> \var {OldPath} and \var {NewPath} are not on the same
+filesystem.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The filesystem containing oldpath and newpath doesn't
+support linking files.
+</dd>
+<dt>sys_eaccess</dt>
+<dd> Write access for the directory containing <var>Newpath</var>
+is disallowed, or one of the directories in <var>OldPath</var> or {NewPath} has no
+search (=execute) permission.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> does
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> is
+nor a directory.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.
+</dd>
+<dt>sys_erofs</dt>
+<dd> The files are on a read-only filesystem.
+</dd>
+<dt>sys_eexist</dt>
+<dd> <var>NewPath</var> already exists.
+</dd>
+<dt>sys_emlink</dt>
+<dd> <var>OldPath</var> has reached maximal link count.
+</dd>
+<dt>sys_eloop</dt>
+<dd> <var>OldPath</var> or <var>NewPath</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+</dd>
+<dt>sys_enospc</dt>
+<dd> The device containing <var>NewPath</var> has no room for anothe
+entry.
+</dd>
+<dt>sys_eperm</dt>
+<dd> <var>OldPath</var> points to . or .. of a directory.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="SymLink"/>
+<link id="UnLink"/>, \seem{Link}{2} 
+</seealso>
+</element>
+
+<example file="ex21"/>
+
+<element name="LocalToEpoch">
+<short></short>
+<descr>
+Converts the Local time to epoch time (=Number of seconds since 00:00:00 , January 1,
+1970 ).
+
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="GetEpochTime"/>
+<link id="EpochToLocal"/>
+<link id="GetTime"/>
+<link id="GetDate"/> 
+</seealso>
+</element>
+
+<example file="ex4"/>
+
+<element name="MkFifo">
+<short></short>
+<descr>
+<var>MkFifo</var> creates named a named pipe in the filesystem, with name
+<var>PathName</var> and mode {Mode}. 
+
+</descr>
+<errors>
+ <var>LinuxError</var> is used to report errors:
+<dl>
+</dd>
+<dt>sys_emfile</dt>
+<dd> Too many file descriptors for this process.
+</dd>
+<dt>sys_enfile</dt>
+<dd> The system file table is full.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="POpen"/>
+<link id="MkFifo"/>, \seem{mkfifo}{4}
+</seealso>
+</element>
+
+<element name="MMap">
+<short></short>
+<descr>
+<var>MMap</var> maps or unmaps files or devices into memory. The different fields
+of the argument <var>m</var> determine what and how the <var>mmap</var> maps this:
+<dl>
+</dd>
+<dt>address</dt>
+<dd> Address where to mmap the device. This address is a hint, 
+and may not be followed.
+</dd>
+<dt>size</dt>
+<dd> Size (in bytes) of area to be mapped.
+</dd>
+<dt>prot</dt>
+<dd> Protection of mapped memory. This is a OR-ed combination of the
+following constants:
+<dl>
+</dd>
+<dt>PROT_EXEC</dt>
+<dd> The memory can be executed.
+</dd>
+<dt>PROT_READ</dt>
+<dd> The memory can be read.
+</dd>
+<dt>PROT_WRITE</dt>
+<dd> The memory can be written.
+</dd>
+<dt>PROT_NONE</dt>
+<dd> The memory can not be accessed.
+</dd>
+</dl>
+<p>
+\item[flags] Contains some options for the mmap call. It is an OR-ed
+combination of the following constants:
+<dl>
+</dd>
+<dt>MAP_FIXED</dt>
+<dd> Do not map at another address than the given address. If the
+address cannot be used, <var>MMap</var> will fail.
+</dd>
+<dt>MAP_SHARED</dt>
+<dd> Share this map with other processes that map this object.
+</dd>
+<dt>MAP_PRIVATE</dt>
+<dd> Create a private map with copy-on-write semantics.
+</dd>
+<dt>MAP_ANONYMOUS</dt>
+<dd> <var>fd</var> does not have to be a file descriptor.
+</dd>
+</dl>
+<p>
+One of the options <var>MAP_SHARED</var> and <var>MAP_PRIVATE</var> must be present,
+but not both at the same time.
+\item[fd] File descriptor from which to map.
+\item[offset] Offset to be used in file descriptor fd.
+\end{description}
+
+The function returns a pointer to the mapped memory, or a -1 in case of en
+error.
+</descr>
+<errors>
+On error, -1 is returned and LinuxError is set to the error code:
+<dl>
+</dd>
+<dt>Sys_EBADF</dt>
+<dd> <var>fd</var> is not a valid file descriptor and 
+<var>MAP_ANONYMOUS</var> was not specified.
+</dd>
+<dt>Sys_EACCES</dt>
+<dd> <var>MAP_PRIVATE</var> was specified, but fd is not open for 
+reading. Or <var>MAP_SHARED</var> was asked and <var>PROT_WRITE</var> is  set, fd 
+is not open for writing
+</dd>
+<dt>Sys_EINVAL</dt>
+<dd> One of the record fields <var>Start</var>, <var>length</var> or 
+<var>offset</var> is invalid.
+</dd>
+<dt>Sys_ETXTBUSY</dt>
+<dd> <var>MAP_DENYWRITE</var> was set but the object specified  
+by fd is open for writing.
+</dd>
+<dt>Sys_EAGAIN</dt>
+<dd> <var>fd</var> is locked, or too much memory is locked.
+</dd>
+<dt>Sys_ENOMEM</dt>
+<dd> Not enough memory for this operation.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="MUnMap"/>, \seem{mmap}{2}
+</seealso>
+</element>
+
+<example file="ex66"/>
+
+<element name="MUnMap">
+<short></short>
+<descr>
+<var>MUnMap</var> unmaps the memory block of size <var>Size</var>, pointed to by 
+<var>P</var>, which was previously allocated with <link id="MMap"/>.
+
+The function returns <var>True</var> if successful, <var>False</var> otherwise.
+</descr>
+<errors>
+In case of error the function returns <var>False</var> and <var>LinuxError</var>
+is set to an error value. See <link id="MMap"/> for possible error values.
+</errors>
+<seealso>
+<link id="MMap"/>, \seem{munmap}{2}
+</seealso>
+</element>
+
+For an example, see <link id="MMap"/>.
+
+<element name="NanoSleep">
+<short></short>
+<descr>
+<var>NanoSleep</var> suspends the process till a time period as specified
+in <var>req</var> has passed. Then the function returns. If the
+call was interrupted (e.g. by some signal) then the function may
+return earlier, and <var>rem</var> will contain the remaining time till the
+end of the intended period. In this case the return value will be 
+-1, and <var>LinuxError</var> will be set to <var>EINTR</var>
+
+If the function returns without error, the return value is zero.
+</descr>
+<errors>
+If the call was interrupted, -1 is returned, and <var>LinuxError</var> is set
+to <var>EINTR</var>. If invalid time values were specified, then -1 is returned
+and <var>LinuxError</var> is set to <var>EINVAL</var>.
+</errors>
+<seealso>
+<link id="Pause"/>
+<link id="Alarm"/>
+</seealso>
+</element>
+
+<example file="ex70"/>
+
+<element name="Nice">
+<short></short>
+<descr>
+<var>Nice</var> adds <var>-N</var> to the priority of the running process. The lower the
+priority numerically, the less the process is favored.
+Only the superuser can specify a negative <var>N</var>, i.e. increase the rate at
+which the process is run.
+
+</descr>
+<errors>
+ Errors are returned in <var>LinuxError</var>
+<dl>
+\item [sys_eperm] A non-superuser tried to specify a negative <var>N</var>, i.e.
+do a priority increase.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="GetPriority"/>
+<link id="SetPriority"/>, \seem{Nice}{2}
+</seealso>
+</element>
+
+<example file="ex15"/>
+
+<element name="Octal">
+<short></short>
+<descr>
+<var>Octal</var> will convert a number specified as an octal number to it's
+decimal value.
+
+This is useful for the <link id="Chmod"/> call, where permissions are specified
+as octal numbers.
+</descr>
+<errors>
+No checking is performed whether the given number is a correct Octal number.
+e.g. specifying <var>998</var> is possible; the result will be wrong in that
+case.
+</errors>
+<seealso>
+<link id="Chmod"/>.
+</seealso>
+</element>
+
+<example file="ex68"/>
+
+<element name="OpenDir">
+<short></short>
+<descr>
+ <var>OpenDir</var> opens the directory  <var>f</var>, and returns a <var>pdir</var>
+pointer to a <var>Dir</var> record, which can be used to read the directory 
+structure. If the directory cannot be opened, <var>nil</var> is returned.
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="CloseDir"/>
+<link id="ReadDir"/>
+<link id="SeekDir"/>
+<link id="TellDir"/>,
+\seem{opendir}{3}
+</seealso>
+</element>
+
+
+<example file="ex35"/>
+
+
+<element name="pause">
+<short></short>
+<descr>
+<var>Pause</var> puts the process to sleep and waits until the application 
+receives  a signal. If a signal handler is installed for the received 
+sigal, the handler will be called and after that pause will return 
+control to the process.
+</descr>
+<errors>
+None.
+</seealso>
+</element>
+
+For an example, see <link id="Alarm"/>.
+
+
+<element name="PClose">
+<short></short>
+<descr>
+ <var>PClose</var> closes a file opened with <var>POpen</var>. It waits for the
+command to complete, and then returns the exit status of the command. 
+
+</descr>
+<errors>
+<var>LinuxError</var> is used to report errors. If it is different from zero,
+the exit status is not valid.
+</errors>
+<seealso>
+<link id="POpen"/>
+</seealso>
+</element>
+For an example, see <link id="POpen"/>
+
+<element name="POpen">
+<short></short>
+<descr>
+ Popen runs the command specified in <var>Cmd</var>,
+ and redirects the standard in or output of the
+command to the other end of the pipe <var>F</var>. The parameter <var>rw</var>
+indicates the direction of the pipe. If it is set to <var>'W'</var>, then F can
+be used to write data, which will then be read by the command from stdinput.
+If it is set to <var>'R'</var>, then the standard output of the command can be 
+read from <var>F</var>. <var>F</var> should be reset or rewritten prior to using it.
+<var>F</var> can be of type <var>Text</var> or <var>File</var>.
+A file opened with \var {POpen} can be closed with <var>Close</var>, but also
+with <link id="PClose"/>. The result is the same, but <var>PClose</var> returns the
+exit status of the command <var>Cmd</var>.
+</descr>
+<errors>
+Errors are reported in <var>LinuxError</var> and are essentially those of the
+Execve, Dup and AssignPipe commands.
+
+</errors>
+<seealso>
+<link id="AssignPipe"/>, \seem{popen}{3}, <link id="PClose"/>
+</seealso>
+</element>
+
+<example file="ex37"/>
+
+<element name="ReadDir">
+<short></short>
+<descr>
+<var>ReadDir</var> reads the next entry in the directory pointed to by <var>p</var>.
+It returns a <var>pdirent</var> pointer to a structure describing the entry.
+If the next entry can't be read, <var>Nil</var> is returned.
+
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="CloseDir"/>
+<link id="OpenDir"/>
+<link id="SeekDir"/>
+<link id="TellDir"/>,
+\seem{readdir}{3}
+</seealso>
+</element>
+
+For an example, see <link id="OpenDir"/>.
+
+<element name="ReadLink">
+<short></short>
+<descr>
+<var>ReadLink</var> returns the file the symbolic link <var>name</var> is pointing 
+to. The first form of this function accepts a buffer <var>linkname</var> of
+length <var>maxlen</var> where the filename will be stored. It returns the
+actual number of characters stored in the buffer.
+
+The second form of the function returns simply the name of the file.
+</descr>
+<errors>
+On error, the first form of the function returns -1; the second one returns
+an empty string. <var>LinuxError</var> is set to report errors:
+<dl>
+</dd>
+<dt>SYS_ENOTDIR</dt>
+<dd> A part of the path in <var>Name</var> is not a directory.
+</dd>
+<dt>SYS_EINVAL</dt>
+<dd> maxlen is not positive, or the  file is not a symbolic link.
+</dd>
+<dt>SYS_ENAMETOOLONG</dt>
+<dd> A pathname, or a component of a pathname,  was  too
+long.
+</dd>
+<dt>SYS_ENOENT</dt>
+<dd> the link <var>name</var> does not exist.
+</dd>
+<dt>SYS_EACCES</dt>
+<dd> No permission to search a directory in the path
+</dd>
+<dt>SYS_ELOOP</dt>
+<dd>  Too many symbolic links were encountered in  trans­
+             lating the pathname.
+</dd>
+<dt>SYS_EIO</dt>
+<dd> An  I/O  error occurred while reading from the file
+              system.
+</dd>
+<dt>SYS_EFAULT</dt>
+<dd> The buffer is not part of the the process's memory space.
+</dd>
+<dt>SYS_ENOMEM</dt>
+<dd> Not enough kernel memory was available.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="SymLink"/>
+</seealso>
+</element>
+
+<example file="ex62"/>
+
+<element name="ReadPort">
+<short></short>
+<descr>
+<var>ReadPort</var> reads one Byte, Word or Longint from port <var>Port</var> into
+<var>Value</var>.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="IOperm"/> call.
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+
+<link id="IOperm"/>
+<link id="ReadPortB"/>
+<link id="ReadPortW"/>
+<link id="ReadPortL"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="ReadPortB">
+<short></short>
+<descr>
+The procedural form of <var>ReadPortB</var> reads <var>Count</var> bytes from port
+<var>Port</var> and stores them in <var>Buf</var>. There must be enough memory
+allocated at <var>Buf</var> to store <var>Count</var> bytes.
+
+The functional form of <var>ReadPortB</var> reads 1 byte from port <var>B</var>
+and returns the byte that was read.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="IOperm"/> call.
+
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="ReadPort"/>
+<link id="ReadPortW"/>
+<link id="ReadPortL"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="ReadPortL">
+<short></short>
+<descr>
+The procedural form of <var>ReadPortL</var> reads <var>Count</var> longints from port
+<var>Port</var> and stores them in <var>Buf</var>. There must be enough memory
+allocated at <var>Buf</var> to store <var>Count</var> Longints.
+
+The functional form of <var>ReadPortB</var> reads 1 longint from port <var>B</var>
+and returns the longint that was read.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="IOperm"/> call.
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="ReadPort"/>
+<link id="ReadPortW"/>
+<link id="ReadPortB"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+<element name="ReadPortW">
+<short></short>
+<descr>
+The procedural form of <var>ReadPortB</var> reads <var>Count</var> words from port
+<var>Port</var> and stores them in <var>Buf</var>. There must be enough memory
+allocated at <var>Buf</var> to store <var>Count</var> words.
+
+The functional form of <var>ReadPortB</var> reads 1 word from port <var>B</var>
+and returns the word that was read.
+
+Note that you need permission to read a port. This permission can be set by 
+the root user with the <link id="IOperm"/> call.
+</descr>
+<errors>
+In case of an error (not enough permissions read this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="ReadPort"/>
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="WritePort"/>,
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>
+</seealso>
+</element>
+
+
+<element name="ReadTimezoneFile">
+<short></short>
+<descr>
+<var>ReadTimeZoneFile</var> reads the timezone file <var>fn</var> and initializes
+the local time routines based on the information found there.
+
+There should be no need to call this function. The initialization routines
+of the <file>linux</file> unit call this routine at unit startup.
+</descr>
+<errors> 
+None.
+</errors>
+<seealso>
+<link id="GetTimezoneFile"/>
+<link id="GetLocalTimezone"/>
+</seealso>
+</element>
+
+
+<element name="SeekDir">
+<short></short>
+<descr>
+ <var>SeekDir</var> sets the directory pointer to the <var>off</var>-th entry in the
+directory structure pointed to by <var>p</var>.
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="CloseDir"/>
+<link id="ReadDir"/>
+<link id="OpenDir"/>
+<link id="TellDir"/>,
+\seem{seekdir}{3}
+</seealso>
+</element>
+For an example, see <link id="OpenDir"/>.
+
+<element name="Select">
+<short></short>
+<descr>
+<var>Select</var> checks one of the file descriptors in the <var>FDSets</var> to see if its
+status changed.
+<var>readfds, writefds</var> and <var>exceptfds</var> are pointers to arrays of 256
+bits. If you want a file descriptor to be checked, you set the
+corresponding element in the array to 1. The other elements in the array
+must be set to zero. Three arrays are passed : The entries in <var>readfds</var>
+are checked to see if characters become available for reading. The entries
+in <var>writefds</var> are checked to see if it is OK to write to them, while
+entries in <var>exceptfds</var> are cheked to see if an exception occorred on
+them.
+You can use the functions <link id="FDZero">FD_ZERO</link>
+<link id="FDClr">FD_Clr</link>, 
+<link id="FDSet">FD_Set</link>
+<link id="FDIsSet">FD_IsSet</link> to manipulate the individual elements of a set.
+The pointers can be nil.
+<var>N</var> is the largest index of a nonzero entry plus 1. (= the largest
+file-descriptor + 1).
+<var>TimeOut</var> can be used to set a time limit. 
+If <var>TimeOut</var> can be two types :
+</p><ol>
+</li>
+<li> <var>TimeOut</var> is of type <var>PTime</var> and contains a
+zero time, the call returns immediately. If <var>TimeOut</var> is <var>Nil</var>, the
+kernel will wait forever, or until a status changed.    
+</li>
+<li> <var>TimeOut</var> is of type <var>Longint</var>. If it is -1, this has the same
+effect as a <var>Timeout</var> of type  <var>PTime</var> which is <var>Nil</var>.
+Otherwise, <var>TimeOut</var> contains a time in milliseconds.
+</li>
+</ol>
+<p>
+ 
+When the TimeOut is reached, or one of the file descriptors has changed,
+the <var>Select</var> call returns. On return, it will have modified the entries
+in the array which have actually changed, and it returns the number of
+entries that have been changed. If the timout was reached, and no decsriptor
+changed, zero is returned; The arrays of indexes are undefined after that.
+On error, -1 is returned.
+</descr>
+<errors>
+On error, the function returns -1, and Errors are reported in LinuxError :
+<dl>
+</dd>
+<dt>SYS_EBADF\ </dt>
+<dd> An invalid descriptot was specified in one of the sets.
+</dd>
+<dt>SYS_EINTR\ </dt>
+<dd> A non blocked signal was caught.
+</dd>
+<dt>SYS_EINVAL\ </dt>
+<dd>  <var>N</var> is negative or too big.
+</dd>
+<dt>SYS_ENOMEM\ </dt>
+<dd> <var>Select</var> was unable to allocate memory for its 
+ internal tables.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="SelectText"/>
+<link id="GetFS"/>, 
+<link id="FDZero">FD_ZERO</link>,
+<link id="FDClr">FD_Clr</link>,
+<link id="FDSet">FD_Set</link>, 
+<link id="FDIsSet">FD_IsSet</link>
+</seealso>
+</element>
+
+<example file="ex33"/>
+
+<element name="SelectText">
+<short></short>
+<descr>
+<var>SelectText</var> executes the <link id="Select"/> call on a file of type
+<var>Text</var>. You can specify a timeout in <var>TimeOut</var>. The SelectText call
+determines itself whether it should check for read or write, depending on
+how the file was opened : With <var>Reset</var> it is checked for reading, with
+<var>Rewrite</var> and <var>Append</var> it is checked for writing.
+</descr>
+<errors>
+See <link id="Select"/>. <var>SYS_EBADF</var> can also mean that the file wasn't
+opened.
+</errors>
+<seealso>
+<link id="Select"/>
+<link id="GetFS"/>
+</seealso>
+</element>
+
+<element name="SetPriority">
+<short></short>
+<descr>
+SetPriority sets the priority with which a process is running.
+Which process(es) is determined by the <var>Which</var> and <var>Who</var> variables.
+<var>Which</var> can be one of the pre-defined \var{Prio_Process, Prio_PGrp,
+Prio_User}, in which case <var>Who</var> is the process ID, Process group ID or
+User ID, respectively.
+<var>Prio</var> is a value in the range -20 to 20.
+
+</descr>
+<errors>
+
+ Error checking must be done on LinuxError, since a priority can be negative.
+ <dl>
+ </dd>
+<dt>sys_esrch</dt>
+<dd> No process found using <var>which</var> and <var>who</var>.
+ </dd>
+<dt>sys_einval</dt>
+<dd> <var>Which</var> was not one of \var{Prio_Process, Prio_Grp
+or Prio_User}.
+ </dd>
+<dt>sys_eperm</dt>
+<dd> A process was found, but neither its effective or real
+ user ID match the effective user ID of the caller.
+ \item [sys_eacces] A non-superuser tried to a priority increase.
+ </dd>
+</dl>
+<p>
+ 
+</errors>
+<seealso>
+<link id="GetPriority"/>
+<link id="Nice"/>, \seem{Setpriority}{2}
+</seealso>
+</element>
+For an example, see <link id="Nice"/>.
+
+<element name="Shell">
+<short></short>
+<descr>
+<var>Shell</var> invokes the bash shell (<file>/bin/sh</file>), and feeds it the
+command <var>Command</var> (using the <var>-c</var> option). The function then waits
+for the command to complete, and then returns the exit
+status of the command, or 127 if it could not complete the <link id="Fork"/> 
+or <link id="Execve"/> calls.
+
+</descr>
+<errors>
+Errors are reported in LinuxError.
+</errors>
+<seealso>
+<link id="POpen"/>
+<link id="Fork"/>
+<link id="Execve"/>, \seem{system}{3}
+</seealso>
+</element>
+
+<example file="ex56"/>
+
+<element name="SigAction">
+<short></short>
+<descr>
+ Changes the action to take upon receipt of a signal. <var>Act</var> and
+<var>Oldact</var> are pointers to a <var>SigActionRec</var> record.
+<var>SigNum</var> specifies the signal, and can be any signal except
+\textbf{SIGKILL} or \textbf{SIGSTOP}.
+If <var>Act</var> is non-nil, then the new action for signal <var>SigNum</var> is taken
+from it. If <var>OldAct</var> is non-nil, the old action is stored there.
+<var>Sa_Handler</var> may be <var>SIG_DFL</var> for the default action or
+<var>SIG_IGN</var> to ignore the signal.
+<var>Sa_Mask</var> Specifies which signals should be ignord during the execution
+of the signal handler.
+<var>Sa_Flags</var> Speciefies a series of flags which modify the behaviour of
+the signal handler. You can 'or' none or more of the following :
+<dl>
+</dd>
+<dt>SA_NOCLDSTOP</dt>
+<dd> If signum is \textbf{SIGCHLD} do not receive
+notification when child processes stop.
+</dd>
+<dt>SA_ONESHOT or SA_RESETHAND</dt>
+<dd> Restore the signal action to the default
+state once the signal handler has been called.
+</dd>
+<dt>SA_RESTART</dt>
+<dd> For compatibility with BSD signals.
+</dd>
+<dt>SA_NOMASK or SA_NODEFER</dt>
+<dd> Do not prevent the signal from being received
+from within its own signal handler.
+</dd>
+</dl>
+<p>
+
+</descr>
+<errors>
+<var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_einval</dt>
+<dd> an invalid signal was specified, or it was
+\textbf{SIGKILL} or \textbf{SIGSTOP}.
+</dd>
+<dt>sys_efault</dt>
+<dd> <var>Act,OldAct</var> point outside this process address space
+</dd>
+<dt>sys_eintr</dt>
+<dd> System call was interrupted.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+
+<link id="SigProcMask"/>
+<link id="SigPending"/>
+<link id="SigSuspend"/>
+<link id="Kill"/>,
+\seem{Sigaction}{2}
+
+</seealso>
+</element>
+
+<example file="ex57"/>
+
+<element name="SigPending">
+<short></short>
+<descr>
+Sigpending allows the examination of pending signals (which have been raised
+while blocked.) The signal mask of pending signals is returned.
+
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="SigAction"/>
+<link id="SigProcMask"/>
+<link id="SigSuspend"/>
+<link id="Signal"/>,
+<link id="Kill"/>, \seem{Sigpending}{2} 
+</seealso>
+</element>
+
+<element name="SigProcMask">
+<short></short>
+<descr>
+Changes the list of currently blocked signals. The behaviour of the call
+depends on <var>How</var> :
+<dl>
+</dd>
+<dt>SIG_BLOCK</dt>
+<dd> The set of blocked signals is the union of the current set
+and the <var>SSet</var> argument.
+</dd>
+<dt>SIG_UNBLOCK</dt>
+<dd> The signals in <var>SSet</var> are removed from the set of
+currently blocked signals.
+</dd>
+<dt>SIG_SETMASK</dt>
+<dd> The list of blocked signals is set so <var>SSet</var>.
+</dd>
+</dl>
+<p>
+If <var>OldSSet</var> is non-nil, then the old set is stored in it.
+
+</descr>
+<errors>
+<var>LinuxError</var> is used to report errors.
+<dl>
+</dd>
+<dt>sys_efault</dt>
+<dd> <var>SSet</var> or <var>OldSSet</var> point to an adress outside
+the range of the process.
+</dd>
+<dt>sys_eintr</dt>
+<dd> System call was interrupted.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="SigAction"/>
+<link id="SigPending"/>
+<link id="SigSuspend"/>
+<link id="Kill"/>,
+\seem{Sigprocmask}{2} 
+</seealso>
+</element>
+
+<element name="SigRaise">
+<short></short>
+<descr>
+<var>SigRaise</var> sends a <var>Sig</var> signal to the current process.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Kill"/>
+<link id="GetPid"/>
+</seealso>
+</element>
+
+<example file="ex65"/>
+
+<element name="SigSuspend">
+<short></short>
+<descr>
+SigSuspend temporarily replaces the signal mask for the process with the one
+given in <var>Mask</var>, and then suspends the process until a signal is received.
+
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="SigAction"/>
+<link id="SigProcMask"/>
+<link id="SigPending"/>
+<link id="Signal"/>,
+<link id="Kill"/>, \seem{SigSuspend}{2} 
+</seealso>
+</element>
+
+<element name="Signal">
+<short></short>
+<descr>
+Signal installs a new signal handler for signal <var>SigNum</var>. This call has
+the same functionality as the \textbf{SigAction} call.
+The return value for Signal is the old signal handler, or nil on error.
+
+</descr>
+<errors>
+\var {LinuxError} is used to report errors :
+<dl>
+</dd>
+<dt>SIG_ERR</dt>
+<dd> An error occurred.
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="SigAction"/>
+<link id="Kill"/>, \seem{Signal}{2} 
+</seealso>
+</element>
+
+<example file="ex58"/>
+
+<element name="StringToPPchar">
+<short></short>
+<descr>
+<var>StringToPPChar</var> splits the string <var>S</var> in words, replacing any
+whitespace with zero characters. It returns a pointer to an array of pchars
+that point to the first letters of the words in S. This array is terminated
+by a <var>Nil</var> pointer.
+
+The function does <em> not</em> add a zero character to the end of the string
+unless it ends on whitespace.
+
+The function reserves memory on the heap to store the array of <var>PChar</var>;
+The caller is responsible for freeing this memory. 
+
+This function can be called to create arguments for the various <var>Exec</var>
+calls.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CreateShellArgV"/>
+<link id="Execve"/>
+<link id="Execv"/>
+</seealso>
+</element>
+
+<example file="ex70"/>
+
+<element name="SymLink">
+<short></short>
+<descr>
+<var>SymLink</var> makes <var>Newpath</var> point to the file in <var>OldPath</var>, which doesn't
+necessarily exist. The two files DO NOT have the same inode number.
+This is known as a 'soft' link.
+The permissions of the link are irrelevant, as they are not used when
+following the link. Ownership of the file is only checked in case of removal
+or renaming of the link.
+The function returns <var>True</var> if the call was succesfull, <var>False</var> if the call
+failed.
+
+</descr>
+<errors>
+ Errors are returned in <var>LinuxError</var>.
+<dl>
+</dd>
+<dt>sys_eperm</dt>
+<dd> The filesystem containing oldpath and newpath doesn't
+support linking files.
+</dd>
+<dt>sys_eaccess</dt>
+<dd> Write access for the directory containing <var>Newpath</var>
+is disallowed, or one of the directories in <var>OldPath</var> or {NewPath} has no
+search (=execute) permission.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> does
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> is
+nor a directory.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.
+</dd>
+<dt>sys_erofs</dt>
+<dd> The files are on a read-only filesystem.
+</dd>
+<dt>sys_eexist</dt>
+<dd> <var>NewPath</var> already exists.
+</dd>
+<dt>sys_eloop</dt>
+<dd> <var>OldPath</var> or <var>NewPath</var> has a reference to a circular
+symbolic link, i.e. a symbolic link, whose expansion points to itself.
+</dd>
+<dt>sys_enospc</dt>
+<dd> The device containing <var>NewPath</var> has no room for anothe
+entry.
+</dd>
+</dl>
+<p>
+</errors>
+<seealso>
+<link id="Link"/>
+<link id="UnLink"/>
+<link id="ReadLink"/>, \seem{Symlink}{2} 
+</seealso>
+</element>
+
+<example file="ex22"/>
+
+<element name="SysInfo">
+<short></short>
+<descr>
+<var>SysInfo</var> returns system information in <var>Info</var>. Returned information
+in <var>Info</var> includes:
+<dl>
+</dd>
+<dt>uptime</dt>
+<dd> Number of seconds since boot.
+</dd>
+<dt>loads</dt>
+<dd>  1, 5 and 15 minute load averages.
+</dd>
+<dt>totalram</dt>
+<dd> total amount of main memory.
+</dd>
+<dt>freeram</dt>
+<dd> amount of free memory.
+</dd>
+<dt>sharedram</dt>
+<dd> amount of shared memory
+</dd>
+<dt>bufferram</dt>
+<dd> amount of memory used by buffers.
+</dd>
+<dt>totalswap</dt>
+<dd> total amount of swapspace.
+</dd>
+<dt>freeswap</dt>
+<dd> amount of free swapspace.
+</dd>
+<dt>procs</dt>
+<dd> number of current processes.
+</dd>
+</dl>
+<p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Uname"/>
+</seealso>
+</element>
+
+<example file="ex64"/>
+
+<element name="TCDrain">
+<short></short>
+<descr>
+ <var>TCDrain</var>
+  waits until all data to file descriptor <var>Fd</var> is transmitted.
+  
+  The function returns <var>True</var> if the call was succesfull, <var>False</var>
+  otherwise.
+
+</descr>
+<errors>
+Errors are reported in LinuxError
+</errors>
+<seealso>
+\seem{termios}{2}
+</seealso>
+</element>
+
+<element name="TCFlow">
+<short></short>
+<descr>
+ <var>TCFlow</var>
+  suspends/resumes transmission or reception of data to or from the file
+descriptor <var>Fd</var>, depending
+  on the action \var {Act}. This can be one of the following pre-defined
+values: 
+<dl>
+\item [TCOOFF\ ] suspend reception/transmission,
+\item [TCOON\ ] resume  reception/transmission,
+\item [TCIOFF\ ] transmit a stop character to stop input from the terminal, 
+\item [TCION\ ] transmit start to resume input from the terminal.
+</dd>
+</dl>
+<p>
+The function returns <var>True</var> if the call was succesfull, <var>False</var>
+otherwise.
+
+</descr>
+<errors>
+Errors are reported in LinuxError.
+</errors>
+<seealso>
+\seem{termios}{2}
+</seealso>
+</element>
+
+<element name="TCFlush">
+<short></short>
+<descr>
+ <var>TCFlush</var>
+  discards all data sent or received to/from file descriptor <var>fd</var>. 
+ <var>QSel</var> indicates which queue
+  should be discard. It can be one of the following pre-defined values :
+<dl>
+\item [TCIFLUSH\ ] input,
+\item [TCOFLUSH\ ] output,
+\item [TCIOFLUSH\ ] both input and output.
+</dd>
+</dl>
+<p>
+The function returns <var>True</var> if the call was succesfull, <var>False</var>
+otherwise.
+
+</descr>
+<errors>
+Errors are reported in LinuxError.
+</errors>
+<seealso>
+\seem{termios}{2}
+</seealso>
+</element>
+
+<element name="TCGetAttr">
+<short></short>
+<descr>
+ <var>TCGetAttr</var>
+  gets the terminal parameters from the terminal referred to by the file
+  descriptor <var>fd</var> and returns them in a <var>TermIOS</var> structure <var>tios</var>. 
+The function returns <var>True</var> if the call was succesfull, <var>False</var>
+otherwise.
+
+</descr>
+<errors>
+Errors are reported in LinuxError
+</errors>
+<seealso>
+<link id="TCSetAttr"/>, \seem{termios}{2} 
+</seealso>
+</element>
+
+<example file="ex55"/>
+
+<element name="TCGetPGrp">
+<short></short>
+<descr>
+ <var>TCGetPGrp</var>
+  returns the process group ID of a foreground process group in <var>Id</var> 
+  The function returns <var>True</var> if the call was succesfull, <var>False</var>
+  otherwise
+
+</descr>
+<errors>
+Errors are reported in LinuxError
+</errors>
+<seealso>
+\seem{termios}{2}
+</seealso>
+</element>
+
+<element name="TCSendBreak">
+<short></short>
+<descr>
+ <var>TCSendBreak</var> 
+  Sends zero-valued bits on an asynchrone serial connection decsribed by
+  file-descriptor <var>Fd</var>, for duration <var>Duration</var>.
+  The function returns <var>True</var> if the action was performed successfully,
+<var>False</var> otherwise.
+
+</descr>
+<errors>
+Errors are reported in LinuxError.
+</errors>
+<seealso>
+\seem{termios}{2}
+</seealso>
+</element>
+
+<element name="TCSetAttr">
+<short></short>
+<descr>
+ <var>TCSetAttr</var>
+  Sets the terminal parameters you specify in a <var>TermIOS</var> structure
+<var>Tios</var> for the terminal
+  referred to by the file descriptor <var>Fd</var>. <var>OptAct</var> specifies an 
+  optional action when the set need to be done,
+  this could be one of the following pre-defined values:
+ <dl>
+\item [TCSANOW\ ] set immediately.
+\item [TCSADRAIN\ ] wait for output.
+\item [TCSAFLUSH\ ] wait for output and discard all input not yet read. 
+</dd>
+</dl>
+<p>
+The function Returns <var>True</var> if the call was succesfull, <var>False</var> 
+otherwise.
+
+</descr>
+<errors>
+Errors are reported in LinuxError.
+</errors>
+<seealso>
+<link id="TCGetAttr"/>, \seem{termios}{2}
+</seealso>
+</element>
+For an example, see <link id="TCGetAttr"/>.
+
+<element name="TCSetPGrp">
+<short></short>
+<descr>
+ <var>TCSetPGrp</var> Sets the Process Group Id to <var>Id</var>. 
+The function returns <var>True</var> if the call was successful, <var>False</var>
+otherwise.
+
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="TCGetPGrp"/>, \seem{termios}{2}
+</seealso>
+</element>
+For an example, see <link id="TCGetPGrp"/>.
+
+<element name="TTYName">
+<short></short>
+<descr>
+Returns the name of the terminal pointed to by <var>f</var>. <var>f</var>
+must be a terminal. <var>f</var> can be of type:
+</p><ol>
+</li>
+<li> <var>longint</var> for file handles;
+</li>
+<li> <var>Text</var> for <var>text</var> variables such as <var>input</var> etc.
+</li>
+</ol>
+<p>
+
+</descr>
+<errors>
+ Returns an empty string in case of an error. <var>Linuxerror</var> may be set
+ to indicate what error occurred, but this is uncertain.
+</errors>
+<seealso>
+<link id="IsATTY"/>
+<link id="IOCtl"/>
+</seealso>
+</element>
+
+<element name="TellDir">
+<short></short>
+<descr>
+ <var>TellDir</var> returns the current location in the directory structure
+pointed to by <var>p</var>. It returns -1 on failure.
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="CloseDir"/>
+<link id="ReadDir"/>
+<link id="SeekDir"/>
+<link id="OpenDir"/>,
+\seem{telldir}{3}
+</seealso>
+</element>
+For an example, see <link id="OpenDir"/>.
+
+<element name="Umask">
+<short></short>
+<descr>
+Change the file creation mask for the current user to <var>Mask</var>. The
+current mask is returned.
+
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="Chmod"/>, \seem{Umask}{2}
+</seealso>
+</element>
+
+<example file="ex27"/>
+
+<element name="Uname">
+<short></short>
+<descr>
+<var>Uname</var> gets the name and configuration of the current linux kernel,
+and returns it in <var>unamerec</var>.
+
+</descr>
+<errors>
+<var>LinuxError</var> is used to report errors.
+</errors>
+<seealso>
+<link id="GetHostName"/>
+<link id="GetDomainName"/>, \seem{uname}{2}
+</seealso>
+</element>
+
+<element name="UnLink">
+<short></short>
+<descr>
+<var>UnLink</var> decreases the link count on file <var>Path</var>. <var>Path</var> can be
+of type <var>PathStr</var> or <var>PChar</var>. If the link count is zero, the
+file is removed from the disk.
+The function returns <var>True</var> if the call was succesfull, <var>False</var> if the call
+failed.
+
+</descr>
+<errors>
+ Errors are returned in <var>LinuxError</var>.
+<dl>
+</dd>
+<dt>sys_eaccess</dt>
+<dd> You have no write access right in the directory
+containing <var>Path</var>, or you have no search permission in one of the
+directory components of <var>Path</var>.
+</dd>
+<dt>sys_eperm</dt>
+<dd> The  directory containing pathname has the sticky-bit 
+set and the process's effective  uid is neither the uid of the 
+file to be deleted nor that of the directory containing it.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A component of the path doesn't exist.
+</dd>
+<dt>sys_enotdir</dt>
+<dd> A directory component of the path is not a directory.
+</dd>
+<dt>sys_eisdir</dt>
+<dd> <var>Path</var> refers to a directory.
+</dd>
+<dt>sys_enomem</dt>
+<dd> Insufficient kernel memory.
+</dd>
+<dt>sys_erofs</dt>
+<dd> <var>Path</var> is on a read-only filesystem. 
+</dd>
+</dl>
+<p>
+
+</errors>
+<seealso>
+<link id="Link"/>
+<link id="SymLink"/>, \seem{Unlink}{2} 
+</seealso>
+</element>
+For an example, see <link id="Link"/>.
+
+<element name="Utime">
+<short></short>
+<descr>
+<var>Utime</var> sets the access and modification times of a file.
+the <var>utimbuf</var> record contains 2 fields, <var>actime</var>, and <var>modtime</var>,
+both of type Longint. They should be filled with an epoch-like time,
+specifying, respectively, the last access time, and the last modification
+time. 
+For some filesystem (most notably, FAT), these times are the same. 
+
+</descr>
+<errors>
+Errors are returned in <var>LinuxError</var>.
+<dl>
+</dd>
+<dt>sys_eaccess</dt>
+<dd> One of the directories in <var>Path</var> has no
+search (=execute) permission.
+</dd>
+<dt>sys_enoent</dt>
+<dd> A directory entry in <var>Path</var> does
+not exist or is a symbolic link pointing to a non-existent directory.
+</dd>
+</dl>
+<p>
+Other errors may occur, but aren't documented.
+
+</errors>
+<seealso>
+<link id="GetEpochTime"/>
+<link id="Chown"/>
+<link id="Access"/>, \seem{utime}(2)
+</seealso>
+</element>
+
+<example file="ex25"/>
+
+<element name="WaitPid">
+<short></short>
+<descr>
+ <var>WaitPid</var> waits for a child process with process ID <var>Pid</var> to exit. The
+value of <var>Pid</var> can be one of the following:
+<dl>
+</dd>
+<dt>Pid &lt; -1</dt>
+<dd> Causes <var>WaitPid</var> to wait for  any  child  process  whose
+              process group ID equals the absolute value of <var>pid</var>.
+</dd>
+<dt>Pid = -1</dt>
+<dd> Causes <var>WaitPid</var> to wait for any child process.
+</dd>
+<dt>Pid = 0</dt>
+<dd> Causes <var>WaitPid</var> to wait for  any  child  process  whose
+              process  group  ID  equals the one of the calling
+              process.
+</dd>
+<dt>Pid &gt; 0</dt>
+<dd> Causes <var>WaitPid</var> to wait for the child whose process  ID
+equals the value of <var>Pid</var>.
+</dd>
+</dl>
+<p>
+The <var>Options</var> parameter can be used to specify further how <var>WaitPid</var>
+behaves:
+<dl>
+\item [WNOHANG] Causes <var>Waitpid</var> to return immediately if no child  has
+exited.
+\item [WUNTRACED] Causes <var>WaitPid</var> to return also for children which are
+stopped, but whose status has not yet been reported.
+</dd>
+<dt>__WCLONE</dt>
+<dd> Causes <var>WaitPid</var> also to wait for threads created by
+the <link id="Clone"/> call.
+</dd>
+</dl>
+<p> 
+Upon return, it returns the exit status of the process, or -1 in case of
+failure. 
+
+</descr>
+<errors>
+Errors are returned in LinuxError.
+</errors>
+<seealso>
+<link id="Fork"/>
+<link id="Execve"/>, \seem{waitpid}{2}
+</seealso>
+</element>
+
+For an example, see <link id="Fork"/>.
+
+<element name="WritePort">
+<short></short>
+<descr>
+<var>WritePort</var> writes <var>Value</var> -- 1 byte, Word or longint -- 
+to port <var>Port</var>.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the <var>IOperm</var> call.
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="WritePortB"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>,
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+
+<element name="WritePortB">
+<short></short>
+<descr>
+The first form of <var>WritePortB</var> writes 1 byte to port <var>Port</var>.
+The second form writes <var>Count</var> bytes from <var>Buf</var> to port <var>Port</var>.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the <var>IOperm</var> call.
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="WritePort"/>
+<link id="WritePortL"/>
+<link id="WritePortW"/>,
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+
+<element name="WritePortL">
+<short></short>
+<descr>
+The first form of <var>WritePortB</var> writes 1 byte to port <var>Port</var>.
+The second form writes <var>Count</var> bytes from <var>Buf</var> to port <var>Port</var>.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the <var>IOperm</var> call.
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="WritePort"/>
+<link id="WritePortB"/>
+<link id="WritePortW"/>,
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
+
+<element name="WritePortW">
+<short></short>
+<descr>
+The first form of <var>WritePortB</var> writes 1 byte to port <var>Port</var>.
+The second form writes <var>Count</var> bytes from <var>Buf</var> to port <var>Port</var>.
+
+Note: You need permission to write to a port. This permission can be set with root
+permission with the <var>IOperm</var> call.
+</descr>
+<errors>
+In case of an error (not enough permissions to write to this port), runtime 216 
+(<em> Access Violation</em>) will occur.
+</errors>
+<seealso>
+<link id="IOperm"/>
+<link id="WritePort"/>
+<link id="WritePortL"/>
+<link id="WritePortB"/>,
+<link id="ReadPortB"/>
+<link id="ReadPortL"/>
+<link id="ReadPortW"/>
+</seealso>
+</element>
+
