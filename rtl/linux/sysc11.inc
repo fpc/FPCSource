@@ -26,86 +26,6 @@ begin
  fpmunmap(pointer(adr),cint(len));
 end;
 
-
-function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-begin
-  if (pointer(func)=nil) or (sp=nil) then
-   exit(-1); // give an error result
-{$ifdef cpui386}
-{$ASMMODE ATT}
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-{$endif cpui386}
-{$ifdef cpum68k}
-  { No yet translated, my m68k assembler is too weak for such things PM }
-(*
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-  *)
-{$endif cpum68k}
-end;
-
-
 {
   Interface to Unix ioctl call.
   Performs various operations on the filedescriptor Handle.
@@ -122,7 +42,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-10-31 08:55:11  mazen
+  Revision 1.3  2003-11-17 11:28:08  marco
+   * Clone moved to linux, + few small unit unix changes
+
+  Revision 1.2  2003/10/31 08:55:11  mazen
   + assembler mode forced to ATT style for x86 cpu
 
   Revision 1.1  2003/10/30 16:42:25  marco

@@ -88,22 +88,12 @@ Const
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
-
-  {Checked for BSD using Linuxthreads port}
-  { cloning flags }
-  CSIGNAL       = $000000ff; // signal mask to be sent at exit
-  CLONE_VM      = $00000100; // set if VM shared between processes
-  CLONE_FS      = $00000200; // set if fs info shared between processes
-  CLONE_FILES   = $00000400; // set if open files shared between processes
-  CLONE_SIGHAND = $00000800; // set if signal handlers shared
-  CLONE_PID     = $00001000; // set if pid shared
-type
-  TCloneFunc=function(args:pointer):longint;cdecl;
-
-
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:19  peter
+  Revision 1.7  2003-11-17 11:28:08  marco
+   * Clone moved to linux, + few small unit unix changes
+
+  Revision 1.6  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

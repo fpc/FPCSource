@@ -35,8 +35,20 @@ Type
   end;
   PSysInfo = ^TSysInfo;
 
-
 Function Sysinfo(var Info:TSysinfo):Boolean;
+
+Const
+  CSIGNAL       = $000000ff; // signal mask to be sent at exit
+  CLONE_VM      = $00000100; // set if VM shared between processes
+  CLONE_FS      = $00000200; // set if fs info shared between processes
+  CLONE_FILES   = $00000400; // set if open files shared between processes
+  CLONE_SIGHAND = $00000800; // set if signal handlers shared
+  CLONE_PID     = $00001000; // set if pid shared
+
+type
+  TCloneFunc=function(args:pointer):longint;cdecl;
+
+function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 
 implementation
 
@@ -50,12 +62,94 @@ Begin
   Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,longint(@info))=0;
 End;
 
+function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+
+begin
+  if (pointer(func)=nil) or (sp=nil) then
+   exit(-1); // give an error result
+{$ifdef cpui386}
+{$ASMMODE ATT}
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+{$endif cpui386}
+{$ifdef cpum68k}
+  { No yet translated, my m68k assembler is too weak for such things PM }
+(*
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
+  *)
+{$endif cpum68k}
+end;
+
 
 end.
 
 {
    $Log$
-   Revision 1.2  2003-09-15 20:08:49  marco
+   Revision 1.3  2003-11-17 11:28:08  marco
+    * Clone moved to linux, + few small unit unix changes
+
+   Revision 1.2  2003/09/15 20:08:49  marco
     * small fixes. FreeBSD now cycles
 
    Revision 1.1  2003/09/15 14:12:17  marco

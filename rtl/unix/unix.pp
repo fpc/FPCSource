@@ -126,9 +126,9 @@ procedure GetTime(var hour,min,sec,sec100:word);
 procedure GetTime(var hour,min,sec:word);
 Procedure GetDate(Var Year,Month,Day:Word);
 Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
-function SetTime(Hour,Min,Sec:word) : Boolean;
-function SetDate(Year,Month,Day:Word) : Boolean;
-function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
+function  SetTime(Hour,Min,Sec:word) : Boolean;
+function  SetDate(Year,Month,Day:Word) : Boolean;
+function  SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 
 {**************************
      Process Handling
@@ -136,25 +136,22 @@ function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
 
 function  CreateShellArgV(const prog:string):ppchar;
 function  CreateShellArgV(const prog:Ansistring):ppchar;
-//Procedure Execve(Path: pathstr;args:ppchar;ep:ppchar);
-//Procedure Execve(Path: AnsiString;args:ppchar;ep:ppchar);
-//Procedure Execve(path: pchar;args:ppchar;ep:ppchar);
 Function Execv(const path:pathstr;args:ppchar):cint;
 Function Execv(const path: AnsiString;args:ppchar):cint;
 Function Execvp(Path: Pathstr;Args:ppchar;Ep:ppchar):cint;
 Function Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
-Function Execl(const Todo: String):cint;
-Function Execl(const Todo: Ansistring):cint;
+Function Execl (const Todo: String):cint;
+Function Execl (const Todo: Ansistring):cint;
 Function Execle(Todo: String;Ep:ppchar):cint;
 Function Execle(Todo: AnsiString;Ep:ppchar):cint;
 Function Execlp(Todo: string;Ep:ppchar):cint;
 Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
 
-Function  Shell(const Command:String):cint;
-Function  Shell(const Command:AnsiString):cint;
+Function Shell (const Command:String):cint;
+Function Shell (const Command:AnsiString):cint;
 
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
-function  Clone(func:TCloneFunc;sp:pointer;flags:cint;args:pointer):cint;
+//function  Clone(func:TCloneFunc;sp:pointer;flags:cint;args:pointer):cint;
 Function  WaitProcess(Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 
 Function WIFSTOPPED(Status: Integer): Boolean;
@@ -1713,7 +1710,10 @@ End.
 
 {
   $Log$
-  Revision 1.48  2003-11-17 10:05:51  marco
+  Revision 1.49  2003-11-17 11:28:08  marco
+   * Clone moved to linux, + few small unit unix changes
+
+  Revision 1.48  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.47  2003/11/14 17:30:14  marco
