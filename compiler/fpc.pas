@@ -22,69 +22,94 @@
 program fpc;
 
   uses
-{$ifdef go32v2}
-     dpmiexcp,
-{$endif go32v2}
      dos;
 
   procedure error(const s : string);
-
     begin
        writeln('Error: ',s);
        halt(1);
     end;
 
+
+  function SplitPath(Const HStr:ShortString):ShortString;
+    var
+      i : longint;
+    begin
+      i:=Length(Hstr);
+      while (i>0) and not(Hstr[i] in ['\','/']) do
+       dec(i);
+      SplitPath:=Copy(Hstr,1,i);
+    end;
+
+
+  function FileExists ( Const F : ShortString) : Boolean;
+    var
+      Info : SearchRec;
+    begin
+      findfirst(F,readonly+archive+hidden,info);
+      FileExists:=(doserror=0);
+      findclose(Info);
+    end;
+
   var
-     ppccommandline,processorpostfix,processorstr : string;
+     s,path,
+     ppcbin,
+     processorstr   : shortstring;
+     ppccommandline : ansistring;
      i : longint;
 
   begin
      ppccommandline:='';
 {$ifdef i386}
-     processorpostfix:='386';
+     ppcbin:='ppc386';
 {$endif i386}
 {$ifdef m68k}
-     processorpostfix:='386';
+     ppcbin:='ppc68k';
 {$endif m68k}
 {$ifdef alpha}
-     processorpostfix:='alpha';
+     ppcbin:='ppcapx';
 {$endif alpha}
 {$ifdef powerpc}
-     processorpostfix:='powerpc';
+     ppcbin:='ppcppc';
 {$endif powerpc}
      for i:=1 to paramcount do
        begin
-          if pos('-P',paramstr(i))=1 then
+          s:=paramstr(i);
+          if pos('-P',s)=1 then
             begin
-               processorstr:=copy(paramstr(i),3,length(paramstr(i))-2);
+               processorstr:=copy(s,3,length(s)-2);
                if processorstr='i386' then
-                 processorpostfix:='386'
+                 ppcbin:='ppc386'
                else if processorstr='m68k' then
-                 processorpostfix:='68k'
+                 ppcbin:='ppc68k'
                else if processorstr='alpha' then
-                 processorpostfix:='alpha'
+                 ppcbin:='ppcapx'
                else if processorstr='powerpc' then
-                 processorpostfix:='ppc'
-               else error('Illegal processor type');
+                 ppcbin:='ppcppc'
+               else error('Illegal processor type "'+processorstr+'"');
             end
           else
-            ppccommandline:=ppccommandline+paramstr(i)+' ';
+            ppccommandline:=ppccommandline+s+' ';
        end;
 
-     { ppcXXX is expected to be in the same directory }
+     { get path of fpc.exe }
+     path:=splitpath(paramstr(0));
+     if FileExists(path+ppcbin) then
+      ppcbin:=path+ppcbin
+     else
+      begin
+        path:=FSearch(ppcbin,getenv('PATH'));
+        if path<>'' then
+         ppcbin:=path;
+      end;
+
+     { call ppcXXX }
      swapvectors;
-     exec('ppc'+processorpostfix,ppccommandline);
+     exec(ppcbin,ppccommandline);
      swapvectors;
      if doserror<>0 then
-       error('ppc'+processorpostfix+' can''t be executed');
+       error(ppcbin+' can''t be executed');
      halt(dosexitcode);
   end.
 {
-  $Log$
-  Revision 1.3  2000-10-31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.2  2000/07/13 11:32:41  michael
-  + removed logs
-
 }
