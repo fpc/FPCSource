@@ -30,7 +30,7 @@ type
     PWindowListBox = ^TWindowListBox;
     TWindowListBox = object(TAdvancedListBox)
       constructor Init(var Bounds: TRect; AScrollBar: PScrollBar);
-      function    GetText(Item: Integer; MaxLen: Integer): String; virtual;
+      function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
     end;
 
     PWindowListDialog = ^TWindowListDialog;
@@ -49,7 +49,7 @@ begin
   inherited Init(Bounds,1,AScrollBar);
 end;
 
-function TWindowListBox.GetText(Item: Integer; MaxLen: Integer): String;
+function TWindowListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PView;
     S: string;
 begin
@@ -150,7 +150,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-22 14:27:54  peter
+  Revision 1.2  1998-12-23 22:58:19  peter
+    * fixed windowlist for fpc
+
+  Revision 1.1  1998/12/22 14:27:54  peter
     * moved
 
   Revision 1.3  1998/12/22 10:39:50  peter
