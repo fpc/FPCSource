@@ -282,7 +282,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           end;
         ai^.is_jmp:=true;
         exprasmlist^.concat(ai);
-      end; 
+      end;
 {$endif nojmpfix}
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
@@ -3105,11 +3105,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.5.2.4  1999-07-04 23:55:52  jonas
-    * changed {$ifdef jmpfix} to {$ifndef nojmpfix}
+  Revision 1.5.2.5  1999-07-05 20:03:31  peter
+    * removed warning/notes
+
+  Revision 1.5.2.4  1999/07/04 23:55:52  jonas
+    * changed $ifdef jmpfix to $ifndef nojmpfix
 
   Revision 1.5.2.3  1999/07/04 21:50:17  jonas
-    * everything between {$ifdef jmpfix}:
+    * everything between $ifdef jmpfix:
       * when a jxx instruction is disposed, decrease the refcount of the label
         it referenced
       * for jmp instructions to a label, set is_jmp also to true (was only done
