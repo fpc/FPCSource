@@ -58,7 +58,7 @@ end;
 function AcquireExceptionObject: Pointer;
 begin
   If ExceptObjectStack=nil then begin
-    runerror(0); // which error?
+    runerror(231); // which error?
   end else begin
     Inc(ExceptObjectStack^.refcount);
     AcquireExceptionObject := ExceptObjectStack^.FObject;
@@ -68,10 +68,10 @@ end;
 procedure ReleaseExceptionObject;
 begin
   If ExceptObjectStack=nil then begin
-    runerror(0); // which error?
+    runerror(231); // which error?
   end else begin
     if ExceptObjectStack^.refcount = 0 then begin
-      runerror(0); // which error?
+      runerror(231); // which error?
     end;
     Dec(ExceptObjectStack^.refcount);
   end;
@@ -311,7 +311,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.12  2003-10-06 15:59:20  florian
+  Revision 1.13  2003-11-26 20:12:08  michael
+  + New runerror 231 (exception stack error) and 232 (nothread support)
+
+  Revision 1.12  2003/10/06 15:59:20  florian
     + applied patch for ref. counted exceptions by Johannes Berg
 
   Revision 1.11  2003/09/06 21:56:29  marco

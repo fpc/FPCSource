@@ -237,6 +237,7 @@ begin
   228 : E:=EExternalException.Create(SExternalException);
   229 : E:=EIntfCastError.Create(SIntfCastError);
   230 : E:=ESafecallException.Create(SSafecallException);
+  232 : E:=ENoThreadSupport.Create(SNoThreadSupport);
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
@@ -382,7 +383,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-11-26 20:00:19  florian
+  Revision 1.3  2003-11-26 20:12:08  michael
+  + New runerror 231 (exception stack error) and 232 (nothread support)
+
+  Revision 1.2  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.1  2003/10/06 21:01:06  peter

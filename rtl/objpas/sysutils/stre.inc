@@ -61,6 +61,7 @@ Const
    SInvalidPointer = 'Invalid pointer operation';
    SInvalidVarCast = 'Invalid variant type case';
    SInvalidVarOp = 'Invalid variant operation';
+   SNoThreadSupport = 'Threads not supported. Recompile program with thread driver.';
    SOutOfMemory = 'Out of memory';
    SOverflow = 'Floating point overflow';
    SPrivilege = 'Privileged instruction';
@@ -76,7 +77,10 @@ Const
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-26 20:12:08  michael
+  + New runerror 231 (exception stack error) and 232 (nothread support)
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.8  2003/01/01 20:58:07  florian

@@ -152,6 +152,7 @@ type
    EPackageError = class(Exception);
 
    ESafecallException = class(Exception);
+   ENoThreadSupport = Class(Exception);
 
 
    { Exception handling routines }
@@ -218,7 +219,10 @@ Type
 
 {
   $Log$
-  Revision 1.3  2003-11-26 20:00:19  florian
+  Revision 1.4  2003-11-26 20:12:08  michael
+  + New runerror 231 (exception stack error) and 232 (nothread support)
+
+  Revision 1.3  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.2  2003/10/25 23:43:59  hajny
