@@ -77,7 +77,7 @@ implementation
        hregister1,hregister2 : tregister;
        i : longint;
     begin
-       if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
+       if aktprocdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
          begin
             { pass the same framepointer as the current procedure got }
             hregister2.enum:=R_INTREGISTER;
@@ -87,7 +87,7 @@ implementation
          end
          { this is only true if the difference is one !!
            but it cannot be more !! }
-       else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+       else if (aktprocdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
          begin
             { pass the same framepointer as the current procedure got }
             hregister1.enum:=R_INTREGISTER;
@@ -96,17 +96,19 @@ implementation
             hregister2.number:=NR_R11;
             exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,procinfo.framepointer_offset));
          end
-       else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+       else if (aktprocdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
             reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
-            for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
+            i:=aktprocdef.parast.symtablelevel;
+            while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
                  {we should get the correct frame_pointer_offset at each level
                  how can we do this !!! }
                  reference_reset_base(href,hregister2,procinfo.framepointer_offset);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
+                 dec(i);
               end;
             hregister2.enum:=R_11;
             cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister1,hregister2);
@@ -121,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-04-24 11:24:00  florian
+  Revision 1.8  2003-04-27 07:48:05  peter
+    * updated for removed lexlevel
+
+  Revision 1.7  2003/04/24 11:24:00  florian
     * fixed several issues with nested procedures
 
   Revision 1.6  2003/04/23 12:35:35  florian

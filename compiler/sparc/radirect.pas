@@ -88,7 +88,7 @@ end;
             { consider it set function set if the offset was loaded }
            if assigned(aktprocdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+             tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
            s:='';
          end;
 
@@ -97,7 +97,7 @@ end;
        s:='';
        if assigned(aktprocdef.funcretsym) and
           is_fpu(aktprocdef.rettype.def) then
-         tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+         tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
        if (not is_void(aktprocdef.rettype.def)) then
          retstr:=upper(tostr(procinfo.return_offset)+'('+std_reg2str[procinfo.framepointer.enum]+')')
        else
@@ -151,13 +151,13 @@ end;
                                     paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
-                                   tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                                   tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
                                       if assigned(aktprocdef.localst) and
-                                         (lexlevel >= normal_function_level) then
+                                         (aktprocdef.localst.symtablelevel >= normal_function_level) then
                                         sym:=tsym(aktprocdef.localst.search(upper(hs)))
                                       else
                                         sym:=nil;
@@ -247,7 +247,7 @@ end;
                                              end
                                            else if upper(hs)='__SELF' then
                                              begin
-                                                if assigned(procinfo._class) then
+                                                if assigned(aktprocdef._class) then
                                                   hs:=tostr(procinfo.selfpointer_offset)+
                                                       '('+std_reg2str[procinfo.framepointer.enum]+')'
                                                 else
@@ -264,7 +264,7 @@ end;
                                              begin
                                                 { complicate to check there }
                                                 { we do it: }
-                                                if lexlevel>normal_function_level then
+                                                if aktprocdef.parast.symtablelevel>normal_function_level then
                                                   hs:=tostr(procinfo.framepointer_offset)+
                                                     '('+std_reg2str[procinfo.framepointer.enum]+')'
                                                 else
@@ -279,7 +279,7 @@ end;
                    end;
  '{',';',#10,#13 : begin
                       if pos(retstr,s) > 0 then
-                        tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                        tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
                      writeasmline;
                      c:=current_scanner.asmgetchar;
                    end;
@@ -314,7 +314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-01-08 18:43:58  daniel
+  Revision 1.6  2003-04-27 07:48:05  peter
+    * updated for removed lexlevel
+
+  Revision 1.5  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.4  2002/11/25 17:43:29  peter

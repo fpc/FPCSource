@@ -45,7 +45,7 @@ unit cpupi;
          { we push Flags and CS as long
            to cope with the IRETD
            and we save 6 register + 4 selectors }
-         inc(procinfo.para_offset,8+6*4+4*2);
+         inc(procdef.parast.datasize,8+6*4+4*2);
       end;
 
 begin
@@ -53,7 +53,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-17 09:23:44  florian
+  Revision 1.2  2003-04-27 07:48:05  peter
+    * updated for removed lexlevel
+
+  Revision 1.1  2002/08/17 09:23:44  florian
     * first part of procinfo rewrite
 }
 

@@ -172,7 +172,7 @@ interface
                                 if ((s[length(s)]<>'0') or (hs[1]<>'x')) and not(is_register(hs)) then
                                   begin
                                      if assigned(aktprocdef.localst) and
-                                        (lexlevel >= normal_function_level) then
+                                        (aktprocdef.localst.symtablelevel >= normal_function_level) then
                                        sym:=tsym(aktprocdef.localst.search(upper(hs)))
                                      else
                                        sym:=nil;
@@ -347,7 +347,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-04-25 21:05:22  florian
+  Revision 1.12  2003-04-27 07:48:05  peter
+    * updated for removed lexlevel
+
+  Revision 1.11  2003/04/25 21:05:22  florian
     * fixed tfuncretsym stuff in powerpc specific part
 
   Revision 1.10  2003/04/24 12:05:53  florian

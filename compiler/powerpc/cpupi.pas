@@ -65,30 +65,9 @@ unit cpupi;
 
     procedure tppcprocinfo.after_header;
       begin
-         procdef.parast.address_fixup:=0;
-         if assigned(procdef.parast) and (procdef.parast.symtablelevel>1) then
-           begin
-              procinfo.framepointer_offset:=procdef.parast.address_fixup;
-              inc(procdef.parast.address_fixup,4);
-           end;
-         if assigned(procinfo.procdef.funcretsym) then
-           procinfo.return_offset:=tvarsym(procinfo.procdef.funcretsym).address+tvarsym(procinfo.procdef.funcretsym).owner.address_fixup;
-         if assigned(_class) then
-           begin
-              procinfo.selfpointer_offset:=procdef.parast.address_fixup;
-              inc(procdef.parast.address_fixup,4);
-           end;
          { this value is necessary for nested procedures }
          if assigned(procdef.localst) then
            procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
-
-{
-         procdef.funcretsym isn't set here yet and besides,
-         symtable.insertvardata() already sets procinfo.return_offset! (JM)
-         if assigned(procdef.funcretsym) and
-           not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
-           procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address+procdef.localst.address_fixup;
-}
      end;
 
     procedure tppcprocinfo.after_pass1;
@@ -134,7 +113,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-04-26 11:31:00  florian
+  Revision 1.11  2003-04-27 07:48:05  peter
+    * updated for removed lexlevel
+
+  Revision 1.10  2003/04/26 11:31:00  florian
     * fixed the powerpc to work with the new function result handling
 
   Revision 1.9  2003/04/24 11:24:00  florian

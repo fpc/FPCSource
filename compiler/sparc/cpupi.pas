@@ -24,8 +24,8 @@ unit cpupi;
 {$INCLUDE fpcdefs.inc}
 interface
 uses
-	cutils,
-	cgbase,cpuinfo;
+        cutils,
+        cgbase,cpuinfo;
 type
   TSparcProcInfo=class(TProcInfo)
     {overall size of allocated stack space, currently this is used for the
@@ -50,47 +50,31 @@ stack frame.}
   end;
 implementation
 uses
-	tgobj,paramgr,symsym,systems;
+        tgobj,paramgr,symsym,systems;
+
 constructor TSparcprocinfo.create;
-	begin
-		inherited create;
-		maxpushedparasize:=0;
-		LocalSize:=(16+1)*4;
-  	{First 16 words are in the frame are used to save registers in case of a
+        begin
+                inherited create;
+                maxpushedparasize:=0;
+                LocalSize:=(16+1)*4;
+        {First 16 words are in the frame are used to save registers in case of a
     register overflow/underflow.The 17th word is used to save the address of
     the variable which will receive the return value of the called function}
-    Return_Offset:=16*4;
-	end;
-procedure TSparcprocinfo.after_header;
-	begin
-{target_info.first_parm_offset should be (16+1)*4 as the return address pointer
-is usually allocated even if return value is in register.}
-    procdef.parast.address_fixup:=target_info.first_parm_offset;
-    if assigned(procdef.localst)and(procdef.localst.symtablelevel>1)
-    then
+//    Return_Offset:=16*4;
+        end;
+
+    procedure TSparcprocinfo.after_header;
       begin
-        framepointer_offset:=procdef.parast.address_fixup;
-        inc(procdef.parast.address_fixup,4);
+        { this value is necessary for nested procedures }
+        if assigned(procdef.localst) then
+          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
       end;
-    if assigned(_class)
-    then
-      begin
-        selfpointer_offset:=procdef.parast.address_fixup;
-        inc(procdef.parast.address_fixup,4);
-      end;
-    { this value is necessary for nested procedures }
-    if assigned(procdef.localst)
-    then
-      procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
-    if assigned(aktprocdef.funcretsym) and not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption))
-    then
-      return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
-	end;
+
 procedure TSparcProcInfo.after_pass1;
-	begin
+        begin
     with ProcDef do
       begin
-  	    {Reserve the stack for copying parameters passed into registers. By
+            {Reserve the stack for copying parameters passed into registers. By
         default we reserve space for the 6 input registers if the function had
         less parameters. Otherwise, we allocate data sizeof parameters}
         if parast.datasize>6*4
@@ -98,20 +82,23 @@ procedure TSparcProcInfo.after_pass1;
           localst.address_fixup:=parast.address_fixup+parast.datasize
         else
           procdef.localst.address_fixup:=parast.address_fixup+6*4;
-		    firsttemp_offset:=localst.address_fixup+localst.datasize;
+                    firsttemp_offset:=localst.address_fixup+localst.datasize;
         with tg do
           begin
-        		SetFirstTemp(firsttemp_offset);
-		        //LastTemp:=firsttemp_offset;
+                        SetFirstTemp(firsttemp_offset);
+                        //LastTemp:=firsttemp_offset;
           end;
       end;
-	end;
+        end;
 begin
   cprocinfo:=TSparcProcInfo;
 end.
 {
   $Log$
-  Revision 1.12  2003-02-06 22:36:55  mazen
+  Revision 1.13  2003-04-27 07:48:05  peter
+    * updated for removed lexlevel
+
+  Revision 1.12  2003/02/06 22:36:55  mazen
   * fixing bug related to errornous program main entry stack frame
 
   Revision 1.11  2003/01/05 21:32:35  mazen
