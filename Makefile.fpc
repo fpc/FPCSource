@@ -23,17 +23,33 @@ override FPCDIR:=$(BASEDIR)
 export FPCDIR
 endif
 
-# New ppc386
-PPNEW=$(BASEDIR)/compiler/ppc386$(SRCEXEEXT)
+# New ppc386 (or ppc68k if on m68k machine !)
+ifndef PPNEW
+ifeq ($(CPU_TARGET),m68k)
+PPNEWBASE=ppc68k
+endif
+ifeq ($(CPU_TARGET),i386)
+PPNEWBASE=ppc386
+endif
+ifeq ($(CPU_TARGET),powerpc)
+PPNEWBASE=ppcppc
+endif
+
+PPNEW=$(BASEDIR)/compiler/$(PPNEWBASE)$(SRCEXEEXT)
+endif
 
 # Check if there is already a ppc386 binary in compiler, then
 # we will use that version for target and version info
-ifneq ($(wildcard $(PPNEW)),)
-override FPC_VERSION:=$(shell $(PPNEW) -iV)
-override OS_TARGET:=$(shell $(PPNEW) -iTO)
-override CPU_TARGET:=$(shell $(PPNEW) -iTP)
-export FPC_VERSION OS_TARGET CPU_TARGET
-endif
+#
+# This is not possible as you can't install a specific target
+# after a first target has been compiled
+#
+#ifneq ($(wildcard $(PPNEW)),)
+#override FPC_VERSION:=$(shell $(PPNEW) -iV)
+#override OS_TARGET:=$(shell $(PPNEW) -iTO)
+#override CPU_TARGET:=$(shell $(PPNEW) -iTP)
+#export FPC_VERSION OS_TARGET CPU_TARGET
+#endif
 
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
@@ -393,6 +409,10 @@ linuxzip: checkfpcdir
 
 freebsdzip : checkfpcdir
         $(MAKE) zipinstall OS_TARGET=freebsd
+
+beoszip : checkfpcdir
+        $(MAKE) zipinstall OS_TARGET=beos USEZIP=1
+
 
 os2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=os2
