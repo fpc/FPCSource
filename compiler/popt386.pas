@@ -31,13 +31,11 @@ Procedure PeepHoleOptPass2(AsmL: PAasmOutput);
 
 Implementation
 
-Uses CObjects, globals, systems, strings, verbose, hcodegen
+Uses globals, systems, verbose, hcodegen
    {$ifdef i386}
-     ,i386, cgi386, DAOpt386
+     ,i386, DAOpt386
    {$endif i386}
      ;
-
-{Procedure PeepHoleOptPass1(AsmL: PAasmOutput);}
 
 Procedure PeepHoleOptPass1(Asml: PAasmOutput);
 {First pass of peepholeoptimizations}
@@ -79,17 +77,9 @@ Var
   Begin
     If (hp^.lab^.nb >= LoLab) and
        (hp^.lab^.nb <= HiLab) and   {range check, necessary?}
-  {$IfDef JmpAnal}
-       (Pointer(LTable^[hp^.lab^.nb-LoLab].p) <> Pointer(0)) Then
-  {$Else JmpAnal}
-       (Pointer(LTable^[hp^.lab^.nb-LoLab]) <> Pointer(0)) Then
-  {$EndIf JmpAnal}
+       (Pointer(LTable^[hp^.lab^.nb-LoLab].PaiObj) <> Pointer(0)) Then
       Begin
-  {$IfDef JmpAnal}
-        p1 := LTable^[hp^.lab^.nb-LoLab].p; {the jump's destination}
-  {$Else JmpAnal}
-        p1 := LTable^[hp^.lab^.nb-LoLab]; {the jump's destination}
-  {$EndIf JmpAnal}
+        p1 := LTable^[hp^.lab^.nb-LoLab].PaiObj; {the jump's destination}
         p1 := SkipLabels(p1);
         If (pai(p1)^.typ = ait_labeled_instruction) and
            ((pai_labeled(p1)^._operator = A_JMP) or
@@ -1372,5 +1362,5 @@ End;
 End.
 
 {
- $log$
+ $log $
 }

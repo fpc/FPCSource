@@ -31,9 +31,9 @@ Procedure CSE(AsmL: PAasmOutput; First, Last: Pai);
 
 Implementation
 
-Uses CObjects, globals, systems, verbose, hcodegen
+Uses CObjects, verbose
    {$ifdef i386}
-     ,i386, cgi386, DAOpt386
+     ,i386, DAOpt386
    {$endif i386}
      ;
 
@@ -393,5 +393,5 @@ End;
 End.
 
 {
- $log$
+ $log $
 }
