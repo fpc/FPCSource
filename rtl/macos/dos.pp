@@ -19,6 +19,8 @@ Uses
   macostp;
   
 
+{$i dosh.inc}
+
 Type
     SearchRec = packed record
         Attr: Byte;       {attribute of found file}
@@ -35,8 +37,6 @@ Type
         searchAttr: Byte;  {attribute we are searching for}
         exactMatch: Boolean;
       end;
-
-{$i dosh.inc}
 
 Implementation
 

@@ -20,6 +20,8 @@ Interface
 
 {$goto on}
 
+{$i dosh.inc}
+
 Type
   SearchRec = packed Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
@@ -35,8 +37,6 @@ Type
     SearchSpec : String[FileNameLen]; {search pattern}
     SearchDir  : String[FileNameLen]; { path we are searching in }
   End;
-
-{$i dosh.inc}
 
 Procedure AddDisk(const path:string);
 
@@ -817,7 +817,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2004-12-05 16:44:43  hajny
+  Revision 1.11  2004-12-05 20:35:03  hajny
+    * compilation fix for dosh.inc changes
+
+  Revision 1.10  2004/12/05 16:44:43  hajny
     * GetMsCount added, platform independent routines moved to single include file
 
   Revision 1.9  2004/02/17 17:37:26  daniel
