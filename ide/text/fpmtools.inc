@@ -55,9 +55,10 @@ procedure TIDEApp.Grep;
 
   var PGrepDialog : PCenterDialog;
       R,R2 : TRect;
-      IL : PInputLine;
+      IL1,IL2 : PInputLine;
       p,lineNb : longint;
       error : word;
+      searchword,
       GrepExe,GrepArgs,Line,ModuleName : String;
       GrepOut : text;
       Params : Array[0..4] of longint;
@@ -69,13 +70,22 @@ procedure TIDEApp.Grep;
    GrepExeName = 'grep.exe';
 {$endif linux}
 begin
+{ Find grep.exe }
   GrepExe:=GrepExeName;
   If not LocateExeFile(GrepExe) then
     Begin
       ErrorBox('Grep program not found',nil);
       Exit;
     End;
-  R.Assign(0,0,45,6);
+{ Try to load the word from the editor }
+  If not(DeskTop^.First=nil) and
+     (DeskTop^.First^.HelpCtx=hcSourceWindow) then
+    Searchword:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
+  else
+    Searchword:='';
+  GrepArgs:='-n -i $TEXT *.pas *.pp *.inc';
+{ Dialog }
+  R.Assign(0,0,45,8);
   new(PGrepDialog,Init(R,'Grep arguments'));
   with PGrepDialog^ do
     begin
@@ -83,61 +93,78 @@ begin
       R2.B.Y:=R2.A.Y+1;
       R2.A.X:=R.A.X+3;
       R2.B.X:=R.B.X-3;
-      New(IL, Init(R2, 128));
-      If not(DeskTop^.First=nil) and
-         (DeskTop^.First^.HelpCtx=hcSourceWindow) then
-        GrepArgs:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
-      else
-        GrepArgs:='';
-      GrepArgs:='-n -i '+GrepArgs+' *.pas *.pp *.inc';
-      IL^.Data^:=GrepArgs;
-      Insert(IL);
+      New(IL1, Init(R2, 128));
+      IL1^.Data^:=SearchWord;
+      Insert(IL1);
       R2.Move(0,-1);
-      Insert(New(PLabel, Init(R2, '~G~rep arguments', IL)));
+      Insert(New(PLabel, Init(R2, '~T~ext to find', IL1)));
+
+      R2.Move(0,4);
+      New(IL2, Init(R2, 128));
+      IL2^.Data^:=GrepArgs;
+      Insert(IL2);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2, '~G~rep arguments', IL2)));
     end;
 
     InsertButtons(PGrepDialog);
+    IL1^.Select;
+
     if Desktop^.ExecView(PGrepDialog)=cmOK then
     begin
-      GrepArgs:=IL^.Data^;
-      { Linux ? }
-      if not ExecuteRedir(GrepExe,GrepArgs,GrepOutName,'grep$$.err') then
-        Begin
-           { 2 as exit code just means that
-             some file vwere not found ! }
-           if (IOStatus<>0) or (ExecuteResult<>2) then
-             begin
-               Params[0]:=IOStatus;
-               Params[1]:=ExecuteResult;
-               WarningBox(#3'Error running Grep'#13#3'DosError = %d'#13#3'Exit code = %d',@Params);
-             end;
-        End;
-      Assign(GrepOut,GrepOutName);
-      Reset(GrepOut);
-      While not eof(GrepOut) do
-        begin
-          readln(GrepOut,Line);
-          p:=pos(':',line);
-          if p>0 then
-            begin
-              ModuleName:=copy(Line,1,p-1);
-              Line:=Copy(Line,p+1,255);
-              p:=pos(':',Line);
-              val(copy(Line,1,p-1),lineNb,error);
-              if error=0 then
-                ProgramInfoWindow^.AddMessage(V_Normal,Copy(Line,p+1,255),
-                  ModuleName,LineNb);
+      SearchWord:=IL1^.Data^;
+      if SearchWord<>'' then
+       begin
+         GrepArgs:=IL2^.Data^;
+         ReplaceStr(GrepArgs,'$TEXT',SearchWord);
+         { Linux ? }
+         if not ExecuteRedir(GrepExe,GrepArgs,GrepOutName,'grep$$.err') then
+           Begin
+              { 2 as exit code just means that
+                some file vwere not found ! }
+              if (IOStatus<>0) or (ExecuteResult<>2) then
+                begin
+                  Params[0]:=IOStatus;
+                  Params[1]:=ExecuteResult;
+                  WarningBox(#3'Error running Grep'#13#3'DosError = %d'#13#3'Exit code = %d',@Params);
                 end;
-              ProgramInfoWindow^.Show;
-              ProgramInfoWindow^.MakeFirst;
+           End;
+         {$I-}
+         Assign(GrepOut,GrepOutName);
+         Reset(GrepOut);
+         While not eof(GrepOut) do
+           begin
+             readln(GrepOut,Line);
+             p:=pos(':',line);
+             if p>0 then
+               begin
+                 ModuleName:=copy(Line,1,p-1);
+                 Line:=Copy(Line,p+1,255);
+                 p:=pos(':',Line);
+                 val(copy(Line,1,p-1),lineNb,error);
+                 if error=0 then
+                   ProgramInfoWindow^.AddMessage(V_Normal,Copy(Line,p+1,255),
+                     ModuleName,LineNb);
+               end;
+             ProgramInfoWindow^.Show;
+             ProgramInfoWindow^.MakeFirst;
            end;
-         end;
-      Close(GrepOut);
+         Close(GrepOut);
+         Erase(GrepOut);
+         {$I+}
+         EatIO;
+       end;
+    end;
   Dispose(PGrepDialog, Done);
 end;
 {
   $Log$
-  Revision 1.7  1999-02-20 15:18:31  peter
+  Revision 1.8  1999-02-22 02:15:17  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.7  1999/02/20 15:18:31  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

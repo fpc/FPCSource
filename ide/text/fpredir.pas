@@ -25,9 +25,11 @@ Interface
 
 {$ifdef TP}
   {$define in_dos}
+  {$define usedup}
 {$endif TP}
 {$ifdef Go32v2}
   {$define in_dos}
+  { $define usedup}
 {$endif}
 
 Var
@@ -94,7 +96,7 @@ function dup(fh : longint) : longint;
     Regs : Registers;
 
 begin
-    Regs.ax:=$45;
+    Regs.ah:=$45;
     Regs.bx:=fh;
     MsDos (Regs);
     If (Regs.Flags and fCarry)=0 then
@@ -113,11 +115,9 @@ begin
         dup2:=nh;
         exit;
       end;
-    Regs.ax:=$46;
+    Regs.ah:=$46;
     Regs.bx:=fh;
-{$ifndef TP}
-    Regs.cs:=nh;
-{$endif}
+    Regs.cx:=nh;
     MsDos (Regs);
     If (Regs.Flags and fCarry)=0 then
       Dup2:=nh
@@ -154,25 +154,24 @@ function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
     RedirError:=IOResult;
     IOStatus:=RedirError;
     If IOStatus <> 0 then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldHandle:=Handles^[1];
-    Handles^[1]:=Handles^[FileRec (F).Handle];
-    ChangeRedir:=True;
-{$else}
 {$ifdef UseDUP}
     TempH:=dup(1);
     if dup2(1,FileRec(F).Handle)=FileRec(F).Handle then
 {$else UseDUP}
+  {$ifndef FPC}
+    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
+    OldHandle:=Handles^[1];
+    Handles^[1]:=Handles^[FileRec (F).Handle];
+  {$else}
     DosMemGet(prefseg,HandlesOffset+1,OldHandle,1);
     DosMemGet(prefseg,HandlesOffset+FileRec(F).handle,temp,1);
     dosmemput(prefseg,HandlesOffset+1,temp,1);
     { NO MEM use as %fs is distroyed somewhere !!
     OldHandle:=Mem[prefseg:HandlesOffset+1];
     Mem[prefseg:HandlesOffset+1]:=Mem[prefseg:HandlesOffset+FileRec(F).handle];}
+  {$endif}
 {$endif UseDUP}
       ChangeRedir:=True;
-{$endif}
      RedirChanged:=True;
   end;
 
@@ -186,78 +185,83 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
       Begin
       Reset(FE,1);
       Seek(FE,FileSize(FE));
-      End else Rewrite (FE);
+      End
+    else
+      Rewrite (FE);
 
     RedirError:=IOResult;
     IOStatus:=RedirError;
     If IOStatus <> 0 then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldErrorHandle:=Handles^[2];
-    Handles^[2]:=Handles^[FileRec (FE).Handle];
-    ChangeErrorRedir:=True;
-{$else}
 {$ifdef UseDUP}
     TempErrorH:=dup(2);
     if dup2(2,FileRec(F).Handle)=FileRec(F).Handle then
 {$else UseDUP}
+  {$ifndef FPC}
+    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
+    OldErrorHandle:=Handles^[2];
+    Handles^[2]:=Handles^[FileRec (FE).Handle];
+  {$else}
     DosMemGet(prefseg,HandlesOffset+2,OldErrorHandle,1);
     DosMemGet(prefseg,HandlesOffset+FileRec(F).handle,temp,1);
     dosmemput(prefseg,HandlesOffset+1,temp,1);
     {OldErrorHandle:=Mem[prefseg:HandlesOffset+2];
     Mem[prefseg:HandlesOffset+2]:=Mem[prefseg:HandlesOffset+FileRec(FE).handle];}
+  {$endif}
 {$endif UseDUP}
       ChangeErrorRedir:=True;
-{$endif}
      RedirErrorChanged:=True;
   end;
 
-{............................................................................}
 
 {$IfDef MsDos}
-  procedure CompactHeap;
 
-  var
-    Regs : Registers;
+{Set HeapEnd Pointer to Current Used Heapsize}
+Procedure SmallHeap;assembler;
+asm
+                mov     bx,word ptr HeapPtr
+                shr     bx,4
+                inc     bx
+                add     bx,word ptr HeapPtr+2
+                mov     ax,PrefixSeg
+                sub     bx,ax
+                mov     es,ax
+                mov     ah,4ah
+                int     21h
+end;
 
-  begin
-    Regs.AH:=$4A;
-    Regs.ES:=PrefSeg;
-    Regs.BX:=MinBlockSize + (PtrRec (HeapPtr).Seg - PtrRec (HeapOrg).Seg);
-    MsDos (Regs);
-  end;
 
-{............................................................................}
 
-  procedure ExpandHeap;
-
-  var
-    Regs : Registers;
-
-  begin
-    Regs.AH:=$4A;
-    Regs.ES:=PrefSeg;
-    Regs.BX:=MyBlockSize;
-    MsDos (Regs);
-  end;
+{Set HeapEnd Pointer to Full Heapsize}
+Procedure FullHeap;assembler;
+asm
+                mov     bx,word ptr HeapEnd
+                shr     bx,4
+                inc     bx
+                add     bx,word ptr HeapEnd+2
+                mov     ax,PrefixSeg
+                sub     bx,ax
+                mov     es,ax
+                mov     ah,4ah
+                int     21h
+end;
 
 {$EndIf MsDos}
-{............................................................................}
+
 
   procedure RestoreRedir;
 
   begin
     If not RedirChanged then Exit;
-{$ifndef FPC}
-    Handles^[1]:=OldHandle;
-{$else}
 {$ifdef UseDUP}
     dup2(1,TempH);
 {$else UseDUP}
+{$ifndef FPC}
+     Handles^[1]:=OldHandle;
+{$else}
     dosmemput(prefseg,HandlesOffset+1,OldHandle,1);
     {Mem[prefseg:HandlesOffset+1]:=OldHandle;}
-{$endif UseDUP}
 {$endif}
+{$endif UseDUP}
     Close (F);
     RedirChanged:=false;
   end;
@@ -288,7 +292,7 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
 
   Begin
 {$IfDef MsDos}
-  CompactHeap;
+    SmallHeap;
 {$EndIf MsDos}
     SwapVectors;
     Dos.Exec (ProgName, ComLine);
@@ -296,7 +300,7 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
     ExecuteResult:=DosExitCode;
     SwapVectors;
 {$IfDef MsDos}
-  Expandheap;
+    Fullheap;
 {$EndIf MsDos}
   End;
 
@@ -380,7 +384,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  1999-02-20 15:18:32  peter
+  Revision 1.8  1999-02-22 02:15:18  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.7  1999/02/20 15:18:32  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

@@ -102,9 +102,10 @@ type
     end;
 
 const
-     HotKeys : array[0..9] of THotKeyDef =
+     HotKeys : array[0..8] of THotKeyDef =
       ( (Name : '~U~nassigned' ; KeyCode : kbNoKey   ),
-        (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ),
+{ Used for Grep, so it can't be assigned for user tools
+        (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ), }
         (Name : 'Shift+F~3~'   ; KeyCode : kbShiftF3 ),
         (Name : 'Shift+F~4~'   ; KeyCode : kbShiftF4 ),
         (Name : 'Shift+F~5~'   ; KeyCode : kbShiftF5 ),
@@ -472,33 +473,6 @@ begin
   ReDraw;
 end;
 
-procedure ReplaceStr(var S: string; const What,NewS: string);
-var I : Sw_integer;
-begin
-  repeat
-    I:=Pos(What,S);
-    if I>0 then
-    begin
-      Delete(S,I,length(What));
-      Insert(NewS,S,I);
-    end;
-  until I=0;
-end;
-
-procedure ReplaceStrI(var S: string; What: string; const NewS: string);
-var I : integer;
-    UpcaseS: string;
-begin
-  UpcaseS:=UpcaseStr(S); What:=UpcaseStr(What);
-  repeat
-    I:=Pos(What,UpcaseS);
-    if I>0 then
-    begin
-      Delete(S,I,length(What));
-      Insert(NewS,S,I);
-    end;
-  until I=0;
-end;
 
 function ParseToolParams(var Params: string; CheckOnly: boolean): Sw_integer;
 var Err: integer;
@@ -732,7 +706,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1999-02-19 15:43:21  peter
+  Revision 1.3  1999-02-22 02:15:19  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.2  1999/02/19 15:43:21  peter
     * compatibility fixes for FV
 
   Revision 1.1  1999/01/21 11:54:25  peter

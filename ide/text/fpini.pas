@@ -63,6 +63,7 @@ const
   ieHelpFiles        = 'Files';
   ieDefaultTabSize   = 'DefaultTabSize';
   ieDefaultEditorFlags='DefaultFlags';
+  ieDefaultSaveExt   = 'DefaultSaveExt';
   ieOpenExts         = 'OpenExts';
   ieHighlightExts    = 'Exts';
   ieTabsPattern      = 'NeedsTabs';
@@ -251,6 +252,7 @@ begin
 {$ifndef EDITORS}
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultCodeEditorFlags:=INIFile^.GetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
+  DefaultSaveExt:=INIFile^.GetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
 {$endif}
 { Highlight }
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
@@ -330,6 +332,7 @@ begin
 {$ifndef EDITORS}
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
+  INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
 {$endif}
 { Highlight }
   INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
@@ -384,7 +387,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-02-19 18:43:46  peter
+  Revision 1.13  1999-02-22 02:15:14  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.12  1999/02/19 18:43:46  peter
     + open dialog supports mask list
 
   Revision 1.11  1999/02/10 09:53:14  pierre

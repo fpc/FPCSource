@@ -300,10 +300,10 @@ function  SearchFreeWindowNo: integer;
 procedure InsertOK(ADialog: PDialog);
 procedure InsertButtons(ADialog: PDialog);
 
-procedure ErrorBox(S: string; Params: pointer);
-procedure WarningBox(S: string; Params: pointer);
-procedure InformationBox(S: string; Params: pointer);
-function  ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
+procedure ErrorBox(const S: string; Params: pointer);
+procedure WarningBox(const S: string; Params: pointer);
+procedure InformationBox(const S: string; Params: pointer);
+function  ConfirmBox(const S: string; Params: pointer; CanCancel: boolean): word;
 
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
@@ -1911,22 +1911,22 @@ begin
   Execute := Result;
 end;
 
-procedure ErrorBox(S: string; Params: pointer);
+procedure ErrorBox(const S: string; Params: pointer);
 begin
   MessageBox(S,Params,mfError+mfInsertInApp+mfOKButton);
 end;
 
-procedure WarningBox(S: string; Params: pointer);
+procedure WarningBox(const S: string; Params: pointer);
 begin
   MessageBox(S,Params,mfWarning+mfInsertInApp+mfOKButton);
 end;
 
-procedure InformationBox(S: string; Params: pointer);
+procedure InformationBox(const S: string; Params: pointer);
 begin
   MessageBox(S,Params,mfInformation+mfInsertInApp+mfOKButton);
 end;
 
-function ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
+function ConfirmBox(const S: string; Params: pointer; CanCancel: boolean): word;
 begin
   ConfirmBox:=MessageBox(S,Params,mfConfirmation+mfInsertInApp+mfYesButton+mfNoButton+integer(CanCancel)*mfCancelButton);
 end;
@@ -3269,7 +3269,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  1999-02-19 18:43:49  peter
+  Revision 1.17  1999-02-22 02:15:22  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.16  1999/02/19 18:43:49  peter
     + open dialog supports mask list
 
   Revision 1.15  1999/02/17 15:04:02  pierre

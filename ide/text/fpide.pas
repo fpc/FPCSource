@@ -116,7 +116,7 @@ uses
   Video,Mouse,Keyboard,
   Dos,Objects,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   AsciiTab,
-  Systems,BrowCol,
+  Systems,BrowCol,Version,
   WHelp,WHlpView,WINI,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools,FPDebug,FPRedir;
@@ -682,7 +682,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  1999-02-20 15:18:30  peter
+  Revision 1.18  1999-02-22 02:15:13  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.17  1999/02/20 15:18:30  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

@@ -23,12 +23,12 @@ type
 
     PINIEntry = ^TINIEntry;
     TINIEntry = object(TObject)
-      constructor Init(ALine: string);
+      constructor Init(const ALine: string);
       function    GetText: string;
       function    GetTag: string;
       function    GetComment: string;
       function    GetValue: string;
-      procedure   SetValue(S: string);
+      procedure   SetValue(const S: string);
       destructor  Done; virtual;
     private
       Tag      : PString;
@@ -41,9 +41,9 @@ type
 
     PINISection = ^TINISection;
     TINISection = object(TObject)
-      constructor Init(AName: string);
+      constructor Init(const AName: string);
       function    GetName: string;
-      function    AddEntry(S: string): PINIEntry;
+      function    AddEntry(const S: string): PINIEntry;
       function    SearchEntry(Tag: string): PINIEntry; virtual;
       procedure   ForEachEntry(EnumProc: pointer); virtual;
       destructor  Done; virtual;
@@ -55,18 +55,18 @@ type
     PINIFile = ^TINIFile;
     TINIFile = object(TObject)
       MakeNullEntries: boolean;
-      constructor Init(AFileName: string);
+      constructor Init(const AFileName: string);
       function    Read: boolean; virtual;
       function    Update: boolean; virtual;
       function    IsModified: boolean; virtual;
       function    SearchSection(Section: string): PINISection; virtual;
-      function    SearchEntry(Section, Tag: string): PINIEntry; virtual;
-      procedure   ForEachEntry(Section: string; EnumProc: pointer); virtual;
-      function    GetEntry(Section, Tag, Default: string): string; virtual;
-      procedure   SetEntry(Section, Tag, Value: string); virtual;
-      function    GetIntEntry(Section, Tag: string; Default: longint): longint; virtual;
-      procedure   SetIntEntry(Section, Tag: string; Value: longint); virtual;
-      procedure   DeleteSection(Section: string); virtual;
+      function    SearchEntry(const Section, Tag: string): PINIEntry; virtual;
+      procedure   ForEachEntry(const Section: string; EnumProc: pointer); virtual;
+      function    GetEntry(const Section, Tag, Default: string): string; virtual;
+      procedure   SetEntry(const Section, Tag, Value: string); virtual;
+      function    GetIntEntry(const Section, Tag: string; Default: longint): longint; virtual;
+      procedure   SetIntEntry(const Section, Tag: string; Value: longint); virtual;
+      procedure   DeleteSection(const Section: string); virtual;
       destructor  Done; virtual;
     private
       ReadOnly: boolean;
@@ -90,7 +90,7 @@ begin
   IntToStr:=S;
 end;
 
-function StrToInt(S: string): longint;
+function StrToInt(const S: string): longint;
 var L: longint;
     C: integer;
 begin
@@ -99,39 +99,47 @@ begin
   StrToInt:=L;
 end;
 
-function UpcaseStr(S: string): string;
-var I: integer;
+function UpcaseStr(const S: string): string;
+var
+  i  : Sw_word;
 begin
-  for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
+  for i:=1 to length(s) do
+   if s[i] in ['a'..'z'] then
+    UpcaseStr[i]:=char(byte(s[i])-32)
+   else
+    UpcaseStr[i]:=s[i];
+  UpcaseStr[0]:=s[0];
 end;
 
-function LTrim(S: string): string;
+function LTrim(const S: string): string;
+var
+  i : Sw_integer;
 begin
-  while copy(S,1,1)=' ' do Delete(S,1,1);
-  LTrim:=S;
+  i:=1;
+  while (i<length(S)) and (S[i]=' ') do
+   inc(i);
+  LTrim:=Copy(S,i,255);
 end;
 
-
-function RTrim(S: string): string;
+Function RTrim(const S:string):string;
+var
+  i : Sw_integer;
 begin
-  while copy(S,length(S),1)=' ' do Delete(S,length(S),1);
-  RTrim:=S;
+  i:=length(S);
+  while (i>0) and (S[i]=' ') do
+   dec(i);
+  RTrim:=Copy(S,1,i);
 end;
 
-
-function Trim(S: string): string;
+function Trim(const S: string): string;
 begin
   Trim:=RTrim(LTrim(S));
 end;
-
 
 function GetStr(P: PString): string;
 begin
   if P=nil then GetStr:='' else GetStr:=P^;
 end;
-
 
 function EatIO: integer;
 begin
@@ -139,7 +147,7 @@ begin
 end;
 
 
-constructor TINIEntry.Init(ALine: string);
+constructor TINIEntry.Init(const ALine: string);
 begin
   inherited Init;
   Text:=NewStr(ALine);
@@ -180,7 +188,7 @@ begin
 end;
 
 
-procedure TINIEntry.SetValue(S: string);
+procedure TINIEntry.SetValue(const S: string);
 begin
   if GetValue<>S then
   begin
@@ -234,7 +242,7 @@ begin
 end;
 
 
-constructor TINISection.Init(AName: string);
+constructor TINISection.Init(const AName: string);
 begin
   inherited Init;
   Name:=NewStr(AName);
@@ -247,7 +255,7 @@ begin
   GetName:=GetStr(Name);
 end;
 
-function TINISection.AddEntry(S: string): PINIEntry;
+function TINISection.AddEntry(const S: string): PINIEntry;
 var E: PINIEntry;
 begin
   New(E, Init(S));
@@ -293,7 +301,7 @@ begin
 end;
 
 
-constructor TINIFile.Init(AFileName: string);
+constructor TINIFile.Init(const AFileName: string);
 begin
   inherited Init;
   FileName:=NewStr(AFileName);
@@ -413,7 +421,7 @@ begin
   SearchSection:=Sections^.FirstThat(@MatchingSection);
 end;
 
-function TINIFile.SearchEntry(Section, Tag: string): PINIEntry;
+function TINIFile.SearchEntry(const Section, Tag: string): PINIEntry;
 var P: PINISection;
     E: PINIEntry;
 begin
@@ -423,7 +431,7 @@ begin
   SearchEntry:=E;
 end;
 
-procedure TINIFile.ForEachEntry(Section: string; EnumProc: pointer);
+procedure TINIFile.ForEachEntry(const Section: string; EnumProc: pointer);
 var P: PINISection;
     E: PINIEntry;
     I: integer;
@@ -446,7 +454,7 @@ begin
       end;
 end;
 
-function TINIFile.GetEntry(Section, Tag, Default: string): string;
+function TINIFile.GetEntry(const Section, Tag, Default: string): string;
 var E: PINIEntry;
     S: string;
 begin
@@ -456,7 +464,7 @@ begin
   GetEntry:=S;
 end;
 
-procedure TINIFile.SetEntry(Section, Tag, Value: string);
+procedure TINIFile.SetEntry(const Section, Tag, Value: string);
 var E: PINIEntry;
     P: PINISection;
 begin
@@ -477,7 +485,7 @@ begin
     E^.SetValue(Value);
 end;
 
-function TINIFile.GetIntEntry(Section, Tag: string; Default: longint): longint;
+function TINIFile.GetIntEntry(const Section, Tag: string; Default: longint): longint;
 var L: longint;
 begin
   L:=StrToInt(GetEntry(Section,Tag,IntToStr(Default)));
@@ -485,12 +493,12 @@ begin
   GetIntEntry:=L;
 end;
 
-procedure TINIFile.SetIntEntry(Section, Tag: string; Value: longint);
+procedure TINIFile.SetIntEntry(const Section, Tag: string; Value: longint);
 begin
   SetEntry(Section,Tag,IntToStr(Value));
 end;
 
-procedure TINIFile.DeleteSection(Section: string);
+procedure TINIFile.DeleteSection(const Section: string);
 var P: PINISection;
 begin
   P:=SearchSection(Section);
@@ -512,7 +520,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-02-10 09:14:57  pierre
+  Revision 1.5  1999-02-22 02:15:26  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.4  1999/02/10 09:14:57  pierre
    * Value was not disposed before overwrite in TINIEntry.SetValue
 
   Revision 1.3  1999/01/21 11:54:33  peter

@@ -307,6 +307,7 @@ const
      TabChars     : set of char = [#9];
      AlphaChars    : set of char = ['A'..'Z','a'..'z','_'];
      NumberChars  : set of char = ['0'..'9'];
+     DefaultSaveExt : string[12]='.pas';
 
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
      UseTabsPattern     : function(Editor: PFileEditor): boolean = DefUseTabsPattern;
@@ -3188,7 +3189,7 @@ begin
     edSaveAs:
       begin
    Name:=PString(Info)^;
-   Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
+   Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*'+DefaultSaveExt,
    'Save file as', '~N~ame', fdOkButton, 101)), @Name);
    if (Re<>cmCancel) and (Name<>PString(Info)^) then
      if ExistsFile(Name) then
@@ -3242,7 +3243,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  1999-02-20 15:18:33  peter
+  Revision 1.22  1999-02-22 02:15:25  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.21  1999/02/20 15:18:33  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

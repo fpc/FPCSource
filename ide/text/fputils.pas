@@ -37,7 +37,7 @@ const
 function IntToStr(L: longint): string;
 function IntToStrZ(L: longint; MinLen: byte): string;
 function IntToStrL(L: longint; MinLen: byte): string;
-function StrToInt(S: string): longint;
+function StrToInt(const S: string): longint;
 function IntToHex(L: longint): string;
 function IntToHexL(L: longint; MinLen: byte): string;
 function HexToInt(S: string): longint;
@@ -49,12 +49,12 @@ function MakeExeName(const fn:string):string;
 function LExpand(S: string; MinLen: byte): string;
 function RExpand(S: string; MinLen: byte): string;
 function FitStr(const S: string; Len: byte): string;
-function LTrim(S: string): string;
-function RTrim(S: string): string;
-function Trim(S: string): string;
+function LTrim(const S: string): string;
+function RTrim(const S: string): string;
+function Trim(const S: string): string;
 function KillTilde(S: string): string;
-function UpcaseStr(S: string): string;
-function LowerCaseStr(S: string): string;
+function UpcaseStr(const S: string): string;
+function LowerCaseStr(const S: string): string;
 function Max(A,B: longint): longint;
 function Min(A,B: longint): longint;
 function DirOf(const S: string): string;
@@ -65,7 +65,7 @@ function StrToExtended(S: string): Extended;
 function Power(const A,B: double): double;
 function GetCurDir: string;
 function MatchesMask(What, Mask: string): boolean;
-function MatchesMaskList(What, MaskList: string): boolean;
+function MatchesMaskList(const What:string;MaskList: string): boolean;
 function MatchesFileList(What, FileList: string): boolean;
 function EatIO: integer;
 function ExistsFile(const FileName: string): boolean;
@@ -74,6 +74,8 @@ function LocateFile(FileList: string): string;
 function LocatePasFile(const FileName:string):string;
 function LocateExeFile(var FileName:string): boolean;
 function GetStr(P: PString): string;
+procedure ReplaceStr(var S: string; const What,NewS: string);
+procedure ReplaceStrI(var S: string; What: string; const NewS: string);
 
 const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
@@ -91,7 +93,7 @@ begin
   IntToStr:=S;
 end;
 
-function StrToInt(S: string): longint;
+function StrToInt(const S: string): longint;
 var L: longint;
     C: integer;
 begin
@@ -162,13 +164,13 @@ begin
      case s[i] of
  {$ifdef Linux}
   '/','\' : begin
-	      FixFileName[i]:='/';
-	      NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
-	    end;
+              FixFileName[i]:='/';
+              NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
+            end;
  'A'..'Z' : if NoPath then
-	     FixFileName[i]:=char(byte(s[i])+32)
-	    else
-	     FixFileName[i]:=s[i];
+             FixFileName[i]:=char(byte(s[i])+32)
+            else
+             FixFileName[i]:=s[i];
  {$else}
       '/' : FixFileName[i]:='\';
  'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
@@ -223,20 +225,28 @@ begin
   KillTilde:=S;
 end;
 
-function UpcaseStr(S: string): string;
-var I: Longint;
+function UpcaseStr(const S: string): string;
+var
+  i  : Sw_word;
 begin
-  for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
+  for i:=1 to length(s) do
+   if s[i] in ['a'..'z'] then
+    UpcaseStr[i]:=char(byte(s[i])-32)
+   else
+    UpcaseStr[i]:=s[i];
+  UpcaseStr[0]:=s[0];
 end;
 
-function LowerCaseStr(S: string): string;
-var I: byte;
+function LowercaseStr(const S: string): string;
+var
+  i  : Sw_word;
 begin
-  for I:=1 to length(S) do
-    if S[I] in ['A'..'Z'] then S[I]:=chr(ord(S[I])+32);
-  LowerCaseStr:=S;
+  for i:=1 to length(s) do
+   if s[i] in ['A'..'Z'] then
+    LowercaseStr[i]:=char(byte(s[i])+32)
+   else
+    LowercaseStr[i]:=s[i];
+  LowercaseStr[0]:=s[0];
 end;
 
 function Max(A,B: longint): longint;
@@ -293,7 +303,7 @@ end;
 function Power(const A,B: double): double;
 begin
   if A=0 then Power:=0
-	 else Power:=exp(B*ln(A));
+         else Power:=exp(B*ln(A));
 end;
 
 function GetCurDir: string;
@@ -303,6 +313,7 @@ begin
   if copy(S,length(S),1)<>DirSep then S:=S+DirSep;
   GetCurDir:=S;
 end;
+
 
 function IntToHex(L: longint): string;
 const HexNums : string[16] = '0123456789ABCDEF';
@@ -326,6 +337,7 @@ begin
   IntToHex:=S;
 end;
 
+
 function HexToInt(S: string): longint;
 var L,I: longint;
     C: char;
@@ -344,6 +356,7 @@ begin
   HexToInt:=L;
 end;
 
+
 function IntToHexL(L: longint; MinLen: byte): string;
 var S: string;
 begin
@@ -352,22 +365,32 @@ begin
   IntToHexL:=S;
 end;
 
-function LTrim(S: string): string;
+function LTrim(const S: string): string;
+var
+  i : Sw_integer;
 begin
-  while copy(S,1,1)=' ' do Delete(S,1,1);
-  LTrim:=S;
+  i:=1;
+  while (i<length(S)) and (S[i]=' ') do
+   inc(i);
+  LTrim:=Copy(S,i,255);
 end;
 
-function RTrim(S: string): string;
+
+Function RTrim(const S:string):string;
+var
+  i : Sw_integer;
 begin
-  while copy(S,length(S),1)=' ' do Delete(S,length(S),1);
-  RTrim:=S;
+  i:=length(S);
+  while (i>0) and (S[i]=' ') do
+   dec(i);
+  RTrim:=Copy(S,1,i);
 end;
 
-function Trim(S: string): string;
+function Trim(const S: string): string;
 begin
   Trim:=RTrim(LTrim(S));
 end;
+
 
 function MatchesMask(What, Mask: string): boolean;
 var P: integer;
@@ -388,7 +411,7 @@ begin
   MatchesMask:=Match;
 end;
 
-function MatchesMaskList(What, MaskList: string): boolean;
+function MatchesMaskList(const What:string;MaskList: string): boolean;
 var P: integer;
     Match: boolean;
 begin
@@ -418,7 +441,7 @@ begin
     F:=copy(FileList,1,P-1);
     FSplit(F,FD.D,FD.N,FD.E);
     Match:=MatchesMask(WD.D+WD.N,FD.D+FD.N) and
-	   MatchesMask(WD.E,FD.E);
+           MatchesMask(WD.E,FD.E);
     Delete(FileList,1,P);
   until Match or (FileList='');
   MatchesFileList:=Match;
@@ -515,23 +538,19 @@ begin
     end;
 
   S:=GetEnv('PATH');
-  i:=1;
-  While Length(S)>0 do
-    begin
-      While (i<=Length(S)) and not (S[i] in ListSep) do
-	Inc(i);
-      Dir:=CompleteDir(Copy(S,1,i-1));
-      if i<Length(S) then
-	S:=Copy(S,i+1,255)
-      else
-	S:='';
-      if ExistsFile(Dir+FileName) then
-	Begin
-	   FileName:=Dir+FileName;
-	   LocateExeFile:=true;
-	   Exit;
-	End;
-   end;
+  repeat
+    i:=0;
+    While (i<=Length(S)) and not (S[i] in ListSep) do
+     Inc(i);
+    Dir:=CompleteDir(Copy(S,1,i-1));
+    Delete(S,1,i);
+    if ExistsFile(Dir+FileName) then
+     Begin
+       FileName:=Dir+FileName;
+       LocateExeFile:=true;
+       Exit;
+     End;
+  until s='';
 end;
 
 function GetStr(P: PString): string;
@@ -539,12 +558,45 @@ begin
   if P=nil then GetStr:='' else GetStr:=P^;
 end;
 
+procedure ReplaceStr(var S: string; const What,NewS: string);
+var I : Sw_integer;
+begin
+  repeat
+    I:=Pos(What,S);
+    if I>0 then
+    begin
+      Delete(S,I,length(What));
+      Insert(NewS,S,I);
+    end;
+  until I=0;
+end;
+
+procedure ReplaceStrI(var S: string; What: string; const NewS: string);
+var I : integer;
+    UpcaseS: string;
+begin
+  UpcaseS:=UpcaseStr(S); What:=UpcaseStr(What);
+  repeat
+    I:=Pos(What,UpcaseS);
+    if I>0 then
+    begin
+      Delete(S,I,length(What));
+      Insert(NewS,S,I);
+    end;
+  until I=0;
+end;
+
 
 
 END.
 {
   $Log$
-  Revision 1.7  1999-02-16 17:13:55  pierre
+  Revision 1.8  1999-02-22 02:15:20  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.7  1999/02/16 17:13:55  pierre
    + findclose added for FPC
 
   Revision 1.6  1999/02/05 12:12:01  pierre

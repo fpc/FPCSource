@@ -160,16 +160,33 @@ end;
 procedure TIDEApp.About;
 var R,R2: TRect;
     D: PCenterDialog;
+    OSStr: string;
 begin
-  R.Assign(0,0,38,12);
+  OSStr:='';
+{$ifdef go32v2}
+  OSStr:='Dos';
+{$endif}
+{$ifdef tp}
+  OSStr:='Dos';
+{$endif}
+{$ifdef linux}
+  OSStr:='Linux';
+{$endif}
+{$ifdef win32}
+  OSStr:='Win32';
+{$endif}
+{$ifdef os2}
+  OSStr:='OS/2';
+{$endif}
+  R.Assign(0,0,46,12);
   New(D, Init(R, 'About'));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-2);
     R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE / DOS')));
-    R2.Move(0,2);
-    Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr)));
+    Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+OSStr+' Version '+VersionStr)));
+    R2.Move(0,1);
+    Insert(New(PStaticText, Init(R2, ^C'(Compiler Version '+Version_String+')')));
     R2.Move(0,2);
     Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-99 by')));
     R2.Move(0,2);
@@ -186,7 +203,12 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-01-21 11:54:18  peter
+  Revision 1.5  1999-02-22 02:15:16  peter
+    + default extension for save in the editor
+    + Separate Text to Find for the grep dialog
+    * fixed redir crash with tp7
+
+  Revision 1.4  1999/01/21 11:54:18  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

@@ -37,7 +37,7 @@ endif
 
 ifdef GDB
 override NEEDUNITDIR+=../../$(GDBINT)
-NEEDLIBDIR+=../../$(GDBINT)/libgdb
+NEEDLIBDIR+=../../$(GDBINT)/libgdb /pp/dj/lib
 NEEDOBJDIR+=../../$(GDBINT)/libgdb
 else
 override NEEDUNITDIR+=../fake/gdb
@@ -88,6 +88,9 @@ endif
 
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
+gdb:
+	make all GDB=1
+
 full:
 	make all FULL=1
 
@@ -99,7 +102,12 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.9  1999-02-16 10:43:53  peter
+# Revision 1.10  1999-02-22 02:15:12  peter
+#   + default extension for save in the editor
+#   + Separate Text to Find for the grep dialog
+#   * fixed redir crash with tp7
+#
+# Revision 1.9  1999/02/16 10:43:53  peter
 #   * use -dGDB for the compiler
 #   * only use gdb_file when -dDEBUG is used
 #   * profiler switch is now a toggle instead of radiobutton
