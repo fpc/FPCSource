@@ -635,9 +635,10 @@ Begin
       DosError:=0
      else
       begin
+        { According to tdos2 test it should return 18
         if ErrNo=Sys_ENOENT then
          DosError:=3
-        else
+        else }
          DosError:=18;
       end;
      f.DirPtr:=0;
@@ -720,7 +721,7 @@ Begin
   if not fstat(filerec(f).handle,info) then
    begin
      Time:=0;
-     doserror:=3;
+     doserror:=6;
      exit
    end
   else
@@ -858,6 +859,9 @@ End;
 Procedure setfattr (var f;attr : word);
 Begin
   {! No Linux equivalent !}
+  { Fail for setting VolumeId }
+  if (attr and VolumeID)<>0 then
+   doserror:=5;
 End;
 
 
@@ -899,7 +903,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2002-09-07 16:01:27  peter
+  Revision 1.13  2002-12-08 16:05:34  peter
+    * small error code fixes so tdos2 passes
+
+  Revision 1.12  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }
