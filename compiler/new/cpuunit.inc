@@ -21,7 +21,8 @@
  ****************************************************************************
 }
 {$ifdef i386}
-       ,i386
+       ,i386base
+       ,i386asm
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -44,7 +45,10 @@
 {$endif}
 {
   $Log$
-  Revision 1.1  1998-12-15 22:16:03  florian
+  Revision 1.2  1999-08-01 18:22:34  florian
+   * made it again compilable
+
+  Revision 1.1  1998/12/15 22:16:03  florian
     * first version, all planned processors (?) added
 
 }

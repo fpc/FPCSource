@@ -144,7 +144,8 @@ unit tree;
           tc_fix_2_real,
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
-          tc_load_smallset
+          tc_load_smallset,
+          tc_bool_2_bool
        );
 
       { different assignment types }
@@ -158,10 +159,10 @@ unit tree;
           _low,_high : longint;
 
           { only used by gentreejmp }
-          _at : plabel;
+          _at : pasmlabel;
 
           { label of instruction }
-          statement : plabel;
+          statement : pasmlabel;
 
           { is this the first of an case entry, needed to release statement
             label (PFV) }
@@ -207,7 +208,6 @@ unit tree;
 {$endif EXTDEBUG}
        end;
 
-{$ifndef nooldtree}
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
                       dt_mbleft,dt_typeconv,dt_inlinen,
@@ -217,8 +217,7 @@ unit tree;
        ttree = record
           error : boolean;
           disposetyp : tdisposetyp;
-          { is true, if the
-           right and left operand are swaped }
+          { is true, if the right and left operand are swaped }
           swaped : boolean;
 
           { the location of the result of this node }
@@ -233,41 +232,45 @@ unit tree;
           resulttype : pdef;
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
-{$ifdef EXTDEBUG}
+{$ifdef extdebug}
           firstpasscount : longint;
-{$endif EXTDEBUG}
+{$endif extdebug}
+{$ifdef TEMPS_NOT_PUSH}
+          temp_offset : longint;
+{$endif TEMPS_NOT_PUSH}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
-             callparan : (is_colon_para : boolean;exact_match_found : boolean);
+             callparan : (is_colon_para : boolean;exact_match_found,
+                          convlevel1found,convlevel2found:boolean;hightree:ptree);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
-                      is_absolute,is_first,is_methodpointer : boolean);
-             calln : (symtableprocentry : psym;
-                      symtableproc : psymtable;procdefinition : pprocdef;
+                      is_absolute,is_first : boolean);
+             calln : (symtableprocentry : pprocsym;
+                      symtableproc : psymtable;procdefinition : pabstractprocdef;
                       methodpointer : ptree;
-                      no_check,unit_specific,return_value_used : boolean);
+                      no_check,unit_specific,
+                      return_value_used,static_call : boolean);
              ordconstn : (value : longint);
-             realconstn : (value_real : bestreal;lab_real : plabel;realtyp : tait);
+             realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean;callunique : boolean);
-             stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
+             stringconstn : (value_str : pchar;length : longint; lab_str : pasmlabel;stringtype : tstringtype);
              typeconvn : (convtyp : tconverttype;explizit : boolean);
-             typen : (typenodetype : pdef);
+             typen : (typenodetype : pdef;typenodesym:ptypesym);
              inlinen : (inlinenumber : byte;inlineconst:boolean);
-             procinlinen : (inlineprocdef : pprocdef;
-                            retoffset,para_offset,para_size : longint);
-             setconstn : (value_set : pconstset;lab_set:plabel);
+             procinlinen : (inlinetree:ptree;inlineprocsym:pprocsym;retoffset,para_offset,para_size : longint);
+             setconstn : (value_set : pconstset;lab_set:pasmlabel);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
-             labeln,goton : (labelnr : plabel);
-             withn : (withsymtable : psymtable;tablecount : longint);
+             labeln,goton : (labelnr : pasmlabel);
+             withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap: boolean);
            end;
-{$endif}
+
           punarynode = ^tunarynode;
           tunarynode = object(tnode)
              left : pnode;
@@ -320,7 +323,7 @@ unit tree;
 {$endif dummy}
 
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
-    function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
+    function genlabelnode(t : ttreetyp;nr : pasmlabel) : ptree;
     function genloadnode(v : pvarsym;st : psymtable) : ptree;
     function genloadcallnode(v: pprocsym;st: psymtable): ptree;
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
@@ -328,11 +331,12 @@ unit tree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
-    function gentypenode(t : pdef) : ptree;
+    function gentypenode(t : pdef;sym:ptypesym) : ptree;
     function gencallparanode(expr,next : ptree) : ptree;
-    function genrealconstnode(v : bestreal) : ptree;
+    function genrealconstnode(v : bestreal;def : pdef) : ptree;
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
     function genmethodcallnode(v : pprocsym;st : psymtable;mp : ptree) : ptree;
+    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp:ptree): ptree;
 
     { allow pchar or string for defining a pchar node }
     function genstringconstnode(const s : string) : ptree;
@@ -438,7 +442,7 @@ unit tree;
          { reference info }
          if (location.loc in [LOC_MEM,LOC_REFERENCE]) and
             assigned(location.reference.symbol) then
-           stringdispose(location.reference.symbol);
+           dispose(location.reference.symbol,done);
 {$ifdef EXTDEBUG}
          if firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=firstpasscount;
@@ -740,7 +744,7 @@ unit tree;
                    begin
                       if assigned(symt) then
                         begin
-                           p^.withsymtable:=symt^.next;
+                           p^.withsymtable:=pwithsymtable(symt^.next);
                            dispose(symt,done);
                         end;
                       symt:=p^.withsymtable;
@@ -798,7 +802,7 @@ unit tree;
          { reference info }
          if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
             assigned(p^.location.reference.symbol) then
-           stringdispose(p^.location.reference.symbol);
+           dispose(p^.location.reference.symbol,done);
 {$ifdef extdebug}
          if p^.firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=p^.firstpasscount;
@@ -815,7 +819,7 @@ unit tree;
          hp:=getnode;
          hp^:=p^;
          if assigned(p^.location.reference.symbol) then
-           hp^.location.reference.symbol:=stringdup(p^.location.reference.symbol^);
+           hp^.location.reference.symbol:=p^.location.reference.symbol;
          case p^.disposetyp of
             dt_leftright :
               begin
@@ -887,7 +891,6 @@ unit tree;
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
-         p^.is_methodpointer:=false;
          { method pointer load nodes can use the left subtree }
          p^.disposetyp:=dt_left;
          p^.left:=nil;
@@ -913,7 +916,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.resulttype:=nil;
-         p^.withsymtable:=symtable;
+         p^.withsymtable:=pwithsymtable(symtable);
          p^.tablecount:=count;
          set_file_line(l,p);
          genwithnode:=p;
@@ -1058,8 +1061,8 @@ unit tree;
          genenumnode:=p;
       end;
 
+    function genrealconstnode(v : bestreal;def : pdef) : ptree;
 
-    function genrealconstnode(v : bestreal) : ptree;
 
       var
          p : ptree;
@@ -1069,24 +1072,14 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=realconstn;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-{$ifdef i386}
-         p^.resulttype:=c64floatdef;
+         p^.resulttype:=def;
          p^.value_real:=v;
-         { default value is double }
-         p^.realtyp:=ait_real_64bit;
-{$endif}
-{$ifdef m68k}
-         p^.resulttype:=new(pfloatdef,init(s32real));
-         p^.value_real:=v;
-         { default value is double }
-         p^.realtyp:=ait_real_32bit;
-{$endif}
          p^.lab_real:=nil;
          genrealconstnode:=p;
       end;
@@ -1275,27 +1268,6 @@ unit tree;
          gentypeconvnode:=p;
       end;
 
-    function gentypenode(t : pdef) : ptree;
-
-      var
-         p : ptree;
-
-      begin
-         p:=getnode;
-         p^.disposetyp:=dt_nothing;
-         p^.treetype:=typen;
-         p^.registers32:=0;
-{         p^.registers16:=0;
-         p^.registers8:=0; }
-         p^.registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=0;
-{$endif SUPPORT_MMX}
-         p^.resulttype:=generrordef;
-         p^.typenodetype:=t;
-         gentypenode:=p;
-      end;
-
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
 
       var
@@ -1392,7 +1364,7 @@ unit tree;
          genzeronode:=p;
       end;
 
-   function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
+   function genlabelnode(t : ttreetyp;nr : pasmlabel) : ptree;
 
       var
          p : ptree;
@@ -1459,6 +1431,51 @@ unit tree;
       end;
 
 
+    function gentypenode(t : pdef;sym:ptypesym) : ptree;
+      var
+         p : ptree;
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_nothing;
+         p^.treetype:=typen;
+         p^.registers32:=0;
+{        p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=generrordef;
+         p^.typenodetype:=t;
+         p^.typenodesym:=sym;
+         gentypenode:=p;
+      end;
+
+    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp:ptree): ptree;
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.registers32:=0;
+{        p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.treetype:=loadn;
+         p^.left:=nil;
+         p^.resulttype:=v^.definition;
+         p^.symtableentry:=v;
+         p^.symtable:=st;
+         p^.is_first := False;
+         p^.disposetyp:=dt_left;
+         p^.left:=mp;
+         genloadmethodcallnode:=p;
+      end;
+
+
       { uses the callnode to create the new procinline node }
     function genprocinlinenode(callp,code : ptree) : ptree;
 
@@ -1466,23 +1483,6 @@ unit tree;
          p : ptree;
 
       begin
-         p:=getnode;
-         p^.disposetyp:=dt_left;
-         p^.treetype:=procinlinen;
-         p^.inlineprocdef:=callp^.procdefinition;
-         p^.retoffset:=-4; { less dangerous as zero (PM) }
-         p^.para_offset:=0;
-         p^.para_size:=p^.inlineprocdef^.para_size;
-         if ret_in_param(p^.inlineprocdef^.retdef) then
-           p^.para_size:=p^.para_size+target_os.size_of_pointer;
-         { copy args }
-         p^.left:=getcopy(code);
-         p^.registers32:=code^.registers32;
-         p^.registersfpu:=code^.registersfpu;
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=0;
-{$endif SUPPORT_MMX}
-         p^.resulttype:=p^.inlineprocdef^.retdef;
          genprocinlinenode:=p;
       end;
 
@@ -1734,11 +1734,6 @@ unit tree;
                      comment(v_warning,'labnumber field different');
                      error_found:=true;
                   end;
-                  if oldp^.realtyp<>p^.realtyp then
-                  begin
-                     comment(v_warning,'realtyp field different');
-                     error_found:=true;
-                  end;
                end;
            end;
          if not error_found then
@@ -1896,7 +1891,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.6  1999-01-24 22:32:36  florian
+  Revision 1.7  1999-08-01 18:22:39  florian
+   * made it again compilable
+
+  Revision 1.6  1999/01/24 22:32:36  florian
     * well, more changes, especially parts of secondload ported
 
   Revision 1.5  1999/01/23 23:29:49  florian

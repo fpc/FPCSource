@@ -38,7 +38,7 @@ unit cgobj;
           destructor done;virtual;
 
           procedure a_call_name_ext(list : paasmoutput;const s : string;
-            offset : longint;m : texternal_typ);
+            offset : longint);
 
           {************************************************}
           { code generation for subroutine entry/exit code }
@@ -46,11 +46,11 @@ unit cgobj;
           { helper routines }
           procedure g_initialize_data(p : psym);
           procedure g_incr_data(p : psym);
-          procedure g_finalize_data(p : psym);
+          procedure g_finalize_data(p : pnamedindexobject);
 {$ifndef VALUEPARA}
-          procedure g_copyopenarrays(p : psym);
+          procedure g_copyopenarrays(p : pnamedindexobject);
 {$else}
-          procedure g_copyvalueparas(p : psym);
+          procedure g_copyvalueparas(p : pnamedindexobject);
 {$endif}
 
           procedure g_entrycode(list : paasmoutput;
@@ -179,15 +179,15 @@ unit cgobj;
 
       begin
          a_param_const32(list,stackframesize,1);
-         a_call_name_ext(list,'FPC_STACKCHECK',0,EXT_NEAR);
+         a_call_name_ext(list,'FPC_STACKCHECK',0);
       end;
 
     procedure tcg.a_call_name_ext(list : paasmoutput;const s : string;
-      offset : longint;m : texternal_typ);
+      offset : longint);
 
       begin
          a_call_name(list,s,offset);
-         concat_external(s,m);
+         { concat_external(s,m); }
       end;
 
 {*****************************************************************************
@@ -319,7 +319,7 @@ unit cgobj;
       end;
 
     { generates the code for finalisation of local data }
-    procedure tcg.g_finalize_data(p : psym);
+    procedure tcg.g_finalize_data(p : pnamedindexobject);
 
       var
          hr : treference;
@@ -369,9 +369,9 @@ unit cgobj;
 
     { generates the code to make local copies of the value parameters }
   {$ifndef VALUEPARA}
-    procedure tcg.g_copyopenarrays(p : psym);
+    procedure tcg.g_copyopenarrays(p : pnamedindexobject);
   {$else}
-    procedure tcg.g_copyvalueparas(p : psym);
+    procedure tcg.g_copyvalueparas(p : pnamedindexobject);
   {$endif}
       var
   {$ifdef VALUEPARA}
@@ -516,27 +516,27 @@ unit cgobj;
     { wrappers for the methods, because TP doesn't know procedures }
     { of objects                                                   }
 
-    procedure _copyopenarrays(s : psym);{$ifndef FPC}far;{$endif}
+    procedure _copyopenarrays(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
          cg^.g_copyopenarrays(s);
       end;
 
-    procedure _finalize_data(s : psym);{$ifndef FPC}far;{$endif}
+    procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
          cg^.g_finalize_data(s);
       end;
 
-    procedure _incr_data(s : psym);{$ifndef FPC}far;{$endif}
+    procedure _incr_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_incr_data(s);
+         cg^.g_incr_data(psym(s));
       end;
-    procedure _initialize_data(s : psym);{$ifndef FPC}far;{$endif}
+    procedure _initialize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
       begin
-         cg^.g_initialize_data(s);
+         cg^.g_initialize_data(psym(s));
       end;
 
     { generates the entry code for a procedure }
@@ -568,7 +568,7 @@ unit cgobj;
          { save registers on cdecl }
          if ((aktprocsym^.definition^.options and pocdecl)<>0) then
            begin
-              for r:=firstregister to lastregister do
+              for r:=firstreg to lastreg do
                 begin
                    if (r in registers_saved_on_cdecl) then
                      if (r in general_registers) then
@@ -617,12 +617,12 @@ unit cgobj;
               { needs the target a console flags ? }
               if tf_needs_isconsole in target_info.flags then
                 begin
-                   hr.symbol:=stringdup('U_'+target_info.system_unit+'_ISCONSOLE');
+                   hr.symbol:=newasmsymbol('U_'+target_info.system_unit+'_ISCONSOLE');
                    if apptype=at_cui then
                      a_load_const8_ref(list,1,hr)
                    else
                      a_load_const8_ref(list,0,hr);
-                   stringdispose(hr.symbol);
+                   dispose(hr.symbol,done);
                 end;
 
               hp:=pused_unit(usedunits.first);
@@ -631,7 +631,7 @@ unit cgobj;
                    { call the unit init code and make it external }
                    if (hp^.u^.flags and uf_init)<>0 then
                      a_call_name_ext(list,
-                       'INIT$$'+hp^.u^.modulename^,0,EXT_NEAR);
+                       'INIT$$'+hp^.u^.modulename^,0);
                     hp:=Pused_unit(hp^.next);
                 end;
            end;
@@ -641,18 +641,18 @@ unit cgobj;
            begin
              if procinfo._class^.isclass then
                begin
-                 list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
-                 list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
-                   newcsymbol('FPC_NEW_CLASS',0))));
-                 concat_external('FPC_NEW_CLASS',EXT_NEAR);
+                 list^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
+                 list^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
                end
              else
                begin
+                 {
                  list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
                  list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
                    newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
                  list^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
                  concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
+                 }
                end;
            end;
 
@@ -703,9 +703,9 @@ unit cgobj;
               while hs<>'' do
                 begin
                    if make_global then
-                     list^.insert(new(pai_symbol,init_global(hs)))
+                     exprasmlist^.insert(new(pai_symbol,initname_global(hs,0)))
                    else
-                     list^.insert(new(pai_symbol,init(hs)));
+                     exprasmlist^.insert(new(pai_symbol,initname(hs,0)));
 
   {$ifdef GDB}
                    if (cs_debuginfo in aktmoduleswitches) then
@@ -931,7 +931,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.5  1999-01-23 23:29:46  florian
+  Revision 1.6  1999-08-01 18:22:33  florian
+   * made it again compilable
+
+  Revision 1.5  1999/01/23 23:29:46  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

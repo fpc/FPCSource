@@ -103,19 +103,19 @@ unit cgbase;
        procinfo : tprocinfo;
 
        { labels for BREAK and CONTINUE }
-       aktbreaklabel,aktcontinuelabel : plabel;
+       aktbreaklabel,aktcontinuelabel : pasmlabel;
 
        { label when the result is true or false }
-       truelabel,falselabel : plabel;
+       truelabel,falselabel : pasmlabel;
 
        { label to leave the sub routine }
-       aktexitlabel : plabel;
+       aktexitlabel : pasmlabel;
 
        { also an exit label, only used we need to clear only the stack }
-       aktexit2label : plabel;
+       aktexit2label : pasmlabel;
 
        { only used in constructor for fail or if getmem fails }
-       quickexitlabel : plabel;
+       quickexitlabel : pasmlabel;
 
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
@@ -262,13 +262,13 @@ unit cgbase;
          codesegment:=new(paasmoutput,init);
          bsssegment:=new(paasmoutput,init);
          debuglist:=new(paasmoutput,init);
-         externals:=new(paasmoutput,init);
-         internals:=new(paasmoutput,init);
          consts:=new(paasmoutput,init);
          rttilist:=new(paasmoutput,init);
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
+         asmsymbollist:=new(pasmsymbollist,init);
+         asmsymbollist^.usehash;
       end;
 
 
@@ -279,8 +279,6 @@ unit cgbase;
          dispose(bsssegment,done);
          dispose(datasegment,done);
          dispose(debuglist,done);
-         dispose(externals,done);
-         dispose(internals,done);
          dispose(consts,done);
          dispose(rttilist,done);
          if assigned(importssection) then
@@ -289,6 +287,9 @@ unit cgbase;
           dispose(exportssection,done);
          if assigned(resourcesection) then
           dispose(resourcesection,done);
+         if assigned(resourcestringlist) then
+          dispose(resourcestringlist,done);
+         dispose(asmsymbollist,done);
       end;
 
 
@@ -358,7 +359,7 @@ unit cgbase;
       begin
         if ((loc.loc=LOC_MEM) or (loc.loc=LOC_REFERENCE)) and
            assigned(loc.reference.symbol) then
-          stringdispose(loc.reference.symbol);
+          dispose(loc.reference.symbol,done);
         loc.loc:=LOC_INVALID;
       end;
 
@@ -368,13 +369,13 @@ unit cgbase;
          { this is needed if you want to be able to delete }
          { the string with the nodes                       }
          if assigned(destloc.reference.symbol) then
-           stringdispose(destloc.reference.symbol);
+           dispose(destloc.reference.symbol,done);
          destloc:= sourceloc;
          if sourceloc.loc in [LOC_MEM,LOC_REFERENCE] then
            begin
               if assigned(sourceloc.reference.symbol) then
                 destloc.reference.symbol:=
-                  stringdup(sourceloc.reference.symbol^);
+                  sourceloc.reference.symbol;
            end
          else
            destloc.reference.symbol:=nil;
@@ -394,7 +395,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.4  1999-01-23 23:29:45  florian
+  Revision 1.5  1999-08-01 18:22:32  florian
+   * made it again compilable
+
+  Revision 1.4  1999/01/23 23:29:45  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

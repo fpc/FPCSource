@@ -54,7 +54,7 @@ uses
   ,gdb
 {$endif GDB}
 {$ifdef i386}
-  ,i386,tgeni386
+  ,i386base,tgeni386
   {$ifndef NoOpt}
   ,aopt386
   {$endif}
@@ -195,7 +195,6 @@ begin
            vs:=new(Pvarsym,init('val'+s,p));
            vs^.fileinfo:=filepos;
            vs^.varspez:=varspez;
-           vs^.localaddress:=l;
            aktprocsym^.definition^.parast^.insert(vs);
          end
        else
@@ -315,7 +314,7 @@ begin
 {$ifndef UseNiceNames}
   if assigned(procinfo._class) then
     if (pos('_$$_',procprefix)=0) then
-      hs:=procprefix+'_$$_'+procinfo._class^.name^+'_'+sp
+      hs:=procprefix+'_$$_'+procinfo._class^.name+'_'+sp
     else
       hs:=procprefix+'_$'+sp;
 {$else UseNiceNames}
@@ -695,7 +694,6 @@ begin
          { external shouldn't override the cdecl/system name }
          if (aktprocsym^.definition^.options and poclearstack)=0 then
            aktprocsym^.definition^.setmangledname(aktprocsym^.name);
-         externals^.concat(new(pai_external,init(aktprocsym^.mangledname,EXT_NEAR)));
        end;
     end;
 end;
@@ -924,7 +922,7 @@ begin
                     end;
                  { manglednames are equal? }
                    if (m_repeat_forward in aktmodeswitches) or
-                      assigned(aktprocsym^.definition^.parast^.root) then
+                      aktprocsym^.definition^.haspara then
                     if (hd^.mangledname<>aktprocsym^.definition^.mangledname) then
                      begin
                        if (aktprocsym^.definition^.options and poexternal)=0 then
@@ -950,29 +948,9 @@ begin
                            exit;
                          end;
 
-                       ad:=hd^.parast^.root;
-                       fd:=aktprocsym^.definition^.parast^.root;
-                       if assigned(ad) and assigned(fd) then
-                         begin
-                           while assigned(ad) and assigned(fd) do
-                             begin
-                               if ad^.name<>fd^.name then
-                                 begin
-                                   Message3(parser_e_header_different_var_names,
-                                     aktprocsym^.name,ad^.name,fd^.name);
-                                   break;
-                                 end;
-                             { it is impossible to have a nil pointer }
-                             { for only one parameter - since they    }
-                             { have the same number of parameters.    }
-                             { Left = next parameter.                 }
-                               ad:=ad^.left;
-                               fd:=fd^.left;
-                             end;
-                         end;
                      end;
                  { also the call_offset }
-                   hd^.parast^.call_offset:=aktprocsym^.definition^.parast^.call_offset;
+                   hd^.parast^.address_fixup:=aktprocsym^.definition^.parast^.address_fixup;
 
                  { remove pd^.nextoverloaded from the list }
                  { and add aktprocsym^.definition }
@@ -989,7 +967,7 @@ begin
                        hd^.extnumber:=aktprocsym^.definition^.extnumber;
                    { switch parast for warning in implementation  PM }
                    if (m_repeat_forward in aktmodeswitches) or
-                      assigned(aktprocsym^.definition^.parast^.root) then
+                      aktprocsym^.definition^.haspara then
                      begin
                         storeparast:=hd^.parast;
                         hd^.parast:=aktprocsym^.definition^.parast;
@@ -1040,7 +1018,7 @@ procedure compile_proc_body(const proc_names : tstringcontainer;
   Compile the body of a procedure
 }
 var
-   oldexitlabel,oldexit2label,oldquickexitlabel:Plabel;
+   oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
    _class,hp:Pobjectdef;
    { switches can change inside the procedure }
    entryswitches, exitswitches : tlocalswitches;
@@ -1413,7 +1391,7 @@ begin
       inc(procinfo.call_offset,target_os.size_of_pointer);
     end;
    { allows to access the parameters of main functions in nested functions }
-   aktprocsym^.definition^.parast^.call_offset:=procinfo.call_offset;
+   aktprocsym^.definition^.parast^.address_fixup:=procinfo.call_offset;
 
 { compile procedure when a body is needed }
    if (pdflags and pd_body)<>0 then
@@ -1448,7 +1426,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-01-13 22:52:39  florian
+  Revision 1.3  1999-08-01 18:22:38  florian
+   * made it again compilable
+
+  Revision 1.2  1999/01/13 22:52:39  florian
     + YES, finally the new code generator is compilable, but it doesn't run yet :(
 
   Revision 1.1  1998/12/26 15:20:31  florian

@@ -82,7 +82,8 @@ unit cg386;
        offset : longint);
 
        begin
-          list^.concat(new(pai386,op_csymbol(A_CALL,S_NO,newcsymbol(s,offset))));
+          list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(s))));
+          {!!!!!!!!!1 offset is ignored }
        end;
 
      procedure tcg386.a_push_reg(list : paasmoutput;r : tregister);
@@ -118,7 +119,10 @@ unit cg386;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-23 23:29:43  florian
+  Revision 1.3  1999-08-01 18:22:31  florian
+   * made it again compilable
+
+  Revision 1.2  1999/01/23 23:29:43  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

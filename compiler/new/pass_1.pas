@@ -29,7 +29,8 @@ interface
     uses
        tree;
 
-    procedure firstpass(p : pnode);
+    procedure firstpass(p : ptree);
+    procedure firstpassnode(p : pnode);
     function  do_firstpass(var p : ptree) : boolean;
     function  do_firstpassnode(var p : pnode) : boolean;
 
@@ -44,12 +45,7 @@ implementation
       htypechk,tcadd,tccal,tccnv,tccon,tcflw,
       tcinl,tcld,tcmat,tcmem,tcset
       }
-{$ifdef i386}
-      ,i386,tgeni386
-{$endif}
-{$ifdef m68k}
-      ,m68k,tgen68k
-{$endif}
+      {$I cpuunit.inc}
       ;
 
 {*****************************************************************************
@@ -116,7 +112,7 @@ implementation
 
 {$endif dummy}
 
-    procedure firstpass(p : pnode);
+    procedure firstpassnode(p : pnode);
 
       var
          oldcodegenerror  : boolean;
@@ -208,11 +204,17 @@ implementation
          do_firstpass:=codegenerror;
       end;
 
+    procedure firstpass(p : ptree);
+
+      begin
+         codegenerror:=false;
+      end;
+
     function do_firstpassnode(var p : pnode) : boolean;
 
       begin
          codegenerror:=false;
-         firstpass(p);
+         firstpassnode(p);
          do_firstpassnode:=codegenerror;
       end;
 
@@ -220,7 +222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-01-23 23:29:48  florian
+  Revision 1.4  1999-08-01 18:22:36  florian
+   * made it again compilable
+
+  Revision 1.3  1999/01/23 23:29:48  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

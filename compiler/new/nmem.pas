@@ -46,7 +46,7 @@ unit nmem;
   implementation
 
     uses
-       cobjects,aasm,cgbase,cgobj
+       cobjects,aasm,cgbase,cgobj,types,verbose
 {$I cpuunit.inc}
 {$I tempgen.inc}
        ;
@@ -106,8 +106,7 @@ unit nmem;
                        location.reference.offset:=pabsolutesym(symtableentry)^.address;
                      end
                     else
-                     location.reference.symbol:=stringdup(symtableentry^.mangledname);
-                    maybe_concat_external(symtableentry^.owner,symtableentry^.mangledname);
+                     location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                  end;
               varsym :
                  begin
@@ -115,9 +114,7 @@ unit nmem;
                     { C variable }
                     if (pvarsym(symtableentry)^.var_options and vo_is_C_var)<>0 then
                       begin
-                         location.reference.symbol:=stringdup(symtableentry^.mangledname);
-                         if (pvarsym(symtableentry)^.var_options and vo_is_external)<>0 then
-                           maybe_concat_external(symtableentry^.owner,symtableentry^.mangledname);
+                         location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                       end
 
 {$ifdef i386}
@@ -126,13 +123,10 @@ unit nmem;
                     else if (pvarsym(symtableentry)^.var_options and vo_is_dll_var)<>0 then
                       begin
                          hregister:=getregister32;
-                         stringdispose(location.reference.symbol);
-                         location.reference.symbol:=stringdup(symtableentry^.mangledname);
+                         location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(location.reference),hregister)));
-                         stringdispose(location.reference.symbol);
+                         location.reference.symbol:=nil;
                          location.reference.base:=hregister;
-                         if (pvarsym(symtableentry)^.var_options and vo_is_external)<>0 then
-                           maybe_concat_external(symtableentry^.owner,symtableentry^.mangledname);
                       end
 {$endif i386}
                     else
@@ -153,10 +147,8 @@ unit nmem;
                                 begin
                                    location.reference.base:=procinfo.framepointer;
                                    location.reference.offset:=pvarsym(symtableentry)^.address;
-                                   if (symtabletype=localsymtable) or (symtabletype=inlinelocalsymtable) then
+                                   if (symtabletype in [localsymtable,inlinelocalsymtable]) then
                                      location.reference.offset:=-location.reference.offset;
-                                   if (symtabletype=parasymtable) or (symtabletype=inlineparasymtable) then
-                                     inc(location.reference.offset,symtable^.call_offset);
                                    if (lexlevel>(symtable^.symtablelevel)) then
                                      begin
                                         hregister:=getregister32;
@@ -184,10 +176,7 @@ unit nmem;
                                 case symtabletype of
                                    unitsymtable,globalsymtable,
                                    staticsymtable : begin
-                                                       stringdispose(location.reference.symbol);
-                                                       location.reference.symbol:=stringdup(symtableentry^.mangledname);
-                                                       if symtabletype=unitsymtable then
-                                                         concat_external(symtableentry^.mangledname,EXT_NEAR);
+                                                       location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                                                     end;
                                    stt_exceptsymtable:
                                      begin
@@ -198,11 +187,7 @@ unit nmem;
                                      begin
                                         if (pvarsym(symtableentry)^.properties and sp_static)<>0 then
                                           begin
-                                             stringdispose(location.reference.symbol);
-                                             location.reference.symbol:=
-                                                stringdup(symtableentry^.mangledname);
-                                             if symtable^.defowner^.owner^.symtabletype=unitsymtable then
-                                               concat_external(symtableentry^.mangledname,EXT_NEAR);
+                                             location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                                           end
                                         else
                                           begin
@@ -230,14 +215,10 @@ unit nmem;
                            end;
                          { in case call by reference, then calculate: }
                          if (pvarsym(symtableentry)^.varspez=vs_var) or
+                            is_open_array(pvarsym(symtableentry)^.definition) or
+                            is_array_of_const(pvarsym(symtableentry)^.definition) or
                             ((pvarsym(symtableentry)^.varspez=vs_const) and
-{$ifndef VALUEPARA}
-                             dont_copy_const_param(pvarsym(symtableentry)^.definition)) or
-                             { call by value open arrays are also indirect addressed }
-                             is_open_array(pvarsym(symtableentry)^.definition) then
-{$else}
                              push_addr_param(pvarsym(symtableentry)^.definition)) then
-{$endif}
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -270,51 +251,30 @@ unit nmem;
                                      newreference(location.reference),
                                      hregister)));
                                 end;
-                              clear_reference(location.reference);
+                              reset_reference(location.reference);
                               location.reference.base:=hregister;
                           end;
                       end;
                  end;
               procsym:
                  begin
-                    if is_methodpointer then
-                      begin
-                         secondpass(left);
-                         stringdispose(location.reference.symbol);
-                         { virtual method ? }
-                         if (pprocsym(symtableentry)^.definition^.options and povirtualmethod)<>0 then
-                           begin
-                           end
-                         else
-                           begin
-                              location.reference.symbol:=stringdup(pprocsym(symtableentry)^.definition^.mangledname);
-                              maybe_concat_external(symtable,symtableentry^.mangledname);
-                           end;
-                      end
-                    else
-                      begin
-                         {!!!!! Be aware, work on virtual methods too }
-                         stringdispose(location.reference.symbol);
-                         location.reference.symbol:=stringdup(pprocsym(symtableentry)^.definition^.mangledname);
-                         maybe_concat_external(symtable,symtableentry^.mangledname);
-                      end;
+                    {!!!!!!!!!!}
                  end;
               typedconstsym :
                  begin
-                    stringdispose(location.reference.symbol);
-                    location.reference.symbol:=stringdup(symtableentry^.mangledname);
-                    maybe_concat_external(symtable,symtableentry^.mangledname);
+                    location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                  end;
               else internalerror(4);
          end;
       end;
 
-      end;
-
 end.
 {
   $Log$
-  Revision 1.1  1999-01-24 22:32:36  florian
+  Revision 1.2  1999-08-01 18:22:35  florian
+   * made it again compilable
+
+  Revision 1.1  1999/01/24 22:32:36  florian
     * well, more changes, especially parts of secondload ported
 
 }

@@ -159,24 +159,14 @@ uses
   {$O os2_targ}
   {$O win_targ}
 {$endif i386}
-  {$O asmutils}
   {$ifdef gdb}
         {$O gdb}
   {$endif gdb}
   {$ifdef i386}
         {$O opts386}
-        {$O i386}
-        {$O cgai386}
+        {$O i386base}
+        {$O i386asm}
         {$O tgeni386}
-        {$O cg386add}
-        {$O cg386cal}
-        {$O cg386cnv}
-        {$O cg386con}
-        {$O cg386flw}
-        {$O cg386ld}
-        {$O cg386inl}
-        {$O cg386mat}
-        {$O cg386set}
         {$ifndef NOOPT}
           {$O aopt386}
         {$endif}
@@ -265,7 +255,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-26 15:20:31  florian
+  Revision 1.2  1999-08-01 18:22:37  florian
+   * made it again compilable
+
+  Revision 1.1  1998/12/26 15:20:31  florian
     + more changes for the new version
 
 }
