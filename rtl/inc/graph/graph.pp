@@ -10,7 +10,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-Unit Graph2;
+Unit Graph;
 {-------------------------------------------------------}
 { Differences with TP Graph unit:                       }
 { -  default putimage and getimage only support a max.  }
@@ -340,8 +340,8 @@ Interface
 
 
 
-       MaxColors   = 65535;   { Maximum possible colors using a palette }
-                              { otherwise, direct color encoding        }
+       MaxColors   = 255;   { Maximum possible colors using a palette }
+                            { otherwise, direct color encoding        }
 
 
     type
@@ -351,17 +351,10 @@ Interface
          Blue : integer;
        end;
 
-{$ifndef FPC}
-       PaletteType = record
-	     Size   : longint;
-	     Colors : array[0..255] of RGBRec;
-       end;
-{$else}
        PaletteType = record
 	     Size   : longint;
 	     Colors : array[0..MaxColors] of RGBRec;
        end;
-{$endif}
 
        LineSettingsType = record
 	     linestyle : word;
@@ -522,6 +515,7 @@ TYPE
       MaxX: Integer;                { Max-X row                       }
       MaxY: Integer;                { Max. column.                    }
       DirectColor: boolean;         { Is this a direct color mode??   }
+      Hardwarepages: byte;          { total number of image pages - 1 }
       ModeName: String[18];
       { necessary hooks ... }
       DirectPutPixel : DefPixelProc;
@@ -757,6 +751,7 @@ var
   MaxColor : Longint;
   PaletteSize : longint; { Maximum palette entry we can set, usually equal}
                          { maxcolor.                                      }
+  HardwarePages : byte;  { maximum number of hardware visual pages        }
   DriverName: String;
   DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
@@ -1930,6 +1925,7 @@ end;
     MaxColor := 0;
     PaletteSize := 0;
     DirectColor := FALSE;
+    HardwarePages := 0;
     DefaultHooks;
   end;
 
