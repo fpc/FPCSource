@@ -254,9 +254,15 @@ begin
 end;
 
 constructor THTMLLinkScanDocument.Load(var S: TStream);
+var
+  i: sw_integer;
 begin
   inherited Init;
   DocName:=S.ReadStr;
+  if assigned(DocName) then
+    for i:=1 to Length(DocName^) do
+      if (DocName^[i]='\') or  (DocName^[i]='/') then
+        DocName^[i]:=DirSep;
   New(Aliases, Load(S));
 end;
 
@@ -613,7 +619,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-04-23 09:55:22  pierre
+  Revision 1.4  2002-04-23 10:11:31  pierre
+   * try to adapt .htx files to system DirSep
+
+  Revision 1.3  2002/04/23 09:55:22  pierre
     + added lastsynonym and InNameAnchor fields to TCustomHTMLLinkScanner
       these allow to eliminate double index entries pointing to the same
       html file location (which had two different names).
