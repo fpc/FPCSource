@@ -17,6 +17,14 @@
 {$h+}
 
 unit netdb;
+{
+  WARNING
+  This unit hardly does any error checking. For example, stringfromlabel
+  could easily be exploited by  someone sending malicious UDP packets in
+  order to crash  your program.  So if you really want to depend on this
+  in critical programs then you'd better fix a lot of code in here.
+  Otherwise, it appears to work pretty well.
+}
 
 Interface
 
@@ -32,6 +40,7 @@ Const
   SNetworksFile  = '/etc/networks';
 
   MaxRecursion = 10;
+  MaxIP4Mapped = 10;
   
 Type
   TDNSServerArray = Array[1..MaxServers] of THostAddr;
@@ -69,6 +78,9 @@ Function ResolveName6(HostName : String; Var Addresses : Array of THostAddr6) : 
 
 
 Function ResolveAddress(HostAddr : THostAddr; Var Addresses : Array of String) : Integer;
+Function ResolveAddress6(HostAddr: THostAddr6; var Addresses: Array of string) : Integer;
+
+function IN6_IS_ADDR_V4MAPPED(HostAddr: THostAddr6): boolean;
 
 Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
 Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
@@ -146,7 +158,7 @@ Var
     Auxiliary functions.
   ---------------------------------------------------------------------}
   
-function htonl(i:integer):integer;
+function htonl(const i:integer):integer;
 begin
   {$ifdef ENDIAN_LITTLE}
   result := (i shr 24) or (i shr 8 and $ff00) or (i shl 8 and $ff0000) or (i shl 24 and $ff000000);
@@ -155,7 +167,7 @@ begin
   {$endif}
 end;
 
-Function htons(var W : Word) : word;
+Function htons(const W : Word) : word;
 
 begin
   {$ifdef ENDIAN_LITTLE}
@@ -163,10 +175,9 @@ begin
   {$else}
   result := w;
   {$endif}
-  w := result;
 end;
 
-Function ntohs(var W : Word) : Word;
+Function ntohs(const W : Word) : Word;
 
 begin
   {$ifdef ENDIAN_LITTLE}
@@ -174,17 +185,15 @@ begin
   {$else}
   result := w;
   {$endif}
-  w := result;
 end;
 
-function ntohl(i:integer):integer;
+function ntohl(const i:integer):integer;
 begin
   {$ifdef ENDIAN_LITTLE}
   result := (i shr 24) or (i shr 8 and $ff00) or (i shl 8 and $ff0000) or (i shl 24 and $ff000000);
   {$else}
   result := i;
   {$endif}
-  i := result;
 end;
 
 { ---------------------------------------------------------------------
@@ -307,10 +316,10 @@ begin
       Delete(Name,1,L);
   Until (L=0);
   P[Result]:=0;
-  htons(rr);
+  rr := htons(rr);
   Move(rr,P[Result+1],2);
   Inc(Result,3);
-  htons(QClass);
+  QClass := htons(QClass);
   Move(qclass,P[Result],2);
   Inc(Result,2);
 end;
@@ -406,7 +415,7 @@ begin
     if (Flags2 and QF_RCODE)<>0 then
       exit;  
     // Number of answers ?  
-    htons(Ancount);
+    AnCount := htons(Ancount);
     If Ancount<1 then
       Exit;
     Result:=True;
@@ -422,7 +431,7 @@ begin
   Result:=0;
   With Ans do
     begin
-    htons(qdcount);
+    qdcount := htons(qdcount);
     i:=0;
     q:=0;
     While (Q<qdcount) and (i<l) do  
@@ -479,8 +488,7 @@ begin
   With SA do
     begin
     family:=AF_INET;
-    port:=DNSport;
-    htons(port);
+    port:=htons(DNSport);
     addr:=cardinal(HostToNet(DNSServers[Resolver]));
     end;
   sendto(sock,qry,qrylen+12,0,SA,SizeOf(SA));
@@ -508,55 +516,6 @@ begin
   Result:=True;  
 end;
 
-Function ResolveNameAt(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr) : Integer;
-
-Var
-  Qry, Ans            : TQueryData;
-  MaxAnswer,I,QryLen,
-  AnsLen,AnsStart     : Longint;
-  RR                  : TRRData;
-  
-begin
-  Result:=0;
-  QryLen:=BuildPayLoad(Qry,HostName,DNSQRY_A,1);
-  If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then
-    Result:=-1
-  else  
-    begin
-    AnsStart:=SkipAnsQueries(Ans,AnsLen);
-    MaxAnswer:=Ans.AnCount-1;
-    If MaxAnswer>High(Addresses) then
-      MaxAnswer:=High(Addresses);
-    I:=0;
-    While (I<=MaxAnswer) and NextRR(Ans.Payload,AnsStart,AnsLen,RR) do
-      begin
-      if (Ntohs(RR.AType)=DNSQRY_A) and (1=NtoHS(RR.AClass)) then
-        begin
-        Move(Ans.PayLoad[AnsStart],Addresses[i],SizeOf(THostAddr));
-        inc(Result);
-        Inc(AnsStart,RR.RDLength);
-        end;
-      Inc(I);
-      end;  
-    end;
-end;
-
-Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
-
-Var
-  I : Integer;
-
-begin
-  CheckResolveFile;
-  I:=1;
-  Result:=0;
-  While (Result=0) and (I<=DNSServerCount) do
-    begin
-    Result:=ResolveNameAt(I,HostName,Addresses);
-    Inc(I);
-    end;
-end;
-
 function stringfromlabel(pl: TPayLoad; start: integer): string;
 var
   l,i: integer;
@@ -577,6 +536,68 @@ begin
   if result[length(result)] = '.' then setlength(result,length(result)-1);
 end;
 
+Function ResolveNameAt(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr; Recurse: Integer) : Integer;
+
+Var
+  Qry, Ans            : TQueryData;
+  MaxAnswer,I,QryLen,
+  AnsLen,AnsStart     : Longint;
+  RR                  : TRRData;
+  cname               : string;
+begin
+  Result:=0;
+  QryLen:=BuildPayLoad(Qry,HostName,DNSQRY_A,1);
+  If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then
+    Result:=-1
+  else  
+    begin
+    AnsStart:=SkipAnsQueries(Ans,AnsLen);
+    MaxAnswer:=Ans.AnCount-1;
+    If MaxAnswer>High(Addresses) then
+      MaxAnswer:=High(Addresses);
+    I:=0;
+    While (I<=MaxAnswer) and NextRR(Ans.Payload,AnsStart,AnsLen,RR) do
+      begin
+      if htons(rr.AClass) = 1 then
+        case ntohs(rr.AType) of
+          DNSQRY_A: begin
+            Move(Ans.PayLoad[AnsStart],Addresses[i],SizeOf(THostAddr));
+            inc(Result);
+            Inc(AnsStart,htons(RR.RDLength));
+          end;
+          DNSQRY_CNAME: begin
+            if Recurse >= MaxRecursion then begin
+              Result := -1;
+              exit;
+            end;
+            rr.rdlength := ntohs(rr.rdlength);
+            setlength(cname, rr.rdlength);
+            cname := stringfromlabel(ans.payload, ansstart);
+            Result := ResolveNameAt(Resolver, cname, Addresses, Recurse+1);
+            exit; // FIXME: what about other servers?!
+          end;
+        end;
+        Inc(I);
+      end;  
+    end;
+end;
+
+Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
+
+Var
+  I : Integer;
+
+begin
+  CheckResolveFile;
+  I:=1;
+  Result:=0;
+  While (Result<=0) and (I<=DNSServerCount) do
+    begin
+    Result:=ResolveNameAt(I,HostName,Addresses,0);
+    Inc(I);
+    end;
+end;
+
 Function ResolveNameAt6(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr6; Recurse: Integer) : Integer;
                                                                                                                                         
 Var
@@ -585,13 +606,29 @@ Var
   AnsLen,AnsStart     : Longint;
   RR                  : TRRData;
   cname               : string;
+  LIP4mapped: array[0..MaxIP4Mapped-1] of THostAddr;
+  LIP4count: Longint;
                                                                                                                                         
 begin
   Result:=0;
   QryLen:=BuildPayLoad(Qry,HostName,DNSQRY_AAAA,1);
-  If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then
-    Result:=-1
-  else
+  If Not Query(Resolver,Qry,Ans,QryLen,AnsLen) then begin
+    // no answer? try IPv4 mapped addresses, maybe that will generate one
+    LIP4Count := ResolveName(HostName, LIP4Mapped);
+    if LIP4Count > 0 then begin
+      inc(LIP4Count); // we loop to LIP4Count-1 later
+      if LIP4Count > MaxIP4Mapped then LIP4Count := MaxIP4Mapped;
+      if LIP4Count > Length(Addresses) then LIP4Count := Length(Addresses);
+      for i := 0 to LIP4Count-2 do begin
+        Addresses[i] := NoAddress6;
+        Addresses[i][5] := $FFFF;
+        Move(LIP4Mapped[i], Addresses[i][6], 4);
+      end;
+      Result := LIP4Count;
+    end else begin
+      Result:=-1
+    end;
+  end else
     begin
     AnsStart:=SkipAnsQueries(Ans,AnsLen);
     MaxAnswer:=Ans.AnCount-1;
@@ -614,10 +651,8 @@ begin
             exit;
           end;
           rr.rdlength := ntohs(rr.rdlength);
-          writeln(rr.rdlength);
           setlength(cname, rr.rdlength);
           cname := stringfromlabel(ans.payload, ansstart);
-          writeln(cname);
           Result := ResolveNameAt6(Resolver, cname, Addresses, Recurse+1);
           exit; // FIXME: what about other servers?!
         end;
@@ -636,7 +671,7 @@ begin
   CheckResolveFile;
   i := 1;
   Result := 0;
-  while (Result = 0) and (I<= DNSServerCount) do begin
+  while (Result <= 0) and (I<= DNSServerCount) do begin
     Result := ResolveNameAt6(I, Hostname, Addresses, 0);
     Inc(i);
   end;
@@ -669,6 +704,7 @@ begin
         begin
         Names[i]:=BuildName(Ans.Payload,AnsStart,AnsLen);
         inc(Result);
+        RR.RDLength := ntohs(RR.RDLength);
         Inc(AnsStart,RR.RDLength);
         end;
       Inc(I);
@@ -694,6 +730,45 @@ begin
     Inc(I);
     end;
 end;
+
+Function ResolveAddress6(HostAddr : THostAddr6; Var Addresses : Array of String) : Integer;
+
+const
+  hexdig: string[16] = '0123456789abcdef';
+                                                                                
+Var
+  I : Integer;
+  S : ShortString;
+                                                                                
+begin
+  CheckResolveFile;
+  Result:=0;
+  S := '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.int';
+  for i := 7 downto 0 do begin
+    S[5+(7-i)*8] := hexdig[1+(HostAddr[i] and $000F) shr 00];
+    S[7+(7-i)*8] := hexdig[1+(HostAddr[i] and $00F0) shr 04];
+    S[1+(7-i)*8] := hexdig[1+(HostAddr[i] and $0F00) shr 08];
+    S[3+(7-i)*8] := hexdig[1+(HostAddr[i] and $F000) shr 12];
+  end;
+  I := 1;
+  While (Result=0) and (I<=DNSServerCount) do
+    begin
+    Result:=ResolveAddressAt(I,S,Addresses);
+    Inc(I);
+    end;
+end;
+
+function IN6_IS_ADDR_V4MAPPED(HostAddr: THostAddr6): boolean;
+begin
+  Result := 
+   (HostAddr[0] = 0) and
+   (HostAddr[1] = 0) and
+   (HostAddr[2] = 0) and
+   (HostAddr[3] = 0) and
+   (HostAddr[4] = 0) and
+   (HostAddr[5] = $FFFF);
+end;
+
 
 Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
 
@@ -1074,7 +1149,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-12-12 20:50:18  michael
+  Revision 1.10  2004-01-24 12:23:10  michael
+  + Patch from Johannes Berg
+
+  Revision 1.9  2003/12/12 20:50:18  michael
   + Fixed trimming of nameserver entries
 
   Revision 1.8  2003/11/22 23:17:50  michael
