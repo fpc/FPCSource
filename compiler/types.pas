@@ -1353,10 +1353,13 @@ implementation
                  arraydef :
                    begin
                    { array of char to string, the length check is done by the firstpass of this node }
-                     if is_chararray(def_from) then
+                     if is_chararray(def_from) or
+                        (is_equal(tarraydef(def_from).elementtype.def,cchartype.def) and
+                         is_open_array(def_from)) then
                       begin
                         doconv:=tc_chararray_2_string;
-                        if (is_shortstring(def_to) and
+                        if is_open_array(def_from) or
+                           (is_shortstring(def_to) and
                             (def_from.size <= 255)) or
                            (is_ansistring(def_to) and
                             (def_from.size > 255)) then
@@ -1797,7 +1800,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2001-10-20 19:28:39  peter
+  Revision 1.51  2001-10-22 15:13:49  jonas
+    * allow typeconversion of open array-of-char to string
+
+  Revision 1.50  2001/10/20 19:28:39  peter
     * interface 2 guid support
     * guid constants support
 
