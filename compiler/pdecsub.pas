@@ -1537,7 +1537,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_PUBLIC;
-      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : @pd_public;
       pocall   : pocall_none;
       pooption : [po_public,po_global];
@@ -2357,7 +2357,10 @@ const
 end.
 {
   $Log$
-  Revision 1.214  2004-11-29 17:48:34  peter
+  Revision 1.215  2004-11-29 21:50:08  peter
+    * public is allowd in interface
+
+  Revision 1.214  2004/11/29 17:48:34  peter
     * when importing by index don't change mangledname
 
   Revision 1.213  2004/11/22 12:22:25  jonas
