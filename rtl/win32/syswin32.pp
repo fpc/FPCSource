@@ -65,8 +65,9 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
-  hinstance,
+  MainInstance,
   cmdshow     : longint;
+  IsLibrary,IsMultiThreaded,IsConsole : boolean;
 
 implementation
 
@@ -723,15 +724,15 @@ end;
 {$endif}
 {$ASMMODE ATT}
 
-
-
-
 begin
 { get some helpful informations }
   GetStartupInfo(@startupinfo);
 { some misc Win32 stuff }
   hprevinst:=0;
-  hinstance:=getmodulehandle(GetCommandFile);
+  MainInstance:=getmodulehandle(GetCommandFile);
+  IsLibrary:=MainInstance=0;
+  IsConsole:=true;
+  IsMultithreaded:=false;
   cmdshow:=startupinfo.wshowwindow;
 { to test stack depth }
   loweststack:=maxlongint;
@@ -756,7 +757,11 @@ end.
 
 {
   $Log$
-  Revision 1.21  1998-10-15 16:26:19  peter
+  Revision 1.22  1998-10-27 15:07:16  florian
+    + Is* flags added
+    + IsLibrary works also
+
+  Revision 1.21  1998/10/15 16:26:19  peter
     + fpuinit
     + end of backtrace indicator
 
