@@ -1600,9 +1600,9 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       if inlinenumber=in_succ_x then
-                       hp:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,false)
+                       hp:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,true)
                       else
-                       hp:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,false);
+                       hp:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,true);
                       result:=hp;
                     end;
                 end;
@@ -2380,7 +2380,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2002-09-08 13:01:25  jonas
+  Revision 1.89  2002-09-09 19:41:01  peter
+    * check ranges for pred() and succ()
+
+  Revision 1.88  2002/09/08 13:01:25  jonas
     * first_pi now just generates a constant, added missing calls to firstpass()
 
   Revision 1.87  2002/09/07 20:42:16  carl
