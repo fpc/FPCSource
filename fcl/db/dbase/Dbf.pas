@@ -437,8 +437,8 @@ uses
   Libc,
 {$endif}  
   Types,
-  Dbf_Wtil,
 {$endif}
+  Dbf_Wtil,
 {$ifdef DELPHI_6}
   Variants,
 {$endif}
