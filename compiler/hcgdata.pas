@@ -32,7 +32,7 @@ interface
     function genintmsgtab(_class : pobjectdef) : pasmlabel;
 
     { generates a VMT for _class }
-    procedure genvmt(_class : pobjectdef);
+    procedure genvmt(list : paasmoutput;_class : pobjectdef);
 
 
 implementation
@@ -459,7 +459,7 @@ implementation
            end;
       end;
 
-    procedure genvmt(_class : pobjectdef);
+    procedure genvmt(list : paasmoutput;_class : pobjectdef);
 
       procedure do_genvmt(p : pobjectdef);
 
@@ -527,11 +527,11 @@ implementation
 {$else}
                                        _class^.objectoptions:=_class^.objectoptions+[oo_has_abstract];
 {$endif}
-                                       datasegment^.concat(new(pai_const_symbol,initname('FPC_ABSTRACTERROR')));
+                                       list^.concat(new(pai_const_symbol,initname('FPC_ABSTRACTERROR')));
                                     end
                                   else
                                     begin
-                                      datasegment^.concat(new(pai_const_symbol,
+                                      list^.concat(new(pai_const_symbol,
                                         initname(procdefcoll^.data^.mangledname)));
                                     end;
                                end;
@@ -563,7 +563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-08-03 22:02:52  peter
+  Revision 1.15  1999-09-01 13:44:56  florian
+    * fixed writing of class rtti: vmt offset were written wrong
+
+  Revision 1.14  1999/08/03 22:02:52  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -1270,6 +1270,7 @@ unit pdecl;
          oldparse_only : boolean;
          intmessagetable,strmessagetable,classnamelabel : pasmlabel;
          storetypeforwardsallowed : boolean;
+         vmtlist : taasmoutput;
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -1602,6 +1603,10 @@ unit pdecl;
          { Write the start of the VMT, wich is equal for classes and objects }
          if (oo_has_vmt in aktclass^.objectoptions) then
            begin
+              { this generates the entries }
+              vmtlist.init;
+              genvmt(@vmtlist,aktclass);
+
               { write tables for classes, this must be done before the actual
                 class is written, because we need the labels defined }
               if is_a_class then
@@ -1684,10 +1689,8 @@ unit pdecl;
                  else
                    datasegment^.concat(new(pai_const,init_32bit(0)));
                end;
-
-              { this generates the entries }
-              genvmt(aktclass);
-
+              datasegment^.concatlist(@vmtlist);
+              vmtlist.done;
               { write the size of the VMT }
               datasegment^.concat(new(pai_symbol_end,initname(aktclass^.vmt_mangledname)));
            end;
@@ -2404,7 +2407,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.145  1999-08-26 21:17:39  peter
+  Revision 1.146  1999-09-01 13:44:56  florian
+    * fixed writing of class rtti: vmt offset were written wrong
+
+  Revision 1.145  1999/08/26 21:17:39  peter
     * fixed crash when childof was nil
 
   Revision 1.144  1999/08/14 00:38:53  peter
