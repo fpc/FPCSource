@@ -1894,7 +1894,7 @@ type
                 para.left := ctemprefnode.create(tempnode);
                 addstatement(deletestatement,ctempdeletenode.create(tempnode));
               end
-            else if not node_complexity(para.left) > 1 then
+            else if node_complexity(para.left) > 1 then
               begin
                 if (cs_regvars in aktglobalswitches) and
                    not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable then
@@ -2258,7 +2258,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.241  2004-07-15 19:55:39  jonas
+  Revision 1.242  2004-07-15 21:02:05  jonas
+    * the condition for when to use a temp in case of reference var/const
+      parameters was inverse
+
+  Revision 1.241  2004/07/15 19:55:39  jonas
     + (incomplete) node_complexity function to assess the complexity of a
       tree
     + support for inlining value and const parameters at the node level
