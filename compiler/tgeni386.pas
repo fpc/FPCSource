@@ -311,9 +311,9 @@ implementation
     function getexplicitregister32(r : tregister) : tregister;
 
       begin
-         dec(usablereg32);
          if r in unused then
            begin
+              dec(usablereg32);
               unused:=unused-[r];
               usedinproc:=usedinproc or ($80 shr byte(r));
               getexplicitregister32:=R_ECX;
@@ -370,7 +370,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1998-12-11 16:10:13  florian
+  Revision 1.16  1998-12-11 17:22:40  florian
+    * fixed previous commit bug fix of getexplicitregister32
+      (usableregs32 was decremented twice, thnaks Pierre for that hint)
+
+  Revision 1.15  1998/12/11 16:10:13  florian
     + shifting for 64 bit ints added
     * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
 
