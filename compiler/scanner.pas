@@ -383,8 +383,6 @@ implementation
           macrocount:=0;
           repeat
             mac:=tmacro(current_scanner.macros.search(result));
-            if not assigned(mac) then
-              break;
 
             inc(macrocount);
             if macrocount>max_macro_nesting then
@@ -393,7 +391,7 @@ implementation
                 break;
               end;
 
-            if mac.defined and assigned(mac.buftext) then
+            if assigned(mac) and mac.defined and assigned(mac.buftext) then
               begin
                 if mac.buflen>255 then
                   begin
@@ -405,7 +403,9 @@ implementation
                 hs[0]:=char(len);
                 move(mac.buftext^,hs[1],len);
                 result:=upcase(hs);
-              end;
+              end
+            else
+              break;
           until false;
         end;
 
@@ -3224,6 +3224,7 @@ exit_label:
         
         { Default Mac directives and conditionals: }
         AddDirective('SETC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_setc);
+        AddDirective('DEFINEC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_define);
         AddConditional('IFC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_if);
         AddConditional('ELSEC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_else);
         AddConditional('ENDC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
@@ -3241,7 +3242,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.85  2004-08-02 20:45:40  florian
+  Revision 1.86  2004-08-22 10:50:19  olle
+    + added DEFINEC for mode macpas, is equivalent to DEFINE
+    * fixed bug when macro without value is used in a compile time expr.
+
+  Revision 1.85  2004/08/02 20:45:40  florian
     * sizeof in the preprocessor handles types now as well
 
   Revision 1.84  2004/08/02 07:15:54  michael
