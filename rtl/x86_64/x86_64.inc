@@ -251,7 +251,12 @@ function declocked(var l : longint) : boolean;assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
+{$ifdef FPC_PIC}
+     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     cmpb       $0,(%rax)
+{$else FPC_PIC}
      cmpb       $0,IsMultithread
+{$endif FPC_PIC}
      jz         .Ldeclockednolock
      lock
      decl       (%rdi)
@@ -271,7 +276,12 @@ function declocked(var l : int64) : boolean;assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
+{$ifdef FPC_PIC}
+     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     cmpb       $0,(%rax)
+{$else FPC_PIC}
      cmpb       $0,IsMultithread
+{$endif FPC_PIC}
      jz         .Ldeclockednolock
      lock
      decq       (%rdi)
@@ -292,7 +302,12 @@ procedure inclocked(var l : longint);assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
+{$ifdef FPC_PIC}
+     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     cmpb       $0,(%rax)
+{$else FPC_PIC}
      cmpb       $0,IsMultithread
+{$endif FPC_PIC}
      jz         .Linclockednolock
      lock
      incl       (%rdi)
@@ -312,7 +327,12 @@ procedure inclocked(var l : int64);assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
+{$ifdef FPC_PIC}
+     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     cmpb       $0,(%rax)
+{$else FPC_PIC}
      cmpb       $0,IsMultithread
+{$endif FPC_PIC}
      jz         .Linclockednolock
      lock
      incq       (%rdi)
@@ -361,7 +381,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2005-02-05 16:19:44  florian
+  Revision 1.18  2005-02-05 22:30:50  florian
+    * some PIC ifdefs
+
+  Revision 1.17  2005/02/05 16:19:44  florian
     + completed SSE exception masks
 
   Revision 1.16  2004/12/25 11:50:46  florian
