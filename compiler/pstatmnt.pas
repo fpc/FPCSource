@@ -779,6 +779,7 @@ unit pstatmnt;
         var
           p,p2 : ptree;
           ht : ttoken;
+          store_allow : boolean;
           again : boolean; { dummy for do_proc_call }
           destrukname : stringid;
           sym : psym;
@@ -853,7 +854,10 @@ unit pstatmnt;
                    sym:=nil;
                    while assigned(classh) do
                          begin
+                            store_allow:=allow_only_static;
+                            allow_only_static:=false;
                             sym:=classh^.publicsyms^.search(pattern);
+                            allow_only_static:=store_allow;
                             srsymtable:=classh^.publicsyms;
                             if assigned(sym) then
                                   break;
@@ -1259,7 +1263,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.63  1999-02-09 15:45:47  florian
+  Revision 1.64  1999-02-11 09:46:26  pierre
+    * fix for normal method calls inside static methods :
+      WARNING there were both parser and codegen errors !!
+      added static_call boolean to calln tree
+
+  Revision 1.63  1999/02/09 15:45:47  florian
     + complex results for assembler functions, fixes bug0155
 
   Revision 1.62  1999/01/27 13:06:57  pierre

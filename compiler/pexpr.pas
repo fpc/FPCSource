@@ -790,7 +790,7 @@ unit pexpr;
                          Factor_read_id
          ---------------------------------------------}
 
-         procedure factor_read_id;
+       procedure factor_read_id;
          begin
            { allow post fix operators }
            again:=true;
@@ -1129,7 +1129,10 @@ unit pexpr;
                         PostFixOperators
          ---------------------------------------------}
 
-        procedure postfixoperators;
+      procedure postfixoperators;
+        var
+           store_static : boolean;
+           
         { p1 and p2 must contain valid value_str }
         begin
           check_tokenpos;
@@ -1312,6 +1315,8 @@ unit pexpr;
                            begin
                              classh:=pobjectdef(pd);
                              sym:=nil;
+                             store_static:=allow_only_static;
+                             allow_only_static:=false;
                              while assigned(classh) do
                               begin
                                 sym:=pvarsym(classh^.publicsyms^.search(pattern));
@@ -1320,6 +1325,7 @@ unit pexpr;
                                  break;
                                 classh:=classh^.childof;
                               end;
+                             allow_only_static:=store_static;
                              consume(ID);
                              do_member_read(false,sym,p1,pd,again);
                            end;
@@ -1934,7 +1940,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.82  1999-01-28 14:06:47  florian
+  Revision 1.83  1999-02-11 09:46:25  pierre
+    * fix for normal method calls inside static methods :
+      WARNING there were both parser and codegen errors !!
+      added static_call boolean to calln tree
+
+  Revision 1.82  1999/01/28 14:06:47  florian
     * small fix for method pointers
     * found the annoying strpas bug, mainly nested call to type cast which
       use ansistrings crash

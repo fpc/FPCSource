@@ -805,10 +805,14 @@ implementation
                 begin
                    { static functions contain the vmt_address in ESI }
                    { also class methods                              }
+                   { Here it is quite tricky because it also depends }
+                   { on the methodpointer                         PM }
                    if assigned(aktprocsym) then
                      begin
-                       if ((aktprocsym^.properties and sp_static)<>0) or
-                        ((aktprocsym^.definition^.options and poclassmethod)<>0) or
+                       if ((((aktprocsym^.properties and sp_static)<>0) or
+                        ((aktprocsym^.definition^.options and poclassmethod)<>0)) and
+                        ((p^.methodpointer=nil) or (p^.methodpointer^.treetype=typen)))
+                        or
                         ((p^.procdefinition^.options and postaticmethod)<>0) or
                         ((p^.procdefinition^.options and poconstructor)<>0) or
                         { ESI is loaded earlier }
@@ -1300,7 +1304,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  1999-02-09 15:45:46  florian
+  Revision 1.67  1999-02-11 09:46:21  pierre
+    * fix for normal method calls inside static methods :
+      WARNING there were both parser and codegen errors !!
+      added static_call boolean to calln tree
+
+  Revision 1.66  1999/02/09 15:45:46  florian
     + complex results for assembler functions, fixes bug0155
 
   Revision 1.65  1999/02/08 11:29:04  pierre

@@ -242,7 +242,8 @@ unit tree;
              calln : (symtableprocentry : psym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
-                      no_check,unit_specific,return_value_used : boolean);
+                      no_check,unit_specific,
+                      return_value_used,static_call : boolean);
              ordconstn : (value : longint);
              realconstn : (value_real : bestreal;lab_real : plabel;realtyp : tait);
              fixconstn : (value_fix: longint);
@@ -1685,7 +1686,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.64  1999-01-27 12:57:22  pierre
+  Revision 1.65  1999-02-11 09:46:31  pierre
+    * fix for normal method calls inside static methods :
+      WARNING there were both parser and codegen errors !!
+      added static_call boolean to calln tree
+
+  Revision 1.64  1999/01/27 12:57:22  pierre
    * memory leaks with hightree solved by adding a new disposetyp
      dt_leftrighthigh
 
