@@ -174,13 +174,13 @@ Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
 
 const
   SEM_UNDO = $1000;
-  GETPID = 11;
-  GETVAL = 12;
-  GETALL = 13;
-  GETNCNT = 14;
-  GETZCNT = 15;
-  SETVAL = 16;
-  SETALL = 17;
+  ipc_GETPID = 11;
+  ipc_GETVAL = 12;
+  ipc_GETALL = 13;
+  ipc_GETNCNT = 14;
+  ipc_GETZCNT = 15;
+  ipc_SETVAL = 16;
+  ipc_SETALL = 17;
 
   SEMMNI = 128;
   SEMMSL = 32;
@@ -372,7 +372,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2003-09-14 20:15:01  marco
+  Revision 1.6  2003-11-16 14:09:25  marco
+   * few things renamed
+
+  Revision 1.5  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.4  2002/09/07 16:01:27  peter
