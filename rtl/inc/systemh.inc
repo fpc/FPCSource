@@ -35,6 +35,14 @@
 
 { needed for insert,delete,readln }
 {$P+}
+{ stack checking always disabled
+  for system unit. This is because
+  the startup code might not
+  have been called yet when we
+  get a stack error, this will
+  cause big crashes
+}
+{$S-}
 
 {****************************************************************************
                          Global Types and Constants
@@ -604,7 +612,10 @@ const
 
 {
   $Log$
-  Revision 1.57  2002-10-02 18:21:51  peter
+  Revision 1.58  2002-10-06 13:56:47  carl
+    - remove stack checking for every target in system unit
+
+  Revision 1.57  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions
