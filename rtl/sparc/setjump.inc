@@ -19,10 +19,6 @@
 #define RW_FP [%fp + 0x48]
 }
 
-{$ifdef linux}
-  {$define needsigprocmask}
-{$endif}
-
 {$ifdef needsigprocmask}
 const
   JMPSIG_BLOCK   = 1;
@@ -128,7 +124,10 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
 
 {
   $Log$
-  Revision 1.9  2004-09-12 12:04:22  peter
+  Revision 1.10  2005-01-20 16:38:28  peter
+    * restore sigprocmask for linux
+
+  Revision 1.9  2004/09/12 12:04:22  peter
     * restore traps when returning with longjmp
 
   Revision 1.8  2004/05/31 10:43:00  peter

@@ -14,6 +14,24 @@
 
  **********************************************************************}
 
+{$ifdef needsigprocmask}
+const
+  JMPSIG_BLOCK   = 0;
+  JMPSIG_SETMASK = 2;
+
+function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'FPC_SYSC_SIGPROCMASK';
+
+procedure savesigmask(var s:jmp_buf);
+begin
+  jmpsigprocmask(JMPSIG_BLOCK,nil,@s.sigmask);
+end;
+
+procedure restoresigmask(var s:jmp_buf);
+begin
+  jmpsigprocmask(JMPSIG_SETMASK,@s.sigmask,nil);
+end;
+{$endif needsigprocmask}
+
 Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
 asm
 {$ifndef REGCALL}
@@ -33,6 +51,9 @@ asm
 {$endif}
   movl %edi,16(%eax)
   movl 8(%eax),%edi
+{$ifdef needsigprocmask}
+  call savesigmask
+{$endif needsigprocmask}  
   xorl %eax,%eax
 end['EAX'];
 
@@ -40,11 +61,19 @@ end['EAX'];
 Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];
 asm
 {$ifdef REGCALL}
+{$ifdef needsigprocmask}
+  movl %edx, %ebx
+  movl %eax, %esi
+  call restoresigmask
+  movl %ebx, %edx
+  movl %esi, %eax
+{$endif needsigprocmask}
   xchgl %edx,%eax
 {$else}
   movl 8(%ebp),%edx
   movl 12(%ebp),%eax
 {$endif}
+
   movl (%edx),%ebx
   movl 4(%edx),%esi
   movl 8(%edx),%edi
@@ -58,7 +87,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-12-04 21:42:07  peter
+  Revision 1.6  2005-01-20 16:38:28  peter
+    * restore sigprocmask for linux
+
+  Revision 1.5  2003/12/04 21:42:07  peter
     * register calling updates
 
   Revision 1.4  2003/11/11 21:08:17  peter

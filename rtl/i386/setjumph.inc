@@ -14,10 +14,31 @@
 
  **********************************************************************}
 
+{$ifdef linux}
+  {$define needsigprocmask}
+{$endif}
+
+
+{$ifdef needsigprocmask}
+const
+{$ifdef FPC_USE_LIBC}
+  jmpbufsigmaskwords = 1024 div 32;
+{$else}
+  jmpbufsigmaskwords = 128 div 32;
+{$endif}
+
+type
+  tjmpsigset=array[0..jmpbufsigmaskwords-1] of longint;
+  pjmpsigset=^tjmpsigset;
+{$endif needsigprocmask}
+
 Type
   jmp_buf = packed record
     ebx,esi,edi : Longint;
     bp,sp,pc : Pointer;
+{$ifdef needsigprocmask}
+    sigmask : tjmpsigset;
+{$endif needsigprocmask}
     end;
   PJmp_buf = ^jmp_buf;
 
@@ -26,7 +47,10 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.4  2002-09-15 10:04:31  carl
+  Revision 1.5  2005-01-20 16:38:28  peter
+    * restore sigprocmask for linux
+
+  Revision 1.4  2002/09/15 10:04:31  carl
     * make the record packed (just in case)
 
   Revision 1.3  2002/09/07 16:01:19  peter
