@@ -157,6 +157,8 @@ unit temp_gen;
         newtempofsize:=tl^.pos;
       end;
 
+const
+  lasttempofsize : ptemprecord = nil;
 
     function gettempofsize(size : longint) : longint;
       var
@@ -241,10 +243,9 @@ unit temp_gen;
          else
           begin
              ofs:=newtempofsize(size);
-{$ifdef EXTDEBUG}
              tl:=templist;
-{$endif}
           end;
+         lasttempofsize:=tl;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
 {$endif}
@@ -258,7 +259,7 @@ unit temp_gen;
          l : longint;
       begin
          l:=gettempofsize(size);
-         templist^.temptype:=tt_persistant;
+         lasttempofsize^.temptype:=tt_persistant;
 {$ifdef EXTDEBUG}
          Comment(V_Debug,'temp managment  : call to gettempofsizepersistant()'+
                      ' with size '+tostr(size)+' returned '+tostr(l));
@@ -531,7 +532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  1999-12-01 12:42:33  peter
+  Revision 1.40  1999-12-19 23:53:14  pierre
+   * problem with persistant temp fixed
+
+  Revision 1.39  1999/12/01 12:42:33  peter
     * fixed bug 698
     * removed some notes about unused vars
 
