@@ -576,8 +576,9 @@ implementation
                    if (porddef(rd)^.typ=u32bit) then
                      begin
                      { can we make them both unsigned? }
-                       if is_constintnode(p^.left) and
-                          ((p^.treetype <> subn) and
+                       if (porddef(ld)^.typ in [u8bit,u16bit]) or
+                          (is_constintnode(p^.left) and
+                           (p^.treetype <> subn) and
                            (p^.left^.value > 0)) then
                          p^.left:=gentypeconvnode(p^.left,u32bitdef)
                        else
@@ -587,8 +588,9 @@ implementation
                    else {if (porddef(ld)^.typ=u32bit) then}
                      begin
                      { can we make them both unsigned? }
-                       if is_constintnode(p^.right) and
-                          (p^.right^.value > 0) then
+                       if (porddef(rd)^.typ in [u8bit,u16bit]) or
+                          (is_constintnode(p^.right) and
+                           (p^.right^.value > 0)) then
                          p^.right:=gentypeconvnode(p^.right,u32bitdef)
                        else
                          p^.right:=gentypeconvnode(p^.right,s32bitdef);
@@ -1289,7 +1291,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-27 16:11:54  peter
+  Revision 1.7  2000-08-29 08:24:45  jonas
+    * some modifications to -dcardinalmulfix code
+
+  Revision 1.6  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -578,23 +578,25 @@ implementation
                    if (porddef(rd)^.typ=u32bit) then
                      begin
                      { can we make them both unsigned? }
-                       if is_constintnode(left) and
-                          ((treetype <> subn) and
-                           (left^.value > 0)) then
-                         left:=gentypeconvnode(left,u32bitdef)
+                       if (porddef(ld)^.typ in [u8bit,u16bit]) or
+                          (is_constintnode(p^.left) and
+                           (p^.treetype <> subn) and
+                           (p^.left^.value > 0)) then
+                         p^.left:=gentypeconvnode(p^.left,u32bitdef)
                        else
-                         left:=gentypeconvnode(left,s32bitdef);
-                       firstpass(left);
+                         p^.left:=gentypeconvnode(p^.left,s32bitdef);
+                       firstpass(p^.left);
                      end
                    else {if (porddef(ld)^.typ=u32bit) then}
                      begin
                      { can we make them both unsigned? }
-                       if is_constintnode(right) and
-                          (right^.value > 0) then
-                         right:=gentypeconvnode(right,u32bitdef)
+                       if (porddef(rd)^.typ in [u8bit,u16bit]) or
+                          (is_constintnode(p^.right) and
+                           (p^.right^.value > 0)) then
+                         p^.right:=gentypeconvnode(p^.right,u32bitdef)
                        else
-                         right:=gentypeconvnode(right,s32bitdef);
-                       firstpass(right);
+                         p^.right:=gentypeconvnode(p^.right,s32bitdef);
+                       firstpass(p^.right);
                      end;
 {$endif cardinalmulfix}
                  calcregisters(p,1,0,0);
@@ -1292,7 +1294,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-08-26 12:24:20  florian
+  Revision 1.2  2000-08-29 08:24:45  jonas
+    * some modifications to -dcardinalmulfix code
+
+  Revision 1.1  2000/08/26 12:24:20  florian
     * initial release
 
 }
