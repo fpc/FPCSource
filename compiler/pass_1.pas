@@ -42,6 +42,9 @@ implementation
       globtype,systems,
       cutils,cobjects,globals,
       hcodegen,
+{$ifdef extdebug}
+      htypechk,
+{$endif extdebug}
       tgcpu
 {$ifdef newcg}
       ,cgbase
@@ -144,7 +147,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-11-29 00:30:35  florian
+  Revision 1.11  2000-12-18 21:56:52  peter
+    * extdebug fixes
+
+  Revision 1.10  2000/11/29 00:30:35  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

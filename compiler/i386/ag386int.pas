@@ -44,6 +44,9 @@ interface
 {$endif}
       cutils,globtype,globals,systems,cobjects,
       verbose,cpubase,cpuasm
+{$ifdef extdebug}
+      ,fmodule
+{$endif extdebug}
       ;
 
     const
@@ -637,7 +640,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.2  2000-11-29 00:30:43  florian
+  Revision 1.3  2000-12-18 21:56:52  peter
+    * extdebug fixes
+
+  Revision 1.2  2000/11/29 00:30:43  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
