@@ -25,6 +25,7 @@ uses
   dw_XML,   // XML writer
   dw_HTML,  // HTML writer
   dw_ipf,   // IPF writer
+  dw_man,   // Man page writer
   dw_txt;   // TXT writer
 
 const
@@ -40,8 +41,61 @@ var
 
 Procedure Usage(AnExitCode : Byte);
 
+Var
+  I,P : Integer;
+  S : String;
+  L : TStringList;
+  C : TFPDocWriterClass;
+  
 begin
-  Writeln(SCmdLineHelp);
+  Writeln(Format(SCmdLineHelp,[ExtractFileName(Paramstr(0))]));
+  Writeln(SUsageOption010);
+  Writeln(SUsageOption020);
+  Writeln(SUsageOption030);
+  Writeln(SUsageOption040);
+  Writeln(SUsageOption050);
+  Writeln(SUsageOption060);
+  Writeln(SUsageOption070);
+  Writeln(SUsageOption080);
+  Writeln(SUsageOption090);
+  Writeln(SUsageOption100);
+  Writeln(SUsageOption110);
+  Writeln(SUsageOption120);
+  Writeln(SUsageOption130);
+  Writeln(SUsageOption140);
+  Writeln(SUsageOption150);
+  Writeln(SUsageOption160);
+  Writeln(SUsageOption170);
+  L:=TStringList.Create;
+  Try
+    If (Backend='') then
+      begin
+      Writeln;
+      Writeln(SUsageFormats);
+      EnumWriters(L);
+      For I:=0 to L.Count-1 do
+        begin
+        S:=L[i];
+        P:=Pos('=',S);
+        Writeln(Format(' %s - %s',[Copy(S,1,P-1)+Space(10-p),Copy(S,P+1,Length(S))]));
+        end;
+      Writeln(SUsageBackendHelp);
+      end
+    else
+      begin
+      Writeln;
+      Writeln(Format(SUsageFormatSpecific,[Lowercase(Backend)]));
+      C:=GetWriterClass(backend);
+      C.Usage(L);
+      For I:=0 to (L.Count-1) div 2 do
+        begin
+        S:=L[i*2];
+        Writeln(Format('%s %s',[S+Space(30-Length(S)),L[(i*2)+1]]));
+        end;
+      end;
+  Finally
+    L.Free;
+  end;
   Halt(AnExitCode);
 end;
 
@@ -229,7 +283,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2005-01-12 21:11:41  michael
+  Revision 1.8  2005-01-14 17:55:07  michael
+  + Added unix man page output; Implemented usage
+
+  Revision 1.7  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.6  2005/01/09 15:59:50  michael

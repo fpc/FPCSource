@@ -116,8 +116,6 @@ type
     procedure DescrEndTableRow; override;
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
-    procedure WriteDescr(Element: TPasElement);
-    procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement);
     function ConstValue(ConstDecl: TPasConst): String;
     procedure ProcessSection(ASection: TPasSection);
     // Documentation writing methods.
@@ -588,8 +586,6 @@ begin
 end;
 
 procedure TIPFWriter.DescrBeginTable(ColCount: Integer; HasBorder: Boolean);
-var
-  i: Integer;
 begin
   // !!!: How do we set the border?
 //  for i := 1 to ColCount do
@@ -657,26 +653,6 @@ begin
   // Do nothing
 end;
 
-
-procedure TIPFWriter.WriteDescr(Element: TPasElement);
-var
-  DocNode: TDocNode;
-begin
-  DocNode := Engine.FindDocNode(Element);
-  if Assigned(DocNode) then
-    begin
-    if not IsDescrNodeEmpty(DocNode.Descr) then
-      WriteDescr(Element, DocNode.Descr)
-    else if not IsDescrNodeEmpty(DocNode.ShortDescr) then
-      WriteDescr(Element, DocNode.ShortDescr);
-    end;
-end;
-
-procedure TIPFWriter.WriteDescr(AContext: TPasElement; DescrNode: TDOMElement);
-begin
-  if Assigned(DescrNode) then
-    ConvertDescr(AContext, DescrNode, False);
-end;
 
 function TIPFWriter.ConstValue(ConstDecl: TPasConst): String;
 begin
@@ -860,11 +836,6 @@ begin
       end;
 end;
 
-const
-  SVisibility: array[TPasMemberVisibility] of string =
-       ('Default', 'Private', 'Protected', 'Public',
-      'Published', 'Automated');
-
 procedure TIPFWriter.WriteProcedure(ProcDecl : TPasProcedureBase);
 var
   DocNode: TDocNode;
@@ -1036,9 +1007,7 @@ end;
 procedure TIPFWriter.WriteClassMethodOverview(ClassDecl : TPasClassType);
 var
   Member: TPasElement;
-  i, j: Integer;
-  s: String;
-  Arg: TPasArgument;
+  i: Integer;
   DocNode: TDocNode;
   List : TStringList;
 
@@ -1080,9 +1049,8 @@ end;
 procedure TIPFWriter.WriteClassPropertyOverview(ClassDecl : TPasClassType);
 var
   Member: TPasElement;
-  i, j: Integer;
+  i: Integer;
   s: String;
-  Arg: TPasArgument;
   DocNode: TDocNode;
   List : TStringList;
 
@@ -1376,7 +1344,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2005-01-12 21:11:41  michael
+  Revision 1.3  2005-01-14 17:55:07  michael
+  + Added unix man page output; Implemented usage
+
+  Revision 1.2  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.1  2003/10/08 11:41:54  yuri

@@ -153,6 +153,13 @@ type
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
     Class Procedure Usage(List : TStrings); virtual;
     procedure WriteDoc; virtual; Abstract;
+    procedure WriteDescr(Element: TPasElement);
+    procedure WriteDescr(Element: TPasElement; DocNode: TDocNode);
+    procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement); virtual;
+    Procedure FPDocError(Msg : String);
+    Procedure FPDocError(Fmt : String; Args : Array of Const);
+    Function  ShowMember(M : TPasElement) : boolean;
+    Procedure GetMethodList(ClassDecl: TPasClassType; List : TStringList);
   end;
 
   TFPDocWriterClass = Class of TFPDocWriter;
@@ -961,6 +968,64 @@ begin
   Inherited;
 end;
 
+procedure TFPDocWriter.WriteDescr(Element: TPasElement);
+
+begin
+  WriteDescr(ELement,Engine.FindDocNode(Element));
+end;
+
+procedure TFPDocWriter.WriteDescr(Element: TPasElement; DocNode: TDocNode);
+
+begin
+  if Assigned(DocNode) then
+    begin
+    if not IsDescrNodeEmpty(DocNode.Descr) then
+      WriteDescr(Element, DocNode.Descr)
+    else if not IsDescrNodeEmpty(DocNode.ShortDescr) then
+      WriteDescr(Element, DocNode.ShortDescr);
+    end;
+end;
+
+procedure TFPDocWriter.WriteDescr(AContext: TPasElement; DescrNode: TDOMElement);
+begin
+  if Assigned(DescrNode) then
+    ConvertDescr(AContext, DescrNode, False);
+end;
+
+procedure TFPDocWriter.FPDocError(Msg: String);
+begin
+  Raise EFPDocWriterError.Create(Msg);
+end;
+
+procedure TFPDocWriter.FPDocError(Fmt: String; Args: array of const);
+begin
+  FPDocError(Format(Fmt,Args));
+end;
+
+function TFPDocWriter.ShowMember(M: TPasElement): boolean;
+begin
+  Result:=not ((M.Visibility=visPrivate) and Engine.HidePrivate);
+  If Result then
+    Result:=Not ((M.Visibility=visProtected) and Engine.HideProtected)
+end;
+
+Procedure TFPDocWriter.GetMethodList(ClassDecl: TPasClassType; List : TStringList);
+
+Var
+  I : Integer;
+  M : TPasElement;
+  
+begin
+  List.Clear;
+  List.Sorted:=False;
+  for i := 0 to ClassDecl.Members.Count - 1 do
+    begin
+    M:=TPasElement(ClassDecl.Members[i]);
+    if M.InheritsFrom(TPasProcedureBase) and ShowMember(M) then
+       List.AddObject(M.Name,M);
+    end;
+  List.Sorted:=False;
+end;
 
 initialization
   InitWriterList;
@@ -971,7 +1036,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2005-01-12 21:11:41  michael
+  Revision 1.5  2005-01-14 17:55:07  michael
+  + Added unix man page output; Implemented usage
+
+  Revision 1.4  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.3  2004/08/28 18:05:17  michael

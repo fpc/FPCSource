@@ -26,59 +26,62 @@ interface
 
 uses Classes, DOM, PasTree, PParser;
 
+Var
+  LEOL : Integer;
+
 resourcestring
   // Output strings
-  SDocPackageTitle = 'Reference for package ''%s''';
-  SDocPrograms = 'Programs';
-  SDocUnits = 'Units';
-  SDocUnitTitle = 'Reference for unit ''%s''';
-  SDocInterfaceSection = 'Interface section';
-  SDocImplementationSection = 'Implementation section';
-  SDocUsedUnits = 'Used units';
-  SDocUsedUnitsByUnitXY = 'Used units by unit ''%s''';
-  SDocConstsTypesVars = 'Constants, types and variables';
-  SDocResStrings = 'Resource strings';
-  SDocTypes = 'Types';
-  SDocConstants = 'Constants';
-  SDocClasses = 'Classes';
+  SDocPackageTitle           = 'Reference for package ''%s''';
+  SDocPrograms               = 'Programs';
+  SDocUnits                  = 'Units';
+  SDocUnitTitle              = 'Reference for unit ''%s''';
+  SDocInterfaceSection       = 'Interface section';
+  SDocImplementationSection  = 'Implementation section';
+  SDocUsedUnits              = 'Used units';
+  SDocUsedUnitsByUnitXY      = 'Used units by unit ''%s''';
+  SDocConstsTypesVars        = 'Constants, types and variables';
+  SDocResStrings             = 'Resource strings';
+  SDocTypes                  = 'Types';
+  SDocConstants              = 'Constants';
+  SDocClasses                = 'Classes';
   SDocProceduresAndFunctions = 'Procedures and functions';
-  SDocVariables = 'Variables';
+  SDocVariables              = 'Variables';
 
-  SDocUnitOverview = 'Overview of unit ''%s''';
-  SDocOverview = 'Overview';
-  SDocSearch = 'Search';
-  SDocDeclaration = 'Declaration';
-  SDocDescription = 'Description';
-  SDocErrors = 'Errors';
-  SDocSeeAlso = 'See also';
-  SDocExample = 'Example';
-  SDocArguments = 'Arguments';
-  SDocFunctionResult = 'Function result';
-  SDocRemark = 'Remark:   ';
-  SDocMethodOverview = 'Method overview';
-  SDocPropertyOverview = 'Property overview';
-  SDocPage = 'Page';
-  SDocMethod = 'Method';
-  SDocProperty = 'Property';
-  SDocAccess = 'Access';
-  SDocInheritance = 'Inheritance';
-  SDocProperties = 'Properties';
-  SDocMethods = 'Methods';
-  SDocEvents = 'Events';
-  SDocByName = 'by Name';
-  SDocValue = 'Value';
-  SDocExplanation = 'Explanation';
-  SDocProcedure = 'Procedure';
-  SDocValuesForEnum = 'Enumeration values for type %s';
-  SDocSourcePosition = 'Source position: %s line %d';
-  SDocSynopsis = 'Synopsis';
-  SDocVisibility = 'Visibility';
-  
+  SDocUnitOverview           = 'Overview of unit ''%s''';
+  SDocOverview               = 'Overview';
+  SDocSearch                 = 'Search';
+  SDocDeclaration            = 'Declaration';
+  SDocDescription            = 'Description';
+  SDocErrors                 = 'Errors';
+  SDocSeeAlso                = 'See also';
+  SDocExample                = 'Example';
+  SDocArguments              = 'Arguments';
+  SDocFunctionResult         = 'Function result';
+  SDocRemark                 = 'Remark:   ';
+  SDocMethodOverview         = 'Method overview';
+  SDocPropertyOverview       = 'Property overview';
+  SDocPage                   = 'Page';
+  SDocMethod                 = 'Method';
+  SDocProperty               = 'Property';
+  SDocAccess                 = 'Access';
+  SDocInheritance            = 'Inheritance';
+  SDocProperties             = 'Properties';
+  SDocMethods                = 'Methods';
+  SDocEvents                 = 'Events';
+  SDocByName                 = 'by Name';
+  SDocValue                  = 'Value';
+  SDocExplanation            = 'Explanation';
+  SDocProcedure              = 'Procedure';
+  SDocValuesForEnum          = 'Enumeration values for type %s';
+  SDocSourcePosition         = 'Source position: %s line %d';
+  SDocSynopsis               = 'Synopsis';
+  SDocVisibility             = 'Visibility';
+
   // Topics
   SDocRelatedTopics = 'Related topics';
-  SDocUp = 'Up';
-  SDocNext = 'Next';
-  SDocPrevious = 'Previous';
+  SDocUp            = 'Up';
+  SDocNext          = 'Next';
+  SDocPrevious      = 'Previous';
 
   // Various backend constants
   SDocChapter    = 'Chapter';
@@ -87,16 +90,45 @@ resourcestring
   SDocTable      = 'Table';
   SDocListing    = 'Listing';
 
-  STitle = 'FPDoc - Free Pascal Documentation Tool';
-  SCopyright = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
-  SCmdLineHelp = 'See documentation for usage.';
-  SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
-  SCmdLineInvalidFormat = 'Invalid format "%s" specified';
-  SCmdLineOutputOptionMissing = 'Need an output filename, please specify one with --output=<filename>';
-  SWritingPages = 'Writing %d pages...';
-  SNeedPackageName = 'No package name specified. Please specify one using the --package option.';
-  SDone = 'Done.';
+  // Man page usage
+  SManUsageManSection         = 'Use ASection as the man page section';
+  SManUsageNoUnitPrefix       = 'Do not prefix man pages with unit name.';
+  SManUsageWriterDescr        = 'UNIX man page output.';
+  SManUsagePackageDescription = 'Use descr as the description of man pages';
 
+  STitle                      = 'FPDoc - Free Pascal Documentation Tool';
+  SCopyright                  = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
+
+  SCmdLineHelp     = 'Usage: %s [options]';
+  SUsageOption010  = '--content         Create content file for package cross-references';
+  SUsageOption020  = '--cputarget=value Set the target CPU for the scanner.';
+  SUsageOption030  = '--descr=name      use name as description file. ';
+  SUsageOption040  = '                  This option is allowed more than once';
+  SUsageOption050  = '--format=fmt      Select output format.';
+  SUsageOption060  = '--help            Show this help.';
+  SUsageOption070  = '--hide-protected  Do not show protected methods in overview';
+  SUsageOption080  = '--import=file     Import content file for package cross-references';
+  SUsageOption090  = '--input=cmd       use cmd as input for the parser.';
+  SUsageOption100  = '                  At least one input option is required.';
+  SUsageOption110  = '--lang=lng        Select output language.';
+  SUsageOption120  = '--ostarget=value  Set the target OS for the scanner.';
+  SUsageOption130  = '--output=name     use name as the output name.';
+  SUsageOption140  = '                  Each backend interpretes this as needed.';
+  SUsageOption150  = '--package=name    Set the package name for which to create output';
+  SUsageOption160  = '--show-private    Show private methods.';
+  SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
+  SUsageFormats        = 'The following output formats are supported by this fpdoc:';
+  SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
+  SUsageFormatSpecific = 'Output format "%s" supports the following options:';
+
+  SCmdLineInvalidOption       = 'Ignoring unknown option "%s"';
+  SCmdLineInvalidFormat       = 'Invalid format "%s" specified';
+  SCmdLineOutputOptionMissing = 'Need an output filename, please specify one with --output=<filename>';
+  SWritingPages               = 'Writing %d pages...';
+  SNeedPackageName            = 'No package name specified. Please specify one using the --package option.';
+  SDone                       = 'Done.';
+  SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
+  
 Const
   SVisibility: array[TPasMemberVisibility] of string =
        ('Default', 'Private', 'Protected', 'Public',
@@ -239,6 +271,9 @@ type
 
 
 procedure TranslateDocStrings(const Lang: String);
+
+Function IsLinkNode(Node : TDomNode) : Boolean;
+Function IsExampleNode(Example : TDomNode) : Boolean;
 
 
 
@@ -1162,14 +1197,29 @@ begin
   end;
 end;
 
+Function IsLinkNode(Node : TDomNode) : Boolean;
 
+begin
+  Result:=Assigned(Node) and (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link');
+end;
 
+Function IsExampleNode(Example : TDomNode) : Boolean;
+
+begin
+  Result:=Assigned(Example) and (Example.NodeType = ELEMENT_NODE) and (Example.NodeName = 'example')
+end;
+
+initialization
+  LEOL:=Length(LineEnding);
 end.
 
 
 {
   $Log$
-  Revision 1.7  2005-01-12 21:11:41  michael
+  Revision 1.8  2005-01-14 17:55:07  michael
+  + Added unix man page output; Implemented usage
+
+  Revision 1.7  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.6  2005/01/09 15:59:50  michael

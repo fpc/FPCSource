@@ -37,8 +37,6 @@ Type
     Function  GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
     function  ConstValue(ConstDecl: TPasConst): String; virtual;
     procedure ProcessSection(ASection: TPasSection); virtual;
-    procedure WriteDescr(Element: TPasElement); virtual;
-    procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement); virtual;
     // Procedures which MAY be overridden in descendents
     Function  EscapeText(S : String) : String; virtual;
     Function  StripText(S : String) : String; virtual;
@@ -155,28 +153,6 @@ procedure TLinearWriter.DescrWriteText(const AText: DOMString);
 
 begin
   self.Write(EscapeText(AText));
-end;
-
-procedure TLinearWriter.WriteDescr(Element: TPasElement);
-
-var
-  DocNode: TDocNode;
-
-begin
-  DocNode := Engine.FindDocNode(Element);
-  if Assigned(DocNode) then
-    begin
-    if not IsDescrNodeEmpty(DocNode.Descr) then
-      WriteDescr(Element, DocNode.Descr)
-    else if not IsDescrNodeEmpty(DocNode.ShortDescr) then
-      WriteDescr(Element, DocNode.ShortDescr);
-    end;
-end;
-
-procedure TLinearWriter.WriteDescr(AContext: TPasElement; DescrNode: TDOMElement);
-begin
-  if Assigned(DescrNode) then
-    ConvertDescr(AContext, DescrNode, False);
 end;
 
 Function TLinearWriter.GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
@@ -854,7 +830,7 @@ begin
     Example := ADocNode.FirstExample;
     while Assigned(Example) do
       begin
-      if (Example.NodeType = ELEMENT_NODE) and (Example.NodeName = 'example') then
+      if IsExampleNode(Example) then
         begin
         if (S<>'') then // not first example, start new paragraph
           DescrBeginParagraph;
@@ -935,8 +911,7 @@ begin
   First:=True;
   while Assigned(Node) do
     begin
-    if (Node.NodeType = ELEMENT_NODE) and
-       (Node.NodeName = 'link') then
+    if IsLinkNode(Node) then
       begin
       If First then
         begin
@@ -981,10 +956,8 @@ var
   i: Integer;
 begin
   if (ASection.Classes.Count > 0) then
-  begin
     for i := 0 to ASection.Classes.Count - 1 do
       WriteClassDecl(TPasClassType(ASection.Classes[i]));
-  end;
 end;
 
 procedure TLinearWriter.WriteClassMethodOverview(ClassDecl: TPasClassType);

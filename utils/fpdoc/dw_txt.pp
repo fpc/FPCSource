@@ -25,9 +25,6 @@ const
   TxtHighLight : Boolean = False;
   TxtExtension   : String = '.txt';
 
-Var
-  LEOL : Integer;
-  
 Procedure CreateTxtDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
 implementation
@@ -679,7 +676,6 @@ end;
 
 initialization
   // Do not localize.
-  LEOL:=Length(LineEnding);
   RegisterWriter(TTXTWriter,'txt','Plain text.');
 finalization
   UnRegisterWriter('txt');
@@ -688,7 +684,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2005-01-12 21:11:41  michael
+  Revision 1.2  2005-01-14 17:55:07  michael
+  + Added unix man page output; Implemented usage
+
+  Revision 1.1  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.8  2005/01/09 15:59:50  michael
