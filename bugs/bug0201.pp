@@ -1,11 +1,14 @@
 program bug0201;
 
+{$asmmode att}
+
 type rec = record
          a : DWord;
          b : Word;
      end;
 
-function x(r1 : rec; r2 : rec; var r3 : rec); assembler;
+procedure x(r1 : rec; r2 : rec; var r3 : rec);
+begin
 asm
    movl r3, %edi
    
@@ -16,6 +19,7 @@ asm
    movw r1.b, %cx
    addw r2.b, %cx
    movw %cx, rec.b(%edi)
+end;
 end;
 
 var r1, r2, r3 : rec;

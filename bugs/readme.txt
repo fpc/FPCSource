@@ -241,10 +241,12 @@ Fixed bugs:
   bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM)
                a comp type
   bug0199.pp   bug in mul code                                       OK 0.99.11  (FK)
+  bug0201.pp   problem with record var-parameters and assembler      OK 0.99.11 (PFV)
   bug0203.pp   problem with changed mangledname of procedures after use
                Generates an error now				     OK 0.99.11 (PM)
   bug0204.pp   can typecast the result var in an assignment          OK 0.99.11 (PM)
   bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error) OK 0.99.11 (PM)
+  bug0206.pp   sets with variable ranges doesn't work                OK 0.99.11 (PFV)
   bug0207.pp   a class destructor doesn't release the memory        OK 0.99.11 (FK) 
   bug0208.pp   implicit conversion from boolean to longint should not be allowed
                (this is the reason of bug0205 !)                    OK 0.99.11 (PM)
@@ -288,7 +290,13 @@ bug0185.pp   missing range checking for Val and subrange types
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0200.pp   array of char overloading problem with strings
-bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
-bug0206.pp   sets with variable ranges doesn't work
 bug0212.pp   problem with properties
+bug0217.pp   in tp mode can't use the procvar in writeln
+bug0218.pp   rounding errors with write/str (the bug is fixed, but there
+             is still some rounding error left when writing the extended
+             value PFV)
+bug0219.pp   wrong error message
+bug0220.pp   can't choose overload with array of char
+bug0221.pp   syntax parsing incompatibilities with tp7
+
