@@ -139,13 +139,13 @@ implementation
       else
         begin
           {Bring denominator to a register.}
+          rg.ungetregisterint(exprasmlist,hreg1);
           rg.getexplicitregisterint(exprasmlist,NR_EAX);
           r.enum:=R_INTREGISTER;
           r.number:=NR_EAX;
           r2.enum:=R_INTREGISTER;
           r2.number:=NR_EDX;
           emit_reg_reg(A_MOV,S_L,hreg1,r);
-          rg.ungetregisterint(exprasmlist,hreg1);
           rg.getexplicitregisterint(exprasmlist,NR_EDX);
           {Sign extension depends on the left type.}
           if torddef(left.resulttype.def).typ=u32bit then
@@ -169,16 +169,16 @@ implementation
           if nodetype=divn then
             begin
               rg.ungetregisterint(exprasmlist,r2);
+              rg.ungetregisterint(exprasmlist,r);
               location.register:=rg.getregisterint(exprasmlist,OS_INT);
               emit_reg_reg(A_MOV,S_L,r,location.register);
-              rg.ungetregisterint(exprasmlist,r);
             end
           else
             begin
               rg.ungetregisterint(exprasmlist,r);
+              rg.ungetregisterint(exprasmlist,r2);
               location.register:=rg.getregisterint(exprasmlist,OS_INT);
               emit_reg_reg(A_MOV,S_L,r2,location.register);
-              rg.ungetregisterint(exprasmlist,r2);
             end;
         end;
     end;
@@ -1171,7 +1171,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-03-28 19:16:57  peter
+  Revision 1.49  2003-04-17 10:02:48  daniel
+    * Tweaked register allocate/deallocate positition to less interferences
+      are generated.
+
+  Revision 1.48  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

@@ -1342,19 +1342,20 @@ interface
       {Load the right value.}
       cg.a_load_loc_reg(exprasmlist,right.location,r_eax);
       location_release(exprasmlist,right.location);
+      {The mul instruction frees register r.}
+      rg.ungetregisterint(exprasmlist,r);
       {Also allocate EDX, since it is also modified by a mul (JM).}
       rg.getexplicitregisterint(exprasmlist,NR_EDX);
       emit_reg(A_MUL,S_L,r);
-      rg.ungetregisterint(exprasmlist,r);
       {Free EDX}
       r.enum:=R_INTREGISTER;
       r.number:=NR_EDX;
       rg.ungetregisterint(exprasmlist,r);
+      {Free EAX}
+      rg.ungetregisterint(exprasmlist,r_eax);
       {Allocate a new register and store the result in EAX in it.}
       location.register:=rg.getregisterint(exprasmlist,OS_INT);
       emit_reg_reg(A_MOV,S_L,r_eax,location.register);
-      {Free EAX}
-      rg.ungetregisterint(exprasmlist,r_eax);
       location_freetemp(exprasmlist,left.location);
       location_freetemp(exprasmlist,right.location);
     end;
@@ -1641,7 +1642,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-03-28 19:16:57  peter
+  Revision 1.61  2003-04-17 10:02:48  daniel
+    * Tweaked register allocate/deallocate positition to less interferences
+      are generated.
+
+  Revision 1.60  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
