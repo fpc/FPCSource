@@ -888,7 +888,11 @@ implementation
             exeext      : '.exe';
             os          : os_i386_Win32;
             link        : link_i386_ldw;
+{$ifdef Ag386Bin}
+            assem       : as_i386_pecoff;
+{$else}
             assem       : as_i386_asw;
+{$endif}
             ar          : ar_i386_arw;
             res         : res_i386_windres;
             heapsize    : 2048*1024;
@@ -1354,7 +1358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  1999-03-04 13:55:48  pierre
+  Revision 1.63  1999-03-09 11:54:09  pierre
+   * pecoff default assem for win32 with ag386bin
+
+  Revision 1.62  1999/03/04 13:55:48  pierre
     * some m68k fixes (still not compilable !)
     * new(tobj) does not give warning if tobj has no VMT !
 
