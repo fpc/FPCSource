@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$ifdef fpc} 
+{$mode objfpc}
+{$endif}
 unit contnrs;
 
 interface
@@ -404,7 +406,7 @@ end;
 Function TOrderedList.Peek: Pointer;
 begin
   If AtLeast(1) then
-    Result:=PeekItem;
+    Result:=PeekItem
   else
     Result:=Nil;
 end;
@@ -418,7 +420,7 @@ end;
 Function TOrderedList.Pop: Pointer;
 begin
   If Atleast(1) then
-    Result:=PopItem;
+    Result:=PopItem
   else
     Result:=Nil;
 end;
@@ -430,7 +432,7 @@ begin
       begin
       Result:=Items[Count-1];
       Delete(Count-1);
-      end;
+      end
     else
       Result:=Nil;
 end;
@@ -495,7 +497,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-08-09 09:44:33  michael
+  Revision 1.5  2002-08-09 09:48:28  michael
+    + mode directive added plus some types fixed
+
+  Revision 1.4  2002/08/09 09:44:33  michael
     + Implemented stack and queue (untested)
 
   Revision 1.3  2002/07/26 11:26:26  michael
