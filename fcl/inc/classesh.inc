@@ -76,7 +76,9 @@ type
 { Types used by standard events }
 
   TShiftState = set of (ssShift, ssAlt, ssCtrl,
-    ssLeft, ssRight, ssMiddle, ssDouble);
+    ssLeft, ssRight, ssMiddle, ssDouble,
+    // Extra additions
+    ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum, ssScroll);
 
   { THelpContext = -MaxLongint..MaxLongint; }
 
@@ -1071,7 +1073,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.13  1999-05-31 12:43:10  peter
+  Revision 1.14  1999-08-26 21:11:25  peter
+    * ShiftState extended
+
+  Revision 1.13  1999/05/31 12:43:10  peter
     * fixed tthread for linux additions
 
   Revision 1.12  1999/05/14 17:52:53  peter
