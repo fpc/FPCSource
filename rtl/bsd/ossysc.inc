@@ -532,10 +532,10 @@ begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
-Function FpNanoSleep(const req : timespec;var rem : timespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
+Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
 {$ifndef darwin}
-  FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(@req),TSysParam(@rem));
+  FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
 {$else not darwin}
 {$warning: TODO: nanosleep!!!}
 {$endif not darwin}
@@ -599,8 +599,9 @@ end;
 
 {
  $Log$
- Revision 1.11  2003-09-27 13:04:58  peter
-   * fpISxxx renamed
+ Revision 1.12  2003-09-27 13:45:58  peter
+   * fpnanosleep exported in baseunix
+   * fpnanosleep has pointer arguments to be C compliant
 
  Revision 1.10  2003/09/20 12:38:29  marco
   * FCL now compiles for FreeBSD with new 1.1. Now Linux.

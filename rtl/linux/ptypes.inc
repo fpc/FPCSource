@@ -34,7 +34,7 @@ introduction)
 
 Type
 
-{$ifndef VER_1_0}		// maybe wrong (kernel vs libc)
+{$ifndef VER_1_0}               // maybe wrong (kernel vs libc)
     dev_t    = cuint64;         { used for device numbers      }
 {$else}
     dev_t    = int64;
@@ -42,8 +42,8 @@ Type
     TDev     = dev_t;
     pDev     = ^dev_t;
 
-    kDev_t   = cushort;		// Linux has two different device conventions
-    TkDev    = KDev_t;		// kernel and glibc. This is kernel.
+    kDev_t   = cushort;         // Linux has two different device conventions
+    TkDev    = KDev_t;          // kernel and glibc. This is kernel.
     pkDev    = ^kdev_t;
 
     gid_t    = cuint32;         { used for group IDs           }
@@ -78,7 +78,7 @@ Type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-   {$ifdef 64bitarch} 
+   {$ifdef 64bitarch}
     size_t   = cuint64;         { as definied in the C standard}
     ssize_t  = cint64;          { used by function for returning number of bytes }
     clock_t  = cuint64;
@@ -97,7 +97,7 @@ Type
     pClock    = ^clock_t;
     TTime     = time_t;
     pTime     = ^time_t;
-  
+
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = uid_t;
     pUid     = ^uid_t;
@@ -107,12 +107,18 @@ Type
     pSockLen = ^socklen_t;
 
   timeval     = packed record
-    		 tv_sec,
-		 tv_usec:clong;
-  		end;
+                 tv_sec,
+                 tv_usec:clong;
+                end;
   ptimeval    = ^timeval;
   TTimeVal    = timeval;
 
+  timespec    = packed record
+                 tv_sec   : time_t;
+                 tv_nsec  : clong;
+                end;
+  ptimespec   = ^timespec;
+  TTimeSpec   = timespec;
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
@@ -121,11 +127,15 @@ CONST
     ARG_MAX  = 131072;   {4096}  { Maximum number of argument size     }
     NAME_MAX = 255;     {14}    { Maximum number of bytes in filename }
     PATH_MAX = 4095;    {255}   { Maximum number of bytes in pathname }
-    SYS_NMLM 		     = 65;
+    SYS_NMLM                 = 65;
 
 {
    $Log$
-   Revision 1.4  2003-09-14 20:15:01  marco
+   Revision 1.5  2003-09-27 13:45:58  peter
+     * fpnanosleep exported in baseunix
+     * fpnanosleep has pointer arguments to be C compliant
+
+   Revision 1.4  2003/09/14 20:15:01  marco
     * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
    Revision 1.3  2002/12/18 16:43:26  marco

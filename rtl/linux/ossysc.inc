@@ -103,7 +103,7 @@ end;
 
 function Fpmkdir(path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 
-begin 
+begin
   Fpmkdir:=do_syscall(syscall_nr_mkdir,TSysParam(path),TSysParam(mode));
 end;
 
@@ -385,7 +385,7 @@ begin
   sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if sbrk=pointer(-1) then
     sbrk:=nil
-  else 
+  else
     errno:=0;
 end;
 
@@ -436,16 +436,15 @@ begin
   Fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
 end;
 
-Function FpNanoSleep(const req : timespec;rem : ptimespec) : longint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
+Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
-  FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(@req),TSysParam(rem));
+  FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
 end;
 
 // The following belongs here, but this should be researched more.
 // function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
 
-function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias:
-'FPC_SYSC_GETTIMEOFDAY'];
+function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; [public, alias: 'FPC_SYSC_GETTIMEOFDAY'];
 
 begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
@@ -455,7 +454,11 @@ end;
 
 {
  $Log$
- Revision 1.7  2003-09-27 12:58:23  peter
+ Revision 1.8  2003-09-27 13:45:58  peter
+   * fpnanosleep exported in baseunix
+   * fpnanosleep has pointer arguments to be C compliant
+
+ Revision 1.7  2003/09/27 12:58:23  peter
    * mmap returns -1 on error
 
  Revision 1.6  2003/09/27 11:52:35  peter

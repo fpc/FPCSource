@@ -16,13 +16,13 @@
 
  **********************************************************************}
 
-{$i syscallh.inc}	// do_syscall declarations themselves
-{$i sysnr.inc}		// syscall numbers.
-{$i ossysch.inc}	// external interface to syscalls in system unit.
-{$i genfuncs.inc}	// generic calls. (like getenv)
+{$i syscallh.inc}       // do_syscall declarations themselves
+{$i sysnr.inc}          // syscall numbers.
+{$i ossysch.inc}        // external interface to syscalls in system unit.
+{$i genfuncs.inc}       // generic calls. (like getenv)
 
 
-{$I gensigset.inc}     // general sigset funcs implementation. 
+{$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}      // general fdset funcs.
 
 {  $ ifndef ver1_0}
@@ -126,7 +126,7 @@ function sigblock(mask:cuint):cint;
 var nset,oset: sigset_t;
 
 begin
- FPsigemptyset(nset); 
+ FPsigemptyset(nset);
  nset[0]:=mask;
  sigblock:= FPsigprocmask(SIG_BLOCK,@nset,@oset);   // SIG_BLOCK=1
  if sigblock=0 Then
@@ -139,7 +139,7 @@ function sigpause(sigmask:cint):cint;
 var nset: sigset_t;
 
 begin
- FPsigemptyset(nset); 
+ FPsigemptyset(nset);
  nset[0]:=sigmask;
  sigpause:= FPsigsuspend(nset);
 end;
@@ -155,21 +155,21 @@ function FPsleep(seconds:cuint):cuint;
 var time_to_sleep,time_remaining : timespec;
 
 begin
-	{
-	 * Avoid overflow when `seconds' is huge.  This assumes that
-	 * the maximum value for a time_t is >= INT_MAX.
-	 }
-	if seconds > high(cint) Then
-		FPsleep:= (seconds - high(cint)) + FPsleep(HIGH(cint));
+        {
+         * Avoid overflow when `seconds' is huge.  This assumes that
+         * the maximum value for a time_t is >= INT_MAX.
+         }
+        if seconds > high(cint) Then
+                FPsleep:= (seconds - high(cint)) + FPsleep(HIGH(cint));
 
-	time_to_sleep.tv_sec := seconds;
-	time_to_sleep.tv_nsec := 0;
-	if (FPnanosleep(time_to_sleep, time_remaining) <> -1) Then
-	 Exit(0);
-	if (geterrno <> ESysEINTR) Then
-	 Exit (seconds);		     { best guess }
-	FPsleep:= time_remaining.tv_sec;
-	if   (time_remaining.tv_nsec <> 0) Then 
+        time_to_sleep.tv_sec := seconds;
+        time_to_sleep.tv_nsec := 0;
+        if (FPnanosleep(@time_to_sleep, @time_remaining) <> -1) Then
+         Exit(0);
+        if (geterrno <> ESysEINTR) Then
+         Exit (seconds);                     { best guess }
+        FPsleep:= time_remaining.tv_sec;
+        if   (time_remaining.tv_nsec <> 0) Then
          inc(FPsleep);
 End;
 
@@ -220,27 +220,27 @@ function GetDomainName(Name:PChar; NameLen:Cint):cint; [public,alias:'FPC_SYSC_G
 Const Mib_GetDomainName : array[0..1] of cint=(CTL_KERN,KERN_NISDOMAINNAME);
 
 VAR
-	tsize : size_t;
+        tsize : size_t;
 begin
-	tsize := namelen;
-	if (FPsysctl(@Mib_GetDomainname, 2, name, @tsize, NIL, 0) = -1) Then
+        tsize := namelen;
+        if (FPsysctl(@Mib_GetDomainname, 2, name, @tsize, NIL, 0) = -1) Then
           GetDomainName:=-1
         Else
           GetDomainName:=0;
-end;          
+end;
 
 function GetHostName(Name:PChar; NameLen:Cint):cint;[public,alias:'FPC_SYSC_GETHOSTNAME'];
 
 Const Mib_GetHostName : array[0..1] of cint=(CTL_KERN,KERN_HOSTNAME);
 
 Var
-	tsize : size_t;
+        tsize : size_t;
 begin
-	tsize := namelen;
-	if (FPsysctl(@Mib_GetHostName, 2, name, @tsize, NIL, 0) = -1) Then
-	  GetHostName:=-1
-	Else
-	  GetHostName:=0;
+        tsize := namelen;
+        if (FPsysctl(@Mib_GetHostName, 2, name, @tsize, NIL, 0) = -1) Then
+          GetHostName:=-1
+        Else
+          GetHostName:=0;
 End;
 
 const WAIT_ANY = -1;
@@ -374,7 +374,7 @@ begin
     tv[0].tv_sec :=times^.actime;
     tv[1].tv_sec :=times^.modtime;
     tv[0].tv_usec:=0;
-    tv[1].tv_usec:=0; 
+    tv[1].tv_usec:=0;
     tvp:=@tv;
    end;
  FPutime:=do_syscall(syscall_nr_utimes,longint(path),longint(tvp));
@@ -416,7 +416,7 @@ Begin
   FPexecv:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
 End;
 
-CONST RUSAGE_SELF	= 0;
+CONST RUSAGE_SELF       = 0;
       RUSAGE_CHILDREN   = -1;
 
 function FPgetrusage(who:cint;var ru : rusage):cint;
@@ -432,7 +432,7 @@ var ru : rusage;
 
 CONST CLK_TCK=128;
 
-function CONVTCK(r:timeval):clock_t;	
+function CONVTCK(r:timeval):clock_t;
 {
  * Convert usec to clock ticks; could do (usec * CLK_TCK) / 1000000,
  * but this would overflow if we switch to nanosec.
@@ -443,17 +443,17 @@ end;
 
 begin
 
-	if (FPgetrusage(RUSAGE_SELF, ru) < 0) Then
-	    exit(clock_t(-1));
-	buffer.tms_utime := CONVTCK(ru.ru_utime);
-	buffer.tms_stime := CONVTCK(ru.ru_stime);
-	if (FPgetrusage(RUSAGE_CHILDREN, ru) < 0) Then
- 	    exit(clock_t(-1));
-	buffer.tms_cutime := CONVTCK(ru.ru_utime);
-	buffer.tms_cstime := CONVTCK(ru.ru_stime);
-	if do_syscall(syscall_nr_gettimeofday,longint(@t),0)<>0 Then
-		    exit(clock_t(-1));
-	FPtimes:=clock_t(CONVTCK(t));
+        if (FPgetrusage(RUSAGE_SELF, ru) < 0) Then
+            exit(clock_t(-1));
+        buffer.tms_utime := CONVTCK(ru.ru_utime);
+        buffer.tms_stime := CONVTCK(ru.ru_stime);
+        if (FPgetrusage(RUSAGE_CHILDREN, ru) < 0) Then
+            exit(clock_t(-1));
+        buffer.tms_cutime := CONVTCK(ru.ru_utime);
+        buffer.tms_cstime := CONVTCK(ru.ru_stime);
+        if do_syscall(syscall_nr_gettimeofday,longint(@t),0)<>0 Then
+                    exit(clock_t(-1));
+        FPtimes:=clock_t(CONVTCK(t));
 end;
 
 Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
@@ -469,7 +469,11 @@ end;
 
 {
  $Log$
- Revision 1.3  2003-09-14 20:15:01  marco
+ Revision 1.4  2003-09-27 13:45:58  peter
+   * fpnanosleep exported in baseunix
+   * fpnanosleep has pointer arguments to be C compliant
+
+ Revision 1.3  2003/09/14 20:15:01  marco
   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
  Revision 1.2  2003/01/05 19:10:05  marco

@@ -82,6 +82,13 @@ type
   ptimeval = ^timeval;
   TTimeVal = timeval;
 
+  timespec = packed record
+    tv_sec   : time_t;
+    tv_nsec  : clong;
+  end;
+  ptimespec= ^timespec;
+  Ttimespec= timespec;
+
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
     ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
@@ -92,7 +99,11 @@ CONST
 
 {
   $Log$
-  Revision 1.6  2003-09-14 20:15:01  marco
+  Revision 1.7  2003-09-27 13:45:58  peter
+    * fpnanosleep exported in baseunix
+    * fpnanosleep has pointer arguments to be C compliant
+
+  Revision 1.6  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.5  2003/01/03 13:11:32  marco

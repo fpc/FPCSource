@@ -16,15 +16,15 @@
 
  **********************************************************************}
 
-{$i syscallh.inc}	// do_syscall declarations themselves
-{$i sysnr.inc}		// syscall numbers.
+{$i syscallh.inc}       // do_syscall declarations themselves
+{$i sysnr.inc}          // syscall numbers.
 {$i ostypes.inc}
-{$i ossysch.inc}	// external interface to syscalls in system unit.
+{$i ossysch.inc}        // external interface to syscalls in system unit.
 //{$i genfuncs.inc}
 
-{$i bunxmacr.inc}	// macro's.
+{$i bunxmacr.inc}       // macro's.
 
-{$I gensigset.inc}     // general sigset funcs implementation. 
+{$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}
 
 Function fpKill(Pid:pid_t;Sig:cint):cint;
@@ -87,8 +87,8 @@ Type
              end;
 
 Const   ITimer_Real    =0;
-  	ITimer_Virtual =1;
-  	ITimer_Prof    =2;
+        ITimer_Virtual =1;
+        ITimer_Prof    =2;
 
 Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
 
@@ -106,7 +106,7 @@ Function fpalarm(Seconds: cuint):cuint;
 
 Var it,oitv : Itimerval;
     retval  : cuint;
-	
+
 Begin
 //      register struct itimerval *itp = &it;
 
@@ -115,7 +115,7 @@ Begin
  it.it_value.tv_usec:=0;
  it.it_value.tv_sec:=seconds;
  If SetITimer(ITIMER_REAL,it,oitv)<0 Then
-   Exit(0);			// different from *BSD!
+   Exit(0);                     // different from *BSD!
 
  retval:= oitv.it_value.tv_usec;
  if retval<>0 Then
@@ -124,7 +124,7 @@ Begin
 End;
 
 // The following versions are for internal use _ONLY_
-// This because it works for the first 32 signals _ONLY_, but that 
+// This because it works for the first 32 signals _ONLY_, but that
 // is enough since they are depreciated, and for legacy applications
 // anyway.
 
@@ -133,7 +133,7 @@ function sigblock(mask:cuint):cint;
 var nset,oset: TSigSet;
 
 begin
- fpsigemptyset(nset); 
+ fpsigemptyset(nset);
  // fpsigaddset(nset,mask);   needs _mask_
  nset[0]:=mask;
  sigblock:= fpsigprocmask(SIG_BLOCK,@nset,@oset);   // SIG_BLOCK=1
@@ -146,7 +146,7 @@ function sigpause(sigmask:cint):cint;
 var nset: TSigSet;
 
 begin
- fpsigemptyset(nset); 
+ fpsigemptyset(nset);
  nset[0]:=sigmask;
  sigpause:= fpsigsuspend(nset);
 end;
@@ -166,41 +166,41 @@ var time_to_sleep,time_remaining : timespec;
     oact       : sigactionrec;
 
 begin
-	time_to_sleep.tv_sec := seconds;
-	time_to_sleep.tv_nsec := 0;
-	 fpsigemptyset(nset);
+        time_to_sleep.tv_sec := seconds;
+        time_to_sleep.tv_nsec := 0;
+         fpsigemptyset(nset);
          fpsigaddset  (nset,SIGCHLD);
-     	 if fpsigprocmask(SIG_BLOCK,@nset,@oset)=0 Then
+         if fpsigprocmask(SIG_BLOCK,@nset,@oset)=0 Then
           exit(cuint(-1));
-	if fpsigismember(oset,SIGCHLD)<>0 Then
+        if fpsigismember(oset,SIGCHLD)<>0 Then
           Begin
-	    fpsigemptyset(nset);
+            fpsigemptyset(nset);
             fpsigaddset  (nset,SIGCHLD);
-    	    if fpsigaction(SIGCHLD,NIL,@oact)<0 Then
-	      begin
- 	        oerrno:=geterrno;	
-		fpsigprocmask(SIG_SETMASK,@oset,NIL);
-		seterrno(oerrno);
-		exit(cuint(-1));
-	      End;
-	    if oact.sa_handler=signalhandler(SIG_IGN) Then
-	     Begin
-	       fpsleep:=fpnanosleep(time_to_sleep, @time_remaining);
-	       oerrno:=geterrno;
-	       fpsigprocmask(SIG_SETMASK,@oset,NIL);
-	       seterrno(oerrno);
-	     End
-	    Else
-	     Begin
-	       fpsigprocmask(SIG_SETMASK,@oset,NIL);
-	       fpsleep:=fpnanosleep(time_to_sleep, @time_remaining)	       
-	     End;
-	  end
-	else
-            fpsleep:=fpnanosleep(time_to_sleep, @time_remaining);	       
-	if fpsleep<>0 Then
-	 if time_remaining.tv_nsec>=500000000 Then
-	  inc(fpsleep);
+            if fpsigaction(SIGCHLD,NIL,@oact)<0 Then
+              begin
+                oerrno:=geterrno;
+                fpsigprocmask(SIG_SETMASK,@oset,NIL);
+                seterrno(oerrno);
+                exit(cuint(-1));
+              End;
+            if oact.sa_handler=signalhandler(SIG_IGN) Then
+             Begin
+               fpsleep:=fpnanosleep(@time_to_sleep, @time_remaining);
+               oerrno:=geterrno;
+               fpsigprocmask(SIG_SETMASK,@oset,NIL);
+               seterrno(oerrno);
+             End
+            Else
+             Begin
+               fpsigprocmask(SIG_SETMASK,@oset,NIL);
+               fpsleep:=fpnanosleep(@time_to_sleep, @time_remaining)
+             End;
+          end
+        else
+            fpsleep:=fpnanosleep(@time_to_sleep, @time_remaining);
+        if fpsleep<>0 Then
+         if time_remaining.tv_nsec>=500000000 Then
+          inc(fpsleep);
 End;
 
 function fpuname(var name:utsname):cint; [public,alias:'FPC_SYSC_UNAME'];
@@ -209,33 +209,33 @@ begin
   fpuname:=Do_Syscall(syscall_nr_uname,TSysParam(@name));
 end;
 
-Function fpGetDomainName(Name:PChar; NameLen:size_t):cint; 
+Function fpGetDomainName(Name:PChar; NameLen:size_t):cint;
 
 Var
-	srec  : utsname;
-	tsize : size_t;
+        srec  : utsname;
+        tsize : size_t;
 Begin
         if fpuname(srec)<0 Then
           exit(-1);
         tsize:=strlen(@srec.domain[0]);
         if tsize>(namelen-1) Then
-  	 tsize:=namelen-1;
+         tsize:=namelen-1;
         move(srec.domain[0],name[0],tsize);
         name[namelen-1]:=#0;
         fpgetDomainName:=0;
-End;          
+End;
 
 function fpGetHostName(Name:PChar; NameLen:size_t):cint;
 
 Var
- 	srec  : utsname;
-	tsize : size_t;
+        srec  : utsname;
+        tsize : size_t;
 begin
         if fpuname(srec)<0 Then
           exit(-1);
         tsize:=strlen(@srec.nodename[0]);
         if tsize>(namelen-1) Then
-  	 tsize:=namelen-1;
+         tsize:=namelen-1;
         move(srec.nodename[0],name[0],tsize);
         name[namelen-1]:=#0;
         fpgethostName:=0;
@@ -419,7 +419,7 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
   have changed.
 }
 
-Var 
+Var
   SelectArray : Array[1..5] of longint;
 
 begin
@@ -433,7 +433,11 @@ end;
 
 {
  $Log$
- Revision 1.4  2003-09-17 11:24:46  marco
+ Revision 1.5  2003-09-27 13:45:58  peter
+   * fpnanosleep exported in baseunix
+   * fpnanosleep has pointer arguments to be C compliant
+
+ Revision 1.4  2003/09/17 11:24:46  marco
   * fixes for new macro's
 
  Revision 1.3  2003/09/14 20:15:01  marco

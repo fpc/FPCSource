@@ -24,14 +24,18 @@ Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'F
 Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
 //Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
 { Needed in both POSIX (for implementation of sleep()) as POSIX realtime extensions or  Unix/freebsd}
-Function FpNanoSleep (const req : timespec;var rem : timespec) : longint; external name 'FPC_SYSC_NANOSLEEP';
+Function FpNanoSleep (req : ptimespec;rem : ptimespec) : cint; external name 'FPC_SYSC_NANOSLEEP';
 
 { can be used for getdir?}
 Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD';
 
 {
   $Log$
-  Revision 1.5  2003-09-20 12:38:29  marco
+  Revision 1.6  2003-09-27 13:45:58  peter
+    * fpnanosleep exported in baseunix
+    * fpnanosleep has pointer arguments to be C compliant
+
+  Revision 1.5  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.4  2003/09/16 12:45:49  marco
