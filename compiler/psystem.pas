@@ -75,7 +75,6 @@ procedure insert_intern_types(p : psymtable);
 var
   { several defs to simulate more or less C++ objects for GDB }
   vmtdef      : precorddef;
-  pvmtdef     : ppointerdef;
   vmtarraydef : parraydef;
   vmtsymtable : psymtable;
 begin
@@ -180,6 +179,7 @@ begin
   charpointerdef:=ppointerdef(globaldef('char_pointer'));
   voidfarpointerdef:=ppointerdef(globaldef('void_farpointer'));
   cfiledef:=pfiledef(globaldef('file'));
+  pvmtdef:=ppointerdef(globaldef('pvmt'));
 end;
 
 
@@ -238,7 +238,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-08-03 22:03:07  peter
+  Revision 1.27  1999-08-13 14:24:17  pierre
+    + stabs for classes and classref working,
+      a class still needs an ^ to get that content of it,
+      but the class fields inside a class don't result into an
+      infinite loop anymore!
+
+  Revision 1.26  1999/08/03 22:03:07  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -1524,12 +1524,13 @@
 {$ifdef GDB}
     function tclassrefdef.stabstring : pchar;
       begin
-         stabstring:=strpnew('');
+         stabstring:=strpnew('t'+pvmtdef^.numberstring+';');
       end;
 
 
     procedure tclassrefdef.concatstabto(asmlist : paasmoutput);
       begin
+        inherited concatstabto(asmlist);
       end;
 {$endif GDB}
 
@@ -1612,10 +1613,12 @@
     function tsetdef.stabstring : pchar;
       begin
          { For small sets write a longint, which can at least be seen
-           in the current GDB's (PFV) }
+           in the current GDB's (PFV)
+           this is obsolete with GDBPAS !!
+           and anyhow creates problems with version 4.18!! PM
          if settype=smallset then
            stabstring := strpnew('r'+s32bitdef^.numberstring+';0;0xffffffff;')
-         else
+         else }
            stabstring := strpnew('S'+setof^.numberstring);
       end;
 
@@ -2004,40 +2007,43 @@
     procedure addname(p : pnamedindexobject);
     var
       news, newrec : pchar;
-      spec : string[2];
+      spec : string[3];
       size : longint;
     begin
     { static variables from objects are like global objects }
     if (sp_static in psym(p)^.symoptions) then
       exit;
-    if (sp_protected in psym(p)^.symoptions) then
-      spec:='/1'
-    else if (sp_private in psym(p)^.symoptions) then
-      spec:='/0'
-    else
-      spec:='';
-
     If psym(p)^.typ = varsym then
        begin
-       size:=pvarsym(p)^.definition^.size;
-       { open arrays made overflows !! }
-       if size>$fffffff then
-         size:=$fffffff;
-       newrec := strpnew(p^.name+':'+spec+pvarsym(p)^.definition^.numberstring
-                     +','+tostr(pvarsym(p)^.address*8)+','
-                     +tostr(size*8)+';');
-       if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
-         begin
-            getmem(news,stabrecsize+memsizeinc);
-            strcopy(news,stabrecstring);
-            freemem(stabrecstring,stabrecsize);
-            stabrecsize:=stabrecsize+memsizeinc;
-            stabrecstring:=news;
-         end;
-       strcat(StabRecstring,newrec);
-       strdispose(newrec);
-       {This should be used for case !!}
-       RecOffset := RecOffset + pvarsym(p)^.definition^.size;
+         if (sp_protected in psym(p)^.symoptions) then
+           spec:='/1'
+         else if (sp_private in psym(p)^.symoptions) then
+           spec:='/0'
+         else
+           spec:='';
+         { class fields are pointers PM }
+         if (pvarsym(p)^.definition^.deftype=objectdef) and
+            pobjectdef(pvarsym(p)^.definition)^.is_class then
+            spec:=spec+'*';
+         size:=pvarsym(p)^.definition^.size;
+         { open arrays made overflows !! }
+         if size>$fffffff then
+           size:=$fffffff;
+         newrec := strpnew(p^.name+':'+spec+pvarsym(p)^.definition^.numberstring
+                       +','+tostr(pvarsym(p)^.address*8)+','
+                       +tostr(size*8)+';');
+         if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
+           begin
+              getmem(news,stabrecsize+memsizeinc);
+              strcopy(news,stabrecstring);
+              freemem(stabrecstring,stabrecsize);
+              stabrecsize:=stabrecsize+memsizeinc;
+              stabrecstring:=news;
+           end;
+         strcat(StabRecstring,newrec);
+         strdispose(newrec);
+         {This should be used for case !!}
+         RecOffset := RecOffset + pvarsym(p)^.definition^.size;
        end;
     end;
 
@@ -3419,7 +3425,7 @@ Const local_symtable_index : longint = $8001;
         oldrecsize:=stabrecsize;
         stabrecsize:=memsizeinc;
         GetMem(stabrecstring,stabrecsize);
-        strpcopy(stabRecString,'s'+tostr(size));
+        strpcopy(stabRecString,'s'+tostr(symtable^.datasize));
         if assigned(childof) then
           {only one ancestor not virtual, public, at base offset 0 }
           {       !1           ,    0       2         0    ,       }
@@ -3704,7 +3710,13 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.151  1999-08-12 14:31:20  peter
+  Revision 1.152  1999-08-13 14:24:18  pierre
+    + stabs for classes and classref working,
+      a class still needs an ^ to get that content of it,
+      but the class fields inside a class don't result into an
+      infinite loop anymore!
+
+  Revision 1.151  1999/08/12 14:31:20  peter
     * long line fix
 
   Revision 1.150  1999/08/11 08:56:53  michael

@@ -1318,14 +1318,19 @@
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
      var
-       st : char;
+       st : string[2];
      begin
+       if (definition^.deftype=objectdef) and
+          pobjectdef(definition)^.is_class then
+         st:='*'
+       else
+         st:='';
        if (owner^.symtabletype = objectsymtable) and
           (sp_static in symoptions) then
          begin
-            if (cs_gdb_gsym in aktglobalswitches) then st := 'G' else st := 'S';
+            if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
 {$ifndef Delphi}
-            stabstring := strpnew('"'+owner^.name^+'__'+name+':'+
+            stabstring := strpnew('"'+owner^.name^+'__'+name+':'+st+
                      +definition^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
 {$endif}
@@ -1337,26 +1342,26 @@
               because with G GDB doesn't look at the address field
               but searches the same name or with a leading underscore
               but these names don't exist in pascal !}
-            if (cs_gdb_gsym in aktglobalswitches) then st := 'G' else st := 'S';
+            if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
             stabstring := strpnew('"'+name+':'+st
                      +definition^.numberstring+'",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if owner^.symtabletype = staticsymtable then
          begin
-            stabstring := strpnew('"'+name+':S'
+            stabstring := strpnew('"'+name+':S'+st
                   +definition^.numberstring+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if (owner^.symtabletype=parasymtable) then
          begin
             case varspez of
-               vs_var   : st := 'v';
+               vs_var   : st := 'v'+st;
                vs_value,
                vs_const : if push_addr_param(definition) then
-                            st := 'v' { should be 'i' but 'i' doesn't work }
+                            st := 'v'+st { should be 'i' but 'i' doesn't work }
                           else
-                            st := 'p';
+                            st := 'p'+st;
               end;
             stabstring := strpnew('"'+name+':'+st
                   +definition^.numberstring+'",'+
@@ -1371,7 +1376,7 @@
            begin
               { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
               { this is the register order for GDB}
-              stabstring:=strpnew('"'+name+':r'
+              stabstring:=strpnew('"'+name+':r'+st
                         +definition^.numberstring+'",'+
                         tostr(N_RSYM)+',0,'+
                         tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
@@ -1380,11 +1385,11 @@
    {$endif i386}
            { I don't know if this will work (PM) }
            if (vo_is_C_var in varoptions) then
-            stabstring := strpnew('"'+name+':S'
+            stabstring := strpnew('"'+name+':S'+st
                   +definition^.numberstring+'",'+
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
            else
-           stabstring := strpnew('"'+name+':'
+           stabstring := strpnew('"'+name+':'+st
                   +definition^.numberstring+'",'+
                   tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address))
        else
@@ -2099,7 +2104,13 @@
 
 {
   $Log$
-  Revision 1.111  1999-08-10 12:36:31  pierre
+  Revision 1.112  1999-08-13 14:24:20  pierre
+    + stabs for classes and classref working,
+      a class still needs an ^ to get that content of it,
+      but the class fields inside a class don't result into an
+      infinite loop anymore!
+
+  Revision 1.111  1999/08/10 12:36:31  pierre
    * use of procsym field for correct gdb info in local procedures
    * exported DLL vars made global to be able to use DLLTOOL with themz
 

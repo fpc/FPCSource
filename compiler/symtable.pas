@@ -299,6 +299,7 @@ unit symtable;
 
        class_tobject : pobjectdef; { pointer to the anchestor of all   }
                                    { clases                         }
+       pvmtdef     : ppointerdef;  { type of classrefs }
 
        aktprocsym : pprocsym;      { pointer to the symbol for the
                                      currently be parsed procedure }
@@ -2346,7 +2347,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-08-10 16:25:42  pierre
+  Revision 1.41  1999-08-13 14:24:22  pierre
+    + stabs for classes and classref working,
+      a class still needs an ^ to get that content of it,
+      but the class fields inside a class don't result into an
+      infinite loop anymore!
+
+  Revision 1.40  1999/08/10 16:25:42  pierre
    * unitid changed to word
 
   Revision 1.39  1999/08/10 12:33:36  pierre
