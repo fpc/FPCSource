@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by the Free Pascal Development Team
+    Copyright (c) 1997-98 by Jonas Maebe
 
     This unit contains the data flow analyzer and several helper procedures
     and functions.
@@ -114,7 +114,8 @@ Type
              C_ROp1, C_WOp1, C_RWOp1,
              C_ROp2, C_WOp2, C_RWOp2,
              C_ROp3, C_WOp3, C_RWOp3,
-             C_MemEDI, C_All);
+             C_WMemEDI,
+             C_All);
 
 {the possible states of a flag}
   TFlagContents = (F_Unknown, F_NotSet, F_Set);
@@ -233,14 +234,14 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {POPAD} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {PUSH} (Ch: (C_RWESP, C_None, C_None)),
 {PUSHAD} (Ch: (C_RWESP, C_None, C_None)),
-   {RET} (Ch: (C_None, C_None, C_None)),
+   {RET} (Ch: (C_ALL, C_None, C_None)),
    {SUB} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
-  {XCHG} (Ch: (C_RWOp1, C_RWOp2, C_None)), {(will be) handled seperately}
+  {XCHG} (Ch: (C_RWOp1, C_RWOp2, C_None)), {(might be) handled seperately}
    {XOR} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
   {FILD} (Ch: (C_FPU, C_None, C_None)),
-   {CMP} (Ch: (C_RFlags, C_None, C_None)),
-    {JZ} (Ch: (C_None, C_None, C_None)),
-   {INC} (Ch: (C_RWOp1, C_RFlags, C_None)),
+   {CMP} (Ch: (C_WFlags, C_None, C_None)),
+    {JZ} (Ch: (C_RFlags, C_None, C_None)),
+   {INC} (Ch: (C_RWOp1, C_WFlags, C_None)),
    {DEC} (Ch: (C_RWOp1, C_WFlags, C_None)),
   {SETE} (Ch: (C_WOp1, C_RFlags, C_None)),
  {SETNE} (Ch: (C_WOp1, C_RFlags, C_None)),
@@ -255,7 +256,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {JLE} (Ch: (C_RFlags, C_None, C_None)),
    {JGE} (Ch: (C_RFlags, C_None, C_None)),
     {OR} (Ch: (C_RWOp2, C_WFlags, C_None)),
-   {FLD} (Ch: (C_FPU, C_None, C_None)),
+   {FLD} (Ch: (C_ROp1, C_FPU, C_None)),
   {FADD} (Ch: (C_FPU, C_None, C_None)),
   {FMUL} (Ch: (C_FPU, C_None, C_None)),
   {FSUB} (Ch: (C_FPU, C_None, C_None)),
@@ -265,23 +266,23 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FIDIV} (Ch: (C_FPU, C_None, C_None)),
   {CLTD} (Ch: (C_WEDX, C_REAX, C_None)),
    {JNZ} (Ch: (C_RFlags, C_None, C_None)),
-  {FSTP} (Ch: (C_WOp1, C_None, C_None)),
-   {AND} (Ch: (C_RWOp2, C_WFlags, C_None)),
+  {FSTP} (Ch: (C_WOp1, C_FPU, C_None)),
+   {AND} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
    {JNO} (Ch: (C_RFlags, C_None, C_None)),
   {NOTH} (Ch: (C_None, C_None, C_None)), {***???***}
   {NONE} (Ch: (C_None, C_None, C_None)),
  {ENTER} (Ch: (C_RWESP, C_None, C_None)),
  {LEAVE} (Ch: (C_RWESP, C_None, C_None)),
    {CLD} (Ch: (C_CDirFlag, C_None, C_None)),
-  {MOVS} (Ch: (C_RWESI, C_RWEDI, C_MemEDI)),
+  {MOVS} (Ch: (C_RWESI, C_RWEDI, C_WMemEDI)),
    {REP} (Ch: (C_RWECX, C_RFlags, C_None)),
-   {SHL} (Ch: (C_RWOp2, C_WFlags, C_None)),
-   {SHR} (Ch: (C_RWOp2, C_WFlags, C_None)),
+   {SHL} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
+   {SHR} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
  {BOUND} (Ch: (C_ROp1, C_None, C_None)),
    {JNS} (Ch: (C_RFlags, C_None, C_None)),
     {JS} (Ch: (C_RFlags, C_None, C_None)),
     {JO} (Ch: (C_RFlags, C_None, C_None)),
-   {SAR} (Ch: (C_RWOp2, C_WFlags, C_None)),
+   {SAR} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
   {TEST} (Ch: (C_WFlags, C_ROp1, C_ROp2)),
   {FCOM} (Ch: (C_FPU, C_None, C_None)),
  {FCOMP} (Ch: (C_FPU, C_None, C_None)),
@@ -298,11 +299,11 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {SETC} (Ch: (C_WOp1, C_RFlags, C_None)),
  {SETNC} (Ch: (C_WOp1, C_RFlags, C_None)),
     {JC} (Ch: (C_None, C_RFlags, C_None)),
-   {JNC} (Ch: (C_None, C_RFlags, C_None)),
-    {JA} (Ch: (C_None, C_RFlags, C_None)),
-   {JAE} (Ch: (C_None, C_RFlags, C_None)),
-    {JB} (Ch: (C_None, C_RFlags, C_None)),
-   {JBE} (Ch: (C_None, C_RFlags, C_None)),
+   {JNC} (Ch: (C_RFlags, C_None, C_None)),
+    {JA} (Ch: (C_RFlags, C_None, C_None)),
+   {JAE} (Ch: (C_RFlags, C_None, C_None)),
+    {JB} (Ch: (C_RFlags, C_None, C_None)),
+   {JBE} (Ch: (C_RFlags, C_None, C_None)),
   {SETA} (Ch: (C_WOp1, C_RFlags, C_None)),
  {SETAE} (Ch: (C_WOp1, C_RFlags, C_None)),
   {SETB} (Ch: (C_WOp1, C_RFlags, C_None)),
@@ -317,26 +318,26 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {CLI} (Ch: (C_WFlags, C_None, C_None)),
   {CLTS} (Ch: (C_None, C_None, C_None)),
    {CMC} (Ch: (C_WFlags, C_None, C_None)),
-   {CWD} (Ch: (C_RWEAX, C_WEDX, C_None)),
+   {CWD} (Ch: (C_RWEAX, C_None, C_None)),
   {CWDE} (Ch: (C_RWEAX, C_None, C_None)),
    {DAA} (Ch: (C_RWEAX, C_None, C_None)),
    {DAS} (Ch: (C_RWEAX, C_None, C_None)),
    {HLT} (Ch: (C_None, C_None, C_None)),
   {IRET} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {LAHF} (Ch: (C_WEAX, C_None, C_None)),
+  {LAHF} (Ch: (C_WEAX, C_RFlags, C_None)),
   {LODS} (Ch: (C_WEAX, C_RWESI, C_None)),
   {LOCK} (Ch: (C_None, C_None, C_None)),
    {NOP} (Ch: (C_None, C_None, C_None)),
- {PUSHA} (Ch: (C_RWESP, C_None, C_None)),
- {PUSHF} (Ch: (C_RWESP, C_None, C_None)),
-{PUSHFD} (Ch: (C_RWESP, C_None, C_None)),
+ {PUSHA} (Ch: (C_ALL, C_None, C_None)), {not true, but a pushall is usually followed by an instruction that does, so it won huert either}
+ {PUSHF} (Ch: (C_RWESP, C_RFlags, C_None)),
+{PUSHFD} (Ch: (C_RWESP, C_RFlags, C_None)),
    {STC} (Ch: (C_WFlags, C_None, C_None)),
    {STD} (Ch: (C_SDirFlag, C_None, C_None)),
    {STI} (Ch: (C_WFlags, C_None, C_None)),
-  {STOS} (Ch: (C_MemEDI, C_RWEDI, C_None)),
+  {STOS} (Ch: (C_WMemEDI, C_RWEDI, C_REAX)),
   {WAIT} (Ch: (C_None, C_None, C_None)),
-  {XLAT} (Ch: (C_WEAX, C_None, C_None)),
- {XLATB} (Ch: (C_WEAX, C_None, C_None)),
+  {XLAT} (Ch: (C_WEAX, C_REBX, C_None)),
+ {XLATB} (Ch: (C_WEAX, C_REBX, C_None)),
  {MOVSB} (Ch: (C_WOp2, C_ROp1, C_None)),
 {MOVSBL} (Ch: (C_WOp2, C_ROp1, C_None)),
 {MOVSBW} (Ch: (C_WOp2, C_ROp1, C_None)),
@@ -382,7 +383,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {JECXZ} (Ch: (C_RECX, C_None, C_None)),
   {LOOP} (Ch: (C_RWECX, C_None, C_None)),
   {CMPS} (Ch: (C_RWESI, C_RWEDI, C_WFlags)),
-   {INS} (Ch: (C_RWEDI, C_MemEDI, C_None)),
+   {INS} (Ch: (C_RWEDI, C_WMemEDI, C_None)),
   {OUTS} (Ch: (C_RWESI, C_None, C_None)),
   {SCAS} (Ch: (C_RWEDI, C_WFlags, C_None)),
    {BSF} (Ch: (C_WOp2, C_WFlags, C_ROp1)),
@@ -434,8 +435,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {VERR} (Ch: (C_WFlags, C_None, C_None)),
   {VERW} (Ch: (C_WFlags, C_None, C_None)),
   {FABS} (Ch: (C_FPU, C_None, C_None)),
-  {FBLD} (Ch: (C_FPU, C_None, C_None)),
- {FBSTP} (Ch: (C_WOp1, C_None, C_None)),
+  {FBLD} (Ch: (C_ROp1, C_FPU, C_None)),
+ {FBSTP} (Ch: (C_WOp1, C_FPU, C_None)),
  {FCLEX} (Ch: (C_FPU, C_None, C_None)),
 {FNCLEX} (Ch: (C_FPU, C_None, C_None)),
   {FCOS} (Ch: (C_FPU, C_None, C_None)),
@@ -508,12 +509,12 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FISTL} (Ch: (C_WOp1, C_None, C_None)),
   {FSTL} (Ch: (C_WOp1, C_None, C_None)),
   {FSTS} (Ch: (C_WOp1, C_None, C_None)),
- {FSTPS} (Ch: (C_WOp1, C_None, C_None)),
+ {FSTPS} (Ch: (C_WOp1, C_FPU, C_None)),
 {FISTPL} (Ch: (C_WOp1, C_None, C_None)),
- {FSTPL} (Ch: (C_WOp1, C_None, C_None)),
-{FISTPS} (Ch: (C_WOp1, C_None, C_None)),
-{FISTPQ} (Ch: (C_WOp1, C_None, C_None)),
- {FSTPT} (Ch: (C_WOp1, C_None, C_None)),
+ {FSTPL} (Ch: (C_WOp1, C_FPU, C_None)),
+{FISTPS} (Ch: (C_WOp1, C_FPU, C_None)),
+{FISTPQ} (Ch: (C_WOp1, C_FPU, C_None)),
+ {FSTPT} (Ch: (C_WOp1, C_FPU, C_None)),
 {FCOMPS} (Ch: (C_FPU, C_None, C_None)),
 {FICOMPL}(Ch: (C_FPU, C_None, C_None)),
 {FCOMPL} (Ch: (C_FPU, C_None, C_None)),
@@ -1964,7 +1965,7 @@ Begin
                               ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                             Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                           End;
-                        C_MemEDI:
+                        C_WMemEDI:
                           Begin
                             ReadReg(CurProp, R_EDI);
                             FillChar(TmpRef, SizeOf(TmpRef), 0);
@@ -2081,8 +2082,12 @@ End.
 
 {
  $Log$
- Revision 1.27  1998-11-24 19:47:22  jonas
-   * fixed problems posiible with 3 operand instructions
+ Revision 1.28  1998-11-26 15:43:24  jonas
+   * several small fixes in the AsmInstr table (concerning reading/writing from
+     regs/mem, doesn't affect current optimizer)
+
+ Revision 1.27  1998/11/24 19:47:22  jonas
+   * fixed problems posible with 3 operand instructions
 
  Revision 1.26  1998/11/24 12:50:09  peter
    * fixed crash
