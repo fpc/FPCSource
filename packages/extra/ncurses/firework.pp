@@ -3,7 +3,7 @@
 }
 program firework;
 uses
-  ncurses,linux;
+  ncurses;
 
 CONST
   my_bg : LONGINT = COLOR_BLACK;
@@ -137,7 +137,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-10 20:07:51  michael
+  Revision 1.4  2004-12-24 15:41:19  jonas
+    - removed unnecessary dependency on linux unit
+
+  Revision 1.3  2002/09/10 20:07:51  michael
   + Reinstated dissapeared code
 
 }
