@@ -3008,18 +3008,35 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.DrawBackGround;
 VAR Bc: Byte;
+    I : Longint;
+    B : TDrawBuffer;
 BEGIN
    If (GOptions AND goNativeClass = 0) Then Begin     { Non natives draw }
      Inherited DrawBackGround;                        { Call ancestor }
      Bc := GetColor(1) AND $F0 SHR 4;                 { Background colour }
-     ClearArea(0, 0, FontWidth-1, FontHeight-1, Bc);  { Clear top/left area }
-     BiColorRectangle(0, 0, FontWidth-1, FontHeight-1,
-       15, 0, False);                                 { Draw 3d effect }
-     ClearArea(RawSize.X-FontWidth+1, RawSize.Y-
-       FontHeight+1, RawSize.X, RawSize.Y, Bc);       { Clr right/lower area }
-     BiColorRectangle(RawSize.X-FontWidth+1,
-       RawSize.Y-FontHeight+1,RawSize.X, RawSize.Y,
-       15, 0, False);                                 { Draw 3d effect }
+     If TextModeGFV then
+       Begin
+         WriteChar(0,0,Chars[0],Bc,1);
+         If (Size.X = 1) Then Begin                         { Vertical scrollbar }
+           For i:=1 to Size.Y-2 do
+             WriteChar(0,i,Chars[2],Bc,1);
+           WriteChar(0,Size.Y-1,Chars[1],Bc,1);
+         End Else Begin
+           WriteChar(1,0,Chars[2],Bc,Size.X-2);
+           WriteChar(Size.X-1,0,Chars[1],Bc,1);
+         End;
+       End
+     else
+       Begin
+         ClearArea(0, 0, FontWidth-1, FontHeight-1, Bc);  { Clear top/left area }
+         BiColorRectangle(0, 0, FontWidth-1, FontHeight-1,
+           15, 0, False);                                 { Draw 3d effect }
+         ClearArea(RawSize.X-FontWidth+1, RawSize.Y-
+           FontHeight+1, RawSize.X, RawSize.Y, Bc);       { Clr right/lower area }
+         BiColorRectangle(RawSize.X-FontWidth+1,
+           RawSize.Y-FontHeight+1,RawSize.X, RawSize.Y,
+           15, 0, False);                                 { Draw 3d effect }
+       End;
    End;
 END;
 
@@ -3252,7 +3269,12 @@ END;
 FUNCTION TScrollBar.GetSize: Integer;
 VAR S: Integer;
 BEGIN
-   If (Size.X = 1) Then S := RawSize.Y-3*FontHeight+1 { Vertical bar }
+   If TextModeGFV then Begin
+     If Size.X = 1 Then
+       S:= Size.Y-3
+     else
+       S:= Size.X-3;
+   end else If (Size.X = 1) Then S := RawSize.Y-3*FontHeight+1 { Vertical bar }
      Else S := RawSize.X-3*FontWidth+1;               { Horizontal bar }
    If (S < 1) Then S := 1;                            { Fix minimum size }
    GetSize := S;                                      { Return size }
@@ -3266,7 +3288,7 @@ END;
 {  square area.                                                             }
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.DrawPos (Pos: Integer);
-VAR X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
+VAR i, X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) AND                     { View is exposed }
@@ -3278,17 +3300,28 @@ BEGIN
        HideMouseCursor;                               { Hide the mouse }
        X1 := 0;                                       { Initial x position }
        Y1 := 0;                                       { Initial y position }
-       If (Size.X=1) Then Y1 := Pos + FontHeight      { Vertical bar }
-         Else X1 := Pos + FontWidth;                  { Horizontal bar }
-       X2 := X1 + FontWidth - 1;                      { Right side point }
-       Y2 := Y1 + FontHeight - 1;                     { Lower side point }
-       ClearArea(X1, Y1, X2, Y2, GetColor(2) AND $0F);{ Thumbnail back }
-       BiColorRectangle(X1, Y1, X2, Y2, 15, 8, False);{ Draw highlight }
-       Y1 := (Y2 + Y1) DIV 2;                         { Middle of thumb }
-       Y2 := Y1+1;                                    { One line down }
-       Inc(X1, 1);                                    { One in off left }
-       Dec(X2, 1);                                    { One in off right }
-       BiColorRectangle(X1, Y1, X2, Y2, 15, 8, True); { Draw line marker }
+       If TextModeGFV then Begin
+         If (Size.X = 1) Then Begin                         { Vertical scrollbar }
+           For i:=1 to Size.Y-2 do
+             WriteChar(0,i,Chars[2],2,1);
+         End Else
+           WriteChar(1,0,Chars[2],2,Size.X-2);
+         If (Size.X=1) Then Y1 := Pos+1                 { Vertical bar }
+           Else X1 := Pos+1;                            { Horizontal bar }
+           WriteChar(X1,Y1,Chars[3],2,1);
+       End Else Begin
+         If (Size.X=1) Then Y1 := Pos + FontHeight      { Vertical bar }
+           Else X1 := Pos + FontWidth;                  { Horizontal bar }
+         X2 := X1 + FontWidth - 1;                      { Right side point }
+         Y2 := Y1 + FontHeight - 1;                     { Lower side point }
+         ClearArea(X1, Y1, X2, Y2, GetColor(2) AND $0F);{ Thumbnail back }
+         BiColorRectangle(X1, Y1, X2, Y2, 15, 8, False);{ Draw highlight }
+         Y1 := (Y2 + Y1) DIV 2;                         { Middle of thumb }
+         Y2 := Y1+1;                                    { One line down }
+         Inc(X1, 1);                                    { One in off left }
+         Dec(X2, 1);                                    { One in off right }
+         BiColorRectangle(X1, Y1, X2, Y2, 15, 8, True); { Draw line marker }
+       End;
        ShowMouseCursor;                               { Show the mouse }
      End;
      ReleaseViewLimits;                               { Release the limits }
@@ -4826,6 +4859,11 @@ BEGIN
      GetBounds(SaveBounds);                           { Get current bounds }
      Repeat
        P := Origin; S := Size;                        { Set values }
+       If Assigned(Owner) then
+         Begin
+           Dec(P.X,Owner^.Origin.X);
+           Dec(P.Y,Owner^.Origin.Y);
+         End;
        KeyEvent(Event);                               { Get key event }
        Case Event.KeyCode AND $FF00 Of
          kbLeft: Change(-1, 0);                       { Move left }
@@ -5155,7 +5193,10 @@ END.
 
 {
  $Log$
- Revision 1.13  2001-05-31 12:14:06  pierre
+ Revision 1.14  2001-06-01 16:01:20  pierre
+  TScrollBar Drawing  and TView.DragView corrected
+
+ Revision 1.13  2001/05/31 12:14:06  pierre
   * fix problems for multiple insert/delete and use Redraw for hild drawing like TV
 
  Revision 1.12  2001/05/30 13:26:18  pierre
