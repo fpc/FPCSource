@@ -40,12 +40,19 @@ const
   CLONE_FILES   = $00000400; // set if open files shared between processes
   CLONE_SIGHAND = $00000800; // set if signal handlers shared
   CLONE_PID     = $00001000; // set if pid shared
+type
+  TCloneFunc=function(args:pointer):longint;cdecl;
 
-
+const
   { For getting/setting priority }
   Prio_Process = 0;
   Prio_PGrp    = 1;
   Prio_User    = 2;
+
+  WNOHANG   = $1;
+  WUNTRACED = $2;
+  __WCLONE  = $80000000;
+
 
 {********************
       File
@@ -499,7 +506,8 @@ Procedure Execle(Todo:string;Ep:ppchar);
 Procedure Execlp(Todo:string;Ep:ppchar);
 Function  Shell(const Command:String):Longint;
 Function  Fork:longint;
-Function  Clone(sp,flags:LongInt):LongInt;
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 Procedure Nice(N:integer);
 Function  GetPriority(Which,Who:Integer):integer;
@@ -605,6 +613,7 @@ Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
 Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
 Function  Kill(Pid:longint;Sig:integer):integer;
+Procedure SigRaise(Sig:integer);
 
 {**************************
   IOCtl/Termios Functions
@@ -742,14 +751,45 @@ begin
 End;
 
 
-Function Clone(sp,flags:LongInt):LongInt;
-var
-  regs : SysCallRegs;
+function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 begin
-  regs.reg2:=sp;
-  regs.reg3:=flags;
-  Clone:=SysCall(SysCall_nr_clone, regs);
-  LinuxError:=Errno;
+  if (pointer(func)=nil) or (sp=nil) then
+   begin
+     LinuxError:=Sys_EInval;
+     exit;
+   end;
+  asm
+        { Insert the argument onto the new stack. }
+        movl    sp,%ecx
+        subl    $8,%ecx
+        movl    args,%eax
+        movl    %eax,4(%ecx)
+
+        { Save the function pointer as the zeroth argument.
+          It will be popped off in the child in the ebx frobbing below. }
+        movl    func,%eax
+        movl    %eax,0(%ecx)
+
+        { Do the system call }
+        pushl   %ebx
+        movl    flags,%ebx
+        movl    SysCall_nr_clone,%eax
+        int     $0x80
+        popl    %ebx
+        test    %eax,%eax
+        jnz     .Lclone_end
+
+        { We're in the new thread }
+        subl    %ebp,%ebp       { terminate the stack frame }
+        call    *%ebx
+        { exit process }
+        movl    %eax,%ebx
+        movl    $1,%eax
+        int     $0x80
+
+.Lclone_end:
+        movl    %eax,__RESULT
+  end;
 end;
 
 
@@ -882,6 +922,14 @@ begin
   ExecVP(StrPas(p^),p,EP);
 end;
 
+
+Procedure ExitProcess(val:longint);
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=val;
+  SysCall(SysCall_nr_exit,regs);
+end;
 
 
 Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
@@ -2559,6 +2607,12 @@ begin
 end;
 
 
+procedure SigRaise(sig:integer);
+begin
+  Kill(GetPid,Sig);
+end;
+
+
 {******************************************************************************
                          IOCtl and Termios calls
 ******************************************************************************}
@@ -3546,7 +3600,11 @@ End.
 
 {
   $Log$
-  Revision 1.38  1999-05-26 11:05:24  michael
+  Revision 1.39  1999-05-30 11:37:27  peter
+    * clone function like the libc version
+    + sigraise, exitprocess
+
+  Revision 1.38  1999/05/26 11:05:24  michael
   * fcntl needs file as Var argument
 
   Revision 1.37  1999/05/10 09:13:41  peter
