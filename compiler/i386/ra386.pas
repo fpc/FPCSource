@@ -27,7 +27,7 @@ unit Ra386;
 interface
 
 uses
-  aasm,cpubase,RAUtils;
+  aasm,cpubase,rautils,cclasses;
 
 { Parser helpers }
 function is_prefix(t:tasmop):boolean;
@@ -51,12 +51,48 @@ type
     procedure ConcatInstruction(p : taasmoutput);override;
   end;
 
+  tstr2opentry = class(Tnamedindexitem)
+    op: TAsmOp;
+  end;
+
+const
+  AsmPrefixes = 6;
+  AsmPrefix : array[0..AsmPrefixes-1] of TasmOP =(
+    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ
+  );
+
+  AsmOverrides = 6;
+  AsmOverride : array[0..AsmOverrides-1] of TasmOP =(
+    A_SEGCS,A_SEGES,A_SEGDS,A_SEGFS,A_SEGGS,A_SEGSS
+  );
+  
+  CondAsmOps=3;
+  CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
+    A_CMOVcc, A_Jcc, A_SETcc
+  );
+  CondAsmOpStr:array[0..CondAsmOps-1] of string[4]=(
+    'CMOV','J','SET'
+  );
+
+  { Convert reg to opsize }
+  reg_2_opsize:array[firstreg..lastreg] of topsize = (S_NO,
+    S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
+    S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
+    S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
+    S_W,S_W,S_W,S_W,S_W,S_W,
+    S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
+    S_L,S_L,S_L,S_L,S_L,S_L,
+    S_L,S_L,S_L,S_L,
+    S_L,S_L,S_L,S_L,S_L,
+    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
+    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
+  );
 
 implementation
 
 uses
   globtype,globals,systems,verbose,
-  cpuinfo,cpuasm;
+  cpuinfo,cpuasm,ag386att;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -74,6 +110,9 @@ uses
     {$undef ATTOP}
   {$endif}
 {$endif}
+
+
+
 {*****************************************************************************
                               Parser Helpers
 *****************************************************************************}
@@ -166,14 +205,14 @@ end;
 
 Procedure T386Operand.SetCorrectSize(opcode:tasmop);
 begin
-  if att_needsuffix[opcode]=attsufFPU then
+  if gas_needsuffix[opcode]=attsufFPU then
     begin
      case size of
       S_L : size:=S_FS;
       S_IQ : size:=S_FL;
      end;
     end
-  else if att_needsuffix[opcode]=attsufFPUint then
+  else if gas_needsuffix[opcode]=attsufFPUint then
     begin
       case size of
       S_W : size:=S_IS;
@@ -466,10 +505,10 @@ begin
        else if opcode=A_FDIVR then
          opcode:=A_FDIVRP;
 {$ifdef ATTOP}
-       message1(asmr_w_fadd_to_faddp,att_op2str[opcode]);
+       message1(asmr_w_fadd_to_faddp,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
-       message1(asmr_w_fadd_to_faddp,int_op2str[opcode]);
+       message1(asmr_w_fadd_to_faddp,std_op2str[opcode]);
   {$else}
        message1(asmr_w_fadd_to_faddp,'fXX');
   {$endif INTELOP}
@@ -490,10 +529,10 @@ begin
       (opcode=A_FDIVR)) then
      begin
 {$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_args_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_args_fXX,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
-       message1(asmr_w_adding_explicit_args_fXX,int_op2str[opcode]);
+       message1(asmr_w_adding_explicit_args_fXX,std_op2str[opcode]);
   {$else}
        message1(asmr_w_adding_explicit_args_fXX,'fXX');
   {$endif INTELOP}
@@ -515,10 +554,10 @@ begin
       (opcode=A_FMULP)) then
      begin
 {$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_first_arg_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_first_arg_fXX,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
-       message1(asmr_w_adding_explicit_first_arg_fXX,int_op2str[opcode]);
+       message1(asmr_w_adding_explicit_first_arg_fXX,std_op2str[opcode]);
   {$else}
        message1(asmr_w_adding_explicit_first_arg_fXX,'fXX');
   {$endif INTELOP}
@@ -540,10 +579,10 @@ begin
       (opcode=A_FMUL)) then
      begin
 {$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_second_arg_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_second_arg_fXX,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
-       message1(asmr_w_adding_explicit_second_arg_fXX,int_op2str[opcode]);
+       message1(asmr_w_adding_explicit_second_arg_fXX,std_op2str[opcode]);
   {$else}
        message1(asmr_w_adding_explicit_second_arg_fXX,'fXX');
   {$endif INTELOP}
@@ -629,7 +668,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-04-04 19:06:13  peter
+  Revision 1.17  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.16  2002/04/04 19:06:13  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

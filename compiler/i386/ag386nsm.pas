@@ -35,6 +35,8 @@ interface
         procedure WriteAsmList;override;
         procedure WriteExternals;
       end;
+      
+      
 
   implementation
 
@@ -48,6 +50,19 @@ interface
 
     const
       line_length = 64;
+
+    int_nasmreg2str : reg2strtable = ('',
+     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
+     'ax','cx','dx','bx','sp','bp','si','di',
+     'al','cl','dl','bl','ah','ch','bh','dh',
+     'cs','ds','es','ss','fs','gs',
+     'st0','st0','st1','st2','st3','st4','st5','st6','st7',
+     'dr0','dr1','dr2','dr3','dr6','dr7',
+     'cr0','cr2','cr3','cr4',
+     'tr3','tr4','tr5','tr6','tr7',
+     'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
+     'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
+   );
 
     var
       lastfileinfo : tfileposinfo;
@@ -150,7 +165,7 @@ interface
           inc(offset,offsetfixup);
           offsetfixup:=0;
           if ref.segment<>R_NO then
-           s:='['+int_reg2str[segment]+':'
+           s:='['+std_reg2str[segment]+':'
           else
            s:='[';
          if assigned(symbol) then
@@ -164,7 +179,7 @@ interface
              s:=s+'+'
             else
              first:=false;
-             s:=s+int_reg2str[base];
+             s:=s+std_reg2str[base];
           end;
          if (index<>R_NO) then
            begin
@@ -172,7 +187,7 @@ interface
                s:=s+'+'
              else
                first:=false;
-             s:=s+int_reg2str[index];
+             s:=s+std_reg2str[index];
              if scalefactor<>0 then
                s:=s+'*'+tostr(scalefactor);
            end;
@@ -421,7 +436,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+gas_reg2str[tairegalloc(hp).reg]+
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tairegalloc(hp).reg]+
                    allocstr[tairegalloc(hp).allocation]);
              end;
 
@@ -662,7 +677,7 @@ interface
                if taicpu(hp).opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
-                AsmWriteLn(#9#9+{prefix+}int_op2str[taicpu(hp).opcode]+
+                AsmWriteLn(#9#9+{prefix+}std_op2str[taicpu(hp).opcode]+
                   cond2str[taicpu(hp).condition]+{suffix+}s);
              end;
 {$ifdef GDB}
@@ -883,7 +898,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-04-14 16:58:41  carl
+  Revision 1.16  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.15  2002/04/14 16:58:41  carl
   + att_reg2str -> gas_reg2str
 
   Revision 1.14  2002/04/04 18:27:37  carl

@@ -27,7 +27,7 @@ unit ag386att;
 interface
 
     uses
-      cclasses,
+      cclasses,cpubase,
       globals,
       aasm,assemble,aggas;
 
@@ -36,6 +36,32 @@ interface
       public
         procedure WriteInstruction(hp: tai);  override;
       end;
+
+    TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
+
+    const      
+      gas_op2str:op2strtable={$i i386att.inc}
+      gas_needsuffix:array[tasmop] of TAttSuffix={$i i386atts.inc}
+      
+      gas_reg2str : reg2strtable = ('',
+        '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
+        '%ax','%cx','%dx','%bx','%sp','%bp','%si','%di',
+        '%al','%cl','%dl','%bl','%ah','%ch','%bh','%dh',
+        '%cs','%ds','%es','%ss','%fs','%gs',
+        '%st','%st(0)','%st(1)','%st(2)','%st(3)','%st(4)','%st(5)','%st(6)','%st(7)',
+        '%dr0','%dr1','%dr2','%dr3','%dr6','%dr7',
+        '%cr0','%cr2','%cr3','%cr4',
+        '%tr3','%tr4','%tr5','%tr6','%tr7',
+        '%mm0','%mm1','%mm2','%mm3','%mm4','%mm5','%mm6','%mm7',
+        '%xmm0','%xmm1','%xmm2','%xmm3','%xmm4','%xmm5','%xmm6','%xmm7'
+       );
+      
+     gas_opsize2str : array[topsize] of string[2] = ('',
+       'b','w','l','bw','bl','wl',
+       's','l','q',
+       's','l','t','d','q','v',
+       '','',''
+     );
 
   implementation
 
@@ -46,7 +72,7 @@ interface
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase,cpuasm,tainst
+      fmodule,finput,verbose,cpuasm,tainst
 {$ifdef GDB}
   {$ifdef delphi}
       ,sysutils
@@ -191,18 +217,18 @@ interface
        op:=taicpu(hp).opcode;
        calljmp:=is_calljmp(op);
        { call maybe not translated to call }
-       s:=#9+att_op2str[op]+cond2str[taicpu(hp).condition];
+       s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
        { suffix needed ?  fnstsw,fldcw don't support suffixes
          with binutils 2.9.5 under linux }
        if (not calljmp) and
-           (att_needsuffix[op]<>AttSufNONE) and
+           (gas_needsuffix[op]<>AttSufNONE) and
            (op<>A_FNSTSW) and (op<>A_FSTSW) and
            (op<>A_FNSTCW) and (op<>A_FSTCW) and
            (op<>A_FLDCW) and not(
            (taicpu(hp).oper[0].typ=top_reg) and
            (taicpu(hp).oper[0].reg in [R_ST..R_ST7])
           ) then
-              s:=s+att_opsize2str[taicpu(hp).opsize];
+              s:=s+gas_opsize2str[taicpu(hp).opsize];
        { process operands }
        if taicpu(hp).ops<>0 then
          begin
@@ -326,7 +352,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-04-14 16:58:04  carl
+  Revision 1.18  2002-04-15 19:12:10  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.17  2002/04/14 16:58:04  carl
   + move into aggas most of the stuff non-processor specific
 
   Revision 1.16  2002/04/10 08:07:55  jonas

@@ -49,7 +49,9 @@ interface
        scanner,
        ra386,
        { codegen }
-       cgbase
+       cgbase,
+       { constants }
+       ag386att
        ;
 
     function assemble : tnode;
@@ -302,7 +304,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-04-14 17:01:52  carl
+  Revision 1.14  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.13  2002/04/14 17:01:52  carl
   + att_reg2str -> gas_reg2str
 
   Revision 1.12  2001/11/02 22:58:11  peter

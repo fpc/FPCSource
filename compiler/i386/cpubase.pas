@@ -24,6 +24,10 @@
 
  ****************************************************************************
 }
+{# Base unit for processor information. This unit contains
+   enumerations of registers, opcodes, sizes, and other
+   such things which are processor specific.
+}
 unit cpubase;
 
 {$i defines.inc}
@@ -40,7 +44,6 @@ const
 
 { By default we want everything }
 {$define ATTOP}
-{$define ATTREG}
 {$define INTELOP}
 {$define ITTABLE}
 
@@ -187,46 +190,21 @@ const
      longint($80000000);  { if the instruction can change in a second pass }
 
 type
-  TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
 
-  TAsmOp=
-{$i i386op.inc}
+  TAsmOp={$i i386op.inc}
 
+  {# This should define the array of instructions as string }
   op2strtable=array[tasmop] of string[11];
 
-  tstr2opentry = class(Tnamedindexitem)
-    op: TAsmOp;
-  end;
+Const
 
-const
+  {# First value of opcode enumeration }
   firstop = low(tasmop);
+  {# Last value of opcode enumeration  }
   lastop  = high(tasmop);
 
-  AsmPrefixes = 6;
-  AsmPrefix : array[0..AsmPrefixes-1] of TasmOP =(
-    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ
-  );
-
-  AsmOverrides = 6;
-  AsmOverride : array[0..AsmOverrides-1] of TasmOP =(
-    A_SEGCS,A_SEGES,A_SEGDS,A_SEGFS,A_SEGGS,A_SEGSS
-  );
 
 
-{$ifdef INTELOP}
-  int_op2str:op2strtable=
-{$i i386int.inc}
-{$endif INTELOP}
-
-{$ifdef ATTOP}
-  att_op2str:op2strtable=
-{$i i386att.inc}
-{$endif ATTOP}
-
-{$ifdef ATTSUF}
-  att_needsuffix:array[tasmop] of TAttSuffix=
-{$i i386atts.inc}
-{$endif ATTSUF}
 
 
 {*****************************************************************************
@@ -264,14 +242,6 @@ const
     )
   );
 
-{$ifdef ATTOP}
-  att_opsize2str : array[topsize] of string[2] = ('',
-    'b','w','l','bw','bl','wl',
-    's','l','q',
-    's','l','t','d','q','v',
-    '','',''
-  );
-{$endif}
 
 
 {*****************************************************************************
@@ -297,22 +267,18 @@ const
     C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
   );
 
-const
-  CondAsmOps=3;
-  CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
-    A_CMOVcc, A_Jcc, A_SETcc
-  );
-  CondAsmOpStr:array[0..CondAsmOps-1] of string[4]=(
-    'CMOV','J','SET'
-  );
-
 
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
 
 type
-  { enumeration for registers, don't change the order }
+  {# Enumeration for all possible registers for cpu. It 
+    is to note that all registers of the same type
+    (for example all FPU registers), should be grouped
+    together.
+  }
+  { don't change the order }
   { it's used by the register size conversions        }
   tregister = (R_NO,
     R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
@@ -327,12 +293,16 @@ type
     R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
   );
 
+  {# Set type definition for registers }
   tregisterset = set of tregister;
 
+  {# Type definition for the array of string of register nnames }
   reg2strtable = array[tregister] of string[6];
 
 const
+  {# First register in the tregister enumeration }
   firstreg = low(tregister);
+  {# Last register in the tregister enumeration }
   lastreg  = high(tregister);
 
   firstsreg = R_CS;
@@ -342,36 +312,17 @@ const
   regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
   regset32bit : tregisterset = [R_EAX..R_EDI];
 
-  { Convert reg to opsize }
-  reg_2_opsize:array[firstreg..lastreg] of topsize = (S_NO,
-    S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
-    S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
-    S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
-    S_W,S_W,S_W,S_W,S_W,S_W,
-    S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
-    S_L,S_L,S_L,S_L,S_L,S_L,
-    S_L,S_L,S_L,S_L,
-    S_L,S_L,S_L,S_L,S_L,
-    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
-    S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
-  );
+  {# Standard opcode string table (for each tasmop enumeration). The
+     opcode strings should conform to the names as defined by the
+     processor manufacturer.
+  }
+  std_op2str:op2strtable={$i i386int.inc}
 
-  { Convert reg to operand type }
-  reg_2_type:array[firstreg..lastreg] of longint = (OT_NONE,
-    OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
-    OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
-    OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-    OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
-    OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
-    OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
-    OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
-    OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
-    OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
-    OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
-  );
-
-{$ifdef INTELOP}
-  int_reg2str : reg2strtable = ('',
+  {# Standard register table (for each tregister enumeration). The
+     register strings should conform to the the names as defined
+     by the processor manufacturer
+  }
+  std_reg2str : reg2strtable = ('',
     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
     'ax','cx','dx','bx','sp','bp','si','di',
     'al','cl','dl','bl','ah','ch','bh','dh',
@@ -384,34 +335,7 @@ const
     'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
   );
 
-  int_nasmreg2str : reg2strtable = ('',
-    'eax','ecx','edx','ebx','esp','ebp','esi','edi',
-    'ax','cx','dx','bx','sp','bp','si','di',
-    'al','cl','dl','bl','ah','ch','bh','dh',
-    'cs','ds','es','ss','fs','gs',
-    'st0','st0','st1','st2','st3','st4','st5','st6','st7',
-    'dr0','dr1','dr2','dr3','dr6','dr7',
-    'cr0','cr2','cr3','cr4',
-    'tr3','tr4','tr5','tr6','tr7',
-    'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
-    'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
-  );
-{$endif}
 
-{$ifdef ATTREG}
-  gas_reg2str : reg2strtable = ('',
-    '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
-    '%ax','%cx','%dx','%bx','%sp','%bp','%si','%di',
-    '%al','%cl','%dl','%bl','%ah','%ch','%bh','%dh',
-    '%cs','%ds','%es','%ss','%fs','%gs',
-    '%st','%st(0)','%st(1)','%st(2)','%st(3)','%st(4)','%st(5)','%st(6)','%st(7)',
-    '%dr0','%dr1','%dr2','%dr3','%dr6','%dr7',
-    '%cr0','%cr2','%cr3','%cr4',
-    '%tr3','%tr4','%tr5','%tr6','%tr7',
-    '%mm0','%mm1','%mm2','%mm3','%mm4','%mm5','%mm6','%mm7',
-    '%xmm0','%xmm1','%xmm2','%xmm3','%xmm4','%xmm5','%xmm6','%xmm7'
-  );
-{$endif ATTREG}
 
 
 {*****************************************************************************
@@ -428,6 +352,7 @@ type
 type
   trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
+type
   { immediate/reference record }
   poperreference = ^treference;
   treference = packed record
@@ -439,9 +364,6 @@ type
      symbol      : tasmsymbol;
      offsetfixup : longint;
      options     : trefoptions;
-{$ifdef newcg}
-     alignment   : byte;
-{$endif newcg}
   end;
 
 {*****************************************************************************
@@ -467,17 +389,6 @@ type
                              Argument Classification
 *****************************************************************************}
 
-type
-  TArgClass = (
-     { the following classes should be defined by all processor implemnations }
-     AC_NOCLASS,
-     AC_MEMORY,
-     AC_INTEGER,
-     AC_FPU,
-     { the following argument classes are i386 specific }
-     AC_FPUUP,
-     AC_SSE,
-     AC_SSEUP);
 
 {*****************************************************************************
                                Generic Location
@@ -560,10 +471,8 @@ const
   firstsavemmreg = R_MM0;
   lastsavemmreg = R_MM7;
 
-  lowsavereg = R_EAX;
-  highsavereg = R_MM7;
 
-  ALL_REGISTERS = [lowsavereg..highsavereg];
+  ALL_REGISTERS = [firstreg..lastreg];
 
   lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
@@ -596,41 +505,15 @@ const
   LoReg = R_EAX;
   HiReg = R_BL;
 
-  cpuflags = [];
-
   { sizes }
-  pointersize   = 4;
+  pointer_size  = 4;
   extended_size = 10;
   mmreg_size = 8;
-  sizepostfix_pointer = S_L;
 
 
-{*****************************************************************************
-                              Instruction table
-*****************************************************************************}
 
-{$ifndef NOAG386BIN}
-type
-  tinsentry=packed record
-    opcode  : tasmop;
-    ops     : byte;
-    optypes : array[0..2] of longint;
-    code    : array[0..maxinfolen] of char;
-    flags   : longint;
-  end;
-  pinsentry=^tinsentry;
-
-  TInsTabCache=array[TasmOp] of longint;
-  PInsTabCache=^TInsTabCache;
-
-const
-  InsTab:array[0..instabentries-1] of TInsEntry=
-{$i i386tab.inc}
-
-var
-  InsTabCache : PInsTabCache;
-{$endif NOAG386BIN}
-
+  procedure InitCpu;
+  procedure DoneCpu;
 
 {*****************************************************************************
                    Opcode propeties (needed for optimizer)
@@ -675,13 +558,6 @@ const
 
 
 {*****************************************************************************
-                                  Init/Done
-*****************************************************************************}
-
-  procedure InitCpu;
-  procedure DoneCpu;
-
-{*****************************************************************************
                                   Helpers
 *****************************************************************************}
 
@@ -695,8 +571,6 @@ const
 
        maxintregs = maxvarregs;
        maxfpuregs = maxfpuvarregs;
-
-    function imm_2_type(l:longint):longint;
 
     { the following functions allow to convert registers }
     { for example reg8toreg32(R_AL) returns R_EAX        }
@@ -722,8 +596,6 @@ const
     { returns the operand prefix for a given register }
     function regsize(reg : tregister) : topsize;
 
-    function reg2str(r : tregister) : string;
-
     function is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var f: TResFlags);
@@ -741,36 +613,6 @@ implementation
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
-    function imm_2_type(l:longint):longint;
-      begin
-        if (l>=-128) and (l<=127) then
-         imm_2_type:=OT_IMM8 or OT_SIGNED
-        else
-         if (l>=-255) and (l<=255) then
-          imm_2_type:=OT_IMM8
-        else
-         if (l>=-32768) and (l<=32767) then
-          imm_2_type:=OT_IMM16 or OT_SIGNED
-        else
-         if (l>=-65536) and (l<=65535) then
-          imm_2_type:=OT_IMM16 or OT_SIGNED
-         else
-          imm_2_type:=OT_IMM32;
-      end;
-
-    function reg2str(r : tregister) : string;
-      const
-         a : array[R_NO..R_BL] of string[3] =
-          ('','EAX','ECX','EDX','EBX','ESP','EBP','ESI','EDI',
-           'AX','CX','DX','BX','SP','BP','SI','DI',
-           'AL','CL','DL','BL');
-      begin
-         if r in [R_ST0..R_ST7] then
-           reg2str:='ST('+tostr(longint(r)-longint(R_ST0))+')'
-         else
-           reg2str:=a[r];
-      end;
 
 
     function is_calljmp(o:tasmop):boolean;
@@ -886,51 +728,26 @@ implementation
       end;
 
 
-{*****************************************************************************
-                              Instruction table
-*****************************************************************************}
-
-    procedure BuildInsTabCache;
-{$ifndef NOAG386BIN}
-      var
-        i : longint;
-{$endif}
-      begin
-{$ifndef NOAG386BIN}
-        new(instabcache);
-        FillChar(instabcache^,sizeof(tinstabcache),$ff);
-        i:=0;
-        while (i<InsTabEntries) do
-         begin
-           if InsTabCache^[InsTab[i].OPcode]=-1 then
-            InsTabCache^[InsTab[i].OPcode]:=i;
-           inc(i);
-         end;
-{$endif NOAG386BIN}
-      end;
-
-
     procedure InitCpu;
-      begin
-{$ifndef NOAG386BIN}
-        if not assigned(instabcache) then
-          BuildInsTabCache;
-{$endif NOAG386BIN}
-      end;
-
-
+     begin
+     end;
+     
     procedure DoneCpu;
-      begin
-{$ifndef NOAG386BIN}
-        if assigned(instabcache) then
-         dispose(instabcache);
-{$endif NOAG386BIN}
-      end;
+     begin
+     end;
 
 end.
 {
   $Log$
-  Revision 1.13  2002-04-14 16:59:41  carl
+  Revision 1.14  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.13  2002/04/14 16:59:41  carl
   + att_reg2str -> gas_reg2str
 
   Revision 1.12  2002/04/02 17:11:34  peter

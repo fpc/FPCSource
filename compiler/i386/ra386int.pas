@@ -48,7 +48,7 @@ Implementation
        nbas,
        { parser }
        scanner,
-       ra386,rautils,
+       rautils,ra386,
        { codegen }
        cgbase
        ;
@@ -130,14 +130,14 @@ Begin
   iasmops.delete_doubles:=true;
   for i:=firstop to lastop do
     begin
-      str2opentry:=tstr2opentry.createname(upper(int_op2str[i]));
+      str2opentry:=tstr2opentry.createname(upper(std_op2str[i]));
       str2opentry.op:=i;
       iasmops.insert(str2opentry);
     end;
   { registers }
   new(iasmregs);
   for j:=firstreg to lastreg do
-   iasmregs^[j] := upper(int_reg2str[j]);
+   iasmregs^[j] := upper(std_reg2str[j]);
 end;
 
 
@@ -1959,7 +1959,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2002-04-04 19:06:13  peter
+  Revision 1.23  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.22  2002/04/04 19:06:13  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -46,6 +46,30 @@ uses
 
 const
   MaxPrefixes=4;
+  
+{*****************************************************************************
+                              Instruction table
+*****************************************************************************}
+
+type
+  tinsentry=packed record
+    opcode  : tasmop;
+    ops     : byte;
+    optypes : array[0..2] of longint;
+    code    : array[0..maxinfolen] of char;
+    flags   : longint;
+  end;
+  pinsentry=^tinsentry;
+
+  TInsTabCache=array[TasmOp] of longint;
+  PInsTabCache=^TInsTabCache;
+
+const
+  InsTab:array[0..instabentries-1] of TInsEntry={$i i386tab.inc}
+
+var
+  InsTabCache : PInsTabCache;
+{*****************************************************************************}
 
 type
   TOperandOrder = (op_intel,op_att);
@@ -123,13 +147,33 @@ type
      procedure Swatoperands;
 {$endif NOAG386BIN}
   end;
+  
+  procedure InitAsm;
+  procedure DoneAsm;
 
 
 implementation
 
 uses
   cutils,
-  ogbase;
+  ogbase,
+  ag386att;
+
+const  
+{ Convert reg to operand type }
+  reg_2_type:array[firstreg..lastreg] of longint = (OT_NONE,
+    OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
+    OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
+    OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
+    OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
+    OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
+    OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
+    OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
+    OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
+    OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
+    OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
+  );
+  
 
 
 {****************************************************************************
@@ -426,7 +470,7 @@ uses
         s : string;
         addsize : boolean;
       begin
-        s:='['+int_op2str[opcode];
+        s:='['+std_op2str[opcode];
         for i:=1to ops do
          begin
            if i=1 then
@@ -824,7 +868,7 @@ begin
 {$ifdef TP}
      Message1(asmw_e_opcode_not_in_table,'');
 {$else}
-     Message1(asmw_e_opcode_not_in_table,att_op2str[opcode]);
+     Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
 {$endif}
      exit;
    end;
@@ -1590,10 +1634,61 @@ begin
 end;
 {$endif NOAG386BIN}
 
+{*****************************************************************************
+                              Instruction table
+*****************************************************************************}
+
+    procedure BuildInsTabCache;
+{$ifndef NOAG386BIN}
+      var
+        i : longint;
+{$endif}
+      begin
+{$ifndef NOAG386BIN}
+        new(instabcache);
+        FillChar(instabcache^,sizeof(tinstabcache),$ff);
+        i:=0;
+        while (i<InsTabEntries) do
+         begin
+           if InsTabCache^[InsTab[i].OPcode]=-1 then
+            InsTabCache^[InsTab[i].OPcode]:=i;
+           inc(i);
+         end;
+{$endif NOAG386BIN}
+      end;
+
+
+    procedure InitAsm;
+      begin
+{$ifndef NOAG386BIN}
+        if not assigned(instabcache) then
+          BuildInsTabCache;
+{$endif NOAG386BIN}
+      end;
+
+
+    procedure DoneAsm;
+      begin
+{$ifndef NOAG386BIN}
+        if assigned(instabcache) then
+         dispose(instabcache);
+{$endif NOAG386BIN}
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.18  2002-04-02 17:11:33  peter
+  Revision 1.19  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.18  2002/04/02 17:11:33  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -48,7 +48,7 @@ Implementation
        nbas,
        { parser }
        scanner,
-       ra386,rautils
+       ra386,ag386att,rautils
        ;
 
 type
@@ -114,7 +114,7 @@ Begin
   iasmops.delete_doubles:=true;
   for i:=firstop to lastop do
     begin
-      str2opentry:=tstr2opentry.createname(upper(att_op2str[i]));
+      str2opentry:=tstr2opentry.createname(upper(gas_op2str[i]));
       str2opentry.op:=i;
       iasmops.insert(str2opentry);
     end;
@@ -172,9 +172,9 @@ Begin
         if assigned(str2opentry) then
           begin
             actopcode:=str2opentry.op;
-            if att_needsuffix[actopcode]=attsufFPU then
+            if gas_needsuffix[actopcode]=attsufFPU then
              actopsize:=att_sizefpusuffix[sufidx]
-            else if att_needsuffix[actopcode]=attsufFPUint then
+            else if gas_needsuffix[actopcode]=attsufFPUint then
              actopsize:=att_sizefpuintsuffix[sufidx]
             else
              actopsize:=att_sizesuffix[sufidx];
@@ -195,9 +195,9 @@ Begin
                   if Cond=Upper(cond2str[cnd]) then
                    begin
                      actopcode:=CondASmOp[j];
-                     if att_needsuffix[actopcode]=attsufFPU then
+                     if gas_needsuffix[actopcode]=attsufFPU then
                       actopsize:=att_sizefpusuffix[sufidx]
-                     else if att_needsuffix[actopcode]=attsufFPUint then
+                     else if gas_needsuffix[actopcode]=attsufFPUint then
                       actopsize:=att_sizefpuintsuffix[sufidx]
                      else
                       actopsize:=att_sizesuffix[sufidx];
@@ -2129,7 +2129,15 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2002-04-14 17:01:52  carl
+  Revision 1.21  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.20  2002/04/14 17:01:52  carl
   + att_reg2str -> gas_reg2str
 
   Revision 1.19  2002/04/04 19:06:13  peter

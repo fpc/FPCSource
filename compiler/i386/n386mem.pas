@@ -87,7 +87,7 @@ implementation
               remove_non_regvars_from_loc(location,regstopush);
               rg.saveusedregisters(exprasmlist,pushed,regstopush);
 
-              tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,location.reference);
+              tg.gettempofsizereference(exprasmlist,pointer_size,location.reference);
 
               { determines the size of the mem block }
               push_int(tpointerdef(resulttype.def).pointertype.def.size);
@@ -140,7 +140,7 @@ implementation
 
          procedure saveleft;
          begin
-           tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,lefttemp);
+           tg.gettempofsizereference(exprasmlist,pointer_size,lefttemp);
            cg.a_load_loc_ref(exprasmlist,left.location,lefttemp);
            location_release(exprasmlist,left.location);
          end;
@@ -663,7 +663,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-04-04 19:06:12  peter
+  Revision 1.25  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.24  2002/04/04 19:06:12  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -35,6 +35,9 @@ interface
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
       end;
+      
+
+      
 
   implementation
 
@@ -125,7 +128,7 @@ interface
           inc(offset,offsetfixup);
           offsetfixup:=0;
           if ref.segment<>R_NO then
-           s:=int_reg2str[segment]+':['
+           s:=std_reg2str[segment]+':['
           else
            s:='[';
          if assigned(symbol) then
@@ -141,7 +144,7 @@ interface
              s:=s+'+'
             else
              first:=false;
-             s:=s+int_reg2str[base];
+             s:=s+std_reg2str[base];
           end;
          if (index<>R_NO) then
            begin
@@ -149,7 +152,7 @@ interface
                s:=s+'+'
              else
                first:=false;
-             s:=s+int_reg2str[index];
+             s:=s+std_reg2str[index];
              if scalefactor<>0 then
                s:=s+'*'+tostr(scalefactor);
            end;
@@ -171,7 +174,7 @@ interface
     begin
       case o.typ of
         top_reg :
-          getopstr:=int_reg2str[o.reg];
+          getopstr:=std_reg2str[o.reg];
         top_const :
           getopstr:=tostr(longint(o.val));
         top_symbol :
@@ -234,7 +237,7 @@ interface
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=int_reg2str[o.reg];
+          getopstr_jmp:=std_reg2str[o.reg];
         top_const :
           getopstr_jmp:=tostr(longint(o.val));
         top_symbol :
@@ -592,7 +595,7 @@ interface
                            (taicpu(hp).opcode =  A_REPZ) or
                            (taicpu(hp).opcode = A_REPNE)) then
                         Begin
-                          prefix:=int_op2str[taicpu(hp).opcode]+#9;
+                          prefix:=std_op2str[taicpu(hp).opcode]+#9;
                           hp:=tai(hp.next);
                         { this is theorically impossible... }
                           if hp=nil then
@@ -628,7 +631,7 @@ interface
                               end;
                            end;
                         end;
-                       AsmWriteLn(#9#9+prefix+int_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix+s);
+                       AsmWriteLn(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix+s);
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -821,7 +824,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-04-04 19:06:07  peter
+  Revision 1.17  2002-04-15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.16  2002/04/04 19:06:07  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

@@ -90,6 +90,7 @@ implementation
        ;
 
 
+
 {$ifdef GDB}
 
     procedure TInternalAssembler.convertstabs(p:pchar);
@@ -1033,7 +1034,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-04-13 01:22:17  peter
+  Revision 1.8  2002-04-15 19:12:10  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.7  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
