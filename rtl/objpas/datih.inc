@@ -117,11 +117,16 @@ function StrToTime(const S: string): TDateTime;
 function StrToDateTime(const S: string): TDateTime;
 function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
 procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
+Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
+Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 
 {
 
   $Log$
-  Revision 1.3  1998-10-08 14:07:45  florian
+  Revision 1.4  1998-10-11 13:40:53  michael
+  + Added Conversion TDateTime <-> file date and time
+
+  Revision 1.3  1998/10/08 14:07:45  florian
     * date and day names fixed
 
   Revision 1.2  1998/09/16 08:28:37  michael

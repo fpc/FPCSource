@@ -546,9 +546,41 @@ begin
 Result := FormatDateTime(FormatStr, DateTime);
 end ;
 
+
+Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
+
+Var YY,MM,DD,H,m,s,msec : Word;
+
+begin
+  Decodedate (DateTime,YY,MM,DD);
+  If (YY<1980) or (YY>2099) then 
+    Result:=0
+  else
+    begin
+    DecodeTime (DateTime,h,m,s,msec);
+    Result:=(s shr 1) or (m shl 5) or (h shl 11);
+    Result:=Result or DD shl 16 or (MM shl 21) or ((YY-1980) shl 25);
+    end;
+end;
+
+
+Function FileDateToDateTime (Filedate : Longint) : TDateTime;
+
+Var Date,Time : Word;
+
+begin
+  Date:=FileDate shl 16;
+  Time:=FileDate and $ffff;
+  Result:=EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31) +
+          EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0);
+end;
+
 {
   $Log$
-  Revision 1.3  1998-09-16 08:28:36  michael
+  Revision 1.4  1998-10-11 13:40:52  michael
+  + Added Conversion TDateTime <-> file date and time
+
+  Revision 1.3  1998/09/16 08:28:36  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael
