@@ -200,7 +200,7 @@ OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings windows ole2 activex opengl32 os_types winsock initc dos crt objects graph messagesysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo wincrt winmouse winevent sockets printer dynlibs video mouse keyboard variants
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings windows ole2 activex opengl32 os_types winsock initc dos crt objects graph messages sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo wincrt winmouse winevent sockets printer dynlibs video mouse keyboard variants
 override TARGET_LOADERS+=wprt0 wdllprt0
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y
