@@ -50,10 +50,19 @@ LStrCopyAligned:
         subi    r4,r4,3
         subi    r9,r9,3
         { setup magic constants }
+        {$ifdef macos}
+        {  load constant 0xfefefeff }
+        lis     r8,0xfefe
+        addi    r8,r8,0xfeff
+        {  load constant 0x80808080}
+        lis     r7,0x8080
+        addi    r7,r7,0x8080
+        {$else}
         lis     r8,(0xfefefeff)@ha
         addi    r8,r8,(0xfefefeff)@l
         lis     r7,(0x80808080)@ha
         addi    r7,r7,(0x80808080)@l
+        {$endif}
         { load first 4 bytes  }
         lwzu    r0,4(r4)
 
@@ -113,10 +122,19 @@ LStrECopyAligned:
         subi    r4,r4,3
         subi    r3,r3,3
         { setup magic constants }
+        {$ifdef macos}
+        {  load constant 0xfefefeff }
+        lis     r8,0xfefe
+        addi    r8,r8,0xfeff
+        {  load constant 0x80808080}
+        lis     r7,0x8080
+        addi    r7,r7,0x8080
+        {$else}
         lis     r8,(0xfefefeff)@ha
         addi    r8,r8,(0xfefefeff)@l
         lis     r7,(0x80808080)@ha
         addi    r7,r7,(0x80808080)@l
+        {$endif}
 {
         li      r8,-257        { 0x0feff }
         andis.  r8,r8,0x0fefe
@@ -471,7 +489,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2003-07-07 20:23:46  peter
+  Revision 1.21  2003-08-24 20:51:27  olle
+    + added MacOS compatible constant loading
+
+  Revision 1.20  2003/07/07 20:23:46  peter
     * added defines to override generic implementations
 
   Revision 1.19  2003/06/14 12:41:08  jonas
