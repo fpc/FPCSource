@@ -480,7 +480,7 @@ interface
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resulttype.def);
         if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          location_force_reg(exprasmlist,location,newsize,false)
+          location_force_reg(exprasmlist,location,newsize,true)
         else
           location.size:=newsize;
       end;
@@ -534,7 +534,10 @@ end.
 
 {
   $Log$
-  Revision 1.64  2004-11-29 17:32:56  peter
+  Revision 1.65  2004-11-29 21:02:08  peter
+    * location_force_reg in second_nothing can reuse LOC_CREGISTER
+
+  Revision 1.64  2004/11/29 17:32:56  peter
     * prevent some IEs with delphi methodpointers
 
   Revision 1.63  2004/11/01 17:41:28  florian
