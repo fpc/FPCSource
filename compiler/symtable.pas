@@ -750,8 +750,6 @@ const localsymtablestack : psymtable = nil;
       end;
 
     procedure varsymbolused(p : {$ifndef OLDPPU}pnamedindexobject{$else}psym{$endif});
-      var
-        oldaktfilepos : tfileposinfo;
       begin
          if (psym(p)^.typ=varsym) and
             ((psym(p)^.owner^.symtabletype in [parasymtable,localsymtable,staticsymtable])) then
@@ -761,17 +759,14 @@ const localsymtablestack : psymtable = nil;
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (pvarsym(p)^.refs=0) and
+              (Errorcount=0) and
               (copy(p^.name,1,3)<>'val') and
-              (copy(p^.name,1,4)<>'high') and
-              (Errorcount=0) then
+              (copy(p^.name,1,4)<>'high') then
              begin
-                oldaktfilepos:=aktfilepos;
-                aktfilepos:=psym(p)^.fileinfo;
                 if (psym(p)^.owner^.symtabletype=parasymtable) or pvarsym(p)^.islocalcopy then
-                  Message1(sym_h_para_identifier_not_used,p^.name)
+                  MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,p^.name)
                 else
-                  Message1(sym_n_local_identifier_not_used,p^.name);
-                aktfilepos:=oldaktfilepos;
+                  MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_not_used,p^.name);
              end;
       end;
 
@@ -3213,7 +3208,12 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.8  1999-05-06 21:38:38  peter
+  Revision 1.9  1999-05-08 19:52:40  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.8  1999/05/06 21:38:38  peter
     * don't register errordef
 
   Revision 1.7  1999/05/06 09:05:31  peter

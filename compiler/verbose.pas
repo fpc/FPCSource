@@ -24,7 +24,7 @@ unit verbose;
 interface
 
 uses
-  messages;
+  messages,cobjects;
 
 {$ifdef TP}
   {$define EXTERN_MSG}
@@ -80,6 +80,10 @@ procedure Message(w:tmsgconst);
 procedure Message1(w:tmsgconst;const s1:string);
 procedure Message2(w:tmsgconst;const s1,s2:string);
 procedure Message3(w:tmsgconst;const s1,s2,s3:string);
+procedure MessagePos(const pos:tfileposinfo;w:tmsgconst);
+procedure MessagePos1(const pos:tfileposinfo;w:tmsgconst;const s1:string);
+procedure MessagePos2(const pos:tfileposinfo;w:tmsgconst;const s1,s2:string);
+procedure MessagePos3(const pos:tfileposinfo;w:tmsgconst;const s1,s2,s3:string);
 
 procedure InitVerbose;
 procedure DoneVerbose;
@@ -441,6 +445,50 @@ begin
 end;
 
 
+procedure MessagePos(const pos:tfileposinfo;w:tmsgconst);
+var
+  oldpos : tfileposinfo;
+begin
+  oldpos:=aktfilepos;
+  aktfilepos:=pos;
+  Msg2Comment(msg^.Get(ord(w)));
+  aktfilepos:=oldpos;
+end;
+
+
+procedure MessagePos1(const pos:tfileposinfo;w:tmsgconst;const s1:string);
+var
+  oldpos : tfileposinfo;
+begin
+  oldpos:=aktfilepos;
+  aktfilepos:=pos;
+  Msg2Comment(msg^.Get1(ord(w),s1));
+  aktfilepos:=oldpos;
+end;
+
+
+procedure MessagePos2(const pos:tfileposinfo;w:tmsgconst;const s1,s2:string);
+var
+  oldpos : tfileposinfo;
+begin
+  oldpos:=aktfilepos;
+  aktfilepos:=pos;
+  Msg2Comment(msg^.Get2(ord(w),s1,s2));
+  aktfilepos:=oldpos;
+end;
+
+
+procedure MessagePos3(const pos:tfileposinfo;w:tmsgconst;const s1,s2,s3:string);
+var
+  oldpos : tfileposinfo;
+begin
+  oldpos:=aktfilepos;
+  aktfilepos:=pos;
+  Msg2Comment(msg^.Get3(ord(w),s1,s2,s3));
+  aktfilepos:=oldpos;
+end;
+
+
 procedure InitVerbose;
 begin
 { Init }
@@ -467,7 +515,12 @@ end.
 
 {
   $Log$
-  Revision 1.38  1999-05-04 21:45:09  florian
+  Revision 1.39  1999-05-08 19:52:42  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.38  1999/05/04 21:45:09  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.37  1999/04/21 07:41:06  pierre

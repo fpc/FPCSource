@@ -651,7 +651,11 @@ unit ag386bin;
 {$ifdef I386}
              ait_comp :
                begin
+{$ifdef FPC}
+                 co:=comp(pai_comp(hp)^.value);
+{$else}
                  co:=pai_comp(hp)^.value;
+{$endif}
                  objectoutput^.writebytes(co,8);
                end;
 {$endif I386}
@@ -823,7 +827,12 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.6  1999-05-07 00:36:58  pierre
+  Revision 1.7  1999-05-08 19:52:32  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.6  1999/05/07 00:36:58  pierre
     * added alignment code for .bss
     * stabs correct but externalbss disabled
       would need a special treatment in writestabs

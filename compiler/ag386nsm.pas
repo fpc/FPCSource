@@ -99,15 +99,11 @@ unit ag386nsm;
         c  : comp;
         dd : pdouble;
       begin
-{$ifdef TP}
-         c:=d;
-{$else TP}
-{$ifdef Delphi}
-         c:=d;
-{$else Delphi}
+{$ifdef FPC}
          c:=comp(d);
-{$endif Delphi}
-{$endif TP}
+{$else}
+         c:=d;
+{$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -737,7 +733,12 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.33  1999-05-07 00:08:48  pierre
+  Revision 1.34  1999-05-08 19:52:34  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.33  1999/05/07 00:08:48  pierre
    * AG386BIN cond -> OLDASM, only cosmetic
 
   Revision 1.32  1999/05/06 09:05:11  peter

@@ -380,6 +380,9 @@
           extnumber : longint;
           messageinf : tmessageinf;
           nextoverloaded : pprocdef;
+          { where is this function defined, needed here because there
+            is only one symbol for all overloaded functions }
+          fileinfo : tfileposinfo;
           { pointer to the local symbol table }
           localst : psymtable;
           { pointer to the parameter symbol table }
@@ -428,6 +431,7 @@
 {$ifdef BrowserLog}
           procedure add_to_browserlog;
 {$endif BrowserLog}
+          function haspara:boolean;
        end;
 
        tstringtype = (st_shortstring, st_longstring, st_ansistring, st_widestring);
@@ -506,7 +510,12 @@
 
 {
   $Log$
-  Revision 1.24  1999-05-06 09:05:30  peter
+  Revision 1.25  1999-05-08 19:52:37  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.24  1999/05/06 09:05:30  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

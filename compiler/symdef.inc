@@ -2230,6 +2230,7 @@
          deftype:=procdef;
          _mangledname:=nil;
          nextoverloaded:=nil;
+         fileinfo:=aktfilepos;
          extnumber:=-1;
          localst:=new(psymtable,init(localsymtable));
          parast:=new(psymtable,init(parasymtable));
@@ -2289,6 +2290,7 @@
          extnumber:=readlong;
          nextoverloaded:=pprocdef(readdefref);
          _class := pobjectdef(readdefref);
+         readposinfo(fileinfo);
 
          if (cs_link_deffile in aktglobalswitches) and ((options and poexports)<>0) then
            deffile.AddExport(mangledname);
@@ -2531,6 +2533,7 @@ Const local_symtable_index : longint = $8001;
                 writedefref(nil);
            end;
          writedefref(_class);
+         writeposinfo(fileinfo);
          if (options and poinline) <> 0 then
            begin
               { we need to save
@@ -2542,6 +2545,16 @@ Const local_symtable_index : longint = $8001;
                }
            end;
          current_ppu^.writeentry(ibprocdef);
+      end;
+
+
+    function tprocdef.haspara:boolean;
+      begin
+{$ifndef OLDPPU}
+        haspara:=assigned(aktprocsym^.definition^.parast^.symindex^.first);
+{$else}
+        haspara:=assigned(aktprocsym^.definition^.parast^.searchroot);
+{$endif}
       end;
 
 
@@ -3460,7 +3473,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.111  1999-05-07 11:06:37  florian
+  Revision 1.112  1999-05-08 19:52:35  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.111  1999/05/07 11:06:37  florian
     * enumeration type names are now written in lowercase (rtti)
 
   Revision 1.110  1999/05/06 09:05:28  peter

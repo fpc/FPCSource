@@ -339,7 +339,7 @@
       end;
 
     { we need to remove it from the prevsym chain ! }
-    
+
     destructor tunitsym.done;
       var pus,ppus : punitsym;
       begin
@@ -441,10 +441,8 @@
       end;
 
     procedure tprocsym.check_forward;
-
       var
          pd : pprocdef;
-         oldaktfilepos : tfileposinfo;
       begin
          { don't check if errors !! }
          if Errorcount>0 then
@@ -454,13 +452,11 @@
            begin
               if pd^.forwarddef then
                 begin
-                   oldaktfilepos:=aktfilepos;
-                   aktfilepos:=fileinfo;
                    if assigned(pd^._class) then
-                     Message1(sym_e_forward_not_resolved,pd^._class^.objname^+'.'+name+demangledparas(pd^.demangled_paras))
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+name+
+                       demangledparas(pd^.demangled_paras))
                    else
-                     Message1(sym_e_forward_not_resolved,name+pd^.demangled_paras);
-                   aktfilepos:=oldaktfilepos;
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,name+pd^.demangled_paras);
                 end;
               pd:=pd^.nextoverloaded;
            end;
@@ -1126,8 +1122,8 @@
          else
            data_align:=1;
       end;
-      
-    
+
+
     procedure tvarsym.insert_in_data;
       var
          l,ali,modulo : longint;
@@ -1190,7 +1186,7 @@
                      begin
                         (* this is done
                            either by the assembler or in ag386bin
-                           
+
                         bsssegment^.concat(new(pai_align,init(ali))); *)
                         modulo:=owner^.datasize mod ali;
                         if modulo>0 then
@@ -2020,7 +2016,12 @@
 
 {
   $Log$
-  Revision 1.86  1999-05-07 00:06:22  pierre
+  Revision 1.87  1999-05-08 19:52:38  peter
+    + MessagePos() which is enhanced Message() function but also gets the
+      position info
+    * Removed comp warnings
+
+  Revision 1.86  1999/05/07 00:06:22  pierre
     + added aligmnent of data for typed consts
       for var it is done by AS or LD or in ag386bin for direct object output
 
