@@ -40,7 +40,11 @@ program eratosthenes;
      eratos;
   end.
 
-{ $Log$
-{ Revision 1.2  1998-04-06 12:17:00  pierre
-{   * made array a global to avoid stack overflow
-{ }
+{ 
+  $Log$
+  Revision 1.3  1998-04-06 12:23:21  pierre
+    * log problem
+
+  Revision 1.2  1998/04/06 12:17:00  pierre
+   * made array a global to avoid stack overflow
+}
