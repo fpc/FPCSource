@@ -187,8 +187,8 @@ endif
 # Conversion from types
 #####################################################################
 
-.PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
-        htm txt pdf refex alldist messages onechap gtk \
+.PHONY: clean dvi help html ps psdist htmldist htmdist htdist pdfdist \
+        txtdist htm txt pdf refex alldist messages onechap gtk \
         user ref prog rtl
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
@@ -199,7 +199,7 @@ endif
 	$(DVIPS) $<
 
 .tex.dvi:
-	-rm $(basename $<).aux
+	-rm $*.aux $*.idx  $*.ilg  $*.ind  $*.log  $*.out  $*.toc $*.tmp $*.xref $*.4ht
 	$(LATEX) $*
 	-$(MAKEINDEX) $*
 	$(LATEX) $*
@@ -210,7 +210,7 @@ endif
 	$(DVITXT) -o $*.txt  $*.dvi
 
 .tex.pdf:
-	-rm $(basename $<).aux
+	-rm $*.aux $*.idx  $*.ilg  $*.ind  $*.log  $*.out  $*.toc $*.tmp $*.xref $*.4ht
 	$(PDFLATEX) $*
 	-$(MAKEINDEX) $*
 	$(PDFLATEX) $*
@@ -404,10 +404,10 @@ RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
 RTLOPTS+= --descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
 RTLOPTS+= --descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
 RTLOPTS+= --descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
-RTLOPTS+= --descr=system.xml --input="-dfpdocsystem -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
+RTLOPTS+= --descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
 else
 RTLXML=system.xml
-RTLOPTS+=--descr=system.xml --input="-dfpdocsystem -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
+RTLOPTS+=--descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(HOSTOS)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
 endif
 
 rtl.inc: $(RTLXML)
@@ -450,9 +450,9 @@ fcl.pdf: fcl.tex fcl.inc includes
 
 chart.pdf: chart.tex
 
-rtl.dvi: rtl.tex rtl.inc
+rtl.dvi: rtl.tex rtl.inc includes
 
-rtl.pdf: rtl.tex rtl.inc
+rtl.pdf: rtl.tex rtl.inc includes
 
 dvi : $(DVI)
 
@@ -580,31 +580,41 @@ ifndef SKIPINSTALL
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 endif
 	cd $(DOCPREFIX) ; tar cz * > $(BASEDIR)/fpcdoc.tar.gz ; cd $(BASEDIR)
+ifndef SKIPINSTALL
 	rm -rf $(DOCPREFIX)
+endif
 
 htmlzip:
 ifndef SKIPINSTALL
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 endif
 	zip -D9rq doc-html $(DOCPREFIX)/*
+ifndef SKIPINSTALL
 	rm -rf $(DOCPREFIX)
+endif
 
-htmzip:
+htmzip: makehtm
 ifndef SKIPINSTALL
 	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 endif
-	makehtm -r ($DOCPREFIX)
+	makehtm -r $(DOCPREFIX)
 	zip -D9rq doc-htm $(DOCPREFIX)
 	rm -rf $(DOCPREFIX)
 
+# html only, no htm
 htmldist: htmlzip htmltar
 
+# htm only, no html
 htmdist: makehtm htmzip
 
-alldist: dvidist psdist txtdist pdfdist 
-	$(MAKE) htmltar
+# html and htm, optimized.
+htdist:
+	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) htmltar SKIPINSTALL=Y
 	$(MAKE) htmlzip SKIPINSTALL=Y
 	$(MAKE) htmzip SKIPINSTALL=Y
+
+alldist: dvidist psdist txtdist pdfdist htdist
 
 distclean: clean
 	-rm -f *.tar.gz *.zip
@@ -654,7 +664,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.33  2004-12-14 21:50:02  michael
+# Revision 1.34  2004-12-15 22:14:14  michael
+# + Make targets fixed (hopefully)
+#
+# Revision 1.33  2004/12/14 21:50:02  michael
 # + Delete aux file before running (pdf)latex.
 #
 # Revision 1.32  2004/12/14 21:44:54  michael
