@@ -1763,24 +1763,24 @@ unit pdecl;
                begin
                   do_firstpass(pt);
 
-                  if (pt^.treetype<>rangen) or
-                     (pt^.left^.treetype<>ordconstn) then
-                    Message(sym_e_error_in_type_def)
+                  if (pt^.treetype=rangen) then
+                   begin
+                     if (pt^.left^.treetype=ordconstn) and
+                        (pt^.right^.treetype=ordconstn) then
+                      begin
+                        lowval:=pt^.left^.value;
+                        highval:=pt^.right^.value;
+                        arraytype:=pt^.right^.resulttype;
+                      end
+                     else
+                      Message(type_e_cant_eval_constant_expr);
+                   end
                   else
-                    begin
-{$ifndef GDB}
-                      if pt^.right^.resulttype=pdef(s32bitdef) then
-                        pt^.right^.resulttype:=new(porddef,init(s32bit,$80000000,$7fffffff));
-{$endif GDB}
-                      lowval:=pt^.left^.value;
-                      highval:=pt^.right^.value;
-                      arraytype:=pt^.right^.resulttype;
-                    end;
-
+                   Message(sym_e_error_in_type_def)
                end;
              disposetree(pt);
-           { create arraydef }
 
+           { create arraydef }
              if p=nil then
               begin
                 ap:=new(parraydef,init(lowval,highval,arraytype));
@@ -2123,7 +2123,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.86  1998-11-28 16:20:52  peter
+  Revision 1.87  1998-11-29 12:42:24  peter
+    * check for constants with array decl
+
+  Revision 1.86  1998/11/28 16:20:52  peter
     + support for dll variables
 
   Revision 1.85  1998/11/27 14:34:43  peter
