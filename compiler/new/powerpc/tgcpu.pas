@@ -29,7 +29,7 @@ unit tgcpu;
 
     type
 
-       ttgpowerpc = Object(ttgobj)
+       ttgppc = Object(ttgobj)
        end;
 
     var
@@ -42,7 +42,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 23:37:53  jonas
+  Revision 1.2  1999-08-04 12:59:26  jonas
+    * all tokes now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.1  1999/08/03 23:37:53  jonas
     + initial implementation for PowerPC based on the Alpha stuff
 
 

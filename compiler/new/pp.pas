@@ -55,14 +55,14 @@
       { people can try to compile without GDB }
       { $error The compiler switch GDB must be defined}
    {$endif GDB}
-   
+
    { One of Alpha, I386 or M68K must be defined }
    {$UNDEF CPUOK}
-   
+
    {$ifdef I386}
    {$define CPUOK}
    {$endif}
-   
+
    {$ifdef M68K}
    {$ifndef CPUOK}
    {$DEFINE CPUOK}
@@ -78,11 +78,20 @@
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
-   
+
+   {$ifdef powerpc}
    {$ifndef CPUOK}
-   {$fatal One of the switches I386,Alpha or M68K must be defined}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
    {$endif}
-   
+   {$endif}
+
+
+   {$ifndef CPUOK}
+   {$fatal One of the switches I386,Alpha, PowerPC or M68K must be defined}
+   {$endif}
+
    {$ifdef support_mmx}
      {$ifndef i386}
        {$fatal I386 switch must be on for MMX support}
@@ -270,7 +279,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-08-02 21:29:06  florian
+  Revision 1.6  1999-08-04 12:59:22  jonas
+    * all tokes now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.5  1999/08/02 21:29:06  florian
     * the main branch psub.pas is now used for
       newcg compiler
 

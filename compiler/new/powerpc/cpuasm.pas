@@ -80,6 +80,7 @@ type
      constructor op_sym(op : tasmop;_op1 : pasmsymbol);
      constructor op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
      constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:pasmsymbol;_op2ofs : longint);
+     constructor op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
 
      destructor done;virtual;
      function  getcopy:plinkedlist_item;virtual;
@@ -90,8 +91,6 @@ type
 
 
 implementation
-uses
-  og386;
 
 {*****************************************************************************
                                  TaiRegAlloc
@@ -167,7 +166,7 @@ uses
          ops:=2;
       end;
 
-     constructor op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
+     constructor tappc.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
       begin
          inherited init;
          init(op);
@@ -198,14 +197,21 @@ uses
          ops:=3;
       end;
 
-     constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor tappc.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
        begin
          inherited init;
          init(op);
          ops:=3;
       end;
 
-     constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
+     constructor tappc.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
+       begin
+         inherited init;
+         init(op);
+         ops:=3;
+      end;
+
+     constructor tappc.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
        begin
          inherited init;
          init(op);
@@ -219,7 +225,7 @@ uses
          ops:=3;
       end;
 
-     constructor op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+     constructor tappc.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
       begin
          inherited init;
          init(op);
@@ -227,28 +233,28 @@ uses
       end;
 
 
-     constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+     constructor tappc.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
       begin
          inherited init;
          init(op);
          ops:=4;
       end;
 
-     constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
+     constructor tappc.op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
       begin
          inherited init;
          init(op);
          ops:=4;
       end;
 
-     constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
+     constructor tappc.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
       begin
          inherited init;
          init(op);
          ops:=4;
       end;
 
-     constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
+     constructor tappc.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
       begin
          inherited init;
          init(op);
@@ -263,11 +269,10 @@ uses
          ops:=1;
       end;
 
-     constructor op_const_const_sym(op : tasmop;_op1,_op2 : longint);
+     constructor tappc.op_const_const_sym(op : tasmop;_op1,_op2 : longint);
       begin
          inherited init;
          init(op);
-         condition:=cond;
          ops:=3;
       end;
 
@@ -321,10 +326,10 @@ uses
         p:=inherited getcopy;
         { make a copy of the references }
         for i:=1 to ops do
-         if (paalpha(p)^.oper[i-1].typ=top_ref) then
+         if (pappc(p)^.oper[i-1].typ=top_ref) then
           begin
-            new(paalpha(p)^.oper[i-1].ref);
-            paalpha(p)^.oper[i-1].ref^:=oper[i-1].ref^;
+            new(pappc(p)^.oper[i-1].ref);
+            pappc(p)^.oper[i-1].ref^:=oper[i-1].ref^;
           end;
         getcopy:=p;
       end;
@@ -332,7 +337,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 23:37:53  jonas
+  Revision 1.2  1999-08-04 12:59:24  jonas
+    * all tokes now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.1  1999/08/03 23:37:53  jonas
     + initial implementation for PowerPC based on the Alpha stuff
 
 }

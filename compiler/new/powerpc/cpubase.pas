@@ -4,10 +4,6 @@
 
     Contains the base types for the PowerPC
 
-    * This code was inspired by the NASM sources
-      The Netwide Assembler is copyright (C) 1996 Simon Tatham and
-      Julian Hall. All rights reserved.
-
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -107,7 +103,7 @@ type
     a_stfdu, a_stfdux, a_stfdx, a_stfiwx, a_stfs, a_stfsu, a_stfsux, a_stfsx,
     a_sth, a_sthbrx, a_sthu, a_sthux, a_sthx, a_stmw, a_stswi, a_stswx, a_stw,
     a_stwbrx, a_stwx_, a_stwu, a_stwux, a_stwx, a_subf, a_subf_, a_subfo,
-    a_subfo_, a_subfc, a_subc_, a_subfco, a_subfco_, a_subfe, a_subfe_,
+    a_subfo_, a_subfc, a_subfc_, a_subfco, a_subfco_, a_subfe, a_subfe_,
     a_subfeo, a_subfeo_, a_subfic, a_subfme, a_subfme_, a_subfmeo, a_subfmeo_,
     a_subfze, a_subfze_, a_subfzeo, a_subfzeo_, a_sync, a_tlbia, a_tlbie,
     a_tlbsync, a_tw, twi, a_xor, a_xor_, a_xori, a_xoris,
@@ -132,13 +128,11 @@ const
                                 Conditions
 *****************************************************************************}
 
-(* still needs to be implmented in a generic way somehow
-
 type
   TAsmCond=(C_None,
     C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU
   );
-
+(*
   TAsmCondBO = (B_T,B_F,B_DNZ,B_DNZT,B_DNZF,B_DZ,B_DZT,B_DZF);
   TasmCondSuffix = (SU_NO,SU_A,SU_LR,SU_CTR,SU_L,SU_LA,SU_LRL,SU_CTRL);
 
@@ -234,6 +228,9 @@ const
     'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
     'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
     'F25','F26','F27','F28','F29','F30','F31',
+    'M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12',
+    'M13','M14','M15','M16','M17','M18','M19','M20','M21','M22', 'M23','M24',
+    'M25','M26','M27','M28','M29','M30','M31',
     'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
     'XER','LR','CTR','FPSCR'
   );
@@ -245,6 +242,9 @@ const
     'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
     'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
     'F25','F26','F27','F28','F29','F30','F31',
+    'M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12',
+    'M13','M14','M15','M16','M17','M18','M19','M20','M21','M22', 'M23','M24',
+    'M25','M26','M27','M28','M29','M30','M31',
     'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
     'XER','LR','CTR','FPSCR'
   );
@@ -256,12 +256,12 @@ const
 
 type
   TResFlags = (F_LT,F_GT,F_EQ,F_SO,F_FX,F_FEX,F_VX,F_OX);
-
+(*
 const
   { arrays for boolean location conversions }
   flag_2_cond : array[TResFlags] of TAsmCond =
      (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
-
+*)
 
 {*****************************************************************************
                                 Reference
@@ -308,7 +308,7 @@ type
   TLoc=(
     LOC_INVALID,     { added for tracking problems}
     LOC_REGISTER,    { in a processor register }
-    LOC_CREGISTER    { Constant register which shouldn't be modified }
+    LOC_CREGISTER,    { Constant register which shouldn't be modified }
     LOC_FPUREGISTER, { FPU register }
     LOC_CFPUREGISTER,{ Constant FPU register which shouldn't be modified }
     LOC_MMREGISTER,  { multimedia register }
@@ -316,7 +316,7 @@ type
     LOC_MEM,         { in memory }
     LOC_REFERENCE,   { like LOC_MEM, but lvalue }
     LOC_JUMP,        { boolean results only, jump to false or true label }
-    LOC_FLAGS,       { boolean results only, flags are set }
+    LOC_FLAGS        { boolean results only, flags are set }
   );
 
   plocation = ^tlocation;
@@ -348,14 +348,24 @@ type
 
 const
   availabletempregsint = [R_0,R_11..R_30];
-  availabletempregsfpu = [F_14..F_31];
-  availabletempregsmm  = [M_0..M_31];
+  availabletempregsfpu = [R_F14..R_F31];
+  availabletempregsmm  = [R_M0..R_M31];
+
+  c_countusableregsint = 21;
+  c_countusableregsfpu = 32;
+  c_countusableregsmm  = 32;
+
+  maxvarregs = 18;
+
+  varregs : Array [1..maxvarregs] of Tregister =
+            (R_13,R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
+             R_26,R_27,R_28,R_29,R_30);
 
   intregs = [R_0..R_31];
   fpuregs = [R_F0..R_F31];
   mmregs = [R_M0..R_M31];
 
-  registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
+  registers_saved_on_cdecl = [R_11..R_30];
 
   { generic register names }
   stack_pointer = R_1;
@@ -363,7 +373,7 @@ const
   self_pointer  = R_9;
   accumulator   = R_3;
 
-  cpuflags : set of tcpuflags = [];
+(*  cpuflags : set of tcpuflags = []; *)
 
   { sizes }
   pointersize   = 4;
@@ -453,7 +463,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 23:37:53  jonas
+  Revision 1.2  1999-08-04 12:59:25  jonas
+    * all tokes now start with an underscore
+    * PowerPC compiles!!
+
+  Revision 1.1  1999/08/03 23:37:53  jonas
     + initial implementation for PowerPC based on the Alpha stuff
 
 }
