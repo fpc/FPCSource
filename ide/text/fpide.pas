@@ -755,13 +755,17 @@ end;
 destructor TIDEApp.Done;
 begin
   inherited Done;
+  RemoveBrowsersCollection;                                                                                                                                                                                                                             
   DoneHelpSystem;
 end;
 
 END.
 {
   $Log$
-  Revision 1.28  1999-06-25 00:46:33  pierre
+  Revision 1.29  1999-06-28 12:40:19  pierre
+   + RemoveBrowsersCollection in TIDEApp.Done
+
+  Revision 1.28  1999/06/25 00:46:33  pierre
      + UpdateTarget to show current target
      + SearchSymbol, not scope aware (this will need a PPU change !)
 
