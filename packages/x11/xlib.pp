@@ -269,6 +269,7 @@ uses X;
             visual : PVisual;
             root : TWindow;
             c_class : longint;
+            classes : longint;
             bit_gravity : longint;
             win_gravity : longint;
             backing_store : longint;
@@ -1722,7 +1723,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1.2.2  2000-10-26 23:04:42  peter
+  Revision 1.1.2.3  2000-10-26 23:13:27  peter
+    * undo my previous commit
+
+  Revision 1.1.2.2  2000/10/26 23:04:42  peter
     * TVisual fix merged from main branch
 
   Revision 1.1.2.1  2000/10/26 16:39:15  sg
