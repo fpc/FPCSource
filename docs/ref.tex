@@ -34,7 +34,7 @@
 \latex{\usepackage{fpc}}
 \latex{\usepackage{listings}\blankstringtrue%
 \selectlisting{tp}\stringstyle{\ttfamily}\keywordstyle{\bfseries}
-\prelisting{\sffamily\small}}
+\prelisting{\sffamily}}
 \html{\input{fpc-html.tex}}
 \usepackage{fancyheadings}
 \pagestyle{fancy}
@@ -66,6 +66,7 @@ of the pascal language. The aim is to list which Pascal constructs are
 supported, and to show where the \fpc implementation differs from the
 Turbo Pascal implementation.
 
+\subsection{Notations}
 Throughout this document, we will refer to functions, types and variables
 with \var{typewriter} font. Functions and procedures have their own
 subsections, and for each function or procedure we have the following 
@@ -86,6 +87,47 @@ which you can click to jump to the declaration.
 are printed in \var{typewriter} font, and the number after it is the Unix
 manual section.
 \end{itemize}
+
+\subsection{Syntax diagrams}
+All elements of the pascal language are explained in syntax diagrams.
+Syntax diagrams are like flow charts. Reading a syntax diagram means that
+you must get from the left side to the right side, following the arrows.
+
+When you are at the right of a syntax diagram, and it ends with a single
+arrow, this means the syntax diagram is continued on the next line. If
+the line ends on 2 arrows pointing to each other, then the diagram is
+continued on the next line.
+
+syntactical elements are written like this
+\begin{mysyntdiag}
+\synt{syntactical\ elements\ are\ like\ this}
+\end{mysyntdiag}
+keywords you must type exactly as in the diagram:
+\begin{mysyntdiag}
+\lit*{keywords\ are\ like\ this}
+\end{mysyntdiag}
+When you can repeat something there is an arrow around it:
+\begin{mysyntdiag}
+\<[b] \synt{this\ can\ be\ repeated} \\ \>
+\end{mysyntdiag}
+When there are different possibilities, they are listed in columns:
+\begin{mysyntdiag}
+\( 
+\synt{First\ possibility} \\
+\synt{Second\ possibility}
+\)
+\end{mysyntdiag}
+Note, that one of the possibilities can be empty:
+\begin{mysyntdiag}
+\[ 
+\synt{First\ possibility} \\
+\synt{Second\ possibility}
+\]
+\end{mysyntdiag}
+This means that both the first or second possibility are optional.
+
+Of course, all these elements can be combined and nested.
+
 %
 % The Pascal language
 %
