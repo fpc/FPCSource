@@ -185,14 +185,13 @@ endif
 # Targets
 
 override UNITOBJECTS+=ncurses panel ncrt ocrt
-override EXAMPLEOBJECTS+=firework testn ocrt_demo edit_demo
+override EXAMPLEOBJECTS+=firework testn ocrt_demo edit_demo db_demo
 
 # Clean
 
 
 # Install
 
-EXAMPLESUBDIR=ncurses
 ZIPTARGET=install
 
 # Defaults

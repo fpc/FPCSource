@@ -201,6 +201,7 @@ Var
        LINES   : longint;external name 'LINES';
        COLS    : longint;external name 'COLS';
        TABSIZE : longint;external name 'TABSIZE';
+       ESCDELAY: longint;external name 'ESCDELAY';
 
     Function define_key(_para1:pchar; _para2:longint):longint; cdecl;external;
     Function keyok(_para1:longint; _para2:bool):longint; cdecl;external;
@@ -1674,7 +1675,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-05-31 09:36:26  jonas
+  Revision 1.8  2000-07-08 18:06:36  peter
+    * updated to latest ncrt package from Ken
+
+  Revision 1.7  2000/05/31 09:36:26  jonas
     * restored (version included with ncrt 2.06 was outdated)
 
   Revision 1.5  2000/02/27 14:40:41  peter

@@ -1,7 +1,7 @@
 Program ocrt_demo;
 {---------------------------------------------------------------------------
                                  CncWare
-                           (c) Copyright 1999
+                         (c) Copyright 1999-2000
  ---------------------------------------------------------------------------
   Filename..: ocrt_demo.pp
   Programmer: Ken J. Wright
@@ -18,6 +18,7 @@ Program ocrt_demo;
                         | 2) Renamed from ncrt_demo to ocrt_demo.
                         | 3) Added some standard crt code at beginning.
   1.03 | 01/06/00 | kjw | Some minor changes for ncrt mods.
+  1.04 | 06/27/00 | kjw | Changes for ncrt mods.
 ------------------------------------------------------------------------------
 }
 uses oCrt;
@@ -39,14 +40,14 @@ Begin
    TextAttr := TextAttr + blink;
    ClrScr;
    GotoXY(2,35);
-   Writeln(1.0:0:4,' This is a test!');
+   Writeln(1.0:0:4,' This should be blinking text');
    Window(10,10,70,15);
    TextAttr := TextAttr - blink;
    TextBackground(2);
    ClrScr;
    s := ' : ';
    for i := 1 to 6 do
-   writeln(i:0,s,'this is a test');
+   writeln(i:0,s,'No blinking here');
    writeln('Press Enter');
    readln(s);
    TextBackground(3);
@@ -72,21 +73,21 @@ Begin
    stdscr := nscreen;
    nClrScr(stdscr,7);
    nDrawBox(stdscr,btSingle,1,1,80,3,31);
-   FWrite(27,2,30,0,'nCrt Demonstration Program');
+   nFWrite(27,2,30,0,'nCrt Demonstration Program');
    nNewWindow(win1,9,9,71,16);
    nClrScr(win1,95);
    nWriteScr(win1,3,2,95,'This is a background window.');
    nWriteScr(win1,10,3,95,'It was built first, then displayed later.');
-   FWrite(1,24,15,80,'Enter some text, press [Enter]');
+   nFWrite(stdscr,1,24,15,80,'Enter some text, press [Enter]');
    nWindow(win,10,10,70,15);
    nClrScr(win,31);
    nGotoXY(win,1,1);
    s := nReadln(win);
    If s <> 'oop' Then Begin { skip right to OOP section? }
-      FWrite(1,24,15,80,'Enter some more text, press [Enter]');
+      nFWrite(stdscr,1,24,15,80,'Enter some more text, press [Enter]');
       nGotoXY(win,nWhereX(win),nWhereY(win));
       s := nReadln(win);
-      FWrite(1,24,79,80,'Please wait...');
+      nFWrite(stdscr,1,24,79,80,'Please wait...');
       nGotoXY(win,1,1);
       Delay(500);
       nDelLine(win);
@@ -101,10 +102,10 @@ Begin
       { force nCrt to use full screen }
       nSetActiveWin(stdscr);
       ClrScr;
-      FWrite(1,24,14,80,'Enter even more text, press [Enter]');
+      nFWrite(1,24,14,80,'Enter even more text, press [Enter]');
       s := nReadln(stdscr);
       nClrScr(win,47);
-      FWrite(1,24,11,80,'Press some keys, followed by [Esc]');
+      nFWrite(1,24,11,80,'Press some keys, followed by [Esc]');
       nGotoXY(win,5,1);
       x := nWhereX(win);
       y := nWhereY(win);
@@ -120,6 +121,8 @@ Begin
          InsLine;
          dec(i);
       End;
+      { turn on oCrt keyboard echo }
+      nEcho(true);
       str(x:0,s);
       nWrite(win,'x = '+s+', ');
       str(y:0,s);
@@ -127,7 +130,7 @@ Begin
       nWriteln(stdscr,'press a key...');
       readkey;
       nDrawBox(stdscr,btSingle,11,11,69,14,63);
-      FWrite(30,11,79,49,' nCrt Demo Program');
+      nFWrite(30,11,79,49,' nCrt Demo Program');
       nDelWindow(win);
       nDelWindow(win1);
       nWindow(win,2,2,79,24);
@@ -137,45 +140,47 @@ Begin
    End;
    { and now for some object oCrt }
    win := nscreen;
-   New(win11,Init(1,1,80,25,31,true,30));
+   New(win11,Init(1,1,nStdScr.Cols,nStdScr.Rows,31,true,30));
    win11^.PutHeader(' Now for some OOP with nCrt! ',79,center);
    win11^.DrawBox(1,1,1,78,3,62);
    New(win22,Init(20,7,60,17,47,false,0));
    win33.Init(30,15,50,20,79,true,78);
    win33.PutHeader(' Little Window ',15,right);
-   win33.Writeln('And here is window #3');
+   Writeln('And here is window #3');
    win11^.Show;
-   win11^.GotoXY(2,2);
-   win11^.Write('Please press a key...');
-   win11^.ReadKey;
+   GotoXY(2,2);
+   Write('Please press a key...');
+   ReadKey;
    msgbox.init(25,11,55,13,47,true,47);
    s := 'Please enter a string';
    msgbox.FWrite((msgbox.cols-length(s)) div 2,1,46,0,s);
    msgbox.Show;
-   win11^.GotoXY(1,10);
+   win11^.Active;
+   GotoXY(1,10);
    msgbox.Show;
-   { turn on oCrt keyboard echo }
-   nEcho(true);
-   s := win11^.Readln;
+   win11^.Active;
+   Readln(s);
    msgbox.Hide;
    win22^.Show;
-   win22^.Writeln(s);
+   Writeln(s);
    Delay(2000);
    win11^.Hide;
-   win22^.Writeln('Hiding window 1...');
+   win22^.Active;
+   Writeln('Hiding window 1...');
    Delay(2000);
    win33.Show;
    Delay(2000);
    win11^.Show;
-   win11^.Writeln('Showing window 1');
+   Writeln('Showing window 1');
    win22^.Show;
-   win22^.Writeln('Showing window 2');
+   Writeln('Showing window 2');
    win33.Show;
-   win33.Write('Showing window 3');
+   Write('Showing window 3');
    nKeypressed(2000);
    While Keypressed Do Readkey;
    win11^.Hide;
-   win33.Write('Hiding window 1');
+   win33.Active;
+   Write('Hiding window 1');
    win22^.PutFrame(62);
    win22^.PutHeader(' New frame color ',63,center);
    win22^.Show;
@@ -183,7 +188,8 @@ Begin
    nKeypressed(3000);
    While Keypressed Do Readkey;
    win22^.Hide;
-   win33.Write('Hiding window 2');
+   win33.Active;
+   Write('Hiding window 2');
    nKeypressed(2000);
    While Keypressed Do Readkey;
    win33.SetColor(47);
@@ -197,8 +203,8 @@ Begin
       dec(y);
       str(i:0,s);
       win33.Move(x,y);
-      win33.Writeln('Moved by '+s);
-      FWrite(1,25,63,80,'Moved by '+s);
+      Writeln('Moved by '+s);
+      nFWrite(stdscr,1,nStdScr.Rows,63,80,'Moved by '+s);
       Delay(250);
    End;
    win33.Align(center,none);
@@ -215,5 +221,5 @@ Begin
    Dispose(win22,Done);
    win33.Done;
    msgbox.Done;
-
+   ClrScr;
 End.

@@ -1,6 +1,6 @@
 {---------------------------------------------------------------------------
                                  CncWare
-                           (c) Copyright 1999
+                         (c) Copyright 1999-2000
                    Portions copyright the FreePascal Team
  ---------------------------------------------------------------------------
   Filename..: ncrt.inc
@@ -36,6 +36,23 @@
                         | 2) Added prev_textattr to detect a change in
                         | TextAttr value so current color gets updated.
                         | 3) See ocrt.pp
+  2.08 | 06/09/00 | kjw | See ocrt.pp
+
+  2.08.01 | 06/11/2000 | kjw | See ocrt.pp
+  2.09.00 | 06/16/2000 | kjw | See ocrt.pp
+  2.10.00 | 06/16/2000 | kjw | See ocrt.pp
+  2.11.00 | 06/27/2000 | kjw
+          | 1) See ocrt.pp
+          | 2) Now uses ncurses for CrtRead so console control characters
+          | work correctly (i.e., <ctrl/h>, <backspace>, etc.).
+  2.12.00 | 06/29/2000 | kjw | See ocrt.pp
+  2.13.00 | 06/30/2000 | kjw
+          | Added nStop and nStart procedures.
+  2.14.00 | 07/05/2000 | kjw
+          | 1) Added nCursor and nEscDelay functions.
+          | 2) Added nInit and moved code from ncrt.pp & ocrt.pp to it.
+          | 3) KEY_ALTMINUS & KEYALTEQUAL were reversed, but mapping ended
+          | up correct.
 ------------------------------------------------------------------------------
 }
 
@@ -60,13 +77,17 @@ Procedure TextMode(mode : word);
  Function WhereX : integer;
  Function WhereY : integer;
 Procedure Window(x,y,x1,y1 : integer);
+Procedure nStop;
+Procedure nStart;
+ Function nCursor(c : integer) : integer;
+ Function nEscDelay(d : longint) : longint;
 
 Const
 
    NCRT_VERSION_MAJOR = 2;
-   NCRT_VERSION_MINOR = 7;
+   NCRT_VERSION_MINOR = 14;
    NCRT_VERSION_PATCH = 0;
-   NCRT_VERSION = '2.07.00';
+   NCRT_VERSION = '2.14.00';
 
  { CRT modes }
    BW40          = 0;            { 40x25 B/W on Color Adapter }
@@ -141,9 +162,14 @@ Const
    KEY_ALT8 = 498; { alt/8 }
    KEY_ALT9 = 499; { alt/9 }
    KEY_ALT0 = 500; { alt/0 }
-   KEY_ALTEQUAL = 501; { alt/- }
-   KEY_ALTMINUS = 502; { alt/= }
+   KEY_ALTMINUS = 501; { alt/- }
+   KEY_ALTEQUAL = 502; { alt/= }
    KEY_ALTTAB   = 503; { alt/tab }
+
+   { cursor type }
+   cOFF = 0; { invisible cursor }
+   cON  = 1; { normal cursor }
+   cBIG = 2; { very visible cursor }
 
  var
    CheckBreak,
@@ -237,17 +263,17 @@ Begin
       { alt/a .. atl/z }
       for i := ord('a') to ord('z') do Begin
          s := #27+chr(i)+#0;
-         define_key(@s[1],400+i-32);
+         define_key(@s[1],(KEY_ALTA-97)+i);
       End;
       { alt/1 .. alt/9 }
       for i := 1 to 9 do Begin
          s := #27+chr(i)+#0;
-         define_key(@s[1],490+i);
+         define_key(@s[1],(KEY_ALT1-1)+i);
       End;
-      s := #27+'0'+#0; define_key(@s[1],500); { alt/0 }
-      s := #27+'-'+#0; define_key(@s[1],501); { alt/- }
-      s := #27+'='+#0; define_key(@s[1],502); { alt/= }
-      s := #27+#9+#0;  define_key(@s[1],503); { alt/tab }
+      s := #27+'0'+#0; define_key(@s[1],KEY_ALT0);     { alt/0 }
+      s := #27+'-'+#0; define_key(@s[1],KEY_ALTMINUS); { alt/- }
+      s := #27+'='+#0; define_key(@s[1],KEY_ALTEQUAL); { alt/= }
+      s := #27+#9+#0;  define_key(@s[1],KEY_ALTTAB);   { alt/tab }
    End;
 End;
 
@@ -260,6 +286,25 @@ Begin
    { restore the original terminal settings }
    { and leave the screen how the app left it }
    tcSetAttr(STDIN,TCSANOW,tios);
+End;
+
+{--------------------------------------------------------
+  This disables any curses activity until a refresh.
+  Use this BEFORE any shelling (shell,exec,execv,etc)
+  to put the terminal temporarily back into cooked mode.
+ --------------------------------------------------------}
+Procedure nStop;
+Begin
+   endwin;
+End;
+
+{---------------------------------------------
+  Simply a refresh to re-establish the curses
+  terminal settings following an nStop.
+ ---------------------------------------------}
+Procedure nStart;
+Begin
+   refresh;
 End;
 
 { see if the specified attribute is high intensity }
@@ -494,8 +539,8 @@ Begin
          KEY_ALT8  : c := #127; { alt/8 }
          KEY_ALT9  : c := #128; { alt/9 }
          KEY_ALT0  : c := #129; { alt/0 }
-         KEY_ALTEQUAL : c := #130; { alt/- }
-         KEY_ALTMINUS : c := #131; { alt/= }
+         KEY_ALTMINUS : c := #130; { alt/- }
+         KEY_ALTEQUAL : c := #131; { alt/= }
          KEY_ALTTAB : c := #15; { alt/tab }
       Else
          Begin
@@ -583,23 +628,21 @@ Function CrtRead(Var F: TextRec): Integer;
 {
   Read from CRT associated file.
 }
-var
-  i : longint;
 Begin
-  F.BufEnd:=fdRead(F.Handle, F.BufPtr^, F.BufSize);
-{ fix #13 only's -> #10 to overcome terminal setting }
-  for i:=1to F.BufEnd do
-   begin
-     if (F.BufPtr^[i-1]=#13) and (F.BufPtr^[i]<>#10) then
-      F.BufPtr^[i-1]:=#10;
-   end;
-  F.BufPos:=F.BufEnd;
-  CrtWrite(F);
+  { let's use ncurses instead! }
+  FillChar(F.BufPtr^, F.BufSize, #0);
+  wgetnstr(ActiveWn,F.BufPtr^, F.BufSize-1);
+  F.BufEnd := Length(StrPas(F.BufPtr^))+1;
+  F.BufPtr^[F.BufEnd-1] := #10;
+  F.BufPos:=0;
+{  CrtWrite(F);}
   CrtRead:=0;
 End;
 
 Function CrtReturn(Var F:TextRec):Integer;
 Begin
+  F.BufEnd := 0;
+  F.BufPos:= 0;
   CrtReturn:=0;
 end;
 
@@ -755,7 +798,7 @@ End;
 function  Keypressed : boolean;
 var
    l : longint;
-   fd : fdSet;
+{   fd : fdSet;}
 Begin
    Keypressed := FALSE;
    nodelay(ActiveWn,bool(TRUE));
@@ -808,6 +851,40 @@ Begin
    CheckSnow := true;
    NormVideo;
    ClrScr;
+End;
+
+{ Set the cursor visibility. Returns the previous value }
+{ or (-1) if value c is not supported by the terminal. }
+Function nCursor(c : integer) : integer;
+Begin
+   nCursor := curs_set(c);
+End;
+
+{ Set the <esc> key delay time in milliseconds. }
+{ Use d=(-1) to return current value without updating. }
+Function nEscDelay(d : longint) : longint;
+Begin
+   nEscDelay := ESCDELAY;
+   If d >= 0 Then ESCDELAY := d;
+End;
+
+{ unit initialization, following ncurses init }
+Procedure nInit;
+Begin
+   SubWn := nil;
+   TextMode(LastMode);
+
+   { Redirect the standard output }
+   assigncrt(Output);
+   Rewrite(Output);
+   TextRec(Output).Handle:=StdOutputHandle;
+   { Redirect the standard input }
+   assigncrt(Input);
+   Reset(Input);
+   TextRec(Input).Handle:=StdInputHandle;
+
+   nEscDelay(500); { default is 1000 (1 second) }
+   nCursor(cON);   { normal cursor }
 End;
 
 { exit procedure to ensure curses is closed up cleanly }
