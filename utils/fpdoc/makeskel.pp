@@ -214,13 +214,16 @@ var
   Module: TPasModule;
   MOFilename: string;
 begin
+  InitOptions;
+  ParseCommandLine;
+
 {$IFDEF Unix}
   MOFilename:='/usr/local/share/locale/%s/LC_MESSAGES/makeskel.mo';
 {$ELSE}
   MOFilename:='intl/makeskel.%s.mo';
 {$ENDIF}
   if FileExists(MOFilename) then
-    gettext.TranslateResourceStrings(MOFilename)
+    gettext.TranslateResourceStrings(Format(MOFilename,[doclang]))
   else
     writeln('NOTE: unable to find tranlation file ',MOFilename);
 
@@ -228,8 +231,6 @@ begin
   WriteLn(SCopyright);
   WriteLn;
 
-  InitOptions;
-  ParseCommandLine;
 
   if CmdLineAction = actionHelp then
     WriteLn(SCmdLineHelp)
@@ -291,7 +292,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-05-01 20:13:40  marco
+  Revision 1.7  2004-08-24 14:48:25  michael
+  + Translate now called correctly...
+
+  Revision 1.6  2004/05/01 20:13:40  marco
    * got fed up with exceptions on file not found.  Fileresolver now raises a
   	EFileNotFound error, and makeskel catches and exists gracefully
 
