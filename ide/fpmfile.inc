@@ -221,8 +221,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-08-29 09:31:53  pierre
-  CVS Enter log comment for commit
+  Revision 1.5  2002-08-29 09:58:04  pierre
+   * remove wrong log line
+
+  Revision 1.4  2002/08/29 09:31:53  pierre
    * set modified flag to false before prompt
      dialog are executed in NewFromTemplate
 
