@@ -101,7 +101,8 @@ OUT = $(addsuffix .out, $(HTML))
 CHK = $(addsuffix .chk, $(HTML) unitex refex)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
-              strings objects heaptrc sysutils ipc mouse gpm)
+             strings objects heaptrc sysutils ipc mouse gpm dxeload \
+             emu387 ports)
 
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
@@ -443,7 +444,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.36  2000-06-14 19:38:43  michael
+# Revision 1.37  2000-07-04 19:55:48  michael
+# + Added ports unit
+#
+# Revision 1.36  2000/06/14 19:38:43  michael
 # + Added gpm units, and corrected L2H options
 #
 # Revision 1.35  2000/02/20 16:27:38  peter
