@@ -1234,9 +1234,18 @@ function returns in a register and the caller receives it in an other one}
           code, since temp. allocation might occur before - carl
         }
 
-        if (cs_profile in aktmoduleswitches) and
-              not(po_assembler in aktprocdef.procoptions) and not(inlined) then
-            cg.g_profilecode(list);
+        if (cs_profile in aktmoduleswitches) 
+         and not(po_assembler in aktprocdef.procoptions) 
+         and not(inlined) then
+          begin
+            { non-win32 can call mcout even in main }
+            if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
+              cg.g_profilecode(list)
+            else
+            { wdosx, and win32 should not call mcount before monstartup has been called }
+            if not (aktprocdef.proctypeoption=potype_proginit) then
+              cg.g_profilecode(list);
+          end;
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
@@ -1643,9 +1652,6 @@ function returns in a register and the caller receives it in an other one}
            (not inlined) and
            (aktprocdef.proctypeoption=potype_proginit) then
          begin
-           {if (target_info.system=system_i386_win32) and
-              (cs_profile in aktmoduleswitches) then
-             cg.a_call_name(list,'__mcleanup');   }
            cg.a_call_name(list,'FPC_DO_EXIT');
          end;
 
@@ -1876,7 +1882,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.66  2002-11-30 14:39:15  carl
+  Revision 1.67  2002-11-30 18:44:57  carl
+    + profiling support for Win32
+
+  Revision 1.66  2002/11/30 14:39:15  carl
     * try to fix profiling for win32
 
   Revision 1.65  2002/11/28 23:28:14  florian

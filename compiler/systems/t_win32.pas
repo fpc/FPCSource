@@ -905,33 +905,37 @@ begin
      HPath:=TStringListItem(HPath.Next);
    end;
 
-  { add objectfiles, start with prt0 always }
+  { add objectfiles, start with prt0 always                  }
+  { profiling of shared libraries is currently not supported }
   LinkRes.Add('INPUT(');
   if isdll then
    LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0','')))
   else
+  if (cs_profile in aktmoduleswitches) then
+   LinkRes.AddFileName(GetShortName(FindObjectFile('gprt0','')))
+  else 
    LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0','')));
-  if cs_profile in aktmoduleswitches then
-   LinkRes.AddFileName(GetShortName(FindObjectFile('mcount','')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
       LinkRes.AddFileName(GetShortName(s));
    end;
-  { add libaries required for profiling }
-  if cs_profile in aktmoduleswitches then
-   begin
-     LinkRes.Add('-lgmon');
-     LinkRes.Add('-lkernel32');
-     LinkRes.Add('-lmsvcrt');
-   end;
   LinkRes.Add(')');
 
+
   { Write staticlibraries }
-  if not StaticLibFiles.Empty then
+  if (not StaticLibFiles.Empty) or (cs_profile in aktmoduleswitches) then
    begin
      LinkRes.Add('GROUP(');
+     if (cs_profile in aktmoduleswitches) then
+       begin
+         LinkRes.Add('-lgcc');
+         LinkRes.Add('-lmoldname');
+         LinkRes.Add('-lmsvcrt');
+         LinkRes.Add('-lgmon');
+         LinkRes.Add('-lkernel32');
+       end;
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
@@ -1613,7 +1617,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-11-16 18:40:38  carl
+  Revision 1.7  2002-11-30 18:45:28  carl
+    + profiling support for Win32
+
+  Revision 1.6  2002/11/16 18:40:38  carl
     - remove my last stupid commit (Thanks, Peter!)
 
   Revision 1.5  2002/11/16 14:46:50  carl

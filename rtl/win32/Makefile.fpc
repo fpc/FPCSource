@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=wprt0 wdllprt0
+loaders=wprt0 wdllprt0 gprt0
 units=$(SYSTEMUNIT) systhrds objpas strings \
       lineinfo heaptrc \
       windows ole2 activex winsock initc \
@@ -92,6 +92,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 wprt0$(OEXT) : $(PRT0).as
         $(AS) -o wprt0$(OEXT) $(PRT0).as
+        
+gprt0$(OEXT) : gprt0.as
+        $(AS) -o gprt0$(OEXT) gprt0.as
+        
 
 wdllprt0$(OEXT) : wdllprt0.as
         $(AS) -o wdllprt0$(OEXT) wdllprt0.as
