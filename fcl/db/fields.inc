@@ -956,6 +956,163 @@ begin
     RangeError(AValue,FMinRange,FMaxRange);
 end;
 
+{ ---------------------------------------------------------------------
+    TLargeintField
+  ---------------------------------------------------------------------}
+
+
+constructor TLargeintField.Create(AOwner: TComponent);
+
+begin
+  Inherited Create(AOwner);
+  SetDatatype(ftLargeint);
+  FMinRange:=Low(Largeint);
+  FMaxRange:=High(Largeint);
+  FValidchars:=['+','-','0'..'9'];
+end;
+
+function TLargeintField.GetAsFloat: Double;
+
+begin
+  Result:=GetAsLargeint;
+end;
+
+function TLargeintField.GetAsLargeint: Largeint;
+
+begin
+  If Not GetValue(Result) then
+    Result:=0;
+end;
+
+function TLargeintField.GetAsLongint: Longint;
+
+begin
+  Result:=GetAsLargeint;
+end;
+
+function TLargeintField.GetAsString: string;
+
+Var L : Largeint;
+
+begin
+  If GetValue(L) then
+    Result:=IntTostr(L)
+  else
+    Result:='';
+end;
+
+function TLargeintField.GetDataSize: Word;
+
+begin
+  Result:=SizeOf(Largeint);
+end;
+
+procedure TLargeintField.GetText(var AText: string; ADisplayText: Boolean);
+
+var l : largeint;
+    fmt : string;
+
+begin
+  Atext:='';
+  If Not GetValue(l) then exit;
+  If ADisplayText or (FEditFormat='') then
+    fmt:=FDisplayFormat
+  else
+    fmt:=FEditFormat;
+  If length(fmt)<>0 then
+    AText:=FormatFloat(fmt,L)
+  else
+    Str(L,AText);
+end;
+
+function TLargeintField.GetValue(var AValue: Largeint): Boolean;
+
+type
+  PLargeint = ^Largeint;
+
+Var P : PLargeint;
+
+begin
+  P:=@AValue;
+  Result:=GetData(P);
+end;
+
+procedure TLargeintField.SetAsFloat(AValue: Double);
+
+begin
+  SetAsLargeint(Round(Avalue));
+end;
+
+procedure TLargeintField.SetAsLargeint(AValue: Largeint);
+
+begin
+  If CheckRange(AValue) then
+    SetData(@AValue)
+  else
+    RangeError(Avalue,FMinrange,FMaxRange);
+end;
+
+procedure TLargeintField.SetAsLongint(AValue: Longint);
+
+begin
+  SetAsLargeint(Avalue);
+end;
+
+procedure TLargeintField.SetAsString(const AValue: string);
+
+Var L     : largeint;
+    code  : longint;
+
+begin
+  If length(AValue)=0 then
+    Clear
+  else
+    begin
+    Val(AVAlue,L,Code);
+    If Code=0 then
+      SetAsLargeint(L)
+    else
+      DatabaseErrorFMT(SNotAnInteger,[Avalue]);
+    end;
+end;
+
+Function TLargeintField.CheckRange(AValue : largeint) : Boolean;
+
+begin
+  result := true;
+  if (FMaxValue=0) then
+    begin
+    if (AValue>FMaxRange) Then result := false;
+    end
+  else
+    if AValue>FMaxValue then result := false;
+
+  if (FMinValue=0) then
+    begin
+    if (AValue<FMinRange) Then result := false;
+    end
+  else
+    if AValue<FMinValue then result := false;
+end;
+
+Procedure TLargeintField.SetMaxValue (AValue : largeint);
+
+begin
+  If (AValue>=FMinRange) and (AValue<=FMaxRange) then
+    FMaxValue:=AValue
+  else
+    RangeError(AValue,FMinRange,FMaxRange);
+end;
+
+Procedure TLargeintField.SetMinValue (AValue : largeint);
+
+begin
+  If (AValue>=FMinRange) and (AValue<=FMaxRange) then
+    FMinValue:=AValue
+  else
+    RangeError(AValue,FMinRange,FMaxRange);
+end;
+
 { TSmallintField }
 
 function TSmallintField.GetDataSize: Word;
@@ -1567,27 +1724,37 @@ end;
 
 
 function TBlobField.GetAsString: string;
-
+var
+  Stream: TStream;
 begin
-  With GetBlobStream(bmRead) do
-    try
-      SetLength(Result,Size);
-      ReadBuffer(Pointer(Result)^,Size);
-    finally
-      Free
-    end;
+  Stream := GetBlobStream(bmRead);
+  if Stream<>nil then
+    With GetBlobStream(bmRead) do
+      try
+        SetLength(Result,Size);
+        ReadBuffer(Pointer(Result)^,Size);
+      finally
+        Free
+      end
+  else
+    Result := '(blob)';
 end;
 
 
 function TBlobField.GetBlobSize: Longint;
-
+var
+  Stream: TStream;
 begin
-  With GetBlobStream(bmread) do
-    try
-      Result:=Size;
-    finally
-      Free;
-    end;
+  Stream := GetBlobStream(bmread);
+  if Stream <> nil then
+    With Stream do
+      try
+        Result:=Size;
+      finally
+        Free;
+      end
+  else
+    result := 0;
 end;
 
 
@@ -1851,6 +2018,7 @@ end;
 Procedure TFields.Clear;
 
 begin
+  FFieldList.Clear;
 end;
 
 Function TFields.FindField (Const Value : String) : TField;
@@ -1927,7 +2095,12 @@ end;
 
 {
   $Log$
-  Revision 1.18  2004-12-05 00:05:38  michael
+  Revision 1.19  2004-12-13 19:20:42  michael
+    * Patch from Joost van der Sluis
+    - fixed bug #3180, TFields.Clear implemented
+    - implemented TLargeintField
+
+  Revision 1.18  2004/12/05 00:05:38  michael
   patch to enable RecNo and DisplayFormat
 
   Revision 1.17  2004/12/04 22:43:56  michael
