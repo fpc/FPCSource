@@ -33,7 +33,7 @@ type
 
 const
 { Random / Randomize constants }
-  OldRandSeed : Longint = 0;
+  OldRandSeed : Cardinal = 0;
   InitialSeed : Boolean = TRUE;
   Seed2 : Cardinal = 0;
   Seed3 : Cardinal = 0;
@@ -477,7 +477,10 @@ end;
 
 {
   $Log$
-  Revision 1.43  1998-11-17 10:36:07  michael
+  Revision 1.44  1998-11-26 23:16:15  jonas
+    * changed RandSeed and OldRandSeed to Cardinal to avoid negative random numbers
+
+  Revision 1.43  1998/11/17 10:36:07  michael
   + renamed astrings.pp to astrings.inc
 
   Revision 1.42  1998/11/16 10:21:25  peter

@@ -122,7 +122,7 @@ var
   InOutRes    : Word;
   StackBottom,
   LowestStack,
-  RandSeed    : Longint;
+  RandSeed    : Cardinal;
 { Error handlers }
   ErrorProc         : Pointer;
 
@@ -432,7 +432,10 @@ const
 
 {
   $Log$
-  Revision 1.42  1998-11-24 17:12:43  peter
+  Revision 1.43  1998-11-26 23:16:13  jonas
+    * changed RandSeed and OldRandSeed to Cardinal to avoid negative random numbers
+
+  Revision 1.42  1998/11/24 17:12:43  peter
     * fixed length(char)
     - removed obsolete version.inc
 
