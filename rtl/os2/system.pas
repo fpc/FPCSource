@@ -134,10 +134,6 @@ implementation
 
 {$I system.inc}
 
-(* Maximum heap size - only used if heap is allocated as continuous block. *)
-{$IFDEF CONTHEAP}
-//    BrkLimit: cardinal;
-{$ENDIF CONTHEAP}
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
@@ -487,61 +483,102 @@ function DosSetMem(P:pointer;Size,Flag:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 305;
 
 var
-  int_heap: pointer;
-  int_heap_end: pointer;
+  Int_Heap_End: pointer;
+  Int_Heap: pointer;
+{$IFNDEF VER1_0}
+                     external name 'HEAP';
+{$ENDIF VER1_0}
+  Int_HeapSize: cardinal; external name 'HEAPSIZE';
+  PreviousHeap: cardinal;
+  AllocatedMemory: cardinal;
 
-function sbrk(size:longint):pointer;
+
+function GetHeapSize: longint;
+begin
+  GetHeapSize := PreviousHeap + longint (Int_Heap_End) - longint (Int_Heap);
+end;
+
+
+function Sbrk (Size: longint): pointer;
 var
-  p: pointer;
-  rc: longint;
+  P: pointer;
+  RC: cardinal;
+const
+  MemAllocBlock = 4 * 1024 * 1024;
 begin
 {$IFDEF DUMPGROW}
   WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
 {$ENDIF}
-  p:=int_heap_end;
   // commit memory
-  rc:=DosSetMem(p, size, $13);
+{$WARNING Not threadsafe at the moment!}
+  RC := DosSetMem (Int_Heap_End, Size, $13);
 
-{
-  Not yet working
-  if RC = 8 then
+  if RC <> 0 then
 
-( * Not enough memory was allocated - let's try to allocate more
-   (4 MB steps or as much as requested if more than 4 MB needed). * )
+(* Not enough memory was allocated - let's try to allocate more
+   (4 MB steps or as much as requested if more than 4 MB needed). *)
 
    begin
-    if Size > 4 * 1024 * 1024 then
-     RC := DosAllocMem (P, Size, 3)
+    if Size > MemAllocBlock then
+     begin
+      RC := DosAllocMem (P, Size, 3);
+      if RC = 0 then Inc (AllocatedMemory, Size);
+     end
     else
-     RC := DosAllocMem (P, 4 * 1024 * 1024, 3);
+     begin
+      RC := DosAllocMem (P, MemAllocBlock, 3);
+      if RC = 0 then Inc (AllocatedMemory, MemAllocBlock);
+     end;
     if RC = 0 then
      begin
+      PreviousHeap := GetHeapSize;
       Int_Heap := P;
-      Int_Heap_End := Int_Heap;
-      RC := DosSetMem (P, Size, $13);
+      Int_Heap_End := P;
+      RC := DosSetMem (Int_Heap_End, Size, $13);
+     end
+    else
+     begin
+      Sbrk := nil;
+{$IFDEF DUMPGROW}
+      WriteLn ('Error ', RC, ' during additional memory allocation!');
+      WriteLn ('Total allocated memory is ', cardinal (AllocatedMemory), ', ',
+                                                   GetHeapSize, ' committed.');
+{$ENDIF DUMPGROW}
+      Exit;
      end;
    end;
-}
 
-  if rc<>0 then p:=nil;
+  if RC <> 0 then
+   begin
 {$IFDEF DUMPGROW}
-  WriteLn ('New heap at ', Cardinal(p));
-{$ENDIF}
-  sbrk:=int_heap_end;
-  inc(int_heap_end, size);
+    WriteLn ('Error ', RC, ' while trying to commit more memory!');
+    WriteLn ('Current memory object starts at ', cardinal (Int_Heap),
+                             ' and committed until ', cardinal (Int_Heap_End));
+    WriteLn ('Total allocated memory is ', cardinal (AllocatedMemory), ', ',
+                                                   GetHeapSize, ' committed.');
+{$ENDIF DUMPGROW}
+    Sbrk := nil;
+   end
+  else
+   begin
+    Sbrk := Int_Heap_End;
+{$IFDEF DUMPGROW}
+    WriteLn ('New heap at ', cardinal (Int_Heap_End));
+{$ENDIF DUMPGROW}
+    Inc (Int_Heap_End, Size);
+   end;
 end;
 
-function getheapstart:pointer;
+
+function GetHeapStart: pointer;
 begin
-  getheapstart:=int_heap;
+  GetHeapStart := Int_Heap;
 end;
 
-function getheapsize:longint;
-begin
-  getheapsize:=longint(int_heap_end)-longint(int_heap);
-end;
 
 {$i heap.inc}
+
+
 
 {****************************************************************************
 
@@ -1400,6 +1437,8 @@ end;
 
 var TIB: PThreadInfoBlock;
     PIB: PProcessInfoBlock;
+    RC: cardinal;
+    ErrStr: string;
 
 begin
     IsLibrary := FALSE;
@@ -1419,27 +1458,22 @@ begin
 
     {Initialize the heap.}
     // Logic is following:
-    //   Application allocates maximum possible memory array (~512Mb),
-    //   but without commiting. On heap growing required amount of
-    //   memory commited. So heap can be grown up to 512Mb.
-    //   For newer systems maximum ammount of memory block can be
-    //   2 Gb, but here used 512 for campatability reasons.
-    //   Note: Check for higher limit of heap not implemented yet.
-    //   Note: Check for amount of memory for process not implemented yet.
-    //         While used hard-coded value of max heapsize (256Mb)
+    //   Application allocates the amount of memory specified by the compiler
+    //   switch -Ch but without commiting. On heap growing required amount of
+    //   memory commited. More memory is allocated as needed within sbrk.
 
-{}
-    DosAllocMem(Int_Heap, 256*1024*1024, 3);
-{
-This should be changed as soon as dynamic allocation within sbrk works.
+    RC := DosAllocMem (Int_Heap, Int_HeapSize, 3);
 
-256 MB RAM is way too much - there might not be so much physical RAM and swap
-space on some systems. Let's start on 16 MB - that isn't enough for cycling
-the compiler, of course, but more should get allocated dynamically on demand.
-
-    DosAllocMem(Int_Heap, 16 * 1024 * 1024, 3);
-}
-    Int_Heap_End:=Int_Heap;
+    if RC <> 0 then
+     begin
+      Str (RC, ErrStr);
+      ErrStr := 'Error during heap initialization (' + ErrStr + ')!!';
+      DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
+      HandleError (204);
+     end;
+    AllocatedMemory := Int_HeapSize;
+    Int_Heap_End := Int_Heap;
+    PreviousHeap := 0;
     InitHeap;
 
     { ... and exceptions }
@@ -1463,15 +1497,15 @@ the compiler, of course, but more should get allocated dynamically on demand.
 {$endif HASVARIANT}
 
 {$IFDEF DUMPGROW}
- {$IFDEF CONTHEAP}
     WriteLn ('Initial brk size is ', GetHeapSize);
-//    WriteLn ('Brk limit is ', BrkLimit);
- {$ENDIF CONTHEAP}
 {$ENDIF DUMPGROW}
 end.
 {
   $Log$
-  Revision 1.67  2004-02-22 15:01:49  hajny
+  Revision 1.68  2004-03-24 19:15:59  hajny
+    * heap management modified to be able to grow heap as needed
+
+  Revision 1.67  2004/02/22 15:01:49  hajny
     * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
 
   Revision 1.66  2004/02/16 22:18:44  hajny
