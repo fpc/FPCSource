@@ -2505,7 +2505,9 @@ const
     function WinDefDlgProc(hwndDlg,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinAlarm(hwndDesktop,rgfType : cardinal) : longbool; cdecl;
     function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : pchar;idWindow,flStyle : cardinal) : cardinal; cdecl;
+(*
     function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl;
+*)
     function WinProcessDlg(hwndDlg : cardinal) : cardinal; cdecl;
     function WinSendDlgItemMsg(hwndDlg,idItem,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinMapDlgPoints(hwndDlg : cardinal;var prgwptl : TPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;
@@ -3001,7 +3003,10 @@ const
 end.
 {
   $Log$
-  Revision 1.9  2002-12-07 20:21:38  hajny
+  Revision 1.10  2002-12-07 20:56:35  hajny
+    * WinMessageBox2 commented out temporarily
+
+  Revision 1.9  2002/12/07 20:21:38  hajny
     * mistyping fixed
 
   Revision 1.8  2002/12/07 17:50:17  hajny
