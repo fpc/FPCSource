@@ -444,7 +444,8 @@ begin
         Copyfile(OutName,LongLogFile,true);
         Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
       end
-     else if (ExecuteResult<>0) and (Pos('1.0',CompilerVersion)=1) and
+     else if (ExecuteResult<>0) and
+             GetCompilerVersion and (Pos('1.0',CompilerVersion)=1) and
         (((Config.KnownCompile10Note<>'') and (Config.KnownCompile10Error=0)) or
          ((Config.KnownCompile10Error<>0) and (ExecuteResult=Config.KnownCompile10Error))) then
       begin
@@ -781,7 +782,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-02-20 12:41:15  pierre
+  Revision 1.27  2003-06-13 08:16:34  pierre
+   * fix a problem with KNOWNCOMPILE10ERROR
+
+  Revision 1.26  2003/02/20 12:41:15  pierre
    + handle KNOWNCOMPILEERROR and KNOWNCOMPILE10ERROR
 
   Revision 1.25  2002/12/24 22:30:41  peter
