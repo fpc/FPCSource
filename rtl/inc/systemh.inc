@@ -73,7 +73,7 @@ Type
   { Comp type does not exist on fpu }
   Comp    = int64;
   {$define SUPPORT_SINGLE}
-  {$IFDEF LINUX}
+  {$IFDEF Unix}
     { Linux FPU emulator will be used }
     {$define SUPPORT_DOUBLE}
   {$ENDIF}
@@ -555,7 +555,10 @@ const
 
 {
   $Log$
-  Revision 1.45  2002-04-21 15:51:51  carl
+  Revision 1.46  2002-06-02 10:49:30  marco
+   * Renamefest supports_double for FreeBSD too
+
+  Revision 1.45  2002/04/21 15:51:51  carl
   * StackError is now a typed constant
   + $S can be used under unix
 
