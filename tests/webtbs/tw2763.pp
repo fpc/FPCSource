@@ -1,4 +1,5 @@
 { %version=1.1 }
+{$mode objfpc}
 { Source provided for Free Pascal Bug Report 2763 }
 { Submitted by "Michael Van Canneyt" on  2003-11-04 }
 { e-mail: Michael.VanCanneyt@wisa.be }
