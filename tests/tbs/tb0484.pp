@@ -13,6 +13,7 @@ type
     p : procedure
   end;
 
+  { ugly, but should work (FK) }
   r4 = record
     p : procedure stdcall
   end;
