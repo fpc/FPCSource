@@ -102,6 +102,9 @@ implementation
            consume(_SEMICOLON);
            if try_to_consume(_DEFAULT) then
              begin
+               if oo_has_default_property in aktclass.objectoptions then
+                 message(parser_e_only_one_default_property);
+               include(aktclass.objectoptions,oo_has_default_property);
                include(p.propoptions,ppo_defaultproperty);
                if not(ppo_hasparameters in p.propoptions) then
                  message(parser_e_property_need_paras);
@@ -733,7 +736,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-08-22 11:23:45  peter
+  Revision 1.80  2004-08-25 15:57:04  peter
+    * allow only 1 default property
+
+  Revision 1.79  2004/08/22 11:23:45  peter
     * support hint directives in object declarations
 
   Revision 1.78  2004/06/20 08:55:30  florian

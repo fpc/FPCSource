@@ -260,7 +260,8 @@ type
     oo_has_vmt,            { the object/class has a vmt }
     oo_has_msgstr,
     oo_has_msgint,
-    oo_can_have_published { the class has rtti, i.e. you can publish properties }
+    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
+    oo_has_default_property
   );
   tobjectoptions=set of tobjectoption;
 
@@ -409,7 +410,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.86  2004-07-09 22:17:32  peter
+  Revision 1.87  2004-08-25 15:57:04  peter
+    * allow only 1 default property
+
+  Revision 1.86  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 

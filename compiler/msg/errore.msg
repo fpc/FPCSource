@@ -662,8 +662,8 @@ parser_d_compiling_second_time=03107_DL_Compiling $1 for the second time
 parser_e_no_property_found_to_override=03109_E_No property found to override
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_Only one default property is allowed, found inherited default property in class "$1"
-% You specified a property as \var{Default}, but a parent class already has a
+parser_e_only_one_default_property=03110_E_Only one default property is allowed
+% You specified a property as \var{Default}, but the class already has a
 % default property, and a class can have only one default property.
 parser_e_property_need_paras=03111_E_The default property must be an array property
 % Only array properties of classes can be made \var{default} properties.

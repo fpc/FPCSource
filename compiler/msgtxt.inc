@@ -199,498 +199,500 @@ const msgtxt : array[0..000153,1..240] of char=(
   '03106_UL_Parsing implementation of $1'#000+
   '03107_DL_Compiling $1 for the second time'#000+
   '03109_E_No property found to override'#000+
-  '03110_E_Only one default property is allowed, found',' inherited defaul'+
-  't property in class "$1"'#000+
-  '03111_E_The default property must be an array property'#000+
+  '03110_E_Only one default property is allowed'#000+
+  '03111_','E_The default property must be an array property'#000+
   '03112_E_Virtual constructors are only supported in class object model'#000+
   '03113_E_No default property available'#000+
-  '03114_E_The class can'#039't have a publ','ished section, use the {$M+} '+
-  'switch'#000+
-  '03115_E_Forward declaration of class "$1" must be resolved here to use'+
-  ' the class as ancestor'#000+
+  '03114_E_The class can'#039't have a published section, use the {$M+} sw'+
+  'itch'#000+
+  '03115_E_Forw','ard declaration of class "$1" must be resolved here to u'+
+  'se the class as ancestor'#000+
   '03116_E_Local operators not supported'#000+
   '03117_E_Procedure directive "$1" not allowed in interface section'#000+
-  '03118_E','_Procedure directive "$1" not allowed in implementation secti'+
+  '03118_E_Procedure directive "$1" not allowed in impleme','ntation secti'+
   'on'#000+
   '03119_E_Procedure directive "$1" not allowed in procvar declaration'#000+
   '03120_E_Function is already declared Public/Forward "$1"'#000+
   '03121_E_Can'#039't use both EXPORT and EXTERNAL'#000+
-  '03123_W_','"$1" not yet supported inside inline procedure/function'#000+
+  '03123_W_"$1" not yet supported inside inline procedure/f','unction'#000+
   '03124_W_Inlining disabled'#000+
   '03125_I_Writing Browser log $1'#000+
   '03126_H_may be pointer dereference is missing'#000+
   '03127_F_Selected assembler reader not supported'#000+
-  '03128_E_Procedure directive "$1" ','has conflicts with other directives'+
-  #000+
-  '03129_E_Calling convention doesn'#039't match forward'#000+
+  '03128_E_Procedure directive "$1" has conflicts with other directives'#000+
+  '03129_E_Call','ing convention doesn'#039't match forward'#000+
   '03131_E_Property can'#039't have a default value'#000+
   '03132_E_The default value of a property must be constant'#000+
-  '03133_E_Symbol can'#039't be published, can be only a class',#000+
-  '03134_E_That kind of property can'#039't be published'#000+
+  '03133_E_Symbol can'#039't be published, can be only a class'#000+
+  '03134_E_That kind of property can'#039't be publishe','d'#000+
   '03136_W_An import name is required'#000+
   '03138_E_Division by zero'#000+
   '03139_E_Invalid floating point operation'#000+
   '03140_E_Upper bound of range is less than lower bound'#000+
-  '03141_W_string "$1" is longer than ','"$2"'#000+
-  '03142_E_string length is larger than array of char length'#000+
+  '03141_W_string "$1" is longer than "$2"'#000+
+  '03142_E_string length is larger than array ','of char length'#000+
   '03143_E_Illegal expression after message directive'#000+
   '03144_E_Message handlers can take only one call by ref. parameter'#000+
   '03145_E_Duplicate message label: "$1"'#000+
-  '03146_E_Self can only ','be an explicit parameter in methods which are '+
-  'message handlers'#000+
+  '03146_E_Self can only be an explicit parameter in methods which are me',
+  'ssage handlers'#000+
   '03147_E_Threadvars can be only static or global'#000+
   '03148_F_Direct assembler not supported for binary output format'#000+
-  '03149_W_Don'#039't load OBJPAS unit manually, use {$mode objfpc} or {$',
-  'mode delphi} instead'#000+
-  '03150_E_OVERRIDE can'#039't be used in objects'#000+
+  '03149_W_Don'#039't load OBJPAS unit manually, use {$mode objfpc} or {$m'+
+  'ode delphi} instead'#000+
+  '03150_E_OVERRIDE can'#039't be u','sed in objects'#000+
   '03151_E_Data types which require initialization/finalization can'#039't'+
   ' be used in variant records'#000+
   '03152_E_Resourcestrings can be only static or global'#000+
-  '03153_E_Exit with argument can',#039't be used here'#000+
-  '03154_E_The type of the storage symbol must be boolean'#000+
+  '03153_E_Exit with argument can'#039't be used here'#000+
+  '03154_E_The type of the storage ','symbol must be boolean'#000+
   '03155_E_This symbol isn'#039't allowed as storage symbol'#000+
   '03156_E_Only class which are compiled in $M+ mode can be published'#000+
   '03157_E_Procedure directive expected'#000+
-  '03158_E_The v','alue for a property index must be of an ordinal type'#000+
+  '03158_E_The value for a property index must be of an ordinal ','type'#000+
   '03159_E_Procedure name to short to be exported'#000+
   '03160_E_No DEFFILE entry can be generated for unit global vars'#000+
   '03161_E_Compile without -WD option'#000+
-  '03162_F_You need ObjFpc (-S2) or Delphi (-','Sd) mode to compile this m'+
-  'odule'#000+
-  '03163_E_Can'#039't export with index under $1'#000+
+  '03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this mod'+
+  'ule'#000+
+  '03163_E_Can'#039't ex','port with index under $1'#000+
   '03164_E_Exporting of variables is not supported under $1'#000+
   '03165_E_Improper GUID syntax'#000+
   '03168_W_Procedure named "$1" not found that is suitable for implementi'+
-  'ng the $2.$','3'#000+
+  'ng the $2.$3'#000+
   '03169_E_interface identifier expected'#000+
-  '03170_E_Type "$1" can'#039't be used as array index type'#000+
+  '03170_E_','Type "$1" can'#039't be used as array index type'#000+
   '03171_E_Con- and destructors aren'#039't allowed in interfaces'#000+
   '03172_E_Access specifiers can'#039't be used in INTERFACES'#000+
-  '03173_E_An interface can'#039't contain f','ields'#000+
-  '03174_E_Can'#039't declare local procedure as EXTERNAL'#000+
+  '03173_E_An interface can'#039't contain fields'#000+
+  '03174_E_Can'#039't declare local procedure as E','XTERNAL'#000+
   '03175_W_Some fields coming before "$1" weren'#039't initialized'#000+
   '03176_E_Some fields coming before "$1" weren'#039't initialized'#000+
   '03177_W_Some fields coming after "$1" weren'#039't initialized'#000+
-  '03178_E_','VarArgs directive without CDecl and External'#000+
-  '03179_E_Self must be a normal (call-by-value) parameter'#000+
+  '03178_E_VarArgs directive without CDecl and External'#000+
+  '031','79_E_Self must be a normal (call-by-value) parameter'#000+
   '03180_E_Interface "$1" has no interface identification'#000+
   '03181_E_Unknown class field or method identifier "$1"'#000+
-  '03182_W_Overriding calling con','vention "$1" with "$2"'#000+
-  '03183_E_Typed constants of the type "procedure of object" can only be '+
-  'initialized with NIL'#000+
+  '03182_W_Overriding calling convention "$1" with "$2"'#000+
+  '03183_E_Typed constants o','f the type "procedure of object" can only b'+
+  'e initialized with NIL'#000+
   '03184_E_Default value can only be assigned to one parameter'#000+
   '03185_E_Default parameter required for "$1"'#000+
-  '03186_W_Use of unsuppo','rted feature!'#000+
-  '03187_H_C arrays are passed by reference'#000+
+  '03186_W_Use of unsupported feature!'#000+
+  '03187_H_C arrays are passed by ref','erence'#000+
   '03188_E_C array of const must be the last argument'#000+
   '03189_H_Type "$1" redefinition'#000+
   '03190_W_cdecl'#039'ared functions have no high parameter'#000+
-  '03191_W_cdecl'#039'ared functions do not support open st','rings'#000+
-  '03192_E_Cannot initialize variables declared as threadvar'#000+
+  '03191_W_cdecl'#039'ared functions do not support open strings'#000+
+  '03192_E_Cannot initialize variables declar','ed as threadvar'#000+
   '03193_E_Message directive is only allowed in Classes'#000+
   '03194_E_Procedure or Function expected'#000+
   '03195_W_Calling convention directive ignored: "$1"'#000+
-  '03196_E_REINTRODUCE can'#039't be used',' in objects'#000+
-  '03197_E_Each argument must have it'#039's own location'#000+
+  '03196_E_REINTRODUCE can'#039't be used in objects'#000+
+  '03197_E_Each argument must have it'#039's',' own location'#000+
   '03198_E_Each argument must have an explicit location'#000+
   '03199_E_Unknown argument location'#000+
   '03200_E_32 Bit-Integer or pointer variable expected'#000+
-  '03201_E_Goto statements aren'#039't allowed ','between different procedu'+
-  'res'#000+
-  '03202_E_Expression too complicated - FPU stack overflow'#000+
+  '03201_E_Goto statements aren'#039't allowed between different procedure'+
+  's'#000+
+  '03202_E_Expression ','too complicated - FPU stack overflow'#000+
   '03203_E_Illegal expression'#000+
   '03204_E_Invalid integer expression'#000+
   '03205_E_Illegal qualifier'#000+
   '03206_E_High range limit < low range limit'#000+
-  '03207_E_Exit'#039's parameter',' must be the name of the procedure it is'+
-  ' used in'#000+
+  '03207_E_Exit'#039's parameter must be the name of the procedure it is u'+
+  'sed in',#000+
   '04000_E_Type mismatch'#000+
   '04001_E_Incompatible types: got "$1" expected "$2"'#000+
   '04002_E_Type mismatch between "$1" and "$2"'#000+
   '04003_E_Type identifier expected'#000+
   '04004_E_Variable identifier expected'#000+
-  '0400','5_E_Integer expression expected, but got "$1"'#000+
-  '04006_E_Boolean expression expected, but got "$1"'#000+
+  '04005_E_Integer expression expected, but got "$1"'#000+
+  '04','006_E_Boolean expression expected, but got "$1"'#000+
   '04007_E_Ordinal expression expected'#000+
   '04008_E_pointer type expected, but got "$1"'#000+
   '04009_E_class type expected, but got "$1"'#000+
-  '04011_E_Can'#039't evaluate',' constant expression'#000+
-  '04012_E_Set elements are not compatible'#000+
+  '04011_E_Can'#039't evaluate constant expression'#000+
+  '04012_E_Set elements are no','t compatible'#000+
   '04013_E_Operation not implemented for sets'#000+
   '04014_W_Automatic type conversion from floating type to COMP which is '+
   'an integer type'#000+
   '04015_H_use DIV instead to get an integer result'#000+
-  '0','4016_E_string types doesn'#039't match, because of $V+ mode'#000+
+  '04016_E_string types doesn'#039't match, because of $V','+ mode'#000+
   '04017_E_succ or pred on enums with assignments not possible'#000+
   '04018_E_Can'#039't read or write variables of this type'#000+
   '04019_E_Can'#039't use readln or writeln on typed file'#000+
-  '04020_E_Can'#039't use read o','r write on untyped file.'#000+
-  '04021_E_Type conflict between set elements'#000+
+  '04020_E_Can'#039't use read or write on untyped file.'#000+
+  '04021_E_Type conflict b','etween set elements'#000+
   '04022_W_lo/hi(dword/qword) returns the upper/lower word/dword'#000+
   '04023_E_Integer or real expression expected'#000+
   '04024_E_Wrong type "$1" in array constructor'#000+
-  '04025_E_Incompatible ','type for arg no. $1: Got "$2", expected "$3"'#000+
-  '04026_E_Method (variable) and Procedure (variable) are not compatible'#000+
+  '04025_E_Incompatible type for arg no. $1: Got "$2", expected "$3"'#000+
+  '040','26_E_Method (variable) and Procedure (variable) are not compatibl'+
+  'e'#000+
   '04027_E_Illegal constant passed to internal math function'#000+
   '04028_E_Can'#039't get the address of constants'#000+
-  '04029_E_Argument can'#039't b','e assigned to'#000+
-  '04030_E_Can'#039't assign local procedure/function to procedure variabl'+
-  'e'#000+
+  '04029_E_Argument can'#039't be assigned to'#000+
+  '04030_E_Can'#039't assign local procedu','re/function to procedure varia'+
+  'ble'#000+
   '04031_E_Can'#039't assign values to an address'#000+
   '04032_E_Can'#039't assign values to const variable'#000+
   '04033_E_Array type required'#000+
-  '04034_E_interface type expected, but got "','$1"'#000+
-  '04035_W_Mixing signed expressions and longwords gives a 64bit result'#000+
+  '04034_E_interface type expected, but got "$1"'#000+
+  '04035_W_Mixing signed expressions and longwo','rds gives a 64bit result'+
+  #000+
   '04036_W_Mixing signed expressions and cardinals here may cause a range'+
   ' check error'#000+
   '04037_E_Typecast has different size ($1 -> $2) in assignment'#000+
-  '04038_E_enums with assi','gnments can'#039't be used as array index'#000+
-  '04039_E_Class or Object types "$1" and "$2" are not related'#000+
+  '04038_E_enums with assignments can'#039't be used as array index'#000+
+  '04039_E_Cla','ss or Object types "$1" and "$2" are not related'#000+
   '04040_W_Class types "$1" and "$2" are not related'#000+
   '04041_E_Class or interface type expected, but got "$1"'#000+
-  '04042_E_Type "$1" is not completely de','fined'#000+
-  '04043_W_String literal has more characters than short string length'#000+
+  '04042_E_Type "$1" is not completely defined'#000+
+  '04043_W_String literal has more characters',' than short string length'#000+
   '04044_W_Comparison is always false due to range of values'#000+
   '04045_W_Comparison is always true due to range of values'#000+
-  '04046_W_Constructing a class "$1" with abstract met','hods'#000+
-  '04047_H_The left operand of the IN operator should be byte sized'#000+
+  '04046_W_Constructing a class "$1" with abstract methods'#000+
+  '04047_H_The left operand of the IN operator',' should be byte sized'#000+
   '04048_W_Type size mismatch, possible loss of data / range check error'#000+
   '04049_H_Type size mismatch, possible loss of data / range check error'#000+
-  '04050_E_The address of an abst','ract method can'#039't be taken'#000+
-  '04051_E_The operator is not applicable for the operand type'#000+
+  '04050_E_The address of an abstract method can'#039't be taken'#000+
+  '04051_E_The operator ','is not applicable for the operand type'#000+
   '04052_E_Constant Expression expected'#000+
   '04053_E_Operation "$1" not supported for types "$2" and "$3"'#000+
   '04054_E_Illegal type conversion: "$1" to "$2"'#000+
-  '04055_H_C','onversion between ordinals and pointers is not portable'#000+
+  '04055_H_Conversion between ordinals and pointers is not p','ortable'#000+
   '04056_W_Conversion between ordinals and pointers is not portable'#000+
   '04057_E_Can'#039't determine which overloaded function to call'#000+
   '04058_E_Illegal counter variable'#000+
-  '05000_E_Identifier not found',' "$1"'#000+
-  '05001_F_Internal Error in SymTableStack()'#000+
+  '05000_E_Identifier not found "$1"'#000+
+  '05001_F_Internal Error in SymTableStack()'#000,
   '05002_E_Duplicate identifier "$1"'#000+
   '05003_H_Identifier already defined in $1 at line $2'#000+
   '05004_E_Unknown identifier "$1"'#000+
   '05005_E_Forward declaration not solved "$1"'#000+
-  '05007_E_Error in type definiti','on'#000+
+  '05007_E_Error in type definition'#000+
   '05009_E_Forward type not resolved "$1"'#000+
-  '05010_E_Only static variables can be used in static methods or outside'+
-  ' methods'#000+
+  '05010_','E_Only static variables can be used in static methods or outsi'+
+  'de methods'#000+
   '05012_F_record or class type expected'#000+
   '05013_E_Instances of classes or objects with an abstract method are no'+
   't allowed'#000+
-  '0','5014_W_Label not defined "$1"'#000+
-  '05015_E_Label used but not defined "$1"'#000+
+  '05014_W_Label not defined "$1"'#000+
+  '05015_E_Label used',' but not defined "$1"'#000+
   '05016_E_Illegal label declaration'#000+
   '05017_E_GOTO and LABEL are not supported (use switch -Sg)'#000+
   '05018_E_Label not found'#000+
   '05019_E_identifier isn'#039't a label'#000+
-  '05020_E_label already',' defined'#000+
-  '05021_E_illegal type declaration of set elements'#000+
+  '05020_E_label already defined'#000+
+  '05021_E_illegal type declaration of set',' elements'#000+
   '05022_E_Forward class definition not resolved "$1"'#000+
   '05023_H_Unit "$1" not used in $2'#000+
   '05024_H_Parameter "$1" not used'#000+
   '05025_N_Local variable "$1" not used'#000+
-  '05026_H_Value parameter "$1" ','is assigned but never used'#000+
-  '05027_N_Local variable "$1" is assigned but never used'#000+
+  '05026_H_Value parameter "$1" is assigned but never used'#000+
+  '05027_N_Local variabl','e "$1" is assigned but never used'#000+
   '05028_H_Local $1 "$2" is not used'#000+
   '05029_N_Private field "$1.$2" is never used'#000+
   '05030_N_Private field "$1.$2" is assigned but never used'#000+
-  '05031_N_Private method ','"$1.$2" never used'#000+
+  '05031_N_Private method "$1.$2" never used'#000+
   '05032_E_Set type expected'#000+
-  '05033_W_Function result does not seem to be set'#000+
+  '050','33_W_Function result does not seem to be set'#000+
   '05034_W_Type "$1" is not aligned correctly in current record for C'#000+
   '05035_E_Unknown record field identifier "$1"'#000+
-  '05036_W_Local variable "$1" does no','t seem to be initialized'#000+
-  '05037_W_Variable "$1" does not seem to be initialized'#000+
+  '05036_W_Local variable "$1" does not seem to be initialized'#000+
+  '05037_W_Variable "$1" d','oes not seem to be initialized'#000+
   '05038_E_identifier idents no member "$1"'#000+
   '05039_H_Found declaration: $1'#000+
   '05040_E_Data element too large'#000+
-  '05042_E_No matching implementation for interface method "$1','" found'#000+
+  '05042_E_No matching implementation for interface method "$1" found'#000+
   '05043_W_Symbol "$1" is deprecated'#000+
-  '05044_W_Symbol "$1" is not portable'#000+
+  '05044_','W_Symbol "$1" is not portable'#000+
   '05055_W_Symbol "$1" is not implemented'#000+
   '05056_E_Can'#039't create unique type from this type'#000+
   '06009_E_Parameter list size exceeds 65535 bytes'#000+
-  '06012_E_File types must be ','var parameters'#000+
-  '06013_E_The use of a far pointer isn'#039't allowed there'#000+
+  '06012_E_File types must be var parameters'#000+
+  '06013_E_The use of a far pointer ','isn'#039't allowed there'#000+
   '06015_E_EXPORT declared functions can'#039't be called'#000+
   '06016_W_Possible illegal call of constructor or destructor'#000+
   '06017_N_Inefficient code'#000+
   '06018_W_unreachable code'#000+
-  '06020_E_Abstr','act methods can'#039't be called directly'#000+
-  '06027_DL_Register $1 weight $2 $3'#000+
+  '06020_E_Abstract methods can'#039't be called directly'#000+
+  '06027_DL_Re','gister $1 weight $2 $3'#000+
   '06029_DL_Stack frame is omitted'#000+
   '06031_E_Object or class methods can'#039't be inline.'#000+
   '06032_E_Procvar calls cannot be inline.'#000+
   '06033_E_No code for inline procedure stored'#000+
-  '0603','5_E_Element zero of an ansi/wide- or longstring can'#039't be acc'+
+  '06035_E_Element zero of an ansi/wide- or longstring ','can'#039't be acc'+
   'essed, use (set)length instead'#000+
   '06037_E_Constructors or destructors can not be called inside a '#039'wi'+
   'th'#039' clause'#000+
   '06038_E_Cannot call message handler methods directly'#000+
-  '06039_E_Jump in or ','outside of an exception block'#000+
-  '06040_E_Control flow statements aren'#039't allowed in a finally block'#000+
+  '06039_E_Jump in or outside of an exception block'#000+
+  '06040_E_Control fl','ow statements aren'#039't allowed in a finally bloc'+
+  'k'#000+
   '06041_W_Parameters size exceeds limit for certain cpu'#039's'#000+
   '06042_W_Local variable size exceed limit for certain cpu'#039's'#000+
-  '06043_E_Local variables size ','exceeds supported limit'#000+
-  '06044_E_BREAK not allowed'#000+
+  '06043_E_Local variables size exceeds supported limit'#000+
+  '06044_E_BREAK not allowe','d'#000+
   '06045_E_CONTINUE not allowed'#000+
   '07000_DL_Starting $1 styled assembler parsing'#000+
   '07001_DL_Finished $1 styled assembler parsing'#000+
   '07002_E_Non-label pattern contains @'#000+
-  '07004_E_Error building record of','fset'#000+
+  '07004_E_Error building record offset'#000+
   '07005_E_OFFSET used without identifier'#000+
-  '07006_E_TYPE used without identifier'#000+
+  '0700','6_E_TYPE used without identifier'#000+
   '07007_E_Cannot use local variable or parameters here'#000+
   '07008_E_need to use OFFSET here'#000+
   '07009_E_need to use $ here'#000+
-  '07010_E_Cannot use multiple relocatable symbols',#000+
+  '07010_E_Cannot use multiple relocatable symbols'#000+
   '07011_E_Relocatable symbol can only be added'#000+
-  '07012_E_Invalid constant expression'#000+
+  '07','012_E_Invalid constant expression'#000+
   '07013_E_Relocatable symbol is not allowed'#000+
   '07014_E_Invalid reference syntax'#000+
   '07015_E_You can not reach $1 from that code'#000+
-  '07016_E_Local symbols/labels aren'#039't all','owed as references'#000+
-  '07017_E_Invalid base and index register usage'#000+
+  '07016_E_Local symbols/labels aren'#039't allowed as references'#000+
+  '07017_E_Invalid base and inde','x register usage'#000+
   '07018_W_Possible error in object field handling'#000+
   '07019_E_Wrong scale factor specified'#000+
   '07020_E_Multiple index register usage'#000+
   '07021_E_Invalid operand type'#000+
-  '07022_E_Invalid string ','as opcode operand: $1'#000+
-  '07023_W_@CODE and @DATA not supported'#000+
+  '07022_E_Invalid string as opcode operand: $1'#000+
+  '07023_W_@CODE and @DATA no','t supported'#000+
   '07024_E_Null label references are not allowed'#000+
   '07025_E_Divide by zero in asm evaluator'#000+
   '07026_E_Illegal expression'#000+
   '07027_E_escape sequence ignored: $1'#000+
-  '07028_E_Invalid symbol referenc','e'#000+
-  '07029_W_Fwait can cause emulation problems with emu387'#000+
+  '07028_E_Invalid symbol reference'#000+
+  '07029_W_Fwait can cause emulation problems wit','h emu387'#000+
   '07030_W_$1 without operand translated into $1P'#000+
   '07031_W_ENTER instruction is not supported by Linux kernel'#000+
   '07032_W_Calling an overload function in assembler'#000+
-  '07033_E_Unsupported symbol ','type for operand'#000+
-  '07034_E_Constant value out of bounds'#000+
+  '07033_E_Unsupported symbol type for operand'#000+
+  '07034_E_Constant value out of b','ounds'#000+
   '07035_E_Error converting decimal $1'#000+
   '07036_E_Error converting octal $1'#000+
   '07037_E_Error converting binary $1'#000+
   '07038_E_Error converting hexadecimal $1'#000+
   '07039_H_$1 translated to $2'#000+
-  '07040_W_$1 is',' associated to an overloaded function'#000+
-  '07041_E_Cannot use SELF outside a method'#000+
+  '07040_W_$1 is associated to an overloaded function'#000+
+  '07041_E_Ca','nnot use SELF outside a method'#000+
   '07042_E_Cannot use OLDEBP outside a nested procedure'#000+
   '07043_W_Procedures can'#039't return any value in asm code'#000+
   '07044_E_SEG not supported'#000+
-  '07045_E_Size suffix and dest','ination or source size do not match'#000+
-  '07046_W_Size suffix and destination or source size do not match'#000+
+  '07045_E_Size suffix and destination or source size do not match'#000+
+  '07046_W_Size',' suffix and destination or source size do not match'#000+
   '07047_E_Assembler syntax error'#000+
   '07048_E_Invalid combination of opcode and operands'#000+
   '07049_E_Assembler syntax error in operand'#000+
-  '07050_E_Assemble','r syntax error in constant'#000+
-  '07051_E_Invalid String expression'#000+
+  '07050_E_Assembler syntax error in constant'#000+
+  '07051_E_Invalid Strin','g expression'#000+
   '07052_W_constant with symbol $1 for address which is not on a pointer'#000+
   '07053_E_Unrecognized opcode $1'#000+
   '07054_E_Invalid or missing opcode'#000+
-  '07055_E_Invalid combination of prefix and op','code: $1'#000+
-  '07056_E_Invalid combination of override and opcode: $1'#000+
+  '07055_E_Invalid combination of prefix and opcode: $1'#000+
+  '07056_E_Invalid combination of override',' and opcode: $1'#000+
   '07057_E_Too many operands on line'#000+
   '07058_W_NEAR ignored'#000+
   '07059_W_FAR ignored'#000+
   '07060_E_Duplicate local symbol $1'#000+
   '07061_E_Undefined local symbol $1'#000+
-  '07062_E_Unknown label identifier ','$1'#000+
+  '07062_E_Unknown label identifier $1'#000+
   '07063_E_Invalid register name'#000+
-  '07064_E_Invalid floating point register name'#000+
+  '07064_E_Invalid',' floating point register name'#000+
   '07066_W_Modulo not supported'#000+
   '07067_E_Invalid floating point constant $1'#000+
   '07068_E_Invalid floating point expression'#000+
   '07069_E_Wrong symbol type'#000+
-  '07070_E_Cannot index a',' local var or parameter with a register'#000+
-  '07071_E_Invalid segment override expression'#000+
+  '07070_E_Cannot index a local var or parameter with a register'#000+
+  '07071_E_','Invalid segment override expression'#000+
   '07072_W_Identifier $1 supposed external'#000+
   '07073_E_Strings not allowed as constants'#000+
   '07074_No type of variable specified'#000+
-  '07075_E_assembler code not returned to ','text section'#000+
-  '07076_E_Not a directive or local symbol $1'#000+
+  '07075_E_assembler code not returned to text section'#000+
+  '07076_E_Not a directive or local sy','mbol $1'#000+
   '07077_E_Using a defined name as a local label'#000+
   '07078_E_Dollar token is used without an identifier'#000+
   '07079_W_32bit constant created for address'#000+
-  '07080_N_.align is target specific, use .bali','gn or .p2align'#000+
-  '07081_E_Can'#039't access fields directly for parameters'#000+
+  '07080_N_.align is target specific, use .balign or .p2align'#000+
+  '07081_E_Can'#039't access fields direc','tly for parameters'#000+
   '07082_E_Can'#039't access fields of objects/classes directly'#000+
   '07083_E_No size specified and unable to determine the size of the oper'+
   'ands'#000+
-  '07084_E_Cannot use RESULT in this function',#000+
-  '07086_W_"$1" without operand translated into "$1 %st,%st(1)"'#000+
+  '07084_E_Cannot use RESULT in this function'#000+
+  '07086_W_"$1" without operand translated into "$','1 %st,%st(1)"'#000+
   '07087_W_"$1 %st(n)" translated into "$1 %st,%st(n)"'#000+
   '07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"'#000+
   '07089_E_Char < not allowed here'#000+
   '07090_E_Char > not allowed here'#000+
-  '07093_W_AL','IGN not supported'#000+
-  '07094_E_Inc and Dec cannot be together'#000+
+  '07093_W_ALIGN not supported'#000+
+  '07094_E_Inc and Dec cannot be ','together'#000+
   '07095_E_Invalid reglist for movem'#000+
   '07096_E_Reglist invalid for opcode'#000+
   '07097_E_Higher cpu mode required ($1)'#000+
   '07098_W_No size specified and unable to determine the size of the oper'+
-  'ands, ','using DWORD as default'#000+
-  '08000_F_Too many assembler files'#000+
+  'ands, using DWORD as default'#000+
+  '08000_F_Too many assemble','r files'#000+
   '08001_F_Selected assembler output not supported'#000+
   '08002_F_Comp not supported'#000+
   '08003_F_Direct not support for binary writers'#000+
   '08004_E_Allocating of data is only allowed in bss section'#000+
-  '08005','_F_No binary writer selected'#000+
-  '08006_E_Asm: Opcode $1 not in table'#000+
+  '08005_F_No binary writer selected'#000+
+  '08006_E_Asm: Opcode',' $1 not in table'#000+
   '08007_E_Asm: $1 invalid combination of opcode and operands'#000+
   '08008_E_Asm: 16 Bit references not supported'#000+
   '08009_E_Asm: Invalid effective address'#000+
-  '08010_E_Asm: Immediate or refere','nce expected'#000+
-  '08011_E_Asm: $1 value exceeds bounds $2'#000+
+  '08010_E_Asm: Immediate or reference expected'#000+
+  '08011_E_Asm: $1 value exceeds bound','s $2'#000+
   '08012_E_Asm: Short jump is out of range $1'#000+
   '08013_E_Asm: Undefined label $1'#000+
   '08014_E_Asm: Comp type not supported for this target'#000+
   '08015_E_Asm: Extended type not supported for this target'#000+
-  '08','016_E_Asm: Duplicate label $1'#000+
-  '08017_E_Asm: Redefined label $1'#000+
+  '08016_E_Asm: Duplicate label $1'#000+
+  '08017_E_Asm: Redef','ined label $1'#000+
   '08018_E_Asm: First defined here'#000+
   '08019_E_Asm: Invalid register $1'#000+
   '09000_W_Source operating system redefined'#000+
   '09001_I_Assembling (pipe) $1'#000+
   '09002_E_Can'#039't create assember file: $1'#000+
-  '090','03_E_Can'#039't create object file: $1'#000+
-  '09004_E_Can'#039't create archive file: $1'#000+
+  '09003_E_Can'#039't create object file: $1'#000+
+  '09004_E_Can'#039't ','create archive file: $1'#000+
   '09005_E_Assembler $1 not found, switching to external assembling'#000+
   '09006_T_Using assembler: $1'#000+
   '09007_E_Error while assembling exitcode $1'#000+
-  '09008_E_Can'#039't call the assembler',', error $1 switching to external'+
-  ' assembling'#000+
-  '09009_I_Assembling $1'#000+
+  '09008_E_Can'#039't call the assembler, error $1 switching to external a'+
+  'ssembling'#000+
+  '0900','9_I_Assembling $1'#000+
   '09010_I_Assembling with smartlinking $1'#000+
   '09011_W_Object $1 not found, Linking may fail !'#000+
   '09012_W_Library $1 not found, Linking may fail !'#000+
   '09013_E_Error while linking'#000+
-  '09014_E_C','an'#039't call the linker, switching to external linking'#000+
+  '09014_E_Can'#039't call the linker, switching to external link','ing'#000+
   '09015_I_Linking $1'#000+
   '09016_E_Util $1 not found, switching to external linking'#000+
   '09017_T_Using util $1'#000+
   '09018_E_Creation of Executables not supported'#000+
-  '09019_E_Creation of Dynamic/Shared Libraries',' not supported'#000+
+  '09019_E_Creation of Dynamic/Shared Libraries not supported'#000+
   '09020_I_Closing script $1'#000+
-  '09021_E_resource compiler not found, switching to external mode'#000+
+  '09021_E','_resource compiler not found, switching to external mode'#000+
   '09022_I_Compiling resource $1'#000+
   '09023_T_unit $1 can'#039't be statically linked, switching to smart lin'+
   'king'#000+
-  '09024_T_unit $1 can'#039't be smart lin','ked, switching to static linki'+
-  'ng'#000+
-  '09025_T_unit $1 can'#039't be shared linked, switching to static linkin'+
-  'g'#000+
+  '09024_T_unit $1 can'#039't be smart linked, switching to static linking'+
+  #000+
+  '09025_T_unit $1',' can'#039't be shared linked, switching to static link'+
+  'ing'#000+
   '09026_E_unit $1 can'#039't be smart or static linked'#000+
   '09027_E_unit $1 can'#039't be shared or static linked'#000+
   '09028_F_Can'#039't post process executable $1'#000+
-  '0','9029_F_Can'#039't open executable $1'#000+
-  '09030_X_Size of Code: $1 bytes'#000+
+  '09029_F_Can'#039't open executable $1'#000+
+  '09030_X_Size of ','Code: $1 bytes'#000+
   '09031_X_Size of initialized data: $1 bytes'#000+
   '09032_X_Size of uninitialized data: $1 bytes'#000+
   '09033_X_Stack space reserved: $1 bytes'#000+
   '09034_X_Stack space commited: $1 bytes'#000+
-  '10000_T_Uni','tsearch: $1'#000+
+  '10000_T_Unitsearch: $1'#000+
   '10001_T_PPU Loading $1'#000+
-  '10002_U_PPU Name: $1'#000+
+  '10002_U_PPU N','ame: $1'#000+
   '10003_U_PPU Flags: $1'#000+
   '10004_U_PPU Crc: $1'#000+
   '10005_U_PPU Time: $1'#000+
   '10006_U_PPU File too short'#000+
   '10007_U_PPU Invalid Header (no PPU at the begin)'#000+
   '10008_U_PPU Invalid Version $1'#000+
-  '10009_U_PPU is',' compiled for another processor'#000+
-  '10010_U_PPU is compiled for an other target'#000+
+  '10009_U_PPU is compiled for another processor'#000+
+  '10010_U_PPU is c','ompiled for an other target'#000+
   '10011_U_PPU Source: $1'#000+
   '10012_U_Writing $1'#000+
   '10013_F_Can'#039't Write PPU-File'#000+
   '10014_F_Error reading PPU-File'#000+
   '10015_F_unexpected end of PPU-File'#000+
-  '10016_F_Invalid PPU-File en','try: $1'#000+
+  '10016_F_Invalid PPU-File entry: $1'#000+
   '10017_F_PPU Dbx count problem'#000+
-  '10018_E_Illegal unit name: $1'#000+
+  '10018_E_Il','legal unit name: $1'#000+
   '10019_F_Too much units'#000+
   '10020_F_Circular unit reference between $1 and $2'#000+
   '10021_F_Can'#039't compile unit $1, no sources available'#000+
   '10022_F_Can'#039't find unit $1'#000+
-  '10023_W_Unit $1 was ','not found but $2 exists'#000+
-  '10024_F_Unit $1 searched but $2 found'#000+
+  '10023_W_Unit $1 was not found but $2 exists'#000+
+  '10024_F_Unit $1 searched',' but $2 found'#000+
   '10025_W_Compiling the system unit requires the -Us switch'#000+
   '10026_F_There were $1 errors compiling module, stopping'#000+
   '10027_U_Load from $1 ($2) unit $3'#000+
-  '10028_U_Recompiling $1, checks','um changed for $2'#000+
-  '10029_U_Recompiling $1, source found only'#000+
+  '10028_U_Recompiling $1, checksum changed for $2'#000+
+  '10029_U_Recompiling $1, source',' found only'#000+
   '10030_U_Recompiling unit, static lib is older than ppufile'#000+
   '10031_U_Recompiling unit, shared lib is older than ppufile'#000+
   '10032_U_Recompiling unit, obj and asm are older than ppufile'#000+
-  '1','0033_U_Recompiling unit, obj is older than asm'#000+
-  '10034_U_Parsing interface of $1'#000+
+  '10033_U_Recompiling unit, obj is older than asm'#000+
+  '1','0034_U_Parsing interface of $1'#000+
   '10035_U_Parsing implementation of $1'#000+
   '10036_U_Second load for unit $1'#000+
   '10037_U_PPU Check file $1 time $2'#000+
-  '10038_H_Conditional $1 was not set at startup in last comp','ilation of'+
-  ' $2'#000+
-  '10039_H_Conditional $1 was set at startup in last compilation of $2'#000+
+  '10038_H_Conditional $1 was not set at startup in last compilation of $'+
+  '2'#000+
+  '10039_H_Conditional $1 was set at ','startup in last compilation of $2'#000+
   '10040_W_Can'#039't recompile unit $1, but found modifed include files'#000+
   '10041_H_File $1 is newer than Release PPU file $2'#000+
-  '10042_U_Using a unit which was not compiled',' with correct FPU mode'#000+
-  '10043_U_Loading interface units from $1'#000+
+  '10042_U_Using a unit which was not compiled with correct FPU mode'#000+
+  '10043_U_Loading interface',' units from $1'#000+
   '10044_U_Loading implementation units from $1'#000+
   '10045_U_Interface CRC changed for unit $1'#000+
   '10046_U_Implementation CRC changed for unit $1'#000+
   '10047_U_Finished compiling unit $1'#000+
-  '10048_U_','Add dependency of $1 to $2'#000+
-  '10049_U_No reload, is caller: $1'#000+
+  '10048_U_Add dependency of $1 to $2'#000+
+  '10049_U_No reload, is',' caller: $1'#000+
   '10050_U_No reload, already in second compile: $1'#000+
   '10051_U_Flag for reload: $1'#000+
   '10052_U_Forced reloading'#000+
   '10053_U_Previous state of $1: $2'#000+
-  '10054_U_Already compiling $1, setting second ','compile'#000+
+  '10054_U_Already compiling $1, setting second compile'#000+
   '10055_U_Loading unit $1'#000+
-  '10056_U_Finished loading unit $1'#000+
+  '10056_U_Finished',' loading unit $1'#000+
   '10057_U_Registering new unit $1'#000+
   '10058_U_Re-resolving unit $1'#000+
   '10059_U_Skipping re-resolving unit $1, still loading used units'#000+
   '11000_$1 [options] <inputfile> [options]'#000+
-  '11001_W_O','nly one source file supported'#000+
-  '11002_W_DEF file can be created only for OS/2'#000+
+  '11001_W_Only one source file supported'#000+
+  '11002_W_DEF file c','an be created only for OS/2'#000+
   '11003_E_nested response files are not supported'#000+
   '11004_F_No source file name in command line'#000+
   '11005_N_No option inside $1 config file'#000+
   '11006_E_Illegal parameter: $1'#000+
-  '11','007_H_-? writes help pages'#000+
-  '11008_F_Too many config files nested'#000+
+  '11007_H_-? writes help pages'#000+
+  '11008_F_Too many conf','ig files nested'#000+
   '11009_F_Unable to open file $1'#000+
   '11010_D_Reading further options from $1'#000+
   '11011_W_Target is already set to: $1'#000+
-  '11012_W_Shared libs not supported on DOS platform, reverting to stat','i'+
-  'c'#000+
+  '11012_W_Shared libs not supported on DOS platform, reverting to static'+
+  #000+
   '11013_F_too many IF(N)DEFs'#000+
-  '11014_F_too many ENDIFs'#000+
+  '11014_F_too many E','NDIFs'#000+
   '11015_F_open conditional at the end of the file'#000+
   '11016_W_Debug information generation is not supported by this executab'+
   'le'#000+
   '11017_H_Try recompiling with -dGDB'#000+
-  '11018_E_You are using the obso','lete switch $1'#000+
-  '11019_E_You are using the obsolete switch $1, please use $2'#000+
+  '11018_E_You are using the obsolete switch $1'#000+
+  '11019_E_You are using the obsolet','e switch $1, please use $2'#000+
   '11020_N_Switching assembler to default source writing assembler'#000+
   '11021_W_Assembler output selected "$1" is not compatible with "$2"'#000+
-  '11022_W_"$1" assembler use forced'#000,
+  '11022_W_"$1" assembler use forced'#000+
   '11026_T_Reading options from file $1'#000+
-  '11027_T_Reading options from environment $1'#000+
+  '11027_T_Rea','ding options from environment $1'#000+
   '11028_D_Handling option "$1"'#000+
   '11029__*** press enter ***'#000+
   '11030_H_Start of reading config file $1'#000+
   '11031_H_End of reading config file $1'#000+
-  '11032_D_interpreting opti','on "$1"'#000+
-  '11036_D_interpreting firstpass option "$1"'#000+
+  '11032_D_interpreting option "$1"'#000+
+  '11036_D_interpreting firstpass option "$','1"'#000+
   '11033_D_interpreting file option "$1"'#000+
   '11034_D_Reading config file "$1"'#000+
   '11035_D_found source file name "$1"'#000+
   '11037_D_Defining symbol $1'#000+
   '11038_D_Undefining symbol $1'#000+
-  '11039_E_Unknown code page'#000,
-  '11023_Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET'#010+
+  '11039_E_Unknown code page'#000+
+  '11023_Free Pascal Compiler version $FPCVER [$FPC','DATE] for $FPCTARGET'+
+  #010+
   'Copyright (c) 1993-2004 by Florian Klaempfl'#000+
   '11024_Free Pascal Compiler version $FPCVER'#010+
   #010+
@@ -698,198 +700,197 @@ const msgtxt : array[0..000153,1..240] of char=(
   'Compiler Target: $FPCTARGET'#010+
   #010+
   'Supported targets:'#010+
-  '  $OSTARG','ETS'#010+
+  '  $OSTARGETS'#010+
   #010+
-  'This program comes under the GNU General Public Licence'#010+
+  'This program comes under the GNU General Pu','blic Licence'#010+
   'For more information read COPYING.FPC'#010+
   #010+
   'Report bugs,suggestions etc to:'#010+
   '                 bugrep@freepascal.org'#000+
-  '11025_**0*_put + after a boolean switch option to enable it, - to dis',
-  'able it'#010+
-  '**1a_the compiler doesn'#039't delete the generated assembler file'#010+
+  '11025_**0*_put + after a boolean switch option to enable it, - to disa'+
+  'ble it'#010+
+  '**1a_the compiler doesn'#039't delete the gen','erated assembler file'#010+
   '**2al_list sourcecode lines in assembler file'#010+
   '**2ar_list register allocation/release info in assembler file'#010+
   '**2at_list temp allocation/release info in assembler file'#010+
-  '**1b','_generate browser info'#010+
-  '**2bl_generate local symbol info'#010+
+  '**1b_generate browser info'#010+
+  '**2bl_generate local symb','ol info'#010+
   '**1B_build all modules'#010+
   '**1C<x>_code generation options:'#010+
   '**2CD_create also dynamic library (not supported)'#010+
   '**2Ce_Compilation with emulated floating point opcodes'#010+
-  '**2Cf_Select fpu instru','ction set to use'#010+
+  '**2Cf_Select fpu instruction set to use'#010+
   '**2Cg_Generate PIC code'#010+
-  '**2Ch<n>_<n> bytes heap (between 1023 and 67107840)'#010+
+  '**2Ch<n','>_<n> bytes heap (between 1023 and 67107840)'#010+
   '**2Ci_IO-checking'#010+
   '**2Cn_omit linking stage'#010+
   '**2Co_check overflow of integer operations'#010+
   '**2Cr_range checking'#010+
-  '**2CR_verify object method call validity',#010+
+  '**2CR_verify object method call validity'#010+
   '**2Cs<n>_set stack size to <n>'#010+
-  '**2Ct_stack checking'#010+
+  '**2Ct_stack chec','king'#010+
   '**2CX_create also smartlinked library'#010+
   '**1d<x>_defines the symbol <x>'#010+
   '*O1D_generate a DEF file'#010+
   '*O2Dd<x>_set description to <x>'#010+
   '*O2Dw_PM application'#010+
   '**1e<x>_set path to executable'#010+
-  '**1E_same',' as -Cn'#010+
+  '**1E_same as -Cn'#010+
   '**1F<x>_set file names and paths:'#010+
-  '**2FD<x>_sets the directory where to search for compiler utilities'#010+
+  '**2FD<','x>_sets the directory where to search for compiler utilities'#010+
   '**2Fe<x>_redirect error output to <x>'#010+
   '**2FE<x>_set exe/unit output path to <x>'#010+
   '**2Fi<x>_adds <x> to include path'#010+
-  '**2Fl<x>_adds <x> ','to library path'#010+
-  '*L2FL<x>_uses <x> as dynamic linker'#010+
+  '**2Fl<x>_adds <x> to library path'#010+
+  '*L2FL<x>_uses <x> as dynamic lin','ker'#010+
   '**2Fo<x>_adds <x> to object path'#010+
   '**2Fr<x>_load error message file <x>'#010+
   '**2Fu<x>_adds <x> to unit path'#010+
   '**2FU<x>_set unit output path to <x>, overrides -FE'#010+
-  '*g1g_generate debugger information:',#010+
+  '*g1g_generate debugger information:'#010+
   '*g2gg_use gsym'#010+
   '*g2gd_use dbx'#010+
-  '*g2gh_use heap trace unit (for memory leak debugging)'#010+
+  '*g2gh_use heap tra','ce unit (for memory leak debugging)'#010+
   '*g2gl_use line info unit to show more info for backtraces'#010+
   '*g2gc_generate checks for pointers'#010+
   '*g2gv_generates programs tracable with valgrind'#010+
-  '*g2gw_generate ','dwarf debugging info'#010+
+  '*g2gw_generate dwarf debugging info'#010+
   '**1i_information'#010+
-  '**2iD_return compiler date'#010+
+  '**2iD_retu','rn compiler date'#010+
   '**2iV_return compiler version'#010+
   '**2iSO_return compiler OS'#010+
   '**2iSP_return compiler processor'#010+
   '**2iTO_return target OS'#010+
   '**2iTP_return target processor'#010+
-  '**1I<x>_adds <x> to include pat','h'#010+
+  '**1I<x>_adds <x> to include path'#010+
   '**1k<x>_Pass <x> to the linker'#010+
-  '**1l_write logo'#010+
+  '**1l_write logo',#010+
   '**1M<x>_set language mode to <x>'#010+
   '**2Mfpc_free pascal dialect (default)'#010+
   '**2Mobjfpc_switch some Delphi 2 extensions on'#010+
   '**2Mdelphi_tries to be Delphi compatible'#010+
-  '**2Mtp_tries to be TP/BP 7.0 comp','atible'#010+
+  '**2Mtp_tries to be TP/BP 7.0 compatible'#010+
   '**2Mgpc_tries to be gpc compatible'#010+
-  '**2Mmacpas_tries to be compatible to the macintosh pascal dialects'#010+
+  '**2Mma','cpas_tries to be compatible to the macintosh pascal dialects'#010+
   '**1n_don'#039't read the default config file'#010+
   '**1o<x>_change the name of the executable produced to <x>'#010+
-  '**1pg_generate profile code for g','prof (defines FPC_PROFILE)'#010+
-  '*L1P_use pipes instead of creating temporary assembler files'#010+
+  '**1pg_generate profile code for gprof (defines FPC_PROFILE)'#010+
+  '*L1P_use pipes instea','d of creating temporary assembler files'#010+
   '**1S<x>_syntax options:'#010+
   '**2S2_same as -Mobjfpc'#010+
   '**2Sc_supports operators like C (*=,+=,/= and -=)'#010+
   '**2Sa_include assertion code.'#010+
   '**2Sd_same as -Mdelphi'#010+
-  '**','2Se<x>_compiler stops after the <x> errors (default is 1)'#010+
+  '**2Se<x>_compiler stops after the <x> errors (defa','ult is 1)'#010+
   '**2Sg_allow LABEL and GOTO'#010+
   '**2Sh_Use ansistrings'#010+
   '**2Si_support C++ styled INLINE'#010+
   '**2Sm_support macros like C (global)'#010+
   '**2So_same as -Mtp'#010+
   '**2Sp_same as -Mgpc'#010+
-  '**2Ss_constructor name mu','st be init (destructor must be done)'#010+
-  '**2St_allow static keyword in objects'#010+
+  '**2Ss_constructor name must be init (destructor must be done)'#010+
+  '**2St_allow',' static keyword in objects'#010+
   '**1s_don'#039't call assembler and linker'#010+
   '**2sh_Generate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
-  '**2sr_Skip register allocation phase (optimization','s will be disabled'+
-  ')'#010+
-  '**1u<x>_undefines the symbol <x>'#010+
+  '**2sr_Skip register allocation phase (optimizations will be disabled)'#010+
+  '**1u<x>_undefines the symbol',' <x>'#010+
   '**1U_unit options:'#010+
   '**2Un_don'#039't check the unit name'#010+
   '**2Ur_generate release unit files'#010+
   '**2Us_compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
-  '**2*_e ',': Show errors (default)       d : Show debug info'#010+
+  '**2*_e : Show errors (default)       d : Show debug inf','o'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  m : Show defined macros'#010+
-  '**2*_i : S','how general info           p : Show compiled procedures'#010+
+  '**2*_i : Show general info           p : Show compiled pro','cedures'#010+
   '**2*_l : Show linenumbers            c : Show conditionals'#010+
   '**2*_a : Show everything             0 : Show nothing (except errors)'#010+
-  '**2*_b : Show all procedure          r : Rhide/GCC comp','atibility mod'+
-  'e'#010+
-  '**2*_    declarations if an error    x : Executable info (Win32 only)'#010+
+  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#010+
+  '**2*_    declarations if an error','    x : Executable info (Win32 only'+
+  ')'#010+
   '**2*_    occurs'#010+
   '**1V_write fpcdebug.txt file with lots of debugging info'#010+
   '**1X_executable options:'#010+
   '*L2Xc_link with the c library'#010+
-  '**2Xs_strip all symbols fro','m executable'#010+
-  '**2XD_try to link dynamic          (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xs_strip all symbols from executable'#010+
+  '**2XD_try to link dynamic          ','(defines FPC_LINK_DYNAMIC)'#010+
   '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
   '**2XS_try to link static (default) (defines FPC_LINK_STATIC)'#010+
-  '**2XX_try to link smart            (defines FPC_','LINK_SMART)'#010+
+  '**2XX_try to link smart            (defines FPC_LINK_SMART)'#010+
   '**0*_Processor specific options:'#010+
-  '3*1A<x>_output format:'#010+
+  '3*1','A<x>_output format:'#010+
   '3*2Aas_assemble using GNU AS'#010+
   '3*2Anasmcoff_coff (Go32v2) file using Nasm'#010+
   '3*2Anasmelf_elf32 (Linux) file using Nasm'#010+
   '3*2Awasm_obj file using Wasm (Watcom)'#010+
-  '3*2Anasmobj_obj file',' using Nasm'#010+
-  '3*2Amasm_obj file using Masm (Microsoft)'#010+
+  '3*2Anasmobj_obj file using Nasm'#010+
+  '3*2Amasm_obj file using Masm (Micros','oft)'#010+
   '3*2Atasm_obj file using Tasm (Borland)'#010+
   '3*2Acoff_coff (Go32v2) using internal writer'#010+
   '3*2Apecoff_pecoff (Win32) using internal writer'#010+
   '3*1R<x>_assembler reading style:'#010+
-  '3*2Ratt_read AT&T styl','e assembler'#010+
-  '3*2Rintel_read Intel style assembler'#010+
+  '3*2Ratt_read AT&T style assembler'#010+
+  '3*2Rintel_read Intel style assembler',#010+
   '3*2Rdirect_copy assembler text directly to assembler file'#010+
   '3*1O<x>_optimizations:'#010+
   '3*2Og_generate smaller code'#010+
   '3*2OG_generate faster code (default)'#010+
   '3*2Or_keep certain variables in registers'#010+
-  '3*2','Ou_enable uncertain optimizations (see docs)'#010+
-  '3*2O1_level 1 optimizations (quick optimizations)'#010+
+  '3*2Ou_enable uncertain optimizations (see docs)'#010+
+  '3*2','O1_level 1 optimizations (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
   '3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)'#010+
   '3*2Op<x>_target processor:'#010+
-  '3*3','Op1_set target processor to 386/486'#010+
-  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#010+
+  '3*3Op1_set target processor to 386/486'#010+
+  '3*3Op2_set t','arget processor to Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
   '3*1T<x>_Target operating system:'#010+
   '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
-  '3*2Tgo32v2_V','ersion 2 of DJ Delorie DOS extender'#010+
-  '3*2Tlinux_Linux'#010+
+  '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
+  '3*2Tlinux_Li','nux'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
-  '3*2Twin32_Windows 32 Bit'#010,
+  '3*2Twin32_Windows 32 Bit'#010+
   '3*1W<x>_Win32-like target options'#010+
-  '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
+  '3*2WB<x>_Set I','mage base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Speci','fy graphic type application'#010+
-  '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
+  '3*2WG_Specify graphic type application'#010+
+  '3*2WN_Do not generat','e relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
-  '6*2','Amot_Standard Motorola assembler'#010+
-  '6*1O_optimizations:'#010+
+  '6*2Amot_Standard Motorola assembler'#010+
+  '6*1O_optimizati','ons:'#010+
   '6*2Oa_turn on the optimizer'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
-  '6*2O2_set targ','et processor to a MC68020+ (default)'#010+
-  '6*1R<x>_assembler reading style:'#010+
+  '6*2O2_set target processor to a MC68020+ (default)'#010+
+  '6*1R<x>_ass','embler reading style:'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux-68k'#010+
-  '6*2Tmacos_Macintosh m68k (n','ot supported)'#010+
+  '6*2Tmacos_Macintosh m68k (not supported)'#010+
   '6*2Tpalmos_PalmOS'#010+
-  'P*1T<x>_Target operating system:'#010+
+  'P*1T<x>_Target o','perating system:'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   'P*2Tmorphos_MorphOS'#010+
-  'P*2WC_Specify console type application (MacOS only',')'#010+
-  'P*2WG_Specify graphic type application (MacOS only)'#010+
+  'P*2WC_Specify console type application (MacOS only)'#010+
+  'P*2WG_Specify graphic type application (MacOS ','only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
