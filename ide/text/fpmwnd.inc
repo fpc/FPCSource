@@ -65,6 +65,8 @@ begin
     hcWatches,
     hcStack,
     hcRegisters,
+    hcClipboardWindow,
+    hcASCIITableWindow,
     hcBreakpointListWindow :
       S:=PWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
@@ -162,7 +164,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-01-10 00:24:18  pierre
+  Revision 1.14  2000-01-28 22:36:46  pierre
+   * avoid unknown type in alt+0 dialog for Ascii Chart and Clipboard
+
+  Revision 1.13  2000/01/10 00:24:18  pierre
    * register window type added
 
   Revision 1.12  1999/09/09 14:09:58  pierre
