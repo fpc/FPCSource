@@ -24,17 +24,17 @@ begin
      if not assigned(Debugger) then
       exit;
    end;
-  if not debugger^.debuggee_started then
+  if not Debugger^.IsRunning then
     Debugger^.StartTrace
   else
     Debugger^.TraceNext;
-  While (Debugger^.InvalidSourceLine and
-         Debugger^.debuggee_started and
+  {While (Debugger^.InvalidSourceLine and
+         Debugger^.IsRunning and
          not Debugger^.error) do
     begin
       Inc(Debugger^.HiddenStepsCount);
       Debugger^.TraceNext;
-    end;
+    end;}
   Debugger^.AnnotateError;
 {$else NODEBUG}
   NoDebugger;
@@ -51,14 +51,14 @@ begin
      if not assigned(Debugger) then
        exit;
    end;
-  if not debugger^.debuggee_started then
+  if not debugger^.IsRunning then
     Debugger^.StartTrace
   else
    Debugger^.TraceStep;
   { I think we should not try to go deeper !
     if the source is not found PM }
   While (Debugger^.InvalidSourceLine and
-         Debugger^.debuggee_started and
+         Debugger^.IsRunning and
          not Debugger^.error) do
     begin
       Inc(Debugger^.HiddenStepsCount);
@@ -79,7 +79,7 @@ begin
      if not assigned(Debugger) then
        exit;
    end;
-  if not debugger^.debuggee_started then
+  if not debugger^.IsRunning then
     Debugger^.Run
   else
    Debugger^.UntilReturn;
@@ -95,13 +95,14 @@ var
 begin
 
 {$ifndef NODEBUG}
-  if not assigned(Debugger) or not Debugger^.debuggee_started then
+  if not assigned(Debugger) or not Debugger^.IsRunning then
 {$endif}
     begin
-      if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or NeedRecompile then
-       DoCompile(cRun);
+      if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or
+         NeedRecompile(false) then
+        DoCompile(cRun);
       if CompilationPhase<>cpDone then
-         Exit;
+        Exit;
       if (EXEFile='') then
        begin
          ErrorBox('Oooops, nothing to run.',nil);
@@ -265,7 +266,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2000-02-04 00:15:31  pierre
+  Revision 1.29  2000-03-08 16:58:12  pierre
+   Uses Debugger^.IsRunning
+
+  Revision 1.28  2000/02/04 00:15:31  pierre
    * adapted to change in fpdebug unit
 
   Revision 1.27  2000/02/02 22:48:25  pierre
