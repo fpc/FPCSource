@@ -448,9 +448,8 @@ procedure TCalculator.Store(var S: TStream);
 begin
   inherited Store(S);
   PutSubViewPtr(S,CD);
-end;                                                                                                                                                                                                                                                           
+end;
 
-                                                                                                                                                                                                                                                               
 
 procedure RegisterFPCalc;
 begin
@@ -464,7 +463,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-09-07 09:20:52  pierre
+  Revision 1.7  1999-09-13 16:24:42  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.6  1999/09/07 09:20:52  pierre
     * traling zero after . could not be inserted
     * load/store was missing => CD not set on loading.
     * log function was not implemented : ln is used,

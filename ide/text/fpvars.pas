@@ -54,6 +54,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       WatchesWindow    : PWatchesWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
       HeapView         : PFPHeapView = nil;
+      ClockView        : PFPClockView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
@@ -86,7 +87,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.23  1999-09-13 11:44:00  peter
+  Revision 1.24  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.23  1999/09/13 11:44:00  peter
     * fixes from gabor, idle event, html fix
 
   Revision 1.22  1999/08/16 18:25:25  peter

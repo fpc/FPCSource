@@ -339,6 +339,8 @@ const
 
      CGDBInputLine     = #9#9#10#11#12;
 
+     CFPClockView = #0#227;
+
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -350,14 +352,20 @@ const
 {183-198}#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00 + {17-32}
 {199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$30#$1C#$13#$1F#$4E + {33-48}
          { CBrowserWindow }
-{215-   }#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F ;
+{215-226}#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F +
+         { CFPClockView }
+{227-   }#$0E;
 
 implementation
 
 END.
 {
   $Log$
-  Revision 1.26  1999-09-09 16:31:45  pierre
+  Revision 1.27  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.26  1999/09/09 16:31:45  pierre
    * some breakpoint related fixes and Help contexts
 
   Revision 1.25  1999/09/09 14:15:27  pierre

@@ -2195,7 +2195,7 @@ end;
 
 procedure TCodeEditor.BackSpace;
 var S,PreS: string;
-    OI,CI,CP,Y: Sw_integer;
+    OI,CI,CP,Y,TX: Sw_integer;
     SCP: TPoint;
 begin
   if IsReadOnly then Exit;
@@ -2226,10 +2226,14 @@ begin
             if Trim(copy(PreS,1,CP+1))<>'' then Break;
           end;
         if Y<0 then PreS:='';
-        while (CP>0) and
+{        while (CP>0) and
               ( (CP>length(S))    or (S[CP]=' ')     ) and
               ( (CP>length(PreS)) or (PreS[CP]<>' ') ) do
-          Dec(CP);
+          Dec(CP);}
+        TX:=0;
+        while (TX<length(PreS)) and (PreS[TX+1]=' ') do
+          Inc(TX);
+        if TX<CP then CP:=TX;
       end;
      S:=GetLineText(CurPos.Y);
      OI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
@@ -4387,7 +4391,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.45  1999-09-09 12:05:33  pierre
+  Revision 1.46  1999-09-13 16:24:44  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.45  1999/09/09 12:05:33  pierre
     + Copy/Paste to Windows Clipboard
     + efLeaveTrailingSpaces added to editor flags
       (if not set then spaces at the end of a line are

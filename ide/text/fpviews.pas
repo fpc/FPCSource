@@ -53,6 +53,13 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
     end;
 
+    PFPClockView = ^TFPClockView;
+    TFPClockView = object(TClockView)
+      constructor Init(var Bounds: TRect);
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetPalette: PPalette; virtual;
+    end;
+
     TFPWindow = object(TWindow)
       AutoNumber: boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -586,7 +593,7 @@ var
 begin
   Count:=0;
   for I:=ord(Low(tToken)) to ord(High(tToken)) do
-   with TokenInfo^[TToken(I)] do
+  with TokenInfo^[TToken(I)] do
      if (str<>'') and (str[1] in['A'..'Z']) then
        Inc(Count);
   GetReservedWordCount:=Count;
@@ -858,6 +865,27 @@ begin
       Update;
   end;
   inherited HandleEvent(Event);
+end;
+
+constructor TFPClockView.Init(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  EventMask:=EventMask or evIdle;
+end;
+
+procedure TFPClockView.HandleEvent(var Event: TEvent);
+begin
+  case Event.What of
+    evIdle :
+      Update;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+function TFPClockView.GetPalette: PPalette;
+const P: string[length(CFPClockView)] = CFPClockView;
+begin
+  GetPalette:=@P;
 end;
 
 procedure TFPWindow.SetState(AState: Word; Enable: Boolean);
@@ -2749,7 +2777,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.40  1999-09-09 16:30:37  pierre
+  Revision 1.41  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.40  1999/09/09 16:30:37  pierre
    * ModuleNames was not created in TMessageListBox.Load
 
   Revision 1.39  1999/09/03 12:54:07  pierre

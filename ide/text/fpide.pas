@@ -171,6 +171,9 @@ begin
 {$endif TP}
   {$endif}
   inherited Init;
+  MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
+  New(ClockView, Init(R));
+  Application^.Insert(ClockView);
   New(ClipboardWindow, Init);
   Desktop^.Insert(ClipboardWindow);
   New(CalcWindow, Init); CalcWindow^.Hide;
@@ -839,7 +842,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.37  1999-09-13 11:44:00  peter
+  Revision 1.38  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.37  1999/09/13 11:44:00  peter
     * fixes from gabor, idle event, html fix
 
   Revision 1.36  1999/09/09 14:15:27  pierre

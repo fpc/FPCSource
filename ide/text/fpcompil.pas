@@ -448,10 +448,7 @@ begin
    begin
 {$ifdef redircompiler}
      RedirDisableAll;
-{$endif}                                                                                                                                                                                                                                                       
-
-
-
+{$endif}
 
      CompilerMessageWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
        status.currentline,status.currentcolumn);
@@ -460,10 +457,7 @@ begin
       CompilerStatusDialog^.Update;
 {$ifdef redircompiler}
       RedirEnableAll;
-{$endif}                                                                                                                                                                                                                                                       
-
-
-
+{$endif}
 
      { update memory usage }
      { HeapView^.Update; }
@@ -745,7 +739,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1999-09-09 14:19:16  pierre
+  Revision 1.38  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.37  1999/09/09 14:19:16  pierre
    * status should not be present in TCompilerMessage.GetText
 
   Revision 1.36  1999/09/07 11:32:13  pierre

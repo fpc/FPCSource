@@ -330,7 +330,9 @@ begin
   LoadFile(f);
   SetArgs(GetRunParameters);
   Debugger:=@self;
+{$ifndef GABOR}
   switch_to_user:=true;
+{$endif}
   InsertBreakpoints;
   ReadWatches;
 end;
@@ -2072,6 +2074,7 @@ end;
       { call backtrace command }
       If not assigned(Debugger) then
         exit;
+    {$ifndef NODEBUG}
       Clear;
       { forget all old frames }
       Debugger^.clear_frames;
@@ -2089,6 +2092,7 @@ end;
         end;
       if List^.Count > 0 then
         FocusItem(0);
+     {$endif}
     end;
 
   function TFramesListBox.GetLocalMenu: PMenu;
@@ -2101,9 +2105,11 @@ end;
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
+    {$ifdef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
       Debugger^.ReadWatches;
+   {$endif}
       { goto source }
       inherited GotoSource;
     end;
@@ -2293,7 +2299,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  1999-09-09 16:36:30  pierre
+  Revision 1.31  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.30  1999/09/09 16:36:30  pierre
    * Breakpoint storage problem corrected
 
   Revision 1.29  1999/09/09 16:31:45  pierre

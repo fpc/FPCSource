@@ -337,6 +337,8 @@ begin
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_121_160',PaletteToStr(copy(S,121,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40))));
+  if length(PS)<length(CIDEAppColor) then
+    PS:=PS+copy(CIDEAppColor,length(PS)+1,255);
   AppPalette:=PS;
 (*  { Open files }
   for I:=INIFile^.GetIntEntry(secFiles,ieOpenFileCount,0) downto 1 do
@@ -527,7 +529,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-09-07 09:21:54  pierre
+  Revision 1.23  1999-09-13 16:24:43  peter
+    + clock
+    * backspace unident like tp7
+
+  Revision 1.22  1999/09/07 09:21:54  pierre
    + Watches saved
 
   Revision 1.21  1999/08/03 20:22:33  peter
