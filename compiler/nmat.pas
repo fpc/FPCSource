@@ -45,7 +45,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           { override the following if you want to implement }
-          { parts explicitely in the code generator (CEC)   
+          { parts explicitely in the code generator (CEC)
             Should return nil, if everything will be handled
             in the code generator
           }
@@ -340,7 +340,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
-      
+
 
     function tshlshrnode.det_resulttype:tnode;
       var
@@ -404,7 +404,7 @@ implementation
             regs:=1
            end
          else
-           begin 
+           begin
              result := first_shlshr64bitint;
              if assigned(result) then
                exit;
@@ -578,25 +578,24 @@ implementation
 
          resulttype:=left.resulttype;
 
-   {Try optmimizing ourself away.}
-   if left.nodetype=notn then
-      begin
-    {Double not. Remove both.}
-    t:=Tnotnode(left).left;
-    Tnotnode(left).left:=nil;
-    left:=t;
-    result:=t;
-    exit;
-      end;
-   if left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten] then
-      begin
-    {Not of boolean expression. Turn around the operator and remove
-     the not.}
-    result:=left;
-    left.nodetype:=boolean_reverse[left.nodetype];
-    left:=nil;
-    exit;
-      end;
+         { Try optmimizing ourself away }
+         if left.nodetype=notn then
+           begin
+             { Double not. Remove both }
+             result:=Tnotnode(left).left;
+             Tnotnode(left).left:=nil;
+             exit;
+           end;
+
+         if left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten] then
+           begin
+             { Not of boolean expression. Turn around the operator and remove
+               the not }
+             result:=left;
+             left.nodetype:=boolean_reverse[left.nodetype];
+             left:=nil;
+             exit;
+           end;
 
          { constant folding }
          if (left.nodetype=ordconstn) then
@@ -755,7 +754,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-08-15 15:09:42  carl
+  Revision 1.39  2002-08-25 09:10:58  peter
+    * fixed not(not()) removal
+
+  Revision 1.38  2002/08/15 15:09:42  carl
     + fpu emulation helpers (ppu checking also)
 
   Revision 1.37  2002/08/14 19:26:55  carl
