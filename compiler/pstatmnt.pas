@@ -48,7 +48,7 @@ implementation
        cpubase,aasmbase,aasmtai,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
-       paramgr,
+       paramgr,symutil,
        { pass 1 }
        pass_1,htypechk,
        nutils,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -1028,17 +1028,6 @@ implementation
       end;
 
 
-    procedure count_locals(p:tnamedindexitem;arg:pointer);
-      begin
-        { Count only varsyms, but ignore the funcretsym }
-        if (tsym(p).typ=varsym) and
-           (tsym(p)<>current_procinfo.procdef.funcretsym) and
-           (not(vo_is_parentfp in tvarsym(p).varoptions) or
-            (tvarsym(p).refs>0)) then
-          inc(plongint(arg)^);
-      end;
-
-
     function assembler_block : tnode;
       var
         p : tnode;
@@ -1106,7 +1095,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2003-12-03 17:39:04  florian
+  Revision 1.124  2003-12-07 16:40:45  jonas
+    * moved count_locals from pstatmnt to symutils
+    * use count_locals in powerpc/cpupi to check whether we should set the
+      first temp offset (and as such generate a stackframe)
+
+  Revision 1.123  2003/12/03 17:39:04  florian
     * fixed several arm calling conventions issues
     * fixed reference reading in the assembler reader
     * fixed a_loadaddr_ref_reg

@@ -52,7 +52,7 @@ unit cpupi;
        cpubase,
        aasmtai,
        tgobj,
-       symconst,symsym,paramgr;
+       symconst,symsym,paramgr,symutil;
 
     constructor tppcprocinfo.create(aparent:tprocinfo);
 
@@ -65,6 +65,7 @@ unit cpupi;
     procedure tppcprocinfo.set_first_temp_offset;
       var
          ofs : aword;
+         locals: longint;
       begin
         if not(po_assembler in procdef.procoptions) then
           begin
@@ -77,9 +78,13 @@ unit cpupi;
             tg.setfirsttemp(ofs);
           end
         else
-          if assigned(procdef.localst) then
-            { at 0(r1), the previous value of r1 will be stored }
-            tg.setfirsttemp(4);
+          begin
+            locals := 0;
+            current_procinfo.procdef.localst.foreach_static({$ifdef FPCPROCVAR}@{$endif}count_locals,@locals);
+            if locals <> 0 then
+              { at 0(r1), the previous value of r1 will be stored }
+              tg.setfirsttemp(4);
+          end;
       end;
 
 
@@ -128,7 +133,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-11-29 22:54:32  jonas
+  Revision 1.32  2003-12-07 16:40:45  jonas
+    * moved count_locals from pstatmnt to symutils
+    * use count_locals in powerpc/cpupi to check whether we should set the
+      first temp offset (and as such generate a stackframe)
+
+  Revision 1.31  2003/11/29 22:54:32  jonas
     * more ppc fixes, hello world works again under linuxppc
 
   Revision 1.30  2003/11/29 16:27:19  jonas

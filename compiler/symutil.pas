@@ -27,7 +27,7 @@ unit symutil;
 interface
 
     uses
-       symbase,symtype,symsym;
+       symbase,symtype,symsym,cclasses;
 
     function is_funcret_sym(p:tsymentry):boolean;
 
@@ -36,12 +36,14 @@ interface
 
     function equal_constsym(sym1,sym2:tconstsym):boolean;
 
+    procedure count_locals(p:tnamedindexitem;arg:pointer);
 
 implementation
 
     uses
        globtype,
        cpuinfo,
+       procinfo,
        symconst;
 
 
@@ -102,10 +104,27 @@ implementation
         end;
       end;
 
+
+    procedure count_locals(p:tnamedindexitem;arg:pointer);
+      begin
+        { Count only varsyms, but ignore the funcretsym }
+        if (tsym(p).typ=varsym) and
+           (tsym(p)<>current_procinfo.procdef.funcretsym) and
+           (not(vo_is_parentfp in tvarsym(p).varoptions) or
+            (tvarsym(p).refs>0)) then
+          inc(plongint(arg)^);
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.2  2003-04-25 20:59:35  peter
+  Revision 1.3  2003-12-07 16:40:45  jonas
+    * moved count_locals from pstatmnt to symutils
+    * use count_locals in powerpc/cpupi to check whether we should set the
+      first temp offset (and as such generate a stackframe)
+
+  Revision 1.2  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
