@@ -985,14 +985,14 @@ type
     property EOF: Boolean read FEOF;
     property FieldCount: Longint read GetFieldCount;
     property FieldDefs: TFieldDefs read FFieldDefs write FFieldDefs;
-    property Fields[Index: Longint]: TField read GetField write SetField;
+//    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
     property Modified: Boolean read FModified;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read FRecNo write FRecNo;
     property RecordSize: Word read FRecordSize;
     property State: TDataSetState read FState;
-//    property Fields : TFields Read FFieldList;
+    property Fields : TFields Read FFieldList;
     property Filter: string read FFilterText write FFilterText;
     property Filtered: Boolean read FFiltered write FFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
@@ -1477,7 +1477,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-02-25 16:29:26  michael
+  Revision 1.14  2004-03-19 23:19:51  michael
+  + Corrected the Fields property.
+
+  Revision 1.13  2004/02/25 16:29:26  michael
   + Added AsInteger to TField. Maps to AsLongint for now
 
   Revision 1.12  2003/11/09 21:23:10  michael
