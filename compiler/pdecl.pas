@@ -496,7 +496,10 @@ implementation
                 be reused in other used }
               if (not current_module.in_implementation) and
                  (tt.def.needs_inittable or
-                  is_class(tt.def)) then
+                  (is_class(tt.def) and
+                   not(oo_is_forward in tobjectdef(tt.def).objectoptions)
+                  )
+                 ) then
                 generate_inittable(newtype);
 
               { for objects we should write the vmt and interfaces.
@@ -608,7 +611,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-05-18 13:34:12  peter
+  Revision 1.47  2002-06-12 13:20:29  jonas
+    * fix from Florian for init/final info of forward classes
+
+  Revision 1.46  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.45  2002/05/16 19:46:42  carl
