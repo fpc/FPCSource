@@ -262,19 +262,11 @@ implementation
 *****************************************************************************}
 
 var
-{$ifdef Delphi}
-  Crc32Tbl : array[0..255] of longword;
-{$else Delphi}
   Crc32Tbl : array[0..255] of longint;
-{$endif Delphi}
 
 procedure MakeCRC32Tbl;
 var
-{$ifdef Delphi}
-  crc : longword;
-{$else Delphi}
   crc : longint;
-{$endif Delphi}
   i,n : byte;
 begin
   for i:=0 to 255 do
@@ -282,7 +274,7 @@ begin
      crc:=i;
      for n:=1 to 8 do
       if odd(crc) then
-       crc:=(crc shr 1) xor $edb88320
+       crc:=(crc shr 1) xor longint($edb88320)
       else
        crc:=crc shr 1;
      Crc32Tbl[i]:=crc;
@@ -302,7 +294,7 @@ var
 begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
-  InitCrc:=$ffffffff;
+  InitCrc:=longint($ffffffff);
   for i:=1to Length(Hstr) do
    InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(Hstr[i])] xor (InitCrc shr 8);
   Crc32:=InitCrc;
@@ -1006,7 +998,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  2000-05-11 06:54:29  florian
+  Revision 1.58  2000-05-12 08:58:51  pierre
+   * adapted to Delphi 3
+
+  Revision 1.57  2000/05/11 06:54:29  florian
     * fixed some vmt problems, especially related to overloaded methods
       in objects/classes
 

@@ -36,7 +36,7 @@ unit globals;
 {$ifdef linux}
       linux,
 {$endif}
-{$ifdef Delphi4}
+{$ifdef Delphi}
       sysutils,
       dmisc,
 {$else}
@@ -1568,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2000-05-12 05:55:04  pierre
+  Revision 1.63  2000-05-12 08:58:51  pierre
+   * adapted to Delphi 3
+
+  Revision 1.62  2000/05/12 05:55:04  pierre
    * * get it to compile with Delphi by Kovacs Attila Zoltan
 
   Revision 1.61  2000/05/11 09:37:25  pierre
