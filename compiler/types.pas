@@ -237,7 +237,7 @@ unit types;
 
       begin
          dont_copy_const_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
-           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_shortstring,st_longstring])) or
+           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
@@ -455,8 +455,11 @@ unit types;
          else
             { strings with the same length are equal }
             if (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
-               (pstringdef(def1)^.len=pstringdef(def2)^.len) then
-            b:=true
+               (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ) then
+               begin
+                  b:=not(is_shortstring(def1)) or
+                    (pstringdef(def1)^.len=pstringdef(def2)^.len);
+               end
     { STRING[N] ist equivalent zu ARRAY[0..N] OF CHAR (N<256) }
 {
          else if ((def1^.deftype=stringdef) and (def2^.deftype=arraydef)) and
@@ -858,7 +861,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.16  1998-07-20 23:35:50  michael
+  Revision 1.17  1998-08-05 16:00:17  florian
+    * some fixes for ansi strings
+    * $log$ to $Log$ changed
+
+  Revision 1.16  1998/07/20 23:35:50  michael
   Const ansistrings are not copied.
 
   Revision 1.15  1998/07/18 22:54:32  florian

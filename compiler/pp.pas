@@ -405,7 +405,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1998-08-04 16:28:40  jonas
+  Revision 1.23  1998-08-05 16:00:16  florian
+    * some fixes for ansi strings
+    * $log$ to $Log$ changed
+
+  Revision 1.22  1998/08/04 16:28:40  jonas
   * added support for NoRa386* in the {$O ...} section
 
   Revision 1.21  1998/07/18 17:11:12  florian
@@ -422,7 +426,7 @@ end.
     * fixed the name changes
 
   Revision 1.17  1998/06/23 08:59:22  daniel
-  * Recommitted.
+    * Recommitted.
 
   Revision 1.16  1998/06/17 14:10:17  peter
     * small os2 fixes

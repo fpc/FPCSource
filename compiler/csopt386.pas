@@ -393,5 +393,9 @@ End;
 End.
 
 {
- $log $
+ $Log$
+ Revision 1.3  1998-08-05 16:00:12  florian
+   * some fixes for ansi strings
+   * $log$ to $Log$ changed
+
 }

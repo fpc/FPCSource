@@ -390,10 +390,13 @@ implementation
 
     procedure second_string_string(p,hp : ptree;convtyp : tconverttype);
 
+      var
+         pushed : tpushed;
+
       begin
 {$ifdef UseAnsiString}
          { does anybody know a better solution than this big case statement ? }
-         { ok, a proc table woudl do the job                                  }
+         { ok, a proc table would do the job                                  }
          case pstringdef(p)^.string_typ of
 
             st_shortstring:
@@ -430,11 +433,6 @@ implementation
                       {!!!!!!!}
                       internalerror(8888);
                    end;
-                 st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
                  st_ansistring:
                    begin
                       {!!!!!!!}
@@ -451,15 +449,27 @@ implementation
               case pstringdef(p^.left)^.string_typ of
                  st_shortstring:
                    begin
-                      {!!!!!!!}
-                      internalerror(8888);
+                      pushusedregisters(pushed,$ff);
+                      push_int(p^.resulttype^.size-1);
+                      gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+                      emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                      case p^.right^.location.loc of
+                         LOC_REGISTER,LOC_CREGISTER:
+                           begin
+                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                              ungetregister32(p^.left^.location.register);
+                           end;
+                         LOC_REFERENCE,LOC_MEM:
+                           begin
+                              emit_push_mem(p^.left^.location.reference);
+                              del_reference(p^.left^.location.reference);
+                           end;
+                      end;
+                      emitcall('FPC_ANSI_TO_SHORTSTRING',true);
+                      maybe_loadesi;
+                      popusedregisters(pushed);
                    end;
                  st_longstring:
-                   begin
-                      {!!!!!!!}
-                      internalerror(8888);
-                   end;
-                 st_ansistring:
                    begin
                       {!!!!!!!}
                       internalerror(8888);
@@ -1170,7 +1180,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-07-18 22:54:24  florian
+  Revision 1.9  1998-08-05 16:00:09  florian
+    * some fixes for ansi strings
+    * $log$ to $Log$ changed
+
+  Revision 1.8  1998/07/18 22:54:24  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions
