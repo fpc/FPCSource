@@ -298,19 +298,22 @@ unit ag386att;
              (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
            begin
              infile:=current_module^.sourcefiles^.get_file(fileinfo.fileindex);
-             if includecount=0 then
-              curr_n:=n_sourcefile
-             else
-              curr_n:=n_includefile;
-             if (infile^.path^<>'') then
+             if assigned(infile) then
               begin
-                AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+
+                if includecount=0 then
+                 curr_n:=n_sourcefile
+                else
+                 curr_n:=n_includefile;
+                if (infile^.path^<>'') then
+                 begin
+                   AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+
+                     tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
+                 end;
+                AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
                   tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
+                AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
+                inc(includecount);
               end;
-             AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
-               tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
-             AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
-             inc(includecount);
            end;
         { line changed ? }
           if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
@@ -384,21 +387,26 @@ unit ag386att;
                 if lastfileinfo.fileindex<>hp^.fileinfo.fileindex then
                  begin
                    infile:=current_module^.sourcefiles^.get_file(hp^.fileinfo.fileindex);
-                   { open only if needed !! }
-                   if (cs_asm_source in aktglobalswitches) then
-                     infile^.open;
+                   if assigned(infile) then
+                    begin
+                      { open only if needed !! }
+                      if (cs_asm_source in aktglobalswitches) then
+                       infile^.open;
+                    end;
                    { avoid unnecessary reopens of the same file !! }
                    lastfileinfo.fileindex:=hp^.fileinfo.fileindex;
                    { be sure to change line !! }
                    lastfileinfo.line:=-1;
                  end;
               { write source }
-                if (cs_asm_source in aktglobalswitches) then
+                if (cs_asm_source in aktglobalswitches) and
+                   assigned(infile) then
                  begin
-                   if (infile<>lastinfile) and assigned(lastinfile) then
+                   if (infile<>lastinfile) then
                      begin
                        AsmWriteLn(target_asm.comment+'['+infile^.name^+']');
-                       lastinfile^.close;
+                       if assigned(lastinfile) then
+                         lastinfile^.close;
                      end;
                    if (hp^.fileinfo.line<>lastfileinfo.line) and
                       (hp^.fileinfo.line<infile^.maxlinebuf) then
@@ -865,7 +873,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.16  1999-09-21 20:53:21  florian
+  Revision 1.17  1999-09-27 23:36:33  peter
+    * fixed -al with macro's
+
+  Revision 1.16  1999/09/21 20:53:21  florian
     * fixed 1/s problem from mailing list
 
   Revision 1.15  1999/09/19 20:55:11  florian
