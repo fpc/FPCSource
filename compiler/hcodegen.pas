@@ -229,14 +229,14 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos1(const pos:tfileposinfo;t : tmsgconst;const s : string);
+    procedure cgmessagepos1(const pos:tfileposinfo;t : tmsgconst;const s1 : string);
       var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
               olderrorcount:=Errorcount;
-              verbose.MessagePos1(pos,t,s);
+              verbose.MessagePos1(pos,t,s1);
               codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
@@ -374,7 +374,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  1999-10-14 14:57:52  florian
+  Revision 1.46  1999-10-21 14:18:54  peter
+    * tp7 fix
+
+  Revision 1.45  1999/10/14 14:57:52  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.44  1999/10/13 10:42:15  peter
