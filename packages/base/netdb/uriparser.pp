@@ -194,7 +194,9 @@ begin
 
   LastValidPos := 0;
   for i := Length(s) downto 1 do
-    if s[i] = '/' then
+    if (s[i] = '/')
+       and ((I>1) and (S[i-1]<>'/')) 
+       and ((I<Length(S)) and (S[I+1]<>'/')) then
       LastValidPos := i
     else if s[i] in [':', '@'] then
       break;
@@ -245,7 +247,7 @@ begin
 	Result.Password := Copy(s, i + 1, Length(s));
       end;
     end;
-  end;
+  end; 
 end;
 
 end.
