@@ -235,6 +235,16 @@ export DIFF:=$(firstword $(DIFF))
 endif
 endif
 
+# cmp
+ifndef CMP
+CMP=$(strip $(wildcard $(addsuffix /cmp$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(CMP),)
+CMP=
+else
+export CMP:=$(firstword $(CMP))
+endif
+endif
+
 # echo
 ifndef ECHO
 ECHO=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
@@ -888,6 +898,9 @@ endif
 ifdef DIFF
 	@$(ECHO)  Diff...... $(DIFF)
 endif
+ifdef CMP
+	@$(ECHO)  Cmp....... $(CMP)
+endif
 ifdef UPX
 	@$(ECHO)  Upx....... $(UPX)
 endif
@@ -955,7 +968,11 @@ endif #NODEFAULTRULES
 
 #
 # $Log$
-# Revision 1.8  1999-03-09 01:35:47  peter
+# Revision 1.9  1999-03-11 17:54:00  peter
+#   * better check for makefile.fpc
+#   * check if cmp exists
+#
+# Revision 1.8	1999/03/09 01:35:47  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #

@@ -74,6 +74,11 @@ EXTRAINSTALL=myinstall
 #####################################################################
 
 # test if FPCMAKE is still valid
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+endif
+endif
 ifdef FPCMAKE
 ifeq ($(strip $(wildcard $(FPCMAKE))),)
 FPCDIR=
@@ -96,13 +101,19 @@ endif
 endif
 
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
-ifeq ($(FPCMAKE),)
-nofpcmake:
+ifndef FPCMAKE
+testfpcmake:
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
-	@exit
+	@stopnow
+ifndef NODEFAULTALL
+all: testfpcmake
+endif
+install: testfpcmake
+clean: testfpcmake
 else
 include $(FPCMAKE)
+testfpcmake:
 endif
 
 
@@ -133,7 +144,9 @@ override RTLOPTS+=$(OPT)
 MSGFILE=error$(LANGUAGE).msg
 
 ifeq ($(OS_TARGET),win32)
-override DIFF=cmp -i138
+ifdef CMP
+override DIFF:=$(CMP) -i138
+endif
 endif
 
 # Used to avoid unnecessary steps in remake3
@@ -167,7 +180,7 @@ MSG2INC=msg2inc$(EXEEXT)
 # Default makefile
 #####################################################################
 
-all: $(EXENAME)
+all: testfpcmake $(EXENAME)
 	$(MAKE) echotime
 
 ifeq ($(MAKELEVEL),0)
@@ -204,7 +217,7 @@ next :
 	$(MAKE) all
 endif
 
-clean :
+clean : testfpcmake
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(ASMEXT) *$(STATICLIBEXT) $(EXENAME)
 	-$(DELTREE) $(SMARTEXT)
 
@@ -277,7 +290,7 @@ $(TEMPNAME3) : $(TEMPNAME2)
 	-$(DEL) $(TEMPNAME3)
 	$(MOVE) $(EXENAME) $(TEMPNAME3)
 
-cycle:
+cycle: testfpcmake
 	$(MAKE) clean
 	$(MAKE) -C $(RTLDIR) libsclean
 	$(MAKE) -C $(RTLDIR) 'OPT=$(RTLOPTS)' all
@@ -361,7 +374,11 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.19  1999-03-10 12:30:12  pierre
+# Revision 1.20  1999-03-11 17:54:01  peter
+#   * better check for makefile.fpc
+#   * check if cmp exists
+#
+# Revision 1.19  1999/03/10 12:30:12  pierre
 #  + override EXECPPAS if LOCALOPT contains win32
 #
 # Revision 1.18  1999/03/09 01:35:48  peter
