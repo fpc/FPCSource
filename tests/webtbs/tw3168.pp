@@ -2,7 +2,7 @@
 { Submitted by "Henri Gourvest" on  2004-06-15 }
 { e-mail: hgourvest@progdigy.com }
 program Untitled1;
-{ $MODE objfpc}
+{$MODE objfpc}
 type
   TClazz = class
   private
