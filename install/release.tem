@@ -51,6 +51,7 @@
        is ...")
  h [ ] convert /html/faq.fp to /install/doc/faq.htm and                       
        /install/doc/faq.txt
+ i [ ] /docs/fpc.sty (the \fpcversion macro)
 5  [ ] Update whatsnew.txt (/install/doc/whatsnew.txt)                        
 35 [ ] Finishing all source file updates for the release    core team         
 6  [ ] Tag CVS with RELEASE_?_?_?                                             
@@ -224,3 +225,7 @@
 32 [ ] Revise / update /html/future.fp after major versions                   
        (?.?.0)
 -      (28)
+33 [ ] Indicate to these web page maintainers that a new official release has been
+       done: http://www.linux.org/apps/
+             http://www.gnu.org/directory/freePascal.html
+             http://www.opensourcedirectory.org/projects/freepascal/   
