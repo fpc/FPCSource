@@ -114,3 +114,4 @@ ex108.pp contains an example of the IndexChar function.
 ex109.pp contains an example of the MoveChar0 function.
 ex110.pp contains an example of the Real2Double function.
 ex111.pp contains an example of the include/exclude functions.
+ex112.pp contains an example of the OctStr function.
