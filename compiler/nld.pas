@@ -790,6 +790,9 @@ implementation
       begin
         result:=nil;
         resulttype:=restype;
+        { check if it's valid }
+        if restype.def.deftype = errordef then
+          CGMessage(cg_e_illegal_expression);
       end;
 
 
@@ -821,7 +824,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-11-07 13:52:52  jonas
+  Revision 1.31  2001-12-28 15:02:00  jonas
+    * fixed web bug 1684 (it already didn't crash anymore, but it also didn't
+      generate an error) ("merged")
+
+  Revision 1.30  2001/11/07 13:52:52  jonas
     * only save/restore nf_forcevaria flag when reversing order of
       arrayconstructor elements, since the other flags are element specific
 
