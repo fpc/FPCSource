@@ -278,7 +278,7 @@ Var
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
-  linklibc:=false;
+  linklibc:=SharedLibFiles.Find('c');
   prtobj:='prt0';
   case target_info.target of
    target_m68k_Palmos,
@@ -292,7 +292,6 @@ begin
    target_m68k_linux,
    target_i386_linux :
      begin
-       linklibc:=SharedLibFiles.Find('c');
        if cs_profile in aktmoduleswitches then
         begin
           prtobj:='gprt0';
@@ -360,11 +359,19 @@ begin
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.Get;
-     i:=Pos(target_os.sharedlibext,S);
-     if i>0 then
-      Delete(S,i,255);
-     WriteRes(target_link.libprefix+s);
+     if s<>'c' then
+      begin
+        i:=Pos(target_os.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        WriteRes(target_link.libprefix+s);
+      end
+     else
+      linklibc:=true;
    end;
+  { be sure that libc is the last lib }
+  if linklibc then
+   WriteRes(target_link.libprefix+'c');
   WriteRes(target_link.inputend);
 
   { Write staticlibraries }
@@ -532,7 +539,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  1998-12-11 00:03:19  peter
+  Revision 1.43  1999-01-25 15:02:13  peter
+    * link libc always as last
+
+  Revision 1.42  1998/12/11 00:03:19  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.41  1998/12/01 23:39:46  pierre
