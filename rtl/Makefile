@@ -133,6 +133,8 @@ rtlos2:
 rtlwin32:
 	make -C win32
 
+rtlamiga:
+	make -C amiga
 
 ############################################################################
 # Libs
@@ -255,7 +257,10 @@ diffclean:
 
 #
 # $Log$
-# Revision 1.2  1998-09-16 16:47:20  peter
+# Revision 1.3  1998-10-22 16:45:23  pierre
+#  + added rtlamiga target
+#
+# Revision 1.2  1998/09/16 16:47:20  peter
 #   * merged fixes
 #
 # Revision 1.1.2.1  1998/09/16 16:17:46  peter
