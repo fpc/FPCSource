@@ -204,7 +204,7 @@ Fixed bugs:
   bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
   bug0169.pp   missing new(type) support for not object/class             OK 0.99.9 (PM)
   bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
-  bug0171.pp   missing typecasting in constant expressions 
+  bug0171.pp   missing typecasting in constant expressions
                solved for pointers                                   OK 0.99.11 (PM)
   bug0172.pp   with with absolute seg:ofs should not be possible OK 0.99.9 (PM)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
@@ -218,14 +218,14 @@ Fixed bugs:
   bug0180.pp   problem for units with names different from file name
                  should be accepted with -Un !!
                Solved, but you still need to use the file name from other
-               units                                                 OK 0.99.9 (PM) 
+               units                                                 OK 0.99.9 (PM)
   bug0181.pp   shows a problem with name mangling                    OK 0.99.9 (PM)
   bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.9 (PM)
-  bug0183.pp   internal error 10 in secondnot	                     OK 0.99.11 (PM)	
+  bug0183.pp   internal error 10 in secondnot                        OK 0.99.11 (PM)
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
   bug0186.pp   Erroneous array syntax is accepted.                   OK 0.99.9 (PFV)
   bug0187.pp   constructor in a WIth statement isn't called correct.
-               (works at lest in the case stated)		     OK 0.99.11 (PM)	
+               (works at lest in the case stated)                    OK 0.99.11 (PM)
   bug0188.pp   can't print function result of procedural var that returns a
                function. Not a bug : wrong syntax !! See source (PM)
   bug0189.pp   cant compare adresses of function variables !!
@@ -241,13 +241,15 @@ Fixed bugs:
   bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is OK 0.99.11 (PM)
                a comp type
   bug0199.pp   bug in mul code                                       OK 0.99.11  (FK)
+  bug0200.pp   array of char overloading problem with strings        OK 0.99.11 (PFV)
   bug0201.pp   problem with record var-parameters and assembler      OK 0.99.11 (PFV)
+  bug0202.pp   flag results not supported with case                  OK 0.99.11 (PFV)
   bug0203.pp   problem with changed mangledname of procedures after use
-               Generates an error now				     OK 0.99.11 (PM)
+               Generates an error now                                OK 0.99.11 (PM)
   bug0204.pp   can typecast the result var in an assignment          OK 0.99.11 (PM)
   bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error) OK 0.99.11 (PM)
   bug0206.pp   sets with variable ranges doesn't work                OK 0.99.11 (PFV)
-  bug0207.pp   a class destructor doesn't release the memory        OK 0.99.11 (FK) 
+  bug0207.pp   a class destructor doesn't release the memory        OK 0.99.11 (FK)
   bug0208.pp   implicit conversion from boolean to longint should not be allowed
                (this is the reason of bug0205 !)                    OK 0.99.11 (PM)
   bug0209.pp   problem with boolean expressions of different store sizes
@@ -260,6 +262,9 @@ Fixed bugs:
   bug0215.pp   more bugs with static methods                        OK 0.99.11 (PM)
   bug0216.pp   problem with with fields as function args            OK 0.99.11 (PM)
   bug0219.pp   wrong error message                                  OK 0.99.11 (PFV)
+  bug0220.pp   array of char overloading problem with strings        OK 0.99.11 (PFV)
+  bug0223.pp   wrong boolean evaluation in writeln                  OK 0.99.11 (PFV)
+  bug0224.pp   I/O-Error generation in readln can't be switched off OK 0.99.11 (PFV)
 
 
 Unproducable bugs:
@@ -277,31 +282,29 @@ Unfixed not important bugs (mostly incompatibilities):
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0133.pp   object type declaration not 100% compatibile with TP7
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
-	     overflow are just special range checks so
+             overflow are just special range checks so
              as all operations are done on 32 bit integers in FPC
-	     overflow checking will only trap 32 bit overflow
-	     you have to use range checks for byte or 16 bit integers
+             overflow checking will only trap 32 bit overflow
+             you have to use range checks for byte or 16 bit integers
+1.pp         produces a linker error under win32/linux, sorry for the filename
+             but the filename is the bug :)
 
 Unfixed bugs:
 -------------
 bug0123.pp   Asm, problem with intel assembler (shrd)
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
+bug0226.pp   Asm, offset of var is not allowed as constant
+bug0228.pp   Asm, wrong warning for size
 
 bug0185.pp   missing range checking for Val and subrange types
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
-bug0200.pp   array of char overloading problem with strings
-bug0202.pp   flag results not supported with case
 bug0212.pp   problem with properties
 bug0217.pp   in tp mode can't use the procvar in writeln
 bug0218.pp   rounding errors with write/str (the bug is fixed, but there
              is still some rounding error left when writing the extended
              value PFV)
-bug0220.pp   can't choose overload with array of char
 bug0221.pp   syntax parsing incompatibilities with tp7
-1.pp         produces a linker error under win32, sorry for the filename
-             but the filename is the bug :)
 bug0222.pp   an record field can't be the counter index (compiles with TP)
-bug0223.pp   wrong boolean evaluation in writeln
-bug0224.pp   I/O-Error generation in readln can't be switched off
 bug0225.pp   Sigsegv when run with range checks on open arrays
+bug0227.pp   external var does strange things when declared in localsymtable
