@@ -312,8 +312,8 @@ implementation
                   location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
                   hregister2 := right.location.register;
 
-                  tcgppc(cg).a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister1,
-                    hregister2,resultreg);
+                  cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,
+                    hregister1,resultreg);
 
                   rg.ungetregister(exprasmlist,hregister2);
                 end;
@@ -489,7 +489,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-07-20 11:58:05  florian
+  Revision 1.15  2002-07-26 10:48:34  jonas
+    * fixed bug in shl/shr code
+
+  Revision 1.14  2002/07/20 11:58:05  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
