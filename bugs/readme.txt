@@ -175,15 +175,20 @@ Fixed bugs:
   bug0148.pp   crash when setting function result of a declared but not yet OK 0.99.7 (PFV)
                implemented function in another function
   bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash  OK 0.99.7 (PFV)
+  bug0150.pp   Shows that the assert() macro is missing under Delphi OK 0.99.9 (PFV)
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
-               base type
   bug0156.pp   (a,b) forward type def in record crashes when loading ppu OK 0.99.7 (PM/PFV)
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
+  bug0161.pp   internal error when trying to create a set with another OK 0.99.9 (PFV)
   bug0162.pp   continue in repeat ... until loop doesn't work correct OK 0.99.8 (PFV)
   bug0164.pp   crash when using undeclared array index in with statement OK 0.99.8 (PFV)
+  bug0165.pp   missing range check code for enumerated types.            OK 0.99.9 (PFV)
+  bug0166.pp   forward type used in declaration crashes instead of error OK 0.99.9 (PFV)
+  bug0167.pp   crash when declaring a procedure with same name as object OK 0.99.9 (PFV)
+  bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -212,13 +217,6 @@ bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
              because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
 
-bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
-bug0161.pp   internal error when trying to create a set with another set as
-             its element (instead of a syntax error)
 bug0163.pp   missing <= and >= operators for sets.
-bug0165.pp   missing range check code for enumerated types.
-bug0166.pp   forward type used in declaration crashes instead of error
-bug0167.pp   crash when declaring a procedure with same name as object type
-bug0168.pp   set:=set+element is allowed (should be: set:=set+[element])
