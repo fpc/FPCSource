@@ -63,6 +63,8 @@
        poregister       = $1000000;  { procedure uses register (fastcall) calling }
        pounitfinalize   = $2000000;  { unit finalization }
        postdcall        = $4000000;  { procedure uses stdcall call }
+       pomsgstr         = $8000000;  { method for string message handling }
+       pomsgint         = $10000000; { method for int message handling }
 
        { relevant options for assigning a proc or a procvar to a procvar }
        po_compatibility_options = $7FFFFFFF-
@@ -93,7 +95,10 @@
 
 {
   $Log$
-  Revision 1.1  1999-01-12 14:32:49  peter
+  Revision 1.2  1999-02-22 20:13:37  florian
+    + first implementation of message keyword
+
+  Revision 1.1  1999/01/12 14:32:49  peter
     * splitted from symtable.pas
 
 }

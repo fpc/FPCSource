@@ -55,7 +55,7 @@ unit pdecl;
   implementation
 
     uses
-       cobjects,scanner,aasm,tree,pass_1,
+       cobjects,scanner,aasm,tree,pass_1,strings,
        files,types,hcodegen,verbose,systems,import
 {$ifdef GDB}
        ,gdb
@@ -1070,8 +1070,9 @@ unit pdecl;
          hfp        : pforwardpointer;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
-         classnamelabel : plabel;
+         strmessagetable,classnamelabel : plabel;
          storetypeforwardsallowed : boolean;
+         pt : ptree;
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -1322,41 +1323,70 @@ unit pdecl;
                       parse_only:=true;
                       parse_proc_dec;
                       parse_only:=oldparse_only;
-                      case idtoken of
-                       _DYNAMIC,
-                       _VIRTUAL : begin
-                                    if actmembertype=sp_private then
-                                      Message(parser_w_priv_meth_not_virtual);
-                                    consume(idtoken);
-                                    consume(SEMICOLON);
-                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
-                                    aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                                  end;
-                      _OVERRIDE : begin
-                                    consume(_OVERRIDE);
-                                    consume(SEMICOLON);
-                                    aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
-                                      pooverridingmethod or povirtualmethod;
-                                  end;
-                      end;
-                      if idtoken=_abstract then
+                      if idtoken=_MESSAGE then
                         begin
-                           if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
+                           { check parameter type }
+                           if assigned(aktprocsym^.definition^.para1^.next) or
+                             (aktprocsym^.definition^.para1^.paratyp<>vs_var) then
+                             Message(parser_e_ill_msg_param);
+                           consume(idtoken);
+                           pt:=comp_expr(true);
+                           do_firstpass(pt);
+                           if pt^.treetype=stringconstn then
+                             begin
+                                aktprocsym^.definition^.options:=
+                                  aktprocsym^.definition^.options or pomsgstr;
+                                aktprocsym^.definition^.messageinf.str:=strnew(pt^.value_str);
+                             end
+                           else if is_constintnode(pt) then
+                             begin
+                                aktprocsym^.definition^.options:=
+                                  aktprocsym^.definition^.options or pomsgint;
+                                aktprocsym^.definition^.messageinf.i:=pt^.value;
+                             end
                            else
-                             Message(parser_e_only_virtual_methods_abstract);
-                           consume(_ABSTRACT);
+                             Message(parser_e_ill_msg_expr);
+                           disposetree(pt);
                            consume(SEMICOLON);
-                           { the method is defined }
-                           aktprocsym^.definition^.forwarddef:=false;
+                        end
+                      else
+                        begin
+                           case idtoken of
+                            _DYNAMIC,
+                            _VIRTUAL : begin
+                                         if actmembertype=sp_private then
+                                           Message(parser_w_priv_meth_not_virtual);
+                                         consume(idtoken);
+                                         consume(SEMICOLON);
+                                         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                                         aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                                       end;
+                           _OVERRIDE : begin
+                                         consume(_OVERRIDE);
+                                         consume(SEMICOLON);
+                                         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                                           pooverridingmethod or povirtualmethod;
+                                       end;
+                           end;
+                           if idtoken=_abstract then
+                             begin
+                                if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
+                                  aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
+                                else
+                                  Message(parser_e_only_virtual_methods_abstract);
+                                consume(_ABSTRACT);
+                                consume(SEMICOLON);
+                                { the method is defined }
+                                aktprocsym^.definition^.forwarddef:=false;
+                             end;
+                           if (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
+                            begin
+                              consume(_STATIC);
+                              consume(SEMICOLON);
+                              aktprocsym^.properties:=aktprocsym^.properties or sp_static;
+                              aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
+                            end;
                         end;
-                      if (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
-                       begin
-                         consume(_STATIC);
-                         consume(SEMICOLON);
-                         aktprocsym^.properties:=aktprocsym^.properties or sp_static;
-                         aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
-                       end;
                     end;
      _CONSTRUCTOR : begin
                       if actmembertype<>sp_public then
@@ -1448,6 +1478,12 @@ unit pdecl;
               datasegment^.concat(new(pai_label,init(classnamelabel)));
               datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.name^))));
               datasegment^.concat(new(pai_string,init(aktclass^.name^)));
+
+              { generate message and dynamic tables }
+              strmessagetable:=genstrmsgtab(aktclass);
+
+              { table for string messages }
+              datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(strmessagetable)))));
 
               { interface table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -2153,7 +2189,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.97  1999-02-22 02:44:10  peter
+  Revision 1.98  1999-02-22 20:13:36  florian
+    + first implementation of message keyword
+
+  Revision 1.97  1999/02/22 02:44:10  peter
     * ag386bin doesn't use i386.pas anymore
 
   Revision 1.96  1999/02/17 14:20:40  pierre

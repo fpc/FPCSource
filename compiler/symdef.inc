@@ -2337,6 +2337,8 @@
            dispose(localst,done);
          if ((options and poinline) <> 0) and assigned(code) then
            disposetree(ptree(code));
+         if (options and pomsgstr)<>0 then
+           strdispose(messageinf.str);
          if
 {$ifdef tp}
          not(use_big) and
@@ -3306,7 +3308,10 @@
 
 {
   $Log$
-  Revision 1.93  1999-02-22 13:07:07  pierre
+  Revision 1.94  1999-02-22 20:13:38  florian
+    + first implementation of message keyword
+
+  Revision 1.93  1999/02/22 13:07:07  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section

@@ -367,9 +367,16 @@
           procedure write_rtti_data;virtual;
        end;
 
+       tmessageinf = record
+         case integer of
+           0 : (str : pchar);
+           1 : (i : longint);
+       end;
+
        pprocdef = ^tprocdef;
        tprocdef = object(tabstractprocdef)
           extnumber : longint;
+          messageinf : tmessageinf;
           nextoverloaded : pprocdef;
           { pointer to the local symbol table }
           localst : psymtable;
@@ -496,7 +503,10 @@
 
 {
   $Log$
-  Revision 1.15  1999-01-20 14:18:40  pierre
+  Revision 1.16  1999-02-22 20:13:39  florian
+    + first implementation of message keyword
+
+  Revision 1.15  1999/01/20 14:18:40  pierre
     * bugs related to mangledname solved
       - linux external without name
       -external procs already used

@@ -152,6 +152,7 @@ type
     _FINALLY,
     _FORWARD,
     _LIBRARY,
+    _MESSAGE,
     _PRIVATE,
     _PROGRAM,
     _VIRTUAL,
@@ -312,6 +313,7 @@ const
       (str:'FINALLY'       ;special:false;keyword:m_objpas),
       (str:'FORWARD'       ;special:false;keyword:m_none),
       (str:'LIBRARY'       ;special:false;keyword:m_all),
+      (str:'MESSAGE'       ;special:false;keyword:m_none),
       (str:'PRIVATE'       ;special:false;keyword:m_none),
       (str:'PROGRAM'       ;special:false;keyword:m_all),
       (str:'VIRTUAL'       ;special:false;keyword:m_none),
@@ -346,7 +348,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-02-05 12:51:21  florian
+  Revision 1.3  1999-02-22 20:13:41  florian
+    + first implementation of message keyword
+
+  Revision 1.2  1999/02/05 12:51:21  florian
     + openstring id is now supported
 
   Revision 1.1  1998/12/11 00:04:02  peter

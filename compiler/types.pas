@@ -25,7 +25,7 @@ unit types;
   interface
 
     uses
-       cobjects,globals,symtable;
+       cobjects,globals,symtable,aasm;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -126,6 +126,9 @@ unit types;
     { generates a VMT for _class }
     procedure genvmt(_class : pobjectdef);
 
+    { generates the message table for a class }
+    function genstrmsgtab(_class : pobjectdef) : plabel;
+
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : pdef) : boolean;
 
@@ -135,7 +138,7 @@ unit types;
   implementation
 
     uses
-      globtype,verbose,aasm;
+       strings,globtype,verbose;
 
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
@@ -768,6 +771,134 @@ unit types;
     end;
 
     type
+       pprocdeftree = ^tprocdeftree;
+
+       tprocdeftree = record
+          p : pprocdef;
+          nl : plabel;
+          l,r : pprocdeftree;
+       end;
+
+    var
+       root : pprocdeftree;
+       count : longint;
+
+    procedure insert(p : pprocdeftree;var at : pprocdeftree);
+
+      var
+         i : longint;
+
+      begin
+         if at=nil then
+           begin
+              at:=p;
+              inc(count);
+           end
+         else
+           begin
+              i:=strcomp(p^.p^.messageinf.str,at^.p^.messageinf.str);
+              if i<0 then
+                insert(p,at^.l)
+              else if i>0 then
+                insert(p,at^.r)
+              else
+                Message1(parser_e_duplicate_message_label,strpas(p^.p^.messageinf.str));
+           end;
+      end;
+
+    procedure disposeprocdeftree(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           disposeprocdeftree(p^.l);
+         if assigned(p^.r) then
+           disposeprocdeftree(p^.r);
+         dispose(p);
+      end;
+
+    procedure insertmsgstr(p : psym);{$ifndef FPC}far;{$endif FPC}
+
+      var
+         hp : pprocdef;
+         pt : pprocdeftree;
+
+      begin
+         if p^.typ=procsym then
+           begin
+              hp:=pprocsym(p)^.definition;
+              while assigned(hp) do
+                begin
+                   if (hp^.options and pomsgstr)<>0 then
+                     begin
+                        new(pt);
+                        pt^.p:=hp;
+                        pt^.l:=nil;
+                        pt^.r:=nil;
+                        insert(pt,root);
+                     end;
+                   hp:=hp^.nextoverloaded;
+                end;
+           end;
+      end;
+
+    procedure writenames(p : pprocdeftree);
+
+      begin
+         getlabel(p^.nl);
+         if assigned(p^.l) then
+           writenames(p^.l);
+         datasegment^.concat(new(pai_label,init(p^.nl)));
+         datasegment^.concat(new(pai_const,init_8bit(strlen(p^.p^.messageinf.str))));
+         datasegment^.concat(new(pai_string,init_pchar(p^.p^.messageinf.str)));
+         if assigned(p^.r) then
+           writenames(p^.r);
+      end;
+
+    procedure writestrentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writestrentry(p^.l);
+
+         { write name label }
+         datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(p^.nl)))));
+
+         datasegment^.concat(new(pai_const,
+           init_symbol(strpnew(p^.p^.mangledname))));
+         maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
+
+         if assigned(p^.r) then
+           writestrentry(p^.r);
+      end;
+
+    function genstrmsgtab(_class : pobjectdef) : plabel;
+
+
+      var
+         r : plabel;
+
+      begin
+         root:=nil;
+         count:=0;
+         { insert all message handlers into a tree, sorted by name }
+         _class^.publicsyms^.foreach(insertmsgstr);
+
+         { write all names }
+         writenames(root);
+
+         { now start writing of the message string table }
+         getlabel(r);
+         datasegment^.concat(new(pai_label,init(r)));
+         genstrmsgtab:=r;
+         datasegment^.concat(new(pai_const,init_32bit(count)));
+         if assigned(root) then
+           begin
+              writestrentry(root);
+              disposeprocdeftree(root);
+           end;
+      end;
+
+    type
        pprocdefcoll = ^tprocdefcoll;
 
        tprocdefcoll = record
@@ -789,7 +920,7 @@ unit types;
        _c : pobjectdef;
        has_constructor,has_virtual_method : boolean;
 
-    procedure eachsym(sym : psym);{$ifndef FPC}far;{$endif}
+    procedure eachsym(sym : psym);{$ifndef FPC}far;{$endif FPC}
 
       var
          procdefcoll : pprocdefcoll;
@@ -1062,7 +1193,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.49  1999-02-16 00:45:30  peter
+  Revision 1.50  1999-02-22 20:13:42  florian
+    + first implementation of message keyword
+
+  Revision 1.49  1999/02/16 00:45:30  peter
     * fixed crashes by forgotten strpnew() for init_symbol
 
   Revision 1.48  1999/02/09 23:03:08  florian
