@@ -2,10 +2,17 @@ unit mysql4conn;
 
 {$mode objfpc}{$H+}
 
+{$Define LinkDynamically}
+
 interface
 
 uses
-  Classes, SysUtils,sqldb,mysql4,mysql4_com,db;
+  Classes, SysUtils,sqldb,db,
+{$IfDef LinkDynamically}
+  mysql4dyn,mysql4_comdyn;
+{$Else}
+  mysql4,mysql4_com;
+{$EndIf}
 
 Type
   TMySQLTransaction = Class(TSQLHandle)
@@ -14,6 +21,7 @@ Type
 
   TMySQLCursor = Class(TSQLHandle)
   protected
+    FQMySQL : PMySQL;
     FRes: PMYSQL_RES;                   { Record pointer }
     FNeedData : Boolean;
     FStatement : String;
@@ -30,7 +38,9 @@ Type
     FMySQL : PMySQL;
     function GetClientInfo: string;
     function GetServerStatus: String;
+    procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
   protected
+    function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AType: enum_field_types; ASize: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
@@ -56,6 +66,8 @@ Type
     function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
+    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+
   Public
     Property ServerInfo : String Read FServerInfo;
     Property HostInfo : String Read FHostInfo;
@@ -74,6 +86,8 @@ Type
   EMySQLError = Class(Exception);
 
 implementation
+
+uses dbconst;
 
 { TMySQLConnection }
 
@@ -103,10 +117,20 @@ begin
    DatabaseError(Msg,Comp);
 end;
 
+function TMySQLConnection.StrToStatementType(s : string) : TStatementType;
+
+begin
+  S:=Lowercase(s);
+  if s = 'show' then exit(stSelect);
+  result := inherited StrToStatementType(s);
+end;
+
+
 function TMySQLConnection.GetClientInfo: string;
 begin
   CheckConnected;
-  Result:=strpas(mysql_get_client_info);
+// Ask MvC
+  Result:=strpas(pchar(mysql_get_client_info));
 end;
 
 function TMySQLConnection.GetServerStatus: String;
@@ -115,7 +139,19 @@ begin
   Result := mysql_stat(FMYSQL);
 end;
 
+procedure TMySQLConnection.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
+
+begin
+  if (HMySQL=Nil) then
+    New(HMySQL);
+  mysql_init(HMySQL);
+  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,0,Nil,0);
+  If (HMySQL=Nil) then
+    MySQlError(Nil,SErrServerConnectFailed,Self);
+end;
+
 procedure TMySQLConnection.ConnectToServer;
+
 Var
   H,U,P : String;
 
@@ -123,12 +159,7 @@ begin
   H:=HostName;
   U:=UserName;
   P:=Password;
-  if (FMySQL=Nil) then
-    New(FMySQL);
-  mysql_init(FMySQL);
-  FMySQL:=mysql_real_connect(FMySQL,PChar(H),PChar(U),Pchar(P),Nil,0,Nil,0);
-  If (FMySQL=Nil) then
-    MySQlError(Nil,SErrServerConnectFailed,Self);
+  ConnectMySQL(FMySQL,pchar(H),pchar(U),pchar(P));
   FServerInfo := strpas(mysql_get_server_info(FMYSQL));
   FHostInfo := strpas(mysql_get_host_info(FMYSQL));
 end;
@@ -141,6 +172,9 @@ end;
 
 procedure TMySQLConnection.DoInternalConnect;
 begin
+{$IfDef LinkDynamically}
+  InitialiseMysql4;
+{$EndIf}
   inherited DoInternalConnect;
   ConnectToServer;
   SelectDatabase;
@@ -151,6 +185,10 @@ begin
   inherited DoInternalDisconnect;
   mysql_close(FMySQL);
   FMySQL:=Nil;
+{$IfDef LinkDynamically}
+  ReleaseMysql4;
+{$EndIf}
+
 end;
 
 function TMySQLConnection.GetHandle: pointer;
@@ -181,6 +219,11 @@ begin
     begin
     C.FRes:=Nil;
     end;
+  if (c.FQMySQL <> Nil) then
+    begin
+    mysql_close(c.FQMySQL);
+    c.FQMySQL:=Nil;
+    end;
 end;
 
 procedure TMySQLConnection.PrepareStatement(cursor: TSQLHandle;
@@ -191,6 +234,9 @@ begin
     FStatement:=Buf;
     if StatementType=stSelect then
       FNeedData:=True;
+    ConnectMySQL(FQMySQL,FMySQL^.host,FMySQL^.user,FMySQL^.passwd);
+    if mysql_select_db(FQMySQL,pchar(DatabaseName))<>0 then
+      MySQLError(FQMySQL,SErrDatabaseSelectFailed,Self);
     end
 end;
 
@@ -218,14 +264,14 @@ begin
   C:=Cursor as TMysqlCursor;
   If (C.FRes=Nil) then
     begin
-    if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
-      MySQLError(FMYSQL,Format(SErrExecuting,[StrPas(mysql_error(FMySQL))]),Self)
+    if mysql_query(c.FQMySQL,Pchar(C.FStatement))<>0 then
+      MySQLError(c.FQMYSQL,Format(SErrExecuting,[StrPas(mysql_error(c.FQMySQL))]),Self)
     else
       begin
-      C.RowsAffected := mysql_affected_rows(FMYSQL);
-      C.LastInsertID := mysql_insert_id(FMYSQL);
+      C.RowsAffected := mysql_affected_rows(c.FQMYSQL);
+      C.LastInsertID := mysql_insert_id(c.FQMYSQL);
       if C.FNeedData then
-        C.FRes:=mysql_use_result(FMySQL);
+        C.FRes:=mysql_use_result(c.FQMySQL);
       end;
     end;
 end;
@@ -280,7 +326,6 @@ var
   field: PMYSQL_FIELD;
   DFT: TFieldType;
   DFS: Integer;
-  WasClosed: Boolean;
 
 begin
 //  Writeln('MySQL: Adding fielddefs');
@@ -288,7 +333,7 @@ begin
   If (C.FRes=Nil) then
     begin
 //    Writeln('res is nil');
-    MySQLError(FMySQL,SErrNoQueryResult,Self);
+    MySQLError(c.FQMySQL,SErrNoQueryResult,Self);
     end;
 //  Writeln('MySQL: have result');
   FC:=mysql_num_fields(C.FRes);
@@ -329,7 +374,7 @@ begin
   if C.Row=nil then
      begin
   //   Writeln('LoadFieldsFromBuffer: row=nil');
-     MySQLError(FMySQL,SErrFetchingData,Self);
+     MySQLError(c.FQMySQL,SErrFetchingData,Self);
      end;
   Row:=C.Row;
   FC := mysql_num_fields(C.FRES);
@@ -520,54 +565,42 @@ begin
   end;
 end;
 
-Function GetSQLStatementType(SQL : String) : TStatementType;
+procedure TMySQLConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
 
-Var
-  L : Integer;
-  cmt : boolean;
-  P,PE,PP : PChar;
-  S : string;
-  T : TStatementType;
+var qry : TSQLQuery;
 
 begin
-  Result:=stNone;
-  L:=Length(SQL);
-  If (L=0) then
-    Exit;
-  P:=Pchar(SQL);
-  PP:=P;
-  Cmt:=False;
-  While ((P-PP)<L) do
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := tsqlquery.Create(nil);
+  qry.transaction := Transaction;
+  qry.database := Self;
+  with qry do
     begin
-    if not (P^ in [' ',#13,#10,#9]) then
-      begin
-      if not Cmt then
-        begin
-        // Check for comment.
-        Cmt:=(P^='/') and (((P-PP)<=L) and (P[1]='*'));
-        if not (cmt) then
-          Break;
-        end
-      else
-        begin
-        // Check for end of comment.
-         Cmt:=Not( (P^='*') and (((P-PP)<=L) and (P[1]='/')) );
-        If not cmt then
-          Inc(p);
-        end;
-      end;
-    inc(P);
+    ReadOnly := True;
+    sql.clear;
+    sql.add('show index from ' +  TableName);
+    open;
     end;
-  PE:=P+1;
-  While ((PE-PP)<L) and (PE^ in ['0'..'9','a'..'z','A'..'Z','_']) do
-   Inc(PE);
-  Setlength(S,PE-P);
-  Move(P^,S[1],(PE-P));
-  S:=Lowercase(s);
-  For t:=stselect to strollback do
-    if (S=StatementTokens[t]) then
-      Exit(t);
+
+  while not qry.eof do with IndexDefs.AddIndexDef do
+    begin
+    Name := trim(qry.fieldbyname('Key_name').asstring);
+    Fields := trim(qry.fieldbyname('Column_name').asstring);
+    If Name = 'PRIMARY' then options := options + [ixPrimary];
+    If qry.fieldbyname('Non_unique').asinteger = 0 then options := options + [ixUnique];
+    qry.next;
+{    while (name = qry.fields[0].asstring) and (not qry.eof) do
+      begin
+      Fields := Fields + ';' + trim(qry.Fields[2].asstring);
+      qry.next;
+      end;}
+    end;
+  qry.close;
+  qry.free;
 end;
+
 
 function TMySQLConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
