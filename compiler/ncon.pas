@@ -88,7 +88,7 @@ interface
 
        tstringconstnode = class(tnode)
           value_str : pchar;
-          len : longint;
+          len     : aword;
           lab_str : tasmlabel;
           st_type : tstringtype;
           constructor createstr(const s : string;st:tstringtype);virtual;
@@ -950,7 +950,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-10-23 14:44:07  peter
+  Revision 1.57  2004-01-12 16:35:40  peter
+    * range check error
+
+  Revision 1.56  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
