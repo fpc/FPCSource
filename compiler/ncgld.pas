@@ -130,13 +130,14 @@ implementation
                   { thread variable }
                   else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                     begin
+                       { we've to allocate the register before we save the used registers }
+                       location.reference.base:=rg.getaddressregister(exprasmlist);
                        rg.saveusedregisters(exprasmlist,pushed,[accumulator]);
                        reference_reset_symbol(href,newasmsymbol(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_name(exprasmlist,'FPC_RELOCATE_THREADVAR');
-                       location.reference.base:=rg.getaddressregister(exprasmlist);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,accumulator,location.reference.base);
                        rg.restoreusedregisters(exprasmlist,pushed);
                     end
@@ -921,7 +922,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-07-11 14:41:28  florian
+  Revision 1.14  2002-07-16 09:17:44  florian
+    * threadvar relocation result wasn't handled properly, it could cause
+      a crash
+
+  Revision 1.13  2002/07/11 14:41:28  florian
     * start of the new generic parameter handling
 
   Revision 1.12  2002/07/07 09:52:32  florian
