@@ -1077,10 +1077,18 @@ implementation
                                     Init
 ****************************************************************************}
 
+{$ifdef linux}
+  {$define need_path_search}
+{$endif linux}
+{$ifdef os2}
+  {$define need_path_search}
+{$endif os2}
+
    procedure get_exepath;
      var
        hs1 : namestr;
        hs2 : extstr;
+       b: boolean;
      begin
 {$ifdef delphi}
        exepath:=dmisc.getenv('PPC_EXEC_PATH');
@@ -1090,10 +1098,19 @@ implementation
        if exepath='' then
         fsplit(FixFileName(paramstr(0)),exepath,hs1,hs2);
 {$ifndef VER0_99_15}
-     {$ifdef linux}
+   {$ifdef need_path_search}
        if exepath='' then
-        fsearch(hs1,dos.getenv('PATH'));
-     {$endif}
+        begin
+          if pos(source_os.exeext,hs1) <>
+               (length(hs1) - length(source_os.exeext)+1) then
+            hs1 := hs1 + source_os.exeext;
+      {$ifdef delphi}
+          exepath := findfile(hs1,dmisc.getenv('PATH'),b);
+      {$else delphi}
+          exepath := findfile(hs1,dos.getenv('PATH'),b);
+      {$endif delphi}
+        end;
+   {$endif need_path_search}
 {$endif}
        exepath:=FixPath(exepath,false);
      end;
@@ -1198,7 +1215,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-09-11 17:00:22  florian
+  Revision 1.9  2000-09-24 10:33:07  peter
+    * searching of exe in path also for OS/2
+    * fixed searching of exe in path.
+
+  Revision 1.8  2000/09/11 17:00:22  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 
