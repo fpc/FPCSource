@@ -157,6 +157,7 @@ implementation
          aktfile : treference;
          ft : tfiletype;
          opsize : topsize;
+         op,
          asmop : tasmop;
          pushed : tpushed;
          {inc/dec}
@@ -1245,7 +1246,12 @@ implementation
                            else
                              begin
                                 hregister:=R_EDI;
-                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                opsize:=def2def_opsize(p^.left^.right^.left^.resulttype,u32bitdef);
+                                if opsize in [S_B,S_W,S_L] then
+                                 op:=A_MOV
+                                else
+                                 op:=A_MOVZX;
+                                exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
                                   newreference(p^.left^.right^.left^.location.reference),R_EDI)));
                              end;
                           if (p^.left^.left^.location.loc=LOC_REFERENCE) then
@@ -1281,7 +1287,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-04-08 23:59:49  pierre
+  Revision 1.42  1999-04-14 09:11:59  peter
+    * fixed include
+
+  Revision 1.41  1999/04/08 23:59:49  pierre
    * temp string for val code freed
 
   Revision 1.40  1999/04/08 15:57:46  peter
