@@ -776,7 +776,7 @@ implementation
            begin
               if (l<0) and (porddef(def)^.typ=u64bit) then
                 begin
-                   { don't zero the result, because it may come from hex notation 
+                   { don't zero the result, because it may come from hex notation
                      like $ffffffffffffffff! (JM)
                    l:=0; }
                    if (cs_check_range in aktlocalswitches) then
@@ -1416,7 +1416,15 @@ implementation
                                doconv:=hct;
                                b:=2;
                              end;
-                         end;
+                         end
+                        else
+                        { tvarrec -> array of constconst }
+                         if is_array_of_const(def_to) and
+                            is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
+                          begin
+                            doconv:=tc_equal;
+                            b:=1;
+                          end;
                       end;
                     pointerdef :
                       begin
@@ -1722,7 +1730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2000-12-20 15:59:40  jonas
+  Revision 1.28  2000-12-22 22:38:12  peter
+    * fixed bug #1286
+
+  Revision 1.27  2000/12/20 15:59:40  jonas
     - removed obsolete special case for range checking of cardinal constants
       at compile time
 
