@@ -178,6 +178,14 @@ function IsZero(const A: Double): Boolean;
 function IsZero(const A: Extended; Epsilon: Extended): Boolean; 
 function IsZero(const A: Extended): Boolean; 
 {$endif FPC_HAS_TYPE_EXTENDED}
+
+function SameValue(const A, B: Extended): Boolean;
+function SameValue(const A, B: Double): Boolean;
+function SameValue(const A, B: Single): Boolean;
+function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
+function SameValue(const A, B: Double; Epsilon: Double): Boolean;
+function SameValue(const A, B: Single; Epsilon: Single): Boolean;
+
         
 { angle conversion }
 
@@ -1190,11 +1198,70 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
+
+begin
+  if (Epsilon=0) then
+    Epsilon:=Max(Min(Abs(A),Abs(B))*EZeroResolution,EZeroResolution);
+  if (A>B) then
+    Result:=((A-B)<=Epsilon)
+  else
+    Result:=((B-A)<=Epsilon);
+end;
+
+function SameValue(const A, B: Extended): Boolean;
+
+begin
+  Result:=SameValue(A,B,0);
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function SameValue(const A, B: Double): Boolean;
+
+begin
+  Result:=SameValue(A,B,0);
+end;
+
+function SameValue(const A, B: Double; Epsilon: Double): Boolean;
+
+begin
+  if (Epsilon=0) then
+    Epsilon:=Max(Min(Abs(A),Abs(B))*DZeroResolution,DZeroResolution);
+  if (A>B) then
+    Result:=((A-B)<=Epsilon)
+  else
+    Result:=((B-A)<=Epsilon);
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+function SameValue(const A, B: Single): Boolean;
+
+begin
+  Result:=SameValue(A,B,0);
+end;
+
+function SameValue(const A, B: Single; Epsilon: Single): Boolean;
+
+begin
+  if (Epsilon=0) then
+    Epsilon:=Max(Min(Abs(A),Abs(B))*SZeroResolution,SZeroResolution);
+  if (A>B) then
+    Result:=((A-B)<=Epsilon)
+  else
+    Result:=((B-A)<=Epsilon);
+end;
+
 
 end.
 {
   $Log$
-  Revision 1.16  2004-02-09 08:55:45  michael
+  Revision 1.17  2004-02-09 09:11:46  michael
+  + Implemented SameValue
+
+  Revision 1.16  2004/02/09 08:55:45  michael
   + Missing functions IsZero,InRange,EnsureRange implemented
 
   Revision 1.15  2003/11/09 21:52:54  michael
