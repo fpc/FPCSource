@@ -1,0 +1,20 @@
+This directory contains a C memory manager unit. 
+
+The purpose of the cmem unit is simply to replace the standard Free Pascal
+memory manager by the memory manager of the C library.
+
+This has some drawbacks since the following calls are not supported then:
+MemSize
+HeapSize
+MemAvail
+MaxAvail
+This is because the C memory manager doesn't provide this functionality.
+
+To use the unit, put it as the *FIRST* unit in the 'uses' clause of
+your program. If it is not put first, some units may use the default 
+Free Pascal memory manager before the C memory manager is installed,
+thus possibly causing conflicts.
+
+Enjoy !
+
+Michael.
