@@ -68,6 +68,7 @@ interface
        tsimplenewdisposenodeclass = class of tsimplenewdisposenode;
 
        taddrnode = class(tunarynode)
+          getprocvardef : tprocvardef;
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -412,8 +413,10 @@ implementation
               the procedure that is stored in the procvar.}
             if not(m_tp_procvar in aktmodeswitches) then
               begin
-
-                 hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).definition);
+                 if assigned(getprocvardef) then
+                  hp3:=getprocvardef
+                 else
+                  hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).definition);
 
                  { create procvardef }
                  resulttype.setdef(tprocvardef.create);
@@ -982,8 +985,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-10-25 21:22:35  peter
-    * calling convention rewrite
+  Revision 1.22  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
 
   Revision 1.20  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi

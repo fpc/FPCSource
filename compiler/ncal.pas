@@ -726,7 +726,7 @@ implementation
              (
               (m_tp_procvar in aktmodeswitches) and
               (def.deftype=procvardef) and (p.left.nodetype=calln) and
-              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def)))
+              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def),false))
              )
              ;
         end;
@@ -1743,8 +1743,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2001-10-25 21:22:33  peter
-    * calling convention rewrite
+  Revision 1.53  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
 
   Revision 1.51  2001/10/13 09:01:14  jonas
     * fixed bug with using procedures as procvar parameters in TP/Delphi mode

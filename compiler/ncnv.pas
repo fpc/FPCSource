@@ -766,6 +766,7 @@ implementation
 
       var
         hp : tnode;
+        currprocdef,
         aprocdef : tprocdef;
 
       begin
@@ -837,8 +838,9 @@ implementation
                begin
                  if is_procsym_call(left) then
                   begin
-                    hp:=cloadnode.create(tprocsym(tcallnode(left).symtableprocentry),
-                        tcallnode(left).symtableproc);
+                    currprocdef:=get_proc_2_procvar_def(tprocsym(tcallnode(left).symtableprocentry),tprocvardef(resulttype.def));
+                    hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
+                        currprocdef,tcallnode(left).symtableproc);
                     if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
                        assigned(tcallnode(left).methodpointer) then
                       tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
@@ -857,7 +859,7 @@ implementation
                    the procvar,  is compatible with the procvar's type }
                  if assigned(aprocdef) then
                   begin
-                    if not proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def)) then
+                    if not proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def),false) then
                      CGMessage2(type_e_incompatible_types,aprocdef.typename,resulttype.def.typename);
                   end
                  else
@@ -1595,7 +1597,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2001-10-20 19:28:37  peter
+  Revision 1.42  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
+
+  Revision 1.41  2001/10/20 19:28:37  peter
     * interface 2 guid support
     * guid constants support
 

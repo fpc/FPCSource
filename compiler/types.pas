@@ -221,7 +221,9 @@ interface
     function convertable_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef) : boolean;
+    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef;exact:boolean) : boolean;
+
+    function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
 
     { if l isn't in the range of def a range check error (if not explicit) is generated and
       the value is placed within the range }
@@ -411,7 +413,7 @@ implementation
 
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef) : boolean;
+    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef;exact:boolean) : boolean;
       const
         po_comp = po_compatibility_options-[po_methodpointer,po_classmethod];
       var
@@ -438,11 +440,60 @@ implementation
            parameters may also be convertable }
          if is_equal(def1.rettype.def,def2.rettype.def) and
             (equal_paras(def1.para,def2.para,cp_all) or
-             convertable_paras(def1.para,def2.para,cp_all)) and
+             ((not exact) and convertable_paras(def1.para,def2.para,cp_all))) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) then
            proc_to_procvar_equal:=true
          else
            proc_to_procvar_equal:=false;
+      end;
+
+
+    function get_proc_2_procvar_def(p:tprocsym;d:tprocvardef):tprocdef;
+      var
+        matchprocdef,
+        currprocdef : tprocdef;
+      begin
+        { This function will return the pprocdef of pprocsym that
+          is the best match for procvardef. When there are multiple
+          matches it returns nil }
+        { exact match }
+        currprocdef:=p.definition;
+        matchprocdef:=nil;
+        while assigned(currprocdef) do
+         begin
+           if proc_to_procvar_equal(currprocdef,d,true) then
+            begin
+              { already found a match ? Then stop and return nil }
+              if assigned(matchprocdef) then
+               begin
+                 matchprocdef:=nil;
+                 break;
+               end;
+              matchprocdef:=currprocdef;
+            end;
+           currprocdef:=currprocdef.nextoverloaded;
+         end;
+        { convertable match, if no exact match was found }
+        if not assigned(matchprocdef) and
+           not assigned(currprocdef) then
+         begin
+           currprocdef:=p.definition;
+           while assigned(currprocdef) do
+            begin
+              if proc_to_procvar_equal(currprocdef,d,false) then
+               begin
+                 { already found a match ? Then stop and return nil }
+                 if assigned(matchprocdef) then
+                  begin
+                    matchprocdef:=nil;
+                    break;
+                  end;
+                 matchprocdef:=currprocdef;
+               end;
+              currprocdef:=currprocdef.nextoverloaded;
+            end;
+         end;
+        get_proc_2_procvar_def:=matchprocdef;
       end;
 
 
@@ -1626,7 +1677,7 @@ implementation
                   (m_tp_procvar in aktmodeswitches) then
                 begin
                   doconv:=tc_proc_2_procvar;
-                  if proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to)) then
+                  if proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),false) then
                    b:=1;
                 end
                else
@@ -1808,8 +1859,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2001-10-25 21:22:40  peter
-    * calling convention rewrite
+  Revision 1.54  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
 
   Revision 1.52  2001/10/22 21:21:09  peter
     * allow enum(enum)

@@ -822,6 +822,7 @@ implementation
          hs,hs1 : tvarsym;
          para,p2 : tnode;
          hst : tsymtable;
+         aprocdef : tprocdef;
       begin
          prevafterassn:=afterassignment;
          afterassignment:=false;
@@ -886,7 +887,11 @@ implementation
 
               { generate a methodcallnode or proccallnode }
               { we shouldn't convert things like @tcollection.load }
-              p2:=cloadnode.create(sym,st);
+              if getprocvar then
+               aprocdef:=get_proc_2_procvar_def(tprocsym(sym),getprocvardef)
+              else
+               aprocdef:=nil;
+              p2:=cloadnode.create_procvar(sym,aprocdef,st);
               if assigned(p1) then
                tloadnode(p2).set_mp(p1);
               p1:=p2;
@@ -902,16 +907,15 @@ implementation
         procedure doconv(procvar : tprocvardef;var t : tnode);
         var
           hp : tnode;
+          currprocdef : tprocdef;
         begin
           hp:=nil;
-          if (proc_to_procvar_equal(tprocsym(tcallnode(t).symtableprocentry).definition,procvar)) then
+          currprocdef:=get_proc_2_procvar_def(tcallnode(t).symtableprocentry,procvar);
+          if assigned(currprocdef) then
            begin
-             hp:=cloadnode.create(tprocsym(tcallnode(t).symtableprocentry),tcallnode(t).symtableproc);
+             hp:=cloadnode.create_procvar(tprocsym(tcallnode(t).symtableprocentry),currprocdef,tcallnode(t).symtableproc);
              if (po_methodpointer in procvar.procoptions) then
                tloadnode(hp).set_mp(tnode(tcallnode(t).methodpointer).getcopy);
-           end;
-          if assigned(hp) then
-           begin
              t.destroy;
              t:=hp;
            end;
@@ -1133,7 +1137,7 @@ implementation
                                    (getprocvar and
                                     ((block_type=bt_const) or
                                      ((m_tp_procvar in aktmodeswitches) and
-                                      proc_to_procvar_equal(tprocsym(sym).definition,getprocvardef)
+                                      proc_to_procvar_equal(tprocsym(sym).definition,getprocvardef,false)
                                      )
                                     )
                                    ),again,p1);
@@ -1473,7 +1477,7 @@ implementation
                                  (getprocvar and
                                   ((block_type=bt_const) or
                                    ((m_tp_procvar in aktmodeswitches) and
-                                    proc_to_procvar_equal(tprocsym(srsym).definition,getprocvardef)
+                                    proc_to_procvar_equal(tprocsym(srsym).definition,getprocvardef,false)
                                    )
                                   )
                                  ),again,p1);
@@ -1903,7 +1907,7 @@ implementation
          card   : cardinal;
          ic     : TConstExprInt;
          oldp1,
-         p1,p2  : tnode;
+         p1     : tnode;
          code   : integer;
 {$ifdef TEST_PROCSYMS}
          unit_specific,
@@ -2177,6 +2181,8 @@ implementation
                 p1:=factor(true);
                got_addrn:=false;
                p1:=caddrnode.create(p1);
+               if getprocvar then
+                taddrnode(p1).getprocvardef:=getprocvardef;
              end;
 
            _LKLAMMER :
@@ -2416,8 +2422,7 @@ implementation
            _ASSIGNMENT :
              begin
                 consume(_ASSIGNMENT);
-                if (m_tp_procvar in aktmodeswitches) and
-                   (p1.resulttype.def.deftype=procvardef) then
+                if (p1.resulttype.def.deftype=procvardef) then
                   begin
                      getprocvar:=true;
                      getprocvardef:=tprocvardef(p1.resulttype.def);
@@ -2508,7 +2513,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2001-10-24 11:51:39  marco
+  Revision 1.48  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
+
+  Revision 1.47  2001/10/24 11:51:39  marco
    * Make new/dispose system functions instead of keywords
 
   Revision 1.46  2001/10/21 13:10:51  peter

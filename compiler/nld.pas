@@ -28,13 +28,15 @@ interface
 
     uses
        node,
-       symbase,symtype,symsym;
+       symbase,symtype,symsym,symdef;
 
     type
        tloadnode = class(tunarynode)
           symtableentry : tsym;
           symtable : tsymtable;
+          procsymdef : tprocdef;
           constructor create(v : tsym;st : tsymtable);virtual;
+          constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           procedure set_mp(p:tnode);
           function  getcopy : tnode;override;
           function  pass_1 : tnode;override;
@@ -106,7 +108,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symconst,symdef,symtable,types,
+      symconst,symtable,types,
       htypechk,pass_1,
       ncnv,nmem,cpubase,tgcpu,cgbase
       ;
@@ -117,15 +119,24 @@ implementation
 *****************************************************************************}
 
     constructor tloadnode.create(v : tsym;st : tsymtable);
-
       begin
          inherited create(loadn,nil);
          if not assigned(v) then
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
+         procsymdef:=nil;
       end;
 
+    constructor tloadnode.create_procvar(v : tsym;d:tprocdef;st : tsymtable);
+      begin
+         inherited create(loadn,nil);
+         if not assigned(v) then
+          internalerror(200108121);
+         symtableentry:=v;
+         symtable:=st;
+         procsymdef:=d;
+      end;
 
     procedure tloadnode.set_mp(p:tnode);
       begin
@@ -228,9 +239,14 @@ implementation
                   resulttype:=ttypedconstsym(symtableentry).typedconsttype;
             procsym :
                 begin
-                   if assigned(tprocsym(symtableentry).definition.nextoverloaded) then
-                     CGMessage(parser_e_no_overloaded_procvars);
-                   resulttype.setdef(tprocsym(symtableentry).definition);
+                   if not assigned(procsymdef) then
+                    begin
+                      if assigned(tprocsym(symtableentry).definition.nextoverloaded) then
+                       CGMessage(parser_e_no_overloaded_procvars);
+                      resulttype.setdef(tprocsym(symtableentry).definition);
+                    end
+                   else
+                    resulttype.setdef(procsymdef);
                    { if the owner of the procsym is a object,  }
                    { left must be set, if left isn't set       }
                    { it can be only self                       }
@@ -801,7 +817,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-10-12 13:51:51  jonas
+  Revision 1.27  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
+
+  Revision 1.26  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")
     * fixed bug in n386add (introduced after compilerproc changes for string
       operations) where calcregisters wasn't called for shortstring addnodes

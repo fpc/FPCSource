@@ -352,7 +352,7 @@ implementation
                            hregister,hp);
 
                          { virtual method ? }
-                         if (po_virtualmethod in tprocsym(symtableentry).definition.procoptions) then
+                         if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
                            begin
                               new(hp);
                               reset_reference(hp^);
@@ -367,8 +367,8 @@ implementation
                               new(hp);
                               reset_reference(hp^);
                               hp^.base:=R_EDI;
-                              hp^.offset:=tprocsym(symtableentry).definition._class.vmtmethodoffset(
-                                tprocsym(symtableentry).definition.extnumber);
+                              hp^.offset:=tprocdef(resulttype.def)._class.vmtmethodoffset(
+                                 tprocdef(resulttype.def).extnumber);
                               emit_ref_reg(A_MOV,S_L,
                                 hp,R_EDI);
                               { ... and store it }
@@ -379,7 +379,7 @@ implementation
                          else
                            begin
                               ungetregister32(R_EDI);
-                              s:=newasmsymbol(tprocsym(symtableentry).definition.mangledname);
+                              s:=newasmsymbol(tprocdef(resulttype.def).mangledname);
                               emit_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(location.reference));
                            end;
@@ -387,7 +387,7 @@ implementation
                     else
                       begin
                          {!!!!! Be aware, work on virtual methods too }
-                         location.reference.symbol:=newasmsymbol(tprocsym(symtableentry).definition.mangledname);
+                         location.reference.symbol:=newasmsymbol(tprocdef(resulttype.def).mangledname);
                       end;
                  end;
               typedconstsym :
@@ -1085,7 +1085,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-10-14 11:49:51  jonas
+  Revision 1.25  2001-10-28 17:22:25  peter
+    * allow assignment of overloaded procedures to procvars when we know
+      which procedure to take
+
+  Revision 1.24  2001/10/14 11:49:51  jonas
     * finetuned register allocation info for assignments
 
   Revision 1.23  2001/10/04 14:33:28  jonas
