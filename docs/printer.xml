@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="printer">
+<short>The PRINTER unit.</short>
+<!-- \FPCexampledir{printex} -->
+<descr>
+This chapter describes the PRINTER unit for Free Pascal. It was written for
+dos by Florian Klaempfl, and it was written for linux by Michael Van 
+Canneyt, and has been ported to Windows and os/2 as well. 
+Its basic functionality is the same for al supported systems, although there 
+are minor differences on linux/unix.
+</descr>
+
+<element name="DefFile">
+<short>Default printer file name</short>
+<descr>
+This constant is used to initialize the <link id="Lst"/> file on Linux. It
+is the filename argument that is given to <link id="AssignLst"/>.
+</descr>
+</element>
+
+<element name="lst">
+<short>Default printing file.</short>
+<descr>
+<var>Lst</var> is the standard printing device. <br/> On linux, 
+<var>Lst</var> is set up using <var>AssignLst('/tmp/PID.lst')</var>. 
+You can change this behaviour at compile time, setting the <link
+id="DefFile"/> constant.
+</descr>
+<seealso>
+<link id="AssignLst"/>
+</seealso>
+</element>
+
+<element name="AssignLst">
+<short>Assign text file to printing device</short>
+<descr>
+<p>
+<var>AssignLst</var> Assigns to <var>F</var> a printing device - <em>Unix only</em>.
+<var>ToFile</var> is a string with the following form:
+</p>
+<ul>
+<li> <var> '|filename options'</var>  : This sets up a pipe with the program filename,
+             with the given options, such as in the popen() call.
+</li>
+<li> <var> 'filename'</var> : Prints to file filename. Filename can contain the string 'PID'
+              (No Quotes), which will be replaced by the PID of your program.
+              When closing lst, the file will be sent to lpr and deleted.
+              (lpr should be in PATH)
+                
+</li>
+<li> <var> {'filename|'}</var> Idem as previous, only the file is NOT sent to lpr, nor is it
+ deleted.  (useful for opening /dev/printer or for later printing)
+</li>
+</ul>
+</descr>
+<errors>
+ Errors are reported in Linuxerror.
+</errors>
+<seealso>
+<link id="lst"/>
+</seealso>
+<example file="printex/printex"/>
+</element>
+</module>
+</package>
+</fpdoc-descriptions>
