@@ -29,7 +29,7 @@ unit cgcpu;
   interface
 
     uses
-       globtype,symtype,
+       globtype,symtype,symdef,
        cgbase,cgutils,cgobj,
        aasmbase,aasmcpu,aasmtai,
        parabase,
@@ -95,6 +95,8 @@ unit cgcpu;
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : taasmoutput;var ref : treference);
         procedure handle_load_store(list:taasmoutput;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference);
+
+        procedure g_intf_wrapper(list: taasmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
       end;
 
       tcg64farm = class(tcg64f32)
@@ -117,7 +119,8 @@ unit cgcpu;
 
     uses
        globals,verbose,systems,cutils,
-       symconst,symdef,symsym,
+       fmodule,
+       symconst,symsym,
        tgobj,
        procinfo,cpupi,
        paramgr;
@@ -1202,6 +1205,71 @@ unit cgcpu;
       end;
 
 
+    procedure tcgarm.g_intf_wrapper(list: taasmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+
+      procedure loadvmttor12;
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_R0,0);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
+        end;
+
+
+      procedure op_onr12methodaddr;
+        var
+          href : treference;
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { call/jmp  vmtoffs(%eax) ; method offs }
+          reference_reset_base(href,NR_R12,procdef._class.vmtmethodoffset(procdef.extnumber));
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
+          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
+        end;
+
+      var
+        lab : tasmsymbol;
+        make_global : boolean;
+        href : treference;
+      begin
+        if procdef.proctypeoption<>potype_none then
+          Internalerror(200006137);
+        if not assigned(procdef._class) or
+           (procdef.procoptions*[po_classmethod, po_staticmethod,
+             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+          Internalerror(200006138);
+        if procdef.owner.symtabletype<>objectsymtable then
+          Internalerror(200109191);
+
+        make_global:=false;
+        if (not current_module.is_unit) or
+           (cs_create_smart in aktmoduleswitches) or
+           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+          make_global:=true;
+
+        if make_global then
+          list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        else
+          list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+        { set param1 interface to self  }
+        g_adjust_self_value(list,procdef,ioffset);
+
+        { case 4 }
+        if po_virtualmethod in procdef.procoptions then
+          begin
+            loadvmttor12;
+            op_onr12methodaddr;
+          end
+        { case 0 }
+        else
+          list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+
+        list.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+
     procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
       var
         tmpreg : tregister;
@@ -1316,7 +1384,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2005-01-04 21:00:48  florian
+  Revision 1.67  2005-01-30 14:43:40  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.66  2005/01/04 21:00:48  florian
     * not operator for byte/word fixed
 
   Revision 1.65  2005/01/04 20:15:05  florian

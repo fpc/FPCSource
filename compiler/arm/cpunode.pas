@@ -35,7 +35,6 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
-       narmobj,
        narmadd,
        narmcal,
        narmmat,
@@ -46,7 +45,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:31  florian
+  Revision 1.10  2005-01-30 14:43:40  florian
+    * fixed compilation of arm compiler
+
+  Revision 1.9  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.8  2004/03/21 22:40:15  florian
