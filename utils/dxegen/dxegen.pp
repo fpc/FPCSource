@@ -14,6 +14,8 @@
 
 Uses Strings,DxeLoad,Coff,Dos;
 
+{$inline on}
+
 {$ifdef Linux}              {Fix for 1.0.x}
  {$Define Unix}
 {$endif}
@@ -316,7 +318,10 @@ Begin
 End.
 {
  $Log$
- Revision 1.2  2001-08-02 10:41:50  marco
+ Revision 1.3  2001-08-02 12:50:46  jonas
+   * added 'inline on' directive
+
+ Revision 1.2  2001/08/02 10:41:50  marco
   * Fix from peter (inline between ifdefs) committed
 
 }
