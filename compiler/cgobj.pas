@@ -184,7 +184,7 @@ unit cgobj;
              This routine must be overriden for each new target cpu.
           }
           procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
-          procedure a_call_ref(list : taasmoutput;const ref : treference);virtual;abstract;
+          procedure a_call_ref(list : taasmoutput;const ref : treference);virtual;
           procedure a_call_reg(list : taasmoutput;reg : tregister);virtual;abstract;
           procedure a_call_loc(list : taasmoutput;const loc:tlocation);
 
@@ -864,6 +864,25 @@ unit cgobj;
       end;
 
 
+    procedure tcg.a_call_ref(list : taasmoutput;const ref:treference);
+      var
+        tmpreg: tregister;
+      begin
+{$ifdef newra}
+        tmpreg:=rg.getaddressregister(list);
+{$else}
+        tmpreg := get_scratch_reg_address(list);
+{$endif}
+        a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
+        a_call_reg(list,tmpreg);
+{$ifdef newra}
+        rg.ungetaddressregister(list,tmpreg);
+{$else}
+        free_scratch_reg(list,tmpreg);
+{$endif}
+      end;
+
+
     procedure tcg.a_call_loc(list : taasmoutput;const loc:tlocation);
       begin
         case loc.loc of
@@ -1140,8 +1159,10 @@ unit cgobj;
 
     procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
         size: tcgsize; src1, src2, dst: tregister);
+{$ifdef newra}
       var
         tmpreg: tregister;
+{$endif newra}
       begin
         if (dst.number <> src1.number) then
           begin
@@ -1691,7 +1712,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.103  2003-05-30 23:57:08  peter
+  Revision 1.104  2003-06-01 01:02:39  peter
+    * generic a_call_ref
+
+  Revision 1.103  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
