@@ -1267,7 +1267,9 @@ Begin
       begin
         hl:=plabelsym(sym)^.lab;
         if emit then
-         plabelsym(sym)^.defined:=true;
+         plabelsym(sym)^.defined:=true
+        else
+         plabelsym(sym)^.used:=true;
         SearchLabel:=true;
         exit;
       end;
@@ -1441,7 +1443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  1999-12-17 10:43:34  florian
+  Revision 1.33  1999-12-22 00:57:30  peter
+    * label are set to used so an error is given if used but not defined
+
+  Revision 1.32  1999/12/17 10:43:34  florian
     * 761 fixed
 
   Revision 1.31  1999/11/30 10:40:54  peter
