@@ -67,7 +67,7 @@ Var hp2, hp3{, EndMod}: Pai;
     {Cnt,} OldNrOfMods: Longint;
     OrgRegInfo, HighRegInfo: TRegInfo;
     HighFound, OrgRegFound: Byte;
-    RegCounter: TRegister;
+    RegCounter, regCounter2: TRegister;
     OrgRegResult: Boolean;
     TmpResult: Boolean;
     {TmpState: Byte;}
@@ -101,10 +101,24 @@ Begin {CheckSequence}
                                   { old  new }
              InstructionsEquivalent(hp2, hp3, RegInfo) Do
         Begin
+          if (hp3^.typ = ait_instruction) and
+             ((paicpu(hp3)^.opcode = A_MOV) or
+              (paicpu(hp3)^.opcode = A_MOVZX) or
+              (paicpu(hp3)^.opcode = A_MOVSX)) and
+             (paicpu(hp3)^.oper[0].typ in
+               [top_const,top_ref,top_symbol]) and
+             (paicpu(hp3)^.oper[1].typ = top_reg) then
+            regInfo.lastReload
+              [reg32(paicpu(hp3)^.oper[1].reg)] := hp3;
           GetNextInstruction(hp2, hp2);
           GetNextInstruction(hp3, hp3);
           Inc(Found)
         End;
+      for regCounter2 := R_EAX to R_EDX do
+        if (regInfo.new2OldReg[regCounter2] <> R_NO) and
+           (reg in PPaiProp(hp3^.optInfo)^.usedRegs) and
+           not regLoadedWithNewValue(reg,false,hp3) then
+          include(regInfo.regsStillUsedAfterSeq,regCounter);
       If (Found <> OldNrOfMods) or
  { the following is to avoid problems with rangecheck code (see testcse2) }
          (assigned(hp3) and
@@ -355,7 +369,7 @@ begin
   if assigned(hp^.previous) then
     hp^.previous^.next := hp;
 {$endif replaceregdebug}
-  PPaiProp(p^.optInfo)^.Regs[reg] := c;
+{  PPaiProp(p^.optInfo)^.Regs[reg] := c;}
   While (p <> endP) Do
     Begin
       PPaiProp(p^.optInfo)^.Regs[reg] := c;
@@ -821,7 +835,6 @@ Var Cnt, Cnt2: Longint;
     hp5 : pai;
     RegInfo: TRegInfo;
     RegCounter: TRegister;
-    TmpState: Byte;
 Begin
   p := First;
   SkipHead(p);
@@ -879,21 +892,36 @@ Begin
 {   movl 4(%eax), eax                                                       }
                                    hp2 := p;
                                    Cnt2 := 1;
-                                   While Cnt2 <= Cnt Do
+                                  While Cnt2 <= Cnt Do
                                      Begin
-                                       If (hp1 = nil) And
-                                          Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p)) And
-                                          ((p^.typ = ait_instruction) And
-                                           ((paicpu(p)^.OpCode = A_MOV)  or
-                                            (paicpu(p)^.opcode = A_MOVZX) or
-                                            (paicpu(p)^.opcode = A_MOVSX)) And
-                                           (paicpu(p)^.Oper[0].typ = top_ref)) Then
-                                         hp1 := p;
+                                       If Not(RegInInstruction(reg32(Paicpu(hp2)^.oper[1].reg), p)) then
+                                         begin
+                                           if ((p^.typ = ait_instruction) And
+                                               ((paicpu(p)^.OpCode = A_MOV)  or
+                                                (paicpu(p)^.opcode = A_MOVZX) or
+                                                (paicpu(p)^.opcode = A_MOVSX)) And
+                                               (paicpu(p)^.Oper[0].typ in
+                                                 [top_const,top_ref,top_symbol])) and
+                                               (paicpu(p)^.oper[1].typ = top_reg) then
+                                             begin
+                                               regCounter := reg32(paicpu(p)^.oper[1].reg);
+                                               if (regCounter in reginfo.regsStillUsedAfterSeq) then
+                                                 begin
+                                                   if (hp1 = nil) then
+                                                     hp1 := reginfo.lastReload[regCounter];
+                                                 end
 {$ifndef noremove}
-                                       if regInInstruction(Paicpu(hp2)^.oper[1].reg,p) then
-                                         PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
+                                               else
+                                                 PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
 {$endif noremove}
-                                       Inc(Cnt2);
+                                             end
+                                         end
+{$ifndef noremove}
+                                       else
+                                         if regInInstruction(Paicpu(hp2)^.oper[1].reg,p) then
+                                           PPaiProp(p^.OptInfo)^.CanBeRemoved := True
+{$endif noremove}
+                                       ; Inc(Cnt2);
                                        GetNextInstruction(p, p);
                                      End;
                                    hp3 := New(Pai_Marker,Init(NoPropInfoStart));
@@ -942,7 +970,7 @@ Begin
 {    jne l1                       jne l1                                   }
 {    movl 8(%ebp), %eax                                                    }
 {    movl (%eax), %edi            movl %eax, %edi                          }
-{     movl %edi, -4(%ebp)          movl %edi, -4(%ebp)                      }
+{    movl %edi, -4(%ebp)          movl %edi, -4(%ebp)                      }
 {    movl 8(%ebp), %eax                                                    }
 {    pushl 70(%eax)               pushl 70(%eax)                           }
 {                                                                          }
@@ -952,58 +980,17 @@ Begin
 {   RegLoadedForRef, have to be changed to their contents from before the  }
 {   sequence.                                                              }
                                          If RegCounter in RegInfo.RegsLoadedForRef Then
-                                          Begin
-{load Cnt2 with the total number of instructions of this sequence}
-                                           Cnt2 := PPaiProp(hp4^.OptInfo)^.
-                                                   Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
-
-                                           hp3 := hp2;
-                                           For Cnt := 1 to Pred(Cnt2) Do
-                                             GetNextInstruction(hp3, hp3);
-                                           TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
-                                           GetNextInstruction(hp3, hp3);
-{$ifdef csdebug}
-         Writeln('Cnt2: ',Cnt2);
-         hp5 := new(pai_asm_comment,init(strpnew('starting here...')));
-         InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp5);
-{$endif csdebug}
-                                               hp3 := hp2;
-{first change the contents of the register inside the sequence}
-                                               For Cnt := 1 to Cnt2 Do
-                                                 Begin
-{save the WState of the last pai object of the sequence for later use}
-                                                   TmpState := PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState;
-{$ifdef csdebug}
-         hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '
-                                                  +tostr(tmpstate))));
-         InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                                   PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
-                                                     PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
-                                                   GetNextInstruction(hp3, hp3);
-                                                 End;
-{here, hp3 = p = Pai object right after the sequence, TmpState = WState of
- RegCounter at the last Pai object of the sequence}
-                                               GetLastInstruction(hp3, hp3);
-                                               While GetNextInstruction(hp3, hp3) And
-                                                     (PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState
-                                                      = TmpState) Do
-{$ifdef csdebug}
-    begin
-         hp5 := new(pai_asm_comment,init(strpnew('WState for '+att_reg2str[Regcounter]+': '+
-                                                  tostr(PPaiProp(hp3^.OptInfo)^.Regs[RegCounter].WState))));
-         InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                                 PPaiProp(hp3^.OptInfo)^.Regs[RegCounter] :=
-                                                   PPaiProp(hp4^.OptInfo)^.Regs[RegCounter];
-{$ifdef csdebug}
-    end;
-{$endif csdebug}
-{$ifdef csdebug}
-         hp5 := new(pai_asm_comment,init(strpnew('stopping here...')));
-         InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
-{$endif csdebug}
-                                          End;
+                                           Begin
+                                             hp3 := hp2;
+                                             { cnt still holds the number of instructions }
+                                             { of the sequence, so go to the end of it    }
+                                             for cnt2 := 1 to pred(cnt) Do
+                                               getNextInstruction(hp3,hp3);
+                                             { hp4 = instruction prior to start of sequence }
+                                             restoreRegContentsTo(regCounter,
+                                               PPaiProp(hp4^.OptInfo)^.Regs[RegCounter],
+                                               hp2,hp3);
+                                           End;
                                        End;
                                    hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
                                    InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
@@ -1170,7 +1157,11 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-08-04 20:08:03  jonas
+  Revision 1.6  2000-08-23 12:55:10  jonas
+    * fix for web bug 1112 and a bit of clean up in csopt386 (merged from
+      fixes branch)
+
+  Revision 1.5  2000/08/04 20:08:03  jonas
     * improved detection of range of instructions which use a register
       (merged from fixes branch)
 

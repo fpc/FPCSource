@@ -42,6 +42,8 @@ Type
   TRegInfo = Record
                 NewRegsEncountered, OldRegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
+                regsStillUsedAfterSeq: TRegSet;
+                lastReload: array[R_EAX..R_EDI] of pai;
                 New2OldReg: TRegArray;
               End;
 
@@ -2330,7 +2332,11 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-08-19 17:53:29  jonas
+  Revision 1.7  2000-08-23 12:55:10  jonas
+    * fix for web bug 1112 and a bit of clean up in csopt386 (merged from
+      fixes branch)
+
+  Revision 1.6  2000/08/19 17:53:29  jonas
     * fixed a potential bug in destroyregs regarding the removal of
       unused loads
     * added destroyDependingRegs() procedure and use it for the fix in
