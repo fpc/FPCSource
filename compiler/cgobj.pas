@@ -823,7 +823,7 @@ unit cgobj;
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_reg_ref(list,size,reg,loc.reference);
+            a_load_reg_ref(list,loc.size,reg,loc.reference);
           LOC_REGISTER,LOC_CREGISTER:
             a_load_reg_reg(list,size,loc.size,reg,loc.register);
           else
@@ -1691,7 +1691,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.100  2003-05-30 12:36:13  jonas
+  Revision 1.101  2003-05-30 21:40:00  jonas
+    * fixed bug in a_load_loc_ref (the source instead of dest size was passed
+      to a_load_reg_ref in case of a register)
+
+  Revision 1.100  2003/05/30 12:36:13  jonas
     * use as little different registers on the ppc until newra is released,
       since every used register must be saved
 
