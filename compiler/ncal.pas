@@ -1278,6 +1278,22 @@ implementation
          { ensure that the result type is set }
          resulttype:=procdefinition.rettype;
 
+         { get a register for the return value }
+         if (not is_void(resulttype.def)) then
+          begin
+            if ret_in_acc(resulttype.def) then
+             begin
+               { wide- and ansistrings are returned in EAX    }
+               { but they are imm. moved to a memory location }
+               if is_widestring(resulttype.def) or
+                  is_ansistring(resulttype.def) then
+                 begin
+                    { we use ansistrings so no fast exit here }
+                    procinfo^.no_fast_exit:=true;
+                 end;
+             end;
+          end;
+
          { constructors return their current class type, not the type where the
            constructor is declared, this can be different because of inheritance }
          if (procdefinition.proctypeoption=potype_constructor) then
@@ -1428,13 +1444,9 @@ implementation
                         { wide- and ansistrings are returned in EAX    }
                         { but they are imm. moved to a memory location }
                         if is_widestring(resulttype.def) or
-                          is_ansistring(resulttype.def) then
+                           is_ansistring(resulttype.def) then
                           begin
                              location.loc:=LOC_MEM;
-                             { this is wrong we still need one register  PM
-                             registers32:=0; }
-                             { we use ansistrings so no fast exit here }
-                             procinfo^.no_fast_exit:=true;
                              registers32:=1;
                           end;
                      end
@@ -1610,7 +1622,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2001-04-26 21:55:05  peter
+  Revision 1.33  2001-05-20 12:09:31  peter
+    * fixed exit with ansistring return from function call, no_fast_exit
+      should be set in det_resulttype instead of pass_1
+
+  Revision 1.32  2001/04/26 21:55:05  peter
     * defcoll must be assigned in insert_typeconv
 
   Revision 1.31  2001/04/21 12:03:11  peter
