@@ -225,7 +225,8 @@ implementation
               break;
           end;
         until false;
-        if (hp.nodetype=loadn) then
+        { a tempref is used when it is loaded from a withsymtable }
+        if (hp.nodetype in [loadn,temprefn]) then
           begin
             hp:=ccallnode.create_procvar(nil,p1);
             resulttypepass(hp);
@@ -454,10 +455,12 @@ implementation
                 end;
               loadn:
                 begin
-                  if not(vo_is_thread_var in tvarsym(tloadnode(p).symtableentry).varoptions) then
-                    inc(result)
+		  { threadvars need a helper call }
+                  if (tloadnode(p).symtableentry.typ=varsym) and
+		     (vo_is_thread_var in tvarsym(tloadnode(p).symtableentry).varoptions) then
+                    inc(result,5)
                   else
-                    inc(result,5);
+                    inc(result);
                   if (result >= NODE_COMPLEXITY_INF) then
                     result := NODE_COMPLEXITY_INF;
                   exit;
@@ -516,7 +519,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-08-04 08:35:59  jonas
+  Revision 1.19  2004-08-25 15:54:46  peter
+    * fix possible wrong typecast
+
+  Revision 1.18  2004/08/04 08:35:59  jonas
     * some improvements to node complexity calculations
 
   Revision 1.17  2004/07/15 20:59:58  jonas
