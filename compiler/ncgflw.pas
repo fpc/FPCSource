@@ -69,7 +69,7 @@ implementation
       verbose,globals,systems,
       symconst,symdef,symsym,aasm,types,
       cgbase,temp_gen,pass_2,
-      cpubase,cpuasm,
+      cpubase,cpuasm,cpuinfo,
       nld,ncon,
       cga,tgcpu,
 {$ifdef i386}
@@ -289,7 +289,8 @@ implementation
              if not(omitfirstcomp) then
                begin
                  cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
-                   tordconstnode(right).value,t2.location,aktbreaklabel);
+                   aword(tordconstnode(right).value),
+                   t2.location,aktbreaklabel);
                end;
            end;
 
@@ -332,7 +333,7 @@ implementation
          else
            begin
              cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
-               tordconstnode(right).value,t2.location,aktbreaklabel);
+               aword(tordconstnode(right).value),t2.location,aktbreaklabel);
            end;
          { according to count direction DEC or INC... }
          { must be after the test because of 0 to 255 for bytes !! }
@@ -581,7 +582,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-09-30 16:19:58  jonas
+  Revision 1.3  2001-10-04 14:33:28  jonas
+    * fixed range check errors
+
+  Revision 1.2  2001/09/30 16:19:58  jonas
     - removed unused units
 
   Revision 1.1  2001/09/28 20:39:33  jonas

@@ -657,15 +657,11 @@ implementation
                                    emitcall('FPC_DECREF');
                                 end;
 
-{$ifdef regallocfix}
-                              concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype.def.size,true,false);
-                              ungetiftemp(right.location.reference);
-{$Else regallocfix}
                               concatcopy(right.location.reference,
                                 left.location.reference,left.resulttype.def.size,false,false);
+                              del_reference(left.location.reference);
+                              del_reference(right.location.reference);
                               ungetiftemp(right.location.reference);
-{$endif regallocfix}
                            end;
                       end;
 {$ifdef SUPPORT_MMX}
@@ -1088,7 +1084,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-09-09 08:51:09  jonas
+  Revision 1.23  2001-10-04 14:33:28  jonas
+    * fixed range check errors
+
+  Revision 1.22  2001/09/09 08:51:09  jonas
     * fixed bug with assigning ansistrings (left^.location was released too
       early, caused bug reported by Aleksey V. Vaneev in mailing list on
       2001/09/07 regarding 'problems with nested procedures and local vars'

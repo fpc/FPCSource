@@ -212,7 +212,7 @@ unit cgcpu;
 
       begin
         if ref.is_immediate then
-          a_load_const_reg(list,size,ref.offset,reg)
+          a_load_const_reg(list,size,aword(ref.offset),reg)
         else
           begin
             sizes2load(size,regsize(reg),op,s);
@@ -426,7 +426,7 @@ unit cgcpu;
 
        begin
           if ref.is_immediate then
-            a_op_const_reg(list,op,ref.offset,reg)
+            a_op_const_reg(list,op,aword(ref.offset),reg)
           else
             begin
               case op of
@@ -708,7 +708,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-09-30 16:17:18  jonas
+  Revision 1.4  2001-10-04 14:33:28  jonas
+    * fixed range check errors
+
+  Revision 1.3  2001/09/30 16:17:18  jonas
     * made most constant and mem handling processor independent
 
   Revision 1.2  2001/09/29 21:32:19  jonas

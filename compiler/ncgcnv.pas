@@ -52,7 +52,7 @@ interface
       cutils,verbose,
       aasm,symconst,symdef,
       ncon,ncal,
-      cpubase,
+      cpubase,cpuinfo,
       pass_2,
       cgbase,
       cga,cgobj,cgcpu,
@@ -399,10 +399,10 @@ interface
          end;
          getlabel(l1);
          cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_EQ,0,hreg,l1);
-         cg.a_op_const_reg(exprasmlist,OP_ADD,
+         cg.a_op_const_reg(exprasmlist,OP_ADD,aword(
            tobjectdef(left.resulttype.def).implementedinterfaces.ioffsets(
            tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(
-           resulttype.def))^,hreg);
+           resulttype.def))^),hreg);
          cg.a_label(exprasmlist,l1);
          location.loc:=LOC_REGISTER;
          location.register:=hreg;
@@ -422,7 +422,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-09-30 16:16:28  jonas
+  Revision 1.3  2001-10-04 14:33:28  jonas
+    * fixed range check errors
+
+  Revision 1.2  2001/09/30 16:16:28  jonas
     - removed unused units form uses-clause and unused local vars
 
   Revision 1.1  2001/09/29 21:32:47  jonas
