@@ -40,7 +40,7 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-       import,export,link,cgobj,i_win32,classes;
+       import,export,link,cgobj,i_win32;
 
 
   const
@@ -1656,7 +1656,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2004-04-24 17:32:05  peter
+  Revision 1.32  2004-04-28 18:02:54  peter
+    * add TList to cclasses, remove classes dependency from t_win32
+
+  Revision 1.31  2004/04/24 17:32:05  peter
   index number generation for mixed index-nonindexed fixed, patch by Pavel V. Ozerski
 
   Revision 1.30  2004/03/18 11:44:07  olle
