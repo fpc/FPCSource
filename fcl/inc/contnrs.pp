@@ -19,7 +19,7 @@ unit contnrs;
 interface
 
 uses
-  Classes;
+  SysUtils,Classes;
 
 Type
 
@@ -271,7 +271,7 @@ end;
 
 Function TComponentList.Add(AComponent: TComponent): Integer;
 begin
-  Inherited Add(AComponent);
+  Result:=Inherited Add(AComponent);
 end;
 
 destructor TComponentList.Destroy;
@@ -505,7 +505,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-12-22 12:05:41  michael
+  Revision 1.8  2004-12-22 15:33:24  peter
+    * fixed compile
+
+  Revision 1.7  2004/12/22 12:05:41  michael
   + Fixed bug 3461
 
   Revision 1.6  2002/09/07 15:15:24  peter
