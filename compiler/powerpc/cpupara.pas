@@ -202,7 +202,6 @@ unit cpupara;
       end;
 
 
-
     procedure tppcparamanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
         paraloc : tparalocation;
@@ -556,7 +555,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2004-07-17 13:51:57  florian
+  Revision 1.67  2004-07-19 19:15:50  florian
+    * fixed funcret_paraloc writing in units
+
+  Revision 1.66  2004/07/17 13:51:57  florian
     * function result location for syscalls on MOS hopefully correctly set now
 
   Revision 1.65  2004/07/09 21:45:24  jonas

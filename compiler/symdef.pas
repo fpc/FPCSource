@@ -454,7 +454,7 @@ interface
 {$ifdef i386}
           fpu_used        : byte;    { how many stack fpu must be empty }
 {$endif i386}
-          funcret_paraloc : array[tcallercallee] of tparalocation;
+          funcret_paraloc : packed array[tcallercallee] of tparalocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -3446,6 +3446,10 @@ implementation
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
+
+         if po_explicitparaloc in procoptions then
+           ppufile.getdata(funcret_paraloc,sizeof(funcret_paraloc));
+
          { get the number of parameters }
          count:=ppufile.getbyte;
          savesize:=sizeof(aint);
@@ -3462,8 +3466,7 @@ implementation
             hp.is_hidden:=boolean(ppufile.getbyte);
             if po_explicitparaloc in procoptions then
               begin
-                if po_explicitparaloc in procoptions then
-                  ppufile.getdata(hp.paraloc,sizeof(hp.paraloc));
+                ppufile.getdata(hp.paraloc,sizeof(hp.paraloc));
                 has_paraloc_info:=true;
               end;
             { Parameters are stored left to right in both ppu and memory }
@@ -3495,6 +3498,10 @@ implementation
          ppufile.putbyte(ord(proccalloption));
          ppufile.putsmallset(procoptions);
          ppufile.do_interface_crc:=oldintfcrc;
+
+         if po_explicitparaloc in procoptions then
+           ppufile.putdata(funcret_paraloc,sizeof(funcret_paraloc));
+
          { we need to store the count including vs_hidden }
          ppufile.putbyte(para.count);
          hp:=TParaItem(Para.first);
@@ -6130,7 +6137,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.247  2004-07-14 21:37:41  olle
+  Revision 1.248  2004-07-19 19:15:50  florian
+    * fixed funcret_paraloc writing in units
+
+  Revision 1.247  2004/07/14 21:37:41  olle
     - removed unused types
 
   Revision 1.246  2004/07/12 09:14:04  jonas
