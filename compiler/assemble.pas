@@ -564,7 +564,10 @@ Implementation
         AsmFlush;
 {$ifdef hasunix}
         if DoPipe then
-         PClose(outfile)
+          begin
+            if PClose(outfile) <> 0 then
+              GenerateError;
+          end
         else
 {$endif}
          begin
@@ -1626,7 +1629,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.70  2004-07-01 15:42:53  peter
+  Revision 1.71  2004-07-01 18:28:54  jonas
+    + detect assembler errors when using -ap
+
+  Revision 1.70  2004/07/01 15:42:53  peter
     * fix wrong calculation of .bss section
 
   Revision 1.69  2004/06/20 08:55:28  florian
