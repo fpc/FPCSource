@@ -127,7 +127,7 @@ end;
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-function ThreadFunc(parameter: Pointer): LongInt; cdecl;
+function ThreadFunc(parameter: Pointer): LongInt; 
 var
   LThread: TThread;
   c: char;
@@ -325,7 +325,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-11-22 11:04:08  marco
+  Revision 1.7  2004-03-03 22:00:37  peter
+    * remove cdecl
+
+  Revision 1.6  2003/11/22 11:04:08  marco
    * Johill: suspend fix
 
   Revision 1.5  2003/11/19 15:51:54  peter
