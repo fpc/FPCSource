@@ -198,7 +198,8 @@ type
     po_varargs,           { printf like arguments }
     po_leftright,         { push arguments from left to right }
     po_clearstack,        { caller clears the stack }
-    po_internconst        { procedure has constant evaluator intern }
+    po_internconst,       { procedure has constant evaluator intern }
+    po_addressonly        { flag that only the address of a method is returned and not a full methodpointer }
   );
   tprocoptions=set of tprocoption;
 
@@ -342,7 +343,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2003-01-05 15:54:15  florian
+  Revision 1.44  2003-01-06 21:16:52  peter
+    * po_addressonly added to retrieve the address of a methodpointer
+      only, this is used for @tclass.method which has no self pointer
+
+  Revision 1.43  2003/01/05 15:54:15  florian
     + added proper support of type = type <type>; for simple types
 
   Revision 1.42  2003/01/05 13:36:53  florian

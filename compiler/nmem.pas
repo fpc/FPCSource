@@ -300,7 +300,7 @@ implementation
       end;
 
     procedure Taddrnode.mark_write;
-    
+
     begin
       {@procvar:=nil is legal in Delphi mode.}
       left.mark_write;
@@ -419,6 +419,11 @@ implementation
                  { method ? then set the methodpointer flag }
                  if (hp3.owner.symtabletype=objectsymtable) then
                    include(tprocvardef(resulttype.def).procoptions,po_methodpointer);
+
+                 { only need the address of the method? this is needed
+                   for @tobject.create }
+                 if not assigned(tloadnode(left).left) then
+                   include(tprocvardef(resulttype.def).procoptions,po_addressonly);
 
                  { we need to process the parameters reverse so they are inserted
                    in the correct right2left order (PFV) }
@@ -1050,7 +1055,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-01-04 15:54:03  daniel
+  Revision 1.44  2003-01-06 21:16:52  peter
+    * po_addressonly added to retrieve the address of a methodpointer
+      only, this is used for @tclass.method which has no self pointer
+
+  Revision 1.43  2003/01/04 15:54:03  daniel
     * Fixed mark_write for @ operator
       (can happen when compiling @procvar:=nil (Delphi mode construction))
 
