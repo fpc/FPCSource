@@ -183,6 +183,8 @@ implementation
          1 : def_opsize:=S_B;
          2 : def_opsize:=S_W;
          4 : def_opsize:=S_L;
+         { I don't know if we need it (FK) }
+         8 : def_opsize:=S_L;
         else
          internalerror(130820001);
         end;
@@ -2983,7 +2985,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2001-08-30 20:13:57  peter
+  Revision 1.5  2001-09-30 21:28:34  peter
+    * int64->boolean fixed
+
+  Revision 1.4  2001/08/30 20:13:57  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

@@ -311,6 +311,7 @@ implementation
         hregister : tregister;
         resflags  : tresflags;
         opsize    : topsize;
+        pref      : preference;
       begin
          clear_location(location);
          { byte(boolean) or word(wordbool) or longint(longbool) must }
@@ -328,10 +329,23 @@ implementation
          case left.location.loc of
             LOC_MEM,LOC_REFERENCE :
               begin
-                hregister:=def_getreg(left.resulttype.def);
-                emit_ref_reg(A_MOV,opsize,
-                  newreference(left.location.reference),hregister);
-                emit_reg_reg(A_OR,opsize,hregister,hregister);
+                if is_64bitint(left.resulttype.def) then
+                 begin
+                   hregister:=getregister32;
+                   emit_ref_reg(A_MOV,opsize,
+                     newreference(left.location.reference),hregister);
+                   pref:=newreference(left.location.reference);
+                   inc(pref^.offset,4);
+                   emit_reg_ref(A_OR,opsize,
+                     hregister,pref);
+                 end
+                else
+                 begin
+                   hregister:=def_getreg(left.resulttype.def);
+                   emit_ref_reg(A_MOV,opsize,
+                     newreference(left.location.reference),hregister);
+                   emit_reg_reg(A_OR,opsize,hregister,hregister);
+                 end;
                 resflags:=F_NE;
               end;
             LOC_FLAGS :
@@ -476,7 +490,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-09-30 16:12:47  jonas
+  Revision 1.26  2001-09-30 21:28:34  peter
+    * int64->boolean fixed
+
+  Revision 1.25  2001/09/30 16:12:47  jonas
     - removed unnecessary i386 pass_2 of as- and isnode and added dummy generic ones
 
   Revision 1.24  2001/09/29 21:32:47  jonas
