@@ -69,6 +69,9 @@ function StrToIntDef(const S: string; Default: integer): integer;
 // function StrToInt64Def(const S: string; Default: int64): int64;
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
+{$ifdef autoobjpas}
+Function Format (Const Fmt : String; const Args : Array of const) : String;
+{$endif}
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -81,7 +84,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.2  1998-09-16 08:28:43  michael
+  Revision 1.3  1998-11-02 12:53:53  michael
+  + Added format function
+
+  Revision 1.2  1998/09/16 08:28:43  michael
   Update from gertjan Schouten, plus small fix for linux
 
   Revision 1.1  1998/04/10 15:17:46  michael
