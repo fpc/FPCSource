@@ -4,12 +4,10 @@
 
 [targets]
 programs=fp
+rst=fpstrings
 
 [dirs]
 fpcdir=../..
-unitdir=$(COMPUNITDIR) $(GDBUNITDIR)
-objdir=$(GDBOBJDIR)
-libdir=$(GDBLIBDIR)
 
 [require]
 options=-Sg
@@ -19,12 +17,12 @@ packages=api fv gdbint
 libgcc=1
 
 
-[presettings]
+[postsettings]
 # when making a full version include the compiler
 ifeq ($(FULL),1)
-override COMPUNITDIR+=../../compiler
+override UNITDIR+=../../compiler
 else
-override COMPUNITDIR+=../fake/compiler
+override UNITDIR+=../fake/compiler
 endif
 
 # when including debugger include the gdbinterface
@@ -33,7 +31,6 @@ GDBINT=gdbint
 endif
 
 ifeq ($(GDB),1)
-GDBUNITDIR+=$(PACKAGESDIR)/$(GDBINT)
 GDBLIBDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
 GDBOBJDIR+=$(PACKAGESDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
@@ -41,14 +38,21 @@ ifneq ($(DJDIR),)
 GDBLIBDIR+=$(DJDIR)/lib
 endif
 endif
-else
-override GDBUNITDIR+=../fake/gdb
+ifeq ($(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))),)
+override GDB=0
+endif
 endif
 
+ifeq ($(GDB),1)
+# The gdbint is already included due the gdbint package dependency
+override LIBDIR+=$(GDBLIBDIR)
+override OBJDIR+=$(GDBOBJDIR)
+else
+override UNITDIR+=../fake/gdb
+endif
 
-[postsettings]
 ifeq ($(FULL),1)
-override NEEDOPT+=-dBrowserCol -dGDB -Sg
+override OPT+=-dBrowserCol -dGDB
 endif
 
 
