@@ -5,7 +5,14 @@ program printftest;
 
 {$mode objfpc}{$H+}
 
-procedure printf(fm: pchar; args: array of const); cdecl; external 'c';
+const
+{$ifdef win32}
+  libc='msvcrt';
+{$else}
+  libc='c';
+{$endif}
+
+procedure printf(fm: pchar; args: array of const); cdecl; external libc;
 
 procedure print(args: array of const);
 begin
