@@ -19,18 +19,16 @@ unit cmem;
 interface
 
 Const
-{$ifndef win32}
-  {$ifdef netware}
-  LibName = 'clib';
-  {$else}
-    {$ifdef netwlibc}
-    LibName = 'libc';
-    {$else}
-    LibName = 'c';
-    {$endif netwlibc}
-  {$endif}
-{$else}
+{$if defined(win32)}
   LibName = 'msvcrt';
+{$elseif defined(netware)}
+  LibName = 'clib';
+{$elseif defined(netwlibc)}
+  LibName = 'libc';
+{$elseif defined(macos)}
+  LibName = 'StdCLib';
+{$else}
+  LibName = 'c';
 {$endif}
 
 Function Malloc (Size : ptrint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
@@ -169,8 +167,11 @@ end.
 
 {
  $Log$
- Revision 1.6  2004-09-15 20:37:42  armin
- * add support for netware libc
+ Revision 1.7  2004-09-18 08:40:26  olle
+   + added support for macos
+
+ Revision 1.6  2004/09/15 20:37:42  armin
+   * add support for netware libc
 
  Revision 1.5  2004/05/05 13:00:43  jonas
    * fixed reallocmem (bug noted by Vincent Snijders)
@@ -179,7 +180,7 @@ end.
    * dec ptr before free in reallocmem
 
  Revision 1.3  2004/03/17 12:50:53  michael
- * Fixed: Macavail -> CMaxAvail (from Marc Weustinc)
+   * Fixed: Macavail -> CMaxAvail (from Marc Weustinc)
 
  Revision 1.2  2004/03/16 15:25:16  peter
    * adaption to compile with 1.0.x in new rtl
@@ -192,13 +193,13 @@ end.
    + added memsize() support (needed to use cmem with the compiler)
 
  Revision 1.8  2003/03/17 15:40:05  armin
- + LibName for netware
+   + LibName for netware
 
  Revision 1.7  2002/11/01 17:56:39  peter
    * needlock field added for 1.1
 
  Revision 1.6  2002/09/08 15:43:47  michael
- + Fixed calling conventions
+   + Fixed calling conventions
 
  Revision 1.5  2002/09/07 15:42:54  peter
    * old logs removed and tabs fixed
@@ -207,10 +208,10 @@ end.
    * updates for 1.0 compiler
 
  Revision 1.3  2002/06/13 05:01:44  michael
- + Added windows msvcrt support
+   + Added windows msvcrt support
 
  Revision 1.2  2002/06/13 04:54:47  michael
- + Fixed parameter type mismatch
+   + Fixed parameter type mismatch
 
  Revision 1.1  2002/01/29 17:54:59  peter
    * splitted to base and extra
