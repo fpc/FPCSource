@@ -794,7 +794,8 @@ interface
                          (m_tp_procvar in aktmodeswitches) then
                         begin
                           if (symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                             is_class(pdef(symtableprocentry^.owner^.defowner)) then
+                             assigned(methodpointer) { and
+                             is_class(pdef(symtableprocentry^.owner^.defowner))} then
                            hpt:=genloadmethodcallnode(pprocsym(symtableprocentry),symtableproc,
                                  methodpointer.getcopy)
                           else
@@ -1534,7 +1535,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-11-29 00:30:32  florian
+  Revision 1.19  2000-12-17 14:35:12  peter
+    * fixed crash with procvar load in tp mode
+
+  Revision 1.18  2000/11/29 00:30:32  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
