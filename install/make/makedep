@@ -1,7 +1,0 @@
-#!/bin/sh
-echo '# automatically generated dependencies.' >depend
-echo >>depend
-for f in $*
-do
-  mkdep $f | sed -n 1,/\^\$/p >>depend
-done

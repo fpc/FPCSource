@@ -31,4 +31,5 @@ Changes in the syntax or semantic of FPC:
              set the searchpaths where to find the files for that module (PFV)
   25/03/99   new directive STATIC +/- or on/off , works like -St commandline
              switch
+  02/04/99   rtl/cfg/ directory has been removed, it's not used anymore
 
