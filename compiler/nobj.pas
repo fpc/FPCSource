@@ -1087,13 +1087,15 @@ implementation
                (tprocsym(sym).owner.symtabletype=objectsymtable) then
              search_class_overloads(tprocsym(sym));
 
+            writeln(proc.mangledname);
             for i:=1 to tprocsym(sym).procdef_count do
               begin
                 implprocdef:=tprocsym(sym).procdef[i];
+                writeln(implprocdef.mangledname);
                 if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
                    (proc.proccalloption=implprocdef.proccalloption) and
                    (proc.proctypeoption=implprocdef.proctypeoption) and
-                   ((proc.procoptions*po_comp)=(implprocdef.procoptions*po_comp)) then
+                   ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
                   begin
                     gintfgetcprocdef:=implprocdef;
                     exit;
@@ -1368,7 +1370,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2005-01-24 22:08:32  peter
+  Revision 1.88  2005-02-01 23:18:54  florian
+    * fixed:
+      r1 = record
+        p : procedure stdcall;
+        i : longint;
+      end;
+
+  Revision 1.87  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 

@@ -700,7 +700,7 @@ implementation
          unionsym : tfieldvarsym;
          uniontype : ttype;
          dummysymoptions : tsymoptions;
-         semicolonatend: boolean;
+         semicolonatend,semicoloneaten: boolean;
 {$ifdef powerpc}
          tempdef: tdef;
          is_first_field: boolean;
@@ -776,10 +776,13 @@ implementation
                begin
                   newtype:=ttypesym.create('unnamed',tt);
                   parse_var_proc_directives(tsym(newtype));
+                  semicoloneaten:=true;
                   newtype.restype.def:=nil;
                   tt.def.typesym:=nil;
                   newtype.free;
-               end;
+               end
+             else
+               semicoloneaten:=false;
 {$ifdef powerpc}
                { from gcc/gcc/config/rs6000/rs6000.h:
                 /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
@@ -948,8 +951,10 @@ implementation
              { Records and objects can't have default values }
              if is_record or is_object then
                begin
-                 { for a record there doesn't need to be a ; before the END or ) }
-                 if not(token in [_END,_RKLAMMER]) then
+                 { for a record there doesn't need to be a ; before the END or )    }
+                 if not(token in [_END,_RKLAMMER]) and
+                   { procedure variables with a calling specifier consume a semicolon }
+                   not(semicoloneaten) then
                    consume(_SEMICOLON);
                end
              else
@@ -1312,7 +1317,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2005-02-01 08:46:13  michael
+  Revision 1.94  2005-02-01 23:18:54  florian
+    * fixed:
+      r1 = record
+        p : procedure stdcall;
+        i : longint;
+      end;
+
+  Revision 1.93  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
 
   Revision 1.92  2005/01/30 17:17:19  florian
