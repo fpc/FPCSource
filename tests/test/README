@@ -9,6 +9,9 @@ simple cases of the code generator. Used for porting to other
 architectures. Tries to validate all possible Location types
 valid for that node.
 
+'Natural type' is a signed 32-bit value on 32-bit architectures.
+'Natural type' is a signed 64-bit value on 64-bit architectures.
+
 secondadd() ........... /cg/taddbool.pp      Boolean arithmetic operations     
 secondadd() ........... /cg/taddcard.pp      Cardinal arithmetic operations
 secondadd() ........... /cg/taddreal.pp      Real arithmetic operations
@@ -16,7 +19,7 @@ secondadd() ........... /cg/taddlong.pp      Longint arithmetic operations
 secondload()........... /cg/tldparam.pp      Load subroutine parameters
 secondload()........... /cg/tldlocal.pp      Load subroutine local variables
 secondshlshr()......... /cg/tshlshr.pp       Shift routines on natural compiler types
-secondunaryminus()..... /cg/tneg.pp          Negate 
+secondunaryminus()..... /cg/tneg.pp          Negate on natural compiler types
 
 --------------------------------------------------------------------
                         Compiler
