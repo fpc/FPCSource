@@ -47,8 +47,8 @@ type
   CXX_TYPE_OF_BOOL = char;
 
 Var
-    COLORS : longint; cvar;
-    COLOR_PAIRS : longint; cvar;
+    COLORS : longint; cvar; external;
+    COLOR_PAIRS : longint; cvar; external;
 
     const
        COLOR_BLACK = 0;
@@ -65,7 +65,7 @@ Type
     pacs_map = ^tacs_map;
 
 Var
-    acs_map : tacs_map; cvar;
+    acs_map : tacs_map; cvar; external;
 
     function ACS_ULCORNER : chtype;
     function ACS_LLCORNER : chtype;
@@ -195,13 +195,13 @@ Var
        PSCREEN = PWINDOW;
 
       var
-       stdscr  : PWINDOW; cvar;
-       curscr  : PWINDOW; cvar;
-       newscr  : PWINDOW; cvar;
-       LINES   : longint; cvar; 
-       COLS    : longint; cvar; 
-       TABSIZE : longint; cvar;
-       ESCDELAY: longint; cvar;
+       stdscr  : PWINDOW; cvar; external;
+       curscr  : PWINDOW; cvar; external;
+       newscr  : PWINDOW; cvar; external;
+       LINES   : longint; cvar; external; 
+       COLS    : longint; cvar; external; 
+       TABSIZE : longint; cvar; external;
+       ESCDELAY: longint; cvar; external;
 
     Function define_key(_para1:pchar; _para2:longint):longint; cdecl;external;
     Function keyok(_para1:longint; _para2:bool):longint; cdecl;external;
@@ -1683,7 +1683,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2003-02-09 16:22:51  marco
+  Revision 1.4  2003-02-09 19:05:05  marco
+   * And now with new refreshing "external;" added.
+
+  Revision 1.3  2003/02/09 16:22:51  marco
    * xx : thetype; external name ='xx'; to xx :thetype; cvar;
 
   Revision 1.2  2002/09/07 15:43:01  peter
