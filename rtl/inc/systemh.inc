@@ -14,7 +14,13 @@
 
 {*****************************************************************************
    This File contains the OS independent declarations of the system unit
+
+   Possible defines:
+   -----------------
+   RTLLITE         Create a somewhat smaller RTL
+   
 *****************************************************************************}
+
 
 {****************************************************************************
                    Support for multiple compiler versions
@@ -35,12 +41,18 @@ Type
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
-  Double = real;
-  ValReal = Extended;
-  {$define SUPPORT_EXTENDED}
+  {$ifndef VER0_99_5}
+    {$define SUPPORT_EXTENDED}
+  {$endif}  
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_FIXED}
+  Double = real;
+  {$ifdef SUPPORT_EXTENDED}
+    ValReal = Extended;
+  {$else}    
+    ValReal = Double;
+  {$endif}  
 {$endif}
 
 {$ifdef m68k}
@@ -140,7 +152,7 @@ Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:Longint):Longint;
 
-{$ifndef INTERN_INC}
+{$ifdef VER0_99_5}
 Procedure Inc(Var i:cardinal);
 Procedure Inc(Var i:Longint);
 Procedure Inc(Var i:Integer);
@@ -173,7 +185,7 @@ Procedure Dec(Var c:Char;a:Longint);
 Procedure Inc(Var c:Char;a:Longint);
 Procedure Dec(Var p:PChar;a:Longint);
 Procedure Inc(Var p:PChar;a:Longint);
-{$endif INTERN_INC}
+{$endif VER0_99_5}
 
 {$endif RTLLITE}
 Function Chr(b:byte):Char;
@@ -254,8 +266,7 @@ Procedure Val(const s:string;Var d:single);
 {$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_EXTENDED}
 { if extended is supported, valreal is an extended, so we
-  have to define the real routines
-}
+  have to define the real routines }
 Procedure Val(const s:string;Var d:Real;Var code:Word);
 Procedure Val(const s:string;Var d:Real;Var code:Integer);
 Procedure Val(const s:string;Var d:Real);
@@ -415,7 +426,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.22  1998-08-08 12:28:14  florian
+  Revision 1.23  1998-08-11 00:05:27  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.22  1998/08/08 12:28:14  florian
     * a lot small fixes to the extended data type work
 
   Revision 1.21  1998/07/30 13:26:17  michael

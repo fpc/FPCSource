@@ -15,7 +15,7 @@
 
    { declarations of the math routines }
 
-{$ifdef i386}
+{$ifdef SUPPORT_EXTENDED}
     function abs(d : extended) : extended;
     function arctan(d : extended) : extended;
     function cos(d : extended) : extended;
@@ -30,8 +30,7 @@
     function sqrt(d : extended) : extended;
     function trunc(d : extended) : longint;
     function power(bas,expo : extended) : extended;
-    function power(bas,expo : longint) : longint;
-{$else i386}
+{$else SUPPORT_EXTENDED}
     function abs(d : real) : real;
     function arctan(d : real) : real;
     function cos(d : real) : real;
@@ -44,12 +43,13 @@
     function sqr(d : real) : real;
     function sqrt(d : real) : real;
     function trunc(d : real) : longint;
-    function power(bas,expo : longint) : longint;
     function power(bas,expo : real) : real;
     function pi : real;
-{$endif i386}
+{$endif SUPPORT_EXTENDED}
 
-{$ifdef FIXED}
+    function power(bas,expo : longint) : longint;
+    
+{$ifdef _SUPPORT_FIXED}
     function sqrt(d : fixed) : fixed;
     function Round(x: fixed): longint;
     function sqr(d : fixed) : fixed;
@@ -57,11 +57,14 @@
     function frac(d : fixed) : fixed;
     function trunc(d : fixed) : longint;
     function int(d : fixed) : fixed;
-{$endif FIXED}
+{$endif SUPPORT_FIXED}
 
 {
   $Log$
-  Revision 1.3  1998-08-08 12:28:11  florian
+  Revision 1.4  1998-08-11 00:05:24  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.3  1998/08/08 12:28:11  florian
     * a lot small fixes to the extended data type work
 
   Revision 1.2  1998/05/12 10:42:45  peter

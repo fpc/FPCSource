@@ -19,11 +19,11 @@ type
   { corresponding to real    single     fixed   extended and comp for i386 }
 
 {$ifdef i386}
-{$ifdef VER0_99_5}
-  bestreal = double;
-{$else VER0_99_5}
-  bestreal = extended; 
-{$endif VER0_99_5}
+  {$ifdef SUPPORT_EXTENDED}
+    bestreal = extended; 
+  {$else}
+    bestreal = double;
+  {$endif SUPPORT_EXTENDED}
 {$else i386}
   bestreal = single;
 {$endif i386}
@@ -201,7 +201,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-08-10 15:56:30  peter
+  Revision 1.9  1998-08-11 00:05:25  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.8  1998/08/10 15:56:30  peter
     * fixed 0_9_5 typo
 
   Revision 1.7  1998/08/08 12:28:12  florian

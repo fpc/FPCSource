@@ -590,7 +590,7 @@ Begin
 End;
 
 
-{$IFNDEF NEW_READWRITE}
+{$ifdef VER0_99_5}
 Procedure w(var t : TextRec);[Public,Alias: 'WRITELN_TEXT'];
 var
   hs : String;
@@ -603,7 +603,7 @@ Begin
   {$ENDIF}
   Write_Str(0,t,hs);
 End;
-{$ENDIF NEW_READWRITE}
+{$endif VER0_99_5}
 
 
 {*****************************************************************************
@@ -729,7 +729,8 @@ Begin
    FileFunc(f.FlushFunc)(f);
 End;
 
-{$ifndef MAXLENREADSTRING}
+
+{$ifdef VER0_99_5}
 Procedure Read_String(var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
 var
   Temp,sPos : Word;
@@ -771,7 +772,9 @@ Begin
    End;
   s[0]:=chr(sPos-1);
 End;
-{$ELSE}
+
+{$else VER0_99_5}
+
 Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias:'READ_TEXT_STRING'];
 var
   Temp,sPos,nrread : Word;
@@ -817,7 +820,8 @@ Begin
    End;
   s[0]:=chr(sPos-1);
 End;
-{$ENDIF MAXLENREADSTRING}
+{$endif VER0_99_5}
+
 
 Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: 'READ_TEXT_CHAR'];
 Begin
@@ -900,14 +904,13 @@ Begin
   p^:=#0;
 End;
 
+
 {$ifdef useansistrings}
 Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: 'READ_TEXT_ANSISTRING'];
-
 var
   p    : PChar;
   Temp : byte;
   len  : Longint;
-
 Begin
 { Delete the string }
   Decr_ansi_ref (S);
@@ -941,6 +944,7 @@ Begin
   PAnsiRec(Pointer(S)-FirstOff)^.Len:=len
 End;
 {$endif}
+
 
 Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias: 'READ_TEXT_LONGINT'];
 var
@@ -1150,7 +1154,7 @@ End;
 {$endif SUPPORT_COMP}
 
 
-{$IFNDEF NEW_READWRITE}
+{$ifdef VER0_99_5}
 Procedure r(var f : TextRec);[Public,Alias: 'READLN_TEXT'];
 Begin
   If InOutRes <> 0 then exit;
@@ -1165,7 +1169,7 @@ Begin
       FileFunc(f.InOutFunc)(f);
    end;
 End;
-{$ENDIF NEW_READWRITE}
+{$endif VER0_99_5}
 
 
 {*****************************************************************************
@@ -1192,7 +1196,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  1998-07-30 13:26:16  michael
+  Revision 1.20  1998-08-11 00:05:28  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.19  1998/07/30 13:26:16  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.

@@ -1,8 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by xxxx
-    member of the Free Pascal development team
+    Copyright (c) 1998 the Free Pascal development team
+    
+    SetJmp/Longjmp declarations
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -11,10 +12,6 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
-
-{**********************************************************************
-          Declarations for SetJmp/LongJmp
  **********************************************************************}
 
 Type
@@ -26,3 +23,10 @@ Type
 
 Function Setjmp (Var S : Jmp_buf) : longint;
 Procedure longjmp (Var S : Jmp_buf; value : longint);
+
+{
+  $Log$
+  Revision 1.2  1998-08-11 00:04:53  peter
+    * $ifdef ver0_99_5 updates
+
+}  

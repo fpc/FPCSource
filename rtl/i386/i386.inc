@@ -552,16 +552,16 @@ end;
 
 procedure runerror(w : word);[alias: 'runerror'];
 
-function get_addr : Pointer;assembler;
-asm
-   movl (%ebp),%eax
-   movl 4(%eax),%eax
-end;
+  function get_addr : Pointer;assembler;
+  asm
+    movl (%ebp),%eax
+    movl 4(%eax),%eax
+  end;
 
-function get_error_bp : Longint;assembler;
-asm
-   movl (%ebp),%eax {%ebp of run_error}
-end;
+  function get_error_bp : Longint;assembler;
+  asm
+    movl (%ebp),%eax {%ebp of run_error}
+  end;
 
 begin
   errorcode:=w;
@@ -719,7 +719,7 @@ end ['EAX'];
          end;
       end;
 
-{$IFNDEF NEW_READWRITE}
+{$ifdef VER0_99_5}
     procedure f1;[public,alias: 'FLUSH_STDOUT'];
 
       begin
@@ -731,7 +731,7 @@ end ['EAX'];
             popal
          end;
       end;
-{$ENDIF NEW_READWRITE}
+{$endif VER0_99_5}
 
 
 Function Sptr : Longint;
@@ -744,14 +744,18 @@ begin
 end;
 
 
-{$I386_ATT} {can be removed}
-{$I386_DIRECT} {can be removed}
+{$ifdef VER_0_99_5}
+  {$I386_DIRECT}
+{$endif}
 
 {$ASMMODE ATT}
 
 {
   $Log$
-  Revision 1.17  1998-07-30 13:26:20  michael
+  Revision 1.18  1998-08-11 00:04:47  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.17  1998/07/30 13:26:20  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.

@@ -15,7 +15,24 @@
  **********************************************************************}
 
 {$ASMMODE DIRECT}
-{$ifdef dummy}
+
+{$ifndef SUPPORT_EXTENDED}
+
+{****************************************************************************
+                       Real/Double data type routines
+ ****************************************************************************}
+
+    function pi : real;
+
+      begin
+         asm
+            fldpi
+            leave
+            ret
+         end [];
+      end;
+
+
     function abs(d : real) : real;
 
       begin
@@ -241,12 +258,8 @@
      begin
         power:=exp(ln(bas)*expo);
      end;
-{$endif dummy}
-
-   function power(bas,expo : longint) : longint;
-     begin
-        power:=round(exp(ln(bas)*expo));
-     end;
+     
+{$else SUPPORT_EXTENDED}
 
 {****************************************************************************
                        EXTENDED data type routines
@@ -494,7 +507,24 @@
         power:=exp(ln(bas)*expo);
      end;
 
-{$ifdef fixed}
+{$endif SUPPORT_EXTENDED}
+
+
+{****************************************************************************
+                       Longint data type routines
+ ****************************************************************************}
+
+   function power(bas,expo : longint) : longint;
+     begin
+        power:=round(exp(ln(bas)*expo));
+     end;
+
+
+{****************************************************************************
+                         Fixed data type routines
+ ****************************************************************************}
+
+{$ifdef _SUPPORT_FIXED} { Not yet allowed }
 
     function sqrt(d : fixed) : fixed;
 
@@ -523,6 +553,7 @@
             ret $4
          end;
       end;
+
 
     function int(d : fixed) : fixed;
     {*****************************************************************}
@@ -604,13 +635,16 @@
       Round:= longint(highf);
     end;
 
-{$endif}
+{$endif SUPPORT_FIXED}
 
 {$ASMMODE ATT}
 
 {
   $Log$
-  Revision 1.4  1998-08-10 15:54:50  peter
+  Revision 1.5  1998-08-11 00:04:50  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.4  1998/08/10 15:54:50  peter
     * removed dup power(longint)
 
   Revision 1.3  1998/08/08 12:28:09  florian

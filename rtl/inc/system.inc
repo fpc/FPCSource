@@ -71,7 +71,7 @@ Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
 Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
 Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
-{$ifndef INTERN_INC}
+{$ifdef VER0_99_5}
 Procedure Inc(var i : Cardinal);   [INTERNPROC: In_Inc_DWord];
 Procedure Inc(var i : Longint);    [INTERNPROC: In_Inc_DWord];
 Procedure Inc(var i : Integer);    [INTERNPROC: In_Inc_Word];
@@ -88,7 +88,7 @@ Procedure Dec(var i : shortint);   [INTERNPROC: In_Dec_byte];
 Procedure Dec(var i : byte);       [INTERNPROC: In_Dec_byte];
 Procedure Dec(var c : Char);       [INTERNPROC: In_Dec_byte];
 Procedure Dec(var p : PChar);      [INTERNPROC: In_Dec_DWord];
-{$endif INTERN_INC}
+{$endif VER0_99_5}
 
 Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
 Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
@@ -139,7 +139,7 @@ Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
 ****************************************************************************}
 
 {$ifndef VER0_99_5}
-{$i rtti.inc}
+  {$i rtti.inc}
 {$endif  VER0_99_5}
 
 {****************************************************************************
@@ -158,7 +158,7 @@ begin
    Lo := b and $0f
 end;
 
-{$ifndef INTERN_INC}
+{$ifdef VER0_99_5}
 
 Procedure Inc(var i : Cardinal;a: Longint);
 Begin
@@ -240,7 +240,7 @@ Begin
   longint(p):=longint(p)+a;
 End;
 
-{$endif INTERN_INC}
+{$endif VER0_99_5}
 
 Function swap (X : Word) : Word;
 Begin
@@ -262,11 +262,11 @@ Begin
   Swap:=Swap(Longint(X));
 End;
 
-
 {$endif RTLLITE}
-{****************************************************************************
-                              Random function routines
 
+{****************************************************************************
+                          Random function routines
+			      
 	This implements a very long cycle random number generator by combining
    three independant generators.  The technique was described in the March
    1987 issue of Byte.
@@ -337,12 +337,11 @@ begin
 end;
 
 
-
 { Include processor specific routines }
 {$I math.inc}
 
 {****************************************************************************
-                                                         Memory Management
+                            Memory Management
 ****************************************************************************}
 
 {$ifndef RTLLITE}
@@ -376,7 +375,7 @@ End;
 {$endif RTLLITE}
 
 {*****************************************************************************
-                                                         Miscellaneous
+                             Miscellaneous
 *****************************************************************************}
 
 
@@ -415,9 +414,9 @@ Procedure dump_stack(bp : Longint);
   Begin
   {To be used by symify}
     Writeln(stderr,'  0x',HexStr(addr,8));
-{$IFNDEF NEW_READWRITE}
+{$ifdef VER0_99_5}
     Flush(stderr);
-{$ENDIF NEW_READWRITE}
+{$endif VER0_99_5}
   End;
 
 var
@@ -456,9 +455,9 @@ Begin
      Writeln('Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      dump_stack(ErrorBase);
    End;
-{$IFNDEF NEW_READWRITE}
+{$ifdef VER0_99_5}
   Flush(stderr);
-{$ENDIF NEW_READWRITE}
+{$endif VER0_99_5}
 End;
 
 
@@ -503,7 +502,6 @@ End;
 *****************************************************************************}
 
 Procedure do_assert (Const Name,Msg : string; LineNo : Longint); [Public,Alias : 'FPC_DO_ASSERT'];
-
 begin
   If msg='' then
     write (stderr,'Assertion failed. ')
@@ -514,22 +512,28 @@ begin
   HandleError (227);
 end;
 
+
 {*****************************************************************************
       SetJmp/LongJmp support.
 *****************************************************************************}
 
 {$i setjump.inc}
 
+
 {*****************************************************************************
       Exception support.
 *****************************************************************************}
 
-// No go, because objpas needed :( (MVC)
-{  $i except.inc}
+{ No go, because objpas needed :( (MVC) }
+{ $i except.inc}
+
 
 {
   $Log$
-  Revision 1.25  1998-07-30 13:26:18  michael
+  Revision 1.26  1998-08-11 00:05:26  peter
+    * $ifdef ver0_99_5 updates
+
+  Revision 1.25  1998/07/30 13:26:18  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.
