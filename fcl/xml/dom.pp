@@ -405,7 +405,7 @@ type
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; override;
     property Name: DOMString read FNodeName;
     property Specified: Boolean read FSpecified;
-    property Value: DOMString read FNodeValue write SetNodeValue;
+    property Value: DOMString read GetNodeValue write SetNodeValue;
   end;
 
 
@@ -1504,7 +1504,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-12-17 20:25:25  sg
+  Revision 1.9  2002-03-01 10:02:38  sg
+  * Fixed read access method for TDOMAttr.Value
+
+  Revision 1.8  2001/12/17 20:25:25  sg
   * Use WideStrings when not using FPC 1.0.x
 
   Revision 1.7  2001/05/06 21:37:39  sg
