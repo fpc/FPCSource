@@ -599,7 +599,14 @@ do_jmp:
 
       var
          exceptlabel,doexceptlabel,oldendexceptlabel,
-         lastonlabel : pasmlabel;
+         lastonlabel,
+         exitexceptlabel,
+         continueexceptlabel,
+         breakexceptlabel,
+         oldaktexitlabel,
+         oldaktexit2label,
+         oldaktcontinuelabel,
+         oldaktbreaklabel : pasmlabel;
          oldexceptblock : ptree;
 
       begin
@@ -607,6 +614,18 @@ do_jmp:
          oldendexceptlabel:=endexceptlabel;
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+
+         oldaktcontinuelabel:=aktcontinuelabel;
+         oldaktbreaklabel:=aktbreaklabel;
+         oldaktexitlabel:=aktexitlabel;
+         oldaktexit2label:=aktexit2label;
+         getlabel(exitexceptlabel);
+         getlabel(breakexceptlabel);
+         getlabel(continueexceptlabel);
+         aktcontinuelabel:=continueexceptlabel;
+         aktbreaklabel:=breakexceptlabel;
+         aktexitlabel:=exitexceptlabel;
+         aktexit2label:=exitexceptlabel;
 
          getlabel(exceptlabel);
          getlabel(doexceptlabel);
@@ -665,13 +684,35 @@ do_jmp:
            end
          else
            emitcall('FPC_RERAISE');
-         { reraise doesn't need a maybe_loadesi because it never }
-         { returns (FK)                                          }
+
+         { do some magic for exit in the try block }
+         emitlab(exitexceptlabel);
+         emitcall('FPC_POPADDRSTACK');
+         emit_reg(A_POP,S_L,R_EAX);
+         emitjmp(C_None,oldaktexitlabel);
+
+         if assigned(oldaktbreaklabel) then
+          begin
+            emitlab(breakexceptlabel);
+            emitcall('FPC_POPADDRSTACK');
+            emit_reg(A_POP,S_L,R_EAX);
+            emitjmp(C_None,oldaktbreaklabel);
+          end;
+
+         if assigned(oldaktcontinuelabel) then
+          begin
+            emitlab(continueexceptlabel);
+            emitcall('FPC_POPADDRSTACK');
+            emit_reg(A_POP,S_L,R_EAX);
+            emitjmp(C_None,oldaktcontinuelabel);
+          end;
+
          emitlab(endexceptlabel);
-         freelabel(exceptlabel);
-         freelabel(doexceptlabel);
-         freelabel(endexceptlabel);
-         freelabel(lastonlabel);
+
+         aktexitlabel:=oldaktexitlabel;
+         aktexit2label:=oldaktexit2label;
+         aktcontinuelabel:=oldaktcontinuelabel;
+         aktbreaklabel:=oldaktbreaklabel;
          endexceptlabel:=oldendexceptlabel;
       end;
 
@@ -733,19 +774,33 @@ do_jmp:
     procedure secondtryfinally(var p : ptree);
 
       var
-         finallylabel,noreraiselabel : pasmlabel;
-         oldaktexitlabel,exitfinallylabel : pasmlabel;
-         oldaktexit2label : pasmlabel;
+         reraiselabel,
+         finallylabel,
+         endfinallylabel,
+         exitfinallylabel,
+         continuefinallylabel,
+         breakfinallylabel,
+         oldaktexitlabel,
+         oldaktexit2label,
+         oldaktcontinuelabel,
+         oldaktbreaklabel : pasmlabel;
          oldexceptblock : ptree;
 
       begin
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
          getlabel(finallylabel);
-         getlabel(noreraiselabel);
+         getlabel(endfinallylabel);
+         oldaktcontinuelabel:=aktcontinuelabel;
+         oldaktbreaklabel:=aktbreaklabel;
          oldaktexitlabel:=aktexitlabel;
          oldaktexit2label:=aktexit2label;
+         getlabel(reraiselabel);
          getlabel(exitfinallylabel);
+         getlabel(breakfinallylabel);
+         getlabel(continuefinallylabel);
+         aktcontinuelabel:=continuefinallylabel;
+         aktbreaklabel:=breakfinallylabel;
          aktexitlabel:=exitfinallylabel;
          aktexit2label:=exitfinallylabel;
 
@@ -779,20 +834,44 @@ do_jmp:
            exit;
          emit_reg(A_POP,S_L,R_EAX);
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
-         emitjmp(C_E,noreraiselabel);
+         emitjmp(C_E,endfinallylabel);
          emit_reg(A_DEC,S_L,R_EAX);
-         emitjmp(C_NE,oldaktexitlabel);
+         emitjmp(C_Z,reraiselabel);
+         emit_reg(A_DEC,S_L,R_EAX);
+         emitjmp(C_Z,oldaktexitlabel);
+         if assigned(oldaktbreaklabel) then
+          begin
+            emit_reg(A_DEC,S_L,R_EAX);
+            emitjmp(C_Z,oldaktbreaklabel);
+            emit_reg(A_DEC,S_L,R_EAX);
+            emitjmp(C_Z,oldaktcontinuelabel);
+          end;
+         emitlab(reraiselabel);
          emitcall('FPC_RERAISE');
-         { reraise never returns ! }
-         emitlab(exitfinallylabel);
 
-         { do some magic for exit in the try block }
+         { do some magic for exit,break,continue in the try block }
+         emitlab(exitfinallylabel);
          emit_reg(A_POP,S_L,R_EAX);
          emit_const(A_PUSH,S_L,2);
          emitjmp(C_NONE,finallylabel);
-         emitlab(noreraiselabel);
+         if assigned(oldaktbreaklabel) then
+          begin
+            emitlab(breakfinallylabel);
+            emit_reg(A_POP,S_L,R_EAX);
+            emit_const(A_PUSH,S_L,3);
+            emitjmp(C_NONE,finallylabel);
+            emitlab(continuefinallylabel);
+            emit_reg(A_POP,S_L,R_EAX);
+            emit_const(A_PUSH,S_L,4);
+            emitjmp(C_NONE,finallylabel);
+          end;
+
+         emitlab(endfinallylabel);
+
          aktexitlabel:=oldaktexitlabel;
          aktexit2label:=oldaktexit2label;
+         aktcontinuelabel:=oldaktcontinuelabel;
+         aktbreaklabel:=oldaktbreaklabel;
       end;
 
 
@@ -809,7 +888,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.62  1999-12-17 11:20:06  florian
+  Revision 1.63  1999-12-19 17:02:45  peter
+    * support exit,break,continue in try...except
+    * support break,continue in try...finally
+
+  Revision 1.62  1999/12/17 11:20:06  florian
     * made the goto checking for excpetions more fool proof against errors
 
   Revision 1.61  1999/12/14 09:58:41  florian
