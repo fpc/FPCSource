@@ -72,10 +72,18 @@ function MinIntValue(const Data: array of Integer): Integer;
 function MaxIntValue(const Data: array of Integer): Integer;
 
 { Extra, not present in Delphi, but used frequently  }
-function Min(Int1,Int2:Integer):Integer;
-function Min(Int1,Int2:Cardinal):Cardinal;
-function Max(Int1,Int2:Integer):Integer;
-function Max(Int1,Int2:Cardinal):Cardinal;
+function Min(a, b: Integer): Integer;
+function Max(a, b: Integer): Integer;
+function Min(a, b: Cardinal): Cardinal;
+function Max(a, b: Cardinal): Cardinal;
+function Min(a, b: Int64): Int64;
+function Max(a, b: Int64): Int64;
+function Min(a, b: Single): Single;
+function Max(a, b: Single): Single;
+function Min(a, b: Double): Double;
+function Max(a, b: Double): Double;
+function Min(a, b: Extended): Extended;
+function Max(a, b: Extended): Extended;
 
 { angle conversion }
 
@@ -366,7 +374,7 @@ function sinh(x : float) : float;
      sinh:=0.5*(temp-1.0/temp);
   end;
 
-Const MaxTanh=5000; { rather arbitrary, but more or less correct }
+Const MaxTanh = 5678.22249441322; // Ln(MaxExtended)/2
 
 function tanh(x : float) : float;
 
@@ -773,7 +781,7 @@ var
   I: Integer;
 begin
   Result := Data[0];
-  For I := 0 To N-1 do
+  For I := 1 To N-1 do
     If Data[I] < Result Then Result := Data[I];
 end;
 
@@ -792,7 +800,7 @@ var
 begin
    { get an initial value }
    minvalue:=data[0];
-   for i:=0 to N-1 do
+   for i:=1 to N-1 do
      if data[i]<minvalue then
        minvalue:=data[i];
 end;
@@ -820,7 +828,7 @@ var
 begin
    { get an initial value }
    maxvalue:=data[0];
-   for i:=0 to N-1 do
+   for i:=1 to N-1 do
      if data[i]>maxvalue then
        maxvalue:=data[i];
 end;
@@ -839,41 +847,120 @@ var
 begin
    { get an initial value }
    maxvalue:=data[0];
-   for i:=0 to N-1 do
+   for i:=1 to N-1 do
      if data[i]>maxvalue then
        maxvalue:=data[i];
 end;
 
 
-function Min(Int1,Int2:Integer):Integer;
+function Min(a, b: Integer): Integer;
 begin
-  If Int1 < Int2 Then Result := Int1
-                 Else Result := Int2;
+  if a < b then
+    Result := a
+  else
+    Result := b;
 end;
 
-function Min(Int1,Int2:Cardinal):Cardinal;
+function Max(a, b: Integer): Integer;
 begin
-  If Int1 < Int2 Then Result := Int1
-                 Else Result := Int2;
+  if a > b then
+    Result := a
+  else
+    Result := b;
 end;
 
-function Max(Int1,Int2:Integer):Integer;
+function Min(a, b: Cardinal): Cardinal;
 begin
-  If Int1 > Int2 Then Result := Int1
-                 Else Result := Int2;
+  if a < b then
+    Result := a
+  else
+    Result := b;
 end;
 
-function Max(Int1,Int2:Cardinal):Cardinal;
+function Max(a, b: Cardinal): Cardinal;
 begin
-  If Int1 > Int2 Then Result := Int1
-                 Else Result := Int2;
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Min(a, b: Int64): Int64;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: Int64): Int64;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Min(a, b: Single): Single;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: Single): Single;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Min(a, b: Double): Double;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: Double): Double;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Min(a, b: Extended): Extended;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: Extended): Extended;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.3  2000-07-29 18:07:45  sg
+  Revision 1.4  2000-07-30 10:01:04  sg
+  * Made some modifications suggested by Markus Kaemmerer:
+    - MaxTanh is now the exact value Ln(MaxExtended)/2
+    - The 'for' loops in MinValue and MaxValue can start with the second
+      element instead of the first one
+    - Added more overloaded versions of Min and Max functions
+
+  Revision 1.3  2000/07/29 18:07:45  sg
   * Applied patches by Markus Kaemmerer:
     - Added ranges of the IEEE floating point types, including denormals
     - in sincos function: The arguments are of type Extended, so they
