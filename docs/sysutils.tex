@@ -54,7 +54,7 @@ type
       Date: integer;   { One plus number of days since 1/1/0001 }
    end ;
 \end{verbatim}
-The following type is used in the \seep{FindFirst},\seep{FindNext} 
+The following type is used in the \seef{FindFirst},\seef{FindNext} 
 and \seep{FindClose} functions. The \var{win32} version differs from 
 the other versions. If code is to be portable, that part  shouldn't 
 be used.
@@ -191,6 +191,7 @@ Const
 \section{Date and time functions}
 
 \subsection{Date and time formatting characters}
+
 Various date and time formatting routines accept a format string.
 to format the date and or time. The following characters can be used
 to control the date and time formatting:
@@ -225,38 +226,103 @@ to control the date and time formatting:
 \item['xx'] : literal text
 \end{description}
 
+\begin{type}{TDateTime}
+\Declaration
+  TDateTime = Double;
+\Description
+Many functions return or require a \var{TDateTime} type, which contains
+a date and time in encoded form. The date and time are converted to a double
+as follows:
+\end{type}
+
 \begin{function}{Date}
 \Declaration
 Function Date: TDateTime;
 \Description
+\var{Date} returns the current date in \var{TDateTime} format. 
+For more information about the \var{TDateTime} type, see \seety{TDateTime}.
 \Errors
+None.
 \SeeAlso
+\seef{Time},\seef{Now}, \seety{TDateTime}.
 \end{function}
 
- 
+\latex{\inputlisting{sysutex/ex1.pp}}
+\html{\input{sysutex/ex1.tex}}
+
 \begin{function}{DateTimeToFileDate}
 \Declaration
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 \Description
+\var{DateTimeToFileDate} function converts a date/time indication in
+\var{TDateTime} format to a filedate function, such as returned for 
+instance by the \seef{FileAge} function.
 \Errors
+None.
 \SeeAlso
+\seef{Time}, \seef{Date}, \seef{FileDateToDateTime}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex2.pp}}
+\html{\input{sysutex/ex2.tex}}
  
 \begin{function}{DateTimeToStr}
 \Declaration
 Function DateTimeToStr(DateTime: TDateTime): string;
 \Description
+\var{DateTimeToStr} returns a string representation of 
+\var{DateTime} using the formatting specified in
+\var{ShortDateTimeFormat}. It corresponds to a call to 
+\var{FormatDateTime('c',DateTime)}.
 \Errors
+None.
 \SeeAlso
+\seef{FormatDateTime}, \seety{TDateTime}.
 \end{function}
 
+\latex{\inputlisting{sysutex/ex3.pp}}
+\html{\input{sysutex/ex3.tex}}
  
 \begin{procedure}{DateTimeToString}
 \Declaration
 Procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
 \Description
+\var{DateTimeToString} returns in \var{Result} a string representation of 
+\var{DateTime} using the formatting specified in \var{FormatStr}. 
+
+The following formatting characters can be used in \var{FormatStr}:
+\begin{description}
+\item[c] : shortdateformat + ' ' + shorttimeformat
+\item[d] : day of month
+\item[dd] : day of month (leading zero)
+\item[ddd] : day of week (abbreviation)
+\item[dddd] : day of week (full)
+\item[ddddd] : shortdateformat
+\item[dddddd] : longdateformat
+\item[m] : month
+\item[mm] : month (leading zero)
+\item[mmm] : month (abbreviation)
+\item[mmmm] : month (full)
+\item[y] : year (four digits)
+\item[yy] : year (two digits)
+\item[yyyy] : year (with century)
+\item[h] : hour
+\item[hh] : hour (leading zero)
+\item[n] : minute
+\item[nn] : minute (leading zero)
+\item[s] : second
+\item[ss] : second (leading zero)
+\item[t] : shorttimeformat
+\item[tt] : longtimeformat
+\item[am/pm] : use 12 hour clock and display am and pm accordingly
+\item[a/p] : use 12 hour clock and display a and p accordingly
+\item[/] : insert date seperator
+\item[:] : insert time seperator
+\item["xx"] : literal text
+\item['xx'] : literal text
+\end{description}
 \Errors
+None.
 \SeeAlso
 \end{procedure}
 
