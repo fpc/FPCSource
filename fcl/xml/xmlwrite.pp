@@ -28,9 +28,9 @@ procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
 procedure WriteXMLFile(doc: TXMLDocument; var AStream: TStream);
 
-procedure WriteXML(Element: TDOMElement; const AFileName: String);
-procedure WriteXML(Element: TDOMElement; var AFile: Text);
-procedure WriteXML(Element: TDOMElement; var AStream: TStream);
+procedure WriteXML(Element: TDOMNode; const AFileName: String);
+procedure WriteXML(Element: TDOMNode; var AFile: Text);
+procedure WriteXML(Element: TDOMNode; var AStream: TStream);
 
 
 // ===================================================================
@@ -378,7 +378,7 @@ begin
 end;
 
 
-procedure WriteXML(Element: TDOMElement; const AFileName: String);
+procedure WriteXML(Element: TDOMNode; const AFileName: String);
 begin
   Stream := TFileStream.Create(AFileName, fmCreate);
   wrt := @Stream_Write;
@@ -388,7 +388,7 @@ begin
   Stream.Free;
 end;
 
-procedure WriteXML(Element: TDOMElement; var AFile: Text);
+procedure WriteXML(Element: TDOMNode; var AFile: Text);
 begin
   f := @AFile;
   wrt := @Text_Write;
@@ -397,7 +397,7 @@ begin
   WriteNode(Element);
 end;
 
-procedure WriteXML(Element: TDOMElement; var AStream: TStream);
+procedure WriteXML(Element: TDOMNode; var AStream: TStream);
 begin
   stream := AStream;
   wrt := @Stream_Write;
@@ -412,7 +412,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:15:29  peter
+  Revision 1.8  2002-09-20 11:04:21  michael
+  + Changed writexml type to TDomNode instead of TDomeElement
+
+  Revision 1.7  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }
