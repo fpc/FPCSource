@@ -1437,8 +1437,10 @@ interface
                   muln:
                     begin
                       { calculate the upper 32 bits of the product, = 0 if no overflow }
-                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHWU_,location.register,
+                      cg.a_reg_alloc(exprasmlist,NR_R0);
+                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHWU_,NR_R0,
                         left.location.register,right.location.register));
+                      cg.a_reg_dealloc(exprasmlist,NR_R0);
                       { calculate the real result }
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLW,location.register,
                         left.location.register,right.location.register));
@@ -1458,7 +1460,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-10-31 21:45:03  peter
+  Revision 1.53  2004-11-26 12:17:04  jonas
+    * fixed overflow checking of unsigned multiplications
+
+  Revision 1.52  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
