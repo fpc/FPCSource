@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$H+}
 type
   TTreeData = record
     Key: String;
