@@ -179,9 +179,56 @@
            MethodName:='';
         end;
 
+
+
+
       function TObject.FieldAddress(const name : shortstring) : pointer;
 
+	type
+	   PFieldInfo = ^TFieldInfo;
+	   TFieldInfo = packed record
+	     FieldOffset: LongWord;
+	     ClassTypeIndex: Word;
+	     Name: ShortString;
+	   end;
+
+	   PFieldTable = ^TFieldTable;
+	   TFieldTable = packed record
+	     FieldCount: Word;
+	     ClassTable: Pointer;
+	     { Fields: array[Word] of TFieldInfo;  Elements have variant size! }
+	   end;
+
+        var
+	   UName: ShortString;
+	   CurClassType: TClass;
+	   FieldTable: PFieldTable;
+	   FieldInfo: PFieldInfo;
+	   i: Integer;
+
         begin
+	   UName := UpCase(name);
+	   CurClassType := ClassType;
+	   while CurClassType <> nil do
+	   begin
+	     FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
+	     if FieldTable <> nil then
+	     begin
+	       FieldInfo := PFieldInfo(Pointer(FieldTable) + 6);
+	       for i := 0 to FieldTable^.FieldCount - 1 do
+	       begin
+	         if UpCase(FieldInfo^.Name) = UName then
+		 begin
+		   fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
+	           exit;
+		 end;
+		 Inc(FieldInfo, 7 + Length(FieldInfo^.Name));
+	       end;
+	     end;
+	     { Try again with the parent class type }
+	     CurClassType := CurClassType.ClassParent;
+	   end;
+
            fieldaddress:=nil;
         end;
 
@@ -405,7 +452,10 @@
 
 {
   $Log$
-  Revision 1.15  2000-05-16 08:06:14  michael
+  Revision 1.16  2000-06-29 16:32:50  sg
+  * Implemented TObject.FieldAddress
+
+  Revision 1.15  2000/05/16 08:06:14  michael
   + Fixed ClassNameIs so it is case insensitive
 
   Revision 1.14  2000/02/09 16:59:31  peter
