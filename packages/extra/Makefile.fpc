@@ -3,23 +3,22 @@
 #
 
 [target]
-dirs=unzip
-dirs_linux=uncgi fpasync \
+dirs_linux=unzip uncgi fpasync \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
            utmp cmem bfd zlib gdbm ncurses
-dirs_netbsd=uncgi fpasync \
+dirs_netbsd=unzip uncgi fpasync \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
             utmp cmem bfd zlib gdbm ncurses
-dirs_freebsd=uncgi fpasync \
+dirs_freebsd=unzip uncgi fpasync \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp cmem bfd zlib gdbm ncurses
-dirs_win32=uncgi opengl gtk \
+dirs_win32=unzip uncgi opengl gtk \
            zlib mmsystem
-dirs_os2=uncgi
-dirs_go32v2=uncgi
+dirs_os2=unzip uncgi
+dirs_go32v2=unzip uncgi
 
 [install]
 fpcpackage=y
