@@ -30,6 +30,143 @@
 For now I do them in assembler, which makes it easier to test them (copy and
 paste to and AS source). Ultimately I hope to design something like this}
 
+{actualsyscall:
+  _actualsyscall : int $0x80
+                   jb someerror
+                   ret
+      someerror:   storeerrorsomewhere
+                   ret
+}
+
+
+
+function Do_SysCall(sysnr,param1:LONGINT):longint;
+
+var retval:longint;
+
+begin
+ asm
+  movl  sysnr,%eax
+  pushl Param1
+  call  _actualsyscall
+  addl  $4,%esp
+  mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+end;
+
+function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
+
+var retval:longint;
+
+begin
+ asm
+   movl  sysnr,%eax
+   pushl param2
+   pushl Param1
+   call  _actualsyscall
+   addl  $8,%esp
+   mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+ end;
+
+function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
+var retval:longint;
+
+begin
+ asm
+   movl  sysnr,%eax
+   pushl param3
+   pushl param2
+   pushl Param1
+   call  _actualsyscall
+   addl  $12,%esp
+   mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+end;
+
+function Do_SysCall(sysnr,param1,param2:longint;param3:word):longint;
+var retval:longint;
+
+begin
+ asm
+   movl  sysnr,%eax
+   pushw param3
+   pushl param2
+   pushl Param1
+   call  _actualsyscall
+   addl  $12,%esp
+   mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+end;
+
+
+function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
+
+var retval:longint;
+
+begin
+ asm
+   movl  sysnr,%eax
+   pushl param4
+   pushl param3
+   pushl param2
+   pushl Param1
+   call  _actualsyscall
+   addl  $16,%esp
+   mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     DoSysCall:=-1;
+   end
+  else
+   begin
+     DoSysCall:=Retval;
+     errno:=0
+   end;
+ end;
+
 {
 Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
 {
@@ -41,37 +178,14 @@ begin
   do_SysCall(callnr,regs);
   if regs.reg1<0 then
    begin
-{$IFDEF SYSCALL_DEBUG}
-     If DoSysCallDebug then
-       debugtxt:=' syscall error: ';
-{$endif}
      ErrNo:=-regs.reg1;
      SysCall:=-1;
    end
   else
    begin
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-       debugtxt:=' syscall returned: ';
-{$endif}
      SysCall:=regs.reg1;
      errno:=0
    end;
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-    begin
-    inc(lastcnt);
-    if (callnr<>lastcall) or (regs.reg1<>lasteax) then
-      begin
-      if lastcnt>1 then
-        writeln(sys_nr_txt[lastcall],debugtxt,lasteax,' (',lastcnt,'x)');
-      lastcall:=callnr;
-      lasteax:=regs.reg1;
-      lastcnt:=0;
-      writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
-      end;
-    end;     
-{$endif}
 end;
 }
 
@@ -104,22 +218,16 @@ end;
 
 Function Sys_Time:longint;
 
-VAR tv : timeval;
-    tz : timezone;
+VAR tv     : timeval;
+    tz     : timezone;
     retval : longint;
+
 begin
-  asm
-   lea   tz,%ebx
-   pushl %ebx
-   lea   tv,%ecx
-   pushl %ecx
-   mov   $116,%eax
-   int   $0x80
-   add   $8,%esp
-   mov   %eax,retval
-  end;
-  
- sys_time:=checkreturnvalue(retval,tv.sec);
+  Retval:=DoSyscall(116,longint(tv),longint(tz));
+  If retval=-1 then
+   sys_time:=-1
+  else
+   sys_time:=tv.sec;
 end;
 
 {*****************************************************************************
@@ -129,117 +237,44 @@ end;
 
 Function Sys_Open(f:pchar;flags:longint;mode:integer):longint;
 
-var retval: LONGINT;
-
 Begin
- asm 
-   pushw mode
-   pushl flags
-   pushl f
-   movl  $5,%eax
-   int   $0x80
-   add   $10,%esp
-   mov   %eax,retval
-  end;
- sys_open:=checkreturnvalue(retval,retval);
+ sys_open:=DoSyscall(5,longint(f),flags,mode);
 End;
 
 Function Sys_Close(f:longint):longint;
 
-var retval: LONGINT;
-
 begin
- asm 
-   pushl f
-   movl  $6,%eax
-   int   $0x80
-   addl  $4,%esp
-   mov   %eax,retval
- end;
- Sys_Close:=checkreturnvalue(retval,retval);
+ sys_close:=DoSyscall(6,f);
 end;
 
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 
-var retval: LONGINT;
-
 begin
-  asm
-    pushl Whence
-    pushl Off
-    pushl F
-    mov   $199,%eax
-    int   $0x80
-    addl  $12,%eax
-    mov   %eax,retval
-  end;
-  Sys_Lseek:=checkreturnvalue(retval,retval);
+ sys_lseek:=DoSyscall(199,F,Off,Whence);
 end;
 
 Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
 
-var retval: LONGINT;
-
 begin
-  asm
-    pushl Count
-    pushl Buffer
-    pushl F
-    mov   $3,%eax
-    int   $0x80
-    addl  $12,%eax
-    mov   %eax,retval
-  end;   
-  Sys_Read:=checkreturnvalue(retval,retval);
-
+  sys_read:=DoSyscall(3,F,longint(buffer),count);
 end;
 
 Function Sys_Write(f:longint;buffer:pchar;count:longint):longint;
 
-var retval: LONGINT;
-
 begin
-  asm
-    pushl Count
-    pushl Buffer
-    pushl F
-    mov   $4,%eax
-    int   $0x80
-    addl  $12,%eax
-    mov   %eax,retval
-  end;   
- Sys_Write:=checkreturnvalue(retval,retval);
+ sys_write:=DoSyscall(4,F,longint(buffer),count);
 end;
 
 Function Sys_Unlink(Filename:pchar):longint;
 
-var retval: LONGINT;
-
 begin
-  asm
-    pushl FileName
-    mov   $10,%eax
-    int   $0x80
-    addl  $4,%eax
-    mov   %eax,retval
-  end;   
- Sys_UnLink:=checkreturnvalue(retval,retval);
+  sys_unlink:=DoSyscall(10,longint(Filename));
 end;
 
 Function Sys_Rename(Oldname,Newname:pchar):longint;
 
-var retval: LONGINT;
-
 begin
-  asm
-    pushl NewName
-    pushl OldName
-    mov   $38,%eax
-    int   $0x80
-    addl  $8,%eax
-    mov   %eax,retval
-  end;   
- Sys_Rename:=checkreturnvalue(retval,retval);
+  sys_rename:=DoSyscall(38,longint(oldname),longint(newname));
 end;
 
 Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
@@ -247,36 +282,17 @@ Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
    We need this for getcwd
 }
 
-var retval: LONGINT;
-
 begin
-  asm
-    pushl buffer
-    pushl FileName
-    mov   $188,%eax
-    int   $0x80
-    addl  $8,%eax
-    mov   %eax,retval
-  end;   
-Sys_Stat:=checkreturnvalue(retval,retval);
+ sys_stat:=DoSyscall(188,longint(filename),longint(@buffer));
 end;
- 
+
 Function Sys_Symlink(oldname,newname:pchar):longint;
 {
   We need this for erase
 }
-var retval : longint;
 
 begin
- asm
-    pushl newname
-    pushl oldname
-    mov   $57,%eax
-    int   $0x80
-    addl  $8,%eax
-    mov   %eax,retval
-  end;   
- Sys_Symlink:=checkreturnvalue(retval,retval);
+ sys_symlink:=DoSyscall(57,longint(oldname),longint(newname));
 end;
 
 {*****************************************************************************
@@ -285,49 +301,21 @@ end;
 
 Function Sys_Chdir(Filename:pchar):longint;
 
-var retval : longint;
-
 begin
- asm
-    pushl FileName
-    mov   $12,%eax
-    int   $0x80
-    addl  $4,%eax
-    mov   %eax,retval
-  end;   
- Sys_ChDir:=checkreturnvalue(retval,retval);
+ sys_chdir(12,longint(filename));
 end;
 
 Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
 
-var retval : longint;
-
 begin {Mode is 16-bit on F-BSD}
  asm
-    mov  mode,%eax
-    pushw %ax
-    pushl FileName
-    mov   $136,%eax
-    int   $0x80
-    addl  $6,%eax
-    mov   %eax,retval
-  end;   
- Sys_MkDir:=checkreturnvalue(retval,retval);
+  sys_mkdir:=dosyscall(longint(filename),mode shl 8);
 end;
 
 Function Sys_Rmdir(Filename:pchar):longint;
 
-var retval : longint;
-
 begin
- asm
-    pushl FileName
-    mov   $137,%eax
-    int   $0x80
-    addl  $4,%eax
-    mov   %eax,retval
-  end;   
- Sys_RmDir:=checkreturnvalue(retval,retval);
+ sys_rmdir:=Dosyscall(137,longint(filename));
 end;
 
 { we need this for getcwd, NOT touched for BSD version }
@@ -376,18 +364,7 @@ Function Sys_ReadDir(p:pdir):pdirent;
 var
     retval : longint;
 begin
- retval:=SIZEOF(dirent) ;
- asm 
-    mov p,%esi
-    push retval
-    push tdir.buf(%esi)
-    push tdir.fd(%esi)
-    mov  $272,%eax 
-    int  $0x80
-    addl $12,%esp
-    mov  %eax,retval    
-  end; 
-  retval:=checkreturnvalue(retval,retval); 
+ retval:=dosyscall(272,longint(@p.fd),longint(@p.buf),sizeof(dirent));
   if retval=0 then 
    sys_readdir:=nil 
   else 
@@ -400,22 +377,17 @@ end;
 
 Procedure Sys_Exit(ExitCode:longint);
 
-var retval : longint;
-
 begin
  asm
-    pushl ExitCode
-    mov   $1,%eax
-    int   $0x80
-    addl  $4,%eax
-    mov   %eax,retval
-  end;   
- checkreturnvalue(retval,retval); {is nonsense :-)}
+  sys_exit:=dosyscall(1,exitcode);
 end;
 
 {
   $Log$
-  Revision 1.5  2000-02-04 16:53:26  marco
+  Revision 1.6  2000-02-27 23:45:39  marco
+   * Redone the syscalls
+
+  Revision 1.5  2000/02/04 16:53:26  marco
    * Finished Linux (and rest syscalls) roughly. Some things still need to be
     tested, and checked (off_t calls specially)
 
