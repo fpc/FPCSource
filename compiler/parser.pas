@@ -447,15 +447,16 @@ unit parser;
          { if already compiled jumps directly here }
 done:
          { close trees }
-{$ifdef disposetree}
-         dispose(datasegment,Done);
-         dispose(codesegment,Done);
-         dispose(bsssegment,Done);
-         dispose(debuglist,Done);
-         dispose(externals,Done);
-         dispose(internals,Done);
-         dispose(consts,Done);
-{$endif}
+         if dispose_asm_lists then
+           begin
+              dispose(datasegment,Done);
+              dispose(codesegment,Done);
+              dispose(bsssegment,Done);
+              dispose(debuglist,Done);
+              dispose(externals,Done);
+              dispose(internals,Done);
+              dispose(consts,Done);
+           end;
 
          { restore symtable state }
 {$ifdef UseBrowser}
@@ -531,7 +532,14 @@ done:
 end.
 {
   $Log$
-  Revision 1.3  1998-04-07 22:45:04  florian
+  Revision 1.4  1998-04-08 16:58:03  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.3  1998/04/07 22:45:04  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 
@@ -890,4 +898,5 @@ end.
          * removed bugs due to wrong current_module references in compile procedure (PM)
 
 }
+
 

@@ -55,10 +55,8 @@ unit radi386;
            s[0]:=chr(i);
            if s<>'' then
             code^.concat(new(pai_direct,init(strpnew(s))));
-            { if function return is param }
-            { consider it set if the offset was loaded }
+            { consider it set function set if the offset was loaded }
            if assigned(procinfo.retdef) and
-              ret_in_param(procinfo.retdef) and
               (pos(retstr,upper(s))>0) then
               procinfo.funcret_is_valid:=true;
            s:='';
@@ -67,6 +65,9 @@ unit radi386;
      begin
        ende:=false;
        s:='';
+       if assigned(procinfo.retdef) and
+          is_fpu(procinfo.retdef) then
+         procinfo.funcret_is_valid:=true;
        if assigned(procinfo.retdef) and
           (procinfo.retdef<>pdef(voiddef)) then
          retstr:=upper(tostr(procinfo.retoffset)+'('+att_reg2str[procinfo.framepointer]+')')
@@ -106,8 +107,14 @@ unit radi386;
                               begin
                                  { is the last written character an special }
                                  { char ?                                   }
+                                 if (s[length(s)]='%') and
+                                    ret_in_acc(procinfo.retdef) and
+                                    ((pos('AX',upper(hs))>0) or
+                                    (pos('AL',upper(hs))>0)) then
+                                   procinfo.funcret_is_valid:=true;
                                  if (s[length(s)]<>'%') and
-                                   (s[length(s)]<>'$') then
+                                   (s[length(s)]<>'$') and
+                                   ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
                                       if assigned(aktprocsym^.definition^.localst) then
                                         sym:=aktprocsym^.definition^.localst^.search(upper(hs))
@@ -186,8 +193,6 @@ unit radi386;
                                                   (procinfo.retdef<>pdef(voiddef)) then
                                                   begin
                                                   hs:=retstr;
-                                                  if pos(',',s) > 0 then
-                                                    procinfo.funcret_is_valid:=true;
                                                   end
                                                 else
                                                  Message(assem_w_void_function);
@@ -210,6 +215,8 @@ unit radi386;
                          end;
                    end;
  '{',';',#10,#13 : begin
+                      if pos(retstr,s) > 0 then
+                        procinfo.funcret_is_valid:=true;
                      writeasmline;
                      c:=asmgetchar;
                    end;
@@ -229,8 +236,15 @@ unit radi386;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-04-08 16:58:06  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.13  1998/03/24 21:48:33  florian
     * just a couple of fixes applied:

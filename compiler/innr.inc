@@ -54,8 +54,15 @@ const
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-04-08 16:58:02  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.2  1998/02/24 16:50:03  peter
     * stackframe ommiting generated 'ret $-4'
@@ -76,6 +83,5 @@ const
   revision 1.1.1.1
   date: 1997/11/27 08:33:46;  author: michael;  state: Exp;  lines: +0 -0
   FPC RTL CVS start
-  =============================================================================
 }
 

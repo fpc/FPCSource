@@ -841,9 +841,8 @@ unit types;
                                     begin
                                       datasegment^.concat(new(pai_const,init_symbol(
                                         strpnew(procdefcoll^.data^.mangledname))));
-                                      if (procdefcoll^.data^.options and povirtualmethod)<>0 then
-                                        maybe_concat_external(procdefcoll^.data^.owner,
-                                          procdefcoll^.data^.mangledname);
+                                      maybe_concat_external(procdefcoll^.data^.owner,
+                                        procdefcoll^.data^.mangledname);
                                     end;
                                end;
                           end;
@@ -873,7 +872,14 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-08 11:34:22  peter
+  Revision 1.4  1998-04-08 16:58:09  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.3  1998/04/08 11:34:22  peter
     * nasm works (linux only tested)
 
   Revision 1.2  1998/03/28 23:09:57  florian

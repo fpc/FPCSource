@@ -3099,8 +3099,8 @@ unit pass_1;
            p^.registers32:=1;
 {$ifdef GDB}
          if must_be_valid and
-           not(procinfo.funcret_is_valid) and
-           ((procinfo.flags and pi_uses_asm)=0) then
+           not(procinfo.funcret_is_valid) {and
+           ((procinfo.flags and pi_uses_asm)=0)} then
            Message(sym_w_function_result_not_set);
          if count_ref then procinfo.funcret_is_valid:=true;
 {$endif * GDB *}
@@ -4069,6 +4069,7 @@ unit pass_1;
 {$ifdef SUPPORT_MMX}
               p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
+
            end;
       end;
 
@@ -4494,7 +4495,14 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-07 22:45:04  florian
+  Revision 1.5  1998-04-08 16:58:04  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.4  1998/04/07 22:45:04  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 

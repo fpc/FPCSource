@@ -76,7 +76,7 @@ Implementation
 
 Uses
   aasm,globals,AsmUtils,strings,hcodegen,scanner,
-  cobjects,verbose,symtable;
+  cobjects,verbose,symtable,types;
 
 type
  tinteltoken = (
@@ -3384,6 +3384,10 @@ const
     Message(assem_d_start_att);
     firsttoken := TRUE;
     operandnum := 0;
+    if assigned(procinfo.retdef) and
+       (is_fpu(procinfo.retdef) or
+       ret_in_acc(procinfo.retdef)) then
+      procinfo.funcret_is_valid:=true;
     { sets up all opcode and register tables in uppercase }
     if not _asmsorted then
     Begin
@@ -3671,7 +3675,14 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-30 15:53:01  florian
+  Revision 1.3  1998-04-08 16:58:07  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.2  1998/03/30 15:53:01  florian
     * last changes before release:
        - gdb fixed
        - ratti386 warning removed (about unset function result)

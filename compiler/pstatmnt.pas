@@ -534,10 +534,12 @@ unit pstatmnt;
          if token=LKLAMMER then
            begin
               consume(LKLAMMER);
-          p:=expr;
+              p:=expr;
               consume(RKLAMMER);
               if procinfo.retdef=pdef(voiddef) then
-                Message(parser_e_void_function);
+                Message(parser_e_void_function)
+              else
+                procinfo.funcret_is_valid:=true;
            end
          else
            p:=nil;
@@ -814,8 +816,9 @@ unit pstatmnt;
               emptystats;
            end;
          consume(_END);
-         first:=gensinglenode(blockn,first);
-         statement_block:=first;
+         last:=gensinglenode(blockn,first);
+         set_file_line(first,last);
+         statement_block:=last;
       end;
 
     function statement : ptree;
@@ -1064,7 +1067,14 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.3  1998-03-28 23:09:56  florian
+  Revision 1.4  1998-04-08 16:58:05  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.3  1998/03/28 23:09:56  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

@@ -1419,11 +1419,13 @@ unit i386;
          inherited init;
          typ:=ait_instruction;
          _operator:=op;
-         if (op=A_CMP) and (_size=S_B) and
-            ((_op2<R_AL) or (_op2>R_DH)) then
+         if ((op=A_CMP) or (op=A_AND) or (op=A_ADD) or (op=A_ADC)) and
+            ((_size=S_B) or (_size=S_BW) or (_size=S_BL)) and
+            ((_op2<R_AL) or (_op2>R_DH)) and
+            (_op1>127) then
            begin
 {$ifdef extdebug}
-              comment(v_warning,'wrong size for A_CMP due to implicit size extension !!');
+              comment(v_warning,'wrong size for A_CMP or A_AND due to implicit size extension !!');
 {$endif extdebug}
               _size:=S_L;
            end;
@@ -1711,7 +1713,14 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-04 05:29:57  carl
+  Revision 1.3  1998-04-08 16:58:02  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.2  1998/04/04 05:29:57  carl
     * bugfix of crash with ins_cache and popfd
     * bugfix of pushfd typo mistake in att output
     + added setc, and setnc

@@ -520,7 +520,21 @@ ait_labeled_instruction :
                              AsmWriteLn(s);
                              break;
                            end;
-                        end;
+                          { nasm prefers prefix on a line alone }
+                          if (current_module^.output_format in [of_nasm,of_obj]) then
+                            begin
+                               AsmWriteln(#9#9+prefix);
+                               prefix:='';
+                            end;
+                        end
+                       else
+                        prefix:= '';
+                       { A_FNSTS need the w as suffix at least for nasm}
+                       if (current_module^.output_format in [of_nasm,of_obj]) then
+                         if (pai386(hp)^._operator = A_FNSTS) then
+                           pai386(hp)^._operator:=A_FNSTSW
+                         else if (pai386(hp)^._operator = A_FSTS) then
+                           pai386(hp)^._operator:=A_FSTSW;
                        if pai386(hp)^.op1t<>top_none then
                         begin
                           if pai386(hp)^._operator in [A_CALL] then
@@ -661,7 +675,14 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-08 11:34:17  peter
+  Revision 1.3  1998-04-08 16:58:01  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.2  1998/04/08 11:34:17  peter
     * nasm works (linux only tested)
 
   Revision 1.1.1.1  1998/03/25 11:18:16  root

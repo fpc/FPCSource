@@ -83,7 +83,7 @@ Implementation
 
 Uses
   aasm,globals,AsmUtils,strings,hcodegen,scanner,
-  cobjects,verbose;
+  cobjects,verbose,types;
 
 
 type
@@ -3243,7 +3243,11 @@ var
     inexpression := FALSE;
     firsttoken := TRUE;
     operandnum := 0;
-    { sets up all opcode and register tables in uppercase }
+    if assigned(procinfo.retdef) and
+       (is_fpu(procinfo.retdef) or
+       ret_in_acc(procinfo.retdef)) then
+      procinfo.funcret_is_valid:=true;
+   { sets up all opcode and register tables in uppercase }
     if not _asmsorted then
     Begin
       SetupTables;
@@ -3358,7 +3362,14 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  1998-03-31 15:21:01  florian
+  Revision 1.3  1998-04-08 16:58:06  pierre
+    * several bugfixes
+      ADD ADC and AND are also sign extended
+      nasm output OK (program still crashes at end
+      and creates wrong assembler files !!)
+      procsym types sym in tdef removed !!
+
+  Revision 1.2  1998/03/31 15:21:01  florian
     * fix of out (intel syntax) applied
 
   Revision 1.1.1.1  1998/03/25 11:18:15  root
