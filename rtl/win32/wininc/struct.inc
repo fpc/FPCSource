@@ -1770,8 +1770,10 @@
      devicemode = DEVMODE;
      tdevicemode = DEVMODE;
      tdevicemodeA = DEVMODE;
+     PDeviceModeA = LPDEVMODE;
+     PDeviceMode = LPDEVMODE;
      TDEVMODE = DEVMODE;
-     PDEVMODE = ^DEVMODE;
+     PDEVMODE = LPDEVMODE;
 
 
      devmodeW   = record
@@ -1814,9 +1816,11 @@
      LPDEVMODEW   = ^DEVMODEW;
      _devicemodeW = DEVMODEW;
      devicemodeW  = DEVMODEW;
-     tdevicemodeW = DEVMODEW;
+     TDeviceModeW = DEVMODEW;
+     PDeviceModeW = LPDEVMODEW;
      TDEVMODEW    = DEVMODEW;
-     PDEVMODEW    = ^DEVMODEW;
+     
+     PDEVMODEW    = LPDEVMODEW;
 
      DEVNAMES = record
           wDriverOffset : WORD;
@@ -7191,7 +7195,10 @@ type
 
 {
   $Log$
-  Revision 1.35  2005-02-14 17:13:32  peter
+  Revision 1.36  2005-02-26 15:06:25  florian
+    + PDevideMode* added
+
+  Revision 1.35  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.34  2005/02/06 13:06:20  peter
