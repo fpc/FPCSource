@@ -487,6 +487,13 @@ By default, no documentation is generated for private methods or fields of
 classes or objects. This option causes \fpdoc to generate documentation 
 for these methods and fields as well.
 
+% warn-no-node
+\subsection{warn-no-node}
+\label{suse:warnnonode}
+If this option is given, then fpdoc will emit a warning if it cannot find a
+documentation node for some identifier. This can be used to see whether the
+description files are up-to-date, or whether they must be updated.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Makeskel
 \section{makeskel}
@@ -532,6 +539,14 @@ Each \tag{element} tag will by default contain \tag{short}, \tag{descr},
 \label{se:makeskeloption}
 The output of \file{makeskel} can be customised using several options, which
 are discussed below.
+
+% descr
+\subsection{descr}
+\subsection{suse:descr}
+When in update mode (\seesu{update}), this opion can be used to add an
+existing documentation file, as for \file{fpdoc}. Nodes that are already 
+in one of the existing documentation files will not be written to the 
+output file.
 
 % disable-arguments
 \subsection{disable-arguments}
@@ -627,11 +642,26 @@ This option specifies the name of the output file. A full filename must be
 given, no extension will be added. If this option is omitted, the output
 will be sent to standard output.
 
+When using update mode, the output file name should not appear in the list of
+existing documentation files. The \file{makeskel} program will do some
+elementary checks on this.
+
 % package
 \subsection{package}
 \label{suse:mspackage}
 This option specifies the package name that will be used when generating the
 skeleton. It is a mandatory option. 
+
+% update
+\subsection{update}
+\label{suse:update}
+This option tells makeskel to create an update file: it will read
+description files (\seesu{descr}) and will only create documentation nodes
+for identifiers which do not yet have a documentation node in the read
+documentation files. The output file in this case can be merged with one (or
+more) of the documentation files: it's name should not appear in the list of
+existing documentation files. The \file{makeskel} program will do some
+elementary checks on this.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The description file.
