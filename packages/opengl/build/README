@@ -1,5 +1,5 @@
 Free Pascal GL* Units
-(c) 1999 Sebastian Guenther
+(c) 1999-2000 Sebastian Guenther, sg@freepascal.org
 
 
 buildgl.pp
@@ -10,8 +10,8 @@ holds the informations in the read .def file.
 
 c_linuxd.pp
 -----------
-This program creates the dynamic Linux units "linuxd/gl.pp" and
-"linuxd/glut.pp".
+This program creates the Linux units "linux/gl.pp" and "linux/glut.pp".
+
 
 *.def
 -----

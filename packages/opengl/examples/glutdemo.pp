@@ -101,6 +101,15 @@ end;
 
 begin
 
+  WriteLn('Dumping unresolved GL* function names; having unresolved functions ');
+  WriteLn('is NOT a problem as long as the application doesn''t use them!');
+  WriteLn('(Most unresolved functions will be propietary extensions which');
+  WriteLn(' should be an official GL extension)');
+  WriteLn;
+
+  GLDumpUnresolvedFunctions := True;
+  GLUTDumpUnresolvedFunctions := True;
+
   if not InitGl then begin
     WriteLn('OpenGL is not supported on this system');
     Halt(2);
@@ -127,6 +136,7 @@ begin
   glutTimerFunc(20, @OnTimer, 0);
 
 
+  WriteLn;
   WriteLn('GL info:');
   WriteLn('  Vendor: ', glGetString(GL_VENDOR));
   WriteLn('  Renderer: ', glGetString(GL_RENDERER));

@@ -1,7 +1,7 @@
 {
   $Id$
   Translation of the Mesa GL, GLU and GLX headers for Free Pascal
-  Linux Version, Copyright (C) 1999 Sebastian Guenther
+  Linux Version, Copyright (C) 1999-2000 Sebastian Guenther
 
 
   Mesa 3-D graphics library
@@ -46,6 +46,11 @@ function InitGLU: Boolean;
 
 var
   GLInitialized, GLUInitialized, GLXInitialized: Boolean;
+
+  { Set the following value to True if you want to have a list of all
+    unresolved GL/GLU/GLX functions dumped to the console }
+  GLDumpUnresolvedFunctions: Boolean;
+
 
 // ===================================================================
 //   GL consts, types and functions
@@ -1677,7 +1682,8 @@ end;
 function GetProc(handle: Pointer; name: PChar): Pointer;
 begin
   Result := dlsym(handle, name);
-  if Result = nil then WriteLn('Unresolved: ', name);
+  if not Assigned(Result) and GLDumpUnresolvedFunctions then
+    WriteLn('Unresolved: ', name);
 end;
 
 var
@@ -2122,12 +2128,14 @@ end;
 
 function InitGL: Boolean;
 begin
-  Result := InitGLFromLibrary('libGL.so.1') or InitGLFromLibrary('libMesaGL.so.1');
+  Result := InitGLFromLibrary('libGL.so') or InitGLFromLibrary('libGL.so.1') or
+    InitGLFromLibrary('libMesaGL.so.3');
 end;
 
 function InitGLU: Boolean;
 begin
-  Result := InitGLUFromLibrary('libGLU.so.1') or InitGLUFromLibrary('libMesaGLU.so.1');
+  Result := InitGLUFromLibrary('libGLU.so') or
+    InitGLUFromLibrary('libGLU.so.1') or InitGLUFromLibrary('libMesaGLU.so.3');
 end;
 
 
@@ -2141,8 +2149,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-26 21:21:49  peter
-    * link with .so.1 files, the .so files are for development only and
-      not available in runtime installs.
+  Revision 1.4  2000-03-16 17:40:39  sg
+  * Fixed GL* library loading functions
 
 }

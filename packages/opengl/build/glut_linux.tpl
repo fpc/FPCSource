@@ -2,7 +2,7 @@
   $Id$
 
   Translation of the Mesa GLUT headers for FreePascal
-  Linux Version, Copyright (C) 1999 Sebastian Guenther
+  Linux Version, Copyright (C) 1999-2000 Sebastian Guenther
 
 
   Mesa 3-D graphics library
@@ -41,6 +41,10 @@ function InitGLUT: Boolean;
 
 var
   GLUTInitialized: Boolean;
+
+  { Set the following value to True if you want to have a list of all
+    unresolved GLUT functions dumped to the console }
+  GLUTDumpUnresolvedFunctions: Boolean;
 
 
 
@@ -229,7 +233,8 @@ end;
 function GetProc(handle: Pointer; name: PChar): Pointer;
 begin
   Result := dlsym(handle, name);
-//  if Result = nil then WriteLn('Unresolved: ', name);
+  if not Assigned(Result) and GLUTDumpUnresolvedFunctions then
+    WriteLn('Unresolved: ', name);
 end;
 
 var
@@ -250,11 +255,12 @@ end;
 
 function InitGLUT: Boolean;
 begin
-  Result := InitGLUTFromLibrary('libglut.so.1');
+  Result := InitGLUTFromLibrary('libglut.so') or InitGLUTFromLibrary('libglut.so.3');
 end;
 
 
 
 finalization
-  if Assigned(libGLUT) then FreeLibrary(libGLUT);
+  if Assigned(libGLUT) then
+    FreeLibrary(libGLUT);
 end.
