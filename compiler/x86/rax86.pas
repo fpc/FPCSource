@@ -286,7 +286,10 @@ begin
                         tx86operand(operands[i]).opsize:=opsize
                       else
                        begin
-                         Message(asmr_e_unable_to_determine_reference_size);
+                         if (m_delphi in aktmodeswitches) then
+                           Message(asmr_w_unable_to_determine_reference_size_using_dword)
+                         else
+                           Message(asmr_e_unable_to_determine_reference_size);
                          { recovery }
                          tx86operand(operands[i]).opsize:=S_L;
                        end;
@@ -739,7 +742,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2004-01-14 23:39:05  florian
+  Revision 1.17  2004-01-22 16:29:11  peter
+    * give warning that DWORD is used as size in delphi mode when no
+      size was specified
+
+  Revision 1.16  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 

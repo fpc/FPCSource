@@ -1621,6 +1621,11 @@ asmr_e_higher_cpu_mode_required=07097_E_Higher cpu mode required ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_No size specified and unable to determine the size of the operands, using DWORD as default
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte,word,dword,etc.) it
+% should use for the reference. This warning is only used in Delphi mode where
+% it falls back to use DWORD as default.
 #
 # Assembler/binary writers
 #
