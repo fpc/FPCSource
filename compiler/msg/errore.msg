@@ -132,10 +132,10 @@ scan_f_end_of_file=02000_F_Unexpected end of file
 % happens mostly when the \var{begin} and \var{end} statements aren't
 % balanced;
 % \item An include file ends in the middle of a statement.
-% \item A comment wasn't closed.
+% \item A comment was not closed
 % \end{itemize}
 scan_f_string_exceeds_line=02001_F_String exceeds line
-% You forgot probably to include the closing ' in a string, so it occupies
+% There is a missing closing ' in a string, so it occupies
 % multiple lines.
 scan_f_illegal_char=02002_F_illegal character "$1" ($2)
 % An illegal character was encountered in the input file.
@@ -157,13 +157,13 @@ scan_n_ignored_switch=02008_N_Ignored compiler switch "$1"
 % With \var{-vn} on, the compiler warns if it ignores a switch
 scan_w_illegal_switch=02009_W_Illegal compiler switch "$1"
 % You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
-% doesn't know.
-scan_w_switch_is_global=02010_W_This compiler switch has a global effect
-% When \var{-vw} is used, the compiler warns if a switch is global.
+% does not recognise
+scan_w_switch_is_global=02010_W_Misplaced global compiler switch
+% The compiler switch is misplaced, and should be located at
+% the start of the unit or program.
 scan_e_illegal_char_const=02011_E_Illegal char constant
 % This happens when you specify a character with its ASCII code, as in
-% \var{\#96}, but the number is either illegal, or out of range. The range
-% is 1-255.
+% \var{\#96}, but the number is either illegal, or out of range. 
 scan_f_cannot_open_input=02012_F_Can't open file "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
@@ -186,10 +186,8 @@ scan_e_preproc_syntax_error=02018_E_Syntax error while parsing a conditional com
 scan_e_error_in_preproc_expr=02019_E_Evaluating a conditional compiling expression
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
-scan_w_macro_cut_after_255_chars=02020_W_Macro contents is cut after char 255 to evalute expression
-% The contents of macros canno be longer than 255 characters. This is a
-% safety in the compiler, to prevent buffer overflows. This is shown as a
-% warning, i.e. when the \var{-vw} switch is used.
+scan_w_macro_cut_after_255_chars=02020_W_Macro contents are limited to 255 characters in length
+% The contents of macros cannot be longer than 255 characters. 
 scan_e_endif_without_if=02021_E_ENDIF without IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_f_user_defined=02022_F_User defined: $1
@@ -212,8 +210,8 @@ scan_w_macro_deep_ten=02030_W_Extension of macros exceeds a deep of 16.
 % When expanding a macro macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_e_wrong_styled_switch=02031_E_compiler switches aren't allowed in (* ... *) styled comments
-% Compiler switches should always be between \var{\{ \}} comment delimiters.
+scan_e_wrong_styled_switch=02031_E_compiler switches aren't allowed in // styled comments
+% Compiler switches should be in normal pascal style comments.
 scan_d_handling_switch=02032_D_Handling switch "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
 % is evaluating conditional compile statements.
@@ -244,7 +242,7 @@ scan_i_press_enter=02040_I_Press <return> to continue
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
 scan_w_unsupported_switch=02041_W_Unsupported switch "$1"
-% When warings are turned on (\var{-vw}) the compiler warns you about
+% When warnings are turned on (\var{-vw}) the compiler warns you about
 % unsupported switches. This means that the switch is used in Delphi or
 % Turbo Pascal, but not in \fpc
 scan_w_illegal_directive=02042_W_Illegal compiler directive "$1"
@@ -256,12 +254,12 @@ scan_t_back_in=02043_T_Back in $1
 scan_w_unsupported_app_type=02044_W_Unsupported application type: "$1"
 % You get this warning, ff you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
-scan_w_app_type_not_support=02045_W_APPTYPE isn't support by the target OS
-% The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
-scan_w_description_not_support=02046_W_DESCRIPTION is only supported for OS2 and Win32
-% The \var{\{\$DESCRIPTION\}} directive is only supported for OS2 and Win32 targets.
-scan_n_version_not_support=02047_N_VERSION is not supported by target OS.
-% The \var{\{\$VERSION\}} directive is only supported by win32 target.
+scan_w_app_type_not_support=02045_W_APPTYPE is not supported by the target OS
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
+scan_w_description_not_support=02046_W_DESCRIPTION is not supported by the target OS
+% The \var{\{\$DESCRIPTION\}} directive is not supported on this target OS
+scan_n_version_not_support=02047_N_VERSION is not supported by target OS
+% The \var{\{\$VERSION\}} directive is not supported on this target OS
 scan_n_only_exe_version=02048_N_VERSION only for exes or DLLs
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
 scan_w_wrong_version_ignored=02049_W_Wrong format for VERSION directive "$1"
@@ -273,21 +271,19 @@ scan_w_unsupported_asmmode_specifier=02050_W_Unsupported assembler style specifi
 scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM reader switch is not possible inside asm statement, "$1" will be effective only for next
 % It is not possible to switch from one assembler reader to another
 % inside an assmebler block. The new reader will be used for next
-% assembler statement only.
+% assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_Wrong switch toggle, use ON/OFF or +/-
 % You need to use ON or OFF or a + or - to toggle the switch
 scan_e_resourcefiles_not_supported=02053_E_Resource files are not supported for this target
-% The target you are compiling for doesn't support resource files. The
-% only targets which can use resource files are Win32 and OS/2 (EMX) currently
+% The target you are compiling for doesn't support resource files.
 scan_w_include_env_not_found=02054_W_Include environment "$1" not found in environment
-% The included environment variable can't be found in the environment, it'll
+% The included environment variable can't be found in the environment, it will
 % be replaced by an empty string instead.
 scan_e_invalid_maxfpureg_value=02055_E_Illegal value for FPU register limit
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
 scan_w_only_one_resourcefile_supported=02056_W_Only one resource file is supported for this target
-% The target you are compiling for supports only one resource file. This is the
-% case of OS/2 (EMX) currently. The first resource file found is used, the
-% others are discarded.
+% The target you are compiling for supports only one resource file. 
+% The first resource file found is used, the others are discarded.
 scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
@@ -345,10 +341,10 @@ parser_w_parser_win32_debug_needs_WN=03012_W_To allow debugging for win32 code y
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
 parser_e_constructorname_must_be_init=03013_E_Constructor name must be INIT
-% You are declaring a constructor with a name which isn't \var{init}, and the
+% You are declaring an object constructor with a name which is not \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 parser_e_destructorname_must_be_done=03014_E_Destructor name must be DONE
-% You are declaring a destructor with a name which isn't \var{done}, and the
+% You are declaring an object destructor with a name which is not \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 parser_e_illegal_open_parameter=03015_E_Illegal open parameter
 % You are trying to use the wrong type for an open parameter.
@@ -379,7 +375,9 @@ parser_f_no_anonym_objects=03022_F_Anonym class definitions are not allowed
 %          end;
 % \end{verbatim}
 % will trigger this error.
-parser_object_has_no_vmt=03023_E_The object "$1" has no VMT
+parser_n_object_has_no_vmt=03023_N_The object "$1" has no VMT
+% This is a note indicating that the declared object has no
+% virtual method table.
 parser_e_illegal_parameter_list=03024_E_Illegal parameter list
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
@@ -391,7 +389,7 @@ parser_e_wrong_parameter_size=03026_E_Wrong number of parameters specified
 % the number of parameters is not correct.
 parser_e_overloaded_no_procedure=03027_E_overloaded identifier "$1" isn't a function
 % The compiler encountered a symbol with the same name as an overloaded
-% function, but it isn't a function it can overload.
+% function, but it is not a function it can overload.
 parser_e_overloaded_have_same_parameters=03028_E_overloaded functions have the same parameter list
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
@@ -433,17 +431,16 @@ parser_e_type_const_not_possible=03039_E_typed constants of classes are not allo
 % You cannot declare a constant of type class or object.
 parser_e_no_overloaded_procvars=03040_E_functions variables of overloaded functions are not allowed
 % You are trying to assign an overloaded function to a procedural variable.
-% This isn't allowed.
+% This is not allowed
 parser_e_invalid_string_size=03041_E_string length must be a value from 1 to 255
-% The length of a string in Pascal is limited to 255 characters. You are
+% The length of a shortstring in Pascal is limited to 255 characters. You are
 % trying to declare a string with length lower than 1 or greater than 255
-% (This is not true for \var{Longstrings} and \var{AnsiStrings}.
 parser_w_use_extended_syntax_for_objects=03042_W_use extended syntax of NEW and DISPOSE for instances of objects
 % If you have a pointer \var{a} to a class type, then the statement
 % \var{new(a)} will not initialize the class (i.e. the constructor isn't
 % called), although space will be allocated. you should issue the
 % \var{new(a,init)} statement. This will allocate space, and call the
-% constructor of the class.
+% constructor of the object
 parser_w_no_new_dispose_on_void_pointers=03043_W_use of NEW or DISPOSE for untyped pointers is meaningless
 parser_e_no_new_dispose_on_void_pointers=03044_E_use of NEW or DISPOSE is not possible for untyped pointers
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
@@ -472,7 +469,7 @@ parser_p_procedure_start=03049_P_procedure/function $1
 parser_e_error_in_real=03050_E_Illegal floating point constant
 % The compiler expects a floating point expression, and gets something else.
 parser_e_fail_only_in_constructor=03051_E_FAIL can be used in constructors only
-% You are using the \var{FAIL} instruction outside a constructor method.
+% You are using the \var{fail} keyword outside a constructor method.
 parser_e_no_paras_for_destructor=03052_E_Destructors can't have parameters
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
@@ -512,8 +509,8 @@ parser_w_should_use_override=03057_W_An inherited method is hidden by "$1"
 % don't specify the \var{override} directive, you will hide the parent method;
 % you will not override it.
 parser_e_nothing_to_be_overridden=03058_E_There is no method in an ancestor class to be overridden: "$1"
-% You try to \var{override} a virtual method of a parent class that doesn't
-% exist.
+% You are trying to \var{override} a virtual method of a parent class that does
+% not exist.
 parser_e_no_procedure_to_access_property=03059_E_No member is provided to access property
 % You specified no \var{read} directive for a property.
 parser_w_stored_not_implemented=03060_W_Stored prorperty directive is not yet implemented
@@ -543,20 +540,20 @@ parser_w_overloaded_are_not_both_non_virtual=03065_W_overloaded method of non-vi
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
 parser_e_overridden_methods_not_same_ret=03066_E_overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
-% If you declare oerridden methods in a class definition, they must
+% If you declare overridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
 % You cannot declare a function or procedure within a function or procedure
 % that was declared as an export procedure.
 parser_e_methods_dont_be_export=03068_E_methods can't be EXPORTed
 % You cannot declare a procedure that is a method for an object as
-% \var{export}ed. That is, your methods cannot be called from a C program.
+% \var{export}ed. 
 parser_e_call_by_ref_without_typeconv=03069_E_call by var parameters have to match exactly: Got "$1" expected "$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
 parser_e_no_super_class=03070_E_Class isn't a parent class of the current class
-% When calling inherited methods, you are trying to call a method of a strange
+% When calling inherited methods, you are trying to call a method of a non-related
 % class. You can only call an inherited method of a parent class.
 parser_e_self_not_in_method=03071_E_SELF is only allowed in methods
 % You are trying to use the \var{self} parameter outside an object's method.
@@ -571,8 +568,8 @@ parser_e_illegal_set_expr=03074_E_range check error in set constructor or duplic
 % outside the range of the set type, either two of the elements are in fact
 % the same.
 parser_e_pointer_to_class_expected=03075_E_Pointer to object expected
-% You specified an illegal type in a \var{New} statement.
-% The extended synax of \var{New} needs an  object as a parameter.
+% You specified an illegal type in a \var{new} statement.
+% The extended syntax of \var{new} needs an  object as a parameter.
 parser_e_expr_have_to_be_constructor_call=03076_E_Expression must be constructor call
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
@@ -596,7 +593,7 @@ parser_e_constructors_always_objects=03081_E_constructors and destructors must b
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
 parser_e_operator_not_overloaded=03082_E_Operator is not overloaded
-% You're trying to use an overloaded operator when it isn't overloaded for
+% You're trying to use an overloaded operator when it is not overloaded for
 % this type.
 parser_e_no_such_assignment=03083_E_Impossible to overload assignment for equal types
 % You can not overload assignment for types
@@ -605,12 +602,12 @@ parser_e_overload_impossible=03084_E_Impossible operator overload
 % The combination of operator, arguments and return type are
 % incompatible.
 parser_e_no_reraise_possible=03085_E_Re-raise isn't possible there
-% You are trying to raise an exception where it isn't allowed. You can only
+% You are trying to raise an exception where it is not allowed. You can only
 % raise exceptions in an \var{except} block.
 parser_e_no_new_or_dispose_for_classes=03086_E_The extended syntax of new or dispose isn't allowed for a class
 % You cannot generate an instance of a class with the extended syntax of
 % \var{new}. The constructor must be used for that. For the same reason, you
-% cannot call \var{Dispose} to de-allocate an instance of a class, the
+% cannot call \var{dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
 parser_e_asm_incomp_with_function_return=03087_E_Assembler incompatible with function return type
 % You're trying to implement a \var{assembler} function, but the return type
@@ -628,18 +625,16 @@ parser_e_comparative_operator_return_boolean=03090_E_Comparative operator must r
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
 parser_e_only_virtual_methods_abstract=03091_E_Only virtual methods can be abstract
-% You are declaring a method as abstract, when it isn't declared to be
-% virtual.
+% You are declaring a method as abstract, when it is not declared to be
+% virtual. 
 parser_f_unsupported_feature=03092_F_Use of unsupported feature!
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, raw interface etc) isn't allowed
-% You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} intertwined . E.g.
+parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, etc) isn't allowed
+% You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} interttwined . E.g.
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
-% The procedure direcive you secified is unknown. Recognised procedure
-% directives are \var{cdecl}, \var{stdcall}, \var{popstack}, \var{pascal}
-% \var{register}, \var{export}.
-parser_e_absolute_only_one_var=03095_E_absolute can only be associated to ONE variable
+% The procedure directive you specified is unknown. 
+parser_e_absolute_only_one_var=03095_E_absolute can only be associated to one variable
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
 % \begin{verbatim}
@@ -647,8 +642,8 @@ parser_e_absolute_only_one_var=03095_E_absolute can only be associated to ONE va
 %     X,Y : Longint absolute Z;
 % \end{verbatim}
 % \item [ absolute can only be associated a var or const ]
-% The address of a \var{absolute} directive can only point to a variable or
-% constant. Therefore, the following code will produce this error:
+% The address of a \var{absolute} directive can only point to a variable or a
+% typed constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
 %   Procedure X;
 %
@@ -664,9 +659,9 @@ parser_e_absolute_only_to_var_or_const=03096_E_absolute can only be associated w
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_initialized_only_one_var=03097_E_Only ONE variable can be initialized
+parser_e_initialized_only_one_var=03097_E_Only one variable can be initialized
 % You cannot specify more than one variable with a initial value
-% in Delphi syntax.
+% in Delphi mode.
 parser_e_abstract_no_definition=03098_E_Abstract methods shouldn't have any definition (with function body)
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
@@ -710,7 +705,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Virtual constructors are only
 % You cannot have virtual constructors in objects. You can only have them
 % in classes.
 parser_e_no_default_property_available=03113_E_No default property available
-% You try to access a default property of a class, but this class (or one of
+% You are trying to access a default property of a class, but this class (or one of
 % it's ancestors) doesn't have a default property.
 parser_e_cant_have_published=03114_E_The class can't have a published section, use the {$M+} switch
 % If you want a \var{published} section in a class definition, you must
@@ -824,14 +819,14 @@ parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for binary output format
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
-parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manual, use {$mode objfpc} or {$mode delphi} instead
-% You're trying to load the ObjPas unit manual from a uses clause. This is
-% not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or
-% \var{\{\$mode delphi\}}
-% directives which load the unit automaticly
+parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use {$mode objfpc} or {$mode delphi} instead
+% You are trying to load the ObjPas unit manually from a uses clause. This is
+% not a good idea. Use the \var{\{\$mode objfpc\}} or
+% \var{\{\$mode delphi\}} 
+% directives which load the unit automatically
 parser_e_no_object_override=03150_E_OVERRIDE can't be used in objects
-% Override isn't support for objects, use VIRTUAL instead to override
-% a method of an anchestor object
+% Override is not supported for objects, use \var{virtual} instead to override
+% a method of a parent object
 parser_e_cant_use_inittable_here=03151_E_Data types which require initialization/finalization can't be used in variant records
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
@@ -878,11 +873,9 @@ parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd
 % Or use the equivalent commandline switches -S2 or -Sd.
 parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $1
 % Exporting of functions or procedures with a specified index is not
-% support on all targets. The only platforms currently supporting
-% export with index are OS/2 and Win32.
+% supported on this target.
 parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
-% Exporting of variables is not support on all targets. The only platform
-% currently supporting export of variables is Win32.
+% Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
 parser_f_interface_cant_have_variables=03166_F_An interface can't have variables
 parser_f_interface_cant_have_constr_or_destr=03167_F_An interface can't have constructor or destructor
@@ -898,7 +891,7 @@ parser_e_interface_id_expected=03169_E_interface identifier expected
 % \end{verbatim}
 % and the \var{interface} before the dot not listed in the inheritance list.
 parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can't be used as array index type
-% Types like DWord or Int64 aren't allowed as array index type
+% Types like \var{qword} or \var{int64} aren't allowed as array index type
 parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in interfaces
 % Constructor and destructor declarations aren't allowed in interface
 % In the most cases the method \var{QueryInterface} of \var{IUnknown} can
@@ -912,7 +905,7 @@ parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
 % can contain only methods
 parser_e_no_local_external=03174_E_Can't declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
-% get hidden parameters that will make the chance on errors very high
+% get hidden parameters that will make the chance of errors very high
 parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" weren't initialized
 % In Delphi mode, not all fields of a typed constant record have to be
 % initialized, but the compiler warns you when it detects such situations.
@@ -925,7 +918,7 @@ parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't init
 % of subtle problems.
 parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl and External
 % The varargs directive can only be used with procedures or functions
-% that are declared with CDecl and External directives. The varargs directive
+% that are declared with \var{cdecl} and \var{external} directives. The varargs directive
 % is only meant to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
 % You can't declare self as a const or var parameter, it must always be

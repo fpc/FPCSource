@@ -100,7 +100,7 @@ const
   parser_n_only_one_destructor=03020;
   parser_e_no_local_objects=03021;
   parser_f_no_anonym_objects=03022;
-  parser_object_has_no_vmt=03023;
+  parser_n_object_has_no_vmt=03023;
   parser_e_illegal_parameter_list=03024;
   parser_e_wrong_parameter_type=03025;
   parser_e_wrong_parameter_size=03026;
@@ -633,7 +633,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35258;
+  MsgTxtSize = 35227;
 
   MsgIdxMax : array[1..20] of longint=(
     17,62,190,47,43,41,98,19,35,43,

@@ -4444,7 +4444,7 @@ implementation
     function tobjectdef.vmt_mangledname : string;
     begin
       if not(oo_has_vmt in objectoptions) then
-        Message1(parser_object_has_no_vmt,objrealname^);
+        Message1(parser_n_object_has_no_vmt,objrealname^);
       vmt_mangledname:=mangledname_prefix('VMT',owner)+objname^;
     end;
 
@@ -5529,7 +5529,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2002-11-25 18:43:33  carl
+  Revision 1.112  2002-11-25 21:05:53  carl
+   * several mistakes fixed in message files
+
+  Revision 1.111  2002/11/25 18:43:33  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.
