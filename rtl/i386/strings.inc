@@ -223,7 +223,7 @@ asm
         subl    %ebx,%eax
         jz      .LSTRICOMP2     // If still equal, compare again
 .LSTRICOMP3:
-end ['EAX','ECX','ESI','EDI'];
+end ['EAX','EBX','ECX','ESI','EDI'];
 
 
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -262,7 +262,7 @@ asm
         subl    %ebx,%eax
         jz      .LSTRLICOMP2
 .LSTRLICOMP3:
-end ['EAX','ECX','ESI','EDI'];
+end ['EAX','EBX','ECX','ESI','EDI'];
 
 
 function strscan(p : pchar;c : char) : pchar;assembler;
@@ -415,7 +415,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:42  michael
+  Revision 1.3  2001-01-21 10:12:32  marco
+   * Some register allocation fixes. for stricomp and strilcomp
+
+  Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
  
 }
