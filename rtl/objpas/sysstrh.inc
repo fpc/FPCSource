@@ -27,16 +27,16 @@
 
 type
    PString = ^String;
-   
-   { For FloatToText } 
+
+   { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
    TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
-   
+
 const
   { For floattodatetime }
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
-       
+
 
 
 function NewStr(const S: string): PString;
@@ -44,7 +44,7 @@ procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
 procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string;
-function LowerCase(const s: string): string;
+function LowerCase(const s: string): string; overload;
 function CompareStr(const S1, S2: string): Integer;
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
 function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
@@ -110,7 +110,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.10  2002-01-24 12:33:54  jonas
+  Revision 1.11  2002-01-24 18:33:58  peter
+    * overload for lowercase()
+
+  Revision 1.10  2002/01/24 12:33:54  jonas
     * adapted ranges of native types to int64 (e.g. high cardinal is no
       longer longint($ffffffff), but just $fffffff in psystem)
     * small additional fix in 64bit rangecheck code generation for 32 bit
@@ -151,5 +154,5 @@ function BCDToInt(Value: integer): integer;
 
   Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
- 
+
 }
