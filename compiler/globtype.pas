@@ -172,6 +172,26 @@ interface
        );
        tproccalloptions = set of tproccalloption;
 
+       tprocinfoflag=(
+         { procedure uses asm }
+         pi_uses_asm,
+         { procedure does a call }
+         pi_do_call,
+         { procedure has a try statement = no register optimization }
+         pi_uses_exceptions,
+         { procedure is declared as @var(assembler), don't optimize}
+         pi_is_assembler,
+         { procedure contains data which needs to be finalized }
+         pi_needs_implicit_finally,
+         { procedure has the implicit try..finally generated }
+         pi_has_implicit_finally,
+         { procedure uses fpu}
+         pi_uses_fpu,
+         { procedure uses GOT for PIC code }
+         pi_needs_got
+       );
+       tprocinfoflags=set of tprocinfoflag;
+
 {$ifdef ansistring_bits}
        Tstringbits=(sb_16,sb_32,sb_64);
 {$endif}
@@ -247,7 +267,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2004-05-02 11:48:46  peter
+  Revision 1.55  2004-05-23 14:32:17  peter
+    * tprocinfoflag moved to globtype
+
+  Revision 1.54  2004/05/02 11:48:46  peter
     * strlenint is replaced with sizeint
 
   Revision 1.53  2004/04/29 19:56:36  daniel

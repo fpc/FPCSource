@@ -345,23 +345,6 @@ type
     te_exact
   );
 
-  tprocinfoflag=(
-    {# procedure uses asm }
-    pi_uses_asm,
-    {# procedure does a call }
-    pi_do_call,
-    {# procedure has a try statement = no register optimization }
-    pi_uses_exceptions,
-    {# procedure is declared as @var(assembler), don't optimize}
-    pi_is_assembler,
-    {# procedure contains data which needs to be finalized }
-    pi_needs_implicit_finally,
-    {# procedure uses fpu}
-    pi_uses_fpu,
-    pi_needs_got
-  );
-  tprocinfoflags=set of tprocinfoflag;
-
 {$ifdef GDB}
 type
   tdefstabstatus = (
@@ -424,7 +407,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.81  2004-04-29 19:56:37  daniel
+  Revision 1.82  2004-05-23 14:32:17  peter
+    * tprocinfoflag moved to globtype
+
+  Revision 1.81  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.80  2004/04/28 15:19:03  florian
