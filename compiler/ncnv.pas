@@ -1166,8 +1166,9 @@ implementation
                        convtype:=tc_proc_2_procvar;
                        { Now check if the procedure we are going to assign to
                          the procvar, is compatible with the procvar's type }
-                       if proc_to_procvar_equal(tprocsym(tloadnode(left).symtableentry).first_procdef,
-                                                tprocvardef(resulttype.def),true)=te_incompatible then
+                       if not(nf_explicit in flags) and
+                          (proc_to_procvar_equal(tprocsym(tloadnode(left).symtableentry).first_procdef,
+                                                 tprocvardef(resulttype.def),true)=te_incompatible) then
                          IncompatibleTypes(tprocsym(tloadnode(left).symtableentry).first_procdef,resulttype.def);
                        exit;
                      end;
@@ -1209,8 +1210,9 @@ implementation
                      convtype:=tc_proc_2_procvar;
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
-                     if proc_to_procvar_equal(currprocdef,
-                                              tprocvardef(resulttype.def),true)=te_incompatible then
+                     if not(nf_explicit in flags) and
+                        (proc_to_procvar_equal(currprocdef,
+                                               tprocvardef(resulttype.def),true)=te_incompatible) then
                        IncompatibleTypes(left.resulttype.def,resulttype.def);
                      exit;
                    end;
@@ -2120,7 +2122,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2003-10-29 22:01:20  florian
+  Revision 1.129  2003-10-31 18:42:03  peter
+    * don't call proc_to_procvar for explicit typecasts
+
+  Revision 1.128  2003/10/29 22:01:20  florian
     * fixed passing of dyn. arrays to open array parameters
 
   Revision 1.127  2003/10/28 15:36:01  peter
