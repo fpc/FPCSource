@@ -220,6 +220,7 @@ begin
     begin
       SetDisplayText(I,S);
       UpdateAttrs(I,attrAll);
+      DrawView;
      end;
   end;
   ProcessTemplate:=OK;
@@ -290,7 +291,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:45  peter
+  Revision 1.4  2002-09-26 20:45:08  pierre
+   * fix webbug 2102-C
+
+  Revision 1.3  2002/09/07 15:40:45  peter
     * old logs removed and tabs fixed
 
 }
