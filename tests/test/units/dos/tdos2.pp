@@ -921,7 +921,7 @@ Begin
    WriteLn('Success.');
  WriteLn('PARAMSTR(0) = ', ParamStr(0));
  WriteLn('DRIVE + NAME + EXT = ',d+n+e);
-
+{$ifdef go32v2}
  Write('Testing invalid path (..)...');
  P:='..';
  FSPlit(P,D,N,E);
@@ -929,6 +929,7 @@ Begin
    WriteLn('FAILURE. Length of drive and name should be zero and Ext should return Path')
  else
    WriteLn('Success.');
+{$endif}
  Write('Testing invalid path (*)...');
  P:='*';
  FSPlit(P,D,N,E);
@@ -983,7 +984,10 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 
 {
   $Log$
-  Revision 1.2  2001-05-20 18:30:46  hajny
+  Revision 1.3  2001-06-06 01:31:24  carl
+  * fsplit with .. only works for go32v2 version and TP
+
+  Revision 1.2  2001/05/20 18:30:46  hajny
     + support for GO32v1 and GO32v2 added
 
   Revision 1.1  2001/05/19 12:10:02  peter
