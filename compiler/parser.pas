@@ -335,6 +335,11 @@ done:
        { close the inputfiles }
          current_module^.sourcefiles.done;
 {$endif not UseBrowser}
+         if assigned(current_module^.ppufile) then
+           begin
+              dispose(current_module^.ppufile,done);
+              current_module^.ppufile:=nil;
+           end;
          { restore scanner state }
          pattern:=oldpattern;
          token:=oldtoken;
@@ -409,7 +414,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.27  1998-06-17 14:10:15  peter
+  Revision 1.28  1998-06-25 11:15:33  pierre
+    * ppu files where not closed in newppu !!
+      second compilation was impossible due to too many opened files
+      (not visible in 'make cycle' as we remove all the ppu files)
+
+  Revision 1.27  1998/06/17 14:10:15  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 

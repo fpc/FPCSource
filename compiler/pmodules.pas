@@ -269,6 +269,11 @@ unit pmodules;
            { add the files for the linker }
              addlinkerfiles(current_module);
            end;
+         if assigned(current_module^.ppufile) then
+           begin
+              dispose(current_module^.ppufile,done);
+              current_module^.ppufile:=nil;
+           end;
         end;
 
       begin
@@ -1150,7 +1155,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.32  1998-06-25 08:48:16  florian
+  Revision 1.33  1998-06-25 11:15:34  pierre
+    * ppu files where not closed in newppu !!
+      second compilation was impossible due to too many opened files
+      (not visible in 'make cycle' as we remove all the ppu files)
+
+  Revision 1.32  1998/06/25 08:48:16  florian
     * first version of rtti support
 
   Revision 1.31  1998/06/24 14:48:35  peter
