@@ -26,8 +26,9 @@ program eratosthenes;
        for i:=1 to max do
          a[i]:=true;
        for i:=2 to max div 2 do
-         for j:=2 to max div i do
-           a[i*j]:=false;
+         if a[i] then 
+           for j:=2 to max div i do
+             a[i*j]:=false;
        writeln;
        for i:=1 to max do
          if a[i] then
@@ -42,7 +43,10 @@ program eratosthenes;
 
 { 
   $Log$
-  Revision 1.3  1998-04-06 12:23:21  pierre
+  Revision 1.4  1998-09-04 17:38:15  pierre
+    * the algorythm was wrong (unnecessary checks were made)
+
+  Revision 1.3  1998/04/06 12:23:21  pierre
     * log problem
 
   Revision 1.2  1998/04/06 12:17:00  pierre
