@@ -285,23 +285,32 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 function CompareChar0(var buf1,buf2;len:longint):longint;
-var
-  I,J,K,bytesTodo : longint;
+
+Var i : longint;
+
 begin
-  K:=0;
-  if Len<>0 then
+  I:=0;
+  if (Len<>0) and (@Buf1<>@Buf2) then
    begin
-     I:=IndexByte(Buf1,Len,0);
-     J:=IndexByte(Buf2,Len,0);
-     if (I<>0) and (J<>0) then
+     while (I<Len) And
+           ((Pbyte(@Buf1)[i]<>0) and (PByte(@buf2)[i]<>0)) and 
+           (pbyte(@Buf1)[I]=pbyte(@Buf2)[I])  do
+      inc(I);
+     if (I=Len) or 
+        (PByte(@Buf1)[i]=0) or 
+        (PByte(@buf2)[I]=0) then  {No difference or 0 reached }
+      I:=0
+     else
       begin
-        bytesTodo:=I;
-        if J<bytesTodo then
-         bytesTodo:=J;
-        K:=CompareByte(Buf1,Buf2,bytesTodo); // Safe for bytesTodo=0
+        I:=pbyte(@Buf1)[I]-pbyte(@Buf2)[I];
+        if I>0 then
+         I:=1
+        else
+         if I<0 then
+          I:=-1;
       end;
-  end;
-  CompareChar0:=K;
+   end;
+  CompareChar0:=I;
 end;
 {$endif ndef FPC_SYSTEM_HAS_COMPARECHAR0}
 
@@ -766,7 +775,15 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-08-09 11:29:01  jonas
+  Revision 1.5  2000-10-01 13:17:35  michael
+  + Merged from fixbranch
+
+  Revision 1.4  2000/08/09 11:29:01  jonas
+
+  Revision 1.1.2.2  2000/10/01 13:14:50  michael
+  + Corrected and (hopefully) improved compare0
+
+  Revision 1.1.2.1  2000/08/09 11:21:32  jonas
     + FPC_STR_TO_CHARARRAY routine necessary for string -> chararray
       conversions fix (merged fropm fixes branch)
 
