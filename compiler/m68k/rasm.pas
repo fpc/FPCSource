@@ -764,9 +764,9 @@ var
                                    hs:=ttypedconstsym(sym).mangledname;
                              procsym :
                                begin
-                                 if assigned(tprocsym(sym).defs^.next) then
+                                 if tprocsym(sym).procdef_count>1 then
                                       Message(asmr_w_calling_overload_func);
-                                 hs:=tprocsym(sym).defs^.def.mangledname;
+                                 hs:=tprocsym(sym).first_procdef.mangledname;
                                end;
                              typesym :
                                begin
@@ -2225,7 +2225,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.6  2002-08-13 18:58:54  carl
+  Revision 1.7  2002-09-03 19:04:18  daniel
+    * Fixed PowerPC & M68000 compilation
+
+  Revision 1.6  2002/08/13 18:58:54  carl
     + m68k problems with cvs fixed?()!
 
   Revision 1.4  2002/08/12 15:08:44  carl

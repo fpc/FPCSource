@@ -229,7 +229,7 @@ interface
                                                           begin
                                                             if Tprocsym(sym).procdef_count>1 then
                                                               Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                            Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
+                                                            Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
                                                             hs:=tprocsym(sym).first_procdef.mangledname;
                                                           end;
                                                        end;
@@ -314,7 +314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-09-03 16:26:28  daniel
+  Revision 1.5  2002-09-03 19:04:18  daniel
+    * Fixed PowerPC & M68000 compilation
+
+  Revision 1.4  2002/09/03 16:26:28  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.3  2002/08/31 15:59:31  florian
