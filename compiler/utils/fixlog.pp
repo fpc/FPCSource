@@ -151,7 +151,7 @@ begin
   writeln('fixlog v1.00 (C) 1999-2000 Peter Vreman');
   if paramcount<3 then
    begin
-     writeln('usage: fixlog <maxrevs> <maxdate> <files> [files]');
+     writeln('usage: fixlog <revisions> <yyyy-mm-dd> <files> [files]');
      halt(1);
    end;
   MaxRevs:=StrToInt(ParamStr(1));
@@ -167,7 +167,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-01-08 13:52:02  peter
+  Revision 1.4  2000-02-09 13:08:27  peter
+    * usage shows yyyy-mm-dd
+
+  Revision 1.3  2000/01/08 13:52:02  peter
     * max date added
 
   Revision 1.2  2000/01/07 01:15:00  peter
