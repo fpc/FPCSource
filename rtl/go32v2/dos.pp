@@ -1173,7 +1173,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.24  2000-05-30 04:41:05  jonas
+  Revision 1.1  2000-07-13 06:30:35  michael
+  + Initial import
+
+  Revision 1.24  2000/05/30 04:41:05  jonas
     * fixed compiling problem with formal expression passed as var
       parameter
 

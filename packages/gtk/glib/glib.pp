@@ -1642,7 +1642,10 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.2  2000-02-20 14:05:28  sg
+  Revision 1.1  2000-07-13 06:34:02  michael
+  + Initial import
+
+  Revision 1.2  2000/02/20 14:05:28  sg
   * Removed the following symbols because they don't exist in newer glib
     versions anymore: exportfunc, exportprefix, exportcache
 

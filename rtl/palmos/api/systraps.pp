@@ -25,7 +25,10 @@ unit systraps;
 end.
 {
   $Log$
-  Revision 1.1  1998-08-05 17:19:07  florian
+  Revision 1.1  2000-07-13 06:31:12  michael
+  + Initial import
+
+  Revision 1.1  1998/08/05 17:19:07  florian
     + first few things for PalmOS support
 
 }

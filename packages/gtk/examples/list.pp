@@ -213,7 +213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-01-24 23:57:56  peter
+  Revision 1.1  2000-07-13 06:34:00  michael
+  + Initial import
+
+  Revision 1.2  2000/01/24 23:57:56  peter
     * updated for fpcmake require section
 
   Revision 1.1  1999/11/24 23:36:33  peter

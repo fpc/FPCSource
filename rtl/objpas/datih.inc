@@ -106,7 +106,10 @@ Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 {
 
   $Log$
-  Revision 1.8  2000-07-08 18:50:21  marco
+  Revision 1.1  2000-07-13 06:30:59  michael
+  + Initial import
+
+  Revision 1.8  2000/07/08 18:50:21  marco
    * added twoyearsomethingwindow
 
   Revision 1.7  2000/04/24 11:09:05  peter

@@ -2909,7 +2909,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-02-27 14:40:40  peter
+  Revision 1.1  2000-07-13 06:33:54  michael
+  + Initial import
+
+  Revision 1.2  2000/02/27 14:40:40  peter
     * removed warnings/notes
 
 }

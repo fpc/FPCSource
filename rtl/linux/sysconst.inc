@@ -83,7 +83,10 @@ Const
 
 {
   $Log$
-  Revision 1.6  2000-05-18 20:06:31  michael
+  Revision 1.1  2000-07-13 06:30:54  michael
+  + Initial import
+
+  Revision 1.6  2000/05/18 20:06:31  michael
   + Added more open constants from kernel sources
 
   Revision 1.5  2000/02/09 16:59:32  peter

@@ -276,7 +276,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 01:14:54  peter
+  Revision 1.1  2000-07-13 06:30:08  michael
+  + Initial import
+
+  Revision 1.8  2000/01/07 01:14:54  peter
     * updated copyright to 2000
 
   Revision 1.7  1999/10/12 21:20:47  florian

@@ -1021,7 +1021,10 @@ end;
 
 {
   $Log$
-  Revision 1.38  2000-04-20 15:29:15  pierre
+  Revision 1.1  2000-07-13 06:30:46  michael
+  + Initial import
+
+  Revision 1.38  2000/04/20 15:29:15  pierre
   fix for heap problem
 
   Revision 1.37  2000/04/07 21:10:35  pierre

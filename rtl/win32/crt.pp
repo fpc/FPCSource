@@ -1007,7 +1007,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.16  2000-06-11 07:04:58  peter
+  Revision 1.1  2000-07-13 06:31:19  michael
+  + Initial import
+
+  Revision 1.16  2000/06/11 07:04:58  peter
     * Windows unit has now more Delphi compatibile functions
     * placed the external functions only in the interface
 

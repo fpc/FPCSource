@@ -1707,7 +1707,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.197  2000-06-15 18:10:11  peter
+  Revision 1.1  2000-07-13 06:29:54  michael
+  + Initial import
+
+  Revision 1.197  2000/06/15 18:10:11  peter
     * first look for ppu in cwd and outputpath and after that for source
       in cwd
     * fixpath() for not linux makes path now lowercase so comparing paths

@@ -639,7 +639,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  2000-05-25 19:59:57  michael
+  Revision 1.1  2000-07-13 06:30:52  michael
+  + Initial import
+
+  Revision 1.3  2000/05/25 19:59:57  michael
   + Added munmap call
 
   Revision 1.2  2000/04/16 16:10:01  marco

@@ -174,7 +174,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2000-05-09 21:31:50  pierre
+  Revision 1.1  2000-07-13 06:29:56  michael
+  + Initial import
+
+  Revision 1.28  2000/05/09 21:31:50  pierre
    * fix problem when modifying several local switches in a row
 
   Revision 1.27  2000/05/03 14:36:58  pierre

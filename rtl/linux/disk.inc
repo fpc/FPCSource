@@ -141,7 +141,10 @@ end;
 
 {
  $Log$
- Revision 1.7  2000-05-15 19:28:41  peter
+ Revision 1.1  2000-07-13 06:30:53  michael
+ + Initial import
+
+ Revision 1.7  2000/05/15 19:28:41  peter
    * int64 support for diskfree,disksize
 
  Revision 1.6  2000/02/09 16:59:31  peter

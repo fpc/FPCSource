@@ -591,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-04-08 09:31:59  peter
+  Revision 1.1  2000-07-13 06:34:22  michael
+  + Initial import
+
+  Revision 1.4  2000/04/08 09:31:59  peter
     * makefiles added
     * removed notes
 

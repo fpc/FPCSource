@@ -288,7 +288,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-09 10:40:12  peter
+  Revision 1.1  2000-07-13 06:30:11  michael
+  + Initial import
+
+  Revision 1.1  2000/07/09 10:40:12  peter
     * renamed to lowercase
 
   Revision 1.1  2000/03/09 20:28:00  florian

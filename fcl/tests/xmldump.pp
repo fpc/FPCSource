@@ -74,7 +74,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-06-29 16:45:51  sg
+  Revision 1.1  2000-07-13 06:33:48  michael
+  + Initial import
+
+  Revision 1.6  2000/06/29 16:45:51  sg
   * Now also dumps the document type
 
   Revision 1.5  2000/01/30 22:20:57  sg

@@ -850,7 +850,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-02-28 17:23:58  daniel
+  Revision 1.1  2000-07-13 06:30:07  michael
+  + Initial import
+
+  Revision 1.5  2000/02/28 17:23:58  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

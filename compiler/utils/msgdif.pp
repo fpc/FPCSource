@@ -410,7 +410,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-05-12 15:03:44  pierre
+  Revision 1.1  2000-07-13 06:30:14  michael
+  + Initial import
+
+  Revision 1.12  2000/05/12 15:03:44  pierre
    + interactive mode for translation
 
   Revision 1.11  2000/05/12 08:47:25  pierre

@@ -233,7 +233,10 @@
        end;
 {
   $Log$
-  Revision 1.11  2000-06-22 18:05:56  michael
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.11  2000/06/22 18:05:56  michael
   + Modifications for exception support in sysutils. Mainly added
      RaiseList function.
 

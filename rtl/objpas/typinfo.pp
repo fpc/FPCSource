@@ -862,7 +862,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2000-06-29 08:47:13  sg
+  Revision 1.1  2000-07-13 06:31:01  michael
+  + Initial import
+
+  Revision 1.43  2000/06/29 08:47:13  sg
   * Bugfix for SetAStrProp (reference counter hasn't been increased)
   * Implemented GetInt64Prop
 

@@ -2393,7 +2393,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2000-05-11 09:56:20  pierre
+  Revision 1.1  2000-07-13 06:29:48  michael
+  + Initial import
+
+  Revision 1.54  2000/05/11 09:56:20  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan

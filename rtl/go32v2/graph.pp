@@ -2593,7 +2593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-07-07 19:05:34  jonas
+  Revision 1.1  2000-07-13 06:30:38  michael
+  + Initial import
+
+  Revision 1.11  2000/07/07 19:05:34  jonas
     * fixed getpixelx/directputpixelx (only pascal version, assembler
       versions are still wrong)
     * fixed getrvgagbpalette procedur e(also returns 8 instead of 6 bit

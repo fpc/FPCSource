@@ -148,7 +148,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-07-06 18:59:41  hajny
+  Revision 1.1  2000-07-13 06:31:06  michael
+  + Initial import
+
+  Revision 1.9  2000/07/06 18:59:41  hajny
     * FileOpen corrected
 
   Revision 1.8  2000/06/12 17:26:29  hajny

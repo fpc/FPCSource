@@ -174,7 +174,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-03-02 12:16:57  michael
+  Revision 1.1  2000-07-13 06:34:24  michael
+  + Initial import
+
+  Revision 1.1  2000/03/02 12:16:57  michael
   + Initial implementation
 
   Revision 1.2  1999/06/10 07:28:29  hajny

@@ -152,7 +152,10 @@ type
 
 {
   $Log$
-  Revision 1.8  2000-04-16 16:08:30  marco
+  Revision 1.1  2000-07-13 06:30:33  michael
+  + Initial import
+
+  Revision 1.8  2000/04/16 16:08:30  marco
    * Updated PDir to BSD libc layout. (which is totally different from Linux)
 
   Revision 1.7  2000/04/10 15:46:52  marco

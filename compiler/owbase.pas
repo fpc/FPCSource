@@ -152,7 +152,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-04-02 15:22:19  florian
+  Revision 1.1  2000-07-13 06:29:53  michael
+  + Initial import
+
+  Revision 1.6  2000/04/02 15:22:19  florian
     * fixed bug 903: the compiler gives now a nice message if it can't create
       the .o file, (same for future .ar)
 

@@ -885,7 +885,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-03-11 21:11:25  daniel
+  Revision 1.1  2000-07-13 06:30:13  michael
+  + Initial import
+
+  Revision 1.2  2000/03/11 21:11:25  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object

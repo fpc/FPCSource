@@ -858,7 +858,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2000-03-09 02:40:03  alex
+  Revision 1.1  2000-07-13 06:30:18  michael
+  + Initial import
+
+  Revision 1.1  2000/03/09 02:40:03  alex
   moved files
 
   Revision 1.6  2000/01/21 00:44:51  peter

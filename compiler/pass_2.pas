@@ -844,7 +844,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2000-04-06 11:28:17  pierre
+  Revision 1.1  2000-07-13 06:29:53  michael
+  + Initial import
+
+  Revision 1.63  2000/04/06 11:28:17  pierre
    * avoid bug 911, worng unused parameter hints
 
   Revision 1.62  2000/04/02 12:11:38  florian

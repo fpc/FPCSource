@@ -114,7 +114,10 @@ function Gpm_GetSnapshot(var Event: TGPMEvent): Longint; cdecl;external;
 end.
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.1  2000-07-13 06:29:39  michael
+  + Initial import
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter

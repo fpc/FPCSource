@@ -246,7 +246,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-06-30 09:00:33  jonas
+  Revision 1.1  2000-07-13 06:29:39  michael
+  + Initial import
+
+  Revision 1.3  2000/06/30 09:00:33  jonas
     * compiles again with -dnomouse
 
   Revision 1.2  2000/04/17 08:51:38  pierre

@@ -914,7 +914,10 @@ End.
 
 {
   $Log$
-  Revision 1.21  2000-04-18 08:03:40  michael
+  Revision 1.1  2000-07-13 06:30:53  michael
+  + Initial import
+
+  Revision 1.21  2000/04/18 08:03:40  michael
   Corrected fix for bug 902
 
   Revision 1.20  2000/04/17 20:43:27  pierre

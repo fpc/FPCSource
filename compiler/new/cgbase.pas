@@ -525,7 +525,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.19  2000-03-11 21:11:24  daniel
+  Revision 1.1  2000-07-13 06:30:07  michael
+  + Initial import
+
+  Revision 1.19  2000/03/11 21:11:24  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object

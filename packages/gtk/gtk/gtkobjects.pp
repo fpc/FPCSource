@@ -264,7 +264,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-02-14 19:18:58  peter
+  Revision 1.1  2000-07-13 06:34:05  michael
+  + Initial import
+
+  Revision 1.2  2000/02/14 19:18:58  peter
     * win32 updates from vincent snijder
 
   Revision 1.1  1999/11/24 23:36:36  peter

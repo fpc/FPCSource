@@ -466,7 +466,10 @@
 
 {
   $Log$
-  Revision 1.20  2000-03-17 21:27:56  jonas
+  Revision 1.1  2000-07-13 06:30:47  michael
+  + Initial import
+
+  Revision 1.20  2000/03/17 21:27:56  jonas
     * fixed declaration of val_int64 (removed destsize parameter)
     * fixed val_int64 and val_qword so they reject invalid input
       (u >= base)

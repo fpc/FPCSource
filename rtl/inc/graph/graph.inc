@@ -2434,7 +2434,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.39  2000-07-07 17:29:30  jonas
+  Revision 1.1  2000-07-13 06:30:51  michael
+  + Initial import
+
+  Revision 1.39  2000/07/07 17:29:30  jonas
     * fixed setgraphmode together with the new graphdrivers
 
   Revision 1.38  2000/06/27 13:37:04  jonas

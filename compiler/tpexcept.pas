@@ -385,7 +385,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-05-11 09:36:22  pierre
+  Revision 1.1  2000-07-13 06:30:02  michael
+  + Initial import
+
+  Revision 1.13  2000/05/11 09:36:22  pierre
    * Delphi implementation by Kovacs Attila Zoltan
 
   Revision 1.12  2000/02/24 18:41:39  peter

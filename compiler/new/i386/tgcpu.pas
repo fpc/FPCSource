@@ -106,7 +106,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-03-01 15:36:13  florian
+  Revision 1.1  2000-07-13 06:30:11  michael
+  + Initial import
+
+  Revision 1.7  2000/03/01 15:36:13  florian
     * some new stuff for the new cg
 
   Revision 1.6  2000/01/07 01:14:57  peter

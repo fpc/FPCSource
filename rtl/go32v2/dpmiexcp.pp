@@ -1466,7 +1466,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.17  2000-04-14 12:24:12  pierre
+  Revision 1.1  2000-07-13 06:30:36  michael
+  + Initial import
+
+  Revision 1.17  2000/04/14 12:24:12  pierre
    Use BackTraceStrFunc in show_call_frame
 
   Revision 1.16  2000/03/31 23:19:12  pierre

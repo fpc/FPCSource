@@ -413,7 +413,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.6  2000-01-10 23:46:19  peter
+  Revision 1.1  2000-07-13 06:34:23  michael
+  + Initial import
+
+  Revision 1.6  2000/01/10 23:46:19  peter
     * works also under go32v2
 
   Revision 1.5  1999/11/14 15:59:06  peter

@@ -29,7 +29,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-06-22 16:32:30  hajny
+  Revision 1.1  2000-07-13 06:29:38  michael
+  + Initial import
+
+  Revision 1.2  2000/06/22 16:32:30  hajny
     * ApiComm instead of Common
 
 

@@ -53,7 +53,10 @@ end;
 
 {
  $Log$
- Revision 1.2  2000-01-07 16:41:51  daniel
+ Revision 1.1  2000-07-13 06:31:15  michael
+ + Initial import
+
+ Revision 1.2  2000/01/07 16:41:51  daniel
    * copyright 2000
 
  Revision 1.1  1999/11/08 22:45:01  peter

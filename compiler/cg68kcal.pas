@@ -1070,7 +1070,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2000-03-01 00:04:31  pierre
+  Revision 1.1  2000-07-13 06:29:46  michael
+  + Initial import
+
+  Revision 1.25  2000/03/01 00:04:31  pierre
    Use $GOTO ON
 
   Revision 1.24  2000/02/09 13:22:48  peter

@@ -900,7 +900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2000-02-09 13:22:49  peter
+  Revision 1.1  2000-07-13 06:29:46  michael
+  + Initial import
+
+  Revision 1.22  2000/02/09 13:22:49  peter
     * log truncated
 
   Revision 1.21  2000/01/07 01:14:22  peter

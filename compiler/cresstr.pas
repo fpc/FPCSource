@@ -284,7 +284,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-06-04 08:48:54  jonas
+  Revision 1.1  2000-07-13 06:29:48  michael
+  + Initial import
+
+  Revision 1.18  2000/06/04 08:48:54  jonas
     * resource string numbering
 
   Revision 1.17  2000/06/01 19:09:57  peter

@@ -325,7 +325,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-02-22 14:29:17  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.8  2000/02/22 14:29:17  sg
   * Unterminated strings now get the shInvalid style
 
   Revision 1.7  2000/02/20 10:59:46  sg

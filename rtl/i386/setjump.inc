@@ -48,7 +48,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-05-04 09:47:40  pierre
+  Revision 1.1  2000-07-13 06:30:42  michael
+  + Initial import
+
+  Revision 1.13  2000/05/04 09:47:40  pierre
     * Preserve all registers in SetJmp
     * set EAX to value filed in LongJmp instead of only 0 or 1
 

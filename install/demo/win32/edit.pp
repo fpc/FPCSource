@@ -461,7 +461,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-07-11 08:51:05  michael
+  Revision 1.1  2000-07-13 06:30:20  michael
+  + Initial import
+
+  Revision 1.3  2000/07/11 08:51:05  michael
   + Fixed Font handling
 
   Revision 1.2  2000/02/27 21:07:58  florian

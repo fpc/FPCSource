@@ -579,7 +579,10 @@ end;
 
 {
 $Log$
-Revision 1.34  2000-07-09 07:21:14  peter
+Revision 1.1  2000-07-13 06:30:52  michael
++ Initial import
+
+Revision 1.34  2000/07/09 07:21:14  peter
   * initernmodenumber is now renumbered at the end of AddMode() it
     also sets hi/lo for the driver
 

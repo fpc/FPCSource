@@ -856,7 +856,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.9  2000-05-12 05:51:43  pierre
+  Revision 1.1  2000-07-13 06:29:48  michael
+  + Initial import
+
+  Revision 1.9  2000/05/12 05:51:43  pierre
    * Reset DosError in Exec reported by Kovacs Attila Zoltan
 
   Revision 1.8  2000/05/11 09:56:20  pierre

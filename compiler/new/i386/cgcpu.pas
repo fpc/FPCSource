@@ -140,7 +140,10 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:57  peter
+  Revision 1.1  2000-07-13 06:30:10  michael
+  + Initial import
+
+  Revision 1.9  2000/01/07 01:14:57  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/11/09 22:57:09  peter

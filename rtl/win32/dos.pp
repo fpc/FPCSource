@@ -1004,7 +1004,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2000-05-26 12:03:13  marco
+  Revision 1.1  2000-07-13 06:31:19  michael
+  + Initial import
+
+  Revision 1.37  2000/05/26 12:03:13  marco
    * added getlongname and getshortname
 
   Revision 1.36  2000/05/19 13:20:37  pierre

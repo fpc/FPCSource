@@ -403,7 +403,10 @@ end;
 
 {
   $Log$
-  Revision 1.32  2000-07-07 18:03:08  jonas
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.32  2000/07/07 18:03:08  jonas
     * changed precision for extended back (otherwise strreal2.pp in
       tests/test failed)
 

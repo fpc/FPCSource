@@ -179,7 +179,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-03-16 17:42:02  sg
+  Revision 1.1  2000-07-13 06:34:19  michael
+  + Initial import
+
+  Revision 1.1  2000/03/16 17:42:02  sg
   * First version
 
 }

@@ -1003,7 +1003,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.24  2000-06-21 20:56:37  pierre
+  Revision 1.1  2000-07-13 06:29:52  michael
+  + Initial import
+
+  Revision 1.24  2000/06/21 20:56:37  pierre
    * fix the problem of long mangledname in internal writer
 
   Revision 1.23  2000/04/12 12:42:29  pierre

@@ -95,7 +95,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-02-09 16:59:29  peter
+  Revision 1.1  2000-07-13 06:30:38  michael
+  + Initial import
+
+  Revision 1.6  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.5  2000/01/09 00:35:17  pierre

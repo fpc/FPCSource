@@ -385,7 +385,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2000-06-07 08:55:30  jonas
+  Revision 1.1  2000-07-13 06:30:42  michael
+  + Initial import
+
+  Revision 1.23  2000/06/07 08:55:30  jonas
     * fixed web bug 983 (array name wasn't skipped in add/decref)
 
   Revision 1.22  2000/04/01 11:45:34  peter

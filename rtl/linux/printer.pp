@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-02-09 16:59:32  peter
+  Revision 1.1  2000-07-13 06:30:54  michael
+  + Initial import
+
+  Revision 1.7  2000/02/09 16:59:32  peter
     * truncated log
 
   Revision 1.6  2000/01/07 16:41:41  daniel

@@ -246,7 +246,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:30  peter
+  Revision 1.1  2000-07-13 06:29:38  michael
+  + Initial import
+
+  Revision 1.1  2000/01/06 01:20:30  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:37  peter

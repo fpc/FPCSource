@@ -821,7 +821,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-04-12 14:10:50  pierre
+  Revision 1.1  2000-07-13 06:30:35  michael
+  + Initial import
+
+  Revision 1.13  2000/04/12 14:10:50  pierre
    * fix the crt blinking compat problem bug 902
 
   Revision 1.12  2000/02/09 16:59:28  peter

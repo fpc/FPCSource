@@ -487,7 +487,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-06-16 13:35:07  pierre
+  Revision 1.1  2000-07-13 06:31:22  michael
+  + Initial import
+
+  Revision 1.11  2000/06/16 13:35:07  pierre
    * GetFullPathName was wrong
 
   Revision 1.10  2000/06/15 11:26:57  pierre

@@ -498,7 +498,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2000-07-06 19:06:30  peter
+  Revision 1.1  2000-07-13 06:29:59  michael
+  + Initial import
+
+  Revision 1.67  2000/07/06 19:06:30  peter
     * fixed crash with objects unit and -Sd mode
 
   Revision 1.66  2000/05/15 19:29:50  peter

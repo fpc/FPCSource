@@ -210,7 +210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-06-18 18:27:32  hajny
+  Revision 1.1  2000-07-13 06:30:22  michael
+  + Initial import
+
+  Revision 1.5  2000/06/18 18:27:32  hajny
     + archive validity checking, progress indicator, better error checking
 
   Revision 1.4  2000/06/13 16:21:36  hajny

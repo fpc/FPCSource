@@ -243,7 +243,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:32  peter
+  Revision 1.1  2000-07-13 06:33:58  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:32  peter
     * moved to packages dir
 
   Revision 1.3  1999/08/23 09:16:48  pierre

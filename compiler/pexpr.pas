@@ -2170,7 +2170,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.176  2000-06-14 16:52:42  peter
+  Revision 1.1  2000-07-13 06:29:54  michael
+  + Initial import
+
+  Revision 1.176  2000/06/14 16:52:42  peter
     * support for inherited; only
 
   Revision 1.175  2000/06/05 20:41:17  pierre

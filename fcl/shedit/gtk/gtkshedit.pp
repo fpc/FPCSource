@@ -573,7 +573,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-02-22 14:31:04  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.4  2000/02/22 14:31:04  sg
   * Added destructor, to fix memory leaks
 
   Revision 1.3  2000/01/31 19:26:13  sg

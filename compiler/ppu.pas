@@ -923,7 +923,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  2000-05-15 13:19:04  pierre
+  Revision 1.1  2000-07-13 06:29:54  michael
+  + Initial import
+
+  Revision 1.59  2000/05/15 13:19:04  pierre
    CRC stuff moved to CRC unit
 
   Revision 1.58  2000/05/12 08:58:51  pierre

@@ -531,7 +531,10 @@
 
 {
   $Log$
-  Revision 1.54  2000-06-02 18:48:48  florian
+  Revision 1.1  2000-07-13 06:29:57  michael
+  + Initial import
+
+  Revision 1.54  2000/06/02 18:48:48  florian
     + fieldtable support for classes
 
   Revision 1.53  2000/02/09 13:23:04  peter

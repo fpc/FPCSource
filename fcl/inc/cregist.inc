@@ -185,7 +185,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-06-27 17:17:34  lazarus
+  Revision 1.1  2000-07-13 06:31:30  michael
+  + Initial import
+
+  Revision 1.5  2000/06/27 17:17:34  lazarus
   Added code for registerclass, GetClass and RegisterClasses
   Shane
 

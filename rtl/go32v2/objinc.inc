@@ -181,7 +181,10 @@ END;
 
 {
   $Log$
-  Revision 1.7  2000-06-30 22:16:19  peter
+  Revision 1.1  2000-07-13 06:30:39  michael
+  + Initial import
+
+  Revision 1.7  2000/06/30 22:16:19  peter
     * fixed truncate
 
   Revision 1.6  2000/05/30 06:45:53  marco

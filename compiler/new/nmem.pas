@@ -720,7 +720,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-04-29 09:01:06  jonas
+  Revision 1.1  2000-07-13 06:30:08  michael
+  + Initial import
+
+  Revision 1.18  2000/04/29 09:01:06  jonas
     * nmem compiles again (at least for powerpc)
 
   Revision 1.17  2000/03/01 15:36:13  florian

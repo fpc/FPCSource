@@ -918,7 +918,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.15  2000-07-11 09:37:55  pierre
+  Revision 1.1  2000-07-13 06:30:40  michael
+  + Initial import
+
+  Revision 1.15  2000/07/11 09:37:55  pierre
    * get it to compile with AS v 2.10
 
   Revision 1.14  2000/05/18 06:40:52  pierre

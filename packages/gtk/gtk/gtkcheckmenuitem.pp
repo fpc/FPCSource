@@ -92,7 +92,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-01-24 18:35:38  sg
+  Revision 1.1  2000-07-13 06:34:03  michael
+  + Initial import
+
+  Revision 1.2  2000/01/24 18:35:38  sg
   * added gtk_check_menu_item_new and ~_new_with_label
 
   Revision 1.1  1999/11/24 23:36:35  peter

@@ -361,7 +361,10 @@ function  GTK_RETLOC_POINTER(const a : TGtkArg) : Pgpointer;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:37  peter
+  Revision 1.1  2000-07-13 06:34:07  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:37  peter
     * moved to packages dir
 
   Revision 1.6  1999/10/06 17:42:50  peter

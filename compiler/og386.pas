@@ -273,7 +273,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.18  2000-02-24 18:41:39  peter
+  Revision 1.1  2000-07-13 06:29:52  michael
+  + Initial import
+
+  Revision 1.18  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.17  2000/02/09 13:22:54  peter

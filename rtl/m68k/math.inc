@@ -943,7 +943,10 @@ const sincof : TabCoef = (
 
 {
   $Log$
-  Revision 1.4  2000-05-02 10:37:50  pierre
+  Revision 1.1  2000-07-13 06:30:56  michael
+  + Initial import
+
+  Revision 1.4  2000/05/02 10:37:50  pierre
    * 0**n where n<>0 is 0; 0**0 generates RTE 207
 
   Revision 1.3  2000/01/07 16:41:43  daniel

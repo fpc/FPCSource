@@ -1408,7 +1408,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.119  2000-07-03 21:08:54  pierre
+  Revision 1.1  2000-07-13 06:29:50  michael
+  + Initial import
+
+  Revision 1.119  2000/07/03 21:08:54  pierre
    * fix for bug 1025
 
   Revision 1.118  2000/06/15 18:10:11  peter

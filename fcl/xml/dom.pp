@@ -1499,7 +1499,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2000-07-09 11:38:33  sg
+  Revision 1.1  2000-07-13 06:33:49  michael
+  + Initial import
+
+  Revision 1.16  2000/07/09 11:38:33  sg
   * Fixed TDOMNode_WithChildren.RemoveNode for the case when the node to be
     removed is the first child node.
 

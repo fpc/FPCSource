@@ -55,7 +55,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:33  peter
+  Revision 1.1  2000-07-13 06:33:58  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:33  peter
     * moved to packages dir
 
   Revision 1.1  1999/05/22 13:43:00  peter

@@ -144,7 +144,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-03-12 15:05:14  peter
+  Revision 1.1  2000-07-13 06:29:38  michael
+  + Initial import
+
+  Revision 1.5  2000/03/12 15:05:14  peter
     * $G+ is only needed for tp
 
   Revision 1.4  2000/02/29 11:43:16  pierre

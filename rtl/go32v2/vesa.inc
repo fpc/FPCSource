@@ -2647,7 +2647,10 @@ Const
 
 (*
 $Log$
-Revision 1.25  2000-07-08 07:48:38  jonas
+Revision 1.1  2000-07-13 06:30:40  michael
++ Initial import
+
+Revision 1.25  2000/07/08 07:48:38  jonas
   * LFB modes finally work! You have to add $4000 to the mode number
     if you use LFB access!
 

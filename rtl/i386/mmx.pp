@@ -127,7 +127,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.7  2000-02-15 14:37:36  florian
+    Revision 1.1  2000-07-13 06:30:42  michael
+    + Initial import
+
+    Revision 1.7  2000/02/15 14:37:36  florian
       * disabled FIXED data type per default
 
     Revision 1.6  2000/02/09 16:59:29  peter

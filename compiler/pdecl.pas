@@ -1257,7 +1257,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.189  2000-07-03 13:26:48  pierre
+  Revision 1.1  2000-07-13 06:29:53  michael
+  + Initial import
+
+  Revision 1.189  2000/07/03 13:26:48  pierre
    * fix for bug 1023
 
   Revision 1.188  2000/06/23 21:34:09  pierre

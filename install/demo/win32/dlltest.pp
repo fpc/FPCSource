@@ -26,7 +26,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-01-12 14:20:36  peter
+  Revision 1.1  2000-07-13 06:30:20  michael
+  + Initial import
+
+  Revision 1.1  1999/01/12 14:20:36  peter
     + dll example
 
 }

@@ -2083,7 +2083,10 @@ end.
 
 {
   $Log$
-  Revision 1.67  2000-07-07 20:42:55  pierre
+  Revision 1.1  2000-07-13 06:29:55  michael
+  + Initial import
+
+  Revision 1.67  2000/07/07 20:42:55  pierre
    * get a failure on webtbf/tbug890
 
   Revision 1.66  2000/07/06 19:04:59  peter

@@ -324,7 +324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-02-17 14:53:43  florian
+  Revision 1.1  2000-07-13 06:30:00  michael
+  + Initial import
+
+  Revision 1.19  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.18  2000/02/09 13:23:08  peter

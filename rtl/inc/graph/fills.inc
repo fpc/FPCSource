@@ -488,7 +488,10 @@ var
 {$endif}
 {
 $Log$
-Revision 1.19  2000-05-23 20:34:26  pierre
+Revision 1.1  2000-07-13 06:30:50  michael
++ Initial import
+
+Revision 1.19  2000/05/23 20:34:26  pierre
  * avoid problems with Range Check
 
 Revision 1.18  2000/02/27 14:41:25  peter

@@ -1652,7 +1652,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.32  2000-07-08 21:29:13  peter
+  Revision 1.1  2000-07-13 06:30:52  michael
+  + Initial import
+
+  Revision 1.32  2000/07/08 21:29:13  peter
     * use initialization/finalization instead of exitproc
 
   Revision 1.31  2000/06/22 18:37:49  peter

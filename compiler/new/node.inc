@@ -291,7 +291,10 @@
 
 {
   $Log$
-  Revision 1.1  2000-02-24 18:40:42  peter
+  Revision 1.1  2000-07-13 06:30:08  michael
+  + Initial import
+
+  Revision 1.1  2000/02/24 18:40:42  peter
     * moved to new/
 
   Revision 1.1  2000/02/21 08:45:26  michael

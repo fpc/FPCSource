@@ -286,7 +286,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-12-04 13:50:43  michael
+  Revision 1.1  2000-07-13 06:30:54  michael
+  + Initial import
+
+  Revision 1.3  1999/12/04 13:50:43  michael
   + Now time zone also works on SuSE and RedHat
 
   Revision 1.2  1999/12/02 11:25:31  peter

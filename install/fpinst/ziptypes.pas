@@ -202,7 +202,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.2  1999-06-10 07:28:30  hajny
+  Revision 1.1  2000-07-13 06:30:22  michael
+  + Initial import
+
+  Revision 1.2  1999/06/10 07:28:30  hajny
     * compilable with TP again
 
   Revision 1.1  1999/02/19 16:45:26  peter

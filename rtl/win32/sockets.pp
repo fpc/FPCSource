@@ -224,7 +224,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2000-06-21 22:26:47  pierre
+  Revision 1.1  2000-07-13 06:31:22  michael
+  + Initial import
+
+  Revision 1.7  2000/06/21 22:26:47  pierre
    * use ioctlsocket in fdRead
 
   Revision 1.6  2000/06/19 13:32:18  michael

@@ -1932,7 +1932,10 @@ End.
 
 {
  $Log$
- Revision 1.97  2000-07-10 08:00:22  jonas
+ Revision 1.1  2000-07-13 06:29:54  michael
+ + Initial import
+
+ Revision 1.97  2000/07/10 08:00:22  jonas
    * real fix for web bug 1032 (removed previous coment since it was false)
 
  Revision 1.95  2000/07/06 12:30:31  jonas

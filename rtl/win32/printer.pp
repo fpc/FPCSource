@@ -40,7 +40,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-04-06 08:27:33  florian
+  Revision 1.1  2000-07-13 06:31:22  michael
+  + Initial import
+
+  Revision 1.1  2000/04/06 08:27:33  florian
     + Initial revision of printer unit for win32, took that one of go32v2
 
 }

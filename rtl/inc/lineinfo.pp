@@ -640,7 +640,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2000-06-22 18:36:18  peter
+  Revision 1.1  2000-07-13 06:30:47  michael
+  + Initial import
+
+  Revision 1.12  2000/06/22 18:36:18  peter
     * removed notes
 
   Revision 1.11  2000/06/05 13:04:11  pierre

@@ -647,7 +647,10 @@ end;
 
 {
   $Log$
-  Revision 1.89  2000-05-23 20:35:41  pierre
+  Revision 1.1  2000-07-13 06:30:49  michael
+  + Initial import
+
+  Revision 1.89  2000/05/23 20:35:41  pierre
    * disable check in Exit and Error code
 
   Revision 1.88  2000/04/24 11:11:50  peter

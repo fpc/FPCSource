@@ -3331,7 +3331,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2000-03-02 12:16:56  michael
+  Revision 1.1  2000-07-13 06:34:24  michael
+  + Initial import
+
+  Revision 1.1  2000/03/02 12:16:56  michael
   + Initial implementation
 
   Revision 1.5  2000/02/24 17:47:47  peter

@@ -750,7 +750,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-07-07 18:23:41  marco
+  Revision 1.1  2000-07-13 06:30:45  michael
+  + Initial import
+
+  Revision 1.9  2000/07/07 18:23:41  marco
    * Changed move (var source;var dest) to move (const source;var dest)
 
   Revision 1.8  2000/03/10 13:45:31  pierre

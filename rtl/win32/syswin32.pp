@@ -1324,7 +1324,10 @@ end.
 
 {
   $Log$
-  Revision 1.65  2000-06-22 18:39:14  peter
+  Revision 1.1  2000-07-13 06:31:22  michael
+  + Initial import
+
+  Revision 1.65  2000/06/22 18:39:14  peter
     * moved islibrary,isconsole,ismulithread to systemh as they are
       os independent
 

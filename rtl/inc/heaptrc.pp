@@ -990,7 +990,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2000-05-18 17:03:27  peter
+  Revision 1.1  2000-07-13 06:30:47  michael
+  + Initial import
+
+  Revision 1.43  2000/05/18 17:03:27  peter
     * fixed reallocmem with double removing from heap_mem_root list
     * fixed reallocmem getmem/freemem count, now both are increased and
       the _size8 counts are also increased

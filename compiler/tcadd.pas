@@ -1280,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2000-06-02 21:24:48  pierre
+  Revision 1.1  2000-07-13 06:29:58  michael
+  + Initial import
+
+  Revision 1.79  2000/06/02 21:24:48  pierre
     * operator overloading now uses isbinaryoperatoracceptable
       and is unaryoperatoracceptable
 

@@ -398,7 +398,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-07-08 18:02:39  peter
+  Revision 1.1  2000-07-13 06:30:54  michael
+  + Initial import
+
+  Revision 1.11  2000/07/08 18:02:39  peter
     * do_open checks for directory, if directory then ioerror 2
 
   Revision 1.10  2000/02/09 16:59:32  peter

@@ -146,7 +146,10 @@ unit nstatmnt;
 end.
 {
   $Log$
-  Revision 1.5  2000-01-07 01:14:54  peter
+  Revision 1.1  2000-07-13 06:30:08  michael
+  + Initial import
+
+  Revision 1.5  2000/01/07 01:14:54  peter
     * updated copyright to 2000
 
   Revision 1.4  1999/08/05 14:58:14  florian

@@ -466,7 +466,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-02-20 20:49:46  florian
+  Revision 1.1  2000-07-13 06:30:08  michael
+  + Initial import
+
+  Revision 1.11  2000/02/20 20:49:46  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 

@@ -951,7 +951,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.11  2000-06-21 22:26:08  pierre
+  Revision 1.1  2000-07-13 06:31:22  michael
+  + Initial import
+
+  Revision 1.11  2000/06/21 22:26:08  pierre
    * link smart and FIXXX const corrected
 
   Revision 1.10  2000/03/20 16:14:37  alex

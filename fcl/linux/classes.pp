@@ -50,7 +50,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2000-07-01 09:49:02  peter
+  Revision 1.1  2000-07-13 06:31:32  michael
+  + Initial import
+
+  Revision 1.19  2000/07/01 09:49:02  peter
     * fixed go32v2,win32 build
 
   Revision 1.18  2000/06/29 16:32:06  sg

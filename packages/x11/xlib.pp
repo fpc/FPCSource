@@ -1724,7 +1724,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-05-24 09:37:29  sg
+  Revision 1.1  2000-07-13 06:34:23  michael
+  + Initial import
+
+  Revision 1.7  2000/05/24 09:37:29  sg
   * translated more X11 functions
 
   Revision 1.6  2000/05/22 08:21:05  sg

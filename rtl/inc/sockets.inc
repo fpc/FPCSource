@@ -167,7 +167,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.7  2000-06-21 22:27:50  pierre
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.7  2000/06/21 22:27:50  pierre
    * no bufpos reset on flush for fminput
 
   Revision 1.6  2000/05/22 12:38:51  jonas

@@ -78,7 +78,10 @@ function  gtk_accelerator_get_default_mod_mask:guint;cdecl;external gtkdll name 
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:35  peter
+  Revision 1.1  2000-07-13 06:34:02  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:35  peter
     * moved to packages dir
 
   Revision 1.6  1999/10/06 17:42:48  peter

@@ -146,7 +146,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:50  daniel
+  Revision 1.1  2000-07-13 06:31:07  michael
+  + Initial import
+
+  Revision 1.4  2000/01/07 16:41:50  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/02 17:37:42  hajny

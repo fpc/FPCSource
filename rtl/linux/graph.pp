@@ -597,7 +597,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2000-07-08 21:22:16  peter
+  Revision 1.1  2000-07-13 06:30:53  michael
+  + Initial import
+
+  Revision 1.18  2000/07/08 21:22:16  peter
     * finalization added with setrawmode(false)
 
   Revision 1.17  2000/06/30 22:14:44  peter

@@ -65,7 +65,10 @@ procedure gtk_selection_data_free(data:PGtkSelectionData);cdecl;external gtkdll 
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.1  2000-07-13 06:34:05  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.11  1999/10/06 17:42:50  peter

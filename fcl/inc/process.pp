@@ -185,7 +185,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-03-28 06:44:01  michael
+  Revision 1.1  2000-07-13 06:31:31  michael
+  + Initial import
+
+  Revision 1.7  2000/03/28 06:44:01  michael
   + TRect should refer to the classes one
 
   Revision 1.6  2000/02/15 22:03:38  sg

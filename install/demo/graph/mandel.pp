@@ -336,7 +336,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-08 20:58:05  pierre
+  Revision 1.1  2000-07-13 06:30:19  michael
+  + Initial import
+
+  Revision 1.2  2000/07/08 20:58:05  pierre
    * adapt to new graph modes
 
   Revision 1.1  2000/03/09 02:40:04  alex

@@ -61,7 +61,10 @@
 
 {
   $Log$
-  Revision 1.9  2000-02-15 14:36:57  florian
+  Revision 1.1  2000-07-13 06:30:47  michael
+  + Initial import
+
+  Revision 1.9  2000/02/15 14:36:57  florian
     * disabled FIXED data type per default
 
   Revision 1.8  2000/02/09 16:59:30  peter

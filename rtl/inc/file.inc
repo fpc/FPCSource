@@ -385,7 +385,10 @@ End;
 
 {
   $Log$
-  Revision 1.20  2000-03-24 10:26:18  jonas
+  Revision 1.1  2000-07-13 06:30:44  michael
+  + Initial import
+
+  Revision 1.20  2000/03/24 10:26:18  jonas
     * changed a lot of "if fm.mode = fmClosed then" to case statements,
       because if f is not yet initialized, the mode is invalid and can
       contain another value even though the file is closed

@@ -2121,7 +2121,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.122  2000-06-29 13:49:39  jonas
+  Revision 1.1  2000-07-13 06:30:02  michael
+  + Initial import
+
+  Revision 1.122  2000/06/29 13:49:39  jonas
     * fixed copy/paste bugs in getcopy
 
   Revision 1.121  2000/06/06 20:24:07  pierre

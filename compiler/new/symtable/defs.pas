@@ -3132,7 +3132,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-03-16 12:52:47  daniel
+  Revision 1.1  2000-07-13 06:30:13  michael
+  + Initial import
+
+  Revision 1.6  2000/03/16 12:52:47  daniel
     *  Changed names of procedures flags
     *  Changed VMT generation
 

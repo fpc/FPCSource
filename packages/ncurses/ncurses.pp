@@ -1675,7 +1675,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-07-08 18:06:36  peter
+  Revision 1.1  2000-07-13 06:34:12  michael
+  + Initial import
+
+  Revision 1.8  2000/07/08 18:06:36  peter
     * updated to latest ncrt package from Ken
 
   Revision 1.7  2000/05/31 09:36:26  jonas

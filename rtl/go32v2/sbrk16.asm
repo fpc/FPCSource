@@ -2,7 +2,10 @@
 ;
 ; $Id$
 ; $Log$
-; Revision 1.1  1998-12-21 13:07:03  peter
+; Revision 1.1  2000-07-13 06:30:40  michael
+; + Initial import
+;
+; Revision 1.1  1998/12/21 13:07:03  peter
 ;   * use -FE
 ;
 ; Revision 1.1.1.1  1998/03/25 11:18:42  root

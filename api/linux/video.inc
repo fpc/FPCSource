@@ -478,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-06-30 12:28:57  jonas
+  Revision 1.1  2000-07-13 06:29:39  michael
+  + Initial import
+
+  Revision 1.3  2000/06/30 12:28:57  jonas
     * fixed termtype structure
 
   Revision 1.2  2000/03/12 15:02:10  peter

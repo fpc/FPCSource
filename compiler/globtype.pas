@@ -199,7 +199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2000-06-11 07:00:21  peter
+  Revision 1.1  2000-07-13 06:29:51  michael
+  + Initial import
+
+  Revision 1.32  2000/06/11 07:00:21  peter
     * fixed pchar->string conversion for delphi mode
 
   Revision 1.31  2000/05/31 06:57:11  florian

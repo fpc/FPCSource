@@ -556,7 +556,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2000-02-22 14:30:10  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.18  2000/02/22 14:30:10  sg
   * Some redrawing and cursor fixes
 
   Revision 1.17  2000/02/19 19:06:17  sg

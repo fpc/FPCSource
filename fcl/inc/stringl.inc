@@ -957,7 +957,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-03-07 07:50:55  michael
+  Revision 1.1  2000-07-13 06:31:31  michael
+  + Initial import
+
+  Revision 1.11  2000/03/07 07:50:55  michael
   + Added ebginupdate/endupdate
 
   Revision 1.10  2000/01/07 01:24:33  peter

@@ -242,7 +242,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-06-29 16:43:02  sg
+  Revision 1.1  2000-07-13 06:33:50  michael
+  + Initial import
+
+  Revision 1.1  2000/06/29 16:43:02  sg
   * Added XML object streaming (serialisation) support
 
 }

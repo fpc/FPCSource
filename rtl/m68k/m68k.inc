@@ -688,7 +688,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2000-01-07 16:41:42  daniel
+  Revision 1.1  2000-07-13 06:30:56  michael
+  + Initial import
+
+  Revision 1.17  2000/01/07 16:41:42  daniel
     * copyright 2000
 
   Revision 1.16  2000/01/07 16:32:29  daniel

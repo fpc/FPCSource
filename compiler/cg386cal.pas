@@ -1478,7 +1478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2000-07-05 20:39:55  florian
+  Revision 1.1  2000-07-13 06:29:44  michael
+  + Initial import
+
+  Revision 1.138  2000/07/05 20:39:55  florian
     * virtual contructors weren't handled properly if they were called via a class
       variable
 

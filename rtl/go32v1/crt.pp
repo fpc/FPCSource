@@ -815,7 +815,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-04-14 12:18:11  pierre
+  Revision 1.1  2000-07-13 06:30:34  michael
+  + Initial import
+
+  Revision 1.5  2000/04/14 12:18:11  pierre
    * fix for bug 923
 
   Revision 1.4  2000/01/07 16:41:29  daniel

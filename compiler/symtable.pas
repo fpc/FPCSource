@@ -2977,7 +2977,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2000-07-03 09:48:23  pierre
+  Revision 1.1  2000-07-13 06:29:57  michael
+  + Initial import
+
+  Revision 1.102  2000/07/03 09:48:23  pierre
    * fix for bug 1019
 
   Revision 1.101  2000/06/23 21:34:10  pierre

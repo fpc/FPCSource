@@ -1067,7 +1067,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.82  2000-04-22 14:25:03  jonas
+  Revision 1.1  2000-07-13 06:29:43  michael
+  + Initial import
+
+  Revision 1.82  2000/04/22 14:25:03  jonas
     * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
     + systems.pas: info for macos/ppc
     * new/cgobj.pas: compiles again without newst define

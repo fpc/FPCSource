@@ -215,7 +215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-06-18 18:11:32  peter
+  Revision 1.1  2000-07-13 06:29:56  michael
+  + Initial import
+
+  Revision 1.13  2000/06/18 18:11:32  peter
     * C record packing fixed to also check first entry of the record
       if bigger than the recordalignment itself
     * variant record alignment uses alignment per variant and saves the

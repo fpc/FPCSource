@@ -415,7 +415,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.11  2000-06-23 11:13:56  jonas
+  Revision 1.1  2000-07-13 06:30:43  michael
+  + Initial import
+
+  Revision 1.11  2000/06/23 11:13:56  jonas
     * fixed bug in strscan :(
 
   Revision 1.10  2000/06/12 19:53:32  peter

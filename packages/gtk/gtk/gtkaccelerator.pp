@@ -40,7 +40,10 @@ procedure gtk_accelerator_table_set_mod_mask(table:PGtkAcceleratorTable; modifie
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:35  peter
+  Revision 1.1  2000-07-13 06:34:02  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:35  peter
     * moved to packages dir
 
   Revision 1.10  1999/10/21 08:42:01  florian

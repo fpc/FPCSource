@@ -491,7 +491,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-02-22 14:28:35  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.12  2000/02/22 14:28:35  sg
   * "AdjustRangeToCursor" now is called after each pressed key
 
   Revision 1.11  2000/01/23 23:58:25  sg

@@ -1115,7 +1115,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-09 21:01:59  hajny
+  Revision 1.1  2000-07-13 06:31:07  michael
+  + Initial import
+
+  Revision 1.7  2000/01/09 21:01:59  hajny
     * cdecl added
 
 }

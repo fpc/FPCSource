@@ -539,7 +539,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2000-05-23 13:55:27  pierre
+  Revision 1.1  2000-07-13 06:30:00  michael
+  + Initial import
+
+  Revision 1.43  2000/05/23 13:55:27  pierre
    Use a multiple of 4 to substract from stack pointer for locals and temps
 
   Revision 1.42  2000/02/09 13:23:08  peter

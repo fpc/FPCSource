@@ -571,7 +571,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2000-04-06 11:51:47  pierre
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.35  2000/04/06 11:51:47  pierre
    * fix for extended constants
 
   Revision 1.34  2000/02/09 16:59:31  peter

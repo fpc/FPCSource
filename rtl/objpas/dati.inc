@@ -673,7 +673,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2000-06-18 18:02:54  peter
+  Revision 1.1  2000-07-13 06:30:58  michael
+  + Initial import
+
+  Revision 1.22  2000/06/18 18:02:54  peter
     * fixed decodetime which used trunc instead of round
 
   Revision 1.21  2000/02/27 14:41:25  peter

@@ -646,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2000-04-08 09:30:01  peter
+  Revision 1.1  2000-07-13 06:30:00  michael
+  + Initial import
+
+  Revision 1.45  2000/04/08 09:30:01  peter
      * fixed pointer->array conversion when resulttype was already set
 
   Revision 1.44  2000/03/23 16:29:32  jonas

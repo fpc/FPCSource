@@ -139,7 +139,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-03-19 08:40:14  peter
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.7  2000/03/19 08:40:14  peter
     * strdispose uses freemem(pointer) and resets pointer to nil
 
   Revision 1.6  2000/03/18 15:43:05  jonas

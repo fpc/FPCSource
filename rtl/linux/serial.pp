@@ -1,11 +1,11 @@
-{ $Id$
-
-  Unit for handling the serial interfaces under Linux.
+{ Unit for handling the serial interfaces under Linux.
   (c) 2000 Sebastian Guenther, sg@freepascal.org
 }
 
 unit Serial;
 
+{$MODE objfpc}
+{$H+}
 {$PACKRECORDS C}
 
 interface
@@ -27,11 +27,11 @@ type
 
 
 { Open the serial device with the given device name, for example:
-    /dev/ttyS0, /dev/ttyS1... for normal serial ports
-    /dev/ttyI0, /dev/ttyI1... for ISDN emulated serial ports
+    ttyS0, ttyS1... for normal serial ports
+    ttyI0, ttyI1... for ISDN emulated serial ports
     other device names are possible; refer to your Linux documentation.
   Returns "0" if device could not be found }
-function SerOpen(const DeviceName: PChar): TSerialHandle;
+function SerOpen(const DeviceName: String): TSerialHandle;
 
 { Closes a serial device previously opened with SerOpen. }
 procedure SerClose(Handle: TSerialHandle);
@@ -48,7 +48,7 @@ function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 
 procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
-  ByteSize: LongInt; Parity: TParityType; StopBits: LongInt;
+  ByteSize: Integer; Parity: TParityType; StopBits: Integer;
   Flags: TSerialFlags);
 
 { Saves and restores the state of the serial device. }
@@ -68,9 +68,9 @@ function SerGetRI(Handle: TSerialHandle): Boolean;
 implementation
 
 
-function SerOpen(const DeviceName: PChar): TSerialHandle;
+function SerOpen(const DeviceName: String): TSerialHandle;
 begin
-  SerOpen := fdOpen(DeviceName, OPEN_RDWR or OPEN_EXCL or OPEN_NOCTTY);
+  Result := fdOpen(DeviceName, OPEN_RDWR or OPEN_EXCL or OPEN_NOCTTY);
 end;
 
 procedure SerClose(Handle: TSerialHandle);
@@ -85,16 +85,16 @@ end;
 
 function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 begin
-  SerRead := fdRead(Handle, Buffer, Count);
+  Result := fdRead(Handle, Buffer, Count);
 end;
 
 function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 begin
-  SerWrite := fdWrite(Handle, Buffer, Count);
+  Result := fdWrite(Handle, Buffer, Count);
 end;
 
 procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
-  ByteSize: LongInt; Parity: TParityType; StopBits: LongInt;
+  ByteSize: Integer; Parity: TParityType; StopBits: Integer;
   Flags: TSerialFlags);
 var
   tios: termios;
@@ -147,12 +147,9 @@ begin
 end;
 
 function SerSaveState(Handle: TSerialHandle): TSerialState;
-var
-  Result: TSerialState;
 begin
   ioctl(Handle, TIOCMGET, @Result.LineState);
   ioctl(Handle, TCGETS, @Result.tios);
-  SerSaveState := Result;
 end;
 
 procedure SerRestoreState(Handle: TSerialHandle; State: TSerialState);
@@ -186,7 +183,7 @@ var
   Flags: Cardinal;
 begin
   ioctl(Handle, TIOCMGET, @Flags);
-  SerGetCTS := (Flags and TIOCM_CTS) <> 0;
+  Result := (Flags and TIOCM_CTS) <> 0;
 end;
 
 function SerGetDSR(Handle: TSerialHandle): Boolean;
@@ -194,7 +191,7 @@ var
   Flags: Cardinal;
 begin
   ioctl(Handle, TIOCMGET, @Flags);
-  SerGetDSR := (Flags and TIOCM_DSR) <> 0;
+  Result := (Flags and TIOCM_DSR) <> 0;
 end;
 
 function SerGetRI(Handle: TSerialHandle): Boolean;
@@ -202,19 +199,8 @@ var
   Flags: Cardinal;
 begin
   ioctl(Handle, TIOCMGET, @Flags);
-  SerGetRI := (Flags and TIOCM_RI) <> 0;
+  Result := (Flags and TIOCM_RI) <> 0;
 end;
 
 
 end.
-
-
-{
-  $Log$
-  Revision 1.3  2000-07-10 07:04:18  sg
-  * Now compiles in default mode instead of OBJFPC mode
-
-  Revision 1.2  2000/07/10 07:00:20  sg
-  * Added ID and Log tags
-
-}

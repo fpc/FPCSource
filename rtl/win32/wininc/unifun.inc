@@ -493,7 +493,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-06-16 14:30:16  pierre
+  Revision 1.1  2000-07-13 06:31:25  michael
+  + Initial import
+
+  Revision 1.9  2000/06/16 14:30:16  pierre
    * string line problems fixed
 
   Revision 1.8  2000/06/16 13:35:08  pierre

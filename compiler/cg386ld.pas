@@ -1002,7 +1002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2000-06-30 22:12:26  peter
+  Revision 1.1  2000-07-13 06:29:45  michael
+  + Initial import
+
+  Revision 1.109  2000/06/30 22:12:26  peter
     * fix for bug 988
 
   Revision 1.108  2000/05/18 17:05:15  peter

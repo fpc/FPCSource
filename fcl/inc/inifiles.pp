@@ -770,7 +770,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-06-30 22:11:25  peter
+  Revision 1.1  2000-07-13 06:31:30  michael
+  + Initial import
+
+  Revision 1.13  2000/06/30 22:11:25  peter
     * fixed truncating of last char
 
   Revision 1.12  2000/05/11 14:50:01  peter

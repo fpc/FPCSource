@@ -1329,7 +1329,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.38  2000-04-29 09:01:06  jonas
+  Revision 1.1  2000-07-13 06:30:07  michael
+  + Initial import
+
+  Revision 1.38  2000/04/29 09:01:06  jonas
     * nmem compiles again (at least for powerpc)
 
   Revision 1.37  2000/04/22 14:25:03  jonas

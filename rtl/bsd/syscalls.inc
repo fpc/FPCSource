@@ -414,7 +414,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2000-04-16 16:08:53  marco
+  Revision 1.1  2000-07-13 06:30:32  michael
+  + Initial import
+
+  Revision 1.15  2000/04/16 16:08:53  marco
    * Fixes (mainly opendir/Readdir/closedir)
 
   Revision 1.14  2000/04/14 17:04:13  marco

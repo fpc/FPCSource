@@ -769,7 +769,10 @@ Const rtfKey : Array [0..281] of TRTFKey =
 
 {
   $Log$
-  Revision 1.5  2000-02-15 21:57:51  sg
+  Revision 1.1  2000-07-13 06:31:31  michael
+  + Initial import
+
+  Revision 1.5  2000/02/15 21:57:51  sg
   * Added copyright notice and CVS log tags where necessary
 
 }

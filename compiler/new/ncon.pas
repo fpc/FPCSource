@@ -39,7 +39,10 @@ unit ncon;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 01:14:53  peter
+  Revision 1.1  2000-07-13 06:30:08  michael
+  + Initial import
+
+  Revision 1.3  2000/01/07 01:14:53  peter
     * updated copyright to 2000
 
   Revision 1.2  1999/08/06 18:05:53  florian

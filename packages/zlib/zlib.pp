@@ -177,7 +177,10 @@ function zError(err:longint):string;
 end.
 {
   $Log$
-  Revision 1.6  2000-01-18 21:53:56  peter
+  Revision 1.1  2000-07-13 06:34:25  michael
+  + Initial import
+
+  Revision 1.6  2000/01/18 21:53:56  peter
     * added libc
     * added log
 

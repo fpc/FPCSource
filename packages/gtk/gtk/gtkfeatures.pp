@@ -38,7 +38,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:35  peter
+  Revision 1.1  2000-07-13 06:34:04  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:35  peter
     * moved to packages dir
 
   Revision 1.4  1999/10/06 17:42:48  peter

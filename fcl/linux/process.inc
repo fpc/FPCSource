@@ -106,7 +106,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-02-15 22:03:38  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.5  2000/02/15 22:03:38  sg
   * Inserted wrong copyright notice ;)  Fixed.
 
   Revision 1.4  2000/02/15 21:57:51  sg

@@ -429,7 +429,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-06-30 20:23:36  peter
+  Revision 1.1  2000-07-13 06:29:52  michael
+  + Initial import
+
+  Revision 1.16  2000/06/30 20:23:36  peter
     * new message files layout with msg numbers (but still no code to
       show the number on the screen)
 

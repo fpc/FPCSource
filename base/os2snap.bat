@@ -695,7 +695,10 @@ goto End
 
 
   $Log$
-  Revision 1.18  2000-06-26 17:31:12  hajny
+  Revision 1.1  2000-07-13 06:31:26  michael
+  + Initial import
+
+  Revision 1.18  2000/06/26 17:31:12  hajny
     * workaround for MS command shell limitation
 
   Revision 1.17  2000/05/21 16:09:42  hajny

@@ -2157,7 +2157,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-07-11 08:12:18  pierre
+  Revision 1.1  2000-07-13 06:33:58  michael
+  + Initial import
+
+  Revision 1.7  2000/07/11 08:12:18  pierre
    * avoid smartlinking
 
   Revision 1.6  2000/04/14 05:37:33  pierre

@@ -567,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-05-01 11:04:49  jonas
+  Revision 1.1  2000-07-13 06:30:12  michael
+  + Initial import
+
+  Revision 1.15  2000/05/01 11:04:49  jonas
     * changed NOT to A_NOP
 
   Revision 1.14  2000/04/29 09:01:06  jonas

@@ -251,7 +251,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2000-05-12 05:57:34  pierre
+  Revision 1.1  2000-07-13 06:29:50  michael
+  + Initial import
+
+  Revision 1.17  2000/05/12 05:57:34  pierre
    * * get it to compile with Delphi by Kovacs Attila Zoltan
 
   Revision 1.16  2000/05/11 09:40:11  pierre

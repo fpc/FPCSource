@@ -190,6 +190,9 @@ begin
         writeln(f,'');
         writeln(f,'{');
         writeln(f,'  $Log: fixgtk.pp,v $
+        writeln(f,'  Revision 1.1  1999/11/24 23:36:33  peter
+        writeln(f,'    * moved to packages dir
+        writeln(f,'
         writeln(f,'  Revision 1.2  1999/05/10 09:02:33  peter
         writeln(f,'    * gtk 1.2 port working
         writeln(f,'');

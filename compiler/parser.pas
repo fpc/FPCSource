@@ -607,7 +607,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.105  2000-06-01 19:09:57  peter
+  Revision 1.1  2000-07-13 06:29:53  michael
+  + Initial import
+
+  Revision 1.105  2000/06/01 19:09:57  peter
     * made resourcestrings OOP so it's easier to handle it per module
 
   Revision 1.104  2000/05/29 10:04:40  pierre

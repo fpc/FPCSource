@@ -774,7 +774,10 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.60  2000-05-15 14:11:45  pierre
+  Revision 1.1  2000-07-13 06:29:43  michael
+  + Initial import
+
+  Revision 1.60  2000/05/15 14:11:45  pierre
    * add implicit args for FADDP
 
   Revision 1.59  2000/05/12 21:26:22  pierre

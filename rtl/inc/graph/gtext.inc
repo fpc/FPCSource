@@ -777,7 +777,10 @@ end;
 
 {
 $Log$
-Revision 1.19  2000-06-16 17:06:08  sg
+Revision 1.1  2000-07-13 06:30:52  michael
++ Initial import
+
+Revision 1.19  2000/06/16 17:06:08  sg
 * The text functions can now convert the character sets of the given
   strings. By default, for GO32V2 there is no conversion, and for all
   other platforms the strings are converted from ANSI to DOS-ASCII.

@@ -283,7 +283,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2000-06-04 14:23:50  hajny
+  Revision 1.1  2000-07-13 06:30:53  michael
+  + Initial import
+
+  Revision 1.17  2000/06/04 14:23:50  hajny
     * parameter name change in FileSeek
 
   Revision 1.16  2000/03/22 20:00:54  michael

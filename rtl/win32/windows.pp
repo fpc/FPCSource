@@ -70,7 +70,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-06-15 11:26:57  pierre
+  Revision 1.1  2000-07-13 06:31:22  michael
+  + Initial import
+
+  Revision 1.13  2000/06/15 11:26:57  pierre
     * avoid lines longer than 255 chars
     + add smartlink on by default, if not version 0.99.14
     * some functions not present in win95 DLL's are now only inserted if

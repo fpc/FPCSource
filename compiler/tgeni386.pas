@@ -651,7 +651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2000-04-02 18:30:12  florian
+  Revision 1.1  2000-07-13 06:30:01  michael
+  + Initial import
+
+  Revision 1.42  2000/04/02 18:30:12  florian
     * fixed another problem with readln(<floating point register variable>);
     * the register allocator takes now care of necessary pushes/pops for
       readln/writeln

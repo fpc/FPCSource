@@ -1024,7 +1024,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2000-03-14 15:05:18  pierre
+  Revision 1.1  2000-07-13 06:29:59  michael
+  + Initial import
+
+  Revision 1.62  2000/03/14 15:05:18  pierre
    * fix for bug 866
 
   Revision 1.61  2000/02/14 18:12:50  florian

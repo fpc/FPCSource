@@ -745,7 +745,10 @@ const
 end.
 {
   $Log$
-  Revision 1.12  2000-04-22 14:25:04  jonas
+  Revision 1.1  2000-07-13 06:30:12  michael
+  + Initial import
+
+  Revision 1.12  2000/04/22 14:25:04  jonas
     * aasm.pas: pai_align instead of pai_align_abstract if cpu <> i386
     + systems.pas: info for macos/ppc
     * new/cgobj.pas: compiles again without newst define

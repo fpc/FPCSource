@@ -1417,7 +1417,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.40  2000-06-05 06:20:44  pierre
+  Revision 1.1  2000-07-13 06:30:40  michael
+  + Initial import
+
+  Revision 1.40  2000/06/05 06:20:44  pierre
    * some typo corrected !
 
   Revision 1.39  2000/06/04 14:14:10  hajny

@@ -40,7 +40,10 @@ Implementation
 end.
 {
    $Log$
-   Revision 1.2  2000-01-07 01:14:23  peter
+   Revision 1.1  2000-07-13 06:29:48  michael
+   + Initial import
+
+   Revision 1.2  2000/01/07 01:14:23  peter
      * updated copyright to 2000
 
    Revision 1.1  1999/08/04 11:13:38  florian

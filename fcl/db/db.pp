@@ -1260,7 +1260,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-03-14 19:06:04  michael
+  Revision 1.1  2000-07-13 06:31:27  michael
+  + Initial import
+
+  Revision 1.9  2000/03/14 19:06:04  michael
   + everyting compiles again
 
   Revision 1.8  2000/01/07 01:24:32  peter

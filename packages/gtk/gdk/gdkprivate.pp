@@ -315,7 +315,10 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 {
   $Log$
-  Revision 1.2  2000-02-20 14:02:45  sg
+  Revision 1.1  2000-07-13 06:34:02  michael
+  + Initial import
+
+  Revision 1.2  2000/02/20 14:02:45  sg
   * Removed the following functions which don't exist anymore:
       gdk_debug_level, gdk_show_events, gdk_stack_trace
 

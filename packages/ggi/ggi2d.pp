@@ -194,7 +194,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-11-12 18:48:59  sg
+  Revision 1.1  2000-07-13 06:33:59  michael
+  + Initial import
+
+  Revision 1.2  1999/11/12 18:48:59  sg
   * Fixed some typos
 
   Revision 1.1  1999/11/10 14:14:34  sg

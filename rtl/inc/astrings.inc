@@ -642,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.43  2000-07-04 07:57:46  pierre
+  Revision 1.1  2000-07-13 06:30:44  michael
+  + Initial import
+
+  Revision 1.43  2000/07/04 07:57:46  pierre
    * Change Code to var param in ValAnsiUnsignedInt function
 
   Revision 1.42  2000/06/11 07:02:30  peter

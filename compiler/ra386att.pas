@@ -2102,7 +2102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2000-06-18 19:09:31  peter
+  Revision 1.1  2000-07-13 06:29:55  michael
+  + Initial import
+
+  Revision 1.85  2000/06/18 19:09:31  peter
     * fixed + record.field expressions
 
   Revision 1.84  2000/06/18 18:07:06  peter

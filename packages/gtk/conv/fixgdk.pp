@@ -168,6 +168,9 @@ begin
         writeln(f,'');
         writeln(f,'{');
         writeln(f,'  $Log: fixgdk.pp,v $
+        writeln(f,'  Revision 1.1  1999/11/24 23:36:33  peter
+        writeln(f,'    * moved to packages dir
+        writeln(f,'
         writeln(f,'  Revision 1.1  1999/05/07 15:09:36  peter
         writeln(f,'    * more fixes
         writeln(f,'');

@@ -2044,7 +2044,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-04-02 12:12:22  florian
+  Revision 1.1  2000-07-13 06:31:20  michael
+  + Initial import
+
+  Revision 1.7  2000/04/02 12:12:22  florian
     * a lot of optimizing done
 
   Revision 1.6  2000/03/27 12:57:30  florian

@@ -1236,7 +1236,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2000-05-25 07:44:11  jonas
+  Revision 1.1  2000-07-13 06:29:58  michael
+  + Initial import
+
+  Revision 1.86  2000/05/25 07:44:11  jonas
     * const parameters were not prevented from becoming regvars (causing
       errors later on in the code generating stage)
 

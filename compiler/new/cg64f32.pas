@@ -45,7 +45,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-03-01 15:36:13  florian
+  Revision 1.1  2000-07-13 06:30:07  michael
+  + Initial import
+
+  Revision 1.1  2000/03/01 15:36:13  florian
     * some new stuff for the new cg
 
 }

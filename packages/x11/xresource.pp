@@ -299,7 +299,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-03-06 16:15:43  peter
+  Revision 1.1  2000-07-13 06:34:24  michael
+  + Initial import
+
+  Revision 1.5  2000/03/06 16:15:43  peter
     * removed comment warnings
 
   Revision 1.4  2000/03/01 09:16:13  sg

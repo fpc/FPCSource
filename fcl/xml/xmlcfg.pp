@@ -208,7 +208,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-05-04 18:24:22  sg
+  Revision 1.1  2000-07-13 06:33:49  michael
+  + Initial import
+
+  Revision 1.10  2000/05/04 18:24:22  sg
   * Bugfixes: In some cases the DOM node tree was invalid
   * Simplifications
   * Minor optical improvements

@@ -919,7 +919,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2000-05-23 20:33:37  peter
+  Revision 1.1  2000-07-13 06:29:48  michael
+  + Initial import
+
+  Revision 1.30  2000/05/23 20:33:37  peter
     * attsuffix table is also needed for ra386int
 
   Revision 1.29  2000/05/12 21:57:02  pierre

@@ -839,7 +839,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-06-04 08:15:42  michael
+  Revision 1.1  2000-07-13 06:31:28  michael
+  + Initial import
+
+  Revision 1.1  2000/06/04 08:15:42  michael
   + Initial implementation in FCL
 
   Revision 1.1.1.1  2000/06/02 06:56:37  stingp1

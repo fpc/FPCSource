@@ -44,7 +44,10 @@ Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:32  peter
+  Revision 1.1  2000-07-13 06:31:00  michael
+  + Initial import
+
+  Revision 1.4  2000/02/09 16:59:32  peter
     * truncated log
 
 }

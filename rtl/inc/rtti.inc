@@ -88,7 +88,10 @@ TArrayRec = record
 
 {
   $Log$
-  Revision 1.8  2000-06-22 20:04:07  peter
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.8  2000/06/22 20:04:07  peter
     * added tkint64,tkqword constants
 
   Revision 1.7  2000/06/14 08:52:05  michael

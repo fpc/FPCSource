@@ -65,7 +65,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-05-26 09:22:39  alex
+  Revision 1.1  2000-07-13 06:34:17  michael
+  + Initial import
+
+  Revision 1.1  2000/05/26 09:22:39  alex
   universal cross platform unit file generator
 
   Revision 1.1  1999/12/23 13:51:50  peter

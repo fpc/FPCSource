@@ -212,7 +212,10 @@ end;
 
 {
  $Log$
- Revision 1.6  2000-06-04 14:23:18  hajny
+ Revision 1.1  2000-07-13 06:31:03  michael
+ + Initial import
+
+ Revision 1.6  2000/06/04 14:23:18  hajny
    * asmmode fixed
 
  Revision 1.5  2000/05/28 18:21:51  hajny

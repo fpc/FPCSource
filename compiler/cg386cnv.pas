@@ -1527,7 +1527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2000-05-26 20:16:00  jonas
+  Revision 1.1  2000-07-13 06:29:45  michael
+  + Initial import
+
+  Revision 1.106  2000/05/26 20:16:00  jonas
     * fixed wrong register deallocations in several ansistring related
       procedures. The IDE's now function fine when compiled with -OG3p3r
 

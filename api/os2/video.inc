@@ -334,7 +334,10 @@ end;
 {
 
   $Log$
-  Revision 1.2  2000-07-09 07:56:09  hajny
+  Revision 1.1  2000-07-13 06:29:40  michael
+  + Initial import
+
+  Revision 1.2  2000/07/09 07:56:09  hajny
     * proper units added
 
   Revision 1.1  2000/02/23 22:44:22  daniel

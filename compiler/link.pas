@@ -525,7 +525,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.90  2000-07-08 20:43:37  peter
+  Revision 1.1  2000-07-13 06:29:52  michael
+  + Initial import
+
+  Revision 1.90  2000/07/08 20:43:37  peter
     * findobjectfile gets extra arg with directory where the unit is found
       and the .o should be looked first
 

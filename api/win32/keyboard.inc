@@ -789,7 +789,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-05-25 14:26:30  pierre
+  Revision 1.1  2000-07-13 06:29:41  michael
+  + Initial import
+
+  Revision 1.3  2000/05/25 14:26:30  pierre
    * Flush keyboard also at init
 
   Revision 1.2  2000/05/19 13:02:25  pierre

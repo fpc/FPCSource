@@ -445,7 +445,10 @@ const
 
 {
   $Log$
-  Revision 1.87  2000-07-07 19:22:27  pierre
+  Revision 1.1  2000-07-13 06:30:49  michael
+  + Initial import
+
+  Revision 1.87  2000/07/07 19:22:27  pierre
    * correct last commit error
 
   Revision 1.86  2000/07/07 18:23:41  marco

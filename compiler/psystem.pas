@@ -249,7 +249,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2000-02-15 14:36:45  florian
+  Revision 1.1  2000-07-13 06:29:55  michael
+  + Initial import
+
+  Revision 1.34  2000/02/15 14:36:45  florian
     * disable FIXED data type per default
 
   Revision 1.33  2000/02/09 13:23:00  peter

@@ -136,7 +136,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-06-25 19:08:28  hajny
+  Revision 1.1  2000-07-13 06:29:48  michael
+  + Initial import
+
+  Revision 1.12  2000/06/25 19:08:28  hajny
     + $R support for OS/2 (EMX) added
 
   Revision 1.11  2000/06/23 20:11:05  peter

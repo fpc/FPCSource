@@ -519,7 +519,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2000-06-18 18:12:40  peter
+  Revision 1.1  2000-07-13 06:30:02  michael
+  + Initial import
+
+  Revision 1.24  2000/06/18 18:12:40  peter
     * support overload keyword
 
   Revision 1.23  2000/06/05 20:41:18  pierre

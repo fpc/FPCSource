@@ -273,7 +273,10 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.6  2000-05-01 11:03:32  jonas
+  Revision 1.1  2000-07-13 06:30:12  michael
+  + Initial import
+
+  Revision 1.6  2000/05/01 11:03:32  jonas
     * some fixes, does not yet compile
 
   Revision 1.5  2000/03/26 16:37:36  jonas

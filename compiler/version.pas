@@ -99,7 +99,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2000-07-10 09:17:27  pierre
+  Revision 1.1  2000-07-13 06:30:03  michael
+  + Initial import
+
+  Revision 1.20  2000/07/10 09:17:27  pierre
    * fix wordversion
 
   Revision 1.19  2000/07/09 09:34:50  peter

@@ -460,7 +460,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2000-06-04 14:19:04  hajny
+  Revision 1.1  2000-07-13 06:30:37  michael
+  + Initial import
+
+  Revision 1.15  2000/06/04 14:19:04  hajny
     * FileGetDate returns -1 on error, FileSeek parameter name changed
 
   Revision 1.14  2000/04/10 11:04:45  pierre

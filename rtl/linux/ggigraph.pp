@@ -534,7 +534,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-07-09 07:22:51  peter
+  Revision 1.1  2000-07-13 06:30:53  michael
+  + Initial import
+
+  Revision 1.4  2000/07/09 07:22:51  peter
     * fixed maxx,maxy setting
 
   Revision 1.3  2000/07/08 21:22:16  peter

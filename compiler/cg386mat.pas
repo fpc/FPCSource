@@ -990,7 +990,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2000-03-19 15:20:22  florian
+  Revision 1.1  2000-07-13 06:29:45  michael
+  + Initial import
+
+  Revision 1.45  2000/03/19 15:20:22  florian
     * not(b) if b is a register variable, didn't work, fixed
 
   Revision 1.44  2000/02/24 18:41:38  peter

@@ -3953,7 +3953,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.13  2000-05-09 17:29:52  hajny
+  Revision 1.1  2000-07-13 06:31:04  michael
+  + Initial import
+
+  Revision 1.13  2000/05/09 17:29:52  hajny
     * DosGetInfoBlocks updated again
 
   Revision 1.12  2000/04/01 10:46:07  hajny

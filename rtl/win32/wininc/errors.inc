@@ -730,7 +730,10 @@
 
 {
   $Log$
-  Revision 1.5  2000-06-11 07:04:59  peter
+  Revision 1.1  2000-07-13 06:31:24  michael
+  + Initial import
+
+  Revision 1.5  2000/06/11 07:04:59  peter
     * Windows unit has now more Delphi compatibile functions
     * placed the external functions only in the interface
 

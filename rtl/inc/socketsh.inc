@@ -120,7 +120,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.7  2000-06-19 13:31:46  michael
+  Revision 1.1  2000-07-13 06:30:48  michael
+  + Initial import
+
+  Revision 1.7  2000/06/19 13:31:46  michael
   + Corrected GetSocketOptions
 
   Revision 1.6  2000/06/02 17:30:43  marco

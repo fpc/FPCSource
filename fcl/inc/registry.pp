@@ -918,7 +918,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-06-02 19:48:48  peter
+  Revision 1.1  2000-07-13 06:31:31  michael
+  + Initial import
+
+  Revision 1.1  2000/06/02 19:48:48  peter
     * empty registry unit inserted
 
 }

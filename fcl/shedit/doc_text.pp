@@ -410,7 +410,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-07-01 12:28:38  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.13  2000/07/01 12:28:38  sg
   * Added initialisation and finalisation code which is common to all
     platforms.
 

@@ -645,7 +645,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.62  2000-05-12 21:26:22  pierre
+  Revision 1.1  2000-07-13 06:29:43  michael
+  + Initial import
+
+  Revision 1.62  2000/05/12 21:26:22  pierre
     * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
       simply by swapping from reverse to normal and vice-versa
       when passing from one syntax to the other !

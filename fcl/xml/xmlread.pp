@@ -836,8 +836,7 @@ end;
 
 function TXMLReader.ParsePEReference: Boolean;    // [69]
 begin
-  if CheckFor('%') then
-  begin
+  if CheckFor('%') then begin
     ExpectName;
     ExpectString(';');
     Result := True;
@@ -846,33 +845,18 @@ begin
 end;
 
 function TXMLReader.ParseReference(AOwner: TDOMNode): Boolean;    // [67] [68]
-var
-  s: String;
 begin
-  if not CheckFor('&') then
-  begin
+  if not CheckFor('&') then begin
     Result := False;
     exit;
   end;
-  if CheckFor('#') then    // Test for CharRef [66]
-  begin
-    s := '#';
-    if CheckFor('x') then
-    begin
+  if CheckFor('#') then begin    // Test for CharRef [66]
+    if CheckFor('x') then begin
       // !!!: there must be at least one digit
-      while buf[0] in ['0'..'9', 'a'..'f', 'A'..'F'] do
-      begin
-        s := s + buf[0];
-        Inc(buf);
-      end;
+      while buf[0] in ['0'..'9', 'a'..'f', 'A'..'F'] do Inc(buf);
     end else
       // !!!: there must be at least one digit
-      while buf[0] in ['0'..'9'] do
-      begin
-        s := s + buf[0];
-        Inc(buf);
-      end;
-    AOwner.AppendChild(doc.CreateEntityReference(s));
+      while buf[0] in ['0'..'9'] do Inc(buf);
   end else
     AOwner.AppendChild(doc.CreateEntityReference(ExpectName));
   ExpectString(';');
@@ -988,50 +972,24 @@ procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
         RootNode.ReplaceChild(Doc.CreateTextNode(Replacement), EntityNode);
   end;
 
-  function HexToInt(const s: String): Integer;
-  var
-    i: Integer;
-  begin
-    Result := 0;
-    for i := 1 to Length(s) do
-    begin
-      Result := Result * 16;
-      if (s[1] >= '0') and (s[1] <= '9') then
-        Inc(Result, Ord(s[1]) - Ord('0'))
-      else if (s[1] >= 'A') and (s[1] <= 'F') then
-        Inc(Result, Ord(s[1]) - Ord('A') + 10)
-      else if (s[1] >= 'a') and (s[1] <= 'f') then
-        Inc(Result, Ord(s[1]) - Ord('a') + 10);
-    end;
-  end;
-
 var
   Node, NextSibling: TDOMNode;
-  Value: Integer;
 begin
   Node := RootNode.FirstChild;
   while Assigned(Node) do
   begin
     NextSibling := Node.NextSibling;
     if Node.NodeType = ENTITY_REFERENCE_NODE then
-      if Length(Node.NodeName) > 0 then
-        if Node.NodeName[1] = '#' then
-	begin
-	  if Node.NodeName[2] = 'x' then
-	    Value := HexToInt(Copy(Node.NodeName, 2, 4))
-	  else
-	    Value := StrToInt(Copy(Node.NodeName, 2, 5));
-	  ReplaceEntityRef(Node, Chr(Value));
-	end else if Node.NodeName = 'amp' then
-	  ReplaceEntityRef(Node, '&')
-        else if Node.NodeName = 'apos' then
-	  ReplaceEntityRef(Node, '''')
-        else if Node.NodeName = 'gt' then
-	  ReplaceEntityRef(Node, '>')
-        else if Node.NodeName = 'lt' then
-          ReplaceEntityRef(Node, '<')
-        else if Node.NodeName = 'quot' then
-	  ReplaceEntityRef(Node, '"');
+      if Node.NodeName = 'amp' then
+	ReplaceEntityRef(Node, '&')
+      else if Node.NodeName = 'apos' then
+	ReplaceEntityRef(Node, '''')
+      else if Node.NodeName = 'gt' then
+	ReplaceEntityRef(Node, '>')
+      else if Node.NodeName = 'lt' then
+        ReplaceEntityRef(Node, '<')
+      else if Node.NodeName = 'quot' then
+	ReplaceEntityRef(Node, '"');
     Node := NextSibling;
   end;
 end;
@@ -1159,9 +1117,8 @@ end.
 
 {
   $Log$
-  Revision 1.20  2000-07-09 18:25:23  sg
-  * Added reading and writing support of character entity references
-    (i.e. characters given by their ASCII/Unicode values)
+  Revision 1.1  2000-07-13 06:33:50  michael
+  + Initial import
 
   Revision 1.19  2000/07/09 14:23:42  sg
   * Tabs are now considered as whitespace, too, when the reader determines if

@@ -71,7 +71,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.9  2000-06-04 14:22:15  hajny
+  Revision 1.1  2000-07-13 06:30:59  michael
+  + Initial import
+
+  Revision 1.9  2000/06/04 14:22:15  hajny
     * parameter name change in FileSeek
 
   Revision 1.8  2000/02/17 22:16:05  sg

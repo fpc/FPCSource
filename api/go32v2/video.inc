@@ -266,7 +266,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-02-07 22:54:44  florian
+  Revision 1.1  2000-07-13 06:29:38  michael
+  + Initial import
+
+  Revision 1.3  2000/02/07 22:54:44  florian
     * custommouse define removed, i.e. code is always active
     * the xor value for the mouse cursor must be $7f instead of $ff
 

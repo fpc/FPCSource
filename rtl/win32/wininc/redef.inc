@@ -884,7 +884,10 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {
   $Log$
-  Revision 1.13  2000-06-20 10:09:21  pierre
+  Revision 1.1  2000-07-13 06:31:24  michael
+  + Initial import
+
+  Revision 1.13  2000/06/20 10:09:21  pierre
    * wrong overloads removed
 
   Revision 1.12  2000/06/16 13:35:07  pierre

@@ -3971,7 +3971,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.109  2000-06-27 12:17:29  jonas
+  Revision 1.1  2000-07-13 06:29:47  michael
+  + Initial import
+
+  Revision 1.109  2000/06/27 12:17:29  jonas
     * fix for web bug 1011: no exception stack stuff is generated for
       inlined procedures, the entry/exitcode of the parent will do that
 

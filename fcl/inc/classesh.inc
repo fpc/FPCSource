@@ -1234,7 +1234,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.23  2000-07-08 07:26:23  sg
+  Revision 1.1  2000-07-13 06:31:30  michael
+  + Initial import
+
+  Revision 1.23  2000/07/08 07:26:23  sg
   * Destructor of TThreadList is now virtual; this fixes some memory leak
     problems in FCL.
 

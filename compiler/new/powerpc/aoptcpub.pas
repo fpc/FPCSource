@@ -117,7 +117,10 @@ End.
 
 {
  $Log$
- Revision 1.3  2000-03-26 16:38:27  jonas
+ Revision 1.1  2000-07-13 06:30:12  michael
+ + Initial import
+
+ Revision 1.3  2000/03/26 16:38:27  jonas
    + basic properties
 
  Revision 1.2  2000/01/07 01:14:57  peter

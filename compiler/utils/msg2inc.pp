@@ -797,7 +797,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-07-09 17:39:05  peter
+  Revision 1.1  2000-07-13 06:30:14  michael
+  + Initial import
+
+  Revision 1.12  2000/07/09 17:39:05  peter
     * escape $ with \$
 
   Revision 1.11  2000/07/09 17:01:26  peter

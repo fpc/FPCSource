@@ -328,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-03-28 10:06:19  pierre
+  Revision 1.1  2000-07-13 06:30:39  michael
+  + Initial import
+
+  Revision 1.7  2000/03/28 10:06:19  pierre
    * fix for 885
 
   Revision 1.6  2000/03/20 13:09:07  pierre

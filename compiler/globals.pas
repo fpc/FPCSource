@@ -1587,7 +1587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2000-06-19 19:57:19  pierre
+  Revision 1.1  2000-07-13 06:29:50  michael
+  + Initial import
+
+  Revision 1.67  2000/06/19 19:57:19  pierre
    * smart link is default on win32
 
   Revision 1.66  2000/06/18 18:05:54  peter

@@ -902,7 +902,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.34  2000-05-11 09:59:40  pierre
+  Revision 1.1  2000-07-13 06:29:43  michael
+  + Initial import
+
+  Revision 1.34  2000/05/11 09:59:40  pierre
    * changed to compile with Delphi, reported by Kovacs Attila Zoltan
 
   Revision 1.33  2000/04/12 12:42:28  pierre

@@ -615,7 +615,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.10  2000-02-28 09:42:16  pierre
+  Revision 1.1  2000-07-13 06:30:35  michael
+  + Initial import
+
+  Revision 1.10  2000/02/28 09:42:16  pierre
    * system_exit instead of halt
 
   Revision 1.9  2000/01/20 23:38:02  peter

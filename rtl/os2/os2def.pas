@@ -289,7 +289,10 @@ const
 end.
 {
   $Log$
-  Revision 1.10  2000-01-09 20:48:04  hajny
+  Revision 1.1  2000-07-13 06:31:06  michael
+  + Initial import
+
+  Revision 1.10  2000/01/09 20:48:04  hajny
     * FPK changed to FPC
 
   Revision 1.9  2000/01/07 16:41:48  daniel

@@ -2800,7 +2800,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.37  2000-04-07 21:10:35  pierre
+  Revision 1.1  2000-07-13 06:30:47  michael
+  + Initial import
+
+  Revision 1.37  2000/04/07 21:10:35  pierre
     + ReturnNilIfGrowHeapFails used in objects unit
       to handle TMemoryStream out of memory properly
       as MaxAvail is not a good test anymore.

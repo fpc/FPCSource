@@ -384,7 +384,10 @@
 
 {
   $Log$
-  Revision 1.23  2000-05-02 10:37:50  pierre
+  Revision 1.1  2000-07-13 06:30:42  michael
+  + Initial import
+
+  Revision 1.23  2000/05/02 10:37:50  pierre
    * 0**n where n<>0 is 0; 0**0 generates RTE 207
 
   Revision 1.22  2000/04/07 21:29:00  pierre

@@ -89,7 +89,10 @@ function  GTK_WIDGET_IS_OFFSCREEN(obj : PGtkWidget) : boolean;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.1  2000-07-13 06:34:05  michael
+  + Initial import
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.4  1999/06/29 23:46:56  peter

@@ -55,7 +55,10 @@ program eratosthenes;
 
 {
   $Log$
-  Revision 1.2  2000-04-10 08:34:25  pierre
+  Revision 1.1  2000-07-13 06:30:20  michael
+  + Initial import
+
+  Revision 1.2  2000/04/10 08:34:25  pierre
    1 is NOT a prime
 
   Revision 1.1  2000/03/09 02:49:09  alex

@@ -512,7 +512,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-09 11:49:05  sg
+  Revision 1.1  2000-07-13 06:31:29  michael
+  + Initial import
+
+  Revision 1.2  2000/07/09 11:49:05  sg
   * Added methods for reading event handlers in TAsyncIOManager
   * Fixed problems when LineReader gets destroyed while it still was
     parsing input data.

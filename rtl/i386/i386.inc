@@ -1156,7 +1156,10 @@ end;
 
 {
   $Log$
-  Revision 1.75  2000-07-08 09:09:35  jonas
+  Revision 1.1  2000-07-13 06:30:41  michael
+  + Initial import
+
+  Revision 1.75  2000/07/08 09:09:35  jonas
     - removed fpc_strconcat_len for -dnewoptimizations since it's not
       used anymore (because the strconcat optimizations have been
       disabled quite a while ago)

@@ -259,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-02-22 14:27:50  sg
+  Revision 1.1  2000-07-13 06:33:44  michael
+  + Initial import
+
+  Revision 1.13  2000/02/22 14:27:50  sg
   * Fix in ChangeInLine: Now the correct horizontal area gets invalidated
 
   Revision 1.12  2000/02/19 19:05:43  sg

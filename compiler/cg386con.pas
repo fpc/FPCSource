@@ -440,7 +440,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2000-06-18 18:09:31  peter
+  Revision 1.1  2000-07-13 06:29:45  michael
+  + Initial import
+
+  Revision 1.46  2000/06/18 18:09:31  peter
     * empty ansistring now use constant value of 0
 
   Revision 1.45  2000/02/09 13:22:46  peter
