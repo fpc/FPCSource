@@ -428,11 +428,11 @@ var
   name         : string[255];
   thisdir      : stat;
 {$endif}
-  tmp          : string[255];
+  tmp          : string[4096];
 
 begin
 {$ifdef usegetcwd}
- Fpgetcwd(@tmp[1],255);
+ Fpgetcwd(@tmp[1],4096);
  dir:=tmp;
 {$else}
   dir:='';
@@ -511,68 +511,7 @@ begin
   reenable_signal:=geterrno=0;
 end;
 
-procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
-
-var
-  res : word;
-
-begin
-  res:=0;
-  case sig of
-    SIGFPE :
-          begin
-	    Case Info.si_code Of
-		FPE_INTDIV : Res:=200;  {integer divide fault. Div0?}
-		FPE_FLTOVF : Res:=205;  {Overflow trap}
-		FPE_FLTUND : Res:=206;  {Stack over/underflow}
-		FPE_FLTRES : Res:=216;  {Device not available}
-		FPE_FLTINV : Res:=216;  {Invalid floating point operation}
-	       Else
-  	        Res:=208; {coprocessor error}
-		End;
-	     sysResetFPU;
-	  End;
-    SIGILL,
-    SIGBUS,
-    SIGSEGV :
-        res:=216;
-  end;
-  {$ifdef FPC_USE_SIGPROCMASK}
-   reenable_signal(sig);
-  {$endif }
-{ give runtime error at the position where the signal was raised }
-  if res<>0 then
-   begin
-{$ifdef I386}
-  HandleErrorAddrFrame(res,Pointer(SigContext.sc_eip),pointer(SigContext.sc_ebp));
-{$else}
-     HandleError(res);
-{$endif}
-   end;
-end;
-{
-procedure SignalToRunerror(signo: cint); cdecl;
-var
-  res : word;
-begin
-    res:=0;
-
-    if signo = SIGFPE then
-     begin
-        res := 200;
-     end
-    else
-    if (signo = SIGILL) or (signo = SIGBUS) or (signo = SIGSEGV) then
-      begin
-        res := 216;
-      end;
-  { give runtime error at the position where the signal was raised }
-  if res<>0 then
-   begin
-     HandleError(res);
-   end;
-end;
-}
+{$i sighnd.inc}
 
 var
   act: SigActionRec;
@@ -652,28 +591,12 @@ begin
   FreeMem(buf,ARG_MAX);
 end;
 
-(*
-Begin
-{ Set up signals handlers }
-   InstallSignals;
-{ Setup heap }
-  InitHeap;
-  InitExceptions;
-{ Arguments }
-  SetupCmdLine;
-{ Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-{ Reset IO Error }
-  InOutRes:=0;
-End.
-*)
-
 {
    $Log$
-   Revision 1.9  2003-12-30 12:26:21  marco
+   Revision 1.10  2004-01-03 12:35:39  marco
+    * sighnd to separate file, like linux. Some comments removed
+
+   Revision 1.9  2003/12/30 12:26:21  marco
     * FPC_USE_LIBC
 
    Revision 1.8  2003/12/21 20:31:50  peter
