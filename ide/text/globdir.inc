@@ -79,15 +79,21 @@
     Parsing of compiler output is done,
     but there is no browser in that case!! PM }
   { $ define USE_EXTERNAL_COMPILER}
+  {$define EXEDEBUG}
 {$endif DEBUG}
 
 {$ifdef FPC}
   {$define USERESSTRINGS}
 {$endif}
 
+{$define TEST_PARTIAL_SYNTAX}
+{ $ undef UNDO}
+{ $ undef DEBUGUNDO}
+
 {$ifdef GABOR}
   {.$define NOOBJREG}
   {$define NODEBUG}
   {$define DEBUG}
+  {$undef EXEDEBUG}
   {$undef USERESSTRINGS}
 {$endif}
