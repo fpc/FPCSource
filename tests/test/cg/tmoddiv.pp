@@ -164,6 +164,15 @@ begin
   else
     WriteLn('Failure.');
 
+  Writeln('special numeric values tests...');
+  cardinalcnt := $80000;
+  cardinalres := $12345;
+  cardinalres := cardinalcnt div cardinalres;
+  Write('Value should be 7...');
+  if cardinalres = 7 then
+    WriteLn('Success.')
+  else
+    WriteLn('Failure.');
 
 {$IFDEF FPC}
   WriteLn('------------------- CARDINAL -----------------------');
@@ -184,6 +193,16 @@ begin
   cardinalres := cardinalcnt div cardinalres;
   Write('Value should be 1...');
   if cardinalres = 1 then
+    WriteLn('Success.')
+  else
+    WriteLn('Failure.');
+
+  Writeln('special numeric values tests...');
+  cardinalcnt := $80000;
+  cardinalres := $12345;
+  cardinalres := cardinalcnt div cardinalres;
+  Write('Value should be 7...');
+  if cardinalres = 7 then
     WriteLn('Success.')
   else
     WriteLn('Failure.');
@@ -401,7 +420,5 @@ begin
   else
     WriteLn('Failure.');
 
-
-  WriteLn('--------------------- QWORD ------------------------');
 {$ENDIF}
 end.
