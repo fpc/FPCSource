@@ -513,6 +513,7 @@ var
   PageDoc: TXMLDocument;
   Filename: String;
 begin
+  Engine.output:=IncludeTrailingBackSlash(Engine.output);
   for i := 0 to PageInfos.Count - 1 do
     with TPageInfo(PageInfos[i]) do
     begin
@@ -2577,7 +2578,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2003-03-18 19:28:44  michael
+  + Some changes to output handling, more suitable for tex output
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.15  2003/03/13 22:02:13  sg

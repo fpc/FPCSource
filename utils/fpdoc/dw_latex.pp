@@ -25,8 +25,9 @@ interface
 uses DOM, dGlobals, PasTree;
 
 const
-  LateXHighLight: Boolean = False;
-
+  LateXHighLight : Boolean = False;
+  TexExtension   : String = '.tex';
+    
 procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
 
@@ -250,10 +251,13 @@ end;
 
 procedure TLaTeXWriter.WriteDoc;
 var
-  i: Integer;
+  i : Integer;
+  
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
-  Assign(f,  Engine.Output + PathDelim + PackageName + '.tex');
+  If (Engine.OutPut='') then
+    Engine.Output:=PackageName+TexExtension;
+  Assign(f, Engine.Output);
   Rewrite(f);
   try
     WriteLn('% This file has been created automatically by FPDoc,');
@@ -1298,7 +1302,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-03-18 19:12:29  michael
+  Revision 1.4  2003-03-18 19:28:44  michael
+  + Some changes to output handling, more suitable for tex output
+
+  Revision 1.3  2003/03/18 19:12:29  michael
   + More EscapeTex calls needed
 
   Revision 1.2  2003/03/18 01:11:51  michael

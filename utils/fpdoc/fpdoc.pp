@@ -135,12 +135,8 @@ begin
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(InputFiles, Arg)
     else if (Cmd = '-o') or (Cmd = '--output') then
-    begin
-      Engine.Output := Arg;
-      if (Length(Engine.Output) > 0) and not
-        (Engine.Output[Length(Engine.Output)] in DirSeparators) then
-        Engine.Output := Engine.Output + PathDelim;
-    end else if Cmd = '--content' then
+      Engine.Output := Arg
+    else if Cmd = '--content' then
       ContentFile := Arg
     else if Cmd = '--import' then
       ReadContentFile(Arg)
@@ -148,6 +144,8 @@ begin
       PackageName := Arg
     else if Cmd = '--html-search' then
       SearchPage := Arg
+    else if Cmd = '--latex-extension' then
+      TexExtension:=Arg
     else
       WriteLn(StdErr, Format(SCmdLineInvalidOption, [s]));
   end;
@@ -292,7 +290,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2003-03-18 19:28:44  michael
+  + Some changes to output handling, more suitable for tex output
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.13  2003/03/13 22:02:13  sg
