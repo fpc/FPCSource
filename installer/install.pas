@@ -825,7 +825,7 @@ program install;
       P       : PStaticText;
       Control : PButton;
       YB: word;
-{$IFNDEF LINUX}
+{$IFNDEF UNIX}
       i : longint;
       S: string;
       WPath: boolean;
@@ -844,7 +844,7 @@ program install;
       else
         YB := 14;
 
-{$IFNDEF LINUX}
+{$IFNDEF UNIX}
       s:='';
       for i:=1 to cfg.packs do
        if cfg.pack[i].binsub<>'' then
@@ -889,7 +889,7 @@ program install;
       R.Assign(6, 6, 74, YB);
       inherited init(r,'Installation Successful.');
 
-{$IFNDEF LINUX}
+{$IFNDEF UNIX}
       if WPath then
        begin
          R.Assign(2, 3, 64, 5);
@@ -1309,7 +1309,7 @@ end;
                  found:=true;
                if found then
                 begin
-{$IFNDEF LINUX}
+{$IFNDEF UNIX}
                 { TH - check the available disk space here }
                   DSize := 0;
                   for j:=1 to cfg.packs do
@@ -1920,7 +1920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-06-01 19:43:07  marco
+  Revision 1.11  2002-06-02 17:24:27  marco
+   * Renamefest
+
+  Revision 1.10  2002/06/01 19:43:07  marco
    * Renamefest
 
   Revision 1.9  2002/04/11 13:20:27  pierre
