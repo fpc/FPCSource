@@ -1,3 +1,4 @@
+{$R-}
 program test_register_pushing;
 
 var
@@ -60,6 +61,14 @@ begin
       Writeln('Compiler does not push "pushl %gs" into 4 bytes');
       haserror:=true;
     end;
+{$asmmode intel}
+  asm
+    mov    before,esp
+    push   es
+    mov    after,esp
+    pop    es
+  end;
+  Writeln('Intel "push es" uses ',before-after,' bytes');
 {$endif CPUI386}
   if haserror then
     Halt(1);
