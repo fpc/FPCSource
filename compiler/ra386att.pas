@@ -345,7 +345,7 @@ begin
               {               - field of object/record                         }
               {               - directive.                                     }
          begin
-           if (prevasmtoken=AS_ID) then
+           if (prevasmtoken in [AS_ID,AS_RPAREN]) then
             begin
               c:=current_scanner^.asmgetchar;
               actasmtoken:=AS_DOT;
@@ -1201,7 +1201,9 @@ end;
 
 Procedure T386ATTOperand.BuildOperand;
 var
+  tempstr,tempstr2,
   expr : string;
+  l,k : longint;
 
   procedure AddLabelOperand(hl:pasmlabel);
   begin
@@ -1242,7 +1244,7 @@ var
      inc(l,BuildConstExpression(true,false));
     if opr.typ=OPR_REFERENCE then
      begin
-       if hasdot and (opr.ref.options=ref_parafixup) then
+       if hasdot and (not hastype) and (opr.ref.options=ref_parafixup) then
         Message(asmr_e_cannot_access_field_directly_for_parameters);
        inc(opr.ref.offset,l)
      end
@@ -1270,9 +1272,29 @@ var
         BuildReference;
       AS_ID: { only a variable is allowed ... }
         Begin
-          if not SetupVar(actasmpattern,false) then
-            Message(asmr_e_invalid_reference_syntax);
+          tempstr:=actasmpattern;
           Consume(AS_ID);
+          { typecasting? }
+          if (actasmtoken=AS_LPAREN) and
+             SearchType(tempstr) then
+           begin
+             hastype:=true;
+             Consume(AS_LPAREN);
+             tempstr2:=actasmpattern;
+             Consume(AS_ID);
+             Consume(AS_RPAREN);
+             if not SetupVar(tempstr2,false) then
+              Message1(sym_e_unknown_id,tempstr2);
+           end
+          else
+           if not SetupVar(tempstr,false) then
+            Message1(sym_e_unknown_id,tempstr);
+          { record.field ? }
+          if actasmtoken=AS_DOT then
+           begin
+             BuildRecordOffsetSize(tempstr,l,k);
+             inc(opr.ref.offset,l);
+           end;
           case actasmtoken of
             AS_END,
             AS_SEPARATOR,
@@ -1293,7 +1315,6 @@ var
 var
   tempreg : tregister;
   hl      : PAsmLabel;
-  l       : longint;
 Begin
   expr:='';
   case actasmtoken of
@@ -1374,47 +1395,74 @@ Begin
            else
             begin
               InitRef;
-              if SetupVar(actasmpattern,false) then
+              expr:=actasmpattern;
+              Consume(AS_ID);
+              { typecasting? }
+              if (actasmtoken=AS_LPAREN) and
+                 SearchType(expr) then
                begin
-                 expr:=actasmpattern;
+                 hastype:=true;
+                 Consume(AS_LPAREN);
+                 tempstr:=actasmpattern;
                  Consume(AS_ID);
-                 MaybeRecordOffset;
-                 { add a constant expression? }
-                 if (actasmtoken=AS_PLUS) then
+                 Consume(AS_RPAREN);
+                 if SetupVar(tempstr,false) then
                   begin
-                    l:=BuildConstExpression(true,false);
-                    if opr.typ=OPR_CONSTANT then
-                     inc(opr.val,l)
-                    else
-                     inc(opr.ref.offset,l);
+                    MaybeRecordOffset;
+                    { add a constant expression? }
+                    if (actasmtoken=AS_PLUS) then
+                     begin
+                       l:=BuildConstExpression(true,false);
+                       if opr.typ=OPR_CONSTANT then
+                        inc(opr.val,l)
+                       else
+                        inc(opr.ref.offset,l);
+                     end
                   end
+                 else
+                  Message1(sym_e_unknown_id,tempstr);
                end
               else
-               Begin
-                 { look for special symbols ... }
-                 if actasmpattern = '__RESULT' then
-                   SetUpResult
+               begin
+                 if SetupVar(expr,false) then
+                  begin
+                    MaybeRecordOffset;
+                    { add a constant expression? }
+                    if (actasmtoken=AS_PLUS) then
+                     begin
+                       l:=BuildConstExpression(true,false);
+                       if opr.typ=OPR_CONSTANT then
+                        inc(opr.val,l)
+                       else
+                        inc(opr.ref.offset,l);
+                     end
+                  end
                  else
-                  if actasmpattern = '__SELF' then
-                   SetupSelf
-                 else
-                  if actasmpattern = '__OLDEBP' then
-                   SetupOldEBP
-                 else
-                   { check for direct symbolic names   }
-                   { only if compiling the system unit }
-                   if (cs_compilesystem in aktmoduleswitches) then
-                    begin
-                      if not SetupDirectVar(actasmpattern) then
-                       Begin
-                         { not found, finally ... add it anyways ... }
-                         Message1(asmr_w_id_supposed_external,actasmpattern);
-                         opr.ref.symbol:=newasmsymbol(actasmpattern);
-                       end;
-                    end
-                 else
-                   Message1(sym_e_unknown_id,actasmpattern);
-                 Consume(AS_ID);
+                  Begin
+                    { look for special symbols ... }
+                    if expr = '__RESULT' then
+                      SetUpResult
+                    else
+                     if expr = '__SELF' then
+                      SetupSelf
+                    else
+                     if expr = '__OLDEBP' then
+                      SetupOldEBP
+                    else
+                      { check for direct symbolic names   }
+                      { only if compiling the system unit }
+                      if (cs_compilesystem in aktmoduleswitches) then
+                       begin
+                         if not SetupDirectVar(expr) then
+                          Begin
+                            { not found, finally ... add it anyways ... }
+                            Message1(asmr_w_id_supposed_external,expr);
+                            opr.ref.symbol:=newasmsymbol(expr);
+                          end;
+                       end
+                    else
+                      Message1(sym_e_unknown_id,expr);
+                  end;
                end;
             end;
          end;
@@ -2000,7 +2048,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2000-05-18 17:05:16  peter
+  Revision 1.80  2000-05-23 20:36:28  peter
+    + typecasting support for variables, but be carefull as word,byte can't
+      be used because they are reserved assembler keywords
+
+  Revision 1.79  2000/05/18 17:05:16  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.78  2000/05/12 21:57:02  pierre

@@ -88,6 +88,7 @@ type
   POperand = ^TOperand;
   TOperand = object
     size   : topsize;
+    hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
     opr    : TOprRec;
     constructor init;
@@ -184,6 +185,7 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
+Function SearchType(const hs:string): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:longint): boolean;
 
@@ -649,6 +651,7 @@ end;
 constructor TOperand.init;
 begin
   size:=S_NO;
+  hastype:=false;
   hasvar:=false;
   FillChar(Opr,sizeof(Opr),0);
 end;
@@ -1147,6 +1150,15 @@ end;
                       Symbol table helper routines
 ****************************************************************************}
 
+Function SearchType(const hs:string): Boolean;
+begin
+  getsym(hs,false);
+  SearchType:=assigned(srsym) and
+             (srsym^.typ=typesym);
+end;
+
+
+
 Function SearchRecordType(const s:string): boolean;
 Begin
   SearchRecordType:=false;
@@ -1516,7 +1528,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  2000-05-22 12:47:52  pierre
+  Revision 1.45  2000-05-23 20:36:28  peter
+    + typecasting support for variables, but be carefull as word,byte can't
+      be used because they are reserved assembler keywords
+
+  Revision 1.44  2000/05/22 12:47:52  pierre
    fix wrong handling of var para for size bug 961
 
   Revision 1.43  2000/05/18 17:05:16  peter

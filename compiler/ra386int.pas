@@ -980,6 +980,7 @@ type
 Procedure T386IntelOperand.BuildReference;
 var
   k,l : longint;
+  tempstr2,
   tempstr,hs : string;
   code : integer;
   hreg,
@@ -1033,9 +1034,22 @@ Begin
              oldbase:=opr.ref.base;
              opr.ref.base:=R_NO;
              tempstr:=actasmpattern;
-             if not SetupVar(tempstr,GotOffset) then
-               Message1(sym_e_unknown_id,tempstr);
              Consume(AS_ID);
+             { typecasting? }
+             if (actasmtoken=AS_LPAREN) and
+                SearchType(tempstr) then
+              begin
+                hastype:=true;
+                Consume(AS_LPAREN);
+                tempstr2:=actasmpattern;
+                Consume(AS_ID);
+                Consume(AS_RPAREN);
+                if not SetupVar(tempstr2,GotOffset) then
+                 Message1(sym_e_unknown_id,tempstr2);
+              end
+             else
+              if not SetupVar(tempstr,GotOffset) then
+               Message1(sym_e_unknown_id,tempstr);
              { record.field ? }
              if actasmtoken=AS_DOT then
               begin
@@ -1228,6 +1242,7 @@ end;
 
 Procedure T386IntelOperand.BuildOperand;
 var
+  tempstr,
   expr    : string;
   tempreg : tregister;
   l       : longint;
@@ -1286,16 +1301,19 @@ var
      end;
     if actasmtoken in [AS_PLUS,AS_MINUS] then
      inc(l,BuildConstExpression);
-    if opr.typ=OPR_REFERENCE then
+    if (opr.typ=OPR_REFERENCE) then
      begin
        { don't allow direct access to fields of parameters, becuase that
-         will generate buggy code }
-       case opr.ref.options of
-         ref_parafixup :
-           Message(asmr_e_cannot_access_field_directly_for_parameters);
-         ref_selffixup :
-           Message(asmr_e_cannot_access_object_field_directly);
-       end;
+         will generate buggy code. Allow it only for explicit typecasting }
+       if (not hastype) then
+        begin
+          case opr.ref.options of
+            ref_parafixup :
+              Message(asmr_e_cannot_access_field_directly_for_parameters);
+            ref_selffixup :
+              Message(asmr_e_cannot_access_object_field_directly);
+          end;
+        end;
        inc(opr.ref.offset,l)
      end
     else
@@ -1379,29 +1397,56 @@ Begin
             { is it a normal variable ? }
              Begin
                InitRef;
-               if SetupVar(actasmpattern,false) then
+               expr:=actasmpattern;
+               Consume(AS_ID);
+               { typecasting? }
+               if (actasmtoken=AS_LPAREN) and
+                  SearchType(expr) then
                 begin
-                  expr:=actasmpattern;
+                  hastype:=true;
+                  Consume(AS_LPAREN);
+                  tempstr:=actasmpattern;
                   Consume(AS_ID);
-                  MaybeRecordOffset;
-                  { add a constant expression? }
-                  if (actasmtoken=AS_PLUS) then
+                  Consume(AS_RPAREN);
+                  if SetupVar(tempstr,false) then
                    begin
-                     l:=BuildConstExpression;
-                     if opr.typ=OPR_CONSTANT then
-                      inc(opr.val,l)
-                     else
-                      inc(opr.ref.offset,l);
+                     MaybeRecordOffset;
+                     { add a constant expression? }
+                     if (actasmtoken=AS_PLUS) then
+                      begin
+                        l:=BuildConstExpression;
+                        if opr.typ=OPR_CONSTANT then
+                         inc(opr.val,l)
+                        else
+                         inc(opr.ref.offset,l);
+                      end
                    end
+                  else
+                   Message1(sym_e_unknown_id,tempstr);
                 end
                else
-                Begin
-                  { not a variable, check special variables.. }
-                  if actasmpattern = 'SELF' then
-                   SetupSelf
+                begin
+                  if SetupVar(expr,false) then
+                   begin
+                     MaybeRecordOffset;
+                     { add a constant expression? }
+                     if (actasmtoken=AS_PLUS) then
+                      begin
+                        l:=BuildConstExpression;
+                        if opr.typ=OPR_CONSTANT then
+                         inc(opr.val,l)
+                        else
+                         inc(opr.ref.offset,l);
+                      end
+                   end
                   else
-                   Message1(sym_e_unknown_id,actasmpattern);
-                  Consume(AS_ID);
+                   Begin
+                     { not a variable, check special variables.. }
+                     if expr = 'SELF' then
+                      SetupSelf
+                     else
+                      Message1(sym_e_unknown_id,expr);
+                   end;
                 end;
              end;
            { handle references }
@@ -1833,7 +1878,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2000-05-18 17:05:16  peter
+  Revision 1.71  2000-05-23 20:36:28  peter
+    + typecasting support for variables, but be carefull as word,byte can't
+      be used because they are reserved assembler keywords
+
+  Revision 1.70  2000/05/18 17:05:16  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.69  2000/05/12 21:57:02  pierre
