@@ -114,15 +114,6 @@ var
 (* 4 .. detached (background) OS/2 process *)
   ApplicationType: cardinal;
 
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-(* Thread ID of current thread - stored here    *)
-(* to avoid repeated calls to DosGetInfoBlocks. *)
-  ThreadID: cardinal;
-
 
 procedure SetDefaultOS2FileType (FType: ShortString);
 
@@ -1372,7 +1363,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2004-12-05 14:36:37  hajny
+  Revision 1.32  2004-12-12 21:08:29  hajny
+    * ThreadID is shared
+
+  Revision 1.31  2004/12/05 14:36:37  hajny
     + GetProcessID added
 
   Revision 1.30  2004/11/04 09:32:31  peter
