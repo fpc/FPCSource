@@ -94,6 +94,12 @@ general_f_no_memory_left=F_No memory left
 % \item If the previous two don't work, recompile the compiler with a bigger
 % heap (you can use the \var{-Ch} option for this, \seeo{Ch})
 % \end{itemize}
+general_i_writingresourcefile=I_Writing Resource String Table file: $1
+% This message is shown when the compiler writes the Resource String Table
+% file containing all the resource strings for a program.
+general_e_errorwritingresourcefile=E_Writing Resource String Table file: $1
+% This message is shown when the compiler encountered an error when writing 
+% the Resource String Table file
 % \end{description}
 #
 # Scanner

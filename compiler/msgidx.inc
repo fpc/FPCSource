@@ -9,6 +9,8 @@ type tmsgconst=(
   general_t_objectpath,
   general_i_abslines_compiled,
   general_f_no_memory_left,
+  general_i_writingresourcefile,
+  general_e_errorwritingresourcefile,
   scan_f_end_of_file,
   scan_f_string_exceeds_line,
   scan_f_illegal_char,

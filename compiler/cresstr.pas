@@ -26,27 +26,41 @@ unit cresstr;
     procedure insertresourcestrings;
     procedure registerresourcestring(Const name : string;p : pchar;len,hash : longint);
     function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
+    Procedure WriteResourceFile(FileName : String);
 
   implementation
 
     uses
        globals,aasm,verbose,files;
 
+    Type 
+      PResourcestring = ^TResourceString;
+      TResourceString = record
+        Name : String;
+        Value : Pchar;
+        Len,hash : longint;
+        Next : PResourcestring;
+        end;
+
     const
        { we can use a static constant because we compile a program only once }
        { per compiler call                                                   }
        resstrcount : longint = 0;
        resourcefilename = 'resource.rst';
+
+    Var        
+      ResourceListRoot : PResourceString;
        
     { calcs the hash value for a give resourcestring, len is }
     { necessary because the resourcestring can contain #0    }
+
     function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
     
       Var hash,g,I : longint;
 
       begin
          hash:=len;
-         For I:=0 to Len-2 do // 0 terminated
+         For I:=0 to Len-1 do // 0 terminated
            begin
            hash:=hash shl 4;
            inc(Hash,Ord(p[i]));
@@ -72,65 +86,21 @@ unit cresstr;
          resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST')));
       end;
 
-    Procedure AppendToResourceFile(const name : string;p : pchar;len,hash : longint);
+
+    Procedure AppendToResourceList(const name : string;p : pchar;len,hash : longint);
     
-    Type
-       TMode = (quoted,unquoted);
+    Var R : PResourceString;
     
-    Var F : Text;
-        Mode : TMode;
-        C : char;
-        Col,i : longint;
-        
-       Procedure Add(Const S : String);
-       
-       begin
-         Write(F,S);
-         Col:=Col+length(s);
-       end;
-        
     begin
-      Assign(F,ResourceFileName);
-      Append(f);
-      writeln(f);
-      Writeln (f,'# hash value = ',hash);
-      Add(Name+'=');
-      Mode:=unquoted;
-      col:=0;
-      For I:=0 to Len do
-        begin
-        C:=P[i];
-        If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
-          begin
-          If mode=Quoted then 
-            Add(c)
-          else
-            begin
-            Add(''''+c);
-            mode:=quoted
-            end
-          end
-        else
-          begin
-          If Mode=quoted then
-            begin
-            Add('''');
-            mode:=unquoted;
-            end;
-          Add('#'+tostr(ord(c)));  
-          end;
-        If Col>72 then
-          begin 
-          if mode=quoted then
-            Write (F,'''');
-          Writeln(F,'+');
-          Col:=0;
-          Mode:=unQuoted;
-          end;
-        end;
-      if mode=quoted then writeln (f,'''');  
-      Writeln(f);
-      close(f);
+      inc(resstrcount);
+      New(R);
+      R^.Name:=NAme;
+      r^.Len:=Len;
+      R^.Hash:=hash;
+      GetMem(R^.Value,Len);
+      Move(P^,R^.Value^,Len);
+      R^.Next:=ResourceListRoot;
+      ResourceListRoot:=R;
     end;
 
     procedure registerresourcestring(const name : string;p : pchar;len,hash : longint);
@@ -147,9 +117,7 @@ unit cresstr;
          if not(assigned(resourcestringlist)) then
            resourcestringlist:=new(paasmoutput,init);
 
-         inc(resstrcount);
-         
-         AppendToResourceFile(Name,P,Len,Hash);  
+         AppendToResourceList(Name,P,Len,Hash);  
          
          { an empty ansi string is nil! }
          if (p=nil) or (len=0) then
@@ -176,10 +144,94 @@ unit cresstr;
          resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
       end;
 
+    Procedure WriteResourceFile(Filename : String);
+    
+    Type
+       TMode = (quoted,unquoted);
+    
+    Var F : Text;
+        Mode : TMode;
+        old : PresourceString;
+        C : char;
+        Col,i : longint;
+        
+       Procedure Add(Const S : String);
+       
+       begin
+         Write(F,S);
+         Col:=Col+length(s);
+       end;
+        
+    begin
+      If resstrCount=0 then 
+        exit;
+      FileName:=ForceExtension(lower(FileName),'.rst');
+      message1 (general_i_writingresourcefile,filename);
+      Assign(F,Filename);
+      {$i-}
+      Rewrite(f);
+      {$i+}
+      If IOresult<>0 then
+        begin
+        message(general_e_errorwritingresourcefile);
+        exit;
+        end;
+      While ResourceListRoot<>Nil do
+        With ResourceListRoot^ do
+          begin
+          writeln(f);
+          Writeln (f,'# hash value = ',hash);
+         col:=0;
+         Add(Name+'=');
+         Mode:=unquoted;
+         For I:=0 to Len-1 do
+           begin
+           C:=Value[i];
+           If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
+             begin
+             If mode=Quoted then 
+               Add(c)
+             else
+               begin
+               Add(''''+c);
+               mode:=quoted
+               end
+             end
+           else
+             begin
+             If Mode=quoted then
+               begin
+               Add('''');
+               mode:=unquoted;
+               end;
+             Add('#'+tostr(ord(c)));  
+             end;
+           If Col>72 then
+             begin 
+             if mode=quoted then
+               Write (F,'''');
+             Writeln(F,'+');
+             Col:=0;
+             Mode:=unQuoted;
+             end;
+           end;
+         if mode=quoted then writeln (f,'''');  
+         Writeln(f);
+         Old :=ResourceListRoot;
+         ResourceListRoot:=old^.Next;
+         FreeMem(Old^.Value,Len);
+         Dispose(Old);
+         end;
+       close(f);
+    end;
+
 end.
 {
   $Log$
-  Revision 1.3  1999-07-24 15:12:58  michael
+  Revision 1.4  1999-07-24 16:22:10  michael
+  + Improved resourcestring handling
+
+  Revision 1.3  1999/07/24 15:12:58  michael
   changes for resourcestrings
 
   Revision 1.2  1999/07/22 20:04:58  michael

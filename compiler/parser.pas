@@ -64,7 +64,7 @@ unit parser;
       cg386,
   {$endif i386}
 {$endif newcg}
-      comphook,tree,scanner,pbase,pdecl,psystem,pmodules;
+      comphook,tree,scanner,pbase,pdecl,psystem,pmodules,cresstr;
 
 
     procedure initparser;
@@ -417,31 +417,36 @@ unit parser;
              end;
 
 {$ifdef USEEXCEPT}
-         if not longjump_used then
+            if not longjump_used then
 {$endif USEEXCEPT}
-         { do not create browsers on errors !! }
-         if status.errorcount=0 then
-            begin
+            { do not create browsers on errors !! }
+            if status.errorcount=0 then
+              begin
 {$ifdef BrowserLog}
-          { Write Browser Log }
-            if (cs_browser_log in aktglobalswitches) and
-               (cs_browser in aktmoduleswitches) then
-             begin
-               if browserlog.elements_to_list^.empty then
-                begin
-                  Message1(parser_i_writing_browser_log,browserlog.Fname);
-                  WriteBrowserLog;
-                end
-               else
-                browserlog.list_elements;
-             end;
+              { Write Browser Log }
+              if (cs_browser_log in aktglobalswitches) and
+                 (cs_browser in aktmoduleswitches) then
+                 begin
+                 if browserlog.elements_to_list^.empty then
+                   begin
+                   Message1(parser_i_writing_browser_log,browserlog.Fname);
+                   WriteBrowserLog;
+                   end
+                 else
+                  browserlog.list_elements;
+                 end;
 {$endif BrowserLog}
 
 {$ifdef BrowserCol}
-          { Write Browser Collections }
-            CreateBrowserCol;
-{$endif}
-             end;
+              { Write Browser Collections }
+              CreateBrowserCol;
+{$endif}     
+              { Write resource stringtable file }
+            
+              If not (Main_Module^.is_unit) then
+                WriteResourceFile(Current_module^.ModuleName^);
+              end;
+
           (* Obsolete code aktprocsym
              is disposed by the localsymtable disposal (PM)
           { Free last aktprocsym }
@@ -466,7 +471,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.77  1999-07-23 16:05:22  peter
+  Revision 1.78  1999-07-24 16:22:18  michael
+  + Improved resourcestring handling
+
+  Revision 1.77  1999/07/23 16:05:22  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
