@@ -384,7 +384,7 @@ end;
                                TraceFreeMem
 *****************************************************************************}
 
-procedure TraceFreeMem(var p:pointer;size:longint);
+procedure TraceFreeMemSize(var p:pointer;size:longint);
 
   var i,bp, ppsize : longint;
   pp : pheap_mem_info;
@@ -486,7 +486,38 @@ begin
        exit;
 {$endif EXTRA}
     end;
-  SysFreeMem(p,ppsize);
+  SysFreeMemSize(p,ppsize);
+end;
+
+
+function TraceMemSize(p:pointer):Longint;
+var
+  l : longint;
+begin
+  l:=SysMemSize(p-sizeof(theap_mem_info)+extra_info_size);
+  dec(l,sizeof(theap_mem_info)+extra_info_size);
+  if add_tail then
+   dec(l,sizeof(longint));
+  TraceMemSize:=l;
+end;
+
+
+procedure TraceFreeMem(var p:pointer);
+var
+  size : longint;
+  pp : pheap_mem_info;
+begin
+  pp:=pheap_mem_info(pointer(p)-sizeof(theap_mem_info)+extra_info_size);
+  size:=TraceMemSize(p);
+  { this can never happend normaly }
+  if pp^.size>size then
+   begin
+     dump_wrong_size(pp,size,ptext^);
+{$ifdef EXTRA}
+     dump_wrong_size(pp,size,error_file);
+{$endif EXTRA}
+   end;
+  TraceFreeMemSize(p,pp^.size);
 end;
 
 
@@ -682,7 +713,9 @@ end;
 const
   TraceManager:TMemoryManager=(
     Getmem  : TraceGetMem;
-    Freemem : TraceFreeMem
+    Freemem : TraceFreeMem;
+    FreememSize : TraceFreeMemSize;
+    MemSize : TraceMemSize
   );
 
 procedure TraceExit;
@@ -761,7 +794,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  1999-09-10 17:13:41  peter
+  Revision 1.24  1999-09-17 17:14:12  peter
+    + new heap manager supporting delphi freemem(pointer)
+
+  Revision 1.23  1999/09/10 17:13:41  peter
     * fixed missing var
 
   Revision 1.22  1999/09/08 16:14:41  peter

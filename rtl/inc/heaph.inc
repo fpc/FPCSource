@@ -19,25 +19,32 @@ type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
     Getmem  : procedure(Var p:pointer;Size:Longint);
-    Freemem : procedure(Var p:pointer;Size:Longint);
+    Freemem : procedure(Var p:pointer);
+    FreememSize : procedure(Var p:pointer;Size:Longint);
+    MemSize : function(p:pointer):Longint;
   end;
 procedure GetMemoryManager(var MemMgr: TMemoryManager);
 procedure SetMemoryManager(const MemMgr: TMemoryManager);
 function  IsMemoryManagerSet: Boolean;
 
 Procedure SysGetmem(Var p:pointer;Size:Longint);
-Procedure SysFreemem(Var p:pointer;Size:Longint);
+Procedure SysFreemem(Var p:pointer);
+Procedure SysFreememSize(Var p:pointer;Size:Longint);
+Function  SysMemSize(p:pointer):Longint;
 
 { Variables }
 const
-  heapblocks    : boolean=true;
   growheapsize1 : longint=256*1024;  { < 256k will grow with 256k }
   growheapsize2 : longint=1024*1024; { > 256k will grow with 1m }
 var
   heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
-{ Basic (TP7) functions }
+{ Needed to some overloading problem with call from assembler (PFV) }
+Procedure AsmFreemem(Var p:pointer);
+
+{ Basic (TP7,Delphi) functions }
 Procedure getmem(Var p:pointer;Size:Longint);
+Procedure freemem(Var p:pointer);
 Procedure freemem(Var p:pointer;Size:Longint);
 Function  memavail:Longint;
 Function  maxavail:Longint;
@@ -46,26 +53,13 @@ Procedure release(var p : pointer);
 
 { Fpc Functions }
 Function  heapsize : longint;
-Procedure markheap(var oldfreelist,oldheapptr : pointer);
-Procedure releaseheap(oldfreelist,oldheapptr : pointer);
-
-{$ifdef TEMPHEAP}
-{ Temp Heap Functions }
-  const
-    allow_special : boolean =true;
-
-  Procedure split_heap;
-  Procedure unsplit_heap;
-  Procedure switch_to_base_heap;
-  Procedure switch_to_temp_heap;
-  Procedure switch_heap;
-  Procedure releasetempheap;
-  Procedure gettempmem(var p : pointer;size : longint);
-{$endif TEMPHEAP}
 
 {
   $Log$
-  Revision 1.9  1999-05-31 20:36:35  peter
+  Revision 1.10  1999-09-17 17:14:12  peter
+    + new heap manager supporting delphi freemem(pointer)
+
+  Revision 1.9  1999/05/31 20:36:35  peter
     * growing is now 256k or 1mb
 
   Revision 1.8  1999/02/08 09:31:40  florian

@@ -254,12 +254,10 @@ asm
         { get vmt address in eax }
         movl    (%esi,%edi,1),%eax
         movl    %esi,12(%ebp)
-        { push object size }
-        pushl   (%eax)
         { push object position }
         leal    12(%ebp),%eax
         pushl   %eax
-        call    FreeMem
+        call    AsmFreeMem
         { set both object places to zero }
         xorl    %esi,%esi
         movl    %esi,12(%ebp)
@@ -293,12 +291,10 @@ asm
       { temporary Variable }
         subl    $4,%esp
         movl    %esp,%edi
-      { And put size on the Stack }
-        pushl   (%ebx)
       { SELF }
         movl    %eax,(%edi)
         pushl   %edi
-        call    FreeMem
+        call    AsmFreeMem
         addl    $4,%esp
 .LHD_3:
         popal
@@ -873,7 +869,10 @@ end;
 
 {
   $Log$
-  Revision 1.54  1999-09-15 13:04:04  jonas
+  Revision 1.55  1999-09-17 17:14:11  peter
+    + new heap manager supporting delphi freemem(pointer)
+
+  Revision 1.54  1999/09/15 13:04:04  jonas
     * added dummy local var to boundcheck to force stackframe generation
 
   Revision 1.53  1999/08/19 12:50:08  pierre

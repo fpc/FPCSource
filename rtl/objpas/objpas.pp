@@ -68,14 +68,9 @@ Type
    Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
    Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
    Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
-   Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;   
-   
+   Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
+
 {$endif}
-
-
-    Procedure Getmem(Var p:pointer;Size:Longint);
-    Procedure Freemem(Var p:pointer;Size:Longint);
-    Procedure Freemem(Var p:pointer);
 
 
   implementation
@@ -174,59 +169,6 @@ begin
       paramstr:='';
   end;
 
-{ ---------------------------------------------------------------------
-    Delphi-Style memory management
-  ---------------------------------------------------------------------}
-
-  Type PLongint = ^Longint;
-
-
-    Procedure Getmem(Var p:pointer;Size:Longint);
-
-    begin
-      Inc(Size,SizeOf(Longint));
-      SysGetmem(P,Size);
-      PLongint(P)^:=Size;
-      Inc(P,SizeOf(Longint));
-    end;
-
-    Procedure DummyFreemem(Var p:pointer;Size:Longint);
-    begin
-      FreeMem(P);
-    end;
-
-    Procedure Freemem(Var p:pointer;Size:Longint);
-
-    begin
-      Freemem(P);
-    end;
-
-    Procedure Freemem(Var p:pointer);
-
-    begin
-      If P<>Nil then
-        begin
-        Dec(P,SizeOf(Longint));
-        SysFreemem(P,Plongint(P)^);
-        end;
-    end;
-
-
-Var OldMM,NEWMM : TmemoryManager;
-
-    Procedure InitMemoryManager;
-
-    begin
-      GetMemoryManager(OldMM);
-      NewMM.FreeMem:=@DummyFreeMem;
-      NewMM.GetMem:=@GetMem;
-      SetMemoryManager(NewMM);
-    end;
-
-    Procedure ResetMemoryManager;
-    begin
-      SetMemoryManager(OldMM);
-    end;
 
 {$IFDEF HasResourceStrings}
 
@@ -357,7 +299,7 @@ end;
 Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
 
 begin
-  If not CheckStringIndex(Tableindex,StringIndex) then  
+  If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=''
   else
     result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].Name;
@@ -366,7 +308,7 @@ end;
 Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
 
 begin
-  If not CheckStringIndex(Tableindex,StringIndex) then  
+  If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=0
   else
     result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].HashValue;
@@ -375,7 +317,7 @@ end;
 Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
 
 begin
-  If not CheckStringIndex(Tableindex,StringIndex) then  
+  If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=''
   else
     result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].DefaultValue;
@@ -384,13 +326,13 @@ end;
 Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
 
 begin
-  If not CheckStringIndex(Tableindex,StringIndex) then  
+  If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=''
   else
     result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue;
 end;
 
-Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;   
+Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
 
 begin
   Result:=CheckStringIndex(Tableindex,StringIndex);
@@ -405,14 +347,17 @@ Initialization
 {$IFDEF HasResourceStrings}
   ResetResourceTables;
 {$endif}
-  InitMemoryManager;
+
 finalization
-  ResetMemoryManager;
+
 end.
 
 {
   $Log$
-  Revision 1.39  1999-08-28 13:03:23  michael
+  Revision 1.40  1999-09-17 17:14:12  peter
+    + new heap manager supporting delphi freemem(pointer)
+
+  Revision 1.39  1999/08/28 13:03:23  michael
   + Added Hash function to interface
 
   Revision 1.38  1999/08/27 15:54:15  michael
