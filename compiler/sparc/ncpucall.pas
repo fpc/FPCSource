@@ -31,15 +31,17 @@
 UNIT ncpucall;
 {$INCLUDE fpcdefs.inc}
 interface
-
-    uses
-      symdef,node,ncal,ncgcal;
-
-    type
-       TSparccallnode = class(tcgcallnode)
-          function pass_1 : tnode;override;
-          procedure load_framepointer;override;
-       end;
+uses
+  symdef,node,ncal,ncgcal;
+type
+  TSparccallnode = class(tcgcallnode)
+    function pass_1 : tnode;override;
+{Under SPARC, the frame pointer is automatically set by the SAVE instruction
+which is part of the stardrad calling mechanism. This function will do nothing
+else than adding the function prologue, which is in some case loading the
+correct value into the frame pointer register!}
+    procedure load_framepointer;override;
+  end;
 
 implementation
 
@@ -76,58 +78,19 @@ implementation
             {!!!!}
          end;
     end;
-
-  procedure TSparccallnode.load_framepointer;
-
-    begin
-       { if we call a nested function in a method, we must      }
-       { push also SELF!                                        }
-       { THAT'S NOT TRUE, we have to load ESI via frame pointer }
-       { access                                                 }
-       {
-         begin
-            loadesi:=false;
-            emit_reg(A_PUSH,S_L,R_ESI);
-         end;
-       }
-       {
-       if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
-         begin
-            reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-            cg.a_param_ref(exprasmlist,OS_ADDR,href,-1);
-         end
-         { this is only true if the difference is one !!
-           but it cannot be more !! }
-       else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
-         begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,-1);
-         end
-       else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
-         begin
-            hregister:=rg.getregisterint(exprasmlist);
-            reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-            for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
-              begin
-                 {we should get the correct frame_pointer_offset at each level
-                 how can we do this !!! }
-                 reference_reset_base(href,hregister,procinfo^.framepointer_offset);
-                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-              end;
-            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,-1);
-            rg.ungetregisterint(exprasmlist,hregister);
-         end
-       else
-         internalerror(2002081303);
-       }
-    end;
-
+procedure TSparcCallNode.load_framepointer;
+	begin
+	  exprasmList.concat(TAiCpu.Op_reg_const_reg(A_SAVE,S_L,stack_pointer_reg,-tprocdef(procdefinition).parast.datasize,stack_pointer_reg));
+  end;
 begin
    ccallnode:=TSparccallnode;
 end.
 {
   $Log$
-  Revision 1.2  2002-08-30 13:16:23  mazen
+  Revision 1.3  2002-09-30 19:12:14  mazen
+  * function prologue fixed
+
+  Revision 1.2  2002/08/30 13:16:23  mazen
   *call parameter handling is now based on the new param manager
 
   Revision 1.2  2002/08/17 09:23:49  florian

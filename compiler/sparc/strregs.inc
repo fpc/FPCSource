@@ -1,39 +1,42 @@
 {*****************************************************************************}
-{ File                   : strregs.inc                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\05\08                                         }
-{ Last modification date : 2002\06\01                                         }
-{ Licence                : GPL                                                }
+{ file                   : strregs.inc                                        }
+{ Author                 : Mazen NEifER                                       }
+{ Project                : free Pascal compiler (fPc)                         }
+{ creation date          : 2002\05\08                                         }
+{ last modification date : 2002\06\01                                         }
+{ licence                : gPl                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
-'NO',
-  {General purpose global registers}
-'G0','G1','G2','G3','G4','G5','G6','G7',
-  {General purpose out registers}
-'O0','O1','O2','O3','O4','O5','O6','O7',
-  {General purpose local registers}
-'L0','L1','L2','L3','L4','L5','L6','L7',
-  {General purpose in registers}
-'I0','I1','I2','I3','I4','I5','I6','I7',
-  {Floating point registers}
-'F0','F1','F2','F3','F4','F5','F6','F7',
-'F8','F9','F10','F11','F12','F13','F14','F15',
-'F16','F17','F18','F19','F20','F21','F22','F23',
-'F24','F25','F26','F27','F28','F29','F30','F31',
-  {Floating point status/"front of queue" registers}
-'FSR','FQ',
-  {Coprocessor registers}
-'C0','C1','C2','C3','C4','C5','C6','C7',
-'C8','C9','C10','C11','C12','C13','C14','C15',
-'C16','C17','C18','C19','C20','C21','C22','C23',
-'C24','C25','C26','C27','C28','C29','C30','C31',
-  {Coprocessor status/queue registers}
-'CSR','CQ',
+{
+$Id:
+}
+'%No',
+  {general purpose global registers}
+'%g0','%g1','%g2','%g3','%g4','%g5','%g6','%g7',
+  {general purpose out registers}
+'%o0','%o1','%o2','%o3','%o4','%o5','%o6','%o7',
+  {general purpose local registers}
+'%l0','%l1','%l2','%l3','%l4','%l5','%l6','%l7',
+  {general purpose in registers}
+'%i0','%i1','%i2','%i3','%i4','%i5','%i6','%i7',
+  {floating point registers}
+'%f0','%f1','%f2','%f3','%f4','%f5','%f6','%f7',
+'%f8','%f9','%f10','%f11','%f12','%f13','%f14','%f15',
+'%f16','%f17','%f18','%f19','%f20','%f21','%f22','%f23',
+'%f24','%f25','%f26','%f27','%f28','%f29','%f30','%f31',
+  {floating point status/"front of queue" registers}
+'%fSR','%fQ',
+  {coprocessor registers}
+'%c0','%c1','%c2','%c3','%c4','%c5','%c6','%c7',
+'%c8','%c9','%c10','%c11','%c12','%c13','%c14','%c15',
+'%c16','%c17','%c18','%c19','%c20','%c21','%c22','%c23',
+'%c24','%c25','%c26','%c27','%c28','%c29','%c30','%c31',
+  {coprocessor status/queue registers}
+'%csr','%cq',
   {"Program status"/"Trap vactor base address register"/"Window invalid mask"/Y registers}
-'PSR','TBR','WIM','Y',
+'%psr','%tbr','%wim','%y',
   {Ancillary state registers}
-'ASR0','ASR1','ASR2','ASR3','ASR4','ASR5','ASR6','ASR7',
-'ASR8','ASR9','ASR10','ASR11','ASR12','ASR13','ASR14','ASR15',
-'ASR16','ASR17','ASR18','ASR19','ASR20','ASR21','ASR22','ASR23',
-'ASR24','ASR25','ASR26','ASR27','ASR28','ASR29','ASR30','ASR31'
+'%asr0','%asr1','%asr2','%asr3','%asr4','%asr5','%asr6','%asr7',
+'%asr8','%asr9','%asr10','%asr11','%asr12','%asr13','%asr14','%asr15',
+'%asr16','%asr17','%asr18','%asr19','%asr20','%asr21','%asr22','%asr23',
+'%asr24','%asr25','%asr26','%asr27','%asr28','%asr29','%asr30','%asr31'

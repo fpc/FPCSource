@@ -453,9 +453,16 @@ CONST
       }
 
   stab_regindex:ARRAY[tregister]OF ShortInt=({$INCLUDE stabregi.inc});
-  { generic register names }
-  stack_pointer_reg =R_O6;
-  frame_pointer_reg =R_I6;
+{*************************** generic register names **************************}
+	stack_pointer_reg		=	R_O6;
+  frame_pointer_reg		=	R_I6;
+{the return_result_reg, is used inside the called function to store its return
+value when that is a scalar value otherwise a pointer to the address of the
+result is placed inside it}
+	return_result_reg		=	R_I0;
+{the function_result_reg contains the function result after a call to a scalar
+function othewise it contains a pointer to the returned result}
+	function_result_reg	=	R_O0;
   self_pointer_reg  =R_G5;
 {There is no accumulator in the SPARC architecture. There are just families of
 registers. All registers belonging to the same family are identical except in
@@ -573,7 +580,10 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.7  2002-09-27 04:30:53  mazen
+  Revision 1.8  2002-09-30 19:12:14  mazen
+  * function prologue fixed
+
+  Revision 1.7  2002/09/27 04:30:53  mazen
   * cleanup made
 
   Revision 1.6  2002/09/24 03:57:53  mazen

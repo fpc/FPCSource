@@ -113,14 +113,14 @@ PROCEDURE tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
     IF(Size<>OS_32)AND(Size<>OS_S32)
     THEN
       InternalError(2002032212);
-    List.Concat(taicpu.op_reg(A_SAVE,S_L,r));
+    List.Concat(taicpu.op_reg(A_LD,S_L,r));
   END;
 PROCEDURE tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);
   BEGIN
     IF(Size<>OS_32)AND(Size<>OS_S32)
     THEN
       InternalError(2002032213);
-    List.Concat(taicpu.op_const(A_SAVE,S_L,a));
+    List.Concat(taicpu.op_const(A_LD,S_L,a));
   END;
 PROCEDURE tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
@@ -129,7 +129,7 @@ PROCEDURE tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;
     IF((Size=OS_32)AND(Size=OS_S32))
     THEN
       InternalError(2002032214);
-    list.concat(taicpu.op_ref(A_SAVE,S_L,r));
+    list.concat(taicpu.op_ref(A_LD,S_L,r));
   END;
 PROCEDURE tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
@@ -140,20 +140,20 @@ PROCEDURE tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST Loc
       CGMessage(cg_e_cant_use_far_pointer_there);
     IF(r.base=R_NO)AND(r.index=R_NO)
     THEN
-      list.concat(Taicpu.Op_sym_ofs(A_SAVE,S_L,r.symbol,r.offset))
+      list.concat(Taicpu.Op_sym_ofs(A_LD,S_L,r.symbol,r.offset))
     ELSE IF(r.base=R_NO)AND(r.index<>R_NO)AND
            (r.offset=0)AND(r.scalefactor=0)AND(r.symbol=nil)
     THEN
-      list.concat(Taicpu.Op_reg(A_SAVE,S_L,r.index))
+      list.concat(Taicpu.Op_reg(A_LD,S_L,r.index))
     ELSE IF(r.base<>R_NO)AND(r.index=R_NO)AND
            (r.offset=0)AND(r.symbol=nil)
     THEN
-      list.concat(Taicpu.Op_reg(A_SAVE,S_L,r.base))
+      list.concat(Taicpu.Op_reg(A_LD,S_L,r.base))
     ELSE
       BEGIN
         tmpreg:=get_scratch_reg_address(list);
         a_loadaddr_ref_reg(list,r,tmpreg);
-        list.concat(taicpu.op_reg(A_SAVE,S_L,tmpreg));
+        list.concat(taicpu.op_reg(A_LD,S_L,tmpreg));
         free_scratch_reg(list,tmpreg);
       END;
   END;
@@ -194,7 +194,7 @@ PROCEDURE tcgSPARC.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST 
   END;
 PROCEDURE tcgSPARC.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CONST ref:TReference);
   BEGIN
-    list.concat(taicpu.op_reg_ref(A_NONE,TCGSize2OpSize[size],reg,ref));
+    list.concat(taicpu.op_reg_ref(A_LD,TCGSize2OpSize[size],reg,ref));
   END;
 PROCEDURE tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);
   VAR
@@ -517,7 +517,7 @@ PROCEDURE tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                             { allocate ecx                                }
                             (rg.getexplicitregisterint(list,R_ECX) = R_ECX))) then
                       begin
-                        list.concat(taicpu.op_reg(A_SAVE,S_L,R_ECX));
+                        list.concat(taicpu.op_reg(A_NONE,S_L,R_ECX));
                         popecx := true;
                       end;
                     a_load_reg_reg(list,OS_8,OS_8,(src),R_CL);
@@ -776,14 +776,10 @@ PROCEDURE tcgSPARC.g_stackframe_entry(list:TAasmOutput;localsize:LongInt);
     i:integer;
     again:tasmlabel;
   BEGIN
+	{Reserve space to save register window in case of overflow/underflow}
+	  Inc(LocalSize,16);{located between %o6 and %o6+15}
     WITH list DO
-      BEGIN
-        concat(Taicpu.Op_reg(A_SAVE,S_L,Frame_Pointer_Reg));
-        concat(Taicpu.Op_reg_reg(A_NONE,S_L,Stack_Pointer_Reg,Frame_Pointer_Reg));
-        IF localsize>0
-        THEN
-          concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize,Stack_Pointer_Reg));
-      END;
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
   END;
 PROCEDURE tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
   BEGIN
