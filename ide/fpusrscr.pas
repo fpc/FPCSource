@@ -55,6 +55,33 @@ type
       procedure   SwitchBackToIDEScreen; virtual;
     end;
 
+{$IFDEF OS2}    
+    POS2Screen = ^TOS2Screen;
+    TOS2Screen = object(TScreen)
+      constructor Init;
+      destructor  Done; virtual;
+    public
+      function    GetWidth: integer; virtual;
+      function    GetHeight: integer; virtual;
+      procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
+      procedure   GetCursorPos(var P: TPoint); virtual;
+      { remember the initial video screen }
+      procedure   Capture; virtual;
+      { restore the initial video mode }
+      procedure   Restore; virtual;
+      { move up or down if supported by OS }
+      function    Scroll(i : integer) : integer; virtual;
+      { saves the current IDE screen }
+      procedure   SaveIDEScreen; virtual;
+      { saves the current console screen }
+      procedure   SaveConsoleScreen; virtual;
+      { restores the saved console screen }
+      procedure   SwitchToConsoleScreen; virtual;
+      { restores the saved IDE screen }
+      procedure   SwitchBackToIDEScreen; virtual;
+    end;
+{$ENDIF}    
+
 {$ifdef DOS}
     TDOSVideoInfo = record
       Mode      : word;
@@ -1273,6 +1300,78 @@ end;
 
 {$endif}
 
+{****************************************************************************
+                                 TOS2Screen
+****************************************************************************}
+
+
+{$ifdef OS2}    
+function TOS2Screen.GetWidth: integer;
+begin
+  GetWidth:=80;
+end;
+
+function TOS2Screen.GetHeight: integer;
+begin
+  GetHeight:=25;
+end;
+
+procedure TOS2Screen.GetLine(Line: integer; var Text, Attr: string);
+begin
+  Text:='                                                                               ';
+  Attr:='                                                                               ';
+end;
+
+procedure TOS2Screen.GetCursorPos(var P: TPoint); 
+begin
+  P.X:=1;
+  P.Y:=1;
+end;
+
+{ remember the initial video screen }
+procedure TOS2Screen.Capture; 
+begin
+end;
+
+{ restore the initial video mode }
+procedure TOS2Screen.Restore; 
+begin
+end;
+
+{ move up or down if supported by OS }
+function TOS2Screen.Scroll(i : integer) : integer;
+begin
+end;
+
+{ saves the current IDE screen }
+procedure TOS2Screen.SaveIDEScreen;
+begin
+end;
+
+{ saves the current console screen }
+procedure TOS2Screen.SaveConsoleScreen;
+begin
+end;
+
+{ restores the saved console screen }
+procedure TOS2Screen.SwitchToConsoleScreen;
+begin
+end;
+
+{ restores the saved IDE screen }
+procedure TOS2Screen.SwitchBackToIDEScreen;
+begin
+end;
+
+constructor TOS2Screen.Init;
+begin
+end;
+
+destructor TOS2Screen.Done;
+begin
+end;
+
+{$ENDIF}
 
 {****************************************************************************
                                  Initialize
@@ -1290,7 +1389,11 @@ begin
     {$ifdef Win32}
       UserScreen:=New(PWin32Screen, Init);
     {$else}
-      UserScreen:=New(PScreen, Init);
+      {$ifdef OS2}
+        UserScreen:=New(POS2Screen, Init);
+      {$else}
+        UserScreen:=New(PScreen, Init);
+      {$endif OS2}
     {$endif Win32}
   {$endif Unix}
 {$endif Dos}
@@ -1310,7 +1413,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2002-10-07 15:43:15  pierre
+  Revision 1.25  2002-10-12 19:41:30  hajny
+    * dummy OS/2 implementation to enable compilation
+
+  Revision 1.24  2002/10/07 15:43:15  pierre
    * set TTYFd to -1 in TLinuxScreen constructor
 
   Revision 1.23  2002/09/25 22:02:13  pierre
