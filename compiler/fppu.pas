@@ -1396,9 +1396,9 @@ uses
                  if not(sources_avail) then
                   begin
                     if recompile_reason=rr_noppu then
-                      Message1(unit_f_cant_find_ppu,modulename^)
+                      Message1(unit_f_cant_find_ppu,realmodulename^)
                     else
-                      Message1(unit_f_cant_compile_unit,modulename^);
+                      Message1(unit_f_cant_compile_unit,realmodulename^);
                   end;
                end;
               { Flag modules to reload }
@@ -1490,7 +1490,7 @@ uses
                          hp2:=nil;
                      end;
                     if assigned(hp2) then
-                      Message2(unit_f_circular_unit_reference,callermodule.modulename^,hp.modulename^);
+                      Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
                   end;
                  break;
                end;
@@ -1502,7 +1502,7 @@ uses
            hp:=tppumodule(hp.next);
          end;
         if assigned(shortnamehp) and not assigned(hp) then
-          Message2(unit_w_unit_name_error,s,shortnamehp.modulename^);
+          Message2(unit_w_unit_name_error,s,shortnamehp.realmodulename^);
         { the unit is not in the loaded units,
           we create an entry and register the unit }
         if not assigned(hp) then
@@ -1519,7 +1519,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.60  2004-08-27 21:59:26  peter
+  Revision 1.61  2004-08-28 20:01:09  peter
+    * print realmodulename in fatal errors
+
+  Revision 1.60  2004/08/27 21:59:26  peter
   browser disabled
   uf_local_symtable ppu flag when a localsymtable is stored
 
