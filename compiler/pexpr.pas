@@ -982,89 +982,98 @@ unit pexpr;
                              end
                            else
                              unit_specific:=false;
-                           { check semantics of private }
-                           if (srsym^.typ in [propertysym,procsym,varsym]) and
-                              (srsymtable^.symtabletype=objectsymtable) then
-                             begin
-                                if ((srsym^.properties and sp_private)<>0) and
-                                  (pobjectdef(srsym^.owner^.defowner)^.
-                                  owner^.symtabletype=unitsymtable) then
-                                  Message(parser_e_cant_access_private_member);
-                             end;
-                           case srsym^.typ of
-                              absolutesym:
-                                begin
-                                   p1:=genloadnode(pvarsym(srsym),srsymtable);
-                                   pd:=pabsolutesym(srsym)^.definition;
-                                end;
-                              varsym:
-                                begin
-                                   { are we in a class method ? }
-                                   if (srsymtable^.symtabletype=objectsymtable) and
-                                     assigned(aktprocsym) and
-                                     ((aktprocsym^.definition^.options and poclassmethod)<>0) then
-                                     Message(parser_e_only_class_methods);
 
-                                     if (srsym^.properties and sp_static)<>0 then
-                                       begin
-                                          static_name:=lowercase(srsymtable^.name^)+'_'+srsym^.name;
-                                          getsym(static_name,true);
-                                       end;
+                           if not assigned(srsym) then
+                             Begin
+                                p1:=genzeronode(errorn);
+                                { try to clean up }
+                                pd:=generrordef;
+                             end
+                           else
+                           Begin
+                             { check semantics of private }
+                             if (srsym^.typ in [propertysym,procsym,varsym]) and
+                                (srsymtable^.symtabletype=objectsymtable) then
+                               begin
+                                  if ((srsym^.properties and sp_private)<>0) and
+                                    (pobjectdef(srsym^.owner^.defowner)^.
+                                    owner^.symtabletype=unitsymtable) then
+                                    Message(parser_e_cant_access_private_member);
+                               end;
+                             case srsym^.typ of
+                                absolutesym:
+                                  begin
                                      p1:=genloadnode(pvarsym(srsym),srsymtable);
-                                     if pvarsym(srsym)^.is_valid=0 then
-                                       begin
-                                          p1^.is_first := true;
-                                          { set special between first loaded
-                                            until checked in firstpass }
-                                          pvarsym(srsym)^.is_valid:=2;
-                                       end;
-                                     pd:=pvarsym(srsym)^.definition;
+                                     pd:=pabsolutesym(srsym)^.definition;
                                   end;
-                              typedconstsym:
-                                begin
-                                   p1:=gentypedconstloadnode(ptypedconstsym(srsym),srsymtable);
-                                   pd:=ptypedconstsym(srsym)^.definition;
-                                end;
-                              syssym:
-                                p1:=statement_syssym(psyssym(srsym)^.number,pd);
-                              typesym:
-                                begin
-                                   pd:=ptypesym(srsym)^.definition;
-                                   { if we read a type declaration  }
-                                   { we have to return the type and }
-                                   { nothing else                   }
-                                   if block_type=bt_type then
-                                     begin
-                                        p1:=genzeronode(typen);
-                                        p1^.resulttype:=pd;
-                                        pd:=voiddef;
-                                     end
-                                   else
-                                     begin
-                                        if token=LKLAMMER then
-                                          begin
-                                             consume(LKLAMMER);
-                                             p1:=comp_expr(true);
-                                             consume(RKLAMMER);
-                                             p1:=gentypeconvnode(p1,pd);
-                                             p1^.explizit:=true;
-                                          end
-                                        else if (token=POINT) and
-                                          (pd^.deftype=objectdef) and
-                                          ((pobjectdef(pd)^.options and oois_class)=0) then
-                                          begin
-                                             consume(POINT);
-                                             if assigned(procinfo._class) then
-                                               begin
-                                                  if procinfo._class^.isrelated(pobjectdef(pd)) then
-                                                    begin
-                                                       p1:=genzeronode(typen);
-                                                       p1^.resulttype:=pd;
-                                                       srsymtable:=pobjectdef(pd)^.publicsyms;
-                                                       sym:=pvarsym(srsymtable^.search(pattern));
-                                                       consume(ID);
-                                                       do_member_read(sym,p1,pd,again);
-                                                    end
+                                varsym:
+                                  begin
+                                     { are we in a class method ? }
+                                     if (srsymtable^.symtabletype=objectsymtable) and
+                                       assigned(aktprocsym) and
+                                       ((aktprocsym^.definition^.options and poclassmethod)<>0) then
+                                       Message(parser_e_only_class_methods);
+
+                                       if (srsym^.properties and sp_static)<>0 then
+                                         begin
+                                            static_name:=lowercase(srsymtable^.name^)+'_'+srsym^.name;
+                                            getsym(static_name,true);
+                                         end;
+                                       p1:=genloadnode(pvarsym(srsym),srsymtable);
+                                       if pvarsym(srsym)^.is_valid=0 then
+                                         begin
+                                            p1^.is_first := true;
+                                           { set special between first loaded
+                                             until checked in firstpass }
+                                           pvarsym(srsym)^.is_valid:=2;
+                                        end;
+                                      pd:=pvarsym(srsym)^.definition;
+                                   end;
+                                typedconstsym:
+                                 begin
+                                    p1:=gentypedconstloadnode(ptypedconstsym(srsym),srsymtable);
+                                    pd:=ptypedconstsym(srsym)^.definition;
+                                 end;
+                                syssym:
+                                  p1:=statement_syssym(psyssym(srsym)^.number,pd);
+                                typesym:
+                                 begin
+                                    pd:=ptypesym(srsym)^.definition;
+                                    { if we read a type declaration  }
+                                    { we have to return the type and }
+                                    { nothing else                   }
+                                    if block_type=bt_type then
+                                      begin
+                                         p1:=genzeronode(typen);
+                                         p1^.resulttype:=pd;
+                                         pd:=voiddef;
+                                      end
+                                    else
+                                      begin
+                                         if token=LKLAMMER then
+                                           begin
+                                              consume(LKLAMMER);
+                                              p1:=comp_expr(true);
+                                              consume(RKLAMMER);
+                                              p1:=gentypeconvnode(p1,pd);
+                                              p1^.explizit:=true;
+                                           end
+                                         else if (token=POINT) and
+                                           (pd^.deftype=objectdef) and
+                                           ((pobjectdef(pd)^.options and oois_class)=0) then
+                                           begin
+                                              consume(POINT);
+                                              if assigned(procinfo._class) then
+                                                begin
+                                                   if procinfo._class^.isrelated(pobjectdef(pd)) then
+                                                     begin
+                                                        p1:=genzeronode(typen);
+                                                        p1^.resulttype:=pd;
+                                                        srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                        sym:=pvarsym(srsymtable^.search(pattern));
+                                                        consume(ID);
+                                                        do_member_read(sym,p1,pd,again);
+                                                     end
                                                   else
                                                     begin
                                                        Message(parser_e_no_super_class);
@@ -1113,14 +1122,14 @@ unit pexpr;
                                                end;
                                           end;
                                      end;
-                                end;
-                              enumsym:
-                                begin
+                                 end;
+                                enumsym:
+                                 begin
                                    p1:=genenumnode(penumsym(srsym));
                                    pd:=p1^.resulttype;
-                                end;
-                              constsym:
-                                begin
+                                 end;
+                                constsym:
+                                 begin
                                    case pconstsym(srsym)^.consttype of
                                       constint:
                                         p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef);
@@ -1140,9 +1149,9 @@ unit pexpr;
                                           pconstsym(srsym)^.definition);
                                    end;
                                    pd:=p1^.resulttype;
-                                end;
-                              procsym:
-                                begin
+                                 end;
+                                procsym:
+                                 begin
                                    { are we in a class method ? }
                                    possible_error:=(srsymtable^.symtabletype=objectsymtable) and
                                      assigned(aktprocsym) and
@@ -1153,9 +1162,9 @@ unit pexpr;
                                    if possible_error and
                                      ((p1^.procdefinition^.options and poclassmethod)=0) then
                                      Message(parser_e_only_class_methods);
-                                end;
-                              propertysym:
-                                begin
+                                 end;
+                                propertysym:
+                                 begin
                                    { access to property in a method }
 
                                    { are we in a class method ? }
@@ -1166,9 +1175,9 @@ unit pexpr;
                                    { no method pointer }
                                    p1:=nil;
                                    handle_propertysym(srsym,p1,pd);
-                                end;
-                              errorsym:
-                                begin
+                                 end;
+                                errorsym:
+                                 begin
                                    p1:=genzeronode(errorn);
                                    pd:=generrordef;
                                    if token=LKLAMMER then
@@ -1177,13 +1186,14 @@ unit pexpr;
                                         parse_paras(false,false);
                                         consume(RKLAMMER);
                                      end;
-                                end;
-                              else
-                                begin
+                                 end;
+                                else
+                                 begin
                                    p1:=genzeronode(errorn);
                                    pd:=generrordef;
                                    Message(cg_e_illegal_expression);
-                                end;
+                                 end;
+                             end; { end case }
                            end;
                         end;
                    end;
@@ -1723,7 +1733,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.16  1998-05-21 19:33:32  peter
+  Revision 1.17  1998-05-22 12:37:03  carl
+    * crash bugfix (patched msanually to main branch)
+
+  Revision 1.16  1998/05/21 19:33:32  peter
     + better procedure directive handling and only one table
 
   Revision 1.15  1998/05/20 09:42:35  pierre
