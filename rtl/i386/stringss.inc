@@ -18,43 +18,76 @@
 function strpas(p : pchar) : string;
 begin
 {$ifndef NEWATT}
-  strpas:='';
+  strpasopt:='';
 {$endif}
-  asm
-        cld
-        movl    p,%edi
-        movl    $0xff,%ecx
-        xorl    %eax,%eax
-        movl    %edi,%esi
-        repne
-        scasb
-        movl    %ecx,%eax
+asm
 {$ifdef NEWATT}
         movl    __RESULT,%edi
 {$else}
         movl    8(%ebp),%edi
 {$endif}
-        notb    %al
-        decl    %eax
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrPas2
-        movl    %edi,%ecx       // Align on 32bits
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrPas2:
-        movl    %eax,%ecx
-        rep
-        movsb
-  end ['ECX','EAX','ESI','EDI'];
+        movl    p,%esi
+        // at the end, add 255 to cl to get the string length (byte(1+255) = 0)
+        movb    $1,%cl
+        // skip length byte -> align dest to multiple of 4
+        movl    (%esi),%eax
+        testl   $0x0ff,%eax
+        jz      .LStrPasDone
+        // we only need the first 3 chars currently
+        shll    $8,%eax
+        incb    %cl
+        addl    $3,%esi
+        // Store everything already, since the temp string = 255 chars anyway
+        // The length byte will contain zero this way, but it will be
+        // overwritten at the end, so it doesn't matter       
+        movl    %eax,(%edi)
+        // test the second char (we shifted left 8 bits)
+        testl   $0x0ff0000,%eax
+        jz      .LStrPasDone
+        // for pairing, add 4 to edi here already
+        addl    $4,%edi
+        incb    %cl
+        // test the third char (we shifted left 8 bits)
+        testl   $0x0ff000000,%eax
+        jz      .LStrPasDone
+        incb    %cl
+        .align  16
+.LStrPasLoop:
+        movl    (%esi),%eax
+        addl    $4,%esi
+        // this won't overwrite data since the result = 255 char string
+        movl    %eax,(%edi)
+        testl   $0x0ff,%eax
+        jz      .LStrPasDone
+        testl   $0x0ff00,%eax
+        jz      .LStrPasByte
+        testl   $0x0ff0000,%eax
+        jz      .LStrPasWord
+        testl   $0x0ff000000,%eax
+        jz      .LStrPas3Bytes
+        addl    $4,%edi
+        addb    $4,%cl
+        // since cl = 4 at the start of the loop, it will always count
+        // upto exactly 0
+        jnz     .LStrPasLoop
+        jmp     .LStrPasDone
+.LStrPas3Bytes:
+        addb     $3,%cl
+        jmp     .LStrPasDone
+.LStrPasWord:
+        addb    $2,%cl
+        jmp     .LStrPasDone
+.LStrPasByte:
+        incb    %cl
+.LStrPasDone:
+{$ifdef NEWATT}
+        movl    __RESULT,%edi
+{$else}
+        movl    8(%ebp),%edi
+{$endif}
+        addb    $255,%cl
+        movb    %cl,(%edi)
+end ['EAX','ECX','ESI','EDI'];
 end;
 
 
@@ -76,7 +109,12 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.10  2000-03-28 11:14:33  jonas
+  Revision 1.11  2000-06-12 08:33:26  jonas
+    * new fixed and faster strpas (previous version only returned the first
+      254 chars when the pchar was aligned on a 4 byte boundary and was >=
+      255 chars)
+
+  Revision 1.10  2000/03/28 11:14:33  jonas
     * added missing register that is destroyed by strecopy
     + some destroyed register lists for procedures that didn't have one yet
 
