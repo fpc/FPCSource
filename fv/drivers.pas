@@ -617,7 +617,7 @@ CONST QueueMax = 64;                                  { Max new queue size }
 {---------------------------------------------------------------------------}
 {   MAX WIEW WIDTH to avoid TDrawBuffer overrun in views unit               }
 {---------------------------------------------------------------------------}
-CONST MaxViewWidth = 132;                                { Max view width }
+CONST MaxViewWidth = 255;                                  { Max view width }
 
 {***************************************************************************}
 {                          PRIVATE INTERNAL TYPES                           }
@@ -1465,7 +1465,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.44  2004-11-06 19:19:30  armin
+ Revision 1.45  2004-11-24 21:03:05  florian
+   * increased max. possible screen/view width to 255
+
+ Revision 1.44  2004/11/06 19:19:30  armin
  * added targets netware and netwlibc
 
  Revision 1.43  2004/11/06 17:08:48  peter

@@ -259,7 +259,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    wnNoNumber = 0;                                    { Window has no num }
-   MaxViewWidth = 132;                                { Max view width }
+   MaxViewWidth = 255;                                { Max view width }
 
 
 {***************************************************************************}
@@ -4119,14 +4119,14 @@ begin
   cur:=@Self;
   Dest:=Source;
   repeat
-    dec(Dest.X,cur^.Origin.X);                   
+    dec(Dest.X,cur^.Origin.X);
     if dest.x<0 then
      break;
-    dec(Dest.Y,cur^.Origin.Y);                   
+    dec(Dest.Y,cur^.Origin.Y);
     if dest.y<0 then
      break;
     cur:=cur^.Owner;
-  until cur=nil;  
+  until cur=nil;
 end;
 
 
@@ -4140,10 +4140,10 @@ begin
   cur:=@Self;
   Dest:=Source;
   repeat
-    inc(Dest.X,cur^.Origin.X);                   
-    inc(Dest.Y,cur^.Origin.Y);                   
+    inc(Dest.X,cur^.Origin.X);
+    inc(Dest.Y,cur^.Origin.Y);
     cur:=cur^.Owner;
-  until cur=nil;  
+  until cur=nil;
 end;
 
 
@@ -4639,7 +4639,10 @@ END.
 
 {
  $Log$
- Revision 1.49  2004-11-06 23:24:37  peter
+ Revision 1.50  2004-11-24 21:03:05  florian
+   * increased max. possible screen/view width to 255
+
+ Revision 1.49  2004/11/06 23:24:37  peter
    * fixed button click
 
  Revision 1.48  2004/11/06 22:03:06  peter
