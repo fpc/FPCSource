@@ -17,14 +17,13 @@ type
 {
  Linux system calls take arguments as follows :
 
-   i386/m68k:
-
-   %eax/%d0 : System call number
-   %ebx/%d1 : first argument
-   %ecx/%d2 : second argument
-   %edx/%d3 : third argumens
-   %esi/%d3 : fourth argument
-   %edi/%d4 : fifth argument
+   i386    m68k    ppc
+   %eax    %d0     r0      System call number
+   %ebx    %d1     r3      first argument
+   %ecx    %d2     r4      second argument
+   %edx    %d3     r5      third argumens
+   %esi    %d3     r6      fourth argument
+   %edi    %d4     r7      fifth argument
 
   That is why we define a special type, with only these arguments
   To make it processor independent, we don't give any system dependent
@@ -132,7 +131,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2001-06-03 20:19:09  peter
+  Revision 1.6  2002-07-29 17:50:02  florian
+    + added register location description for ppc
+
+  Revision 1.5  2001/06/03 20:19:09  peter
     * FSStat to StatFS
     * StatFS structure to TStatFS
 
