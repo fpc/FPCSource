@@ -189,9 +189,7 @@ function  GetTimezoneFile:string;
 
 Procedure GetTimeOfDay(var tv:timeval);
 Function  GetTimeOfDay:longint;
-{$ifndef bsd}
 Function  GetEpochTime: longint;
-{$endif}
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 procedure GetTime(var hour,min,sec,msec,usec:word);
@@ -3074,7 +3072,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  2001-12-26 21:03:57  peter
+  Revision 1.21  2002-01-02 12:22:54  marco
+   * Removed ifdef arround getepoch.
+
+  Revision 1.20  2001/12/26 21:03:57  peter
     * merged fixes from 1.0.x
 
   Revision 1.19  2001/11/30 07:16:42  marco
