@@ -1398,7 +1398,7 @@ implementation
            s:=strpas(hp);
            i:=pos('=',s);
            len:=strlen(hp);
-           if upcase(copy(s,1,i-1))=upcase(envname) then
+           if upper(copy(s,1,i-1))=upcase(envname) then
             begin
               GetMem(p2,len-length(envname));
               Move(hp[i],p2^,len-length(envname));
@@ -1568,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2000-05-04 20:46:17  peter
+  Revision 1.61  2000-05-11 09:37:25  pierre
+   * do not use upcase for strings, reported by Kovacs Attila Zoltan
+
+  Revision 1.60  2000/05/04 20:46:17  peter
     * ansistrings are now default on for delphi mode, as most ppl expect
       this
 
