@@ -132,7 +132,7 @@ begin
     tmpHandle:=tmpNext^.handle;
     if (tmpHandle<>StdInputHandle) and (tmpHandle<>StdOutputHandle) 
        and (tmpHandle<>StdErrorHandle) then begin
-      Close2(tmpHandle);
+      dosClose(tmpHandle);
     end;
     tmpNext:=tmpNext^.next;
   end;
@@ -423,7 +423,7 @@ end;
 procedure randomize;
 var tmpTime: TDateStamp;
 begin
-  DateStamp(tmpTime);
+  DateStamp(@tmpTime);
   randseed:=tmpTime.ds_tick;
 end;
 
@@ -595,7 +595,7 @@ begin
   RemoveFromList(MOS_fileList,handle);
   { Do _NOT_ check CTRL_C on Close, because it will conflict 
     with System_Exit! }
-  if not Close2(handle) then
+  if not dosClose(handle) then
     dosError2InOut(IoErr);
 end;
 
@@ -609,7 +609,7 @@ end;
 procedure do_rename(p1,p2 : pchar);
 begin
   checkCTRLC;
-  if not Rename2(p1,p2) then
+  if not dosRename(p1,p2) then
     dosError2InOut(IoErr);
 end;
 
@@ -620,7 +620,7 @@ begin
   do_write:=0; 
   if len<=0 then exit; 
   
-  dosResult:=Write2(h,addr,len);
+  dosResult:=dosWrite(h,addr,len);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
   end else begin
@@ -635,7 +635,7 @@ begin
   do_read:=0; 
   if len<=0 then exit; 
   
-  dosResult:=Read2(h,addr,len);
+  dosResult:=dosRead(h,addr,len);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
   end else begin
@@ -650,7 +650,7 @@ begin
   do_filepos:=0;
   
   { Seeking zero from OFFSET_CURRENT to find out where we are }
-  dosResult:=Seek2(handle,0,OFFSET_CURRENT);
+  dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
   end else begin
@@ -662,7 +662,7 @@ procedure do_seek(handle,pos : longint);
 begin
   checkCTRLC;
   { Seeking from OFFSET_BEGINNING }
-  if Seek2(handle,pos,OFFSET_BEGINNING)<0 then
+  if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
     dosError2InOut(IoErr);
 end;
 
@@ -673,7 +673,7 @@ begin
   do_seekend:=0;
   
   { Seeking to OFFSET_END }
-  dosResult:=Seek2(handle,0,OFFSET_END);
+  dosResult:=dosSeek(handle,0,OFFSET_END);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
   end else begin
@@ -860,8 +860,8 @@ begin
  if MOS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin
-   StdInputHandle:=Input2;
-   StdOutputHandle:=Output2;
+   StdInputHandle:=dosInput;
+   StdOutputHandle:=dosOutput;
  end else begin
    MOS_ConHandle:=Open(MOS_ConName,1005);
    if MOS_ConHandle<>0 then begin
@@ -917,7 +917,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-08-03 15:59:41  karoly
+  Revision 1.18  2004-08-09 00:12:40  karoly
+    * changes to work with updated doslib includes
+
+  Revision 1.17  2004/08/03 15:59:41  karoly
     * more cleanup & more includes
 
   Revision 1.16  2004/06/26 20:48:24  karoly
