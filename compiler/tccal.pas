@@ -180,6 +180,25 @@ implementation
                  (defcoll^.paratype.def^.deftype=setdef) then
                 p^.left:=gentypeconvnode(p^.left,defcoll^.paratype.def);
 
+              { set some settings needed for arrayconstructor }
+              if is_array_constructor(p^.left^.resulttype) then
+               begin
+                 if is_array_of_const(defcoll^.paratype.def) then
+                  begin
+                    if assigned(aktcallprocsym) and
+                       (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
+                       (po_external in aktcallprocsym^.definition^.procoptions) then
+                      p^.left^.cargs:=true;
+                    { force variant array }
+                    p^.left^.forcevaria:=true;
+                  end
+                 else
+                  begin
+                    p^.left^.novariaallowed:=true;
+                    p^.left^.constructdef:=parraydef(defcoll^.paratype.def)^.elementtype.def;
+                  end;
+               end;
+
               if do_count then
                begin
                  { not completly proper, but avoids some warnings }
@@ -256,29 +275,7 @@ implementation
                           CGMessagePos2(p^.left^.fileinfo,parser_e_call_by_ref_without_typeconv,
                             p^.left^.resulttype^.typename,defcoll^.paratype.def^.typename);
                        end;
-                   { process cargs arrayconstructor }
-                   if is_array_constructor(p^.left^.resulttype) then
-                    begin
-                      if is_array_of_const(defcoll^.paratype.def) then
-                       begin
-                         if assigned(aktcallprocsym) and
-                            (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
-                            (po_external in aktcallprocsym^.definition^.procoptions) then
-                           p^.left^.cargs:=true;
-                         { force variant array }
-                         p^.left^.forcevaria:=true;
-                       end
-                      else
-                       begin
-                         p^.left^.novariaallowed:=true;
-                         p^.left^.constructdef:=parraydef(defcoll^.paratype.def)^.elementtype.def;
-                       end;
-                      old_array_constructor:=allow_array_constructor;
-                      allow_array_constructor:=true;
-                      firstpass(p^.left);
-                      allow_array_constructor:=old_array_constructor;
-                    end;
-                   { process open parameters }
+                   { Process open parameters }
                    if push_high_param(defcoll^.paratype.def) then
                     begin
                       { insert type conv but hold the ranges of the array }
@@ -1223,7 +1220,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-12-09 23:18:04  pierre
+  Revision 1.76  1999-12-19 15:13:56  peter
+    * constant array type conversion fixed
+
+  Revision 1.75  1999/12/09 23:18:04  pierre
    * no_fast_exit if procedure contains implicit termination code
 
   Revision 1.74  1999/11/30 10:40:57  peter
