@@ -556,6 +556,8 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
 Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
+Function  Fcntl(Fd:longint;Cmd:Integer):integer;
+Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
 Function  Fcntl(var Fd:Text;Cmd:Integer):integer;
 Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
@@ -1478,7 +1480,7 @@ end;
 
 
 
-Function Fcntl(var Fd:Text;Cmd:integer):integer;
+Function Fcntl(Fd:longint;Cmd:integer):integer;
 {
   Read or manipulate a file.(See also fcntl (2) )
   Possible values for Cmd are :
@@ -1492,7 +1494,7 @@ begin
   if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
 
    begin
-     sr.reg2:=textrec(fd).handle;
+     sr.reg2:=Fd;
      sr.reg3:=cmd;
      Linuxerror:=SysCall(Syscall_nr_fcntl,sr);
      if linuxerror=-1 then
@@ -1515,7 +1517,7 @@ end;
 
 
 
-Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
+Procedure Fcntl(Fd:longint;Cmd:Integer;Arg:Longint);
 {
   Read or manipulate a file. (See also fcntl (2) )
   Possible values for Cmd are :
@@ -1529,7 +1531,7 @@ var
 begin
   if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
    begin
-     sr.reg2:=textrec(fd).handle;
+     sr.reg2:=Fd;
      sr.reg3:=cmd;
      sr.reg4:=arg;
      SysCall(Syscall_nr_fcntl,sr);
@@ -1539,6 +1541,16 @@ begin
    linuxerror:=Sys_einval;
 end;
 
+
+Function Fcntl(var Fd:Text;Cmd:integer):integer;
+begin
+  Fcntl := Fcntl(textrec(Fd).handle, Cmd);
+end;
+
+Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
+begin
+  Fcntl(textrec(Fd).handle, Cmd, Arg);
+end;
 
 
 Function Chmod(path:pathstr;Newmode:longint):Boolean;
@@ -3741,7 +3753,10 @@ End.
 
 {
   $Log$
-  Revision 1.43  1999-07-29 16:33:24  michael
+  Revision 1.44  1999-07-31 23:55:04  michael
+  + FCNTL patch from Sebastian Guenther
+
+  Revision 1.43  1999/07/29 16:33:24  michael
   + Yet more Fixes to assignstream with rerouting of stderr
 
   Revision 1.42  1999/07/29 15:55:54  michael
