@@ -448,7 +448,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=StrPas(Linux.Getenv(PChar(EnvVar)));
+  Result:=StrPas(Unix.Getenv(PChar(EnvVar)));
 end;
 
 
@@ -466,7 +466,10 @@ end.
 {
 
   $Log$
-  Revision 1.7  2001-02-20 22:14:19  peter
+  Revision 1.8  2001-02-20 22:19:38  peter
+    * always test before commiting after merging, linux -> unix change
+
+  Revision 1.7  2001/02/20 22:14:19  peter
     * merged getenvironmentvariable
 
   Revision 1.6  2001/01/21 20:21:40  marco
