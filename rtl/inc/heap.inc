@@ -26,6 +26,9 @@
 { Try to find the best matching block in general freelist }
 {$define BESTMATCH}
 
+{ Concat free blocks when placing big blocks in the mainlist }
+{$define CONCATFREE}
+
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
@@ -437,6 +440,62 @@ end;
 
 
 {*****************************************************************************
+                         Try concat freerecords
+*****************************************************************************}
+
+procedure TryConcatFreeRecord(pcurr:pfreerecord);
+var
+  hp : pfreerecord;
+  pcurrsize,s1 : longint;
+begin
+  pcurrsize:=pcurr^.size and sizemask;
+  hp:=pcurr;
+  repeat
+    { block used or before a heapptr ? }
+    if (hp^.size and beforeheapendmask)<>0 then
+     begin
+       pcurr^.size:=pcurrsize or beforeheapendmask;
+       pcurr^.next:=freelists[0];
+       if assigned(pcurr^.next) then
+        pcurr^.next^.prev:=pcurr;
+       freelists[0]:=pcurr;
+       break;
+     end;
+    { get next block }
+    hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
+    { when we're at heapptr then we can stop and set heapptr to pcurr }
+    if (hp=heapptr) then
+     begin
+       heapptr:=pcurr;
+       break;
+     end;
+    { block is used? then we stop and add the block to the freelist }
+    if (hp^.size and usedmask)<>0 then
+     begin
+       pcurr^.size:=pcurrsize;
+       pcurr^.next:=freelists[0];
+       if assigned(pcurr^.next) then
+        pcurr^.next^.prev:=pcurr;
+       freelists[0]:=pcurr;
+       break;
+     end;
+    { remove block from freelist and increase the size }
+    s1:=hp^.size and sizemask;
+    inc(pcurrsize,s1);
+    s1:=s1 shr blockshr;
+    if s1>maxblock then
+     s1:=0;
+    if assigned(hp^.next) then
+     hp^.next^.prev:=hp^.prev;
+    if assigned(hp^.prev) then
+     hp^.prev^.next:=hp^.next
+    else
+     freelists[s1]:=hp^.next;
+  until false;
+end;
+
+
+{*****************************************************************************
                                SysFreeMem
 *****************************************************************************}
 
@@ -456,11 +515,18 @@ begin
   pcurr^.prev:=nil;
   s:=pcurrsize shr blockshr;
   if s>maxblock then
+{$ifdef CONCATFREE}
+   TryConcatFreeRecord(pcurr)
+  else
+{$else}
    s:=0;
-  pcurr^.next:=freelists[s];
-  if assigned(pcurr^.next) then
-   pcurr^.next^.prev:=pcurr;
-  freelists[s]:=pcurr;
+{$endif}
+   begin
+     pcurr^.next:=freelists[s];
+     if assigned(pcurr^.next) then
+     pcurr^.next^.prev:=pcurr;
+     freelists[s]:=pcurr;
+   end;
   p:=nil;
   SysFreeMem:=pcurrsize;
 end;
@@ -496,13 +562,21 @@ begin
 { insert the block in it's freelist }
   pcurr^.size:=pcurr^.size and (not usedmask);
   pcurr^.prev:=nil;
+{ set the return values }
   s:=pcurrsize shr blockshr;
   if s>maxblock then
+{$ifdef CONCATFREE}
+   TryConcatFreeRecord(pcurr)
+  else
+{$else}
    s:=0;
-  pcurr^.next:=freelists[s];
-  if assigned(pcurr^.next) then
-   pcurr^.next^.prev:=pcurr;
-  freelists[s]:=pcurr;
+{$endif}
+   begin
+     pcurr^.next:=freelists[s];
+     if assigned(pcurr^.next) then
+     pcurr^.next^.prev:=pcurr;
+     freelists[s]:=pcurr;
+   end;
   p:=nil;
   SysFreeMemSize:=pcurrsize;
 end;
@@ -807,7 +881,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2000-03-10 12:41:21  pierre
+  Revision 1.36  2000-03-13 21:22:28  peter
+    * concat free blocks in main freelist
+
+  Revision 1.35  2000/03/10 12:41:21  pierre
    * avoid problems if sbrk returns negative values
 
   Revision 1.34  2000/02/10 13:59:35  peter
