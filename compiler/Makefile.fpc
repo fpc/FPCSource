@@ -47,12 +47,12 @@ endif
 
 # Local options for the compiler only
 ifndef LOCALOPT
-LOCALOPT=
+LOCALOPT=$(OPT)
 endif
 
 # Options for the RTL only when cycling
 ifndef RTLOPTS
-RTLOPTS=
+RTLOPTS=$(OPT)
 endif
 
 # Message files
