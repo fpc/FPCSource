@@ -511,7 +511,7 @@ uses
          init(op,_size);
          ops:=2;
          loadsymbol(0,_op1,_op1ofs);
-         loadref(0,_op2);
+         loadref(1,_op2);
       end;
 
 
@@ -1573,7 +1573,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-05-12 00:19:50  peter
+  Revision 1.7  1999-05-16 17:00:45  peter
+    * fixed sym_ofs_ref op loading
+
+  Revision 1.6  1999/05/12 00:19:50  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
