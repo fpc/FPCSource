@@ -63,10 +63,12 @@ type
       function    GetPalette: PPalette; virtual;
     end;
 
+    PFPWindow = ^TFPWindow;
     TFPWindow = object(TWindow)
       AutoNumber: boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   UpdateCommands; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
       procedure   Update; virtual;
@@ -172,7 +174,6 @@ type
       procedure   SetTitle(ATitle: string); virtual;
       procedure   UpdateTitle; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
-      procedure   SetState(AState: Word; Enable: Boolean); virtual;
       procedure   Update; virtual;
       procedure   UpdateCommands; virtual;
       function    GetPalette: PPalette; virtual;
@@ -211,7 +212,6 @@ type
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
-      procedure   SetState(AState: Word; Enable: Boolean); virtual;
       procedure   UpdateCommands; virtual;
       destructor  Done; virtual;
     end;
@@ -257,6 +257,7 @@ type
       procedure   WriteSourceString(Const S : string;line : longint);
       procedure   WriteDisassemblyString(Const S : string;address : cardinal);
       procedure   SetCurAddress(address : cardinal);
+      procedure   UpdateCommands; virtual;
       function    GetPalette: PPalette;virtual;
       destructor  Done; virtual;
     end;
@@ -1498,7 +1499,9 @@ begin
 end;
 
 procedure TFPWindow.SetState(AState: Word; Enable: Boolean);
+var OldState: word;
 begin
+  OldState:=State;
   inherited SetState(AState,Enable);
   if AutoNumber then
     if (AState and (sfVisible+sfExposed))<>0 then
@@ -1510,6 +1513,12 @@ begin
         end
       else
         Number:=0;
+  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
+    UpdateCommands;
+end;
+
+procedure TFPWindow.UpdateCommands;
+begin
 end;
 
 procedure TFPWindow.Update;
@@ -1769,15 +1778,6 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
-end;
-
-procedure TSourceWindow.SetState(AState: Word; Enable: Boolean);
-var OldState: word;
-begin
-  OldState:=State;
-  inherited SetState(AState,Enable);
-  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
-    UpdateCommands;
 end;
 
 procedure TSourceWindow.UpdateCommands;
@@ -2070,20 +2070,11 @@ begin
   Editor^.Draw;
 end;
 
-procedure TGDBWindow.SetState(AState: Word; Enable: Boolean);
-var OldState: word;
-begin
-  OldState:=State;
-  inherited SetState(AState,Enable);
-  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
-    UpdateCommands;
-end;
-
 procedure TGDBWindow.UpdateCommands;
 var Active: boolean;
 begin
   Active:=GetState(sfActive);
-  SetCmdState([cmSaveAs,cmHide],Active);
+  SetCmdState([cmSaveAs,cmHide,cmRun],Active);
   SetCmdState(EditorCmds,Active);
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,Active);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
@@ -2100,7 +2091,7 @@ constructor TDisassemblyEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
 begin
   Inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,AFileName);
   GrowMode:=gfGrowHiX+gfGrowHiY;
-  SetFlags(efInsertMode+efSyntaxHighlight+efNoIndent+efExpandAllTabs+efHighlightRow);
+  SetFlags(efInsertMode+efSyntaxHighlight+efNoIndent+efExpandAllTabs{+efHighlightRow});
   New(DisasLines,Init(500,1000));
   Core^.ChangeLinesTo(DisasLines);
   { do not allow to write into that window }
@@ -2338,6 +2329,8 @@ begin
   StrDispose(p1);
   Editor^.ReleaseSource;
   Editor^.UpdateAttrs(0,attrForceFull);
+  If assigned(BreakpointsCollection) then
+    BreakpointsCollection^.ShowBreakpoints(@Self);
   Unlock;
   ReDraw;
 end;
@@ -2363,6 +2356,17 @@ begin
     LoadAddress(address);
   Editor^.GetCurrentLine(address);
 end;
+
+procedure TDisassemblyWindow.UpdateCommands;
+var Active: boolean;
+begin
+  Active:=GetState(sfActive);
+  SetCmdState(SourceCmds+CompileCmds,Active);
+  SetCmdState(EditorCmds,Active);
+  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
+  Message(Application,evBroadcast,cmCommandSetChanged,nil);
+end;
+
 
 function    TDisassemblyWindow.GetPalette: PPalette;
 const P: string[length(CSourceWindow)] = CSourceWindow;
@@ -2477,7 +2481,11 @@ begin
         DontClear:=false;
         case Event.KeyCode of
           kbEnter :
-            Message(@Self,evCommand,cmMsgGotoSource,nil);
+            begin
+              Message(@Self,evCommand,cmMsgGotoSource,nil);
+              ClearEvent(Event);
+              exit;
+            end;
         else
           DontClear:=true;
         end;
@@ -2496,7 +2504,11 @@ begin
         case Event.Command of
           cmMsgGotoSource :
             if Range>0 then
-              GotoSource;
+              begin
+                GotoSource;
+                ClearEvent(Event);
+                exit;
+              end;
           cmMsgTrackSource :
             if Range>0 then
               TrackSource;
@@ -4187,7 +4199,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2001-10-11 23:45:28  pierre
+  Revision 1.10  2001-11-07 00:28:53  pierre
+   + Disassembly window made public
+
+  Revision 1.9  2001/10/11 23:45:28  pierre
    + some preliminary code for graph use
 
   Revision 1.8  2001/10/11 11:36:30  pierre

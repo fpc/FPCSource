@@ -68,7 +68,8 @@ type
     function  GetPointerAt(addr : CORE_ADDR) : CORE_ADDR;
   end;
 
-  BreakpointType = (bt_function,bt_file_line,bt_watch,bt_awatch,bt_rwatch,bt_invalid);
+  BreakpointType = (bt_function,bt_file_line,bt_watch,
+                    bt_awatch,bt_rwatch,bt_address,bt_invalid);
   BreakpointState = (bs_enabled,bs_disabled,bs_deleted);
 
   PBreakpointCollection=^TBreakpointCollection;
@@ -88,6 +89,7 @@ type
      GDBIndex : longint;
      GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
+     constructor Init_Address(Const AAddress : String);
      constructor Init_Empty;
      constructor Init_file_line(AFile : String; ALine : longint);
      constructor Init_type(atyp : BreakpointType;Const AnExpr : String);
@@ -108,7 +110,7 @@ type
       function  GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
       function  ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
       procedure Update;
-      procedure ShowBreakpoints(W : PSourceWindow);
+      procedure ShowBreakpoints(W : PFPWindow);
       procedure ShowAllBreakpoints;
     end;
 
@@ -338,7 +340,7 @@ type
 
 const
      BreakpointTypeStr : Array[BreakpointType] of String[9]
-       = ( 'function','file-line','watch','awatch','rwatch','invalid' );
+       = ( 'function','file-line','watch','awatch','rwatch','address','invalid');
      BreakpointStateStr : Array[BreakpointState] of String[8]
        = ( 'enabled','disabled','invalid' );
 
@@ -1074,7 +1076,8 @@ begin
         end
       { For watch we should get old and new value !! }
       else if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
-         (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) then
+         (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) and
+         (PB^.typ<>bt_address) then
         begin
            Command('p '+GetStr(PB^.Name));
            S:=GetPChar(GetOutput);
@@ -1172,6 +1175,21 @@ begin
   state:=bs_enabled;
   GDBState:=bs_deleted;
   Name:=NewStr(AFunc);
+  FileName:=nil;
+  Line:=0;
+  IgnoreCount:=0;
+  Commands:=nil;
+  Conditions:=nil;
+  OldValue:=nil;
+  CurrentValue:=nil;
+end;
+
+constructor TBreakpoint.Init_Address(Const AAddress : String);
+begin
+  typ:=bt_address;
+  state:=bs_enabled;
+  GDBState:=bs_deleted;
+  Name:=NewStr(AAddress);
   FileName:=nil;
   Line:=0;
   IgnoreCount:=0;
@@ -1294,6 +1312,8 @@ begin
         Debugger^.Command('break '+NameAndExtOf(FileName^)+':'+IntToStr(Line))
       else if (typ=bt_function) and assigned(name) then
         Debugger^.Command('break '+name^)
+      else if (typ=bt_address) and assigned(name) then
+        Debugger^.Command('break *0x'+name^)
       else if (typ=bt_watch) and assigned(name) then
         Debugger^.Command('watch '+name^)
       else if (typ=bt_awatch) and assigned(name) then
@@ -1459,17 +1479,49 @@ begin
     GetGDB:=FirstThat(@IsNum);
 end;
 
-procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
+procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
 
   procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-      (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(W^.Editor^.FileName))) then
-      W^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
+      (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(PSourceWindow(W)^.Editor^.FileName))) then
+      PSourceWindow(W)^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
+  end;
+
+  procedure SetInDisassembly(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+    var
+      PDL : PDisasLine;
+      S : string;
+      ps,qs,i : longint;
+  begin
+    for i:=0 to PDisassemblyWindow(W)^.Editor^.GetLineCount-1 do
+      begin
+        PDL:=PDisasLine(PDisassemblyWindow(W)^.Editor^.GetLine(i));
+        if PDL^.Address=0 then
+          begin
+            if (P^.typ=bt_file_line) then
+              begin
+                S:=PDisassemblyWindow(W)^.Editor^.GetDisplayText(i);
+                ps:=pos(':',S);
+                qs:=pos(' ',copy(S,ps+1,High(S)));
+                if (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(Copy(S,1,ps-1)))) and
+                   (StrToInt(copy(S,ps+1,qs-1))=P^.line) then
+                  PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
+              end;
+          end
+        else
+          begin
+            If (P^.typ=bt_address) and (PDL^.Address=HexToInt(P^.Name^)) then
+              PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
+          end;
+      end;
   end;
 
 begin
-  ForEach(@SetInSource);
+  if W=PFPWindow(DisassemblyWindow) then
+    ForEach(@SetInDisassembly)
+  else
+    ForEach(@SetInSource);
 end;
 
 procedure TBreakpointCollection.ShowAllBreakpoints;
@@ -3565,13 +3617,15 @@ end;
       { goto source/assembly mixture }
       InitDisassemblyWindow;
       DisassemblyWindow^.LoadFunction('');
+      DisassemblyWindow^.SetCurAddress(Debugger^.frames[Focused]^.address);
       DisassemblyWindow^.SelectInDebugSession;
     end;
 
 
   procedure   TFramesListBox.HandleEvent(var Event: TEvent);
     begin
-      if (Event.What=EvKeyDown) and (Event.CharCode='i') then
+      if ((Event.What=EvKeyDown) and (Event.CharCode='i')) or
+         ((Event.What=EvCommand) and (Event.Command=cmDisassemble)) then
         GotoAssembly;
       inherited HandleEvent(Event);
     end;
@@ -3900,7 +3954,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-10-14 14:16:06  peter
+  Revision 1.7  2001-11-07 00:28:52  pierre
+   + Disassembly window made public
+
+  Revision 1.6  2001/10/14 14:16:06  peter
     * fixed typo for linux
 
   Revision 1.5  2001/10/11 11:39:35  pierre

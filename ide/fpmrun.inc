@@ -299,35 +299,68 @@ end;
 procedure TIDEApp.DoContToCursor;
 {$ifndef NODEBUG}
 var
-  W : PSourceWindow;
-  FileName : string;
-  LineNr : longint;
+  W : PFPWindow;
+  PDL : PDisasLine;
+  S,FileName : string;
+  P,CurY,LineNr : longint;
 {$endif}
 begin
 {$ifndef NODEBUG}
   if (DeskTop^.Current=nil) or
-     (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) then
+     ((TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) and
+      (TypeOf(DeskTop^.Current^)<>TypeOf(TDisassemblyWindow))) then
     Begin
        ErrorBox(msg_impossibletoreachcursor,nil);
        Exit;
     End;
 
-  W:=PSourceWindow(DeskTop^.Current);
+  If not assigned(Debugger) or Not Debugger^.HasExe then
+    begin
+      InitDebugger;
+      if not assigned(Debugger) then
+        begin
+          NoDebugger;
+          exit;
+        end;
+    end;
+
+  W:=PFPWindow(DeskTop^.Current);
   If assigned(W) then
     begin
-      FileName:=W^.Editor^.FileName;
-      LineNr:=W^.Editor^.CurPos.Y+1;
-      If not assigned(Debugger) or Not Debugger^.HasExe then
+      If TypeOf(W^)=TypeOf(TSourceWindow) then
         begin
-          InitDebugger;
-          if not assigned(Debugger) then
+          FileName:=PSourceWindow(W)^.Editor^.FileName;
+          LineNr:=PSourceWindow(W)^.Editor^.CurPos.Y+1;
+          Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
+          Debugger^.Continue;
+        end
+      else
+        begin
+          CurY:=PDisassemblyWindow(W)^.Editor^.CurPos.Y;
+          if CurY<PDisassemblyWindow(W)^.Editor^.GetLineCount then
+            PDL:=PDisasLine(PDisassemblyWindow(W)^.Editor^.GetLine(CurY))
+          else
+            PDL:=nil;
+          if assigned(PDL) then
             begin
-              NoDebugger;
-              exit;
+              if PDL^.Address<>0 then
+                begin
+                  Debugger^.Command('tbreak *0x'+IntToHex(PDL^.Address,8));
+                end
+              else
+                begin
+                  S:=PDisassemblyWindow(W)^.Editor^.GetDisplayText(PDisassemblyWindow(W)^.Editor^.CurPos.Y);
+                  p:=pos(':',S);
+                  FileName:=Copy(S,1,p-1);
+                  S:=Copy(S,p+1,high(S));
+                  p:=pos(' ',S);
+                  S:=Copy(S,1,p-1);
+                  LineNr:=StrToInt(S);
+                  Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
+                end;
+              Debugger^.Continue;
             end;
         end;
-      Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
-      Debugger^.Continue;
     end;
 {$else NODEBUG}
   NoDebugger;
@@ -355,27 +388,61 @@ procedure TIDEApp.DoToggleBreak;
 {$ifndef NODEBUG}
 var
   W : PSourceWindow;
-  FileName : string;
-{  b : boolean;}
-  LineNr : longint;
+  WD : PDisassemblyWindow;
+  PDL : PDisasLine;
+  PB : PBreakpoint;
+  S,FileName : string;
+  b : boolean;
+  CurY,P,LineNr : longint;
 {$endif}
 begin
 {$ifndef NODEBUG}
   if (DeskTop^.Current=nil) or
-     (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) then
+     (TypeOf(DeskTop^.Current^)<>TypeOf(TSourceWindow)) and
+     (TypeOf(DeskTop^.Current^)<>TypeOf(TDisassemblyWindow)) then
     Begin
        ErrorBox(msg_impossibletosetbreakpoint,nil);
        Exit;
     End;
 
-  W:=PSourceWindow(DeskTop^.Current);
-  If assigned(W) then
+  if assigned (DeskTop^.Current) and
+     (TypeOf(DeskTop^.Current^)=TypeOf(TSourceWindow)) then
     begin
+      W:=PSourceWindow(DeskTop^.Current);
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
-{      b:=}BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
-      {W^.Editor^.SetLineBreakState(LineNr,b);
-        already done PM }
+      BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
+    end
+  else if assigned (DeskTop^.Current) and
+     (TypeOf(DeskTop^.Current^)=TypeOf(TDisassemblyWindow)) then
+    begin
+      WD:=PDisassemblyWindow(DeskTop^.Current);
+      CurY:=WD^.Editor^.CurPos.Y;
+      if CurY<WD^.Editor^.GetLineCount then
+        PDL:=PDisasLine(WD^.Editor^.GetLine(CurY))
+      else
+        PDL:=nil;
+      if assigned(PDL) then
+        begin
+          if PDL^.Address<>0 then
+            begin
+              PB:=New(PBreakpoint,init_address(IntToHex(PDL^.Address,8)));
+              BreakpointsCollection^.Insert(PB);
+              WD^.Editor^.SetLineFlagState(CurY,lfBreakpoint,true);
+            end
+          else
+            begin
+              S:=WD^.Editor^.GetDisplayText(WD^.Editor^.CurPos.Y);
+              p:=pos(':',S);
+              FileName:=Copy(S,1,p-1);
+              S:=Copy(S,p+1,high(S));
+              p:=pos(' ',S);
+              S:=Copy(S,1,p-1);
+              LineNr:=StrToInt(S);
+              b:=BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
+              WD^.Editor^.SetLineFlagState(CurY,lfBreakpoint,b);
+            end;
+        end;
     end;
 {$else NODEBUG}
   NoDebugger;
@@ -384,7 +451,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-11-07 00:28:53  pierre
+   + Disassembly window made public
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.13  2001/03/12 17:34:55  pierre

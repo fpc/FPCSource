@@ -889,6 +889,7 @@ const
       status_msgtracksource  = '~Space~ Track source';
       status_close           = '~Esc~ Close';
       status_calculatorpaste = '~Ctrl+Enter~ Transfer result';
+      status_disassemble     = '~Alt+I~ Disassemble';
 
       { Menu hints }
       hint_systemmenu        = 'System menu';
@@ -1012,7 +1013,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2001-10-24 21:49:56  pierre
+  Revision 1.5  2001-11-07 00:28:53  pierre
+   + Disassembly window made public
+
+  Revision 1.4  2001/10/24 21:49:56  pierre
    + FindProcedure implemented
 
   Revision 1.3  2001/10/12 14:21:47  pierre

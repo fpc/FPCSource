@@ -233,6 +233,7 @@ const
      cmRedoAll           = 2502;
 
      cmDebuggerStopped   = 2600;
+     cmDisassemble       = 2601;
 
      cmSymBrowse         = 2700;
      cmSymGotoSource     = 2701;
@@ -433,7 +434,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-11-07 00:28:52  pierre
+   + Disassembly window made public
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:23  peter
