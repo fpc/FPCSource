@@ -947,20 +947,23 @@ begin
 end;
 
 
-procedure mkdir(const s : string);
+procedure mkdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($39,s);
 end;
 
 
-procedure rmdir(const s : string);
+procedure rmdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($3a,s);
 end;
 
 
-procedure chdir(const s : string);
+procedure chdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($3b,s);
 end;
 
@@ -1051,7 +1054,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  1998-07-01 15:29:57  peter
+  Revision 1.10  1998-07-02 12:29:20  carl
+    * IOCheck for rmdir,chdir and mkdir as in TP
+    NOTE: I'm pretty SURE this will not compile and link correctly with FPC
+  0.99.5
+
+  Revision 1.9  1998/07/01 15:29:57  peter
     * better readln/writeln
 
   Revision 1.8  1998/06/26 08:19:10  pierre
