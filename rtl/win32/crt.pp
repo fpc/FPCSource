@@ -235,7 +235,8 @@ Function FullWin:boolean;
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
 }
 begin
-  FullWin:=(WindMax-WindMin=$184f);
+  FullWin:=(WinMinX=1) and (WinMinY=1) and
+           (WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
 end;
 
 
@@ -265,7 +266,7 @@ Procedure TextBackground(Color: Byte);
   Switch backgroundcolor
 }
 Begin
-  TextAttr:=(Color shl 4) or (TextAttr and $0f);
+  TextAttr:=((Color shl 4) and ($f0 and not Blink)) or (TextAttr and ($0f OR Blink) );
 End;
 
 
@@ -919,7 +920,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.7  1999-05-22 14:01:01  peter
+  Revision 1.8  1999-06-09 16:46:11  peter
+    * fixed fullwin,textbackground
+
+  Revision 1.7  1999/05/22 14:01:01  peter
     * more fixed from Maarten Bekkers
 
   Revision 1.6  1999/05/19 16:22:02  peter

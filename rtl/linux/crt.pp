@@ -633,7 +633,7 @@ Procedure TextBackground(Color: Byte);
   Switch backgroundcolor
 }
 Begin
-  ttyColor((Color shl 4) or (TextAttr and $0f));
+  TextAttr:=((Color shl 4) and ($f0 and not Blink)) or (TextAttr and ($0f OR Blink) );
 End;
 
 
@@ -1580,7 +1580,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.15  1999-02-08 10:35:14  peter
+  Revision 1.16  1999-06-09 16:46:10  peter
+    * fixed fullwin,textbackground
+
+  Revision 1.15  1999/02/08 10:35:14  peter
     * readkey fixes from the mailinglist
     + cursoron/off/big from the mailinglist
 
