@@ -50,8 +50,8 @@ function VariantInit(var Varg: TVarData): HRESULT;stdcall;
 begin
   With Varg do
     begin
-    VType:=varEmpty;
-    FillChar(VBytes, SizeOf(VBytes), 0);
+      FillChar(VBytes, SizeOf(VBytes), 0);
+      VType:=varEmpty;
     end;
   Result:=VAR_OK;
 end;
@@ -709,7 +709,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.11  2004-04-28 20:48:20  peter
+  Revision 1.12  2005-01-08 16:19:42  florian
+    * made some variants stuff more readable
+
+  Revision 1.11  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.10  2002/11/22 16:30:05  peter
