@@ -33,6 +33,7 @@ uses
   dos,
   windows;
 
+{$DEFINE HAS_SLEEP}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -720,6 +721,12 @@ begin
     end;
 end;
 
+Procedure Sleep(Milliseconds : Cardinal);
+
+begin
+  Windows.Sleep(MilliSeconds)
+end;
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -781,7 +788,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.28  2004-01-05 22:56:08  florian
+  Revision 1.29  2004-01-10 17:40:25  michael
+  + Added Sleep() function
+
+  Revision 1.28  2004/01/05 22:56:08  florian
     * changed sysutils.exec to ExecuteProcess
 
   Revision 1.27  2003/11/26 20:00:19  florian
