@@ -36,6 +36,7 @@ unit cgcpu;
       tcg68k = class(tcg)
           procedure a_call_name(list : taasmoutput;const s : string);override;
           procedure a_call_ref(list : taasmoutput;const ref : treference);override;
+          procedure a_call_reg(list : taasmoutput;reg : tregister);override;
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);override;
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);override;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
@@ -220,6 +221,15 @@ Implementation
         fixref(list,href);
         list.concat(taicpu.op_ref(A_JSR,S_NO,href));
       end;
+      
+    procedure tcg68k.a_call_reg(list : taasmoutput;reg : tregister);
+     var
+       href : treference; 
+     begin
+       reference_reset_base(href, reg, 0);
+       a_call_ref(href);
+     end;
+      
 
 
     procedure tcg68k.a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);
@@ -1234,7 +1244,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-07 20:53:28  carl
+  Revision 1.8  2002-09-08 15:12:45  carl
+    + a_call_reg
+
+  Revision 1.7  2002/09/07 20:53:28  carl
     * cardinal -> longword
 
   Revision 1.6  2002/09/07 15:25:12  peter
