@@ -222,6 +222,16 @@ implementation
                    { we should check the result type of srsym }
                    if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym,funcretsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
+                   { the variable cannot be put into a register
+                     if the size definition is not the same.
+                   }
+                   if tloadnode(pt).symtableentry.typ = varsym then
+                     begin
+                       if abssym.vartype.def <> 
+                          tvarsym(tloadnode(pt).symtableentry).vartype.def then
+                          tvarsym(tloadnode(pt).symtableentry).varoptions:=
+                          tvarsym(tloadnode(pt).symtableentry).varoptions-[vo_regable,vo_fpuregable]
+                     end;
                    abssym:=tabsolutesym.create(vs.realname,tt);
                    abssym.fileinfo:=vs.fileinfo;
                    abssym.abstyp:=tovar;
@@ -557,7 +567,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-09-16 18:08:45  peter
+  Revision 1.34  2002-10-03 21:22:01  carl
+    * don't make the vars regable if they are absolute and their definitions
+      are not the same.
+
+  Revision 1.33  2002/09/16 18:08:45  peter
     * fix setting of sp_static
 
   Revision 1.32  2002/09/09 17:34:15  peter
