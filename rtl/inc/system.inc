@@ -318,6 +318,20 @@ begin
   dir:=s;
 end;
 
+{$ifopt R+}
+{$define RangeCheckWasOn}
+{$R-}
+{$endif opt R+}
+
+{$ifopt I+}
+{$define IOCheckWasOn}
+{$I-}
+{$endif opt I+}
+
+{$ifopt Q+}
+{$define OverflowCheckWasOn}
+{$Q-}
+{$endif opt Q+}
 
 {*****************************************************************************
                              Miscellaneous
@@ -613,6 +627,18 @@ end;
 {$i setjump.inc}
 
 
+{$ifdef IOCheckWasOn}
+{$I+}
+{$endif}
+
+{$ifdef RangeCheckWasOn}
+{$R+}
+{$endif}
+
+{$ifdef OverflowCheckWasOn}
+{$Q+}
+{$endif}
+
 {*****************************************************************************
                         Object Pascal support
 *****************************************************************************}
@@ -621,7 +647,10 @@ end;
 
 {
   $Log$
-  Revision 1.88  2000-04-24 11:11:50  peter
+  Revision 1.89  2000-05-23 20:35:41  pierre
+   * disable check in Exit and Error code
+
+  Revision 1.88  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
