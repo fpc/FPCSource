@@ -14,6 +14,8 @@
 
 {****************************************************************************
                                 Local types
+
+
 ****************************************************************************}
 
 {
@@ -408,7 +410,10 @@ End;
 
 {
   $Log$
-  Revision 1.5  1998-05-12 10:42:45  peter
+  Revision 1.6  1998-05-20 11:23:09  cvs
+  * test commit. Shouldn't be allowed.
+
+  Revision 1.5  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs
