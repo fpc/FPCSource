@@ -26,10 +26,11 @@ Unit catch;
 {$ifdef go32v2}
   { go32v2 stack check goes nuts if ss is not the data selector (PM) }
   {$S-}
+{$endif}
+
 {$ifdef DEBUG}
   {$define NOCATCH}
 {$endif DEBUG}
-{$endif}
 
 
 interface
@@ -104,7 +105,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-02-18 12:34:43  pierre
+  Revision 1.13  2000-03-20 09:37:51  florian
+    * catching of exceptions is switched off on all targets if the define
+      DEBUG is used
+
+  Revision 1.12  2000/02/18 12:34:43  pierre
    DEBUG implies NOCATCH for go32v2
 
   Revision 1.11  2000/02/09 13:22:45  peter
