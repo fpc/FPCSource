@@ -151,7 +151,7 @@ unit hcodegen;
 implementation
 
      uses
-        systems,globals,files,strings;
+        systems,globals,files,strings,cresstr;
 
 {*****************************************************************************
             override the message calls to set codegenerror
@@ -253,7 +253,7 @@ implementation
          asmsymbollist:=new(pasmsymbollist,init);
          asmsymbollist^.usehash;
          { resourcestrings }
-         resourcestringlist:=nil;
+         ResetResourceStrings;
       end;
 
 
@@ -276,8 +276,8 @@ implementation
          { assembler symbols }
          dispose(asmsymbollist,done);
          { resource strings }
-         if assigned(resourcestringlist) then
-          dispose(resourcestringlist,done);
+         { if assigned(resourcestringlist) then
+          dispose(resourcestringlist,done); }
       end;
 
 
@@ -296,7 +296,10 @@ end.
 
 {
   $Log$
-  Revision 1.39  1999-08-19 13:10:18  pierre
+  Revision 1.40  1999-08-24 12:01:32  michael
+  + changes for resourcestrings
+
+  Revision 1.39  1999/08/19 13:10:18  pierre
    + faillabel for _FAIL
 
   Revision 1.38  1999/08/16 18:23:56  peter

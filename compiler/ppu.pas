@@ -126,6 +126,7 @@ const
   uf_local_browser = $200;
   uf_no_link       = $400; { unit has no .o generated, but can still have
                              external linking! }
+  uf_has_resources = $800; { unit has resource section }
 
 type
 {$ifdef m68k}
@@ -903,7 +904,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1999-08-15 10:47:48  peter
+  Revision 1.39  1999-08-24 12:01:36  michael
+  + changes for resourcestrings
+
+  Revision 1.38  1999/08/15 10:47:48  peter
     + normalset,smallset writing
 
   Revision 1.37  1999/08/02 23:13:20  florian

@@ -111,6 +111,39 @@ unit pmodules;
 {$endif GDB}
       end;
 
+    Procedure InsertResourceTablesTable;
+
+      var
+        hp : pused_unit;
+        ResourceStringTables : taasmoutput;
+        count : longint;
+      begin
+        ResourceStringTables.init;
+        count:=0;
+        hp:=pused_unit(usedunits.first);
+        while assigned(hp) do
+         begin
+           If (hp^.u^.flags and uf_has_resources)=uf_has_resources then
+             ResourceStringTables.concat(new(pai_const_symbol,initname(hp^.u^.modulename^+'_RESOURCESTRINGTABLE')));
+           hp:=Pused_unit(hp^.next);
+           inc(count);
+         end;
+        { TableCount }
+        With ResourceStringTables do
+          begin
+          insert(new(pai_const,init_32bit(count)));
+          insert(new(pai_symbol,initname_global('FPC_RESOURCESTRINGTABLES',0)));
+          concat(new(pai_symbol_end,initname('FPC_RESOURCESTRINGTABLES')));
+          end;
+        { insert in data segment }
+        if (cs_smartlink in aktmoduleswitches) then
+          datasegment^.concat(new(pai_cut,init));
+        datasegment^.concatlist(@ResourceStringTables);
+        ResourceStringTables.done;
+      end;
+    
+    
+
     procedure InsertInitFinalTable;
       var
         hp : pused_unit;
@@ -1068,6 +1101,12 @@ unit pmodules;
 
          { the last char should always be a point }
          consume(_POINT);
+         
+         If ResourceStringList<>Nil then
+           begin
+           insertresourcestrings;
+           current_module^.flags:=current_module^.flags or uf_has_resources;
+           end;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
@@ -1324,10 +1363,11 @@ unit pmodules;
 
          { insert heap }
          insertresourcestrings;
+         insertResourceTablesTable;
          insertinitfinaltable;
          insertheap;
          inserttargetspecific;
-
+    
          datasize:=symtablestack^.datasize;
 
          { finish asmlist by adding segment starts }
@@ -1369,7 +1409,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.142  1999-08-16 15:35:27  pierre
+  Revision 1.143  1999-08-24 12:01:34  michael
+  + changes for resourcestrings
+
+  Revision 1.142  1999/08/16 15:35:27  pierre
     * fix for DLL relocation problems
     * external bss vars had wrong stabs for pecoff
     + -WB11000000 to specify default image base, allows to
