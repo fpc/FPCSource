@@ -2160,6 +2160,7 @@ implementation
                          imul r22d,r21d       ; Replace reference by helpregister
                          mov [ebp-12],r22d    ; Use another help instruction}
                         rgget(list,Tai(previous),subreg,helpreg);
+                        spill_registers:=true;
                         {First help instruction.}
                         helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
                         if previous=nil then
@@ -2233,7 +2234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-09-10 11:23:09  marco
+  Revision 1.21  2003-09-10 19:14:31  daniel
+    * Failed attempt to restore broken fastspill functionality
+
+  Revision 1.20  2003/09/10 11:23:09  marco
    * fix from peter for bts reg32,mem32 problem
 
   Revision 1.19  2003/09/09 12:54:45  florian

@@ -584,6 +584,7 @@ implementation
         usesfpu,
         usesacchi      : boolean;
         spillingcounter : integer;
+        fastspill:boolean;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -692,14 +693,15 @@ implementation
               rg.prepare_colouring;
               rg.colour_registers;
               rg.epilogue_colouring;
+              fastspill:=true;
               if rg.spillednodes<>'' then
                 begin
                   inc(spillingcounter);
                   if spillingcounter>maxspillingcounter then
                     internalerror(200309041);
-                  rg.spill_registers(aktproccode,rg.spillednodes);
+                  fastspill:=rg.spill_registers(aktproccode,rg.spillednodes);
                 end;
-            until rg.spillednodes='';
+            until (rg.spillednodes=''){ or not fastspill};
             aktproccode.translate_registers(rg.colour);
 (*
 {$ifndef NoOpt}
@@ -1315,7 +1317,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2003-09-09 20:59:27  daniel
+  Revision 1.145  2003-09-10 19:14:31  daniel
+    * Failed attempt to restore broken fastspill functionality
+
+  Revision 1.144  2003/09/09 20:59:27  daniel
     * Adding register allocation order
 
   Revision 1.143  2003/09/09 15:55:44  peter
