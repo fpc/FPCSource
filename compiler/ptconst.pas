@@ -78,6 +78,7 @@ implementation
          srsym     : tsym;
          symt      : tsymtable;
          value     : bestreal;
+         intvalue  : tconstexprint;
          strval    : pchar;
          pw        : pcompilerwidestring;
          error     : boolean;
@@ -181,23 +182,33 @@ implementation
                            Message(cg_e_illegal_expression);
                       end;
                     s64bit,
-                    u64bit:
+                    u64bit,
+                    scurrency:
                       begin
                          if is_constintnode(p) then
-                           begin
-                              if target_info.endian = endian_little then
-                                begin
-                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value and $ffffffff)));
-                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value shr 32)));
-                                end
-                              else
-                                begin
-                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value shr 32)));
-                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value and $ffffffff)));
-                                end;
-                           end
+                           intvalue := tordconstnode(p).value
+{$ifndef VER1_0}
+                         else if is_constrealnode(p) and
+                                 (torddef(t.def).typ = scurrency) and
+                                 (trealconstnode(p).value_real*10000 >= low(int64)) and
+                                 (trealconstnode(p).value_real*10000 <= high(int64)) then
+                             intvalue := round(trealconstnode(p).value_real*10000)
+{$endif ndef VER1_0}
                          else
-                           Message(cg_e_illegal_expression);
+                           begin
+                             intvalue := 0;
+                             Message(cg_e_illegal_expression);
+                           end;
+                        if target_info.endian = endian_little then
+                          begin
+                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue and $ffffffff)));
+                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue shr 32)));
+                          end
+                        else
+                          begin
+                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue shr 32)));
+                            curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue and $ffffffff)));
+                          end;
                       end;
                     else
                       internalerror(3799);
@@ -1002,7 +1013,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2003-12-08 22:34:24  peter
+  Revision 1.77  2003-12-29 12:48:39  jonas
+    + support for currency typed constants if currency=int64. Warning: does
+      not work properly for extreme values if bestreal <= double
+
+  Revision 1.76  2003/12/08 22:34:24  peter
     * tai_const.create_32bit changed to cardinal
 
   Revision 1.75  2003/11/22 00:32:35  jonas
