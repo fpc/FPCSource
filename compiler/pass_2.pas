@@ -458,7 +458,7 @@ implementation
       end;
 
     var
-       { the array ranges are overestimated !!! }
+       { the array ranges are oveestimated !!!  }
        { max(maxvarregs,maxfpuvarregs) would be }
        { enough                                 }
        regvars : array[1..maxvarregs+maxfpuvarregs] of pvarsym;
@@ -467,32 +467,40 @@ implementation
        parasym : boolean;
 
     procedure searchregvars(p : pnamedindexobject);
-
       var
          i,j,k : longint;
-
       begin
          if (psym(p)^.typ=varsym) and (vo_regable in pvarsym(p)^.varoptions) then
            begin
-              j:=pvarsym(p)^.refs;
-              { parameter get a less value }
-              if parasym then
-                begin
-                   if cs_littlesize in aktglobalswitches  then
-                     dec(j,1)
-                   else
-                     dec(j,100);
-                end;
+              { walk through all momentary register variables }
               for i:=1 to maxvarregs do
                 begin
-                   if (regvars[i]=nil) or ((j>regvars_refs[i]) and (j>0)) then
+                   { free register ? }
+                   if regvars[i]=nil then
+                     begin
+                        regvars[i]:=pvarsym(p);
+                        regvars_para[i]:=parasym;
+                        break;
+                     end;
+                   { else throw out a variable ? }
+                       j:=pvarsym(p)^.refs;
+                   { parameter get a less value }
+                   if parasym then
+                     begin
+                        if cs_littlesize in aktglobalswitches  then
+                          dec(j,1)
+                        else
+                          dec(j,100);
+                     end;
+                   if (j>regvars_refs[i]) and (j>0) then
                      begin
                         for k:=maxvarregs-1 downto i do
                           begin
                              regvars[k+1]:=regvars[k];
                              regvars_para[k+1]:=regvars_para[k];
-                             regvars_refs[k+1]:=regvars_refs[k];
                           end;
+                        { calc the new refs
+                        pvarsym(p)^.refs:=j; }
                         regvars[i]:=pvarsym(p);
                         regvars_para[i]:=parasym;
                         regvars_refs[i]:=j;
@@ -506,30 +514,38 @@ implementation
     procedure searchfpuregvars(p : pnamedindexobject);
       var
          i,j,k : longint;
-
       begin
          if (psym(p)^.typ=varsym) and (vo_fpuregable in pvarsym(p)^.varoptions) then
            begin
-              j:=pvarsym(p)^.refs;
-              { parameter get a less value }
-              if parasym then
-                begin
-                   if cs_littlesize in aktglobalswitches  then
-                     dec(j,1)
-                   else
-                     dec(j,100);
-                end;
+              { walk through all momentary register variables }
               for i:=1 to maxfpuvarregs do
                 begin
+                   { free register ? }
+                   if regvars[i]=nil then
+                     begin
+                        regvars[i]:=pvarsym(p);
+                        regvars_para[i]:=parasym;
+                        break;
+                     end;
                    { else throw out a variable ? }
+                       j:=pvarsym(p)^.refs;
+                   { parameter get a less value }
+                   if parasym then
+                     begin
+                        if cs_littlesize in aktglobalswitches  then
+                          dec(j,1)
+                        else
+                          dec(j,100);
+                     end;
                    if (j>regvars_refs[i]) and (j>0) then
                      begin
                         for k:=maxfpuvarregs-1 downto i do
                           begin
                              regvars[k+1]:=regvars[k];
                              regvars_para[k+1]:=regvars_para[k];
-                             regvars_refs[k+1]:=regvars_refs[k];
                           end;
+                        { calc the new refs
+                        pvarsym(p)^.refs:=j; }
                         regvars[i]:=pvarsym(p);
                         regvars_para[i]:=parasym;
                         regvars_refs[i]:=j;
@@ -607,7 +623,7 @@ implementation
                      end;
                    *)
 { $ifdef dummy}
-                   if (p^.registers32<maxvarregs) then
+                   if (p^.registers32<4) then
                      begin
                         for i:=1 to maxvarregs do
                           regvars[i]:=nil;
@@ -627,13 +643,12 @@ implementation
                                   { it is nonsens, to copy the variable to }
                                   { a register because we need then much   }
                                   { too pushes ?                           }
-                                  {
                                   if reg_pushes[varregs[i]]>=regvars[i]^.refs then
                                     begin
                                        regvars[i]:=nil;
                                        goto nextreg;
                                     end;
-                                  }
+
                                   { register is no longer available for }
                                   { expressions                  }
                                   { search the register which is the most }
@@ -710,9 +725,6 @@ implementation
                                { dummy }
                                regsize:=S_W;
                           end;
-                       if cs_asm_source in aktglobalswitches then
-                         procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(tostr(p^.registers32)+
-                         ' registers necessary to evaluate expressions'))));
                         for i:=1 to maxvarregs do
                           begin
                              if assigned(regvars[i]) then
@@ -828,8 +840,6 @@ implementation
               if assigned(procinfo^.def) then
                 procinfo^.def^.fpu_used:=p^.registersfpu;
 
-              { all registers can be used again }
-              resetusableregisters;
            end;
          procinfo^.aktproccode^.concatlist(exprasmlist);
          make_const_global:=false;
@@ -838,8 +848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2000-02-04 08:47:10  florian
-    * better register variable allocation in -Or mode
+  Revision 1.54  2000-02-04 14:54:17  jonas
+    * moved call to resetusableregs to compile_proc_body (put it right before the
+      reset of the temp generator) so the optimizer can know which registers are
+      regvars
 
   Revision 1.52  2000/01/22 15:58:12  jonas
     * forgot to commit a procedure for -dlogsecondpass the last time

@@ -1647,6 +1647,8 @@ begin
        aktprocsym^.definition^.localst:=nil;
      end;
 
+   { all registers can be used again }
+   resetusableregisters;
    { only now we can remove the temps }
    resettempgen;
 
@@ -1967,7 +1969,12 @@ end.
 
 {
   $Log$
-  Revision 1.44  2000-01-28 23:17:53  florian
+  Revision 1.45  2000-02-04 14:54:17  jonas
+    * moved call to resetusableregs to compile_proc_body (put it right before the
+      reset of the temp generator) so the optimizer can know which registers are
+      regvars
+
+  Revision 1.44  2000/01/28 23:17:53  florian
     * virtual XXXX; support for objects, only if -dWITHDMT is defined
 
   Revision 1.43  2000/01/21 22:06:16  florian
