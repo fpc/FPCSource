@@ -1251,7 +1251,7 @@ end;
 function TPasVariable.GetDeclaration (full : boolean) : string;
 
 Const
- Seps : Array[Boolean] of String = (' = ',' : ');
+ Seps : Array[Boolean] of Char = ('=',':');
 
 begin
   If Assigned(VarType) then
@@ -1265,7 +1265,7 @@ begin
   else
     Result:=Value;
   If Full then 
-    Result:=Name+Seps[Assigned(VarType)]+Result;
+    Result:=Name+' '+Seps[Assigned(VarType)]+' '+Result;
 end;
 
 function TPasProperty.GetDeclaration (full : boolean) : string;
@@ -1392,7 +1392,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-07-23 21:43:54  michael
+  Revision 1.4  2004-07-23 23:42:02  michael
+  + Worked around bug in compiler that finalizes constants in subroutines
+
+  Revision 1.3  2004/07/23 21:43:54  michael
   + Fixed error (never-ending loops) in trecordtype.GetDeclaration
 
   Revision 1.2  2003/11/22 12:12:38  sg
