@@ -206,6 +206,7 @@ implementation
       cutils,
       systems,
       switches,
+      symbase,symtable,symtype,
       fmodule;
 
     var
@@ -357,54 +358,86 @@ implementation
         var
            hs : string;
            mac: tmacro;
+           srsym : tsym;
+           srsymtable : tsymtable;
         begin
            if current_scanner.preproc_token=_ID then
              begin
                 if readpreproc='DEFINED' then
-                begin
-                  preproc_consume(_ID);
-                  current_scanner.skipspace;
-                  if current_scanner.preproc_token =_LKLAMMER then
                   begin
-                    preproc_consume(_LKLAMMER);
-                    current_scanner.skipspace;
-                  end
-                  else
-                    Message(scan_e_error_in_preproc_expr);
-                  if current_scanner.preproc_token =_ID then
-                  begin
-                    hs := current_scanner.preproc_pattern;
-                    mac := tmacro(current_scanner.macros.search(hs));
-                    if assigned(mac) then
-                      hs := '1'
-                    else
-                      hs := '0';
-                    read_factor := hs;
                     preproc_consume(_ID);
                     current_scanner.skipspace;
+                    if current_scanner.preproc_token =_LKLAMMER then
+                      begin
+                        preproc_consume(_LKLAMMER);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                    if current_scanner.preproc_token =_ID then
+                      begin
+                        hs := current_scanner.preproc_pattern;
+                        mac := tmacro(current_scanner.macros.search(hs));
+                        if assigned(mac) then
+                          hs := '1'
+                        else
+                          hs := '0';
+                        read_factor := hs;
+                        preproc_consume(_ID);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                    if current_scanner.preproc_token =_RKLAMMER then
+                      preproc_consume(_RKLAMMER)
+                    else
+                      Message(scan_e_error_in_preproc_expr);
                   end
-                  else
-                    Message(scan_e_error_in_preproc_expr);
-                  if current_scanner.preproc_token =_RKLAMMER then
-                    preproc_consume(_RKLAMMER)
-                  else
-                    Message(scan_e_error_in_preproc_expr);
-                end
+                else
+                if readpreproc='DECLARED' then
+                  begin
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                    if current_scanner.preproc_token =_LKLAMMER then
+                      begin
+                        preproc_consume(_LKLAMMER);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                    if current_scanner.preproc_token =_ID then
+                      begin
+                        hs := upper(current_scanner.preproc_pattern);
+                        if searchsym(hs,srsym,srsymtable) then
+                          hs := '1'
+                        else
+                          hs := '0';
+                        read_factor := hs;
+                        preproc_consume(_ID);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                    if current_scanner.preproc_token =_RKLAMMER then
+                      preproc_consume(_RKLAMMER)
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                  end
                 else
                 if readpreproc='NOT' then
                   begin
-                     preproc_consume(_ID);
-                     hs:=read_expr;
-                     if hs='0' then
-                       read_factor:='1'
-                     else
-                       read_factor:='0';
+                    preproc_consume(_ID);
+                    hs:=read_expr;
+                    if hs='0' then
+                      read_factor:='1'
+                    else
+                      read_factor:='0';
                   end
                 else
                   begin
-                     hs:=readpreproc;
-                     preproc_consume(_ID);
-                     read_factor:=hs;
+                    hs:=readpreproc;
+                    preproc_consume(_ID);
+                    read_factor:=hs;
                   end
              end
            else if current_scanner.preproc_token =_LKLAMMER then
@@ -2871,6 +2904,7 @@ exit_label:
 
         AddConditional('ELSE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_else);
         AddConditional('ENDIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
+        AddConditional('IFEND',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
         AddConditional('IF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_if);
         AddConditional('IFDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifdef);
         AddConditional('IFNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifndef);
@@ -2895,7 +2929,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.64  2003-11-10 19:08:32  peter
+  Revision 1.65  2003-11-10 19:08:59  peter
+    + $IF DECLARED() added
+
+  Revision 1.64  2003/11/10 19:08:32  peter
     * line numbering is now only done when #10, #10#13 is really parsed
       instead of when it is the next character
 
