@@ -209,6 +209,9 @@ SysCall MOS_ExecBase 366;
 function GetMsg(port: PMsgPort location 'a0'): PMessage; 
 SysCall MOS_ExecBase 372;
 
+procedure ReplyMsg(message : PMessage location 'a1');
+SysCall MOS_ExecBase 378;
+
 function WaitPort(port: PMsgPort location 'a0'): PMessage; 
 SysCall MOS_ExecBase 384;
 
@@ -595,7 +598,10 @@ SysCall MOS_ExecBase 996;
 
 {
   $Log$
-  Revision 1.3  2004-08-03 14:48:48  karoly
+  Revision 1.4  2004-08-21 22:24:58  karoly
+    + added ReplyMsg, which was accidentally still missing
+
+  Revision 1.3  2004/08/03 14:48:48  karoly
     + added missing calls
 
   Revision 1.2  2004/06/23 13:23:57  karoly
