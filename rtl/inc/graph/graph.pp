@@ -697,6 +697,9 @@ Implementation
   uses
      strings;
   {$endif}
+  {$ifdef linux}
+  uses linux;
+  {$endif}
 {$else fpc}
 {$IFDEF DPMI}
 uses WinAPI;
@@ -3003,7 +3006,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2000-03-08 14:20:14  jonas
+  Revision 1.59  2000-03-17 13:28:54  sg
+  * Use linux unit under Linux
+
+  Revision 1.58  2000/03/08 14:20:14  jonas
     * writemode was not set to normalput during clearviewport (and it uses hline)
 
   Revision 1.57  2000/02/27 14:41:25  peter
