@@ -146,6 +146,7 @@ const
   uf_release       = $2000;   { unit was compiled with -Ur option }
   uf_threadvars    = $4000;   { unit has threadvars }
   uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
+  uf_has_debuginfo = $10000;  { this unit has debuginfo generated }
 
 type
   ppureal=extended;
@@ -1052,7 +1053,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  2004-04-29 19:56:37  daniel
+  Revision 1.49  2004-05-19 21:16:13  peter
+    * add DEBUGINFO symbol to reference the .o file that includes the
+      stabs info for types and global/static variables
+    * debuginfo flag added to ppu to indicate whether debuginfo is
+      generated or not
+
+  Revision 1.48  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.47  2004/03/23 22:34:49  peter

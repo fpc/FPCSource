@@ -647,6 +647,15 @@ implementation
       begin
         if not (cs_debuginfo in aktmoduleswitches) then
          exit;
+        { include symbol that will be referenced from the program to be sure to
+          include this debuginfo .o file }
+        if current_module.is_unit then
+          begin
+            current_module.flags:=current_module.flags or uf_has_debuginfo;
+            debugList.concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.globalsymtable,''),AT_DATA,0));
+          end
+        else
+          debugList.concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
         { first write all global/local symbols to a temp list. This will flag
           all required tdefs. Afterwards this list will be added }
         vardebuglist:=taasmoutput.create;
@@ -1480,7 +1489,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2004-05-16 13:29:21  peter
+  Revision 1.153  2004-05-19 21:16:13  peter
+    * add DEBUGINFO symbol to reference the .o file that includes the
+      stabs info for types and global/static variables
+    * debuginfo flag added to ppu to indicate whether debuginfo is
+      generated or not
+
+  Revision 1.152  2004/05/16 13:29:21  peter
     * fix checking for forwards in static symtable
 
   Revision 1.151  2004/05/11 18:22:16  olle

@@ -123,7 +123,7 @@ implementation
 {$endif}
     cutils,cclasses,
     globals,systems,verbose,
-    defutil,
+    ppu,defutil,
     procinfo,paramgr,fmodule,
     regvars,
 {$ifdef GDB}
@@ -1261,6 +1261,7 @@ implementation
         href : treference;
         paraloc1,
         paraloc2 : tparalocation;
+        hp   : tused_unit;
       begin
         { the actual profile code can clobber some registers,
           therefore if the context must be saved, do it before
@@ -1304,6 +1305,22 @@ implementation
            cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
            cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+
+{$ifdef GDB}
+           if (cs_debuginfo in aktmoduleswitches) then
+             begin
+               { include reference to all debuginfo sections of used units }
+               hp:=tused_unit(usedunits.first);
+               while assigned(hp) do
+                 begin
+                   If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
+                     current_procinfo.aktlocaldata.concat(Tai_const_symbol.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
+                   hp:=tused_unit(hp.next);
+                 end;
+               { include reference to debuginfo for this program }
+               current_procinfo.aktlocaldata.concat(Tai_const_symbol.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+             end;
+{$endif GDB}
          end;
 
 {$ifdef GDB}
@@ -2122,7 +2139,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.198  2004-05-02 17:26:19  peter
+  Revision 1.199  2004-05-19 21:16:12  peter
+    * add DEBUGINFO symbol to reference the .o file that includes the
+      stabs info for types and global/static variables
+    * debuginfo flag added to ppu to indicate whether debuginfo is
+      generated or not
+
+  Revision 1.198  2004/05/02 17:26:19  peter
     * fix stabs for globals
 
   Revision 1.197  2004/03/29 14:43:47  peter
