@@ -165,7 +165,7 @@ Var quiet: boolean;
 procedure usage;
 
 begin
-  Writeln('Delp [options]');
+  Writeln('Delp [options] <directory>');
   Writeln('Where options is one of:');
   writeln('  -e    Delete executables also (Not on linux)');
   writeln('  -h    Display (this) help message.');
@@ -180,7 +180,7 @@ Var c : char;
 begin
   quiet:=false;
   Repeat
-    C:=Getopt('chq');
+    C:=Getopt('ehq');
     Case C of
       'e' : AddMAsk('*.exe *.so *.dll');
       'h' : Usage;
@@ -196,8 +196,15 @@ var
   Total  : longint;
   hp     : pmaskitem;
   found  : boolean;
+  basedir : string;
+  
 begin
   ProcessOptions;
+  if Optind<>ParamCount then 
+    Usage;
+  BaseDir:=Paramstr(OptInd);
+  If BaseDir[Length(BaseDir)]<>'\' then 
+    BaseDir:=BaseDir+'\';
   AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
@@ -211,7 +218,7 @@ begin
       writeln(Copyright);
       Writeln;
     end;
-  FindFirst('*.*',$20,Dir);
+  FindFirst(basedir+'*.*',$20,Dir);
   Total:=0;
   while (doserror=0) do
    begin
@@ -251,7 +258,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-01-23 16:40:28  peter
+  Revision 1.9  2000-01-24 16:31:12  michael
+  + Adapted delp so it accepts a directory as an option
+
+  Revision 1.8  2000/01/23 16:40:28  peter
     * *.dll, *.so are also executables and only turned on by -e
     * title+copyright like ppudump
 
