@@ -32,6 +32,7 @@ const
       hscLink        = #2;
       hscLineStart   = #3;
       hscCode        = #5;
+      hscDirect      = #6; { add the next char directly }
       hscCenter      = #10;
       hscRight       = #11;
       hscNamedMark   = #12;
@@ -917,7 +918,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2001-10-03 21:48:31  pierre
+  Revision 1.6  2002-03-25 14:37:03  pierre
+   + hscDirect added
+
+  Revision 1.5  2001/10/03 21:48:31  pierre
    * remove code that lead to crashes for html helps
 
   Revision 1.4  2001/10/02 16:31:20  pierre
