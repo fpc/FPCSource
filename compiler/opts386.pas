@@ -55,18 +55,22 @@ begin
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_regalloc];
                  'u' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_uncertainopts];
-                 '1' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize];
-                 '2' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
+                 '1' : initglobalswitches:=initglobalswitches-[cs_slowoptimize,cs_uncertainopts]+[cs_optimize,cs_fastoptimize];
+                 '2' : initglobalswitches:=initglobalswitches-[cs_uncertainopts]+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
                  '3' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_uncertainopts];
                  'p' :
                    Begin
-                     Case opt[j+1] Of
-                       '1': initoptprocessor := Class386;
-                       '2': initoptprocessor := ClassP5;
-                       '3': initoptprocessor := ClassP6
-                       Else IllegalPara(Opt)
-                     End;
-                     Inc(j);
+                     If j < Length(Opt)) Then
+                       Begin
+                         Case opt[j+1] Of
+                           '1': initoptprocessor := Class386;
+                           '2': initoptprocessor := ClassP5;
+                           '3': initoptprocessor := ClassP6
+                           Else IllegalPara(Opt)
+                         End;
+                         Inc(j);
+                       End
+                     Else IllegalPara(opt)
                    End
                  else IllegalPara(opt);
                End;
@@ -93,7 +97,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-10-13 13:10:20  peter
+  Revision 1.13  1998-11-11 20:11:39  jonas
+    * lower optimization levels disable higher optimization level features
+    * check if there actually is a character after -Op before comparing it with a number
+
+  Revision 1.12  1998/10/13 13:10:20  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.11  1998/09/25 09:57:08  peter
