@@ -33,7 +33,7 @@ type
   end;
 
   PLineArray = ^TLineArray;
-  TLineArray = array[0..0] of TLine;
+  TLineArray = array[0..$7fffffff div SizeOf(TLine)] of TLine;
 
 const
 
@@ -261,7 +261,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-07 01:24:34  peter
+  Revision 1.8  2000-01-08 12:08:58  sg
+  * Set the upper bound of TLineArray to max. possible value so that this
+    unit works correctly with activated range checks
+
+  Revision 1.7  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.6  2000/01/06 01:20:34  peter
