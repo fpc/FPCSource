@@ -763,22 +763,25 @@ var
   pl : plongint;
   pp : pheap_mem_info;
 begin
-  if assigned(p) then
+  if not assigned(p) then
    begin
-     dec(p,sizeof(theap_mem_info)+extra_info_size);
-     { remove heap_mem_info for linked list }
-     pp:=pheap_mem_info(p);
-     if pp^.next<>nil then
-      pp^.next^.previous:=pp^.previous;
-     if pp^.previous<>nil then
-      pp^.previous^.next:=pp^.next;
-     if pp=heap_mem_root then
-      heap_mem_root:=heap_mem_root^.previous;
+     p:=TraceGetMem(size);
+     TraceReallocMem:=P;
+     exit;
    end;
+   dec(p,sizeof(theap_mem_info)+extra_info_size);
+   { remove heap_mem_info for linked list }
+   pp:=pheap_mem_info(p);
+   if pp^.next<>nil then
+    pp^.next^.previous:=pp^.previous;
+   if pp^.previous<>nil then
+    pp^.previous^.next:=pp^.next;
+   if pp=heap_mem_root then
+    heap_mem_root:=heap_mem_root^.previous;
 { Do the real ReAllocMem, but alloc also for the info block }
-  bp:=size+sizeof(theap_mem_info)+extra_info_size;
-  if add_tail then
-    inc(bp,sizeof(longint));
+     bp:=size+sizeof(theap_mem_info)+extra_info_size;
+   if add_tail then
+     inc(bp,sizeof(longint));
   p:=SysReAllocMem(p,bp);
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
@@ -942,7 +945,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2000-01-03 19:37:52  peter
+  Revision 1.31  2000-01-05 13:56:55  jonas
+    * fixed traceReallocMem with nil pointer (simply calls traceGetMem now in
+      such a case)
+
+  Revision 1.30  2000/01/03 19:37:52  peter
     * fixed reallocmem with p=nil
 
   Revision 1.29  1999/11/14 21:35:04  peter
