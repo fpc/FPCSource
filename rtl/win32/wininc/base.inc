@@ -80,6 +80,7 @@ interface
      CCHAR = char;
 
      COLORREF = cardinal;
+     TCOLORREF = cardinal;
 
      SHORT = integer;
      INT   = longint;
@@ -962,7 +963,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:22  peter
+  Revision 1.2  1999-11-05 09:50:29  pierre
+   + TCOLORREF = cardinal
+
+  Revision 1.1  1999/09/16 13:38:22  peter
     * windows unit include moved to wininc/
 
   Revision 1.12  1999/04/20 11:36:10  peter
