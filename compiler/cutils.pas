@@ -620,9 +620,16 @@ uses
       backspace_quote:='';
       for i:=1 to length(s) do
         begin
-          if s[i] in qchars then
-            backspace_quote:=backspace_quote+'\';
-          backspace_quote:=backspace_quote+s[i];
+          if (s[i]=#10) and (#10 in qchars) then
+            backspace_quote:=backspace_quote+'\n'
+          else if (s[i]=#13) and (#13 in qchars) then
+            backspace_quote:=backspace_quote+'\r'
+          else
+            begin
+              if s[i] in qchars then
+                backspace_quote:=backspace_quote+'\';
+              backspace_quote:=backspace_quote+s[i];
+            end;
         end;
     end;
 
@@ -1120,7 +1127,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2004-01-26 22:08:20  daniel
+  Revision 1.35  2004-02-22 22:13:27  daniel
+    * Escape newlines in constant string stabs
+
+  Revision 1.34  2004/01/26 22:08:20  daniel
     * Bugfix on constant strings stab generation. Never worked and still
       doesn't work for unknown reasons.
 

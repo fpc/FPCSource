@@ -2064,7 +2064,7 @@ implementation
       {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
       case consttyp of
         conststring:
-          st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\'])+'''';
+          st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\',#10,#13])+'''';
         constbool,
         constint,
         constord,
@@ -2367,7 +2367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.159  2004-02-20 21:54:47  peter
+  Revision 1.160  2004-02-22 22:13:27  daniel
+    * Escape newlines in constant string stabs
+
+  Revision 1.159  2004/02/20 21:54:47  peter
     * use sp_internal flag to silence unused internal variable
 
   Revision 1.158  2004/02/13 15:42:21  peter
