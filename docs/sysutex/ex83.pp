@@ -1,5 +1,7 @@
 Program Example82;
 
+{$mode objfpc}
+
 { This program demonstrates the StrToInt function }
 
 Uses sysutils;

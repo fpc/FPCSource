@@ -1,5 +1,7 @@
 Program example71;
 
+{$mode objfpc}
+
 { This program demonstrates the Format function }
 
 Uses sysutils;
