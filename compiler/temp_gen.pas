@@ -209,7 +209,7 @@ unit temp_gen;
                       begin
                         bestprev:=hprev;
                         bestslot:=hp;
-                        bestsize:=size;
+                        bestsize:=hp^.size;
                       end;
                    end;
                 end;
@@ -220,10 +220,10 @@ unit temp_gen;
          { Reuse an old temp ? }
          if assigned(bestslot) then
           begin
-            ofs:=bestslot^.pos;
             if bestsize=size then
              begin
                bestslot^.temptype:=tt_normal;
+               ofs:=bestslot^.pos;
                tl:=bestslot;
                { Remove from the tempfreelist }
                if assigned(bestprev) then
@@ -239,6 +239,7 @@ unit temp_gen;
                new(tl);
                tl^.temptype:=tt_normal;
                tl^.pos:=bestslot^.pos+bestslot^.size;
+               ofs:=tl^.pos;
                tl^.size:=size;
                tl^.nextfree:=nil;
                { link the new block }
@@ -529,7 +530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1999-05-19 11:51:00  pierre
+  Revision 1.27  1999-05-21 11:46:28  pierre
+   * bestsize bug fixed
+
+  Revision 1.26  1999/05/19 11:51:00  pierre
    * posinfo was not set for ansitemps !
 
   Revision 1.25  1999/05/17 23:51:47  peter
