@@ -167,7 +167,7 @@ unit files;
           procedure reset;
           procedure setfilename(const fn:string;allowoutput:boolean);
           function  openppu:boolean;
-          function  search_unit(const n : string):boolean;
+          function  search_unit(const n : string;onlysource:boolean):boolean;
        end;
 
        pused_unit = ^tused_unit;
@@ -742,7 +742,7 @@ unit files;
       end;
 
 
-    function tmodule.search_unit(const n : string):boolean;
+    function tmodule.search_unit(const n : string;onlysource:boolean):boolean;
       var
          ext       : string[8];
          singlepathstring,
@@ -769,25 +769,28 @@ unit files;
             i:=length(unitpath)+1;
            singlepathstring:=FixPath(copy(unitpath,start,i-start),false);
            delete(unitpath,start,i-start+1);
-         { Check for PPL file }
-           if not Found then
+           if not onlysource then
             begin
-              Found:=UnitExists(target_info.unitlibext);
-              if Found then
-               Begin
-                 SetFileName(SinglePathString+FileName,false);
-                 Found:=OpenPPU;
-               End;
-             end;
-         { Check for PPU file }
-           if not Found then
-            begin
-              Found:=UnitExists(target_info.unitext);
-              if Found then
-               Begin
-                 SetFileName(SinglePathString+FileName,false);
-                 Found:=OpenPPU;
-               End;
+            { Check for PPL file }
+              if not Found then
+               begin
+                 Found:=UnitExists(target_info.unitlibext);
+                 if Found then
+                  Begin
+                    SetFileName(SinglePathString+FileName,false);
+                    Found:=OpenPPU;
+                  End;
+                end;
+            { Check for PPU file }
+              if not Found then
+               begin
+                 Found:=UnitExists(target_info.unitext);
+                 if Found then
+                  Begin
+                    SetFileName(SinglePathString+FileName,false);
+                    Found:=OpenPPU;
+                  End;
+               end;
             end;
          { Check for Sources }
            if not Found then
@@ -941,8 +944,8 @@ unit files;
        { search the PPU file if it is an unit }
          if is_unit then
           begin
-            if (not search_unit(modulename^)) and (length(modulename^)>8) then
-             search_unit(copy(modulename^,1,8));
+            if (not search_unit(modulename^,false)) and (length(modulename^)>8) then
+             search_unit(copy(modulename^,1,8),false);
           end;
       end;
 
@@ -1024,7 +1027,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.69  1998-10-29 11:35:44  florian
+  Revision 1.70  1998-11-03 11:33:14  peter
+    + search_unit arg to only search for sources
+
+  Revision 1.69  1998/10/29 11:35:44  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 

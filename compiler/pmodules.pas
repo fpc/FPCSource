@@ -325,9 +325,9 @@ unit pmodules;
               end;
            { recompile the unit or give a fatal error if sources not available }
              if not(current_module^.sources_avail) then
-               if (not current_module^.search_unit(current_module^.modulename^))
+               if (not current_module^.search_unit(current_module^.modulename^,true))
                   and (length(current_module^.modulename^)>8) then
-                 current_module^.search_unit(copy(current_module^.modulename^,1,8));
+                 current_module^.search_unit(copy(current_module^.modulename^,1,8),true);
              if not(current_module^.sources_avail) then
               Message1(unit_f_cant_compile_unit,current_module^.modulename^)
              else
@@ -411,10 +411,8 @@ unit pmodules;
                hp^.reset;
                hp^.scanner:=scanner;
                { try to reopen ppu }
-               hp^.search_unit(s);
+               hp^.search_unit(s,false);
                { try to load the unit a second time first }
-{               if not current_module^.in_implementation then
-                 hp^.do_compile:=true; }
                current_module:=hp;
                current_module^.in_second_compile:=true;
                Message1(unit_u_second_load_unit,current_module^.modulename^);
@@ -1112,7 +1110,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.78  1998-10-30 12:23:41  peter
+  Revision 1.79  1998-11-03 11:33:11  peter
+    + search_unit arg to only search for sources
+
+  Revision 1.78  1998/10/30 12:23:41  peter
     * fix for lognunitname and longunit.pas
 
   Revision 1.77  1998/10/29 11:35:52  florian
