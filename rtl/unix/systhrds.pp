@@ -56,7 +56,6 @@ Uses BaseUnix;
 { Include generic overloaded routines }
 {$i thread.inc}
 
-
 {$ifndef BSD}
 {$i pthread.inc}
 {$else}
@@ -64,7 +63,7 @@ Uses BaseUnix;
 
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
-      PTHREAD_SCOPE_PROCESS    = 0;
+      PTHREAD_SCOPE_PROCESS    	   = 0;
 
  TYPE
     pthread_t       = pointer;
@@ -102,69 +101,23 @@ function  pthread_mutex_unlock  (p:ppthread_mutex_attr_t):cint; cdecl;external;
 
 {$ifndef BSD}
 
-const
-  syscall_nr_mmap                        = 90;
-  syscall_nr_munmap                      = 91;
+Const
 
-  { Constansts for MMAP }
+  { Constants for MMAP }
   MAP_PRIVATE   =2;
   MAP_ANONYMOUS =$20;
 
-{
-type
-  SysCallRegs=record
-    reg1,reg2,reg3,reg4,reg5,reg6 : longint;
-  end;
-
-var
-  Errno : longint;
-
-{ Include syscall itself }
-{$i syscallo.inc}
-
-Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;
-type
-  tmmapargs=packed record
-    address : longint;
-    size    : longint;
-    prot    : longint;
-    flags   : longint;
-    fd      : longint;
-    offset  : longint;
-  end;
-var
-  t : syscallregs;
-  mmapargs : tmmapargs;
-begin
-  mmapargs.address:=adr;
-  mmapargs.size:=len;
-  mmapargs.prot:=prot;
-  mmapargs.flags:=flags;
-  mmapargs.fd:=fdes;
-  mmapargs.offset:=off;
-  t.reg2:=longint(@mmapargs);
-  Fpmmap:=syscall(syscall_nr_mmap,t);
-end;
-
-Function Fpmunmap(adr,len:longint):longint;
-var
-  t : syscallregs;
-begin
-  t.reg2:=adr;
-  t.reg3:=len;
-  Fpmunmap:=syscall(syscall_nr_munmap,t);
-end;
-}
 {$else}
+
+{$ifdef FreeBSD}
 CONST
-  { Constansts for MMAP. These are still private for *BSD }
+  { Constants for MMAP. These are still private for *BSD }
   MAP_PRIVATE   =2;
   MAP_ANONYMOUS =$1000;
-
-  // include some non posix internal types.
-  // *BSD POSIX. Include headers to syscalls.
-
-{$endif}
+{$ELSE}
+ {$ENTER ME}
+{$ENDIF}
+{$ENDIF}
 
 {*****************************************************************************
                              Threadvar support
@@ -432,7 +385,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-09-16 13:00:02  marco
+  Revision 1.12  2003-09-16 13:17:03  marco
+   * Wat cleanup, ouwe syscalls nu via baseunix e.d.
+
+  Revision 1.11  2003/09/16 13:00:02  marco
    * small BSD gotcha removed (typing mmap params)
 
   Revision 1.10  2003/09/15 20:08:49  marco
