@@ -100,9 +100,7 @@ procedure gdk_window_merge_child_shapes(window:PGdkWindow);cdecl;external gdkdll
 function  gdk_window_is_visible(window:PGdkWindow):gboolean;cdecl;external gdkdll name 'gdk_window_is_visible';
 function  gdk_window_is_viewable(window:PGdkWindow):gboolean;cdecl;external gdkdll name 'gdk_window_is_viewable';
 function  gdk_window_set_static_gravities(window:PGdkWindow; use_static:gboolean):gboolean;cdecl;external gdkdll name 'gdk_window_set_static_gravities';
-{$ifndef gtkwin}
 procedure gdk_add_client_message_filter(message_type:TGdkAtom; func:TGdkFilterFunc; data:gpointer);cdecl;external gdkdll name 'gdk_add_client_message_filter';
-{$endif}
 function  gdk_drag_context_new:PGdkDragContext;cdecl;external gdkdll name 'gdk_drag_context_new';
 procedure gdk_drag_context_ref(context:PGdkDragContext);cdecl;external gdkdll name 'gdk_drag_context_ref';
 procedure gdk_drag_context_unref(context:PGdkDragContext);cdecl;external gdkdll name 'gdk_drag_context_unref';
@@ -329,10 +327,8 @@ function  gdk_ic_new(attr:TGdkICAttr; mask:TGdkICAttributesType):TGdkIC;cdecl;ex
 procedure gdk_ic_destroy(ic:TGdkIC);cdecl;external gdkdll name 'gdk_ic_destroy';
 function  gdk_ic_get_style(ic:TGdkIC):TGdkIMStyle;cdecl;external gdkdll name 'gdk_ic_get_style';
 function  gdk_ic_get_events(ic:TGdkIC):TGdkEventMask;cdecl;external gdkdll name 'gdk_ic_get_events';
-{$ifndef gtkwin}
 function  gdk_ic_attr_new:TGdkICAttr;cdecl;external gdkdll name 'gdk_ic_attr_new';
 procedure gdk_ic_attr_destroy(attr:TGdkICAttr);cdecl;external gdkdll name 'gdk_ic_attr_destroy';
-{$endif}
 function  gdk_ic_set_attr(ic:TGdkIC; attr:TGdkICAttr; mask:TGdkICAttributesType):TGdkICAttributesType;cdecl;external gdkdll name 'gdk_ic_set_attr';
 function  gdk_ic_get_attr(ic:TGdkIC; attr:TGdkICAttr; mask:TGdkICAttributesType):TGdkICAttributesType;cdecl;external gdkdll name 'gdk_ic_get_attr';
 function  gdk_wcstombs(src:PGdkWChar):Pgchar;cdecl;external gdkdll name 'gdk_wcstombs';
@@ -391,7 +387,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.3  2003-03-02 02:08:50  hajny
+  Revision 1.4  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.3  2003/03/02 02:08:50  hajny
     + OS/2 support for GTK and X11 added by Yuri
 
   Revision 1.2  2002/09/07 15:42:58  peter

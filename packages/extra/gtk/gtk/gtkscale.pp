@@ -46,9 +46,9 @@ function  gtk_scale_get_type:TGtkType;cdecl;external gtkdll name 'gtk_scale_get_
 procedure gtk_scale_set_digits(scale:PGtkScale; digits:gint);cdecl;external gtkdll name 'gtk_scale_set_digits';
 procedure gtk_scale_set_draw_value(scale:PGtkScale; draw_value:gboolean);cdecl;external gtkdll name 'gtk_scale_set_draw_value';
 procedure gtk_scale_set_value_pos(scale:PGtkScale; pos:TGtkPositionType);cdecl;external gtkdll name 'gtk_scale_set_value_pos';
+procedure gtk_scale_draw_value(scale:PGtkScale);cdecl;external gtkdll name 'gtk_scale_draw_value';
 {$ifndef gtkwin}
 function  gtk_scale_value_width(scale:PGtkScale):gint;cdecl;external gtkdll name 'gtk_scale_value_width';
-procedure gtk_scale_draw_value(scale:PGtkScale);cdecl;external gtkdll name 'gtk_scale_draw_value';
 {$endif}
 
 {$endif read_interface}
@@ -95,7 +95,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:13  peter

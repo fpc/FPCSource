@@ -323,11 +323,9 @@ procedure gtk_widget_unmap(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_wi
 procedure gtk_widget_realize(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_realize';
 procedure gtk_widget_unrealize(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_unrealize';
 procedure gtk_widget_queue_draw(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_queue_draw';
-{$ifndef gtkwin}
 procedure gtk_widget_queue_draw_area(widget:PGtkWidget; x:gint; y:gint; width:gint; height:gint);cdecl;external gtkdll name 'gtk_widget_queue_draw_area';
 procedure gtk_widget_queue_clear(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_queue_clear';
 procedure gtk_widget_queue_clear_area(widget:PGtkWidget; x:gint; y:gint; width:gint; height:gint);cdecl;external gtkdll name 'gtk_widget_queue_clear_area';
-{$endif}
 procedure gtk_widget_queue_resize(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_queue_resize';
 procedure gtk_widget_draw(widget:PGtkWidget; area:PGdkRectangle);cdecl;external gtkdll name 'gtk_widget_draw';
 procedure gtk_widget_draw_focus(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_draw_focus';
@@ -341,9 +339,7 @@ procedure gtk_widget_remove_accelerators(widget:PGtkWidget; accel_signal:Pgchar;
 function  gtk_widget_accelerator_signal(widget:PGtkWidget; accel_group:PGtkAccelGroup; accel_key:guint; accel_mods:guint):guint;cdecl;external gtkdll name 'gtk_widget_accelerator_signal';
 procedure gtk_widget_lock_accelerators(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_lock_accelerators';
 procedure gtk_widget_unlock_accelerators(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_unlock_accelerators';
-{$ifndef gtkwin}
 function  gtk_widget_accelerators_locked(widget:PGtkWidget):gboolean;cdecl;external gtkdll name 'gtk_widget_accelerators_locked';
-{$endif}
 function  gtk_widget_event(widget:PGtkWidget; event:PGdkEvent):gint;cdecl;external gtkdll name 'gtk_widget_event';
 function  gtk_widget_activate(widget:PGtkWidget):gboolean;cdecl;external gtkdll name 'gtk_widget_activate';
 function  gtk_widget_set_scroll_adjustments(widget:PGtkWidget; hadjustment:PGtkAdjustment; vadjustment:PGtkAdjustment):gboolean;cdecl;external gtkdll name 'gtk_widget_set_scroll_adjustments';
@@ -356,18 +352,14 @@ procedure gtk_widget_set_name(widget:PGtkWidget; name:Pgchar);cdecl;external gtk
 function  gtk_widget_get_name (widget:PGtkWidget):Pgchar;cdecl;external gtkdll name 'gtk_widget_get_name';
 procedure gtk_widget_set_state(widget:PGtkWidget; state:TGtkStateType);cdecl;external gtkdll name 'gtk_widget_set_state';
 procedure gtk_widget_set_sensitive(widget:PGtkWidget; sensitive:gboolean);cdecl;external gtkdll name 'gtk_widget_set_sensitive';
-{$ifndef gtkwin}
 procedure gtk_widget_set_app_paintable(widget:PGtkWidget; app_paintable:gboolean);cdecl;external gtkdll name 'gtk_widget_set_app_paintable';
-{$endif}
 procedure gtk_widget_set_parent(widget:PGtkWidget; parent:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_set_parent';
 procedure gtk_widget_set_parent_window(widget:PGtkWidget; parent_window:PGdkWindow);cdecl;external gtkdll name 'gtk_widget_set_parent_window';
 function  gtk_widget_get_parent_window (widget:PGtkWidget):PGdkWindow;cdecl;external gtkdll name 'gtk_widget_get_parent_window';
 procedure gtk_widget_set_uposition(widget:PGtkWidget; x:gint; y:gint);cdecl;external gtkdll name 'gtk_widget_set_uposition';
 procedure gtk_widget_set_usize(widget:PGtkWidget; width:gint; height:gint);cdecl;external gtkdll name 'gtk_widget_set_usize';
 procedure gtk_widget_set_events(widget:PGtkWidget; events:gint);cdecl;external gtkdll name 'gtk_widget_set_events';
-{$ifndef gtkwin}
 procedure gtk_widget_add_events(widget:PGtkWidget; events:gint);cdecl;external gtkdll name 'gtk_widget_add_events';
-{$endif}
 procedure gtk_widget_set_extension_events(widget:PGtkWidget; mode:TGdkExtensionMode);cdecl;external gtkdll name 'gtk_widget_set_extension_events';
 function  gtk_widget_get_extension_events(widget:PGtkWidget):TGdkExtensionMode;cdecl;external gtkdll name 'gtk_widget_get_extension_events';
 function  gtk_widget_get_toplevel (widget:PGtkWidget):PGtkWidget;cdecl;external gtkdll name 'gtk_widget_get_toplevel';
@@ -385,19 +377,15 @@ procedure gtk_widget_set_rc_style(widget:PGtkWidget);cdecl;external gtkdll name 
 procedure gtk_widget_ensure_style(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_ensure_style';
 function  gtk_widget_get_style (widget:PGtkWidget):PGtkStyle;cdecl;external gtkdll name 'gtk_widget_get_style';
 procedure gtk_widget_restore_default_style(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_restore_default_style';
-{$ifndef gtkwin}
 procedure gtk_widget_modify_style(widget:PGtkWidget; style:PGtkRcStyle);cdecl;external gtkdll name 'gtk_widget_modify_style';
 procedure gtk_widget_set_composite_name(widget:PGtkWidget; name:Pgchar);cdecl;external gtkdll name 'gtk_widget_set_composite_name';
 function  gtk_widget_get_composite_name(widget:PGtkWidget):Pgchar;cdecl;external gtkdll name 'gtk_widget_get_composite_name';
-{$endif}
 procedure gtk_widget_reset_rc_styles(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_widget_reset_rc_styles';
 procedure gtk_widget_push_style(style:PGtkStyle);cdecl;external gtkdll name 'gtk_widget_push_style';
 procedure gtk_widget_push_colormap(cmap:PGdkColormap);cdecl;external gtkdll name 'gtk_widget_push_colormap';
 procedure gtk_widget_push_visual(visual:PGdkVisual);cdecl;external gtkdll name 'gtk_widget_push_visual';
-{$ifndef gtkwin}
 procedure gtk_widget_push_composite_child;cdecl;external gtkdll name 'gtk_widget_push_composite_child';
 procedure gtk_widget_pop_composite_child;cdecl;external gtkdll name 'gtk_widget_pop_composite_child';
-{$endif}
 procedure gtk_widget_pop_style;cdecl;external gtkdll name 'gtk_widget_pop_style';
 procedure gtk_widget_pop_colormap;cdecl;external gtkdll name 'gtk_widget_pop_colormap';
 procedure gtk_widget_pop_visual;cdecl;external gtkdll name 'gtk_widget_pop_visual';
@@ -550,7 +538,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-10-31 08:03:39  michael
+  Revision 1.4  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.3  2002/10/31 08:03:39  michael
   + Added some missing methods
 
   Revision 1.2  2002/09/07 15:43:00  peter

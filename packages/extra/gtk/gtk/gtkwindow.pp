@@ -85,10 +85,8 @@ procedure gtk_window_set_default_size(window:PGtkWindow; width:gint; height:gint
 procedure gtk_window_set_modal(window:PGtkWindow; modal:gboolean);cdecl;external gtkdll name 'gtk_window_set_modal';
 procedure gtk_window_set_focus(window:PGtkWindow; focus:PGtkWidget);cdecl;external gtkdll name 'gtk_window_set_focus';
 procedure gtk_window_set_default(window:PGtkWindow; defaultw:PGtkWidget);cdecl;external gtkdll name 'gtk_window_set_default';
-{$ifndef gtkwin}
 procedure gtk_window_remove_embedded_xid(window:PGtkWindow; xid:guint);cdecl;external gtkdll name 'gtk_window_remove_embedded_xid';
 procedure gtk_window_add_embedded_xid(window:PGtkWindow; xid:guint);cdecl;external gtkdll name 'gtk_window_add_embedded_xid';
-{$endif}
 
 {$endif read_interface}
 
@@ -183,7 +181,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:16  peter

@@ -32,7 +32,7 @@ interface
 
 {$ifdef win32}
   const
-    glibdll='glib-1.3';
+    glibdll='libglib-2.0-0';
   {$define gtkwin}
 
   {$packrecords C}
@@ -45,7 +45,7 @@ interface
     {$packrecords C}
   {$else}
     const
-     {$ifdef BSD}
+     {$ifdef FreeBSD}
       glibdll='glib12';
      {$else}
       glibdll='glib';
@@ -491,8 +491,8 @@ type
 
 {$ifndef gtkwin}
 procedure g_list_push_allocator(allocator:PGAllocator);cdecl;external glibdll name 'g_list_push_allocator';
-procedure g_list_pop_allocator;cdecl;external glibdll name 'g_list_pop_allocator';
 {$endif}
+procedure g_list_pop_allocator;cdecl;external glibdll name 'g_list_pop_allocator';
 function  g_list_alloc:PGList;cdecl;external glibdll name 'g_list_alloc';
 procedure g_list_free(list:PGList);cdecl;external glibdll name 'g_list_free';
 procedure g_list_free_1(list:PGList);cdecl;external glibdll name 'g_list_free_1';
@@ -519,10 +519,8 @@ function  g_list_nth_data(list:PGList; n:guint):gpointer;cdecl;external glibdll 
 function  g_list_previous(list : PGlist) : PGlist;
 function  g_list_next(list : PGlist) : PGlist;
 
-{$ifndef gtkwin}
 procedure g_slist_push_allocator(allocator:PGAllocator);cdecl;external glibdll name 'g_slist_push_allocator';
 procedure g_slist_pop_allocator;cdecl;external glibdll name 'g_slist_pop_allocator';
-{$endif}
 function  g_slist_alloc:PGSList;cdecl;external glibdll name 'g_slist_alloc';
 procedure g_slist_free(list:PGSList);cdecl;external glibdll name 'g_slist_free';
 procedure g_slist_free_1(list:PGSList);cdecl;external glibdll name 'g_slist_free_1';
@@ -578,10 +576,8 @@ function  g_tree_nnodes(tree:PGTree):gint;cdecl;external glibdll name 'g_tree_nn
 
 function  G_NODE_IS_ROOT(node : PGNode) : boolean;
 function  G_NODE_IS_LEAF(node : PGNode) : boolean;
-{$ifndef gtkwin}
 procedure g_node_push_allocator(allocator:PGAllocator);cdecl;external glibdll name 'g_node_push_allocator';
 procedure g_node_pop_allocator;cdecl;external glibdll name 'g_node_pop_allocator';
-{$endif}
 function  g_node_new(data:gpointer):PGNode;cdecl;external glibdll name 'g_node_new';
 procedure g_node_destroy(root:PGNode);cdecl;external glibdll name 'g_node_destroy';
 procedure g_node_unlink(node:PGNode);cdecl;external glibdll name 'g_node_unlink';
@@ -677,7 +673,6 @@ procedure g_free(mem:gpointer);cdecl;external glibdll name 'g_free';
 procedure g_mem_profile;cdecl;external glibdll name 'g_mem_profile';
 procedure g_mem_check(mem:gpointer);cdecl;external glibdll name 'g_mem_check';
 
-{$ifndef gtkwin}
     const
        G_ALLOCATOR_LIST = 1;
        G_ALLOCATOR_SLIST = 2;
@@ -685,7 +680,6 @@ procedure g_mem_check(mem:gpointer);cdecl;external glibdll name 'g_mem_check';
 
 function  g_allocator_new(name:Pgchar; n_preallocs:guint):PGAllocator;cdecl;external glibdll name 'g_allocator_new';
 procedure g_allocator_free(allocator:PGAllocator);cdecl;external glibdll name 'g_allocator_free';
-{$endif}
 
    const
        G_ALLOC_ONLY = 1;
@@ -716,26 +710,20 @@ function  g_strtod(nptr:Pgchar; endptr:PPgchar):gdouble;cdecl;external glibdll n
 function  g_strerror(errnum:gint):Pgchar;cdecl;external glibdll name 'g_strerror';
 function  g_strsignal(signum:gint):Pgchar;cdecl;external glibdll name 'g_strsignal';
 function  g_strcasecmp(s1:Pgchar; s2:Pgchar):gint;cdecl;external glibdll name 'g_strcasecmp';
-{$ifndef gtkwin}
 function  g_strncasecmp(s1:Pgchar; s2:Pgchar; n:guint):gint;cdecl;external glibdll name 'g_strncasecmp';
-{$endif}
 procedure g_strdown(thestring:Pgchar);cdecl;external glibdll name 'g_strdown';
 procedure g_strup(thestring:Pgchar);cdecl;external glibdll name 'g_strup';
 procedure g_strreverse(thestring:Pgchar);cdecl;external glibdll name 'g_strreverse';
-{$ifndef gtkwin}
 function  g_strchug(thestring:Pgchar):Pgchar;cdecl;external glibdll name 'g_strchug';
 function  g_strchomp(thestring:Pgchar):Pgchar;cdecl;external glibdll name 'g_strchomp';
 function  g_strstrip(thestring : Pgchar) : Pgchar;
-{$endif}
 function  g_strdup(str:Pgchar):Pgchar;cdecl;external glibdll name 'g_strdup';
 function  g_strdup_printf(format:Pgchar;args:array of const):Pgchar;cdecl;external glibdll name 'g_strdup_printf';
 function  g_strdup_vprintf(format:Pgchar; args:array of const):Pgchar;cdecl;external glibdll name 'g_strdup_vprintf';
 function  g_strndup(str:Pgchar; n:guint):Pgchar;cdecl;external glibdll name 'g_strndup';
 function  g_strnfill(length:guint; fill_char:gchar):Pgchar;cdecl;external glibdll name 'g_strnfill';
 function  g_strconcat(string1:Pgchar; args:array of const):Pgchar;cdecl;external glibdll name 'g_strconcat';
-{$ifndef gtkwin}
 function  g_strjoin(separator:Pgchar; args:array of const):Pgchar;cdecl;external glibdll name 'g_strjoin';
-{$endif}
 function  g_strescape(thestring:Pgchar):Pgchar;cdecl;external glibdll name 'g_strescape';
 function  g_memdup(mem:gconstpointer; byte_size:guint):gpointer;cdecl;external glibdll name 'g_memdup';
 function  g_strsplit(thestring:Pgchar; delimiter:Pgchar; max_tokens:gint):PPgchar;cdecl;external glibdll name 'g_strsplit';
@@ -1061,9 +1049,7 @@ function  g_relation_exists(relation:PGRelation; args:array of const):gboolean;c
 procedure g_relation_print(relation:PGRelation);cdecl;external glibdll name 'g_relation_print';
 procedure g_tuples_destroy(tuples:PGTuples);cdecl;external glibdll name 'g_tuples_destroy';
 function  g_tuples_index(tuples:PGTuples; index:gint; field:gint):gpointer;cdecl;external glibdll name 'g_tuples_index';
-{$ifndef gtkwin}
 function  g_spaced_primes_closest(num:guint):guint;cdecl;external glibdll name 'g_spaced_primes_closest';
-{$endif}
 
     type
        TGIOError = longint;
@@ -1142,9 +1128,7 @@ function  g_source_add(priority:gint; can_recurse:gboolean; funcs:PGSourceFuncs;
 function  g_source_remove(tag:guint):gboolean;cdecl;external glibdll name 'g_source_remove';
 function  g_source_remove_by_user_data(user_data:gpointer):gboolean;cdecl;external glibdll name 'g_source_remove_by_user_data';
 function  g_source_remove_by_source_data(source_data:gpointer):gboolean;cdecl;external glibdll name 'g_source_remove_by_source_data';
-{$ifndef gtkwin}
 function  g_source_remove_by_funcs_user_data(funcs:PGSourceFuncs; user_data:gpointer):gboolean;cdecl;external glibdll name 'g_source_remove_by_funcs_user_data';
-{$endif}
 procedure g_get_current_time(result:PGTimeVal);cdecl;external glibdll name 'g_get_current_time';
 function  g_main_new(is_running:gboolean):PGMainLoop;cdecl;external glibdll name 'g_main_new';
 procedure g_main_run(loop:PGMainLoop);cdecl;external glibdll name 'g_main_run';
@@ -1301,12 +1285,10 @@ begin
   g_hook_insert_before(hook_list,nil,hook);
 end;
 
-{$ifndef gtkwin}
 function  g_strstrip(thestring : Pgchar) : Pgchar;
 begin
   g_strstrip:=g_strchomp(g_strchug(thestring));
 end;
-{$endif}
 
 function  g_array_append_val(a:PGArray;v : longint) : PGarray;
 begin
@@ -1666,7 +1648,13 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.4  2003-03-02 02:10:19  hajny
+  Revision 1.6  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.5  2002/08/18 19:36:58  marco
+   * small fixes for NetBSD that doesn't adhere to the gtk12/glib12 etc naming for older GTK versions.
+
+  Revision 1.4  2003/03/02 02:10:19  hajny
     + OS/2 support for GTK and X11 added by Yuri
 
   Revision 1.3  2002/09/07 15:42:58  peter

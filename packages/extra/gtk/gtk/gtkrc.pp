@@ -22,7 +22,6 @@ function  gtk_rc_get_style(widget:PGtkWidget):PGtkStyle;cdecl;external gtkdll na
 procedure gtk_rc_add_widget_name_style(rc_style:PGtkRcStyle; pattern:Pgchar);cdecl;external gtkdll name 'gtk_rc_add_widget_name_style';
 procedure gtk_rc_add_widget_class_style(rc_style:PGtkRcStyle; pattern:Pgchar);cdecl;external gtkdll name 'gtk_rc_add_widget_class_style';
 procedure gtk_rc_add_class_style(rc_style:PGtkRcStyle; pattern:Pgchar);cdecl;external gtkdll name 'gtk_rc_add_class_style';
-{$ifndef gtkwin}
 function  gtk_rc_style_new:PGtkRcStyle;cdecl;external gtkdll name 'gtk_rc_style_new';
 procedure gtk_rc_style_ref(rc_style:PGtkRcStyle);cdecl;external gtkdll name 'gtk_rc_style_ref';
 procedure gtk_rc_style_unref(rc_style:PGtkRcStyle);cdecl;external gtkdll name 'gtk_rc_style_unref';
@@ -57,7 +56,6 @@ function  gtk_rc_get_module_dir:Pgchar;cdecl;external gtkdll name 'gtk_rc_get_mo
 function  gtk_rc_parse_color(scanner:PGScanner; color:PGdkColor):guint;cdecl;external gtkdll name 'gtk_rc_parse_color';
 function  gtk_rc_parse_state(scanner:PGScanner; state:PGtkStateType):guint;cdecl;external gtkdll name 'gtk_rc_parse_state';
 function  gtk_rc_parse_priority(scanner:PGScanner; priority:PGtkPathPriorityType):guint;cdecl;external gtkdll name 'gtk_rc_parse_priority';
-{$endif}
 
 {$endif read_interface}
 
@@ -72,7 +70,10 @@ function  gtk_rc_parse_priority(scanner:PGScanner; priority:PGtkPathPriorityType
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:13  peter

@@ -81,9 +81,7 @@ procedure gtk_menu_shell_prepend(menu_shell:PGtkMenuShell; child:PGtkWidget);cde
 procedure gtk_menu_shell_insert(menu_shell:PGtkMenuShell; child:PGtkWidget; position:gint);cdecl;external gtkdll name 'gtk_menu_shell_insert';
 procedure gtk_menu_shell_deactivate(menu_shell:PGtkMenuShell);cdecl;external gtkdll name 'gtk_menu_shell_deactivate';
 procedure gtk_menu_shell_select_item(menu_shell:PGtkMenuShell; menu_item:PGtkWidget);cdecl;external gtkdll name 'gtk_menu_shell_select_item';
-{$ifndef gtkwin}
 procedure gtk_menu_shell_deselect(menu_shell:PGtkMenuShell);cdecl;external gtkdll name 'gtk_menu_shell_deselect';
-{$endif}
 procedure gtk_menu_shell_activate_item(menu_shell:PGtkMenuShell; menu_item:PGtkWidget; force_deactivate:gboolean);cdecl;external gtkdll name 'gtk_menu_shell_activate_item';
 
 {$endif read_interface}
@@ -190,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:12  peter

@@ -72,9 +72,7 @@ procedure gtk_container_set_focus_vadjustment(container:PGtkContainer; adjustmen
 procedure gtk_container_set_focus_hadjustment(container:PGtkContainer; adjustment:PGtkAdjustment);cdecl;external gtkdll name 'gtk_container_set_focus_hadjustment';
 procedure gtk_container_register_toplevel(container:PGtkContainer);cdecl;external gtkdll name 'gtk_container_register_toplevel';
 procedure gtk_container_unregister_toplevel(container:PGtkContainer);cdecl;external gtkdll name 'gtk_container_unregister_toplevel';
-{$ifndef gtkwin}
 function  gtk_container_get_toplevels:PGList;cdecl;external gtkdll name 'gtk_container_get_toplevels';
-{$endif}
 procedure gtk_container_resize_children(container:PGtkContainer);cdecl;external gtkdll name 'gtk_container_resize_children';
 function  gtk_container_child_type(container:PGtkContainer):TGtkType;cdecl;external gtkdll name 'gtk_container_child_type';
 procedure gtk_container_add_child_arg_type(arg_name:Pgchar; arg_type:TGtkType; arg_flags:guint; arg_id:guint);cdecl;external gtkdll name 'gtk_container_add_child_arg_type';
@@ -85,7 +83,6 @@ procedure gtk_container_add_with_args(container:PGtkContainer; widget:PGtkWidget
 procedure gtk_container_addv(container:PGtkContainer; widget:PGtkWidget; n_args:guint; args:PGtkArg);cdecl;external gtkdll name 'gtk_container_addv';
 procedure gtk_container_child_set(container:PGtkContainer; child:PGtkWidget; first_arg_name:Pgchar; args:array of const);cdecl;external gtkdll name 'gtk_container_child_set';
 procedure gtk_container_queue_resize(container:PGtkContainer);cdecl;external gtkdll name 'gtk_container_queue_resize';
-{$ifndef gtkwin}
 procedure gtk_container_clear_resize_widgets(container:PGtkContainer);cdecl;external gtkdll name 'gtk_container_clear_resize_widgets';
 procedure gtk_container_arg_set(container:PGtkContainer; child:PGtkWidget; arg:PGtkArg; info:PGtkArgInfo);cdecl;external gtkdll name 'gtk_container_arg_set';
 procedure gtk_container_arg_get(container:PGtkContainer; child:PGtkWidget; arg:PGtkArg; info:PGtkArgInfo);cdecl;external gtkdll name 'gtk_container_arg_get';
@@ -93,7 +90,6 @@ function  gtk_container_child_args_collect(object_type:TGtkType; arg_list_p:PPGS
 function  gtk_container_child_arg_get_info(object_type:TGtkType; arg_name:Pgchar; info_p:PPGtkArgInfo):Pgchar;cdecl;external gtkdll name 'gtk_container_child_arg_get_info';
 procedure gtk_container_forall(container:PGtkContainer; callback:TGtkCallback; callback_data:gpointer);cdecl;external gtkdll name 'gtk_container_forall';
 function  gtk_container_child_composite_name(container:PGtkContainer; child:PGtkWidget):Pgchar;cdecl;external gtkdll name 'gtk_container_child_composite_name';
-{$endif}
 
 {$endif read_interface}
 
@@ -149,7 +145,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:10  peter

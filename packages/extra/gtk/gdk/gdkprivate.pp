@@ -198,11 +198,22 @@ procedure set_guffaw_gravity(var a : TGdkWindowPrivate; __guffaw_gravity : guint
        GDK_DEBUG_DND := 1 shl 2,GDK_DEBUG_COLOR_CONTEXT := 1 shl 3,
        GDK_DEBUG_XIM := 1 shl 4);
 
-{$ifndef gtkwin}
+procedure gdk_xid_table_insert(xid:TXID; data:gpointer);cdecl;external gdkdll name 'gdk_xid_table_insert';
+function  gdk_xid_table_lookup(xid:TXID):gpointer;cdecl;external gdkdll name 'gdk_xid_table_lookup';
+
 function  GDK_window_lookup(xid : longint) : PGdkWindow;
 function  GDK_pixmap_lookup(xid : longint) : PGdkPixmap;
 function  GDK_font_lookup(xid : longint) : PGdkFont;
 
+{$ifndef os2}
+    var
+       gdk_selection_property : TAtom;external gdkdll name 'gdk_selection_property';
+       gdk_progclass : Pgchar;external gdkdll name 'gdk_progclass';
+       gdk_error_code : gint;external gdkdll name 'gdk_error_code';
+       gdk_null_window_warnings : gint;external gdkdll name 'gdk_null_window_warnings';
+{$endif}
+
+{$ifndef gtkwin}
 procedure gdk_events_init;cdecl;external gdkdll name 'gdk_events_init';
 procedure gdk_window_init;cdecl;external gdkdll name 'gdk_window_init';
 procedure gdk_visual_init;cdecl;external gdkdll name 'gdk_visual_init';
@@ -213,9 +224,7 @@ function  gdk_colormap_lookup(xcolormap:TColormap):PGdkColormap;cdecl;external g
 function  gdk_visual_lookup(xvisual:pVisual):PGdkVisual;cdecl;external gdkdll name 'gdk_visual_lookup';
 procedure gdk_window_add_colormap_windows(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_add_colormap_windows';
 procedure gdk_window_destroy_notify(window:PGdkWindow);cdecl;external gdkdll name 'gdk_window_destroy_notify';
-procedure gdk_xid_table_insert(xid:TXID; data:gpointer);cdecl;external gdkdll name 'gdk_xid_table_insert';
 procedure gdk_xid_table_remove(xid:TXID);cdecl;external gdkdll name 'gdk_xid_table_remove';
-function  gdk_xid_table_lookup(xid:TXID):gpointer;cdecl;external gdkdll name 'gdk_xid_table_lookup';
 function  gdk_send_xevent(window:TWindow; propagate:gboolean; event_mask:glong; event_send:pXEvent):gint;cdecl;external gdkdll name 'gdk_send_xevent';
 procedure gdk_dnd_display_drag_cursor(x:gint; y:gint; drag_ok:gboolean; change_made:gboolean);cdecl;external gdkdll name 'gdk_dnd_display_drag_cursor';
 function  gdk_window_xid_at(base:TWindow; bx:gint; by:gint; x:gint; y:gint; excludes:PGList; excl_child:gboolean):TWindow;cdecl;external gdkdll name 'gdk_window_xid_at';
@@ -233,12 +242,8 @@ function  gdk_window_xid_at_coords(x:gint; y:gint; excludes:PGList; excl_child:g
        gdk_wm_delete_window : TAtom;external gdkdll name 'gdk_wm_delete_window';
        gdk_wm_take_focus : TAtom;external gdkdll name 'gdk_wm_take_focus';
        gdk_wm_protocols : TAtom;external gdkdll name 'gdk_wm_protocols';
-       gdk_selection_property : TAtom;external gdkdll name 'gdk_selection_property';
        gdk_dnd : TGdkDndGlobals;external gdkdll name 'gdk_dnd';
-       gdk_progclass : Pgchar;external gdkdll name 'gdk_progclass';
-       gdk_error_code : gint;external gdkdll name 'gdk_error_code';
        gdk_error_warnings : gint;external gdkdll name 'gdk_error_warnings';
-       gdk_null_window_warnings : gint;external gdkdll name 'gdk_null_window_warnings';
        gdk_default_filters : PGList;external gdkdll name 'gdk_default_filters';
        gdk_nevent_masks : longint;external gdkdll name 'gdk_nevent_masks';
        gdk_xgrab_window : PGdkWindowPrivate;external gdkdll name 'gdk_xgrab_window';
@@ -295,7 +300,6 @@ procedure set_guffaw_gravity(var a : TGdkWindowPrivate; __guffaw_gravity : guint
        a.flag0:=a.flag0 or ((__guffaw_gravity shl bp_TGdkWindowPrivate_guffaw_gravity) and bm_TGdkWindowPrivate_guffaw_gravity);
     end;
 
-{$ifndef gtkwin}
 function  GDK_window_lookup(xid : longint) : PGdkWindow;
     begin
        gdk_window_lookup:=PGdkWindow(gdk_xid_table_lookup(xid));
@@ -310,14 +314,16 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
     begin
        gdk_font_lookup:=PGdkFont(gdk_xid_table_lookup(xid));
     end;
-{$endif}
 
 {$endif read_implementation}
 
 
 {
   $Log$
-  Revision 1.3  2003-03-02 02:08:50  hajny
+  Revision 1.4  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.3  2003/03/02 02:08:50  hajny
     + OS/2 support for GTK and X11 added by Yuri
 
   Revision 1.2  2002/09/07 15:42:58  peter

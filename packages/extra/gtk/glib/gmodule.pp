@@ -35,7 +35,7 @@ uses
 
 {$ifdef win32}
   const
-    gmoduledll='gmodule-1.3';
+    gmoduledll='libgmodule-2.0-0';
   {$define gtkwin}
 
   {$packrecords C}
@@ -86,7 +86,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-03-02 02:10:19  hajny
+  Revision 1.4  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.3  2003/03/02 02:10:19  hajny
     + OS/2 support for GTK and X11 added by Yuri
 
   Revision 1.2  2002/09/07 15:42:59  peter

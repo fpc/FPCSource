@@ -148,9 +148,7 @@ function  gtk_type_enum_find_value(enum_thetype:TGtkType; value_name:Pgchar):PGt
 function  gtk_type_flags_find_value(flag_thetype:TGtkType; value_name:Pgchar):PGtkFlagValue;cdecl;external gtkdll name 'gtk_type_flags_find_value';
 procedure gtk_type_set_varargs_type(foreign_thetype:TGtkType; varargs_thetype:TGtkType);cdecl;external gtkdll name 'gtk_type_set_varargs_type';
 function  gtk_type_get_varargs_type(foreign_thetype:TGtkType):TGtkType;cdecl;external gtkdll name 'gtk_type_get_varargs_type';
-{$ifndef gtkwin}
 function  gtk_type_query(thetype:TGtkType):PGtkTypeQuery;cdecl;external gtkdll name 'gtk_type_query';
-{$endif}
 
 {$endif read_interface}
 
@@ -361,7 +359,10 @@ function  GTK_RETLOC_POINTER(const a : TGtkArg) : Pgpointer;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:14  peter

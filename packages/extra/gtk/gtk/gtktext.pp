@@ -104,9 +104,7 @@ function  gtk_text_get_type:TGtkType;cdecl;external gtkdll name 'gtk_text_get_ty
 function  gtk_text_new(hadj:PGtkAdjustment; vadj:PGtkAdjustment):PGtkWidget;cdecl;external gtkdll name 'gtk_text_new';
 procedure gtk_text_set_editable(text:PGtkText; editable:gboolean);cdecl;external gtkdll name 'gtk_text_set_editable';
 procedure gtk_text_set_word_wrap(text:PGtkText; word_wrap:gint);cdecl;external gtkdll name 'gtk_text_set_word_wrap';
-{$ifndef gtkwin}
 procedure gtk_text_set_line_wrap(text:PGtkText; line_wrap:gint);cdecl;external gtkdll name 'gtk_text_set_line_wrap';
-{$endif}
 procedure gtk_text_set_adjustments(text:PGtkText; hadj:PGtkAdjustment; vadj:PGtkAdjustment);cdecl;external gtkdll name 'gtk_text_set_adjustments';
 procedure gtk_text_set_point(text:PGtkText; index:guint);cdecl;external gtkdll name 'gtk_text_set_point';
 function  gtk_text_get_point(text:PGtkText):guint;cdecl;external gtkdll name 'gtk_text_get_point';
@@ -189,7 +187,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:13  peter

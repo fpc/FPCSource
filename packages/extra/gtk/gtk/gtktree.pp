@@ -74,9 +74,7 @@ function  gtk_tree_child_position(tree:PGtkTree; child:PGtkWidget):gint;cdecl;ex
 procedure gtk_tree_set_selection_mode(tree:PGtkTree; mode:TGtkSelectionMode);cdecl;external gtkdll name 'gtk_tree_set_selection_mode';
 procedure gtk_tree_set_view_mode(tree:PGtkTree; mode:TGtkTreeViewMode);cdecl;external gtkdll name 'gtk_tree_set_view_mode';
 procedure gtk_tree_set_view_lines(tree:PGtkTree; flag:guint);cdecl;external gtkdll name 'gtk_tree_set_view_lines';
-{$ifndef win32}
 procedure gtk_tree_remove_item(tree:PGtkTree; child:PGtkWidget);cdecl;external gtkdll name 'gtk_tree_remove_item';
-{$endif}
 
 {$endif read_interface}
 
@@ -140,7 +138,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:14  peter

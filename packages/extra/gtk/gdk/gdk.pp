@@ -36,7 +36,7 @@ uses
 
 {$ifdef win32}
   const
-    gdkdll='gdk-1.3';
+    gdkdll='libgdk-0';
   {$define gtkwin}
 
   {$packrecords C}
@@ -49,7 +49,7 @@ uses
     {$packrecords C}
   {$else}
     const
-    {$ifdef BSD}
+    {$ifdef FreeBSD}
       gdkdll='gdk12';
     {$else}
       gdkdll='gdk';
@@ -98,7 +98,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-03-02 02:08:50  hajny
+  Revision 1.6  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.5  2002/08/18 19:36:58  marco
+   * small fixes for NetBSD that doesn't adhere to the gtk12/glib12 etc naming for older GTK versions.
+
+  Revision 1.4  2003/03/02 02:08:50  hajny
     + OS/2 support for GTK and X11 added by Yuri
 
   Revision 1.3  2002/09/07 15:42:58  peter

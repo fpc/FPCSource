@@ -25,9 +25,7 @@ procedure gtk_drag_dest_set(widget:PGtkWidget; flags:TGtkDestDefaults; targets:P
 procedure gtk_drag_dest_set_proxy(widget:PGtkWidget; proxy_window:PGdkWindow; protocol:TGdkDragProtocol; use_coordinates:gboolean);cdecl;external gtkdll name 'gtk_drag_dest_set_proxy';
 procedure gtk_drag_dest_unset(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_drag_dest_unset';
 procedure gtk_drag_source_set(widget:PGtkWidget; start_button_mask:TGdkModifierType; targets:PGtkTargetEntry; n_targets:gint; actions:TGdkDragAction);cdecl;external gtkdll name 'gtk_drag_source_set';
-{$ifndef win32}
 procedure gtk_drag_source_unset(widget:PGtkWidget);cdecl;external gtkdll name 'gtk_drag_source_unset';
-{$endif}
 procedure gtk_drag_source_set_icon(widget:PGtkWidget; colormap:PGdkColormap; pixmap:PGdkPixmap; mask:PGdkBitmap);cdecl;external gtkdll name 'gtk_drag_source_set_icon';
 function  gtk_drag_begin(widget:PGtkWidget; targets:PGtkTargetList; actions:TGdkDragAction; button:gint; event:PGdkEvent):PGdkDragContext;cdecl;external gtkdll name 'gtk_drag_begin';
 procedure gtk_drag_set_icon_widget(context:PGdkDragContext; widget:PGtkWidget; hot_x:gint; hot_y:gint);cdecl;external gtkdll name 'gtk_drag_set_icon_widget';
@@ -50,7 +48,10 @@ procedure gtk_drag_dest_handle_event(toplevel:PGtkWidget; event:PGdkEvent);cdecl
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:59  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:42:59  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:10  peter

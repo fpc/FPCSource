@@ -168,9 +168,7 @@ procedure gtk_object_weakref(theobject:PGtkObject; notify:TGtkDestroyNotify; dat
 procedure gtk_object_weakunref(theobject:PGtkObject; notify:TGtkDestroyNotify; data:gpointer);cdecl;external gtkdll name 'gtk_object_weakunref';
 procedure gtk_object_destroy(theobject:PGtkObject);cdecl;external gtkdll name 'gtk_object_destroy';
 procedure gtk_object_getv(theobject:PGtkObject; n_args:guint; args:PGtkArg);cdecl;external gtkdll name 'gtk_object_getv';
-{$ifndef gtkwin}
 procedure gtk_object_get(theobject:PGtkObject; first_arg_name:Pgchar; args:array of const);cdecl;external gtkdll name 'gtk_object_get';
-{$endif}
 procedure gtk_object_set(theobject:PGtkObject; first_arg_name:Pgchar; args:array of const);cdecl;external gtkdll name 'gtk_object_set';
 procedure gtk_object_setv(theobject:PGtkObject; n_args:guint; args:PGtkArg);cdecl;external gtkdll name 'gtk_object_setv';
 function  gtk_object_query_args(class_type:TGtkType; arg_flags:PPguint32; n_args:Pguint):PGtkArg;cdecl;external gtkdll name 'gtk_object_query_args';
@@ -178,9 +176,7 @@ procedure gtk_object_set_data(theobject:PGtkObject; key:Pgchar; data:gpointer);c
 procedure gtk_object_set_data_full(theobject:PGtkObject; key:Pgchar; data:gpointer; destroy:TGtkDestroyNotify);cdecl;external gtkdll name 'gtk_object_set_data_full';
 procedure gtk_object_remove_data(theobject:PGtkObject; key:Pgchar);cdecl;external gtkdll name 'gtk_object_remove_data';
 function  gtk_object_get_data(theobject:PGtkObject; key:Pgchar):gpointer;cdecl;external gtkdll name 'gtk_object_get_data';
-{$ifndef gtkwin}
 procedure gtk_object_remove_no_notify(theobject:PGtkObject; key:Pgchar);cdecl;external gtkdll name 'gtk_object_remove_no_notify';
-{$endif}
 procedure gtk_object_set_user_data(theobject:PGtkObject; data:gpointer);cdecl;external gtkdll name 'gtk_object_set_user_data';
 function  gtk_object_get_user_data(theobject:PGtkObject):gpointer;cdecl;external gtkdll name 'gtk_object_get_user_data';
 procedure gtk_object_class_add_signals(klass:PGtkObjectClass; signals:Pguint; nsignals:guint);cdecl;external gtkdll name 'gtk_object_class_add_signals';
@@ -264,7 +260,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
+  Revision 1.3  2003-08-06 07:28:21  michael
+  + Patch from Marc Weustinck to fix Win32 version
+
+  Revision 1.2  2002/09/07 15:43:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:12  peter
