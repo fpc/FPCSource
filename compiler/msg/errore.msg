@@ -2102,22 +2102,29 @@ option_help_pages=11025_[
 **1I<x>_adds <x> to include path
 **1k<x>_Pass <x> to the linker
 **1l_write logo
+**1M<x>_set language mode to <x>
+**2Mfpc_free pascal dialect (default)
+**2Mobjfpc_switch some Delphi 2 extensions on
+**2Mdelphi_tries to be Delphi compatible
+**2Mtp_tries to be TP/BP 7.0 compatible
+**2Mgpc_tries to be gpc compatible
+**2Mmac_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
 **1o<x>_change the name of the executable produced to <x>
 **1pg_generate profile code for gprof (defines FPC_PROFILE)
 *L1P_use pipes instead of creating temporary assembler files
 **1S<x>_syntax options:
-**2S2_switch some Delphi 2 extensions on
+**2S2_same as -Mobjfpc
 **2Sc_supports operators like C (*=,+=,/= and -=)
 **2Sa_include assertion code.
-**2Sd_tries to be Delphi compatible
+**2Sd_same as -Mdelphi
 **2Se<x>_compiler stops after the <x> errors (default is 1)
 **2Sg_allow LABEL and GOTO
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
 **2Sm_support macros like C (global)
-**2So_tries to be TP/BP 7.0 compatible
-**2Sp_tries to be gpc compatible
+**2So_same as -Mtp
+**2Sp_same as -Mgpc
 **2Ss_constructor name must be init (destructor must be done)
 **2St_allow static keyword in objects
 **1s_don't call assembler and linker (only with -a)
@@ -2212,6 +2219,9 @@ option_help_pages=11025_[
 6*2TMACOS_Macintosh m68k
 6*2TLINUX_Linux-68k
 6*2TPALMOS_PalmOS
+P*1T<x>_Target operating system:
+P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tlinux_Linux on PowerPC
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting
