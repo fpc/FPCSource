@@ -332,16 +332,27 @@ implementation
                        if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
                          begin
                             if not freereg then
-                             internalerror(200205161);
-                            { load vmt pointer }
-                            reference_reset_base(href,hregister,0);
-                            reference_release(exprasmlist,href);
-                            hregister:=rg.getaddressregister(exprasmlist);
-                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-                            { load method address }
-                            reference_reset_base(href,hregister,tprocdef(resulttype.def)._class.vmtmethodoffset(
+                              begin
+                                if left.nodetype <> typen then
+                                  internalerror(200205161);
+                                reference_reset_symbol(href,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),
+                                  tprocdef(resulttype.def)._class.vmtmethodoffset(tprocdef(resulttype.def).extnumber));
+                              end
+                            else
+                              begin
+                                { load vmt pointer }
+                                reference_reset_base(href,hregister,0);
+                                reference_release(exprasmlist,href);
+                                hregister:=rg.getaddressregister(exprasmlist);
+                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
+
+
+                                reference_reset_base(href,hregister,tprocdef(resulttype.def)._class.vmtmethodoffset(
                                                  tprocdef(resulttype.def).extnumber));
-                            reference_release(exprasmlist,href);
+                                reference_release(exprasmlist,href);
+                              end;
+
+                            { load method address }
                             hregister:=rg.getaddressregister(exprasmlist);
                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                             { ... and store it }
@@ -352,7 +363,7 @@ implementation
                          begin
                             { we don't use the hregister }
                             if freereg then
-                             rg.ungetregisterint(exprasmlist,hregister);
+                             rg.ungetregister(exprasmlist,hregister);
                             { load address of the function }
                             reference_reset_symbol(href,objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname),0);
                             hregister:=cg.get_scratch_reg_address(exprasmlist);
@@ -931,7 +942,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-08-13 21:40:56  florian
+  Revision 1.22  2002-08-14 18:00:42  jonas
+    * fixed tb0403
+
+  Revision 1.21  2002/08/13 21:40:56  florian
     * more fixes for ppc calling conventions
 
   Revision 1.20  2002/08/11 14:32:26  peter
