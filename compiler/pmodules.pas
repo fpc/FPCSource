@@ -100,7 +100,8 @@ unit pmodules;
            then
          begin
            datasegment^.insert(new(pai_align,init(4)));
-           datasegment^.insert(new(pai_string,init('FPC '+version_string+' for '+target_cpu_string+' - '+target_info.short_name)));
+           datasegment^.insert(new(pai_string,init('FPC '+version_string+
+             ' for '+target_cpu_string+' - '+target_info.short_name)));
          end;
       { Insert start and end of sections }
         fixseg(codesegment,sec_code);
@@ -1228,7 +1229,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.90  1998-12-15 10:23:26  peter
+  Revision 1.91  1998-12-15 17:14:17  peter
+    * fix for tp7
+
+  Revision 1.90  1998/12/15 10:23:26  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.89  1998/12/11 00:03:34  peter
