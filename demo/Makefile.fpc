@@ -4,7 +4,7 @@
 
 [package]
 name=demo
-version=1.9.1
+version=1.9.4
 
 [target]
 dirs=text graph
