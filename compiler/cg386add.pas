@@ -1024,6 +1024,10 @@ implementation
                        popeax:=false;
                        popedx:=false;
                        { here you need to free the symbol first }
+  { This is VERY bad!!!! Now the optimizer assumes the current values of }
+  { those registers are NOT needed anymore, which causes bugs! The       }
+  { optimizer now contains a workaround which tries to fix all wrong     }
+  { deallocations, but this kind of things should NOT be done (JM)       }
                        clear_location(p^.location);
                        release_loc(p^.right^.location);
                        release_loc(p^.left^.location);
@@ -2206,7 +2210,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2000-01-09 12:34:59  jonas
+  Revision 1.87  2000-01-09 16:35:39  jonas
+    + comment about badly placed release_loc calls for a_mul which
+      causes wrong regdeallocations. Don't know how to fix :(
+
+  Revision 1.86  2000/01/09 12:34:59  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the
