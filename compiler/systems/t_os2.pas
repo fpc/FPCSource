@@ -360,9 +360,9 @@ procedure TLinkeros2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT -o $EXE.out @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE.out -aim -s$DOSHEAPKB';
-     ExeCmd[3]:='del $EXE.out';
+     ExeCmd[1]:='ld $OPT -o $OUT @$RES';
+     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE $OUT -aim -s$DOSHEAPKB';
+     ExeCmd[3]:='del $OUT';
    end;
 end;
 
@@ -438,11 +438,17 @@ var
   AppTypeStr,
   StripStr: string[40];
   RsrcStr : string;
+  DS: DirStr;
+  NS: NameStr;
+  ES: ExtStr;
+  OutName: PathStr;
 begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
+  FSplit (current_module.exefilename^, DS, NS, ES);
+  OutName := DS + NS + '.out';
   if (cs_link_strip in aktglobalswitches) then
    StripStr := '-s'
   else
@@ -457,7 +463,7 @@ begin
   else
    RsrcStr := '';
 (* Only one resource file supported, discard everything else
-   (should be already empty anyway, however. *)
+   (should be already empty anyway, though). *)
   Current_module.ResourceFiles.Clear;
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -481,15 +487,12 @@ begin
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
+        Replace(cmdstr,'$OUT',OutName);
         Replace(cmdstr,'$EXE',current_module.exefilename^);
         if i<>3 then
          success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false)
         else
          success:=DoExec(binstr,cmdstr,(i=1),true);
-(* We still want to have the PPAS script complete, right?
-        if not success then
-         break;
-*)
       end;
    end;
 
@@ -513,7 +516,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-11-17 22:22:12  peter
+  Revision 1.16  2004-12-05 12:25:48  hajny
+    * fix for compilation on 8.3 filesystems
+
+  Revision 1.15  2004/11/17 22:22:12  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 
