@@ -95,15 +95,15 @@ interface
          retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
-         c:=current_scanner^.asmgetchar;
+         c:=current_scanner.asmgetchar;
          code:=TAAsmoutput.Create;
          while not(ende) do
            begin
               { wrong placement
-              current_scanner^.gettokenpos; }
+              current_scanner.gettokenpos; }
               case c of
                  'A'..'Z','a'..'z','_' : begin
-                      current_scanner^.gettokenpos;
+                      current_scanner.gettokenpos;
                       i:=0;
                       hs:='';
                       while ((ord(c)>=ord('A')) and (ord(c)<=ord('Z')))
@@ -113,7 +113,7 @@ interface
                         begin
                            inc(i);
                            hs[i]:=c;
-                           c:=current_scanner^.asmgetchar;
+                           c:=current_scanner.asmgetchar;
                         end;
                       hs[0]:=chr(i);
                       if upper(hs)='END' then
@@ -268,15 +268,15 @@ interface
                       if pos(retstr,s) > 0 then
                         procinfo^.funcret_state:=vs_assigned;
                      writeasmline;
-                     c:=current_scanner^.asmgetchar;
+                     c:=current_scanner.asmgetchar;
                    end;
              #26 : Message(scan_f_end_of_file);
              else
                begin
-                 current_scanner^.gettokenpos;
+                 current_scanner.gettokenpos;
                  inc(byte(s[0]));
                  s[length(s)]:=c;
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                end;
            end;
          end;
@@ -287,7 +287,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.7  2001-04-13 01:22:21  peter
+  Revision 1.8  2001-04-13 18:20:21  peter
+    * scanner object to class
+
+  Revision 1.7  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

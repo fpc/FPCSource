@@ -277,10 +277,10 @@ begin
   actasmpattern:='';
   { while space and tab , continue scan... }
   while c in [' ',#9] do
-   c:=current_scanner^.asmgetchar;
+   c:=current_scanner.asmgetchar;
   { get token pos }
   if not (c in [newline,#13,'{',';']) then
-    current_scanner^.gettokenpos;
+    current_scanner.gettokenpos;
 { Local Label, Label, Directive, Prefix or Opcode }
   if firsttoken and not(c in [newline,#13,'{',';']) then
    begin
@@ -292,12 +292,12 @@ begin
         inc(len);
         actasmpattern[len]:=c;
         { Let us point to the next character }
-        c:=current_scanner^.asmgetchar;
+        c:=current_scanner.asmgetchar;
         while c in ['A'..'Z','a'..'z','0'..'9','_','$'] do
          begin
            inc(len);
            actasmpattern[len]:=c;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
          end;
         actasmpattern[0]:=chr(len);
         { this is a local label... }
@@ -305,7 +305,7 @@ begin
          Begin
            { local variables are case sensitive }
            actasmtoken:=AS_LLABEL;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            firsttoken:=true;
            exit;
          end
@@ -323,7 +323,7 @@ begin
       begin
         inc(len);
         actasmpattern[len]:=c;
-        c:=current_scanner^.asmgetchar;
+        c:=current_scanner.asmgetchar;
       end;
      actasmpattern[0]:=chr(len);
      { Label ? }
@@ -331,7 +331,7 @@ begin
       begin
         actasmtoken:=AS_LABEL;
         { let us point to the next character }
-        c:=current_scanner^.asmgetchar;
+        c:=current_scanner.asmgetchar;
         firsttoken:=true;
         exit;
       end;
@@ -360,16 +360,16 @@ begin
          begin
            if (prevasmtoken in [AS_ID,AS_RPAREN]) then
             begin
-              c:=current_scanner^.asmgetchar;
+              c:=current_scanner.asmgetchar;
               actasmtoken:=AS_DOT;
               exit;
             end;
            actasmpattern:=c;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
             begin
               actasmpattern:=actasmpattern + c;
-              c:=current_scanner^.asmgetchar;
+              c:=current_scanner.asmgetchar;
             end;
            if is_asmdirective(actasmpattern) then
             exit;
@@ -387,7 +387,7 @@ begin
             begin
               inc(len);
               actasmpattern[len]:=c;
-              c:=current_scanner^.asmgetchar;
+              c:=current_scanner.asmgetchar;
             end;
            actasmpattern[0]:=chr(len);
            uppervar(actasmpattern);
@@ -416,7 +416,7 @@ begin
          begin
            len:=1;
            actasmpattern[len]:='%';
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            { to be a register there must be a letter and not a number }
            if c in ['0'..'9'] then
             begin
@@ -429,25 +429,25 @@ begin
                Begin
                  inc(len);
                  actasmpattern[len]:=c;
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                end;
               actasmpattern[0]:=chr(len);
               uppervar(actasmpattern);
               if (actasmpattern = '%ST') and (c='(') then
                Begin
                  actasmpattern:=actasmpattern+c;
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                  if c in ['0'..'9'] then
                   actasmpattern:=actasmpattern + c
                  else
                   Message(asmr_e_invalid_fpu_register);
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                  if c <> ')' then
                   Message(asmr_e_invalid_fpu_register)
                  else
                   Begin
                     actasmpattern:=actasmpattern + c;
-                    c:=current_scanner^.asmgetchar; { let us point to next character. }
+                    c:=current_scanner.asmgetchar; { let us point to next character. }
                   end;
                end;
               if is_register(actasmpattern) then
@@ -464,7 +464,7 @@ begin
             Begin
               inc(len);
               actasmpattern[len]:=c;
-              c:=current_scanner^.asmgetchar;
+              c:=current_scanner.asmgetchar;
             end;
            actasmpattern[0]:=chr(len);
            actasmpattern:=tostr(ValDecimal(actasmpattern));
@@ -474,15 +474,15 @@ begin
        '0' : { octal,hexa,real or binary number. }
          begin
            actasmpattern:=c;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            case upcase(c) of
              'B': { binary }
                Begin
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                  while c in ['0','1'] do
                   Begin
                     actasmpattern:=actasmpattern + c;
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                   end;
                  actasmpattern:=tostr(ValBinary(actasmpattern));
                  actasmtoken:=AS_INTNUM;
@@ -490,42 +490,42 @@ begin
                end;
              'D': { real }
                Begin
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                  { get ridd of the 0d }
                  if (c in ['+','-']) then
                   begin
                     actasmpattern:=c;
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                   end
                  else
                   actasmpattern:='';
                  while c in ['0'..'9'] do
                   Begin
                     actasmpattern:=actasmpattern + c;
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                   end;
                  if c='.' then
                   begin
                     actasmpattern:=actasmpattern + c;
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                     while c in ['0'..'9'] do
                      Begin
                        actasmpattern:=actasmpattern + c;
-                       c:=current_scanner^.asmgetchar;
+                       c:=current_scanner.asmgetchar;
                      end;
                     if upcase(c) = 'E' then
                      begin
                        actasmpattern:=actasmpattern + c;
-                       c:=current_scanner^.asmgetchar;
+                       c:=current_scanner.asmgetchar;
                        if (c in ['+','-']) then
                         begin
                           actasmpattern:=actasmpattern + c;
-                          c:=current_scanner^.asmgetchar;
+                          c:=current_scanner.asmgetchar;
                         end;
                        while c in ['0'..'9'] do
                         Begin
                           actasmpattern:=actasmpattern + c;
-                          c:=current_scanner^.asmgetchar;
+                          c:=current_scanner.asmgetchar;
                         end;
                      end;
                     actasmtoken:=AS_REALNUM;
@@ -539,11 +539,11 @@ begin
                end;
              'X': { hexadecimal }
                Begin
-                 c:=current_scanner^.asmgetchar;
+                 c:=current_scanner.asmgetchar;
                  while c in ['0'..'9','a'..'f','A'..'F'] do
                   Begin
                     actasmpattern:=actasmpattern + c;
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                   end;
                  actasmpattern:=tostr(ValHexaDecimal(actasmpattern));
                  actasmtoken:=AS_INTNUM;
@@ -555,7 +555,7 @@ begin
                  while c in ['0'..'7'] do
                   Begin
                     actasmpattern:=actasmpattern + c;
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                   end;
                  actasmpattern:=tostr(ValOctal(actasmpattern));
                  actasmtoken:=AS_INTNUM;
@@ -572,27 +572,27 @@ begin
 
        '&' :
          begin
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            actasmtoken:=AS_AND;
          end;
 
        '''' : { char }
          begin
-           current_scanner^.in_asm_string:=true;
+           current_scanner.in_asm_string:=true;
            actasmpattern:='';
            repeat
-             c:=current_scanner^.asmgetchar;
+             c:=current_scanner.asmgetchar;
              case c of
                '\' :
                  begin
                    { copy also the next char so \" is parsed correctly }
                    actasmpattern:=actasmpattern+c;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    actasmpattern:=actasmpattern+c;
                  end;
                '''' :
                  begin
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    break;
                  end;
                newline:
@@ -603,27 +603,27 @@ begin
            until false;
            actasmpattern:=EscapeToPascal(actasmpattern);
            actasmtoken:=AS_STRING;
-           current_scanner^.in_asm_string:=false;
+           current_scanner.in_asm_string:=false;
            exit;
          end;
 
        '"' : { string }
          begin
-           current_scanner^.in_asm_string:=true;
+           current_scanner.in_asm_string:=true;
            actasmpattern:='';
            repeat
-             c:=current_scanner^.asmgetchar;
+             c:=current_scanner.asmgetchar;
              case c of
                '\' :
                  begin
                    { copy also the next char so \" is parsed correctly }
                    actasmpattern:=actasmpattern+c;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    actasmpattern:=actasmpattern+c;
                  end;
                '"' :
                  begin
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    break;
                  end;
                newline:
@@ -634,60 +634,60 @@ begin
            until false;
            actasmpattern:=EscapeToPascal(actasmpattern);
            actasmtoken:=AS_STRING;
-           current_scanner^.in_asm_string:=false;
+           current_scanner.in_asm_string:=false;
            exit;
          end;
 
        '$' :
          begin
            actasmtoken:=AS_DOLLAR;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        ',' :
          begin
            actasmtoken:=AS_COMMA;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '<' :
          begin
            actasmtoken:=AS_SHL;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            if c = '<' then
-            c:=current_scanner^.asmgetchar;
+            c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '>' :
          begin
            actasmtoken:=AS_SHL;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            if c = '>' then
-            c:=current_scanner^.asmgetchar;
+            c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '|' :
          begin
            actasmtoken:=AS_OR;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '^' :
          begin
            actasmtoken:=AS_XOR;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '!' :
          begin
            Message(asmr_e_nor_not_supported);
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            actasmtoken:=AS_NONE;
            exit;
          end;
@@ -695,48 +695,48 @@ begin
        '(' :
          begin
            actasmtoken:=AS_LPAREN;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        ')' :
          begin
            actasmtoken:=AS_RPAREN;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        ':' :
          begin
            actasmtoken:=AS_COLON;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '+' :
          begin
            actasmtoken:=AS_PLUS;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '-' :
          begin
            actasmtoken:=AS_MINUS;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '*' :
          begin
            actasmtoken:=AS_STAR;
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            exit;
          end;
 
        '/' :
          begin
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            actasmtoken:=AS_SLASH;
            exit;
          end;
@@ -744,14 +744,14 @@ begin
        '{',#13,newline,';' :
          begin
            { the comment is read by asmgetchar }
-           c:=current_scanner^.asmgetchar;
+           c:=current_scanner.asmgetchar;
            firsttoken:=TRUE;
            actasmtoken:=AS_SEPARATOR;
            exit;
          end;
 
        else
-         current_scanner^.illegal_char(c);
+         current_scanner.illegal_char(c);
      end;
    end;
 end;
@@ -1887,7 +1887,7 @@ Begin
   { setup label linked list }
   LocalLabelList:=TLocalLabelList.Create;
   { start tokenizer }
-  c:=current_scanner^.asmgetchar;
+  c:=current_scanner.asmgetchar;
   gettoken;
   { main loop }
   repeat
@@ -2119,7 +2119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-04-13 01:22:21  peter
+  Revision 1.10  2001-04-13 18:20:21  peter
+    * scanner object to class
+
+  Revision 1.9  2001/04/13 01:22:21  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
