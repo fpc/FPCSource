@@ -23,7 +23,7 @@ uses
   menus,
   app,
   stddlg,
-
+  asciitab,
   tabs,
   colortxt,
   statuses,
@@ -38,7 +38,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-01-29 22:00:33  peter
+  Revision 1.4  2002-05-29 22:15:19  pierre
+   + asciitab unit added
+
+  Revision 1.3  2002/01/29 22:00:33  peter
     * colortxt added
 
   Revision 1.2  2001/08/05 02:03:13  peter
