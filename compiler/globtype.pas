@@ -71,7 +71,9 @@ interface
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
-         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings
+         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,
+         { macpas specific}
+         cs_external_var, cs_externally_visible
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -293,7 +295,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2004-06-20 08:55:29  florian
+  Revision 1.59  2004-07-14 23:19:22  olle
+    + added external facilities for macpas
+
+  Revision 1.58  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.57  2004/06/16 20:07:07  florian

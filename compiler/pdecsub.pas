@@ -1254,7 +1254,12 @@ begin
          consume(_NAME);
          import_name:=get_stringconst;
          tprocdef(pd).setmangledname(import_name);
-       end;
+       end
+      else if (m_mac in aktmodeswitches) and (token=_SEMICOLON) then
+        begin
+          {In MacPas a single "external" has the same effect as "external name 'xxx'"}
+          tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
+        end;
     end;
 end;
 
@@ -1908,6 +1913,12 @@ const
       var
         res : boolean;
       begin
+        if (m_mac in aktmodeswitches) and (cs_externally_visible in aktlocalswitches) then
+          begin
+            tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
+            include(pd.procoptions,po_public);
+          end;
+
         while token in [_ID,_LECKKLAMMER] do
          begin
            if try_to_consume(_LECKKLAMMER) then
@@ -2247,7 +2258,10 @@ const
 end.
 {
   $Log$
-  Revision 1.182  2004-06-20 08:55:30  florian
+  Revision 1.183  2004-07-14 23:19:21  olle
+    + added external facilities for macpas
+
+  Revision 1.182  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.181  2004/06/16 20:07:09  florian

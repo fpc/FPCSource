@@ -695,6 +695,7 @@ implementation
          unionsym : tvarsym;
          uniontype : ttype;
          dummysymoptions : tsymoptions;
+         semicolonatend: boolean;
       begin
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
@@ -764,6 +765,7 @@ implementation
              ignore_equal:=false;
              hasdefaultvalue:=false;
              symdone:=false;
+
              if is_gpc_name then
                begin
                   vs:=tvarsym(sc.first);
@@ -775,6 +777,7 @@ implementation
                   include(vs.varoptions,vo_is_external);
                   symdone:=true;
                end;
+
              { check for absolute }
              if not symdone and
                 (idtoken=_ABSOLUTE) and not(is_record or is_object or is_threadvar) then
@@ -943,13 +946,18 @@ implementation
                    end;
                end;
 
-             { Check for variable directives }
-             if not symdone and (token=_ID) then
+             { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
+             if not symdone and not(is_record or is_object or is_threadvar) then
               begin
-                { Check for C Variable declarations }
-                if (m_cvar_support in aktmodeswitches) and
-                   not(is_record or is_object or is_threadvar) and
-                   (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
+                if (
+                     (token=_ID) and
+                     (m_cvar_support in aktmodeswitches) and
+                     (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR])
+                   ) or
+                   (
+                     (m_mac in aktmodeswitches) and
+                     ((cs_external_var in aktlocalswitches) or (cs_externally_visible in aktlocalswitches))
+                   ) then
                  begin
                    { only allowed for one var }
                    vs:=tvarsym(sc.first);
@@ -964,6 +972,7 @@ implementation
                    extern_var:=false;
                    export_var:=false;
                    C_name:=sorg;
+                   semicolonatend:= false;
                    { cdecl }
                    if idtoken=_CVAR then
                     begin
@@ -977,7 +986,23 @@ implementation
                     begin
                       consume(_EXTERNAL);
                       extern_var:=true;
+                      semicolonatend:= true;
                     end;
+                   { macpas specific handling due to some switches}
+                   if (m_mac in aktmodeswitches) then
+                     begin
+                       if (cs_external_var in aktlocalswitches) then
+                         begin {The effect of this is the same as if cvar; external; has been given as directives.}
+                           is_cdecl:=true;
+                           C_name:=target_info.Cprefix+sorg;
+                           extern_var:=true;
+                         end
+                       else if (cs_externally_visible in aktlocalswitches) then
+                         begin {The effect of this is the same as if cvar has been given as directives.}
+                           is_cdecl:=true;
+                           C_name:=target_info.Cprefix+sorg;
+                         end;
+                     end;
                    { export }
                    if idtoken in [_EXPORT,_PUBLIC] then
                     begin
@@ -986,7 +1011,10 @@ implementation
                          (symtablestack.symtabletype in [parasymtable,localsymtable]) then
                        Message(parser_e_not_external_and_export)
                       else
-                       export_var:=true;
+                       begin
+                         export_var:=true;
+                         semicolonatend:= true;
+                       end;
                     end;
                    { external and export need a name after when no cdecl is used }
                    if not is_cdecl then
@@ -1001,8 +1029,9 @@ implementation
                       C_name:=get_stringconst;
                     end;
                    { consume the ; when export or external is used }
-                   if extern_var or export_var then
+                   if semicolonatend then
                     consume(_SEMICOLON);
+
                    { set some vars options }
                    if is_dll then
                     include(vs.varoptions,vo_is_dll_var)
@@ -1042,9 +1071,12 @@ implementation
                         current_module.Externals.insert(tExternalsItem.create(vs.mangledname));
                     end;
                    symdone:=true;
-                 end
-                else
-                 if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
+                 end;
+              end;
+
+             { Check for STATIC directive }
+             if not symdone and (is_object) and
+               (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     include(current_object_option,sp_static);
                     insert_syms(sc,tt,false,dummysymoptions);
@@ -1053,7 +1085,7 @@ implementation
                     consume(_SEMICOLON);
                     symdone:=true;
                   end;
-              end;
+
              { insert it in the symtable, if not done yet }
              if not symdone then
                begin
@@ -1082,7 +1114,9 @@ implementation
                   insert_syms(sc,tt,is_threadvar,dummysymoptions);
                   current_object_option:=old_current_object_option;
                end;
+
            end;
+
          { Check for Case }
          if is_record and (token=_CASE) then
            begin
@@ -1194,7 +1228,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2004-06-20 08:55:30  florian
+  Revision 1.76  2004-07-14 23:19:22  olle
+    + added external facilities for macpas
+
+  Revision 1.75  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.74  2004/06/16 20:07:09  florian

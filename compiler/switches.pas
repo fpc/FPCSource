@@ -45,8 +45,10 @@ type
     typesw : TSwitchType;
     setsw  : byte;
   end;
+  SwitchRecTable = array['A'..'Z'] of SwitchRec;
+
 const
-  SwitchTable:array['A'..'Z'] of SwitchRec=(
+  turboSwitchTable: SwitchRecTable =(
    {A} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {B} (typesw:localsw; setsw:ord(cs_full_boolean_eval)),
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
@@ -75,7 +77,41 @@ const
    {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
     );
 
+
+  macSwitchTable: SwitchRecTable =(
+   {A} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {B} (typesw:localsw; setsw:ord(cs_full_boolean_eval)),
+   {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
+   {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
+   {E} (typesw:modulesw; setsw:ord(cs_fp_emulation)),
+   {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+   {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+   {H} (typesw:localsw; setsw:ord(cs_ansistrings)),
+   {I} (typesw:localsw; setsw:ord(cs_check_io)),
+   {J} (typesw:localsw; setsw:ord(cs_external_var)),
+   {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
+   {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
+   {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {P} (typesw:modulesw; setsw:ord(cs_openstring)),
+   {Q} (typesw:localsw; setsw:ord(cs_check_overflow)),
+   {R} (typesw:localsw; setsw:ord(cs_check_range)),
+   {S} (typesw:localsw; setsw:ord(cs_check_stack)),
+   {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
+   {U} (typesw:illegalsw; setsw:ord(cs_localnone)),
+   {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
+   {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
+   {Y} (typesw:modulesw; setsw:ord(cs_browser)),
+   {Z} (typesw:localsw; setsw:ord(cs_externally_visible))
+    );
+
 procedure HandleSwitch(switch,state:char);
+
+var
+  switchTablePtr: ^SwitchRecTable;
+
 begin
   switch:=upcase(switch);
 { Is the Switch in the letters ? }
@@ -84,8 +120,15 @@ begin
      Message(scan_w_illegal_switch);
      exit;
    end;
+
+{ Select switch table }
+  if m_mac in aktmodeswitches  then
+    switchTablePtr:= @macSwitchTable
+  else
+    switchTablePtr:= @turboSwitchTable;
+  
 { Handle the switch }
-  with SwitchTable[switch] do
+   with switchTablePtr^[switch] do
    begin
      case typesw of
      ignoredsw : Message1(scan_n_ignored_switch,'$'+switch);
@@ -134,8 +177,11 @@ end;
 
 
 function CheckSwitch(switch,state:char):boolean;
+
 var
   found : boolean;
+  switchTablePtr: ^SwitchRecTable;
+
 begin
   switch:=upcase(switch);
 { Is the Switch in the letters ? }
@@ -145,8 +191,15 @@ begin
      CheckSwitch:=false;
      exit;
    end;
+
+{ Select switch table }
+  if m_mac in aktmodeswitches then
+    switchTablePtr:= @macSwitchTable
+  else
+    switchTablePtr:= @turboSwitchTable;
+  
 { Check the switch }
-  with SwitchTable[switch] do
+   with switchTablePtr^[switch] do
    begin
      case typesw of
       localsw : found:=(tlocalswitch(setsw) in aktlocalswitches);
@@ -165,7 +218,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:30  florian
+  Revision 1.15  2004-07-14 23:19:22  olle
+    + added external facilities for macpas
+
+  Revision 1.14  2004/06/20 08:55:30  florian
     * logs truncated
 
 }
