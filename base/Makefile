@@ -157,6 +157,13 @@ endif
 endif
 endif
 
+# Stop with an error?
+ifdef SNAPSHOT
+NOSTOP=-
+else
+NOSTOP=
+endif
+
 # Prefix for units
 ifeq ($(OS_TARGET),linux)
 PKGPRE=units
@@ -1409,7 +1416,7 @@ endif
 	$(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
-	$(MAKE) ide_full $(BUILDOPTS)
+	-$(MAKE) ide_full $(BUILDOPTS)
 endif
 	$(ECHO) Build > build-stamp
 
@@ -1445,7 +1452,7 @@ install: build-stamp
 	$(MAKE) fcl_install $(INSTALLOPTS)
 	$(MAKE) packages_install $(INSTALLOPTS)
 ifdef IDE
-	$(MAKE) ide_install $(BUILDOPTS)
+	$(NOSTOP)$(MAKE) ide_install $(BUILDOPTS)
 endif
 
 zipinstall: $(FPCDIRSET) build-stamp
@@ -1455,7 +1462,7 @@ zipinstall: $(FPCDIRSET) build-stamp
 	$(MAKE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 	$(MAKE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 ifdef IDE
-	$(MAKE) ide_zipinstall $(INSTALLOPTS)
+	$(NOSTOP)$(MAKE) ide_zipinstall $(INSTALLOPTS)
 endif
 
 
