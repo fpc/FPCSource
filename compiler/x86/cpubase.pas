@@ -493,7 +493,6 @@ uses
 
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [firstreg..lastreg];
-      ALL_INTREGISTERS = [1..255];
 
       {# low and high of the available maximum width integer general purpose }
       { registers                                                            }
@@ -726,7 +725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-06-03 21:11:09  peter
+  Revision 1.8  2003-06-12 19:11:34  jonas
+    - removed ALL_INTREGISTERS (only the one in rgobj is valid)
+
+  Revision 1.7  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

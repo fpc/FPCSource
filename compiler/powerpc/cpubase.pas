@@ -478,7 +478,6 @@ uses
       {# Constant defining possibly all registers which might require saving }
 {$warning FIX ME !!!!!!!!! }
       ALL_REGISTERS = [R_0..R_FPSCR];
-      ALL_INTREGISTERS = [1..255];
 
       general_registers = [R_0..R_31];
       general_superregisters = [RS_R0..RS_R31];
@@ -852,7 +851,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-05-31 15:05:28  peter
+  Revision 1.56  2003-06-12 19:11:34  jonas
+    - removed ALL_INTREGISTERS (only the one in rgobj is valid)
+
+  Revision 1.55  2003/05/31 15:05:28  peter
     * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
 
   Revision 1.54  2003/05/30 23:57:08  peter

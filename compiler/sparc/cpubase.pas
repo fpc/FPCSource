@@ -734,7 +734,6 @@ type
 
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [R_G0..R_I7];
-      ALL_INTREGISTERS = [1..255];
 
       general_registers = [R_G0..R_I7];
       general_superregisters = [RS_O0..RS_I7];
@@ -1024,7 +1023,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-06-04 21:00:54  mazen
+  Revision 1.41  2003-06-12 19:11:34  jonas
+    - removed ALL_INTREGISTERS (only the one in rgobj is valid)
+
+  Revision 1.40  2003/06/04 21:00:54  mazen
   - making TOldRegister only declared for compatibility and
     no more used in cpubase
 
