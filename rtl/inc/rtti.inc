@@ -69,111 +69,13 @@ TArrayRec = record
   Info : Pointer;
   end;
   
+{ The actual Routines are implemented per processor. }
 
-Procedure Initialize (Data,TypeInfo : pointer);[Alias : 'INITIALIZE'];
+{$i rttip.inc}
 
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
-     
-begin
-  Temp:=PByte(TypeInfo);
-  case temp^ of 
-    tkLstring,tkWstring : PPchar(Data)^:=Nil;
-    tkArray :
-      begin
-      temp:=Temp+1;
-      I:=temp^; 
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info 
-      For I:=0 to Count-1 do
-        Initialize (Data+(I*size),TInfo);   
-      end; 
-    tkrecord :
-      begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count Do 
-        With PRecRec(Temp)^.elements[I] do
-          Initialize (Data+Offset,Info);
-      end;
-  end;
-end;
+{ 
+  $Log$
+  Revision 1.2  1998-06-08 15:32:15  michael
+  + Split rtti according to processor. Implemented optimized i386 code.
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Alias : 'FINALIZE'];
-
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
-
-begin
-  Temp:=PByte(TypeInfo);
-  case temp^ of 
-    tkLstring,tkWstring : Decr_Ansi_ref(Data);
-    tkArray :
-      begin
-      Temp:=Temp+1;
-      I:=temp^; 
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info 
-      For I:=0 to Count-1 do
-        Finalize (Data+(I*size),TInfo);   
-      end; 
-    tkrecord :
-      begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count do 
-        With PRecRec(Temp)^.elements[I] do
-          Finalize (Data+Offset,Info);
-      end;
-  end;
-end;
-
-Procedure Addref (Data,TypeInfo : Pointer); [alias : 'ADDREF'];
-
-Var Temp       : PByte;
-    I          : longint;
-    Size,Count : longint;
-    TInfo : Pointer;
-
-begin
-  Temp:=PByte(TypeInfo);
-  case temp^ of 
-    tkLstring,tkWstring : Incr_Ansi_ref(Data);
-    tkArray :
-      begin
-      Temp:=Temp+1;
-      I:=temp^; 
-      temp:=temp+(I+1);               // skip name string;
-      Size:=PArrayRec(Temp)^.Size;     // get element size
-      Count:=PArrayRec(Temp)^.Count;  // get element Count
-      TInfo:=PArrayRec(Temp)^.Info;   // Get element info 
-      For I:=0 to Count-1 do
-        Finalize (Data+(I*size),TInfo);   
-      end; 
-    tkrecord :
-      begin
-      Temp:=Temp+1;
-      I:=Temp^;
-      temp:=temp+(I+1);             // skip name string;
-      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
-      Count:=PRecRec(Temp)^.Count;  // get element Count
-      For I:=1 to count do 
-        With PRecRec(Temp)^.elements[I] do
-          Finalize (Data+Offset,Info);
-      end;
-  end;
-end;
+}
