@@ -69,6 +69,7 @@ Procedure Inc(var i : Word);       [INTERNPROC: In_Inc_Word];
 Procedure Inc(var i : shortint);   [INTERNPROC: In_Inc_byte];
 Procedure Inc(var i : byte);       [INTERNPROC: In_Inc_byte];
 Procedure Inc(var c : Char);       [INTERNPROC: In_Inc_byte];
+Procedure Inc(var p : PChar);      [INTERNPROC: In_Inc_DWord];
 Procedure Dec(var i : Cardinal);   [INTERNPROC: In_Dec_DWord];
 Procedure Dec(var i : Longint);    [INTERNPROC: In_Dec_DWord];
 Procedure Dec(var i : Integer);    [INTERNPROC: In_Dec_Word];
@@ -76,6 +77,7 @@ Procedure Dec(var i : Word);       [INTERNPROC: In_Dec_Word];
 Procedure Dec(var i : shortint);   [INTERNPROC: In_Dec_byte];
 Procedure Dec(var i : byte);       [INTERNPROC: In_Dec_byte];
 Procedure Dec(var c : Char);       [INTERNPROC: In_Dec_byte];
+Procedure Dec(var p : PChar);      [INTERNPROC: In_Dec_DWord];
 
 {$IFNDEF ORDINTERN}
   Function ord(c : Char) : byte;    [INTERNPROC: In_ord_Char];
@@ -174,6 +176,15 @@ Begin
   Byte(c):=byte(c)+a;
 End;
 
+Procedure Dec(var p : PChar;a : Longint);
+Begin
+  longint(p):=longint(p)-a;
+End;
+
+Procedure Inc(var p : PChar;a : Longint);
+Begin
+  longint(p):=longint(p)+a;
+End;
 
 Function swap (X : Word) : Word;
 Begin
@@ -402,7 +413,10 @@ End;
 
 {
   $Log$
-  Revision 1.3  1998-04-08 07:53:32  michael
+  Revision 1.4  1998-04-16 12:30:47  peter
+    + inc(pchar), dec(pchar), incc(pchar,a),dec(pchar,a)
+
+  Revision 1.3  1998/04/08 07:53:32  michael
   + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
 
   Revision 1.2  1998/03/25 23:39:17  florian

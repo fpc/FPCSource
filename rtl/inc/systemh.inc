@@ -167,6 +167,7 @@ Procedure Inc(Var i:Word);
 Procedure Inc(Var i:shortint);
 Procedure Inc(Var i:byte);
 Procedure Inc(Var c:Char);
+Procedure Inc(Var p:PChar);
 Procedure Dec(Var i:cardinal);
 Procedure Dec(Var i:Longint);
 Procedure Dec(Var i:Integer);
@@ -174,6 +175,7 @@ Procedure Dec(Var i:Word);
 Procedure Dec(Var i:shortint);
 Procedure Dec(Var i:byte);
 Procedure Dec(Var c:Char);
+Procedure Dec(Var p:PChar);
 {$IFNDEF ORDINTERN}
   Function Ord(c:Char):byte;
   Function Ord(b:Boolean):byte;
@@ -195,6 +197,8 @@ Procedure Dec(Var i:shortint;a:Longint);
 Procedure Inc(Var i:shortint;a:Longint);
 Procedure Dec(Var c:Char;a:Longint);
 Procedure Inc(Var c:Char;a:Longint);
+Procedure Dec(Var p:PChar;a:Longint);
+Procedure Inc(Var p:PChar;a:Longint);
 Function  Swap (X:Word):Word;
 Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
@@ -392,7 +396,10 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.3  1998-03-26 14:41:22  michael
+  Revision 1.4  1998-04-16 12:30:47  peter
+    + inc(pchar), dec(pchar), incc(pchar,a),dec(pchar,a)
+
+  Revision 1.3  1998/03/26 14:41:22  michael
   + Added comp support for val and read(ln)
 
   Revision 1.2  1998/03/25 23:39:17  florian
