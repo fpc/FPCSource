@@ -59,13 +59,33 @@ program fpc;
       findclose(Info);
     end;
 
+
+  procedure findexe(var ppcbin:string);
+    var
+      path : string;
+    begin
+      { add .exe extension }
+      ppcbin:=ppcbin+exeext;
+
+      { get path of fpc.exe }
+      path:=splitpath(paramstr(0));
+      if FileExists(path+ppcbin) then
+       ppcbin:=path+ppcbin
+      else
+       begin
+         path:=FSearch(ppcbin,getenv('PATH'));
+         if path<>'' then
+          ppcbin:=path;
+       end;
+    end;
+
+
   var
-     s,path,
+     s,
      ppcbin,
      processorstr   : shortstring;
      ppccommandline : ansistring;
      i : longint;
-
   begin
      ppccommandline:='';
 {$ifdef i386}
@@ -86,7 +106,17 @@ program fpc;
           if pos('-P',s)=1 then
             begin
                processorstr:=copy(s,3,length(s)-2);
-               if processorstr='i386' then
+               { -P? is a special code that will show the
+                 default compiler and exit immediatly. It's
+                 main usage is for Makefile }
+               if processorstr='?' then
+                begin
+                  { report the full name of the ppcbin }
+                  findexe(ppcbin);
+                  writeln(ppcbin);
+                  halt(0);
+                end
+               else if processorstr='i386' then
                  ppcbin:='ppc386'
                else if processorstr='m68k' then
                  ppcbin:='ppc68k'
@@ -100,19 +130,8 @@ program fpc;
             ppccommandline:=ppccommandline+s+' ';
        end;
 
-     { add .exe extension }
-     ppcbin:=ppcbin+exeext;
-
-     { get path of fpc.exe }
-     path:=splitpath(paramstr(0));
-     if FileExists(path+ppcbin) then
-      ppcbin:=path+ppcbin
-     else
-      begin
-        path:=FSearch(ppcbin,getenv('PATH'));
-        if path<>'' then
-         ppcbin:=path;
-      end;
+     { find the full path to the specified exe }
+     findexe(ppcbin);
 
      { call ppcXXX }
      swapvectors;
@@ -124,7 +143,22 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.1  2001-04-25 22:40:07  peter
+  Revision 1.2  2001-09-22 11:11:43  peter
+    * "fpc -P?" command to query for used ppcXXX compiler
+
+  Revision 1.1.2.1  2001/04/25 22:43:24  peter
     * compiler dependent utils in utils/ subdir
+
+  Revision 1.1.2.2  2000/12/12 19:47:40  peter
+    * fixed for go32v2 and win32
+
+  Revision 1.1.2.1  2000/11/18 14:16:12  peter
+    * really working now
+
+  Revision 1.1  2000/07/13 06:29:50  michael
+  + Initial import
+
+  Revision 1.1  2000/07/07 17:07:20  florian
+    + initial revision
 
 }

@@ -794,12 +794,30 @@ implementation
                     usedinproc:=usedinproc +[R_D0]
                   else if pattern='D1' then
                     usedinproc:=usedinproc + [R_D1]
-                  else if pattern='D6' then
+                  else if pattern='D2' then
                     usedinproc:=usedinproc + [R_D2]
+                  else if pattern='D3' then
+                    usedinproc:=usedinproc + [R_D3]
+                  else if pattern='D4' then
+                    usedinproc:=usedinproc + [R_D4]
+                  else if pattern='D5' then
+                    usedinproc:=usedinproc + [R_D5]
+                  else if pattern='D6' then
+                    usedinproc:=usedinproc + [R_D6]
+                  else if pattern='D7' then
+                    usedinproc:=usedinproc + [R_D7]
                   else if pattern='A0' then
                     usedinproc:=usedinproc + [R_A0]
                   else if pattern='A1' then
                     usedinproc:=usedinproc + [R_A1]
+                  else if pattern='A2' then
+                    usedinproc:=usedinproc + [R_A2]
+                  else if pattern='A3' then
+                    usedinproc:=usedinproc + [R_A3]
+                  else if pattern='A4' then
+                    usedinproc:=usedinproc + [R_A4]
+                  else if pattern='A5' then
+                    usedinproc:=usedinproc + [R_A5]
 {$endif m68k}
 {$ifdef powerpc}
                   if pattern<>'' then
@@ -1246,7 +1264,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-09-06 10:21:50  jonas
+  Revision 1.37  2001-09-22 11:11:43  peter
+    * "fpc -P?" command to query for used ppcXXX compiler
+
+  Revision 1.36  2001/09/06 10:21:50  jonas
     * fixed superfluous generation of stackframes for assembler procedures
       with no local vars or para's (this broke the backtrace printing in case
       of an rte)
