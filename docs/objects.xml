@@ -748,6 +748,15 @@ None.
 <example file="objectex/ex8"/>
 </element>
 
+<element name="TObject.Is_Object">
+<short>Check whether a pointer points to an object.</short>
+<descr>
+<var>Is_Object</var> returns <var>True</var> if the pointer <var>P</var>
+points to an instance of a <var>TObject</var> descendent, it returns 
+<var>false</var> otherwise.
+</descr>
+</element>
+
 
 <element name="TStream">
 <short>Base stream class</short>
@@ -776,6 +785,14 @@ instead instantiate a descendant type, such as <var>TDosStream</var>,
 
 <element name="PStream">
 <short>Pointer type to <link id="TStream"/></short>
+</element>
+
+<element name="TStream.Init">
+<short>Constructor for TStream instance</short>
+<descr>
+<var>Init</var> initializes a TStream instance. Descendent streams should
+always call the inherited <var>Init</var>.
+</descr>
 </element>
 
 <element name="TStream.Status">

@@ -139,6 +139,30 @@ implement the functionality in this unit for the new platform.
 <short>Pointer to <link id="cuShort"/> type.</short>
 </element>
 
+<element name="cchar">
+<short>Alias for <link id="#rtl.UnixType.cchar"/></short>
+</element>
+
+<element name="cuchar">
+<short>Alias for <link id="#rtl.UnixType.cuchar"/></short>
+</element>
+
+<element name="cunsigned">
+<short>Alias for <link id="#rtl.unixtype.cunsigned"/></short>
+</element>
+
+<element name="pcchar">
+<short>Alias for <link id="#rtl.UnixType.pcchar"/></short>
+</element>
+
+<element name="pcuchar">
+<short>Alias for <link id="#rtl.UnixType.pcuchar"/></short>
+</element>
+
+<element name="pcunsigned">
+<short>Alias for <link id="#rtl.unixtype.pcunsigned"/></short>
+</element>
+
 <!-- alias type Visibility: default -->
 <element name="dev_t">
 <short>Device descriptor type.</short>
@@ -1122,6 +1146,140 @@ implement the functionality in this unit for the new platform.
 <!-- pointer type Visibility: default -->
 <element name="POff64">
 <short>Pointer to <link id="TOff64"/> type.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="timezone">
+<short>Record describing a timezone</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timezone.minuteswest">
+<short>Minutes west of GMT</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="timezone.dsttime">
+<short>Daylight savings time</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="ptimezone">
+<short>Pointer to <link id="TimeZone"/> record.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="TTimeZone">
+<short>Alias for <link id="TimeZone"/> record.</short>
+</element>
+
+
+<element name="S_IFMT">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: File type bit mask</short>
+</element>
+<element name="S_IFSOCK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Socket</short>
+</element>
+<element name="S_IFLNK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Link</short>
+</element>
+<element name="S_IFREG">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Regular file</short>
+</element>
+<element name="S_IFBLK">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Block device</short>
+</element>
+<element name="S_IFDIR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Directory</short>
+</element>
+<element name="S_IFCHR">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: Character device</short>
+</element>
+<element name="S_IFIFO">
+<short>File (<link id="#rtl.baseunix.stat"/> record) mode: FIFO</short>
+</element>
+
+<element name="SigActionHandler">
+<short>Callback prototype for a <link id="#rtl.baseunix.SigActionRec"/> record.</short>
+<descr>
+When installing a signal handler, the actual signal handler must be of type
+<var>SigActionHandler</var>.
+</descr>
+</element>
+
+<element name="PSigContext">
+<short>Pointer to <link id="#rtl.baseunix.TSigContext"/> record type.</short>
+</element>
+
+<element name="TSigContext">
+<short>Record describing the CPU context when a signal occurs.</short>
+<descr>
+This type is CPU dependent. Cross-platform code should not use the contents
+of this record.
+</descr>
+</element>
+
+<element name="PSigInfo">
+<short>Pointer to <link id="#rtl.baseunix.TSigInfo"/> record type.</short>
+</element>
+
+<element name="TSigInfo">
+<short>Record describing the signal when a signal occurs.</short>
+<descr>
+This type describes the signal that occurred.
+</descr>
+</element>
+
+<element name="TSigInfo.si_signo">
+<short>Signal number</short>
+</element>
+
+
+<element name="TSigInfo.si_errno">
+<short>Error code</short>
+</element>
+
+<element name="TSigInfo.si_code">
+<short>Extra code (?)</short>
+</element>
+
+
+<element name="TStatFS">
+<short>Record describing a file system in the <link id="baseunix.fpstatfs"/> call.</short>
+</element>
+<element name="TStatFS.fstype">
+<short>File system type</short>
+</element>
+<element name="TStatFS.bsize">
+<short>Block size</short>
+</element>
+<element name="TStatFS.blocks">
+<short>Total number of blocks</short>
+</element>
+<element name="TStatFS.bfree">
+<short>Number of free blocks</short>
+</element>
+<element name="TStatFS.bavail">
+<short>Number of available blocks</short>
+</element>
+<element name="TStatFS.files">
+<short>Number of files</short>
+</element>
+<element name="TStatFS.ffree">
+<short>?</short>
+</element>
+<element name="TStatFS.fsid">
+<short>?</short>
+</element>
+<element name="TStatFS.namelen">
+<short>Max name length for files.</short>
+</element>
+<element name="TStatFS.spare">
+<short>Pad bytes. Do not use.</short>
+</element>
+
+<element name="TSigInfo.si_fields">
+<short>Extra fields, content depends on the signal.</short>
 </element>
 
 <element name="MAP_PRIVATE">
@@ -4618,6 +4776,23 @@ function.
 <link id="FpSymLink"/>
 </seealso>
 <example file="unixex/ex62"/>
+</element>
+
+<element name="FPSetTimeOfDay">
+<short>Set kernel time</short>
+<descr>
+<p>
+<var>FpSetTimeOfDay</var> sets the kernel time to the number of seconds since 00:00, 
+January 1 1970, GMT specified in the <var>tp</var> record. This time NOT corrected 
+any way, not taking into account timezones, daylight savings time and so on. 
+</p>
+<p>
+It is simply a wrapper to the kernel system call. 
+</p>
+</descr>
+<seealso>
+<link id="#rtl.unix.FPGetTimeOfDay"/>
+</seealso>
 </element>
 
 </module> <!-- BaseUnix -->

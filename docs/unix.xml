@@ -962,31 +962,6 @@
 <short>Pointer to <link id="SigActionRec"/> record type.</short>
 </element>
 
-<!-- record type Visibility: default -->
-<element name="timezone">
-<short>Record describing a timezone</short>
-</element>
-
-<!-- variable Visibility: default -->
-<element name="timezone.minuteswest">
-<short>Minutes west of GMT</short>
-</element>
-
-<!-- variable Visibility: default -->
-<element name="timezone.dsttime">
-<short>Daylight savings time</short>
-</element>
-
-<!-- pointer type Visibility: default -->
-<element name="ptimezone">
-<short>Pointer to <link id="TimeZone"/> record.</short>
-</element>
-
-<!-- alias type Visibility: default -->
-<element name="TTimeZone">
-<short>Alias for <link id="TimeZone"/> record.</short>
-</element>
-
 <element name="S_IFMT">
 <short>File (<link id="#rtl.baseunix.stat"/> record) mode: File type bit mask</short>
 </element>
@@ -2440,6 +2415,107 @@ function.
 </seealso>
 </element>
 
+<element name="MAP_PRIVATE">
+<short><link id="FpMMap"/> map type: Changes are private</short>
+</element>
+<element name="MAP_ANONYMOUS">
+<short><link id="FpMMap"/> map type: Don't use a file</short>
+</element>
+<element name="MAP_GROWSDOWN">
+<short><link id="FpMMap"/> option: Memory grows downward (like a stack)</short>
+</element>
+<element name="MAP_DENYWRITE">
+<short><link id="FpMMap"/> option: Ignored.</short>
+</element>
+<element name="MAP_EXECUTABLE">
+<short><link id="FpMMap"/> option: Ignored.</short>
+</element>
+<element name="MAP_LOCKED">
+<short><link id="FpMMap"/> option: lock the pages in memory.</short>
+</element>
+<element name="MAP_NORESERVE">
+<short><link id="FpMMap"/> option: Do not reserve swap pages for this memory.</short>
+</element>
+<element name="MAP_SHARED">
+<short><link id="FpMMap"/> map type: Share changes</short>
+</element>
+<element name="MAP_TYPE">
+<short><link id="FpMMap"/> map type: Bitmask for type of mapping</short>
+</element>
+<element name="MAP_FIXED">
+<short><link id="FpMMap"/> map type: Interpret addr exactly</short>
+</element>
+
+<element name="PROT_READ">
+<short><link id="FpMMap"/> memory access: page can be read</short>
+</element>
+<element name="PROT_WRITE">
+<short><link id="FpMMap"/> memory access: page can be written</short>
+</element>
+<element name="PROT_EXEC">
+<short><link id="FpMMap"/> memory access: page can be executed</short>
+</element>
+<element name="PROT_NONE">
+<short><link id="FpMMap"/> memory access: page can not be accessed</short>
+</element>
+
+<element name="cchar">
+<short>Alias for <link id="#rtl.UnixType.cchar"/></short>
+</element>
+
+<element name="cuchar">
+<short>Alias for <link id="#rtl.UnixType.cuchar"/></short>
+</element>
+
+<element name="cunsigned">
+<short>Alias for <link id="#rtl.unixtype.cunsigned"/></short>
+</element>
+
+<element name="pcchar">
+<short>Alias for <link id="#rtl.UnixType.pcchar"/></short>
+</element>
+
+<element name="pcuchar">
+<short>Alias for <link id="#rtl.UnixType.pcuchar"/></short>
+</element>
+
+<element name="pcunsigned">
+<short>Alias for <link id="#rtl.unixtype.pcunsigned"/></short>
+</element>
+
+<element name="TStatFS">
+<short>Record describing a file system in the <link id="baseunix.fpstatfs"/> call.</short>
+</element>
+<element name="TStatFS.fstype">
+<short>File system type</short>
+</element>
+<element name="TStatFS.bsize">
+<short>Block size</short>
+</element>
+<element name="TStatFS.blocks">
+<short>Total number of blocks</short>
+</element>
+<element name="TStatFS.bfree">
+<short>Number of free blocks</short>
+</element>
+<element name="TStatFS.bavail">
+<short>Number of available blocks</short>
+</element>
+<element name="TStatFS.files">
+<short>Number of files</short>
+</element>
+<element name="TStatFS.ffree">
+<short>?</short>
+</element>
+<element name="TStatFS.fsid">
+<short>?</short>
+</element>
+<element name="TStatFS.namelen">
+<short>Max name length for files.</short>
+</element>
+<element name="TStatFS.spare">
+<short>Pad bytes. Do not use.</short>
+</element>
 
 </module> <!-- Unix -->
 </package>

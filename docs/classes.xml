@@ -3355,6 +3355,50 @@ sets the new capacity.
 </seealso>
 </element>
 
+<element name="TStrings.GetNameValue">
+<short>Return both name and value of a name,value pair based on it's index.</short>
+<descr></descr>
+</element>
+
+
+<element name="TStrings.Delimiter">
+<short>Delimiter character used in <link id="#rtl.classes.TStrings.DelimitedText">DelimitedText</link>.</short>
+<descr></descr>
+</element>
+
+
+<element name="TStrings.DelimitedText">
+<short>Get or set all strings in the list in a delimited form.</short>
+<descr></descr>
+</element>
+
+
+<element name="TStrings.QuoteChar">
+<short>Quote character used in <link id="#rtl.classes.TStrings.DelimitedText">DelimitedText</link>.</short>
+<descr></descr>
+</element>
+
+<element name="TStrings.NameValueSeparator">
+<short>Value of the character used to separate name,value pairs</short>
+<descr>
+</descr>
+</element>
+
+
+<element name="TStrings.ValueFromIndex"><short></short>
+<descr>Return the value part of a string based on it's index.</descr>
+</element>
+
+
+<element name="TStringList.CustomSort"><short></short>
+<descr></descr>
+</element>
+
+
+<element name="TStringList.CaseSensitive"><short></short>
+<descr>Indicates whether locating strings happens in a case sensitive manner.</descr>
+</element>
+
 <element name="TStrings.CommaText">  <!-- Property -->
 <short>Contents of the list as a comma-separated string.</short>
 <descr>
@@ -3399,6 +3443,11 @@ String
 
 NormalString
 </pre>
+<p>
+This is a special case of the <link id="DelimitedText"/> property where the
+quote character is always the double quote, and the delimiter is always the
+colon.
+</p>
 </descr>
 <seealso>
 <link id="TStrings.Text"/>
@@ -9805,6 +9854,1483 @@ linefeed character.
 
 <element name="TStringListSortCompare">
 <short>Callback type used in stringlist compares.</short>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="sysutils">
+<short>System routines</short>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="types">
+<short>System types</short>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="typinfo">
+<short>RTTI information</short>
+</element>
+
+<!-- unresolved type reference Visibility: default -->
+<element name="rtlconsts">
+<short>Resource strings with messages</short>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TShiftStateEnum">
+<short>Keyboard/Mouse shift state enumerator</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssShift">
+<short>Shift key pressed</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssAlt">
+<short>Alt key pressed</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssCtrl">
+<short>Ctrl key pressed</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssLeft">
+<short>Left mouse button pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssRight">
+<short>Right mouse button pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssMiddle">
+<short>Middle mouse button pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssDouble">
+<short>Double mouse click.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssMeta">
+<short>Meta key pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssSuper">
+<short>Super key pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssHyper">
+<short>Hyper key pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssAltGr">
+<short>Alt-GR key pressed.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssCaps">
+<short>Caps lock key pressed</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssNum">
+<short>Num lock key pressed</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssScroll">
+<short>Scroll lock key pressed</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssTriple">
+<short>Triple mouse click</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TShiftStateEnum.ssQuad">
+<short>Quadruple mouse click</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="THelpType.htKeyword">
+<short>Help type: Keyword help</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="THelpType.htContext">
+<short>Help type: Context ID help.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TListNotification.lnAdded">
+<short>List change notification: Element added to the list.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TListNotification.lnExtracted">
+<short>List change notification: Element extracted from the list.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TListNotification.lnDeleted">
+<short>List change notification: Element deleted from the list.</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TList.Extract">
+<short>Remove the first occurrence of a pointer from the list.</short>
+<descr>
+<var>Extract</var> searched for an occurence of <var>item</var>, and if a
+match is found, the match is deleted from the list. If no match is found,
+nothing is deleted. If <var>Item</var> was found, the result is
+<var>Item</var>. If <var>Item</var> was not found, the result is
+<var>Nil</var>. A <var>lnExtracted</var> notification event is triggered if
+an element is extracted from the list. Note that a <var>lnDeleted</var>
+event will also occur.
+</descr>
+<seealso>
+<link id="TList.Delete"/>
+<link id="TList.IndexOf"/>
+<link id="TList.Remove"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TList.Assign">
+<short>Copy the contents of another list.</short>
+<descr>
+<var>Assign</var> copies the pointers of the <var>Obj</var> list to the list.
+The list is cleared prior to copying.
+</descr>
+<seealso>
+<link id="TList.Clear"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TRecall">
+<short>Helper class for storing published properties</short>
+<descr>
+<p>
+<var>TRecall</var> is a helper class used to copy published 
+properties of a class (the reference object) in another class
+(the storage object). The reference object and storage object must be
+assignable to each other. 
+</p>
+<p>
+The <var>TRecall</var> can be used to store the state of a persistent class,
+and restore it at a later time.
+</p>
+<p>When a <var>TRecall</var> object is created, it gets passed a reference
+instance and a storage instance. It immediatly stores the properties of
+the reference object in the storage object. 
+</p>
+<p>
+The <link id="TRecall.Store">Store</link> method can be called throughout
+the lifetime of the reference object to update the stored properties.
+</p>
+<p>When the <var>TRecall</var> instance is destroyed then the properties are
+copied from the storage object to the reference object. The storage object
+is freed automatically.
+</p>
+<p>
+If the properties should not be copied back from the storage to the
+reference object, the <link id="TRecall.Forget">Forget</link> can be called.
+</p>
+</descr>
+<seealso>
+<link id="TRecall.Create"/>
+<link id="TRecall.Destroy"/>
+<link id="TRecall.Forget"/>
+<link id="TRecall.Store"/>
+<link id="TPersistent.Assign"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TRecall.Create">
+<short>Creates a new instance of <var>TRecall</var>.</short>
+<descr>
+<var>Create</var> creates a new instance of <var>TRecall</var> and
+initializes the Reference and Storage instances. It calls <link
+id="TRecall.Store">Store</link> to assign the reference object properties to
+the storage instance.
+</descr>
+<seealso>
+<link id="TRecall.Store"/>
+<link id="TRecall.Destroy"/>
+</seealso>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TRecall.Destroy">
+<short>Copies the stored properties to the reference object and destroys the
+<var>TRecall</var> instance.</short>
+<descr>
+<var>Destroy</var> assigns the storage instance to the reference instance,
+if the latter is still valid. After this, it frees the storage and calls the
+inherited destroy.
+</descr>
+<errors>
+<var>Destroy</var> does not check whether the <link
+id="TRecall.Reference">reference</link> instance is still valid. If the
+reference pointer was invalidated, call <link id="TRecall.Forget"/> to clear
+the reference instance.
+</errors>
+<seealso>
+<link id="TRecall.Store"/>
+<link id="TRecall.Forget"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TRecall.Store">
+<short>Assigns the reference instance to the storage instance.</short>
+<descr>
+<p>
+<var>Store</var> assigns the reference instance to the storage instance.
+This will only work if the two classes can be assigned to each other.
+</p>
+<p>
+This method can be used to refresh the storage.
+</p>
+</descr>
+<errors>
+<var>Store</var> does not check whether the <link
+id="TRecall.Reference">reference</link> instance is still valid. If the
+reference pointer was invalidated, call <link id="TRecall.Forget"/> to clear
+the reference instance.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TRecall.Forget">
+<short>Clear the reference property.</short>
+<descr>
+<p>
+<var>Forget</var> sets the <link id="Reference">Reference</link> property to
+<var>Nil</var>. When the <var>TRecall</var> instance is destroyed, the
+reference instance will not be restored. 
+</p>
+<p>
+Note that after a call to <var>Forget</var>, a call to <link
+id="TRecall.Store">Store</link> has no effect.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRecall.Reference"/>
+<link id="TRecall.Store"/>
+<link id="TRecall.Destroy"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TRecall.Reference">
+<short>The reference object.</short>
+<descr>
+<var>Reference</var> is the instance of the reference object. Do not free
+the reference directly. 
+Call <link id="TRecall.Forget">Forget</link> to clear the reference and then
+free the reference object.
+</descr>
+<seealso>
+<link id="TRecall.Forget"/>
+</seealso>
+</element>
+
+<!-- enumeration type Visibility: default -->
+<element name="TCollectionNotification">
+<short>Collection change notifcation enumeration.</short>
+<descr>
+<var>TCollectionNotification</var> is used in the <link id="TCollection"/>
+class to send notifications about changes to the collection.
+</descr>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TCollectionNotification.cnAdded">
+<short>An item is added to the collection.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TCollectionNotification.cnExtracting">
+<short>An item is extracted from the collection.</short>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TCollectionNotification.cnDeleting">
+<short>An item is deleted from the collection.</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TCollection.Owner">
+<short>Owner of the collection.</short>
+<descr>
+<var>Owner</var> returns a reference to the owner of the collection. This
+property is required by the object inspector to be able to show the
+collection.
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TCollection.Delete">
+<short>Delete an item from the collection.</short>
+<descr>
+<var>Delete</var> deletes the item at (zero based) position 
+<var>Index</var> from the collection. This will result in a
+<var>cnDeleted</var> notification.
+</descr>
+<errors>
+If an invalid index is specified, an exception is raised.
+</errors>
+<seealso>
+<link id="TCollection.Items"/>
+<link id="TCollection.Insert"/>
+<link id="TCollection.Clear"/>
+</seealso>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TCollection.Insert">
+<short>Insert an item in the collection.</short>
+<descr>
+<p>
+<var>Insert</var> creates a new item instance and inserts it in 
+the collection at position <var>Index</var>, and returns the new instance.
+</p>
+<p>
+In contrast, <link id="TCollection.Add"/> adds a new item at the end.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.Add"/>
+<link id="TCollection.Delete"/>
+<link id="TCollection.Items"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TOwnedCollection">
+<short><link id="#rtl.classes.TCollection">TCollection</link> descendent
+which maintains owner information.</short>
+<descr>
+<var>TOwnedCollection</var> automatically maintains owner information, so it
+can be displayed in an IDE. Collections that should be displayed in an
+IDE should descend from <var>TOwnedCollection</var> or must implement a
+<var>GetOwner</var> function.
+</descr>
+<seealso>
+<link id="TCollection"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TOwnedCollection.Create">
+<short>Create a new <var>TOwnerCollection</var> instance.</short>
+<descr>
+<var>Create</var> creates a new instance of <var>TOwnedCollection</var> and
+stores the <var>AOwner</var> references. It will the value returned in the <link
+id="TCollection.Owner"/> property of the collection. The
+<var>ItemClass</var> class reference is passed on to the inherited
+constructor, and will be used to create new instances in the <link
+id="TCollection.Insert">Insert</link> and <link
+id="TCollection.Add">Add</link> methods.
+</descr>
+<seealso>
+<link id="TCollection.Create"/>
+<link id="TCollection.Owner"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TOwnerStream">
+<short>Stream which uses a second stream as a source</short>
+<descr>
+<var>TOwnerStream</var> can be used when creating stream chains 
+such as when using encryption and compression streams. It keeps a reference
+to the source stream and will automatically free the source stream when
+ready (if the <link id="TOwnerStream.SourceOwner">SourceOwner</link>
+property is set to <var>True</var>).
+</descr>
+<seealso>
+<link id="TStream"/>
+<link id="TOwnerStream.Source"/>
+<link id="TOwnerStream.SourceOwner"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TOwnerStream.Create">
+<short>Create a new instance of <var>TOwnerStream</var>. </short>
+<descr>
+<var>Create</var> instantiates a new instance of <var>TOwnerStream</var> and
+stores the reference to <var>AStream</var>. If <var>SourceOwner</var> is
+<var>True</var>, the soure stream will also be freed when the instance is
+destroyed.
+</descr>
+<seealso>
+<link id="TOwnerStream.Destroy"/>
+<link id="TOwnerStream.Source"/>
+<link id="TOwnerStream.SourceOwner"/>
+</seealso>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TOwnerStream.Destroy">
+<short>Destroys the <var>TOwnerStream</var> instance and the source stream.</short>
+<descr>
+<var>Destroy</var> frees the source stream if the <var>SourceOwner</var>
+property is <var>True</var>.
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="TOwnerStream.Create"/>
+<link id="TOwnerStream.Source"/>
+<link id="TOwnerStream.SourceOwner"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TOwnerStream.Source">
+<short>Reference to the source stream.</short>
+<descr>
+<p>
+<var>Source</var> is the source stream. It should be uses by descendent
+streams to access the source stream to read from or write to.
+</p>
+<p>
+Do not free the <var>Source</var> reference directly. Either the owner
+stream instance should free the source stream or 
+</p>
+</descr>
+<seealso>
+<link id="TOwnerStream.Create"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TOwnerStream.SourceOwner">
+<short>Indicates whether the ownerstream owns it's source</short>
+<descr>
+<var>SourceOwner</var> indicates whether the <var>TOwnerStream</var> owns
+it's <var>Source</var> stream or not. If this property is <var>True</var>
+then the <var>Source</var> stream is freed when the <var>TOwnerStream</var>
+instance is freed.
+</descr>
+<seealso>
+<link id="TOwnerStream.Source"/>
+<link id="TOwnerStream.Destroy"/>
+</seealso>
+</element>
+
+<!-- function Visibility: public -->
+<element name="THandleStream.Seek">
+<short>Overrides the Seek method.</short>
+<descr>
+<var>seek</var> uses the <link id="#rtl.SysUtils.FileSeek">FileSeek</link>
+method to position the stream on the desired position. Note that handle
+stream descendents (notably pipes) can override the method to prevent the
+seek.
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TCustomMemoryStream.GetSize">
+<short>return the size of the stream.</short>
+<descr>
+<var>GetSize</var> returns the size of the reseved memory. It should not be
+used directly.
+</descr>
+<seealso>
+<link id="TStream.Size"/>
+</seealso>
+</element>
+
+<!-- enumeration value Visibility: default -->
+<element name="TValueType.vaUTF8String">
+<short>UTF8 encoded unicode string.</short>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.NextValue">
+<short>Return the type of the next value.</short>
+<descr>
+<p>
+<var>NextValue</var> returns the type of the next value in a binary stream,
+but does not read the value.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadValue">
+<short>Read the next value in the stream</short>
+<descr>
+<p>
+<var>NextValue</var> reads the next value in a binary stream and returns 
+the type of the read value.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TBinaryObjectReader.BeginRootComponent">
+<short>Start reading the root component.</short>
+<descr>
+<p>
+<var>BeginRootComponent</var> starts reading the root component in a binary
+stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TBinaryObjectReader.BeginComponent">
+<short>Start reading a component.</short>
+<descr>
+<p>
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.BeginProperty">
+<short>Start reading a property.</short>
+<descr>
+<p>
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TBinaryObjectReader.ReadBinary">
+<short>Start reading a binary value.</short>
+<descr>
+<p>
+<var>ReadBinary</var> reads a binary valye from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream  of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadFloat">
+<short>Read a float value</short>
+<descr>
+<p>
+<var>ReadFloat</var> reads a float value from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadSingle">
+<short>Read a single-size float value</short>
+<descr>
+<p>
+<var>ReadSingle</var> reads a single-sized float value from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadDate">
+<short>Read a date.</short>
+<descr>
+<p>
+<var>ReadDate</var> reads a date value from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadIdent">
+<short>Read an identifier</short>
+<descr>
+<p>
+<var>ReadIdent</var> reads an identifier from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadInt8">
+<short>Read an 8-bits integer.</short>
+<descr>
+<p>
+<var>Read8Int</var> reads an 8-bits signed integer from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadInt16">
+<short>Read a 16-bits integer.</short>
+<descr>
+<p>
+<var>Read16Int</var> reads a 16-bits signed integer from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadInt32">
+<short>Read a 32-bits integer.</short>
+<descr>
+<p>
+<var>Read32Int</var> reads a 32-bits signed integer from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadInt64">
+<short>Read a 64-bits integer.</short>
+<descr>
+<p>
+<var>Read64Int</var> reads a 64-bits signed integer from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadSet">
+<short>Read a set</short>
+<descr>
+<p>
+<var>ReadSet</var> reads a set from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadStr">
+<short>Read a short string</short>
+<descr>
+<p>
+<var>ReadStr</var> reads a short string from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TBinaryObjectReader.ReadString">
+<short>Read a string</short>
+<descr>
+<p>
+<var>ReadStr</var> reads a string of type <var>StringType</var> from a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TBinaryObjectReader.SkipComponent">
+<short>Skip a component's data</short>
+<descr>
+<p>
+<var>SkipComponent</var> skips the data of a component in a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>.
+</p>
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TBinaryObjectReader.SkipValue">
+<short>Skip a value's data</short>
+<descr>
+<p>
+<var>SkipComponent</var> skips the data of the next value in a binary stream.
+</p>
+<p>
+This method is simply the implementation for a binary stream of the abstract method introduced
+in <link id="TAbstractObjectReader"/>
+</p>
+</descr>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TSetMethodPropertyEvent">
+<short>Callback for the <link id="TReader.OnSetMethodProperty"/> event.</short>
+<descr>
+<var>TSetMethodPropertyEvent</var> is the prototype for the <link
+id="TReader.OnSetMethodProperty"/> event. <var>Reader</var> is the sender of
+the event, <var>Instance</var> is the instance that is being streamed.
+<var>PropInfo</var> is a pointer to the RTTI information for the property
+being read, and <var>TheMethodName</var> is the name of the method that 
+the property should be set to. <var>Handled</var> should be set to
+<var>True</var> if the handler set the property succesfully. 
+</descr>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TPropertyNotFoundEvent">
+<short>Callback for the <link id="TReader.OnPropertyNotFound"/> event.</short>
+<descr>
+<var>TPropertyNotFoundEvent</var> is the prototype for the <link
+id="TReader.OnPropertyNotFound"/> event. <var>Reader</var> is the sender of
+the event, <var>Instance</var> is the instance that is being streamed.
+<var>PropInfo</var> is a pointer to the RTTI information for the property
+being read. <var>Handled</var> should be set to <var>True</var> if
+the handler redirected the unknown property succesfully, and <var>Skip</var>
+should be set to <var>True</var> if the value should be skipped.
+<var>IsPath</var> determines whether the property refers to a sub-property.
+</descr>
+<seealso>
+<link id="TReader.OnPropertyNotFound"/>
+</seealso>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TReadWriteStringPropertyEvent">
+<short>Callback for the <link id="TReader.OnReadStringProperty"/> event handler</short>
+<descr>
+<var>TReadWriteStringPropertyEvent</var> is the prototype for the <link
+id="TReader.OnReadStringProperty"/> event handler.  <var>Reader</var> is the
+sender of
+the event, <var>Instance</var> is the instance that is being streamed.
+<var>PropInfo</var> is a pointer to the RTTI information for the property
+being read. <var>Content</var> is the string as it was read from the stream.
+</descr>
+<seealso>
+<link id="TReader.OnReadStringProperty"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TReader.OnPropertyNotFound">
+<short>Handler for treating missing properties.</short>
+<descr>
+<p>
+<var>OnPropertyNotFound</var> can be used to take appropriate action when a
+property is read from a stream and no such property is found in the RTTI
+information of the Instance that is being read from the stream. It can be
+set at runtime, or at designtime by an IDE.
+</p>
+<p>
+For more information about the meaning of the various arguments to the event
+handler, see <link id="TPropertyNotFoundEvent"/>.
+</p>
+</descr>
+<seealso>
+<link id="TPropertyNotFoundEvent"/>
+<link id="TReader.OnSetMethodProperty"/>
+<link id="TReader.OnReadStringProperty"/>
+
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TReader.OnSetMethodProperty">
+<short>Handler for setting method properties.</short>
+<descr>
+<var>OnSetMethodProperty</var> can be set to handle the setting of method
+properties. This handler can be used by an IDE to prevent methods from
+actually being when an object is being streamed in the designer.
+</descr>
+<seealso>
+<link id="TReader.OnReadStringProperty"/>
+<link id="TReader.OnPropertyNotFound"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TReader.OnReadStringProperty">
+<short>Handler for translating strings when read from the stream.</short>
+<descr>
+<var>OnReadStringProperty</var> is called whenever a string property is read
+from the stream. It can be used e.g. by a translation mechanism to translate the
+strings on the fly, when a form is loaded. See <link
+id="TReadWriteStringPropertyEvent"/> for a description of the various
+parameters.
+</descr>
+<seealso>
+<link id="TReader.OnPropertyNotFound"/>
+<link id="TReader.OnSetMethodProperty"/>
+<link id="TReadWriteStringPropertyEvent"/>
+</seealso>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TWriteMethodPropertyEvent">
+<short>Callback for the <link id="TWriter.OnWriteMethodProperty"/> event.</short>
+<descr>
+<var>TWriteMethodPropertyEvent</var> is the prototype for the <link
+id="TWriter.OnWriteMethodProperty"/> event. <var>Writer</var> is the sender of
+the event, <var>Instance</var> is the instance that is being streamed.
+<var>PropInfo</var> is a pointer to the RTTI information for the property
+being written, and <var>MethodValue</var> is the value of the method that
+the property was set to. <var>DefMethodCodeValue</var> is set to the default
+value of the property (Nil or the parent value).
+<var>Handled</var> should be set to <var>True</var> if the handler set the property succesfully.
+</descr>
+<seealso>
+<link id="TWriter.OnWriteMethodProperty"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TWriter.OnWriteMethodProperty">
+<short>Handler from writing method properties.</short>
+<descr>
+<var>OnWriteMethodProperty</var> can be set by an IDE or some streaming
+mechanism which handles dummy values for method properties; It can be used
+to write a real value to the stream which will be interpreted correctly when
+the stream is read. See <link id="TWriteMethodPropertyEvent"/> for a description of the arguments.
+</descr>
+<seealso>
+<link id="TWriteMethodPropertyEvent"/>
+<link id="TReader.OnSetMethodProperty"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TWriter.OnWriteStringProperty">
+<short>Event handler for translating strings written to stream.</short>
+<descr>
+<var>OnWriteStringProperty</var> is called whenever a string property is
+written to the stream. It can be used e.g. by a translation mechanism to 
+translate the strings on the fly, when a form is written. See <link
+id="TReadWriteStringPropertyEvent"/> for a description of the various
+parameters.
+</descr>
+<seealso>
+<link id="TReader.OnPropertyNotFound"/>
+<link id="TReader.OnSetMethodProperty"/>
+<link id="TReadWriteStringPropertyEvent"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="EThreadDestroyCalled">
+<short>Exception raised when a thread is destroyed illegally.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="TSynchronizeProcVar">
+<short>Synchronize callback type</short>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TThread.FatalException">
+<short>Exception that occured during thread execution</short>
+<descr>
+<var>FatalException</var> contains the exception that occurred during the
+thread's execution.
+</descr>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TComponent.BeforeDestruction">
+<short>Overrides standard BeforeDestruction.</short>
+<descr>
+<var>BeforeDestruction</var> is overridden by <var>TComponent</var> to set
+the <var>csDestroying</var> flag in <link id="ComponentState"/>
+</descr>
+<seealso>
+<link id="ComponentState"/>
+</seealso>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TComponent.ExecuteAction">
+<short>Standard action execution method.</short>
+<descr>
+<var>ExecuteAction</var> checks whether <var>Action</var> handles the
+current component, and if yes, calls the <var>ExecuteAction</var> method,
+passing itself as a parameter. The function returns <var>True</var> if the
+action handles the current component.
+</descr>
+<seealso>
+<link id="TBasicAction"/>
+<link id="TBasicAction.ExecuteAction"/>
+<link id="TBasicAction.HandlesTarget"/>
+<link id="UpdateAction"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TComponent.RemoveFreeNotification">
+<short>Remove a component from the Free Notification list.</short>
+<descr>
+<var>RemoveFreeNotification</var> removes <var>AComponent</var> from the
+freenotification list. 
+</descr>
+<seealso>
+<link id="FreeNotification"/>
+</seealso>
+</element>
+
+<!-- function Visibility: public -->
+<element name="TComponent.UpdateAction">
+<short>Updates the state of an action.</short>
+<descr>
+<var>UpdateAction</var> checks whether <var>Action</var> handles the
+current component, and if yes, calls the <var>UpdateTarget</var> method,
+passing itself as a parameter. The function returns <var>True</var> if the
+action handles the current component.
+</descr>
+<seealso>
+<link id="TBasicAction"/>
+<link id="TBasicAction.UpdateTarget"/>
+<link id="TBasicAction.HandlesTarget"/>
+<link id="ExecuteAction"/>
+</seealso>
+</element>
+
+<!-- object Visibility: default -->
+<element name="TDataModule">
+<short>Container for non-visual components.</short>
+<descr>
+<p>
+<var>TDataModule</var> is a container for non-visual objects which can be
+used in an IDE to group non-visual objects which can be used by various
+other containers (forms) in a project. Notably, data access components are
+typically stored on a datamodule. Web components and services can also be 
+implemented as descendents of datamodules.
+</p>
+<p>
+<var>TDataModule</var> introduces some events which make it easier to
+program, and provides the needed streaming capabilities for persistent
+storage.
+</p>
+<p>
+An IDE will typically allow to create a descendent of <var>TDataModule</var>
+which contains non-visual components in it's published property list.
+</p>
+</descr>
+<seealso>
+<link id="TDataModule.OnCreate"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TDataModule.Create">
+<short>Create a new instance of a <var>TDataModule</var>.</short>
+<descr>
+<var>Create</var> creates a new instance of the <var>TDatamodule</var>
+and calls <link id="TDatamodule.CreateNew"/>. After that it reads the 
+published properties from a stream using <link id="InitInheritedComponent"/>
+if a descendent class is instantiated. If the <link id="TDataModule.OldCreateOrder">OldCreateOrder</link>
+property is <var>True</var>, the <link id="OnCreate"/> event is called.
+</descr>
+<errors>
+An exception can be raised during the streaming operation.
+</errors>
+<seealso>
+<link id="TDataModule.CreateNew"/>
+</seealso>
+</element>
+
+<!-- constructor Visibility: public -->
+<element name="TDataModule.CreateNew">
+<short></short>
+<descr>
+<var>CreateNew</var> creates a new instance of the class, but bypasses the
+streaming mechanism. The <var>CreateMode</var> parameter (by default zero)
+is not used in <var>TDataModule</var>. If the <link id="AddDataModule"/>
+handler is set, then it is called, with the newly created instance as an
+argument.
+</descr>
+<seealso>
+<link id="TDataModule.Create"/>
+<link id="AddDataModule"/>
+<link id="TDataModule.OnCreate"/>
+</seealso>
+</element>
+
+<!-- destructor Visibility: public -->
+<element name="TDataModule.Destroy">
+<short>Destroys the <var>TDataModule</var> instance.</short>
+<descr>
+<p>
+<var>Destroy</var> destroys the <var>TDataModule</var> instance. If the
+<link id="TDataModule.OldCreateOrder">OldCreateOrder</link> property is
+<var>True</var> the <link id="TDataModule.OnDestroy">OnDestroy</link> event
+handler is called prior to destroying the data module.
+</p>
+<p>
+Before calling the inherited destroy, the <link id="RemoveDataModule"/>
+handler is called if it is set, and <var>Self</var> is passed as a
+parameter.
+</p>
+</descr>
+<errors>
+An event can be raised during the <var>OnDestroy</var> event handler.
+</errors>
+<seealso>
+<link id="TDataModule.OnDestroy"/>
+<link id="RemoveDataModule"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TDataModule.AfterConstruction">
+<short>Overrides standard <link id="rtl.objpas.TObject">TObject</link> behaviour.</short>
+<descr>
+<var>AfterConstruction</var> calls the <link
+id="TDataModule.OnCreate">OnCreate</link> handler if the <link
+id="TDataModule.OldCreateOrder">OldCreateOrder</link> property is
+<var>False</var>.
+</descr>
+<seealso>
+<link id="TDataModule.OldCreateOrder"/>
+<link id="TDataModule.OnCreate"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: public -->
+<element name="TDataModule.BeforeDestruction">
+<short></short>
+<descr>
+<var>BeforeDestruction</var> calls the <link id="TDataModule.OnCreate">OnDestroy</link> 
+handler if the <link id="TDataModule.OldCreateOrder">OldCreateOrder</link> property is
+<var>False</var>.
+</descr>
+<seealso>
+<link id="TDataModule.OldCreateOrder"/>
+<link id="TDataModule.OnDestroy"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TDataModule.DesignOffset">
+<short>Position property needed for manipulation in an IDE.</short>
+<descr>
+<var>DesignOffset</var> is the position of the datamodule when displayed in
+an IDE. It is streamed to the form file, and should not be used at run-time.
+</descr>
+<seealso>
+<link id="TDataModule.DesignSize"/>
+</seealso>
+</element>
+
+<!-- property Visibility: public -->
+<element name="TDataModule.DesignSize">
+<short>Size property needed for manipulation in an IDE.</short>
+<descr>
+<var>DesignSize</var> is the size of the datamodule when displayed in
+an IDE. It is streamed to the form file, and should not be used at run-time.
+</descr>
+<seealso>
+<link id="TDataModule.DesignOffset"/>
+</seealso>
+</element>
+
+<!-- property Visibility: published -->
+<element name="TDataModule.OnCreate">
+<short>Event handler, called when the datamodule is created.</short>
+<descr>
+The <var>OnCreate</var> event is triggered when the datamodule is created
+and streamed. The exact moment of triggering is dependent on the value of
+the <link id="TDataModule.OldCreateOrder">OldCreateOrder</link> property.
+</descr>
+<seealso>
+<link id="TDataModule.Create"/>
+<link id="TDataModule.CreateNew"/>
+<link id="TDataModule.OldCreateOrder"/>
+</seealso>
+</element>
+
+<!-- property Visibility: published -->
+<element name="TDataModule.OnDestroy">
+<short>Event handler, called when the datamodule is destroyed.</short>
+<descr>
+The <var>OnDestroy</var> event is triggered when the datamodule is destroyed
+The exact moment of triggering is dependent on the value of the 
+<link id="TDataModule.OldCreateOrder">OldCreateOrder</link> property.
+</descr>
+<seealso>
+<link id="TDataModule.Destroy"/>
+<link id="TDataModule.OnCreate"/>
+<link id="TDataModule.Create"/>
+<link id="TDataModule.CreateNew"/>
+<link id="TDataModule.OldCreateOrder"/>
+</seealso>
+</element>
+
+<!-- property Visibility: published -->
+<element name="TDataModule.OldCreateOrder">
+<short>Determines when <var>OnCreate</var> and <var>OnDestroy</var> are
+triggered.</short>
+<descr>
+<var>OldCreateOrder</var> determines when exactly the <link
+id="TDataModule.OnCreate">OnCreate</link> and <link
+id="TDataModule.OnDestroy">OnDestroy</link> event handlers are called:
+
+</descr>
+<seealso>
+<link id="TDataModule.OnDestroy"/>
+<link id="TDataModule.OnCreate"/>
+<link id="TDataModule.Destroy"/>
+<link id="TDataModule.Create"/>
+<link id="TDataModule.CreateNew"/>
+<link id="TDataModule.OldCreateOrder"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="AddDataModule">
+<short>Handler called when a new <link id="#rtl.classes.TDataModule">TDataModule</link> instance is created.</short>
+<descr>
+<var>AddDataModule</var> can be set by an IDE or a streaming mechanism to
+receive notification when a new instance of a <link id="TDataModule"/>
+descendent is created.
+</descr>
+<seealso>
+<link id="RemoveDataModule"/>
+<link id="TDataModule"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="RemoveDataModule">
+<short>Handler called when a <link id="#rtl.classes.TDataModule">TDataModule</link> instance is freed.</short>
+<descr>
+<var>RemoveDataModule</var> can be set by an IDE or a streaming mechanism to
+receive notification when an instance of a <link id="TDataModule"/>
+descendent is freed.
+</descr>
+<seealso>
+<link id="AddDataModule"/>
+<link id="TDataModule"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="ApplicationHandleException">
+<short>Handler for exceptions when a <link
+id="#rtl.classes.TDataModule">TDataModule</link> streaming error occurs.</short>
+<descr>
+<var>ApplicationHandleException</var> can be set by an application object to
+handle any exceptions that may occur when a <link id="TDataModule"/> is
+created.
+</descr>
+<seealso>
+<link id="TDataModule"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="ApplicationShowException">
+<short>Unused.</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="CheckSynchronize">
+<short>Check whether there are any synchronize calls in the synchronize queue.</short>
+<descr>
+<var>CheckSynchronize</var> should be called regularly by the main application
+thread to handle any <link id="TThread.synchronize"/> calls that may be waiting for
+execution by the main thread.
+</descr>
+<seealso>
+<link id="TThread.synchronize"/>
+</seealso>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="WakeMainThread">
+<short>Handler which is called if a thread wants to synchronize with the main application thread.</short>
+<descr>
+<var>WakeMainThread</var> is called by the <link id="TThread.synchronize"/> call.
+It should alert the main program thread that a thread is waiting for
+synchronization. The call is executed by the thread, and should therefore
+NOT synchronize the thread, but should somehow signal the main thread that a
+thread is waiting for synchronization. For example, by sending a message.
+</descr>
+<seealso>
+<link id="CheckSynchronize"/>
+<link id="TThread.synchronize"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="StartClassGroup">
+<short>Start new class group.</short>
+<descr>
+<p>
+<var>StartClassGroup</var> starts a new class group and adds <var>AClass</var> to
+it.
+</p>
+<p>
+The class registration and streaming mechanism allows to organize the classes in
+groups. This allows an IDE to form groups of classes, which can be enabled
+or disabled. It is not needed at Run-Time.
+</p>
+</descr>
+<seealso>
+<link id="GroupDescendentsWith"/>
+<link id="ActivateClassGroup"/>
+<link id="ClassGroupOf"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="GroupDescendentsWith">
+<short>Add class to the group of another class.</short>
+<descr>
+<p>
+<var>GroupDescendentsWith</var> adds <var>AClass</var> to the group that
+<var>AClassGroup</var> belongs to. If <var>AClassGroup</var> belongs to more
+than 1 group, then it is added to the group which contains the nearest
+ancestor.
+</p>
+<p>
+The class registration and streaming mechanism allows to organize the classes in
+groups. This allows an IDE to form groups of classes, which can be enabled
+or disabled. It is not needed at Run-Time.
+</p>
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="StartClassGroup"/>
+<link id="ActivateClassGroup"/>
+<link id="ClassGroupOf"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ActivateClassGroup">
+<short>Activates a class group</short>
+<descr>
+<p>
+<var>ActivateClassGroup</var> activates the group of classes to which
+<var>AClass</var> belongs. The function returns the class that was last used
+to activate the class group.
+</p>
+<p>
+The class registration and streaming mechanism allows to organize the classes in
+groups. This allows an IDE to form groups of classes, which can be enabled
+or disabled. It is not needed at Run-Time.
+</p>
+</descr>
+<errors>
+If <var>AClass</var> does not belong to a class group, an exception is
+raised.
+</errors>
+<seealso>
+<link id="StartClassGroup"/>
+<link id="GroupDescendentsWith"/>
+<link id="ClassGroupOf"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ClassGroupOf">
+<short>Returns the class group to which an instance or class belongs</short>
+<descr>
+<var>ClassGroupOf</var> returns the class group to which <var>AClass</var>
+or <var>Instance</var> belongs.
+</descr>
+<errors>
+The result is <var>Nil</var> if no matching class group is found.
+</errors>
+<seealso>
+<link id="StartClassGroup"/>
+<link id="ActivateClassGroup"/>
+<link id="GroupDescendentsWith"/>
+</seealso>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="TInitComponentHandler">
+<short>Callback type for <link id="rtl.classes.RegisterInitComponentHandler">RegisterInitComponentHandler</link></short>
+<descr>
+<var>TInitComponentHandler</var> is a callback type. It is used in the
+<link>InitInheritedComponent</link> call to initialize a component.
+Callbacks of this type are registered with the <link
+id="RegisterInitComponentHandler"/> call.
+</descr>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RegisterFindGlobalComponentProc">
+<short>Register a component searching handler</short>
+<descr>
+<var>RegisterFindGlobalComponentProc</var> registers a global component
+search callback <var>AFindGlobalComponent</var>. When <link
+id="FindGlobalComponent"/> is called, then this callback will be used to
+search for the component.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FindGlobalComponent"/>
+<link id="UnRegisterFindGlobalComponentProc"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="UnregisterFindGlobalComponentProc">
+<short>Remove a previously registered component searching handler.</short>
+<descr>
+<var>UnRegisterFindGlobalComponentProc</var> unregisters the previously
+registered global component search callback <var>AFindGlobalComponent</var>. 
+After this call, when <link id="FindGlobalComponent"/> is called, then this 
+callback will be no longer be used to search for the component.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FindGlobalComponent"/>
+<link id="RegisterFindGlobalComponentProc"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="RegisterInitComponentHandler">
+<short>Register a component initialization handler</short>
+<descr>
+<var>RegisterInitComponentHandler</var> registers a component initialization
+handler <var>Handler</var> for the component <var>ComponentClass</var>. This
+handler will be used to initialize descendents of
+<var>ComponentClass</var> in the <link id="InitInheritedComponent"/> call. 
+</descr>
+<seealso>
+<link id="InitInheritedComponent"/>
+<link id="TInitComponentHandler"/>
+</seealso>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="BinToHex">
+<short>Convert a binary buffer to a hexadecimal string</short>
+<descr>
+<p>
+<var>BinToHex</var> converts the byte values in <var>BinValue</var> 
+to a string consisting of 2-charachter hexadecimal strings in
+<var>HexValue</var>.
+<var>BufSize</var> specifies the length of <var>BinValue</var>, which means
+that <var>HexValue</var> must have size <var>2*BufSize</var>.
+</p>
+<p>
+For example a buffer containing the byte values 255 and 0 will be converted to
+FF00.
+</p>
+</descr>
+<errors>
+No length checking is done, so if an invalid size is specified, an exception
+may follow.
+</errors>
+<seealso>
+<link id="HexToBin"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="HexToBin">
+<short>Convert a hexadecimal string to a binary buffer</short>
+<descr>
+<var>HexToBin</var> scans the hexadecimal string representation in
+<var>HexValue</var> and transforms every 2 character hexadecimal 
+number to a byte and stores it in <var>BinValue</var>. The buffer size is
+the size of the binary buffer. Scanning will stop if the size of the binary
+buffer is reached or when an invalid character is encountered. The return
+value is the number of stored bytes.
+</descr>
+<errors>
+No length checking is done, so if an invalid size is specified, an exception
+may follow.
+</errors>
+<seealso>
+<link id="BinToHex"/>
+</seealso>
 </element>
 
 

@@ -126,6 +126,31 @@ sizes and conventions of the platform to which the compiler is ported.
 <short>Pointer to <link id="cuShort"/> type.</short>
 </element>
 
+<element name="cchar">
+<short>C type: 8-bit signed integer</short>
+</element>
+
+<element name="cuchar">
+<short>C type: 8-bit unsigned integer</short>
+</element>
+
+<element name="cunsigned">
+<short>Alias for <link id="#rtl.unixtype.cuint"/></short>
+</element>
+
+<element name="pcchar">
+<short>Pointer to <link id="#rtl.UnixType.cchar"/></short>
+</element>
+
+<element name="pcuchar">
+<short>Pointer to <link id="#rtl.UnixType.cuchar"/></short>
+</element>
+
+<element name="pcunsigned">
+<short>Pointer to <link id="#rtl.unixtype.cunsigned"/></short>
+</element>
+
+
 <!-- alias type Visibility: default -->
 <element name="dev_t">
 <short>Device descriptor type.</short>
@@ -786,6 +811,23 @@ anytime.
 <element name="SIG_MAXSIG">
 <short>Maximum signal number.</short>
 </element>
+
+<!-- constant Visibility: default -->
+<element name="Prio_Process">
+<short><link id="#rtl.unix.fpGetPriority"/> option: Get process priority.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Prio_PGrp">
+<short><link id="rtl.unix.fpGetPriority"/> option: Get process group priority.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Prio_User">
+<short><link id="#rtl.unix.fpGetPriority"/> option: Get user priority.</short>
+</element>
+
+
 </module> <!-- unixtype -->
 </package>
 </fpdoc-descriptions>
