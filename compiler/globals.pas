@@ -321,10 +321,16 @@ unit globals;
 
     function assigned(p : pointer) : boolean;
 
+{$ifndef FPC}
+    {$ifndef DPMI}
       var
          lp : longint;
+    {$endif DPMI}
+{$endif FPC}
       begin
 {$ifdef FPC}
+          { Assigned is used for procvar and
+            stack stored temp records !! PM }
          (* if (p<>nil) {and
             ((p<heaporg) or
             (p>heapptr))} then
@@ -1163,7 +1169,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-04-08 09:14:46  michael
+  Revision 1.2  1999-04-16 09:56:05  pierre
+   * unused local var commented
+
+  Revision 1.1  1999/04/08 09:14:46  michael
   + Re-added;
 
   Revision 1.119  1999/04/07 14:15:53  pierre
