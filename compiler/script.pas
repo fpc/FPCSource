@@ -195,7 +195,7 @@ Begin
   AddStart('DoExitLink ()');
   AddStart('{ echo "An error occurred while assembling $1"; exit 1; }');
   AddStart('DoExitAsm ()');
-  AddStart('#!/bin/bash');
+  AddStart('#!/bin/sh');
 {$else}
   AddStart('@echo off');
   Add('goto end');
@@ -234,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 01:14:39  peter
+  Revision 1.5  2000-02-07 11:52:26  michael
+  + Changed bash to sh
+
+  Revision 1.4  2000/01/07 01:14:39  peter
     * updated copyright to 2000
 
   Revision 1.3  1999/10/21 14:29:37  peter
