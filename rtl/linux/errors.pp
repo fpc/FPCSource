@@ -154,10 +154,14 @@ Procedure PError(const s:string; Errno : longint);
 Implementation
 
 Function StrError(err:longint):string;
+var s : string[12];
 begin
-  if err>=sys_errn then
-   StrError:='Unknown Error'
-  else 
+  if (err<0) or (err>=sys_errn) then
+   begin
+     str(err,s);
+     StrError:='Unknown Error ('+s+')';
+   end
+  else
    StrError:=Sys_ErrList[err];
 end;
 
@@ -171,7 +175,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:35:26  michael
+  Revision 1.3  1999-06-30 15:44:26  peter
+    * merged
+
+  Revision 1.2.6.1  1999/06/30 15:43:54  peter
+    * better strerror() from mailinglist
+
+  Revision 1.2  1998/05/06 12:35:26  michael
   + Removed log from before restored version.
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
