@@ -608,7 +608,8 @@ var
            until s='';
          end
        else
-         Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
+         if P^.ParamValue<>'/' then
+           Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
      end;
   end;
 
@@ -854,9 +855,9 @@ begin
      AddBooleanItem(opt_tp7compatibility,'o',idNone);
      AddBooleanItem(opt_delphicompatibility,'d',idNone);
      AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
-     AddBooleanItem(opt_strictvarstrings,'',idStrictVarStrings);
-     AddBooleanItem(opt_extendedsyntax,'',idExtendedSyntax);
-     AddBooleanItem(opt_allowmmxoperations,'',idMMXOps);
+     AddBooleanItem(opt_strictvarstrings,'/',idStrictVarStrings);
+     AddBooleanItem(opt_extendedsyntax,'/',idExtendedSyntax);
+     AddBooleanItem(opt_allowmmxoperations,'/',idMMXOps);
    end;
   New(VerboseSwitches,Init('v'));
   with VerboseSwitches^ do
@@ -1229,7 +1230,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-11-24 02:06:43  carl
+  Revision 1.5  2002-02-20 15:06:52  pierre
+   avoid to insert options in .cfg file if the option has no command line
+
+  Revision 1.4  2001/11/24 02:06:43  carl
   * Renamed ppc.cfg -> fpc.cfg
 
   Revision 1.3  2001/08/29 23:31:27  pierre
