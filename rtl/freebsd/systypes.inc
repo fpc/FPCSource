@@ -153,9 +153,17 @@ type
   PUTSName=^UTSName;
   TUTSName=UTSName;
 
+  ITimerVal= Record
+	      It_Interval,
+	      It_Value      : TimeVal; 
+             end;
+
 {
   $Log$
-  Revision 1.7  2001-06-19 08:59:01  marco
+  Revision 1.8  2002-05-06 10:49:59  marco
+   * setitimer for 1.1
+
+  Revision 1.7  2001/06/19 08:59:01  marco
    * Fixes from Unix merge and changes of socketh.inc
 
   Revision 1.6  2001/06/19 08:34:16  marco
