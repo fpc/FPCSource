@@ -828,7 +828,7 @@ implementation
                  else
                   begin
                     if isconvertable(s32bitdef,p^.resulttype,p^.convtyp,ordconstn,false)=0 then
-                      CGMessage(cg_e_illegal_type_conversion);
+                      CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
                   end;
                end
 
@@ -848,7 +848,7 @@ implementation
                   else
                    begin
                      if IsConvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn,false)=0 then
-                       CGMessage(cg_e_illegal_type_conversion);
+                       CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
                    end;
                 end
 
@@ -878,10 +878,28 @@ implementation
                     end
                    else
                     begin
-                      { this is wrong because it converts to a 4 byte long var !!
-                      if not isconvertable(p^.left^.resulttype,s32bitdef,p^.convtyp,ordconstn  nur Dummy ) then }
                       if IsConvertable(p^.left^.resulttype,u8bitdef,p^.convtyp,ordconstn,false)=0 then
-                        CGMessage(cg_e_illegal_type_conversion);
+                        CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
+                    end;
+                 end
+
+              { Are we char to ordinal }
+              else
+                if is_char(p^.left^.resulttype) and
+                   is_ordinal(p^.resulttype) then
+                 begin
+                   if p^.left^.treetype=ordconstn then
+                    begin
+                      hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
+                      firstpass(hp);
+                      disposetree(p);
+                      p:=hp;
+                      exit;
+                    end
+                   else
+                    begin
+                      if IsConvertable(u8bitdef,p^.resulttype,p^.convtyp,ordconstn,false)=0 then
+                        CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
                     end;
                  end
 
@@ -1024,7 +1042,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-02 07:20:32  jonas
+  Revision 1.6  2000-08-26 19:40:19  peter
+    * integer(char) explicit typecast support (tp7,delphi compatible)
+
+  Revision 1.5  2000/08/02 07:20:32  jonas
       - undid my changes from the previous two commits because it was a bug
         in cg386cnv which I've now fixed (previous changes only masked it in
         some cases) (merged from fixes branch)
