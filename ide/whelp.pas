@@ -175,6 +175,12 @@ function  GetHelpFileTypeCount: integer;
 procedure GetHelpFileType(Index: sw_integer; var HT: THelpFileType);
 procedure DoneHelpFilesTypes;
 
+{$ifdef ENDIAN_BIG}
+Procedure SwapLong(var x : longint);
+Procedure SwapWord(x : word);
+{$endif ENDIAN_BIG}
+
+
 implementation
 
 uses
@@ -200,6 +206,33 @@ type
 
 const
   HelpFileTypes : PHelpFileTypeCollection = nil;
+
+
+{$ifdef ENDIAN_BIG}
+Procedure SwapLong(var x : longint);
+var
+  y : word;
+  z : word;
+Begin
+  y := (x shr 16) and $FFFF;
+  y := ((y shl 8) and $FFFF) or ((y shr 8) and $ff);
+  z := x and $FFFF;
+  z := ((z shl 8) and $FFFF) or ((z shr 8) and $ff);
+  x := (longint(z) shl 16) or longint(y);
+End;
+
+
+Procedure SwapWord(x : word);
+var
+  z : byte;
+Begin
+  z := (x shr 8) and $ff;
+  x := x and $ff;
+  x := (x shl 8);
+  x := x or z;
+End;
+{$endif ENDIAN_BIG}
+
 
 function NewHelpFileType(AOpenProc: THelpFileOpenProc): PHelpFileType;
 var P: PHelpFileType;
@@ -918,7 +951,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2002-09-07 15:40:49  peter
+  Revision 1.8  2002-11-22 12:21:16  pierre
+   + SwapLongint and SwapWord added for big endian machines
+
+  Revision 1.7  2002/09/07 15:40:49  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/03/25 14:37:03  pierre
