@@ -458,7 +458,7 @@ begin
   {$else}
   fpFD_Set(sock,readfds);
   {$endif}
-  if fpSelect(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
+  if {$ifdef ver1_0}Select{$else}fpSelect{$endif}(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
     begin
     {$ifdef VER1_0}fdclose{$ELSE}fpclose{$endif}(Sock);
     exit;
@@ -955,7 +955,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-09-18 16:30:23  marco
+  Revision 1.5  2003-09-28 09:34:02  peter
+    * unix fix for 1.0.x
+
+  Revision 1.4  2003/09/18 16:30:23  marco
    * unixreform fix
 
   Revision 1.3  2003/05/17 20:54:03  michael
