@@ -119,7 +119,7 @@ unit typinfo;
         // bit 0..1 GetProc
         //     2..3 SetProc
         //     4..5 StoredProc
-        ProcProcs : Byte;
+        PropProcs : Byte;
 
         Name : ShortString;
       end;
@@ -163,11 +163,9 @@ unit typinfo;
                   
       begin
          Result:=Nil;
-         while Assigned(hp) do
+         while Assigned(TypeInfo) do
            begin
               // skip the name
-              //!! Florian, I added (typeinfo) so it would compile
-              
               hp:=GetTypeData(Typeinfo);
 
               // the class info rtti the property rtti follows
@@ -183,8 +181,7 @@ unit typinfo;
                    Result:=PPropInfo(@Result^.Name)+byte(Result^.Name[0])+1;
                 end;
               // parent class
-              //!! Florian, commented out, because the types are wrong
-              // hp:=hp^.ParentInfo;
+              Typeinfo:=hp^.ParentInfo;
            end;
       end;
 
@@ -201,8 +198,7 @@ unit typinfo;
 
       begin
          caller.Instance:=Instance;
-         //!! propprocs doesn't exist, changed to procprops
-         case (PropInfo^.ProcProcs shr 4) and 3 of
+         case (PropInfo^.PropProcs shr 4) and 3 of
             0:
               IsStoredProp:=
                 PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
@@ -228,7 +224,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-09-08 00:08:36  michael
+  Revision 1.7  1998-09-08 09:52:31  florian
+    * small problems fixed
+
+  Revision 1.6  1998/09/08 00:08:36  michael
   Made it compilable
 
   Revision 1.5  1998/09/07 23:11:43  florian
