@@ -1260,15 +1260,15 @@ implementation
              enumdef :
                begin
                  uses_acc:=true;
-                 r.enum:=R_INTREGISTER;
-                 r.number:=NR_FUNCTION_RETURN_REG;
-                 cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
+                    r.enum:=R_INTREGISTER;
+                    r.number:=NR_FUNCTION_RETURN64_LOW_REG;
+                    cg.a_reg_alloc(list,r);
                     r2.enum:=R_INTREGISTER;
-                    r2.number:=NR_FUNCTION_RETURNHIGH_REG;
+                    r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                     cg.a_reg_alloc(list,r2);
                     cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                   end
@@ -1296,16 +1296,16 @@ implementation
                  if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                   begin
                     uses_acc:=true;
-                    r.enum:=R_INTREGISTER;
-                    r.number:=NR_FUNCTION_RETURN_REG;
-                    cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                     { Win32 can return records in EAX:EDX }
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        uses_acchi:=true;
+                       r.enum:=R_INTREGISTER;
+                       r.number:=NR_FUNCTION_RETURN64_LOW_REG;
+                       cg.a_reg_alloc(list,r);
                        r2.enum:=R_INTREGISTER;
-                       r2.number:=NR_FUNCTION_RETURNHIGH_REG;
+                       r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                        cg.a_reg_alloc(list,r2);
                        cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                      end
@@ -1313,7 +1313,7 @@ implementation
 {$endif cpu64bit}
                      begin
                        hreg.enum:=R_INTREGISTER;
-                       hreg.number:=RS_FUNCTION_RETURN_REG shl 8 or cgsize2subreg(cgsize);
+                       hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(cgsize);
                        cg.a_load_ref_reg(list,cgsize,href,hreg);
                      end;
                    end
@@ -1359,7 +1359,7 @@ implementation
                          if not(hp.paraloc.size in [OS_S64,OS_64]) then
                            cg.a_load_reg_reg(list,hp.paraloc.size,hp.paraloc.size,hp.paraloc.register,tvarsym(hp.parasym).reg)
                          else
-                           internalerror(2003053011);                
+                           internalerror(2003053011);
 //                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
                          LOC_CFPUREGISTER,
                          LOC_FPUREGISTER:
@@ -1921,7 +1921,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-05-31 00:48:15  jonas
+  Revision 1.114  2003-05-31 15:05:28  peter
+    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
+
+  Revision 1.113  2003/05/31 00:48:15  jonas
     * fixed my previous commit
 
   Revision 1.112  2003/05/30 23:57:08  peter

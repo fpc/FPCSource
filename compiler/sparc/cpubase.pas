@@ -907,18 +907,24 @@ type
       { the return_result_reg, is used inside the called function to store its return
       value when that is a scalar value otherwise a pointer to the address of the
       result is placed inside it }
+      { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_I0;
       RS_FUNCTION_RETURN_REG = RS_I0;
-      { The high part of 64bit value returned by this function }
-      NR_FUNCTION_RETURNHIGH_REG = NR_I1;
-      RS_FUNCTION_RETURNHIGH_REG = RS_I1;
-      { the FUNCTION_RESULT_REG contains the function result after a call to a scalar
-        function othewise it contains a pointer to the returned result}
+      { Low part of 64bit return value }
+      NR_FUNCTION_RETURN64LOW_REG = NR_I1;
+      RS_FUNCTION_RETURN64LOW_REG = RS_I1;
+      { High part of 64bit return value }
+      NR_FUNCTION_RETURN64HIGH_REG = NR_I0;
+      RS_FUNCTION_RETURN64HIGH_REG = RS_I0;
+      { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_O0;
       RS_FUNCTION_RESULT_REG = RS_O0;
-      { The high part of 64bit value returned from a function is available in this register }
-      NR_FUNCTION_RESULTHIGH_REG = NR_O1;
-      RS_FUNCTION_RESULTHIGH_REG = RS_O1;
+      { The lowh part of 64bit value returned from a function }
+      NR_FUNCTION_RESULT64_LOW_REG = NR_O1;
+      RS_FUNCTION_RESULT64_LOW_REG = RS_O1;
+      { The high part of 64bit value returned from a function }
+      NR_FUNCTION_RESULT64_HIGH_REG = NR_O0;
+      RS_FUNCTION_RESULT64_HIGH_REG = RS_O0;
 
       FPU_RESULT_REG = R_F0;
       mmresultreg = R_NO;
@@ -1005,7 +1011,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-05-31 01:00:51  peter
+  Revision 1.37  2003-05-31 15:05:28  peter
+    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
+
+  Revision 1.36  2003/05/31 01:00:51  peter
     * register fixes
 
   Revision 1.35  2003/05/30 23:57:08  peter

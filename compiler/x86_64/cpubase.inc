@@ -171,18 +171,12 @@ const
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
       NR_PIC_OFFSET_REG = NR_EBX;
-      { Results are returned in this register (32-bit values) }
+      { Results are returned in this register (both 32 and 64 bits }
       NR_FUNCTION_RETURN_REG = NR_RAX;
       RS_FUNCTION_RETURN_REG = RS_RAX;
-      { High part of 64bit return value }
-      NR_FUNCTION_RETURNHIGH_REG = NR_NONE;
-      RS_FUNCTION_RETURNHIGH_REG = RS_NONE;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
-      { The high part of 64bit value returned from a function is available in this register }
-      NR_FUNCTION_RESULTHIGH_REG = NR_FUNCTION_RETURNHIGH_REG;
-      RS_FUNCTION_RESULTHIGH_REG = RS_FUNCTION_RETURNHIGH_REG;
 
       fpu_result_reg = R_ST;
       mmresultreg = R_MM0;
@@ -211,7 +205,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2003-05-30 23:57:08  peter
+  Revision 1.5  2003-05-31 15:05:28  peter
+    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
+
+  Revision 1.4  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

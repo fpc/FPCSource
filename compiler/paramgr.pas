@@ -267,10 +267,10 @@ unit paramgr;
 {$ifndef cpu64bit}
                if result.size in [OS_64,OS_S64] then
                 begin
-                  result.register64.reghi.enum:=R_INTREGISTER;
-                  result.register64.reghi.number:=NR_FUNCTION_RETURNHIGH_REG;
                   result.register64.reglo.enum:=R_INTREGISTER;
-                  result.register64.reglo.number:=NR_FUNCTION_RETURN_REG;
+                  result.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
+                  result.register64.reghi.enum:=R_INTREGISTER;
+                  result.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                 end
                else
 {$endif cpu64bit}
@@ -399,7 +399,10 @@ end.
 
 {
    $Log$
-   Revision 1.39  2003-05-30 23:57:08  peter
+   Revision 1.40  2003-05-31 15:05:28  peter
+     * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
+
+   Revision 1.39  2003/05/30 23:57:08  peter
      * more sparc cleanup
      * accumulator removed, splitted in function_return_reg (called) and
        function_result_reg (caller)

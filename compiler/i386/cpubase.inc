@@ -157,15 +157,21 @@
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_EAX;
       RS_FUNCTION_RETURN_REG = RS_EAX;
+      { Low part of 64bit return value }
+      NR_FUNCTION_RETURN64_LOW_REG = NR_EAX;
+      RS_FUNCTION_RETURN64_LOW_REG = RS_EAX;
       { High part of 64bit return value }
-      NR_FUNCTION_RETURNHIGH_REG = NR_EDX;
-      RS_FUNCTION_RETURNHIGH_REG = RS_EDX;
+      NR_FUNCTION_RETURN64_HIGH_REG = NR_EDX;
+      RS_FUNCTION_RETURN64_HIGH_REG = RS_EDX;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
-      { The high part of 64bit value returned from a function is available in this register }
-      NR_FUNCTION_RESULTHIGH_REG = NR_FUNCTION_RETURNHIGH_REG;
-      RS_FUNCTION_RESULTHIGH_REG = RS_FUNCTION_RETURNHIGH_REG;
+      { The lowh part of 64bit value returned from a function }
+      NR_FUNCTION_RESULT64_LOW_REG = NR_FUNCTION_RETURN64_LOW_REG;
+      RS_FUNCTION_RESULT64_LOW_REG = RS_FUNCTION_RETURN64_LOW_REG;
+      { The high part of 64bit value returned from a function }
+      NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
+      RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
 
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
@@ -196,7 +202,10 @@
 
 {
   $Log$
-  Revision 1.4  2003-05-30 23:57:08  peter
+  Revision 1.5  2003-05-31 15:05:28  peter
+    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
+
+  Revision 1.4  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)

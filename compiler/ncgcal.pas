@@ -470,23 +470,23 @@ implementation
                       { Move the function result to free registers, preferably the
                         FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
                       r.enum:=R_INTREGISTER;
-                      r.number:=NR_FUNCTION_RESULT_REG;
+                      r.number:=NR_FUNCTION_RESULT64_LOW_REG;
                       hregister.enum:=R_INTREGISTER;
-                      hregister.number:=NR_FUNCTION_RESULTHIGH_REG;
+                      hregister.number:=NR_FUNCTION_RESULT64_HIGH_REG;
 {$ifdef newra}
-                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
-                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULTHIGH_REG);
+                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
+                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
                       rg.ungetregisterint(exprasmlist,r);
                       rg.ungetregisterint(exprasmlist,hregister);
                       location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
                       location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$else newra}
-                      if RS_FUNCTION_RESULT_REG in rg.unusedregsint then
-                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG)
+                      if RS_FUNCTION_RESULT64_LOW_REG in rg.unusedregsint then
+                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG)
                       else
                         cg.a_reg_alloc(exprasmlist,r);
-                      if RS_FUNCTION_RESULTHIGH_REG in rg.unusedregsint then
-                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULTHIGH_REG)
+                      if RS_FUNCTION_RESULT64_HIGH_REG in rg.unusedregsint then
+                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG)
                       else
                         cg.a_reg_alloc(exprasmlist,hregister);
                       { do this after both low,high are allocated, else it is possible that
@@ -641,11 +641,15 @@ implementation
               if (not is_void(resulttype.def)) and
                  (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                begin
-                 include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
 {$ifndef cpu64bit}
                  if resulttype.def.size>sizeof(aword) then
-                   include(regs_to_push_int,RS_FUNCTION_RESULTHIGH_REG);
+                   begin
+                     include(regs_to_push_int,RS_FUNCTION_RESULT64_LOW_REG);
+                     include(regs_to_push_int,RS_FUNCTION_RESULT64_HIGH_REG);
+                   end
+                 else
 {$endif cpu64bit}
+                   include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
                end;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
@@ -1032,9 +1036,14 @@ implementation
           begin
             include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
 {$ifndef cpu64bit}
-            if resulttype.def.size>sizeof(aword) then
-              include(regs_to_push_int,RS_FUNCTION_RESULTHIGH_REG);
+                 if resulttype.def.size>sizeof(aword) then
+                   begin
+                     include(regs_to_push_int,RS_FUNCTION_RESULT64_LOW_REG);
+                     include(regs_to_push_int,RS_FUNCTION_RESULT64_HIGH_REG);
+                   end
+                 else
 {$endif cpu64bit}
+                   include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
           end;
          rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
          rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
@@ -1233,7 +1242,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-05-31 00:59:44  peter
+  Revision 1.80  2003-05-31 15:05:28  peter
+    * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
+
+  Revision 1.79  2003/05/31 00:59:44  peter
     * typo in FUNCTION_RESULT_REG
 
   Revision 1.78  2003/05/30 23:57:08  peter
