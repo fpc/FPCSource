@@ -146,18 +146,36 @@ procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); exte
 function _lcreat(const lpPathName: LPCSTR; iAttribute: Integer): HFILE; external 'kernel32' name '_lcreat';
 function _lopen(const lpPathName: LPCSTR; iReadWrite: Integer): HFILE; external 'kernel32' name '_lopen';
 function _lwrite(hFile: HFILE; const lpBuffer: LPCSTR; uBytes: UINT): UINT; external 'kernel32' name '_lwrite';
-//function AccessCheck(pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess: DWORD; const GenericMapping: TGenericMapping; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD; var AccessStatus: BOOL): BOOL; external 'advapi32' name 'AccessCheck';
-//function AccessCheckAndAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName, ObjectName: PChar; SecurityDescriptor: PSecurityDescriptor; DesiredAccess: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
-//function AccessCheckAndAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPCSTR; SecurityDescriptor: PSecurityDescriptor; DesiredAccess: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
-//function AccessCheckAndAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPWSTR; SecurityDescriptor: PSecurityDescriptor; DesiredAccess: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmW';
-//function AccessCheckByType(pSecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; ClientToken: THandle; DesiredAccess: DWORD; ObjectTypeList: PObjectTypeList; const GenericMapping: TGenericMapping; ObjectTypeListLength: DWORD; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD; var AccessStatus: BOOL): BOOL;external 'advapi32' name 'AccessCheckByType';
-//function AccessCheckByTypeAndAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName, ObjectName: PChar; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL;external 'advapi32' name 'AccessCheckByTypeAndAuditAlarm';
-//function AccessCheckByTypeAndAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPCSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL;external 'advapi32' name 'AccessCheckByTypeAndAuditAlarmA';
-//function AccessCheckByTypeAndAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPWSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL;external 'advapi32' name 'AccessCheckByTypeAndAuditAlarmW';
-//function AccessCheckByTypeResultList(pSecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; ClientToken: THandle; DesiredAccess: DWORD; ObjectTypeList: PObjectTypeList; const GenericMapping: TGenericMapping; ObjectTypeListLength: DWORD; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD; var AccessStatusList: DWORD): BOOL;external 'advapi32' name 'AccessCheckByTypeResultList';
-//function AccessCheckByTypeResultListAndAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName, ObjectName: PChar; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatusList: DWORD; var pfGenerateOnClose: BOOL): BOOL;external 'advapi32' name 'AccessCheckByTypeResultListAndAuditAlarmA';
-//function AccessCheckByTypeResultListAndAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPCSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatusList: DWORD; var pfGenerateOnClose: BOOL): BOOL;external 'advapi32' name 'AccessCheckByTypeResultListAndAuditAlarmA';
-//function AccessCheckByTypeResultListAndAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPWSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatusList: DWORD; var pfGenerateOnClose: BOOL): BOOL;external 'advapi32' name 'AccessCheckByTypeResultListAndAuditAlarmW';
+//function AccessCheck(pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess: DWORD; const GenericMapping: TGenericMapping; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD;
+//  var AccessStatus: BOOL): BOOL; external 'advapi32' name 'AccessCheck';
+//function AccessCheckAndAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName, ObjectName: PChar; SecurityDescriptor: PSecurityDescriptor; DesiredAccess: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL;
+//  var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
+//function AccessCheckAndAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPCSTR; SecurityDescriptor: PSecurityDescriptor; DesiredAccess: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL;
+//  var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
+//function AccessCheckAndAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPWSTR; SecurityDescriptor: PSecurityDescriptor; DesiredAccess: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL;
+//  var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmW';
+//function AccessCheckByType(pSecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; ClientToken: THandle; DesiredAccess: DWORD; ObjectTypeList: PObjectTypeList; const GenericMapping: TGenericMapping; ObjectTypeListLength: DWORD;
+//  var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD; var AccessStatus: BOOL): BOOL;external 'advapi32' name 'AccessCheckByType';
+//function AccessCheckByTypeAndAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName, ObjectName: PChar; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD;
+//  ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL;
+//  external 'advapi32' name 'AccessCheckByTypeAndAuditAlarm';
+//function AccessCheckByTypeAndAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPCSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD;
+//  ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL;
+//  external 'advapi32' name 'AccessCheckByTypeAndAuditAlarmA';
+//function AccessCheckByTypeAndAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPWSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE; Flags: DWORD;
+//  ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatus, pfGenerateOnClose: BOOL): BOOL;
+//  external 'advapi32' name 'AccessCheckByTypeAndAuditAlarmW';
+//function AccessCheckByTypeResultList(pSecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; ClientToken: THandle; DesiredAccess: DWORD; ObjectTypeList: PObjectTypeList; const GenericMapping: TGenericMapping; ObjectTypeListLength: DWORD;
+//  var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD; var AccessStatusList: DWORD): BOOL;external 'advapi32' name 'AccessCheckByTypeResultList';
+//function AccessCheckByTypeResultListAndAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName, ObjectName: PChar; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE;
+//  Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatusList: DWORD; var pfGenerateOnClose: BOOL): BOOL;
+//  external 'advapi32' name 'AccessCheckByTypeResultListAndAuditAlarmA';
+//function AccessCheckByTypeResultListAndAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPCSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE;
+//  Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatusList: DWORD; var pfGenerateOnClose: BOOL): BOOL;
+//  external 'advapi32' name 'AccessCheckByTypeResultListAndAuditAlarmA';
+//function AccessCheckByTypeResultListAndAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName, ObjectName: LPWSTR; SecurityDescriptor: PSecurityDescriptor; PrincipalSelfSid: PSID; DesiredAccess: DWORD; AuditType: AUDIT_EVENT_TYPE;
+// Flags: DWORD; ObjectTypeList: PObjectTypeList; ObjectTypeListLength: DWORD; const GenericMapping: TGenericMapping;  ObjectCreation: BOOL; var GrantedAccess: DWORD; var AccessStatusList: DWORD; var pfGenerateOnClose: BOOL): BOOL;
+// external 'advapi32' name 'AccessCheckByTypeResultListAndAuditAlarmW';
 //function AddAccessAllowedAce(var pAcl: TACL; dwAceRevision: DWORD; AccessMask: DWORD; pSid: PSID): BOOL; external 'advapi32' name 'AddAccessAllowedAce';
 //function AddAccessAllowedAceEx(var pAcl: TACL; dwAceRevision: DWORD; AceFlags: DWORD; AccessMask: DWORD; pSid: PSID): BOOL;external 'advapi32' name 'AddAccessAllowedAceEx';
 //function AddAccessAllowedObjectAce(var pAcl: TACL; dwAceRevision: DWORD; AceFlags: DWORD; AccessMask: DWORD; ObjectTypeGuid, InheritedObjectTypeGuid: PGuid; pSid: Pointer): BOOL;external 'advapi32' name 'AddAccessAllowedObjectAce';
@@ -167,12 +185,15 @@ function _lwrite(hFile: HFILE; const lpBuffer: LPCSTR; uBytes: UINT): UINT; exte
 //function AddAce(var pAcl: TACL; dwAceRevision, dwStartingAceIndex: DWORD; pAceList: Pointer; nAceListLength: DWORD): BOOL; external 'advapi32' name 'AddAce';
 //function AddAuditAccessAce(var pAcl: TACL; dwAceRevision: DWORD; dwAccessMask: DWORD; pSid: Pointer; bAuditSuccess, bAuditFailure: BOOL): BOOL; external 'advapi32' name 'AddAuditAccessAce';
 //function AddAuditAccessAceEx(var pAcl: TACL; dwAceRevision: DWORD; AceFlags: DWORD; dwAccessMask: DWORD; pSid: Pointer; bAuditSuccess, bAuditFailure: BOOL): BOOL;external 'advapi32' name 'AddAuditAccessAceEx';
-//function AddAuditAccessObjectAce(var pAcl: TACL; dwAceRevision: DWORD; AceFlags: DWORD; AccessMask: DWORD; ObjectTypeGuid, InheritedObjectTypeGuid: PGuid; pSid: Pointer; bAuditSuccess, bAuditFailure: BOOL): BOOL;external 'advapi32' name 'AddAuditAccessObjectAce';
+//function AddAuditAccessObjectAce(var pAcl: TACL; dwAceRevision: DWORD; AceFlags: DWORD; AccessMask: DWORD; ObjectTypeGuid, InheritedObjectTypeGuid: PGuid; pSid: Pointer; bAuditSuccess, bAuditFailure: BOOL): BOOL;
+//  external 'advapi32' name 'AddAuditAccessObjectAce';
 //function AdjustTokenGroups(TokenHandle: THandle; ResetToDefault: BOOL; const NewState: TTokenGroups; BufferLength: DWORD; var PreviousState: TTokenGroups; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'AdjustTokenGroups';
-//function AdjustTokenPrivileges(TokenHandle: THandle; DisableAllPrivileges: BOOL; const NewState: TTokenPrivileges; BufferLength: DWORD; var PreviousState: TTokenPrivileges; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'AdjustTokenPrivileges';
+//function AdjustTokenPrivileges(TokenHandle: THandle; DisableAllPrivileges: BOOL; const NewState: TTokenPrivileges; BufferLength: DWORD; var PreviousState: TTokenPrivileges; var ReturnLength: DWORD): BOOL;
+//  external 'advapi32' name 'AdjustTokenPrivileges';
 function AdjustWindowRect(var lpRect: TRect; dwStyle: DWORD; bMenu: BOOL): BOOL; external 'user32' name 'AdjustWindowRect';
 function AdjustWindowRectEx(var lpRect: TRect; dwStyle: DWORD; bMenu: BOOL; dwExStyle: DWORD): BOOL; external 'user32' name 'AdjustWindowRectEx';
-function AllocateAndInitializeSid(const pIdentifierAuthority: TSIDIdentifierAuthority; nSubAuthorityCount: Byte; nSubAuthority0, nSubAuthority1: DWORD; nSubAuthority2, nSubAuthority3, nSubAuthority4: DWORD; nSubAuthority5, nSubAuthority6, nSubAuthority7: DWORD; var pSid: Pointer): BOOL; external 'advapi32' name 'AllocateAndInitializeSid';
+function AllocateAndInitializeSid(const pIdentifierAuthority: TSIDIdentifierAuthority; nSubAuthorityCount: Byte; nSubAuthority0, nSubAuthority1: DWORD; nSubAuthority2, nSubAuthority3, nSubAuthority4: DWORD;
+  nSubAuthority5, nSubAuthority6, nSubAuthority7:DWORD; var pSid: Pointer): BOOL; external 'advapi32' name 'AllocateAndInitializeSid';
 function AllocateLocallyUniqueId(var Luid: TLargeInteger): BOOL; external 'advapi32' name 'AllocateLocallyUniqueId';
 //function AlphaDIBBlend(DC: HDC; p2, p3, p4, p5: Integer; const p6: Pointer; const p7: PBitmapInfo; p8: UINT; p9, p10, p11, p12: Integer; p13: TBlendFunction): BOOL;external 'gdi32' name 'AlphaDIBBlend';
 //function AnsiNext(const lpsz: LPCSTR): LPSTR;external 'user32' name 'AnsiNext';
@@ -196,9 +217,11 @@ function CallNamedPipeA(lpNamedPipeName: LPCSTR; lpInBuffer: Pointer; nInBufferS
 function CallNamedPipeW(lpNamedPipeName: LPWSTR; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; nTimeOut: DWORD): BOOL; external 'kernel32' name 'CallNamedPipeW';
 function ChangeDisplaySettings(var lpDevMode: TDeviceMode; dwFlags: DWORD): Longint;external 'user32' name 'ChangeDisplaySettingsA';
 function ChangeDisplaySettingsA(var lpDevMode: TDeviceModeA; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsA';
+{$ifdef support_smartlink}
 function ChangeDisplaySettingsEx(lpszDeviceName: PChar; var lpDevMode: TDeviceMode; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExA';
 function ChangeDisplaySettingsExA(lpszDeviceName: LPCSTR; var lpDevMode: TDeviceModeA; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExA';
 //function ChangeDisplaySettingsExW(lpszDeviceName: LPWSTR; var lpDevMode: TDeviceModeW; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExW';
+{$endif support_smartlink}
 //function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsW';
 //function CheckColorsInGamut(DC: HDC; var RGBQuads, Results; Count: DWORD): BOOL; external 'gdi32' name 'CheckColorsInGamut';
 function ClearCommError(hFile: THandle; var lpErrors: DWORD; lpStat: PComStat): BOOL; external 'kernel32' name 'ClearCommError';
@@ -208,7 +231,8 @@ function CommConfigDialog(lpszName: PChar; hWnd: HWND; var lpCC: TCommConfig): B
 function CommConfigDialogA(lpszName: LPCSTR; hWnd: HWND; var lpCC: TCommConfig): BOOL; external 'kernel32' name 'CommConfigDialogA';
 function CommConfigDialogW(lpszName: LPWSTR; hWnd: HWND; var lpCC: TCommConfig): BOOL; external 'kernel32' name 'CommConfigDialogW';
 function CompareFileTime(const lpFileTime1, lpFileTime2: TFileTime): Longint; external 'kernel32' name 'CompareFileTime';
-//function ConvertToAutoInheritPrivateObjectSecurity(ParentDescriptor, CurrentSecurityDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; ObjectType: PGUID; IsDirectoryObject: BOOL; const GenericMapping: TGenericMapping): BOOL;external 'advapi32' name 'ConvertToAutoInheritPrivateObjectSecurity';
+//function ConvertToAutoInheritPrivateObjectSecurity(ParentDescriptor, CurrentSecurityDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; ObjectType: PGUID; IsDirectoryObject: BOOL; const GenericMapping: TGenericMapping): BOOL;
+//  external 'advapi32' name 'ConvertToAutoInheritPrivateObjectSecurity';
 function CopyAcceleratorTable(hAccelSrc: HACCEL; var lpAccelDst; cAccelEntries: Integer): Integer;external 'user32' name 'CopyAcceleratorTableA';
 function CopyAcceleratorTableA(hAccelSrc: HACCEL; var lpAccelDst; cAccelEntries: Integer): Integer; external 'user32' name 'CopyAcceleratorTableA';
 function CopyAcceleratorTableW(hAccelSrc: HACCEL; var lpAccelDst; cAccelEntries: Integer): Integer; external 'user32' name 'CopyAcceleratorTableW';
@@ -240,22 +264,32 @@ function CreatePenIndirect(const LogPen: TLogPen): HPEN; external 'gdi32' name '
 function CreatePipe(var hReadPipe, hWritePipe: THandle; lpPipeAttributes: PSecurityAttributes; nSize: DWORD): BOOL; external 'kernel32' name 'CreatePipe';
 function CreatePolygonRgn(const Points; Count, FillMode: Integer): HRGN; external 'gdi32' name 'CreatePolygonRgn';
 function CreatePolyPolygonRgn(const pPtStructs; const pIntArray; p3, p4: Integer): HRGN; external 'gdi32' name 'CreatePolyPolygonRgn';
-//function CreatePrivateObjectSecurity(ParentDescriptor, CreatorDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; IsDirectoryObject: BOOL; Token: THandle; const GenericMapping: TGenericMapping): BOOL; external 'advapi32' name 'CreatePrivateObjectSecurity';
-//function CreatePrivateObjectSecurityEx(ParentDescriptor, CreatorDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; ObjectType: PGUID; IsContainerObject: BOOL; AutoInheritFlags: ULONG; Token: THandle; const GenericMapping: TGenericMapping): BOOL;external 'advapi32' name 'CreatePrivateObjectSecurityEx';
-function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'kernel32' name 'CreateProcessA';
-function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
-//function CreateProcessAsUser(hToken: THandle; lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'advapi32' name 'CreateProcessAsUserA';
-//function CreateProcessAsUserA(hToken: THandle; lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserA';
-//function CreateProcessAsUserW(hToken: THandle; lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserW';
-function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessW';
+//function CreatePrivateObjectSecurity(ParentDescriptor, CreatorDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; IsDirectoryObject: BOOL; Token: THandle; const GenericMapping: TGenericMapping): BOOL;
+//  external 'advapi32' name 'CreatePrivateObjectSecurity';
+//function CreatePrivateObjectSecurityEx(ParentDescriptor, CreatorDescriptor: PSecurityDescriptor; var NewDescriptor: PSecurityDescriptor; ObjectType: PGUID; IsContainerObject: BOOL; AutoInheritFlags: ULONG; Token: THandle;
+//  const GenericMapping: TGenericMapping): BOOL;external 'advapi32' name 'CreatePrivateObjectSecurityEx';
+function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'kernel32' name 'CreateProcessA';
+function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
+//function CreateProcessAsUser(hToken: THandle; lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
+// lpEnvironment: Pointer; lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'advapi32' name 'CreateProcessAsUserA';
+//function CreateProcessAsUserA(hToken: THandle; lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
+//  lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserA';
+//function CreateProcessAsUserW(hToken: THandle; lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes: PSecurityAttributes; lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD;
+//  lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR; const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'advapi32' name 'CreateProcessAsUserW';
+function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessW';
 function CreateRectRgnIndirect(const p1: TRect): HRGN; external 'gdi32' name 'CreateRectRgnIndirect';
-function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateRemoteThread';
+function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
+  external 'kernel32' name 'CreateRemoteThread';
 function CreateThread(lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateThread';
 function DdeSetQualityOfService(hWndClient: HWnd; const pqosNew: TSecurityQualityOfService; pqosPrev: PSecurityQualityOfService): BOOL;external 'user32' name 'DdeSetQualityOfService';
 //function DeleteAce(var pAcl: TACL; dwAceIndex: DWORD): BOOL; external 'advapi32' name 'DeleteAce';
 function DescribePixelFormat(DC: HDC; p2: Integer; p3: UINT; var p4: TPixelFormatDescriptor): BOOL; external 'gdi32' name 'DescribePixelFormat';
 //function DestroyPrivateObjectSecurity(var ObjectDescriptor: PSecurityDescriptor): BOOL; external 'advapi32' name 'DestroyPrivateObjectSecurity';
-function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'DeviceIoControl';
+function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL;
+  external 'kernel32' name 'DeviceIoControl';
 function DialogBoxIndirectParam(hInstance: HINST; const lpDialogTemplate: TDlgTemplate; hWndParent: HWND; lpDialogFunc: TFNDlgProc; dwInitParam: LPARAM): Integer;external 'user32' name 'DialogBoxIndirectParamA';
 function DialogBoxIndirectParamA(hInstance: HINST; const lpDialogTemplate: TDlgTemplate; hWndParent: HWND; lpDialogFunc: TFNDlgProc; dwInitParam: LPARAM): Integer; external 'user32' name 'DialogBoxIndirectParamA';
 function DialogBoxIndirectParamW(hInstance: HINST; const lpDialogTemplate: TDlgTemplate; hWndParent: HWND; lpDialogFunc: TFNDlgProc; dwInitParam: LPARAM): Integer; external 'user32' name 'DialogBoxIndirectParamW';
@@ -275,7 +309,8 @@ function DrawTextEx(DC: HDC; lpchText: PChar; cchText: Integer; var p4: TRect; d
 function DrawTextExA(DC: HDC; lpchText: LPCSTR; cchText: Integer; var p4: TRect; dwDTFormat: UINT; DTParams: PDrawTextParams): Integer; external 'user32' name 'DrawTextExA';
 function DrawTextExW(DC: HDC; lpchText: LPWSTR; cchText: Integer; var p4: TRect; dwDTFormat: UINT; DTParams: PDrawTextParams): Integer; external 'user32' name 'DrawTextExW';
 function DrawTextW(hDC: HDC; lpString: LPWSTR; nCount: Integer; var lpRect: TRect; uFormat: UINT): Integer; external 'user32' name 'DrawTextW';
-//function DuplicateTokenEx(hExistingToken: THandle; dwDesiredAccess: DWORD; lpTokenAttributes: PSecurityAttributes; ImpersonationLevel: TSecurityImpersonationLevel; TokenType: TTokenType; var phNewToken: THandle): BOOL;external 'advapi32' name 'DuplicateTokenEx';
+//function DuplicateTokenEx(hExistingToken: THandle; dwDesiredAccess: DWORD; lpTokenAttributes: PSecurityAttributes; ImpersonationLevel: TSecurityImpersonationLevel; TokenType: TTokenType; var phNewToken: THandle): BOOL;
+//  external 'advapi32' name 'DuplicateTokenEx';
 function EndPaint(hWnd: HWND; const lpPaint: TPaintStruct): BOOL; external 'user32' name 'EndPaint';
 //function EnumDisplayDevices(Unused: Pointer; iDevNum: DWORD; var lpDisplayDevice: TDisplayDevice; dwFlags: DWORD): BOOL;external 'user32' name 'EnumDisplayDevicesA';
 //function EnumDisplayDevicesA(Unused: Pointer; iDevNum: DWORD; var lpDisplayDevice: TDisplayDeviceA; dwFlags: DWORD): BOOL;external 'user32' name 'EnumDisplayDevicesA';
@@ -368,7 +403,9 @@ function GetCPInfo(CodePage: UINT; var lpCPInfo: TCPInfo): BOOL;external 'kernel
 //function GetCurrentHwProfile(var lpHwProfileInfo: THWProfileInfo): BOOL;external 'advapi32' name 'GetCurrentHwProfileA';
 //function GetCurrentHwProfileA(var lpHwProfileInfo: THWProfileInfoA): BOOL;external 'advapi32' name 'GetCurrentHwProfileA';
 //function GetCurrentHwProfileW(var lpHwProfileInfo: THWProfileInfoW): BOOL;external 'advapi32' name 'GetCurrentHwProfileW';
+{$ifdef support_smartlink}
 function GetCursorInfo(var pci: TCursorInfo): BOOL;external 'user32' name 'GetCursorInfo';
+{$endif support_smartlink}
 function GetCursorPos(var lpPoint: TPoint): BOOL; external 'user32' name 'GetCursorPos';
 function GetDCOrgEx(DC: HDC; var Origin: TPoint): BOOL; external 'gdi32' name 'GetDCOrgEx';
 function GetDefaultCommConfig(lpszName: PChar; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL;external 'kernel32' name 'GetDefaultCommConfigA';
@@ -435,10 +472,13 @@ function GetOverlappedResult(hFile: THandle; const lpOverlapped: TOverlapped; va
 function GetPaletteEntries(Palette: HPALETTE; StartIndex, NumEntries: UINT; var PaletteEntries): UINT; external 'gdi32' name 'GetPaletteEntries';
 function GetPath(DC: HDC; var Points, Types; nSize: Integer): Integer; external 'gdi32' name 'GetPath';
 function GetPriorityClipboardFormat(var paFormatPriorityList; cFormats: Integer): Integer; external 'user32' name 'GetPriorityClipboardFormat';
-//function GetPrivateObjectSecurity(ObjectDescriptor: PSecurityDescriptor; SecurityInformation: SECURITY_INFORMATION; ResultantDescriptor: PSecurityDescriptor; DescriptorLength: DWORD; var ReturnLength: DWORD): BOOL;external 'advapi32' name 'GetPrivateObjectSecurity';
+//function GetPrivateObjectSecurity(ObjectDescriptor: PSecurityDescriptor; SecurityInformation: SECURITY_INFORMATION; ResultantDescriptor: PSecurityDescriptor; DescriptorLength: DWORD; var ReturnLength: DWORD): BOOL;
+//  external 'advapi32' name 'GetPrivateObjectSecurity';
 function GetProcessAffinityMask(hProcess: THandle; var lpProcessAffinityMask, lpSystemAffinityMask: DWORD): BOOL; external 'kernel32' name 'GetProcessAffinityMask';
 function GetProcessHeaps(NumberOfHeaps: DWORD; var ProcessHeaps: THandle): DWORD;external 'kernel32' name 'GetProcessHeaps';
+{$ifdef support_smartlink}
 function GetProcessPriorityBoost(hThread: THandle; var DisablePriorityBoost: Bool): BOOL;external 'kernel32' name 'GetProcessPriorityBoost';
+{$endif support_smartlink}
 function GetProcessShutdownParameters(var lpdwLevel, lpdwFlags: DWORD): BOOL; external 'kernel32' name 'GetProcessShutdownParameters';
 function GetProcessTimes(hProcess: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetProcessTimes';
 function GetProcessWorkingSetSize(hProcess: THandle; var lpMinimumWorkingSetSize, lpMaximumWorkingSetSize: DWORD): BOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
@@ -480,7 +520,9 @@ function GetTextMetrics(DC: HDC; var TM: TTextMetric): BOOL;external 'gdi32' nam
 //function GetTextMetricsA(DC: HDC; var TM: TTextMetricA): BOOL; external 'gdi32' name 'GetTextMetricsA';
 //function GetTextMetricsW(DC: HDC; var TM: TTextMetricW): BOOL; external 'gdi32' name 'GetTextMetricsW';
 function GetThreadContext(hThread: THandle; var lpContext: TContext): BOOL; external 'kernel32' name 'GetThreadContext';
+{$ifdef support_smartlink}
 function GetThreadPriorityBoost(hThread: THandle; var DisablePriorityBoost: Bool): BOOL;external 'kernel32' name 'GetThreadPriorityBoost';
+{$endif support_smartlink}
 function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'GetThreadSelectorEntry';
 function GetThreadTimes(hThread: THandle; var lpCreationTime, lpExitTime, lpKernelTime, lpUserTime: TFileTime): BOOL; external 'kernel32' name 'GetThreadTimes';
 function GetTimeZoneInformation(var lpTimeZoneInformation: TTimeZoneInformation): DWORD; external 'kernel32' name 'GetTimeZoneInformation';
@@ -499,9 +541,12 @@ function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external
 function GetVersionExW(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExW';
 function GetViewportExtEx(DC: HDC; var Size: TSize): BOOL; external 'gdi32' name 'GetViewportExtEx';
 function GetViewportOrgEx(DC: HDC; var Point: TPoint): BOOL; external 'gdi32' name 'GetViewportOrgEx';
-function GetVolumeInformation(lpRootPathName: PChar; lpVolumeNameBuffer: PChar; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD; lpFileSystemNameBuffer: PChar; nFileSystemNameSize: DWORD): BOOL;external 'kernel32' name 'GetVolumeInformationA';
-function GetVolumeInformationA(lpRootPathName: LPCSTR; lpVolumeNameBuffer: LPCSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD; lpFileSystemNameBuffer: LPCSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
-function GetVolumeInformationW(lpRootPathName: LPWSTR; lpVolumeNameBuffer: LPWSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD; lpFileSystemNameBuffer: LPWSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationW';
+function GetVolumeInformation(lpRootPathName: PChar; lpVolumeNameBuffer: PChar; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
+  lpFileSystemNameBuffer: PChar; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
+function GetVolumeInformationA(lpRootPathName: LPCSTR; lpVolumeNameBuffer: LPCSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
+  lpFileSystemNameBuffer: LPCSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
+function GetVolumeInformationW(lpRootPathName: LPWSTR; lpVolumeNameBuffer: LPWSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
+  lpFileSystemNameBuffer: LPWSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationW';
 function GetWindowExtEx(DC: HDC; var Size: TSize): BOOL; external 'gdi32' name 'GetWindowExtEx';
 //function GetWindowInfo(hwnd: HWND; var pwi: TWindowInfo): BOOL;external 'user32' name 'GetWindowInfo';
 function GetWindowOrgEx(DC: HDC; var Point: TPoint): BOOL; external 'gdi32' name 'GetWindowOrgEx';
@@ -511,12 +556,16 @@ function GetWorldTransform(DC: HDC; var p2: TXForm): BOOL; external 'gdi32' name
 function HeapWalk(hHeap: THandle; var lpEntry: TProcessHeapEntry): BOOL; external 'kernel32' name 'HeapWalk';
 function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'InflateRect';
 function InitializeAcl(var pAcl: TACL; nAclLength, dwAclRevision: DWORD): BOOL; external 'advapi32' name 'InitializeAcl';
+{$ifdef support_smartlink}
 function InitializeCriticalSectionAndSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): BOOL;external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
+{$endif support_smartlink}
 function InitializeSid(Sid: Pointer; const pIdentifierAuthority: TSIDIdentifierAuthority; nSubAuthorityCount: Byte): BOOL; external 'advapi32' name 'InitializeSid';
 function InsertMenuItem(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo): BOOL;external 'user32' name 'InsertMenuItemA';
 function InsertMenuItemA(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoA): BOOL; external 'user32' name 'InsertMenuItemA';
 //function InsertMenuItemW(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoW): BOOL; external 'user32' name 'InsertMenuItemW';
+{$ifdef support_smartlink}
 function InterlockedCompareExchange(var Destination: Pointer; Exchange: Pointer; Comperand: Pointer): Pointer;external 'kernel32' name 'InterlockedCompareExchange';
+{$endif support_smartlink}
 function InterlockedDecrement(var Addend: Integer): Integer; external 'kernel32' name 'InterlockedDecrement';
 function InterlockedExchange(var Target: Integer; Value: Integer): Integer; external 'kernel32' name 'InterlockedExchange';
 function InterlockedIncrement(var Addend: Integer): Integer; external 'kernel32' name 'InterlockedIncrement';
@@ -548,7 +597,8 @@ function LookupPrivilegeValue(lpSystemName, lpName: PChar; var lpLuid: TLargeInt
 function LookupPrivilegeValueA(lpSystemName, lpName: LPCSTR; var lpLuid: TLargeInteger): BOOL; external 'advapi32' name 'LookupPrivilegeValueA';
 function LookupPrivilegeValueW(lpSystemName, lpName: LPWSTR; var lpLuid: TLargeInteger): BOOL; external 'advapi32' name 'LookupPrivilegeValueW';
 function LPtoDP(DC: HDC; var Points; Count: Integer): BOOL; external 'gdi32' name 'LPtoDP';
-function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor: PSecurityDescriptor; pAbsoluteSecurityDescriptor: PSecurityDescriptor; var lpdwAbsoluteSecurityDescriptorSi: DWORD; var pDacl: TACL; var lpdwDaclSize: DWORD; var pSacl: TACL; var lpdwSaclSize: DWORD; pOwner: PSID; var lpdwOwnerSize: DWORD; pPrimaryGroup: Pointer; var lpdwPrimaryGroupSize: DWORD): BOOL; external 'advapi32' name 'MakeAbsoluteSD';
+function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor: PSecurityDescriptor; pAbsoluteSecurityDescriptor: PSecurityDescriptor; var lpdwAbsoluteSecurityDescriptorSi: DWORD; var pDacl: TACL; var lpdwDaclSize: DWORD; var pSacl: TACL;
+  var lpdwSaclSize: DWORD; pOwner: PSID; var lpdwOwnerSize: DWORD; pPrimaryGroup: Pointer; var lpdwPrimaryGroupSize: DWORD): BOOL; external 'advapi32' name 'MakeAbsoluteSD';
 function MakeSelfRelativeSD(pAbsoluteSecurityDescriptor: PSecurityDescriptor; pSelfRelativeSecurityDescriptor: PSecurityDescriptor; var lpdwBufferLength: DWORD): BOOL; external 'advapi32' name 'MakeSelfRelativeSD';
 function MapDialogRect(hDlg: HWND; var lpRect: TRect): BOOL; external 'user32' name 'MapDialogRect';
 function MapWindowPoints(hWndFrom, hWndTo: HWND; var lpPoints; cPoints: UINT): Integer; external 'user32' name 'MapWindowPoints';
@@ -557,11 +607,16 @@ function MessageBoxIndirectA(const MsgBoxParams: TMsgBoxParamsA): BOOL; external
 //function MessageBoxIndirectW(const MsgBoxParams: TMsgBoxParamsW): BOOL; external 'user32' name 'MessageBoxIndirectW';
 function ModifyWorldTransform(DC: HDC; const p2: TXForm; p3: DWORD): BOOL; external 'gdi32' name 'ModifyWorldTransform';
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjects';
+{$ifdef support_smartlink}
 function MsgWaitForMultipleObjectsEx(nCount: DWORD; var pHandles; dwMilliseconds, dwWakeMask, dwFlags: DWORD): DWORD;external 'user32' name 'MsgWaitForMultipleObjectsEx';
+{$endif support_smartlink}
 function MultiByteToWideChar(CodePage: UINT; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lLPWSTRStr: LPWSTR; cchWideChar: Integer): Integer; external 'kernel32' name 'MultiByteToWideChar';
-function ObjectOpenAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName: PChar; ObjectName: PChar; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet; ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL;external 'advapi32' name 'ObjectOpenAuditAlarmA';
-function ObjectOpenAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName: LPCSTR; ObjectName: LPCSTR; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet; ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL; external 'advapi32' name 'ObjectOpenAuditAlarmA';
-function ObjectOpenAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName: LPWSTR; ObjectName: LPWSTR; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet; ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL; external 'advapi32' name 'ObjectOpenAuditAlarmW';
+function ObjectOpenAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ObjectTypeName: PChar; ObjectName: PChar; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet;
+  ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL;external 'advapi32' name 'ObjectOpenAuditAlarmA';
+function ObjectOpenAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ObjectTypeName: LPCSTR; ObjectName: LPCSTR; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet;
+  ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL; external 'advapi32' name 'ObjectOpenAuditAlarmA';
+function ObjectOpenAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectTypeName: LPWSTR; ObjectName: LPWSTR; pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess, GrantedAccess: DWORD; var Privileges: TPrivilegeSet;
+  ObjectCreation, AccessGranted: BOOL; var GenerateOnClose: BOOL): BOOL; external 'advapi32' name 'ObjectOpenAuditAlarmW';
 function ObjectPrivilegeAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL;external 'advapi32' name 'ObjectPrivilegeAuditAlarmA';
 function ObjectPrivilegeAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmA';
 function ObjectPrivilegeAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmW';
@@ -628,9 +683,12 @@ function RegConnectRegistryA(lpMachineName: LPCSTR; hKey: HKEY; var phkResult: H
 function RegConnectRegistryW(lpMachineName: LPWSTR; hKey: HKEY; var phkResult: HKEY): Longint; external 'advapi32' name 'RegConnectRegistryW';
 function RegCreateKey(hKey: HKEY; lpSubKey: PChar; var phkResult: HKEY): Longint;external 'advapi32' name 'RegCreateKeyA';
 function RegCreateKeyA(hKey: HKEY; lpSubKey: LPCSTR; var phkResult: HKEY): Longint; external 'advapi32' name 'RegCreateKeyA';
-function RegCreateKeyEx(hKey: HKEY; lpSubKey: PChar; Reserved: DWORD; lpClass: PChar; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint;external 'advapi32' name 'RegCreateKeyExA';
-function RegCreateKeyExA(hKey: HKEY; lpSubKey: LPCSTR; Reserved: DWORD; lpClass: LPCSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint; external 'advapi32' name 'RegCreateKeyExA';
-function RegCreateKeyExW(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass: LPWSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint; external 'advapi32' name 'RegCreateKeyExW';
+function RegCreateKeyEx(hKey: HKEY; lpSubKey: PChar; Reserved: DWORD; lpClass: PChar; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint;
+  external 'advapi32' name 'RegCreateKeyExA';
+function RegCreateKeyExA(hKey: HKEY; lpSubKey: LPCSTR; Reserved: DWORD; lpClass: LPCSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint;
+  external 'advapi32' name 'RegCreateKeyExA';
+function RegCreateKeyExW(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass: LPWSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint;
+  external 'advapi32' name 'RegCreateKeyExW';
 function RegCreateKeyW(hKey: HKEY; lpSubKey: LPWSTR; var phkResult: HKEY): Longint; external 'advapi32' name 'RegCreateKeyW';
 function RegEnumKeyEx(hKey: HKEY; dwIndex: DWORD; lpName: PChar; var lpcbName: DWORD; lpReserved: Pointer; lpClass: PChar; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint;external 'advapi32' name 'RegEnumKeyExA';
 function RegEnumKeyExA(hKey: HKEY; dwIndex: DWORD; lpName: LPCSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPCSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external 'advapi32' name 'RegEnumKeyExA';
@@ -679,7 +737,9 @@ function SetCommState(hFile: THandle; const lpDCB: TDCB): BOOL; external 'kernel
 function SetCommTimeouts(hFile: THandle; const lpCommTimeouts: TCommTimeouts): BOOL; external 'kernel32' name 'SetCommTimeouts';
 function SetConsoleCursorInfo(hConsoleOutput: THandle; const lpConsoleCursorInfo: TConsoleCursorInfo): BOOL; external 'kernel32' name 'SetConsoleCursorInfo';
 function SetConsoleWindowInfo(hConsoleOutput: THandle; bAbsolute: BOOL; const lpConsoleWindow: TSmallRect): BOOL; external 'kernel32' name 'SetConsoleWindowInfo';
+{$ifdef support_smartlink}
 function SetCriticalSectionSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): DWORD;external 'kernel32' name 'SetCriticalSectionSpinCount';
+{$endif support_smartlink}
 function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'SetDeviceGammaRamp';
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
 function SetDIBits(DC: HDC; Bitmap: HBITMAP; StartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBits';
@@ -693,8 +753,10 @@ function SetMenuItemInfoA(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo
 function SetMetaFileBitsEx(p1: UINT; const p2: PChar): HMETAFILE; external 'gdi32' name 'SetMetaFileBitsEx';
 function SetNamedPipeHandleState(hNamedPipe: THandle; var lpMode: DWORD; lpMaxCollectionCount, lpCollectDataTimeout: Pointer): BOOL; external 'kernel32' name 'SetNamedPipeHandleState';
 function SetPaletteEntries(Palette: HPALETTE; StartIndex, NumEntries: UINT; var PaletteEntries): UINT; external 'gdi32' name 'SetPaletteEntries';
-//function SetPrivateObjectSecurity(SecurityInformation: SECURITY_INFORMATION; ModificationDescriptor: PSecurityDescriptor; var ObjectsSecurityDescriptor: PSecurityDescriptor; const GenericMapping: TGenericMapping; Token: THandle): BOOL;external 'advapi32' name 'SetPrivateObjectSecurity';
-//function SetPrivateObjectSecurityEx(SecurityInformation: SECURITY_INFORMATION; ModificationDescriptor: PSecurityDescriptor; var ObjectsSecurityDescriptor: PSecurityDescriptor; AutoInheritFlags: ULONG; const GenericMapping: TGenericMapping; Token: THandle): BOOL;external 'advapi32' name 'SetPrivateObjectSecurityEx';
+//function SetPrivateObjectSecurity(SecurityInformation: SECURITY_INFORMATION; ModificationDescriptor: PSecurityDescriptor; var ObjectsSecurityDescriptor: PSecurityDescriptor; const GenericMapping: TGenericMapping; Token: THandle): BOOL;
+//  external 'advapi32' name 'SetPrivateObjectSecurity';
+//function SetPrivateObjectSecurityEx(SecurityInformation: SECURITY_INFORMATION; ModificationDescriptor: PSecurityDescriptor; var ObjectsSecurityDescriptor: PSecurityDescriptor; AutoInheritFlags: ULONG;
+//  const GenericMapping: TGenericMapping; Token: THandle): BOOL;external 'advapi32' name 'SetPrivateObjectSecurityEx';
 function SetRect(var lprc: TRect; xLeft, yTop, xRight, yBottom: Integer): BOOL; external 'user32' name 'SetRect';
 function SetRectEmpty(var lprc: TRect): BOOL; external 'user32' name 'SetRectEmpty';
 function SetScrollInfo(hWnd: HWND; BarFlag: Integer; const ScrollInfo: TScrollInfo; Redraw: BOOL): Integer; external 'user32' name 'SetScrollInfo';
@@ -728,7 +790,9 @@ function TranslateCharsetInfo(var lpSrc: DWORD; var lpCs: TCharsetInfo; dwFlags:
 function TranslateMDISysAccel(hWndClient: HWND; const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMDISysAccel';
 function TranslateMessage(const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMessage';
 //function TransparentDIBits(DC: HDC; p2, p3, p4, p5: Integer; const p6: Pointer; const p7: PBitmapInfo; p8: UINT; p9, p10, p11, p12: Integer; p13: UINT): BOOL;external 'gdi32' name 'TransparentDIBits';
+{$ifdef support_smartlink}
 function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): BOOL;external 'kernel32' name 'TryEnterCriticalSection';
+{$endif support_smartlink}
 function UnhandledExceptionFilter(const ExceptionInfo: TExceptionPointers): Longint; external 'kernel32' name 'UnhandledExceptionFilter';
 function UnionRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external 'user32' name 'UnionRect';
 function UnlockFileEx(hFile: THandle; dwReserved, nNumberOfBytesToUnlockLow: DWORD; nNumberOfBytesToUnlockHigh: DWORD; const lpOverlapped: TOverlapped): BOOL; external 'kernel32' name 'UnlockFileEx';
@@ -819,7 +883,13 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {
   $Log$
-  Revision 1.10  2000-06-12 19:54:25  peter
+  Revision 1.11  2000-06-15 11:26:58  pierre
+    * avoid lines longer than 255 chars
+    + add smartlink on by default, if not version 0.99.14
+    * some functions not present in win95 DLL's are now only inserted if
+      smartlink is on.
+
+  Revision 1.10  2000/06/12 19:54:25  peter
     * removed some declares which don't exists in dll
 
   Revision 1.9  2000/06/11 07:04:59  peter

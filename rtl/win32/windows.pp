@@ -14,6 +14,19 @@
 
  **********************************************************************}
 unit windows;
+
+
+{$ifndef VER0_99_14}
+{$ifndef NO_SMART_LINK}
+{$define support_smartlink}
+{$endif}
+{$endif}
+
+
+{$ifdef support_smartlink}
+{$smartlink on}
+{$endif}
+
 interface
 
 {$define read_interface}
@@ -57,7 +70,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-06-11 07:04:58  peter
+  Revision 1.13  2000-06-15 11:26:57  pierre
+    * avoid lines longer than 255 chars
+    + add smartlink on by default, if not version 0.99.14
+    * some functions not present in win95 DLL's are now only inserted if
+      smartlink is on.
+
+  Revision 1.12  2000/06/11 07:04:58  peter
     * Windows unit has now more Delphi compatibile functions
     * placed the external functions only in the interface
 

@@ -47,18 +47,22 @@
 
 {$ifdef read_interface}
 
-function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
+function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;PrivilegeSetLength:LPDWORD;
+  GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
 function InterlockedIncrement(lpAddend:LPLONG):LONG; external 'kernel32' name 'InterlockedIncrement';
 function InterlockedDecrement(lpAddend:LPLONG):LONG; external 'kernel32' name 'InterlockedDecrement';
 function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external 'kernel32' name 'InterlockedExchange';
 function FreeResource(hResData:HGLOBAL):WINBOOL; external 'kernel32' name 'FreeResource';
 function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockResource';
-{$ifdef Unknown_functions}{ WARNING: function not found !!}function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
+{$ifdef Unknown_functions}
+{ WARNING: function not found !!}
+function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
 {$endif Unknown_functions}function FreeLibrary(hLibModule:HINST):WINBOOL; external 'kernel32' name 'FreeLibrary';
 procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external 'kernel32' name 'FreeLibraryAndExitThread';
 function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external 'kernel32' name 'DisableThreadLibraryCalls';
 function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
-function GetVersion:DWORD; external 'kernel32' name 'GetVersion';function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32' name 'GlobalAlloc';
+function GetVersion:DWORD; external 'kernel32' name 'GetVersion';
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32' name 'GlobalAlloc';
 function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
 function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external 'kernel32' name 'GlobalReAlloc';
 function GlobalSize(hMem:HGLOBAL):DWORD; external 'kernel32' name 'GlobalSize';
@@ -99,7 +103,8 @@ function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external '
 function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):DWORD; external 'kernel32' name 'HeapSize';
 function HeapValidate(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):WINBOOL; external 'kernel32' name 'HeapValidate';
 function HeapCompact(hHeap:HANDLE; dwFlags:DWORD):UINT; external 'kernel32' name 'HeapCompact';
-function GetProcessHeap:HANDLE; external 'kernel32' name 'GetProcessHeap';function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; external 'kernel32' name 'GetProcessHeaps';
+function GetProcessHeap:HANDLE; external 'kernel32' name 'GetProcessHeap';
+function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; external 'kernel32' name 'GetProcessHeaps';
 function HeapLock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapLock';
 function HeapUnlock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapUnlock';
 function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external 'kernel32' name 'HeapWalk';
@@ -108,14 +113,19 @@ function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:
 function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
 function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external 'kernel32' name 'SetProcessWorkingSetSize';
 function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external 'kernel32' name 'OpenProcess';
-function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
+function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
+function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
+procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
 function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
 function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';
 procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; var lpArguments:DWORD); external 'kernel32' name 'RaiseException';
 function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
-function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
-function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';function GetCurrentThreadId:DWORD; external 'kernel32' name 'GetCurrentThreadId';function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external 'kernel32' name 'SetThreadAffinityMask';
+function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
+  dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
+function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
+function GetCurrentThreadId:DWORD; external 'kernel32' name 'GetCurrentThreadId';
+function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external 'kernel32' name 'SetThreadAffinityMask';
 function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external 'kernel32' name 'SetThreadPriority';
 function GetThreadPriority(hThread:HANDLE):longint; external 'kernel32' name 'GetThreadPriority';
 function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetThreadTimes';
@@ -123,7 +133,8 @@ procedure ExitThread(dwExitCode:DWORD); external 'kernel32' name 'ExitThread';
 function TerminateThread(hThread:HANDLE; dwExitCode:DWORD):WINBOOL; external 'kernel32' name 'TerminateThread';
 function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeThread';
 function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32' name 'GetThreadSelectorEntry';
-function GetLastError:DWORD; external 'kernel32' name 'GetLastError';procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
+function GetLastError:DWORD; external 'kernel32' name 'GetLastError';
+procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
 function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
 function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
@@ -131,7 +142,8 @@ function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVO
 function GetThreadContext(hThread:HANDLE; lpContext:LPCONTEXT):WINBOOL; external 'kernel32' name 'GetThreadContext';
 function SuspendThread(hThread:HANDLE):DWORD; external 'kernel32' name 'SuspendThread';
 function ResumeThread(hThread:HANDLE):DWORD; external 'kernel32' name 'ResumeThread';
-procedure DebugBreak; external 'kernel32' name 'DebugBreak';function WaitForDebugEvent(lpDebugEvent:LPDEBUG_EVENT; dwMilliseconds:DWORD):WINBOOL; external 'kernel32' name 'WaitForDebugEvent';
+procedure DebugBreak; external 'kernel32' name 'DebugBreak';
+function WaitForDebugEvent(lpDebugEvent:LPDEBUG_EVENT; dwMilliseconds:DWORD):WINBOOL; external 'kernel32' name 'WaitForDebugEvent';
 function ContinueDebugEvent(dwProcessId:DWORD; dwThreadId:DWORD; dwContinueStatus:DWORD):WINBOOL; external 'kernel32' name 'ContinueDebugEvent';
 function DebugActiveProcess(dwProcessId:DWORD):WINBOOL; external 'kernel32' name 'DebugActiveProcess';
 procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external 'kernel32' name 'InitializeCriticalSection';
@@ -152,7 +164,8 @@ function GlobalDeleteAtom(nAtom:ATOM):ATOM; external 'kernel32' name 'GlobalDele
 function InitAtomTable(nSize:DWORD):WINBOOL; external 'kernel32' name 'InitAtomTable';
 function DeleteAtom(nAtom:ATOM):ATOM; external 'kernel32' name 'DeleteAtom';
 function SetHandleCount(uNumber:UINT):UINT; external 'kernel32' name 'SetHandleCount';
-function GetLogicalDrives:DWORD; external 'kernel32' name 'GetLogicalDrives';function LockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD):WINBOOL; external 'kernel32' name 'LockFile';
+function GetLogicalDrives:DWORD; external 'kernel32' name 'GetLogicalDrives';
+function LockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD):WINBOOL; external 'kernel32' name 'LockFile';
 function UnlockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD):WINBOOL; external 'kernel32' name 'UnlockFile';
 function LockFileEx(hFile:HANDLE; dwFlags:DWORD; dwReserved:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD;lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'LockFileEx';
 function UnlockFileEx(hFile:HANDLE; dwReserved:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'UnlockFileEx';
@@ -201,9 +214,16 @@ function GetTapeStatus(hDevice:HANDLE):DWORD; external 'kernel32' name 'GetTapeS
 function GetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpdwSize:LPDWORD; lpTapeInformation:LPVOID):DWORD; external 'kernel32' name 'GetTapeParameters';
 function SetTapeParameters(hDevice:HANDLE; dwOperation:DWORD; lpTapeInformation:LPVOID):DWORD; external 'kernel32' name 'SetTapeParameters';
 function Beep(dwFreq:DWORD; dwDuration:DWORD):WINBOOL; external 'kernel32' name 'Beep';
-{$ifdef Unknown_functions}{ WARNING: functions not found !!}procedure OpenSound; external External_library name 'OpenSound';procedure CloseSound; external External_library name 'CloseSound';procedure StartSound; external External_library name 'StartSound';procedure StopSound; external External_library name 'StopSound';function WaitSoundState(nState:DWORD):DWORD; external External_library name 'WaitSoundState';
-function SyncAllVoices:DWORD; external External_library name 'SyncAllVoices';function CountVoiceNotes(nVoice:DWORD):DWORD; external External_library name 'CountVoiceNotes';
-function GetThresholdEvent:LPDWORD; external External_library name 'GetThresholdEvent';function GetThresholdStatus:DWORD; external External_library name 'GetThresholdStatus';function SetSoundNoise(nSource:DWORD; nDuration:DWORD):DWORD; external External_library name 'SetSoundNoise';
+{$ifdef Unknown_functions}{ WARNING: functions not found !!}procedure OpenSound; external External_library name 'OpenSound';
+procedure CloseSound; external External_library name 'CloseSound';
+procedure StartSound; external External_library name 'StartSound';
+procedure StopSound; external External_library name 'StopSound';
+function WaitSoundState(nState:DWORD):DWORD; external External_library name 'WaitSoundState';
+function SyncAllVoices:DWORD; external External_library name 'SyncAllVoices';
+function CountVoiceNotes(nVoice:DWORD):DWORD; external External_library name 'CountVoiceNotes';
+function GetThresholdEvent:LPDWORD; external External_library name 'GetThresholdEvent';
+function GetThresholdStatus:DWORD; external External_library name 'GetThresholdStatus';
+function SetSoundNoise(nSource:DWORD; nDuration:DWORD):DWORD; external External_library name 'SetSoundNoise';
 function SetVoiceAccent(nVoice:DWORD; nTempo:DWORD; nVolume:DWORD; nMode:DWORD; nPitch:DWORD):DWORD; external External_library name 'SetVoiceAccent';
 function SetVoiceEnvelope(nVoice:DWORD; nShape:DWORD; nRepeat:DWORD):DWORD; external External_library name 'SetVoiceEnvelope';
 function SetVoiceNote(nVoice:DWORD; nValue:DWORD; nLength:DWORD; nCdots:DWORD):DWORD; external External_library name 'SetVoiceNote';
@@ -227,7 +247,8 @@ function FileTimeToSystemTime(var lpFileTime:FILETIME; lpSystemTime:LPSYSTEMTIME
 function CompareFileTime(var lpFileTime1:FILETIME; var lpFileTime2:FILETIME):LONG; external 'kernel32' name 'CompareFileTime';
 function FileTimeToDosDateTime(var lpFileTime:FILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
-function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
+function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';
+function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
 function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external 'kernel32' name 'GetSystemTimeAdjustment';
 function CreatePipe(hReadPipe:PHANDLE; hWritePipe:PHANDLE; lpPipeAttributes:LPSECURITY_ATTRIBUTES; nSize:DWORD):WINBOOL; external 'kernel32' name 'CreatePipe';
 function ConnectNamedPipe(hNamedPipe:HANDLE; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'ConnectNamedPipe';
@@ -251,7 +272,8 @@ function _hwrite(hFile:HFILE; lpBuffer:LPCSTR; lBytes:longint):longint; external
 function _lclose(hFile:HFILE):HFILE; external 'kernel32' name '_lclose';
 function _llseek(hFile:HFILE; lOffset:LONG; iOrigin:longint):LONG; external 'kernel32' name '_llseek';
 function IsTextUnicode(lpBuffer:LPVOID; cb:longint; lpi:LPINT):WINBOOL; external 'advapi32' name 'IsTextUnicode';
-function TlsAlloc:DWORD; external 'kernel32' name 'TlsAlloc';function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external 'kernel32' name 'TlsGetValue';
+function TlsAlloc:DWORD; external 'kernel32' name 'TlsAlloc';
+function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external 'kernel32' name 'TlsGetValue';
 function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external 'kernel32' name 'TlsSetValue';
 function TlsFree(dwTlsIndex:DWORD):WINBOOL; external 'kernel32' name 'TlsFree';
 function SleepEx(dwMilliseconds:DWORD; bAlertable:WINBOOL):DWORD; external 'kernel32' name 'SleepEx';
@@ -264,7 +286,10 @@ function BackupSeek(hFile:HANDLE; dwLowBytesToSeek:DWORD; dwHighBytesToSeek:DWOR
 function BackupWrite(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; bAbort:WINBOOL;bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external 'kernel32' name 'BackupWrite';
 function SetProcessShutdownParameters(dwLevel:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'SetProcessShutdownParameters';
 function GetProcessShutdownParameters(lpdwLevel:LPDWORD; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessShutdownParameters';
-procedure SetFileApisToOEM; external 'kernel32' name 'SetFileApisToOEM';procedure SetFileApisToANSI; external 'kernel32' name 'SetFileApisToANSI';function AreFileApisANSI:WINBOOL; external 'kernel32' name 'AreFileApisANSI';function CloseEventLog(hEventLog:HANDLE):WINBOOL; external 'advapi32' name 'CloseEventLog';
+procedure SetFileApisToOEM; external 'kernel32' name 'SetFileApisToOEM';
+procedure SetFileApisToANSI; external 'kernel32' name 'SetFileApisToANSI';
+function AreFileApisANSI:WINBOOL; external 'kernel32' name 'AreFileApisANSI';
+function CloseEventLog(hEventLog:HANDLE):WINBOOL; external 'advapi32' name 'CloseEventLog';
 function DeregisterEventSource(hEventLog:HANDLE):WINBOOL; external 'advapi32' name 'DeregisterEventSource';
 function NotifyChangeEventLog(hEventLog:HANDLE; hEvent:HANDLE):WINBOOL; external 'advapi32' name 'NotifyChangeEventLog';
 function GetNumberOfEventLogRecords(hEventLog:HANDLE; NumberOfRecords:PDWORD):WINBOOL; external 'advapi32' name 'GetNumberOfEventLogRecords';
@@ -274,10 +299,11 @@ function GetKernelObjectSecurity(Handle:HANDLE; RequestedInformation:SECURITY_IN
 function ImpersonateNamedPipeClient(hNamedPipe:HANDLE):WINBOOL; external 'advapi32' name 'ImpersonateNamedPipeClient';
 function ImpersonateLoggedOnUser(hToken:HANDLE):WINBOOL; external 'advapi32' name 'ImpersonateLoggedOnUser';
 function ImpersonateSelf(ImpersonationLevel:SECURITY_IMPERSONATION_LEVEL):WINBOOL; external 'advapi32' name 'ImpersonateSelf';
-function RevertToSelf:WINBOOL; external 'advapi32' name 'RevertToSelf';function SetThreadToken(Thread:PHANDLE; Token:HANDLE):WINBOOL; external 'advapi32' name 'SetThreadToken';
-{  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
+function RevertToSelf:WINBOOL; external 'advapi32' name 'RevertToSelf';
+function SetThreadToken(Thread:PHANDLE; Token:HANDLE):WINBOOL; external 'advapi32' name 'SetThreadToken';
+{  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;PrivilegeSetLength:LPDWORD;
+  GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
 }
-
 function OpenProcessToken(ProcessHandle:HANDLE; DesiredAccess:DWORD; TokenHandle:PHANDLE):WINBOOL; external 'advapi32' name 'OpenProcessToken';
 function OpenThreadToken(ThreadHandle:HANDLE; DesiredAccess:DWORD; OpenAsSelf:WINBOOL; TokenHandle:PHANDLE):WINBOOL; external 'advapi32' name 'OpenThreadToken';
 function GetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD; ReturnLength:PDWORD):WINBOOL; external 'advapi32' name 'GetTokenInformation';
@@ -289,7 +315,8 @@ function IsValidSid(pSid:PSID):WINBOOL; external 'advapi32' name 'IsValidSid';
 function EqualSid(pSid1:PSID; pSid2:PSID):WINBOOL; external 'advapi32' name 'EqualSid';
 function EqualPrefixSid(pSid1:PSID; pSid2:PSID):WINBOOL; external 'advapi32' name 'EqualPrefixSid';
 function GetSidLengthRequired(nSubAuthorityCount:UCHAR):DWORD; external 'advapi32' name 'GetSidLengthRequired';
-function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD;nSubAuthority3:DWORD; nSubAuthority4:DWORD; nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD;var pSid:PSID):WINBOOL; external 'advapi32' name 'AllocateAndInitializeSid';
+function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD;nSubAuthority3:DWORD; nSubAuthority4:DWORD;
+  nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD;var pSid:PSID):WINBOOL; external 'advapi32' name 'AllocateAndInitializeSid';
 function FreeSid(pSid:PSID):PVOID; external 'advapi32' name 'FreeSid';
 function InitializeSid(Sid:PSID; pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE):WINBOOL; external 'advapi32' name 'InitializeSid';
 function GetSidIdentifierAuthority(pSid:PSID):PSID_IDENTIFIER_AUTHORITY; external 'advapi32' name 'GetSidIdentifierAuthority';
@@ -323,12 +350,16 @@ function SetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pO
 function GetSecurityDescriptorOwner(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pOwner:PSID; lpbOwnerDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorOwner';
 function SetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; pGroup:PSID; bGroupDefaulted:WINBOOL):WINBOOL; external 'advapi32' name 'SetSecurityDescriptorGroup';
 function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorGroup';
-function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR; IsDirectoryObject:WINBOOL; Token:HANDLE;GenericMapping:PGENERIC_MAPPING):WINBOOL; external 'advapi32' name 'CreatePrivateObjectSecurity';
-function SetPrivateObjectSecurity(SecurityInformation:SECURITY_INFORMATION; ModificationDescriptor:PSECURITY_DESCRIPTOR; var ObjectsSecurityDescriptor:PSECURITY_DESCRIPTOR; GenericMapping:PGENERIC_MAPPING; Token:HANDLE):WINBOOL;external 'advapi32' name 'SetPrivateObjectSecurity';
-function GetPrivateObjectSecurity(ObjectDescriptor:PSECURITY_DESCRIPTOR; SecurityInformation:SECURITY_INFORMATION; ResultantDescriptor:PSECURITY_DESCRIPTOR; DescriptorLength:DWORD; ReturnLength:PDWORD):WINBOOL;external 'advapi32' name 'GetPrivateObjectSecurity';
+function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR;
+  IsDirectoryObject:WINBOOL; Token:HANDLE;GenericMapping:PGENERIC_MAPPING):WINBOOL; external 'advapi32' name 'CreatePrivateObjectSecurity';
+function SetPrivateObjectSecurity(SecurityInformation:SECURITY_INFORMATION; ModificationDescriptor:PSECURITY_DESCRIPTOR; var ObjectsSecurityDescriptor:PSECURITY_DESCRIPTOR; GenericMapping:PGENERIC_MAPPING; Token:HANDLE):WINBOOL;
+  external 'advapi32' name 'SetPrivateObjectSecurity';
+function GetPrivateObjectSecurity(ObjectDescriptor:PSECURITY_DESCRIPTOR; SecurityInformation:SECURITY_INFORMATION; ResultantDescriptor:PSECURITY_DESCRIPTOR;
+  DescriptorLength:DWORD; ReturnLength:PDWORD):WINBOOL;external 'advapi32' name 'GetPrivateObjectSecurity';
 function DestroyPrivateObjectSecurity(ObjectDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32' name 'DestroyPrivateObjectSecurity';
 function MakeSelfRelativeSD(pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwBufferLength:LPDWORD):WINBOOL; external 'advapi32' name 'MakeSelfRelativeSD';
-function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD;pSacl:PACL; lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID;lpdwPrimaryGroupSize:LPDWORD):WINBOOL; external 'advapi32' name 'MakeAbsoluteSD';
+function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD;pSacl:PACL;
+  lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID;lpdwPrimaryGroupSize:LPDWORD):WINBOOL; external 'advapi32' name 'MakeAbsoluteSD';
 function SetKernelObjectSecurity(Handle:HANDLE; SecurityInformation:SECURITY_INFORMATION; SecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32' name 'SetKernelObjectSecurity';
 function FindNextChangeNotification(hChangeHandle:HANDLE):WINBOOL; external 'kernel32' name 'FindNextChangeNotification';
 function FindCloseChangeNotification(hChangeHandle:HANDLE):WINBOOL; external 'kernel32' name 'FindCloseChangeNotification';
@@ -365,7 +396,9 @@ function CloseDesktop(hDesktop:HDESK):WINBOOL; external 'user32' name 'CloseDesk
 function GetThreadDesktop(dwThreadId:DWORD):HDESK; external 'user32' name 'GetThreadDesktop';
 function CloseWindowStation(hWinSta:HWINSTA):WINBOOL; external 'user32' name 'CloseWindowStation';
 function SetProcessWindowStation(hWinSta:HWINSTA):WINBOOL; external 'user32' name 'SetProcessWindowStation';
-function GetProcessWindowStation:HWINSTA; external 'user32' name 'GetProcessWindowStation';function SetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR):WINBOOL; external 'user32' name 'SetUserObjectSecurity';
+function GetProcessWindowStation:HWINSTA; external 'user32' name 'GetProcessWindowStation';
+function SetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR):WINBOOL; external 'user32' name 'SetUserObjectSecurity';
+
 function GetUserObjectSecurity(hObj:HANDLE; pSIRequested:PSECURITY_INFORMATION; pSID:PSECURITY_DESCRIPTOR; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'user32' name 'GetUserObjectSecurity';
 function TranslateMessage(lpMsg:LPMSG):WINBOOL; external 'user32' name 'TranslateMessage';
 function SetMessageQueue(cMessagesMax:longint):WINBOOL; external 'user32' name 'SetMessageQueue';
@@ -373,13 +406,19 @@ function RegisterHotKey(hWnd:HWND; anID:longint; fsModifiers:UINT; vk:UINT):WINB
 function UnregisterHotKey(hWnd:HWND; anID:longint):WINBOOL; external 'user32' name 'UnregisterHotKey';
 function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external 'user32' name 'ExitWindowsEx';
 function SwapMouseButton(fSwap:WINBOOL):WINBOOL; external 'user32' name 'SwapMouseButton';
-function GetMessagePos:DWORD; external 'user32' name 'GetMessagePos';function GetMessageTime:LONG; external 'user32' name 'GetMessageTime';function GetMessageExtraInfo:LONG; external 'user32' name 'GetMessageExtraInfo';function SetMessageExtraInfo(lParam:LPARAM):LPARAM; external 'user32' name 'SetMessageExtraInfo';
+function GetMessagePos:DWORD; external 'user32' name 'GetMessagePos';
+function GetMessageTime:LONG; external 'user32' name 'GetMessageTime';
+function GetMessageExtraInfo:LONG; external 'user32' name 'GetMessageExtraInfo';
+function SetMessageExtraInfo(lParam:LPARAM):LPARAM; external 'user32' name 'SetMessageExtraInfo';
 function BroadcastSystemMessage(_para1:DWORD; _para2:LPDWORD; _para3:UINT; _para4:WPARAM; _para5:LPARAM):longint; external 'user32' name 'BroadcastSystemMessage';
 function AttachThreadInput(idAttach:DWORD; idAttachTo:DWORD; fAttach:WINBOOL):WINBOOL; external 'user32' name 'AttachThreadInput';
 function ReplyMessage(lResult:LRESULT):WINBOOL; external 'user32' name 'ReplyMessage';
-function WaitMessage:WINBOOL; external 'user32' name 'WaitMessage';function WaitForInputIdle(hProcess:HANDLE; dwMilliseconds:DWORD):DWORD; external 'user32' name 'WaitForInputIdle';
+function WaitMessage:WINBOOL; external 'user32' name 'WaitMessage';
+function WaitForInputIdle(hProcess:HANDLE; dwMilliseconds:DWORD):DWORD; external 'user32' name 'WaitForInputIdle';
 procedure PostQuitMessage(nExitCode:longint); external 'user32' name 'PostQuitMessage';
-function InSendMessage:WINBOOL; external 'user32' name 'InSendMessage';function GetDoubleClickTime:UINT; external 'user32' name 'GetDoubleClickTime';function SetDoubleClickTime(_para1:UINT):WINBOOL; external 'user32' name 'SetDoubleClickTime';
+function InSendMessage:WINBOOL; external 'user32' name 'InSendMessage';
+function GetDoubleClickTime:UINT; external 'user32' name 'GetDoubleClickTime';
+function SetDoubleClickTime(_para1:UINT):WINBOOL; external 'user32' name 'SetDoubleClickTime';
 function IsWindow(hWnd:HWND):WINBOOL; external 'user32' name 'IsWindow';
 function IsMenu(hMenu:HMENU):WINBOOL; external 'user32' name 'IsMenu';
 function IsChild(hWndParent:HWND; hWnd:HWND):WINBOOL; external 'user32' name 'IsChild';
@@ -399,7 +438,8 @@ function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:lon
 function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL; external 'user32' name 'EndDeferWindowPos';
 function IsWindowVisible(hWnd:HWND):WINBOOL; external 'user32' name 'IsWindowVisible';
 function IsIconic(hWnd:HWND):WINBOOL; external 'user32' name 'IsIconic';
-function AnyPopup:WINBOOL; external 'user32' name 'AnyPopup';function BringWindowToTop(hWnd:HWND):WINBOOL; external 'user32' name 'BringWindowToTop';
+function AnyPopup:WINBOOL; external 'user32' name 'AnyPopup';
+function BringWindowToTop(hWnd:HWND):WINBOOL; external 'user32' name 'BringWindowToTop';
 function IsZoomed(hWnd:HWND):WINBOOL; external 'user32' name 'IsZoomed';
 function EndDialog(hDlg:HWND; nResult:longint):WINBOOL; external 'user32' name 'EndDialog';
 function GetDlgItem(hDlg:HWND; nIDDlgItem:longint):HWND; external 'user32' name 'GetDlgItem';
@@ -411,18 +451,28 @@ function IsDlgButtonChecked(hDlg:HWND; nIDButton:longint):UINT; external 'user32
 function GetNextDlgGroupItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external 'user32' name 'GetNextDlgGroupItem';
 function GetNextDlgTabItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external 'user32' name 'GetNextDlgTabItem';
 function GetDlgCtrlID(hWnd:HWND):longint; external 'user32' name 'GetDlgCtrlID';
-function GetDialogBaseUnits:longint; external 'user32' name 'GetDialogBaseUnits';function OpenClipboard(hWndNewOwner:HWND):WINBOOL; external 'user32' name 'OpenClipboard';
-function CloseClipboard:WINBOOL; external 'user32' name 'CloseClipboard';function GetClipboardOwner:HWND; external 'user32' name 'GetClipboardOwner';function SetClipboardViewer(hWndNewViewer:HWND):HWND; external 'user32' name 'SetClipboardViewer';
-function GetClipboardViewer:HWND; external 'user32' name 'GetClipboardViewer';function ChangeClipboardChain(hWndRemove:HWND; hWndNewNext:HWND):WINBOOL; external 'user32' name 'ChangeClipboardChain';
+function GetDialogBaseUnits:longint; external 'user32' name 'GetDialogBaseUnits';
+function OpenClipboard(hWndNewOwner:HWND):WINBOOL; external 'user32' name 'OpenClipboard';
+function CloseClipboard:WINBOOL; external 'user32' name 'CloseClipboard';
+function GetClipboardOwner:HWND; external 'user32' name 'GetClipboardOwner';
+function SetClipboardViewer(hWndNewViewer:HWND):HWND; external 'user32' name 'SetClipboardViewer';
+function GetClipboardViewer:HWND; external 'user32' name 'GetClipboardViewer';
+function ChangeClipboardChain(hWndRemove:HWND; hWndNewNext:HWND):WINBOOL; external 'user32' name 'ChangeClipboardChain';
 function SetClipboardData(uFormat:UINT; hMem:HANDLE):HANDLE; external 'user32' name 'SetClipboardData';
 function GetClipboardData(uFormat:UINT):HANDLE; external 'user32' name 'GetClipboardData';
-function CountClipboardFormats:longint; external 'user32' name 'CountClipboardFormats';function EnumClipboardFormats(format:UINT):UINT; external 'user32' name 'EnumClipboardFormats';
-function EmptyClipboard:WINBOOL; external 'user32' name 'EmptyClipboard';function IsClipboardFormatAvailable(format:UINT):WINBOOL; external 'user32' name 'IsClipboardFormatAvailable';
+function CountClipboardFormats:longint; external 'user32' name 'CountClipboardFormats';
+function EnumClipboardFormats(format:UINT):UINT; external 'user32' name 'EnumClipboardFormats';
+function EmptyClipboard:WINBOOL; external 'user32' name 'EmptyClipboard';
+function IsClipboardFormatAvailable(format:UINT):WINBOOL; external 'user32' name 'IsClipboardFormatAvailable';
 function GetPriorityClipboardFormat(var paFormatPriorityList:UINT; cFormats:longint):longint; external 'user32' name 'GetPriorityClipboardFormat';
-function GetOpenClipboardWindow:HWND; external 'user32' name 'GetOpenClipboardWindow';function CharNextExA(CodePage:WORD; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external 'user32' name 'CharNextExA';
+function GetOpenClipboardWindow:HWND; external 'user32' name 'GetOpenClipboardWindow';
+function CharNextExA(CodePage:WORD; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external 'user32' name 'CharNextExA';
 function CharPrevExA(CodePage:WORD; lpStart:LPCSTR; lpCurrentChar:LPCSTR; dwFlags:DWORD):LPSTR; external 'user32' name 'CharPrevExA';
 function SetFocus(hWnd:HWND):HWND; external 'user32' name 'SetFocus';
-function GetActiveWindow:HWND; external 'user32' name 'GetActiveWindow';function GetFocus:HWND; external 'user32' name 'GetFocus';function GetKBCodePage:UINT; external 'user32' name 'GetKBCodePage';function GetKeyState(nVirtKey:longint):SHORT; external 'user32' name 'GetKeyState';
+function GetActiveWindow:HWND; external 'user32' name 'GetActiveWindow';
+function GetFocus:HWND; external 'user32' name 'GetFocus';
+function GetKBCodePage:UINT; external 'user32' name 'GetKBCodePage';
+function GetKeyState(nVirtKey:longint):SHORT; external 'user32' name 'GetKeyState';
 function GetAsyncKeyState(vKey:longint):SHORT; external 'user32' name 'GetAsyncKeyState';
 function GetKeyboardState(lpKeyState:PBYTE):WINBOOL; external 'user32' name 'GetKeyboardState';
 function SetKeyboardState(lpKeyState:LPBYTE):WINBOOL; external 'user32' name 'SetKeyboardState';
@@ -433,9 +483,12 @@ function ToUnicode(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPW
 function OemKeyScan(wOemChar:WORD):DWORD; external 'user32' name 'OemKeyScan';
 procedure keybd_event(bVk:BYTE; bScan:BYTE; dwFlags:DWORD; dwExtraInfo:DWORD); external 'user32' name 'keybd_event';
 procedure mouse_event(dwFlags:DWORD; dx:DWORD; dy:DWORD; cButtons:DWORD; dwExtraInfo:DWORD); external 'user32' name 'mouse_event';
-function GetInputState:WINBOOL; external 'user32' name 'GetInputState';function GetQueueStatus(flags:UINT):DWORD; external 'user32' name 'GetQueueStatus';
-function GetCapture:HWND; external 'user32' name 'GetCapture';function SetCapture(hWnd:HWND):HWND; external 'user32' name 'SetCapture';
-function ReleaseCapture:WINBOOL; external 'user32' name 'ReleaseCapture';function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD; external 'user32' name 'MsgWaitForMultipleObjects';
+function GetInputState:WINBOOL; external 'user32' name 'GetInputState';
+function GetQueueStatus(flags:UINT):DWORD; external 'user32' name 'GetQueueStatus';
+function GetCapture:HWND; external 'user32' name 'GetCapture';
+function SetCapture(hWnd:HWND):HWND; external 'user32' name 'SetCapture';
+function ReleaseCapture:WINBOOL; external 'user32' name 'ReleaseCapture';
+function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD; external 'user32' name 'MsgWaitForMultipleObjects';
 function SetTimer(hWnd:HWND; nIDEvent:UINT; uElapse:UINT; lpTimerFunc:TIMERPROC):UINT; external 'user32' name 'SetTimer';
 function KillTimer(hWnd:HWND; uIDEvent:UINT):WINBOOL; external 'user32' name 'KillTimer';
 function IsWindowUnicode(hWnd:HWND):WINBOOL; external 'user32' name 'IsWindowUnicode';
@@ -449,7 +502,9 @@ function HiliteMenuItem(hWnd:HWND; hMenu:HMENU; uIDHiliteItem:UINT; uHilite:UINT
 function GetMenuState(hMenu:HMENU; uId:UINT; uFlags:UINT):UINT; external 'user32' name 'GetMenuState';
 function DrawMenuBar(hWnd:HWND):WINBOOL; external 'user32' name 'DrawMenuBar';
 function GetSystemMenu(hWnd:HWND; bRevert:WINBOOL):HMENU; external 'user32' name 'GetSystemMenu';
-function CreateMenu:HMENU; external 'user32' name 'CreateMenu';function CreatePopupMenu:HMENU; external 'user32' name 'CreatePopupMenu';function DestroyMenu(hMenu:HMENU):WINBOOL; external 'user32' name 'DestroyMenu';
+function CreateMenu:HMENU; external 'user32' name 'CreateMenu';
+function CreatePopupMenu:HMENU; external 'user32' name 'CreatePopupMenu';
+function DestroyMenu(hMenu:HMENU):WINBOOL; external 'user32' name 'DestroyMenu';
 function CheckMenuItem(hMenu:HMENU; uIDCheckItem:UINT; uCheck:UINT):DWORD; external 'user32' name 'CheckMenuItem';
 function EnableMenuItem(hMenu:HMENU; uIDEnableItem:UINT; uEnable:UINT):WINBOOL; external 'user32' name 'EnableMenuItem';
 function GetSubMenu(hMenu:HMENU; nPos:longint):HMENU; external 'user32' name 'GetSubMenu';
@@ -458,7 +513,8 @@ function GetMenuItemCount(hMenu:HMENU):longint; external 'user32' name 'GetMenuI
 function RemoveMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external 'user32' name 'RemoveMenu';
 function DeleteMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external 'user32' name 'DeleteMenu';
 function SetMenuItemBitmaps(hMenu:HMENU; uPosition:UINT; uFlags:UINT; hBitmapUnchecked:HBITMAP; hBitmapChecked:HBITMAP):WINBOOL; external 'user32' name 'SetMenuItemBitmaps';
-function GetMenuCheckMarkDimensions:LONG; external 'user32' name 'GetMenuCheckMarkDimensions';function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; var prcRect:RECT):WINBOOL; external 'user32' name 'TrackPopupMenu';
+function GetMenuCheckMarkDimensions:LONG; external 'user32' name 'GetMenuCheckMarkDimensions';
+function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; var prcRect:RECT):WINBOOL;  external 'user32' name 'TrackPopupMenu';
 function GetMenuDefaultItem(hMenu:HMENU; fByPos:UINT; gmdiFlags:UINT):UINT; external 'user32' name 'GetMenuDefaultItem';
 function SetMenuDefaultItem(hMenu:HMENU; uItem:UINT; fByPos:UINT):WINBOOL; external 'user32' name 'SetMenuDefaultItem';
 function GetMenuItemRect(hWnd:HWND; hMenu:HMENU; uItem:UINT; lprcItem:LPRECT):WINBOOL; external 'user32' name 'GetMenuItemRect';
@@ -468,7 +524,8 @@ function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; external 'user32' name 'DragDe
 function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL; external 'user32' name 'DrawIcon';
 function UpdateWindow(hWnd:HWND):WINBOOL; external 'user32' name 'UpdateWindow';
 function SetActiveWindow(hWnd:HWND):HWND; external 'user32' name 'SetActiveWindow';
-function GetForegroundWindow:HWND; external 'user32' name 'GetForegroundWindow';function PaintDesktop(hdc:HDC):WINBOOL; external 'user32' name 'PaintDesktop';
+function GetForegroundWindow:HWND; external 'user32' name 'GetForegroundWindow';
+function PaintDesktop(hdc:HDC):WINBOOL; external 'user32' name 'PaintDesktop';
 function SetForegroundWindow(hWnd:HWND):WINBOOL; external 'user32' name 'SetForegroundWindow';
 function WindowFromDC(hDC:HDC):HWND; external 'user32' name 'WindowFromDC';
 function GetDC(hWnd:HWND):HDC; external 'user32' name 'GetDC';
@@ -512,9 +569,12 @@ function SetCursor(hCursor:HCURSOR):HCURSOR; external 'user32' name 'SetCursor';
 function GetCursorPos(lpPoint:LPPOINT):WINBOOL; external 'user32' name 'GetCursorPos';
 function ClipCursor(var lpRect:RECT):WINBOOL; external 'user32' name 'ClipCursor';
 function GetClipCursor(lpRect:LPRECT):WINBOOL; external 'user32' name 'GetClipCursor';
-function GetCursor:HCURSOR; external 'user32' name 'GetCursor';function CreateCaret(hWnd:HWND; hBitmap:HBITMAP; nWidth:longint; nHeight:longint):WINBOOL; external 'user32' name 'CreateCaret';
-function GetCaretBlinkTime:UINT; external 'user32' name 'GetCaretBlinkTime';function SetCaretBlinkTime(uMSeconds:UINT):WINBOOL; external 'user32' name 'SetCaretBlinkTime';
-function DestroyCaret:WINBOOL; external 'user32' name 'DestroyCaret';function HideCaret(hWnd:HWND):WINBOOL; external 'user32' name 'HideCaret';
+function GetCursor:HCURSOR; external 'user32' name 'GetCursor';
+function CreateCaret(hWnd:HWND; hBitmap:HBITMAP; nWidth:longint; nHeight:longint):WINBOOL; external 'user32' name 'CreateCaret';
+function GetCaretBlinkTime:UINT; external 'user32' name 'GetCaretBlinkTime';
+function SetCaretBlinkTime(uMSeconds:UINT):WINBOOL; external 'user32' name 'SetCaretBlinkTime';
+function DestroyCaret:WINBOOL; external 'user32' name 'DestroyCaret';
+function HideCaret(hWnd:HWND):WINBOOL; external 'user32' name 'HideCaret';
 function ShowCaret(hWnd:HWND):WINBOOL; external 'user32' name 'ShowCaret';
 function SetCaretPos(X:longint; Y:longint):WINBOOL; external 'user32' name 'SetCaretPos';
 function GetCaretPos(lpPoint:LPPOINT):WINBOOL; external 'user32' name 'GetCaretPos';
@@ -545,7 +605,8 @@ function GetWindowWord(hWnd:HWND; nIndex:longint):WORD; external 'user32' name '
 function SetWindowWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external 'user32' name 'SetWindowWord';
 function GetClassWord(hWnd:HWND; nIndex:longint):WORD; external 'user32' name 'GetClassWord';
 function SetClassWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external 'user32' name 'SetClassWord';
-function GetDesktopWindow:HWND; external 'user32' name 'GetDesktopWindow';function GetParent(hWnd:HWND):HWND; external 'user32' name 'GetParent';
+function GetDesktopWindow:HWND; external 'user32' name 'GetDesktopWindow';
+function GetParent(hWnd:HWND):HWND; external 'user32' name 'GetParent';
 function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external 'user32' name 'SetParent';
 function EnumChildWindows(hWndParent:HWND; lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumChildWindows';
 function EnumWindows(lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumWindows';
@@ -707,7 +768,8 @@ function SetBkMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'S
 function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external 'gdi32' name 'SetBitmapBits';
 function SetBoundsRect(_para1:HDC; var _para2:RECT; _para3:UINT):UINT; external 'gdi32' name 'SetBoundsRect';
 function SetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:pointer;_para6:PBITMAPINFO; _para7:UINT):longint; external 'gdi32' name 'SetDIBits';
-function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD;_para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT):longint; external 'gdi32' name 'SetDIBitsToDevice';
+function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD;_para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT):longint;
+  external 'gdi32' name 'SetDIBitsToDevice';
 function SetMapperFlags(_para1:HDC; _para2:DWORD):DWORD; external 'gdi32' name 'SetMapperFlags';
 function SetGraphicsMode(hdc:HDC; iMode:longint):longint; external 'gdi32' name 'SetGraphicsMode';
 function SetMapMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetMapMode';
@@ -718,7 +780,8 @@ function SetPixelV(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):
 function SetPolyFillMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetPolyFillMode';
 function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint;_para11:DWORD):WINBOOL; external 'gdi32' name 'StretchBlt';
 function SetRectRgn(_para1:HRGN; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external 'gdi32' name 'SetRectRgn';
-function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint; external 'gdi32' name 'StretchDIBits';
+function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint;
+  external 'gdi32' name 'StretchDIBits';
 function SetROP2(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetROP2';
 function SetStretchBltMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetStretchBltMode';
 function SetSystemPaletteUse(_para1:HDC; _para2:UINT):UINT; external 'gdi32' name 'SetSystemPaletteUse';
@@ -798,8 +861,10 @@ function SetBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOIN
 function GetDCOrgEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external 'gdi32' name 'GetDCOrgEx';
 function FixBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32' name 'FixBrushOrgEx';
 function UnrealizeObject(_para1:HGDIOBJ):WINBOOL; external 'gdi32' name 'UnrealizeObject';
-function GdiFlush:WINBOOL; external 'gdi32' name 'GdiFlush';function GdiSetBatchLimit(_para1:DWORD):DWORD; external 'gdi32' name 'GdiSetBatchLimit';
-function GdiGetBatchLimit:DWORD; external 'gdi32' name 'GdiGetBatchLimit';function SetICMMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetICMMode';
+function GdiFlush:WINBOOL; external 'gdi32' name 'GdiFlush';
+function GdiSetBatchLimit(_para1:DWORD):DWORD; external 'gdi32' name 'GdiSetBatchLimit';
+function GdiGetBatchLimit:DWORD; external 'gdi32' name 'GdiGetBatchLimit';
+function SetICMMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetICMMode';
 function CheckColorsInGamut(_para1:HDC; _para2:LPVOID; _para3:LPVOID; _para4:DWORD):WINBOOL; external 'gdi32' name 'CheckColorsInGamut';
 function GetColorSpace(_para1:HDC):HANDLE; external 'gdi32' name 'GetColorSpace';
 function SetColorSpace(_para1:HDC; _para2:HCOLORSPACE):WINBOOL; external 'gdi32' name 'SetColorSpace';
@@ -826,7 +891,8 @@ function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:l
 function ImageList_Remove(himl:HIMAGELIST; i:longint):WINBOOL; external 'comctl32' name 'ImageList_Remove';
 function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; external 'comctl32' name 'ImageList_GetIcon';
 function ImageList_BeginDrag(himlTrack:HIMAGELIST; iTrack:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external 'comctl32' name 'ImageList_BeginDrag';
-procedure ImageList_EndDrag; external 'comctl32' name 'ImageList_EndDrag';function ImageList_DragEnter(hwndLock:HWND; x:longint; y:longint):WINBOOL; external 'comctl32' name 'ImageList_DragEnter';
+procedure ImageList_EndDrag; external 'comctl32' name 'ImageList_EndDrag';
+function ImageList_DragEnter(hwndLock:HWND; x:longint; y:longint):WINBOOL; external 'comctl32' name 'ImageList_DragEnter';
 function ImageList_DragLeave(hwndLock:HWND):WINBOOL; external 'comctl32' name 'ImageList_DragLeave';
 function ImageList_DragMove(x:longint; y:longint):WINBOOL; external 'comctl32' name 'ImageList_DragMove';
 function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST; iDrag:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external 'comctl32' name 'ImageList_SetDragCursorImage';
@@ -836,7 +902,8 @@ function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):
 function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL; external 'comctl32' name 'ImageList_SetIconSize';
 function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external 'comctl32' name 'ImageList_GetImageInfo';
 function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external 'comctl32' name 'ImageList_Merge';
-function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;dxBitmap:longint; dyBitmap:longint; uStructSize:UINT):HWND; external 'comctl32' name 'CreateToolbarEx';
+function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;dxBitmap:longint;
+  dyBitmap:longint; uStructSize:UINT):HWND; external 'comctl32' name 'CreateToolbarEx';
 function CreateMappedBitmap(hInstance:HINST; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external 'comctl32' name 'CreateMappedBitmap';
 procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINST;hwndStatus:HWND; var lpwIDs:UINT); external 'comctl32' name 'MenuHelp';
 function ShowHideMenuCtl(hWnd:HWND; uFlags:UINT; lpInfo:LPINT):WINBOOL; external 'comctl32' name 'ShowHideMenuCtl';
@@ -851,15 +918,22 @@ function RegFlushKey(hKey:HKEY):LONG; external 'advapi32' name 'RegFlushKey';
 function RegGetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR; lpcbSecurityDescriptor:LPDWORD):LONG; external 'advapi32' name 'RegGetKeySecurity';
 function RegNotifyChangeKeyValue(hKey:HKEY; bWatchSubtree:WINBOOL; dwNotifyFilter:DWORD; hEvent:HANDLE; fAsynchronus:WINBOOL):LONG; external 'advapi32' name 'RegNotifyChangeKeyValue';
 function IsValidCodePage(CodePage:UINT):WINBOOL; external 'kernel32' name 'IsValidCodePage';
-function GetACP:UINT; external 'kernel32' name 'GetACP';function GetOEMCP:UINT; external 'kernel32' name 'GetOEMCP';function GetCPInfo(_para1:UINT; _para2:LPCPINFO):WINBOOL; external 'kernel32' name 'GetCPInfo';
+function GetACP:UINT; external 'kernel32' name 'GetACP';
+function GetOEMCP:UINT; external 'kernel32' name 'GetOEMCP';
+function GetCPInfo(_para1:UINT; _para2:LPCPINFO):WINBOOL; external 'kernel32' name 'GetCPInfo';
 function IsDBCSLeadByte(TestChar:BYTE):WINBOOL; external 'kernel32' name 'IsDBCSLeadByte';
 function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL; external 'kernel32' name 'IsDBCSLeadByteEx';
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR;cchWideChar:longint):longint; external 'kernel32' name 'MultiByteToWideChar';
 function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR;cchMultiByte:longint; lpDefaultChar:LPCSTR; lpUsedDefaultChar:LPBOOL):longint; external 'kernel32' name 'WideCharToMultiByte';
 function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'IsValidLocale';
 function ConvertDefaultLocale(Locale:LCID):LCID; external 'kernel32' name 'ConvertDefaultLocale';
-function GetThreadLocale:LCID; external 'kernel32' name 'GetThreadLocale';function SetThreadLocale(Locale:LCID):WINBOOL; external 'kernel32' name 'SetThreadLocale';
-function GetSystemDefaultLangID:LANGID; external 'kernel32' name 'GetSystemDefaultLangID';function GetUserDefaultLangID:LANGID; external 'kernel32' name 'GetUserDefaultLangID';function GetSystemDefaultLCID:LCID; external 'kernel32' name 'GetSystemDefaultLCID';function GetUserDefaultLCID:LCID; external 'kernel32' name 'GetUserDefaultLCID';function ReadConsoleOutputAttribute(hConsoleOutput:HANDLE; lpAttribute:LPWORD; nLength:DWORD; dwReadCoord:COORD; lpNumberOfAttrsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleOutputAttribute';
+function GetThreadLocale:LCID; external 'kernel32' name 'GetThreadLocale';
+function SetThreadLocale(Locale:LCID):WINBOOL; external 'kernel32' name 'SetThreadLocale';
+function GetSystemDefaultLangID:LANGID; external 'kernel32' name 'GetSystemDefaultLangID';
+function GetUserDefaultLangID:LANGID; external 'kernel32' name 'GetUserDefaultLangID';
+function GetSystemDefaultLCID:LCID; external 'kernel32' name 'GetSystemDefaultLCID';
+function GetUserDefaultLCID:LCID; external 'kernel32' name 'GetUserDefaultLCID';
+function ReadConsoleOutputAttribute(hConsoleOutput:HANDLE; lpAttribute:LPWORD; nLength:DWORD; dwReadCoord:COORD; lpNumberOfAttrsRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadConsoleOutputAttribute';
 function WriteConsoleOutputAttribute(hConsoleOutput:HANDLE; var lpAttribute:WORD; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfAttrsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteConsoleOutputAttribute';
 function FillConsoleOutputAttribute(hConsoleOutput:HANDLE; wAttribute:WORD; nLength:DWORD; dwWriteCoord:COORD; lpNumberOfAttrsWritten:LPDWORD):WINBOOL; external 'kernel32' name 'FillConsoleOutputAttribute';
 function GetConsoleMode(hConsoleHandle:HANDLE; lpMode:LPDWORD):WINBOOL; external 'kernel32' name 'GetConsoleMode';
@@ -878,9 +952,13 @@ function SetConsoleWindowInfo(hConsoleOutput:HANDLE; bAbsolute:WINBOOL; var lpCo
 function SetConsoleTextAttribute(hConsoleOutput:HANDLE; wAttributes:WORD):WINBOOL; external 'kernel32' name 'SetConsoleTextAttribute';
 function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WINBOOL; external 'kernel32' name 'SetConsoleCtrlHandler';
 function GenerateConsoleCtrlEvent(dwCtrlEvent:DWORD; dwProcessGroupId:DWORD):WINBOOL; external 'kernel32' name 'GenerateConsoleCtrlEvent';
-function AllocConsole:WINBOOL; external 'kernel32' name 'AllocConsole';function FreeConsole:WINBOOL; external 'kernel32' name 'FreeConsole';function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; var lpSecurityAttributes:SECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external 'kernel32' name 'CreateConsoleScreenBuffer';
-function GetConsoleCP:UINT; external 'kernel32' name 'GetConsoleCP';function SetConsoleCP(wCodePageID:UINT):WINBOOL; external 'kernel32' name 'SetConsoleCP';
-function GetConsoleOutputCP:UINT; external 'kernel32' name 'GetConsoleOutputCP';function SetConsoleOutputCP(wCodePageID:UINT):WINBOOL; external 'kernel32' name 'SetConsoleOutputCP';
+function AllocConsole:WINBOOL; external 'kernel32' name 'AllocConsole';
+function FreeConsole:WINBOOL; external 'kernel32' name 'FreeConsole';
+function CreateConsoleScreenBuffer(dwDesiredAccess:DWORD; dwShareMode:DWORD; var lpSecurityAttributes:SECURITY_ATTRIBUTES; dwFlags:DWORD; lpScreenBufferData:LPVOID):HANDLE; external 'kernel32' name 'CreateConsoleScreenBuffer';
+function GetConsoleCP:UINT; external 'kernel32' name 'GetConsoleCP';
+function SetConsoleCP(wCodePageID:UINT):WINBOOL; external 'kernel32' name 'SetConsoleCP';
+function GetConsoleOutputCP:UINT; external 'kernel32' name 'GetConsoleOutputCP';
+function SetConsoleOutputCP(wCodePageID:UINT):WINBOOL; external 'kernel32' name 'SetConsoleOutputCP';
 function WNetConnectionDialog(hwnd:HWND; dwType:DWORD):DWORD; external 'mpr' name 'WNetConnectionDialog';
 function WNetDisconnectDialog(hwnd:HWND; dwType:DWORD):DWORD; external 'mpr' name 'WNetDisconnectDialog';
 function WNetCloseEnum(hEnum:HANDLE):DWORD; external 'mpr' name 'WNetCloseEnum';
@@ -2081,7 +2159,13 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-06-11 07:04:59  peter
+  Revision 1.9  2000-06-15 11:26:58  pierre
+    * avoid lines longer than 255 chars
+    + add smartlink on by default, if not version 0.99.14
+    * some functions not present in win95 DLL's are now only inserted if
+      smartlink is on.
+
+  Revision 1.8  2000/06/11 07:04:59  peter
     * Windows unit has now more Delphi compatibile functions
     * placed the external functions only in the interface
 
