@@ -609,10 +609,16 @@ end;
 
 
 Procedure InitInternational;
+var
+  { A call to GetSystemMetrics changes the value of the 8087 Control Word on
+    Pentium4 with WinXP SP2 }
+  old8087CW: word;
 begin
   InitInternationalGeneric;
+  old8087CW:=Get8087CW;
   SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;
   SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;
+  Set8087CW(old8087CW);
   InitAnsi;
   GetFormatSettings;
 end;
@@ -1045,7 +1051,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.43  2005-03-02 21:10:08  florian
+  Revision 1.44  2005-03-10 19:12:28  florian
+    * applied fix from Vincent to fix make cyle crash on P4 with WinXP SP2
+
+  Revision 1.43  2005/03/02 21:10:08  florian
     * fixed compilation with 1.0.10
 
   Revision 1.42  2005/02/26 20:43:52  florian
