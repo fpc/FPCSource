@@ -40,6 +40,8 @@ ifndef RTLOPTS
 RTLOPTS=
 endif
 
+export RTLOPTS
+
 #####################################################################
 # Defaults
 #####################################################################
@@ -316,7 +318,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1998-09-22 13:09:24  pierre
+# Revision 1.6  1998-09-23 15:41:42  pierre
+#  export for RTLOPTS (useful for $(MAKE)) !!
+#
+# Revision 1.5  1998/09/22 13:09:24  pierre
 #   + added possibility to read makefile.loc if it exists
 #     this allows simple addition of private rules
 #   * restored EXENAME dependencies
