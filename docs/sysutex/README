@@ -74,3 +74,16 @@ ex71.pp contains an example of the Format function.
 ex71.pp contains an example of the FormatBuf function.
 ex73.pp contains an example of the IntToHex function.
 ex74.pp contains an example of the IntToStr function.
+ex75.pp contains an example of the IsValidIdent function.
+ex76.pp contains an example of the LeftStr function.
+ex77.pp contains an example of the LowerCase function.
+ex78.pp contains an example of the QuotedStr function.
+ex79.pp contains an example of the RightStr function.
+ex80.pp contains an example of the StrFmt function.
+ex81.pp contains an example of the StrLFmt function.
+ex82.pp contains an example of the StrToInt function.
+ex83.pp contains an example of the StrToIntDef function.
+ex84.pp contains an example of the Trim function.
+ex85.pp contains an example of the TrimLeft function.
+ex86.pp contains an example of the TrimRight function.
+ex87.pp contains an example of the UpperCase function.
