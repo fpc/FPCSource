@@ -19,24 +19,6 @@
 
 {$I systemh.inc}
 
-{$ifdef Unix}
-type
-   { the fields of this record are os dependent  }
-   { and they shouldn't be used in a program     }
-   { only the type TCriticalSection is important }
-   TRTLCriticalSection = packed record
-      DebugInfo : pointer;
-      LockCount : longint;
-      RecursionCount : longint;
-      OwningThread : DWord;
-      LockSemaphore : DWord;
-      Reserved : DWord;
-   end;
-
-{ include threading stuff }
-{$i threadh.inc}
-{$endif unix}
-
 {$I heaph.inc}
 
 {$ifdef m68k}
@@ -73,7 +55,10 @@ var
 
 {
   $Log$
-  Revision 1.15  2002-09-07 16:01:28  peter
+  Revision 1.16  2002-10-15 19:30:15  peter
+    * remove threadh.inc include
+
+  Revision 1.15  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.14  2002/07/01 16:29:05  peter
