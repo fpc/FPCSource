@@ -210,19 +210,18 @@ implementation
               begin
                 if nodetype = shln then
                   begin
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hregisterlow,hregisterhigh);
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterlow);
+                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hregisterlow,hregisterlow);
                   end
                 else
                   begin
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterlow);
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,hregisterlow);
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
+                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,hregisterhigh);
                   end;
-                { registers are already swapped }
-                location.registerlow:=hregisterlow;
-                location.registerhigh:=hregisterhigh;
+                location.registerlow:=hregisterhigh;
+                location.registerhigh:=hregisterlow;
               end
             else
               begin
@@ -333,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2004-08-01 08:46:31  florian
+  Revision 1.20  2004-08-16 21:00:30  peter
+    * fixed shr/shl 32
+
+  Revision 1.19  2004/08/01 08:46:31  florian
     * qword/int64 shifting fixed
 
   Revision 1.18  2004/06/20 08:55:32  florian
