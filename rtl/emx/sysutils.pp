@@ -5,7 +5,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Sysutils unit for OS/2
+    Sysutils unit for EMX
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -27,7 +27,7 @@ uses
 
 type
   THandle = type Longint;
-  
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -987,7 +987,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-06-06 23:34:08  hajny
+  Revision 1.8  2003-06-26 17:12:29  yuri
+  * pmbidi added
+  * some cosmetic changes
+
+  Revision 1.7  2003/06/06 23:34:08  hajny
     * better fix for bug 2518
 
   Revision 1.6  2003/06/06 23:31:55  hajny

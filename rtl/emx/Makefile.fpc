@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal OS/2 RTL
+#   Makefile.fpc for Free Pascal EMX RTL
 #
 
 [package]
@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 prt1
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
-      pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock \
+      pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos crt objects printer \
       sysutils math typinfo varutils \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
@@ -169,7 +169,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
         $(COMPILER) -I$(OBJPASDIR) $(OS2INC)/varutils.pp $(REDIR)
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
+        $(COMPILER) $(OBJPASDIR)/types.pp
 
 #
 # Other system-independent RTL Units

@@ -3,7 +3,7 @@
     $Id$
 
                          Free Pascal Runtime-Library
-                              DOS unit for OS/2
+                              DOS unit for EMX
                    Copyright (c) 1997,1999-2000 by Daniel Mantione,
                    member of the Free Pascal development team
 
@@ -1222,7 +1222,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-03-23 23:11:17  hajny
+  Revision 1.4  2003-06-26 17:12:29  yuri
+  * pmbidi added
+  * some cosmetic changes
+
+  Revision 1.3  2003/03/23 23:11:17  hajny
     + emx target added
 
   Revision 1.2  2002/12/15 22:50:29  hajny

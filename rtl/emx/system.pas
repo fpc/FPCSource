@@ -5,7 +5,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2002 by Free Pascal development team
 
-    Free Pascal - OS/2 runtime library
+    Free Pascal - EMX runtime library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -1241,7 +1241,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-03-23 23:11:17  hajny
+  Revision 1.5  2003-06-26 17:12:29  yuri
+  * pmbidi added
+  * some cosmetic changes
+
+  Revision 1.4  2003/03/23 23:11:17  hajny
     + emx target added
 
   Revision 1.3  2002/12/15 22:46:29  hajny
