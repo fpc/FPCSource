@@ -208,7 +208,7 @@ unit i_linux;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
-                maxCrecordalign : 4
+                maxCrecordalign : 8
               );
             first_parm_offset : 8;
             heapsize     : 256*1024;
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2003-12-21 21:20:58  florian
+  Revision 1.18  2003-12-31 17:28:19  jonas
+    * fixed C record max alignment
+
+  Revision 1.17  2003/12/21 21:20:58  florian
     * sysv calling conventions enabled for powerpc-linux
 
   Revision 1.16  2003/12/11 19:06:21  florian
