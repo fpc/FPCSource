@@ -398,7 +398,8 @@ implementation
               do_firstpass(p);
               if p.nodetype=ordconstn then
                 begin
-                  if is_equal(p.resulttype,def) then
+                  if is_equal(p.resulttype,def) or
+                     is_subequal(p.resulttype,def) then
                    begin
                      case p.resulttype^.size of
                        1 : curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)));
@@ -407,7 +408,7 @@ implementation
                      end;
                    end
                   else
-                   Message(cg_e_illegal_expression);
+                   Message2(type_e_incompatible_types,def^.typename,p.resulttype^.typename);
                 end
               else
                 Message(cg_e_illegal_expression);
@@ -836,7 +837,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-11-29 00:30:38  florian
+  Revision 1.14  2000-12-10 20:24:18  peter
+    * allow subtypes for enums
+
+  Revision 1.13  2000/11/29 00:30:38  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
