@@ -796,13 +796,13 @@ function GpiQueryRealColors(hps,flOptions : cardinal;lStart,lCount : longint;var
 function GpiQueryNearestColor(hps,flOptions : cardinal;lRgbIn : longint) : longint; cdecl;
 function GpiQueryColorIndex(hps,flOptions : cardinal;lRgbColor : longint) : longint; cdecl;
 function GpiQueryRGBColor(hps,flOptions : cardinal;lColorIndex : longint) : longint; cdecl;
-function GpiCreatePalette(hab,flOptions,ulFormat,ulCount : cardinal;var aulTable : cardinal) : cardinal; cdecl;
+function GpiCreatePalette(hab,flOptions,ulFormat,ulCount : cardinal;var aulTable) : cardinal; cdecl;
 function GpiDeletePalette(hpal : cardinal) : longbool; cdecl;
 function GpiSelectPalette(hps,hpal : cardinal) : cardinal; cdecl;
-function GpiAnimatePalette(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable : cardinal) : longint; cdecl;
-function GpiSetPaletteEntries(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable : cardinal) : longbool; cdecl;
+function GpiAnimatePalette(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable) : longint; cdecl;
+function GpiSetPaletteEntries(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable) : longbool; cdecl;
 function GpiQueryPalette(hps : cardinal) : cardinal; cdecl;
-function GpiQueryPaletteInfo(hpal,hps,flOptions,ulStart,ulCount : cardinal;var aulArray : cardinal) : longint; cdecl;
+function GpiQueryPaletteInfo(hpal,hps,flOptions,ulStart,ulCount : cardinal;var aulArray) : longint; cdecl;
 function GpiSetColor(hps : cardinal;lColor : longint) : longbool; cdecl;
 function GpiQueryColor(hps : cardinal) : longint; cdecl;
 function GpiBox(hps : cardinal;lControl : longint;var pptlPoint : POINTL;lHRound,lVRound : longint) : longint; cdecl;
@@ -1060,13 +1060,13 @@ function GpiQueryRealColors(hps,flOptions : cardinal;lStart,lCount : longint;var
 function GpiQueryNearestColor(hps,flOptions : cardinal;lRgbIn : longint) : longint; cdecl; external 'pmgpi' index 469;
 function GpiQueryColorIndex(hps,flOptions : cardinal;lRgbColor : longint) : longint; cdecl; external 'pmgpi' index 439;
 function GpiQueryRGBColor(hps,flOptions : cardinal;lColorIndex : longint) : longint; cdecl; external 'pmgpi' index 479;
-function GpiCreatePalette(hab,flOptions,ulFormat,ulCount : cardinal;var aulTable : cardinal) : cardinal; cdecl; external 'pmgpi' index 594;
+function GpiCreatePalette(hab,flOptions,ulFormat,ulCount : cardinal;var aulTable) : cardinal; cdecl; external 'pmgpi' index 594;
 function GpiDeletePalette(hpal : cardinal) : longbool; cdecl; external 'pmgpi' index 577;
 function GpiSelectPalette(hps,hpal : cardinal) : cardinal; cdecl; external 'pmgpi' index 578;
-function GpiAnimatePalette(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable : cardinal) : longint; cdecl; external 'pmgpi' index 595;
-function GpiSetPaletteEntries(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable : cardinal) : longbool; cdecl; external 'pmgpi' index 596;
+function GpiAnimatePalette(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable) : longint; cdecl; external 'pmgpi' index 595;
+function GpiSetPaletteEntries(hpal,ulFormat,ulStart,ulCount : cardinal;var aulTable) : longbool; cdecl; external 'pmgpi' index 596;
 function GpiQueryPalette(hps : cardinal) : cardinal; cdecl; external 'pmgpi' index 579;
-function GpiQueryPaletteInfo(hpal,hps,flOptions,ulStart,ulCount : cardinal;var aulArray : cardinal) : longint; cdecl; external 'pmgpi' index 597;
+function GpiQueryPaletteInfo(hpal,hps,flOptions,ulStart,ulCount : cardinal;var aulArray) : longint; cdecl; external 'pmgpi' index 597;
 function GpiSetColor(hps : cardinal;lColor : longint) : longbool; cdecl; external 'pmgpi' index 517;
 function GpiQueryColor(hps : cardinal) : longint; cdecl; external 'pmgpi' index 437;
 function GpiBox(hps : cardinal;lControl : longint;var pptlPoint : POINTL;lHRound,lVRound : longint) : longint; cdecl; external 'pmgpi' index 356;
@@ -1228,7 +1228,10 @@ function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flMod
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:25  peter
+  Revision 1.4  2002-11-02 13:26:36  hajny
+    * Gpi*Palette* parameters corrected
+
+  Revision 1.3  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
 }
