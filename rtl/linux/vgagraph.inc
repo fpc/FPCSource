@@ -173,10 +173,10 @@ end;
 
 const
   BgiColors: array[0..15] of LongInt
-    = ($000000, $000080, $008000, $008080,
-       $800000, $800080, $808000, $C0C0C0,
-       $808080, $0000FF, $00FF00, $00FFFF,
-       $FF0000, $FF00FF, $FFFF00, $FFFFFF);
+    = ($000000, $000020, $002000, $002020,
+       $200000, $200020, $202000, $303030,
+       $202020, $00003F, $003F00, $003F3F,
+       $3F0000, $3F003F, $3F3F00, $3F3F3F);
 
 procedure InitColors;
 
@@ -209,7 +209,7 @@ begin
   X:= X + StartXViewPort;
   Y:= Y + StartYViewPort;
   ClipCoords:=Not ClipPixels;
-  if ClipCoords then
+  if ClipPixels then
     Begin
     ClipCoords:=(X < StartXViewPort) or (X > (StartXViewPort + ViewWidth));
     ClipCoords:=ClipCoords or
@@ -450,7 +450,12 @@ end;
 
 {
 $Log$
-Revision 1.6  2000-02-03 20:39:58  michael
+Revision 1.7  2000-02-06 01:48:55  sg
+* Fixed the default palette. libsvga works with a RGB range from 0-63, not
+  0-255!
+* PutPixel fixed (pixels didn't get drawn before)
+
+Revision 1.6  2000/02/03 20:39:58  michael
 + Version using only vgalib
 
 Revision 1.5  2000/01/07 16:41:42  daniel
