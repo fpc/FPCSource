@@ -39,6 +39,12 @@ implementation
       fmodule,
       rabase;
 
+    const
+      localswitchesstackmax = 20;
+
+    var
+      localswitchesstack: array[0..localswitchesstackmax] of tlocalswitches;
+      localswitchesstackpos: Integer = 0;
 
 {*****************************************************************************
                                     Helpers
@@ -704,6 +710,21 @@ implementation
       end;
 {$ENDIF}
 
+    procedure dir_pop;
+
+    begin
+      if localswitchesstackpos < 1 then
+        Message(scan_e_too_many_pop);
+
+      if not localswitcheschanged then
+        nextaktlocalswitches:=aktlocalswitches;
+
+      Dec(localswitchesstackpos);
+      nextaktlocalswitches:= localswitchesstack[localswitchesstackpos];
+
+      localswitcheschanged:=true;
+    end;
+
     procedure dir_profile;
       var
         mac : tmacro;
@@ -718,6 +739,22 @@ implementation
          end;
         mac.defined:=(cs_profile in aktmoduleswitches);
       end;
+
+    procedure dir_push;
+
+    begin
+      if localswitchesstackpos > localswitchesstackmax then
+        Message(scan_e_too_many_push);
+
+      if localswitcheschanged then
+        begin
+          aktlocalswitches:=nextaktlocalswitches;
+          localswitcheschanged:=false;
+        end;
+
+      localswitchesstack[localswitchesstackpos]:= aktlocalswitches;
+      Inc(localswitchesstackpos);
+    end;
 
     procedure dir_rangechecks;
       begin
@@ -975,6 +1012,7 @@ implementation
         AddDirective('DEBUGINFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_debuginfo);
         AddDirective('DESCRIPTION',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_description);
         AddDirective('ERROR',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_error);
+        AddDirective('ERRORC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_error);
         AddDirective('EXTENDEDSYNTAX',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_externalsym);
         AddDirective('FATAL',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_fatal);
@@ -1014,7 +1052,9 @@ implementation
 {$IFDEF TestVarsets}
         AddDirective('PACKSET',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_packset);
 {$ENDIF}
+        AddDirective('POP',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_pop);
         AddDirective('PROFILE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_profile);
+        AddDirective('PUSH',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_push);
         AddDirective('R',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_resource);
         AddDirective('RANGECHECKS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_rangechecks);
         AddDirective('REFERENCEINFO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_referenceinfo);
@@ -1045,7 +1085,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2004-06-20 08:55:30  florian
+  Revision 1.38  2004-07-05 21:49:43  olle
+    + macpas style: exit, cycle, leave
+    + macpas compiler directive: PUSH POP
+
+  Revision 1.37  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.36  2004/06/16 20:07:09  florian

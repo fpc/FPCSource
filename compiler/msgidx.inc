@@ -76,6 +76,8 @@ const
   scan_w_appname_not_support=02060;
   scan_e_string_exceeds_255_chars=02061;
   scan_f_include_deep_ten=02062;
+  scan_e_too_many_push=02063;
+  scan_e_too_many_pop=02064;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -265,6 +267,7 @@ const
   parser_e_invalid_integer=03204;
   parser_e_invalid_qualifier=03205;
   parser_e_upper_lower_than_lower=03206;
+  parser_e_macpas_exit_wrong_param=03207;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -639,9 +642,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 36707;
+  MsgTxtSize = 36852;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,63,207,59,57,46,99,20,35,60,
+    17,65,208,59,57,46,99,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

@@ -60,6 +60,8 @@ const
    in_exit              = 48;
    in_copy_x            = 49;
    in_initialize_x      = 50;
+   in_leave             = 51; {macpas}
+   in_cycle             = 52; {macpas}
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -109,7 +111,11 @@ const
 
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:29  florian
+  Revision 1.14  2004-07-05 21:49:43  olle
+    + macpas style: exit, cycle, leave
+    + macpas compiler directive: PUSH POP
+
+  Revision 1.13  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.12  2004/02/02 20:41:59  florian

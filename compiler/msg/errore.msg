@@ -293,6 +293,10 @@ scan_f_include_deep_ten=02062_F_Including include files exceeds a depth of 16.
 % When including include files the files have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
+scan_e_too_many_push=02063_F_Too many levels of PUSH
+% A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
+scan_e_too_many_pop=02064_E_A POP without a preceding PUSH 
+% This error occur only in mode MacPas.
 % \end{description}
 #
 # Parser
@@ -965,6 +969,8 @@ parser_e_invalid_qualifier=03205_E_Illegal qualifier
 parser_e_upper_lower_than_lower=03206_E_High range limit < low range limit
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
+parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of the procedure it is used in
+% Non local exit is not allowed. This error occur only in mode MacPas.
 % \end{description}
 #
 # Type Checking

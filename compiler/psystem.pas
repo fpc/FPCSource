@@ -81,6 +81,8 @@ implementation
         p.insert(tsyssym.create('Break',in_break));
         p.insert(tsyssym.create('Exit',in_exit));
         p.insert(tsyssym.create('Continue',in_continue));
+        p.insert(tsyssym.create('Leave',in_leave)); {macpas only}
+        p.insert(tsyssym.create('Cycle',in_cycle)); {macpas only}
         p.insert(tsyssym.create('Dec',in_dec_x));
         p.insert(tsyssym.create('Inc',in_inc_x));
         p.insert(tsyssym.create('Str',in_str_x_string));
@@ -536,7 +538,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2004-06-20 08:55:30  florian
+  Revision 1.71  2004-07-05 21:49:43  olle
+    + macpas style: exit, cycle, leave
+    + macpas compiler directive: PUSH POP
+
+  Revision 1.70  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.69  2004/06/16 20:07:09  florian
