@@ -55,12 +55,21 @@ var
 begin
   if count <= 0 then exit;
   v := 0;
-  v:=(value shl 8) or (value and $FF);
-  v:=(v shl 16) or (v and $ffff);
-  for i:=0 to (count div 4) -1 do
-    longintarray(x)[i]:=v;
-  for i:=(count div 4)*4 to count-1 do
-    bytearray(x)[i]:=value;
+  { aligned? }  
+  if (PtrUInt(@x) mod sizeof(PtrUInt))<>0 then
+    begin
+      for i:=0 to count-1 do
+        bytearray(x)[i]:=value;
+    end
+  else
+    begin
+      v:=(value shl 8) or (value and $FF);
+      v:=(v shl 16) or (v and $ffff);
+      for i:=0 to (count div 4)-1 do
+        longintarray(x)[i]:=v;
+      for i:=(count div 4)*4 to count-1 do
+        bytearray(x)[i]:=value;
+    end;
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
@@ -82,11 +91,20 @@ var
   i,v : longint;
 begin
   if Count <= 0 then exit;
-  v:=value*$10000+value;
-  for i:=0 to (count div 2) -1 do
-    longintarray(x)[i]:=v;
-  for i:=(count div 2)*2 to count-1 do
-    wordarray(x)[i]:=value;
+  { aligned? }
+  if (PtrUInt(@x) mod sizeof(PtrUInt))<>0 then
+    begin
+      for i:=0 to count-1 do
+        wordarray(x)[i]:=value;
+    end
+  else
+    begin
+      v:=value*$10000+value;
+      for i:=0 to (count div 2) -1 do
+        longintarray(x)[i]:=v;
+      for i:=(count div 2)*2 to count-1 do
+        wordarray(x)[i]:=value;
+    end;
 end;
 {$endif not FPC_SYSTEM_HAS_FILLWORD}
 
@@ -1119,8 +1137,8 @@ end;
 
 {
   $Log$
-  Revision 1.67  2004-01-28 17:02:13  florian
-    * fixed a couple of broken generic routines
+  Revision 1.68  2004-01-31 16:14:24  florian
+    * alignment handling of generic fillbyte/word fixed
 
   Revision 1.66  2004/01/21 01:25:02  florian
     * improved generic int. div routines
