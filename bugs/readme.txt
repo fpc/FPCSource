@@ -321,3 +321,4 @@ bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0234.pp   New with void pointer
 bug0237.pp   Can't have sub procedures with names defined in interface
+bug0238.pp   Internal error 432645 (from Frank MCCormick, mailinglist 24/2)
