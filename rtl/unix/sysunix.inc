@@ -147,15 +147,13 @@ end['A0','D0'];
 {$ifdef powerpc}
 {$define fpc_getheapstart_ok}
 asm
-        lea.l   _HEAP,a0
-        move.l  a0,d0
-end['A0','D0'];
+	lis r3,_HEAP@ha
+        la r3,_HEAP@l(r3)
+end['R3'];
 {$endif powerpc}
 {$ifndef fpc_getheapstart_ok}
 asm
-	lis r3,_HEAP@ha
-        la r3,_HEAP@l(r3)
-end ['r3'];
+end;
 {$error Getheapstart code is not implemented }
 {$endif not fpc_getheapstart_ok}
 
@@ -179,7 +177,7 @@ end ['D0'];
 asm
 	lis r9,_HEAPSIZE@ha
 	lwz r3,_HEAPSIZE@l(r9)
-end ['r0','r9'];
+end ['R0','R9'];
 {$endif powerpc}
 {$ifndef fpc_getheapsize_ok}
 asm
@@ -787,7 +785,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  2002-08-03 20:05:13  florian
+  Revision 1.26  2002-08-13 18:11:08  florian
+    * heap stuff for powerpc fixed
+
+  Revision 1.25  2002/08/03 20:05:13  florian
     + ppc implementation of heap functions added
 
   Revision 1.24  2002/07/29 21:28:17  florian
