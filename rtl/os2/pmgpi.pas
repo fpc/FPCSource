@@ -2,8 +2,6 @@
 
     $Id$
 
-                   Copyright (c) 1993,94,99 by FK, RB
-
                             PMGPI interface unit
                      FPC Pascal Runtime Library for OS/2
                    Copyright (c) 1993,94 by Florian Kl„mpfl
@@ -544,41 +542,45 @@ const   GPI_ERROR                           =       0;
         POLYGON_EXCL                        =      0;
         POLYGON_INCL                        =  $0008;
 
-type    sizel=record
+type    SizeL=record
             cx,cy:longint;
         end;
-        Psizel=^sizel;
+        PSizeL=^SizeL;
+        TSizeL=SizeL;
 
-        matrixlf=record
-            fxm11 : longint;
-            fxm12 : longint;
-            lm13 : longint;
-            fxm21 : longint;
-            fxm22 : longint;
-            lm23 : longint;
-            lm31 : longint;
-            lm32 : longint;
-            lm33 : longint;
+        MatrixLF=record
+            fxm11:longint;
+            fxm12:longint;
+            lm13:longint;
+            fxm21:longint;
+            fxm22:longint;
+            lm23:longint;
+            lm31:longint;
+            lm32:longint;
+            lm33:longint;
         end;
+        PMatrixLF=^MatrixLF;
+        TMatrixLF=MatrixLF;
 
-        Pmatrixlf=^matrixlf;
-
-        arcparams=record
+        ArcParams=record
             lp,lq,lr,ls:longint;
         end;
-        Parcparams=^arcparams;
+        PArcParams=^ArcParams;
+        TArcParams=ArcParams;
 
-        sizef=record
+        SizeF=record
             cx,cy:longint;
         end;
-        Psizef=^sizef;
+        PSizeF=^SizeF;
+        TSizeF=SizeF;
 
-        gradientl=record
+        GradientL=record
             x,y:longint;
         end;
-        Pgradientl=^gradientl;
+        PGradientL=^GradientL;
+        TGradientL=GradientL;
 
-        linebundle=record
+        LineBundle=record
             lColor:longint;
             lBackColor:longint;
             usMixMode:word;
@@ -590,9 +592,10 @@ type    sizel=record
             usJoin:word;
             usReserved:word;
         end;
-        Plinebundle=^linebundle;
+        PLineBundle=^LineBundle;
+        TLineBundle=LineBundle;
 
-        charbundle=record
+        CharBundle=record
             lColor:longint;
             lBackColor:longint;
             usMixMode:word;
@@ -607,20 +610,22 @@ type    sizel=record
             fxExtra:longint;
             fxBreakExtra:longint;
         end;
-        Pcharbundle=^charbundle;
+        PCharBundle=^CharBundle;
+        TCharBundle=CharBundle;
 
-        markerbundle=record
+        MarkerBundle=record
             lColor:longint;
             lBackColor:longint;
             usMixMode:word;
             usBackMixMode:word;
             usSet:word;
             usSymbol:word;
-            sizfxCell:sizef;
+            sizFxCell:SizeF;
         end;
-        Pmarkerbundle=^markerbundle;
+        PMarkerBundle=^MarkerBundle;
+        TMarkerBundle=MarkerBundle;
 
-        areabundle=record
+        AreaBundle=record
             lColor:longint;
             lBackColor:longint;
             usMixMode:word;
@@ -629,61 +634,70 @@ type    sizel=record
             usSymbol:word;
             ptlRefPoint:pointl;
         end;
-        Pareabundle=^areabundle;
+        PAreaBundle=^AreaBundle;
+        TAreaBundle=AreaBundle;
 
-        imagebundle=record
+        ImageBundle=record
             lColor:longint;
             lBackColor:longint;
             usMixMode:word;
             usBackMixMode:word;
         end;
-        Pimagebundle=^imagebundle;
+        PImageBundle=^ImageBundle;
+        TImageBundle=ImageBundle;
 
-        kerningpairs=record
+        KerningPairs=record
             sFirstChar:integer;
             sSecondChar:integer;
             lKerningAmount:longint;
         end;
-        Pkerningpairs=^kerningpairs;
+        PKerningPairs=^KerningPairs;
+        TKerningPairs=KerningPairs;
 
-        facenamedesc=record
+        FaceNameDesc=record
             usSize:word;
             usWeightClass:word;
             usWidthClass:word;
             usReserved:word;
             flOptions:cardinal;
         end;
-        Pfacenamedesc=^facenamedesc;
+        PFaceNameDesc=^FaceNameDesc;
+        TFaceNameDesc=FaceNameDesc;
 
-        ffdescs=array[0..1,0..facesize-1] of char;
-        Pffdescs=^ffdescs;
+        FFDescs=array[0..1,0..FaceSize-1] of char;
+        PFFDescs=^FFDescs;
+        TFFDescs = FFDescs;
 
-        ffdescs2=record
+        FFDescs2=record
             cbLength:cardinal;
             cbFacenameOffset:cardinal;
             abFamilyName:array[0..1-1] of byte;
         end;
-        Pffdescs2=^ffdescs2;
+        PFFDescs2=^FFDescs2;
+        TFFDescs2=FFDescs2;
 
-        rgnrect=record
+        RgnRect=record
             ircStart:cardinal;
             crc:cardinal;
             crcReturned:cardinal;
             ulDirection:cardinal;
         end;
-        Prgnrect=^rgnrect;
+        PRgnRect=^RgnRect;
+        TRgnRect=RgnRect;
 
-        polygon=record
+        Polygon=record
             ulPoints:cardinal;
             aPointl:Ppointl;
         end;
-        Ppolygon=^polygon;
+        PPolygon=^Polygon;
+        TPolygon=Polygon;
 
-        polyset=record
+        Polyset=record
             ulPolys:cardinal;
-            aPolygon:array[0..1-1] of polygon;
+            aPolygon:array[0..1-1] of TPolygon;
         end;
-        Ppolyset=^polyset;
+        PPolyset=^Polyset;
+        TPolyset=Polyset;
 
 function GpiCreatePS(hab,hdc : cardinal;var psizlSize : SIZEL;flOptions : cardinal) : cardinal;cdecl;
 function GpiDestroyPS(hps : cardinal) : longbool;cdecl;
@@ -1214,7 +1228,10 @@ function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flMod
 end.
 {
   $Log$
-  Revision 1.5  1999-06-11 13:16:19  daniel
+  Revision 1.6  1999-08-04 15:51:07  hajny
+    * merging changes by RB and DM :-(
+
+  Revision 1.5  1999/06/11 13:16:19  daniel
   * Layout and copyright updates.
 
   Revision 1.4  1999/06/02 16:01:33  hajny

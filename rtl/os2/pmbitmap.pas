@@ -38,32 +38,36 @@ interface
 
 {$PACKRECORDS 1}
 
-type    Tbitmapinfoheader=record
+type    TBitmapInfoHeader=record
             cbFix:cardinal;
             cx:word;
             cy:word;
             cPlanes:word;
             cBitCount:word;
         end;
-        Pbitmapinfoheader = ^Tbitmapinfoheader;
+        PBitmapInfoHeader=^TBitmapInfoHeader;
+        BitmapInfoHeader=TBitmapInfoHeader;
 
-        Trgb=record
+        TRgb=record
             bBlue,
             bGreen,
-            bRed:BYTE;
+            bRed:byte;
         end;
+        PRgb=^TRgb;
+        Rgb=TRgb;
 
-        Tbitmapinfo=record
+        TBitmapInfo=record
             cbFix:cardinal;
             cx:word;
             cy:word;
             cPlanes:word;
             cBitCount:word;
-            argbColor:array[0..1-1] of Trgb;
+            aRgbColor:array[0..1-1] of TRgb;
         end;
-        Pbitmapinfo=^Tbitmapinfo;
+        PBitmapInfo=^TBitmapInfo;
+        BitmapInfo=TBitmapInfo;
 
-        Tbitmapinfoheader2=record
+        TBitmapInfoHeader2=record
             cbFix:cardinal;
             cx:cardinal;
             cy:cardinal;
@@ -73,8 +77,8 @@ type    Tbitmapinfoheader=record
             cbImage:cardinal;
             cxResolution:cardinal;
             cyResolution:cardinal;
-            cclrUsed:cardinal;
-            cclrImportant:cardinal;
+            cClrUsed:cardinal;
+            cClrImportant:cardinal;
             usUnits:word;
             usReserved:word;
             usRecording:word;
@@ -84,17 +88,19 @@ type    Tbitmapinfoheader=record
             ulColorEncoding:cardinal;
             ulIdentifier:cardinal;
         end;
-        Pbitmapinfoheader2=^Tbitmapinfoheader2;
+        PBitmapInfoHeader2=^TBitmapInfoHeader2;
+        BitmapInfoHeader2=TBitmapInfoHeader2;
 
-        Trgb2=record
+        TRgb2=record
             bBlue,
             bGreen,
             bRed,
             fcOptions:byte;
         end;
-        Prgb2=^Trgb2;
+        PRgb2=^TRgb2;
+        Rgb2=TRgb2;
 
-        Tbitmapinfo2=record
+        TBitmapInfo2=record
             cbFix:cardinal;
             cx:cardinal;
             cy:cardinal;
@@ -104,8 +110,8 @@ type    Tbitmapinfoheader=record
             cbImage:cardinal;
             cxResolution:cardinal;
             cyResolution:cardinal;
-            cclrUsed:cardinal;
-            cclrImportant:cardinal;
+            cClrUsed:cardinal;
+            cClrImportant:cardinal;
             usUnits:word;
             usReserved:word;
             usRecording:word;
@@ -114,51 +120,54 @@ type    Tbitmapinfoheader=record
             cSize2:cardinal;
             ulColorEncoding:cardinal;
             ulIdentifier:cardinal;
-            argbColor:array[0..1-1] of Trgb2;
+            aRgbColor:array[0..1-1] of TRgb2;
         end;
-        Pbitmapinfo2=^Tbitmapinfo2;
+        PBitmapInfo2=^TBitmapInfo2;
+        BitmapInfo2=TBitmapInfo2;
 
-        Tbitmapfileheader=record
+        TBitmapFileHeader=record
             usType:word;
             cbSize:cardinal;
             xHotspot:integer;
             yHotspot:integer;
             offBits:cardinal;
-            bmp:Tbitmapinfoheader;
+            bmp:TBitmapInfoHeader;
         end;
+        PBitmapFileHeader=^TBitmapFileHeader;
+        BitmapFileHeader=TBitmapFileHeader;
 
-        Pbitmapfileheader=^Tbitmapfileheader;
-
-        Tbitmaparrayfileheader=record
+        TBitmapArrayFileHeader=record
             usType:word;
             cbSize:cardinal;
             offNext:cardinal;
             cxDisplay:word;
             cyDisplay:word;
-            bfh:Tbitmapfileheader;
+            bfh:TBitmapFileHeader;
         end;
-        Pbitmaparrayfileheader=^Tbitmaparrayfileheader;
+        PBitmapArrayFileHeader=^TBitmapArrayFileHeader;
+        BitmapArrayFileHeader=TBitmapArrayFileHeader;
 
-        Tbitmapfileheader2=record
+        TBitmapFileHeader2=record
             usType:word;
             cbSize:cardinal;
             xHotspot:integer;
             yHotspot:integer;
             offBits:cardinal;
-            bmp2:Tbitmapinfoheader2;
+            bmp2:TBitmapInfoHeader2;
         end;
-        Pbitmapfileheader2=^Tbitmapfileheader2;
+        PBitmapFileHeader2=^TBitmapFileHeader2;
+        BitmapFileHeader2=TBitmapFileHeader2;
 
-        Tbitmaparrayfileheader2=record
+        TBitmapArrayFileHeader2=record
             usType:word;
             cbSize:cardinal;
             offNext:cardinal;
             cxDisplay:word;
             cyDisplay:word;
-            bfh2:Tbitmapfileheader2;
+            bfh2:TBitmapFileHeader2;
         end;
-
-        Pbitmaparrayfileheader2=^Tbitmaparrayfileheader2;
+        PBitmapArrayFileHeader2=^TBitmapArrayFileHeader2;
+        BitmapArrayFileHeader2=^BitmapArrayFileHeader2;
 
 const   CBD_COMPRESSION         =       1;
         CBD_DECOMPRESSION       =       2;
@@ -191,7 +200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-06-11 13:16:21  daniel
+  Revision 1.5  1999-08-04 15:51:10  hajny
+    * merging changes by RB and DM :-(
+
+  Revision 1.4  1999/06/11 13:16:21  daniel
   * Layout and copyright updates.
 
   Revision 1.3  1999/06/02 16:01:31  hajny

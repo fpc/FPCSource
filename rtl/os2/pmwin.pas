@@ -2,9 +2,39 @@
 
     $Id$
 
-		   Copyright (c) 1993,94,99 by FK, RB
-		  
+                            PMWIN interface unit
+                     FPC Pascal Runtime Library for OS/2
+                   Copyright (c) 1993,94 by Florian Kl„mpfl
+                    Copyright (c) 1999 by Ramon Bosque
+
+ The FPK-Pascal runtime library is distributed under the Library GNU Public
+ License v2. So is this unit. The Library GNU Public License requires you to
+ distribute the source code of this unit with any product that uses it.
+ Because the EMX library isn't under the LGPL, we grant you an exception to
+ this, and that is, when you compile a program with the FPK Pascal compiler,
+ you do not need to ship source code with that program, AS LONG AS YOU ARE
+ USING UNMODIFIED CODE! If you modify this code, you MUST change the next
+ line:
+
+ <This an official, unmodified FPK Pascal source code file.>
+
+ Send us your modified files, we can work together if you want!
+
+ FPK-Pascal is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ Library GNU General Public License for more details.
+
+ You should have received a copy of the Library GNU General Public License
+ along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ the Free Software Foundation, 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.
+
  ****************************************************************************}
+
+{Warning: This code is alfa. Future versions of this unit will propably
+ not be compatible.}
+
 unit pmwin;
 
   interface
@@ -320,7 +350,42 @@ unit pmwin;
        PCPTEXT = ^CPTEXT;
 {$PACKRECORDS NORMAL}
 
+{Names beginning with T for compatibility}
 
+	TQVERSDATA = QVERSDATA;
+	TSWP = SWP;
+	TCREATESTRUCT = CREATESTRUCT;
+	TCLASSINFO = CLASSINFO;
+	TQMSQ = QMSG;
+	TMQINFO = MQINFO;
+	TWNDPARAMS = WNDPARAMS;
+	TUSERBUTTON = USERBUTTON;
+	TOWNERITEM = OWNERITEM;
+	TPARAM = PARAM;
+	TPRESPARAMS = PRESPARAMS;
+	TTRACKINFO = TRACKINFO;
+	TCURSORINFO = CURSORINFO;
+	TPOINTERINFO = POINTERINFO;
+	TSMHSTRUCT = SMHSTRUCT;
+	TERRINFO = ERRINFO;
+	TCONVCONTEXT = CONVCONTEXT;
+	TDDEINIT = DDEINIT;
+	TDDESTRUCT = DDESTRUCT;
+	TDESKTOP = DESKTOP;
+	TCMDMSG = CMDMSG;
+	TMSEMSG = MSEMSG;
+	TCHRMSG = CHRMSG;
+	TDLGTITEM = DLGTITEM;
+	TDLGTEMPLATE = DLGTEMPLATE;
+	TBTNCDATA = BTNCDATA;
+	TENTRYFDATA = ENTRYFDATA;
+	TMENUITEM = MENUITEM;
+	TSBCDATA = SBCDATA;
+	TFRAMECDATA = FRAMECDATA;
+	TACCEL = ACCEL;
+	TACCELTABLE = ACCELTABLE;
+	TMPF = MFP;
+	TCPTEXT = CPTEXT;
 const
        WS_VISIBLE = $80000000;
        WS_DISABLED = $40000000;
@@ -2085,16 +2150,19 @@ const
       end;                                         
     function integer1FROMMP(mp : pointer) : word;cdecl;
       begin
-	 integer1FROMMP:=lo(cardinal(mp));
+	 {integer1FROMMP:=lo(cardinal(mp));             RBP}
       end;                                             
     function integer2FROMMP(mp : pointer) : word;cdecl; 
       begin
-	 integer2FROMMP:=hi(cardinal(mp))
+	 {integer2FROMMP:=hi(cardinal(mp))              RBP}
       end;                                             
 end.
 {
   $Log$
-  Revision 1.5  1999-06-02 16:01:29  hajny
+  Revision 1.6  1999-08-04 15:51:05  hajny
+    * merging changes by RB and DM :-(
+
+  Revision 1.5  1999/06/02 16:01:29  hajny
     * changes by Ramon Bosque
 
 }

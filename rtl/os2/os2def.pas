@@ -1,6 +1,6 @@
 {****************************************************************************
 
-		   Copyright (c) 1993,94 by Florian Kl„mpfl
+		   Copyright (c) 1993,94,99 by FK, RB
 		  
  ****************************************************************************}
 unit os2def;
@@ -111,7 +111,7 @@ const
 
        PDRIVDATA = ^DRIVDATA;
 
-       PDEVOPENDATA = pshortint;           {Initially, ^PSZ}
+       PDEVOPENDATA = PDevOpenStruc;
 
        DEVOPENSTRUC = record
 	  pszLogAddress : pchar;
@@ -232,7 +232,18 @@ const
       { m”glich eine Typkonvertierung                          }
       CHARARRAY = array[0..0] of char;
      
-
+{Names beginning with T for compatibility}
+	TPOINTL = POINTL;
+	TPOINTS = POINTS;
+	TRECTL = RECTL;
+	TSTR8 = STR8;
+	TDRIVDATA = DRIVDATA;
+	TDEVOPENSTRUC = DEVOPENSTRUC;
+	TPRINTDEST = PRINTDEST;
+	TFATTRS = FATTRS;
+	TPANOSE = PANOSE;
+	TFONTMETRICS = FONTMETRICS;
+	TCHARARRAY = CHARARRAY;
 
   implementation
   
