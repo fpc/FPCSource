@@ -55,7 +55,7 @@ implementation
          s : pasmsymbol;
          popeax : boolean;
          pushed : tpushed;
-         hr : treference;
+         hr,resref : treference;
 
       begin
          simple_loadn:=true;
@@ -81,6 +81,10 @@ implementation
                          pushusedregisters(pushed,$ff);
                          emit_const(A_PUSH,S_L,
                            pconstsym(p^.symtableentry)^.resstrindex);
+                         { Now we must push the address of the 
+                           resourcestringtable of the unit the resourcestring is in,
+                           it has label modulename^+'_RESOURCESTRINGLIST' 
+                           MVC }
                          emitcall('FPC_GETRESOURCESTRING');
 
                          hregister:=getexplicitregister32(R_EAX);
@@ -964,7 +968,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  1999-08-23 11:45:39  michael
+  Revision 1.77  1999-08-24 22:38:51  michael
+  * more resourcestring changes
+
+  Revision 1.76  1999/08/23 11:45:39  michael
   * Hopefully final attempt at resourcestrings
 
   Revision 1.75  1999/08/19 13:08:49  pierre

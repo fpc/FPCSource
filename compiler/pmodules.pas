@@ -122,12 +122,20 @@ unit pmodules;
         count:=0;
         hp:=pused_unit(usedunits.first);
         while assigned(hp) do
-         begin
-           If (hp^.u^.flags and uf_has_resources)=uf_has_resources then
-             ResourceStringTables.concat(new(pai_const_symbol,initname(hp^.u^.modulename^+'_RESOURCESTRINGTABLE')));
-           hp:=Pused_unit(hp^.next);
-           inc(count);
-         end;
+          begin
+          If (hp^.u^.flags and uf_has_resources)=uf_has_resources then
+            begin
+            ResourceStringTables.concat(new(pai_const_symbol,initname(hp^.u^.modulename^+'_RESOURCESTRINGLIST')));
+            inc(count);
+            end;
+          hp:=Pused_unit(hp^.next);
+          end;
+        // Add program resources, if any
+        If ResourceStringList<>Nil then
+          begin
+          ResourceStringTables.concat(new(pai_const_symbol,initname(Current_Module^.modulename^+'_RESOURCESTRINGLIST')));          
+          Inc(Count);
+          end;
         { TableCount }
         With ResourceStringTables do
           begin
@@ -1409,7 +1417,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.143  1999-08-24 12:01:34  michael
+  Revision 1.144  1999-08-24 22:38:53  michael
+  * more resourcestring changes
+
+  Revision 1.143  1999/08/24 12:01:34  michael
   + changes for resourcestrings
 
   Revision 1.142  1999/08/16 15:35:27  pierre

@@ -1753,7 +1753,8 @@
              begin
                writelong(len);
                current_ppu^.putdata(pchar(value)^,len);
-               writelong(ResStrIndex);
+               if consttype=constresourcestring then
+                 writelong(ResStrIndex);
              end;
            constreal :
              writereal(pbestreal(value)^);
@@ -2154,7 +2155,10 @@
 
 {
   $Log$
-  Revision 1.115  1999-08-23 11:45:42  michael
+  Revision 1.116  1999-08-24 22:38:55  michael
+  * more resourcestring changes
+
+  Revision 1.115  1999/08/23 11:45:42  michael
   * Hopefully final attempt at resourcestrings
 
   Revision 1.114  1999/08/15 21:57:58  michael
