@@ -92,8 +92,8 @@ unit pmodules;
            then
          begin
            datasegment^.insert(new(pai_align,init(4)));
-           datasegment^.insert(new(pai_string,init('FPC '+full_version_string+
-             ' for '+target_cpu_string+' - '+target_info.short_name)));
+           datasegment^.insert(new(pai_string,init('FPC '+full_version_string+' ['+
+             date_string+'] for '+target_cpu_string+' - '+target_info.short_name)));
          end;
       { Insert start and end of sections }
         fixseg(codesegment,sec_code);
@@ -133,7 +133,7 @@ unit pmodules;
         // Add program resources, if any
         If ResourceStringList<>Nil then
           begin
-          ResourceStringTables.concat(new(pai_const_symbol,initname(Current_Module^.modulename^+'_RESOURCESTRINGLIST')));          
+          ResourceStringTables.concat(new(pai_const_symbol,initname(Current_Module^.modulename^+'_RESOURCESTRINGLIST')));
           Inc(Count);
           end;
         { TableCount }
@@ -149,8 +149,8 @@ unit pmodules;
         datasegment^.concatlist(@ResourceStringTables);
         ResourceStringTables.done;
       end;
-    
-    
+
+
 
     procedure InsertInitFinalTable;
       var
@@ -1109,7 +1109,7 @@ unit pmodules;
 
          { the last char should always be a point }
          consume(_POINT);
-         
+
          If ResourceStringList<>Nil then
            begin
            insertresourcestrings;
@@ -1382,7 +1382,7 @@ unit pmodules;
          insertinitfinaltable;
          insertheap;
          inserttargetspecific;
-    
+
          datasize:=symtablestack^.datasize;
 
          { finish asmlist by adding segment starts }
@@ -1424,7 +1424,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.145  1999-08-26 20:24:44  michael
+  Revision 1.146  1999-08-26 21:16:21  peter
+    * write date of the compiler into the executable
+
+  Revision 1.145  1999/08/26 20:24:44  michael
   + Hopefuly last fixes for resourcestrings
 
   Revision 1.144  1999/08/24 22:38:53  michael
