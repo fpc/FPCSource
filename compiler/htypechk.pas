@@ -742,6 +742,7 @@ implementation
                  hp:=hp^.left;
                end;
              typeconvn,
+             asn,
              vecn,
              subscriptn :
                hp:=hp^.left;
@@ -765,6 +766,17 @@ implementation
              funcretn :
                begin
                  valid_for_assign:=true;
+                 exit;
+               end;
+             calln :
+               begin
+                 { only allow writing if it returns a pointer and we've
+                   found a deref }
+                 if (hp^.resulttype^.deftype=pointerdef) and
+                    gotderef then
+                  valid_for_assign:=true
+                 else
+                  CGMessagePos(hp^.fileinfo,type_e_argument_cant_be_assigned);
                  exit;
                end;
              loadn :
@@ -814,7 +826,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-10-26 12:30:41  peter
+  Revision 1.43  1999-10-27 16:04:45  peter
+    * valid_for_assign support for calln,asn
+
+  Revision 1.42  1999/10/26 12:30:41  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
