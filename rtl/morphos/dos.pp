@@ -191,21 +191,25 @@ const
                            --- Internal routines ---
 ******************************************************************************}
 
-function dosLock(const name : string;
-              accessmode : Longint) : LongInt;
+function dosLock(const name: String;
+                 accessmode: Longint) : LongInt;
 var
- buffer: Array[0..255] of char;
-Begin
+ buffer: array[0..255] of Char;
+begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
   dosLock:=Lock(buffer,accessmode);
 end;
 
-FUNCTION BADDR(bval : LongInt): POINTER;
-BEGIN
-    BADDR := POINTER( bval shl 2);
-END;
+function BADDR(bval: LongInt): Pointer; Inline;
+begin
+  BADDR:=Pointer(bval Shl 2);
+end;
 
+function BSTR2STRING(s : LongInt): PChar; Inline;
+begin
+  BSTR2STRING:=Pointer(Longint(BADDR(s))+1);
+end;
 
 Procedure AmigaToDt(SecsPast: LongInt; Var Dt: DateTime);
 var
@@ -240,13 +244,12 @@ Begin
 end;
 
 function IsLeapYear(Source : Word) : Boolean;
-Begin
-{$WARNING FIX ME!!! Leap year calculation is "somewhat" buggy.}
-  If (Source Mod 4 = 0) Then
-    IsLeapYear := True
-  Else
-    IsLeapYear := False;
-End;
+begin
+  if (source Mod 400 = 0) or ((source Mod 4 = 0) and (source Mod 100 <> 0)) then
+    IsLeapYear:=True
+  else
+    IsLeapYear:=False;
+end;
 
 Procedure Amiga2DateStamp(Date : LongInt; Var TotalDays,Minutes,Ticks: longint);
 { Converts a value in seconds past 1978 to a value in AMIGA DateStamp format }
@@ -974,44 +977,41 @@ end;
 {$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
 
 
-
-   Function  fsearch(path : pathstr;dirlist : string) : pathstr;
-      var
-         i,p1   : longint;
-         s      : searchrec;
-         newdir : pathstr;
-      begin
-      { No wildcards allowed in these things }
-         if (pos('?',path)<>0) or (pos('*',path)<>0) then
-           fsearch:=''
-         else
-           begin
-              { allow slash as backslash }
-              for i:=1 to length(dirlist) do
-                if dirlist[i]='\' then dirlist[i]:='/';
-              repeat
-                p1:=pos(';',dirlist);
-                if p1<>0 then
-                 begin
-                   newdir:=copy(dirlist,1,p1-1);
-                   delete(dirlist,1,p1);
-                 end
-                else
-                 begin
-                   newdir:=dirlist;
-                   dirlist:='';
-                 end;
-                if (newdir<>'') and (not (newdir[length(newdir)] in ['/',':'])) then
-                 newdir:=newdir+'/';
-                findfirst(newdir+path,anyfile,s);
-                if doserror=0 then
-                 newdir:=newdir+path
-                else
-                 newdir:='';
-              until (dirlist='') or (newdir<>'');
-              fsearch:=newdir;
-           end;
+function FSearch(path: PathStr; dirlist: String) : PathStr;
+var
+  counter: LongInt;
+  p1     : LongInt;
+  tmpSR  : SearchRec;
+  newdir : PathStr;
+begin
+  { No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) or (path='') then
+    FSearch:=''
+  else begin
+    { allow slash as backslash }
+    for counter:=1 to length(dirlist) do
+      if dirlist[counter]='\' then dirlist[counter]:='/';
+    
+    repeat
+      p1:=pos(';',dirlist);
+      if p1<>0 then begin
+        newdir:=Copy(dirlist,1,p1-1);
+        Delete(dirlist,1,p1);
+      end else begin
+        newdir:=dirlist;
+        dirlist:='';
       end;
+      if (newdir<>'') and (not (newdir[length(newdir)] in ['/',':'])) then
+        newdir:=newdir+'/';
+      FindFirst(newdir+path,anyfile,tmpSR);
+      if doserror=0 then
+        newdir:=newdir+path
+      else
+        newdir:='';
+    until (dirlist='') or (newdir<>'');
+    FSearch:=newdir;
+  end;
+end;
 
 
 Procedure getftime (var f; var time : longint);
@@ -1282,12 +1282,6 @@ begin
    IsInDeviceList := theresult;
 end;
 
-
-function BSTR2STRING(s : LongInt): pchar;
-begin
-    BSTR2STRING := Pointer(Longint(BADDR(s))+1);
-end;
-
 procedure ReadInDevices;
 var
    dl : pDosList;
@@ -1317,7 +1311,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2004-10-27 01:31:40  karoly
+  Revision 1.9  2004-11-18 22:30:33  karoly
+    * Some cleanup, leap year calculation fixed
+
+  Revision 1.8  2004/10/27 01:31:40  karoly
     * GetEnv fixed
 
   Revision 1.7  2004/08/03 15:59:41  karoly
