@@ -202,9 +202,9 @@ var
   Msg: TMsg;
 begin
   if GetCurrentThreadID = MainThreadID then
-    while MsgWaitForMultipleObjects(1, @FHandle, False, INFINITE, QS_SENDMESSAGE) = WAIT_OBJECT_0 + 1 do
-      PeekMessage(@Msg, 0, 0, 0, PM_NOREMOVE)
+    while MsgWaitForMultipleObjects(1, FHandle, False, INFINITE, QS_SENDMESSAGE) = WAIT_OBJECT_0 + 1 do
+      PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE)
   else
     WaitForSingleObject(ulong(FHandle), INFINITE);
-  GetExitCodeThread(FHandle, @Result);
+  GetExitCodeThread(FHandle, Result);
 end;
