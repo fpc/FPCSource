@@ -169,8 +169,8 @@ const msgtxt : array[0..000100,1..240] of char=(
   'M_Macro undefined: $1'#000+
   'M_Macro $','1 set to $2'#000+
   'I_Compiling $1'#000+
-  'I_Parsing interface of unit $1'#000+
-  'I_Parsing implementation of $1'#000+
+  'U_Parsing interface of unit $1'#000+
+  'U_Parsing implementation of $1'#000+
   'D_Compiling $1 for the second time'#000+
   'E_Array properties aren'#039't allowed at this point'#000+
   'E_No property found to override'#000+

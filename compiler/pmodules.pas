@@ -1019,7 +1019,7 @@ unit pmodules;
          numberunits;
 
          { ... parse the declarations }
-         Message1(parser_i_reading_interface,current_module^.modulename^);
+         Message1(parser_u_parsing_interface,current_module^.modulename^);
          read_interface_declarations;
 
          { leave when we got an error }
@@ -1095,7 +1095,8 @@ unit pmodules;
          allow_special:=false;
 {$endif Splitheap}
 
-         Message1(parser_i_parsing_implementation,current_module^.modulename^);
+         Message1(parser_u_parsing_implementation,current_module^.modulename^);
+
          { Generate a procsym }
          gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
 
@@ -1350,7 +1351,7 @@ unit pmodules;
          { the elements of enumeration types are inserted       }
          constsymtable:=st;
 
-         Message1(parser_i_parsing_implementation,current_module^.mainsource^);
+         Message1(parser_u_parsing_implementation,current_module^.mainsource^);
          { Generate a procsym for main }
          gen_main_procsym('main',potype_proginit,st);
 
@@ -1456,7 +1457,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.151  1999-08-31 15:51:10  pierre
+  Revision 1.152  1999-09-01 22:18:42  peter
+    * moved parsing interface/implementation to -vu
+
+  Revision 1.151  1999/08/31 15:51:10  pierre
    * in_second_compile cleaned up, in_compile and in_second_load added
 
   Revision 1.150  1999/08/30 16:21:40  pierre
