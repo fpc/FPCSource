@@ -69,20 +69,6 @@ MouseAPI conditional in gameunit.pp (automatical for Linux).
 To get the graphics versions of fpctris and samegame, compile using
 -dUsegraphics, the makefile should automatically build both.
 
-Future
---------
-
-- Some cards games (BlackJack, Poker, and two Dutch games called "Rikken" and
-   "Toepen") are in preparation
-- A server for Linux, so that Linux clients can connect to it for multiplayer
-   services. One server for all games, otherwise small games like this clog up
-   the number of free ports ;-)
-   This is also important because most of the cardsgames (except BlackJack)
-   can't be played against the computer, the AI is to difficult. (Poker is maybe
-   also possible)
-- More games
-- A fortune clone (far more sophisticated than everything here) to complete
-  the BSD games analogy
 
 ---------
 FPCTRIS
