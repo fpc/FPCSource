@@ -155,6 +155,7 @@ implementation
 var
     heap_base: pointer; external name '__heap_base';
     heap_brk: pointer; external name '__heap_brk';
+    heap_end: pointer; external name '__heap_end';
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
@@ -180,6 +181,12 @@ external 'DOSCALLS' index 226;
 
 {This is the correct way to call external assembler procedures.}
 procedure syscall; external name '___SYSCALL';
+
+{
+procedure syscall; external 'EMX' index 2;
+
+procedure emx_init; external 'EMX' index 1;
+}
 
 
 
@@ -366,7 +373,7 @@ end ['EAX'];
 
 function getheapsize:longint;assembler;
 asm
-    movl HeapSize,%eax
+    movl heap_brk,%eax
 end ['EAX'];
 
 {$i heap.inc}
@@ -990,7 +997,7 @@ begin
     {Enable the brk area by initializing it with the initial heap size.}
 
         mov ax, 7F01h
-        mov edx, HeapSize
+        mov edx, heap_brk
         add edx, heap_base
         call syscall
         cmp eax, -1
@@ -1066,7 +1073,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-11-15 18:49:43  hajny
+  Revision 1.18  2002-02-10 13:46:20  hajny
+    * heap management corrected (heap_brk)
+
+  Revision 1.17  2001/11/15 18:49:43  hajny
     * DefaultTextLineBreakStyle misplacing corrected
 
   Revision 1.16  2001/10/23 21:51:03  peter
