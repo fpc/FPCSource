@@ -32,7 +32,7 @@ uses    tokens,globtype;
 
 {$ifdef IncludeTokens}
 const
-  arraytokeninfo:array[ttoken] of tokenrec=(
+  arraytokeninfo : ttokenarray =(
       (str:''              ;special:true ;keyword:m_none),
     { Operators which can be overloaded }
       (str:'+'             ;special:true ;keyword:m_none),
@@ -264,4 +264,3 @@ begin
 end.
 
 {$endif TP}
-
