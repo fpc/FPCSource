@@ -609,10 +609,20 @@ implementation
                 end
                else
                 begin
-                  if alignment=4 then
-                   cgsize:=OS_32
-                  else
-                   cgsize:=OS_16;
+                  case cgsize of
+                    OS_8,OS_S8 :
+                      begin
+                        if alignment=4 then
+                         cgsize:=OS_32
+                        else
+                         cgsize:=OS_16
+                      end;
+                    OS_16,OS_S16 :
+                      begin
+                        if alignment=4 then
+                         cgsize:=OS_32;
+                      end;
+                  end;
                   inc(pushedparasize,alignment);
                   if inlined then
                    begin
@@ -1298,7 +1308,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-04-02 17:11:37  peter
+  Revision 1.29  2002-04-04 07:56:15  michael
+  * Patch from peter to fix go32v2 cycle
+
+  Revision 1.28  2002/04/02 17:11:37  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
