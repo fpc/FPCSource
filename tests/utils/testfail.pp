@@ -54,6 +54,7 @@ var
   TestExe : string;
 begin
   TestExe:=ForceExtension(FailName,ExeExt);
+  TestExe:=FExpand(TestExe);
   ExecuteRedir(TestExe,'','','','');
   if (DosError<>0) or (ExecuteResult<>1) then
     writeln('exit code not returned correctly');
@@ -69,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-12-05 16:04:26  pierre
+  Revision 1.2  2003-04-29 21:12:17  pierre
+   * win32 specific unit added
+
+  Revision 1.1  2002/12/05 16:04:26  pierre
    * new files for checking if ComSpec returns error
 
 }
