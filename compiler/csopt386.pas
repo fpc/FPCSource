@@ -736,10 +736,13 @@ begin
         end;
     end;
   sequenceEnd := sequenceEnd and
-     RegSizesOk(orgReg,newReg,paicpu(endP)) and
-     not(newRegModified and
-         (orgReg in PPaiProp(endP^.optInfo)^.usedRegs) and
-         not(RegLoadedWithNewValue(orgReg,true,paicpu(endP))));
+     (not(assigned(endp)) or
+      not(endp^.typ = ait_instruction) or
+      (noHardCodedRegs(paicpu(endP)) and
+       RegSizesOk(orgReg,newReg,paicpu(endP)) and
+       not(newRegModified and
+           (orgReg in PPaiProp(endP^.optInfo)^.usedRegs) and
+           not(RegLoadedWithNewValue(orgReg,true,paicpu(endP))))));
 
   if SequenceEnd then
     begin
@@ -1167,7 +1170,10 @@ End.
 
 {
  $Log$
- Revision 1.40  2000-01-22 16:10:06  jonas
+ Revision 1.41  2000-01-23 11:11:37  michael
+ + Fixes from Jonas.
+
+ Revision 1.40  2000/01/22 16:10:06  jonas
    + all code generator generated "mov reg1,reg2" instructions are now
      attempted to be removed using the replacereg code
      (-dnewoptimizations)

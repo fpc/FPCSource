@@ -337,7 +337,7 @@ implementation
         pushed : boolean;
         href   : treference;
         pushedregs : tpushed;
-        regstopush: longint;
+        regstopush: byte;
       begin
         cmpop:=false;
 
@@ -425,24 +425,8 @@ implementation
                      pushusedregisters(pushedregs,$ff);}
 
                      regstopush := $ff;
-                     case p^.right^.location.loc of
-                       LOC_REGISTER:
-                         regstopush := regstopush and
-                           not($80 shr byte(p^.right^.location.register));
-                       LOC_MEM,LOC_REFERENCE:
-                         regstopush := regstopush and
-                           not($80 shr byte(p^.right^.location.reference.base)) and
-                           not($80 shr byte(p^.right^.location.reference.index));
-                     end;
-                     case p^.left^.location.loc of
-                       LOC_REGISTER:
-                         regstopush := regstopush and
-                           not($80 shr byte(p^.left^.location.register));
-                       LOC_MEM,LOC_REFERENCE:
-                         regstopush := regstopush and
-                           not($80 shr byte(p^.left^.location.reference.base)) and
-                           not($80 shr byte(p^.left^.location.reference.index));
-                     end;
+                     remove_non_regvars_from_loc(p^.right^.location,regstopush);
+                     remove_non_regvars_from_loc(p^.left^.location,regstopush);
                      pushusedregisters(pushedregs,regstopush);
                      { this is still right before the instruction that uses }
                      { p^.left^.location, but that can be fixed by the      }
@@ -580,6 +564,7 @@ implementation
 {$endif SUPPORT_MMX}
          pushedreg : tpushed;
          hloc : tlocation;
+         regstopush: byte;
 
       procedure firstjmp64bitcmp;
 
@@ -1070,14 +1055,19 @@ implementation
                        Else
                         Begin
 {$EndIf NoShlMul}
-                         if not(R_EAX in unused) and not(reg_in_loc(R_EAX,p^.right^.location)) and
-                            not(reg_in_loc(R_EAX,p^.left^.location)) then
+                         regstopush := $ff;
+                         remove_non_regvars_from_loc(p^.right^.location,regstopush);
+                         remove_non_regvars_from_loc(p^.left^.location,regstopush);
+                         { now, regstopush does NOT contain EAX and/or EDX if they are }
+                         { used in either the left or the right location, excepts if   }
+                         {they are regvars. It DOES contain them if they are used in   }
+                         { another location (JM)                                       }
+                         if ((regstopush and ($80 shr byte(R_EAX))) <> 0) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EAX);
                            popeax:=true;
                           end;
-                         if not(R_EDX in unused) and not(reg_in_loc(R_EDX,p^.right^.location)) and
-                            not(reg_in_loc(R_EDX,p^.left^.location)) then
+                         if ((regstopush and ($80 shr byte(R_EDX))) <> 0) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EDX);
                            popedx:=true;
@@ -1095,11 +1085,8 @@ implementation
                          { load he right value }
                          emitloadord2reg(p^.right^.location,u32bitdef,R_EAX,true);
                          release_loc(p^.right^.location);
-                         { a hack, I know :( Necessary for when EAX is in }
-                         { p^.right^.location, since it can't be released }
-                         { yet (JM)                                       }
-                         if reg_in_loc(R_EAX,p^.right^.location) and
-                            (R_EAX in unused) then
+                         { allocate EAX if it isn't yet allocated (JM) }
+                         if (R_EAX in unused) then
                            exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
 {$ifndef noAllocEdi}
                          { also allocate EDX, since it is also modified by }
@@ -2249,7 +2236,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2000-01-22 16:02:38  jonas
+  Revision 1.91  2000-01-23 11:11:36  michael
+  + Fixes from Jonas.
+
+  Revision 1.90  2000/01/22 16:02:38  jonas
     * fixed more regalloc bugs (for set adding and unsigned
       multiplication)
 

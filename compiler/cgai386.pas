@@ -76,8 +76,9 @@ unit cgai386;
     procedure emit_pushq_loc(const t : tlocation);
     procedure release_qword_loc(const t : tlocation);
 
-    { is a register used in a location? }
-    function reg_in_loc(reg: tregister; const t: tlocation): boolean;
+    { remove non regvar registers in loc from regs (in the format }
+    { pushusedregisters uses)                                     } 
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs: byte);
     { releases the registers of a location }
     procedure release_loc(const t : tlocation);
 
@@ -611,15 +612,26 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          end;
       end;
 
-    function reg_in_loc(reg: tregister; const t: tlocation): boolean;
+    procedure remove_non_regvars_from_loc(const t: tlocation; var regs: byte);
     begin
-      reg_in_loc := false;
       case t.loc of
-        LOC_REGISTER: reg_in_loc := t.register = reg;
-        LOC_MEM, LOC_REFERENCE:
-          reg_in_loc := (t.reference.base = reg) or (t.reference.index = reg);
+        LOC_REGISTER:
+          { can't be a regvar, since it would be LOC_CREGISTER then } 
+          regs := regs and not($80 shr byte(t.register));
+        LOC_MEM,LOC_REFERENCE:
+          begin
+            if not(cs_regalloc in aktglobalswitches) or
+               (t.reference.base in usableregs) then
+              regs := regs and
+                not($80 shr byte(t.reference.base));
+            if not(cs_regalloc in aktglobalswitches) or
+               (t.reference.index in usableregs) then
+              regs := regs and
+                not($80 shr byte(t.reference.index));
+          end;
       end;
     end;
+
 
     procedure release_loc(const t : tlocation);
 
@@ -3672,7 +3684,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.71  2000-01-22 16:02:37  jonas
+  Revision 1.72  2000-01-23 11:11:36  michael
+  + Fixes from Jonas.
+
+  Revision 1.71  2000/01/22 16:02:37  jonas
     * fixed more regalloc bugs (for set adding and unsigned
       multiplication)
 
