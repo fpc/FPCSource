@@ -588,9 +588,30 @@ end;
                                Compiler Hooks
 ****************************************************************************}
 
+function getrealtime : real;
+var
+{$IFDEF USE_SYSUTILS}
+  h,m,s,s1000 : word;
+{$ELSE USE_SYSUTILS}
+  h,m,s,s100 : word;
+{$ENDIF USE_SYSUTILS}
+begin
+{$IFDEF USE_SYSUTILS}
+  DecodeTime(Time,h,m,s,s1000);
+  getrealtime:=h*3600.0+m*60.0+s+s1000/1000.0;
+{$ELSE USE_SYSUTILS}
+  gettime(h,m,s,s100);
+  getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
+{$ENDIF USE_SYSUTILS}
+end;
+
+const
+  lasttime  : real = 0;
+
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
   var
      event : tevent;
+
 begin
   GetKeyEvent(Event);
   if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
@@ -612,8 +633,9 @@ begin
     end;
 { only display line info every 100 lines, ofcourse all other messages
   will be displayed directly }
-  if (status.currentline mod 100=0) then
+  if (getrealtime-lasttime>=0.1) or (status.compiledlines=1) then
    begin
+     lasttime:=getrealtime;
      { update info messages }
 {$ifdef redircompiler}
           RedirDisableAll;
@@ -1234,7 +1256,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2004-11-14 21:45:28  florian
+  Revision 1.31  2004-11-20 10:18:41  florian
+    * reduced status updates by making them time dependend
+
+  Revision 1.30  2004/11/14 21:45:28  florian
     * fixed non working mouse after tools call
     * better handling of source/target info
     * more info in about dialog
