@@ -68,9 +68,11 @@ Type
 Var
   DosError : integer;
 
+{$ifdef cpui386}
 {Interrupt}
 Procedure Intr(intno: byte; var regs: registers);
 Procedure MSDos(var regs: registers);
+{$endif cpui386}
 
 {Info/Date/Time}
 Function  DosVersion: Word;
