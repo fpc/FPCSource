@@ -204,7 +204,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
-override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg.pas fpwritejpeg.pas ellipses
+override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg ellipses
 ifeq ($(OS_TARGET),linux)
 override TARGET_UNITS+=freetypeh freetype ftfont
 endif
