@@ -1466,10 +1466,9 @@ Implementation
       var
         a : TAssembler;
       begin
-        if assigned(CAssembler[target_info.assem]) then
-          a:=CAssembler[target_info.assem].Create(smart)
-        else
+        if not assigned(CAssembler[target_asm.id]) then
           Message(asmw_f_assembler_output_not_supported);
+        a:=CAssembler[target_asm.id].Create(smart);
         a.MakeObject;
         a.Free;
       end;
@@ -1505,9 +1504,9 @@ Implementation
 
     procedure InitAssembler;
       begin
-        initoutputformat:=target_info.assem;
-        aktoutputformat:=target_info.assem;
-        set_target_asm(target_info.assem);
+        { target_asm is already set by readarguments }
+        initoutputformat:=target_asm.id;
+        aktoutputformat:=target_asm.id;
       end;
 
 
@@ -1518,7 +1517,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-04-18 22:01:53  peter
+  Revision 1.19  2001-04-21 15:34:49  peter
+    * used target_asm.id instead of target_info.assem
+
+  Revision 1.18  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.17  2001/04/13 01:22:06  peter
