@@ -1,0 +1,111 @@
+{****************************************************************}
+{  CODE GENERATOR TEST PROGRAM                                   }
+{****************************************************************}
+{ NODE TESTED : secondunaryminus()                               }
+{****************************************************************}
+{ PRE-REQUISITES: secondload()                                   }
+{                 secondassign()                                 }
+{                 secondtypeconv()                               }
+{****************************************************************}
+{ DEFINES:                                                       }
+{            FPC     = Target is FreePascal compiler             }
+{****************************************************************}
+{ REMARKS:                                                       }
+{                                                                }
+{                                                                }
+{                                                                }
+{****************************************************************}
+
+Program tneg;
+
+{----------------------------------------------------}
+{ Cases to test:                                     }
+{   CURRENT NODE (result value)                      }
+{     - LOC_REGISTER                                 }
+{     - LOC_FPU                                      }
+{   LEFT NODE (value to negate)                      }
+{     - LOC_CREGISTER                                }
+{     - LOC_REFERENCE / LOC_MEM                      }
+{     - LOC_REGISTER                                 }
+{     - LOC_FPU                                      }
+{----------------------------------------------------}
+
+
+  function getreal: real;
+   begin
+     getreal := 1.0;
+   end;
+
+var
+ longval :  longint;
+ realval : real;
+ byteval : longint;
+{$IFDEF FPC}
+ int64val : int64;
+{$ENDIF}
+Begin
+   WriteLn('------------------------------ LONGINT --------------------------------');
+   { CURRENT NODE: REGISTER }
+   { LEFT NODE : REFERENCE  }
+   longval := 1;
+   longval := - longval;
+   Write('Value should be -1...');
+   if longval = -1 then
+      WriteLn('Success.')
+   else
+      WriteLn('Failure.');
+
+   { CURRENT NODE : REGISTER }
+   { LEFT NODE: REGISTER     }
+   byteval := 2;
+   longval := - byteval;
+   Write('Value should be -2...');
+   if longval = -2 then
+      WriteLn('Success.')
+   else
+      WriteLn('Failure.');
+
+   { CURRENT NODE: LOC_FPU }
+   { LEFT NODE : LOC_REFERENCE }
+   realval := -1.0;
+   realval := - realval;
+   Write('Value should 1.0...');
+   if realval - 1.0 = 0.0 then
+      WriteLn('Success.')
+   else
+      WriteLn('Failure');
+
+   { LEFT NODE : LOC_FPU }
+   { CURRENT NODE : LOC_FPU }
+   realval := -1.0;
+   realval := -(getreal*(realval));
+   Write('Value should 1.0...');
+   if realval - 1.0 = 0.0 then
+      WriteLn('Success.')
+   else
+      WriteLn('Failure');
+
+{$IFDEF FPC}
+   WriteLn('------------------------------  INT64  --------------------------------');
+   { CURRENT NODE: REGISTER }
+   { LEFT NODE : REFERENCE  }
+   int64val := 1;
+   int64val := - int64val;
+   Write('Value should be -1...');
+   if int64val = -1 then
+      WriteLn('Success.')
+   else
+      WriteLn('Failure.');
+
+   { CURRENT NODE : REGISTER }
+   { LEFT NODE: REGISTER     }
+   byteval := 2;
+   int64val := - byteval;
+   Write('Value should be -2...');
+   if int64val = -2 then
+      WriteLn('Success.')
+   else
+      WriteLn('Failure.');
+{$ENDIF}
+end.
+
