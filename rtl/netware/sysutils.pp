@@ -39,7 +39,7 @@ TYPE
 {$i sysutilh.inc}
 
 
-  
+
 { additional NetWare file flags}
 CONST
   faSHARE              = $00000080;  { Sharable file                   }
@@ -67,6 +67,9 @@ CONST
 
 
 implementation
+
+  uses
+    sysconst;
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -497,7 +500,10 @@ end.
 {
 
   $Log$
-  Revision 1.12  2003-10-25 23:42:35  hajny
+  Revision 1.13  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.12  2003/10/25 23:42:35  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.11  2003/04/12 13:21:27  armin

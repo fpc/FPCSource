@@ -13,18 +13,6 @@
 
  **********************************************************************}
 
-  { Read message string definitions }
-  {
-   Add a language with IFDEF LANG_NAME
-   just befor the final ELSE. This way English will always be the default.
-  }
-
-  {$IFDEF LANG_GERMAN}
-  {$i strg.inc} // Does not exist yet !!
-  {$ELSE}
-  {$i stre.inc}
-  {$ENDIF}
-
   { Read filename handling functions implementation }
   {$i fina.inc}
 
@@ -173,7 +161,7 @@ Var
   Message : String;
   {$IFDEF VIRTUALPASCAL}
   stdout:text absolute output;
-  {$ENDIF}                           
+  {$ENDIF}
 begin
   Writeln(stdout,'An unhandled exception occurred at 0x',HexStr(Longint(Addr),8),' :');
   if Obj is exception then
@@ -311,7 +299,7 @@ begin
   {$IFDEF VIRTUALPASCAL}
   // vpascal does exceptions more the delphi way...
   // this needs to be written from scratch.
-  {$ELSE} 
+  {$ELSE}
   If RaiseList=Nil then
     Result:=Nil
   else
@@ -325,7 +313,7 @@ begin
   {$IFDEF VIRTUALPASCAL}
   // vpascal does exceptions more the delphi way...
   // this needs to be written from scratch.
-  {$ELSE}                         
+  {$ELSE}
   If RaiseList=Nil then
     Result:=Nil
   else
@@ -379,7 +367,7 @@ begin
 {$ifdef VER1_0}
   Raise EAbort.Create(SAbortError) at Longint(Get_Caller_addr(Get_Frame));
 {$else VER1_0}
-  Raise EAbort.Create(SAbortError) 
+  Raise EAbort.Create(SAbortError)
   {$IFNDEF VIRTUALPASCAL}
     at Pointer(Get_Caller_addr(Get_Frame));
   {$ENDIF}
@@ -394,7 +382,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.17  2003/09/06 20:46:07  marco
@@ -427,5 +418,4 @@ end;
 
   Revision 1.8  2002/01/25 16:23:03  peter
     * merged filesearch() fix
-
 }

@@ -13,7 +13,6 @@
 
  **********************************************************************}
 
-
   { Read date & Time function declarations }
   {$i osutilsh.inc}
 
@@ -142,7 +141,7 @@ type
    EAbort           = Class(Exception);
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
-
+   
    EPropReadOnly = class(Exception);
    EPropWriteOnly = class(Exception);
 
@@ -219,7 +218,10 @@ Type
 
 {
   $Log$
-  Revision 1.2  2003-10-25 23:43:59  hajny
+  Revision 1.3  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.2  2003/10/25 23:43:59  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.1  2003/10/06 21:01:06  peter

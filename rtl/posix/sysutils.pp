@@ -29,12 +29,11 @@ interface
 
 Procedure AddDisk(const path:string);
 
-
-
 implementation
 
-uses dos,posix;
-
+  uses
+    sysconst,dos,posix;
+ 
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -546,7 +545,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.8  2003-10-25 23:43:59  hajny
+    Revision 1.9  2003-11-26 20:00:19  florian
+      * error handling for Variants improved
+
+    Revision 1.8  2003/10/25 23:43:59  hajny
       * THandle in sysutils common using System.THandle
 
     Revision 1.7  2003/10/09 20:13:19  florian

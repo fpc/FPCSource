@@ -30,6 +30,9 @@ uses
 
 implementation
 
+  uses
+    sysconst;
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -752,7 +755,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-11-17 19:55:13  hajny
+  Revision 1.2  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.1  2003/11/17 19:55:13  hajny
     * Wiktor Sywula: LFN detection uncommented in system, new units added
 
 

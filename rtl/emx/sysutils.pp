@@ -31,6 +31,9 @@ uses
 
 implementation
 
+  uses
+    sysconst;
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -881,7 +884,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-10-19 09:35:28  hajny
+  Revision 1.13  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.12  2003/10/19 09:35:28  hajny
     * fixes from OS/2 merged to EMX
 
   Revision 1.11  2003/10/14 21:15:20  hajny

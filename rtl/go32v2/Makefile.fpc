@@ -13,8 +13,8 @@ units=system objpas strings \
       sysutils classes math typinfo \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
-      video mouse keyboard variants vesamode types
-rsts=math varutils typinfo classes variants
+      video mouse keyboard variants vesamode types sysconst
+rsts=math varutils typinfo classes variants sysconst
 
 [require]
 nortl=y
@@ -149,7 +149,7 @@ graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
+                    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

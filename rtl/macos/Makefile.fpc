@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=system 
+units=system
 # exec strings \
 #      dos crt objects printer \
 #      objpas \
@@ -77,36 +77,36 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 #prt0$(OEXT) : prt0$(LOADEREXT)
-#	-$(AS) prt0$(LOADEREXT) -o prt0$(OEXT)
+#  -$(AS) prt0$(LOADEREXT) -o prt0$(OEXT)
 
 #gprt0$(OEXT) : $(GLOADERAS)
-#	-$(AS) $(GLOADERAS) -o gprt0$(OEXT)
+#  -$(AS) $(GLOADERAS) -o gprt0$(OEXT)
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
 system$(PPUEXT) : system.pp $(SYSLINUXDEPS) $(SYSDEPS)
-	$(COMPILER) -Us -Sg system.pp $(REDIR)
+  $(COMPILER) -Us -Sg system.pp $(REDIR)
 
 strings$(PPUEXT) : ../template/strings.pp system$(PPUEXT)
-	$(COMPILER) ../template/strings.pp $(REDIR)
+  $(COMPILER) ../template/strings.pp $(REDIR)
 
 exec$(PPUEXT) : exec.pp exec.inc system$(PPUEXT)
-	$(COMPILER) exec $(REDIR)
+  $(COMPILER) exec $(REDIR)
 
 #
 # Delphi Object Model
 #
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(COMPILER) objpas $(REDIR)
-	$(DEL) objpas.pp
+  $(COPY) $(OBJPASDIR)/objpas.pp .
+  $(COMPILER) objpas $(REDIR)
+  $(DEL) objpas.pp
 
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(COMPILER) sysutils $(REDIR)
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sysconst$(PPUEXT)
+  $(COPY) $(OBJPASDIR)/sysutils.pp .
+  $(COMPILER) sysutils $(REDIR)
 #$(DEL) sysutils.pp
 
 #
@@ -125,7 +125,7 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
 
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
         $(COMPILER) printer $(REDIR)
-	
+
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
         $(COMPILER) $(INC)/objects.pp $(REDIR)
 
@@ -135,6 +135,6 @@ objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
-	
+
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp $(REDIR)

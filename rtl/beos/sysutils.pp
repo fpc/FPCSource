@@ -31,6 +31,9 @@ uses
 
 implementation
 
+  uses
+    sysconst;
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -265,8 +268,8 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.6  2003-11-25 16:29:16  florian
-  no message
+  Revision 1.7  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
 
   Revision 1.5  2003/03/29 15:16:26  hajny
     * dummy DirectoryExists added

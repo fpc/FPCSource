@@ -30,6 +30,9 @@ uses
 
 implementation
 
+  uses
+    sysconst;
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -768,7 +771,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.18  2003-11-05 11:42:27  florian
+  Revision 1.19  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.18  2003/11/05 11:42:27  florian
     * applied patch from Joe da Silva to fix OpenFile on older DOS versions
 
   Revision 1.17  2003/10/25 23:42:35  hajny

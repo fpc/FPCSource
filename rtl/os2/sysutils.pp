@@ -31,6 +31,9 @@ uses
 
 implementation
 
+  uses
+    sysconst;
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -736,7 +739,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2003-11-23 15:50:07  yuri
+  Revision 1.39  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.38  2003/11/23 15:50:07  yuri
   * Now native
 
   Revision 1.37  2003/11/05 09:14:00  yuri

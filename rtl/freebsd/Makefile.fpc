@@ -16,8 +16,8 @@ units=$(SYSTEMUNIT) objpas strings syscall baseunix unixutil \
       sysutils typinfo systhrds classes math varutils \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types sysctl dateutils
-rsts=math varutils typinfo classes variants dateutils
+      video mouse keyboard console serial variants types sysctl dateutils sysconst
+rsts=math varutils typinfo classes variants dateutils sysconst
 
 [require]
 nortl=y
@@ -31,7 +31,7 @@ target=freebsd
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) 
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 targetdir=.
 
 [lib]
@@ -68,7 +68,7 @@ endif
 # that generates release PPU files
 # which will not be recompiled
 ifdef RELEASE
-override FPCOPT+=-Ur 
+override FPCOPT+=-Ur
 endif
 
 # Paths
@@ -127,7 +127,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 
 
 dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+  $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
@@ -139,10 +139,10 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 baseunix$(PPUEXT) : errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
-	signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
-	$(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
-	$(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
-	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+  signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
+  $(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
+  $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
+  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
@@ -173,7 +173,7 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -231,4 +231,3 @@ terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
-

@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) systhrds objpas strings \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer dynlibs \
       video mouse keyboard types comobj dateutils rtlconst sysconst
-rsts=math varutils typinfo variants classes dateutils
+rsts=math varutils typinfo variants classes dateutils sysconst
 
 [require]
 nortl=y
@@ -173,7 +173,7 @@ graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEX
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+                    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -197,13 +197,13 @@ comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PP
         $(COMPILER) -I$(OBJPASDIR) comobj.pp
 
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
+  $(COMPILER) $(OBJPASDIR)/rtlconst.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp
-	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+  $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
-	$(COMPILER) $(OBJPASDIR)/dateutils.pp
+  $(COMPILER) $(OBJPASDIR)/dateutils.pp
 
 #
 # Other system-independent RTL Units

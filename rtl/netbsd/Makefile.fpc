@@ -16,9 +16,9 @@ units=$(SYSTEMUNIT) objpas strings baseunix \
       sysutils classes typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard  serial variants types systhrds sysctl
+      video mouse keyboard  serial variants types systhrds sysctl sysconst
 units_netbsd_i386=mmx cpu
-rsts=math varutils typinfo variants classes
+rsts=math varutils typinfo variants classes sysconst
 
 [require]
 nortl=y
@@ -32,7 +32,7 @@ target=netbsd
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) 
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 targetdir=.
 
 [lib]
@@ -132,10 +132,10 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 baseunix$(PPUEXT) : errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
-	signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
-	$(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
-	$(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
-	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+  signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
+  $(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
+  $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
+  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
@@ -166,7 +166,7 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT)
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -224,4 +224,3 @@ terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
-

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) systhrds objpas strings \
       cpu mmx getopts heaptrc lineinfo \
       sockets aio varutils \
       video mouse keyboard types \
-      nwsnut nwserv nwnit nwprot
+      nwsnut nwserv nwnit nwprot sysconst
 rsts=math typinfo varutils classes
 
 [require]
@@ -142,7 +142,7 @@ objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) nwsys.inc
+                    objpas$(PPUEXT) dos$(PPUEXT) nwsys.inc sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -154,7 +154,7 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
-        
+
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
@@ -163,7 +163,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
+  $(COMPILER) $(OBJPASDIR)/types.pp
 
 #
 # Other system-independent RTL Units

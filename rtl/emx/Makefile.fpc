@@ -13,8 +13,8 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils classes typinfo math varutils variants \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
-      video mouse keyboard variants types
-rsts=math varutils typinfo variants classes dateutils
+      video mouse keyboard variants types sysconst
+rsts=math varutils typinfo variants classes dateutils sysconst
 
 [require]
 nortl=y
@@ -155,12 +155,12 @@ printer$(PPUEXT) : $(OS2INC)/printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEX
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) doscalls$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+                    objpas$(PPUEXT) dos$(PPUEXT) doscalls$(PPUEXT) sysconst$(PPUEXT)
+  $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : ../os2/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/classes ../os2/classes.pp
+  $(COMPILER) -Fi$(OBJPASDIR)/classes ../os2/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)

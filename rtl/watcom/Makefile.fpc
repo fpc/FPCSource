@@ -17,7 +17,7 @@ units=system objpas strings watcom dos crt objects \
 # printer graph classes \
 # msmouse video mouse keyboard vesamode
 
-rsts=math varutils typinfo classes variants
+rsts=math varutils typinfo classes variants sysconst
 
 [require]
 nortl=y
@@ -152,7 +152,7 @@ graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) watcom$(PPUEXT)
+                    objpas$(PPUEXT) dos$(PPUEXT) watcom$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \

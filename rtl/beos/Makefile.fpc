@@ -11,8 +11,8 @@ units=system posix objpas strings \
       beos \
       dos \
       sysutils classes typinfo math varutils \
-      cpu mmx getopts heaptrc lineinfo variants types
-rsts=math varutils typinfo
+      cpu mmx getopts heaptrc lineinfo variants types sysconst
+rsts=math varutils typinfo sysconst
 
 [require]
 nortl=y
@@ -116,7 +116,7 @@ objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) beos$(PPUEXT)
+                    objpas$(PPUEXT) beos$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -137,7 +137,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
+  $(COMPILER) $(OBJPASDIR)/types.pp
 
 #
 # Other system-independent RTL Units

@@ -52,9 +52,12 @@ Var
   Win32MinorVersion,
   Win32BuildNumber   : dword;
   Win32CSDVersion    : ShortString;   // CSD record is 128 bytes only?
-  
+
 
 implementation
+
+  uses
+    sysconst;
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -680,7 +683,7 @@ Procedure LoadVersionInfo;
 // and getfreespaceex
 Var
    versioninfo : TOSVERSIONINFO;
-   i 	       : Integer;
+   i          : Integer;
 
 begin
    kernel32dll:=0;
@@ -699,7 +702,7 @@ begin
     begin
        kernel32dll:=LoadLibrary('kernel32');
        if kernel32dll<>0 then
-	{$IFDEF VIRTUALPASCAL}
+  {$IFDEF VIRTUALPASCAL}
          @GetDiskFreeSpaceEx:=GetProcAddress(0,'GetDiskFreeSpaceExA');
         {$ELSE}
          GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
@@ -730,7 +733,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.26  2003-11-06 22:25:10  marco
+  Revision 1.27  2003-11-26 20:00:19  florian
+    * error handling for Variants improved
+
+  Revision 1.26  2003/11/06 22:25:10  marco
    * added some more of win32* delphi pseudo constants
 
   Revision 1.25  2003/10/25 23:44:33  hajny
