@@ -931,12 +931,12 @@ Procedure TPrettyPrinter.PPSymbol;
     THEN newlinepos := currlinepos + currsym^.spacesbefore
     ELSE newlinepos := currmargin;
 
-    IF newlinepos + currsym^.length > MAXLINESIZE THEN BEGIN
+    IF newlinepos + currsym^.length > LINESIZE THEN BEGIN
       WriteCRs(1);
-      IF currmargin + currsym^.length <= MAXLINESIZE
+      IF currmargin + currsym^.length <= LINESIZE
       THEN newlinepos := currmargin
-      ELSE IF currsym^.length < MAXLINESIZE
-      THEN newlinepos := MAXLINESIZE - currsym^.length
+      ELSE IF currsym^.length < LINESIZE
+      THEN newlinepos := LINESIZE - currsym^.length
       ELSE newlinepos := 0;
     END;
     MoveLinePos(newlinepos);
@@ -1219,7 +1219,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:31  peter
+  Revision 1.6  2003-03-27 14:23:00  michael
+  + Fixed use of linesize property, reported by Wolfgang Waffenschmidt
+
+  Revision 1.5  2002/09/07 15:40:31  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/07/14 13:39:45  carl
