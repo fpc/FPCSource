@@ -391,7 +391,7 @@ implementation
              (
               (m_tp_procvar in aktmodeswitches) and
               (def^.deftype=procvardef) and (p^.left^.treetype=calln) and
-              (proc_to_procvar_equal(p^.left^.procdefinition,pprocvardef(def)))
+              (proc_to_procvar_equal(pprocdef(p^.left^.procdefinition),pprocvardef(def)))
              )
              ;
         end;
@@ -1172,7 +1172,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-06-01 14:46:00  peter
+  Revision 1.51  1999-06-01 19:27:57  peter
+    * better checks for procvar and methodpointer
+
+  Revision 1.50  1999/06/01 14:46:00  peter
     * @procvar is now always needed for FPC
 
   Revision 1.49  1999/05/31 20:34:51  peter

@@ -71,10 +71,12 @@
        pomsgint         = $10000000; { method for int message handling }
        posavestdregs    = $20000000; { save std regs cdecl and stdcall need that ! }
        pocontainsself   = $40000000; { self is passed explicit to the compiler }
-       { relevant options for assigning a proc or a procvar to a procvar }
        posafecall       = $80000000; { safe call calling conventions }
+
+       { relevant options for assigning a proc or a procvar to a procvar }
        po_compatibility_options = $7FFFFFFF-
-         (pomethodpointer+povirtualmethod+pooverridingmethod);
+         (poassembler+pomsgstr+pomsgint+
+          povirtualmethod+pooverridingmethod+pomethodpointer);
 
        { options for objects and classes }
        oo_is_abstract  = $1;         { true, if the object/class has an abstract }
@@ -109,7 +111,10 @@
 
 {
   $Log$
-  Revision 1.9  1999-05-24 08:55:29  florian
+  Revision 1.10  1999-06-01 19:27:56  peter
+    * better checks for procvar and methodpointer
+
+  Revision 1.9  1999/05/24 08:55:29  florian
     * non working safecall directiv implemented, I don't know if we
       need it
 

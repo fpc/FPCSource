@@ -545,12 +545,12 @@ unit pexpr;
               if assigned(t^.methodpointer) and
                  (t^.methodpointer^.resulttype^.deftype=objectdef) and
                  (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
-                 (proc_to_procvar_equal(procvar,pprocsym(t^.symtableentry)^.definition)) then
+                 (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,procvar)) then
                 hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
               else
                 Message(type_e_mismatch);
            end
-         else if (proc_to_procvar_equal(getprocvardef,pprocsym(t^.symtableentry)^.definition)) then
+         else if (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,getprocvardef)) then
            begin
               hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
            end;
@@ -732,7 +732,7 @@ unit pexpr;
                       p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
                       do_proc_call(getaddr or
                         (getprocvar and
-                        proc_to_procvar_equal(getprocvardef,pprocsym(sym)^.definition))
+                        proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
                         ,again,p1,pd);
                       { now we know the real method e.g. we can check for }
                       { a class method                              }
@@ -1083,7 +1083,7 @@ unit pexpr;
                               p1^.unit_specific:=unit_specific;
                               do_proc_call(getaddr or
                                 (getprocvar and
-                                proc_to_procvar_equal(getprocvardef,pprocsym(srsym)^.definition)),
+                                proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
                                 again,p1,pd);
                               if possible_error and
                                  ((p1^.procdefinition^.options and poclassmethod)=0) then
@@ -1410,7 +1410,7 @@ unit pexpr;
                   begin
                     if (pd^.deftype=procvardef) then
                      begin
-                       if getprocvar and proc_to_procvar_equal(pprocvardef(pd),getprocvardef) then
+                       if getprocvar and is_equal(pd,getprocvardef) then
                          again:=false
                        else
                          if (token=LKLAMMER) or
@@ -1985,7 +1985,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.109  1999-05-27 19:44:46  peter
+  Revision 1.110  1999-06-01 19:27:55  peter
+    * better checks for procvar and methodpointer
+
+  Revision 1.109  1999/05/27 19:44:46  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

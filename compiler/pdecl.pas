@@ -1040,11 +1040,14 @@ unit pdecl;
                        assigned(propertyparas)
                        ) then
                        Message(parser_e_property_cant_have_a_default_value);
+                     { Get the result of the default, the firstpass is
+                       needed to support values like -1 }
                      pt:=comp_expr(true);
+                     do_firstpass(pt);
                      if p^.proptype^.deftype=setdef then
                        begin
-                          do_firstpass(pt);
-                          arrayconstructor_to_set(pt);
+                         arrayconstructor_to_set(pt);
+                         do_firstpass(pt);
                        end;
                      pt:=gentypeconvnode(pt,p^.proptype);
                      do_firstpass(pt);
@@ -2216,7 +2219,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.124  1999-06-01 14:45:51  peter
+  Revision 1.125  1999-06-01 19:27:53  peter
+    * better checks for procvar and methodpointer
+
+  Revision 1.124  1999/06/01 14:45:51  peter
     * @procvar is now always needed for FPC
 
   Revision 1.123  1999/05/27 19:44:45  peter

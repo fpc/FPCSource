@@ -135,71 +135,77 @@ implementation
           stringdef :
              begin
                case def_from^.deftype of
-                stringdef : begin
-                              doconv:=tc_string_2_string;
-                              b:=1;
-                            end;
-                   orddef : begin
-                            { char to string}
-                              if is_char(def_from) then
-                               begin
-                                 doconv:=tc_char_2_string;
-                                 b:=1;
-                               end;
-                            end;
-                 arraydef : begin
-                            { array of char to string, the length check is done by the firstpass of this node }
-                              if is_chararray(def_from) then
-                               begin
-                                 doconv:=tc_chararray_2_string;
-                                 if (not(cs_ansistrings in aktlocalswitches) and
-                                     is_shortstring(def_to)) or
-                                    ((cs_ansistrings in aktlocalswitches) and
-                                     is_ansistring(def_to)) then
-                                  b:=1
-                                 else
-                                  b:=2;
-                               end;
-                            end;
-               pointerdef : begin
-                            { pchar can be assigned to short/ansistrings }
-                              if is_pchar(def_from) and not(m_tp in aktmodeswitches) then
-                               begin
-                                 doconv:=tc_pchar_2_string;
-                                 b:=1;
-                               end;
-                            end;
+                 stringdef :
+                   begin
+                     doconv:=tc_string_2_string;
+                     b:=1;
+                   end;
+                 orddef :
+                   begin
+                   { char to string}
+                     if is_char(def_from) then
+                      begin
+                        doconv:=tc_char_2_string;
+                        b:=1;
+                      end;
+                   end;
+                 arraydef :
+                   begin
+                   { array of char to string, the length check is done by the firstpass of this node }
+                     if is_chararray(def_from) then
+                      begin
+                        doconv:=tc_chararray_2_string;
+                        if (not(cs_ansistrings in aktlocalswitches) and
+                            is_shortstring(def_to)) or
+                           ((cs_ansistrings in aktlocalswitches) and
+                            is_ansistring(def_to)) then
+                         b:=1
+                        else
+                         b:=2;
+                      end;
+                   end;
+                 pointerdef :
+                   begin
+                   { pchar can be assigned to short/ansistrings }
+                     if is_pchar(def_from) and not(m_tp in aktmodeswitches) then
+                      begin
+                        doconv:=tc_pchar_2_string;
+                        b:=1;
+                      end;
+                   end;
                end;
              end;
 
            floatdef :
              begin
                case def_from^.deftype of
-                orddef : begin { ordinal to real }
-                           if is_integer(def_from) then
-                             begin
-                                if pfloatdef(def_to)^.typ=f32bit then
-                                  doconv:=tc_int_2_fix
-                                else
-                                  doconv:=tc_int_2_real;
-                                b:=1;
-                             end;
-                         end;
-              floatdef : begin { 2 float types ? }
-                           if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
-                             doconv:=tc_equal
-                           else
-                             begin
-                                if pfloatdef(def_from)^.typ=f32bit then
-                                  doconv:=tc_fix_2_real
-                                else
-                                  if pfloatdef(def_to)^.typ=f32bit then
-                                    doconv:=tc_real_2_fix
-                                  else
-                                    doconv:=tc_real_2_real;
-                             end;
-                           b:=1;
-                         end;
+                 orddef :
+                   begin { ordinal to real }
+                     if is_integer(def_from) then
+                       begin
+                          if pfloatdef(def_to)^.typ=f32bit then
+                            doconv:=tc_int_2_fix
+                          else
+                            doconv:=tc_int_2_real;
+                          b:=1;
+                       end;
+                   end;
+                 floatdef :
+                   begin { 2 float types ? }
+                     if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
+                       doconv:=tc_equal
+                     else
+                       begin
+                          if pfloatdef(def_from)^.typ=f32bit then
+                            doconv:=tc_fix_2_real
+                          else
+                            if pfloatdef(def_to)^.typ=f32bit then
+                              doconv:=tc_real_2_fix
+                            else
+                              doconv:=tc_real_2_real;
+                       end;
+                     b:=1;
+                   end;
                end;
              end;
 
@@ -232,23 +238,25 @@ implementation
                else
                 begin
                   case def_from^.deftype of
-                   pointerdef : begin
-                                  if is_zero_based_array(def_to) and
-                                     is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
-                                   begin
-                                     doconv:=tc_pointer_2_array;
-                                     b:=1;
-                                   end;
-                                end;
-                    stringdef : begin
-                                  { string to array of char}
-                                  if (not(is_special_array(def_to)) or is_open_array(def_to)) and
-                                    is_equal(parraydef(def_to)^.definition,cchardef) then
-                                   begin
-                                     doconv:=tc_string_2_chararray;
-                                     b:=1;
-                                   end;
-                                end;
+                    pointerdef :
+                      begin
+                        if is_zero_based_array(def_to) and
+                           is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
+                         begin
+                           doconv:=tc_pointer_2_array;
+                           b:=1;
+                         end;
+                      end;
+                    stringdef :
+                      begin
+                        { string to array of char}
+                        if (not(is_special_array(def_to)) or is_open_array(def_to)) and
+                          is_equal(parraydef(def_to)^.definition,cchardef) then
+                         begin
+                           doconv:=tc_string_2_chararray;
+                           b:=1;
+                         end;
+                      end;
                   end;
                 end;
              end;
@@ -256,77 +264,83 @@ implementation
            pointerdef :
              begin
                case def_from^.deftype of
-               stringdef : begin
-                             { string constant to zero terminated string constant }
-                             if (fromtreetype=stringconstn) and
-                                is_pchar(def_to) then
-                              begin
-                                doconv:=tc_cstring_2_pchar;
-                                b:=1;
-                              end;
-                           end;
-                  orddef : begin
-                             { char constant to zero terminated string constant }
-                             if (fromtreetype=ordconstn) and is_equal(def_from,cchardef) and
-                                is_pchar(def_to) then
-                              begin
-                                doconv:=tc_cchar_2_pchar;
-                                b:=1;
-                              end;
-                           end;
-                arraydef : begin
-                             { chararray to pointer }
-                             if is_zero_based_array(def_from) and
-                                is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
-                              begin
-                                doconv:=tc_array_2_pointer;
-                                b:=1;
-                              end;
-                           end;
-              pointerdef : begin
-                             { child class pointer can be assigned to anchestor pointers }
-                             if (
-                                 (ppointerdef(def_from)^.definition^.deftype=objectdef) and
-                                 (ppointerdef(def_to)^.definition^.deftype=objectdef) and
-                                 pobjectdef(ppointerdef(def_from)^.definition)^.isrelated(
-                                   pobjectdef(ppointerdef(def_to)^.definition))
-                                ) or
-                                { all pointers can be assigned to void-pointer }
-                                is_equal(ppointerdef(def_to)^.definition,voiddef) or
-                                { in my opnion, is this not clean pascal }
-                                { well, but it's handy to use, it isn't ? (FK) }
-                                is_equal(ppointerdef(def_from)^.definition,voiddef) then
-                               begin
-                                 doconv:=tc_equal;
-                                 b:=1;
-                               end;
-                           end;
-              procvardef : begin
-                             { procedure variable can be assigned to an void pointer }
-                             { Not anymore. Use the @ operator now.}
-                             if not(m_tp_procvar in aktmodeswitches) and
-                                (ppointerdef(def_to)^.definition^.deftype=orddef) and
-                                (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
-                              begin
-                                doconv:=tc_equal;
-                                b:=1;
-                              end;
-                           end;
-             classrefdef,
-               objectdef : begin
-                             { class types and class reference type
-                               can be assigned to void pointers      }
-                             if (
-                                 ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.isclass) or
-                                 (def_from^.deftype=classrefdef)
-                                ) and
-                                (ppointerdef(def_to)^.definition^.deftype=orddef) and
-                                (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
-                               begin
-                                 doconv:=tc_equal;
-                                 b:=1;
-                               end;
-                           end;
+                 stringdef :
+                   begin
+                     { string constant to zero terminated string constant }
+                     if (fromtreetype=stringconstn) and
+                        is_pchar(def_to) then
+                      begin
+                        doconv:=tc_cstring_2_pchar;
+                        b:=1;
+                      end;
+                   end;
+                 orddef :
+                   begin
+                     { char constant to zero terminated string constant }
+                     if (fromtreetype=ordconstn) and is_equal(def_from,cchardef) and
+                        is_pchar(def_to) then
+                      begin
+                        doconv:=tc_cchar_2_pchar;
+                        b:=1;
+                      end;
+                   end;
+                 arraydef :
+                   begin
+                     { chararray to pointer }
+                     if is_zero_based_array(def_from) and
+                        is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
+                      begin
+                        doconv:=tc_array_2_pointer;
+                        b:=1;
+                      end;
+                   end;
+                 pointerdef :
+                   begin
+                     { child class pointer can be assigned to anchestor pointers }
+                     if (
+                         (ppointerdef(def_from)^.definition^.deftype=objectdef) and
+                         (ppointerdef(def_to)^.definition^.deftype=objectdef) and
+                         pobjectdef(ppointerdef(def_from)^.definition)^.isrelated(
+                           pobjectdef(ppointerdef(def_to)^.definition))
+                        ) or
+                        { all pointers can be assigned to void-pointer }
+                        is_equal(ppointerdef(def_to)^.definition,voiddef) or
+                        { in my opnion, is this not clean pascal }
+                        { well, but it's handy to use, it isn't ? (FK) }
+                        is_equal(ppointerdef(def_from)^.definition,voiddef) then
+                       begin
+                         doconv:=tc_equal;
+                         b:=1;
+                       end;
+                   end;
+                 procvardef :
+                   begin
+                     { procedure variable can be assigned to an void pointer }
+                     { Not anymore. Use the @ operator now.}
+                     if not(m_tp_procvar in aktmodeswitches) and
+                        (ppointerdef(def_to)^.definition^.deftype=orddef) and
+                        (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+                      begin
+                        doconv:=tc_equal;
+                        b:=1;
+                      end;
+                   end;
+                 classrefdef,
+                 objectdef :
+                   begin
+                     { class types and class reference type
+                       can be assigned to void pointers      }
+                     if (
+                         ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.isclass) or
+                         (def_from^.deftype=classrefdef)
+                        ) and
+                        (ppointerdef(def_to)^.definition^.deftype=orddef) and
+                        (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+                       begin
+                         doconv:=tc_equal;
+                         b:=1;
+                       end;
+                   end;
                end;
              end;
 
@@ -345,11 +359,9 @@ implementation
                { proc -> procvar }
                if (def_from^.deftype=procdef) then
                 begin
-                  def_from^.deftype:=procvardef;
                   doconv:=tc_proc_2_procvar;
-                  if is_equal(def_from,def_to) then
+                  if proc_to_procvar_equal(pprocdef(def_from),pprocvardef(def_to)) then
                    b:=1;
-                  def_from^.deftype:=procdef;
                 end
                else
                 { for example delphi allows the assignement from pointers }
@@ -649,7 +661,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-05-20 14:58:26  peter
+  Revision 1.27  1999-06-01 19:27:47  peter
+    * better checks for procvar and methodpointer
+
+  Revision 1.26  1999/05/20 14:58:26  peter
     * fixed arrayconstruct->set conversion which didn't work for enum sets
 
   Revision 1.25  1999/05/19 20:40:12  florian

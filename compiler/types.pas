@@ -143,7 +143,7 @@ interface
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1,def2 : pabstractprocdef) : boolean;
+    function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
 
     { if l isn't in the range of def a range check error is generated and
       the value is placed within the range }
@@ -203,8 +203,20 @@ implementation
 
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1,def2 : pabstractprocdef) : boolean;
+    function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
+      var
+        ismethod : boolean;
       begin
+         proc_to_procvar_equal:=false;
+         { check for method pointer }
+         ismethod:=(def1^.owner^.symtabletype=objectsymtable) and
+                   (pobjectdef(def1^.owner^.defowner)^.isclass);
+         if ismethod<>((def2^.options and pomethodpointer)<>0) then
+          begin
+            Message(type_e_no_method_and_procedure_not_compatible);
+            exit;
+          end;
+         { check the other things }
          if is_equal(def1^.retdef,def2^.retdef) and
             equal_paras(def1^.para1,def2^.para1,false) and
             ((def1^.options and po_compatibility_options)=
@@ -668,9 +680,6 @@ implementation
 
 
     function is_equal(def1,def2 : pdef) : boolean;
-      const
-         procvarmask = not(poassembler or pomethodpointer or povirtualmethod or
-                           pooverridingmethod or pomsgint or pomsgstr);
       var
          b : boolean;
          hd : pdef;
@@ -771,7 +780,8 @@ implementation
                 { poassembler isn't important for compatibility }
                 { if a method is assigned to a methodpointer    }
                 { is checked before                             }
-                b:=((pprocvardef(def1)^.options and procvarmask)=(pprocvardef(def2)^.options and procvarmask)) and
+                b:=((pprocvardef(def1)^.options and po_compatibility_options)=
+                    (pprocvardef(def2)^.options and po_compatibility_options)) and
                    is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
                 { now evalute the parameters }
                 if b then
@@ -876,7 +886,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-05-31 22:54:19  peter
+  Revision 1.68  1999-06-01 19:27:58  peter
+    * better checks for procvar and methodpointer
+
+  Revision 1.67  1999/05/31 22:54:19  peter
     * when range check error is found then fix the value to be within the
       range
 
