@@ -731,7 +731,7 @@ implementation
         objectlibrary.getdatalabel(tmplabel);
         consts.concat(tai_align.create(const_align(16)));
         consts.concat(Tai_label.Create(tmplabel));
-        consts.concat(Tai_const.Create_32bit(value.D1));
+        consts.concat(Tai_const.Create_32bit(longint(value.D1)));
         consts.concat(Tai_const.Create_16bit(value.D2));
         consts.concat(Tai_const.Create_16bit(value.D3));
         for i:=Low(value.D4) to High(value.D4) do
@@ -751,7 +751,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2004-10-31 21:45:03  peter
+  Revision 1.48  2005-01-31 19:41:01  peter
+    * another guid range check error
+
+  Revision 1.47  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
