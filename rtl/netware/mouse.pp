@@ -23,8 +23,8 @@ interface
 {$DEFINE NOGPM}
 {$ENDIF}
 
-const
-  MouseEventBufSize = 16;
+{const
+  MouseEventBufSize = 16; }
 
 {$i mouseh.inc}
 
@@ -102,10 +102,23 @@ begin
   exit(false);
 end;
 
+Procedure SetMouseDriver(Const Driver : TMouseDriver);
+{ Sets the mouse driver. }
+begin
+end;
+
+Procedure GetMouseDriver(Var Driver : TMouseDriver);
+{ Returns the currently active mouse driver }
+begin
+end;
+
 end.
 {
   $Log$
-  Revision 1.1  2001-04-16 18:39:50  florian
+  Revision 1.2  2002-03-08 19:04:36  armin
+  make it compilable with fpc 1.1
+
+  Revision 1.1  2001/04/16 18:39:50  florian
     * updates from Armin commited
 
   Revision 1.2  2001/01/21 20:21:40  marco
