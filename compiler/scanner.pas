@@ -1108,7 +1108,10 @@ implementation
               if pattern=tokeninfo^[ttoken(high)].str then
                begin
                  if tokeninfo^[ttoken(high)].keyword in aktmodeswitches then
-                  token:=ttoken(high);
+                  if tokeninfo^[ttoken(high)].op=NOTOKEN then
+                    token:=ttoken(high)
+                  else
+                    token:=tokeninfo^[ttoken(high)].op;
                  idtoken:=ttoken(high);
                end;
             end;
@@ -1511,7 +1514,7 @@ implementation
                    '>' :
                      begin
                        readchar;
-                       token:=_SHR;
+                       token:=_OP_SHR;
                        goto exit_label;
                      end;
                    '<' :
@@ -1544,7 +1547,7 @@ implementation
                    '<' :
                      begin
                        readchar;
-                       token:=_SHL;
+                       token:=_OP_SHL;
                        goto exit_label;
                      end;
                  end;
@@ -1695,7 +1698,14 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.100  1999-11-06 14:34:26  peter
+  Revision 1.101  1999-11-15 17:52:59  pierre
+    + one field added for ttoken record for operator
+      linking the id to the corresponding operator token that
+      can now now all be overloaded
+    * overloaded operators are resetted to nil in InitSymtable
+      (bug when trying to compile a uint that overloads operators twice)
+
+  Revision 1.100  1999/11/06 14:34:26  peter
     * truncated log to 20 revs
 
   Revision 1.99  1999/11/03 23:44:28  peter

@@ -362,8 +362,11 @@ unit symtable;
        overloaded_names : array [first_overloaded..last_overloaded] of string[16] =
          ('plus','minus','star','slash','equal',
           'greater','lower','greater_or_equal',
-          'lower_or_equal','as','is','in','sym_diff',
-          'starstar','assign');
+          'lower_or_equal',
+          'sym_diff','starstar',
+          'as','is','in','or',
+          'and','div','mod','shl','shr','xor',
+          'assign');
 
 {$ifdef UNITALIASES}
     type
@@ -2460,6 +2463,8 @@ implementation
      { unit aliases }
         unitaliases:=new(pdictionary,init);
 {$endif}
+       for token:=first_overloaded to last_overloaded do
+         overloaded_operators[token]:=nil;
      end;
 
 
@@ -2482,7 +2487,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-11-09 23:35:50  pierre
+  Revision 1.61  1999-11-15 17:52:59  pierre
+    + one field added for ttoken record for operator
+      linking the id to the corresponding operator token that
+      can now now all be overloaded
+    * overloaded operators are resetted to nil in InitSymtable
+      (bug when trying to compile a uint that overloads operators twice)
+
+  Revision 1.60  1999/11/09 23:35:50  pierre
    + better reference pos for forward defs
 
   Revision 1.59  1999/11/06 16:21:57  jonas

@@ -1916,23 +1916,25 @@ _LECKKLAMMER : begin
         (tok:_LTE     ;nod:lten),
         (tok:_SYMDIF  ;nod:symdifn),
         (tok:_STARSTAR;nod:starstarn),
+        (tok:_OP_AS     ;nod:asn),
+        (tok:_OP_IN     ;nod:inn),
+        (tok:_OP_IS     ;nod:isn),
+        (tok:_OP_OR     ;nod:orn),
+        (tok:_OP_AND    ;nod:andn),
+        (tok:_OP_DIV    ;nod:divn),
+        (tok:_OP_MOD    ;nod:modn),
+        (tok:_OP_SHL    ;nod:shln),
+        (tok:_OP_SHR    ;nod:shrn),
+        (tok:_OP_XOR    ;nod:xorn),
         (tok:_CARET   ;nod:caretn),
-        (tok:_UNEQUAL ;nod:unequaln),
-        (tok:_AS     ;nod:asn),
-        (tok:_IN     ;nod:inn),
-        (tok:_IS     ;nod:isn),
-        (tok:_OR     ;nod:orn),
-        (tok:_AND    ;nod:andn),
-        (tok:_DIV    ;nod:divn),
-        (tok:_MOD    ;nod:modn),
-        (tok:_SHL    ;nod:shln),
-        (tok:_SHR    ;nod:shrn),
-        (tok:_XOR    ;nod:xorn)
+        (tok:_UNEQUAL ;nod:unequaln)
       );
+      { Warning these stay be ordered !! }
       operator_levels:array[Toperator_precedence] of set of Ttoken=
-         ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_IN,_IS],
-          [_PLUS,_MINUS,_OR,_XOR],
-          [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
+         ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN,_OP_IS],
+          [_PLUS,_MINUS,_OP_OR,_OP_XOR],
+          [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
+           _OP_AS,_OP_AND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR]);
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;
     {Reads a subexpression while the operators are of the current precedence
@@ -2114,7 +2116,14 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.158  1999-11-14 15:57:35  peter
+  Revision 1.159  1999-11-15 17:52:59  pierre
+    + one field added for ttoken record for operator
+      linking the id to the corresponding operator token that
+      can now now all be overloaded
+    * overloaded operators are resetted to nil in InitSymtable
+      (bug when trying to compile a uint that overloads operators twice)
+
+  Revision 1.158  1999/11/14 15:57:35  peter
     * fixed crash with an errordef
 
   Revision 1.157  1999/11/08 14:02:16  florian

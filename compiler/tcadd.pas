@@ -73,6 +73,7 @@ implementation
          resdef,
          rd,ld   : pdef;
          tempdef : pdef;
+         optoken : ttoken;
          concatstrings : boolean;
 
          { to evalute const sets }
@@ -142,27 +143,44 @@ implementation
                  { the nil as symtable signs firstcalln that this is
                    an overloaded operator }
                  addn:
-                   t:=gencallnode(overloaded_operators[_plus],nil);
+                   token:=_PLUS;
                  subn:
-                   t:=gencallnode(overloaded_operators[_minus],nil);
+                   token:=_MINUS;
                  muln:
-                   t:=gencallnode(overloaded_operators[_star],nil);
+                   token:=_STAR;
                  starstarn:
-                   t:=gencallnode(overloaded_operators[_starstar],nil);
+                   token:=_STARSTAR;
                  slashn:
-                   t:=gencallnode(overloaded_operators[_slash],nil);
+                   token:=_SLASH;
                  ltn:
-                   t:=gencallnode(overloaded_operators[tokens._lt],nil);
+                   token:=tokens._lt;
                  gtn:
-                   t:=gencallnode(overloaded_operators[_gt],nil);
+                   token:=tokens._gt;
                  lten:
-                   t:=gencallnode(overloaded_operators[_lte],nil);
+                   token:=_lte;
                  gten:
-                   t:=gencallnode(overloaded_operators[_gte],nil);
+                   token:=_gte;
                  equaln,unequaln :
-                   t:=gencallnode(overloaded_operators[_equal],nil);
+                   token:=_EQUAL;
+                 symdifn :
+                   token:=_SYMDIF;
+                 modn :
+                   token:=_OP_MOD;
+                 orn :
+                   token:=_OP_OR;
+                 xorn :
+                   token:=_OP_XOR;
+                 andn :
+                   token:=_OP_AND;
+                 divn :
+                   token:=_OP_DIV;
+                 shln :
+                   token:=_OP_SHL;
+                 shrn :
+                   token:=_OP_SHR;
                  else goto no_overload;
               end;
+              t:=gencallnode(overloaded_operators[token],nil);
               { we have to convert p^.left and p^.right into
                callparanodes }
               if t^.symtableprocentry=nil then
@@ -1136,7 +1154,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-11-06 14:34:29  peter
+  Revision 1.52  1999-11-15 17:53:00  pierre
+    + one field added for ttoken record for operator
+      linking the id to the corresponding operator token that
+      can now now all be overloaded
+    * overloaded operators are resetted to nil in InitSymtable
+      (bug when trying to compile a uint that overloads operators twice)
+
+  Revision 1.51  1999/11/06 14:34:29  peter
     * truncated log to 20 revs
 
   Revision 1.50  1999/09/27 23:45:00  peter
