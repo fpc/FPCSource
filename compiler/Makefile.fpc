@@ -11,7 +11,7 @@ programs=pp
 dirs=utils
 
 [compiler]
-targetdir=$(CPU_UNITDIR)
+targetdir=.
 unittargetdir=$(CPU_UNITDIR)/units/$(FULL_TARGET)
 unitdir=$(COMPILERSOURCEDIR)
 includedir=$(PPC_TARGET)
@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm
+CYCLETARGETS=i386 powerpc sparc arm x86_64
 
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
@@ -70,7 +70,7 @@ PPC_OS=$(OS_TARGET)
 endif
 
 # Where to place the unit files.
-CPU_UNITDIR=.
+CPU_UNITDIR=$(PPC_TARGET)
 
 # RTL
 UTILSDIR=../utils
@@ -157,12 +157,12 @@ endif
 
 # x86_64 specific
 ifeq ($(PPC_TARGET),x86_64)
-override LOCALDEF+=-Fux86 -dNOOPT
+override LOCALDEF+=-Fux86
 endif
 
 # PowerPC specific
 ifeq ($(PPC_TARGET),powerpc)
-override LOCALDEF+=-dNOOPT
+override LOCALDEF+=
 endif
 
 # m68k specific
@@ -172,7 +172,7 @@ endif
 
 # Sparc specific
 ifeq ($(PPC_TARGET),sparc)
-override LOCALDEF+=-dNOOPT
+override LOCALDEF+=
 endif
 
 # m68k specific with low stack
@@ -243,28 +243,13 @@ MSG2INC=./msg2inc$(EXEEXT)
 # CPU targets
 #####################################################################
 
-.PHONY: alpha i386 m68k powerpc sparc arm
+PPC_TARGETS=alpha i386 m68k powerpc sparc arm x86_64
 
-alpha:
-        $(MAKE) PPC_TARGET=alpha CPU_UNITDIR=alpha all
+.PHONY: $(PPC_TARGETS)
 
-i386:
-        $(MAKE) PPC_TARGET=i386 CPU_UNITDIR=i386 all
+$(PPC_TARGETS):
+        $(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ all
 
-m68k:
-        $(MAKE) PPC_TARGET=m68k CPU_UNITDIR=m68k all
-
-powerpc:
-        $(MAKE) PPC_TARGET=powerpc CPU_UNITDIR=powerpc all
-
-sparc:
-        $(MAKE) PPC_TARGET=sparc CPU_UNITDIR=sparc all
-
-arm:
-        $(MAKE) PPC_TARGET=arm CPU_UNITDIR=arm all
-
-x86_64:
-        $(MAKE) PPC_TARGET=x86_64 CPU_UNITDIR=x86_64 all
 
 #####################################################################
 # Default makefile
@@ -308,15 +293,16 @@ execlean :
         -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
 
 $(addsuffix _clean,$(CYCLETARGETS)):
+        -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
         -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
 
 cycleclean: cleanall
         -$(DEL) $(EXENAME)
 
-clean: tempclean execlean cleanall $(addsuffix _clean,$(TARGET_DIRS))
+clean: tempclean execlean cleanall $(addsuffix _clean,$(PPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
 
-distclean: tempclean execlean cleanall $(addsuffix _distclean,$(TARGET_DIRS))
+distclean: tempclean execlean cleanall $(addsuffix _clean,$(CYCLETARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
 
 
 #####################################################################
