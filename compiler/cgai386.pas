@@ -2844,9 +2844,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    new(hr);
                    reset_reference(hr^);
                    hr^.symbol:=newasmsymbol(
-{$ifdef FPC_USE_CPREFIX}
-              target_os.Cprefix+
-{$endif FPC_USE_CPREFIX}
                    'U_SYSWIN32_ISCONSOLE');
                    if apptype=at_cui then
                      exprasmlist^.insert(new(paicpu,op_const_ref(A_MOV,S_B,
@@ -3449,7 +3446,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.63  1999-12-01 22:45:54  peter
+  Revision 1.64  1999-12-20 21:42:35  pierre
+    + dllversion global variable
+    * FPC_USE_CPREFIX code removed, not necessary anymore
+      as we use .edata direct writing by default now.
+
+  Revision 1.63  1999/12/01 22:45:54  peter
     * fixed wrong assembler with in-node
 
   Revision 1.62  1999/11/30 10:40:43  peter

@@ -116,6 +116,7 @@ unit globals;
        { deffile }
        usewindowapi  : boolean;
        description   : string;
+       dllversion    : string;
 
        { current position }
        token,                        { current token being parsed }
@@ -1370,6 +1371,7 @@ implementation
       { Def file }
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
+        dllversion:='';
 
       { Init values }
         initmodeswitches:=fpcmodeswitches;
@@ -1418,7 +1420,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  1999-12-08 10:40:00  pierre
+  Revision 1.40  1999-12-20 21:42:34  pierre
+    + dllversion global variable
+    * FPC_USE_CPREFIX code removed, not necessary anymore
+      as we use .edata direct writing by default now.
+
+  Revision 1.39  1999/12/08 10:40:00  pierre
     + allow use of unit var in exports of DLL for win32
       by using direct export writing by default instead of use of DEFFILE
       that does not allow assembler labels that do not

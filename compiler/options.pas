@@ -486,6 +486,10 @@ begin
                                 description:=Copy(more,j+1,255);
                                 break;
                               end;
+                        'v' : begin
+                                dllversion:=Copy(more,j+1,255);
+                                break;
+                              end;
                         'w' : usewindowapi:=true;
                        else
                          IllegalPara(opt);
@@ -568,9 +572,6 @@ begin
                      begin
                         { Specific info, which can be used in Makefiles }
                         case More[1] of
-{$ifdef FPC_USE_CPREFIX}
-                          'C' : QuickInfo('use C prefix');
-{$endif FPC_USE_CPREFIX}
                           'S' : begin
                                   case More[2] of
                                    'O' : QuickInfo(source_os.shortname);
@@ -1132,10 +1133,6 @@ begin
   def_symbol('INCLUDEOK');
   def_symbol('NEWMM');
   def_symbol('HASWIDECHAR');
-{$ifdef FPC_USE_CPREFIX}
-  { default on next round }
-  def_symbol('FPC_USE_CPREFIX');
-{$endif FPC_USE_CPREFIX}
 {$ifdef cardinalmulfix}
 { for the compiler }
   def_symbol('CARDINALMULFIX');
@@ -1339,7 +1336,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  1999-12-18 14:55:21  florian
+  Revision 1.44  1999-12-20 21:42:36  pierre
+    + dllversion global variable
+    * FPC_USE_CPREFIX code removed, not necessary anymore
+      as we use .edata direct writing by default now.
+
+  Revision 1.43  1999/12/18 14:55:21  florian
     * very basic widestring support
 
   Revision 1.42  1999/12/11 18:53:31  jonas

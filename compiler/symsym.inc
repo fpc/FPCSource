@@ -1089,9 +1089,6 @@
            unitsymtable,
            globalsymtable :
              prefix:=
-{$ifdef FPC_USE_CPREFIX}
-              target_os.Cprefix+
-{$endif FPC_USE_CPREFIX}
               'U_'+owner^.name^+'_';
            else
              Message(sym_e_invalid_call_tvarsymmangledname);
@@ -2125,7 +2122,12 @@
 
 {
   $Log$
-  Revision 1.133  1999-12-14 09:58:42  florian
+  Revision 1.134  1999-12-20 21:42:37  pierre
+    + dllversion global variable
+    * FPC_USE_CPREFIX code removed, not necessary anymore
+      as we use .edata direct writing by default now.
+
+  Revision 1.133  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.132  1999/12/01 12:42:33  peter

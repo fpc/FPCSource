@@ -103,9 +103,6 @@ implementation
             new(r);
             reset_reference(r^);
             r^.symbol:=stringdup(
-{$ifdef FPC_USE_CPREFIX}
-              target_os.Cprefix+
-{$endif FPC_USE_CPREFIX}
             'U_'+upper(target_info.system_unit)+io[byte(doread)]);
             exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,r,R_A0)))
           end;
@@ -903,7 +900,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-11-20 01:22:18  pierre
+  Revision 1.20  1999-12-20 21:42:35  pierre
+    + dllversion global variable
+    * FPC_USE_CPREFIX code removed, not necessary anymore
+      as we use .edata direct writing by default now.
+
+  Revision 1.19  1999/11/20 01:22:18  pierre
     + cond FPC_USE_CPREFIX (needs also some RTL changes)
       this allows to use unit global vars as DLL exports
       (the underline prefix seems needed by dlltool)

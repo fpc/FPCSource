@@ -190,9 +190,6 @@ implementation
             new(r);
             reset_reference(r^);
             r^.symbol:=newasmsymbol(
-{$ifdef FPC_USE_CPREFIX}
-              target_os.Cprefix+
-{$endif FPC_USE_CPREFIX}
             'U_'+upper(target_info.system_unit)+io[doread]);
             emit_ref_reg(A_LEA,S_L,r,R_EDI)
           end;
@@ -1484,7 +1481,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  1999-12-14 10:17:40  florian
+  Revision 1.85  1999-12-20 21:42:35  pierre
+    + dllversion global variable
+    * FPC_USE_CPREFIX code removed, not necessary anymore
+      as we use .edata direct writing by default now.
+
+  Revision 1.84  1999/12/14 10:17:40  florian
     * fixed an internalerror 10 with pred(...)
 
   Revision 1.83  1999/12/02 12:38:45  florian
