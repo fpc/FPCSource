@@ -315,7 +315,7 @@ procedure dummy;assembler;
   end;
 {$ASMMODE ATT}
 
-Function AnsiCompare (Var S1,S2 : Pointer): Longint;
+Function AnsiCompare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSICOMPARE'];
 {
   Compares 2 AnsiStrings;
   The result is
@@ -708,7 +708,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1998-09-28 14:02:34  michael
+  Revision 1.19  1998-10-20 12:46:11  florian
+    * small fixes to ansicompare
+
+  Revision 1.18  1998/09/28 14:02:34  michael
   + AnsiString changes
 
   Revision 1.17  1998/09/27 22:44:50  florian
