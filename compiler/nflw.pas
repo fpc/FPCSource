@@ -380,7 +380,7 @@ implementation
          { loop instruction }
          if assigned(right) then
            resulttypepass(right);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
          if not is_boolean(left.resulttype.def) then
@@ -543,7 +543,7 @@ implementation
          { else path }
          if assigned(t1) then
            resulttypepass(t1);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
 
@@ -699,7 +699,7 @@ implementation
          t2:=tassignmentnode(left).left.getcopy;
 
          resulttypepass(left);
-         set_varstate(left,false);
+         set_varstate(left,vs_used,true);
 
          if assigned(t1) then
            begin
@@ -710,7 +710,7 @@ implementation
 
          { process count var }
          resulttypepass(t2);
-         set_varstate(t2,true);
+         set_varstate(t2,vs_used,false);
          if codegenerror then
            exit;
 
@@ -749,7 +749,7 @@ implementation
            CGMessagePos(hp.fileinfo,cg_e_illegal_count_var);
 
          resulttypepass(right);
-         set_varstate(right,true);
+         set_varstate(right,vs_used,true);
          inserttypeconv(right,t2.resulttype);
       end;
 
@@ -864,7 +864,7 @@ implementation
                 cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
                 left);
             resulttypepass(left);
-            set_varstate(left,true);
+            set_varstate(left,vs_used,true);
           end;
         resulttype:=voidtype;
       end;
@@ -1166,7 +1166,7 @@ implementation
            begin
               { first para must be a _class_ }
               resulttypepass(left);
-              set_varstate(left,true);
+              set_varstate(left,vs_used,true);
               if codegenerror then
                exit;
               if not(is_class(left.resulttype.def)) then
@@ -1293,16 +1293,16 @@ implementation
          resulttype:=voidtype;
 
          resulttypepass(left);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
 
          resulttypepass(right);
-         set_varstate(right,true);
+         set_varstate(right,vs_used,true);
 
          { special finally block only executed when there was an exception }
          if assigned(t1) then
            begin
              resulttypepass(t1);
-             set_varstate(t1,true);
+             set_varstate(t1,vs_used,true);
            end;
       end;
 
@@ -1431,7 +1431,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-10-05 11:53:57  florian
+  Revision 1.82  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.81  2003/10/05 11:53:57  florian
     * writing of loop nodes fixed
 
   Revision 1.80  2003/10/01 20:34:48  peter

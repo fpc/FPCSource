@@ -188,6 +188,7 @@ implementation
          caseexpr:=comp_expr(true);
          { determines result type }
          do_resulttypepass(caseexpr);
+         set_varstate(caseexpr,vs_used,true);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
          if (not assigned(casedef)) or
@@ -392,7 +393,7 @@ implementation
       begin
          p:=comp_expr(true);
          do_resulttypepass(p);
-         set_varstate(p,false);
+         set_varstate(p,vs_used,false);
          right:=nil;
          if (not codegenerror) and
             (p.resulttype.def.deftype in [objectdef,recorddef]) then
@@ -1128,7 +1129,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-10-07 20:06:37  peter
+  Revision 1.114  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.113  2003/10/07 20:06:37  peter
     * set calling convention before assembler block is parsed
 
   Revision 1.112  2003/10/02 21:15:59  peter

@@ -640,13 +640,13 @@ type
                    floatdef :
                      inserttypeconv(left,s64floattype);
                  end;
-                 set_varstate(left,true);
+                 set_varstate(left,vs_used,true);
                  resulttype:=left.resulttype;
                end
              else
               if (paraitem.is_hidden) then
                begin
-                 set_varstate(left,true);
+                 set_varstate(left,vs_used,true);
                  resulttype:=left.resulttype;
                end
              else
@@ -776,10 +776,10 @@ type
 
                  if do_count then
                   begin
-                    { not completly proper, but avoids some warnings }
-                    {if (paraitem.paratyp in [vs_var,vs_out]) then
-                     set_funcret_is_valid(left); }
-                    set_varstate(left,not(paraitem.paratyp in [vs_var,vs_out]));
+                    if paraitem.paratyp in [vs_var,vs_out] then
+                      set_varstate(left,vs_used,false)
+                    else
+                      set_varstate(left,vs_used,true);
                   end;
                  { must only be done after typeconv PM }
                  resulttype:=paraitem.paratype;
@@ -1995,7 +1995,7 @@ type
          { procedure variable ? }
          if assigned(right) then
            begin
-              set_varstate(right,true);
+              set_varstate(right,vs_used,true);
               resulttypepass(right);
               if codegenerror then
                exit;
@@ -2271,7 +2271,7 @@ type
                  method_must_be_valid:=false
                else
                  method_must_be_valid:=true;
-               set_varstate(methodpointer,method_must_be_valid);
+               set_varstate(methodpointer,vs_used,method_must_be_valid);
 
                { The object is already used if it is called once }
                if (hpt.nodetype=loadn) and
@@ -2609,7 +2609,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.192  2003-10-07 21:14:32  peter
+  Revision 1.193  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.192  2003/10/07 21:14:32  peter
     * compare_paras() has a parameter to ignore hidden parameters
     * cross unit overload searching ignores hidden parameters when
       comparing parameter lists. Now function(string):string is

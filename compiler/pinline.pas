@@ -81,7 +81,10 @@ implementation
         consume(_LKLAMMER);
         p:=comp_expr(true);
         { calc return type }
-        set_varstate(p,(not is_new));
+        if is_new then
+          set_varstate(p,vs_assigned,false)
+        else
+          set_varstate(p,vs_used,true);
         { constructor,destructor specified }
         if try_to_consume(_COMMA) then
           begin
@@ -415,7 +418,7 @@ implementation
            ppn:=tcallparanode(paras);
            while assigned(ppn.right) do
             begin
-              set_varstate(ppn.left,true);
+              set_varstate(ppn.left,vs_used,true);
               inserttypeconv(ppn.left,s32bittype);
               inc(counter);
               ppn:=tcallparanode(ppn.right);
@@ -431,7 +434,7 @@ implementation
         destppn:=ppn.left;
         inc(parsing_para_level);
         valid_for_var(destppn);
-        set_varstate(destppn,false);
+        set_varstate(destppn,vs_assigned,false);
         dec(parsing_para_level);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resulttype.def);
@@ -685,7 +688,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-10-02 21:15:31  peter
+  Revision 1.21  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.20  2003/10/02 21:15:31  peter
     * protected visibility fixes
 
   Revision 1.19  2003/10/01 20:34:49  peter

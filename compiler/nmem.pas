@@ -401,7 +401,7 @@ implementation
 
          { this is like the function addr }
          inc(parsing_para_level);
-         set_varstate(left,false);
+         set_varstate(left,vs_used,false);
          dec(parsing_para_level);
 
       end;
@@ -462,7 +462,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
           exit;
 
@@ -842,8 +842,8 @@ implementation
         resulttype:=voidtype;
 
         resulttypepass(withrefnode);
-        unset_varstate(withrefnode);
-        set_varstate(withrefnode,true);
+        //unset_varstate(withrefnode);
+        set_varstate(withrefnode,vs_used,true);
         if codegenerror then
          exit;
 
@@ -904,7 +904,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-10-01 20:34:49  peter
+  Revision 1.65  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.64  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

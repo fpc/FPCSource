@@ -75,7 +75,7 @@ implementation
       symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
-      cpubase,cgbase,procinfo
+      cgbase,procinfo
       ;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
@@ -397,7 +397,7 @@ implementation
             left := filepara.right;
             filepara.right := nil;
             { the file para is a var parameter, but it must be valid already }
-            set_varstate(filepara,true);
+            set_varstate(filepara.left,vs_used,true);
             { check if we should make a temp to store the result of a complex }
             { expression (better heuristics, anyone?) (JM)                    }
             if (filepara.left.nodetype <> loadn) then
@@ -1380,7 +1380,7 @@ implementation
                      result:=hp;
                      goto myexit;
                    end;
-                  set_varstate(left,true);
+                  set_varstate(left,vs_used,true);
                   if not is_integer(left.resulttype.def) then
                    CGMessage(type_e_mismatch);
                   case inlinenumber of
@@ -1399,7 +1399,7 @@ implementation
 
               in_sizeof_x:
                 begin
-                  set_varstate(left,false);
+                  set_varstate(left,vs_used,false);
                   if paramanager.push_high_param(vs_value,left.resulttype.def,current_procinfo.procdef.proccalloption) then
                    begin
                      hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
@@ -1420,7 +1420,7 @@ implementation
 
               in_typeof_x:
                 begin
-                  set_varstate(left,false);
+                  set_varstate(left,vs_used,false);
                   resulttype:=voidpointertype;
                 end;
 
@@ -1433,7 +1433,7 @@ implementation
                       result:=hp;
                       goto myexit;
                     end;
-                   set_varstate(left,true);
+                   set_varstate(left,vs_used,true);
                    case left.resulttype.def.deftype of
                      orddef :
                        begin
@@ -1486,7 +1486,7 @@ implementation
               in_chr_byte:
                 begin
                    { convert to explicit char() }
-                   set_varstate(left,true);
+                   set_varstate(left,vs_used,true);
                    hp:=ctypeconvnode.create_explicit(left,cchartype);
                    left:=nil;
                    result:=hp;
@@ -1494,7 +1494,7 @@ implementation
 
               in_length_x:
                 begin
-                  set_varstate(left,true);
+                  set_varstate(left,vs_used,true);
 
                   case left.resulttype.def.deftype of
                     stringdef :
@@ -1601,7 +1601,7 @@ implementation
 
               in_typeinfo_x:
                 begin
-                   set_varstate(left,true);
+                   set_varstate(left,vs_used,true);
                    resulttype:=voidpointertype;
                 end;
 
@@ -1622,7 +1622,7 @@ implementation
 
               in_seg_x :
                 begin
-                  set_varstate(left,false);
+                  set_varstate(left,vs_used,false);
                   hp:=cordconstnode.create(0,s32bittype,false);
                   result:=hp;
                   goto myexit;
@@ -1631,7 +1631,7 @@ implementation
               in_pred_x,
               in_succ_x:
                 begin
-                   set_varstate(left,true);
+                   set_varstate(left,vs_used,true);
                    resulttype:=left.resulttype;
                    if not is_ordinal(resulttype.def) then
                      CGMessage(type_e_ordinal_expr_expected)
@@ -1672,11 +1672,9 @@ implementation
                   resulttype:=voidtype;
                   if assigned(left) then
                     begin
-                       set_varstate(left,true);
-                       if codegenerror then
-                        exit;
                        { first param must be var }
                        valid_for_var(tcallparanode(left).left);
+                       set_varstate(tcallparanode(left).left,vs_used,true);
 
                        if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                           is_ordinal(left.resulttype.def) or
@@ -1687,6 +1685,7 @@ implementation
                           { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
+                             set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,true);
                              if (aktlocalswitches *
                                    [cs_check_overflow,cs_check_range] = []) then
                                begin
@@ -1761,14 +1760,15 @@ implementation
                   resulttype:=voidtype;
                   { the parser already checks whether we have two (and exectly two) }
                   { parameters (JM)                                                 }
-                  set_varstate(left,true);
                   { first param must be var }
                   valid_for_var(tcallparanode(left).left);
+                  set_varstate(tcallparanode(left).left,vs_used,true);
                   { check type }
                   if (left.resulttype.def.deftype=setdef) then
                     begin
                       { insert a type conversion       }
                       { to the type of the set elements  }
+                      set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,true);
                       inserttypeconv(tcallparanode(tcallparanode(left).right).left,
                         tsetdef(left.resulttype.def).elementtype);
                     end
@@ -1779,7 +1779,7 @@ implementation
               in_low_x,
               in_high_x:
                 begin
-                  set_varstate(left,false);
+                  set_varstate(left,vs_used,false);
                   case left.resulttype.def.deftype of
                     orddef,
                     enumdef:
@@ -1854,7 +1854,7 @@ implementation
                    setconstrealvalue(cos(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1866,7 +1866,7 @@ implementation
                    setconstrealvalue(sin(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1878,7 +1878,7 @@ implementation
                    setconstrealvalue(arctan(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1890,7 +1890,7 @@ implementation
                    setconstrealvalue(abs(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1902,7 +1902,7 @@ implementation
                    setconstrealvalue(sqr(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1920,7 +1920,7 @@ implementation
                    end
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1938,7 +1938,7 @@ implementation
                    end
                   else
                    begin
-                     set_varstate(left,true);
+                     set_varstate(left,vs_used,true);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1955,10 +1955,11 @@ implementation
                   resulttype:=voidtype;
                   if assigned(left) then
                     begin
-                       set_varstate(left,true);
+                       set_varstate(tcallparanode(left).left,vs_used,true);
                        { check type }
                        if is_boolean(left.resulttype.def) then
                          begin
+                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,true);
                             { must always be a string }
                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype);
                          end
@@ -2357,7 +2358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2003-10-01 20:34:48  peter
+  Revision 1.120  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.119  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

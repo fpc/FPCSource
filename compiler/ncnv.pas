@@ -1858,8 +1858,8 @@ implementation
          resulttypepass(left);
          resulttypepass(right);
 
-         set_varstate(left,true);
-         set_varstate(right,true);
+         set_varstate(left,vs_used,true);
+         set_varstate(right,vs_used,true);
 
          if codegenerror then
            exit;
@@ -1967,8 +1967,8 @@ implementation
          resulttypepass(right);
          resulttypepass(left);
 
-         set_varstate(right,true);
-         set_varstate(left,true);
+         set_varstate(right,vs_used,true);
+         set_varstate(left,vs_used,true);
 
          if codegenerror then
            exit;
@@ -2104,7 +2104,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2003-10-07 14:30:27  peter
+  Revision 1.122  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.121  2003/10/07 14:30:27  peter
     * fix 2720
 
   Revision 1.120  2003/10/01 20:34:48  peter

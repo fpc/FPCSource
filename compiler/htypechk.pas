@@ -29,7 +29,7 @@ interface
     uses
       tokens,
       node,
-      symtype,symdef;
+      symconst,symtype,symdef;
 
     type
       Ttok2nodeRec=record
@@ -94,14 +94,8 @@ interface
     function  is_procsym_load(p:tnode):boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
 
-    {
-    type
-    tvarstaterequire = (vsr_can_be_undefined,vsr_must_be_valid,
-      vsr_is_used_after,vsr_must_be_valid_and_is_used_after); }
-
     { sets varsym varstate field correctly }
-    procedure unset_varstate(p : tnode);
-    procedure set_varstate(p : tnode;must_be_valid : boolean);
+    procedure set_varstate(p:tnode;newstate:tvarstate;must_be_valid:boolean);
 
     { sets the callunique flag, if the node is a vecn, }
     { takes care of type casts etc.                 }
@@ -118,8 +112,8 @@ implementation
     uses
        globtype,systems,
        cutils,verbose,globals,
-       symconst,symsym,symtable,
-       defutil,defcmp,cpubase,
+       symsym,symtable,
+       defutil,defcmp,
        ncnv,nld,
        nmem,ncal,nmat,
        cgbase,procinfo
@@ -580,7 +574,7 @@ implementation
       end;
 
 
-    procedure set_varstate(p : tnode;must_be_valid : boolean);
+    procedure set_varstate(p:tnode;newstate:tvarstate;must_be_valid:boolean);
       var
         hsym : tvarsym;
       begin
@@ -607,92 +601,47 @@ implementation
                p:=tunarynode(p).left;
              vecn:
                begin
-                 set_varstate(tbinarynode(p).right,true);
+                 set_varstate(tbinarynode(p).right,vs_used,true);
                  if not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
-                  must_be_valid:=true;
+                   must_be_valid:=true;
                  p:=tunarynode(p).left;
                end;
              { do not parse calln }
              calln :
                break;
-             callparan :
-               begin
-                 set_varstate(tbinarynode(p).right,must_be_valid);
-                 p:=tunarynode(p).left;
-               end;
              loadn :
                begin
                  if (tloadnode(p).symtableentry.typ=varsym) then
                   begin
                     hsym:=tvarsym(tloadnode(p).symtableentry);
-                    if must_be_valid and (nf_first_use in p.flags) then
-                     begin
-                       if (hsym.varstate=vs_declared_and_first_found) or
-                          (hsym.varstate=vs_set_but_first_not_passed) then
-                        begin
-                          if (assigned(hsym.owner) and
-                              assigned(current_procinfo) and
-                              (hsym.owner=current_procinfo.procdef.localst)) then
-                           begin
-                             if (vo_is_funcret in hsym.varoptions) then
-                               CGMessage(sym_w_function_result_not_set)
-                             else
-                              if tloadnode(p).symtable.symtabletype=localsymtable then
-                               CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
-                             else
-                               CGMessage1(sym_n_uninitialized_variable,hsym.realname);
-                           end;
-                        end;
-                     end;
-                    if (nf_first_use in p.flags) then
-                     begin
-                       if hsym.varstate=vs_declared_and_first_found then
-                        begin
-                          { this can only happen at left of an assignment, no ? PM }
-                          if (parsing_para_level=0) and not must_be_valid then
-                           hsym.varstate:=vs_assigned
-                          else
-                           hsym.varstate:=vs_used;
-                        end
-                       else
-                        if hsym.varstate=vs_set_but_first_not_passed then
-                         hsym.varstate:=vs_used;
-                       exclude(p.flags,nf_first_use);
-                     end
-                    else
+                    if must_be_valid and (hsym.varstate=vs_declared) then
                       begin
-                        if (hsym.varstate=vs_assigned) and
-                           (must_be_valid or (parsing_para_level>0) or
-                            (p.resulttype.def.deftype=procvardef)) then
-                          hsym.varstate:=vs_used;
-                        if (hsym.varstate=vs_declared_and_first_found) and
-                           (must_be_valid or (parsing_para_level>0) or
-                           (p.resulttype.def.deftype=procvardef)) then
-                          hsym.varstate:=vs_set_but_first_not_passed;
+                        { Give warning/note for uninitialized locals }
+                        if assigned(hsym.owner) and
+                           not(vo_is_external in hsym.varoptions) and
+                           (hsym.owner.symtabletype=localsymtable) and
+                           (hsym.owner=current_procinfo.procdef.localst) then
+                          begin
+                            if (vo_is_funcret in hsym.varoptions) then
+                               CGMessage(sym_w_function_result_not_set)
+                            else
+                             if tloadnode(p).symtable.symtabletype=localsymtable then
+                               CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
+                            else
+                              CGMessage1(sym_n_uninitialized_variable,hsym.realname);
+                          end;
                       end;
+                    { don't override vs_used with vs_assigned }
+                    if hsym.varstate<>vs_used then
+                      hsym.varstate:=newstate;
                   end;
                  break;
                end;
+             callparan :
+               internalerror(200310081);
              else
                break;
            end;{case }
-         end;
-      end;
-
-
-    procedure unset_varstate(p : tnode);
-      begin
-        while assigned(p) do
-         begin
-           exclude(p.flags,nf_varstateset);
-           case p.nodetype of
-             typeconvn,
-             subscriptn,
-             vecn :
-               p:=tunarynode(p).left;
-             else
-               break;
-           end;
          end;
       end;
 
@@ -918,9 +867,6 @@ implementation
                         end
                        else
                         begin
-                          { set the assigned flag for varsyms }
-                          if (tvarsym(tloadnode(hp).symtableentry).varstate=vs_declared) then
-                           tvarsym(tloadnode(hp).symtableentry).varstate:=vs_assigned;
                           valid_for_assign:=true;
                           exit;
                         end;
@@ -995,7 +941,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-10-05 21:21:52  peter
+  Revision 1.69  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.68  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

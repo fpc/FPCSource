@@ -78,7 +78,7 @@ implementation
       {$ifdef state_tracking}
       nstate,
       {$endif}
-      cpubase,cpuinfo,procinfo;
+      cpuinfo,procinfo;
 
 
 {*****************************************************************************
@@ -124,8 +124,8 @@ implementation
          resulttypepass(left);
          resulttypepass(right);
          { both left and right need to be valid }
-         set_varstate(left,true);
-         set_varstate(right,true);
+         set_varstate(left,vs_used,true);
+         set_varstate(right,vs_used,true);
          if codegenerror then
            exit;
 
@@ -1526,7 +1526,9 @@ implementation
 
     function taddnode.pass_1 : tnode;
       var
+{$ifdef addstringopt}
          hp      : tnode;
+{$endif addstringopt}
          lt,rt   : tnodetype;
          rd,ld   : tdef;
       begin
@@ -1873,7 +1875,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2003-10-01 20:34:48  peter
+  Revision 1.97  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.96  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

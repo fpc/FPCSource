@@ -102,8 +102,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(left,true);
-         set_varstate(right,true);
+         set_varstate(left,vs_used,true);
+         set_varstate(right,vs_used,true);
          if codegenerror then
            exit;
 
@@ -431,8 +431,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(right,true);
-         set_varstate(left,true);
+         set_varstate(right,vs_used,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
 
@@ -516,7 +516,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
 
@@ -649,7 +649,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
 
@@ -831,7 +831,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-10-01 20:34:49  peter
+  Revision 1.53  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.52  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

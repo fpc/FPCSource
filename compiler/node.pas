@@ -201,7 +201,6 @@ interface
 
          { general }
          nf_write,       { Node is written to            }
-         nf_first_use,   { First node that uses a variable after declared }
          nf_varstateset,
          nf_isproperty,
 
@@ -977,7 +976,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-10-01 20:34:49  peter
+  Revision 1.69  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.68  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

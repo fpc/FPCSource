@@ -657,9 +657,8 @@ implementation
           end;
 
         resulttypepass(right);
-        set_varstate(left,false);
-        set_varstate(right,true);
-{        set_funcret_is_valid(left); }
+        set_varstate(left,vs_assigned,false);
+        set_varstate(right,vs_used,true);
         if codegenerror then
           exit;
 
@@ -894,8 +893,8 @@ implementation
         result:=nil;
         resulttypepass(left);
         resulttypepass(right);
-        set_varstate(left,true);
-        set_varstate(right,true);
+        set_varstate(left,vs_used,true);
+        set_varstate(right,vs_used,true);
         if codegenerror then
          exit;
         resulttype:=left.resulttype;
@@ -959,7 +958,7 @@ implementation
            while assigned(hp) do
             begin
               resulttypepass(hp.left);
-              set_varstate(hp.left,true);
+              set_varstate(hp.left,vs_used,true);
               if (htype.def=nil) then
                htype:=hp.left.resulttype
               else
@@ -1247,7 +1246,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2003-10-05 21:21:52  peter
+  Revision 1.110  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.109  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

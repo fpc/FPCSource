@@ -118,7 +118,7 @@ implementation
       verbose,
       symconst,symdef,symsym,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,cpubase,nld,rgobj,cgbase;
+      nbas,ncnv,ncon,nld,rgobj,cgbase;
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -147,7 +147,7 @@ implementation
          resulttypepass(left);
          if assigned(right) then
           resulttypepass(right);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
           exit;
 
@@ -216,7 +216,7 @@ implementation
          result:=nil;
          resulttype:=booltype;
          resulttypepass(right);
-         set_varstate(right,true);
+         set_varstate(right,vs_used,true);
          if codegenerror then
           exit;
 
@@ -243,7 +243,7 @@ implementation
            end;
 
          resulttypepass(left);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
 
@@ -341,8 +341,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(left,true);
-         set_varstate(right,true);
+         set_varstate(left,vs_used,true);
+         set_varstate(right,vs_used,true);
          if codegenerror then
            exit;
          { both types must be compatible }
@@ -572,7 +572,7 @@ implementation
          expectloc:=LOC_VOID;
          { evalutes the case expression }
          firstpass(left);
-         set_varstate(left,true);
+         set_varstate(left,vs_used,true);
          if codegenerror then
            exit;
          registers32:=left.registers32;
@@ -686,7 +686,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-10-01 20:34:49  peter
+  Revision 1.46  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.45  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -288,8 +288,7 @@ type
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
-    vs_declared,vs_declared_and_first_found,
-    vs_set_but_first_not_passed,vs_assigned,vs_used
+    vs_declared,vs_assigned,vs_used
   );
 
   tvarspez = (vs_value,vs_const,vs_var,vs_out);
@@ -377,7 +376,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-10-07 15:17:07  peter
+  Revision 1.68  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.67  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

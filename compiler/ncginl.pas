@@ -448,7 +448,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=rg.getaddressregister(exprasmlist);
-          reference_reset_symbol(href,tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(fullrtti),0);
+          reference_reset_symbol(href,tstoreddef(left.resulttype.def).get_rtti_label(fullrtti),0);
           cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
         end;
 
@@ -656,7 +656,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2003-10-05 21:21:52  peter
+  Revision 1.45  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.44  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

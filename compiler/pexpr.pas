@@ -366,8 +366,7 @@ implementation
                    Message(parser_e_illegal_parameter_list);
                 end;
               consume(_RKLAMMER);
-              p2:=ccallparanode.create(p1,nil);
-              p2:=geninlinenode(in_typeinfo_x,false,p2);
+              p2:=geninlinenode(in_typeinfo_x,false,p1);
               statement_syssym:=p2;
             end;
 
@@ -511,7 +510,7 @@ implementation
               while true do
                begin
                  p1:=comp_expr(true);
-                 set_varstate(p1,true);
+                 set_varstate(p1,vs_used,true);
                  if not((p1.resulttype.def.deftype=stringdef) or
                         ((p1.resulttype.def.deftype=orddef) and
                          (torddef(p1.resulttype.def).typ=uchar))) then
@@ -1194,13 +1193,6 @@ implementation
                       else
                         p1:=cloadnode.create(srsym,srsymtable);
                     end;
-
-                    if tvarsym(srsym).varstate=vs_declared then
-                     begin
-                       include(p1.flags,nf_first_use);
-                       { set special between first loaded until checked in resulttypepass }
-                       tvarsym(srsym).varstate:=vs_declared_and_first_found;
-                     end;
                   end;
 
                 typedconstsym :
@@ -2425,7 +2417,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2003-10-05 12:56:04  peter
+  Revision 1.133  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.132  2003/10/05 12:56:04  peter
     * fix assigned(property)
 
   Revision 1.131  2003/10/02 21:15:31  peter

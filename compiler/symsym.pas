@@ -1643,7 +1643,7 @@ implementation
          highvarsym:=nil;
          defaultconstsym:=nil;
          refs:=0;
-         varstate:=vs_used;
+         varstate:=vs_declared;
          varoptions:=[];
       end;
 
@@ -2676,7 +2676,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2003-10-07 21:14:33  peter
+  Revision 1.125  2003-10-08 19:19:45  peter
+    * set_varstate cleanup
+
+  Revision 1.124  2003/10/07 21:14:33  peter
     * compare_paras() has a parameter to ignore hidden parameters
     * cross unit overload searching ignores hidden parameters when
       comparing parameter lists. Now function(string):string is
