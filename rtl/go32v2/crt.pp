@@ -499,15 +499,18 @@ begin
         cltd
         divl    %ecx
         movl    %eax,%ecx
+        inb     $0x61,%al
+        testb   $0x3,%al
+        jnz     .Lsound_next
+        orb     $0x3,%al
+        outb    %al,$0x61
         movb    $0xb6,%al
         outb    %al,$0x43
+     .Lsound_next:
         movb    %cl,%al
         outb    %al,$0x42
         movb    %ch,%al
         outb    %al,$0x42
-        inb     $0x61,%al
-        orb     $0x3,%al
-        outb    %al,$0x61
   end ['EAX','ECX','EDX'];
 end;
 
@@ -817,7 +820,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-11-06 14:38:23  peter
+  Revision 1.9  2000-01-07 14:55:47  pierre
+   * bad sound if changing frequency solved
+
+  Revision 1.8  1999/11/06 14:38:23  peter
     * truncated log
 
   Revision 1.7  1999/11/03 23:47:34  peter
@@ -884,5 +890,3 @@ end.
     * fixed crt input
 
 }
-
-
