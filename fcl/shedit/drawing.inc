@@ -71,7 +71,7 @@ begin
   end;
 
   // Redraw all lines with changed SH flags
-  FWidget.InvalidateRect(0, line, FWidget.PageWidth, (CurLine - line) + 1);
+  FWidget.InvalidateRect(FWidget.HorzPos, line, FWidget.PageWidth, (CurLine - line) + 1);
 end;
 
 
@@ -259,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2000-02-19 19:05:43  sg
+  Revision 1.13  2000-02-22 14:27:50  sg
+  * Fix in ChangeInLine: Now the correct horizontal area gets invalidated
+
+  Revision 1.12  2000/02/19 19:05:43  sg
   * Improved cursor drawing
 
   Revision 1.11  2000/02/10 18:20:23  sg
