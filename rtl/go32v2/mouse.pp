@@ -225,6 +225,9 @@ ASM
    pushl %ecx;
    pushl %edx;
    { ; caution : ds is not the selector for our data !! }
+   MOVW %cs:v2prt0_ds_alias,%ax
+   movw %ax,%es
+   { ES now has dataseg  alias that is never invalid }
 {$ifdef DEBUG}
    MOVL  %EDI,%ES:EntryEDI
    MOVL  %ESI,%ES:EntryESI
@@ -266,20 +269,32 @@ ASM
    POP %FS;                                           { Restore FS register }
    POP %DS;                                           { Restore DS register }
    POP %ES;                                           { Restore ES register }
-   movw %ds,%ax;
-   lsl  %eax,%eax;
-   cmpl %eax,%esi;
-   ja   .Lsimplecopy;
-   movzwl %si,%eax;
-   jmp  .Lcopyend;
+   movw %es,%ax
+   cmpw $0,%ax
+   jne .Lesisok
+   { ; caution : ds is not the selector for our data !! }
+   MOVW %cs:v2prt0_ds_alias,%ax
+   movw %ax,%es
+.Lesisok:
+   lsl  %eax,%eax
+   cmpl %edi,%eax
+   ja   .Ldontzeroedi
+   movzwl %di,%edi
+.Ldontzeroedi:
+   movw %ds,%ax
+   lsl  %eax,%eax
+   cmpl %esi,%eax
+   ja   .Lsimplecopy
+   movzwl %si,%eax
+   jmp  .Lcopyend
 .Lsimplecopy:
-   movl %esi,%eax;
+   movl %esi,%eax
 .Lcopyend:
-   MOVL %ds:(%Eax), %EAX;
-   MOVL %EAX, %ES:42(%EDI);                           { Set as return addr }
-   ADDW $4, %ES:46(%EDI);                             { adjust stack }
-   popl %eax;
-   IRET;                                              { Interrupt return }
+   MOVL %ds:(%Eax), %EAX
+   MOVL %EAX, %ES:42(%EDI)                           { Set as return addr }
+   ADDW $4, %ES:46(%EDI)                             { adjust stack }
+   popl %eax
+   IRET                                              { Interrupt return }
 END;
 
 Function Allocate_mouse_bridge : boolean;
@@ -755,7 +770,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.4  2001-12-26 21:20:47  peter
+  Revision 1.5  2002-01-19 11:57:55  peter
+    * merged fixes
+
+  Revision 1.4  2001/12/26 21:20:47  peter
     * more xp fixes
 
   Revision 1.3  2001/12/26 21:03:56  peter

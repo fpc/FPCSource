@@ -109,14 +109,72 @@ end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+var
+  regs     : registers;
+  size,
+  readsize : longint;
 begin
-  result := Do_Read(Handle, longint(@Buffer), Count);
+  readsize:=0;
+  while Count > 0 do
+   begin
+     if Count>tb_size then
+      size:=tb_size
+     else
+      size:=Count;
+     regs.realecx:=size;
+     regs.realedx:=tb_offset;
+     regs.realds:=tb_segment;
+     regs.realebx:=Handle;
+     regs.realeax:=$3f00;
+     RealIntr($21,regs);
+     if (regs.realflags and carryflag) <> 0 then
+      begin
+        Result:=-1;
+        exit;
+      end;
+     syscopyfromdos(Longint(@Buffer)+readsize,lo(regs.realeax));
+     inc(readsize,lo(regs.realeax));
+     dec(Count,lo(regs.realeax));
+     { stop when not the specified size is read }
+     if lo(regs.realeax)<size then
+      break;
+   end;
+  Result:=readsize;
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
+var
+  regs      : registers;
+  size,
+  writesize : longint;
 begin
-  result := Do_Write(Handle, longint(@Buffer), Count);
+  writesize:=0;
+  while Count > 0 do
+   begin
+     if Count>tb_size then
+      size:=tb_size
+     else
+      size:=Count;
+     syscopytodos(Longint(@Buffer)+writesize,size);
+     regs.realecx:=size;
+     regs.realedx:=tb_offset;
+     regs.realds:=tb_segment;
+     regs.realebx:=Handle;
+     regs.realeax:=$4000;
+     RealIntr($21,regs);
+     if (regs.realflags and carryflag) <> 0 then
+      begin
+        Result:=-1;
+        exit;
+      end;
+     inc(writesize,lo(regs.realeax));
+     dec(Count,lo(regs.realeax));
+     { stop when not the specified size is written }
+     if lo(regs.realeax)<size then
+      break;
+   end;
+  Result:=WriteSize;
 end;
 
 
@@ -656,7 +714,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.6  2001-10-25 21:23:49  peter
+  Revision 1.7  2002-01-19 11:57:55  peter
+    * merged fixes
+
+  Revision 1.6  2001/10/25 21:23:49  peter
     * added 64bit fileseek
 
   Revision 1.5  2001/06/03 15:18:01  peter
