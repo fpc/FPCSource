@@ -6,4 +6,4 @@ Abstract: Documentation for the Free Pascal Compiler.
 Section: Development
 
 Format: PDF
-Files: /usr/doc/fp-docs/*.pdf
+Files: /usr/share/doc/fp-docs/*.pdf

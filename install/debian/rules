@@ -1,11 +1,12 @@
 #!/usr/bin/make -f
 # debian/rules for Free Pascal
 
-# Note: You must unset FPCDIR before using this Makefile
-
 # Documentation type to use pdf/html
 DOCTYPE=pdf
 
+# Reset FPC and FPCDIR if it was set
+FPC=
+FPCDIR=
 # Get Package version and FPC version out of changelog file
 PACKAGEVERSION:=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
 FPCVERSION:=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
@@ -80,8 +81,9 @@ build-arch-stamp: debian-files-stamp
 # First make a new Compiler and RTL using a make cycle
 	$(MAKE) compiler_cycle
 	$(MAKE) rtl_clean rtl_smart $(BUILDOPTS)
-	$(MAKE) packages_smart $(BUILDOPTS)
+	$(MAKE) packages_base_smart $(BUILDOPTS)
 	$(MAKE) fcl_smart $(BUILDOPTS)
+	$(MAKE) packages_extra_smart $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
 
 	touch build-arch-stamp
@@ -97,8 +99,8 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 # Specify the compiler to use so installing will use the correct versioned dir
 	$(MAKE) compiler_distinstall $(INSTALLOPTS)
 	$(MAKE) rtl_distinstall $(INSTALLOPTS)
-	$(MAKE) packages_distinstall $(INSTALLOPTS)
 	$(MAKE) fcl_distinstall $(INSTALLOPTS)
+	$(MAKE) packages_distinstall $(INSTALLOPTS)
 	$(MAKE) utils_distinstall $(INSTALLOPTS)
 
 # Copy examples to the correct doc dir
@@ -128,7 +130,8 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	mv -f $(EXAMPLE_TEMP)/mysql $(DOC_DIR)/fp-units-db/examples
 	mv -f $(EXAMPLE_TEMP)/oracle $(DOC_DIR)/fp-units-db/examples
 	mv -f $(EXAMPLE_TEMP)/postgres $(DOC_DIR)/fp-units-db/examples
-	
+	mv -f $(EXAMPLE_TEMP)/gdbm $(DOC_DIR)/fp-units-db/examples
+
 	mv -f $(EXAMPLE_TEMP)/cmem $(DOC_DIR)/fp-units-misc/examples
 	mv -f $(EXAMPLE_TEMP)/gdbint $(DOC_DIR)/fp-units-misc/examples
 	mv -f $(EXAMPLE_TEMP)/utmp $(DOC_DIR)/fp-units-misc/examples
@@ -153,7 +156,6 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 
 arrange-arch: arrange-arch-stamp
 arrange-arch-stamp: install-arch-stamp debian-files-stamp
-	dh_testversion 2
 	dh_testdir
 	dh_testroot
 	dh_movefiles -a
@@ -207,7 +209,6 @@ binary: binary-indep binary-arch
 
 binary-indep: build-indep install-indep debian-files
 	@echo "--- Building: arch-indep packages"
-	dh_testversion 2
 	dh_testdir
 	dh_testroot
 	dh_installdocs -i
@@ -223,7 +224,6 @@ binary-indep: build-indep install-indep debian-files
 
 binary-arch: build-arch arrange-arch debian-files
 	@echo "--- Building: arch packages"
-	dh_testversion 2
 	dh_testdir
 	dh_testroot
 	dh_installdocs -a

@@ -14,6 +14,7 @@ in /etc/texmf/texmf.cnf to use (at least) the specified values:
  hash_extra = 10000
  pool_size.context = 1500000
  pool_size = 250000
+ max_strings = 30000
 
 You'll probably need to run
 

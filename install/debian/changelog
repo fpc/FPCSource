@@ -1,9 +1,9 @@
-fpc (1.1-0) unstable; urgency=low
+fpc (1.0.6-20020228) unstable; urgency=low
 
-  * Snapshot release
+  * New upstream version.
 
  -- Peter Vreman <peter@freepascal.org>  Tue,  1 Mrt 2002 11:01:50 +0100
- 
+
 fpc (1.0.4-2) unstable; urgency=low
 
   * New maintainer.
@@ -13,7 +13,7 @@ fpc (1.0.4-2) unstable; urgency=low
     build-deps list.
 
  -- Carlos Laviola <claviola@debian.org>  Wed, 29 Aug 2001 23:15:17 -0300
- 
+
 fpc (1.0.4-1) unstable; urgency=low
 
   * New upstream version.
@@ -110,8 +110,3 @@ fpc (0.99.12a-1) unstable; urgency=low
   * Initial Release
 
  -- Peter Vreman <pfv@cooldown.demon.nl>  Thu, 10 Jun 1999 12:00:00 +0200
-
-Local variables:
-mode: debian-changelog
-add-log-mailing-address: "mf@debian.org"
-End:
