@@ -403,8 +403,10 @@ procedure create_tokenidx;
 
 implementation
 
+{$ifdef TP}
 uses
-  globals;
+  dos;
+{$endif}
 
 procedure create_tokenidx;
 { create an index with the first and last token for every possible token
@@ -428,12 +430,16 @@ procedure inittokens;
 {$ifdef TP}
 var
   f:file;
+  n : namestr;
+  d : dirstr;
+  e : extstr;
   header:string;
   a:longint;
 {$endif TP}
 begin
 {$ifdef TP}
-    assign(f,exepath+'tokens.dat');
+    fsplit(paramstr(0),n,d,e);
+    assign(f,d+'\tokens.dat');
     {$I-}
     reset(f,1);
     {We are not sure that the msg file is loaded!}
@@ -486,7 +492,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-09-16 13:41:37  peter
+  Revision 1.16  1999-09-17 09:17:49  peter
+    * removed uses globals
+
+  Revision 1.15  1999/09/16 13:41:37  peter
     * better error checking
 
   Revision 1.14  1999/09/08 16:02:04  peter
