@@ -1670,7 +1670,7 @@ ifeq ($(OS_TARGET),go32v2)
 	$(COPY) $(CVSINSTALL)/bingo32/* $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),win32)
-	$(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
+	-$(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),linux)
 	$(MAKE) -C $(CVSINSTALL)/man installman
