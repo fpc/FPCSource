@@ -43,6 +43,7 @@ Still BP compatible, Gameunit contains some BP alternatives for Go32
 procedures needed.}
 
 PROGRAM voxel;
+{$R-}
 
 
 USES Crt,Dos {$IFDEF FPC}, Go32{$ENDIF};
@@ -84,13 +85,13 @@ begin
   if (x2-x1<2) and (y2-y1<2) then
    exit;
   p1:=mp^[WORD(256*y1+x1)]; p2:=mp^[WORD(256*y2+x1)]; p3:=mp^[WORD(256*y1+x2)];
-  p4:=mp^[WORD(256*y2+x2)]; xn:=(x2+x1) shr 1; yn:=(y2+y1) shr 1;
+  p4:=mp^[WORD(256*y2+x2)]; xn:=((x2+x1) shr 1) and $ffff; yn:=((y2+y1) shr 1) and $ffff;
   dxy:=5*(x2-x1+y2-y1) div 3;
   if mp^[WORD(256*y1+xn)]=0 then mp^[WORD(256*y1+xn)]:=ncol(p1+p3,dxy,2);
   if mp^[WORD(256*yn+x1)]=0 then mp^[WORD(256*yn+x1)]:=ncol(p1+p2,dxy,2);
   if mp^[WORD(256*yn+x2)]=0 then mp^[WORD(256*yn+x2)]:=ncol(p3+p4,dxy,2);
   if mp^[WORD(256*y2+xn)]=0 then mp^[WORD(256*y2+xn)]:=ncol(p2+p4,dxy,2);
-  mp^[WORD(256*yn+xn)]:=ncol(p1+p2+p3+p4,dxy,4);
+  mp^[WORD(word(256*yn)+xn)]:=ncol(word(p1+p2+p3+p4),word(dxy),4);
   plasma(x1,y1,xn,yn); plasma(xn,y1,x2,yn);
   plasma(x1,yn,xn,y2); plasma(xn,yn,x2,y2);
 end;
@@ -99,7 +100,7 @@ procedure draw(xp,yp,dir:integer);
 var z,zobs,ix,iy,iy1,iyp,ixp,x,y,s,csf,snf,mpc,i,j:integer;
 begin
   fillchar(rng,sizeof(rng),200); zobs:=100+mp^[WORD(256*yp+xp)];
-  csf:=round(256*cos(Real(dir)/180*pi)); snf:=round(256*sin(Real(dir)/180*pi));
+  csf:=round(256*cos((dir)/180*pi)); snf:=round(256*sin((dir)/180*pi));
   fillchar(scr^,64000,0);
   for iy:=yp to yp+55 do
    begin
@@ -152,12 +153,12 @@ begin
          #75:dec(dir,10);
          #77:inc(dir,10);
          #72:begin
-              y:=y+round(5*cos(Real(dir)/180*pi));
-              x:=x+round(5*sin(Real(dir)/180*pi));
+              y:=y+round(5*cos((dir)/180*pi));
+              x:=x+round(5*sin((dir)/180*pi));
              end;
          #80:begin
-              y:=y-round(5*cos(Real(dir)/180*pi));
-              x:=x-round(5*sin(Real(dir)/180*pi));
+              y:=y-round(5*cos((dir)/180*pi));
+              x:=x-round(5*sin((dir)/180*pi));
              end;
           end;
       #27: begin
@@ -170,7 +171,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2002-02-22 21:45:24  carl
+  - range check option gives big problems
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:09  michael
