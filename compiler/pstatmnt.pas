@@ -471,7 +471,9 @@ implementation
                    symtab:=withsymtable;
                    while assigned(obj) do
                     begin
-                      symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch,refp.getcopy);
+                      { keep the original tobjectdef as owner, because that is used for
+                        visibility of the symtable }
+                      symtab.next:=twithsymtable.create(tobjectdef(p.resulttype.def),obj.symtable.symsearch,refp.getcopy);
                       symtab:=symtab.next;
                       obj:=obj.childof;
                       inc(levelcount);
@@ -1098,7 +1100,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2004-02-20 21:55:59  peter
+  Revision 1.131  2004-02-26 16:14:48  peter
+    * withsymtables need to have the original tobject owner instead of
+      the parent objectdef. Needed to check for visibility
+
+  Revision 1.130  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.129  2004/02/03 22:32:54  peter
