@@ -171,9 +171,10 @@ Const
    HexDisplayPrefix : string = '$';
 
 const
-  PathDelim=System.DirectorySeparator;
-  DriveDelim=System.DriveSeparator;
-  PathSep=System.PathSeparator;
+// commenting is VP fix. These idents are in a different unit there.
+  PathDelim={System.}DirectorySeparator;
+  DriveDelim={System.}DriveSeparator;
+  PathSep={System.}PathSeparator;
 
 
 Type
@@ -184,7 +185,9 @@ Type
   {$i sysinth.inc}
 
   { Read pchar handling functions declaration }
+  {$IFNDEF VIRTUALPASCAL}
   {$i syspchh.inc}
+  {$ENDIF}
 
   { MCBS functions }
   {$i sysansih.inc}
@@ -210,7 +213,10 @@ Type
 
 {
   $Log$
-  Revision 1.19  2003-01-01 20:58:07  florian
+  Revision 1.20  2003-09-06 20:49:54  marco
+   * Two minimal VP fixes
+
+  Revision 1.19  2003/01/01 20:58:07  florian
     + added invalid instruction exception
 
   Revision 1.18  2002/10/07 19:43:24  florian
