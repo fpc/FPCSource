@@ -34,6 +34,7 @@ interface
     type
        pstring = ^string;
        get_var_value_proc=function(const s:string):string of object;
+       Tcharset=set of char;
 
 
     {# Returns the minimal value between @var(a) and @var(b) }
@@ -73,6 +74,7 @@ interface
        exponent value is returned in power.
     }
     function ispowerof2(value : int64;var power : longint) : boolean;
+    function backspace_quote(const s:string;const qchars:Tcharset):string;
     function maybequoted(const s:string):string;
     function CompareText(S1, S2: string): longint;
 
@@ -610,6 +612,20 @@ uses
       end;
 
 
+    function backspace_quote(const s:string;const qchars:Tcharset):string;
+
+    var i:byte;
+
+    begin
+      backspace_quote:='';
+      for i:=1 to length(s) do
+        begin
+          if s[i] in qchars then
+            backspace_quote:=backspace_quote+'\';
+          backspace_quote:=backspace_quote+s[i];
+        end;
+    end;
+
     function maybequoted(const s:string):string;
       var
         s1 : string;
@@ -1104,7 +1120,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2004-01-25 13:18:59  daniel
+  Revision 1.34  2004-01-26 22:08:20  daniel
+    * Bugfix on constant strings stab generation. Never worked and still
+      doesn't work for unknown reasons.
+
+  Revision 1.33  2004/01/25 13:18:59  daniel
     * Made varags parameter constant
 
   Revision 1.32  2004/01/25 11:33:48  daniel

@@ -2150,7 +2150,7 @@ implementation
       {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
       case consttyp of
         conststring:
-          st:='s'''+strpas(pchar(value.valueptr))+'''';
+          st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\'])+'''';
         constbool,
         constint,
         constord,
@@ -2171,7 +2171,7 @@ implementation
           { sets are not recognized by GDB}
           {***}
       end;
-      stabstring:=stabstr_evaluate('"${name}:c=$1",${N_FUNCTION},0,${line},0',[st]);
+      stabstring:=stabstr_evaluate('"${name}:c=$1",${N_FUNCTION},0,${line},0;',[st]);
     end;
 {$endif GDB}
 
@@ -2547,7 +2547,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2004-01-26 16:12:28  daniel
+  Revision 1.146  2004-01-26 22:08:20  daniel
+    * Bugfix on constant strings stab generation. Never worked and still
+      doesn't work for unknown reasons.
+
+  Revision 1.145  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 
