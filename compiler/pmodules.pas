@@ -52,7 +52,7 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       scanner,pbase,psystem,psub,parser;
+       scanner,pbase,pexpr,psystem,psub,parser;
 
     procedure create_objectfile;
       var
@@ -352,7 +352,7 @@ implementation
            exit;
          end;
      { insert the system unit, it is allways the first }
-        hp:=loadunit('System');
+        hp:=loadunit('System','');
         systemunit:=tglobalsymtable(hp.globalsymtable);
         { it's always the first unit }
         systemunit.next:=nil;
@@ -369,7 +369,7 @@ implementation
       { Objpas unit? }
         if m_objpas in aktmodeswitches then
          begin
-           hp:=loadunit('ObjPas');
+           hp:=loadunit('ObjPas','');
            tsymtable(hp.globalsymtable).next:=symtablestack;
            symtablestack:=hp.globalsymtable;
            { add to the used units }
@@ -381,7 +381,7 @@ implementation
       { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
          begin
-           hp:=loadunit('Profile');
+           hp:=loadunit('Profile','');
            tsymtable(hp.globalsymtable).next:=symtablestack;
            symtablestack:=hp.globalsymtable;
            { add to the used units }
@@ -396,7 +396,7 @@ implementation
            { Heaptrc unit }
            if (cs_gdb_heaptrc in aktglobalswitches) then
             begin
-              hp:=loadunit('HeapTrc');
+              hp:=loadunit('HeapTrc','');
               tsymtable(hp.globalsymtable).next:=symtablestack;
               symtablestack:=hp.globalsymtable;
               { add to the used units }
@@ -408,7 +408,7 @@ implementation
            { Lineinfo unit }
            if (cs_gdb_lineinfo in aktglobalswitches) then
             begin
-              hp:=loadunit('LineInfo');
+              hp:=loadunit('LineInfo','');
               tsymtable(hp.globalsymtable).next:=symtablestack;
               symtablestack:=hp.globalsymtable;
               { add to the used units }
@@ -426,6 +426,7 @@ implementation
     procedure loadunits;
       var
          s,sorg : stringid;
+         fn     : string;
          pu,
          hp : tused_unit;
          hp2 : tmodule;
@@ -442,10 +443,18 @@ implementation
            s:=pattern;
            sorg:=orgpattern;
            consume(_ID);
-         { Give a warning if objpas is loaded }
+           { support "<unit> in '<file>'" construct, but not for tp7 }
+           if not(m_tp7 in aktmodeswitches) then
+            begin
+              if try_to_consume(_OP_IN) then
+               fn:=get_stringconst
+              else
+               fn:='';
+            end;
+           { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);
-         { check if the unit is already used }
+           { check if the unit is already used }
            pu:=tused_unit(current_module.used_units.first);
            while assigned(pu) do
             begin
@@ -457,7 +466,7 @@ implementation
            if not assigned(pu) and (s<>current_module.modulename^) then
             begin
             { load the unit }
-              hp2:=loadunit(sorg);
+              hp2:=loadunit(sorg,fn);
             { the current module uses the unit hp2 }
               current_module.used_units.concat(tused_unit.create(hp2,not current_module.in_implementation));
               tused_unit(current_module.used_units.last).in_uses:=true;
@@ -1307,7 +1316,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-05-18 22:26:36  peter
+  Revision 1.33  2001-05-19 23:05:19  peter
+    * support uses <unit> in <file> construction
+
+  Revision 1.32  2001/05/18 22:26:36  peter
     * merged alignment for non-i386
 
   Revision 1.31  2001/05/09 14:11:10  jonas

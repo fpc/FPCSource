@@ -49,11 +49,11 @@ interface
           crc_array2 : pointer;
           crc_size2  : longint;
 {$endif def Test_Double_checksum}
-          constructor create(const s:string;_is_unit:boolean);
+          constructor create(const s:string;const fn:string;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
           function  openppu:boolean;
-          function  search_unit(const n : string;onlysource:boolean):boolean;
+          function  search_unit(const n : string;const fn:string;onlysource:boolean):boolean;
           procedure getppucrc;
           procedure writeppu;
           procedure loadppu;
@@ -73,7 +73,7 @@ interface
        end;
 
 
-    function loadunit(const s : stringid) : tmodule;
+    function loadunit(const s : stringid;const fn:string) : tmodule;
 
 
 implementation
@@ -94,7 +94,7 @@ uses
                                 TPPUMODULE
  ****************************************************************************}
 
-    constructor tppumodule.create(const s:string;_is_unit:boolean);
+    constructor tppumodule.create(const s:string;const fn:string;_is_unit:boolean);
       begin
         inherited create(s,_is_unit);
         ppufile:=nil;
@@ -103,7 +103,7 @@ uses
          begin
            { use the realmodulename so we can also find a case sensitive
              source filename }
-           search_unit(realmodulename^,false);
+           search_unit(realmodulename^,fn,false);
            { it the sources_available is changed then we know that
              the sources aren't available }
            if not sources_avail then
@@ -198,7 +198,7 @@ uses
       end;
 
 
-    function tppumodule.search_unit(const n : string;onlysource:boolean):boolean;
+    function tppumodule.search_unit(const n : string;const fn:string;onlysource:boolean):boolean;
       var
          singlepathstring,
          filename : string;
@@ -289,14 +289,16 @@ uses
 
        var
          fnd : boolean;
+         hs  : string;
        begin
          filename:=FixFileName(n);
          { try to find unit
             1. look for ppu in cwd
             2. look for ppu in outputpath if set, this is tp7 compatible (PFV)
-            3. look for source in cwd
-            4. local unit pathlist
-            5. global unit pathlist }
+            3. look for the specified source file (from the uses line)
+            4. look for source in cwd
+            5. local unit pathlist
+            6. global unit pathlist }
          fnd:=false;
          if not onlysource then
           begin
@@ -304,6 +306,27 @@ uses
             if (not fnd) and (current_module.outputpath^<>'') then
              fnd:=PPUSearchPath(current_module.outputpath^);
            end;
+         if (not fnd) and (fn<>'') then
+          begin
+            { the full filename is specified so we can't use here the
+              searchpath (PFV) }
+            Message1(unit_t_unitsearch,AddExtension(fn,target_info.sourceext));
+            fnd:=FindFile(AddExtension(fn,target_info.sourceext),'',hs);
+            if not fnd then
+             begin
+               Message1(unit_t_unitsearch,AddExtension(fn,target_info.pasext));
+               fnd:=FindFile(AddExtension(fn,target_info.pasext),'',hs);
+             end;
+            if fnd then
+             begin
+               sources_avail:=true;
+               do_compile:=true;
+               recompile_reason:=rr_noppu;
+               stringdispose(mainsource);
+               mainsource:=StringDup(hs);
+               SetFileName(hs,false);
+             end;
+          end;
          if (not fnd) then
           fnd:=SourceSearchPath('.');
          if (not fnd) then
@@ -853,7 +876,7 @@ uses
          begin
            if (not pu.loaded) and (pu.in_interface) then
             begin
-              loaded_unit:=loadunit(pu.name^);
+              loaded_unit:=loadunit(pu.name^,'');
               if compiled then
                exit;
               { register unit in used units }
@@ -895,7 +918,7 @@ uses
          begin
            if (not pu.loaded) and (not pu.in_interface) then
             begin
-              loaded_unit:=loadunit(pu.name^);
+              loaded_unit:=loadunit(pu.name^,'');
               if compiled then
                exit;
             { register unit in used units }
@@ -962,9 +985,9 @@ uses
            { recompile the unit or give a fatal error if sources not available }
              if not(sources_avail) and
                 not(sources_checked) then
-               if (not search_unit(modulename^,true))
+               if (not search_unit(modulename^,'',true))
                   and (length(modulename^)>8) then
-                 search_unit(copy(modulename^,1,8),true);
+                 search_unit(copy(modulename^,1,8),'',true);
              if not(sources_avail) then
                begin
                   if recompile_reason=rr_noppu then
@@ -1004,7 +1027,7 @@ uses
                                   LoadUnit
 *****************************************************************************}
 
-    function loadunit(const s : stringid) : tmodule;
+    function loadunit(const s : stringid;const fn:string) : tmodule;
       const
         ImplIntf : array[boolean] of string[15]=('interface','implementation');
       var
@@ -1086,7 +1109,7 @@ uses
                hp.reset;
                hp.scanner:=scanner;
                { try to reopen ppu }
-               hp.search_unit(s,false);
+               hp.search_unit(s,fn,false);
                { try to load the unit a second time first }
                current_module:=hp;
                current_module.in_second_load:=true;
@@ -1096,7 +1119,7 @@ uses
             else
           { generates a new unit info record }
              begin
-                current_module:=tppumodule.create(s,true);
+                current_module:=tppumodule.create(s,fn,true);
                 scanner:=nil;
                 second_time:=false;
              end;
@@ -1125,7 +1148,7 @@ uses
                while assigned(hp2) do
                 begin
                   if hp2.do_reload then
-                   dummy:=loadunit(hp2.modulename^);
+                   dummy:=loadunit(hp2.modulename^,'');
                   hp2:=tmodule(hp2.next);
                 end;
              end
@@ -1149,7 +1172,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.6  2001-05-19 21:08:59  peter
+  Revision 1.7  2001-05-19 23:05:19  peter
+    * support uses <unit> in <file> construction
+
+  Revision 1.6  2001/05/19 21:08:59  peter
     * skip program when checking loaded_units for a unit
 
   Revision 1.5  2001/05/19 13:22:47  peter

@@ -383,7 +383,7 @@ implementation
            end
          else
           begin
-            current_module:=tppumodule.create(filename,false);
+            current_module:=tppumodule.create(filename,'',false);
             main_module:=current_module;
           end;
 
@@ -617,7 +617,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-05-06 14:49:17  peter
+  Revision 1.19  2001-05-19 23:05:19  peter
+    * support uses <unit> in <file> construction
+
+  Revision 1.18  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 
