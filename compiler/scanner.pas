@@ -647,6 +647,37 @@ implementation
       end;
 
     procedure dir_include;
+
+        function findincludefile(const path,name,ext:string;var foundfile:string):boolean;
+        var
+          found : boolean;
+          hpath : string;
+        begin
+         { look for the include file
+            1. specified path,path of current inputfile,current dir
+            2. local includepath
+            3. global includepath }
+           found:=false;
+           foundfile:='';
+           hpath:='';
+           if path<>'' then
+             begin
+               if not path_absolute(path) then
+                 hpath:=current_scanner.inputfile.path^+path
+               else
+                 hpath:=path+';'+current_scanner.inputfile.path^;
+             end
+           else
+             hpath:=current_scanner.inputfile.path^;
+           found:=FindFile(name+ext,hpath+';.'+source_info.DirSep,foundfile);
+           if (not found) then
+            found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
+           if (not found) then
+            found:=includesearchpath.FindFile(name+ext,foundfile);
+           findincludefile:=found;
+        end;
+
+
       var
         foundfile,
         hs    : string;
@@ -711,26 +742,16 @@ implementation
          begin
            hs:=FixFileName(hs);
            fsplit(hs,path,name,ext);
-         { look for the include file
-            1. specified path,path of current inputfile,current dir
-            2. local includepath
-            3. global includepath }
-           found:=false;
-           foundfile:='';
-           if path<>'' then
-             begin
-               if not path_absolute(path) then
-                 path:=current_scanner.inputfile.path^+path
-               else
-                 path:=path+';'+current_scanner.inputfile.path^;
-             end
-           else
-             path:=current_scanner.inputfile.path^;
-           found:=FindFile(name+ext,path+';.'+source_info.DirSep,foundfile);
-           if (not found) then
-            found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
-           if (not found) then
-            found:=includesearchpath.FindFile(name+ext,foundfile);
+           { try to find the file }
+           found:=findincludefile(path,name,ext,foundfile);
+           if (ext='') then
+            begin
+              { try default extensions .pp and .pas }
+              if (not found) then
+               found:=findincludefile(path,name,target_info.sourceext,foundfile);
+              if (not found) then
+               found:=findincludefile(path,name,target_info.pasext,foundfile);
+            end;
          { save old postion and decrease linebreak }
            if c=newline then
             dec(current_scanner.line_no);
@@ -2735,7 +2756,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.31  2002-03-01 14:39:44  peter
+  Revision 1.32  2002-04-19 15:42:11  peter
+    * default extension checking for include files
+
+  Revision 1.31  2002/03/01 14:39:44  peter
     * fixed // and (* parsing to not be done when already parsing a
       tp comment in skipuntildirective
 
