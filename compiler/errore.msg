@@ -255,8 +255,8 @@ scan_n_version_not_support=02047_N_VERSION is not supported by target OS.
 scan_n_only_exe_version=02048_N_VERSION only for exes or DLLs
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
 scan_w_wrong_version_ignored=02049_W_Wrong format for VERSION directive $1
-% The \var{\{\$VERSION\}} directive format is major_version.minor_version
-% where major_version and minor_version are words.
+% The \var{\{\$VERSION\}} directive format is majorversion.minorversion
+% where majorversion and minorversion are words.
 scan_w_unsupported_asmmode_specifier=02050_W_Unsupported assembler style specified $1
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
@@ -300,7 +300,7 @@ parser_w_proc_interrupt_ignored=03003_W_Procedure type INTERRUPT ignored for not
 % This is a warning. \var{INTERRUPT} is a i386 specific construct
 % and is ignored for other processors.
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedure can't be nested
-% An \VAR{INTERRUPT} procedure must be global.
+% An \var{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Procedure type $1 ignored
 % This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
 % This is introduced first for Delphi compatibility.
@@ -828,7 +828,7 @@ parser_e_ill_property_storage_sym=03155_E_This symbol isn't allowed as storage s
 % boolean class fields or boolean constants
 parser_e_only_publishable_classes_can__be_published=03156_E_Only class which are compiled in $M+ mode can be published
 % In the published section of a class can be only class as fields used which
-% are compiled in $M+ or which are derived from such a class. Normally
+% are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
 parser_e_proc_directive_expected=03157_E_Procedure directive expected
 % When declaring a procedure in a const block you used a ; after the
