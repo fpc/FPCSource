@@ -24,9 +24,9 @@ function InterLockedDecrement (var Target: integer) : Integer; assembler;
 { side-effect: target := target-1 }
 asm
 InterLockedDecLoop:
-        lwarx   r0,0(r3)
+        lwarx   r0,r0,r3
         subi    r0,r0,1
-        stwcx.  r0,0(r3)
+        stwcx.  r0,r0,r3
         bne     InterLockedDecLoop
         mr      r3,r0
 end;
@@ -38,9 +38,9 @@ function InterLockedIncrement (var Target: integer) : Integer; assembler;
 { side-effect: target := target+1 }
 asm
 InterLockedIncLoop:
-        lwarx   r0,0(r3)
+        lwarx   r0,r0,r3
         addi    r0,r0,1
-        stwcx.  r0,0(r3)
+        stwcx.  r0,r0,r3
         bne     InterLockedIncLoop
         mr      r3,r0
 end;
@@ -52,8 +52,8 @@ function InterLockedExchange (var Target: integer;Source : integer) : Integer; a
 { side-effect: target := source                 }
 asm
 InterLockedXchgLoop:
-        lwarx   r0,0(r3)
-        stwcx.  r4,0(r3)
+        lwarx   r0,r0,r3
+        stwcx.  r4,r0,r3
         bne     InterLockedXchgLoop
         mr      r3,r0
 end;
@@ -64,18 +64,21 @@ function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer
 { output: target in r3                          }
 { side-effect: target := target+source          }
 asm
-InterLockedXchgLoop:
-        lwarx   r0,0(r3)
+InterLockedXchgAddLoop:
+        lwarx   r0,r0,r3
         add     r0,r0,r4
-        stwcx.  r0,0(r3)
-        bne     InterLockedXchgLoop
+        stwcx.  r0,r0,r3
+        bne     InterLockedXchgAddLoop
         sub     r3,r0,r4
 end;
 
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:26  peter
+  Revision 1.3  2003-04-24 12:13:23  florian
+    * fixed assembler errors
+
+  Revision 1.2  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
 }
