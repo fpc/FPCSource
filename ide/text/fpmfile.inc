@@ -94,7 +94,8 @@ begin
          GetDir(DriveNumber,StoreDir2);
          ChDir(Copy(FileDir,1,2));
        end;
-     ChDir(FileDir);
+     if FileDir<>'' then
+       ChDir(FileDir);
      New(D, Init(OpenExts,'Open a file','File to ope~n~',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
@@ -179,7 +180,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-08-16 18:25:20  peter
+  Revision 1.14  1999-10-27 10:44:08  pierre
+   * Avoid ChDir('') gives sometimes DosError 3 !!
+
+  Revision 1.13  1999/08/16 18:25:20  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
