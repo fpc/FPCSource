@@ -71,13 +71,13 @@ begin
           end;
     'R' : begin
             if More='ATT' then
-             aktasmmode:=I386_ATT
+             initasmmode:=I386_ATT
             else
              if More='INTEL' then
-              aktasmmode:=I386_INTEL
+              initasmmode:=I386_INTEL
             else
              if More='DIRECT' then
-              aktasmmode:=I386_DIRECT
+              initasmmode:=I386_DIRECT
             else
              IllegalPara(opt);
           end;
@@ -89,7 +89,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-05-23 01:21:14  peter
+  Revision 1.6  1998-05-28 17:26:48  peter
+    * fixed -R switch, it didn't work after my previous akt/init patch
+    * fixed bugs 110,130,136
+
+  Revision 1.5  1998/05/23 01:21:14  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

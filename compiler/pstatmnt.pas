@@ -174,11 +174,10 @@ unit pstatmnt;
       begin
          consume(_CASE);
          caseexpr:=comp_expr(true);
-         { determines result type }
+       { determines result type }
          cleartempgen;
          do_firstpass(caseexpr);
          casedef:=caseexpr^.resulttype;
-
          if not(is_ordinal(casedef)) then
            Message(parser_e_ordinal_expected);
 
@@ -1122,7 +1121,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.12  1998-05-21 19:33:33  peter
+  Revision 1.13  1998-05-28 17:26:50  peter
+    * fixed -R switch, it didn't work after my previous akt/init patch
+    * fixed bugs 110,130,136
+
+  Revision 1.12  1998/05/21 19:33:33  peter
     + better procedure directive handling and only one table
 
   Revision 1.11  1998/05/20 09:42:35  pierre

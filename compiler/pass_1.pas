@@ -1855,7 +1855,10 @@ unit pass_1;
       begin
          firstpass(p^.left);
          if codegenerror then
-           exit;
+           begin
+             p^.resulttype:=generrordef;
+             exit;
+           end;
 
          p^.registers32:=max(p^.left^.registers32,1);
          p^.registersfpu:=p^.left^.registersfpu;
@@ -2286,7 +2289,10 @@ unit pass_1;
          firstpass(p^.left);
 
        if codegenerror then
-         exit;
+         begin
+           p^.resulttype:=generrordef;
+           exit;
+         end;
 
        if not assigned(p^.left^.resulttype) then
         begin
@@ -3893,9 +3899,11 @@ unit pass_1;
 
       begin
          firstpass(p^.left);
-
          if codegenerror then
-           exit;
+           begin
+             p^.resulttype:=generrordef;
+             exit;
+           end;
 
          p^.resulttype:=p^.vs^.definition;
          { this must be done in the parser
@@ -4904,7 +4912,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.21  1998-05-25 17:11:41  pierre
+  Revision 1.22  1998-05-28 17:26:49  peter
+    * fixed -R switch, it didn't work after my previous akt/init patch
+    * fixed bugs 110,130,136
+
+  Revision 1.21  1998/05/25 17:11:41  pierre
     * firstpasscount bug fixed
       now all is already set correctly the first time
       under EXTDEBUG try -gp to skip all other firstpasses

@@ -21,7 +21,7 @@
  ****************************************************************************
 }
 {$ifdef TP}
-  {$E+,F+,N+,D+,L-,Y+}
+  {$E+,F+,N+,D+,L+,Y-}
 {$endif}
 unit cgi386;
 interface
@@ -4789,10 +4789,11 @@ implementation
                                              {If lower, jump to next check.}
                                              emitl(A_JB,l2);
                                           end;
+                                      { We only check for the high bound if it is < 255, because
+                                        set elements higher than 255 do nt exist, the its always true,
+                                        so only a JMP is generated }
                                         if setparts[i].stop<>255 then
                                           begin
-                                             { We only check for the high bound if it is < 255, because
-                                               set elements higher than 255 do nt exist.}
                                              case p^.left^.location.loc of
                                                LOC_REGISTER,
                                                LOC_CREGISTER :
@@ -4804,6 +4805,11 @@ implementation
                                              end;
                                              {If higher, element is in set.}
                                              emitl(A_JB,l);
+                                          end
+                                         else
+                                          begin
+                                            exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
+                                            emitl(A_JMP,l);
                                           end;
                                       end;
                                    {Emit the jump over label.}
@@ -6207,7 +6213,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.27  1998-05-25 17:11:38  pierre
+  Revision 1.28  1998-05-28 17:26:47  peter
+    * fixed -R switch, it didn't work after my previous akt/init patch
+    * fixed bugs 110,130,136
+
+  Revision 1.27  1998/05/25 17:11:38  pierre
     * firstpasscount bug fixed
       now all is already set correctly the first time
       under EXTDEBUG try -gp to skip all other firstpasses
