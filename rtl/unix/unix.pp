@@ -111,14 +111,16 @@ Function W_STOPCODE (Signal: Integer): Integer;
      File Handling
 ***************************}
 
+{$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
 Function  fsync (fd : cint) : cint;
-
 Function  Flock   (fd,mode : cint)   : cint ;
+//Function  StatFS  (Path:Pathstr;Var Info:tstatfs):cint; -> to ovlh.inc
+Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
+{$endif}
+
 Function  Flock   (var T : text;mode : cint) : cint;
 Function  Flock   (var F : File;mode : cint) : cint;
 
-Function  StatFS  (Path:Pathstr;Var Info:tstatfs):cint;
-Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
 
 Function  SelectText (var T:Text;TimeOut :PTimeVal):cint;
 Function  SelectText (var T:Text;TimeOut :cint):cint;
@@ -137,8 +139,8 @@ function  TellDir(p:pdir):clong;
 Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
 Function AssignPipe  (var pipe_in,pipe_out:text):cint;
 Function AssignPipe  (var pipe_in,pipe_out:file):cint;
-Function PClose      (Var F:text) : cint;
-Function PClose      (Var F:file) : cint;
+//Function PClose      (Var F:text) : cint;
+//Function PClose      (Var F:file) : cint;
 Function POpen       (var F:text;const Prog:String;rw:char):cint;
 Function POpen       (var F:file;const Prog:String;rw:char):cint;
 function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
@@ -183,25 +185,37 @@ Procedure Globfree (var p:pglob);
 
 procedure SigRaise (sig:integer);
 
+{$ifdef FPC_USE_LIBC}
+{$i unxdeclh.inc}
+{$else}
 {$i unxsysch.inc} //  calls used in system and not reexported from baseunix
+{$endif}
+
 
 {******************************************************************************
                             Implementation
 ******************************************************************************}
 
+{$i unxovlh.inc}
+
 Implementation
 
-Uses Strings,Syscall;
 
+Uses Strings{$ifndef FPC_USE_LIBC},Syscall{$endif};
+
+{$i unxovl.inc}
+
+{$ifndef FPC_USE_LIBC}
 {$i syscallh.inc}
 {$i ossysch.inc}
-
 {$i unxsysc.inc}
+{$endif}
 
 { Get the definitions of textrec and filerec }
 {$i textrec.inc}
 {$i filerec.inc}
 
+{$ifndef FPC_USE_LIBC}
 { Raw System calls are in Syscalls.inc}
 {$ifdef Linux}                  // Linux has more "oldlinux" compability.
 {$i sysc11.inc}
@@ -209,7 +223,10 @@ Uses Strings,Syscall;
 {$i syscalls.inc}
 {$endif}
 
-{$i unixsysc.inc}   {Syscalls only used in unit Unix/Linux}
+{$endif}
+
+{$i unixsysc.inc}   {Has platform specific libc part under ifdef, besides
+			syscalls}
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 
@@ -1381,7 +1398,10 @@ End.
 
 {
   $Log$
-  Revision 1.52  2003-12-08 17:16:30  peter
+  Revision 1.53  2003-12-30 12:24:01  marco
+   * FPC_USE_LIBC
+
+  Revision 1.52  2003/12/08 17:16:30  peter
     * fsearch should only find files
 
   Revision 1.51  2003/11/19 17:11:40  marco

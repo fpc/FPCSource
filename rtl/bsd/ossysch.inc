@@ -20,6 +20,7 @@
 //Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
 //function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
+{$ifndef FPC_USE_LIBC}
 Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'FPC_SYSC_IOCTL';
 Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
 //Function FpReadLink(name,linkname:pchar;maxlen:longint):longint;  external name  'FPC_SYSC_READLINK';
@@ -28,10 +29,14 @@ Function FpNanoSleep (req : ptimespec;rem : ptimespec) : cint; external name 'FP
 
 { can be used for getdir?}
 Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD';
+{$endif}
 
 {
   $Log$
-  Revision 1.6  2003-09-27 13:45:58  peter
+  Revision 1.7  2003-12-30 12:26:21  marco
+   * FPC_USE_LIBC
+
+  Revision 1.6  2003/09/27 13:45:58  peter
     * fpnanosleep exported in baseunix
     * fpnanosleep has pointer arguments to be C compliant
 

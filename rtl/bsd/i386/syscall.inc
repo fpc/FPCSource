@@ -23,6 +23,8 @@
 These functions are the same over all three BSDs, except that some have a
 32-bit Errno, and some a 16-bit}
 
+{$ifdef FPC_USE_SYSCALL}
+
 {$ifdef NetBSD}
  {$UNDEF ErrnoWord}
 {$endif}
@@ -145,7 +147,11 @@ asm
    addl  $28,%esp
 end;
 
+{$endif}
 {
-  $Log:
+  $Log$
+  Revision 1.10  2003-12-30 12:26:21  marco
+   * FPC_USE_LIBC
+
 
 }

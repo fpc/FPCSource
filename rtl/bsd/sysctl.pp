@@ -18,6 +18,10 @@ Unit sysctl;
 
 Interface
 
+{$ifndef FPC_USE_LIBC}
+{$define FPC_USE_SYSCALL}
+{$endif}
+
 {$I ptypes.inc}
 
 {$Packrecords C}
@@ -81,15 +85,18 @@ function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
 
 Implementation
 
+{$ifndef FPC_USE_LIBC}
 Uses Syscall;
+{$ENDIF}
 
-{temporarily}
+{$ifdef FPC_USE_LIBC}
+function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; external name 'sysctl';
+function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; external name 'sysctlbyname';
+function FPsysctlnametomib (Name: pchar;mibp:plongint;sizep:psize_t):cint; external name 'sysctltomib';
+{$else}
 {$ifdef FreeBSD}
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
-
-{I sysnr.inc}
-{I syscallh.inc}
 
 function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
@@ -135,12 +142,16 @@ Begin
                 Exit (error);
         FPsysctlnametomib:=0;
 End;
+{$endif}
 
 end.
 
 {
   $Log$
-  Revision 1.5  2003-11-19 17:11:40  marco
+  Revision 1.6  2003-12-30 12:26:21  marco
+   * FPC_USE_LIBC
+
+  Revision 1.5  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.4  2003/01/05 19:01:28  marco

@@ -22,6 +22,8 @@
 
 }
 
+{$ifdef FPC_USE_SYSCALL}
+
 Type
 
   TSysResult = longint; // all platforms, cint=32-bit.
@@ -43,10 +45,14 @@ function do_sysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult;{$if
 function do_sysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif}  external name 'FPC_DOSYS5';
 function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;{$ifndef VER1_0} oldfpccall;{$endif}  external name 'FPC_DOSYS6';
 function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64; {$ifndef VER1_0} oldfpccall;{$endif}  external name 'FPC_DOSYS7';
+{$endif}
 
 {
   $Log$
-  Revision 1.8  2003-09-15 20:08:49  marco
+  Revision 1.9  2003-12-30 12:26:21  marco
+   * FPC_USE_LIBC
+
+  Revision 1.8  2003/09/15 20:08:49  marco
    * small fixes. FreeBSD now cycles
 
   Revision 1.7  2003/09/14 20:15:01  marco

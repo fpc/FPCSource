@@ -20,7 +20,7 @@ function fpsigaddset(var nset : tsigset;signo:cint): cint;
 Begin
    if (signo<=0) or (signo > SIG_MAXSIG) Then
      Begin
-       seterrno(ESysEINVAL);
+       fpseterrno(ESysEINVAL);
        exit(-1);
      End;
    nset[(signo-1) shr ln2bitsinword]:=nset[(signo-1) shr ln2bitsinword] OR (1 shl ((signo-1) and ln2bitmask));
@@ -32,7 +32,7 @@ function fpsigdelset(var nset : tsigset;signo:cint): cint;
 Begin
    if (signo<=0) or (signo > SIG_MAXSIG) Then
      Begin
-       seterrno(ESysEINVAL);
+       fpseterrno(ESysEINVAL);
        exit(-1);
      End;
    nset[(signo-1) shr ln2bitsinword]:=nset[(signo-1) shr ln2bitsinword] AND NOT (1 shl ((signo-1) and ln2bitmask));
@@ -62,7 +62,7 @@ function fpsigismember(const nset : tsigset;signo:cint): cint;
 Begin
    if (signo<=0) or (signo > SIG_MAXSIG) Then
      Begin
-       seterrno(ESysEINVAL);
+       fpseterrno(ESysEINVAL);
        exit(-1);
      End;
     if ((nset[(signo-1) shr ln2bitsinword]) and (1 shl ((signo-1) and ln2bitmask)))>0 Then
@@ -73,7 +73,10 @@ End;
 
 {
    $Log$
-   Revision 1.3  2003-06-01 16:28:41  marco
+   Revision 1.4  2003-12-30 12:24:01  marco
+    * FPC_USE_LIBC
+
+   Revision 1.3  2003/06/01 16:28:41  marco
     * Enhancements to make the compiler baseunix using.
 
    Revision 1.2  2002/12/18 16:50:39  marco

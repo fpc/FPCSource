@@ -5,7 +5,7 @@
     Implementation of the POSIX unit for *BSD. In practice only includes
     other files, or specifies libc bindings.
 
-    The conditional uselibc can be used to switch from libc to syscall
+    The conditional FPC_USELIBC can be used to switch from libc to syscall
     usage for basic primitives, but it is best to use unit POSIX if
     possible. Note that the system unit must also be compiled using uselibc.
 
@@ -24,13 +24,12 @@ Uses Sysctl;
 {$I ostypes.inc}
 {$I bunxmacr.inc}
 
-{$ifdef uselibc}
+{$ifdef FPC_USE_LIBC}
    {$Linklib c}
 
 {   var
      Errno : cint; external name 'errno';}
    
-   {$i oscdeclh.inc}
 
 {$else}
    {$i sysdeclh.inc}
@@ -40,7 +39,10 @@ Uses Sysctl;
 
 {
  $Log$
- Revision 1.2  2003-06-01 16:35:27  marco
+ Revision 1.3  2003-12-30 12:26:21  marco
+  * FPC_USE_LIBC
+
+ Revision 1.2  2003/06/01 16:35:27  marco
   * Several small fixes to harmonize the *BSD rtls and Linux.
 
  Revision 1.1  2003/01/05 19:01:28  marco

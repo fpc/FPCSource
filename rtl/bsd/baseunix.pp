@@ -24,9 +24,17 @@ Interface
 {$define posixworkaround}	// Temporary ugly workaround for signal handler.
 				// (mainly until baseunix migration is complete)
 
+{$ifndef FPC_USE_LIBC}
+{$define FPC_USE_SYSCALL}
+{$endif}
+
 {$i errno.inc}		{ Error numbers }
 {$i bunxtype.inc}	{ Types }
+{$ifdef FPC_USE_LIBC}
+{$i oscdeclh.inc}
+{$ELSE}
 {$i bunxh.inc}		{ Functions}
+{$ENDIF}
 
 function fpgeterrno:longint; 
 procedure fpseterrno(err:longint); 
@@ -34,6 +42,8 @@ procedure fpseterrno(err:longint);
 {$ifndef ver1_0}
 property errno : cint read fpgeterrno write fpseterrno;
 {$endif}
+
+{$i bunxovlh.inc}
 
 implementation
 
@@ -48,7 +58,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-12-10 17:13:43  marco
+  Revision 1.6  2003-12-30 12:26:21  marco
+   * FPC_USE_LIBC
+
+  Revision 1.5  2003/12/10 17:13:43  marco
    * property support under ifndef ver1_0
 
   Revision 1.4  2003/12/10 17:08:33  marco

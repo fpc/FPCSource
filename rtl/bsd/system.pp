@@ -21,25 +21,60 @@
 { If you use an aout system, set the conditional AOUT}
 { $Define AOUT}
 
-{$ifdef BSD}
 Unit {$ifdef VER1_0}SysBSD{$else}System{$endif};
-{$else}
-Unit {$ifdef VER1_0}Syslinux{$else}System{$endif};
-{$endif}
 
 Interface
 
-{$I sysunixh.inc}
 
 {$define FPC_USE_SIGPROCMASK}
 {$define FPC_USE_SIGALTSTACK}
 
-CONST SIGSTKSZ = 40960;
+{$ifndef FPC_USE_LIBC}
+{$define FPC_USE_SYSCALL}
+{$endif}
 
+{$define FPC_IS_SYSTEM}
+
+{$I sysunixh.inc}
+
+CONST SIGSTKSZ = 40960;
 
 Implementation
 
-Var Errno : longint;
+{$ifdef FPC_USE_LIBC}
+
+const clib = 'c';
+
+type libcint=longint;
+     plibcint=^libcint;
+
+{$ifdef FreeBSD} // tested on x86
+function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+{$else}
+{$ifdef NetBSD} // from a sparc dump.
+function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
+{$else} 
+{$endif}
+{$endif}
+
+function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
+
+begin
+ geterrno:=geterrnolocation^;
+end;
+
+procedure seterrno(err:libcint); [public, alias: 'FPC_SYS_SETERRNO'];
+begin
+  geterrnolocation^:=err;
+end;
+
+{$else}
+{$ifdef ver1_0}
+Var
+{$else}
+threadvar
+{$endif}
+      Errno : longint;
 
 function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];
 
@@ -52,6 +87,7 @@ procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
 begin
  Errno:=err;
 end;
+{$endif}
 
 { OS independant parts}
 
@@ -108,7 +144,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2003-10-26 17:01:04  marco
+  Revision 1.11  2003-12-30 12:26:21  marco
+   * FPC_USE_LIBC
+
+  Revision 1.10  2003/10/26 17:01:04  marco
    * moved sigprocmask to system
 
   Revision 1.9  2003/10/26 16:42:22  marco

@@ -61,7 +61,7 @@ begin
    end;
 end;
 
-
+{$ifndef FPC_USE_LIBC}
 Function fpgetenv(name:pchar):pchar;
 
 var
@@ -98,6 +98,7 @@ Begin
   end;
  fpgetenv:=nil;
 End;
+{$ENDIF}
 
 Function fpgetenv(name:string):Pchar; [public, alias : 'FPC_SYSC_FPGETENV'];
 {
@@ -113,7 +114,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-09-14 20:15:01  marco
+  Revision 1.3  2003-12-30 12:24:01  marco
+   * FPC_USE_LIBC
+
+  Revision 1.2  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.1  2002/12/18 16:50:39  marco

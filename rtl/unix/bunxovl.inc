@@ -68,6 +68,7 @@ Begin
   FpOpen:=FpOpen(pchar(Path),flags,mode);
 End;
 
+
 Function  FpMkdir (path : AnsiString; Mode: TMode):cInt;
 Begin
   FpMkdir:=FpMkdir(pchar(Path),mode);
@@ -132,7 +133,7 @@ begin
       sa.sa_flags :=sa.sa_flags or SA_RESTART;
 }
      FPSigaction(signum,@sa,@osa);
-     if getErrNo<>0 then
+     if fpgetErrNo<>0 then
        fpsignal:=NIL
      else
       {$ifdef BSD}
@@ -142,8 +143,11 @@ begin
       {$endif}
 end;
 
+{$ifdef FPC_USE_LIBC} // can't remember why this is the case. Might be legacy.
+function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'read';
+{$else}
 function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
-
+{$endif}
 
 Function  FpRead	   (fd : cInt;var buf; nbytes : TSize): TSsize;
 
@@ -186,6 +190,14 @@ Function  FpOpendir (dirname : AnsiString): pDir;
 Begin
   FpOpenDir:=FpOpenDir(pchar(dirname));
 End;
+
+
+Function  FpOpendir (dirname : shortString): pDir;
+Begin
+  dirname:=dirname+#0;
+  FpOpenDir:=FpOpenDir(pchar(@dirname[1]));
+End;
+
 
 Function  FpStat (path: String; var buf : stat): cInt;
 
@@ -289,7 +301,7 @@ Var
 begin
   if textrec(t).mode=fmclosed then
    begin
-     SetErrNo(ESysEBADF);
+     fpSetErrNo(ESysEBADF);
      exit(-1);
    end;
   FpFD_ZERO(f);
@@ -319,7 +331,10 @@ end;
 
 {
  $Log$
- Revision 1.7  2003-10-27 17:12:45  marco
+ Revision 1.8  2003-12-30 12:24:01  marco
+  * FPC_USE_LIBC
+
+ Revision 1.7  2003/10/27 17:12:45  marco
   * fixes for signal handling.
 
  Revision 1.6  2003/10/13 11:37:57  marco

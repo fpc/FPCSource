@@ -35,7 +35,7 @@ Type
   end;
   PSysInfo = ^TSysInfo;
 
-Function Sysinfo(var Info:TSysinfo):Boolean;
+Function Sysinfo(var Info:TSysinfo):Boolean; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
 Const
   CSIGNAL       = $000000ff; // signal mask to be sent at exit
@@ -48,10 +48,11 @@ Const
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
-function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 
 implementation
 
+{$ifndef FPC_USE_LIBC}
 Uses Syscall;
 
 Function Sysinfo(var Info:TSysinfo):Boolean;
@@ -140,13 +141,16 @@ begin
   *)
 {$endif cpum68k}
 end;
-
+{$endif}
 
 end.
 
 {
    $Log$
-   Revision 1.3  2003-11-17 11:28:08  marco
+   Revision 1.4  2003-12-30 12:24:01  marco
+    * FPC_USE_LIBC
+
+   Revision 1.3  2003/11/17 11:28:08  marco
     * Clone moved to linux, + few small unit unix changes
 
    Revision 1.2  2003/09/15 20:08:49  marco

@@ -151,7 +151,7 @@ end;
 Function Errno2InoutRes : longint;
 
 begin
-  Errno2InoutRes:=PosixToRunError(Errno);
+  Errno2InoutRes:=PosixToRunError(getErrno);
   InoutRes:=Errno2InoutRes;
 end;
 
@@ -206,10 +206,13 @@ End;
 
 
 Function Do_Write(Handle,Addr,Len:Longint):longint;
+
+var j : cint;
 Begin
   repeat
     Do_Write:=Fpwrite(Handle,pchar(addr),len);
-  until (do_write<>-1) or ((ErrNo<>ESysEINTR) and (Errno<>ESysEAgain));
+    j:=geterrno;
+  until (do_write<>-1) or ((j<>ESysEINTR) and (j<>ESysEAgain));
   If Do_Write<0 Then
    Begin
     Errno2InOutRes;
@@ -221,10 +224,14 @@ End;
 
 
 Function Do_Read(Handle,Addr,Len:Longint):Longint;
+
+var j:cint;
+
 Begin
   repeat
     Do_Read:=Fpread(Handle,pchar(addr),len);
-  until (do_read<>-1) or ((ErrNo<>ESysEINTR) and (ErrNo<>ESysEAgain));
+    j:=geterrno;
+  until (do_read<>-1) or ((j<>ESysEINTR) and (j<>ESysEAgain));
   If Do_Read<0 Then
    Begin
     Errno2InOutRes;
@@ -342,7 +349,7 @@ Begin
 { real open call }
   FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
   if (FileRec(f).Handle<0) and
-    (ErrNo=ESysEROFS) and ((OFlags and O_RDWR)<>0) then
+    (getErrNo=ESysEROFS) and ((OFlags and O_RDWR)<>0) then
    begin
      Oflags:=Oflags and not(O_RDWR);
      FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
@@ -666,7 +673,10 @@ End.
 
 {
    $Log$
-   Revision 1.8  2003-12-21 20:31:50  peter
+   Revision 1.9  2003-12-30 12:26:21  marco
+    * FPC_USE_LIBC
+
+   Revision 1.8  2003/12/21 20:31:50  peter
      * fix getdir when directory contains files that give EACCESS
 
    Revision 1.7  2003/12/14 14:47:02  marco

@@ -18,12 +18,17 @@
 
 {$i ostypes.inc}
 
-{$ifdef uselibc}
+{$ifdef FPC_USE_LIBC}
   {$Linklib c}
   // Out of date atm.
 
+{$ifdef FPC_IS_SYSTEM}
+{$i oscdeclh.inc}
+{$endif}
+{$I bunxmacr.inc}
+
 {   var
-     Errno : cint; external name 'errno';}
+     Errno : cint; external name 'errno';
 
     function Fptime(tloc:ptime_t): time_t; cdecl; external name 'time';
     function Fpopen(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
@@ -54,7 +59,7 @@
 
     function FpDup(oldd:cint):cint; cdecl; external name 'dup';
     function FpDup2(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
-
+}
 {$else}
 
 {*****************************************************************************
@@ -466,10 +471,6 @@ begin
  Fpdup2:=do_syscall(syscall_nr_dup2,TSysParam(fildes),TSysParam(fildes2));
 end;
 
-CONST
- { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$1000;
 
 
 Function Fpmunmap(start:pointer;len:size_t):cint;    [public, alias :'FPC_SYSC_MUNMAP'];
@@ -477,14 +478,6 @@ begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(start),Len);
 end;
 
-Function sbrk(size : longint) : pointer;
-begin
-  sbrk:=Fpmmap(nil,cardinal(Size),3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if sbrk=pointer(-1) then
-    sbrk:=nil
-  else
-    errno:=0;
-end;
 
 {
   Interface to Unix ioctl call.
@@ -500,22 +493,6 @@ begin
   FpIOCtl:=do_SysCall(syscall_nr_ioctl,handle,Ndx,TSysParam(data));
 end;
 
-CONST
-  IOCtl_TCGETS=$5401;
-
-Function Do_IsDevice(Handle:Longint):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-var
-  Data : array[0..255] of byte; {Large enough for termios info}
-begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
-end;
 
 Function FpGetPid:LongInt;   [public, alias : 'FPC_SYSC_GETPID'];
 {
@@ -546,7 +523,7 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
 begin
   FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,longint(how),longint(nset),longint(oset));
 end;
-
+{$user BLA!}
 Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
 {$ifndef darwin}
@@ -612,9 +589,45 @@ end;
 
 {$endif}
 
+CONST
+  IOCtl_TCGETS=$5401;
+
+Function Do_IsDevice(Handle:Longint):boolean;
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+var
+  Data : array[0..255] of byte; {Large enough for termios info}
+begin
+  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
+end;
+
+
+CONST
+ { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$1000;
+
+Function sbrk(size : cint) : pointer;
+begin
+  sbrk:=Fpmmap(nil,cardinal(Size),3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  if sbrk=pointer(-1) then
+    sbrk:=nil
+  else
+    seterrno(0);
+end;
+
+
 {
  $Log$
- Revision 1.15  2003-12-16 19:43:59  marco
+ Revision 1.16  2003-12-30 12:26:21  marco
+  * FPC_USE_LIBC
+
+ Revision 1.15  2003/12/16 19:43:59  marco
   * nil <-> 0 changes
 
  Revision 1.14  2003/10/26 17:01:04  marco

@@ -19,18 +19,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
-    Function  fpFD_SET     (fdno:cint;var nset : TFDSet): cint;
-    Function  fpFD_CLR     (fdno:cint;var nset : TFDSet): cint;
-    Function  fpFD_ZERO    (var nset : TFDSet):cint;
-    Function  fpFD_ISSET   (fdno:cint;const nset : TFDSet): cint;
-
-    Function  fpfdfillset  (var nset : TFDSet):cint;
-
-    Function  FpsigEmptySet(var nset : TSigSet): cint;
-    Function  FpSigFillSet (var nset : TSigSet): cInt;
-    Function  FpSigAddSet  (var nset : TSigSet; signo : cInt): cInt;
-    Function  FpSigDelSet  (var nset : TSigSet; signo : cInt): cInt;
-    Function  FpSigIsMember(Const nset : TSigSet; signo : cInt): cInt;
+// if you are looking for macro definitions, they are moved to bunxovlh.inc
 
     Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt;
     Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt;
@@ -100,29 +89,14 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
 
     Function  FpGetEnv     (name : pChar): pChar;
-    Function  FpGetEnv     (name : String): pChar;
-
-    Function  fpS_ISDIR    (m : TMode): Boolean;
-    Function  fpS_ISCHR    (m : TMode): Boolean;
-    Function  fpS_ISBLK    (m : TMode): Boolean;
-    Function  fpS_ISREG    (m : TMode): Boolean;
-    Function  fpS_ISFIFO   (m : TMode): Boolean;
-
-// The following two are very common, but not POSIX.
-    Function  fpS_ISLNK       (m:TMode) : Boolean;
-    Function  fpS_ISSOCK      (m:TMode) : Boolean;
-
-    Function  wifexited    (Status : cInt): cInt;
-    Function  wexitStatus  (Status : cInt): cInt;
-    Function  wstopsig     (Status : cInt): cInt;
-    Function  wifsignaled  (Status : cInt): cInt;
-    Function  wtermsig     (Status : cInt): cInt;
-
-{$i bunxovlh.inc}       // overloads and/or redefs.
+//    Function  FpGetEnv     (name : String): pChar; overloaded to bunxovlh.inc
 
 {
   $Log$
-  Revision 1.10  2003-09-27 13:49:41  peter
+  Revision 1.11  2003-12-30 12:24:01  marco
+   * FPC_USE_LIBC
+
+  Revision 1.10  2003/09/27 13:49:41  peter
     * fpnanosleep exported
 
   Revision 1.9  2003/09/27 12:51:33  peter

@@ -16,18 +16,22 @@
 
  **********************************************************************}
 
+{$ifndef FPC_USE_LIBC}
 {$i syscallh.inc}       // do_syscall declarations themselves
 {$i sysnr.inc}          // syscall numbers.
 {$i ossysch.inc}        // external interface to syscalls in system unit.
+{$endif}
 {$i genfuncs.inc}       // generic calls. (like getenv)
 
 
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}      // general fdset funcs.
 
+{$ifndef FPC_USE_LIBC}
 {  $ ifndef ver1_0}
 Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
 {   $ endif}
+{$USER BLA!}
 
 Function FPKill(Pid:pid_t;Sig:cint):cint;
 {
@@ -450,11 +454,14 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
 begin
  fpSelect:=do_syscall(syscall_nr_select,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
 end;
-
+{$endif}
 
 {
  $Log$
- Revision 1.6  2003-11-18 10:12:25  marco
+ Revision 1.7  2003-12-30 12:26:21  marco
+  * FPC_USE_LIBC
+
+ Revision 1.6  2003/11/18 10:12:25  marco
   * Small fixes for EAGAIN. bunxfunc only has comments added.
 
  Revision 1.5  2003/10/26 17:01:04  marco

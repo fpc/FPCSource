@@ -3,7 +3,9 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by Marco van de Voort
 
-    Some generic overloads for stringfunctions in the baseunix unit.
+    Functions that are not part of the libc<->syscall decision.
+    - string and file type overloads
+    - functions that are macro's in C.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -23,6 +25,7 @@ Function  FpGetcwd  (path:AnsiString; siz:TSize):AnsiString;
 Function  FpExecve  (path : AnsiString; argv : ppchar; envp: ppchar): cInt;
 Function  FpExecv   (path : AnsiString; argv : ppchar): cInt;
 Function  FpOpendir (dirname : AnsiString): pDir;
+Function  FpOpendir (dirname : shortString): pDir;
 Function  FpOpen    (path : pChar; flags : cInt):cInt;
 Function  FpOpen    (path : AnsiString; flags : cInt):cInt;
 Function  FpOpen    (path : AnsiString; flags : cInt; Mode: TMode):cInt;
@@ -52,15 +55,48 @@ Function  FpDup2    (var oldfile,newfile:file):cint;
 function  fptime    :time_t;
 
 
-Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
-Function fpSelect(var T:Text;TimeOut :PTimeval):cint;
-Function fpSelect(var T:Text;TimeOut :time_t):cint;
+Function fpSelect   (N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
+Function fpSelect   (var T:Text;TimeOut :PTimeval):cint;
+Function fpSelect   (var T:Text;TimeOut :time_t):cint;
+Function FpGetEnv   (name : String): pChar;
+
+// macro's
+
+Function fpFD_SET   (fdno:cint;var nset : TFDSet): cint;
+Function fpFD_CLR   (fdno:cint;var nset : TFDSet): cint;
+Function fpFD_ZERO  (var nset : TFDSet):cint;
+Function fpFD_ISSET (fdno:cint;const nset : TFDSet): cint;
+Function fpfdfillset(var nset : TFDSet):cint;
+
+Function FpsigEmptySet(var nset : TSigSet): cint;
+Function FpSigFillSet (var nset : TSigSet): cInt;
+Function FpSigAddSet  (var nset : TSigSet; signo : cInt): cInt;
+Function FpSigDelSet  (var nset : TSigSet; signo : cInt): cInt;
+Function FpSigIsMember(Const nset : TSigSet; signo : cInt): cInt;
+Function  fpS_ISDIR    (m : TMode): Boolean;
+Function  fpS_ISCHR    (m : TMode): Boolean;
+Function  fpS_ISBLK    (m : TMode): Boolean;
+Function  fpS_ISREG    (m : TMode): Boolean;
+Function  fpS_ISFIFO   (m : TMode): Boolean;
+
+// The following two are very common, but not POSIX.
+Function  fpS_ISLNK       (m:TMode) : Boolean;
+Function  fpS_ISSOCK      (m:TMode) : Boolean;
+
+Function  wifexited    (Status : cInt): cInt;
+Function  wexitStatus  (Status : cInt): cInt;
+Function  wstopsig     (Status : cInt): cInt;
+Function  wifsignaled  (Status : cInt): cInt;
+Function  wtermsig     (Status : cInt): cInt;
 
 
 
 {
  $Log$
- Revision 1.3  2003-09-14 20:15:01  marco
+ Revision 1.4  2003-12-30 12:24:01  marco
+  * FPC_USE_LIBC
+
+ Revision 1.3  2003/09/14 20:15:01  marco
   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
  Revision 1.2  2003/06/01 16:28:41  marco
