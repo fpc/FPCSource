@@ -126,7 +126,7 @@ begin
    the host. Look for the corresponding assembler file instead,
    because it will be assembled to object file on the target.}
   if isunit and (cs_link_on_target in aktglobalswitches) then
-	s:= ForceExtension(s,target_info.asmext);
+    s:= ForceExtension(s,target_info.asmext);
 
   { when it does not belong to the unit then check if
     the specified file exists without searching any paths }
@@ -141,14 +141,21 @@ begin
   if pos('.',s)=0 then
    s:=s+target_info.objext;
   { find object file
-     1. specified unit path (if specified)
-     2. cwd
-     3. unit search path
-     4. local object path
-     5. global object path
-     6. exepath (not when linking on target) }
+     1. output unit path
+     2. output exe path
+     3. specified unit path (if specified)
+     4. cwd
+     5. unit search path
+     6. local object path
+     7. global object path
+     8. exepath (not when linking on target) }
   found:=false;
-  if unitpath<>'' then
+  if isunit and (OutputUnitDir<>'') then
+    found:=FindFile(s,OutPutUnitDir,foundfile)
+  else
+    if OutputExeDir<>'' then
+      found:=FindFile(s,OutPutExeDir,foundfile);
+  if (not found) and (unitpath<>'') then
    found:=FindFile(s,unitpath,foundfile);
   if (not found) then
    found:=FindFile(s, CurDirRelPath(source_info), foundfile);
@@ -165,7 +172,7 @@ begin
 
   {Restore file extension}
   if isunit and (cs_link_on_target in aktglobalswitches) then
-	foundfile:= ForceExtension(foundfile,target_info.objext);
+    foundfile:= ForceExtension(foundfile,target_info.objext);
 
   findobjectfile:=ScriptFixFileName(foundfile);
 end;
@@ -699,7 +706,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.45  2004-10-14 16:25:39  mazen
+  Revision 1.46  2004-11-03 22:22:51  peter
+  First check outputunitdir/outputexedir for .o file
+
+  Revision 1.45  2004/10/14 16:25:39  mazen
   * Merge is complete for this file, cycles !
 
   Revision 1.44  2004/10/09 11:37:09  olle
