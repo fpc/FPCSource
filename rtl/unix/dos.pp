@@ -66,7 +66,11 @@ Procedure AddDisk(const path:string);
 Implementation
 
 Uses
-  Strings,UnixUtil,Unix,BaseUnix,UnixType;
+  Strings,SysUtils,Unix,BaseUnix,Syscall;
+
+
+{$i sysnr.inc}
+{$i settimeo.inc}
 
 {******************************************************************************
                            --- Link C Lib if set ---
@@ -87,6 +91,7 @@ type
                         --- Info / Date / Time ---
 ******************************************************************************}
 
+
 Const
 {Date Calculation}
   C1970 = 2440588;
@@ -103,6 +108,72 @@ type
     Minute,
     Second : Word;
   End;
+
+Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
+Var
+  Century,XYear: LongInt;
+Begin
+  If Month<=2 Then
+   Begin
+     Dec(Year);
+     Inc(Month,12);
+   End;
+  Dec(Month,3);
+  Century:=(longint(Year Div 100)*D1) shr 2;
+  XYear:=(longint(Year Mod 100)*D0) shr 2;
+  GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
+End;
+
+
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
+{
+  Transforms local time (year,month,day,hour,minutes,second) to Epoch time
+   (seconds since 00:00, january 1 1970, corrected for local time zone)
+}  
+Begin
+  LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
+                (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
+End;
+
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
+Var
+  YYear,XYear,Temp,TempMonth : LongInt;
+Begin
+  Temp:=((JulianDN-D2) shl 2)-1;
+  JulianDN:=Temp Div D1;
+  XYear:=(Temp Mod D1) or 3;
+  YYear:=(XYear Div D0);
+  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
+  Day:=((Temp Mod 153)+5) Div 5;
+  TempMonth:=Temp Div 153;
+  If TempMonth>=10 Then
+   Begin
+     inc(YYear);
+     dec(TempMonth,12);
+   End;
+  inc(TempMonth,3);  
+  Month := TempMonth;
+  Year:=YYear+(JulianDN*100);
+end;
+
+Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into local time (hour, minute,seconds)
+}
+Var
+  DateNum: LongInt;
+Begin
+  inc(Epoch,TZSeconds);
+  Datenum:=(Epoch Div 86400) + c1970;
+  JulianToGregorian(DateNum,Year,Month,day);
+  Epoch:=Abs(Epoch Mod 86400);
+  Hour:=Epoch Div 3600;
+  Epoch:=Epoch Mod 3600;
+  Minute:=Epoch Div 60;
+  Second:=Epoch Mod 60;
+End;
+
+
 
 Function DosVersion:Word;
 Var
@@ -156,36 +227,59 @@ begin
    end;
 end;
 
-
-
 Procedure GetDate(Var Year, Month, MDay, WDay: Word);
+
+var t  :TSystemtime;
+
 Begin
-  Unix.GetDate(Year,Month,MDay);
+  sysutils.getlocaltime(t);
+  mday:=t.day;
+  month:=t.month;
+  year:=t.year;
   Wday:=weekday(Year,Month,MDay);
 end;
 
 
-
-Procedure SetDate(Year, Month, Day: Word);
-Begin
-  Unix.SetDate ( Year, Month, Day );
-End;
-
-
-
-Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
-Begin
-  Unix.GetTime(Hour,Minute,Second,Sec100);
+procedure  SetTime(Hour,Minute,Second,sec100:word);
+var
+  dow,Year, Month, Day : Word;
+  
+  tv : timeval;
+begin
+  GetDate (Year, Month, Day,dow);
+  tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  Settimeofday(@tv,nil);
 end;
 
+procedure SetDate(Year,Month,Day:Word);
+var
+  Hour, Min, Sec, Sec100 : Word;
+  tv : timeval;
+begin
+  GetTime ( Hour, Min, Sec, Sec100 );
+  tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) ;
+  Settimeofday(@tv,nil);
+end;
 
+Function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
+var
+  tv : timeval;
+begin
+  tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  SetDatetime:=Settimeofday(@tv,nil)=0;
+end;
 
-Procedure SetTime(Hour, Minute, Second, Sec100: Word);
+Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
+
+var t  :TSystemtime;
+
 Begin
-  Unix.SetTime ( Hour, Minute, Second );
-End;
-
-
+  sysutils.getlocaltime(t);
+  sec100:=0;
+  second:=t.second;
+  minute:=t.minute;
+  hour  :=t.hour; 
+end;
 
 Procedure packtime(var t : datetime;var p : longint);
 Begin
@@ -223,6 +317,29 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+Procedure FSplit( Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
+Var
+  DotPos,SlashPos,i : longint;
+Begin
+  SlashPos:=0;
+  DotPos:=256;
+  i:=Length(Path);
+  While (i>0) and (SlashPos=0) Do
+   Begin
+     If (DotPos=256) and (Path[i]='.') Then
+      begin
+        DotPos:=i;
+      end;
+     If (Path[i]='/') Then
+      SlashPos:=i;
+     Dec(i);
+   End;
+  Ext:=Copy(Path,DotPos,255);
+  Dir:=Copy(Path,1,SlashPos);
+  Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
+End;
+
+
 {$ifdef HASTHREADVAR}
 {$ifdef VER1_9_2}
 var
@@ -236,20 +353,35 @@ var
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
-  pid    : longint;
-  // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
+  pid      : longint; // pid_t?
+  cmdline2 : ppchar;
+  commandline : ansistring;	
+  realpath : ansistring;
+ 
+// The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
 Begin
   LastDosExitCode:=0;
   pid:=fpFork;
   if pid=0 then
    begin
-   {The child does the actual exec, and then exits}
-     if ComLine='' then
-      Execl(Path)
+     cmdline2:=nil;
+     realpath:=path;
+     if Comline<>'' Then
+       begin
+         CommandLine:=ComLine;  // conversion must live till after fpexec!
+         cmdline2:=StringtoPPChar(CommandLine,1);
+         cmdline2^:=pchar(realPath);
+       end
      else
-      Execl(Path+' '+ComLine);
+       begin
+         getmem(cmdline2,2*sizeof(pchar));
+         cmdline2^:=pchar(realPath);
+         cmdline2[1]:=nil;
+       end;
+   {The child does the actual exec, and then exits}
+   fpExecv(pchar(realPath),cmdline2);
    {If the execve fails, we return an exitvalue of 127, to let it be known}
-     fpExit(127);
+   fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
@@ -342,6 +474,89 @@ End;
 {******************************************************************************
                        --- Findfirst FindNext ---
 ******************************************************************************}
+
+
+Function FNMatch(const Pattern,Name:string):Boolean;
+Var
+  LenPat,LenName : longint;
+
+  Function DoFNMatch(i,j:longint):Boolean;
+  Var
+    Found : boolean;
+  Begin
+  Found:=true;
+  While Found and (i<=LenPat) Do
+   Begin
+     Case Pattern[i] of
+      '?' : Found:=(j<=LenName);
+      '*' : Begin
+            {find the next character in pattern, different of ? and *}
+              while Found do
+                begin
+                inc(i);
+                if i>LenPat then Break;
+                case Pattern[i] of
+                  '*' : ;
+                  '?' : begin
+                          if j>LenName then begin DoFNMatch:=false; Exit; end;
+                          inc(j);
+                        end;
+                else
+                  Found:=false;
+                end;
+               end;
+              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
+            {Now, find in name the character which i points to, if the * or ?
+             wasn't the last character in the pattern, else, use up all the
+             chars in name}
+              Found:=false;
+              if (i<=LenPat) then
+              begin
+                repeat
+                  {find a letter (not only first !) which maches pattern[i]}
+                  while (j<=LenName) and (name[j]<>pattern[i]) do
+                    inc (j);
+                  if (j<LenName) then
+                  begin
+                    if DoFnMatch(i+1,j+1) then
+                    begin
+                      i:=LenPat;
+                      j:=LenName;{we can stop}
+                      Found:=true;
+                      Break;
+                    end else
+                      inc(j);{We didn't find one, need to look further}
+                  end else
+                  if j=LenName then
+                  begin
+                    Found:=true;
+                    Break;
+                  end;
+                  { This 'until' condition must be j>LenName, not j>=LenName.
+                    That's because when we 'need to look further' and
+                    j = LenName then loop must not terminate. }
+                until (j>LenName);
+              end else
+              begin
+                j:=LenName;{we can stop}
+                Found:=true;
+              end;
+            end;
+     else {not a wildcard character in pattern}
+       Found:=(j<=LenName) and (pattern[i]=name[j]);
+     end;
+     inc(i);
+     inc(j);
+   end;
+  DoFnMatch:=Found and (j>LenName);
+  end;
+
+Begin {start FNMatch}
+  LenPat:=Length(Pattern);
+  LenName:=Length(Name);
+  FNMatch:=DoFNMatch(1,1);
+End;
+
 
 Const
   RtlFindSize = 15;
@@ -449,6 +664,7 @@ Procedure FindNext(Var f: SearchRec);
   re-opens dir if not already in array and calls FindWorkProc
 }
 Var
+
   DirName  : Array[0..256] of Char;
   i,
   ArrayPos : Longint;
@@ -456,7 +672,7 @@ Var
   SName    : string;
   Found,
   Finished : boolean;
-  p        : PDirEnt;
+  p        : pdirent;
 Begin
   If f.SearchType=0 Then
    Begin
@@ -583,17 +799,15 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Procedure FSplit(Path: PathStr; Var Dir: DirStr; Var Name: NameStr;Var Ext: ExtStr);
-Begin
-  UnixUtil.FSplit(Path,Dir,Name,Ext);
-End;
 
+{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
+{$I fexpand.inc}
 
-Function FExpand(Const Path: PathStr): PathStr;
-Begin
-  FExpand:=Unix.FExpand(Path);
-End;
+{$UNDEF FPC_FEXPAND_GETENVPCHAR}
+{$UNDEF FPC_FEXPAND_TILDE}
+
 
 
 Function FSearch(path : pathstr;dirlist : string) : pathstr;
@@ -652,13 +866,12 @@ Procedure setftime(var f; time : longint);
 Var
   utim: utimbuf;
   DT: DateTime;
-  index: Integer;
 
 Begin
   doserror:=0;
   with utim do
     begin
-      actime:=getepochtime;
+      actime:=fptime;
       UnPackTime(Time,DT);
       modtime:=DTToUnixDate(DT);
     end;
@@ -834,7 +1047,10 @@ End.
 
 {
   $Log$
-  Revision 1.35  2004-09-25 15:09:57  peter
+  Revision 1.36  2004-10-30 20:55:54  marco
+   * unix interface cleanup
+
+  Revision 1.35  2004/09/25 15:09:57  peter
     * remove strpas() before syscalls so it chooses the pchar overload
 
   Revision 1.34  2004/08/14 14:22:17  florian

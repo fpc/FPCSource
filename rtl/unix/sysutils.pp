@@ -28,25 +28,122 @@ interface
 {$DEFINE HASUNIX}
 
 uses
-  Unix,errors,sysconst;
+  Unix,errors,sysconst,Unixtype;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
 Procedure AddDisk(const path:string);
 
+var
+  Tzseconds : Longint = 0;
+
 implementation
 
-Uses UnixUtil,Baseunix,UnixType;
+Uses Syscall,Baseunix;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
+
+Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
+
+Type
+  ComStr  = String[255];
+  PathStr = String[255];
+  DirStr  = String[255];
+  NameStr = String[255];
+  ExtStr  = String[255];
+
+
+{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+
+{$I fexpand.inc}
+
+{$UNDEF FPC_FEXPAND_GETENVPCHAR}
+{$UNDEF FPC_FEXPAND_TILDE}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
+Const
+{Date Translation}
+  C1970=2440588;
+  D0   =   1461;
+  D1   = 146097;
+  D2   =1721119;
+
+
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
+Var
+  YYear,XYear,Temp,TempMonth : LongInt;
+Begin
+  Temp:=((JulianDN-D2) shl 2)-1;
+  JulianDN:=Temp Div D1;
+  XYear:=(Temp Mod D1) or 3;
+  YYear:=(XYear Div D0);
+  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
+  Day:=((Temp Mod 153)+5) Div 5;
+  TempMonth:=Temp Div 153;
+  If TempMonth>=10 Then
+   Begin
+     inc(YYear);
+     dec(TempMonth,12);
+   End;
+  inc(TempMonth,3);  
+  Month := TempMonth;
+  Year:=YYear+(JulianDN*100);
+end;
+
+
+
+Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into local time (hour, minute,seconds)
+}
+Var
+  DateNum: LongInt;
+Begin
+  inc(Epoch,TZSeconds);
+  Datenum:=(Epoch Div 86400) + c1970;
+  JulianToGregorian(DateNum,Year,Month,day);
+  Epoch:=Abs(Epoch Mod 86400);
+  Hour:=Epoch Div 3600;
+  Epoch:=Epoch Mod 3600;
+  Minute:=Epoch Div 60;
+  Second:=Epoch Mod 60;
+End;
+
+
+
+
 {****************************************************************************
                               File Functions
 ****************************************************************************}
+
+
+
+Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
+Var
+  DotPos,SlashPos,i : longint;
+Begin
+  SlashPos:=0;
+  DotPos:=256;
+  i:=Length(Path);
+  While (i>0) and (SlashPos=0) Do
+   Begin
+     If (DotPos=256) and (Path[i]='.') Then
+      begin
+        DotPos:=i;
+      end;
+     If (Path[i]='/') Then
+      SlashPos:=i;
+     Dec(i);
+   End;
+  Ext:=Copy(Path,DotPos,255);
+  Dir:=Copy(Path,1,SlashPos);
+  Name:=Copy(Path,SlashPos + 1,DotPos - SlashPos - 1);
+End;
+
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 
@@ -183,6 +280,217 @@ begin
      Result:=Result or faSysFile;
 end;
 
+type
+
+ pglob = ^tglob;
+  tglob = record
+    name : pchar;
+    next : pglob;
+  end;
+
+Function Dirname(Const path:pathstr):pathstr;
+{
+  This function returns the directory part of a complete path.
+  Unless the directory is root '/', The last character is not
+  a slash.
+}
+var
+  Dir  : PathStr;
+  Name : NameStr;
+  Ext  : ExtStr;
+begin
+  FSplit(Path,Dir,Name,Ext);
+  if length(Dir)>1 then
+   Delete(Dir,length(Dir),1);
+  DirName:=Dir;
+end;
+
+
+Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
+{
+  This function returns the filename part of a complete path. If suf is
+  supplied, it is cut off the filename.
+}
+var
+  Dir  : PathStr;
+  Name : NameStr;
+  Ext  : ExtStr;
+begin
+  FSplit(Path,Dir,Name,Ext);
+  if Suf<>Ext then
+   Name:=Name+Ext;
+  BaseName:=Name;
+end;
+
+
+Function FNMatch(const Pattern,Name:shortstring):Boolean;
+Var
+  LenPat,LenName : longint;
+
+  Function DoFNMatch(i,j:longint):Boolean;
+  Var
+    Found : boolean;
+  Begin
+  Found:=true;
+  While Found and (i<=LenPat) Do
+   Begin
+     Case Pattern[i] of
+      '?' : Found:=(j<=LenName);
+      '*' : Begin
+            {find the next character in pattern, different of ? and *}
+              while Found do
+                begin
+                inc(i);
+                if i>LenPat then Break;
+                case Pattern[i] of
+                  '*' : ;
+                  '?' : begin
+                          if j>LenName then begin DoFNMatch:=false; Exit; end;
+                          inc(j);
+                        end;
+                else
+                  Found:=false;
+                end;
+               end;
+              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
+            {Now, find in name the character which i points to, if the * or ?
+             wasn't the last character in the pattern, else, use up all the
+             chars in name}
+              Found:=false;
+              if (i<=LenPat) then
+              begin
+                repeat
+                  {find a letter (not only first !) which maches pattern[i]}
+                  while (j<=LenName) and (name[j]<>pattern[i]) do
+                    inc (j);
+                  if (j<LenName) then
+                  begin
+                    if DoFnMatch(i+1,j+1) then
+                    begin
+                      i:=LenPat;
+                      j:=LenName;{we can stop}
+                      Found:=true;
+                      Break;
+                    end else
+                      inc(j);{We didn't find one, need to look further}
+                  end else
+                  if j=LenName then
+                  begin
+                    Found:=true;
+                    Break;
+                  end;
+                  { This 'until' condition must be j>LenName, not j>=LenName.
+                    That's because when we 'need to look further' and
+                    j = LenName then loop must not terminate. }
+                until (j>LenName);
+              end else
+              begin
+                j:=LenName;{we can stop}
+                Found:=true;
+              end;
+            end;
+     else {not a wildcard character in pattern}
+       Found:=(j<=LenName) and (pattern[i]=name[j]);
+     end;
+     inc(i);
+     inc(j);
+   end;
+  DoFnMatch:=Found and (j>LenName);
+  end;
+
+Begin {start FNMatch}
+  LenPat:=Length(Pattern);
+  LenName:=Length(Name);
+  FNMatch:=DoFNMatch(1,1);
+End;
+
+
+Procedure Globfree(var p : pglob);
+{
+  Release memory occupied by pglob structure, and names in it.
+  sets p to nil.
+}
+var
+  temp : pglob;
+begin
+  while assigned(p) do
+   begin
+     temp:=p^.next;
+     if assigned(p^.name) then
+      freemem(p^.name);
+     dispose(p);
+     p:=temp;
+   end;
+end;
+
+
+Function Glob(Const path:pathstr):pglob;
+{
+  Fills a tglob structure with entries matching path,
+  and returns a pointer to it. Returns nil on error,
+  linuxerror is set accordingly.
+}
+var
+  temp,
+  temp2   : string[255];
+  thedir  : pdir;
+  buffer  : pdirent;
+  root,
+  current : pglob;
+begin
+{ Get directory }
+  temp:=dirname(path);
+  if temp='' then
+   temp:='.';
+  temp:=temp+#0;
+  thedir:=fpopendir(@temp[1]);
+  if thedir=nil then
+    exit(nil);
+  temp:=basename(path,''); { get the pattern }
+  if thedir^.dd_fd<0 then
+     exit(nil);
+{get the entries}
+  root:=nil;
+  current:=nil;
+  repeat
+    buffer:=fpreaddir(thedir^);
+    if buffer=nil then
+     break;
+    temp2:=strpas(@(buffer^.d_name[0]));
+    if fnmatch(temp,temp2) then
+     begin
+       if root=nil then
+        begin
+          new(root);
+          current:=root;
+        end
+       else
+        begin
+          new(current^.next);
+          current:=current^.next;
+        end;
+       if current=nil then
+        begin
+           fpseterrno(ESysENOMEM);
+          globfree(root);
+          break;
+        end;
+       current^.next:=nil;
+       getmem(current^.name,length(temp2)+1);
+       if current^.name=nil then
+        begin
+          fpseterrno(ESysENOMEM);
+          globfree(root);
+          break;
+        end;
+       move(buffer^.d_name[0],current^.name^,length(temp2)+1);
+     end;
+  until false;
+  fpclosedir(thedir^);
+  glob:=root;
+end;
+
+
 {
  GlobToSearch takes a glob entry, stats the file.
  The glob entry is removed.
@@ -191,7 +499,7 @@ end;
 
 Type
   TGlobSearchRec = Record
-    Path       : String;
+    Path       : shortString;
     GlobHandle : PGlob;
   end;
   PGlobSearchRec = ^TGlobSearchRec;
@@ -446,10 +754,78 @@ end;
                               Locale Functions
 ****************************************************************************}
 
+
+Function GetEpochTime: cint;
+{
+  Get the number of seconds since 00:00, January 1 1970, GMT
+  the time NOT corrected any way
+}
+begin
+  GetEpochTime:=fptime;
+end;
+
+procedure GetTime(var hour,min,sec,msec,usec:word);
+{
+  Gets the current time, adjusted to local time
+}
+var
+  year,day,month:Word;
+  tz:timeval;
+begin
+  fpgettimeofday(@tz,nil);
+  EpochToLocal(tz.tv_sec,year,month,day,hour,min,sec);
+  msec:=tz.tv_usec div 1000;
+  usec:=tz.tv_usec mod 1000;
+end;
+
+procedure GetTime(var hour,min,sec,sec100:word);
+{
+  Gets the current time, adjusted to local time
+}
+var
+  usec : word;
+begin
+  gettime(hour,min,sec,sec100,usec);
+  sec100:=sec100 div 10;
+end;
+
+Procedure GetTime(Var Hour,Min,Sec:Word);
+{
+  Gets the current time, adjusted to local time
+}
+var
+  msec,usec : Word;
+Begin
+  gettime(hour,min,sec,msec,usec);
+End;
+
+Procedure GetDate(Var Year,Month,Day:Word);
+{
+  Gets the current date, adjusted to local time
+}
+var
+  hour,minute,second : word;
+Begin
+  EpochToLocal(fptime,year,month,day,hour,minute,second);
+End;
+
+Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
+{
+  Gets the current date, adjusted to local time
+}
+Begin
+  EpochToLocal(fptime,year,month,day,hour,minute,second);
+End;
+
+
+
+{ Include timezone handling routines which use /usr/share/timezone info }
+{$i timezone.inc}
+
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 begin
-  Unix.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
-  Unix.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
+  GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second);
+  GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
   SystemTime.MilliSecond := 0;
 end ;
 
@@ -715,7 +1091,10 @@ end.
 {
 
   $Log$
-  Revision 1.48  2004-10-12 15:22:23  michael
+  Revision 1.49  2004-10-30 20:55:54  marco
+   * unix interface cleanup
+
+  Revision 1.48  2004/10/12 15:22:23  michael
   + Fixed sleep: file needs to be closed again
 
   Revision 1.47  2004/10/10 10:28:34  michael

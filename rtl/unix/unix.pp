@@ -16,9 +16,12 @@
 Unit Unix;
 Interface
 
-Uses UnixUtil,BaseUnix,UnixType;
+Uses BaseUnix,UnixType;
 
 {$i aliasptp.inc}
+
+type
+   pathstr = string[255];
 
 {$define POSIXWORKAROUND}
 { Get Types and Constants }
@@ -37,6 +40,10 @@ Uses UnixUtil,BaseUnix,UnixType;
 {$I signal.inc}
 {$i ostypes.inc}
 
+var
+  Tzseconds : Longint;
+
+
 {********************
       File
 ********************}
@@ -53,13 +60,6 @@ Const
 
 Type
   Tpipe = baseunix.tfildes;	// compability.
-
-  pglob = ^tglob;
-  tglob = record
-    name : pchar;
-    next : pglob;
-  end;
-
 
 {******************************************************************************
                             Procedure/Functions
@@ -79,39 +79,9 @@ procedure GetLocalTimezone(timer:cint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 
-Function  GetEpochTime: cint;
-procedure GetTime     (var hour,min,sec,msec,usec:word);
-procedure GetTime     (var hour,min,sec,sec100:word);
-procedure GetTime     (var hour,min,sec:word);
-Procedure GetDate     (Var Year,Month,Day:Word);
-Procedure GetDateTime (Var Year,Month,Day,hour,minute,second:Word);
-function  SetTime     (Hour,Min,Sec:word) : Boolean;
-function  SetDate     (Year,Month,Day:Word) : Boolean;
-function  SetDateTime (Year,Month,Day,hour,minute,second:Word) : Boolean;
-
 {**************************
      Process Handling
 ***************************}
-
-
-function CreateShellArgV (const prog:string):ppchar;
-function CreateShellArgV (const prog:Ansistring):ppchar;
-procedure FreeShellArgV(p:ppchar);
-
-// These are superceded by the fpExec functions that are more pascallike
-// and have less limitations. However I'll leave them in for a while, to
-// not frustrate things too much
-// but they might not make it to 2.0
-Function Execv   (const path:pathstr;args:ppchar):cint;          {$ifndef ver1_0}deprecated; {$endif}
-Function Execv   (const path: AnsiString;args:ppchar):cint;  	 {$ifndef ver1_0}deprecated; {$endif}
-Function Execvp  (Path: Pathstr;Args:ppchar;Ep:ppchar):cint;     {$ifndef ver1_0}deprecated; {$endif}
-Function Execvp  (Path: AnsiString; Args:ppchar;Ep:ppchar):cint; {$ifndef ver1_0}deprecated; {$endif}
-Function Execl   (const Todo: String):cint;			 {$ifndef ver1_0}deprecated; {$endif}
-Function Execl   (const Todo: Ansistring):cint;			 {$ifndef ver1_0}deprecated; {$endif}
-Function Execle  (Todo: String;Ep:ppchar):cint;			 {$ifndef ver1_0}deprecated; {$endif}           
-Function Execle  (Todo: AnsiString;Ep:ppchar):cint;		 {$ifndef ver1_0}deprecated; {$endif}
-Function Execlp  (Todo: string;Ep:ppchar):cint;			 {$ifndef ver1_0}deprecated; {$endif}
-Function Execlp  (Todo: Ansistring;Ep:ppchar):cint;		 {$ifndef ver1_0}deprecated; {$endif}
 
 //
 // These are much better, in nearly all ways.
@@ -170,8 +140,8 @@ Function AssignPipe  (var pipe_in,pipe_out:file):cint;
 //Function PClose      (Var F:file) : cint;
 Function POpen       (var F:text;const Prog:String;rw:char):cint;
 Function POpen       (var F:file;const Prog:String;rw:char):cint;
-function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
-function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): cint;
+Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
+Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 
 Function  GetDomainName:String;
 Function  GetHostName:String;
@@ -224,13 +194,11 @@ Type
 		           CurrentDirectoryFirst,
 	                   CurrentDirectoryLast);
 
-Function  FExpand  (Const Path: PathStr):PathStr;
-Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
+//Function  FExpand  (Const Path: PathStr):PathStr;
+//Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
 
 Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
-Function  Glob     (Const path:pathstr):pglob;
-Procedure Globfree (var p:pglob);
 
 procedure SigRaise (sig:integer);
 
@@ -248,7 +216,6 @@ const clib = 'c';
 {$i unxovlh.inc}
 
 Implementation
-
 
 Uses Strings{$ifndef FPC_USE_LIBC},Syscall{$endif};
 
@@ -310,215 +277,6 @@ begin
      else
       WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
    end;
-end;
-
-
-function InternalCreateShellArgV(cmd:pChar; len:cint):ppchar;
-{
-  Create an argv which executes a command in a shell using /bin/sh -c
-}
-const   Shell   = '/bin/sh'#0'-c'#0;
-var
-  pp,p : ppchar;
-//  temp : string; !! Never pass a local var back!!
-begin
-  getmem(pp,4*4);
-  p:=pp;
-  p^:=@Shell[1];
-  inc(p);
-  p^:=@Shell[9];
-  inc(p);
-  getmem(p^,len+1);
-  move(cmd^,p^^,len);
-  pchar(p^)[len]:=#0;
-  inc(p);
-  p^:=Nil;
-  InternalCreateShellArgV:=pp;
-end;
-
-function CreateShellArgV(const prog:string):ppchar;
-begin
-  CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog));
-end;
-
-function CreateShellArgV(const prog:Ansistring):ppchar;
-{
-  Create an argv which executes a command in a shell using /bin/sh -c
-  using a AnsiString;
-}
-begin
-  CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog)); // if ppc works like delphi this also work when @prog[1] is invalid (len=0)
-end;
-
-procedure FreeShellArgV(p:ppchar);
-begin
-  if (p<>nil) then begin
-    freemem(p[2]);
-    freemem(p);
-   end;
-end;
-
-Function Execv(const path: AnsiString;args:ppchar):cint;
-{
-  Overloaded ansistring version.
-}
-begin
-  Execv:=fpExecVe(Path,Args,envp);
-end;
-
-Function Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
-{
-  Overloaded ansistring version
-}
-var
-  thepath : Ansistring;
-begin
-  if path[1]<>'/' then
-   begin
-     Thepath:=strpas(fpgetenv('PATH'));
-     if thepath='' then
-      thepath:='.';
-     Path:=FSearch(path,thepath)
-   end
-  else
-   Path:='';
-  if Path='' then
-   Begin
-     fpsetErrno(ESysEnoEnt);
-     Exit(-1);
-   end
-  else
-   Execvp:=fpExecve(Path,args,ep);
-end;
-
-Function Execv(const path:pathstr;args:ppchar):cint;
-{
-  Replaces the current program by the program specified in path,
-  arguments in args are passed to Execve.
-  the current environment is passed on.
-}
-begin
-  Execv:=fpExecve(path,args,envp);
-end;
-
-Function Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar):cint;
-{
-  This does the same as Execve, only it searches the PATH environment
-  for the place of the Executable, except when Path starts with a slash.
-  if the PATH environment variable is unavailable, the path is set to '.'
-}
-var
-  thepath : string;
-begin
-  if path[1]<>'/' then
-   begin
-     Thepath:=strpas(fpgetenv('PATH'));
-     if thepath='' then
-      thepath:='.';
-     Path:=FSearch(path,thepath)
-   end
-  else
-   Path:='';
-  if Path='' then
-   Begin
-     fpsetErrno(ESysEnoEnt);
-     Exit(-1);
-   end
-  else
-   execvp:=fpExecve(Path,args,ep);
-end;
-
-Function Execle(Todo:string;Ep:ppchar):cint;
-{
-  This procedure takes the string 'Todo', parses it for command and
-  command options, and Executes the command with the given options.
-  The string 'Todo' shoud be of the form 'command options', options
-  separated by commas.
-  the PATH environment is not searched for 'command'.
-  The specified environment(in 'ep') is passed on to command
-}
-var
-  p : ppchar;
-begin
-  p:=StringToPPChar(ToDo,0);
-  if (p=nil) or (p^=nil) then
-   Begin
-     fpsetErrno(ESysEnoEnt);
-     Exit(-1);
-   end
-  else
-    execle:=fpExecVE(p^,p,EP);
-end;
-
-function Execle(Todo:AnsiString;Ep:ppchar):cint;
-{
-  This procedure takes the string 'Todo', parses it for command and
-  command options, and Executes the command with the given options.
-  The string 'Todo' shoud be of the form 'command options', options
-  separated by commas.
-  the PATH environment is not searched for 'command'.
-  The specified environment(in 'ep') is passed on to command
-}
-var
-  p : ppchar;
-begin
-  p:=StringToPPChar(ToDo,0);
-  if (p=nil) or (p^=nil) then
-   Begin
-     fpsetErrno(ESysEnoEnt);
-     Exit(-1);
-   end;
-  ExecLe:=fpExecVE(p^,p,EP);
-end;
-
-Function Execl(const Todo:string):cint;
-{
-  This procedure takes the string 'Todo', parses it for command and
-  command options, and Executes the command with the given options.
-  The string 'Todo' shoud be of the form 'command options', options
-  separated by commas.
-  the PATH environment is not searched for 'command'.
-  The current environment is passed on to command
-}
-begin
-  Execl:=ExecLE(ToDo,EnvP);
-end;
-
-Function Execlp(Todo:string;Ep:ppchar):cint;
-{
-  This procedure takes the string 'Todo', parses it for command and
-  command options, and Executes the command with the given options.
-  The string 'Todo' shoud be of the form 'command options', options
-  separated by commas.
-  the PATH environment is searched for 'command'.
-  The specified environment (in 'ep') is passed on to command
-}
-var
-  p : ppchar;
-begin
-  p:=StringToPPchar(todo,0);
-  if (p=nil) or (p^=nil) then
-   Begin
-     fpsetErrno(ESysEnoEnt);
-     Exit(-1);
-   end;
-  Execlp:=ExecVP(StrPas(p^),p,EP);
-end;
-
-Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
-{
-  Overloaded ansistring version.
-}
-var
-  p : ppchar;
-begin
-  p:=StringToPPchar(todo,0);
-  if (p=nil) or (p^=nil) then
-   Begin
-     fpsetErrno(ESysEnoEnt);
-     Exit(-1);
-   end;
-  execlp:=ExecVP(StrPas(p^),p,EP);
 end;
 
 function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
@@ -805,130 +563,6 @@ begin
   W_STOPCODE:=(Signal shl 8) or $7F;
 end;
 
-{******************************************************************************
-                       Date and Time related calls
-******************************************************************************}
-
-Function GetEpochTime: cint;
-{
-  Get the number of seconds since 00:00, January 1 1970, GMT
-  the time NOT corrected any way
-}
-begin
-  GetEpochTime:=fptime;
-end;
-
-procedure GetTime(var hour,min,sec,msec,usec:word);
-{
-  Gets the current time, adjusted to local time
-}
-var
-  year,day,month:Word;
-  tz:timeval;
-begin
-  fpgettimeofday(@tz,nil);
-  EpochToLocal(tz.tv_sec,year,month,day,hour,min,sec);
-  msec:=tz.tv_usec div 1000;
-  usec:=tz.tv_usec mod 1000;
-end;
-
-procedure GetTime(var hour,min,sec,sec100:word);
-{
-  Gets the current time, adjusted to local time
-}
-var
-  usec : word;
-begin
-  gettime(hour,min,sec,sec100,usec);
-  sec100:=sec100 div 10;
-end;
-
-Procedure GetTime(Var Hour,Min,Sec:Word);
-{
-  Gets the current time, adjusted to local time
-}
-var
-  msec,usec : Word;
-Begin
-  gettime(hour,min,sec,msec,usec);
-End;
-
-Procedure GetDate(Var Year,Month,Day:Word);
-{
-  Gets the current date, adjusted to local time
-}
-var
-  hour,minute,second : word;
-Begin
-  EpochToLocal(fptime,year,month,day,hour,minute,second);
-End;
-
-Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
-{
-  Gets the current date, adjusted to local time
-}
-Begin
-  EpochToLocal(fptime,year,month,day,hour,minute,second);
-End;
-
-{$ifndef BSD}			// this can be done nicer, but I still have
-				// to think about what to do with this func.
-	
-{$ifdef linux}
-{$ifdef FPC_USE_LIBC}
-function intstime (t:ptime_t):cint; external name 'stime';
-{$endif}
-
-Function stime (t : cint) : boolean;
-{$ifndef FPC_USE_LIBC}
-  {$ifdef cpux86_64}  
-  var
-    tv : ttimeval;
-  {$endif}
-{$endif}     
-begin
-  {$ifdef FPC_USE_LIBC}
-   stime:=intstime(@t)=0;
-  {$else}
-    {$ifdef cpux86_64}  
-      tv.tv_sec:=t;
-      tv.tv_usec:=0;
-      stime:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tv),0)=0;
-    {$else}
-      stime:=do_SysCall(Syscall_nr_stime,TSysParam(@t))=0;
-    {$endif}  
-  {$endif}
-end;
-{$endif}
-{$endif}
-
-{$ifdef BSD}
-Function stime (t : cint) : Boolean;
-begin
-end;
-{$endif}
-
-Function SetTime(Hour,Min,Sec:word) : boolean;
-var
-  Year, Month, Day : Word;
-begin
-  GetDate (Year, Month, Day);
-  SetTime:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) );
-end;
-
-Function SetDate(Year,Month,Day:Word) : boolean;
-var
-  Hour, Minute, Second, Sec100 : Word;
-begin
-  GetTime ( Hour, Minute, Second, Sec100 );
-  SetDate:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) );
-end;
-
-Function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
-
-begin
-  SetDateTime:=stime ( LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) );
-end;
 
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
@@ -936,16 +570,6 @@ end;
 {******************************************************************************
                            FileSystem calls
 ******************************************************************************}
-
-Function Execl(const Todo:Ansistring):cint;
-
-{
-  Overloaded AnsiString Version of ExecL.
-}
-
-begin
-  Execl:=ExecLE(ToDo,EnvP);
-end;
 
 Function fpFlock (var T : text;mode : cint) : cint;
 begin
@@ -1314,7 +938,7 @@ begin
  POpen:=0;
 end;
 
-Function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
+Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 {
   Starts the program in 'Prog' and makes its input and output the
   other end of two pipes, which are the stdin and stdout of a program
@@ -1358,7 +982,7 @@ begin
      If fpdup2(pipo,output)=-1 Then
        halt (127);
      close(pipo);
-     Execl(Prog);
+     fpExecl(Prog,args);
      halt(127);
    end
   else
@@ -1378,7 +1002,8 @@ begin
    end;
 end;
 
-function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String):cint;
+Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
+
 {
   Starts the program in 'prog' and makes its input, output and error output the
   other end of three pipes, which are the stdin, stdout and stderr of a program
@@ -1448,7 +1073,7 @@ begin
      Halt(127);
     Close(PipeErr);
     // Execute program
-    Execl(Prog);
+    fpExecl(Prog,args);
     Halt(127);
   end else begin
     // *** We are in the parent ***
@@ -1545,26 +1170,6 @@ end;
 ******************************************************************************}
 
 {
-Function Octal(l:cint):cint;
-{
-  Convert an octal specified number to decimal;
-}
-var
-  octnr,
-  oct : cint;
-begin
-  octnr:=0;
-  oct:=0;
-  while (l>0) do
-   begin
-     oct:=oct or ((l mod 10) shl octnr);
-     l:=l div 10;
-     inc(octnr,3);
-   end;
-  Octal:=oct;
-end;
-}
-
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
@@ -1573,6 +1178,7 @@ end;
 {$UNDEF FPC_FEXPAND_GETENVPCHAR}
 {$UNDEF FPC_FEXPAND_TILDE}
 
+{}
 Function FSearch(const path:pathstr;dirlist:string):pathstr;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
@@ -1616,7 +1222,7 @@ Begin
      FSearch:=NewDir;
    End;
 End;
-
+}
 Function FSearch(const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
@@ -1678,92 +1284,6 @@ Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
 
-Procedure Globfree(var p : pglob);
-{
-  Release memory occupied by pglob structure, and names in it.
-  sets p to nil.
-}
-var
-  temp : pglob;
-begin
-  while assigned(p) do
-   begin
-     temp:=p^.next;
-     if assigned(p^.name) then
-      freemem(p^.name);
-     dispose(p);
-     p:=temp;
-   end;
-end;
-
-
-Function Glob(Const path:pathstr):pglob;
-{
-  Fills a tglob structure with entries matching path,
-  and returns a pointer to it. Returns nil on error,
-  linuxerror is set accordingly.
-}
-var
-  temp,
-  temp2   : string[255];
-  thedir  : pdir;
-  buffer  : pdirent;
-  root,
-  current : pglob;
-begin
-{ Get directory }
-  temp:=dirname(path);
-  if temp='' then
-   temp:='.';
-  temp:=temp+#0;
-  thedir:=fpopendir(@temp[1]);
-  if thedir=nil then
-    exit(nil);
-  temp:=basename(path,''); { get the pattern }
-  if thedir^.dd_fd<0 then
-     exit(nil);
-{get the entries}
-  root:=nil;
-  current:=nil;
-  repeat
-    buffer:=fpreaddir(thedir^);
-    if buffer=nil then
-     break;
-    temp2:=strpas(@(buffer^.d_name[0]));
-    if fnmatch(temp,temp2) then
-     begin
-       if root=nil then
-        begin
-          new(root);
-          current:=root;
-        end
-       else
-        begin
-          new(current^.next);
-          current:=current^.next;
-        end;
-       if current=nil then
-        begin
-           fpseterrno(ESysENOMEM);
-          globfree(root);
-          break;
-        end;
-       current^.next:=nil;
-       getmem(current^.name,length(temp2)+1);
-       if current^.name=nil then
-        begin
-          fpseterrno(ESysENOMEM);
-          globfree(root);
-          break;
-        end;
-       move(buffer^.d_name[0],current^.name^,length(temp2)+1);
-     end;
-  until false;
-  fpclosedir(thedir^);
-  glob:=root;
-end;
-
-
 {--------------------------------
       Stat.Mode Macro's
 --------------------------------}
@@ -1777,7 +1297,10 @@ End.
 
 {
   $Log$
-  Revision 1.74  2004-07-18 14:54:42  jonas
+  Revision 1.75  2004-10-30 20:55:54  marco
+   * unix interface cleanup
+
+  Revision 1.74  2004/07/18 14:54:42  jonas
     * fixed BSD getdomainname for FPC_USE_LIBC
 
   Revision 1.73  2004/07/18 11:27:54  marco
