@@ -34,6 +34,10 @@ type
     NoPressEnter,
     DoWriteLogo : boolean;
     FileLevel : longint;
+    ParaIncludePath,
+    ParaUnitPath,
+    ParaObjectPath,
+    ParaLibraryPath : string;
     Constructor Init;
     Destructor Done;
     procedure WriteLogo;
@@ -482,16 +486,28 @@ begin
                        'D' : utilsdirectory:=FixPath(More,true);
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
-                       'i' : AddPathToList(includesearchpath,More,not firstpass);
+                       'i' : if firstpass then
+                              AddPathToList(includesearchpath,More,false)
+                             else
+                              AddPathToList(ParaIncludePath,More,false);
                        'g' : Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
-                       'l' : AddPathToList(LibrarySearchPath,More,not firstpass);
+                       'l' : if firstpass then
+                              AddPathToList(LibrarySearchPath,More,false)
+                             else
+                              AddPathToList(ParaLibraryPath,More,false);
                        'L' : if More<>'' then
                               ParaDynamicLinker:=More
                              else
                               IllegalPara(opt);
-                       'o' : AddPathToList(objectsearchpath,More,not firstpass);
+                       'o' : if firstpass then
+                              AddPathToList(objectsearchpath,More,false)
+                             else
+                              AddPathToList(ParaObjectPath,More,false);
                        'r' : Msgfilename:=More;
-                       'u' : AddPathToList(unitsearchpath,More,not firstpass);
+                       'u' : if firstpass then
+                              AddPathToList(unitsearchpath,More,false)
+                             else
+                              AddPathToList(ParaUnitPath,More,false);
                        'U' : OutputUnitDir:=FixPath(More,true);
                       else
                         IllegalPara(opt);
@@ -554,7 +570,10 @@ begin
                           IllegalPara(Opt);
                         end;
                      end;
-              'I' : AddPathToList(includesearchpath,More,not firstpass);
+              'I' : if firstpass then
+                     AddPathToList(includesearchpath,More,false)
+                    else
+                     AddPathToList(ParaIncludePath,More,false);
               'k' : if more<>'' then
                      ParaLinkOptions:=ParaLinkOptions+' '+More
                     else
@@ -963,6 +982,10 @@ begin
   NoPressEnter:=false;
   FirstPass:=false;
   FileLevel:=0;
+  ParaIncludePath:='';
+  ParaObjectPath:='';
+  ParaUnitPath:='';
+  ParaLibraryPath:='';
 end;
 
 
@@ -1152,6 +1175,12 @@ begin
        inputextension:=target_os.pasext;
    end;
 
+{ Add paths specified with parameters to the searchpaths }
+  AddPathToList(UnitSearchPath,Option^.ParaUnitPath,true);
+  AddPathToList(ObjectSearchPath,Option^.ParaObjectPath,true);
+  AddPathToList(IncludeSearchPath,Option^.ParaIncludePath,true);
+  AddPathToList(LibrarySearchPath,Option^.ParaLibraryPath,true);
+
 { add unit environment and exepath to the unit search path }
   if inputdir<>'' then
    AddPathToList(Unitsearchpath,inputdir,true);
@@ -1188,7 +1217,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-09-01 22:07:20  peter
+  Revision 1.20  1999-09-03 09:31:22  peter
+    * reading of search paths fixed to work as expected
+
+  Revision 1.19  1999/09/01 22:07:20  peter
     * turn off stripping if profiling or debugging
 
   Revision 1.18  1999/08/28 17:46:10  peter
