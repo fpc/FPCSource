@@ -4,6 +4,8 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt and Peter Vreman,
     members of the Free Pascal development team
 
+    This file links to libc, and handles the libc errno abstraction.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -15,11 +17,62 @@
 unit initc;
 interface
 {$linklib c}
+
+type libcint   = longint;
+     plibcint = ^libcint;
+
+function fpgetCerrno:libcint; 
+procedure fpsetCerrno(err:libcint); 
+
 implementation
+
+{$ifdef useold}
+Var
+  interrno : libcint;external name 'h_errno';
+
+function fpgetCerrno:libcint; 
+
+begin
+  fpgetCerrno:=interrno;
+end;
+
+procedure fpsetCerrno(err:libcint); 
+begin
+  interrno:=err;
+end;
+{$else}
+
+const clib = 'c'; 
+
+{$ifdef Linux}
+function geterrnolocation: Plibcint; cdecl;external clib name '__errno_location';
+{$else}
+{$ifdef FreeBSD}
+function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+{$else}
+{$endif}
+{$endif}
+
+function fpgetCerrno:libcint; 
+
+begin
+  fpgetCerrno:=geterrnolocation^;
+end;
+
+procedure fpsetCerrno(err:libcint); 
+begin
+  geterrnolocation^:=err;
+end;
+
+{$endif}
+
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:27  peter
+  Revision 1.4  2003-12-10 11:24:25  marco
+   * get/setcerrno added
+
+  Revision 1.3  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }
