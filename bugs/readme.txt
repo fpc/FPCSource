@@ -194,4 +194,5 @@ bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 bug0143.pp   cannot concat string and array of char in $X+ mode
 bug0144.pp   problem with 'with object do'
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
+bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect
 
