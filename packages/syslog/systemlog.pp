@@ -1,4 +1,21 @@
+{
+    $Id$
+    This file is part of the Free Pascal packages.
+    Copyright (c) 1999-2000 by Michael Van Canneyt, 
+    member of the Free Pascal development team.
+    
+    This unit implements an interface to the Linux system logger.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit systemlog;
+
 {$mode objfpc}
 {$linklib c}
 
@@ -153,3 +170,9 @@ const
 //   procedure vsyslog(__pri:longint; __fmt:pchar; __ap:_BSD_VA_LIST_);cdecl;external;
 
 end.
+{
+  $Log$
+  Revision 1.2  2000-02-02 12:43:42  michael
+  + Added copyright and log
+
+}
