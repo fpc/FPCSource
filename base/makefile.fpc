@@ -379,7 +379,7 @@ endif
 # set the directory where to install the binaries
 ifndef BININSTALLDIR
 ifdef inlinux
-BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
+BININSTALLDIR=$(BASEINSTALLDIR)/bin
 else
 BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
 endif
@@ -779,7 +779,11 @@ fpc_libinstall: staticlibinstall $(SHAREDINSTALL)
 
 # Temporary path to pack a file
 ifndef PACKDIR
+ifndef inlinux
 PACKDIR=pack_tmp
+else
+PACKDIR=/tmp/fpc-pack
+endif
 endif
 
 # Test dir if none specified
@@ -969,7 +973,10 @@ endif
 
 #
 # $Log$
-# Revision 1.14  1999-04-08 10:16:17  peter
+# Revision 1.15  1999-04-16 20:12:35  michael
+# + install target now correctly takes the BASEINSTALLDIR on linux
+#
+# Revision 1.14  1999/04/08 10:16:17  peter
 #   * zipinstall for linux with .tar.gz
 #
 # Revision 1.13  1999/04/01 22:52:28  peter
