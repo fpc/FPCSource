@@ -61,31 +61,13 @@ begin
   MaxVideoBufSize:= ScreenWidth * ScreenHeight * 2;
   VideoBufSize   := ScreenWidth * ScreenHeight * 2;
 
-  GetMem(VideoBuf,MaxVideoBufSize);
-  GetMem(OldVideoBuf,MaxVideoBufSize);
-  VideoBufAllocated := true;
-
-  {grab current screen contents}
-  _CopyFromScreenMemory (ScreenHeight, ScreenWidth, VideoBuf, 0, 0);
-  Move (VideoBuf^, OldVideoBuf^, MaxVideoBufSize);
   LockUpdateScreen := 0;
-
-  {ClearScreen; not needed PM }
 end;
 
 
 procedure SysDoneVideo;
 begin
-  { ClearScreen; also not needed PM }
   SetCursorType(crUnderLine);
-  { SetCursorPos(0,0); also not needed PM }
-  if videoBufAllocated then
-  begin
-    FreeMem(VideoBuf,MaxVideoBufSize);
-    FreeMem(OldVideoBuf,MaxVideoBufSize);
-    videoBufAllocated := false;
-  end;
-  VideoBufSize:=0;
 end;
 
 
@@ -143,6 +125,7 @@ end;}
 
 procedure SysUpdateScreen(Force: Boolean);
 begin
+  if VideoBuf = nil then exit;
   if (LockUpdateScreen<>0) or (VideoBufSize = 0) then
    exit;
   if not force then
@@ -205,6 +188,7 @@ Const
 initialization
   VideoBufAllocated := false;
   VideoBufSize := 0;
+  VideoBuf := nil;
   SetVideoDriver (SysVideoDriver);
 end.
 
