@@ -722,10 +722,12 @@ implementation
     function valid_for_assign(p:ptree;allowprop:boolean):boolean;
       var
         hp : ptree;
+        gotpointer,
         gotderef : boolean;
       begin
         valid_for_assign:=false;
         gotderef:=false;
+        gotpointer:=false;
         hp:=p;
         while assigned(hp) do
          begin
@@ -743,6 +745,8 @@ implementation
                end;
              typeconvn :
                begin
+                 if hp^.resulttype^.deftype=pointerdef then
+                  gotpointer:=true;
                  { pchar -> array conversion is done then we need to see it
                    as a deref, because a ^ is then not required anymore }
                  if is_chararray(hp^.resulttype) and
@@ -757,8 +761,10 @@ implementation
              subn,
              addn :
                begin
-                 { Allow add/sub operators on a pointer }
-                 if (hp^.resulttype^.deftype=pointerdef) then
+                 { Allow add/sub operators on a pointer, or an integer
+                   and a pointer typecast and deref has been found }
+                 if (hp^.resulttype^.deftype=pointerdef) or
+                    (is_integer(hp^.resulttype) and gotpointer and gotderef) then
                   valid_for_assign:=true
                  else
                   CGMessagePos(hp^.fileinfo,type_e_variable_id_expected);
@@ -834,7 +840,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-11-06 14:34:21  peter
+  Revision 1.46  1999-11-08 22:45:33  peter
+    * allow typecasting to integer within pointer typecast+deref
+
+  Revision 1.45  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.44  1999/11/04 23:11:21  peter
