@@ -189,6 +189,7 @@ unit cgx86;
 
     procedure Tcgx86.init_register_allocators;
       begin
+        inherited init_register_allocators;
         if cs_create_pic in aktmoduleswitches then
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
         else
@@ -202,12 +203,10 @@ unit cgx86;
     procedure Tcgx86.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
-        rg[R_INTREGISTER]:=nil;
         rg[R_MMREGISTER].free;
-        rg[R_MMREGISTER]:=nil;
         rg[R_MMXREGISTER].free;
-        rg[R_MMXREGISTER]:=nil;
         rgfpu.free;
+        inherited done_register_allocators;
       end;
 
 
@@ -1921,7 +1920,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.99  2003-12-26 13:19:16  florian
+  Revision 1.100  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.99  2003/12/26 13:19:16  florian
     * rtl and compiler compile with -Cfsse2
 
   Revision 1.98  2003/12/26 00:32:22  florian

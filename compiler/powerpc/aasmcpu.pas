@@ -80,7 +80,7 @@ uses
          procedure loadbool(opidx:longint;_b:boolean);
 
 
-         function is_nop: boolean; override;
+         function is_same_reg_move: boolean; override;
          function is_reg_move:boolean; override;
 
          { register spilling code }
@@ -346,11 +346,11 @@ uses cutils,rgobj;
 
 { ****************************** newra stuff *************************** }
 
-    function taicpu.is_nop: boolean;
+    function taicpu.is_same_reg_move: boolean;
       begin
         { we don't insert any more nops than necessary }
-        is_nop :=
-          ((opcode=A_MR) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg));
+        result :=
+          ((opcode=A_MR) and (ops=2) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg));
       end;
 
 
@@ -406,7 +406,11 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.21  2003-12-16 21:49:47  florian
+  Revision 1.22  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.21  2003/12/16 21:49:47  florian
     * fixed ppc compilation
 
   Revision 1.20  2003/12/06 22:16:13  jonas

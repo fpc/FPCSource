@@ -124,6 +124,7 @@ Interface
         regs : byte;
         hasimm : boolean;
       begin
+        oper.initref;
         regs:=0;
         hasimm:=false;
         Consume(AS_LBRACKET);
@@ -621,7 +622,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-12-25 01:25:43  peter
+  Revision 1.4  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.3  2003/12/25 01:25:43  peter
     * sparc assembler reader updates
 
   Revision 1.2  2003/12/10 13:16:36  mazen

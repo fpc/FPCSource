@@ -200,9 +200,10 @@ interface
          function  Pass1(offset:longint):longint;virtual;
          procedure Pass2(sec:TAsmObjectdata);virtual;
          procedure SetOperandOrder(order:TOperandOrder);
-         function is_nop:boolean;override;
+         function is_same_reg_move:boolean;override;
          function is_reg_move:boolean;override;
          function spill_registers(list:Taasmoutput;
+                                  rt:Tregistertype;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
                                   const r:Tsuperregisterset;
@@ -1909,34 +1910,31 @@ implementation
       end;
 {$endif NOAG386BIN}
 
-    function Taicpu.is_nop:boolean;
 
-    begin
-      {We do not check the number of operands; we assume that nobody constructs
-       a mov or xchg instruction with less than 2 operands. (DM)}
-      is_nop:=(opcode=A_NOP) or
-              (opcode=A_MOV) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg) or
-              (opcode=A_XCHG) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg);
-    end;
+    function Taicpu.is_same_reg_move:boolean;
+      begin
+        result:=(ops=2) and
+                (oper[0]^.typ=top_reg) and
+                (oper[1]^.typ=top_reg) and
+                (oper[0]^.reg=oper[1]^.reg) and
+                ((opcode=A_MOV) or (opcode=A_XCHG));
+      end;
+
 
     function Taicpu.is_reg_move:boolean;
-
-    begin
-      {We do not check the number of operands; we assume that nobody constructs
-       a mov, movzx or movsx instruction with less than 2 operands. Note that
-       a move between a reference and a register is not a move that is of
-       interrest to the register allocation, therefore we only return true
-       for a move between two registers. (DM)}
-      result:=((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX)) and
-        ((oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg));
-    end;
+      begin
+        result:=(ops=2) and
+                (oper[0]^.typ=top_reg) and
+                (oper[1]^.typ=top_reg) and
+                ((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX));
+      end;
 
 
     function Taicpu.spill_registers(list:Taasmoutput;
+                                    rt:Tregistertype;
                                     rgget:Trggetproc;
                                     rgunget:Trgungetproc;
                                     const r:Tsuperregisterset;
-{                                    var unusedregsint:Tsuperregisterset;}
                                     var live_registers_int:Tsuperregisterworklist;
                                     const spilltemplist:Tspill_temp_list):boolean;
 
@@ -1966,7 +1964,7 @@ implementation
         1:
           begin
             if (oper[0]^.typ=top_reg) and
-               (getregtype(oper[0]^.reg)=R_INTREGISTER) then
+               (getregtype(oper[0]^.reg)=rt) then
               begin
                 supreg:=getsupreg(oper[0]^.reg);
                 if supregset_in(r,supreg) then
@@ -2103,7 +2101,7 @@ implementation
                     end;
                 end;
             if (oper[0]^.typ=top_reg) and
-               (getregtype(oper[0]^.reg)=R_INTREGISTER) then
+               (getregtype(oper[0]^.reg)=rt) then
               begin
                 supreg:=getsupreg(oper[0]^.reg);
                 subreg:=getsubreg(oper[0]^.reg);
@@ -2145,7 +2143,7 @@ implementation
                     end;
               end;
             if (oper[1]^.typ=top_reg) and
-               (getregtype(oper[1]^.reg)=R_INTREGISTER) then
+               (getregtype(oper[1]^.reg)=rt) then
               begin
                 supreg:=getsupreg(oper[1]^.reg);
                 subreg:=getsubreg(oper[1]^.reg);
@@ -2227,7 +2225,7 @@ implementation
                (
                 (oper[0]^.typ=top_const) or
                 ((oper[0]^.typ=top_reg) and
-                 (getregtype(oper[0]^.reg)=R_INTREGISTER))
+                 (getregtype(oper[0]^.reg)=rt))
                ) then
               begin
                 case opcode of
@@ -2269,7 +2267,7 @@ implementation
               some opcodes do not support a memory location as source }
             if (oper[0]^.typ=top_ref) and
                (oper[1]^.typ=top_reg) and
-               (getregtype(oper[1]^.reg)=R_INTREGISTER) then
+               (getregtype(oper[1]^.reg)=rt) then
               begin
                 case opcode of
                   A_BT,A_BTS,
@@ -2359,7 +2357,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-12-25 12:01:35  florian
+  Revision 1.43  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.42  2003/12/25 12:01:35  florian
     + possible sse2 unit usage for double calculations
     * some sse2 assembler issues fixed
 

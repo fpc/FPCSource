@@ -309,10 +309,6 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      { declare aliases }
-      LOC_MMREGISTER = LOC_SSEREGISTER;
-      LOC_CMMREGISTER = LOC_CSSEREGISTER;
-
       max_operands = 3;
 
       {# Constant defining possibly all registers which might require saving }
@@ -569,7 +565,11 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.21  2003-12-18 17:06:21  florian
+  Revision 1.22  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.21  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.20  2003/11/29 17:36:56  peter

@@ -36,21 +36,11 @@ interface
     type
       TCgSparc=class(tcg)
       protected
-        rgint,
-        rgfpu  : trgcpu;
         function IsSimpleRef(const ref:treference):boolean;
      public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
-        function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getaddressregister(list:Taasmoutput):Tregister;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
-        procedure ungetregister(list:Taasmoutput;r:Tregister);override;
-        procedure add_move_instruction(instr:Taicpu);override;
-        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
-        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
-        function  uses_registers(rt:Tregistertype):boolean;override;
         { sparc special, needed by cg64 }
         procedure handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:taasmoutput;op:Tasmop;src:tregister;a:aword;dst:tregister);
@@ -96,7 +86,6 @@ interface
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_concatcopy(list:TAasmOutput;const source,dest:TReference;len:aword;delsource,loadref:boolean);override;
-        class function reg_cgsize(const reg:tregister):tcgsize;override;
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -233,11 +222,12 @@ implementation
 
     procedure Tcgsparc.init_register_allocators;
       begin
-        rgint:=Trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+        inherited init_register_allocators;
+        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,
              RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],
             first_int_imreg,[]);
-        rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
              RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,
              RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
@@ -248,111 +238,18 @@ implementation
 
     procedure Tcgsparc.done_register_allocators;
       begin
-        rgint.free;
-        rgfpu.free;
-      end;
-
-
-    function tcgsparc.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
-      begin
-        result:=rgint.getregister(list,R_SUBWHOLE);
-      end;
-
-
-    function tcgsparc.getaddressregister(list:Taasmoutput):Tregister;
-      begin
-        result:=rgint.getregister(list,R_SUBWHOLE);
+        rg[R_INTREGISTER].free;
+        rg[R_FPUREGISTER].free;
+        inherited done_register_allocators;
       end;
 
 
     function tcgsparc.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
         if size=OS_F64 then
-          result:=rgfpu.getregister(list,R_SUBFD)
+          result:=rg[R_FPUREGISTER].getregister(list,R_SUBFD)
         else
-          result:=rgfpu.getregister(list,R_SUBWHOLE);
-      end;
-
-
-    procedure tcgsparc.getexplicitregister(list:Taasmoutput;r:Tregister);
-      begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            rgint.getexplicitregister(list,r);
-          R_FPUREGISTER :
-            rgfpu.getexplicitregister(list,r);
-          else
-            internalerror(200310091);
-        end;
-      end;
-
-
-    procedure tcgsparc.ungetregister(list:Taasmoutput;r:Tregister);
-      begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            rgint.ungetregister(list,r);
-          R_FPUREGISTER :
-            rgfpu.ungetregister(list,r);
-          else
-            internalerror(200310091);
-        end;
-      end;
-
-
-    procedure tcgsparc.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
-      begin
-        case rt of
-          R_INTREGISTER :
-            rgint.allocexplicitregisters(list,r);
-          R_FPUREGISTER :
-            rgfpu.allocexplicitregisters(list,r);
-          R_MMREGISTER :;
-          else
-            internalerror(200310092);
-        end;
-      end;
-
-
-    procedure tcgsparc.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
-      begin
-        case rt of
-          R_INTREGISTER :
-            rgint.deallocexplicitregisters(list,r);
-          R_FPUREGISTER :
-            rgfpu.deallocexplicitregisters(list,r);
-          R_MMREGISTER :;
-          else
-            internalerror(200310093);
-        end;
-      end;
-
-
-
-    function  TCgSparc.uses_registers(rt:Tregistertype):boolean;
-      begin
-        case rt of
-          R_INTREGISTER :
-            result:=rgint.uses_registers;
-          R_MMREGISTER  :
-            result:=false;
-          R_FPUREGISTER :
-            result:=rgfpu.uses_registers;
-          else
-            internalerror(2003120900);
-        end;
-      end;
-
-
-    procedure tcgsparc.add_move_instruction(instr:Taicpu);
-      begin
-        rgint.add_move_instruction(instr);
-      end;
-
-
-    function TCgSparc.reg_cgsize(const reg:tregister):tcgsize;
-      begin
-        result:=OS_32;
+          result:=rg[R_FPUREGISTER].getregister(list,R_SUBWHOLE);
       end;
 
 
@@ -1212,7 +1109,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-12-19 14:38:03  mazen
+  Revision 1.75  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.74  2003/12/19 14:38:03  mazen
   * new TRegister definition applied
 
   Revision 1.73  2003/12/09 09:44:22  mazen

@@ -96,10 +96,6 @@ unit procinfo;
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
-          { Allocate framepointer so it can not be used by the
-            register allocator }
-{          procedure allocate_framepointer_reg;virtual;}
-
           procedure allocate_push_parasize(size:longint);virtual;
 
           function calc_stackframe_size:longint;virtual;
@@ -110,11 +106,6 @@ unit procinfo;
 
           { Generate parameter information }
           procedure generate_parameter_info;virtual;
-
-          { This procedure is called after the pass 1 of the subroutine body is done.
-            Here the address fix ups to generate code for the body must be done.
-          }
-          {procedure after_pass1;virtual;}
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -159,18 +150,6 @@ implementation
          aktlocaldata.free;
       end;
 
-(*
-    procedure tprocinfo.allocate_framepointer_reg;
-      begin
-        if framepointer=NR_FRAME_POINTER_REG then
-          begin
-            { Make sure the register allocator won't allocate registers
-              into ebp }
-            include(rg.used_in_proc_int,RS_FRAME_POINTER_REG);
-            exclude(rg.unusedregsint,RS_FRAME_POINTER_REG);
-          end;
-      end;
-*)
 
     procedure tprocinfo.allocate_push_parasize(size:longint);
       begin
@@ -199,7 +178,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-12-16 21:29:24  florian
+  Revision 1.11  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.10  2003/12/16 21:29:24  florian
     + inlined procedures inherit procinfo flags
 
   Revision 1.9  2003/12/03 23:13:20  peter

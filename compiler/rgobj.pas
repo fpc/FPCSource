@@ -1566,6 +1566,7 @@ implementation
               begin
                 aktfilepos:=Taicpu_abstract(p).fileinfo;
                 if Taicpu_abstract(p).spill_registers(list,
+                                                      regtype,
                                                       @getregisterinline,
                                                       @ungetregisterinline,
                                                       regs_to_spill_set,
@@ -1662,7 +1663,7 @@ implementation
 
                 { Maybe the operation can be removed when
                   it is a move and both arguments are the same }
-                if Taicpu_abstract(p).is_nop then
+                if Taicpu_abstract(p).is_same_reg_move then
                   begin
                     q:=Tai(p.next);
                     list.remove(p);
@@ -1680,7 +1681,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-12-22 23:09:34  peter
+  Revision 1.109  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.108  2003/12/22 23:09:34  peter
     * only report unreleased imaginary registers
 
   Revision 1.107  2003/12/22 22:13:46  peter

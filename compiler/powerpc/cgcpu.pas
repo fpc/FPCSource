@@ -166,6 +166,7 @@ const
 
     procedure tcgppc.init_register_allocators;
       begin
+        inherited init_register_allocators;
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
              RS_R9,RS_R10,RS_R11,RS_R12,RS_R31,RS_R30,RS_R29,
@@ -186,11 +187,9 @@ const
     procedure tcgppc.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
-        rg[R_INTREGISTER]:=nil;
         rg[R_FPUREGISTER].free;
-        rg[R_FPUREGISTER]:=nil;
         rg[R_MMREGISTER].free;
-        rg[R_MMREGISTER]:=nil;
+        inherited done_register_allocators;
       end;
 
 
@@ -2317,7 +2316,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.149  2003-12-18 01:03:52  florian
+  Revision 1.150  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.149  2003/12/18 01:03:52  florian
     + register allocators are set to nil now after they are freed
 
   Revision 1.148  2003/12/16 21:49:47  florian

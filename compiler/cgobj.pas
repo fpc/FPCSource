@@ -68,9 +68,9 @@ unit cgobj;
           constructor create;
 
           {# Initialize the register allocators needed for the codegenerator.}
-          procedure init_register_allocators;virtual;abstract;
+          procedure init_register_allocators;virtual;
           {# Clean up the register allocators needed for the codegenerator.}
-          procedure done_register_allocators;virtual;abstract;
+          procedure done_register_allocators;virtual;
 
           {# Gets a register suitable to do integer operations on.}
           function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
@@ -558,7 +558,6 @@ implementation
 
     constructor tcg.create;
       begin
-        add_reg_instruction_hook:={$ifdef FPCPROCVAR}@{$endif}add_reg_instruction;
       end;
 
 
@@ -575,6 +574,22 @@ implementation
 {*****************************************************************************
                                 register allocation
 ******************************************************************************}
+
+
+    procedure tcg.init_register_allocators;
+      begin
+        fillchar(rg,sizeof(rg),0);
+        add_reg_instruction_hook:={$ifdef FPCPROCVAR}@{$endif}add_reg_instruction;
+      end;
+
+
+    procedure tcg.done_register_allocators;
+      begin
+        { Safety }
+        fillchar(rg,sizeof(rg),0);
+        add_reg_instruction_hook:=nil;
+      end;
+
 
     function tcg.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
@@ -661,7 +676,7 @@ implementation
         if assigned(rg[rt]) then
           result:=rg[rt].uses_registers
         else
-          internalerror(200310094);
+          result:=false;
       end;
 
 
@@ -2032,7 +2047,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.145  2003-12-26 13:19:16  florian
+  Revision 1.146  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.145  2003/12/26 13:19:16  florian
     * rtl and compiler compile with -Cfsse2
 
   Revision 1.144  2003/12/24 00:10:02  florian

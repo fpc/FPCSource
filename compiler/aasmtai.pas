@@ -83,9 +83,6 @@ interface
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
-{$ifdef SPARC}
-          ait_labeled_instruction,
-{$endif SPARC}
           ait_cut, { used to split into tiny assembler files }
           ait_regalloc,
           ait_tempalloc,
@@ -133,9 +130,6 @@ interface
 {$ifdef m68k}
           'labeled_instr',
 {$endif m68k}
-{$ifdef SPARC}
-          'labeled_instr',
-{$endif SPARC}
           'cut',
           'regalloc',
           'tempalloc',
@@ -491,16 +485,16 @@ interface
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
           procedure clearop(opidx:longint);
-          function is_nop:boolean;virtual;abstract;
           function is_reg_move:boolean;virtual;abstract;
+          function is_same_reg_move:boolean;virtual;abstract;
           { register allocator }
           function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var live_registers_int:Tsuperregisterworklist):Tai;
-          procedure forward_allocation(p:Tai;var {unusedregsint:tsuperregisterset}live_registers_int:Tsuperregisterworklist);
+          procedure forward_allocation(p:Tai;var live_registers_int:Tsuperregisterworklist);
           function spill_registers(list:Taasmoutput;
+                                   rt:Tregistertype;
                                    rgget:Trggetproc;
                                    rgunget:Trgungetproc;
                                    const r:tsuperregisterset;
-{                                   var unusedregsint:tsuperregisterset;}
                                    var live_registers_int:Tsuperregisterworklist;
                                    const spilltemplist:Tspill_temp_list):boolean;virtual;
           function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;virtual;abstract;
@@ -1681,8 +1675,11 @@ implementation
               segprefix:=ref^.segment;
 {$endif}
             typ:=top_ref;
-            add_reg_instruction_hook(self,ref^.base);
-            add_reg_instruction_hook(self,ref^.index);
+            if assigned(add_reg_instruction_hook) then
+              begin
+                add_reg_instruction_hook(self,ref^.base);
+                add_reg_instruction_hook(self,ref^.index);
+              end;
             { mark symbol as used }
             if assigned(ref^.symbol) then
               ref^.symbol.increfs;
@@ -1700,7 +1697,8 @@ implementation
            reg:=r;
            typ:=top_reg;
          end;
-        add_reg_instruction_hook(self,r);
+        if assigned(add_reg_instruction_hook) then
+          add_reg_instruction_hook(self,r);
 {$ifdef ARM}
         { R15 is the PC on the ARM thus moves to R15 are jumps.
           Due to speed considerations we don't use a virtual overridden method here.
@@ -1722,13 +1720,19 @@ implementation
           begin
             case typ of
               top_reg:
-                add_reg_instruction_hook(self,reg);
+                begin
+                  if assigned(add_reg_instruction_hook) then
+                    add_reg_instruction_hook(self,reg);
+                end;
               top_ref:
                 begin
                   new(ref);
                   ref^:=o.ref^;
-                  add_reg_instruction_hook(self,ref^.base);
-                  add_reg_instruction_hook(self,ref^.index);
+                  if assigned(add_reg_instruction_hook) then
+                    begin
+                      add_reg_instruction_hook(self,ref^.base);
+                      add_reg_instruction_hook(self,ref^.index);
+                    end;
                 end;
 {$ifdef ARM}
               top_shifterop:
@@ -1778,39 +1782,33 @@ implementation
             supreg:=getsupreg(Tai_regalloc(p).reg);
             {Rewind the register allocation.}
             if Tai_regalloc(p).allocation then
-{              supregset_include(unusedregsint,supreg)}
               live_registers_int.delete(supreg)
             else
               begin
-{                supregset_exclude(unusedregsint,supreg);}
                 live_registers_int.add(supreg);
                 if supreg=huntfor1 then
                   begin
                     get_insert_pos:=Tai(p.previous);
                     back.done;
                     back.copyfrom(live_registers_int);
-{                    back:=unusedregsint;}
                   end;
                 if supreg=huntfor2 then
                   begin
                     get_insert_pos:=Tai(p.previous);
                     back.done;
                     back.copyfrom(live_registers_int);
-{                    back:=unusedregsint;}
                   end;
                 if supreg=huntfor3 then
                   begin
                     get_insert_pos:=Tai(p.previous);
                     back.done;
                     back.copyfrom(live_registers_int);
-{                    back:=unusedregsint;}
                   end;
               end;
             p:=Tai(p.previous);
           end;
         live_registers_int.done;
         live_registers_int.copyfrom(back);
-{        unusedregsint:=back;}
       end;
 
 
@@ -1822,10 +1820,8 @@ implementation
             if p.typ<>ait_regalloc then
               internalerror(200305311);
             if Tai_regalloc(p).allocation then
-{              supregset_exclude(unusedregsint,getsupreg(Tai_regalloc(p).reg))}
               live_registers_int.add(getsupreg(Tai_regalloc(p).reg))
             else
-{              supregset_include(unusedregsint,getsupreg(Tai_regalloc(p).reg));}
               live_registers_int.delete(getsupreg(Tai_regalloc(p).reg));
             p:=Tai(p.next);
           end;
@@ -1833,6 +1829,7 @@ implementation
 
 
     function taicpu_abstract.spill_registers(list:Taasmoutput;
+                             rt:Tregistertype;
                              rgget:Trggetproc;
                              rgunget:Trgungetproc;
                              const r:Tsuperregisterset;
@@ -1862,7 +1859,7 @@ implementation
           else
             list.insertafter(helpins,pos.next);
           rgunget(list,self,regs[regidx].newreg);
-          forward_allocation(tai(helpins.next),{unusedregsint)}live_registers_int);
+          forward_allocation(tai(helpins.next),live_registers_int);
         end;
 
 
@@ -1888,7 +1885,7 @@ implementation
           helpins2:=spilling_create_store(regs[regidx].newreg,spilltemplist[regs[regidx].orgreg]);
           list.insertafter(helpins2,self);
           rgunget(list,helpins2,regs[regidx].newreg);
-          forward_allocation(tai(helpins1.next),{unusedregsint}live_registers_int);
+          forward_allocation(tai(helpins1.next),live_registers_int);
         end;
 
 
@@ -1988,7 +1985,7 @@ implementation
                 if regs[counter].mustbespilled then
                   begin
                     supreg := regs[counter].orgreg;
-                    pos := get_insert_pos(Tai(previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg,{unusedregsint}live_registers_int);
+                    pos := get_insert_pos(Tai(previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg,live_registers_int);
                     rgget(list,pos,R_SUBWHOLE,regs[counter].newreg);
                     if regs[counter].regread then
                       if regs[counter].regwritten then
@@ -2213,7 +2210,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-12-15 21:25:48  peter
+  Revision 1.62  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.61  2003/12/15 21:25:48  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

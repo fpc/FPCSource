@@ -68,7 +68,7 @@ uses
          constructor op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:tasmsymbol;_op2ofs : longint);
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
-         function is_nop: boolean; override;
+         function is_same_reg_move: boolean; override;
          function is_reg_move:boolean; override;
 
          { register spilling code }
@@ -283,7 +283,7 @@ implementation
 
 { ****************************** newra stuff *************************** }
 
-    function taicpu.is_nop: boolean;
+    function taicpu.is_same_reg_move: boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
         result:=is_reg_move and (oper[0]^.reg=oper[1]^.reg);
@@ -374,7 +374,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-12-18 17:06:21  florian
+  Revision 1.19  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.18  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.17  2003/12/03 17:39:05  florian

@@ -122,6 +122,7 @@ unit cgcpu;
 
     procedure tcgarm.init_register_allocators;
       begin
+        inherited init_register_allocators;
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
              RS_R9,RS_R10,RS_R12],first_int_imreg,[]);
@@ -135,11 +136,9 @@ unit cgcpu;
     procedure tcgarm.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
-        rg[R_INTREGISTER]:=nil;
         rg[R_FPUREGISTER].free;
-        rg[R_FPUREGISTER]:=nil;
         rg[R_MMREGISTER].free;
-        rg[R_MMREGISTER]:=nil;
+        inherited done_register_allocators;
       end;
 
 
@@ -1199,7 +1198,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-12-18 17:06:21  florian
+  Revision 1.29  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.28  2003/12/18 17:06:21  florian
     * arm compiler compilation fixed
 
   Revision 1.27  2003/12/08 17:43:57  florian

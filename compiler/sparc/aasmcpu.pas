@@ -61,7 +61,8 @@ uses
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
 
          { register allocation }
-         function is_nop:boolean;override;
+         function is_reg_move:boolean;override;
+         function is_same_reg_move:boolean;override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -216,7 +217,16 @@ implementation
       end;
 
 
-    function taicpu.is_nop:boolean;
+    function taicpu.is_reg_move:boolean;
+      begin
+        result:=(opcode=A_MOV) and
+                (ops=2) and
+                (oper[0]^.typ=top_reg) and
+                (oper[1]^.typ=top_reg);
+      end;
+
+
+    function taicpu.is_same_reg_move:boolean;
       begin
         { Note: This should not check for A_NOP, because that is
           used for the delay slots }
@@ -229,7 +239,6 @@ implementation
 
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
-    {$WARNING ******Check taicpu.spilling_get_operation_type******}
       begin
         result := operand_read;
         case opcode of
@@ -344,7 +353,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2003-12-19 14:38:03  mazen
+  Revision 1.39  2003-12-26 14:02:30  peter
+    * sparc updates
+    * use registertype in spill_register
+
+  Revision 1.38  2003/12/19 14:38:03  mazen
   * new TRegister definition applied
 
   Revision 1.37  2003/12/10 13:16:35  mazen
