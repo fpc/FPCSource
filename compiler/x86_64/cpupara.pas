@@ -109,7 +109,9 @@ unit cpupara;
                  loc1:=LOC_REGISTER;
              end;
            arraydef:
-             loc1:=LOC_REFERENCE;
+             begin
+               loc1:=LOC_REFERENCE;
+             end;
            variantdef:
              loc1:=LOC_REFERENCE;
            stringdef:
@@ -182,13 +184,12 @@ unit cpupara;
             result:=(def.size>sizeof(aint));
           arraydef :
             begin
-              result:=(
-                       (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                       (def.size>sizeof(aint))
-                      ) or
-                      is_open_array(def) or
-                      is_array_of_const(def) or
-                      is_array_constructor(def);
+              result:=not(
+                          { cdecl array of const need to be ignored and therefor be puhsed
+                            as value parameter with length 0 }
+                          (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                          is_array_of_const(def)
+                         );
             end;
           objectdef :
             result:=is_object(def);
@@ -492,7 +493,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2005-02-03 20:04:49  peter
+  Revision 1.17  2005-02-06 18:59:15  peter
+    * arrays are always passed by addr
+    * cdecl array of const is passed by value so it doesn't allocate
+      anything
+
+  Revision 1.16  2005/02/03 20:04:49  peter
     * push_addr_param must be defined per target
 
   Revision 1.15  2005/02/03 18:32:25  peter
