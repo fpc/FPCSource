@@ -783,6 +783,7 @@ unit cgcpu;
             OP_SHR,OP_SHL,OP_SAR:
               begin
                 tmpreg := R_NO;
+                popecx := false;
                 { we need cl to hold the shift count, so if the destination }
                 { is ecx, save it to a temp for now                         }
                 if dst in [R_ECX,R_CX,R_CL] then
@@ -808,7 +809,7 @@ unit cgcpu;
                         list.concat(taicpu.op_reg(A_PUSH,S_L,R_ECX));
                         popecx := true;
                       end;
-                    a_load_reg_reg(list,OS_8,rg.makeregsize(src,OS_8),R_CL);
+                    a_load_reg_reg(list,OS_32,rg.makeregsize(src,OS_32),R_ECX);
                   end
                 else
                   src := R_CL;
@@ -1781,7 +1782,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-05-22 19:02:16  carl
+  Revision 1.23  2002-06-16 08:16:59  carl
+  * bugfix of missing popecx for shift operations
+
+  Revision 1.22  2002/05/22 19:02:16  carl
   + generic FPC_HELP_FAIL
   + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
   + generic FPC_DISPOSE_CLASS
