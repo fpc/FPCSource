@@ -2978,6 +2978,13 @@ var
                   Message(assem_e_syntax_error);
                 end;
               end
+              else
+               if (m_objpas in aktmodeswitches) and (actasmpattern='RESULT') then
+                begin
+                  InitAsmRef(instr);
+                  SetUpResult(instr,operandnum);
+                  Consume(AS_ID);
+                end
               { probably a variable or normal expression }
               { or a procedure (such as in CALL ID)      }
               else
@@ -3477,7 +3484,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-11-13 15:40:30  pierre
+  Revision 1.13  1998-11-15 14:37:16  peter
+    + support for result in delphimode
+
+  Revision 1.12  1998/11/13 15:40:30  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined
