@@ -35,6 +35,13 @@
     use_auto_openlib.
     13 Jan 2003.
 
+    Update for AmigaOS 3.9.
+    Added some const.
+    Added record  tAslSemaphore.
+    Added procedures AbortAslRequest and ActivateAslRequest.
+    Changed start code for library.
+    25 Jan 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -103,6 +110,8 @@ const
   ASLFR_IntuiMsgFunc   = ASL_TB+70;  { Function to handle IntuiMessages }
   ASLFR_SleepWindow    = ASL_TB+43;  { Block input in ASLFR_Window?     }
   ASLFR_UserData       = ASL_TB+52;  { What to put in fr_UserData       }
+  ASLFR_PopToFront     = ASL_TB+131; { Make the requester window visible }
+  ASLFR_Activate       = ASL_TB+132; { Activate the requester window when }
 
 { Text display }
   ASLFR_TextAttr       = ASL_TB+51;  { Text font to use for gadget text }
@@ -119,6 +128,7 @@ const
   ASLFR_InitialFile    = ASL_TB+8 ;  { Initial contents of File gadget  }
   ASLFR_InitialDrawer  = ASL_TB+9 ;  { Initial contents of Drawer gadg. }
   ASLFR_InitialPattern = ASL_TB+10;  { Initial contents of Pattern gadg.}
+  ASLFR_InitialShowVolumes = ASL_TB+130; { Initially, show the volume list (V44) }
 
 { Options }
   ASLFR_Flags1         = ASL_TB+20;  { Option flags                     }
@@ -135,6 +145,15 @@ const
   ASLFR_AcceptPattern  = ASL_TB+62;  { Accept only files matching pat   }
   ASLFR_FilterDrawers  = ASL_TB+63;  { Also filter drawers with patterns}
   ASLFR_HookFunc       = ASL_TB+7 ;  { Combined callback function       }
+
+{ Sorting }
+  ASLFR_SetSortBy      = ASL_TB+124; { Sort criteria (name, date, size) }
+  ASLFR_GetSortBy      = ASL_TB+125;
+  ASLFR_SetSortDrawers = ASL_TB+126; { Placement of drawers in the list }
+  ASLFR_GetSortDrawers = ASL_TB+127;
+  ASLFR_SetSortOrder   = ASL_TB+128; { Order (ascending or descending)  }
+  ASLFR_GetSortOrder   = ASL_TB+129;
+
 
 { Flag bits for the ASLFR_Flags1 tag }
   FRB_FILTERFUNC     = 7;
@@ -160,6 +179,19 @@ const
   FRF_FILTERDRAWERS  = 2;
   FRF_REJECTICONS    = 4;
 
+{ Sort criteria for the ASLFR_SetSortBy/ASLFR_GetSortBy tags }
+  ASLFRSORTBY_Name   = 0;
+  ASLFRSORTBY_Date   = 1;
+  ASLFRSORTBY_Size   = 2;
+
+{ Drawer placement for the ASLFR_SetSortDrawers/ASLFR_GetSortDrawers tags }
+  ASLFRSORTDRAWERS_First  = 0;
+  ASLFRSORTDRAWERS_Mix    = 1;
+  ASLFRSORTDRAWERS_Last   = 2;
+
+{ Sort order for the ASLFR_SetSortOrder/ASLFR_GetSortOrder tags }
+  ASLFRSORTORDER_Ascend   = 0;
+  ASLFRSORTORDER_Descend  = 1;
 
 {****************************************************************************
  *
@@ -200,7 +232,12 @@ const
   ASLFO_IntuiMsgFunc   = ASL_TB+70;  { Function to handle IntuiMessages }
   ASLFO_SleepWindow    = ASL_TB+43;  { Block input in ASLFO_Window?     }
   ASLFO_UserData       = ASL_TB+52;  { What to put in fo_UserData       }
-
+  ASLFO_PopToFront     = ASL_TB+131; { Make the requester window visible
+                                          * when it opens (V44)
+                                          }
+  ASLFO_Activate       = ASL_TB+132; { Activate the requester window when
+                                          * it opens (V45).
+                                          }
 { Text display }
   ASLFO_TextAttr       = ASL_TB+51;  { Text font to use for gadget text }
   ASLFO_Locale         = ASL_TB+50;  { Locale ASL should use for text   }
@@ -227,6 +264,7 @@ const
   ASLFO_DoBackPen      = ASL_TB+45;  { Display Back color selector?     }
   ASLFO_DoStyle        = ASL_TB+46;  { Display Style checkboxes?        }
   ASLFO_DoDrawMode     = ASL_TB+47;  { Display DrawMode cycle gadget?   }
+  ASLFO_SampleText     = ASL_TB+133; { Text to display in font sample area (V45) }
 
 { Filtering }
   ASLFO_FixedWidthOnly = ASL_TB+48;  { Only allow fixed-width fonts?    }
@@ -324,6 +362,12 @@ const
   ASLSM_IntuiMsgFunc  =  ASL_TB+70;  { Function to handle IntuiMessages }
   ASLSM_SleepWindow   =  ASL_TB+43;  { Block input in ASLSM_Window?     }
   ASLSM_UserData      =  ASL_TB+52;  { What to put in sm_UserData       }
+  ASLSM_PopToFront    =  ASL_TB+131; { Make the requester window visible
+                                          * when it opens (V44)
+                                          }
+  ASLSM_Activate      =  ASL_TB+132; { Activate the requester window when
+                                          * it opens (V45).
+                                          }
 
 { Text display }
   ASLSM_TextAttr      =  ASL_TB+51;  { Text font to use for gadget text }
@@ -368,14 +412,80 @@ const
 { Custom additions }
   ASLSM_CustomSMList    = ASL_TB+123;  { Exec list of struct DisplayMode }
 
+{***************************************************************************}
+
+  ASL_LAST_TAG  = ASL_TB+133;
+
+{***************************************************************************}
+
+{ This defines the rendezvous data for setting and querying asl.library's
+ * defaults for the window size and the file requester sort order. The name
+ * of the semaphore is given below; it exists only with asl.library V45 and
+ * IPrefs V45 and beyond.
+ }
+  ASL_SEMAPHORE_NAME  : Pchar = 'asl.library';
+
+   type
+       PAslSemaphore = ^tAslSemaphore;
+       tAslSemaphore = record
+            as_Semaphore : tSignalSemaphore;
+            as_Version : UWORD;         { Must be >= 45 }
+            as_Size : ULONG;            { Size of this data structure. }
+            as_SortBy : UBYTE;          { File requester defaults; name, date or size }
+            as_SortDrawers : UBYTE;     { File requester defaults; first, mix or last }
+            as_SortOrder : UBYTE;       { File requester defaults; ascending or descending }
+            as_SizePosition : UBYTE;    { See below }
+            as_RelativeLeft : WORD;     { Window position offset }
+            as_RelativeTop : WORD;
+            as_RelativeWidth : UBYTE;   { Window size factor; this is
+                                         * a percentage of the parent
+                                         * window/screen width.
+					 }
+	    as_RelativeHeight : UBYTE;
+         end;
+
+const
+{ Default position of the ASL window. }
+  ASLPOS_DefaultPosition  = 0;	{ Position is calculated according to the builtin rules. }
+  ASLPOS_CenterWindow	  = 1;	{ Centred within the bounds of the parent window. }
+  ASLPOS_CenterScreen	  = 2;	{ Centred within the bounds of the parent screen. }
+  ASLPOS_WindowPosition	  = 3;	{ Relative to the top left corner of the parent window,
+					 * using the offset values provided in the
+					 * as_RelativeLeft/as_RelativeTop members.
+					 }
+  ASLPOS_ScreenPosition	  = 4;	{ Relative to the top left corner of the parent screen,
+					 * using the offset values provided in the
+					 * as_RelativeLeft/as_RelativeTop members.
+					 }
+  ASLPOS_CenterMouse	  = 5;	{ Directly below the mouse pointer. }
+  ASLPOS_MASK		  = $0F;
+
+{ Default size of the ASL window. }
+  ASLSIZE_DefaultSize	= (0 shl 4);	{ Size is calculated according to the builtin rules. }
+  ASLSIZE_RelativeSize	= (1 shl 4);	{ Size is relative to the size of the parent
+					 * window or screen, using the values provided in
+					 * the as_RelativeWidth/as_RelativeHeight members.
+					 * The as_RelativeWidth/as_RelativeHeight values are
+					 * taken as percentage, i.e. a value of "50" stands for
+					 * 50% of the width/height of the parent window/screen.
+					 }
+  ASLSIZE_MASK		= $30;
+
+{ Other options. }
+  ASLOPTION_ASLOverrides   = (1 shl 6);	{ ASL determines placement and size of requester
+					 * windows; application's choice is ignored.
+					 }
+
 
 {****************************************************************************
  *
  * Obsolete ASL definitions, here for source code compatibility only.
  * Please do NOT use in new code.
  *
- *   ASL_V38_NAMES_ONLY to remove these older names
+ *   define ASL_V38_NAMES_ONLY to remove these older names
  }
+{$define ASL_V38_NAMES_ONLY}
+{$ifndef ASL_V38_NAMES_ONLY}
 Const
   ASL_Dummy       = (TAG_USER + $80000);
   ASL_Hail        = ASL_Dummy+1 ;
@@ -434,10 +544,10 @@ Const
   FONF_NEWIDCMP    = 32;
   FONF_DOMSGFUNC   = 64;
   FONF_DOWILDFUNC  = 128;
-
+{$endif ASL_V38_NAMES_ONLY}
 
 VAR AslBase : pLibrary;
-   
+
 
 FUNCTION AllocAslRequest(reqType : ULONG; tagList : pTagItem) : POINTER;
 FUNCTION AllocFileRequest : pFileRequester;
@@ -446,10 +556,25 @@ PROCEDURE FreeAslRequest(requester : POINTER);
 PROCEDURE FreeFileRequest(fileReq : pFileRequester);
 FUNCTION RequestFile(fileReq : pFileRequester) : BOOLEAN;
 
+PROCEDURE AbortAslRequest(requester : POINTER);
+PROCEDURE ActivateAslRequest(requester : POINTER);
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitASLLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    ASLIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox;
+{$ifndef dont_use_openlib}
+uses  msgbox;
+{$endif dont_use_openlib}
 
 FUNCTION AllocAslRequest(reqType : ULONG; tagList : pTagItem) : POINTER;
 BEGIN
@@ -528,51 +653,120 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of asl.library}
+PROCEDURE AbortAslRequest(requester : POINTER);
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	requester,A0
+	MOVEA.L	AslBase,A6
+	JSR	-078(A6)
+	MOVEA.L	(A7)+,A6
+  END;
+END;
+
+PROCEDURE ActivateAslRequest(requester : POINTER);
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	requester,A0
+	MOVEA.L	AslBase,A6
+	JSR	-084(A6)
+	MOVEA.L	(A7)+,A6
+  END;
+END;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of asl.library}
+  {$Info don't forget to use InitASLLibrary in the beginning of your program}
 
 var
     asl_exit : Pointer;
 
-procedure CloseAslLibrary;
+procedure CloseaslLibrary;
 begin
     ExitProc := asl_exit;
     if AslBase <> nil then begin
-       CloseLibrary(AslBase);
-       AslBase := nil;
+        CloseLibrary(AslBase);
+        AslBase := nil;
     end;
 end;
 
-const
-    VERSION : string[2] = '37';
+procedure InitASLLibrary;
+begin
+    AslBase := nil;
+    AslBase := OpenLibrary(ASLNAME,LIBVERSION);
+    if AslBase <> nil then begin
+        asl_exit := ExitProc;
+        ExitProc := @CloseaslLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open asl.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    ASLIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of asl.library}
+
+var
+    asl_exit : Pointer;
+
+procedure CloseaslLibrary;
+begin
+    ExitProc := asl_exit;
+    if AslBase <> nil then begin
+        CloseLibrary(AslBase);
+        AslBase := nil;
+    end;
+end;
 
 begin
     AslBase := nil;
-    AslBase := OpenLibrary(ASLNAME,37);
+    AslBase := OpenLibrary(ASLNAME,LIBVERSION);
     if AslBase <> nil then begin
-       asl_exit := ExitProc;
-       ExitProc := @CloseAslLibrary;
+        asl_exit := ExitProc;
+        ExitProc := @CloseaslLibrary;
+        ASLIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                   'Can''t open asl.library version ' +
-                   VERSION +
-                   chr(10) + 
-                   'Deallocating resources and closing down',
-                   'Oops');
-       halt(20);
+        'Can''t open asl.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of asl.library compiled}
-   {$Info Make sure you open asl.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    ASLIsCompiledHow := 3;
+   {$Warning No autoopening of asl.library compiled}
+   {$Warning Make sure you open asl.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT ASL *)
 
 {
   $Log$
-  Revision 1.3  2003-01-13 20:36:00  nils
+  Revision 1.4  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.3  2003/01/13 20:36:00  nils
   * added the defines use_amiga_smartlink
   * and use_auto_openlib
 
@@ -580,4 +774,4 @@ END. (* UNIT ASL *)
     * update check internal log
 
 }
-  
+

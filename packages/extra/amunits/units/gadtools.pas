@@ -33,6 +33,10 @@
     use_auto_openlib.
     13 Jan 2003.
 
+    Update for AmigaOS 3.9.
+    Changed startup code for the unit.
+    01 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -465,31 +469,45 @@ VAR
     GadToolsBase : pLibrary;
 
 FUNCTION CreateContext(glistptr : pGadget): pGadget;
-FUNCTION CreateGadgetA(kind : ULONG; gad : pGadget; ng : pNewGadget; taglist : pTagItem) : pGadget;
-FUNCTION CreateMenusA(newmenu : pNewMenu; taglist : pTagItem) : pMenu;
-PROCEDURE DrawBevelBoxA(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT; taglist : pTagItem);
+FUNCTION CreateGadgetA(kind : ULONG; gad : pGadget;const ng : pNewGadget;const taglist : pTagItem) : pGadget;
+FUNCTION CreateMenusA(const newmenu : pNewMenu;const taglist : pTagItem) : pMenu;
+PROCEDURE DrawBevelBoxA(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT;const taglist : pTagItem);
 PROCEDURE FreeGadgets(gad : pGadget);
 PROCEDURE FreeMenus(menu : pMenu);
 PROCEDURE FreeVisualInfo(vi : POINTER);
-FUNCTION GetVisualInfoA(screen : pScreen; taglist : pTagItem) : POINTER;
+FUNCTION GetVisualInfoA(screen : pScreen;const taglist : pTagItem) : POINTER;
 PROCEDURE GT_BeginRefresh(win : pWindow);
 PROCEDURE GT_EndRefresh(win : pWindow; complete : LONGINT);
-FUNCTION GT_FilterIMsg(imsg : pIntuiMessage) : pIntuiMessage;
-FUNCTION GT_GetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester; taglist : pTagItem) : LONGINT;
+FUNCTION GT_FilterIMsg(const imsg : pIntuiMessage) : pIntuiMessage;
+FUNCTION GT_GetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester;const taglist : pTagItem) : LONGINT;
 FUNCTION GT_GetIMsg(iport : pMsgPort) : pIntuiMessage;
 FUNCTION GT_PostFilterIMsg(imsg : pIntuiMessage) : pIntuiMessage;
 PROCEDURE GT_RefreshWindow(win : pWindow; req : pRequester);
 PROCEDURE GT_ReplyIMsg(imsg : pIntuiMessage);
-PROCEDURE GT_SetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester; taglist : pTagItem);
-FUNCTION LayoutMenuItemsA(firstitem : pMenuItem; vi : POINTER; taglist : pTagItem) : BOOLEAN;
-FUNCTION LayoutMenusA(firstmenu : pMenu; vi : POINTER; taglist : pTagItem) : BOOLEAN;
+PROCEDURE GT_SetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester;const taglist : pTagItem);
+FUNCTION LayoutMenuItemsA(firstitem : pMenuItem; vi : POINTER;const taglist : pTagItem) : BOOLEAN;
+FUNCTION LayoutMenusA(firstmenu : pMenu; vi : POINTER;const taglist : pTagItem) : BOOLEAN;
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 function GTMENU_USERDATA(menu : pMenu): pointer;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitGADTOOLSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    GADTOOLSIsCompiledHow : longint;
+
 IMPLEMENTATION
 
-uses msgbox;
+uses
+{$ifndef dont_use_openlib}
+msgbox;
+{$endif dont_use_openlib}
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 begin
@@ -513,7 +531,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateGadgetA(kind : ULONG; gad : pGadget; ng : pNewGadget; taglist : pTagItem) : pGadget;
+FUNCTION CreateGadgetA(kind : ULONG; gad : pGadget;const ng : pNewGadget;const taglist : pTagItem) : pGadget;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -528,7 +546,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateMenusA(newmenu : pNewMenu; taglist : pTagItem) : pMenu;
+FUNCTION CreateMenusA(const newmenu : pNewMenu;const taglist : pTagItem) : pMenu;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -541,7 +559,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE DrawBevelBoxA(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT; taglist : pTagItem);
+PROCEDURE DrawBevelBoxA(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT;const taglist : pTagItem);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -590,7 +608,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetVisualInfoA(screen : pScreen; taglist : pTagItem) : POINTER;
+FUNCTION GetVisualInfoA(screen : pScreen;const taglist : pTagItem) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -626,7 +644,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GT_FilterIMsg(imsg : pIntuiMessage) : pIntuiMessage;
+FUNCTION GT_FilterIMsg(const imsg : pIntuiMessage) : pIntuiMessage;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -638,7 +656,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GT_GetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester; taglist : pTagItem) : LONGINT;
+FUNCTION GT_GetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester;const taglist : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -700,7 +718,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE GT_SetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester; taglist : pTagItem);
+PROCEDURE GT_SetGadgetAttrsA(gad : pGadget; win : pWindow; req : pRequester;const taglist : pTagItem);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -714,7 +732,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LayoutMenuItemsA(firstitem : pMenuItem; vi : POINTER; taglist : pTagItem) : BOOLEAN;
+FUNCTION LayoutMenuItemsA(firstitem : pMenuItem; vi : POINTER;const taglist : pTagItem) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -731,7 +749,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LayoutMenusA(firstmenu : pMenu; vi : POINTER; taglist : pTagItem) : BOOLEAN;
+FUNCTION LayoutMenusA(firstmenu : pMenu; vi : POINTER;const taglist : pTagItem) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -748,14 +766,20 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of gadtools.library}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of gadtools.library}
+  {$Info don't forget to use InitGADTOOLSLibrary in the beginning of your program}
 
 var
-  gadtools_exit : Pointer;
+    gadtools_exit : Pointer;
 
-procedure CloseGadToolsLibrary;
+procedure ClosegadtoolsLibrary;
 begin
     ExitProc := gadtools_exit;
     if GadToolsBase <> nil then begin
@@ -764,37 +788,77 @@ begin
     end;
 end;
 
-const
-   VERSION        : string[2] = '37';
-   LIBVERSION     = 37;
+procedure InitGADTOOLSLibrary;
+begin
+    GadToolsBase := nil;
+    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
+    if GadToolsBase <> nil then begin
+        gadtools_exit := ExitProc;
+        ExitProc := @ClosegadtoolsLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open gadtools.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    GADTOOLSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of gadtools.library}
+
+var
+    gadtools_exit : Pointer;
+
+procedure ClosegadtoolsLibrary;
+begin
+    ExitProc := gadtools_exit;
+    if GadToolsBase <> nil then begin
+        CloseLibrary(GadToolsBase);
+        GadToolsBase := nil;
+    end;
+end;
 
 begin
     GadToolsBase := nil;
     GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
     if GadToolsBase <> nil then begin
-         gadtools_Exit := ExitProc;
-         ExitProc := @CloseGadToolsLibrary;
+        gadtools_exit := ExitProc;
+        ExitProc := @ClosegadtoolsLibrary;
+        GADTOOLSIsCompiledHow := 1;
     end else begin
-         MessageBox('FPC Pascal Error',
-                    'Can''t open gadtools.library version ' + 
-                    VERSION +
-                    chr(10) + 
-                    'Deallocating resources and closing down',
-                    'Oops');
-         halt(20);
+        MessageBox('FPC Pascal Error',
+        'Can''t open gadtools.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of gadtools.library compiled}
-   {$Info Make sure you open gadtools.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    GADTOOLSIsCompiledHow := 3;
+   {$Warning No autoopening of gadtools.library compiled}
+   {$Warning Make sure you open gadtools.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT GADTOOLS *)
 
 
 {
   $Log$
-  Revision 1.3  2003-01-13 20:36:00  nils
+  Revision 1.4  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.3  2003/01/13 20:36:00  nils
   * added the defines use_amiga_smartlink
   * and use_auto_openlib
 
@@ -803,4 +867,4 @@ END. (* UNIT GADTOOLS *)
 
 }
 
-  
+

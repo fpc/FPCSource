@@ -21,6 +21,14 @@
     of the library.
     13 Jan 2003.
     
+    Update for AmigaOS 3.9.
+       FUNCTION GetDiskFontCtrl
+       PROCEDURE SetDiskFontCtrlA
+    Varargs for SetDiskFontCtrl is in
+    systemvartags.
+    Changed startup for library.
+    01 Feb 2003.
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -33,7 +41,7 @@ unit diskfont;
 
 INTERFACE
 
-uses exec, graphics;
+uses exec, graphics,utility;
 
 Const
 
@@ -137,10 +145,29 @@ PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader);
 FUNCTION NewFontContents(fontsLock : BPTR; fontName : pCHAR) : pFontContentsHeader;
 FUNCTION NewScaledDiskFont(sourceFont : pTextFont; destTextAttr : pTextAttr) : pDiskFontHeader;
 FUNCTION OpenDiskFont(textAttr : pTextAttr) : pTextFont;
+FUNCTION GetDiskFontCtrl(tagid : LONGINT) : LONGINT;
+PROCEDURE SetDiskFontCtrlA(taglist : pTagItem);
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitDISKFONTLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    DISKFONTIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox;
+{
+ If you don't use array of const then just remove tagsarray
+}
+uses
+{$ifndef dont_use_openlib}
+msgbox;
+{$endif dont_use_openlib}
 
 FUNCTION AvailFonts(buffer : pCHAR; bufBytes : LONGINT; flags : LONGINT) : LONGINT;
 BEGIN
@@ -205,7 +232,71 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+FUNCTION GetDiskFontCtrl(tagid : LONGINT) : LONGINT;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVE.L	tagid,D0
+	MOVEA.L	DiskfontBase,A6
+	JSR	-060(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+PROCEDURE SetDiskFontCtrlA(taglist : pTagItem);
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	taglist,A0
+	MOVEA.L	DiskfontBase,A6
+	JSR	-066(A6)
+	MOVEA.L	(A7)+,A6
+  END;
+END;
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of diskfont.library}
+  {$Info don't forget to use InitDISKFONTLibrary in the beginning of your program}
+
+var
+    diskfont_exit : Pointer;
+
+procedure ClosediskfontLibrary;
+begin
+    ExitProc := diskfont_exit;
+    if DiskfontBase <> nil then begin
+        CloseLibrary(DiskfontBase);
+        DiskfontBase := nil;
+    end;
+end;
+
+procedure InitDISKFONTLibrary;
+begin
+    DiskfontBase := nil;
+    DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
+    if DiskfontBase <> nil then begin
+        diskfont_exit := ExitProc;
+        ExitProc := @ClosediskfontLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open diskfont.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    DISKFONTIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of diskfont.library}
 
@@ -221,18 +312,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     DiskfontBase := nil;
     DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
     if DiskfontBase <> nil then begin
         diskfont_exit := ExitProc;
-        ExitProc := @ClosediskfontLibrary
+        ExitProc := @ClosediskfontLibrary;
+        DISKFONTIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open diskfont.library version ' + VERSION + #10 +
@@ -241,16 +327,26 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of diskfont.library compiled}
-   {$Info Make sure you open diskfont.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    DISKFONTIsCompiledHow := 3;
+   {$Warning No autoopening of diskfont.library compiled}
+   {$Warning Make sure you open diskfont.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT DISKFONT *)
 
 {
   $Log$
-  Revision 1.3  2003-01-14 18:46:04  nils
+  Revision 1.4  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.3  2003/01/14 18:46:04  nils
   * added defines use_amia_smartlink and use_auto_openlib
 
   * implemented autoopening of library
@@ -259,6 +355,6 @@ END. (* UNIT DISKFONT *)
     * added diskfontname
 
 }
-  
+
 
 

@@ -41,6 +41,13 @@
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     13 Jan 2003.
+    
+    Update for AmifaOS 3.9.
+    Changed start code for unit.
+    Bugs in ChangeSprite, GetRGB32, LoadRGB32,
+    LoadRGB4 and PolyDraw, fixed.
+    01 Feb 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -2233,12 +2240,12 @@ PROCEDURE AddAnimOb(anOb : pAnimOb; anKey : ppAnimOb; rp : pRastPort);
 PROCEDURE AddBob(bob : pBob; rp : pRastPort);
 PROCEDURE AddFont(textFont : pTextFont);
 PROCEDURE AddVSprite(vSprite : pVSprite; rp : pRastPort);
-FUNCTION AllocBitMap(sizex : ULONG; sizey : ULONG; depth : ULONG; flags : ULONG; friend_bitmap : pBitMap) : pBitMap;
+FUNCTION AllocBitMap(sizex : ULONG; sizey : ULONG; depth : ULONG; flags : ULONG;const friend_bitmap : pBitMap) : pBitMap;
 FUNCTION AllocDBufInfo(vp : pViewPort) : pDBufInfo;
 FUNCTION AllocRaster(width : ULONG; height : ULONG) : pCHAR;
-FUNCTION AllocSpriteDataA(bm : pBitMap; tags : pTagItem) : pExtSprite;
-PROCEDURE AndRectRegion(region : pRegion; rectangle : pRectangle);
-FUNCTION AndRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
+FUNCTION AllocSpriteDataA(const bm : pBitMap;const tags : pTagItem) : pExtSprite;
+PROCEDURE AndRectRegion(region : pRegion;const rectangle : pRectangle);
+FUNCTION AndRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 PROCEDURE Animate(anKey : ppAnimOb; rp : pRastPort);
 FUNCTION AreaDraw(rp : pRastPort; x : LONGINT; y : LONGINT) : LONGINT;
 FUNCTION AreaEllipse(rp : pRastPort; xCenter : LONGINT; yCenter : LONGINT; a : LONGINT; b : LONGINT) : LONGINT;
@@ -2248,21 +2255,21 @@ PROCEDURE AskFont(rp : pRastPort; textAttr : pTextAttr);
 FUNCTION AskSoftStyle(rp : pRastPort) : ULONG;
 FUNCTION AttachPalExtra(cm : pColorMap; vp : pViewPort) : LONGINT;
 FUNCTION AttemptLockLayerRom(layer : pLayer) : BOOLEAN;
-FUNCTION BestModeIDA(tags : pTagItem) : ULONG;
+FUNCTION BestModeIDA(const tags : pTagItem) : ULONG;
 PROCEDURE BitMapScale(bitScaleArgs : pBitScaleArgs);
-FUNCTION BltBitMap(srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destBitMap : pBitMap; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG; mask : ULONG; tempA : pCHAR) : LONGINT;
-PROCEDURE BltBitMapRastPort(srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG);
+FUNCTION BltBitMap(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destBitMap : pBitMap; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG; mask : ULONG; tempA : pCHAR) : LONGINT;
+PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG);
 PROCEDURE BltClear(memBlock : pCHAR; byteCount : ULONG; flags : ULONG);
-PROCEDURE BltMaskBitMapRastPort(srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG; bltMask : pCHAR);
-PROCEDURE BltPattern(rp : pRastPort; mask : pCHAR; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT; maskBPR : ULONG);
-PROCEDURE BltTemplate(source : pCHAR; xSrc : LONGINT; srcMod : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT);
+PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG;const bltMask : pCHAR);
+PROCEDURE BltPattern(rp : pRastPort;const mask : pCHAR; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT; maskBPR : ULONG);
+PROCEDURE BltTemplate(const source : pCHAR; xSrc : LONGINT; srcMod : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT);
 FUNCTION CalcIVG(v : pView; vp : pViewPort) : WORD;
 PROCEDURE CBump(copList : pUCopList);
-FUNCTION ChangeExtSpriteA(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite; tags : pTagItem) : LONGINT;
-PROCEDURE ChangeSprite(vp : pViewPort; sprite : pSimpleSprite; newData : pCHAR);
+FUNCTION ChangeExtSpriteA(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite;const tags : pTagItem) : LONGINT;
+PROCEDURE ChangeSprite(vp : pViewPort; sprite : pSimpleSprite; newData : pWORD);
 PROCEDURE ChangeVPBitMap(vp : pViewPort; bm : pBitMap; db : pDBufInfo);
 PROCEDURE ClearEOL(rp : pRastPort);
-FUNCTION ClearRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
+FUNCTION ClearRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
 PROCEDURE ClearRegion(region : pRegion);
 PROCEDURE ClearScreen(rp : pRastPort);
 PROCEDURE ClipBlit(srcRP : pRastPort; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG);
@@ -2279,11 +2286,11 @@ PROCEDURE Draw(rp : pRastPort; x : LONGINT; y : LONGINT);
 PROCEDURE DrawEllipse(rp : pRastPort; xCenter : LONGINT; yCenter : LONGINT; a : LONGINT; b : LONGINT);
 PROCEDURE DrawGList(rp : pRastPort; vp : pViewPort);
 PROCEDURE EraseRect(rp : pRastPort; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
-FUNCTION ExtendFont(font : pTextFont; fontTags : pTagItem) : ULONG;
+FUNCTION ExtendFont(font : pTextFont;const fontTags : pTagItem) : ULONG;
 FUNCTION FindColor(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; maxcolor : LONGINT) : LONGINT;
 FUNCTION FindDisplayInfo(displayID : ULONG) : POINTER;
 FUNCTION Flood(rp : pRastPort; mode : ULONG; x : LONGINT; y : LONGINT) : BOOLEAN;
-PROCEDURE FontExtent(font : pTextFont; fontExtent : pTextExtent);
+PROCEDURE FontExtent(const font : pTextFont; fontExtent : pTextExtent);
 PROCEDURE FreeBitMap(bm : pBitMap);
 PROCEDURE FreeColorMap(colorMap : pColorMap);
 PROCEDURE FreeCopList(copList : pCopList);
@@ -2295,22 +2302,22 @@ PROCEDURE FreeSprite(num : LONGINT);
 PROCEDURE FreeSpriteData(sp : pExtSprite);
 PROCEDURE FreeVPortCopLists(vp : pViewPort);
 FUNCTION GetAPen(rp : pRastPort) : ULONG;
-FUNCTION GetBitMapAttr(bm : pBitMap; attrnum : ULONG) : ULONG;
+FUNCTION GetBitMapAttr(const bm : pBitMap; attrnum : ULONG) : ULONG;
 FUNCTION GetBPen(rp : pRastPort) : ULONG;
 FUNCTION GetColorMap(entries : LONGINT) : pColorMap;
-FUNCTION GetDisplayInfoData(handle : POINTER; buf : pCHAR; size : ULONG; tagID : ULONG; displayID : ULONG) : ULONG;
+FUNCTION GetDisplayInfoData(const handle : POINTER; buf : pCHAR; size : ULONG; tagID : ULONG; displayID : ULONG) : ULONG;
 FUNCTION GetDrMd(rp : pRastPort) : ULONG;
-FUNCTION GetExtSpriteA(ss : pExtSprite; tags : pTagItem) : LONGINT;
+FUNCTION GetExtSpriteA(ss : pExtSprite;const tags : pTagItem) : LONGINT;
 FUNCTION GetGBuffers(anOb : pAnimOb; rp : pRastPort; flag : LONGINT) : BOOLEAN;
 FUNCTION GetOutlinePen(rp : pRastPort) : ULONG;
-PROCEDURE GetRGB32(cm : pColorMap; firstcolor : ULONG; ncolors : ULONG; table : POINTER);
+PROCEDURE GetRGB32(const cm : pColorMap; firstcolor : ULONG; ncolors : ULONG; table : pulong);
 FUNCTION GetRGB4(colorMap : pColorMap; entry : LONGINT) : ULONG;
-PROCEDURE GetRPAttrsA(rp : pRastPort; tags : pTagItem);
+PROCEDURE GetRPAttrsA(const rp : pRastPort;const tags : pTagItem);
 FUNCTION GetSprite(sprite : pSimpleSprite; num : LONGINT) : INTEGER;
-FUNCTION GetVPModeID(vp : pViewPort) : LONGINT;
-PROCEDURE GfxAssociate(associateNode : POINTER; gfxNodePtr : POINTER);
+FUNCTION GetVPModeID(const vp : pViewPort) : LONGINT;
+PROCEDURE GfxAssociate(const associateNode : POINTER; gfxNodePtr : POINTER);
 PROCEDURE GfxFree(gfxNodePtr : POINTER);
-FUNCTION GfxLookUp(associateNode : POINTER) : POINTER;
+FUNCTION GfxLookUp(const associateNode : POINTER) : POINTER;
 FUNCTION GfxNew(gfxNodeType : ULONG) : POINTER;
 PROCEDURE InitArea(areaInfo : pAreaInfo; vectorBuffer : POINTER; maxVectors : LONGINT);
 PROCEDURE InitBitMap(bitMap : pBitMap; depth : LONGINT; width : LONGINT; height : LONGINT);
@@ -2321,8 +2328,8 @@ PROCEDURE InitRastPort(rp : pRastPort);
 FUNCTION InitTmpRas(tmpRas : pTmpRas; buffer : PLANEPTR; size : LONGINT) : pTmpRas;
 PROCEDURE InitView(view : pView);
 PROCEDURE InitVPort(vp : pViewPort);
-PROCEDURE LoadRGB32(vp : pViewPort; table : POINTER);
-PROCEDURE LoadRGB4(vp : pViewPort; colors : POINTER; count : LONGINT);
+PROCEDURE LoadRGB32(vp : pViewPort;const table : pULONG);
+PROCEDURE LoadRGB4(vp : pViewPort;const colors : pWord; count : LONGINT);
 PROCEDURE LoadView(view : pView);
 PROCEDURE LockLayerRom(layer : pLayer);
 FUNCTION MakeVPort(view : pView; vp : pViewPort) : ULONG;
@@ -2332,14 +2339,14 @@ PROCEDURE MoveSprite(vp : pViewPort; sprite : pSimpleSprite; x : LONGINT; y : LO
 FUNCTION MrgCop(view : pView) : ULONG;
 FUNCTION NewRegion : pRegion;
 FUNCTION NextDisplayInfo(displayID : ULONG) : ULONG;
-FUNCTION ObtainBestPenA(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; tags : pTagItem) : LONGINT;
+FUNCTION ObtainBestPenA(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG;const tags : pTagItem) : LONGINT;
 FUNCTION ObtainPen(cm : pColorMap; n : ULONG; r : ULONG; g : ULONG; b : ULONG; f : LONGINT) : ULONG;
 FUNCTION OpenFont(textAttr : pTextAttr) : pTextFont;
-FUNCTION OpenMonitor(monitorName : pCHAR; displayID : ULONG) : pMonitorSpec;
-FUNCTION OrRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
-FUNCTION OrRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
+FUNCTION OpenMonitor(const monitorName : pCHAR; displayID : ULONG) : pMonitorSpec;
+FUNCTION OrRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
+FUNCTION OrRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 PROCEDURE OwnBlitter;
-PROCEDURE PolyDraw(rp : pRastPort; count : LONGINT; polyTable : POINTER);
+PROCEDURE PolyDraw(rp : pRastPort; count : LONGINT;const polyTable : pLongint);
 PROCEDURE QBlit(blit : pbltnode);
 PROCEDURE QBSBlit(blit : pbltnode);
 FUNCTION ReadPixel(rp : pRastPort; x : LONGINT; y : LONGINT) : ULONG;
@@ -2360,7 +2367,7 @@ PROCEDURE SetBPen(rp : pRastPort; pen : ULONG);
 FUNCTION SetChipRev(want : ULONG) : ULONG;
 PROCEDURE SetCollision(num : ULONG; routine : tPROCEDURE; gelsInfo : pGelsInfo);
 PROCEDURE SetDrMd(rp : pRastPort; drawMode : ULONG);
-FUNCTION SetFont(rp : pRastPort; textFont : pTextFont) : LONGINT;
+FUNCTION SetFont(rp : pRastPort;const textFont : pTextFont) : LONGINT;
 PROCEDURE SetMaxPen(rp : pRastPort; maxpen : ULONG);
 FUNCTION SetOutlinePen(rp : pRastPort; pen : ULONG) : ULONG;
 PROCEDURE SetRast(rp : pRastPort; pen : ULONG);
@@ -2368,16 +2375,16 @@ PROCEDURE SetRGB32(vp : pViewPort; n : ULONG; r : ULONG; g : ULONG; b : ULONG);
 PROCEDURE SetRGB32CM(cm : pColorMap; n : ULONG; r : ULONG; g : ULONG; b : ULONG);
 PROCEDURE SetRGB4(vp : pViewPort; index : LONGINT; red : ULONG; green : ULONG; blue : ULONG);
 PROCEDURE SetRGB4CM(colorMap : pColorMap; index : LONGINT; red : ULONG; green : ULONG; blue : ULONG);
-PROCEDURE SetRPAttrsA(rp : pRastPort; tags : pTagItem);
+PROCEDURE SetRPAttrsA(rp : pRastPort;const tags : pTagItem);
 FUNCTION SetSoftStyle(rp : pRastPort; style : ULONG; enable : ULONG) : ULONG;
 FUNCTION SetWriteMask(rp : pRastPort; msk : ULONG) : ULONG;
 PROCEDURE SortGList(rp : pRastPort);
 PROCEDURE StripFont(font : pTextFont);
 PROCEDURE SyncSBitMap(layer : pLayer);
-FUNCTION GText(rp : pRastPort; string_ : pCHAR; count : ULONG) : LONGINT;
-FUNCTION TextExtent(rp : pRastPort; string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
-FUNCTION TextFit(rp : pRastPort; string_ : pCHAR; strLen : ULONG; textExtent : pTextExtent; constrainingExtent : pTextExtent; strDirection : LONGINT; constrainingBitWidth : ULONG; constrainingBitHeight : ULONG) : ULONG;
-FUNCTION TextLength(rp : pRastPort; string_ : pCHAR; count : ULONG) : INTEGER;
+FUNCTION GText(rp : pRastPort;const string_ : pCHAR; count : ULONG) : LONGINT;
+FUNCTION TextExtent(rp : pRastPort;const string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
+FUNCTION TextFit(rp : pRastPort;const string_ : pCHAR; strLen : ULONG; textExtent : pTextExtent; constrainingExtent : pTextExtent; strDirection : LONGINT; constrainingBitWidth : ULONG; constrainingBitHeight : ULONG) : ULONG;
+FUNCTION TextLength(rp : pRastPort;const string_ : pCHAR; count : ULONG) : INTEGER;
 FUNCTION UCopperListInit(uCopList : pUCopList; n : LONGINT) : pCopList;
 PROCEDURE UnlockLayerRom(layer : pLayer);
 FUNCTION VBeamPos : LONGINT;
@@ -2390,8 +2397,8 @@ PROCEDURE WriteChunkyPixels(rp : pRastPort; xstart : ULONG; ystart : ULONG; xsto
 FUNCTION WritePixel(rp : pRastPort; x : LONGINT; y : LONGINT) : LONGINT;
 FUNCTION WritePixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
 FUNCTION WritePixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pointer; tempRP : pRastPort) : LONGINT;
-FUNCTION XorRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
-FUNCTION XorRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
+FUNCTION XorRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
+FUNCTION XorRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 
 { gfxmacros }
 
@@ -2412,10 +2419,23 @@ PROCEDURE ON_SPRITE (cust: pCustom);
 PROCEDURE OFF_VBLANK (cust: pCustom);
 PROCEDURE ON_VBLANK (cust: pCustom);
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitGRAPHICSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    GRAPHICSIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses msgbox;
+uses
+{$ifndef dont_use_openlib}
+msgbox;
+{$endif dont_use_openlib}
 
 PROCEDURE BNDRYOFF (w: pRastPort);
 BEGIN
@@ -2560,7 +2580,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AllocBitMap(sizex : ULONG; sizey : ULONG; depth : ULONG; flags : ULONG; friend_bitmap : pBitMap) : pBitMap;
+FUNCTION AllocBitMap(sizex : ULONG; sizey : ULONG; depth : ULONG; flags : ULONG;const friend_bitmap : pBitMap) : pBitMap;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2601,7 +2621,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AllocSpriteDataA(bm : pBitMap; tags : pTagItem) : pExtSprite;
+FUNCTION AllocSpriteDataA(const bm : pBitMap;const tags : pTagItem) : pExtSprite;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2614,7 +2634,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE AndRectRegion(region : pRegion; rectangle : pRectangle);
+PROCEDURE AndRectRegion(region : pRegion;const rectangle : pRectangle);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2626,7 +2646,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AndRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
+FUNCTION AndRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2762,7 +2782,7 @@ BEGIN
   END;
 END;
 
-FUNCTION BestModeIDA(tags : pTagItem) : ULONG;
+FUNCTION BestModeIDA(const tags : pTagItem) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2785,7 +2805,7 @@ BEGIN
   END;
 END;
 
-FUNCTION BltBitMap(srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destBitMap : pBitMap; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG; mask : ULONG; tempA : pCHAR) : LONGINT;
+FUNCTION BltBitMap(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destBitMap : pBitMap; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG; mask : ULONG; tempA : pCHAR) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2807,7 +2827,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE BltBitMapRastPort(srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG);
+PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2839,7 +2859,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE BltMaskBitMapRastPort(srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG; bltMask : pCHAR);
+PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG;const bltMask : pCHAR);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2859,7 +2879,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE BltPattern(rp : pRastPort; mask : pCHAR; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT; maskBPR : ULONG);
+PROCEDURE BltPattern(rp : pRastPort;const mask : pCHAR; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT; maskBPR : ULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2876,7 +2896,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE BltTemplate(source : pCHAR; xSrc : LONGINT; srcMod : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT);
+PROCEDURE BltTemplate(const source : pCHAR; xSrc : LONGINT; srcMod : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2918,7 +2938,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ChangeExtSpriteA(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite; tags : pTagItem) : LONGINT;
+FUNCTION ChangeExtSpriteA(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2933,7 +2953,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE ChangeSprite(vp : pViewPort; sprite : pSimpleSprite; newData : pCHAR);
+PROCEDURE ChangeSprite(vp : pViewPort; sprite : pSimpleSprite; newData : pWORD);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2970,7 +2990,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ClearRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
+FUNCTION ClearRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3191,7 +3211,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ExtendFont(font : pTextFont; fontTags : pTagItem) : ULONG;
+FUNCTION ExtendFont(font : pTextFont;const fontTags : pTagItem) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3250,7 +3270,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE FontExtent(font : pTextFont; fontExtent : pTextExtent);
+PROCEDURE FontExtent(const font : pTextFont; fontExtent : pTextExtent);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3388,7 +3408,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetBitMapAttr(bm : pBitMap; attrnum : ULONG) : ULONG;
+FUNCTION GetBitMapAttr(const bm : pBitMap; attrnum : ULONG) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3425,7 +3445,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetDisplayInfoData(handle : POINTER; buf : pCHAR; size : ULONG; tagID : ULONG; displayID : ULONG) : ULONG;
+FUNCTION GetDisplayInfoData(const handle : POINTER; buf : pCHAR; size : ULONG; tagID : ULONG; displayID : ULONG) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3453,7 +3473,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetExtSpriteA(ss : pExtSprite; tags : pTagItem) : LONGINT;
+FUNCTION GetExtSpriteA(ss : pExtSprite;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3495,7 +3515,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE GetRGB32(cm : pColorMap; firstcolor : ULONG; ncolors : ULONG; table : POINTER);
+PROCEDURE GetRGB32(const cm : pColorMap; firstcolor : ULONG; ncolors : ULONG; table : pUlong);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3522,7 +3542,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE GetRPAttrsA(rp : pRastPort; tags : pTagItem);
+PROCEDURE GetRPAttrsA(const rp : pRastPort;const tags : pTagItem);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3547,7 +3567,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetVPModeID(vp : pViewPort) : LONGINT;
+FUNCTION GetVPModeID(const vp : pViewPort) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3559,7 +3579,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE GfxAssociate(associateNode : POINTER; gfxNodePtr : POINTER);
+PROCEDURE GfxAssociate(const associateNode : POINTER; gfxNodePtr : POINTER);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3582,7 +3602,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GfxLookUp(associateNode : POINTER) : POINTER;
+FUNCTION GfxLookUp(const associateNode : POINTER) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3715,7 +3735,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE LoadRGB32(vp : pViewPort; table : POINTER);
+PROCEDURE LoadRGB32(vp : pViewPort;const table : pULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3727,7 +3747,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE LoadRGB4(vp : pViewPort; colors : POINTER; count : LONGINT);
+PROCEDURE LoadRGB4(vp : pViewPort;const colors : pWord; count : LONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3849,7 +3869,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ObtainBestPenA(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; tags : pTagItem) : LONGINT;
+FUNCTION ObtainBestPenA(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3894,7 +3914,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenMonitor(monitorName : pCHAR; displayID : ULONG) : pMonitorSpec;
+FUNCTION OpenMonitor(const monitorName : pCHAR; displayID : ULONG) : pMonitorSpec;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3907,7 +3927,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OrRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
+FUNCTION OrRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3923,7 +3943,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OrRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
+FUNCTION OrRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3949,7 +3969,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE PolyDraw(rp : pRastPort; count : LONGINT; polyTable : POINTER);
+PROCEDURE PolyDraw(rp : pRastPort; count : LONGINT;const polyTable : pLongint);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4229,7 +4249,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetFont(rp : pRastPort; textFont : pTextFont) : LONGINT;
+FUNCTION SetFont(rp : pRastPort;const textFont : pTextFont) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4339,7 +4359,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetRPAttrsA(rp : pRastPort; tags : pTagItem);
+PROCEDURE SetRPAttrsA(rp : pRastPort;const tags : pTagItem);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4411,7 +4431,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GText(rp : pRastPort; string_ : pCHAR; count : ULONG) : LONGINT;
+FUNCTION GText(rp : pRastPort;const string_ : pCHAR; count : ULONG) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4425,7 +4445,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TextExtent(rp : pRastPort; string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
+FUNCTION TextExtent(rp : pRastPort;const string_ : pCHAR; count : LONGINT; _textExtent : pTextExtent) : INTEGER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4440,7 +4460,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TextFit(rp : pRastPort; string_ : pCHAR; strLen : ULONG; textExtent : pTextExtent; constrainingExtent : pTextExtent; strDirection : LONGINT; constrainingBitWidth : ULONG; constrainingBitHeight : ULONG) : ULONG;
+FUNCTION TextFit(rp : pRastPort;const string_ : pCHAR; strLen : ULONG; textExtent : pTextExtent; constrainingExtent : pTextExtent; strDirection : LONGINT; constrainingBitWidth : ULONG; constrainingBitHeight : ULONG) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4459,7 +4479,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TextLength(rp : pRastPort; string_ : pCHAR; count : ULONG) : INTEGER;
+FUNCTION TextLength(rp : pRastPort;const string_ : pCHAR; count : ULONG) : INTEGER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4635,7 +4655,7 @@ BEGIN
   END;
 END;
 
-FUNCTION XorRectRegion(region : pRegion; rectangle : pRectangle) : BOOLEAN;
+FUNCTION XorRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4651,7 +4671,7 @@ BEGIN
   END;
 END;
 
-FUNCTION XorRegionRegion(srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
+FUNCTION XorRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4667,51 +4687,98 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-   {$Info Compiling autoopening of graphics.library}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of graphics.library}
+  {$Info don't forget to use InitGRAPHICSLibrary in the beginning of your program}
 
 var
-    GfxBase_exit : Pointer;
+    graphics_exit : Pointer;
 
-procedure CloseGfxBaseLibrary;
+procedure ClosegraphicsLibrary;
 begin
-    ExitProc := GfxBase_exit;
+    ExitProc := graphics_exit;
     if GfxBase <> nil then begin
-       CloseLibrary(GfxBase);
-       GfxBase := nil;
+        CloseLibrary(GfxBase);
+        GfxBase := nil;
     end;
 end;
 
-const
-    VERSION : string[2] = '37';
+procedure InitGRAPHICSLibrary;
+begin
+    GfxBase := nil;
+    GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
+    if GfxBase <> nil then begin
+        graphics_exit := ExitProc;
+        ExitProc := @ClosegraphicsLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open graphics.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    GRAPHICSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of graphics.library}
+
+var
+    graphics_exit : Pointer;
+
+procedure ClosegraphicsLibrary;
+begin
+    ExitProc := graphics_exit;
+    if GfxBase <> nil then begin
+        CloseLibrary(GfxBase);
+        GfxBase := nil;
+    end;
+end;
 
 begin
     GfxBase := nil;
-    GfxBase := OpenLibrary(GRAPHICSNAME,37);
+    GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
     if GfxBase <> nil then begin
-       GfxBase_exit := ExitProc;
-       ExitProc := @CloseGfxBaseLibrary;
+        graphics_exit := ExitProc;
+        ExitProc := @ClosegraphicsLibrary;
+        GRAPHICSIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
-                   'Can''t open graphics.library version ' +
-                   VERSION +
-                   chr(10) + 
-                   'Deallocating resources and closing down',
-                   'Oops');
-       halt(20);
+        'Can''t open graphics.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of graphics.library compiled}
-   {$Info Make sure you open graphics.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    GRAPHICSIsCompiledHow := 3;
+   {$Warning No autoopening of graphics.library compiled}
+   {$Warning Make sure you open graphics.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT GRAPHICS *)
 
 {
   $Log$
-  Revision 1.3  2003-01-13 20:36:00  nils
+  Revision 1.4  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.3  2003/01/13 20:36:00  nils
   * added the defines use_amiga_smartlink
   * and use_auto_openlib
 

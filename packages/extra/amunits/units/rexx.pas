@@ -484,26 +484,41 @@ const
     REXXSYSLIBNAME : PChar = 'rexxsyslib.library';
 
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
-FUNCTION CreateArgstring(argstring : pCHAR; length : ULONG) : pCHAR;
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : pCHAR) : pRexxMsg;
+FUNCTION CreateArgstring(const argstring : pCHAR; length : ULONG) : pCHAR;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : pCHAR) : pRexxMsg;
 PROCEDURE DeleteArgstring(argstring : pCHAR);
 PROCEDURE DeleteRexxMsg(packet : pRexxMsg);
 FUNCTION FillRexxMsg(msgptr : pRexxMsg; count : ULONG; mask : ULONG) : BOOLEAN;
-FUNCTION IsRexxMsg(msgptr : pRexxMsg) : BOOLEAN;
-FUNCTION LengthArgstring(argstring : pCHAR) : ULONG;
+FUNCTION IsRexxMsg(const msgptr : pRexxMsg) : BOOLEAN;
+FUNCTION LengthArgstring(const argstring : pCHAR) : ULONG;
 PROCEDURE LockRexxBase(resource : ULONG);
 PROCEDURE UnlockRexxBase(resource : ULONG);
 
-FUNCTION CreateArgstring(argstring : string; length : ULONG) : pCHAR;
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : pCHAR) : pRexxMsg;
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : string) : pRexxMsg;
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : string) : pRexxMsg;
+FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : pCHAR) : pRexxMsg;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : string) : pRexxMsg;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : string) : pRexxMsg;
 PROCEDURE DeleteArgstring(argstring : string);
-FUNCTION LengthArgstring(argstring : string) : ULONG;
+FUNCTION LengthArgstring(const argstring : string) : ULONG;
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitREXXSYSLIBLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    REXXSYSLIBIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-uses pastoc,msgbox;
+uses
+{$ifndef dont_use_openlib}
+msgbox,
+{$endif dont_use_openlib}
+pastoc;
 
 
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
@@ -518,7 +533,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateArgstring(argstring : pCHAR; length : ULONG) : pCHAR;
+FUNCTION CreateArgstring(const argstring : pCHAR; length : ULONG) : pCHAR;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -531,7 +546,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : pCHAR) : pRexxMsg;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : pCHAR) : pRexxMsg;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -584,7 +599,7 @@ BEGIN
   END;
 END;
 
-FUNCTION IsRexxMsg(msgptr : pRexxMsg) : BOOLEAN;
+FUNCTION IsRexxMsg(const msgptr : pRexxMsg) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -599,7 +614,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LengthArgstring(argstring : pCHAR) : ULONG;
+FUNCTION LengthArgstring(const argstring : pCHAR) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -634,22 +649,22 @@ BEGIN
 END;
 
 
-FUNCTION CreateArgstring(argstring : string; length : ULONG) : pCHAR;
+FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
 begin
        CreateArgstring := CreateArgstring(pas2c(argstring),length);
 end;
 
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : pCHAR) : pRexxMsg;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : pCHAR) : pRexxMsg;
 begin
        CreateRexxMsg := CreateRexxMsg(port,pas2c(extension),host);
 end;
 
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : pCHAR; host : string) : pRexxMsg;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : string) : pRexxMsg;
 begin
        CreateRexxMsg := CreateRexxMsg(port,extension,pas2c(host));
 end;
 
-FUNCTION CreateRexxMsg(port : pMsgPort; extension : string; host : string) : pRexxMsg;
+FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : string) : pRexxMsg;
 begin
        CreateRexxMsg := CreateRexxMsg(port,pas2c(extension),pas2c(host));
 end;
@@ -659,12 +674,53 @@ begin
        DeleteArgstring(pas2c(argstring));
 end;
 
-FUNCTION LengthArgstring(argstring : string) : ULONG;
+FUNCTION LengthArgstring(const argstring : string) : ULONG;
 begin
        LengthArgstring := LengthArgstring(pas2c(argstring));
 end;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of rexxsyslib.library}
+  {$Info don't forget to use InitREXXSYSLIBLibrary in the beginning of your program}
+
+var
+    rexxsyslib_exit : Pointer;
+
+procedure CloserexxsyslibLibrary;
+begin
+    ExitProc := rexxsyslib_exit;
+    if RexxSysBase <> nil then begin
+        CloseLibrary(RexxSysBase);
+        RexxSysBase := nil;
+    end;
+end;
+
+procedure InitREXXSYSLIBLibrary;
+begin
+    RexxSysBase := nil;
+    RexxSysBase := OpenLibrary(REXXSYSLIBNAME,LIBVERSION);
+    if RexxSysBase <> nil then begin
+        rexxsyslib_exit := ExitProc;
+        ExitProc := @CloserexxsyslibLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open rexxsyslib.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    REXXSYSLIBIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of rexxsyslib.library}
 
@@ -680,18 +736,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     RexxSysBase := nil;
     RexxSysBase := OpenLibrary(REXXSYSLIBNAME,LIBVERSION);
     if RexxSysBase <> nil then begin
         rexxsyslib_exit := ExitProc;
-        ExitProc := @CloserexxsyslibLibrary
+        ExitProc := @CloserexxsyslibLibrary;
+        REXXSYSLIBIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open rexxsyslib.library version ' + VERSION + #10 +
@@ -700,17 +751,26 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of rexxsyslib.library compiled}
-   {$Info Make sure you open rexxsyslib.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    REXXSYSLIBIsCompiledHow := 3;
+   {$Warning No autoopening of rexxsyslib.library compiled}
+   {$Warning Make sure you open rexxsyslib.library yourself}
+{$endif dont_use_openlib}
 
 
 END. (* UNIT REXXSYSLIB *)
 
 {
   $Log$
-  Revision 1.4  2003-01-14 18:46:04  nils
+  Revision 1.5  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.4  2003/01/14 18:46:04  nils
   * added defines use_amia_smartlink and use_auto_openlib
 
   * implemented autoopening of library
@@ -720,4 +780,4 @@ END. (* UNIT REXXSYSLIB *)
 
 }
 
-  
+

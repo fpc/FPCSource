@@ -18,9 +18,27 @@
     History:
 
     Added functions and procedures with array of const.
-    For use with fpc 1.0.7. Thay are in systemvartags.
+    For use with fpc 1.0.7. They are in systemvartags.
     11 Nov 2001.
     
+    Update for AmigaOs 3.9.
+    Added some new const.
+    tadtNewFormatFrame is a new record.
+    New procedures and functions.
+             FUNCTION ObtainDTDrawInfoA
+             FUNCTION DrawDTObjectA
+             PROCEDURE ReleaseDTDrawInfo
+
+    New varargs procedures and function, they are
+    in systemvartags.
+         PROCEDURE RefreshDTObjects
+         FUNCTION DoDTMethod
+         FUNCTION PrintDTObject
+         FUNCTION ObtainDTDrawInfo
+         FUNCTION DrawDTObject
+    Changed startcode for library.
+    28 Jan 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -226,6 +244,9 @@ const
  DTERROR_NOT_ENOUGH_DATA               =  2007;
  DTERROR_INVALID_DATA                  =  2008;
 
+{ New for V44 }
+ DTERROR_NOT_AVAILABLE		       =  2009;
+
 { Offset for types }
  DTMSG_TYPE_OFFSET                     =  2100;
 
@@ -337,6 +358,18 @@ const
         { New for V40. (BOOL) Indicate that the object should repeat
          * playing.  Defaults to FALSE. }
 
+        { New for V44. Address of a DTST_MEMORY source type
+         * object (APTR).
+         }
+  DTA_SourceAddress	=  (DTA_Dummy+39);
+
+        { New for V44. Size of a DTST_MEMORY source type
+         * object (ULONG).
+        }
+  DTA_SourceSize	=  (DTA_Dummy+40);
+
+        { Reserved tag; DO NOT USE (V44) }
+  DTA_Reserved		=  (DTA_Dummy+41);
 
 { DTObject attributes }
   DTA_Name              =  (DTA_Dummy+100);
@@ -397,6 +430,7 @@ const
   DTST_FILE             =  2;
   DTST_CLIPBOARD        =  3;
   DTST_HOTLINK          =  4;
+  DTST_MEMORY		=  5;	{ New for V44 }
 
 {***************************************************************************}
 
@@ -650,14 +684,39 @@ const
         { Pointer to a class-allocated bitmap, that will end
          * up being freed by picture.class when DisposeDTObject()
          * is called }
-
+{ Picture colour table (struct ColorRegister *) }
    PDTA_ColorRegisters   =  (DTA_Dummy + 203);
+   
+{ Color table to use with SetRGB32CM() (ULONG *) }
    PDTA_CRegs            =  (DTA_Dummy + 204);
+   
+{ Color table; this table is initialized during the layout
+ * process and will contain the colours the picture will use
+ * after remapping. If no remapping takes place, these colours
+ * will match those in the PDTA_CRegs table (ULONG *).
+ }
    PDTA_GRegs            =  (DTA_Dummy + 205);
+
+{ Shared pen table; this table is initialized during the layout
+ * process while the picture is being remapped (UBYTE *).
+ }
    PDTA_ColorTable       =  (DTA_Dummy + 206);
+   
+{ Shared pen table; in most places this table will be identical to
+ * the PDTA_ColorTable table. Some of the colours in this table might
+ * match the original colour palette a little better than the colours
+ * picked for the other table. The picture.datatype uses the two tables
+ * during remapping, alternating for each pixel (UBYTE *).
+ }
    PDTA_ColorTable2      =  (DTA_Dummy + 207);
+   
+{ OBSOLETE; DO NOT USE }
    PDTA_Allocated        =  (DTA_Dummy + 208);
+   
+{ Number of colors used by the picture. (UWORD) }
    PDTA_NumColors        =  (DTA_Dummy + 209);
+   
+{ Number of colors allocated by the picture (UWORD) }
    PDTA_NumAlloc         =  (DTA_Dummy + 210);
 
    PDTA_Remap            =  (DTA_Dummy + 211);
@@ -688,6 +747,67 @@ const
          * which colors should be used when remapping the image.
          * This array must contain as many entries as there
          * are colors specified with PDTA_NumSparse }
+
+	 { Index number of the picture to load (ULONG). (V44) }
+   PDTA_WhichPicture	 = (DTA_Dummy + 219);
+
+{ Get the number of pictures stored in the file (ULONG *). (V44) }
+   PDTA_GetNumPictures	 = (DTA_Dummy + 220);
+
+{ Maximum number of colours to use for dithering (ULONG). (V44) }
+   PDTA_MaxDitherPens	 = (DTA_Dummy + 221);
+
+{ Quality of the dithering algorithm to be used during colour
+ * quantization (ULONG). (V44)
+ }
+   PDTA_DitherQuality	 = (DTA_Dummy + 222);
+
+{ Pointer to the allocated pen table (UBYTE *). (V44) }
+   PDTA_AllocatedPens	 = (DTA_Dummy + 223);
+
+{ Quality for scaling. (V45) }
+   PDTA_ScaleQuality	 = (DTA_Dummy + 224);
+
+{***************************************************************************}
+
+{ When querying the number of pictures stored in a file, the
+ * following value denotes "the number of pictures is unknown".
+ }
+   PDTANUMPICTURES_Unknown = (0);
+
+{***************************************************************************}
+
+{ V43 extensions (attributes) }
+
+{ Set the sub datatype interface mode (LONG); see "Interface modes" below }
+   PDTA_SourceMode		= (DTA_Dummy + 250);
+
+{ Set the app datatype interface mode (LONG); see "Interface modes" below }
+   PDTA_DestMode		= (DTA_Dummy + 251);
+
+{ Allocates the resulting bitmap as a friend bitmap (BOOL) }
+   PDTA_UseFriendBitMap	        = (DTA_Dummy + 255);
+
+{ NULL or mask plane for use with BltMaskBitMapRastPort() (PLANEPTR) }
+   PDTA_MaskPlane		= (DTA_Dummy + 258);
+
+{***************************************************************************}
+
+{ Interface modes }
+  PMODE_V42 = (0);	{ Compatibility mode }
+  PMODE_V43 = (1);	{ Extended mode }
+
+{***************************************************************************}
+
+{ V43 extensions (methods) }
+
+  PDTM_Dummy = (DTM_Dummy + $60);
+
+{ Transfer pixel data to the picture object in the specified format }
+  PDTM_WRITEPIXELARRAY = (PDTM_Dummy + 0);
+
+{ Transfer pixel data from the picture object in the specified format }
+  PDTM_READPIXELARRAY = (PDTM_Dummy + 1);
 
 {***************************************************************************}
 
@@ -772,12 +892,48 @@ const
     { (struct Task *) Task to signal when sound is complete or
         next buffer needed. }
 
+{ (ULONG) Signal mask to use on completion or 0 to disable
+ *
+ *         NOTE: Due to a bug in sound.datatype V40 SDTA_SignalBit
+ *               was actually implemented as a signal mask as opposed
+ *               to a bit number. The documentation now reflects
+ *               this. If you intend to use a signal bit number
+ *               instead of the mask, use the new V44 tag
+ *               SDTA_SignalBitNumber below.
+ *}
    SDTA_SignalBit        =  (SDTA_Dummy + 8);
+   SDTA_SignalBitMask	 = SDTA_SignalBit;
     { (BYTE) Signal bit to use on completion or -1 to disable }
 
    SDTA_Continuous       =  (SDTA_Dummy + 9);
     { (ULONG) Playing a continuous stream of data.  Defaults to
         FALSE. }
+
+{ The following tags are new for V44 }
+
+{ (BYTE) Signal bit to use on completion or -1 to disable }
+   SDTA_SignalBitNumber	 =  (SDTA_Dummy + 10);
+
+{ (UWORD) Samples per second }
+   SDTA_SamplesPerSec	 = (SDTA_Dummy + 11);
+
+{ (struct timeval *) Sample replay period }
+   SDTA_ReplayPeriod	 = (SDTA_Dummy + 12);
+
+{ (BYTE *) Sample data }
+   SDTA_LeftSample	 = (SDTA_Dummy + 13);
+   SDTA_RightSample	 = (SDTA_Dummy + 14);
+
+{ (BYTE) Stereo panning }
+   SDTA_Pan		 = (SDTA_Dummy + 15);
+
+{ (BOOL) FreeVec() all sample data upon OM_DISPOSE. }
+   SDTA_FreeSampleData	 = (SDTA_Dummy + 16);
+
+{ (BOOL) Wait for the current sample to be played back before
+ * switching to the new sample data.
+ }
+   SDTA_SyncSampleChange = (SDTA_Dummy + 17);
 
 {***************************************************************************}
 
@@ -799,9 +955,16 @@ Type
 {***************************************************************************}
 
 const
+
+{ Channel allocation }
+   SAMPLETYPE_Left	= (2);
+   SAMPLETYPE_Right	= (4);
+   SAMPLETYPE_Stereo	= (6);
+
 { IFF types }
    ID_8SVX = 944985688;
    ID_VHDR = 1447576658;
+   ID_CHAN = $4348414E;
 
 {***************************************************************************}
 
@@ -915,12 +1078,17 @@ const
         {  (LONG) Amount to change frame by when fast forwarding or
          * rewinding.  Defaults to 10. }
 
+   ADTA_PreloadFrameCount = (ADTA_Dummy + 8);	{ (V44) }
 {  Sound attributes }
    ADTA_Sample           =  SDTA_Sample      ;
    ADTA_SampleLength     =  SDTA_SampleLength;
    ADTA_Period           =  SDTA_Period      ;
    ADTA_Volume           =  SDTA_Volume      ;
    ADTA_Cycles           =  SDTA_Cycles      ;
+
+   ADTA_LeftSample	 =  SDTA_LeftSample;		{ (V44) }
+   ADTA_RightSample	 =  SDTA_RightSample;	{ (V44) }
+   ADTA_SamplesPerSec	 =  SDTA_SamplesPerSec;	{ (V44) }
 
 { ***************************************************************************}
 
@@ -1030,6 +1198,11 @@ const
    ADTM_LOCATE           =  ($706);
     {  Used to locate a frame in the animation (as set by a slider...) }
 
+    { Used to load a new format frame of the animation (V44) }
+   ADTM_LOADNEWFORMATFRAME =	($707);
+
+    { Used to unload a new format frame of the animation (V44) }
+   ADTM_UNLOADNEWFORMATFRAME  = ($708);
 { ***************************************************************************}
 
 {  ADTM_LOADFRAME, ADTM_UNLOADFRAME }
@@ -1055,6 +1228,29 @@ Type
     alf_UserData  : Pointer;          {  Used by load frame for extra data }
  end;
 
+ { ADTM_LOADNEWFORMATFRAME, ADTM_UNLOADNEWFORMATFRAME }
+
+ PadtNewFormatFrame = ^tadtNewFormatFrame;
+     tadtNewFormatFrame = record
+          MethodID : ULONG;
+          alf_TimeStamp : ULONG;     { Timestamp of frame to load }
+	  { The following fields are filled in by the ADTM_NEWLOADFRAME method, }
+    { and are read-only for any other methods. }
+          alf_Frame : ULONG;         { Frame number }
+          alf_Duration : ULONG;      { Duration of frame }
+          alf_BitMap : PBitMap;      { Loaded BitMap }
+          alf_CMap : PColorMap;      { Colormap, if changed }
+          alf_Sample : PBYTE;
+          alf_SampleLength : ULONG;  { Sound data }
+          alf_Period : ULONG;
+          alf_UserData : APTR;       { Used by load frame for extra data }
+          alf_Size : ULONG;          { Size of this data structure (in bytes) }
+          alf_LeftSample : PBYTE;    { Sound for left channel, or NULL if none }
+          alf_RightSample : PBYTE;   { Sound for right channel, or NULL if none }
+          alf_SamplesPerSec : ULONG; { Replay speed; if > 0, this overrides alf_Period }
+       end;
+
+
 {  ADTM_START, ADTM_PAUSE, ADTM_STOP, ADTM_LOCATE }
  padtStart = ^tadtStart;
  tadtStart = record
@@ -1068,6 +1264,18 @@ VAR DataTypesBase : pLibrary;
 
 const
     DATATYPESNAME : PChar = 'datatypes.library';
+
+{
+    Just a note.
+    You will see a lot of pObject_ here, pObject is
+    defined in intuition. 
+    
+    In c it's object * but we can't have object in fpc.
+    typedef object ULONG
+
+    pObject_ is just pULONG.
+    
+}
 
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;
 PROCEDURE DisposeDTObject(o : pObject_);
@@ -1085,10 +1293,27 @@ PROCEDURE ReleaseDataType(dt : pDataType);
 FUNCTION RemoveDTObject(win : pWindow; o : pObject_) : LONGINT;
 FUNCTION SetDTAttrsA(o : pObject_; win : pWindow; req : pRequester; attrs : pTagItem) : ULONG;
 
+FUNCTION ObtainDTDrawInfoA( o : pObject_; attrs : pTagItem) : POINTER;
+FUNCTION DrawDTObjectA(rp : pRastPort; o : pObject_; x : LONGINT; y : LONGINT; w : LONGINT; h : LONGINT; th : LONGINT; tv : LONGINT; attrs : pTagItem) : LONGINT;
+PROCEDURE ReleaseDTDrawInfo( o : pObject_; handle : POINTER);
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitDATATYPESLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    DATATYPESIsCompiledHow : longint;
+
 
 IMPLEMENTATION
 
+{$ifndef dont_use_openlib}
 uses msgbox;
+{$endif dont_use_openlib}
 
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;
 BEGIN
@@ -1288,7 +1513,95 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+
+FUNCTION ObtainDTDrawInfoA( o : pObject_; attrs : pTagItem) : POINTER;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	o,A0
+	MOVEA.L	attrs,A1
+	MOVEA.L	DataTypesBase,A6
+	JSR	-120(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION DrawDTObjectA(rp : pRastPort;  o : pObject_; x : LONGINT; y : LONGINT; w : LONGINT; h : LONGINT; th : LONGINT; tv : LONGINT; attrs : pTagItem) : LONGINT;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	rp,A0
+	MOVEA.L	o,A1
+	MOVE.L	x,D0
+	MOVE.L	y,D1
+	MOVE.L	w,D2
+	MOVE.L	h,D3
+	MOVE.L	th,D4
+	MOVE.L	tv,D5
+	MOVEA.L	attrs,A2
+	MOVEA.L	DataTypesBase,A6
+	JSR	-126(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+PROCEDURE ReleaseDTDrawInfo( o : pObject_; handle : POINTER);
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	o,A0
+	MOVEA.L	handle,A1
+	MOVEA.L	DataTypesBase,A6
+	JSR	-132(A6)
+	MOVEA.L	(A7)+,A6
+  END;
+END;
+
+
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of datatypes.library}
+  {$Info don't forget to use InitDATATYPESLibrary in the beginning of your program}
+
+var
+    datatypes_exit : Pointer;
+
+procedure ClosedatatypesLibrary;
+begin
+    ExitProc := datatypes_exit;
+    if DataTypesBase <> nil then begin
+        CloseLibrary(DataTypesBase);
+        DataTypesBase := nil;
+    end;
+end;
+
+procedure InitDATATYPESLibrary;
+begin
+    DataTypesBase := nil;
+    DataTypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
+    if DataTypesBase <> nil then begin
+        datatypes_exit := ExitProc;
+        ExitProc := @ClosedatatypesLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open datatypes.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    DATATYPESIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of datatypes.library}
 
@@ -1304,18 +1617,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     DataTypesBase := nil;
     DataTypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
     if DataTypesBase <> nil then begin
         datatypes_exit := ExitProc;
-        ExitProc := @ClosedatatypesLibrary
+        ExitProc := @ClosedatatypesLibrary;
+        DATATYPESIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open datatypes.library version ' + VERSION + #10 +
@@ -1324,17 +1632,27 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of datatypes.library compiled}
-   {$Info Make sure you open datatypes.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    DATATYPESIsCompiledHow := 3;
+   {$Warning No autoopening of datatypes.library compiled}
+   {$Warning Make sure you open datatypes.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT DATATYPES *)
 
 
 {
   $Log$
-  Revision 1.3  2003-01-14 18:46:04  nils
+  Revision 1.4  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.3  2003/01/14 18:46:04  nils
   * added defines use_amia_smartlink and use_auto_openlib
 
   * implemented autoopening of library
@@ -1344,5 +1662,5 @@ END. (* UNIT DATATYPES *)
 
 }
 
-  
+
 

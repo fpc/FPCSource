@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -24,6 +24,10 @@
     Added function Make_ID.
     14 Jan 2003.
     
+    Update for AmigaOS 3.9.
+    Changed start code for unit.
+    01 Feb 2003.
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -237,47 +241,61 @@ FUNCTION AllocLocalItem(typ : LONGINT; id : LONGINT; ident : LONGINT; dataSize :
 PROCEDURE CloseClipboard(clipHandle : pClipboardHandle);
 PROCEDURE CloseIFF(iff : pIFFHandle);
 FUNCTION CollectionChunk(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : LONGINT;
-FUNCTION CollectionChunks(iff : pIFFHandle; propArray : LONGINT; numPairs : LONGINT) : LONGINT;
-FUNCTION CurrentChunk(iff : pIFFHandle) : pContextNode;
+FUNCTION CollectionChunks(iff : pIFFHandle;const propArray : pLONGINT; numPairs : LONGINT) : LONGINT;
+FUNCTION CurrentChunk(const iff : pIFFHandle) : pContextNode;
 FUNCTION EntryHandler(iff : pIFFHandle; typ : LONGINT; id : LONGINT; position : LONGINT; handler : pHook; obj : POINTER) : LONGINT;
 FUNCTION ExitHandler(iff : pIFFHandle; typ : LONGINT; id : LONGINT; position : LONGINT; handler : pHook; obj : POINTER) : LONGINT;
-FUNCTION FindCollection(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pCollectionItem;
-FUNCTION FindLocalItem(iff : pIFFHandle; typ : LONGINT; id : LONGINT; ident : LONGINT) : pLocalContextItem;
-FUNCTION FindProp(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pStoredProperty;
-FUNCTION FindPropContext(iff : pIFFHandle) : pContextNode;
+FUNCTION FindCollection(const iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pCollectionItem;
+FUNCTION FindLocalItem(const iff : pIFFHandle; typ : LONGINT; id : LONGINT; ident : LONGINT) : pLocalContextItem;
+FUNCTION FindProp(const iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pStoredProperty;
+FUNCTION FindPropContext(const iff : pIFFHandle) : pContextNode;
 PROCEDURE FreeIFF(iff : pIFFHandle);
 PROCEDURE FreeLocalItem(localItem : pLocalContextItem);
 FUNCTION GoodID(id : LONGINT) : LONGINT;
 FUNCTION GoodType(typ : LONGINT) : LONGINT;
 FUNCTION IDtoStr(id : LONGINT; buf : pCHAR) : pCHAR;
-PROCEDURE InitIFF(iff : pIFFHandle; flags : LONGINT; streamHook : pHook);
+PROCEDURE InitIFF(iff : pIFFHandle; flags : LONGINT;const streamHook : pHook);
 PROCEDURE InitIFFasClip(iff : pIFFHandle);
 PROCEDURE InitIFFasDOS(iff : pIFFHandle);
-FUNCTION LocalItemData(localItem : pLocalContextItem) : POINTER;
+FUNCTION LocalItemData(const localItem : pLocalContextItem) : POINTER;
 FUNCTION OpenClipboard(unitNumber : LONGINT) : pClipboardHandle;
 FUNCTION OpenIFF(iff : pIFFHandle; rwMode : LONGINT) : LONGINT;
-FUNCTION ParentChunk(contextNode : pContextNode) : pContextNode;
+FUNCTION ParentChunk(const contextNode : pContextNode) : pContextNode;
 FUNCTION ParseIFF(iff : pIFFHandle; control : LONGINT) : LONGINT;
 FUNCTION PopChunk(iff : pIFFHandle) : LONGINT;
 FUNCTION PropChunk(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : LONGINT;
-FUNCTION PropChunks(iff : pIFFHandle; propArray : LONGINT; numPairs : LONGINT) : LONGINT;
+FUNCTION PropChunks(iff : pIFFHandle;const propArray : pLONGINT; numPairs : LONGINT) : LONGINT;
 FUNCTION PushChunk(iff : pIFFHandle; typ : LONGINT; id : LONGINT; size : LONGINT) : LONGINT;
 FUNCTION ReadChunkBytes(iff : pIFFHandle; buf : POINTER; numBytes : LONGINT) : LONGINT;
 FUNCTION ReadChunkRecords(iff : pIFFHandle; buf : POINTER; bytesPerRecord : LONGINT; numRecords : LONGINT) : LONGINT;
-PROCEDURE SetLocalItemPurge(localItem : pLocalContextItem; purgeHook : pHook);
+PROCEDURE SetLocalItemPurge(localItem : pLocalContextItem;const purgeHook : pHook);
 FUNCTION StopChunk(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : LONGINT;
-FUNCTION StopChunks(iff : pIFFHandle; propArray : LONGINT; numPairs : LONGINT) : LONGINT;
+FUNCTION StopChunks(iff : pIFFHandle;const propArray : pLONGINT; numPairs : LONGINT) : LONGINT;
 FUNCTION StopOnExit(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : LONGINT;
 PROCEDURE StoreItemInContext(iff : pIFFHandle; localItem : pLocalContextItem; contextNode : pContextNode);
 FUNCTION StoreLocalItem(iff : pIFFHandle; localItem : pLocalContextItem; position : LONGINT) : LONGINT;
-FUNCTION WriteChunkBytes(iff : pIFFHandle; buf : POINTER; numBytes : LONGINT) : LONGINT;
-FUNCTION WriteChunkRecords(iff : pIFFHandle; buf : POINTER; bytesPerRecord : LONGINT; numRecords : LONGINT) : LONGINT;
+FUNCTION WriteChunkBytes(iff : pIFFHandle;const buf : POINTER; numBytes : LONGINT) : LONGINT;
+FUNCTION WriteChunkRecords(iff : pIFFHandle;const buf : POINTER; bytesPerRecord : LONGINT; numRecords : LONGINT) : LONGINT;
 
 Function Make_ID(str : String) : LONGINT;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitIFFPARSELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    IFFPARSEIsCompiledHow : longint;
+
 IMPLEMENTATION
 
-uses msgbox;
+uses
+{$ifndef dont_use_openlib}
+msgbox;
+{$endif dont_use_openlib}
 
 FUNCTION AllocIFF : pIFFHandle;
 BEGIN
@@ -341,7 +359,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CollectionChunks(iff : pIFFHandle; propArray : LONGINT; numPairs : LONGINT) : LONGINT;
+FUNCTION CollectionChunks(iff : pIFFHandle;const propArray : pLONGINT; numPairs : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -355,7 +373,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CurrentChunk(iff : pIFFHandle) : pContextNode;
+FUNCTION CurrentChunk(const iff : pIFFHandle) : pContextNode;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -401,7 +419,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindCollection(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pCollectionItem;
+FUNCTION FindCollection(const iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pCollectionItem;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -415,7 +433,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindLocalItem(iff : pIFFHandle; typ : LONGINT; id : LONGINT; ident : LONGINT) : pLocalContextItem;
+FUNCTION FindLocalItem(const iff : pIFFHandle; typ : LONGINT; id : LONGINT; ident : LONGINT) : pLocalContextItem;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -430,7 +448,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindProp(iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pStoredProperty;
+FUNCTION FindProp(const iff : pIFFHandle; typ : LONGINT; id : LONGINT) : pStoredProperty;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -444,7 +462,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindPropContext(iff : pIFFHandle) : pContextNode;
+FUNCTION FindPropContext(const iff : pIFFHandle) : pContextNode;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -515,7 +533,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE InitIFF(iff : pIFFHandle; flags : LONGINT; streamHook : pHook);
+PROCEDURE InitIFF(iff : pIFFHandle; flags : LONGINT;const streamHook : pHook);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -550,7 +568,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LocalItemData(localItem : pLocalContextItem) : POINTER;
+FUNCTION LocalItemData(const localItem : pLocalContextItem) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -587,7 +605,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ParentChunk(contextNode : pContextNode) : pContextNode;
+FUNCTION ParentChunk(const contextNode : pContextNode) : pContextNode;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -638,7 +656,7 @@ BEGIN
   END;
 END;
 
-FUNCTION PropChunks(iff : pIFFHandle; propArray : LONGINT; numPairs : LONGINT) : LONGINT;
+FUNCTION PropChunks(iff : pIFFHandle;const  propArray : pLONGINT; numPairs : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -696,7 +714,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetLocalItemPurge(localItem : pLocalContextItem; purgeHook : pHook);
+PROCEDURE SetLocalItemPurge(localItem : pLocalContextItem;const purgeHook : pHook);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -722,7 +740,7 @@ BEGIN
   END;
 END;
 
-FUNCTION StopChunks(iff : pIFFHandle; propArray : LONGINT; numPairs : LONGINT) : LONGINT;
+FUNCTION StopChunks(iff : pIFFHandle; const propArray : pLONGINT; numPairs : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -777,7 +795,7 @@ BEGIN
   END;
 END;
 
-FUNCTION WriteChunkBytes(iff : pIFFHandle; buf : POINTER; numBytes : LONGINT) : LONGINT;
+FUNCTION WriteChunkBytes(iff : pIFFHandle;const buf : POINTER; numBytes : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -791,7 +809,7 @@ BEGIN
   END;
 END;
 
-FUNCTION WriteChunkRecords(iff : pIFFHandle; buf : POINTER; bytesPerRecord : LONGINT; numRecords : LONGINT) : LONGINT;
+FUNCTION WriteChunkRecords(iff : pIFFHandle;const buf : POINTER; bytesPerRecord : LONGINT; numRecords : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -813,7 +831,48 @@ begin
 		  (LONGINT(Ord(Str[3])) shl 8 ) or (LONGINT(Ord(Str[4])));
 end;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of iffparse.library}
+  {$Info don't forget to use InitIFFPARSELibrary in the beginning of your program}
+
+var
+    iffparse_exit : Pointer;
+
+procedure CloseiffparseLibrary;
+begin
+    ExitProc := iffparse_exit;
+    if IFFParseBase <> nil then begin
+        CloseLibrary(IFFParseBase);
+        IFFParseBase := nil;
+    end;
+end;
+
+procedure InitIFFPARSELibrary;
+begin
+    IFFParseBase := nil;
+    IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
+    if IFFParseBase <> nil then begin
+        iffparse_exit := ExitProc;
+        ExitProc := @CloseiffparseLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open iffparse.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    IFFPARSEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of iffparse.library}
 
@@ -829,18 +888,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     IFFParseBase := nil;
     IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
     if IFFParseBase <> nil then begin
         iffparse_exit := ExitProc;
-        ExitProc := @CloseiffparseLibrary
+        ExitProc := @CloseiffparseLibrary;
+        IFFPARSEIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open iffparse.library version ' + VERSION + #10 +
@@ -849,10 +903,14 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of iffparse.library compiled}
-   {$Info Make sure you open iffparse.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    IFFPARSEIsCompiledHow := 3;
+   {$Warning No autoopening of iffparse.library compiled}
+   {$Warning Make sure you open iffparse.library yourself}
+{$endif dont_use_openlib}
 
 
 END. (* UNIT IFFPARSE *)
@@ -860,7 +918,12 @@ END. (* UNIT IFFPARSE *)
 
 {
   $Log$
-  Revision 1.4  2003-01-19 14:57:50  nils
+  Revision 1.5  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.4  2003/01/19 14:57:50  nils
   * added function make_id
 
   Revision 1.3  2003/01/14 18:46:04  nils
@@ -873,5 +936,5 @@ END. (* UNIT IFFPARSE *)
 
 }
 
-  
+
 

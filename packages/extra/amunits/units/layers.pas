@@ -21,6 +21,10 @@
     of the library.
     14 Jan 2003.
     
+    Update for AmigaOS 3.9.
+    Changed start code for unit.
+    06 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -90,13 +94,13 @@ FUNCTION CreateUpfrontHookLayer(li : pLayer_Info; bm : pBitMap; x0 : LONGINT; y0
 FUNCTION CreateUpfrontLayer(li : pLayer_Info; bm : pBitMap; x0 : LONGINT; y0 : LONGINT; x1 : LONGINT; y1 : LONGINT; flags : LONGINT; bm2 : pBitMap) : pLayer;
 FUNCTION DeleteLayer(dummy : LONGINT; layer : pLayer) : LONGINT;
 PROCEDURE DisposeLayerInfo(li : pLayer_Info);
-PROCEDURE DoHookClipRects(hook : pHook; rport : pRastPort; rect : pRectangle);
+PROCEDURE DoHookClipRects(hook : pHook; rport : pRastPort;const rect : pRectangle);
 PROCEDURE EndUpdate(layer : pLayer; flag : ULONG);
 FUNCTION FattenLayerInfo(li : pLayer_Info) : LONGINT;
 PROCEDURE InitLayers(li : pLayer_Info);
-FUNCTION InstallClipRegion(layer : pLayer; region : pRegion) : pRegion;
+FUNCTION InstallClipRegion(layer : pLayer;const region : pRegion) : pRegion;
 FUNCTION InstallLayerHook(layer : pLayer; hook : pHook) : pHook;
-FUNCTION InstallLayerInfoHook(li : pLayer_Info; hook : pHook) : pHook;
+FUNCTION InstallLayerInfoHook(li : pLayer_Info;const hook : pHook) : pHook;
 PROCEDURE LockLayer(dummy : LONGINT; layer : pLayer);
 PROCEDURE LockLayerInfo(li : pLayer_Info);
 PROCEDURE LockLayers(li : pLayer_Info);
@@ -115,9 +119,23 @@ PROCEDURE UnlockLayers(li : pLayer_Info);
 FUNCTION UpfrontLayer(dummy : LONGINT; layer : pLayer) : LONGINT;
 FUNCTION WhichLayer(li : pLayer_Info; x : LONGINT; y : LONGINT) : pLayer;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitLAYERSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    LAYERSIsCompiledHow : longint;
+
 IMPLEMENTATION
 
-uses msgbox;
+uses
+{$ifndef dont_use_openlib}
+msgbox;
+{$endif dont_use_openlib}
 
 FUNCTION BeginUpdate(l : pLayer) : LONGINT;
 BEGIN
@@ -246,7 +264,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE DoHookClipRects(hook : pHook; rport : pRastPort; rect : pRectangle);
+PROCEDURE DoHookClipRects(hook : pHook; rport : pRastPort;const rect : pRectangle);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -294,7 +312,7 @@ BEGIN
   END;
 END;
 
-FUNCTION InstallClipRegion(layer : pLayer; region : pRegion) : pRegion;
+FUNCTION InstallClipRegion(layer : pLayer;const region : pRegion) : pRegion;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -320,7 +338,7 @@ BEGIN
   END;
 END;
 
-FUNCTION InstallLayerInfoHook(li : pLayer_Info; hook : pHook) : pHook;
+FUNCTION InstallLayerInfoHook(li : pLayer_Info;const hook : pHook) : pHook;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -547,7 +565,48 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of layers.library}
+  {$Info don't forget to use InitLAYERSLibrary in the beginning of your program}
+
+var
+    layers_exit : Pointer;
+
+procedure CloselayersLibrary;
+begin
+    ExitProc := layers_exit;
+    if LayersBase <> nil then begin
+        CloseLibrary(LayersBase);
+        LayersBase := nil;
+    end;
+end;
+
+procedure InitLAYERSLibrary;
+begin
+    LayersBase := nil;
+    LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
+    if LayersBase <> nil then begin
+        layers_exit := ExitProc;
+        ExitProc := @CloselayersLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open layers.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    LAYERSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of layers.library}
 
@@ -563,18 +622,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     LayersBase := nil;
     LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
     if LayersBase <> nil then begin
         layers_exit := ExitProc;
-        ExitProc := @CloselayersLibrary
+        ExitProc := @CloselayersLibrary;
+        LAYERSIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open layers.library version ' + VERSION + #10 +
@@ -583,16 +637,26 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of layers.library compiled}
-   {$Info Make sure you open layers.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    LAYERSIsCompiledHow := 3;
+   {$Warning No autoopening of layers.library compiled}
+   {$Warning Make sure you open layers.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT LAYERS *)
 
 {
   $Log$
-  Revision 1.3  2003-01-14 18:46:04  nils
+  Revision 1.4  2003-02-07 20:48:36  nils
+  * update for amigaos 3.9
+
+  * changed startcode for library
+
+  Revision 1.3  2003/01/14 18:46:04  nils
   * added defines use_amia_smartlink and use_auto_openlib
 
   * implemented autoopening of library
@@ -602,4 +666,4 @@ END. (* UNIT LAYERS *)
 
 }
 
-  
+

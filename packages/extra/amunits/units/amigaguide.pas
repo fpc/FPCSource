@@ -26,6 +26,11 @@
     the library.
     13 Jan 2003.
 
+    Update for AmigaOs 3.9.
+    Added a const and a member to record tXRef;
+    Changed startupcode for library.
+    26 Jan 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -74,6 +79,9 @@ const
 
  AGA_ARexxPortName      = (AGA_Dummy+10);
    { (STRPTR) Used to specify the ARexx port name (V40) (not copied) }
+
+ AGA_Secure		= (AGA_Dummy+11);
+   { (BOOL) Disable "ONOPEN", "ONCLOSE" and "LINK RX", "LINK RXS", "LINK SYSTEM" commands (V41) }
 
 Type
     AMIGAGUIDECONTEXT = Pointer;
@@ -145,6 +153,7 @@ Type
     xr_File,                      { Name of document file }
     xr_Name   : STRPTR;           { Name of item }
     xr_Line   : Longint;          { Line defined at }
+    xr_Reserved : array [0..1] of Ulong;
    END;
 
 CONST
@@ -255,9 +264,24 @@ FUNCTION SetAmigaGuideAttrsA(cl : POINTER; attrs : pTagItem) : LONGINT;
 FUNCTION SetAmigaGuideContextA(cl : POINTER; id : ULONG; attrs : pTagItem) : LONGINT;
 PROCEDURE UnlockAmigaGuideBase(key : LONGINT);
 
+
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitAMIGAGUIDELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    AMIGAGUIDEIsCompiledHow : longint;
+
 IMPLEMENTATION
 
+{$ifndef dont_use_openlib}
 uses msgbox;
+{$endif dont_use_openlib}
+
 
 FUNCTION AddAmigaGuideHostA(h : pHook; name : pCHAR; attrs : pTagItem) : POINTER;
 BEGIN
@@ -484,7 +508,48 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of amigaguide.library}
+  {$Info don't forget to use InitAMIGAGUIDELibrary in the beginning of your program}
+
+var
+    amigaguide_exit : Pointer;
+
+procedure CloseamigaguideLibrary;
+begin
+    ExitProc := amigaguide_exit;
+    if AmigaGuideBase <> nil then begin
+        CloseLibrary(AmigaGuideBase);
+        AmigaGuideBase := nil;
+    end;
+end;
+
+procedure InitAMIGAGUIDELibrary;
+begin
+    AmigaGuideBase := nil;
+    AmigaGuideBase := OpenLibrary(AMIGAGUIDENAME,LIBVERSION);
+    if AmigaGuideBase <> nil then begin
+        amigaguide_exit := ExitProc;
+        ExitProc := @CloseamigaguideLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open amigaguide.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    AMIGAGUIDEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of amigaguide.library}
 
@@ -500,18 +565,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     AmigaGuideBase := nil;
     AmigaGuideBase := OpenLibrary(AMIGAGUIDENAME,LIBVERSION);
     if AmigaGuideBase <> nil then begin
         amigaguide_exit := ExitProc;
-        ExitProc := @CloseamigaguideLibrary
+        ExitProc := @CloseamigaguideLibrary;
+        AMIGAGUIDEIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open amigaguide.library version ' + VERSION + #10 +
@@ -520,23 +580,33 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of amigaguide.library compiled}
-   {$Info Make sure you open amigaguide.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    AMIGAGUIDEIsCompiledHow := 3;
+   {$Warning No autoopening of amigaguide.library compiled}
+   {$Warning Make sure you open amigaguide.library yourself}
+{$endif dont_use_openlib}
+
 
 END. (* UNIT AMIGAGUIDE *)
 
 
 {
    $Log$
-   Revision 1.3  2003-01-14 18:46:04  nils
+   Revision 1.4  2003-02-07 20:48:36  nils
+   * update for amigaos 3.9
+   
+   * changed startcode for library
+   
+   Revision 1.3  2003/01/14 18:46:04  nils
    * added defines use_amia_smartlink and use_auto_openlib
-   
+
    * implemented autoopening of library
-   
+
    Revision 1.2  2002/11/17 20:28:53  nils
    * added functions with array of const
-   
+
 }
 

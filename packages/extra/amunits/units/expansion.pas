@@ -21,6 +21,10 @@
     the library.
     14 Jan 2003.
     
+    Update for AmigaOS 3.9.
+    Changed start code for unit.
+    01 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -52,23 +56,37 @@ FUNCTION AllocConfigDev : pConfigDev;
 FUNCTION AllocExpansionMem(numSlots : ULONG; slotAlign : ULONG) : POINTER;
 PROCEDURE ConfigBoard(board : POINTER; configDev : pConfigDev);
 PROCEDURE ConfigChain(baseAddr : POINTER);
-FUNCTION FindConfigDev(oldConfigDev : pConfigDev; manufacturer : LONGINT; product : LONGINT) : pConfigDev;
+FUNCTION FindConfigDev(const oldConfigDev : pConfigDev; manufacturer : LONGINT; product : LONGINT) : pConfigDev;
 PROCEDURE FreeBoardMem(startSlot : ULONG; slotSpec : ULONG);
 PROCEDURE FreeConfigDev(configDev : pConfigDev);
 PROCEDURE FreeExpansionMem(startSlot : ULONG; numSlots : ULONG);
-FUNCTION GetCurrentBinding(currentBinding : pCurrentBinding; bindingSize : ULONG) : ULONG;
-FUNCTION MakeDosNode(parmPacket : POINTER) : pDeviceNode;
+FUNCTION GetCurrentBinding(const currentBinding : pCurrentBinding; bindingSize : ULONG) : ULONG;
+FUNCTION MakeDosNode(const parmPacket : POINTER) : pDeviceNode;
 PROCEDURE ObtainConfigBinding;
-FUNCTION ReadExpansionByte(board : POINTER; offset : ULONG) : BYTE;
-PROCEDURE ReadExpansionRom(board : POINTER; configDev : pConfigDev);
+FUNCTION ReadExpansionByte(const board : POINTER; offset : ULONG) : BYTE;
+PROCEDURE ReadExpansionRom(const board : POINTER; configDev : pConfigDev);
 PROCEDURE ReleaseConfigBinding;
 PROCEDURE RemConfigDev(configDev : pConfigDev);
 PROCEDURE SetCurrentBinding(currentBinding : pCurrentBinding; bindingSize : ULONG);
 PROCEDURE WriteExpansionByte(board : POINTER; offset : ULONG; byte : ULONG);
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitEXPANSIONLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    EXPANSIONIsCompiledHow : longint;
+
 IMPLEMENTATION
 
-uses msgbox;
+uses
+{$ifndef dont_use_openlib}
+msgbox;
+{$endif dont_use_openlib}
 
 FUNCTION AddBootNode(bootPri : LONGINT; flags : ULONG; deviceNode : pDeviceNode; configDev : pConfigDev) : BOOLEAN;
 BEGIN
@@ -174,7 +192,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindConfigDev(oldConfigDev : pConfigDev; manufacturer : LONGINT; product : LONGINT) : pConfigDev;
+FUNCTION FindConfigDev(const oldConfigDev : pConfigDev; manufacturer : LONGINT; product : LONGINT) : pConfigDev;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -223,7 +241,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetCurrentBinding(currentBinding : pCurrentBinding; bindingSize : ULONG) : ULONG;
+FUNCTION GetCurrentBinding(const currentBinding : pCurrentBinding; bindingSize : ULONG) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -236,7 +254,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MakeDosNode(parmPacket : POINTER) : pDeviceNode;
+FUNCTION MakeDosNode(const parmPacket : POINTER) : pDeviceNode;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -258,7 +276,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ReadExpansionByte(board : POINTER; offset : ULONG) : BYTE;
+FUNCTION ReadExpansionByte(const board : POINTER; offset : ULONG) : BYTE;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -271,7 +289,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE ReadExpansionRom(board : POINTER; configDev : pConfigDev);
+PROCEDURE ReadExpansionRom(const board : POINTER; configDev : pConfigDev);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -329,7 +347,48 @@ BEGIN
   END;
 END;
 
-{$I useautoopenlib.inc}
+const
+    { Change VERSION and LIBVERSION to proper values }
+
+    VERSION : string[2] = '0';
+    LIBVERSION : Cardinal = 0;
+
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of expansion.library}
+  {$Info don't forget to use InitEXPANSIONLibrary in the beginning of your program}
+
+var
+    expansion_exit : Pointer;
+
+procedure CloseexpansionLibrary;
+begin
+    ExitProc := expansion_exit;
+    if ExpansionBase <> nil then begin
+        CloseLibrary(ExpansionBase);
+        ExpansionBase := nil;
+    end;
+end;
+
+procedure InitEXPANSIONLibrary;
+begin
+    ExpansionBase := nil;
+    ExpansionBase := OpenLibrary(EXPANSIONNAME,LIBVERSION);
+    if ExpansionBase <> nil then begin
+        expansion_exit := ExitProc;
+        ExitProc := @CloseexpansionLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open expansion.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    EXPANSIONIsCompiledHow := 2;
+{$endif use_init_openlib}
+
 {$ifdef use_auto_openlib}
   {$Info Compiling autoopening of expansion.library}
 
@@ -345,18 +404,13 @@ begin
     end;
 end;
 
-const
-    { Change VERSION and LIBVERSION to proper values }
-
-    VERSION : string[2] = '0';
-    LIBVERSION : Cardinal = 0;
-
 begin
     ExpansionBase := nil;
     ExpansionBase := OpenLibrary(EXPANSIONNAME,LIBVERSION);
     if ExpansionBase <> nil then begin
         expansion_exit := ExitProc;
-        ExitProc := @CloseexpansionLibrary
+        ExitProc := @CloseexpansionLibrary;
+        EXPANSIONIsCompiledHow := 1;
     end else begin
         MessageBox('FPC Pascal Error',
         'Can''t open expansion.library version ' + VERSION + #10 +
@@ -365,10 +419,14 @@ begin
         halt(20);
     end;
 
-{$else}
-   {$Warning No autoopening of expansion.library compiled}
-   {$Info Make sure you open expansion.library yourself}
 {$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    EXPANSIONIsCompiledHow := 3;
+   {$Warning No autoopening of expansion.library compiled}
+   {$Warning Make sure you open expansion.library yourself}
+{$endif dont_use_openlib}
 
 
 END. (* UNIT EXPANSION *)
