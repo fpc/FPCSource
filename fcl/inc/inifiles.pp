@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by Michael A. Hess
+    Copyright (c) 1999-2000 by Michael A. Hess
 
     adapted from code by Stephan Schneider
 
@@ -481,7 +481,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-06 01:20:33  peter
+  Revision 1.8  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.7  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:07  peter

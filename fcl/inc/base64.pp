@@ -1,4 +1,16 @@
-// $Id$
+{
+    $Id$
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 
 // Encoding and decoding streams for base64 data as described in RFC2045
 
@@ -89,16 +101,16 @@ begin
     1: begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
         WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4];
-	WriteBuf[2] := '=';
-	WriteBuf[3] := '=';
+        WriteBuf[2] := '=';
+        WriteBuf[3] := '=';
         OutputStream.Write(WriteBuf, 4);
       end;
     2: begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
-	WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
-	WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2];
-	WriteBuf[3] := '=';
-	OutputStream.Write(WriteBuf, 4);
+        WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
+        WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2];
+        WriteBuf[3] := '=';
+        OutputStream.Write(WriteBuf, 4);
       end;
   end;
   inherited Destroy;
@@ -194,39 +206,39 @@ begin
       while ToRead > 0 do begin
         OrgToRead := ToRead;
         HaveRead := InputStream.Read(ReadBuf[ReadOK], ToRead);
-	//WriteLn('ToRead = ', ToRead, ', HaveRead = ', HaveRead, ', ReadOK=', ReadOk);
-	if HaveRead > 0 then begin
-	  i := ReadOk;
-	  while i <= HaveRead do begin
-	    ReadBuf[i] := DecTable[ReadBuf[i]];
-	    if ReadBuf[i] = 99 then
-	      for j := i to 3 do
-	        ReadBuf[i] := ReadBuf[i + 1]
-	    else begin
-	      Inc(i);
-	      Inc(ReadOK);
-	      Dec(ToRead);
-	    end;
-	  end;
-	end;
-	if HaveRead <> OrgToRead then begin
-	  //WriteLn('Ende? ReadOK=', ReadOK, ', count=', Count);
-	  for i := ReadOK to 3 do
-	    ReadBuf[i] := Ord('=');
-	  fEOF := True;
-	  if ReadOK < 2 then exit;    // Not enough data available in input stream
-	  break;
-	end;
+        //WriteLn('ToRead = ', ToRead, ', HaveRead = ', HaveRead, ', ReadOK=', ReadOk);
+        if HaveRead > 0 then begin
+          i := ReadOk;
+          while i <= HaveRead do begin
+            ReadBuf[i] := DecTable[ReadBuf[i]];
+            if ReadBuf[i] = 99 then
+              for j := i to 3 do
+                ReadBuf[i] := ReadBuf[i + 1]
+            else begin
+              Inc(i);
+              Inc(ReadOK);
+              Dec(ToRead);
+            end;
+          end;
+        end;
+        if HaveRead <> OrgToRead then begin
+          //WriteLn('Ende? ReadOK=', ReadOK, ', count=', Count);
+          for i := ReadOK to 3 do
+            ReadBuf[i] := Ord('=');
+          fEOF := True;
+          if ReadOK < 2 then exit;    // Not enough data available in input stream
+          break;
+        end;
       end;
 
       // Check for fill bytes
       if (Count >= 2) and (ReadBuf[3] = Ord('=')) then begin
         //WriteLn('Endemarkierung!');
-	fEOF := True;
-	if ReadBuf[2] = Ord('=') then
-	  Count := 1
-	else
-	  Count := 2;
+        fEOF := True;
+        if ReadBuf[2] = Ord('=') then
+          Count := 1
+        else
+          Count := 2;
       end;
 
       // Decode the 4 bytes in the buffer to 3 undecoded bytes
@@ -287,7 +299,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-01-06 01:20:32  peter
+  Revision 1.7  2000-01-07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.6  2000/01/06 01:20:32  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:06  peter

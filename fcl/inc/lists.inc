@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -188,7 +188,7 @@ end;
 function TList.First: Pointer;
 
 begin
-  If FCount=0 then 
+  If FCount=0 then
     Result:=Nil
   else
     Result:=Items[0];
@@ -224,7 +224,7 @@ function TList.Last: Pointer;
 
 begin
   // Wouldn't it be better to return nil if the count is zero ?
-  If FCount=0 then 
+  If FCount=0 then
     Result:=Nil
   else
     Result:=Items[FCount-1];
@@ -395,7 +395,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-01-06 01:20:33  peter
+  Revision 1.10  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.9  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:07  peter

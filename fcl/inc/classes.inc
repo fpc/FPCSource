@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by Michael Van Canneyt and Florian Klaempfl
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -294,18 +294,18 @@ procedure ObjectBinaryToText(Input, Output: TStream);
       NewInString := InString;
       case s[i] of
         #0..#31: begin
-	    if InString then
-	      NewInString := False;
-	    NewStr := '#' + IntToStr(Ord(s[i]));
-	  end;
+            if InString then
+              NewInString := False;
+            NewStr := '#' + IntToStr(Ord(s[i]));
+          end;
         '''':
-	    if InString then NewStr := ''''''
-	    else NewStr := '''''''';
-	else begin
-	  if not InString then
-	    NewInString := True;
-	  NewStr := s[i];
-	end;
+            if InString then NewStr := ''''''
+            else NewStr := '''''''';
+        else begin
+          if not InString then
+            NewInString := True;
+          NewStr := s[i];
+        end;
       end;
       if NewInString <> InString then begin
         NewStr := '''' + NewStr;
@@ -361,11 +361,11 @@ procedure ObjectBinaryToText(Input, Output: TStream);
         while ToDo > 0 do begin
           DoNow := ToDo;
           if DoNow > 32 then DoNow := 32;
-  	  Dec(ToDo, DoNow);
- 	  s := Indent + '  ';
-	  Input.Read(lbuf, DoNow);
-	  for i := 0 to DoNow - 1 do
-	    s := s + IntToHex(lbuf[i], 2);
+          Dec(ToDo, DoNow);
+          s := Indent + '  ';
+          Input.Read(lbuf, DoNow);
+          for i := 0 to DoNow - 1 do
+            s := s + IntToHex(lbuf[i], 2);
           OutLn(s);
         end;
         OutLn(indent + '}');
@@ -381,19 +381,19 @@ procedure ObjectBinaryToText(Input, Output: TStream);
       OutStr('(' + IntToStr(Ord(Valuetype)) + ') ');
       case ValueType of
         vaList: begin
-	    OutStr('(');
-	    IsFirst := True;
-	    while True do begin
-	      ValueType := TValueType(Input.ReadByte);
-	      if ValueType = vaNull then break;
-	      if IsFirst then begin
-	        OutLn('');
-	        IsFirst := False;
-	      end;
-	      OutStr(Indent + '  ');
-	      ProcessValue(ValueType, Indent + '  ');
-	    end;
-	    OutLn(Indent + ')');
+            OutStr('(');
+            IsFirst := True;
+            while True do begin
+              ValueType := TValueType(Input.ReadByte);
+              if ValueType = vaNull then break;
+              if IsFirst then begin
+                OutLn('');
+                IsFirst := False;
+              end;
+              OutStr(Indent + '  ');
+              ProcessValue(ValueType, Indent + '  ');
+            end;
+            OutLn(Indent + ')');
           end;
         vaInt8: OutLn(IntToStr(ShortInt(Input.ReadByte)));
         vaInt16: OutLn( IntToStr(SmallInt(Input.ReadWord)));
@@ -412,33 +412,33 @@ procedure ObjectBinaryToText(Input, Output: TStream);
         vaBinary: ProcessBinary;
         vaSet: begin
             OutStr('[');
-  	    IsFirst := True;
-	    while True do begin
-	      s := ReadSStr;
-	      if Length(s) = 0 then break;
-	      if not IsFirst then OutStr(', ');
-	      IsFirst := False;
-	      OutStr(s);
-	    end;
-	    OutLn(']');
+            IsFirst := True;
+            while True do begin
+              s := ReadSStr;
+              if Length(s) = 0 then break;
+              if not IsFirst then OutStr(', ');
+              IsFirst := False;
+              OutStr(s);
+            end;
+            OutLn(']');
           end;
         vaLString: Stop('!!LString!!');
         vaNil: Stop('nil');
         vaCollection: begin
             OutStr('<');
             while Input.ReadByte <> 0 do begin
-	      OutLn(Indent);
+              OutLn(Indent);
               Input.Seek(-1, soFromCurrent);
-	      OutStr(indent + '  item');
-	      ValueType := TValueType(Input.ReadByte);
-	      if ValueType <> vaList then
-	        OutStr('[' + IntToStr(ReadInt(ValueType)) + ']');
-	      OutLn('');
-	      ReadPropList(indent + '    ');
-	      OutStr(indent + '  end');
+              OutStr(indent + '  item');
+              ValueType := TValueType(Input.ReadByte);
+              if ValueType <> vaList then
+                OutStr('[' + IntToStr(ReadInt(ValueType)) + ']');
+              OutLn('');
+              ReadPropList(indent + '    ');
+              OutStr(indent + '  end');
             end;
-	    OutLn('>');
-	  end;
+            OutLn('>');
+          end;
         {vaSingle: begin OutLn('!!Single!!'); exit end;
         vaCurrency: begin OutLn('!!Currency!!'); exit end;
         vaDate: begin OutLn('!!Date!!'); exit end;
@@ -540,78 +540,78 @@ var
       toInteger: WriteInteger(parser.TokenInt);
       toFloat: begin
           Output.WriteByte(Ord(vaExtended));
-	  flt := Parser.TokenFloat;
+          flt := Parser.TokenFloat;
           Output.Write(flt, SizeOf(flt));
         end;
       toString: begin
           s := parser.TokenString;
-	  while parser.NextToken = '+' do begin
-	    parser.NextToken;	// Get next string fragment
-	    parser.CheckToken(toString);
-	    s := s + parser.TokenString;
-	  end;
+          while parser.NextToken = '+' do begin
+            parser.NextToken;   // Get next string fragment
+            parser.CheckToken(toString);
+            s := s + parser.TokenString;
+          end;
           Output.WriteByte(Ord(vaString));
           WriteString(s);
         end;
       toSymbol:
           if CompareText(parser.TokenString, 'True') = 0 then
-	    Output.WriteByte(Ord(vaTrue))
-	  else if CompareText(parser.TokenString, 'False') = 0 then
-	    Output.WriteByte(Ord(vaFalse))
-	  else if CompareText(parser.TokenString, 'nil') = 0 then
-	    Output.WriteByte(Ord(vaNil))
-	  else begin
+            Output.WriteByte(Ord(vaTrue))
+          else if CompareText(parser.TokenString, 'False') = 0 then
+            Output.WriteByte(Ord(vaFalse))
+          else if CompareText(parser.TokenString, 'nil') = 0 then
+            Output.WriteByte(Ord(vaNil))
+          else begin
             Output.WriteByte(Ord(vaIdent));
-	    WriteString(parser.TokenString);
+            WriteString(parser.TokenString);
           end;
       // Set
       '[': begin
           parser.NextToken;
-	  Output.WriteByte(Ord(vaSet));
-	  if parser.Token <> ']' then
-	    while True do begin
-	      parser.CheckToken(toSymbol);
-	      WriteString(parser.TokenString);
-	      parser.NextToken;
-	      if parser.Token = ']' then break;
-	      parser.CheckToken(',');
-	      parser.NextToken;
-	    end;
-	  Output.WriteByte(0);
+          Output.WriteByte(Ord(vaSet));
+          if parser.Token <> ']' then
+            while True do begin
+              parser.CheckToken(toSymbol);
+              WriteString(parser.TokenString);
+              parser.NextToken;
+              if parser.Token = ']' then break;
+              parser.CheckToken(',');
+              parser.NextToken;
+            end;
+          Output.WriteByte(0);
         end;
       // List
       '(': begin
           parser.NextToken;
-	  Output.WriteByte(Ord(vaList));
-	  while parser.Token <> ')' do ProcessValue;
-	  Output.WriteByte(0);
+          Output.WriteByte(Ord(vaList));
+          while parser.Token <> ')' do ProcessValue;
+          Output.WriteByte(0);
         end;
       // Collection
       '<': begin
           parser.NextToken;
-	  Output.WriteByte(Ord(vaCollection));
+          Output.WriteByte(Ord(vaCollection));
           while parser.Token <> '>' do begin
-	    parser.CheckTokenSymbol('item');
-	    parser.NextToken;
-	    // ConvertOrder
-	    Output.WriteByte(Ord(vaList));
-	    while not parser.TokenSymbolIs('end') do ProcessProperty;
-	    parser.NextToken;	// Skip 'end'
-	    Output.WriteByte(0);
-	  end;
-	  Output.WriteByte(0);
+            parser.CheckTokenSymbol('item');
+            parser.NextToken;
+            // ConvertOrder
+            Output.WriteByte(Ord(vaList));
+            while not parser.TokenSymbolIs('end') do ProcessProperty;
+            parser.NextToken;   // Skip 'end'
+            Output.WriteByte(0);
+          end;
+          Output.WriteByte(0);
         end;
       // Binary data
       '{': begin
           Output.WriteByte(Ord(vaBinary));
-	  stream := TMemoryStream.Create;
-	  try
-	    parser.HexToBinary(stream);
-	    Output.WriteDWord(stream.Size);
-	    Output.Write(Stream.Memory^, stream.Size);
-	  finally
-	    stream.Free;
-	  end;
+          stream := TMemoryStream.Create;
+          try
+            parser.HexToBinary(stream);
+            Output.WriteDWord(stream.Size);
+            Output.Write(Stream.Memory^, stream.Size);
+          finally
+            stream.Free;
+          end;
         end;
     else WriteLn('Token: "', parser.Token, '" ', Ord(parser.Token));
     end;
@@ -670,12 +670,12 @@ var
       parser.TokenSymbolIs('OBJECT') or
       parser.TokenSymbolIs('INHERITED')) do
       ProcessProperty;
-    Output.WriteByte(0);	// Terminate property list
+    Output.WriteByte(0);        // Terminate property list
 
     // Convert child objects
     while not parser.TokenSymbolIs('END') do ProcessObject;
-    parser.NextToken;		// Skip end token
-    Output.WriteByte(0);	// Terminate property list
+    parser.NextToken;           // Skip end token
+    Output.WriteByte(0);        // Terminate property list
   end;
 
 const
@@ -726,14 +726,14 @@ begin
   Output.WriteByte($ff);
   Output.WriteByte(10);
   Output.WriteByte(0);
-  Output.Write(name[1], Length(name) + 1);	// Write null-terminated form type name
+  Output.Write(name[1], Length(name) + 1);      // Write null-terminated form type name
   Output.WriteWord($1030);
   SizeStartPos := Output.Position;
-  Output.WriteDWord(0);			// Placeholder for data size
-  ObjectTextToBinary(Input, Output);	// Convert the stuff!
+  Output.WriteDWord(0);                 // Placeholder for data size
+  ObjectTextToBinary(Input, Output);    // Convert the stuff!
   BinSize := Output.Position - SizeStartPos - 4;
   Output.Position := SizeStartPos;
-  Output.WriteDWord(BinSize);		// Insert real resource data size
+  Output.WriteDWord(BinSize);           // Insert real resource data size
 end;
 
 
@@ -755,7 +755,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2000-01-06 01:20:32  peter
+  Revision 1.16  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.15  2000/01/06 01:20:32  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  2000/01/04 18:07:16  michael

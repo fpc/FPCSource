@@ -5,5 +5,5 @@ Uses Dos;
 Function Getenv (Var EnvVar  : AnsiString): AnsiString;
 
 begin
-  Result:=Dos.Getenv(EnvVar); 
+  Result:=Dos.Getenv(EnvVar);
 end;

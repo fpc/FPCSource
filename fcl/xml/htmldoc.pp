@@ -1,12 +1,11 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Michael Van Canneyt, member of 
-    the Free Pascal development team
+    This file is part of the Free Component Library
+    Copyright (c) 1999-2000 by Michael Van Canneyt
 
-    Implementation of a HTMLdocument class, 
+    Implementation of a HTMLdocument class,
     following the W3 recommendation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -35,7 +34,7 @@ THTMLHtmlElement = Class;
 THTMLHeadElement = Class;
 THTMLLinkElement = Class;
 THTMLTitleElement = Class;
-THTMLMetaElement = Class;  
+THTMLMetaElement = Class;
 THTMLBaseElement = Class;
 THTMLIsIndexElement = Class;
 THTMLStyleElement = Class;
@@ -47,7 +46,7 @@ THTMLTableSectionElement = Class;
     Miscellaneous objects
   ---------------------------------------------------------------------}
 
-// HTMLCollection  
+// HTMLCollection
 THTMLCollection = Class
   Private
     Flist : TList;
@@ -80,12 +79,12 @@ THTMLDocument = Class(TDOMDocument)
   Public
     Constructor Create; Override;
     Destructor Destroy; Override;
-    
+
     Procedure Open;
     Procedure Close;
     Procedure Write (TheText : DOMString);
     Procedure Writeln (TheText : DOMString);
-    Function GetElementById (Id :longword) : TDOMElement; 
+    Function GetElementById (Id :longword) : TDOMElement;
     Function GetElementByName (Name : DOMString) : TDOMNodeList;
 
     Property Title : DOMString Read FTitle Write FTitle;
@@ -118,7 +117,7 @@ THTMLElement = Class(TDOMElement)
     Property Lang : DOMString Read FLang Write FLang;
     Property Dir : DOMString Read FDir Write FDir;
     Property HTMLClassName : DOMString Read FHTMLClassName Write FHTMLClassName;
-  end;  
+  end;
 
 { ---------------------------------------------------------------------
     THTMLElement descendent classes
@@ -130,16 +129,16 @@ THTMLHtmlElement = Class(THTMLElement)
  Public
    Property Version : DOMString Read FVersion Write FVersion;
  end;
-   
+
 THTMLHeadElement = Class(THTMLElement)
-  Private 
+  Private
     FProfile : DOMString;
-  Public 
+  Public
     Property Profile : DOMString Read FProfile Write FProfile;
   end;
-  
+
 THTMLLinkElement = Class(THTMLElement)
-  Private 
+  Private
     FDisabled : Boolean;
     FCharset,
     FHREF,
@@ -159,14 +158,14 @@ THTMLLinkElement = Class(THTMLElement)
     Property Target : DOMString Read FTarget Write FTarget;
     Property HTMLType : DOMString Read FHTMLType Write FHTMLtype;
   end;
-    
+
 THTMLTitleElement = Class(THTMLElement)
   Private
     FHTMLtext : DOMString;
   Public
     Property HTMLText : DOMString Read FHTMLText Write FHTMLtext;
-  end; 
-  
+  end;
+
 THTMLMetaElement = Class(THTMLElement)
   Private
     FContent,
@@ -179,7 +178,7 @@ THTMLMetaElement = Class(THTMLElement)
     Property Name : DOMString Read FName Write FName;
     Property Scheme : DOMString Read FScheme Write FScheme;
   end;
-  
+
 THTMLBaseElement = Class(TDOMElement)
   Private
     FHref,
@@ -188,7 +187,7 @@ THTMLBaseElement = Class(TDOMElement)
     Property HRef : DOMString Read FHref Write FHRef;
     Property Target : DOMstring Read FTarget Write FTarget;
   end;
-  
+
 THTMLIsIndexElement = Class(THTMLElement)
   Private
     FForm : THTMLFormElement;
@@ -197,8 +196,8 @@ THTMLIsIndexElement = Class(THTMLElement)
     Property Form : THTMLFormElement Read FForm;
     Property Prompt : DOMString Read FPrompt Write FPrompt;
   end;
-  
-  
+
+
 THTMLStyleElement = Class(THTMLElement)
   Private
     FDisabled : Boolean;
@@ -208,7 +207,7 @@ THTMLStyleElement = Class(THTMLElement)
     Property Disabled : Boolean Read FDisabled Write FDisabled;
     Property HTMLtype : DOMString Read FHTMLType Write FHTMLtype;
   end;
-  
+
 THTMLBodyElement = Class(THTMLElement)
   Private
     Falink,
@@ -968,8 +967,8 @@ THTMLBodyElement = Class(THTMLElement)
       Property compact : boolean Read Fcompact Write Fcompact;
       Property htmltype : DOMString Read Ftype Write Ftype;
   End;
-  
-implementation    
+
+implementation
 
 { ---------------------------------------------------------------------
     THTMLCollection
@@ -1010,7 +1009,7 @@ Var I : longword;
 begin
   Name:=UpperCase(Name);
   // linear search, since the list is not ordered.
-  // W3 says nothing about ordering; maybe we can implement it ? 
+  // W3 says nothing about ordering; maybe we can implement it ?
   For i:=0 to FList.Count-1 do
     If UpperCase(TDomNode(FList[i]).NodeName)=Name then
       begin
@@ -1023,7 +1022,7 @@ end;
 { ---------------------------------------------------------------------
     THTMLDocument class
   ---------------------------------------------------------------------}
-  
+
 
 Constructor THTMLDocument.Create;
 
@@ -1063,7 +1062,7 @@ begin
 end;
 
 
-Function THTMLDocument.GetElementById (Id :longword) : TDOMElement; 
+Function THTMLDocument.GetElementById (Id :longword) : TDOMElement;
 
 begin
 end;
@@ -1074,7 +1073,7 @@ Function THTMLDocument.GetElementByName (Name : DOMString) : TDOMNodeList;
 begin
 end;
 
-    
+
 Constructor THTMLFormElement.Create(AOwner : TDOMDocument);
 
 begin

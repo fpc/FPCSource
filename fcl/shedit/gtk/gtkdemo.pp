@@ -2,7 +2,7 @@
     $Id$
 
     GTK (demo) implementation for shedit
-    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
+    Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -108,7 +108,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-01-06 16:12:53  sg
+  Revision 1.3  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.2  2000/01/06 16:12:53  sg
   * The demo can't display the file README anymore now in this directory,
     as it doesn't exist here... not it displays the source of gtkshedit.pp
     without syntax highlighting.

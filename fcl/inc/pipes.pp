@@ -1,10 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Michael Van Canneyt
+    Copyright (c) 1999-2000 by Michael Van Canneyt
 
     Implementation of pipe stream.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -28,7 +28,7 @@ Type
   EPipeCreation = Class (EPipeError);
 
   TInputPipeStream = Class(THandleStream)
-    Private 
+    Private
       FPos : longint;
     public
       Function Write (Const Buffer; Count : Longint) :Longint; Override;
@@ -93,17 +93,17 @@ begin
   If (Origin=soFromCurrent) and (Offset=0) then
      result:=FPos;
   { Try to fake seek by reading and discarding }
-  if Not((Origin=soFromCurrent) and (Offset>=0) or  
-         ((Origin=soFrombeginning) and (OffSet>=FPos))) then 
+  if Not((Origin=soFromCurrent) and (Offset>=0) or
+         ((Origin=soFrombeginning) and (OffSet>=FPos))) then
      Raise EPipeSeek.Create(ENoSeekMSg);
   if Origin=soFromBeginning then
     Dec(Offset,FPos);
-  While ((Offset Div BufSize)>0) 
+  While ((Offset Div BufSize)>0)
         and (Read(Buf,SizeOf(Buf))=BufSize) do
      Dec(Offset,BufSize);
   If (Offset>0) then
     Read(Buf,BufSize);
-  Result:=FPos;   
+  Result:=FPos;
 end;
 
 Function TOutputPipeStream.Read(Var Buffer; Count : Longint) : longint;

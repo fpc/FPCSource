@@ -2,11 +2,11 @@ Unit RTFPars;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Michael Van Canneyt, Member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, Member of the
     Free Pascal development team
 
     This unit implements a RTF Parser.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -36,15 +36,15 @@ TRTFParser = class(TObject)
     FrtfParam : Integer;
     rtfTextBuf : string [rtfBufSiz];
     rtfTextLen : Integer;
-    pushedChar : Integer;	        { pushback char if read too far }
-    pushedClass : Integer;	{ pushed token info for RTFUngetToken() }
+    pushedChar : Integer;               { pushback char if read too far }
+    pushedClass : Integer;      { pushed token info for RTFUngetToken() }
     pushedMajor,
     pushedMinor,
     pushedParam : Integer;
     pushedTextBuf : String[rtfBufSiz];
     FStream : TStream;
-    ccb : array [0..rtfMaxClass] of TRTFFuncPtr;		{ class callbacks }
-    dcb : array [0..rtfMaxDestination] of TRTFFuncPtr;	{ destination callbacks }
+    ccb : array [0..rtfMaxClass] of TRTFFuncPtr;                { class callbacks }
+    dcb : array [0..rtfMaxDestination] of TRTFFuncPtr;  { destination callbacks }
     readHook : TRTFFUNCPTR;
     Procedure Error (msg : String);
     Procedure LookupInit ;
@@ -138,9 +138,9 @@ Function HexVal (c : Integer) : Integer;
 Begin
   if (c>=ord('A')) and (C<=ord('Z')) then inc (c,32);
   if c<ord ('A') then
-    result:=(c - ord('0'))	{ '0'..'9' }
+    result:=(c - ord('0'))      { '0'..'9' }
   else
-    result:= (c - ord('a') + 10);		{ 'a'..'f' }
+    result:= (c - ord('a') + 10);               { 'a'..'f' }
 End;
 
 { ---------------------------------------------------------------------
@@ -148,7 +148,7 @@ End;
        to read multiple files.  The only thing not reset is the input
        stream; that must be done with RTFSetStream().
   ---------------------------------------------------------------------}
-  
+
 Constructor TRTFParser.Create (Astream : TStream);
 
 Begin
@@ -288,7 +288,7 @@ End;
 { ---------------------------------------------------------------------
    Install or return a writer callback for a destination type
   ---------------------------------------------------------------------}
-  
+
 Procedure TRTFParser.SetDestinationCallback (ADestination : Integer; Acallback : TRTFFuncPtr);
 
 Begin
@@ -373,7 +373,7 @@ Begin
           Begin
           dec(level);
           if (level < 1) then
-            exit;	{ end of initial group }
+            exit;       { end of initial group }
           End;
        End;
 End;
@@ -391,7 +391,7 @@ while true do
   Begin
   Real_RTFGetToken;
   if (assigned(p)) then
-    p;	{ give read hook a look at token }
+    p;  { give read hook a look at token }
   { Silently discard newlines and carriage returns.  }
   if not ((rtfClass=rtfText) and ((rtfMajor=13) or (rtfmajor=10))) then
     break;
@@ -420,7 +420,7 @@ End;
 Procedure TRTFParser.UngetToken;
 
 Begin
-if (pushedClass >= 0) then	{ there's already an ungotten token }
+if (pushedClass >= 0) then      { there's already an ungotten token }
         Error ('cannot unget two tokens');
 if (rtfClass < 0) then
         Error ('no token to unget');
@@ -500,7 +500,7 @@ if c<>ord('\') then
   { Two possibilities here:
     1) ASCII 9, effectively like \tab control symbol
     2) literal text char }
-  if c=ord(#8) then			{ ASCII 9 }
+  if c=ord(#8) then                     { ASCII 9 }
     Begin
     FrtfClass := rtfControl;
     FrtfMajor := rtfSpecialChar;
@@ -547,7 +547,7 @@ if ( not isalpha (c)) then
     exit;
     End;
    { control symbol }
-   Lookup (rtfTextBuf);	{ sets class, major, minor }
+   Lookup (rtfTextBuf); { sets class, major, minor }
    exit;
   End;
 { control word }
@@ -564,7 +564,7 @@ while (isalpha (c)) do
   looking up. }
 if (c<>EOF) then
   delete(rtfTextBuf,length(rtfTextbuf),1);
-Lookup (rtfTextBuf);	{ sets class, major, minor }
+Lookup (rtfTextBuf);    { sets class, major, minor }
 if (c <>EOF) then
   rtfTextBuf:=rtfTextBuf+chr(c);
 { Should be looking at first digit of parameter if there
@@ -580,7 +580,7 @@ if (c<>EOF) then
   if isdigit (c) then
   Begin
   FrtfParam := 0;
-  while (isdigit (c)) do	{ gobble parameter }
+  while (isdigit (c)) do        { gobble parameter }
     Begin
     FrtfParam := FrtfParam * 10 + c - ord('0');
     c:=GetChar;
@@ -673,20 +673,20 @@ While true do
   GetToken;
   if CheckCM (rtfGroup, rtfEndGroup) then
       break;
-  if (old < 0) then		{ first entry - determine tbl type }
+  if (old < 0) then             { first entry - determine tbl type }
     Begin
     if CheckCMM (rtfControl, rtfCharAttr, rtfFontNum) then
-      old:=1	{ no brace }
+      old:=1    { no brace }
     else if CheckCM (rtfGroup, rtfBeginGroup) then
-      old:= 0	{ brace }
-    else			{ can't tell! }
+      old:= 0   { brace }
+    else                        { can't tell! }
       Error ('FTErr - Cannot determine format')
     End;
-  if (old=0) then	{ need to find "Begin" here }
+  if (old=0) then       { need to find "Begin" here }
     Begin
     if not CheckCM (rtfGroup, rtfBeginGroup) then
       Error ('FTErr - missing {');
-    GetToken;	{ yes, skip to next token }
+    GetToken;   { yes, skip to next token }
     End;
   new(fp);
   if (fp=nil) then
@@ -721,14 +721,14 @@ While true do
      Error ('FTErr - missing font name');
   fp^.rtffname:=bp;
   { Read alternate font}
-  if (old=0) then	{ need to see "End;" here }
+  if (old=0) then       { need to see "End;" here }
     Begin
     GetToken;
     if not CheckCM (rtfGroup, rtfEndGroup) then
        Error ('FTErr - missing }');
     End;
   End;
-RouteToken;	{ feed "End;" back to router }
+RouteToken;     { feed "End;" back to router }
 End;
 
 
@@ -766,16 +766,16 @@ While true do
     if not CheckCM (rtfControl, rtfColorName) then
        break;
     case rtfMinor of
-      rtfRed:	cp^.rtfCRed   :=rtfParam;
-      rtfGreen:	cp^.rtfCGreen :=rtfParam;
-      rtfBlue:	cp^.rtfCBlue  :=rtfParam;
+      rtfRed:   cp^.rtfCRed   :=rtfParam;
+      rtfGreen: cp^.rtfCGreen :=rtfParam;
+      rtfBlue:  cp^.rtfCBlue  :=rtfParam;
     End;
     GetToken;
     End;
   if not CheckCM (rtfText, ord(';')) then
      Error ('CTErr - malformed entry');
   End;
-RouteToken;	{ feed "End;" back to router }
+RouteToken;     { feed "End;" back to router }
 End;
 
 
@@ -834,14 +834,14 @@ While true do
     sep^.rtfSEParam:=rtfParam;
     sep^.rtfSEText:=rtfTextBuf;
     if sepLast=nil then
-       sp^.rtfSSEList:=sep	{ first element }
-    else				{ add to end }
+       sp^.rtfSSEList:=sep      { first element }
+    else                                { add to end }
        sepLast^.rtfNextSE:=sep;
     sep^.rtfNextSE:=nil;
     sepLast:=sep;
     End;
-  if sp^.rtfSNextPar=-1 then		{ \snext not given }
-    sp^.rtfSNextPar:=sp^.rtfSNum;	{ next is itself }
+  if sp^.rtfSNextPar=-1 then            { \snext not given }
+    sp^.rtfSNextPar:=sp^.rtfSNum;       { next is itself }
   if rtfClass<>rtfText then
      Error ('SSErr - missing style name');
   while rtfClass=rtfText do
@@ -854,8 +854,8 @@ While true do
     bp:=bp+chr(rtfMajor);
     GetToken;
     End;
-  if (sp^.rtfSNum < 0) then	{ no style number was specified }
-    Begin			{ (only legal for Normal style) }
+  if (sp^.rtfSNum < 0) then     { no style number was specified }
+    Begin                       { (only legal for Normal style) }
     if bp<>'Normal' then
        Error ('SSErr - missing style number');
     sp^.rtfSNum:=0;
@@ -864,7 +864,7 @@ While true do
   if not CheckCM (rtfGroup, rtfEndGroup) then
       Error ('SSErr - missing }');
   End;
-RouteToken;	{ feed "End;" back to router }
+RouteToken;     { feed "End;" back to router }
 End;
 
 
@@ -872,7 +872,7 @@ Procedure TRTFParser.ReadInfoGroup;
 
 Begin
   SkipGroup ;
-  RouteToken ;	{ feed "End;" back to router }
+  RouteToken ;  { feed "End;" back to router }
 End;
 
 
@@ -880,7 +880,7 @@ Procedure TRTFParser.ReadPictGroup;
 
 Begin
   SkipGroup ;
-  RouteToken ;	{ feed "End;" back to router }
+  RouteToken ;  { feed "End;" back to router }
 End;
 
 
@@ -902,7 +902,7 @@ if num<>1 then
     if (s^.rtfSNum=num) then break;
     s:=s^.rtfNextStyle;
     End;
-result:=s;		{ NULL if not found }
+result:=s;              { NULL if not found }
 End;
 
 
@@ -919,7 +919,7 @@ if num<>-1 then
     if f^.rtfFNum=num then break;
     f:=f^.rtfNextFont;
     End;
-result:=f;		{ NULL if not found }
+result:=f;              { NULL if not found }
 End;
 
 Function TRTFParser.GetColor (num : Integer) : PRTFColor;
@@ -935,7 +935,7 @@ if (num<>-1) then
     if c^.rtfCNum=num then break;
     c:=c^.rtfNextColor;
     End;
-Result:=c;		{ NULL if not found }
+Result:=c;              { NULL if not found }
 End;
 
 { ---------------------------------------------------------------------
@@ -955,7 +955,7 @@ if s=nil then exit;
 
 if (s^.rtfExpanding<>0) then
   Error ('Style expansion loop, style '+inttostr(n));
-s^.rtfExpanding:=1;	{ set expansion flag for loop detection }
+s^.rtfExpanding:=1;     { set expansion flag for loop detection }
 {
         Expand "based-on" style.  This is done by synthesizing
         the token that the writer needs to see in order to trigger
@@ -981,7 +981,7 @@ while se<>nil do
   RouteToken;
   se:=se^.rtfNextSE
   End;
-s^.rtfExpanding:=0;	{ done - clear expansion flag }
+s^.rtfExpanding:=0;     { done - clear expansion flag }
 End;
 
 { ---------------------------------------------------------------------
@@ -1014,7 +1014,7 @@ var
  thehash,rp : Integer;
 
 Begin
-delete(s,1,1);			{ skip over the leading \ character }
+delete(s,1,1);                  { skip over the leading \ character }
 thehash:=Hash (s);
 rp:=0;
 while rtfkey[rp].rtfKstr<>'' do

@@ -2,7 +2,7 @@ unit zstream;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Implementation of compression streams.
 

@@ -2,7 +2,7 @@
     $Id$
 
     GTK implementation for SHEdit
-    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
+    Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -585,7 +585,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-01-06 16:03:26  peter
+  Revision 1.2  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.1  2000/01/06 16:03:26  peter
     * moved gtkshedit to gtk dir
 
   Revision 1.12  2000/01/06 01:20:34  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -38,15 +38,15 @@ end;
 
 {
   These methods do the main work: decide if a property must be written,
-  and then call the write method. 
-  Later on the NeedsWriting function should take the ancestor into 
+  and then call the write method.
+  Later on the NeedsWriting function should take the ancestor into
   account as well, for form inheritance...
 }
 
 
 Procedure TAbstractWriter.DoOrdinalProp(Instance : TPersistent;Propinfo :PPropInfo);
 
-Var 
+Var
   Value : longint;
 
 begin
@@ -72,7 +72,7 @@ begin
     Writeln(stderr,'Writer: Starting DoStringProp');
   {$endif}
   Value:=GetStrProp(Instance,PropInfo);
-  If Value<>'' Then 
+  If Value<>'' Then
     With Propinfo^ do
       WriteStringProperty(Name,Value);
 end;
@@ -100,7 +100,7 @@ begin
   {$ifdef serdebug}
     Writeln(stderr,'Writer: Starting DoCollectionProp');
   {$endif}
-  Try 
+  Try
     OldPrefix:=FPrefix;
     FPrefix:='';
     WriteCollectionProperty(Name,Value)
@@ -115,44 +115,44 @@ Procedure TAbstractWriter.DoClassProp(Instance : TPersistent;Propinfo :PPropInfo
 {
   Some explanation:
   1) Only TPersistent properties can be written, since higher has no
-     RTTI (actually, we could test if the class has RTTI if it isn't 
+     RTTI (actually, we could test if the class has RTTI if it isn't
      TPersistent, but Delphi doesn't - We can add it later)
-  2) If it is a TPersistent but not TComponent, then the only 
+  2) If it is a TPersistent but not TComponent, then the only
      thing that is (can be) written is the defineproperties;
      we have this handled by calling writeproperties again.
-  3) When a property is a TComponent, it is owned by the form or by a 
-     TDataModule; This means that the component is streamed also 
+  3) When a property is a TComponent, it is owned by the form or by a
+     TDataModule; This means that the component is streamed also
      (owner-owned) by the form, so it is sufficient to store a reference
      to the component, not store the component itself.
-     
+
      Again, this is very form-oriented; at a later stage, we should see
      to make this more broader.
-     
+
 }
 
-Var 
+Var
   Value : TObject;
 
   Function NeedsWriting : Boolean;
-  
+
   begin
     Result:=Value<>Nil;
   end;
 
   Function GetComponentPath(Component : TComponent): String;
-  
+
   begin
     If Component.Owner=Root Then
       Result:=Component.Name          // 2 objects In the same form.
     else if Component=Root then
       Result:='Owner'                 // Component = Form.
-    else if Component.Owner<>Nil then  
+    else if Component.Owner<>Nil then
       Result:=Format('%s.%s',[Component.Owner.name,Component.Name]) // Component on other e.g. Datamodule.
-    else 
+    else
       Result:=Format('%s.%s',[Component.Name+'owner']); // All other cases.
-  end;     
+  end;
 
-Var 
+Var
   OldPrefix,CName : String;
 
 begin
@@ -163,12 +163,12 @@ begin
 {$ifdef serdebug}
   If Value=Nil then
     Writeln(stderr,'Writer: value is nil');
-  Writeln(stderr,'name ',propinfo^.Name);  
+  Writeln(stderr,'name ',propinfo^.Name);
 {$endif}
   If (Value=Nil) Then
     begin
     If Needswriting then
-      With Propinfo^ do 
+      With Propinfo^ do
         WriteNilProperty(Name)
     end
   else
@@ -177,8 +177,8 @@ begin
 {$ifdef serdebug}
   Writeln(stderr,'Writer: value is tpersistent');
 {$endif}
-        If Value is TComponent then 
-          { Component is written by itself, 
+        If Value is TComponent then
+          { Component is written by itself,
             just write a reference }
           begin
           Cname:=GetComponentPath(TComponent(Value));
@@ -201,7 +201,7 @@ begin
               FPrefix:=OldPrefix;
             end;
           end;
-      end    
+      end
    // We can't write it if it isn't a TPersistent...
 end;
 
@@ -211,8 +211,8 @@ Procedure TAbstractWriter.DoMethodProp(Instance : TPersistent;Propinfo :PPropInf
   Some explanation: AFAIK Delphi only allows to assign methods from the
   current form to an event. (An event is a Method) this means that the
   instance part of the method IS the Form which IS the 'root' component.
-  this means that we can safely assume that Method.Data = Root...  
-  
+  this means that we can safely assume that Method.Data = Root...
+
   Remark also that Form Methods are always in a Published section of the form,
   Since Delphi manages them, hence the method name is always in RTTI.
 
@@ -220,7 +220,7 @@ Procedure TAbstractWriter.DoMethodProp(Instance : TPersistent;Propinfo :PPropInf
   we would have to write ComponentPath.MethodName or something.
 }
 
-Var 
+Var
   Value : TMethod;
 
 begin
@@ -242,7 +242,7 @@ Const
              'Float','Set','Method','ShortString','LongString',
              'AnsiString','WideString','Variant','Array','Record',
              'Interface','Class','Object','WideChar','Bool');
-                                         
+
  Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
 {$endif}
 
@@ -264,7 +264,7 @@ begin
       tkfloat : DoFloatProp(Instance,PropInfo);
       tkClass : DoClassProp(Instance,PropInfo);
       tkMethod : DoMethodProp(Instance,PropInfo);
-    end;  
+    end;
 end;
 
 
@@ -272,7 +272,7 @@ Procedure TAbstractWriter.WriteProperties(Instance: TPersistent);
 
 Var I,PropCount : Longint;
     Props : PPropList;
-    
+
 begin
 {$ifdef serdebug}
   Writeln(stderr,'Writer: Starting WriteProperties');
@@ -281,7 +281,7 @@ begin
 {$ifdef serdebug}
   Writeln(stderr,'Writer : Propcount: ',PropCount);
 {$endif}
-  Try 
+  Try
     GetMem (Props,SizeOf(Pointer)*PropCount);
     GetPropInfos(Instance.ClassInfo,Props);
     For I:=0 to PropCount-1 do
@@ -289,7 +289,7 @@ begin
   finally
     FreeMem(Props);
   end;
-//  Instance.DefineProperties(Self); 
+//  Instance.DefineProperties(Self);
 end;
 
 Destructor TAbstractWriter.Destroy;
@@ -321,15 +321,15 @@ end;
 
 procedure TAbstractWriter.WriteComponent(Component: TComponent);
 
-Var I : longint;  
+Var I : longint;
     TheAncestor : TComponent;
-    
+
 begin
 {$ifdef serdebug}
   Writeln(stderr,'Writer: Starting WriteComponent');
 {$endif}
   Include(Component.FComponentState,csWriting);
-  TheAncestor:=Nil;  
+  TheAncestor:=Nil;
   If Assigned(FAncestorList) then
     For I:=0 to FAncestorList.Count-1 do
       If TComponent(FAncestorList[i]).Name=Component.Name then
@@ -339,14 +339,14 @@ begin
         end;
   Ancestor:=TheAncestor;
   Component.WriteState(Self);
-  Exclude(Component.FComponentState,csWriting);   
+  Exclude(Component.FComponentState,csWriting);
 end;
 
 
 { ---------------------------------------------------------------------
     TWriter Methods
   ---------------------------------------------------------------------}
-  
+
 Constructor TWriter.Create(S : TStream);
 
 begin
@@ -431,7 +431,7 @@ begin
 end;
 
 
-Procedure TWriter.WriteNilProperty(Const Name : Shortstring); 
+Procedure TWriter.WriteNilProperty(Const Name : Shortstring);
 
 begin
   WritePropName(Name);
@@ -558,7 +558,7 @@ begin
 end;
 
 Procedure TWriter.WritePrefix(Flags: TFilerFlags; AChildPos: Integer);
- 
+
 begin
 end;
 
@@ -629,7 +629,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-01-06 01:20:33  peter
+  Revision 1.6  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.5  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  2000/01/04 18:07:16  michael

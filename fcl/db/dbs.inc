@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Michael Van Canneyt, member of the
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     Constants used for displaying messages in DB unit
@@ -45,7 +45,10 @@ Const
   
 {
   $Log$
-  Revision 1.6  2000-01-06 01:20:32  peter
+  Revision 1.7  2000-01-07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.6  2000/01/06 01:20:32  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:06  peter

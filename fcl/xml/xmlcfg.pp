@@ -1,10 +1,10 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c)  1999 Sebastian Guenther, sguenther@gmx.de
+    This file is part of the Free Component Library
+    Copyright (c) 1999-2000 by Sebastian Guenther
 
     Implementation of TXMLConfig class
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -203,7 +203,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-01-06 01:20:37  peter
+  Revision 1.7  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.6  2000/01/06 01:20:37  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:11  peter

@@ -1,4 +1,16 @@
+{
+    $Id$
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 
 Procedure TTextWriter.WriteLn(Const Msg : String);
 
@@ -85,7 +97,7 @@ begin
   FPrefix:='';
 end;
 
-Destructor TTextWriter.Destroy; 
+Destructor TTextWriter.Destroy;
 
 begin
 end;
@@ -114,11 +126,11 @@ Procedure TTextWriter.WriteStringProperty(Const Name : ShortString; Const Value 
 Type
   TMode = (quoted,unquoted);
 
-Var 
+Var
   Mode : TMode;
   S : String;
   I,L : Longint;
-  c : char; 
+  c : char;
 
    Procedure Add (A : String);
 
@@ -137,13 +149,13 @@ begin
       begin
       If mode=Quoted then
         Add(c)
-      else   
+      else
         begin
         Add(''''+c);
         mode:=quoted
         end
-      end  
-    else   
+      end
+    else
       begin
       If Mode=quoted then
         begin
@@ -155,14 +167,14 @@ begin
     If Length(S)>72 then
       begin
       if mode=quoted then
-        Add ('''');  
-      Add('+');    
+        Add ('''');
+      Add('+');
       Writeln(S);
       Mode:=unQuoted;
       end;
     end;
  if mode=quoted then Add('''');
- Writeln(S);  
+ Writeln(S);
 end;
 
 Procedure TTextWriter.WriteFloatProperty(Const Name : ShortString; Value : Extended);
@@ -174,7 +186,7 @@ end;
 Procedure TTextWriter.WriteCollectionProperty(Const Name : ShortString;Value : TCollection);
 
 begin
- 
+
 end;
 
 Procedure TTextWriter.WriteClassProperty(Instance : TPersistent;Propinfo :PPropInfo);

@@ -1,3 +1,16 @@
+{
+    $Id$
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 UNIT IDEA;
 
 {
@@ -44,7 +57,7 @@ PROCEDURE EnKeyIdea(userkey: ideacryptkey; VAR z: ideakey);
 PROCEDURE DeKeyIdea(z: IDEAKey; VAR dk: ideakey);
 PROCEDURE CipherIdea(input: ideacryptdata; VAR out: ideacryptdata; z: IDEAkey);
 
-Type  
+Type
 
 EIDEAError = Class(EStreamError);
 
@@ -83,12 +96,12 @@ TIDEADeCryptStream = Class(TStream)
 
 IMPLEMENTATION
 
-Const 
+Const
   SNoSeekAllowed = 'Seek not allowed on encryption streams';
   SNoReadAllowed = 'Reading from encryption stream not allowed';
   SNoWriteAllowed = 'Writing to decryption stream not allowed';
 
-Type 
+Type
   PByte = ^Byte;
 
 PROCEDURE mul(VAR a:Word; b: Word);
@@ -258,7 +271,7 @@ begin
   Fpos:=0;
 end;
 
-Destructor TIDEAEncryptStream.Destroy; 
+Destructor TIDEAEncryptStream.Destroy;
 
 
 begin
@@ -270,10 +283,10 @@ Procedure TIDEAEncryptStream.Flush;
 
 Var
   OutData : IdeaCryptData;
-  
+
 begin
   If FBufPos>0 then
-    begin 
+    begin
     // Fill with spaces.
     FillChar(PByte(@FData)[FBufPos],SizeOf(FData)-FBufPos,' ');
     CipherIdea(Fdata,OutData,FKey);
@@ -281,15 +294,15 @@ begin
     end;
 end;
 
-function TIDEAEncryptStream.Read(var Buffer; Count: Longint): Longint; 
+function TIDEAEncryptStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
   Raise EIDEAError.Create(SNoReadAllowed);
 end;
 
-function TIDEAEncryptStream.Write(const Buffer; Count: Longint): Longint; 
+function TIDEAEncryptStream.Write(const Buffer; Count: Longint): Longint;
 
-Var 
+Var
   mvsize : Longint;
   OutData : IDEAcryptdata;
 
@@ -318,7 +331,7 @@ begin
 end;
 
 
-function TIDEAEncryptStream.Seek(Offset: Longint; Origin: Word): Longint; 
+function TIDEAEncryptStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   if (Offset = 0) and (Origin = soFromCurrent) then
@@ -337,14 +350,14 @@ begin
   FSrc:=Src;
 end;
 
-destructor TIDEADeCryptStream.Destroy; 
+destructor TIDEADeCryptStream.Destroy;
 begin
   Inherited destroy;
 end;
 
-function TIDEADeCryptStream.Read(var Buffer; Count: Longint): Longint; 
-  
-Var 
+function TIDEADeCryptStream.Read(var Buffer; Count: Longint): Longint;
+
+Var
   mvsize : Longint;
   InData : IDEAcryptdata;
 
@@ -356,14 +369,14 @@ begin
     If FBufPos<SizeOf(FData) then
       begin
       mvSize:=Sizeof(FData)-FBufPos;
-      If MvSize>count then 
+      If MvSize>count then
         mvsize:=Count;
       Move(PByte(@FData)[FBufPos],Pbyte(@Buffer)[Result],MVSize);
       Dec(Count,mvsize);
       Inc(Result,mvsize);
       inc(fBufPos,mvsize);
       end;
-    // Fill buffer again if needed.  
+    // Fill buffer again if needed.
     If (FBufPos=SizeOf(FData)) and (Count>0) then
       begin
       mvsize:=FSrc.Read(InData,SizeOf(InData));
@@ -382,16 +395,16 @@ begin
   Inc(FPos,Result);
 end;
 
-function TIDEADeCryptStream.Write(const Buffer; Count: Longint): Longint; 
+function TIDEADeCryptStream.Write(const Buffer; Count: Longint): Longint;
 begin
   Raise EIDEAError.Create(SNoReadAllowed);
 end;
 
-function TIDEADeCryptStream.Seek(Offset: Longint; Origin: Word): Longint; 
+function TIDEADeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 Var Buffer : Array[0..1023] of byte;
     i : longint;
-    
+
 begin
   // Fake seek if possible by reading and discarding bytes.
   If ((Offset>=0) and (Origin = soFromCurrent)) or
@@ -402,7 +415,7 @@ begin
       ReadBuffer(Buffer,Offset mod SizeOf(Buffer));
       Result:=FPos;
       end
-  else             
+  else
     Raise EIDEAError.Create(SNoSeekAllowed);
 end;
 

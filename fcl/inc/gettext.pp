@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Gettext interface to resourcestrings.
 
@@ -188,12 +188,12 @@ end;
 {
   Define USEITERATOR if you want to translate the strings using
   the SetResourceStrings call. This is not recommended for this
-  particular iplementation, since we must pass through a global 
+  particular iplementation, since we must pass through a global
   variable TheFile : TMOFile. However that works too.
 }
 
 {$ifdef USEITERATOR}
-Var 
+Var
   Thefile : TMOFile;
 
 Function Translate (Name,Value : AnsiString; Hash : Longint) : AnsiString;
@@ -251,7 +251,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-06 01:20:33  peter
+  Revision 1.8  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.7  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:07  peter

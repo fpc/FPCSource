@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -100,7 +100,7 @@ begin
     for i := 0 to ComponentPages.Count - 1 do
       if TComponentPage(ComponentPages.Items[i]).Name = Page then begin
         pg := TComponentPage(ComponentPages.Items[i]);
-	break;
+        break;
       end;
 
   if pg = nil then begin
@@ -148,7 +148,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-01-06 01:20:33  peter
+  Revision 1.4  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.3  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:07  peter

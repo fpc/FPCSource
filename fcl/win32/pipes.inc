@@ -4,7 +4,7 @@
     Copyright (c) 1998 by Michael Van Canneyt
 
     Win32 part of pipe stream.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -27,7 +27,7 @@ Const piInheritablePipe : TSecurityAttributes = (
 
 
       PipeBufSize = 1024;
-      
+
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 

@@ -2,7 +2,7 @@
     $Id$
 
     "SHEdit" - Text editor with syntax highlighting
-    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
+    Copyright (C) 1999-2000 by Sebastian Guenther (sg@freepascal.org)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -498,7 +498,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-01-06 01:20:34  peter
+  Revision 1.10  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.9  2000/01/06 01:20:34  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  2000/01/05 19:05:31  sg

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,7 +21,7 @@ procedure TPersistent.AssignError(Source: TPersistent);
 Var SourceName : String;
 
 begin
-  If Source<>Nil then 
+  If Source<>Nil then
     SourceName:=Source.ClassName
   else
     SourceName:='Nil';
@@ -51,7 +51,7 @@ begin
   Result:=Nil;
 end;
 
-destructor TPersistent.Destroy; 
+destructor TPersistent.Destroy;
 
 begin
   Inherited Destroy;
@@ -61,7 +61,7 @@ end;
 procedure TPersistent.Assign(Source: TPersistent);
 
 begin
-  If Source<>Nil then 
+  If Source<>Nil then
     Source.AssignTo(Self)
   else
     AssignError(Nil);
@@ -73,7 +73,7 @@ Var OwnerName :String;
 
 begin
  Result:=ClassNAme;
- If GetOwner<>Nil then 
+ If GetOwner<>Nil then
    begin
    OwnerName:=GetOwner.GetNamePath;
    If OwnerName<>'' then Result:=OwnerName+'.'+Result;
@@ -81,7 +81,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2000-01-06 01:20:33  peter
+  Revision 1.6  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.5  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:08  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by Michael Van Canneyt and Florian Klaempfl
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -72,7 +72,7 @@ const
   toInteger = Char(3);
   toFloat   = Char(4);
 
-Const 
+Const
   FilerSignature : Array[1..4] of char = 'TPF0';
 
 type
@@ -126,7 +126,7 @@ type
   TAbstractFiler = Class;
   TAbstractWriter = Class;
   TAbstractReader = Class;
-  
+
   TFiler = class;
   TReader = class;
   TWriter = class;
@@ -700,7 +700,7 @@ type
     function ReadStr: string;
     function ReadString: string;
     function ReadValue: TValueType;
-    procedure CopyValue(Writer: TWriter); 
+    procedure CopyValue(Writer: TWriter);
     {!!!}
     property Owner: TComponent read FOwner write FOwner;
     property Parent: TComponent read FParent write FParent;
@@ -784,7 +784,7 @@ type
   end;
 
   TWriter = class(TAbstractWriter)
-  Private 
+  Private
     FStream : TStream;
     function GetPosition: Longint;
     procedure SetPosition(Value: Longint);
@@ -833,7 +833,7 @@ type
   end;
 
   TTextWriter = class(TAbstractWriter)
-  Private 
+  Private
     FStream : TStream;
     Procedure Write(Const Msg : String);
     Procedure WriteLn(Const Msg : String);
@@ -842,7 +842,7 @@ type
   protected
    Procedure StartCollection(Const AName : String);
    Procedure StartCollectionItem;
-   Procedure EndCollectionItem;  
+   Procedure EndCollectionItem;
    Procedure EndCollection;
   public
     Constructor Create(S : TStream);
@@ -995,7 +995,7 @@ type
     function GetPosition: Longint;
     procedure SetPosition(Value: Longint);
     procedure WriteBuffer;
-    procedure WriteData(Instance: TComponent); 
+    procedure WriteData(Instance: TComponent);
     procedure WriteProperty(Instance: TPersistent; PropInfo: Pointer);
     procedure WriteProperties(Instance: TPersistent);
     procedure WritePropName(const PropName: string);
@@ -1334,7 +1334,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.20  2000-01-06 01:20:32  peter
+  Revision 1.21  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.20  2000/01/06 01:20:32  peter
     * moved out of packages/ back to topdir
 
   Revision 1.3  2000/01/05 11:05:29  michael

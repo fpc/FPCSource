@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by Michael Van Canneyt and Florian Klaempfl
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
     Classes unit for linux
 
@@ -47,7 +47,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.14  2000-01-07 00:01:33  peter
+  Revision 1.15  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.14  2000/01/07 00:01:33  peter
     * uses typinfo moved to interface
 
   Revision 1.13  2000/01/06 01:20:33  peter

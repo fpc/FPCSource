@@ -1,3 +1,16 @@
+{
+    $Id$
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit ezcgi;
 
 {$mode delphi}
@@ -34,9 +47,9 @@ type
       procedure GetQueryItems;
       procedure ProcessRequest;
       procedure LoadEnvVariables;
-      function GetVal(Index : String) : String;      
-      function GetName(Index : Integer) : String;      
-      function GetVariable(Index : Integer) : String;      
+      function GetVal(Index : String) : String;
+      function GetName(Index : Integer) : String;
+      function GetVariable(Index : Integer) : String;
       function GetVarCount : Integer;
       procedure ReadPostQuery;
       procedure ReadGetQuery;
@@ -52,7 +65,7 @@ type
       procedure WriteContent(ctype : String);
       procedure PutLine(sOut : String);
       function GetValue(Index : String; defaultValue : String) : String;
-      
+
       procedure DoPost; virtual;
       procedure DoGet; virtual;
 
@@ -60,7 +73,7 @@ type
       property Names[Index : Integer] : String read GetName;
       property Variables[Index : Integer] : String read GetVariable;
       property VariableCount : Integer read GetVarCount;
-      
+
       property Name : String read FName write FName;
       property Email : String read FEmail write FEmail;
    end;
@@ -81,7 +94,7 @@ begin
    FVariables := TStringList.Create;
 
    LoadEnvVariables;
-   
+
 end;
 
 destructor TEZcgi.Destroy;
@@ -174,7 +187,7 @@ var
 begin
 
    request := GetVal('REQUEST_METHOD');
-   
+
    if request = '' then
       OutputError('No REQUEST_METHOD passed from server!')
    else if request = 'POST' then
@@ -185,7 +198,7 @@ begin
    else if request = 'GET' then
       begin
          ReadGetQuery;
-	 DoGet;
+         DoGet;
       end
    else
       OutputError('Invalid REQUEST_METHOD passed from server!');
@@ -219,7 +232,7 @@ var
    code : Word;
    contentLength : Integer;
    theType : String;
-      
+
 begin
 
    temp := GetVal('CONTENT_LENGTH');
@@ -280,22 +293,22 @@ var
    begin
       repeat
          index := Pos('+', queryItem);
-	 if index > 0 then
-	    queryItem[index] := Chr(32);
+         if index > 0 then
+            queryItem[index] := Chr(32);
       until index = 0;
       repeat
          index := Pos('%', queryItem);
-	 if index > 0 then
-	 begin
-	    queryItem[index] := hexConverter(queryItem[index + 1], queryItem[index + 2]);
-	    system.Delete(queryItem, index + 1, 2);
-	 end;
+         if index > 0 then
+         begin
+            queryItem[index] := hexConverter(queryItem[index + 1], queryItem[index + 2]);
+            system.Delete(queryItem, index + 1, 2);
+         end;
       until index = 0;
    end;
 
 begin
    InitToken(FQueryString, '&');
-   
+
    while NextToken(queryItem, delimiter) do
    begin
       if queryItem <> '' then
@@ -314,7 +327,7 @@ begin
    writeln('<center><hr><h1>CGI ERROR</h1><hr></center><br><br>');
    writeln('This CGI application encountered the following error: <br>');
    writeln('<ul><br>');
-   writeln('<li> error: ',errorMessage,'<br><hr>'); 
+   writeln('<li> error: ',errorMessage,'<br><hr>');
    writeln('<h5><p><i>Notify ',FName,' <a href="mailto:',FEmail,'">',FEmail,'</a></i></p></h5>');
    writeln('</body></html>');
 

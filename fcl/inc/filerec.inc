@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     FileRec record definition
 
@@ -35,7 +35,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2000-01-06 01:20:33  peter
+  Revision 1.4  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.3  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:07  peter

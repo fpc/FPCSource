@@ -1,7 +1,7 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 Sebastian Guenther (sguenther@gmx.de)
+    This file is part of the Free Component Library
+    Copyright (c) 1999-2000 by Sebastian Guenther
 
     Implementation of DOM level 1 interfaces
 
@@ -1256,7 +1256,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-01-06 23:55:22  peter
+  Revision 1.10  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.9  2000/01/06 23:55:22  peter
     * childnodes property as that is used instead of getchildnodes
       in the apps
 

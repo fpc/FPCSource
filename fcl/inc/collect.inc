@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -35,7 +35,7 @@ begin
     If FCollection<>Nil then FCollection.RemoveItem(Self);
     if Value<>Nil then Value.InsertItem(Self);
     FCollection:=Value;
-    end;  
+    end;
 end;
 
 
@@ -45,7 +45,7 @@ procedure TCollectionItem.Changed(AllItems: Boolean);
 begin
  If (FCollection<>Nil) then
   begin
-  If AllItems then 
+  If AllItems then
     FCollection.Update(Nil)
   else
     FCollection.Update(Self);
@@ -60,7 +60,7 @@ begin
   If FCollection<>Nil then
     Result:=FCollection.GetNamePath+'['+IntToStr(Index)+']'
   else
-    Result:=ClassName; 
+    Result:=ClassName;
 end;
 
 
@@ -72,7 +72,7 @@ end;
 
 
 
-function TCollectionItem.GetDisplayName: string; 
+function TCollectionItem.GetDisplayName: string;
 
 begin
   Result:=ClassName;
@@ -90,7 +90,7 @@ begin
     begin
     FCollection.FItems.Move(Temp,Value);
     Changed(True);
-    end; 
+    end;
 end;
 
 
@@ -102,7 +102,7 @@ end;
 
 
 
-constructor TCollectionItem.Create(ACollection: TCollection); 
+constructor TCollectionItem.Create(ACollection: TCollection);
 
 begin
   Inherited Create;
@@ -111,7 +111,7 @@ end;
 
 
 
-destructor TCollectionItem.Destroy; 
+destructor TCollectionItem.Destroy;
 
 begin
   SetCollection(Nil);
@@ -150,7 +150,7 @@ begin
   Result:=FPropNAme;
   TheOWner:=GetOwner;
   If (Result<>'') or (TheOwner=Nil) Or (TheOwner.Classinfo=Nil) then exit;
-  SetPropName;  
+  SetPropName;
   Result:=FPropName;
 end;
 
@@ -179,14 +179,14 @@ begin
 end;
 
 
-function TCollection.GetAttrCount: Integer; 
+function TCollection.GetAttrCount: Integer;
 
 begin
   Result:=0;
 end;
 
 
-function TCollection.GetAttr(Index: Integer): string; 
+function TCollection.GetAttr(Index: Integer): string;
 
 begin
   Result:='';
@@ -194,7 +194,7 @@ end;
 
 
 
-function TCollection.GetItemAttr(Index, ItemIndex: Integer): string; 
+function TCollection.GetItemAttr(Index, ItemIndex: Integer): string;
 
 
 begin
@@ -203,7 +203,7 @@ end;
 
 
 
-function TCollection.GetNamePath: string; 
+function TCollection.GetNamePath: string;
 
 Var OwnerName,ThePropName : String;
 
@@ -243,7 +243,7 @@ end;
 
 
 
-procedure TCollection.SetItemName(Item: TCollectionItem); 
+procedure TCollection.SetItemName(Item: TCollectionItem);
 
 begin
 end;
@@ -267,7 +267,7 @@ end;
 
 
 
-destructor TCollection.Destroy; 
+destructor TCollection.Destroy;
 
 begin
   If Assigned(FItems) Then Clear;
@@ -341,7 +341,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-01-06 01:20:32  peter
+  Revision 1.9  2000-01-07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.8  2000/01/06 01:20:32  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:07  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1998 by Michael Van Canneyt and Florian Klaempfl
+    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
     Classes unit for win32
 
@@ -37,7 +37,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 00:01:33  peter
+  Revision 1.8  2000-01-07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.7  2000/01/07 00:01:33  peter
     * uses typinfo moved to interface
 
   Revision 1.6  2000/01/06 01:20:32  peter

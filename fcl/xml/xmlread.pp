@@ -1,7 +1,7 @@
 {
     $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 Sebastian Guenther
+    This file is part of the Free Component Library
+    Copyright (c) 1999-2000 by Sebastian Guenther
 
     XML reading routines.
 
@@ -985,7 +985,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-01-06 01:20:37  peter
+  Revision 1.13  2000-01-07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.12  2000/01/06 01:20:37  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:11  peter
