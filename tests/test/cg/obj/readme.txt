@@ -9,4 +9,5 @@ Tested compilers (OK)
 ---------------------
 Win32 :  GCC 2.95.2
 Amiga :  GCC 2.91.66
+Linux-m68k :  GCC 2.95.4 and 3.0.4
  
