@@ -1632,6 +1632,9 @@ implementation
                  rttiList.concat(Tai_const.Create_8bit(tkSString));
                  write_rtti_name;
                  rttiList.concat(Tai_const.Create_8bit(len));
+{$ifdef cpurequiresproperalignment}
+                 rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
               end;
          end;
       end;
@@ -1857,6 +1860,9 @@ implementation
       begin
          rttiList.concat(Tai_const.Create_8bit(tkEnumeration));
          write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          case longint(savesize) of
             1:
               rttiList.concat(Tai_const.Create_8bit(otUByte));
@@ -2033,6 +2039,9 @@ implementation
              otUByte,otUWord,otUByte);
         begin
           write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+          rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
 {$ifdef cpurequiresproperalignment}
          rttilist.concat(Tai_align.Create(4));
@@ -2047,6 +2056,9 @@ implementation
             begin
               rttiList.concat(Tai_const.Create_8bit(tkInt64));
               write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+              rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
               { low }
               rttiList.concat(Tai_const.Create_64bit(int64($80000000) shl 32));
               { high }
@@ -2056,6 +2068,9 @@ implementation
             begin
               rttiList.concat(Tai_const.Create_8bit(tkQWord));
               write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+              rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
               { low }
               rttiList.concat(Tai_const.Create_64bit(0));
               { high }
@@ -2194,6 +2209,9 @@ implementation
       begin
          rttiList.concat(Tai_const.Create_8bit(tkFloat));
          write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          rttiList.concat(Tai_const.Create_8bit(translate[typ]));
       end;
 
@@ -2787,6 +2805,9 @@ implementation
       begin
          rttiList.concat(Tai_const.Create_8bit(tkSet));
          write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          rttiList.concat(Tai_const.Create_8bit(otULong));
 {$ifdef cpurequiresproperalignment}
          rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
@@ -4756,6 +4777,9 @@ implementation
              rttiList.concat(Tai_const.Create_8bit(tkmethod));
              write_rtti_name;
 
+{$ifdef cpurequiresproperalignment}
+             rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
              { write kind of method (can only be function or procedure)}
              if rettype.def = voidtype.def then
                methodkind := mkProcedure
@@ -6331,7 +6355,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.288  2005-01-09 15:05:29  peter
+  Revision 1.289  2005-01-16 14:47:26  florian
+    * typeinfo in typedata is now aligned
+
+  Revision 1.288  2005/01/09 15:05:29  peter
     * fix interface vtbl optimization
     * replace ugly pointer construct of ioffset()
 
