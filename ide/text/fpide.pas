@@ -688,6 +688,7 @@ procedure TIDEApp.ShowUserScreen;
 begin
   DoneSysError;
   DoneEvents;
+  DoneKeyboard;
   If UseMouse then
     DoneMouse
   else
@@ -711,6 +712,7 @@ begin
 {$ifndef go32v2}
   InitScreen;
 {$endif go32v2}
+  InitKeyboard;
   If UseMouse then
     InitMouse
   else
@@ -996,7 +998,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.60  2000-05-02 10:20:40  pierre
+  Revision 1.61  2000-05-17 09:51:11  pierre
+   Disable/Enable keyboard on UserScreen
+
+  Revision 1.60  2000/05/02 10:20:40  pierre
    * fix a small problem when deciding to call DosExecute directly
 
   Revision 1.59  2000/05/02 08:42:27  pierre
