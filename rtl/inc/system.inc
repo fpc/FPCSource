@@ -32,10 +32,6 @@ Procedure HandleErrorFrame (Errno : longint;frame : longint); forward;
 type
   FileFunc = Procedure(var t : TextRec);
 
-  PByte    = ^Byte;
-  PWord    = ^word;
-  PDWord   = ^DWord;
-  PLongint = ^Longint;
 
 const
 { Random / Randomize constants }
@@ -639,7 +635,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-08-09 19:31:18  marco
+  Revision 1.5  2000-08-13 17:55:14  michael
+  + Added some delphi compatibility types
+
+  Revision 1.4  2000/08/09 19:31:18  marco
    * fixes for val(int64 or qword) to ansistring
 
   Revision 1.3  2000/07/14 10:33:10  michael

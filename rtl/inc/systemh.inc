@@ -84,12 +84,32 @@ Type
 { Zero - terminated strings }
   PChar       = ^Char;
   PPChar      = ^PChar;
+
 { Delphi types }
   TAnsiChar   = Char;
   AnsiChar    = TAnsiChar;
   PAnsiChar   = PChar;
   PQWord      = ^QWord;
   PInt64      = ^Int64;
+
+  currency            = int64;
+  HRESULT             = Longint; 
+  TDateTime           = Double;
+  Error               = Longint;  
+
+  PSmallInt           = ^Smallint;
+  PInteger            = ^Longint;
+  PSingle             = ^Single;  
+  PDouble             = ^Double;
+  PCurrency           = ^Currency; 
+  PDate               = ^TDateTime;
+  PPWideChar          = ^PWideChar;
+  PError              = ^Error;
+  PWordBool           = ^WordBool;
+  PByte               = ^Byte;
+  PWord    = ^word;
+  PDWord   = ^DWord;
+  PLongint = ^Longint;
 
 {$ifdef HASWIDECHAR}
   PWideChar   = ^WideChar;
@@ -456,7 +476,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2000-08-08 22:11:45  sg
+  Revision 1.5  2000-08-13 17:55:15  michael
+  + Added some delphi compatibility types
+
+  Revision 1.4  2000/08/08 22:11:45  sg
   * Added declarations for WideString utility functions
 
   Revision 1.3  2000/07/14 10:33:10  michael
