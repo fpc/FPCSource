@@ -1997,6 +1997,7 @@ const
             tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
             include(pd.procoptions,po_public);
             include(pd.procoptions,po_has_public_name);
+            include(pd.procoptions,po_global);
           end;
 
         while token in [_ID,_LECKKLAMMER] do
@@ -2357,7 +2358,10 @@ const
 end.
 {
   $Log$
-  Revision 1.215  2004-11-29 21:50:08  peter
+  Revision 1.216  2004-12-05 00:32:56  olle
+    + bugfix for $Z+ for mode macpas
+
+  Revision 1.215  2004/11/29 21:50:08  peter
     * public is allowd in interface
 
   Revision 1.214  2004/11/29 17:48:34  peter
