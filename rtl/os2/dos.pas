@@ -175,6 +175,7 @@ function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
               const comline:comstr):longint;
 function envcount:longint;
 function envstr(index:longint) : string;
+function GetEnvPChar (EnvVar: string): PChar;
 function getenv(const envvar:string): string;
 
 implementation
@@ -854,7 +855,7 @@ begin
     if os_mode = osOS2 then
     begin
         New (F.FStat);
-        F.Handle := $FFFFFFFF;
+        F.Handle := longint ($FFFFFFFF);
         Count := 1;
         DosError := integer (DosFindFirst (Path, F.Handle,
                        Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
@@ -933,18 +934,17 @@ begin
     envstr:=strpas(hp);
 end;
 
-function GetEnv (const EnvVar: string): string;
+function GetEnvPChar (EnvVar: string): PChar;
 (* The assembler version is more than three times as fast as Pascal. *)
 var
  P: PChar;
- _EnvVar: string;
 begin
- _EnvVar := UpCase (EnvVar);
+ EnvVar := UpCase (EnvVar);
 {$ASMMODE INTEL}
  asm
   cld
   mov edi, Environment
-  lea esi, _EnvVar
+  lea esi, EnvVar
   xor eax, eax
   lodsb
 @NewVar:
@@ -989,7 +989,14 @@ begin
   mov P, edi      { place pointer to variable contents in P }
 @End:
  end;
- GetEnv := StrPas (P);
+ GetEnvPChar := P;
+end;
+{$ASMMODE ATT}
+
+function GetEnv (const EnvVar: string): string;
+(* The assembler version is more than three times as fast as Pascal. *)
+begin
+ GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
 {$ASMMODE ATT}
 
@@ -1214,7 +1221,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-12-07 19:46:56  hajny
+  Revision 1.23  2003-01-04 15:43:50  hajny
+    + GetEnvPChar added
+
+  Revision 1.22  2002/12/07 19:46:56  hajny
     * mistyping fixed
 
   Revision 1.21  2002/12/07 19:17:13  hajny
