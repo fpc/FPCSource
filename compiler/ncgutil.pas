@@ -1931,7 +1931,7 @@ implementation
                                   if not(cs_create_pic in aktmoduleswitches) and
                                      not(vo_is_dll_var in varoptions) and
                                      not(vo_is_thread_var in varoptions) then
-                                    reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
+                                    reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_NONE),0);
                                 end;
                               else
                                 internalerror(200410103);
@@ -2203,7 +2203,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.231  2004-10-24 20:01:08  peter
+  Revision 1.232  2004-10-26 15:03:31  peter
+    * localloc of staticsymtable needs a AT_NONE since it is a reference
+
+  Revision 1.231  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.230  2004/10/24 11:44:28  peter
