@@ -99,9 +99,9 @@ unit systems;
             short_name : 'OS2';
             unit_env : 'OS2UNITS';
             system_unit : 'SYSOS2';
-            exeext : '.exe';
+            exeext : '';
             objext : '.oo2';
-            dllext : '.dll';
+            dllext : '.ao2';
             unitext : '.ppo';
             libext : '.ppl';
             asmext : '.so2';
@@ -109,8 +109,8 @@ unit systems;
             pasext : '.pp';
             newline : #13#10;
             labelprefix : 'L';
-            Cprefix : '_'; {???}
-            use_function_relative_addresses : true;
+            Cprefix : '_';
+            use_function_relative_addresses : false;
             endian : endian_little
           ),
           (
@@ -357,7 +357,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-03-30 15:53:01  florian
+  Revision 1.3  1998-04-16 10:50:45  daniel
+  * Fixed some things that were broken for OS/2.
+
+  Revision 1.2  1998/03/30 15:53:01  florian
     * last changes before release:
        - gdb fixed
        - ratti386 warning removed (about unset function result)
