@@ -16,106 +16,118 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
+
+\usepackage{ifthen}
+
 %
-% Dummy
-\newenvironment{FPCList}{\begin{description}}{\end{description}}
+% Html navigation search button
 %
+\htmladdtonavigation{\htmladdnormallink{\htmladdimg{../buttons/search.gif}}{javascript:opensearch()}}
+
 %
-\newcommand{\Declaration}{\item[Declaration]\ttfamily}
-\newcommand{\Description}{\item[Description]\rmfamily}
-\newcommand{\Errors}{\item[Errors]\rmfamily}
-\newcommand{\SeeAlso}{\item[See also]\rmfamily}
+% FPC environments
 %
-%  The environments
+% List
+\newenvironment{FPCList}{\begin{htmllist}}{\end{htmllist}}
+% For Tables.
+\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+% The same, but with label in third argument (tab:#3)
+\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+
+%
+% Html Refs
+%
+\newcommand{\seefl}[2]{\htmlref{#1}{fu:#2}}
+\newcommand{\seepl}[2]{\htmlref{#1}{pro:#2}}
+\newcommand{\seetyl}[1]{\htmlref{#1}{sec:types}}
+\newcommand{\seec}[1]{chapter \htmlref{#1}{ch:#1}}
+\newcommand{\sees}[1]{section \htmlref{#1}{se:#1}}
+\newcommand{\seeo}[1]{See \htmlref{#1}{option:#1}}
+\newcommand{\seet}[1]{table (\htmlref{#1}{tab:#1}) }
+
+%
+% Function/procedure environments
 %
 \newenvironment{functionl}[2]{\subsection{#1}\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{procedurel}[2]{\subsection{#1}\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
 \newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
-\newcommand{\seefl}[2]{\htmlref{#1}{fu:#2}}
-\newcommand{\seepl}[2]{\htmlref{#1}{pro:#2}}
+\newenvironment{typel}[2]{\subsection{#1}\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{type}[1]{\begin{typel}{#1}{#1}}{\end{typel}}
+\newcommand{\Declaration}{\item[Declaration]\ttfamily}
+\newcommand{\Description}{\item[Description]\rmfamily}
+\newcommand{\Errors}{\item[Errors]\rmfamily}
+\newcommand{\SeeAlso}{\item[See also]\rmfamily}
 %
-% Now the ones without label.
+% Ref without labels
 %
 \newcommand{\seef}[1]{\seefl{#1}{#1}}
 \newcommand{\seep}[1]{\seepl{#1}{#1}}
+\newcommand{\seety}[1]{\seetyl{#1}{#1}}
 %
-\newcommand{\seet}[1]{\htmlref{#1}{sec:types}}
-\newcommand{\seem}[2]{ \texttt{#1} (#2) }
+% man page references don't need labels.
+%
+\newcommand{\seem}[2]{\texttt{#1} (#2) }
+%
+% for easy typesetting of variables.
+%
 \newcommand{\var}[1]{\texttt {#1}}
 \newcommand{\file}[1]{\textsf {#1}}
 %
-% Abbreviations
-%
-\newcommand{\linux}{\textsc{LinuX} }
-\newcommand{\dos}  {\textsc{dos} }
-\newcommand{\msdos}{\textsc{ms-dos} }
-\newcommand{\ostwo}{\textsc{os/2} }
-\newcommand{\windowsnt}{\textsc{Windows NT} }
-\newcommand{\windows}{\textsc{Windows} }
-\newcommand{\docdescription}[1]{}
-\newcommand{\docversion}[1]{}
-\newcommand{\unitdescription}[1]{}
-\newcommand{\unitversion}[1]{}
-\newcommand{\fpc}{Free Pascal }
-\newcommand{\gnu}{gnu }
-\newcommand{\atari}{\textsc{Atari} }
-\newcommand{\amiga}{\textsc{Amiga} }
-\newcommand{\win}{\textsc{Win32} }
-\newcommand{\freebsd}{\textsc{FreeBSD} }
-%
 % Useful references.
 %
-\newcommand{\progref}{\htmladdnormallink{Programmer's guide}{../prog/prog.html}\ }
-\newcommand{\refref}{\htmladdnormallink{Reference guide}{../ref/ref.html}\ }
-\newcommand{\userref}{\htmladdnormallink{Users' guide}{../user/user.html}\ }
-\newcommand{\unitsref}{\htmladdnormallink{Unit reference}{../units/units.html}\ }
-\newcommand{\seecrt}{\htmladdnormallink{CRT}{../crt/crt.html}}
-\newcommand{\seelinux}{\htmladdnormallink{Linux}{../linux/linux.html}}
-\newcommand{\seestrings}{\htmladdnormallink{strings}{../strings/strings.html}}
-\newcommand{\seedos}{\htmladdnormallink{DOS}{../dos/dos.html}}
-\newcommand{\seegetopts}{\htmladdnormallink{getopts}{../getopts/getopts.html}}
-\newcommand{\seeobjects}{\htmladdnormallink{objects}{../objects/objects.html}}
-\newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}}
-\newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}}
-\newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}}
-%
-% Nice environments
-%
-% For Code examples (complete programs only)
-\newenvironment{CodEx}{}{}
-% For Tables.
-\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
-% The same, but with label in third argument (tab:#3)
-\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
-% Listings
-\newenvironment{listing}{\begin{verbatim}}{\end{verbatim}}
+\newcommand{\progref}{\htmladdnormallink{Programmers' guide}{../prog/prog.html}\xspace}
+\newcommand{\refref}{\htmladdnormallink{Reference guide}{../ref/ref.html}\xspace}
+\newcommand{\userref}{\htmladdnormallink{Users' guide}{../user/user.html}\xspace}
+\newcommand{\unitsref}{\htmladdnormallink{Unit reference}{../units/units.html}\xspace}
+\newcommand{\seecrt}{\htmladdnormallink{CRT}{../crt/crt.html}\xspace}
+\newcommand{\seelinux}{\htmladdnormallink{Linux}{../linux/linux.html}\xspace}
+\newcommand{\seestrings}{\htmladdnormallink{strings}{../strings/strings.html}\xspace}
+\newcommand{\seedos}{\htmladdnormallink{DOS}{../dos/dos.html}\xspace}
+\newcommand{\seegetopts}{\htmladdnormallink{getopts}{../getopts/getopts.html}\xspace}
+\newcommand{\seeobjects}{\htmladdnormallink{objects}{../objects/objects.html}\xspace}
+\newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}\xspace}
+\newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}\xspace}
+\newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}\xspace}
 %
 % Commands to reference these things.
 %
-%\newcommand{\seet}[1]{table (\ref{tab:#1}) }
-%\newcommand{\seec}[1]{chapter (\ref{ch:#1}) }
-%\newcommand{\sees}[1]{section (\ref{se:#1}) }
-\htmladdtonavigation{%
-\htmladdnormallink{\htmladdimg{../buttons/search.gif}}{javascript:opensearch()}%
-}
+\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
+\newcommand{\olabel}[1]{\label{option:#1}}
 %
-% Some versions 
+% some OSes
+%
+\newcommand{\linux}{\textsc{linux}\xspace}
+\newcommand{\dos}  {\textsc{dos}\xspace}
+\newcommand{\msdos}{\textsc{ms-dos}\xspace}
+\newcommand{\ostwo}{\textsc{os/2}\xspace}
+\newcommand{\windows}{\textsc{Windows}\xspace}
+\newcommand{\windowsnt}{\textsc{Windows NT}\xspace}
+\newcommand{\fpc}{Free Pascal\xspace}
+\newcommand{\gnu}{\textsc{gnu}\xspace}
+\newcommand{\atari}{\textsc{Atari}\xspace}
+\newcommand{\amiga}{\textsc{Amiga}\xspace}
+\newcommand{\win}{\textsc{Win32}\xspace}
+\newcommand{\freebsd}{\textsc{FreeBSD}\xspace}
+%
+% Some versions
 %
 \newcommand{\fpcversion}{0.99.12}
+
 %
 % PDF support
 %
-\latex{
-\usepackage{ifthen}
-\newif\ifpdf
-\ifx\pdfoutput\undefined
-   \pdffalse
-\else
-   \pdfoutput=1
-   \pdftrue
-\fi
+\latex{%
+  \newif\ifpdf
+  \ifx\pdfoutput\undefined
+     \pdffalse
+  \else
+     \pdfoutput=1
+     \pdftrue
+  \fi
 }
+
 %
-% end of fpc.sty
+% end of fpc-html.tex
+%

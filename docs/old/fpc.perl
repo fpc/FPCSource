@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # FPC.PERL script. Accompagnies fpc.sty
 # by Michael Van Canneyt <michael@tfdec1.fys.kuleuven.ac.be>
 # December 1996
@@ -10,6 +11,18 @@ package main;
 $fpcresult='';
 
 sub FPCinternalproc{
+local ($name, $decl, $desc, $errors, $seealso) = @_ ;
+local ($result) = '';
+
+ $result  = "<H2>$name</H2>\n<P>\n" ;
+ $result .= "<H3>Declaration:</H3>\n<P>\n<TT>$decl</TT>\n<P>\n" ;
+ $result .= "<H3>Description:</H3>\n<P>\n$desc\n<P>\n" ;
+ $result .= "<H3>Errors:</H3>\n<P>\n$errors\n<P>\n" ;
+ $result .= "<H3>See Also:</H3>\n<P>\n$seealso\n<P>\n" ;
+ $result ;
+}
+
+sub FPCListing{
 local ($name, $decl, $desc, $errors, $seealso) = @_ ;
 local ($result) = '';
 

@@ -17,9 +17,12 @@
 # Configurable section
 #####################################################################
 
+# Which docs are made when 'html' is specified
+HTML = user units ref prog
+
 # Where do you want the html files to be put ?
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=/usr/doc/fpc-0.99.11
+DOCINSTALLDIR=/usr/doc/fpc-0.99.12
 endif 
 
 #
@@ -77,8 +80,6 @@ export TMP=/tmp
 #######################################################################
 # End of configurable section. Do not edit after this line.
 #######################################################################
-
-HTML = user units ref prog
 
 PS = $(addsuffix .ps, $(HTML))
 DVI = $(addsuffix .dvi, $(HTML))
@@ -210,9 +211,13 @@ prog.dvi: prog.tex date.inc
 
 user.dvi: user.tex date.inc
 
-units.pdf: units.tex $(CHAPTERS)
+units.pdf: units.tex date.inc $(CHAPTERS)
 
-ref.pdf: ref.tex
+ref.pdf: ref.tex date.inc
+
+user.pdf: user.tex date.inc
+
+prog.pdf: prog.tex date.inc
 
 dvi : $(DVI)
 
@@ -224,15 +229,19 @@ pdf : $(PDF)
 
 all : dvi ps pdf txt html
 
+#####################################################################
+# Html creation
+#####################################################################
+
 user: user.chk
 
 user.chk: user.tex date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
          -t "User's guide for Free Pascal" user.tex
-	sed -f foot.sed <user/footnode.html >user/footnote.html
-	mv user/footnote.html user/footnode.html
-	rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
-	rm -f user/images.* user/*.log
+	-sed -f foot.sed <user/footnode.html >user/footnote.html
+	-mv user/footnote.html user/footnode.html
+	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
+	-rm -f user/images.* user/*.log user/WARNINGS
 	touch user.chk
 
 units: units.chk
@@ -240,9 +249,10 @@ units: units.chk
 units.chk: units.tex unitex.chk date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Unit reference for Free Pascal" units.tex
-	sed -f foot.sed <units/footnode.html >units/footnote.html
-	mv units/footnote.html units/footnode.html
-	rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
+	-sed -f foot.sed <units/footnode.html >units/footnote.html
+	-mv units/footnote.html units/footnode.html
+	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
+	-rm -f units/images.* units/*.log units/WARNINGS
 	touch units.chk
 
 ref: ref.chk
@@ -250,9 +260,10 @@ ref: ref.chk
 ref.chk: refex.chk ref.tex date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
         -t "Free Pascal reference guide" ref.tex
-	sed -f foot.sed <ref/footnode.html >ref/footnote.html
-	mv ref/footnote.html ref/footnode.html
-	rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
+	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
+	-mv ref/footnote.html ref/footnode.html
+	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
+	-rm -f ref/images.* ref/*.log ref/WARNINGS
 	touch ref.chk	
 
 prog: prog.chk
@@ -260,10 +271,22 @@ prog: prog.chk
 prog.chk: prog.tex date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
         -t "Free Pascal programmers guide" prog.tex
-	sed -f foot.sed <prog/footnode.html >prog/footnote.html
-	mv prog/footnote.html prog/footnode.html
-	rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
+	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
+	-mv prog/footnote.html prog/footnode.html
+	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
+	-rm -f prog/images.* prog/*.log prog/WARNINGS
 	touch prog.chk
+
+internal: internal.chk
+
+internal.chk: internal.tex date.inc
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
+        -t "Free Pascal Compiler Documentation" internal.tex
+	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
+	-mv internal/footnote.html internal/footnode.html
+	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
+	-rm -f internal/images.* internal/*.log internal/WARNINGS
+	touch internal.chk	
 
 html: $(HTML)
 
@@ -342,7 +365,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.23  1999-06-02 17:41:33  peter
+# Revision 1.24  1999-06-03 00:06:42  peter
+#   * html creation works again
+#
+# Revision 1.23  1999/06/02 17:41:33  peter
 #   * fixes for html creation
 #
 # Revision 1.22  1999/05/31 16:37:08  peter

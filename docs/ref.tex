@@ -16,19 +16,22 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
 %
 \documentclass{report}
 %
 % Preamble
 %
+\usepackage{ifthen}
+\usepackage{xspace}
 \usepackage{a4dutch}
 \usepackage{makeidx}
 \usepackage{html}
-\usepackage{syntax}
+\usepackage{htmllist}
 \usepackage{fancyheadings}
+\usepackage{epsfig}
+\usepackage{multicol}
 \usepackage{fpc}
-\latex{\usepackage{multicol}}
 \latex{%
   \ifpdf
   \usepackage[pdftex,bookmarks=true]{hyperref}
@@ -39,12 +42,20 @@
            /Title(Standard units Reference Guide)
            /Subject(Free Pascal Reference guide)
            /Keywords(Free Pascal, Language, System Unit)
-	   }
+           }
   \fi
-} 
+}
 %
-% syntax style
+\html{\input{fpc-html.tex}}
 %
+% Settings
+%
+\pagestyle{fancy}
+\makeindex
+%
+% Syntax style
+%
+\usepackage{syntax}
 \input{syntax/diagram.tex}
 \latex{\usepackage{listings}\usepackage{lst017}\usepackage{lstdelphi}%
   \blankstringtrue
@@ -53,19 +64,15 @@
   \keywordstyle{\bfseries}
   \prelisting{\sffamily\sloppy}
 }
-\html{\input{fpc-html.tex}}
-\pagestyle{fancy}
-\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 %
-% start of document.
+% Start of document.
 %
+\begin{document}
 \title{Free Pascal :\\ Reference guide.}
 \docdescription{Reference guide for Free Pascal.}
 \docversion{1.4}
 \input{date.inc}
 \author{Micha\"el Van Canneyt}
-\makeindex
-\begin{document}
 \maketitle
 \tableofcontents
 \newpage
@@ -86,7 +93,7 @@ Turbo Pascal implementation.
 \subsection{Notations}
 Throughout this document, we will refer to functions, types and variables
 with \var{typewriter} font. Functions and procedures have their own
-subsections, and for each function or procedure we have the following 
+subsections, and for each function or procedure we have the following
 topics:
 \begin{description}
 \item [Declaration] The exact declaration of the function.
@@ -126,14 +133,14 @@ When you can repeat something there is an arrow around it:
 \end{mysyntdiag}
 When there are different possibilities, they are listed in columns:
 \begin{mysyntdiag}
-\( 
+\(
 \synt{First\ possibility} \\
 \synt{Second\ possibility}
 \)
 \end{mysyntdiag}
 Note, that one of the possibilities can be empty:
 \begin{mysyntdiag}
-\[ 
+\[
 \synt{First\ possibility} \\
 \synt{Second\ possibility}
 \]
@@ -157,14 +164,14 @@ The following characters have a special meaning:
 \end{verbatim}
 and the following character pairs too:
 \begin{verbatim}
-<= >= := += -= *= /= (* *) (. .) // 
+<= >= := += -= *= /= (* *) (. .) //
 \end{verbatim}
-When used in a range specifier, the character pair \var{(.} is equivalent to 
-the left square bracket \var{[}. Likewise, the character pair \var{.)} is 
-equivalent to the right square bracket \var{]}. 
-When used for comment delimiters, the character pair \var{(*} is equivalent 
-to the  left brace \var{\{} and the character pair \var{*)} is equivalent 
-to the right brace \var{\}}. 
+When used in a range specifier, the character pair \var{(.} is equivalent to
+the left square bracket \var{[}. Likewise, the character pair \var{.)} is
+equivalent to the right square bracket \var{]}.
+When used for comment delimiters, the character pair \var{(*} is equivalent
+to the  left brace \var{\{} and the character pair \var{*)} is equivalent
+to the right brace \var{\}}.
 These character pairs retain their normal meaning in string expressions.
 \section{Comments}
 \fpc supports the use of nested comments. The following constructs are valid
@@ -175,9 +182,9 @@ comments:
   // This is a Delphi comment. All is ignored till the end of the line.
 \end{verbatim}
 The last line would cause problems when attempting to compile with Delphi or
-Turbo Pascal. These compiler would consider the first matching brace 
+Turbo Pascal. These compiler would consider the first matching brace
 \var{\}} as the end of the comment delimiter. If you wish to have this
-behaviour, you can use the \var{-So} switch, and the \fpc compiler will 
+behaviour, you can use the \var{-So} switch, and the \fpc compiler will
 act the same way.
 The following are valid ways of nesting comments:
 \begin{verbatim}
@@ -192,27 +199,27 @@ The last two comments {\em must} be on one line. The following two will give
 errors:
 \begin{verbatim}
  // Valid comment { No longer valid comment !!
-    }                     
+    }
 \end{verbatim}
 and
 \begin{verbatim}
  // Valid comment (* No longer valid comment !!
-    *)                     
+    *)
 \end{verbatim}
 The compiler will react with a 'invalid character' error when it encounters
 such constructs, regardless of the \var{-So} switch.
 \section{Reserved words}
 Reserved words are part of the Pascal language, and cannot be redefined.
-They will be denoted as {\sffamily\bfseries this} throughout the syntax 
-diagrams. Reserved words can be typed regardless of case, i.e. Pascal is 
+They will be denoted as {\sffamily\bfseries this} throughout the syntax
+diagrams. Reserved words can be typed regardless of case, i.e. Pascal is
 case insensitive.
-We make a distinction between Turbo Pascal and Delphi reserved words, since 
+We make a distinction between Turbo Pascal and Delphi reserved words, since
 with the \var{-So} switch, only the Turbo Pascal reserved words are
 recognised, and the Delphi ones can be redefined. By default, \fpc
 recognises the Delphi reserved words.
 \subsection{Turbo Pascal reserved words}
 The following keywords exist in Turbo Pascal mode
-\latex{\begin{multicols}{4}}
+\begin{multicols}{4}
 \begin{verbatim}
 absolute
 and
@@ -276,11 +283,11 @@ while
 with
 xor
 \end{verbatim}
-\latex{\end{multicols}}
+\end{multicols}
 \subsection{Delphi reserved words}
 The Delphi (II) reserved words are the same as the pascal ones, plus the
 following ones:
-\latex{\begin{multicols}{4}}
+\begin{multicols}{4}
 \begin{verbatim}
 as
 class
@@ -296,11 +303,11 @@ property
 raise
 try
 \end{verbatim}
-\latex{\end{multicols}}
+\end{multicols}
 \subsection{\fpc reserved words}
 On top of the Turbo Pascal and Delphi reserved words, \fpc also considers
 the following as reserved words:
-\latex{\begin{multicols}{4}}
+\begin{multicols}{4}
 \begin{verbatim}
 dispose
 exit
@@ -310,11 +317,11 @@ new
 popstack
 true
 \end{verbatim}
-\latex{\end{multicols}}
+\end{multicols}
 \subsection{Modifiers}
 The following is a list of all modifiers. Contrary to Delphi, \fpc doesn't
 allow you to redefine these modifiers.
-\latex{\begin{multicols}{4}}
+\begin{multicols}{4}
 \begin{verbatim}
 absolute
 abstract
@@ -342,17 +349,17 @@ stdcall
 virtual
 write
 \end{verbatim}
-\latex{\end{multicols}}
+\end{multicols}
 Remark that predefined types such as \var{Byte}, \var{Boolean} and constants
 such as \var{maxint} are {\em not} reserved words. They are
 identifiers, declared in the system unit. This means that you can redefine
-these types. You are, however, not encouraged to do this, as it will cause 
+these types. You are, however, not encouraged to do this, as it will cause
 a lot of confusion.
 \section{Identifiers}
 Identifiers denote constants, types, variables, procedures and functions,
 units, and programs. All names of things that you define are identifiers.
 An identifier consists of 255 significant characters (letters, digits and
-the underscore character), from which the first must be an alphanumeric 
+the underscore character), from which the first must be an alphanumeric
 character, or an underscore (\var{\_})
 The following diagram gives the basic syntax for identifiers.
 \input{syntax/identifier.syn}
@@ -369,14 +376,14 @@ as \var{\%11111111}.
 The following diagrams show the syntax for numbers.
 \input{syntax/numbers.syn}
 \section{Labels}
-Labels can be digit sequences or identifiers. 
+Labels can be digit sequences or identifiers.
 \input{syntax/label.syn}
- 
+
 \section{Character strings}
 A character string (or string for short) is a sequence of zero or more
 characters from the ASCII character set, enclosed by single quotes, and on 1
 line of the program source.
-A character set with nothing between the quotes (\var{'{}'}) is an empty 
+A character set with nothing between the quotes (\var{'{}'}) is an empty
 string.
 \input{syntax/string.syn}
 \chapter{Constants}
@@ -388,12 +395,12 @@ Delphi  implementation.
 The compiler must be able to evaluate the expression in a constant
 declaration at compile time.  This means that most of the functions
 in the Run-Time library cannot be used in a constant declaration.
-Operators such as \var{+, -, *, /, not, and, or, div(), mod(), ord(), chr(), 
+Operators such as \var{+, -, *, /, not, and, or, div(), mod(), ord(), chr(),
 sizeof} can be used, however. For more information on expressions,
 You can only declare constants of the following types: \var{Ordinal types},
-\var{Real types}, \var{Char}, and \var{String}. 
+\var{Real types}, \var{Char}, and \var{String}.
 The following are all valid constant declarations:
-\begin{listing}
+\begin{verbatim}
 Const
   e = 2.7182818;  { Real type constant. }
   a = 2;          { Integer type constant. }
@@ -401,12 +408,12 @@ Const
   s = 'This is a constant string'; {String type constant.}
   s = chr(32)
   ls = SizeOf(Longint);
-\end{listing}
+\end{verbatim}
 Assigning a value to a constant is not permitted. Thus, given the previous
 declaration, the following will result in a compiler error:
-\begin{listing}
+\begin{verbatim}
   s := 'some other string';
-\end{listing}
+\end{verbatim}
 \section{Typed constants}
 Typed constants serve to provide a program with initialized variables.
 Contrary to ordinary constants, they may be assigned to at run-time.
@@ -415,37 +422,37 @@ when the program starts, whereas normal variables must be initialised
 explicitly.
 \input{syntax/tconst.syn}
 Given the declaration:
-\begin{listing}
+\begin{verbatim}
 Const
   S : String = 'This is a typed constant string';
-\end{listing}
+\end{verbatim}
 The following is a valid assignment:
-\begin{listing}
+\begin{verbatim}
  S := 'Result : '+Func;
-\end{listing}
+\end{verbatim}
 Where \var{Func} is a function that returns a \var{String}.
 Typed constants also allow you to initialize arrays and records. For arrays,
 the initial elements must be specified, surrounded by round brackets, and
 separated by commas. The number of elements must be exactly the same as
-number of elements in the declaration of the type. 
+number of elements in the declaration of the type.
 As an example:
-\begin{listing}
-Const 
+\begin{verbatim}
+Const
   tt : array [1..3] of string[20] = ('ikke', 'gij', 'hij');
   ti : array [1..3] of Longint = (1,2,3);
-\end{listing}
+\end{verbatim}
 For constant records, you should specify each element of the record, in the
 form \var{Field : Value}, separated by commas, and surrounded by round
 brackets.
 As an example:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
   Point = record
     X,Y : Real
     end;
 Const
-  Origin : Point = (X:0.0 , Y:0.0); 
-\end{listing}
+  Origin : Point = (X:0.0 , Y:0.0);
+\end{verbatim}
 The order of the fields in a constant record needs to be the same as in the type declaration,
 otherwise you'll get a compile-time error.
 \chapter{Types}
@@ -457,16 +464,16 @@ in the source code.
 \input{syntax/typedecl.syn}
 There are 7 major type classes :
 \input{syntax/type.syn}
-The last class, {\sffamily type identifier}, is just a means to give another 
+The last class, {\sffamily type identifier}, is just a means to give another
 name to a type. This gives you a way to make types platform independent, by
 only using your own types, and then defining these types for each platform
 individually. The programmer that uses your units doesn't have to worry
 about type size and so on. It also allows you to use shortcut names for
 fully qualified type names. You can e.g. define \var{system.longint} as
-\var{Olongint} and then redefine \var{longint}. 
+\var{Olongint} and then redefine \var{longint}.
 \section{Base types}
-The base or simple types of \fpc are the Delphi types. 
-We will discuss each separate. 
+The base or simple types of \fpc are the Delphi types.
+We will discuss each separate.
 \input{syntax/typesim.syn}
 \subsection{Ordinal types}
 With the exception of Real types, all base types are ordinal types.
@@ -474,7 +481,7 @@ Ordinal types have the following characteristics:
 \begin{enumerate}
 \item Ordinal types are countable and ordered, i.e. it is, in principle,
 possible to start counting them one bye one, in a specified order.
-This property allows the operation of functions as \seep{Inc}, \seef{Ord}, 
+This property allows the operation of functions as \seep{Inc}, \seef{Ord},
 \seep{Dec}
 on ordinal types to be defined.
 \item Ordinal values have a smallest possible value. Trying to apply the
@@ -500,7 +507,7 @@ ByteBool \\
 LongBool \\
 Char \\ \hline
 \end{FPCltable}
-The integer types, and their ranges and sizes, that are predefined in 
+The integer types, and their ranges and sizes, that are predefined in
 \fpc are listed in \seet{integers}.
 \begin{FPCltable}{lcr}{Predefined integer types}{integers}
 Type & Range & Size in bytes \\ \hline
@@ -529,21 +536,21 @@ LongBool & 4 & Any nonzero value \\ \hline
 \end{FPCltable}
 Assuming \var{B} to be of type \var{Boolean}, the following are valid
 assignments:
-\begin{listing}
+\begin{verbatim}
  B := True;
  B := False;
  B := 1<>2;  { Results in B := True }
-\end{listing}
+\end{verbatim}
 Boolean expressions are also used in conditions.
 {\em Remark:} In \fpc, boolean expressions are always evaluated in such a
 way that when the result is known, the rest of the expression will no longer
 be evaluated (Called short-cut evaluation). In the following example, the function \var{Func} will never
 be called, which may have strange side-effects.
-\begin{listing}
+\begin{verbatim}
  ...
  B := False;
  A := B and Func;
-\end{listing}
+\end{verbatim}
 Here \var{Func} is a function which returns a \var{Boolean} type.
 {\em Remark:} The wordbool, longbool and bytebool were not supported
 by \fpc until version 0.99.6.
@@ -559,15 +566,15 @@ ascending numerical order in the list, or the compiler will complain.
 The expressions used in assigned enumerated elements must be known at
 compile time.
 So the following is a correct enumerated type declaration:
-\begin{listing}
+\begin{verbatim}
 Type
   Direction = ( North, East, South, West );
-\end{listing}
+\end{verbatim}
 The C style enumeration type looks as follows:
-\begin{listing}
+\begin{verbatim}
 Type
   EnumType = (one, two, three, forty := 40,fortyone);
-\end{listing}
+\end{verbatim}
 As a result, the ordinal number of \var{forty} is \var{40}, and not \var{3},
 as it would be when the \var{':= 40'} wasn't present.
 The ordinal value of \var{fortyone} is then {41}, and not \var{4}, as it
@@ -578,12 +585,12 @@ When specifying such an enumeration type, it is important to keep in mind
 that you should keep the enumerated elements in ascending order. The
 following will produce a compiler error:
 \renewcommand{\prelisting}{\sffamily}
-\begin{listing}
+\begin{verbatim}
 Type
   EnumType = (one, two, three, forty := 40, thirty := 30);
-\end{listing}
+\end{verbatim}
 It is necessary to keep \var{forty} and \var{thirty} in the correct order.
-When using enumeration types it is important to keep the following points 
+When using enumeration types it is important to keep the following points
 in mind:
 \begin{enumerate}
 \item You cannot use the \var{Pred} and \var{Succ} functions on
@@ -594,8 +601,8 @@ this behaviour with the \var{\{\$PACKENUM n\}} compiler directive, which
 tells the compiler the minimal number of bytes to be used for enumeration
 types.
 For instance
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
   LargeEnum = ( BigOne, BigTwo, BigThree );
 {$PACKENUM 1}
   SmallEnum = ( one, two, three );
@@ -605,8 +612,8 @@ begin
   WriteLn ('Small enum : ',SizeOf(S));
   WriteLn ('Large enum : ',SizeOf(L));
 end.
-\end{listing}
-will, when run, print the following: 
+\end{verbatim}
+will, when run, print the following:
 \begin{verbatim}
 Small enum : 1
 Large enum : 4
@@ -620,22 +627,22 @@ type). To define a subrange type, one must specify it's limiting values: the
 highest and lowest value of the type.
 \input{syntax/typesubr.syn}
 Some of the predefined \var{integer} types are defined as subrange types:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
   Longint  = $80000000..$7fffffff;
   Integer  = -32768..32767;
   shortint = -128..127;
   byte     = 0..255;
   Word     = 0..65535;
-\end{listing}
+\end{verbatim}
 But you can also define subrange types of enumeration types:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
   Days = (monday,tuesday,wednesday, thursday,friday,
           saturday,sunday);
   WorkDays = monday .. friday;
   WeekEnd = Saturday .. Sunday;
-\end{listing}
+\end{verbatim}
 \subsection{Real types}
 \fpc uses the math coprocessor (or an emulation) for all its floating-point
 calculations. The Real native type is processor dependant,
@@ -651,16 +658,16 @@ Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
 Comp\footnote{\var{Comp} only holds integer values.} & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
 \end{FPCltable}
-Until version 0.9.1 of the compiler, all the \var{Real} types are mapped to 
+Until version 0.9.1 of the compiler, all the \var{Real} types are mapped to
 type \var{Double}, meaning that they all have size 8. The \seef{SizeOf} function
 is your friend here. The \var{Real} type of turbo pascal is automatically
 mapped to Double. The \var{Comp} type is, in effect, a 64-bit integer.
 \section{Character types}
 \subsection{Char}
 \fpc supports the type \var{Char}. A \var{Char} is exactly 1 byte in
-size, and contains one character. 
-You can specify a character constant by enclosing the character in single 
-quotes, as follows : 'a' or 'A' are both character constants. 
+size, and contains one character.
+You can specify a character constant by enclosing the character in single
+quotes, as follows : 'a' or 'A' are both character constants.
 You can also specify a character by their ASCII
 value, by preceding the ASCII value with the number symbol (\#). For example
 specifying \var{\#65} would be the same as \var{'A'}.
@@ -676,45 +683,45 @@ it supports ansistrings as in Delphi.
 To declare a variable as a string, use the following type specification:
 \input{syntax/sstring.syn}
 
-The meaning of a string declaration statement is interpreted differently 
+The meaning of a string declaration statement is interpreted differently
 depending on the \var{\{\$H\}} switch. The above declaration can declare an
 ansistrng or a short string.
 
 Whatever the actual type, ansistrings and short strings can be used
 interchangeably. The compile always takes care of the necessary type
 coversions. Note, however, that the result of an expression that contains
-ansstrings snd short strings will always be an ansistring. 
+ansstrings snd short strings will always be an ansistring.
 
 \subsection{Short strings}
 
 A string declaration declares a short string in the following cases:
 
 \begin{enumerate}
-\item If the switch is off: \var{\{\$H-\}}, the string declaration 
+\item If the switch is off: \var{\{\$H-\}}, the string declaration
 will always be a short string declaration.
 \item If the switch is on \var{\{\$H+\}}, and there is a length
 specifier, the declaration is a short string declaration.
 \end{enumerate}
 
 The predefined type \var{ShortString} is defined as a string of length 255:
-\begin{listing}
+\begin{verbatim}
  ShortString = String[255];
-\end{listing}
+\end{verbatim}
 
-For short strings \fpc reserves \var{Size+1} bytes for the string \var{S}, 
-and in the zeroeth element of the string (\var{S[0]}) it will store the 
+For short strings \fpc reserves \var{Size+1} bytes for the string \var{S},
+and in the zeroeth element of the string (\var{S[0]}) it will store the
 length of the variable.
 If you don't specify the size of the string, \var{255} is taken as a
 default.
-For example in 
-\begin{listing}
+For example in
+\begin{verbatim}
 {$H-}
 
 Type
    NameString = String[10];
    StreetString = String;
-\end{listing}
-\var{NameString} can contain maximum 10 characters. While 
+\end{verbatim}
+\var{NameString} can contain maximum 10 characters. While
 \var{StreetString} can contain 255 characters. The sizes of these variables
 are, respectively, 11 and 256 bytes.
 
@@ -727,7 +734,7 @@ Ansistrings are strings that have no length limit. They are reference
 counted. Internally, an ansistring is treated as a pointer.
 
 If the string is empty (\var{''}), then the pointer is nil.
-If the string is not empty, then the pointer points to a structure in 
+If the string is not empty, then the pointer points to a structure in
 heap memory that looks as in seet{ansistrings}.
 
 \begin{FPCltable}{rl}{AnsiString memory structure}{ansistrings}
@@ -738,7 +745,7 @@ Offset & Contains \\ \hline
 0    & Actual string, null-terminated. \\ \hline
 \end{FPCltable}
 
-Because of this structure, it is possible to typecast an ansistring to a 
+Because of this structure, it is possible to typecast an ansistring to a
 pchar. If the string is empty (so the pointer is nil) then the compiler
 makes sure that the typecasted pchar will point to a null byte.
 
@@ -748,27 +755,27 @@ access.
 
 Assigning one ansistring to another doesn't involve moving the actual
 string. A statement
-\begin{listing}
+\begin{verbatim}
   S2:=S1;
-\end{listing}
+\end{verbatim}
 results in the reference count of \var{S2} being decreased by one,
 The referece count of \var{S1} is increased by one, and finally \var{S1}
 (as a pointer) is copied to \var{S2}. This is a significant speed-up in
-your code. 
+your code.
 
 If a reference count reaches zero, then the memory occupied by the
 string is deallocated automatically, so no memory leaks arise.
 
-When an ansistring is declared, the \fpc compiler initially 
+When an ansistring is declared, the \fpc compiler initially
 allocates just memory for a pointer, not more. This pinter is guaranteed
 to be nil, meaning that the string is initially empty. This is
 true for local, global or part of a structure (arrays, records or objects).
 
 This does introduce an overhead. For instance, declaring
-\begin{listing}
-Var 
+\begin{verbatim}
+Var
   A : Array[1..100000] of string;
-\end{listing}
+\end{verbatim}
 Will copy 1000000 times \var{nil} into A. When A goes out of scope, then
 the 100000 strings will be dereferenced one by one. All this happens
 invisibly for the programmer, but when considering performance issues,
@@ -780,20 +787,20 @@ If the string goes out of scope, then it is automatically dereferenced.
 If you assign a value to a character of a string that has a reference count
 greater than 1, such as in the following
 statements:
-\begin{listing}
+\begin{verbatim}
   S:=T;  { reference count for S and T is now 2 }
   S[I]:='@';
-\end{listing}
+\end{verbatim}
 then a copy of the string is created before the assignment. This is known
 as {\em copy-on-write} semantics.
 
-It is impossible to access the length of an ansistring by referring to 
+It is impossible to access the length of an ansistring by referring to
 the zeroeth character. The following statement will generate a compiler
 error if S is an ansistring:
-\begin{listing}
+\begin{verbatim}
   Len:=S[0];
-\end{listing}
-Instead, you must use the \seefl{Length} function to get the length of a 
+\end{verbatim}
+Instead, you must use the \seefl{Length} function to get the length of a
 string.
 
 To set the length of an ansistring, you can use the \seepl{SetLength}
@@ -805,7 +812,7 @@ this means that you can mix the use of ansistrings ans short strings
 without problems.
 
 You can typecast ansistrings to \var{PChar} or \var{Pointer} types:
-\begin{listing}
+\begin{verbatim}
 Var P : Pointer;
     PC : PChar;
     S : AnsiString;
@@ -814,15 +821,15 @@ begin
   S :='This is an ansistring';
   PC:=Pchar(S);
   P :=Pointer(S);
-\end{listing}
+\end{verbatim}
 There is a difference between the two typecasts. If you typecast an empty
 string to a pointer, the pointer wil be \var{Nil}. If you typecast an empty
 ansistring to a \var{PChar}, then the result will be a pointer to a zero
 byte (an empty string).
- 
+
 The result of such a typecast must be use with care. In general, it is best
 to consider the result of such a typecast as read-only, i.e. suitable for
-passing to a procedure that needs a constant pchar argument. 
+passing to a procedure that needs a constant pchar argument.
 
 It is therefore NOT advisable to typecast one of the following:
 \begin{enumerate}
@@ -831,16 +838,16 @@ It is therefore NOT advisable to typecast one of the following:
 ensure a string has reference count 1)
 \end{enumerate}
 \subsection{Constant strings}
- 
+
 To specify a constant string, you enclose the string in single-quotes, just
 as a \var{Char} type, only now you can have more than one character.
-Given that \var{S} is of type \var{String}, the following are valid assignments: 
-\begin{listing}
+Given that \var{S} is of type \var{String}, the following are valid assignments:
+\begin{verbatim}
 S := 'This is a string.';
 S := 'One'+', Two'+', Three';
 S := 'This isn''t difficult !';
 S := 'This is a weird character : '#145' !';
-\end{listing}
+\end{verbatim}
 As you can see, the single quote character is represented by 2 single-quote
 characters next to each other. Strange characters can be specified by their
 ASCII value.
@@ -857,34 +864,34 @@ depends on the settings of the \var{\{\$H\}} switch.
 is defined as a pointer to a \var{Char} type, but allows additional
 operations.
 The \var{PChar} type can be understood best as the Pascal equivalent of a
-C-style null-terminated string, i.e. a variable of type \var{PChar} is a 
+C-style null-terminated string, i.e. a variable of type \var{PChar} is a
 pointer that points to an array of type \var{Char}, which is ended by a
 null-character (\var{\#0}).
 \fpc supports initializing of \var{PChar} typed constants, or a direct
 assignment. For example, the following pieces of code are equivalent:
-\begin{listing}
+\begin{verbatim}
 program one;
 var p : PChar;
 begin
   P := 'This is a null-terminated string.';
   WriteLn (P);
 end.
-\end{listing}
+\end{verbatim}
 Results in the same as
-\begin{listing}
+\begin{verbatim}
 program two;
 const P : PChar = 'This is a null-terminated string.'
 begin
   WriteLn (P);
 end.
-\end{listing}
+\end{verbatim}
 These examples also show that it is possible to write {\em the contents} of
 the string to a file of type \var{Text}.
 The \seestrings unit contains procedures and functions that manipulate the
 \var{PChar} type as you can do it in C.
 Since it is equivalent to a pointer to a type \var{Char} variable, it  is
 also possible to do the following:
-\begin{listing}
+\begin{verbatim}
 Program three;
 Var S : String[30];
     P : PChar;
@@ -893,7 +900,7 @@ begin
   P := @S[1];
   WriteLn (P);
 end.
-\end{listing}
+\end{verbatim}
 This will have the same result as the previous two examples.
 You cannot add null-terminated strings as you can do with normal Pascal
 strings. If you want to concatenate two \var{PChar} strings, you will need
@@ -920,35 +927,35 @@ structured types, as can be seen in the syntax diagram. It will be mentioned
 when a type supports the \var{packed} keyword.
 In the following, each of the possible structured types is discussed.
 \subsection{Arrays}
-\fpc supports arrays as in Turbo Pascal, multi-dimensional arrays 
+\fpc supports arrays as in Turbo Pascal, multi-dimensional arrays
 and packed arrays are also supported:
 \input{syntax/typearr.syn}
 The following is a valid array declaration:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
   RealArray = Array [1..100] of Real;
-\end{listing}
+\end{verbatim}
 As in Turbo Pascal, if the array component type is in itself an array, it is
 possible to combine the two arrays into one multi-dimensional array. The
 following declaration:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
    APoints = array[1..100] of Array[1..3] of Real;
-\end{listing}
+\end{verbatim}
 is equivalent to the following declaration:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
    APoints = array[1..100,1..3] of Real;
-\end{listing}
+\end{verbatim}
 The functions \seef{High} and \seef{Low} return the high and low bounds of
-the leftmost index type of the array. In the above case, this would be 100 
+the leftmost index type of the array. In the above case, this would be 100
 and 1.
 \subsection{Record types}
-\fpc supports fixed records and records with variant parts. 
+\fpc supports fixed records and records with variant parts.
 The syntax diagram for a record type is
 \input{syntax/typerec.syn}
 So the following are valid record types declarations:
-\begin{listing}
+\begin{verbatim}
 Type
   Point = Record
           X,Y,Z : Real;
@@ -963,14 +970,14 @@ Type
           False : (X,Y,Z : Real);
           True : (R,theta,phi : Real);
           end;
-\end{listing}
+\end{verbatim}
 The variant part must be last in the record. The optional identifier in the
 case statement serves to access the tag field value, which otherwise would
-be invisible to the programmer. It can be used to see which variant is 
+be invisible to the programmer. It can be used to see which variant is
 active at a certain time. In effect, it introduces a new field in the
 record.
 Remark that it is possible to  nest variant parts, as in:
-\begin{listing}
+\begin{verbatim}
 Type
   MyRec = Record
           X : Longint;
@@ -979,14 +986,14 @@ Type
                  case byte of
                  3 : (Z : Longint);
                  );
-          end;     
-\end{listing}
+          end;
+\end{verbatim}
 The size of a record is the sum of the sizes of its fields, each size of a
 field is rounded up to two. If the record contains a variant part, the size
 of the variant part is the size of the biggest variant, plus the size of the
-tag field type {\em if an identifier was declared for it}. Here also, the size of 
-each part is first rounded up to two. So in the above example, 
-\seef{SizeOf} would return 24 for \var{Point}, 24 for \var{RPoint} and 
+tag field type {\em if an identifier was declared for it}. Here also, the size of
+each part is first rounded up to two. So in the above example,
+\seef{SizeOf} would return 24 for \var{Point}, 24 for \var{RPoint} and
 26 for \var{BetterRPoint}. For \var{MyRec}, the value would be 12.
 If you want to read a typed file with records, produced by
 a Turbo Pascal program, then chances are that you will not succeed in
@@ -994,16 +1001,16 @@ reading that file correctly.
 The reason for this is that by default, elements of a record are aligned at
 2-byte boundaries, for performance reasons. This default behaviour can be
 changed with the \var{\{\$PackRecords n\}} switch. Possible values for
-\var{n} are 1, 2, 4, 16 or \var{Default}. 
-This switch tells the compiler to align elements of a record or object or 
+\var{n} are 1, 2, 4, 16 or \var{Default}.
+This switch tells the compiler to align elements of a record or object or
 class that have size larger than \var{n} on \var{n} byte boundaries.
-Elements that have size smaller or equal than \var{n} are aligned on 
+Elements that have size smaller or equal than \var{n} are aligned on
 natural boundaries, i.e. to the first power of two that is larger than or
 equal to the size of the record element.
-The keyword \var{Default} selects the default value for the platform 
+The keyword \var{Default} selects the default value for the platform
 you're working on (currently, this is 2 on all platforms)
 Take a look at the following program:
-\begin{listing}
+\begin{verbatim}
 Program PackRecordsDemo;
 type
    {$PackRecords 2}
@@ -1011,7 +1018,7 @@ type
        A : byte;
        B : Word;
      end;
-     
+
      {$PackRecords 1}
      Trec2 = Record
        A : Byte;
@@ -1021,7 +1028,7 @@ type
      Trec3 = Record
        A,B : byte;
      end;
-     
+
     {$PackRecords 1}
      Trec4 = Record
        A,B : Byte;
@@ -1032,7 +1039,7 @@ type
        B : Array[1..3] of byte;
        C : byte;
      end;
-     
+
      {$PackRecords 8}
      Trec6 = Record
        A : Byte;
@@ -1045,7 +1052,7 @@ type
        B : Array[1..7] of byte;
        C : byte;
      end;
-     
+
      {$PackRecords 8}
      Trec8 = Record
        A : Byte;
@@ -1060,7 +1067,7 @@ Var rec1 : Trec1;
     rec6 : TRec6;
     rec7 : TRec7;
     rec8 : TRec8;
-    
+
 begin
   Write ('Size Trec1 : ',SizeOf(Trec1));
   Writeln (' Offset B : ',Longint(@rec1.B)-Longint(@rec1));
@@ -1083,9 +1090,9 @@ begin
   Writeln (' Offset B : ',Longint(@rec8.B)-Longint(@rec8),
            ' Offset C : ',Longint(@rec8.C)-Longint(@rec8));
 end.
-\end{listing}
+\end{verbatim}
 The output of this program will be :
-\begin{listing}
+\begin{verbatim}
 Size Trec1 : 4 Offset B : 2
 Size Trec2 : 3 Offset B : 1
 Size Trec3 : 2 Offset B : 1
@@ -1094,71 +1101,71 @@ Size Trec5 : 8 Offset B : 4 Offset C : 7
 Size Trec6 : 8 Offset B : 4 Offset C : 7
 Size Trec7 : 12 Offset B : 4 Offset C : 11
 Size Trec8 : 16 Offset B : 8 Offset C : 15
-\end{listing}
-And this is as expected. In \var{Trec1}, since \var{B} has size 2, it is 
-aligned on a 2 byte boundary, thus leaving an empty byte between \var{A} 
-and \var{B}, and making the total size 4. In \var{Trec2}, \var{B} is aligned 
-on a 1-byte boundary, right after \var{A}, hence, the total size of the 
+\end{verbatim}
+And this is as expected. In \var{Trec1}, since \var{B} has size 2, it is
+aligned on a 2 byte boundary, thus leaving an empty byte between \var{A}
+and \var{B}, and making the total size 4. In \var{Trec2}, \var{B} is aligned
+on a 1-byte boundary, right after \var{A}, hence, the total size of the
 record is 3.
 For \var{Trec3}, the sizes of \var{A,B} are 1, and hence they are aligned on 1
 byte boundaries. The same is true for \var{Trec4}.
-For \var{Trec5}, since the size of B -- 3 -- is smaller than 4, \var{B} will 
-be on a  4-byte boundary, as this is the first power of two that is 
+For \var{Trec5}, since the size of B -- 3 -- is smaller than 4, \var{B} will
+be on a  4-byte boundary, as this is the first power of two that is
 larger than it's size. The same holds for \var{Trec6}.
 For \var{Trec7}, \var{B} is aligned on a 4 byte boundary, since it's size --
 7 -- is larger than 4. However, in \var{Trec8}, it is aligned on a 8-byte
 boundary, since 8 is the first power of two that is greater than 7, thus
 making the total size of the record 16.
-As from version 0.9.3, \fpc supports also the 'packed record', this is a 
+As from version 0.9.3, \fpc supports also the 'packed record', this is a
 record where all the elements are byte-aligned.
 Thus the two following declarations are equivalent:
-\begin{listing}
+\begin{verbatim}
      {$PackRecords 1}
      Trec2 = Record
        A : Byte;
        B : Word;
        end;
      {$PackRecords 2}
-\end{listing}
+\end{verbatim}
 and
-\begin{listing}
+\begin{verbatim}
      Trec2 = Packed Record
        A : Byte;
        B : Word;
        end;
-\end{listing}
+\end{verbatim}
 Note the \var{\{\$PackRecords 2\}} after the first declaration !
 \subsection{Set types}
 \fpc supports the set types as in Turbo Pascal. The prototype of a set
-declaration is: 
+declaration is:
 \input{syntax/typeset.syn}
 Each of the elements of \var{SetType} must be of type \var{TargetType}.
 \var{TargetType} can be any ordinal type with a range between \var{0} and
 \var{255}. A set can contain maximally \var{255} elements.
 The following are valid set declaration:
-\begin{listing}
+\begin{verbatim}
 Type
     Junk = Set of Char;
-  
+
     Days = (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
     WorkDays : Set of days;
-\end{listing}
+\end{verbatim}
 Given this set declarations, the following assignment is legal:
-\begin{listing}
+\begin{verbatim}
 WorkDays := [ Mon, Tue, Wed, Thu, Fri];
-\end{listing}
-The operators and functions for manipulations of sets are listed in 
+\end{verbatim}
+The operators and functions for manipulations of sets are listed in
 \seet{SetOps}.
 \begin{FPCltable}{lr}{Set Manipulation operators}{SetOps}
 Operation & Operator \\ \hline
 Union & + \\
 Difference & - \\
-Intersection & * \\ 
+Intersection & * \\
 Add element & \var{include} \\
 Delete element & \var{exclude} \\ \hline
 \end{FPCltable}
 You can compare two sets with the \var{<>} and \var{=} operators, but not
-(yet) with the \var{<} and \var{>} operators. 
+(yet) with the \var{<} and \var{>} operators.
 As of compiler version 0.9.5, the compiler stores small sets (less than 32
 elements) in a Longint, if the type range allows it. This allows for faster
 processing and decreases program size. Otherwise, sets are stored in 32
@@ -1175,93 +1182,93 @@ If no type identifier is given, then the file is an untyped file; it can be
 considered as equivalent to a file of bytes. Untyped files require special
 commands to act on them (see \seep{Blockread}, \seep{Blockwrite}).
 The following declaration declares a file of records:
-\begin{listing}
+\begin{verbatim}
 Type
    Point = Record
      X,Y,Z : real;
      end;
    PointFile = File of Point;
-\end{listing}
+\end{verbatim}
 Internally, files are represented by the \var{FileRec} record.
 See \seec{refchapter} for it's declaration.
- 
+
 A special file type is the \var{Text} file type, represented by the
 \var{TextRec} record. A file of type \var{Text} uses special input-output
 routines.
 \section{Pointers}
 \fpc supports the use of pointers. A variable of the pointer type
-contains an address in memory, where the data of another variable may be 
+contains an address in memory, where the data of another variable may be
 stored.
 \input{syntax/typepoin.syn}
-As can be seen from this diagram, pointers are typed, which means that 
-they point to a particular kind of data. The type of this data must be 
+As can be seen from this diagram, pointers are typed, which means that
+they point to a particular kind of data. The type of this data must be
 known at compile time.
 Dereferencing the pointer (denoted by adding \var{\^{}} after the variable
 name) behaves then like a variable. This variable has the type declared in
-the pointer declaration, and the variable is stored in the address that is 
+the pointer declaration, and the variable is stored in the address that is
 pointed to by the pointer variable.
 Consider the following example:
-\begin{listing}
+\begin{verbatim}
 Program pointers;
-type 
+type
   Buffer = String[255];
   BufPtr = ^Buffer;
 Var B  : Buffer;
     BP : BufPtr;
     PP : Pointer;
 etc..
-\end{listing}
+\end{verbatim}
 In this example, \var{BP} {\em is a pointer to} a \var{Buffer} type; while \var{B}
 {\em is} a variable of type \var{Buffer}. \var{B} takes 256 bytes memory,
 and \var{BP} only takes 4 bytes of memory (enough to keep an adress in
 memory).
 {\em Remark:} \fpc treats pointers much the same way as C does. This means
-that you can treat a pointer to some type as being an array of this type.  
+that you can treat a pointer to some type as being an array of this type.
 The pointer then points to the zeroeth element of this array. Thus the
-following pointer declaration 
-\begin{listing}
+following pointer declaration
+\begin{verbatim}
 Var p : ^Longint;
-\end{listing}
+\end{verbatim}
 Can be considered equivalent to the following array declaration:
-\begin{listing}
+\begin{verbatim}
 Var p : array[0..Infinity] of Longint;
-\end{listing}
+\end{verbatim}
 The difference is that the former declaration allocates memory for the
 pointer only (not for the array), and the second declaration allocates
 memory for the entire array. If you use the former, you must allocate memory
 yourself, using the \seep{Getmem} function.
 The reference \var{P\^{}} is then the same as \var{p[0]}. The following program
 illustrates this maybe more clear:
-\begin{listing}
+\begin{verbatim}
 program PointerArray;
 var i : Longint;
     p : ^Longint;
-    pp : array[0..100] of Longint;  
+    pp : array[0..100] of Longint;
 begin
   for i := 0 to 100 do pp[i] := i; { Fill array }
   p := @pp[0];                     { Let p point to pp }
-  for i := 0 to 100 do 
-    if p[i]<>pp[i] then 
+  for i := 0 to 100 do
+    if p[i]<>pp[i] then
       WriteLn ('Ohoh, problem !')
 end.
-\end{listing}
+\end{verbatim}
 \fpc supports pointer arithmetic as C does. This means that, if \var{P} is a
 typed pointer, the instructions
-\begin{listing}
+\begin{verbatim}
 Inc(P);
 Dec(P);
-\end{listing}
+\end{verbatim}
 Will increase, respectively descrease the address the pointer points to
 with the size of the type \var{P} is a pointer to. For example
-\begin{listing}
+\begin{verbatim}
 Var P : ^Longint;
 ...
  Inc (p);
-\end{listing}
+\end{verbatim}
 will increase \var{P} with 4.
 You can also use normal arithmetic operators on pointers, that is, the
 following are valid pointer arithmetic operations:
-\begin{listing}
+\begin{verbatim}
 var  p1,p2 : ^Longint;
      L : Longint;
 begin
@@ -1271,22 +1278,22 @@ begin
   P1 := P1-4;
   P2 := P2+4;
 end.
-\end{listing}
-Here, the value that is added or substracted is {\em not} multiplied by the 
+\end{verbatim}
+Here, the value that is added or substracted is {\em not} multiplied by the
 size of the type the pointer points to.
 \section{Procedural types}
-\fpc has support for procedural types, although it differs a little from 
+\fpc has support for procedural types, although it differs a little from
 the Turbo Pascal implementation of them. The type declaration remains the
 same, as can be seen in the following syntax diagram:
 \input{syntax/typeproc.syn}
 For a description of formal parameter lists, see \seec{Procedures}.
 The two following examples are valid type declarations:
-\begin{listing}
+\begin{verbatim}
 Type TOneArg = Procedure (Var X : integer);
      TNoArg = Function : Real;
 var proc : TOneArg;
     func : TNoArg;
-\end{listing}
+\end{verbatim}
 One can assign the following values to a procedural type variable:
 \begin{enumerate}
 \item \var{Nil}, for both normal procedure pointers and method pointers.
@@ -1297,7 +1304,7 @@ procedure header and calling convention.
 \item A method address.
 \end{enumerate}
 Given these declarations, the following assignments are valid:
-\begin{listing}
+\begin{verbatim}
 Procedure printit (Var X : Integer);
 begin
   WriteLn (x);
@@ -1305,16 +1312,16 @@ end;
 ...
 P := @printit;
 Func := @Pi;
-\end{listing}
+\end{verbatim}
 From this example, the difference with Turbo Pascal is clear: In Turbo
-Pascal it isn't necessary to use the address operator (\var{@}) 
+Pascal it isn't necessary to use the address operator (\var{@})
 when assigning a procedural type variable, whereas in \fpc it is required
 (unless you use the \var{-So} switch, in which case you can drop the address
 operator.)
 Remark that the modifiers concerning the calling conventions (\var{cdecl},
 \var{pascal}, \var{stdcall} and \var{popstack} stick to the declaration;
 i.e. the following code would give an error:
-\begin{listing}
+\begin{verbatim}
 Type TOneArgCcall = Procedure (Var X : integer);cdecl;
 var proc : TOneArgCcall;
 Procedure printit (Var X : Integer);
@@ -1324,9 +1331,9 @@ end;
 begin
 P := @printit;
 end.
-\end{listing}
+\end{verbatim}
 Because the \var{TOneArgCcall} type is a procedure that uses the cdecl
-calling convention. 
+calling convention.
 At the moment, the method procedural pointers (i.e. pointers that point to
 methods of objects, distinguished by the \var{of object} keywords in the
 declaration) are still in an experimental stage.
@@ -1335,48 +1342,48 @@ declaration) are still in an experimental stage.
 \fpc supports object oriented programming. In fact, most  of the compiler is
 written using objects. Here we present some technical questions regarding
 object oriented programming in \fpc.
-Objects should be treated as a special kind of record. The record contains 
-all the fields that are declared in the objects definition, and pointers 
+Objects should be treated as a special kind of record. The record contains
+all the fields that are declared in the objects definition, and pointers
 to the methods that are associated to the objects' type.
 An object is declared just as you would declare a record; except that you
 can now declare procedures and fuctions as if they were part of the record.
 Objects can ''inherit'' fields and methods from ''parent'' objects. This means
 that you can use these fields and methods as if they were included in the
-objects you declared as a ''child'' object. 
+objects you declared as a ''child'' object.
 Furthermore, you can declare fields, procedures and functions as \var{public}
 or \var{private}. By default, fields and methods are \var{public}, and are
 exported outside the current unit. Fields or methods that are declared
 \var{private} are only accessible in the current unit.
 The prototype declaration of an object is as follows:
 \input{syntax/typeobj.syn}
-As you can see, you can repeat as many \var{private} and \var{public} 
+As you can see, you can repeat as many \var{private} and \var{public}
 blocks as you want.
-\var{Method definitions} are normal function or procedure declarations. 
-You cannot put fields after methods in the same block, i.e. the following 
+\var{Method definitions} are normal function or procedure declarations.
+You cannot put fields after methods in the same block, i.e. the following
 will generate an error when compiling:
-\begin{listing}
+\begin{verbatim}
 Type MyObj = Object
        Procedure Doit;
        Field : Longint;
-     end; 
-\end{listing}
+     end;
+\end{verbatim}
 But the following will be accepted:
-\begin{listing}
+\begin{verbatim}
 Type MyObj = Object
       Public
        Procedure Doit;
       Private
        Field : Longint;
-     end; 
-\end{listing}
+     end;
+\end{verbatim}
 because the field is in a different section.
 {\em Remark:}
-\fpc also supports the packed object. This is the same as an object, only 
+\fpc also supports the packed object. This is the same as an object, only
 the elements (fields) of the object are byte-aligned, just as in the packed
 record.
 The declaration of a packed object is similar to the declaration
 of a packed record :
-\begin{listing}
+\begin{verbatim}
 Type
   TObj = packed object;
    Constructor init;
@@ -1384,60 +1391,60 @@ Type
    end;
   Pobj = ^TObj;
 Var PP : Pobj;
-\end{listing}
+\end{verbatim}
 Similarly, the \var{\{\$PackRecords \}} directive acts on objects as well.
 \section{Fields}
 Object Fields are like record fields. They are accessed in the same way as
 you would access a record field : by using a qualified identifier. Given the
 following declaration:
-\begin{listing}
+\begin{verbatim}
 Type TAnObject = Object
        AField : Longint;
        Procedure AMethod;
        end;
 Var AnObject : TAnObject;
-\end{listing}
+\end{verbatim}
 then the following would be a valid assignment:
-\begin{listing}
+\begin{verbatim}
   AnObject.AField := 0;
-\end{listing}
+\end{verbatim}
 Inside methods, fields can be accessed using the short identifier:
-\begin{listing}
+\begin{verbatim}
 Procedure TAnObject.AMethod;
 begin
   ...
   AField := 0;
   ...
 end;
-\end{listing}
+\end{verbatim}
 Or, one can use the \var{self} identifier. The \var{self} identifier refers
 to the current instance of the object:
-\begin{listing}
+\begin{verbatim}
 Procedure TAnObject.AMethod;
 begin
   ...
   Self.AField := 0;
   ...
 end;
-\end{listing}
+\end{verbatim}
 You cannot access fields that are in a private section of an object from
 outside the objects' methods. If you do, the compiler will complain about
 an unknown identifier.
 It is also possible to use the \var{with} statement with an object instance:
-\begin{listing}
+\begin{verbatim}
 With AnObject do
   begin
   Afield := 12;
   AMethod;
   end;
-\end{listing}
+\end{verbatim}
 In this example, between the \var{begin} and \var{end}, it is as if
 \var{AnObject} was prepended to the \var{Afield} and \var{Amethod}
 identifiers. More about this in \sees{With}
 \section{Constructors and destructors }
 \label{se:constructdestruct}
 As can be seen in the syntax diagram for an object declaration, \fpc supports
-constructors and destructors. You are responsible for calling the 
+constructors and destructors. You are responsible for calling the
 constructor and the destructor explicitly when using objects.
 The declaration of a constructor or destructor is as follows:
 \input{syntax/construct.syn}
@@ -1451,7 +1458,7 @@ procedures. In case you want to allocate a dynamic variable of an object
 type, you can specify the constructor's name in the call to \var{New}.
 The \var{New} is implemented as a function which returns a pointer to the
 instantiated object. Consider the following declarations:
-\begin{listing}
+\begin{verbatim}
 Type
   TObj = object;
    Constructor init;
@@ -1459,27 +1466,27 @@ Type
    end;
   Pobj = ^TObj;
 Var PP : Pobj;
-\end{listing}
+\end{verbatim}
 Then the following 3 calls are equivalent:
-\begin{listing}
+\begin{verbatim}
  pp := new (Pobj,Init);
-\end{listing}
+\end{verbatim}
 and
-\begin{listing}
+\begin{verbatim}
   new(pp,init);
-\end{listing}
+\end{verbatim}
 and also
-\begin{listing}
+\begin{verbatim}
   new (pp);
   pp^.init;
-\end{listing}
+\end{verbatim}
 In the last case, the compiler will issue a warning that you should use the
 extended syntax of \var{new} and \var{dispose} to generate instances of an
 object. You can ignore this warning, but it's better programming practice to
 use the extended syntax to create instances of an object.
 Similarly, the \var{Dispose} procedure accepts the name of a destructor. The
 destructor will then be called, before removing the object from the heap.
-In view of the compiler warning remark, the now following Delphi approach may 
+In view of the compiler warning remark, the now following Delphi approach may
 be considered a more natural way of object-oriented programming.
 \section{Methods}
 Object methods are just like ordinary procedures or functions, only they
@@ -1487,9 +1494,9 @@ have an implicit extra parameter : \var{self}. Self points to the object
 with which the method was invoked.
 When implementing methods, the fully qualified identifier must be given
 in the function header. When declaring methods, a normal identifier must be
-given. 
+given.
 \section{Method invocation}
-Methods are called just as normal procedures are called, only they have a 
+Methods are called just as normal procedures are called, only they have a
 object instance identifier prepended to them (see also \seec{Statements}).
 To determine which method is called, it is necessary to know the type of
 the method. We treat the different types in what follows.
@@ -1498,24 +1505,24 @@ Static methods are methods that have been declared without a \var{abstract}
 or \var{virtual} keyword. When calling a static method, the declared (i.e.
 compile time) method of the object is used.
 For example, consider the following declarations:
-\begin{listing}
+\begin{verbatim}
 Type
-  TParent = Object 
+  TParent = Object
     ...
     procedure Doit;
     ...
     end;
   PParent = ^TParent;
-  TChild = Object(TParent) 
+  TChild = Object(TParent)
     ...
     procedure Doit;
     ...
     end;
-  PChild = ^TChild;  
-\end{listing}
+  PChild = ^TChild;
+\end{verbatim}
 As it is visible, both the parent and child objects have a method called
 \var{Doit}. Consider now the following declarations and calls:
-\begin{listing}
+\begin{verbatim}
 Var ParentA,ParentB : PParent;
     Child           : PChild;
    ParentA := New(PParent,Init);
@@ -1524,10 +1531,10 @@ Var ParentA,ParentB : PParent;
    ParentA^.Doit;
    ParentB^.Doit;
    Child^.Doit;
-\end{listing}
+\end{verbatim}
 Of the three invocations of \var{Doit}, only the last one will call
 \var{TChild.Doit}, the other two calls will call \var{TParent.Doit}.
-This is because for static methods, the compiler determines at compile 
+This is because for static methods, the compiler determines at compile
 time which method should be called. Since \var{ParentB} is of type
 \var{TParent}, the compiler decides that it must be called with
 \var{TParent.Doit}, even though it will be created as a \var{TChild}.
@@ -1540,24 +1547,24 @@ created. This is simply done by appending the method declaration with the
 \var{virtual} modifier.
 Going back to the previous example, consider the following alternative
 declaration:
-\begin{listing}
+\begin{verbatim}
 Type
-  TParent = Object 
+  TParent = Object
     ...
     procedure Doit;virtual;
     ...
     end;
   PParent = ^TParent;
-  TChild = Object(TParent) 
+  TChild = Object(TParent)
     ...
     procedure Doit;virtual;
     ...
     end;
-  PChild = ^TChild;  
-\end{listing}
+  PChild = ^TChild;
+\end{verbatim}
 As it is visible, both the parent and child objects have a method called
 \var{Draw}. Consider now the following declarations and calls :
-\begin{listing}
+\begin{verbatim}
 Var ParentA,ParentB : PParent;
     Child           : PChild;
    ParentA := New(PParent,Init);
@@ -1566,7 +1573,7 @@ Var ParentA,ParentB : PParent;
    ParentA^.Doit;
    ParentB^.Doit;
    Child^.Doit;
-\end{listing}
+\end{verbatim}
 Now, different methods will be called, depending on the actual run-time type
 of the object. For \var{ParentA}, nothing changes, since it is created as
 a \var{TParent} instance. For \var{Child}, the situation also doesn't
@@ -1582,42 +1589,42 @@ inserted by the compiler at compile time.
 The \var{TChild.Doit} is said to {\em override} the \var{TParent.Doit}.
 It is possible to acces the \var{TParent.Doit} from within the
 var{TChild.Doit}, with the \var{inherited} keyword:
-\begin{listing}
+\begin{verbatim}
 Procedure TChild.Doit;
 begin
-  inherited Doit; 
+  inherited Doit;
   ...
 end;
-\end{listing}
+\end{verbatim}
 In the above example, when \var{TChild.Doit} is called, the first thing it
-does is call \var{TParent.Doit}. You cannot use the inherited keyword on 
+does is call \var{TParent.Doit}. You cannot use the inherited keyword on
 static methods, only on virtual methods.
 \subsubsection{Abstract methods}
 An abstract method is a special kind of virtual method. A method can not be
-abstract if it is not virtual (this is not obvious from the syntax diagram). 
-You cannot create an instance of an object that has an abstract method. 
+abstract if it is not virtual (this is not obvious from the syntax diagram).
+You cannot create an instance of an object that has an abstract method.
 The reason is obvious: there is no method where the compiler could jump to !
 A method that is declared \var{abstract} does not have an implementation for
-this method. It is up to inherited objects to override and implement this 
+this method. It is up to inherited objects to override and implement this
 method. Continuing our example, take a look at this:
-\begin{listing}
+\begin{verbatim}
 Type
-  TParent = Object 
+  TParent = Object
     ...
     procedure Doit;virtual;abstract;
     ...
     end;
   PParent=^TParent;
-  TChild = Object(TParent) 
+  TChild = Object(TParent)
     ...
     procedure Doit;virtual;
     ...
     end;
-  PChild = ^TChild;  
-\end{listing}
+  PChild = ^TChild;
+\end{verbatim}
 As it is visible, both the parent and child objects have a method called
 \var{Draw}. Consider now the following declarations and calls :
-\begin{listing}
+\begin{verbatim}
 Var ParentA,ParentB : PParent;
     Child           : PChild;
    ParentA := New(PParent,Init);
@@ -1626,7 +1633,7 @@ Var ParentA,ParentB : PParent;
    ParentA^.Doit;
    ParentB^.Doit;
    Child^.Doit;
-\end{listing}
+\end{verbatim}
 First of all, Line 4 will generate a compiler error, stating that you cannot
 generate instances of objects with abstract methods: The compiler has
 detected that \var{PParent} points to an object which has an abstract
@@ -1640,14 +1647,14 @@ testo.pp(32,3) Error: Abstract methods can't be called directly
 If, through some mechanism, an abstract method is called at run-time,
 then a run-time error will occur. (run-time error 211, to be precise)
 \section{Visibility}
-For objects, only 2 visibility specifiers exist : \var{private} and 
-\var{public}. If you don't specify a visibility specifier, \var{public} 
+For objects, only 2 visibility specifiers exist : \var{private} and
+\var{public}. If you don't specify a visibility specifier, \var{public}
 is assumed.
 Both methods and fields can be hidden from a programmer by putting them
 in a \var{private} section. The exact visibility rule is as follows:
 \begin{description}
-\item [Private\ ] All fields and methods that are in a \var{private} block, 
-can  only be accessed in the module (i.e. unit or program) that contains 
+\item [Private\ ] All fields and methods that are in a \var{private} block,
+can  only be accessed in the module (i.e. unit or program) that contains
 the object definition.
 They can be accessed from inside the object's methods or from outside them
 e.g. from other objects' methods, or global functions.
@@ -1657,8 +1664,8 @@ of an ordinary \var{record} type.
 \end{description}
 \chapter{Classes}
 In the Delphi approach to Object Oriented Programming, everything revolves
-around  the concept of 'Classes'.  A class can be seen as a pointer to an 
-object, or a pointer to a record. 
+around  the concept of 'Classes'.  A class can be seen as a pointer to an
+object, or a pointer to a record.
 In order to use classes, it is necessary to put the \file{objpas} unit in the
 uses clause of your unit or program. This unit contains the basic
 definitions of \var{TObject} and \var{TClass}, as well as some auxiliary
@@ -1666,15 +1673,15 @@ methods for using classes.
 \section{Class definitions}
 The prototype declaration of a class is as follows :
 \input{syntax/typeclas.syn}
-Again, You can repeat as many \var{private}, \var{protected}, \var{published}  
-and \var{public} blocks as you want. 
-Methods are normal function or procedure declarations. 
+Again, You can repeat as many \var{private}, \var{protected}, \var{published}
+and \var{public} blocks as you want.
+Methods are normal function or procedure declarations.
 As you can see, the declaration of a class is almost identical to the
 declaration of an object. The real difference between objects and classes
 is in the way they are created (see further in this chapter).
 The visibility of the different sections is as follows:
 \begin{description}
-\item [Private\ ] All fields and methods that are in a \var{private} block, can 
+\item [Private\ ] All fields and methods that are in a \var{private} block, can
 only be accessed in the module (i.e. unit) that contains the class definition.
 They can be accessed from inside the classes' methods or from outside them
 (e.g. from other classes' methods)
@@ -1693,15 +1700,15 @@ pointer to an object, so when you declare a variable of some class, the
 compiler just allocates a pointer, not the entire object. The constructor of
 a class returns a pointer to an initialized instance of the object.
 So, to initialize an instance of some class, you would do the following :
-\begin{listing}
+\begin{verbatim}
   ClassVar := ClassType.ConstructorName;
-\end{listing}
+\end{verbatim}
 You cannot use the extended syntax of \var{new} and \var{dispose} to
-instantiate and destroy class instances. 
+instantiate and destroy class instances.
 That construct is reserved for use with objects only.
 Calling the constructor will provoke a call to \var{getmem}, to allocate
-enough space to hold the class instance data. 
-After that, the constuctor's code is executed. 
+enough space to hold the class instance data.
+After that, the constuctor's code is executed.
 The constructor has a pointer to it's data, in \var{self}.
 {\em Remark :}
 \begin{itemize}
@@ -1712,22 +1719,22 @@ value of  the \var{\{\$PackRecords \}} directive.
 This has the same effect as on an object, or record, namely that the
 elements are aligned on 1-byte boundaries. i.e. as close as possible.
 \item \var{SizeOf(class)} will return 4, since a class is but a pointer to
-an object. To get the size of the class instance data, use the 
+an object. To get the size of the class instance data, use the
 \var{TObject.InstanceSize} method.
 \end{itemize}
 \section{Methods}
 Method invocation for classes is no different than for objects. The
 following is a valid method invocation:
-\begin{listing}
+\begin{verbatim}
 Var  AnObject : TAnObject;
 begin
   AnObject := TAnObject.Create;
   ANobject.AMethod;
-\end{listing}
+\end{verbatim}
 \section{Properties}
 Classes can contain properties as part of their fields list. A property
-acts like a normal field, i.e. you can get or set it's value, but 
-allows to redirect the access of the field through functions and 
+acts like a normal field, i.e. you can get or set it's value, but
+allows to redirect the access of the field through functions and
 procedures. They provide a means to assiciate an action with an assignment
 of or a reading from a class 'field'. This allows for e.g. checking that a
 value is valid when assigning, or, when reading, it allows to construct the
@@ -1735,7 +1742,7 @@ value on the fly. Moreover, properties can be read-only or write only.
 The prototype declaration of a property is as follows:
 \input{syntax/property.syn}
 A \var{read specifier} is either the name of a field that contains the
-property, or the name of a method function that has the same return type as 
+property, or the name of a method function that has the same return type as
 the property type. In the case of a simple type, this
 function must not accept an argument. A read specifier is optional, making
 the property write-only.
@@ -1743,12 +1750,12 @@ A \var{write specifier} is optional: If there is no write specifier, the
 property is read-only. A write specifier is either the name of a field, or
 the name of a method procedure that accepts as a sole argument a variable of
 the same type as the property.
-The section (\var{private}, \var{published} in which the specified function or 
+The section (\var{private}, \var{published} in which the specified function or
 procedure resides is irrelevant. Usually, however, this will be a protected
 or private method.
 Example:
 Given the following declaration:
-\begin{listing}
+\begin{verbatim}
 Type
   MyClass = Class
     Private
@@ -1756,32 +1763,32 @@ Type
     Field2 : Longint;
     Field3 : Longint;
     Procedure  Sety (value : Longint);
-    Function Gety : Longint; 
+    Function Gety : Longint;
     Function Getz : Longint;
     Public
     Property X : Longint Read Field1 write Field2;
     Property Y : Longint Read GetY Write Sety;
     Property Z : Longint Read GetZ;
     end;
-Var MyClass : TMyClass; 
-\end{listing}
+Var MyClass : TMyClass;
+\end{verbatim}
 The following are valid statements:
-\begin{listing}
+\begin{verbatim}
 WriteLn ('X : ',MyClass.X);
 WriteLn ('Y : ',MyClass.Y);
 WriteLn ('Z : ',MyClass.Z);
 MyClass.X := 0;
 MyClass.Y := 0;
-\end{listing}
+\end{verbatim}
 But the following would generate an error:
-\begin{listing}
+\begin{verbatim}
 MyClass.Z := 0;
-\end{listing}
+\end{verbatim}
 because Z is a read-only property.
 What happens in the above statements is that when a value needs to be read,
 the compiler inserts a call to the various \var{getNNN} methods of the
-object, and the result of this call is used. When an assignment is made, 
-the compiler passes the value that must be assigned as a paramater to 
+object, and the result of this call is used. When an assignment is made,
+the compiler passes the value that must be assigned as a paramater to
 the various \var{setNNN} methods.
 Because of this mechanism, properties cannot be passed as var arguments to a
 function or procedure, since there is no known address of the property (at
@@ -1792,13 +1799,13 @@ require an additional parameter : An integer parameter. This allows to read
 or write several properties with the same function. For this, the properties
 must have the same type.
 The following is an example of a property with an index:
-\begin{listing}
+\begin{verbatim}
 uses objpas;
 Type TPoint = Class(TObject)
        Private
        FX,FY : Longint;
        Function GetCoord (Index : Integer): Longint;
-       Procedure SetCoord (Index : Integer; Value : longint); 
+       Procedure SetCoord (Index : Integer; Value : longint);
        Public
        Property X : Longint index 1 read GetCoord Write SetCoord;
        Property Y : Longint index 2 read GetCoord Write SetCoord;
@@ -1826,27 +1833,27 @@ begin
   With P do
     WriteLn ('X=',X,' Y=',Y);
 end.
-\end{listing}
-When the compiler encounters an assignment to \var{X}, then \var{SetCoord} 
+\end{verbatim}
+When the compiler encounters an assignment to \var{X}, then \var{SetCoord}
 is called with as first parameter the index (1 in the above case) and with
 as a second parameter the value to be set.
 Conversely, when reading the value of \var{X}, the compiler calls
-\var{GetCoord} and passes it index 1. 
+\var{GetCoord} and passes it index 1.
 Indexes can only be integer values.
 You can also have array properties. These are properties that accept an
-index, just as an array does. Only now the index doesn't have to be an 
+index, just as an array does. Only now the index doesn't have to be an
 ordinal type, but can be any type.
-A \var{read specifier} for an array property is the name method function 
-that has the same return type as  the property type. 
-The function must accept as a sole arguent a variable of the same type as 
-the index type. For an array property, you cannot specify fields as read 
-specifiers. 
-A \var{write specifier} for an array property is the name of a method 
-procedure that accepts two arguments: The first argument has the same 
-type as the index, and the second argument is a parameter of the same 
+A \var{read specifier} for an array property is the name method function
+that has the same return type as  the property type.
+The function must accept as a sole arguent a variable of the same type as
+the index type. For an array property, you cannot specify fields as read
+specifiers.
+A \var{write specifier} for an array property is the name of a method
+procedure that accepts two arguments: The first argument has the same
+type as the index, and the second argument is a parameter of the same
 type as the property type.
 As an example, see the following declaration:
-\begin{listing}
+\begin{verbatim}
 Type TIntList = Class
       Private
       Function GetInt (I : Longint) : longint;
@@ -1854,54 +1861,54 @@ Type TIntList = Class
       Procedure SetInt (I : Longint; Value : Longint;);
       Procedure SetAsString (A : String; Value : String);
       Public
-      Property Items [i : Longint] : Longint Read GetInt 
+      Property Items [i : Longint] : Longint Read GetInt
                                              Write SetInt;
-      Property StrItems [S : String] : String Read GetAsString 
+      Property StrItems [S : String] : String Read GetAsString
                                               Write SetAsstring;
       end;
 Var AIntList : TIntList;
-\end{listing}
+\end{verbatim}
 Then the following statements would be valid:
-\begin{listing}
+\begin{verbatim}
 AIntList.Items[26] := 1;
 AIntList.StrItems['twenty-five'] := 'zero';
 WriteLn ('Item 26 : ',AIntList.Items[26]);
 WriteLn ('Item 25 : ',AIntList.StrItems['twenty-five']);
-\end{listing}
+\end{verbatim}
 While the following statements would generate errors:
-\begin{listing}
+\begin{verbatim}
 AIntList.Items['twenty-five'] := 1;
 AIntList.StrItems[26] := 'zero';
-\end{listing}
+\end{verbatim}
 Because the index types are wrong.
 Array properties can be declared as \var{default} properties. This means that
 it is not necessary to specify the property name when assigning or reading
-it. If, in the previous example, the definition of the items property would 
+it. If, in the previous example, the definition of the items property would
 have been
-\begin{listing}
- Property Items[i : Longint]: Longint Read GetInt 
+\begin{verbatim}
+ Property Items[i : Longint]: Longint Read GetInt
                                       Write SetInt; Default;
-\end{listing}
+\end{verbatim}
 Then the assignment
-\begin{listing}
+\begin{verbatim}
 AIntList.Items[26] := 1;
-\end{listing}
+\end{verbatim}
 Would be equivalent to the following abbreviation.
-\begin{listing}
+\begin{verbatim}
 AIntList[26] := 1;
-\end{listing}
+\end{verbatim}
 You can have only one default property per class, and descendent classes
 cannot redeclare the default property.
 \chapter{Expressions}
 \label{ch:Expressions}
 Expressions occur in assignments or in tests. Expressions produce a value,
-of a certain type. 
+of a certain type.
 Expressions are built with two components: Operators and their operands.
 Usually an operator is binary, i.e. it requires 2 operands. Binary operators
 occur always between the operands (as in \var{X/Y}). Sometimes an
 operator is unary, i.e. it requires only one argument. A unary operator
 occurs always before the operand, as in \var{-X}.
- 
+
 When using multiple operands in an expression, the precedence rules of
 \seet{OperatorPrecedence} are used.
 \begin{FPCltable}{lll}{Precedence of operators}{OperatorPrecedence}
@@ -1916,8 +1923,8 @@ When determining the precedence, te compiler uses the following rules:
 \begin{enumerate}
 \item Operations with equal precedence are executed from left to right.
 \item In operations with unequal precedence the operands belong to the
-operater with the highest precedence. For example, in \var{5*3+7}, the 
-multiplication is higher in precedence than the addition, so it is 
+operater with the highest precedence. For example, in \var{5*3+7}, the
+multiplication is higher in precedence than the addition, so it is
 executed first. The result would be 22.
 \item If parentheses are used in an epression, their contents is evaluated
 first. Thus, \var {5*(3+7)} would result in 50.
@@ -1929,25 +1936,25 @@ An expression applies relational operators to simple expressions. Simple
 expressions are a series of terms, joined by adding operators.
 \input{syntax/expsimpl.syn}
 The following are valid expressions:
-\begin{listing}
+\begin{verbatim}
 GraphResult<>grError
-(DoItToday=Yes) and (DoItTomorrow=No);   
+(DoItToday=Yes) and (DoItTomorrow=No);
 Day in Weekend
-\end{listing}
+\end{verbatim}
 And here are some simple expressions:
-\begin{listing}
+\begin{verbatim}
 A + B
 -Pi
 ToBe or Not ToBe
-\end{listing}
+\end{verbatim}
 Terms consist of factors, connected by multiplication operators.
 \input{syntax/expterm.syn}
 Here are some valid terms:
-\begin{listing}
+\begin{verbatim}
 2 * Pi
 A Div B
-(DoItToday=Yes) and (DoItTomorrow=No);   
-\end{listing}
+(DoItToday=Yes) and (DoItTomorrow=No);
+\end{verbatim}
 Factors are all other constructions:
 \input{syntax/expfact.syn}
 \section{Function calls}
@@ -1963,7 +1970,7 @@ list that matches the actual parameter list. This means that
 \item The number of actual parameters must equal the number of declared
 parameters.
 \item The types of the parameters must be compatible. For varriable
-reference parameters, the parameter types must be exactly the same. 
+reference parameters, the parameter types must be exactly the same.
 \end{enumerate}
 If no matching function is found, then the compiler will generate an error.
 Depending on the fact of the function is overloaded (i.e. multiple functions
@@ -1972,8 +1979,8 @@ different.
 There are cases when the compiler will not execute the function call in an
 expression. This is the case when you are assigning a value to a procedural
 type variable, as in the following example:
-\begin{listing}
-Type 
+\begin{verbatim}
+Type
   FuncType = Function: Integer;
 Var A : Integer;
 Function AddOne : Integer;
@@ -1988,14 +1995,14 @@ begin
   F := AddOne; { Assign AddOne to F, Don't call AddOne}
   N := AddOne; { N := 1 !!}
 end.
-\end{listing}
+\end{verbatim}
 In the above listing, the assigment to F will not cause the function AddOne
 to be called. The assignment to N, however, will call AddOne.
 A problem with this syntax is the following construction:
-\begin{listing}
+\begin{verbatim}
 If F = AddOne Then
   DoSomethingHorrible;
-\end{listing}
+\end{verbatim}
 Should the compiler compare the addresses of \var{F} and \var{AddOne},
 or should it call both functions, and compare the result ? \fpc solves this
 by deciding that a procedural variable is equivalent to a pointer. Thus the
@@ -2004,18 +2011,18 @@ call to a function with integer result, and F is a pointer, Hence a type
 mismatch occurs.
 How then, should one compare whether \var{F} points to the function
 \var{AddOne} ? To do this, one should use the address operator \var{@}:
-\begin{listing}
+\begin{verbatim}
 If F = @AddOne Then
   WriteLn ('Functions are equal');
-\end{listing}
+\end{verbatim}
 The left hand side of the boolean expression is an address. The right hand
 side also, and so the compiler compares 2 addresses.
 How to compare the values that both functions return ? By adding an empty
 parameter list:
-\begin{listing}
+\begin{verbatim}
   If F()=Addone then
     WriteLn ('Functions return same values ');
-\end{listing}
+\end{verbatim}
 Remark that this behaviour is not compatible with Delphi syntax.
 \section{Set constructors}
 When you want to enter a set-type constant in an expression, you must give a
@@ -2030,12 +2037,12 @@ set. A set group with a range  \var{[A..Z]} makes all values in the range a
 set element. If the first range specifier has a bigger ordinal value than
 the second the set is empty, e.g., \var{[Z..A]} denotes an empty set.
 The following are valid set constructors:
-\begin{listing}
+\begin{verbatim}
 [today,tomorrow]
 [Monday..Friday,Sunday]
 [ 2, 3*2, 6*2, 9*2 ]
 ['A'..'Z','a'..'z','0'..'9']
-\end{listing}
+\end{verbatim}
 \section{Value typecasts}
 Sometimes it is necessary to change the type of an expression, or a part of
 the expression, to be able to be assignment compatible. This is done through
@@ -2044,49 +2051,49 @@ a value typecast. The syntax diagram for a value typecast is as follows:
 Value typecasts cannot be used on the left side of assignments, as variable
 typecasts.
 Here are some valid typecasts:
-\begin{listing}
+\begin{verbatim}
 Byte('A')
 Char(48)
 boolean(1)
 longint(@Buffer)
-\end{listing}
+\end{verbatim}
 The type size of the expression and the size of the type cast must be the
 same. That is, the following doesn't work:
-\begin{listing}
+\begin{verbatim}
 Integer('A')
 Char(4875)
 boolean(100)
 Word(@Buffer)
-\end{listing}
+\end{verbatim}
 \section{The @ operator}
-The address operator \var{@} returns the address of a variable, procedure 
+The address operator \var{@} returns the address of a variable, procedure
 or function. It is used as follows:
 \input{syntax/address.syn}
-The \var{@} operator returns a typed pointer if the \var{\$T} switch is on. 
+The \var{@} operator returns a typed pointer if the \var{\$T} switch is on.
 If the \var{\$T} switch is off then the address operator returns an untyped
 pointer, which is assigment compatible with all pointer types. The type of
 the pointer is \var{\^{}T}, where \var{T} is the type of the variable
 reference.
 For example, the following will compile
-\begin{listing}
+\begin{verbatim}
 Program tcast;
 {$T-} { @ returns untyped pointer }
- 
+
 Type art = Array[1..100] of byte;
 Var Buffer : longint;
     PLargeBuffer : ^art;
-    
+
 begin
  PLargeBuffer := @Buffer;
 end.
-\end{listing}
+\end{verbatim}
 Changing the \var{\{\$T-\}} to \var{\{\$T+\}} will prevent the compiler from
 compiling this. It will give a type mismatch error.
 By default, the address operator returns an untyped pointer.
 Applying the address operator to a function, method, or procedure identifier
 will give a pointer to the entry point of that function. The result is an
-untyped pointer. 
-By default, you must use the address operator if you want to assign a value 
+untyped pointer.
+By default, you must use the address operator if you want to assign a value
 to a procedural type variable. This behaviour can be avoided by using the
 \var{-So} or \var{-S2} switches, which result in a more compatible Delphi or
 Turbo Pascal syntax.
@@ -2096,12 +2103,12 @@ operate on. We will discuss them type by type.
 \subsection{Arithmetic operators}
 Arithmetic operators occur in arithmetic operations, i.e. in expressions
 that contain integers or reals. There are 2 kinds of operators : Binary and
-unary arithmetic operators. 
+unary arithmetic operators.
 Binary operators are listed in \seet{binaroperators}, unary operators are
 listed in \seet{unaroperators}.
 \begin{FPCltable}{ll}{Binary arithmetic operators}{binaroperators}
 Operator & Operation \\ \hline
-\var{+} & Addition\\    
+\var{+} & Addition\\
 \var{-} & Subtraction\\
 \var{*} & Multiplication \\
 \var{/} & Division \\
@@ -2111,13 +2118,13 @@ Operator & Operation \\ \hline
 With the exception of \var{Div} and \var{Mod}, which accept only integer
 expressions as operands, all operators accept real and integer expressions as
 operands.
-For binary operators, the result type will be integer if both operands are 
-integer type expressions. If one of the operands is a real type expression, 
+For binary operators, the result type will be integer if both operands are
+integer type expressions. If one of the operands is a real type expression,
 then  the result is real.
 As an exception : division (\var{/}) results always in real values.
 \begin{FPCltable}{ll}{Unary arithmetic operators}{unaroperators}
 Operator & Operation \\ \hline
-\var{+} & Sign identity\\    
+\var{+} & Sign identity\\
 \var{-} & Sign inversion \\ \hline
 \end{FPCltable}
 For unary operators, the result type is always equal to the expression type.
@@ -2126,9 +2133,9 @@ the second argument is zero.
 The sign of the result of a \var{Mod} operator is the same as the sign of
 the left side operand of the \var{Mod} operator. In fact, the \var{Mod}
 operator is equivalent to the following operation :
-\begin{listing}
+\begin{verbatim}
   I mod J = I - (I div J) * J
-\end{listing}
+\end{verbatim}
 but it executes faster than the right hand side expression.
 \subsection{Logical operators}
 Logical operators act on the individual bits of ordinal expressions.
@@ -2145,7 +2152,7 @@ Operator & Operation \\ \hline
 \var{shr} & Bitwise shift to the right \\ \hline
 \end{FPCltable}
 The following are valid logical expressions:
-\begin{listing}
+\begin{verbatim}
 A shr 1  { same as A div 2, but faster}
 Not 1    { equals -2 }
 Not 0    { equals -1 }
@@ -2153,7 +2160,7 @@ Not -1   { equals 0  }
 B shl 2  { same as B * 2 for integers }
 1 or 2   { equals 3 }
 3 xor 1  { equals 2 }
-\end{listing}
+\end{verbatim}
 \subsection{Boolean operators}
 Boolean operators can be considered logical operations on a type with 1 bit
 size. Therefore the \var{shl} and \var{shr} operations have little sense.
@@ -2171,9 +2178,9 @@ Remark that boolean expressions are ALWAYS evaluated with short-circuit
 evaluation. This means that from the moment the result of the complete
 expression is known, evaluation is stopped and the result is returned.
 For instance, in the following expression:
-\begin{listing}
+\begin{verbatim}
  B := True or MaybeTrue;
-\end{listing}
+\end{verbatim}
 The compiler will never look at the value of \var{MaybeTrue}, since it is
 obvious that the expression will always be true. As a result of this
 strategy, if \var{MaybeTrue} is a function, it will not get called !
@@ -2183,19 +2190,19 @@ There is only one string operator : \var{+}. It's action is to concatenate
 the contents of the two strings (or characters) it stands between.
 You cannot use \var{+} to concatenate null-terminated (\var{PChar}) strings.
 The following are valid string operations:
-\begin{listing}
+\begin{verbatim}
   'This is ' + 'VERY ' + 'easy !'
-  Dirname+'\' 
-\end{listing}
+  Dirname+'\'
+\end{verbatim}
 The following is not:
-\begin{listing}
+\begin{verbatim}
 Var Dirname = Pchar;
 ...
   Dirname := Dirname+'\';
-\end{listing}
+\end{verbatim}
 Because \var{Dirname} is a null-terminated string.
 \subsection{Set operators}
-The following operations on sets can be performed with operators: 
+The following operations on sets can be performed with operators:
 Union, difference and intersection. The operators needed for this are listed
 in \seet{setoperators}.
 \begin{FPCltable}{ll}{Set operators}{setoperators}
@@ -2215,17 +2222,17 @@ Operator & Action \\ \hline
 \var{<} & Stricty less than\\
 \var{>} & Strictly greater than\\
 \var{<=} & Less than or equal \\
-\var{>=} & Greater than or equal \\ 
+\var{>=} & Greater than or equal \\
 \var{in} & Element of \\ \hline
 \end{FPCltable}
 Left and right operands must be of the same type. You can only mix integer
-and real types in relational expressions. 
+and real types in relational expressions.
 Comparing strings is done on the basis of their ASCII code representation.
 When comparing pointers, the addresses to which they point are compared.
 This also is true for \var{PChar} type pointers. If you want to compare the
-strings the \var{Pchar} points to, you must use the \var{StrComp} function 
+strings the \var{Pchar} points to, you must use the \var{StrComp} function
 from the \file{strings} unit.
-The \var{in} returns \var{True} if the left operand (which must have the same 
+The \var{in} returns \var{True} if the left operand (which must have the same
 ordinal type as the set type) is an element of the set which is the right
 operand, otherwise it returns \var{False}
 \chapter{Statements}
@@ -2262,34 +2269,34 @@ a *= b & Multiplies \var{a} with \var{b}, and stores the result in
 a /= b & Divides \var{a} through \var{b}, and stores the result in
 \var{a}. \\ \hline
 \end{FPCltable}
-For these constructs to work, you should specify the \var{-Sc} 
-command-line switch. 
+For these constructs to work, you should specify the \var{-Sc}
+command-line switch.
 {\em Remark:} These constructions are just for typing convenience, they
 don't generate different code.
 Here are some examples of valid assignment statements:
-\begin{listing}
+\begin{verbatim}
 X := X+Y;
 X+=Y;      { Same as X := X+Y, needs -Sc command line switch}
 X/=2;      { Same as X := X/2, needs -Sc command line switch}
 Done := False;
 Weather := Good;
 MyPi := 4* Tan(1);
-\end{listing}
+\end{verbatim}
 \subsection{Procedure statements}
 Procedure statements are calls to subroutines. There are
 different possibilities for procedure calls: A normal procedure call, an
-object method call (qualified or not) , or even a call to a procedural 
+object method call (qualified or not) , or even a call to a procedural
 type variable. All types are present in the following diagram.
 \input{syntax/procedure.syn}
 The \fpc compiler will look for a procedure with the same name as given in
 the procedure statement, and with a declared parameter list that matches the
 actual parameter list.
 The following are valid procedure statements:
-\begin{listing}
+\begin{verbatim}
 Usage;
-WriteLn('Pascal is an easy language !');  
+WriteLn('Pascal is an easy language !');
 Doit();
-\end{listing}
+\end{verbatim}
 \subsection{Goto statements}
 \fpc supports the \var{goto} jump statement. Its prototype syntax is
 \input{syntax/goto.syn}
@@ -2299,29 +2306,29 @@ When using \var{goto} statements, you must keep the following in mind:
 statement.
 \item Jumping from outside a loop to the inside of a loop or vice versa can
  have strange effects.
-\item To be able to use the \var{Goto} statement, you need to specify the 
+\item To be able to use the \var{Goto} statement, you need to specify the
 \var{-Sg} compiler switch.
 \end{enumerate}
 \var{Goto} statements are considered bad practice and should be avoided as
 much as possible. It is always possible to replace a \var{goto} statement by a
-construction that doesn't need a \var{goto}, although this construction may 
+construction that doesn't need a \var{goto}, although this construction may
 not be as clear as a goto statement.
 For instance, the following is an allowed goto statement:
-\begin{listing}
+\begin{verbatim}
 label
   jumpto;
 ...
-Jumpto : 
+Jumpto :
   Statement;
 ...
 Goto jumpto;
 ...
-\end{listing}
+\end{verbatim}
 \section{Structured statements}
 Structured statements can be broken into smaller simple statements, which
 should be executed repeatedly, conditionally  or sequentially:
 \input{syntax/struct.syn}
-Conditional statements come in 2 flavours : 
+Conditional statements come in 2 flavours :
 \input{syntax/conditio.syn}
 Repetitive statements come in 3 flavours:
 \input{syntax/repetiti.syn}
@@ -2330,18 +2337,18 @@ The following sections deal with each of these statements.
 Compound statements are a group of statements, separated by semicolons,
 that are surrounded by the keywords \var{Begin} and \var{End}. The
 Last statement doesn't need to be followed by a semicolon, although it is
-allowed. A compound statement is a way of grouping statements together, 
-executing the statements sequentially. They are treated as one statement 
-in cases where Pascal syntax expects 1 statement, such as in 
+allowed. A compound statement is a way of grouping statements together,
+executing the statements sequentially. They are treated as one statement
+in cases where Pascal syntax expects 1 statement, such as in
 \var{if ... then} statements.
 \input{syntax/compound.syn}
 \subsection{The \var{Case} statement}
 \fpc supports the \var{case} statement. Its syntax diagram is
 \input{syntax/case.syn}
-The constants appearing in the various case parts must be known at 
-compile-time, and can be of the following types : enumeration types, 
+The constants appearing in the various case parts must be known at
+compile-time, and can be of the following types : enumeration types,
 Ordinal types (except boolean), and chars. The expression must be also of
-this type, or an compiler error will occur. All case constants must 
+this type, or an compiler error will occur. All case constants must
 have the same type.
 The compiler will evaluate the expression. If one of the case constants
 values matches the value of the expression, the statement that containing
@@ -2351,59 +2358,59 @@ If none of the case constants match the expression value, the statement
 after the \var{else} keyword is executed. This can be an empty statement.
 If no else part is present, and no case constant matches the expression
 value, program flow continues after the final \var{end}.
-The case statements can be compound statements 
+The case statements can be compound statements
 (i.e. a \var{begin..End} block).
 {\em Remark:} Contrary to Turbo Pascal, duplicate case labels are not
 allowed in \fpc, so the following code will generate an error when
 compiling:
-\begin{listing}
+\begin{verbatim}
 Var i : integer;
 ...
 Case i of
  3 : DoSomething;
  1..5 : DoSomethingElse;
 end;
-\end{listing}
+\end{verbatim}
 The compiler will generate a \var{Duplicate case label} error when compiling
 this, because the 3 also appears (implicitly) in the range \var{1..5}. This
 is similar to Delhpi syntax.
 The following are valid case statements:
  'b' : WriteLn ('B pressed');
-\begin{listing}
-Case C of 
+\begin{verbatim}
+Case C of
  'a' : WriteLn ('A pressed');
  'c' : WriteLn ('C pressed');
 else
   WriteLn ('unknown letter pressed : ',C);
 end;
-\end{listing}
-Or 
+\end{verbatim}
+Or
  'b' : WriteLn ('B pressed');
-\begin{listing}
-Case C of 
+\begin{verbatim}
+Case C of
  'a','e','i','o','u' : WriteLn ('vowel pressed');
  'y' : WriteLn ('This one depends on the language');
 else
   WriteLn ('Consonant pressed');
 end;
-\end{listing}
-\begin{listing}
-Case Number of 
+\end{verbatim}
+\begin{verbatim}
+Case Number of
  1..10   : WriteLn ('Small number');
  11..100 : WriteLn ('Normal, medium number');
 else
  WriteLn ('HUGE number');
 end;
-\end{listing}
+\end{verbatim}
 \subsection{The \var{If..then..else} statement}
 The \var{If .. then .. else..} protottype syntax is
 \input{syntax/ifthen.syn}
 The expression between the \var{if} and \var{then} keywords must have a
-boolean return type. If the expression evaluates to \var{True} then the 
-statement following{then} is executed. If the expression evaluates to 
+boolean return type. If the expression evaluates to \var{True} then the
+statement following{then} is executed. If the expression evaluates to
 \var{False}, then the statement following \var{else} is executed, if it is
 present.
-Be aware of the fact that the boolean expression will be short-cut evaluated. 
+Be aware of the fact that the boolean expression will be short-cut evaluated.
 (Meaning that the evaluation will be stopped at the point where the
  outcome is known with certainty)
 Also, before the \var {else} keyword,  no semicolon (\var{;}) is allowed,
@@ -2413,87 +2420,87 @@ to which  \var{else} statement paits with which \var{if} statement. The rule
 is that the \var{else } keyword matches the first \var{if} keyword not
 already matched by an \var{else} keyword.
 For example:
-\begin{listing}
-If exp1 Then 
-  If exp2 then 
-    Stat1 
-else 
-  stat2;
-\end{listing}
-Despite it's appreance, the statement is syntactically equivalent to
-\begin{listing}
+\begin{verbatim}
 If exp1 Then
-   begin 
-   If exp2 then 
-      Stat1 
-   else 
+  If exp2 then
+    Stat1
+else
+  stat2;
+\end{verbatim}
+Despite it's appreance, the statement is syntactically equivalent to
+\begin{verbatim}
+If exp1 Then
+   begin
+   If exp2 then
+      Stat1
+   else
       stat2
    end;
-\end{listing}
-and not to 
-\begin{listing}
+\end{verbatim}
+and not to
+\begin{verbatim}
 { NOT EQUIVALENT }
 If exp1 Then
-   begin 
-   If exp2 then 
-      Stat1 
+   begin
+   If exp2 then
+      Stat1
    end
-else 
+else
    stat2
-\end{listing}
+\end{verbatim}
 If it is this latter construct you want, you must explicitly put the
 \var{begin} and \var{end} keywords. When in doubt, add them, they don't
 hurt.
 The following is a valid statement:
-\begin{listing}
+\begin{verbatim}
 If Today in [Monday..Friday] then
   WriteLn ('Must work harder')
 else
   WriteLn ('Take a day off.');
-\end{listing}
+\end{verbatim}
 \subsection{The \var{For..to/downto..do} statement}
 \fpc supports the \var{For} loop construction. A for loop is used in case
-one wants to calculated something a fixed number of times. 
+one wants to calculated something a fixed number of times.
 The prototype syntax is as follows:
 \input{syntax/for.syn}
-\var{Statement} can be a compound statement. 
+\var{Statement} can be a compound statement.
 When this statement is encountered, the control variable is initialized with
 the initial value, and is compared with the final value.
 What happens next depends on whether \var{to} or \var{downto} is used:
 \begin{enumerate}
-\item In the case \var{To} is used, if the initial value larger than the final 
-value then \var{Statement} will never be executed. 
-\item In the case \var{DownTo} is used, if the initial value larger than the final 
-value then \var{Statement} will never be executed. 
+\item In the case \var{To} is used, if the initial value larger than the final
+value then \var{Statement} will never be executed.
+\item In the case \var{DownTo} is used, if the initial value larger than the final
+value then \var{Statement} will never be executed.
 \end{enumerate}
 After this check, the statement after \var{Do} is executed. After the
 execution of the statement, the control variable is increased or decreased
 with 1, depending on whether \var{To} or \var{Downto} is used.
-The control variable must be an ordinal type, no other 
+The control variable must be an ordinal type, no other
 types can be used as counters in a loop.
 {\em Remark:} Contrary to ANSI pascal specifications, \fpc first initializes
 the counter variable, and only then calculates the upper bound.
 The following are valid loops:
-\begin{listing}
+\begin{verbatim}
 For Day := Monday to Friday do Work;
 For I := 100 downto 1 do
   WriteLn ('Counting down : ',i);
-For I := 1 to 7*dwarfs do KissDwarf(i); 
-\end{listing}
+For I := 1 to 7*dwarfs do KissDwarf(i);
+\end{verbatim}
 \subsection{The \var{Repeat..until} statement}
 The \var{repeat} statement is used to execute a statement until a certain
 condition is reached. The statement will be executed at least once.
 The prototype syntax of the \var{Repeat..until} statement is
 \input{syntax/repeat.syn}
 This will execute the statements between \var{repeat} and {until} up to
-the moment when \var{Expression} evaluates to \var{True}. 
+the moment when \var{Expression} evaluates to \var{True}.
 Since the \var{expression} is evaluated {\em after} the execution of the
 statements, they are executed at least once.
-Be aware of the fact that the boolean expression \var{Expression} will be 
-short-cut evaluated. (Meaning that the evaluation will be stopped at the 
+Be aware of the fact that the boolean expression \var{Expression} will be
+short-cut evaluated. (Meaning that the evaluation will be stopped at the
 point where the outcome is known with certainty)
 The following are valid \var{repeat} statements
-\begin{listing}
+\begin{verbatim}
 repeat
   WriteLn ('I =',i);
   I := I+2;
@@ -2501,21 +2508,21 @@ until I>100;
 repeat
  X := X/2
 until x<10e-3
-\end{listing}
+\end{verbatim}
 \subsection{The \var{While..do} statement}
 A \var{while} statement is used to execute a statement as long as a certain
-condition holds. This may imply that the statement is never executed.  
+condition holds. This may imply that the statement is never executed.
 The prototype syntax of the \var{While..do} statement is
 \input{syntax/while.syn}
 This will execute \var{Statement} as long as \var{Expression} evaluates to
 \var{True}. Since \var{Expression} is evaluated {\em before} the execution
 of \var{Statement}, it is possible that \var{Statement} isn't executed at
 all. \var{Statement} can be a compound statement.
-Be aware of the fact that the boolean expression \var{Expression} will be 
-short-cut evaluated. (Meaning that the evaluation will be stopped at the 
+Be aware of the fact that the boolean expression \var{Expression} will be
+short-cut evaluated. (Meaning that the evaluation will be stopped at the
 point where the outcome is known with certainty)
 The following are valid \var{while} statements:
-\begin{listing}
+\begin{verbatim}
 I := I+2;
 while i<=100 do
   begin
@@ -2525,14 +2532,14 @@ while i<=100 do
 X := X/2;
 while x>=10e-3 do
   X := X/2;
-\end{listing}
+\end{verbatim}
 They correspond to the example loops for the \var{repeat} statements.
 \subsection{The \var{With} statement}
 \label{se:With}
 The \var{with} statement serves to access the elements of a record\footnote{
-The \var{with} statement does not work correctly when used with 
+The \var{with} statement does not work correctly when used with
 objects or classes until version 0.99.6}
-or object or class, without having to specify the name of the each time. 
+or object or class, without having to specify the name of the each time.
 The syntax for a \var{with} statement is
 \input{syntax/with.syn}
 The variable reference must be a variable of a record, object or class type.
@@ -2540,66 +2547,66 @@ In the \var{with} statement, any variable reference, or method reference is
 checked to see if it is a field or method of the record or object or class.
 If so, then that field is accessed, or that method is called.
 Given the declaration:
-\begin{listing}
+\begin{verbatim}
 Type Passenger = Record
        Name : String[30];
        Flight : String[10];
        end;
 Var TheCustomer : Passenger;
-\end{listing}
+\end{verbatim}
 The following statements are completely equivalent:
-\begin{listing}
+\begin{verbatim}
 TheCustomer.Name := 'Michael';
 TheCustomer.Flight := 'PS901';
-\end{listing}
+\end{verbatim}
 and
-\begin{listing}
+\begin{verbatim}
 With TheCustomer do
   begin
   Name := 'Michael';
   Flight := 'PS901';
   end;
-\end{listing}
+\end{verbatim}
 The statement
-\begin{listing}
+\begin{verbatim}
 With A,B,C,D do Statement;
-\end{listing}
+\end{verbatim}
 is equivalent to
-\begin{listing}
+\begin{verbatim}
 With A do
  With B do
   With C do
    With D do Statement;
-\end{listing}
+\end{verbatim}
 This also is a clear example of the fact that the variables are tried {\em last
 to first}, i.e., when the compiler encounters a variable reference, it will
 first check if it is a field or method of the last variable. If not, then it
-will check the last-but-one, and so on.  
+will check the last-but-one, and so on.
 The following example shows this;
-\begin{listing}
+\begin{verbatim}
 Program testw;
 Type AR = record
       X,Y : Longint;
      end;
-     
+
 Var S,T : Ar;
 begin
   S.X := 1;S.Y := 1;
   T.X := 2;T.Y := 2;
-  With S,T do 
+  With S,T do
     WriteLn (X,' ',Y);
-end.     
-\end{listing}
+end.
+\end{verbatim}
 The output of this program is
 \begin{verbatim}
 2 2
 \end{verbatim}
-Showing thus that the \var{X,Y} in the \var{WriteLn} statement match the 
+Showing thus that the \var{X,Y} in the \var{WriteLn} statement match the
 \var{T} record variable.
 \subsection{Exception Statements}
 As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
-closely related to classes. 
+closely related to classes.
 Exception support is explained in \seec{Exceptions}
 \section{Assembler statements}
 An assembler statement allows you to insert assembler code right in your
@@ -2612,21 +2619,21 @@ registers. If you modify the registers in an assembler statement, the compiler
 should, sometimes, be told about it. The registers are denoted with their
 Intel names for the I386 processor, i.e., \var{'EAX'}, \var{'ESI'} etc...
 As an example, consider the following assembler code:
-\begin{listing}
+\begin{verbatim}
 asm
   Movl $1,%ebx
   Movl $0,%eax
   addl %eax,%ebx
 end; ['EAX','EBX'];
-\end{listing}
-This will tell the compiler that it should save and restore the contents of 
+\end{verbatim}
+This will tell the compiler that it should save and restore the contents of
 the \var{EAX} and \var{EBX} registers when it encounters this asm statement.
 \chapter{Using functions and procedures}
 \label{ch:Procedures}
 \fpc supports the use of functions and procedures, but with some extras:
 Function overloading is supported, as well as \var{Const} parameters and
 open arrays.
-{\em remark:} In many of the subsequent paragraphs the word \var{procedure} 
+{\em remark:} In many of the subsequent paragraphs the word \var{procedure}
 and \var{function} will be used interchangeably. The statements made are
 valid for both, except when indicated otherwise.
 \section{Procedure declaration}
@@ -2636,26 +2643,26 @@ block of code. The procedure can then be called with a procedure statement.
 \sees{Parameters} for the list of parameters.
 A procedure declaration that is followed by a block implements the action of
 the procedure in that block.
-The following is a valid procedure : 
-\begin{listing}
+The following is a valid procedure :
+\begin{verbatim}
 Procedure DoSomething (Para : String);
 begin
   Writeln ('Got parameter : ',Para);
   Writeln ('Parameter in upper case : ',Upper(Para));
 end;
-\end{listing}
+\end{verbatim}
 Note that it is possible that a procedure calls itself.
 \section{Function declaration}
 A function declaration defines an identifier and associates it with a
-block of code. The block of code will return a result.  
-The function can then be called inside an expression, or with a procedure 
-statement. 
+block of code. The block of code will return a result.
+The function can then be called inside an expression, or with a procedure
+statement.
 \input{syntax/function.syn}
 \section{Parameter lists}
 \label{se:Parameters}
 When you need to pass arguments to a function or procedure, these parameters
 must be declared in the formal parameter list of that function or procedure.
-The parameter list is a declaration of identifiers that can be referred to 
+The parameter list is a declaration of identifiers that can be referred to
 only in that procedure or function's block.
 \input{syntax/params.syn}
 \var{const} parameters and \var{var} parameters can also be \var{untyped}
@@ -2663,9 +2670,9 @@ parameters if they have no type identifier.
 \subsection{Value parameters}
 Value parameters are declared as follows:
 \input{syntax/paramval.syn}
-When you declare parameters as value parameters, the procedure gets {\em 
+When you declare parameters as value parameters, the procedure gets {\em
 a copy} of the parameters that the calling block passes. Any modifications
-to these parameters are purely local to the procedure's block, and do not 
+to these parameters are purely local to the procedure's block, and do not
 propagate back to the calling block.
 A block that wishes to call a procedure with value parameters must pass
 assignment compatible parameters to the procedure. This means that the types
@@ -2692,21 +2699,21 @@ Because of this, the calling block must pass a parameter of {\em exactly}
 the same type as the declared parameter's type. If it does not, the compiler
 will generate an error.
 Variable parameters can be untyped. In that case the variable has no type,
-and hence is incompatible with all othertypes. However, you can use the 
-address operator on it, or you can pass it to a function that has also an 
+and hence is incompatible with all othertypes. However, you can use the
+address operator on it, or you can pass it to a function that has also an
 untyped parameter. If you want to use an untyped parameter in an assigment,
 or you want to assign to it, you must use a typecast.
 File type variables must always be passed as variable parameters.
 You can pass open arrays as variable parameters. See \sees{openarray} for
 more information on using open arrays.
 \subsection{\var{Const} parameters}
-In addition to variable parameters and value parameters \fpc also supports 
+In addition to variable parameters and value parameters \fpc also supports
 \var{Const} parameters. You can specify a \var{Const} parameter as follows:
 \input{syntax/paramcon.syn}
 A constant argument is passed by reference if it's size is larger than a
 longint. It is passed by value if the size equals 4 or less.
-This means that the function or procedure receives a pointer to the passed 
-argument, but you are not allowed to assign to it, this will result in a 
+This means that the function or procedure receives a pointer to the passed
+argument, but you are not allowed to assign to it, this will result in a
 compiler error. Likewise, you cannot pass a const parameter on to another
 function that requires a variable parameter.
 The main use for this is reducing the stack size, hence improving
@@ -2720,36 +2727,36 @@ more information on using open arrays.
 \fpc supports the passing of open arrays, i.e. you can declare a procedure
 with an array of unspecified length as a parameter, as in Delphi.
 Open array parameters can be accessed in the procedure or function as an
-array that is declared with starting starting index 0, and last element 
+array that is declared with starting starting index 0, and last element
 index \var{High(paremeter)}.
 For example, the parameter
-\begin{listing}
+\begin{verbatim}
 Row : Array of Integer;
-\end{listing}
+\end{verbatim}
 would be equivalent to
-\begin{listing}
+\begin{verbatim}
 Row : Array[1..N-1] of Integer;
-\end{listing}
+\end{verbatim}
 Where  \var{N} would be the actual size of the array that is passed to the
 function. \var{N-1} can be calculated as \var{High(Row)}.
-Open parameters can be passed by value, by reference or as a constant 
+Open parameters can be passed by value, by reference or as a constant
 parameter. In the latter cases the procedure receives a pointer to the
 actual array. In the former case,it receives a copy of the array.
 In a function or procedure, you can pass open arrays only to functions which
 are also declared with open arrays as parameters, {\em not} to functions or
 procedures which accept arrays of fixed length.
-The following is an example of a function using an open array: 
-\begin{listing}
+The following is an example of a function using an open array:
+\begin{verbatim}
 Function Average (Row : Array of integer) : Real;
 Var I : longint;
     Temp : Real;
 begin
   Temp := Row[0];
-  For I := 1 to High(Row) do 
+  For I := 1 to High(Row) do
     Temp := Temp + Row[i];
   Average := Temp / (High(Row)+1);
 end;
-\end{listing}
+\end{verbatim}
 \section{Function overloading}
 Function overloading simply means that you can define the same function more
 than once, but each time with a different formal parameter list.
@@ -2759,14 +2766,14 @@ parameters to decide which od the defined function
 This can be useful if you want to define the same function for different
 types. For example, if the RTL, the  \var{Dec} procedure is
 is defined as:
-\begin{listing}
+\begin{verbatim}
 ...
 Dec(Var I : Longint;decrement : Longint);
 Dec(Var I : Longint);
 Dec(Var I : Byte;decrement : Longint);
 Dec(Var I : Byte);
 ...
-\end{listing}
+\end{verbatim}
 When the compiler encounters a call to the dec function, it wil first search
 which function it should use. It therefore checks the parameters in your
 function call, and looks if there is a function definition which maches the
@@ -2774,16 +2781,16 @@ specified parameter list. If the compiler finds such a function, a call is
 inserted to that function. If no such function is found, a compiler error is
 generated.
 You cannot have overloaded functions that have a \var{cdecl} or \var{export}
-modifier (Technically, because these two modifiers prevent the mangling of 
+modifier (Technically, because these two modifiers prevent the mangling of
 the function name by the compiler)
 \section{forward defined functions}
 You can define a function without having it followed by it's implementation,
-by having it followed by the \var{forward} procedure. The effective 
+by having it followed by the \var{forward} procedure. The effective
 implementation of that function must follow later in the module.
 The function can be used after a \var{forward} declaration as if it had been
 implemented already.
 The following is an example of a forward declaration.
-\begin{listing}
+\begin{verbatim}
 Program testforward;
 Procedure First (n : longint); forward;
 Procedure Second;
@@ -2798,14 +2805,14 @@ end;
 begin
   Second;
 end.
-\end{listing}
+\end{verbatim}
 You cannot define a function twice as forward (nor is there any reason why
 you would want to do that).
-Likewise, in units, you cannot have a forward declared function of a 
-function that has been declared in the interface part. The interface 
+Likewise, in units, you cannot have a forward declared function of a
+function that has been declared in the interface part. The interface
 declaration counts as a \var{forward} declaration.
 The following unit will give an error when compiled:
-\begin{listing}
+\begin{verbatim}
 Unit testforward;
 interface
 Procedure First (n : longint);
@@ -2822,7 +2829,7 @@ begin
   WriteLn ('First received : ',n);
 end;
 end.
-\end{listing}
+\end{verbatim}
 \section{External functions}
 \label{se:external}
 The \var{external} modifier can be used to declare a function that resides in
@@ -2831,9 +2838,9 @@ your code, and at linking time, you must link the object file containing the
 implementation of the function or procedure.
 \input{syntax/external.syn}
 It replaces, in effect, the function or procedure code block. As such, it
-can be present only in an implementation block of a unit, or in a program. 
+can be present only in an implementation block of a unit, or in a program.
 As an example:
-\begin{listing}
+\begin{verbatim}
 program CmodDemo;
 {$Linklib c}
 Const P : PChar = 'This is fun !';
@@ -2841,32 +2848,32 @@ Function strlen (P : PChar) : Longint; cdecl; external;
 begin
   WriteLn ('Length of (',p,') : ',strlen(p))
 end.
-\end{listing}
-{\em Remark} The parameters in our declaration of the \var{external} function 
+\end{verbatim}
+{\em Remark} The parameters in our declaration of the \var{external} function
 should match exactly the ones in the declaration in the object file.
 If the \var{external} modifier is followed by a string constant:
-\begin{listing}
+\begin{verbatim}
 external 'lname';
-\end{listing}
-Then this tells the compiler that the function resides in library 
-'lname'. The compiler will the automatically link this library to 
+\end{verbatim}
+Then this tells the compiler that the function resides in library
+'lname'. The compiler will the automatically link this library to
 your program.
- 
+
 You can also specify the name that the function has in the library:
-\begin{listing}
+\begin{verbatim}
 external 'lname' name Fname;
-\end{listing}
-This tells the compiler that the function resides in library 'lname', 
-but with name 'Fname'. The compiler will the automatically link this 
+\end{verbatim}
+This tells the compiler that the function resides in library 'lname',
+but with name 'Fname'. The compiler will the automatically link this
 library to your program, and use the correct name for the function.
 Under \windows and \ostwo, you can also use the following form:
-\begin{listing}
+\begin{verbatim}
 external 'lname' Index Ind;
-\end{listing}
-This tells the compiler that the function resides in library 'lname', 
-but with index \var{Ind}. The compiler will the automatically 
+\end{verbatim}
+This tells the compiler that the function resides in library 'lname',
+but with index \var{Ind}. The compiler will the automatically
 link this library to your program, and use the correct index for the
-function. 
+function.
 \section{Assembler functions}
 Functions and procedures can be completely implemented in assembly
 language. To indicate this, you use the \var{assembler} keyword:
@@ -2875,7 +2882,7 @@ Contrary to Delphi, the assembler keyword must be present to indicate an
 assembler function.
 For more information about assembler functions, see the chapter on using
 assembler in the \progref.
- 
+
 \section{Modifiers}
 A function or procedure declaration can contain modifiers. Here we list the
 various possibilities:
@@ -2889,7 +2896,7 @@ The \var{Public} keyword is used to declare a function globally in a unit.
 This is useful if you don't want a function to be accessible from the unit
 file, but you do want the function to be accessible from the object file.
 as an example:
-\begin{listing}
+\begin{verbatim}
 Unit someunit;
 interface
 Function First : Real;
@@ -2903,7 +2910,7 @@ begin
   Second := 1;
 end;
 end.
-\end{listing}
+\end{verbatim}
 If another program or unit uses this unit, it will not be able to use the
 function \var{Second}, since it isn't declared in the interface part.
 However, it will be possible to access the function \var{Second} at the
@@ -2916,7 +2923,7 @@ an object file generated by a C compiler. It allows you to use the function in
 your code, and at linking time, you must link the object file containing the
 \var{C} implementation of the function or procedure.
 As an example:
-\begin{listing}
+\begin{verbatim}
 program CmodDemo;
 {$LINKLIB c}
 Const P : PChar = 'This is fun !';
@@ -2924,13 +2931,13 @@ Function strlen (P : PChar) : Longint; cdecl; external;
 begin
   WriteLn ('Length of (',p,') : ',strlen(p))
 end.
-\end{listing}
+\end{verbatim}
 When compiling this, and linking to the C-library, you will be able to call
 the \var{strlen} function throughout your program. The \var{external}
 directive tells the compiler that the function resides in an external
-object filebrary (see \ref{se:external}). 
-{\em Remark} The parameters in our declaration of the \var{C} function should 
-match exactly the ones in the declaration in \var{C}. Since \var{C} is case 
+object filebrary (see \ref{se:external}).
+{\em Remark} The parameters in our declaration of the \var{C} function should
+match exactly the ones in the declaration in \var{C}. Since \var{C} is case
 sensitive, this means also that the name of the
 function must be exactly the same. the \fpc compiler will use the name {\em
 exactly} as it is typed in the declaration.
@@ -2938,7 +2945,7 @@ exactly} as it is typed in the declaration.
 \label{se:popstack}
 Popstack does the same as \var{cdecl}, namely it tells the \fpc compiler
 that a function uses the C calling convention. In difference with the
-\var{cdecl} modifier, it still mangles the name of the function as it would 
+\var{cdecl} modifier, it still mangles the name of the function as it would
 for a normal pascal function.
 With \var{popstack} you could access functions by their pascal names in a
 library.
@@ -2951,23 +2958,23 @@ subroutine clears the stack.}, the compiler must be told to generate code
 that can be called from a C routine. This is where the \var{Export} modifier
 comes in. Contrary to the other modifiers, it must be specified separately,
 as follows:
-\begin{listing}
+\begin{verbatim}
 function DoSquare (X : Longint) : Longint; export;
 begin
 ...
 end;
-\end{listing}
+\end{verbatim}
 The square brackets around the modifier are not allowed in this case.
 {\em Remark:}
-as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier. 
+as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier.
 This modifier works in the same way as the \var{export} modifier.
 More information about these modifiers can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
 \subsection{StdCall}
 As of version 0.9.8, \fpc supports the Delphi \var{stdcall} modifier.
-This modifier does actually nothing, since the \fpc compiler by default 
-pushes parameters from right to left on the stack, which is what the 
-modifier does under Delphi (which pushes parameters on the stack from left to 
+This modifier does actually nothing, since the \fpc compiler by default
+pushes parameters from right to left on the stack, which is what the
+modifier does under Delphi (which pushes parameters on the stack from left to
 right).
 More information about this modifier can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
@@ -2976,7 +2983,7 @@ The \var{Alias} modifier allows you to specify a different name for a
 procedure or function. This is mostly useful for referring to this procedure
 from assembly language constructs. As an example, consider the following
 program:
-\begin{listing}
+\begin{verbatim}
 Program Aliases;
 Procedure Printit; [Alias : 'DOIT'];
 begin
@@ -2987,7 +2994,7 @@ begin
   call DOIT
   end;
 end.
-\end{listing}
+\end{verbatim}
 {\rm Remark:} the specified alias is inserted straight into the assembly
 code, thus it is case sensitive.
 The \var{Alias} modifier, combined with the \var{Public} modifier, make a
@@ -3009,11 +3016,11 @@ Far & \fpc is a 32-bit compiler. \\
 \chapter{Programs, units, blocks}
 A Pascal program consists of modules called \var{units}. A unit can be used
 to group pieces of code together, or to give someone code without giving
-the sources. 
+the sources.
 Both programs and units consist of code blocks, which are mixtures of
 statements, procedures, and variable or type declarations.
 \section{Programs}
-A pascal program consists of the program header, followed possibly by a 
+A pascal program consists of the program header, followed possibly by a
 'uses' clause, and a block.
 \input{syntax/program.syn}
 The program header is provided for backwards compatibility, and is ignored
@@ -3026,7 +3033,7 @@ which order they are initialized. Units are initialized in the same order
 as they appear in the uses clause. Identifiers are searched in the opposite
 order, i.e. when the compiler searches for an identifier, then it looks
 first in the last unit in the uses clause, then the last but one, and so on.
-This is important in case two units declare different types with the same 
+This is important in case two units declare different types with the same
 identifier.
 When the compiler looks for unit files, it adds the extension \file{.ppu}
 (\file{.ppw} for \windowsnt) to the name of the unit. On \linux, unit names
@@ -3045,7 +3052,7 @@ or function identifier declarations. Declarations inside the
 implementationpart are {\em not} accessible outside the unit. The
 implementation must contain a function declaration for each function or
 procedure that is declared in the interface part. If a function is declared
-in the interface part, but no declaration of that function is present in the 
+in the interface part, but no declaration of that function is present in the
 implementation section is present, then the compiler will give an error.
 When a program uses a unit (say \file{unitA}) and this units uses a second
 unit, say \file{unitB}, then the program depends indirectly also on
@@ -3059,12 +3066,12 @@ you want to yuse the identifier.
 Units can be mutually dependent, that is, they can reference each other in
 their uses clauses. This is allowed, on the condition that at least one of
 the references is in the implementation section of the unit. This also holds
-for indirect mutually dependent units. 
+for indirect mutually dependent units.
 If it is possible to start from one interface uses clause of a unit, and to return
 there via uses clauses of interfaces only, then there is circular unit
 dependence, and the compiler will generate an error.
 As and example : the following is not allowed:
-\begin{listing}
+\begin{verbatim}
 Unit UnitA;
 interface
 Uses UnitB;
@@ -3072,26 +3079,26 @@ implementation
 end.
 Unit UnitB
 Uses UnitA;
-implementation 
+implementation
 end.
-\end{listing}
+\end{verbatim}
 But this is allowed :
-\begin{listing}
+\begin{verbatim}
 Unit UnitA;
 interface
 Uses UnitB;
 implementation
 end.
 Unit UnitB
-implementation 
+implementation
 Uses UnitA;
 end.
-\end{listing}
+\end{verbatim}
 Because \file{UnitB} uses \file{UnitA} only in it's implentation section.
 In general, it is a bad idea to have circular unit dependencies, even if it is
 only in implementation sections.
 \section{Blocks}
-Units and programs are made of blocks. A block is made of declarations of 
+Units and programs are made of blocks. A block is made of declarations of
 labels, constants, types variables and functions or procedures. Blocks can
 be nested in certain ways, i.e., a procedure or function declaration can
 have blocks in themselves.
@@ -3110,7 +3117,7 @@ Lastly, functions and procedures that will be used in that block can be
 declared in the procedure/function declaration part.
 After the different declaration parts comes the statement part. This
 contains any actions that the block should execute.
-All identifiers declared before the statement part can be used in that 
+All identifiers declared before the statement part can be used in that
 statement part.
 \section{Scope}
 Identifiers are valid from the point of their declaration until the end of
@@ -3124,7 +3131,7 @@ If a block contains a second block, in which the identfier is
 redeclared, then inside this block, the second declaration will be valid.
 Upon leaving the inner block, the first declaration is valid again.
 Consider the following example:
-\begin{listing}
+\begin{verbatim}
 Program Demo;
 Var X : Real;
 { X is real variable }
@@ -3138,7 +3145,7 @@ end;
 begin
  X := 2.468;
 end.
-\end{listing}
+\end{verbatim}
 In this example, inside the procedure, X denotes an integer variable.
 It has it's own storage space, independent of the variable \var{X} outside
 the procedure.
@@ -3168,14 +3175,14 @@ known in programs or units that have the unit in their uses clause.
 Identifiers from indirectly dependent units are {\em not} available.
 Identifiers declared in the implementation part of a unit are valid from the
 point of declaration to the end of the unit.
-The system unit is automatically used in all units and programs. 
-It's identifiers are therefore always known, in each program or unit 
+The system unit is automatically used in all units and programs.
+It's identifiers are therefore always known, in each program or unit
 you make.
 The rules of unit scope implie that you can redefine an identifier of a
-unit. To have access to an identifier of another unit that was redeclared in 
+unit. To have access to an identifier of another unit that was redeclared in
 the current unit, precede it with that other units name, as in the following
 example:
-\begin{listing}
+\begin{verbatim}
 unit unitA;
 interface
 Type
@@ -3184,14 +3191,14 @@ implementation
 end.
 Program prog;
 Uses UnitA;
- 
+
 { Redeclaration of MyType}
 Type MyType = Integer;
 Var A : Mytype;      { Will be Integer }
     B : UnitA.MyType { Will be real }
 begin
 end.
-\end{listing}
+\end{verbatim}
 This is especially useful if you redeclare the system unit's identifiers.
 \section{Libraries}
 \fpc supports making of dynamic libraries (DLLs under Windows) trough
@@ -3210,14 +3217,14 @@ you must export them in an export clause:
 
 Under \windowsnt, an index clause can be added to an exports entry.
 an index entry must be a positive number larger or equal than 1.
-It is best to use low index values, although nothing forces you to 
+It is best to use low index values, although nothing forces you to
 do this.
 
 Optionally, an exports entry can have a name specifier. If present, the name
 specifier gives the exavt name (case sensitive) of the function in the
 library.
 
-If neither of these constructs is present, the functions or procedures 
+If neither of these constructs is present, the functions or procedures
 are exported with the exact names as specified in the exports clause.
 
 
@@ -3228,45 +3235,45 @@ are exported with the exact names as specified in the exports clause.
 \label{ch:Exceptions}
 As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
 convenient way to program error and error-recovery mechanisms, and are
-closely related to classes. 
+closely related to classes.
 Exception support is based on 3 constructs:
 \begin{description}
 \item [Raise\ ] statements. To raise an exeption. This is usually done to signal an
 error condition.
 \item [Try ... Except\ ] blocks. These block serve to catch exceptions
-raised within the scope of the block, and to provide exception-recovery 
+raised within the scope of the block, and to provide exception-recovery
 code.
 \item [Try ... Finally\ ] blocks. These block serve to force code to be
 executed irrespective of an exception occurrence or not. They generally
-serve to clean up memory or close files in case an exception occurs. 
+serve to clean up memory or close files in case an exception occurs.
 code.
 \end{description}
 \section{The raise statement}
 The \var{raise} statement is as follows:
 \input{syntax/raise.syn}
-This statement will raise an exception. If it is specified, the exception 
-instance must be an initialized instance of a class, which is the raise 
+This statement will raise an exception. If it is specified, the exception
+instance must be an initialized instance of a class, which is the raise
 type. The address exception is optional. If itis not specified, the compiler
 will provide the address by itself.
 If the exception instance is omitted, then the current exception is
 re-raised. This construct can only be used in an exception handling
 block (see further).
 Remark that control {\em never} returns after an exception block. The
-control is transferred to the first \var{try...finally} or 
+control is transferred to the first \var{try...finally} or
 \var{try...except} statement that is encountered when unwinding the stack.
 If no such statement is found, the \fpc Run-Time Library will generate a
 run-time error 217 (see also \sees{exceptclasses}).
 As an example: The following division checks whether the denominator is
 zero, and if so, raises an exception of type \var{EDivException}
-\begin{listing}
+\begin{verbatim}
 Type EDivException = Class(Exception);
 Function DoDiv (X,Y : Longint) : Integer;
 begin
-  If Y=0 then 
+  If Y=0 then
     Raise EDivException.Create ('Division by Zero would occur');
   Result := X Div Y;
 end;
-\end{listing}
+\end{verbatim}
 The class \var{Exception} is defined in the \file{Sysutils} unit of the rtl.
 (\sees{exceptclasses})
 \section{The try...except statement}
@@ -3280,34 +3287,34 @@ If an exception occurs during the execution of the \var{statement list}, the
 program flow fill be transferred to the except block. Statements in the
 statement list between the place where the exception was raised and the
 exception block are ignored.
-In the exception handling block, the type of the exception is checked, 
-and if there is an exception handler where the class type matches the 
+In the exception handling block, the type of the exception is checked,
+and if there is an exception handler where the class type matches the
 exception object type, or is a parent type of
-the exception object type, then the statement following the corresponding 
+the exception object type, then the statement following the corresponding
 \var{Do} will be executed. The first matching type is used. After the
 \var{Do} block was executed, the program continues after the \var{End}
 statement.
-The identifier in an exception handling statement is optional, and declares 
-an exception object. It can be used to manipulate the exception object in 
-the exception handling code. The scope of this declaration is the statement 
+The identifier in an exception handling statement is optional, and declares
+an exception object. It can be used to manipulate the exception object in
+the exception handling code. The scope of this declaration is the statement
 block foillowing the \var{Do} keyword.
 If none of the \var{On} handlers matches the exception object type, then the
-\var{Default exception handler} is executed. If no such default handler is 
+\var{Default exception handler} is executed. If no such default handler is
 found, then the exception is automatically re-raised. This process allows
 to nest \var{try...except} blocks.
-If, on the other hand, the exception was caught, then the exception object is 
+If, on the other hand, the exception was caught, then the exception object is
 destroyed at the end of the exception handling block, before program flow
 continues. The exception is destroyed through a call to the object's
 \var{Destroy} destructor.
 As an example, given the previous declaration of the \var{DoDiv} function,
 consider the following
-\begin{listing}
+\begin{verbatim}
 Try
   Z := DoDiv (X,Y);
 Except
   On EDivException do Z := 0;
 end;
-\end{listing}
+\end{verbatim}
 If \var{Y} happens to be zero, then the DoDiv function code will raise an
 exception. When this happens, program flow is transferred to the except
 statement, where the Exception handler will set the value of \var{Z} to
@@ -3324,14 +3331,14 @@ If no exception occurs inside the \var{statement List}, then the program
 runs as if the \var{Try}, \var{Finally} and \var{End} keywords were not
 present.
 If, however, an exception occurs, the program flow is immediatly
-transferred from the point where the excepion was raised to the first 
-statement  of the \var{Finally statements}. 
+transferred from the point where the excepion was raised to the first
+statement  of the \var{Finally statements}.
 All statements after the finally kayword will be executed, and then
 the exception will be automatically re-raised. Any statements between the
 place where the exception was raised and the first statement of the
 \var{Finally Statements} are skipped.
 As an example consider the following routine:
-\begin{listing}
+\begin{verbatim}
 Procedure Doit (Name : string);
 Var F : Text;
 begin
@@ -3341,8 +3348,8 @@ begin
     ... File handling ...
   Finally
     Close(F);
-  end;  
-\end{listing}
+  end;
+\end{verbatim}
 If during the execution of the file handling an excption occurs, then
 program flow will continue at the \var{close(F)} statement, skipping any
 file operations that might follow between the place where the exception
@@ -3365,7 +3372,7 @@ a \var{Halt} instruction.
 \label{se:exceptclasses}
 The \file{sysutils} unit contains a great deal of exception handling.
 It defines the following exception types:
-\begin{listing}
+\begin{verbatim}
        Exception = class(TObject)
         private
           fmessage : string;
@@ -3383,14 +3390,14 @@ It defines the following exception types:
        ERangeError = class(EIntError);
        EIntOverflow = class(EIntError);
        EMathError = class(Exception);
-\end{listing}
+\end{verbatim}
 The sysutils unit also installs an exception handler. If an exception is
 unhandled by any exception handling block, this handler is called by the
-Run-Time library. Basically, it prints the exception address, and it prints 
+Run-Time library. Basically, it prints the exception address, and it prints
 the message of the Exception object, and exits with a exit code of 217.
 If the exception object is not a descendent object of the \var{Exception}
 object, then the class name is printed instead of the exception message.
-It is recommended to use the Exception object or a descendant class for 
+It is recommended to use the Exception object or a descendant class for
 all raise statemnts, since then you can use the message field of the
 exception object.
 \chapter{Using assembler}
@@ -3399,7 +3406,7 @@ assembler macros.  To have more information on the processor
 specific assembler syntax and its limitations, see the \progref.
 \section{Assembler statements }
 The following is an example of assembler inclusion in your code.
-\begin{listing}
+\begin{verbatim}
  ...
  Statements;
  ...
@@ -3409,7 +3416,7 @@ The following is an example of assembler inclusion in your code.
  end;
  ...
  Statements;
-\end{listing}
+\end{verbatim}
 The assembler instructions between the \var{Asm} and \var{end} keywords will
 be inserted in the assembler generated by the compiler.
 You can still use conditionals in your assembler, the compiler will
@@ -3446,7 +3453,7 @@ behaviour as Turbo Pascal.
 \label{ch:refchapter}
 The system unit contains the standard supported functions of \fpc. It is the
 same for all platforms. Basically it is the same as the system unit provided
-with Borland or Turbo Pascal. 
+with Borland or Turbo Pascal.
 Functions are listed in alphabetical order.
 Arguments to functions or procedures that are optional are put between
 square brackets.
@@ -3455,30 +3462,30 @@ second section contains the supported functions and procedures.
 \section{Types, Constants and Variables}
 \subsection{Types}
 The following integer types are defined in the System unit:
-\begin{listing}
+\begin{verbatim}
 shortint = -128..127;
 Longint  = $80000000..$7fffffff;
 integer  = -32768..32767;
 byte     = 0..255;
 word     = 0..65535;
-\end{listing}
+\end{verbatim}
 And the following pointer types:
-\begin{listing}
+\begin{verbatim}
   PChar = ^char;
   pPChar = ^PChar;
-\end{listing}
+\end{verbatim}
 For the \seef{SetJmp} and \seep{LongJmp} calls, the following jump bufer
-type is defined (for the I386 processor): 
-\begin{listing}
+type is defined (for the I386 processor):
+\begin{verbatim}
   jmp_buf = record
     ebx,esi,edi : Longint;
     bp,sp,pc : Pointer;
     end;
   PJmp_buf = ^jmp_buf;
-\end{listing}
+\end{verbatim}
 \subsection{Constants}
 The following constants for file-handling are defined in the system unit:
-\begin{listing}
+\begin{verbatim}
 Const
   fmclosed = $D7B0;
   fminput  = $D7B1;
@@ -3486,30 +3493,30 @@ Const
   fminout  = $D7B3;
   fmappend = $D7B4;
   filemode : byte = 2;
-\end{listing}
+\end{verbatim}
 Further, the following non processor specific general-purpose constants
 are also defined:
-\begin{listing} 
+\begin{listing}
 const
   erroraddr : pointer = nil;
   errorcode : word = 0;
  { max level in dumping on error }
   max_frame_dump : word = 20;
-\end{listing}
+\end{verbatim}
 \emph{ Remark: } Processor specific global constants are named Testxxxx
 where xxxx represents the processor number (such as Test8086, Test68000),
 and are used to determine on what generation of processor the program
 is running on.
 \subsection{Variables}
 The following variables are defined and initialized in the system unit:
-\begin{listing}
+\begin{verbatim}
 var
   output,input,stderr : text;
   exitproc : pointer;
   exitcode : word;
   stackbottom : Longint;
   loweststack : Longint;
-\end{listing}
+\end{verbatim}
 The variables \var{ExitProc}, \var{exitcode} are used in the \fpc exit
 scheme. It works similarly to the on in Turbo Pascal:
 When a program halts (be it through the call of the \var{Halt} function or
@@ -3518,7 +3525,7 @@ of \var{ExitProc}. If this one is non-\var{Nil}, it is set to \var{Nil}, and
 the procedure is called. If the exit procedure exits, the value of ExitProc
 is checked again. If it is non-\var{Nil} then the above steps are repeated.
 So if you want to install your exit procedure, you should save the old value
-of \var{ExitProc} (may be non-\var{Nil}, since other units could have set it before 
+of \var{ExitProc} (may be non-\var{Nil}, since other units could have set it before
 you did). In your exit procedure you then restore the value of
 \var{ExitProc}, such that if it was non-\var{Nil} the exit-procedure can be
 called.
@@ -3530,13 +3537,13 @@ program terminated normally.
 \var{ExitCode} is always passed to the operating system as the exit-code of
 your process.
 Under \file{GO32}, the following constants are also defined :
-\begin{listing}
+\begin{verbatim}
 const
    seg0040 = $0040;
    segA000 = $A000;
    segB000 = $B000;
    segB800 = $B800;
-\end{listing}
+\end{verbatim}
 These constants allow easy access to the bios/screen segment via mem/absolute.
 \section{Functions and Procedures}
 \begin{function}{Abs}
@@ -3562,7 +3569,7 @@ Function Addr (X : Any type) : Pointer;
 \var{Addr} returns a pointer to its argument, which can be any type, or a
 function or procedure name. The returned pointer isn't typed.
 The same result can be obtained by the \var{@} operator, which can return a
-typed pointer (\progref). 
+typed pointer (\progref).
 \Errors
 None
 \SeeAlso
@@ -3623,9 +3630,9 @@ None.
 Function Assigned (P : Pointer) : Boolean;
 
 \Description
- \var{Assigned} returns \var{True} if \var{P} is non-nil 
-and retuns \var{False} of \var{P} is nil. 
-The main use of Assigned it that Procedural variables and 
+ \var{Assigned} returns \var{True} if \var{P} is non-nil
+and retuns \var{False} of \var{P} is nil.
+The main use of Assigned it that Procedural variables and
 class-type variables also can be passed to \var{Assigned}.
 
 \Errors
@@ -3659,11 +3666,11 @@ Result : Longint]);
 \Description
 \var{Blockread} reads \var{count} or less records from file \var{F}. The
 result is placed in \var{Buffer}, which must contain enough room for
-\var{Count} records. The function cannot read partial records. 
+\var{Count} records. The function cannot read partial records.
 If \var{Result} is specified, it contains the number of records actually
 read. If \var{Result} isn't specified, and less than \var{Count} records were
 read, a run-time error is generated. This behavior can be controlled by the
-\var{\{\$i\}} switch. 
+\var{\{\$i\}} switch.
 \Errors
 If \var{Result} isn't specified, then a run-time error is generated if less
 than \var{count} records were read.
@@ -3678,9 +3685,9 @@ Procedure Blockwrite (Var F : File; Var Buffer; Var Count : Longint);
 
 \Description
 \var{BlockWrite} writes \var{count} records from \var{buffer} to the file
- \var{F}. 
+ \var{F}.
 If the records couldn't be written to disk, a run-time error is generated.
-This behavior can be controlled by the \var{\{\$i\}} switch. 
+This behavior can be controlled by the \var{\{\$i\}} switch.
 
 \Errors
 A run-time error is generated if, for some reason, the records couldn't be
@@ -3754,7 +3761,7 @@ Function Copy (Const S : String;Index : Integer;Count : Byte) : String;
 \Description
 \var{Copy} returns a string which is a copy if the \var{Count} characters
 in \var{S}, starting at position \var{Index}. If \var{Count} is larger than
-the length of the string \var{S}, the result is truncated. 
+the length of the string \var{S}, the result is truncated.
 If \var{Index} is larger than the length of the string \var{S}, then an
 empty string is returned.
 \Errors
@@ -3812,7 +3819,7 @@ Procedure Delete (var S : string;Index : Integer;Count : Integer);
 
 \Description
 \var{Delete} removes \var{Count} characters from string \var{S}, starting
-at position \var{Index}. All remaining characters are shifted \var{Count} 
+at position \var{Index}. All remaining characters are shifted \var{Count}
 positions to the left, and the length of the string is adjusted.
 
 \Errors
@@ -3950,7 +3957,7 @@ None.
 Function Filesize (Var F : Any file type) : Longint;
 
 \Description
-\var{Filepos} returns the total number of records in file \var{F}. 
+\var{Filepos} returns the total number of records in file \var{F}.
 It cannot be invoked with a file of type \var{Text}. (under \linux, this
 also means that it cannot be invoked on pipes.)
 If \var{F} is empty, 0 is returned.
@@ -4104,7 +4111,7 @@ Function Hi (X : Ordinal type) : Word or byte;
 \Description
 \var{Hi} returns the high byte or word from \var{X}, depending on the size
 of X. If the size of X is 4, then the high word is returned. If the size is
-2 then the high byte is retuned. 
+2 then the high byte is retuned.
 \var{hi} cannot be invoked on types of size 1, such as byte or char.
 \Errors
 None
@@ -4120,9 +4127,9 @@ Function High (Type identifier or variable reference) : Longint;
 \Description
  The return value of \var{High} depends on it's argument:
 \begin{enumerate}
-\item If the argument is an ordinal type, \var{High} returns the lowest value in the range of the given ordinal 
+\item If the argument is an ordinal type, \var{High} returns the lowest value in the range of the given ordinal
 type when it gets.
-\item If the argument is an array type or an array type variable then 
+\item If the argument is an array type or an array type variable then
 \var{High} returns the highest possible value of it's index.
 \item If the argument is an open array identifier in a function or
 procedure, then \var{High} returns the highest index of the array, as if the
@@ -4274,7 +4281,7 @@ Function Lo (O : Word or Longint) : Byte or Word;
 \Description
 \var{Lo} returns the low byte of its argument if this is of type
 \var{Integer} or
-\var{Word}. It returns the low word of its argument if this is of type 
+\var{Word}. It returns the low word of its argument if this is of type
 \var{Longint} or \var{Cardinal}.
 \Errors
 None.
@@ -4294,7 +4301,7 @@ and resores the registers that were stored in it at the corresponding
 \seef{SetJmp} call.
 In effect, program flow will continue at the \var{SetJmp} call, which will
 return \var{value} instead of 0. If you pas a \var{value} equal to zero, it will be
-converted to 1 before passing it on. The call will not return, so it must be 
+converted to 1 before passing it on. The call will not return, so it must be
 used with extreme care.
 This can be used for error recovery, for instance when a segmentation fault
 occurred.
@@ -4311,9 +4318,9 @@ Function Low (Type identifier or variable reference) : Longint;
 \Description
  The return value of \var{Low} depends on it's argument:
 \begin{enumerate}
-\item If the argument is an ordinal type, \var{Low} returns the lowest value in the range of the given ordinal 
+\item If the argument is an ordinal type, \var{Low} returns the lowest value in the range of the given ordinal
 type when it gets.
-\item If the argument is an array type or an array type variable then 
+\item If the argument is an array type or an array type variable then
 \var{Low} returns the lowest possible value of it's index.
 \end{enumerate}
 
@@ -4404,7 +4411,7 @@ Procedure Move (var Source,Dest;Count : Longint);
 \Errors
 If either \var{Dest} or \var{Source} is outside the accessible memory for
 the process, then a run-time error will be generated. With older versions of
-the compiler, a segmentation-fault will occur. 
+the compiler, a segmentation-fault will occur.
 \SeeAlso
 \seep{Fillword}, \seep{Fillchar}
 \end{procedure}
@@ -4416,7 +4423,7 @@ Procedure New (Var P : Pointer[, Constructor]);
 
 \Description
 \var{New} allocates a new instance of the type pointed to by \var{P}, and
-puts the address in \var{P}. 
+puts the address in \var{P}.
 If P is an object, then it is possible to
 specify the name of the constructor with which the instance will be created.
 \Errors
@@ -4444,9 +4451,9 @@ None.
 Function Ofs Var X : Longint;
 
 \Description
-\var{Ofs} returns the offset of the address of a variable. 
-This function is only supported for compatibility. In \fpc, it 
-returns always the complete address of the variable, since \fpc is a 32 bit 
+\var{Ofs} returns the offset of the address of a variable.
+This function is only supported for compatibility. In \fpc, it
+returns always the complete address of the variable, since \fpc is a 32 bit
 compiler.
 
 \Errors
@@ -4537,10 +4544,10 @@ Function Power (base,expon : Real) : Real;
 
 \Description
 
-\var{Power} returns the value of \var{base} to the power \var{expon}. 
-\var{Base} and \var{expon} can be of type Longint, in which case the 
+\var{Power} returns the value of \var{base} to the power \var{expon}.
+\var{Base} and \var{expon} can be of type Longint, in which case the
 result will also be a Longint.
- 
+
 The function actually returns \var{Exp(expon*Ln(base))}
 
 \Errors
@@ -4649,9 +4656,9 @@ Procedure Readln [Var F : Text], V1 [, V2, ... , Vn]);
 \Description
 \var{Read} reads one or more values from a file \var{F}, and stores the
 result in \var{V1}, \var{V2}, etc. After that it goes to the next line in
-the file (defined by the \var{LineFeed (\#10)} character). 
+the file (defined by the \var{LineFeed (\#10)} character).
 If no file \var{F} is specified, then standard input is read.
-The variables \var{V1, V2} etc. must be of type \var{Char}, \var{Integer}, 
+The variables \var{V1, V2} etc. must be of type \var{Char}, \var{Integer},
 \var{Real}, \var{String} or \var{PChar}.
 
 \Errors
@@ -4685,7 +4692,7 @@ Procedure Rename (Var F : Any Filetype; Const S : String);
 \var{F}
 must be assigned, but not opened.
 \Errors
-A run-time error will be generated if \var{F} isn't assigned, 
+A run-time error will be generated if \var{F} isn't assigned,
 or doesn't exist.
 \SeeAlso
 \seep{Erase}
@@ -4698,8 +4705,8 @@ Procedure Reset (Var F : Any File Type[; L : Longint]);
 
 \Description
 \var{Reset} opens a file \var{F} for reading. \var{F} can be any file type.
-If \var{F} is an untyped or typed file, then it is opened for reading and 
-writing. If \var{F} is an untyped file, the record size can be specified in 
+If \var{F} is an untyped or typed file, then it is opened for reading and
+writing. If \var{F} is an untyped file, the record size can be specified in
 the optional parameter \var{L}. Default a value of 128 is used.
 \Errors
 If the file cannot be opened for reading, then a run-time error is
@@ -4715,11 +4722,11 @@ Procedure Rewrite (Var F : Any File Type[; L : Longint]);
 
 \Description
 \var{Rewrite} opens a file \var{F} for writing. \var{F} can be any file type.
-If \var{F} is an untyped or typed file, then it is opened for reading and 
-writing. If \var{F} is an untyped file, the record size can be specified in 
+If \var{F} is an untyped or typed file, then it is opened for reading and
+writing. If \var{F} is an untyped file, the record size can be specified in
 the optional parameter \var{L}. Default a value of 128 is used.
 if \var{Rewrite} finds a file with the same name as \var{F}, this file is
-truncated to length \var{0}. If it doesn't find such a file, a new file is 
+truncated to length \var{0}. If it doesn't find such a file, a new file is
 created.
 
 \Errors
@@ -4836,8 +4843,8 @@ A run-time error is generated if the file \var{F} isn't opened.
 Function Seg Var X : Longint;
 
 \Description
-\var{Seg} returns the segment of the address of a variable. 
-This function is only supported for compatibility. In \fpc, it 
+\var{Seg} returns the segment of the address of a variable.
+This function is only supported for compatibility. In \fpc, it
 returns always 0, since \fpc is a 32 bit compiler, segments have no meaning.
 
 \Errors
@@ -4971,7 +4978,7 @@ If \var{X} is negative, then a run-time error is generated.
 Function SSeg  : Longint;
 
 \Description
- \var{SSeg} returns the Stack Segment. This function is only 
+ \var{SSeg} returns the Stack Segment. This function is only
  supported for compatibolity reasons, as \var{Sptr} returns the
 correct contents of the stackpointer.
 \Errors
@@ -5035,7 +5042,7 @@ None.
 Function Trunc (X : Real) : Longint;
 
 \Description
-\var{Trunc} returns the integer part of \var{X}, 
+\var{Trunc} returns the integer part of \var{X},
 which is always smaller than (or equal to)  \var{X}.
 \Errors
 None.
@@ -5066,7 +5073,7 @@ Function Upcase (C : Char or string) : Char or String;
 
 \Description
 \var{Upcase} returns the uppercase version of its argument \var{C}.
-If its argument is a string, then the complete string is converted to 
+If its argument is a string, then the complete string is converted to
 uppercase. The type of the returned value is the same as the type of the
 argument.
 \Errors
@@ -5082,7 +5089,7 @@ Procedure Val (const S : string;var V;var Code : word);
 
 \Description
 \var{Val} converts the value represented in the string \var{S} to a numerical
-value, and stores this value in the variable \var{V}, which 
+value, and stores this value in the variable \var{V}, which
 can be of type \var{Longint}, \var{Real} and \var{Byte}.
 If the conversion isn't succesfull, then the parameter \var{Code} contains
 the index of the character in \var{S} which prevented the conversion.
@@ -5105,11 +5112,11 @@ the file \var{F}. \var{F} can be a typed file, or a \var{Text} file.
 If \var{F} is a typed file, then the variables \var{V1}, \var{V2} etc. must
 be of the same type as the type in the declaration of \var{F}. Untyped files
 are not allowed.
-If the parameter \var{F} is omitted, standard output is assumed. 
+If the parameter \var{F} is omitted, standard output is assumed.
 If \var{F} is of type \var{Text}, then the necessary conversions are done
 such that the output of the variables is in human-readable format.
 This conversion is done for all numerical types. Strings are printed exactly
-as they are in memory, as well as \var{PChar} types. 
+as they are in memory, as well as \var{PChar} types.
 The format of the numerical conversions can be influenced through
 the following modifiers:
 \var{ OutputVariable : NumChars [: Decimals ]  }
@@ -5127,9 +5134,9 @@ Real numbers are, by default, written in scientific notation.
 
 \Errors
 If an error occurs, a run-time error is generated. This behavior can be
-controlled with the \var{\{\$i\}} switch. 
+controlled with the \var{\{\$i\}} switch.
 \SeeAlso
-\seep{WriteLn}, \seep{Read}, \seep{Readln}, \seep{Blockwrite} 
+\seep{WriteLn}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}
 \end{procedure}
 \begin{procedure}{WriteLn}
 \Declaration
@@ -5138,7 +5145,7 @@ Procedure WriteLn [([Var F : Text;] [V1 [; V2; ... , Vn)]];
 \Description
 \var{WriteLn} does the same as \seep{Write} for text files, and emits a
 Carriage Return - LineFeed character pair after that.
-If the parameter \var{F} is omitted, standard output is assumed. 
+If the parameter \var{F} is omitted, standard output is assumed.
 If no variables are specified, a Carriage Return - LineFeed character pair
 is emitted, resulting in a new line in the file \var{F}.
 {\em Remark:} Under \linux, the Carriage Return character is omitted, as
@@ -5146,7 +5153,7 @@ customary in Unix environments.
 
 \Errors
 If an error occurs, a run-time error is generated. This behavior can be
-controlled with the \var{\{\$i\}} switch. 
+controlled with the \var{\{\$i\}} switch.
 \SeeAlso
 \seep{Write}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}
 \end{procedure}
@@ -5154,6 +5161,6 @@ controlled with the \var{\{\$i\}} switch.
 \html{\input{refex/ex75.tex}}
 %
 % The index.
-% 
+%
 \printindex
 \end{document}

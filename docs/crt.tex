@@ -24,9 +24,9 @@ This chapter describes the \var{CRT} unit for Free Pascal, both under \dos
 and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
 The unit was ported to \linux by Mark May\footnote{Current
 e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van Canneyt
-It works on the \linux console, and in xterm and rxvt windows under
-X-Windows. The functionality for both is the same, except that under \linux
-the use of an early implementation (versions 0.9.1 an earlier of the
+and Peter Vreman. It works on the \linux console, and in xterm and rxvt windows
+under X-Windows. The functionality for both is the same, except that under
+\linux the use of an early implementation (versions 0.9.1 an earlier of the
 compiler) the crt unit automatically cleared the screen at program startup.
 This chapter is divided in two sections. 
 \begin{itemize}
@@ -446,59 +446,3 @@ None.
 \end{procedure}
 \latex{\inputlisting{crtex/ex5.pp}}
 \html{\input{crtex/ex5.tex}}
-\begin{procedure}{ScrollWindow}
-\Declaration
-Procedure ScrollWindow (X1,Y1,X2,Y2 : Byte; Count : Longint);
-
-\Description
- ScrollWindow scrolls the contents of the window defined by the upper-left
-%\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners \var{count} lines up if
-%\var{count} is positive, it scrolls down if \var{count} is negative.
-%The new lines are made blank using the current textcolors.
-%
-\Errors
-None.
-\SeeAlso
-\seep{Window}, \seep{ClrScr}
-\end{procedure}
-\begin{function}{SaveScreenRegion}
-\Declaration
-Function SaveScreenRegion (X1,Y1,X2,Y2, var P : pointer) : Boolean;
-
-\Description
-SaveScreenRegion writes the the contents of the window defined by the upper-left
-%\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners to the location pointed
-%to by \var{P}. If \var{P} is \var{nil} then enough memory is allocated to
-%contain the contents of the window.
-%
-%The contents are written as follows : line per line, column per column,
-%first the character on screen is written (1 byte), followed by the text 
-%attribute (1 byte). The size required is therefore 
-%\var{(Y2-Y1+1)*(X2-X1+1)*2} bytes.
-%
-%The function returns \var{False} if it couldn't allocate the required
-%memory, \var{True} if the memory was allocated.
-\Errors
-None.
-\SeeAlso
-\seep{RestoreScreenRegion}, \seep{Window} 
-\end{function}
-\begin{procedure}{RestoreScreenRegion}
-\Declaration
-Procedure RestoreScreenRegion (X1,Y1,X2,Y2, var P : pointer);
-
-\Description
-SaveScreenRegion writes the the contents of the memory location pointed to
-%by \var{P}, to the window defined by the upper-left \var{(X1,Y1)} and 
-%lower-right \var{(X2,Y2)} corners. 
-%
-%The contents of \var{P} should be arranged as if they are when written by 
-%a call to the SaveScreenRegion () function.
-%
-%The memory pointed to by \var{P} is NOT freed.
-\Errors
-None
-\SeeAlso
-\seef{SaveScreenRegion}, \seep{Window} 
-\end{procedure}
-

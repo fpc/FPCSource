@@ -16,16 +16,22 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
 %
 \documentclass{report}
+%
+% Preamble
+%
+\usepackage{ifthen}
+\usepackage{xspace}
 \usepackage{a4dutch}
+\usepackage{makeidx}
 \usepackage{html}
+\usepackage{htmllist}
 \usepackage{fancyheadings}
-\usepackage{fpcman}
-\html{\input{fpc-html.tex}}
-\latex{\usepackage{multicol}}
-\latex{\usepackage{epsfig}}
+\usepackage{epsfig}
+\usepackage{multicol}
+\usepackage{fpc}
 \latex{%
   \ifpdf
   \usepackage[pdftex,bookmarks=true]{hyperref}
@@ -34,18 +40,21 @@
   \pdfpageheight=297mm
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
-	   /Subject(Free Pascal Users' guide)
-	   /Keywords(Free Pascal)
-	   }
+           /Subject(Free Pascal Users' guide)
+           /Keywords(Free Pascal)
+           }
   \fi
-} 
+}
+%
+\html{\input{fpc-html.tex}}
+%
+% Settings
+%
 \pagestyle{fancy}
-\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
-\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
-\newcommand{\olabel}[1]{\label{option:#1}}
-% We should change this to something better. See \seef etc.
-\newcommand{\seeo}[1]{See \ref{option:#1}}
 \makeindex
+%
+% Start of document.
+%
 \begin{document}
 \title{Free Pascal :\\ Users' manual}
 \docdescription{Users' manual for \fpc, version \fpcversion}
@@ -54,6 +63,7 @@
 \author{Micha\"el Van Canneyt\\Florian Kl\"ampfl}
 \maketitle
 \tableofcontents
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Introduction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,19 +73,19 @@
 % About this document
 \section{About this document}
 This is the user's manual for \fpc . It describes the installation and use of
-the \fpc compiler on the different supported platforms. 
+the \fpc compiler on the different supported platforms.
 It does not attempt to give an exhaustive list of all supported commands,
 nor a definition of the Pascal language. Look at the
-\refref for these things. 
+\refref for these things.
 For a description of the
 possibilities and the inner workings of the compiler, see the
-\progref . In the appendices of this document you will find lists of 
+\progref . In the appendices of this document you will find lists of
 reserved words and compiler error messages (with descriptions).
 
-This document describes the compiler as it is/functions at the time of 
+This document describes the compiler as it is/functions at the time of
 writing. Since the compiler is under continuous development, some of the
 things described here may be outdated. In case of doubt, consult the
-\file{README} files, distributed with the compiler. 
+\file{README} files, distributed with the compiler.
 The \file{README} files are, in case of conflict with this manual,
  authoritative.
 
@@ -95,8 +105,8 @@ on a port to ALPHA Architecture}. Currently, it supports 6 operating systems:
 \end{itemize}
 and work is in progress to port it to other platforms (notably, \freebsd).
 
-\fpc is designed to be, as much as possible, source compatible with 
-Turbo Pascal 7.0 and Delphi 4 (although this goal is not yet attained), 
+\fpc is designed to be, as much as possible, source compatible with
+Turbo Pascal 7.0 and Delphi 4 (although this goal is not yet attained),
 but it also enhances these languages with elements like function overloading.
 And, unlike these ancestors, it supports multiple platforms.
 
@@ -120,27 +130,27 @@ In this document, we describe the use of the compiler. The RTL is described in t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Getting more information.
 \section{Getting more information.}
-If the documentation doesn't give an answer to your questions, 
+If the documentation doesn't give an answer to your questions,
 you can obtain more information on the Internet, on the following addresses:
 \begin{itemize}
 \item
 \htmladdnormallink{http://tfdec1.fys.kuleuven.ac.be/\~{}michael/fpc/fpc.html}
 {http://tfdec1.fys.kuleuven.ac.be/\~{}michael/fpc/fpc.html} is the main
 site. It contains also useful mail addresses and
-links to other places. 
+links to other places.
 It also contains the instructions for inscribing to the
 \textit{mailing-list}.
 
 \item
 \htmladdnormallink{http://www.brain.uni-freiburg.de/\~{}klaus/fpc/fpc.html}
 {http://www.brain.uni-freiburg.de/\~{}klaus/fpc/fpc.html} is a mirror
-of the main \fpc information site.  
+of the main \fpc information site.
 \end{itemize}
-Both places can be used to download the \fpc distribution, although you can 
+Both places can be used to download the \fpc distribution, although you can
 probably find them on other places also.
 
-Finally, if you think something should be added to this manual 
-(entirely possible), please do not hesitate and contact me at 
+Finally, if you think something should be added to this manual
+(entirely possible), please do not hesitate and contact me at
 \htmladdnormallink{michael@tfdec1.fys.kuleuven.ac.be}{mailto:michael@tfdec1.fys.kuleuven.ac.be}
 .
 
@@ -201,11 +211,11 @@ We discuss the process for each platform separately.
 \subsubsection{Mandatory installation steps.}
 First, you must get the latest distribution files of \fpc. They come as zip
 files, which you must unzip first, or you can download the compiler as a
-series of separate files. This is especially useful if you have a slow 
+series of separate files. This is especially useful if you have a slow
 connection, but it is also nice if you want to install only some pats of the
 compiler distribution.  The distribution zip file contains an
 installation program \file{INSTALL.EXE}. You must run this program to install
-the compiler. 
+the compiler.
 
 \begin{htmlonly}
 The screen of the installation program looks like this:
@@ -228,21 +238,21 @@ The program allows you to select:
 \begin{itemize}
 \item What components you wish to install. e.g do you want the sources or
 not, do you want docs or not. Items that you didn't download when
-downloading as separate files, will not be enabled, i.e. you can't 
+downloading as separate files, will not be enabled, i.e. you can't
 select them.
 
 \item Where you want to install (the default location is \verb|C:\PP|).
 \end{itemize}
 
-In order to run \fpc from any directory on your system, you must extend 
+In order to run \fpc from any directory on your system, you must extend
 your path variable to contain the \verb|C:\PP\BIN| directory.
 Usually this is done in the \file{AUTOEXEC.BAT} file.
-It should look something like this : 
+It should look something like this :
 \begin{verbatim}
   SET PATH=%PATH%;C:\PP\BIN
 \end{verbatim}
 (Again, assuming that you installed in the default location).
- 
+
 If you want to use the graphic drivers you must modify the
 environment variable \var{GO32}. Instructions for doing this can be found
 in the documentation of the Graph unit, at the \var{InitGraph} procedure.
@@ -252,7 +262,7 @@ For people who have an older CPU type, without math coprocessor (i387)
 it is necessary to install a coprocessor emulation, since \fpc uses the
 coprocessor to do all floating point operations.
 
-The installation of the coprocessor emulation is handled by the 
+The installation of the coprocessor emulation is handled by the
 installation program (\file{INSTALL.EXE}). However,
 
 %
@@ -276,7 +286,7 @@ rpm -i fpc-pascal-XXX.rpm
 \end{verbatim}
 (\var{XXX} is the version number of the \file{.rpm} file)
 
-If you use debian, installation is limited to 
+If you use debian, installation is limited to
 \begin{verbatim}
 dpkg -i fpc-XXX.deb
 \end{verbatim}
@@ -288,21 +298,21 @@ allows you to do an installation if you don't have root permissions.
 When downloading the \var{.tar} file, or the separate files,
  installation is more interactive.
 
-In case you downloaded the \file{.tar} file, you should first untar 
-the file, in some directory where 
+In case you downloaded the \file{.tar} file, you should first untar
+the file, in some directory where
 you have write permission, using the following command:
 \begin{verbatim}
 tar -xvf fpc.tar
 \end{verbatim}
 We supposed here that you downloaded the file \file{fpc.tar} somewhere
-from the Internet. (The real filename will have some version number in it, 
+from the Internet. (The real filename will have some version number in it,
 which we omit here for clarity.)
 
 When the file is untarred, you will be left with more archive files, and
-an install program: an installation shell script. 
+an install program: an installation shell script.
 
 If you downloaded the files as separate files, you should at least download
-the \file{install.sh} script, and the libraries (in \file{libs.tar.gz}). 
+the \file{install.sh} script, and the libraries (in \file{libs.tar.gz}).
 
 To install \fpc, all that you need to do now is give the following command:
 \begin{verbatim}
@@ -313,13 +323,13 @@ mainly concerned with 2 things :
 \begin{enumerate}
 \item Places where you can install different things.
 \item Deciding if you want to install certain components (such as sources
-and demo programs). 
+and demo programs).
 \end{enumerate}
 The script will automatically detect which components are present and can be
 installed. It will only offer to install what has been found.
 because of this feature, you must keep the original names when downloading,
 since the script expects this.
- 
+
 If you run the installation script as the \var{root} user, you can just accept all installation
 defaults. If you don't run as \var{root}, you must take care to supply the
 installation program with directory names where you have write permission,
@@ -334,12 +344,12 @@ directory where you installed the libraries.
 
 If you want the \fpc compiler to use this configuration file, it must be
 present in \file{/etc}, or you can set the environment variable
-\var{PPC\_CONFIG\_PATH}. Under \file{csh}, you can do this by adding  a 
+\var{PPC\_CONFIG\_PATH}. Under \file{csh}, you can do this by adding  a
 \begin{verbatim}
 setenv PPC_CONFIG_PATH /usr/lib/ppc/0.99.1
 \end{verbatim}
-line to your \file{.login} file in your home directory. 
-(see also the next section) 
+line to your \file{.login} file in your home directory.
+(see also the next section)
 
 \section{Optional configuration steps}
 You may wish to set some environment variables. The \fpc compiler
@@ -347,15 +357,15 @@ recognizes the following variables :
 \begin{itemize}
 \item \verb|PPC_EXEC_PATH| contains the directory where '\file{as}' and
 '\file{ld}' are. (default \file{/usr/bin})
-\item \verb|PPC_GCCLIB_PATH| contains the directory where \file{libgcc.a} 
+\item \verb|PPC_GCCLIB_PATH| contains the directory where \file{libgcc.a}
 is (no default). This if for \linux only.
 \item \verb|PPC_CONFIG_PATH| specifies an alternate path to find
 \file{ppc386.cfg} (default under \linux is \file{/etc})
-\item \verb|PPC_ERROR_FILE|  specifies the path and name of the error-definition file. 
+\item \verb|PPC_ERROR_FILE|  specifies the path and name of the error-definition file.
                   (default \file{/usr/lib/fpc/errorE.msg})
 \end{itemize}
 
-These locations are, however, set in the sample configuration file which is 
+These locations are, however, set in the sample configuration file which is
 built at the end of the installation process, except for the
 \verb|PPC_CONFIG_PATH| variable, which you must set if you didn't install
 things in the default places.
@@ -368,16 +378,16 @@ instructions for installing \fpc, and should always be read first.
 % Testing the compiler
 \section{Testing the compiler}
 After the installation is completed and the environment variables are
-set as described above, your first program can be compiled. 
+set as described above, your first program can be compiled.
 
-Included in the \fpc distribution are some demonstration programs, 
-showing what the compiler can do. 
-You can test if the compiler functions correctly by trying to compile 
+Included in the \fpc distribution are some demonstration programs,
+showing what the compiler can do.
+You can test if the compiler functions correctly by trying to compile
 these programs.
 
 The compiler is called
 \begin{itemize}
-\item \file{PPC386.EXE} under \dos, and 
+\item \file{PPC386.EXE} under \dos, and
 \item \file{ppc386} under \linux
 \end{itemize}
 To compile a program (e.g \verb|demo\hello.pp|) simply type :
@@ -397,9 +407,9 @@ ppc386 -Up/usr/lib/fpc/0.99.7/linuxunits hello
 This is, of course, assuming that you installed under \verb|C:\PP| or
 \file{/usr/lib/fpc/0.99.7}, respectively.
 
-If you got no error messages, the compiler has generated an executable 
+If you got no error messages, the compiler has generated an executable
 called \file{hello} (no extension) under \linux, and a file \file{hello.exe}
-under \dos. 
+under \dos.
 
 To execute the program, simply type :
 \begin{verbatim}
@@ -410,7 +420,7 @@ If all went well, you should see the following friendly greeting:
 Hello world
 \end{verbatim}
 In the \dos case, this friendly greeting may be preceded by some ugly
-message from the \file{GO32} extender program. This unfriendly behavior can 
+message from the \file{GO32} extender program. This unfriendly behavior can
 be switched off by setting the \file{GO32} environment variable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -419,10 +429,10 @@ be switched off by setting the \file{GO32} environment variable.
 \chapter{Compiler usage}
 \label{ch:Usage}
 
-Here we describe the essentials to compile a program and a unit. 
-We also describe how to make a stand-alone executable of the 
-compiled program under \dos. For more advanced uses of the compiler, 
-see the section on configuring the compiler, and the 
+Here we describe the essentials to compile a program and a unit.
+We also describe how to make a stand-alone executable of the
+compiled program under \dos. For more advanced uses of the compiler,
+see the section on configuring the compiler, and the
 \progref{}.
 
 The examples in this section suppose that you have a \file{ppc386.cfg} which
@@ -434,16 +444,16 @@ You may have to check that it is in the correct place (see section
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Where the compiler looks for its files.
 \section{File searching}
-Before you start compiling a program or a series of units, it is 
+Before you start compiling a program or a series of units, it is
 important to know where the compiler looks for its source files and other
 files. In this section we discuss this, and we indicate how to influence
 this.
 
 {\em Remark:}
-The use of slashes (/) and backslashes (\verb+\+) as directory separators 
+The use of slashes (/) and backslashes (\verb+\+) as directory separators
 is irrelevant, the compiler will convert to whatever character is used on
 the current operating system. Examples will be given using slashes, since
-this avoids problems on \linux. 
+this avoids problems on \linux.
 
 % Command-line files.
 \subsection{Command line files}
@@ -459,7 +469,7 @@ ppc386 subdir/foo.pp
 will look for \file{foo.pp} in the subdirectory \file{subdir} of the current
 directory.
 
-Under \linux, the name of this file is case sensitive, under other operating 
+Under \linux, the name of this file is case sensitive, under other operating
 systems (\dos, \windowsnt, \ostwo) this is not the case.
 
 % Unit files.
@@ -469,11 +479,11 @@ When you compile a unit or program that needs other units, the compiler will
 look for compiled versions of these units in the following way:
 \begin{enumerate}
 \item It will look in the current directory.
-\item It will look in the directory where the compiler binary is. 
+\item It will look in the directory where the compiler binary is.
 (not under \linux)
 \item It will look in all the directories specified in the unit search path.
 \end{enumerate}
-You can add a directory to the unit search path with the \var{-Up} or 
+You can add a directory to the unit search path with the \var{-Up} or
 \var{-Fu} options (\seeo{Up}, \seeo{Fu}). Every occurrence of one of
 those options will append a directory to the unit search path.
 
@@ -487,24 +497,24 @@ will be truncated to 8 characters, and the compiler will look again in the
 same directories, but with the truncated name.
 
 For instance, suppose that the file \file{foo.pp} needs the unit
-\file{bar}. Then the command 
+\file{bar}. Then the command
 \begin{verbatim}
 ppc386 -Up.. -Upunits foo.pp
 \end{verbatim}
-will tell the compiler to look for the unit \file{bar} in the following 
+will tell the compiler to look for the unit \file{bar} in the following
 places:
 \begin{enumerate}
 \item In the current directory.
 \item In the directory where the compile binary is (not under \linux).
-\item In the parent directory of the current directory. 
+\item In the parent directory of the current directory.
 \item In the subdirectory \file{units} of the current directory
 \end{enumerate}
 
 If the compiler finds the unit it needs, it will look for the source file of
-this unit in the same directory where it found the unit. 
-If it finds the source of the unit, then it will compare the file times. 
+this unit in the same directory where it found the unit.
+If it finds the source of the unit, then it will compare the file times.
 If the source file was modified more recent than the unit file, the
-compiler will attempt to recompile the unit with this source file. 
+compiler will attempt to recompile the unit with this source file.
 
 If the compiler doesn't find a compiled version of the unit, or when the
 \var{-B} option is specified, then the compiler will look in the same
@@ -520,7 +530,7 @@ If you include files in your source with the \var{\{\$I filename\}}
 directive, the compiler will look for it in the following places:
 
 \begin{enumerate}
-\item It will look in the path specified in the incude file name. 
+\item It will look in the path specified in the incude file name.
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the include file search
 path.
@@ -555,7 +565,7 @@ the compiler will look for this file in the same way as it looks for include
 files:
 
 \begin{enumerate}
-\item It will look in the path specified in the object file name. 
+\item It will look in the path specified in the object file name.
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the object file search path.
 \end{enumerate}
@@ -564,15 +574,15 @@ option.
 
 % Configuration file
 \subsection{Configuration file}
-Unless you specify the \var{-n} (\seeo{n}) option, the compiler will look 
+Unless you specify the \var{-n} (\seeo{n}) option, the compiler will look
 for a configuration file \file{ppc386.cfg} in the following places:
 
-\begin{itemize} 
+\begin{itemize}
 \item Under \linux
 \begin{enumerate}
 \item The current directory.
 \item In your home directory, it looks for \file{.ppc386.cfg}.
-\item The directory specified in the environment variable 
+\item The directory specified in the environment variable
 \var{PPC\_CONFIG\_PATH}, and if it's not set under \file{/etc}.
 \end{enumerate}
 \item Under all other OSes:
@@ -580,7 +590,7 @@ for a configuration file \file{ppc386.cfg} in the following places:
 \item The current directory.
 \item If it is set, the directory specified in the environment variable.
 \var{PPC\_CONFIG\_PATH}.
-\item The directory where the compiler is. 
+\item The directory where the compiler is.
 \end{enumerate}
 \end{itemize}
 
@@ -593,10 +603,10 @@ in the file \file{prog.pp}, you can compile this with the following command:
 \begin{verbatim}
   ppc386 [options] prog.pp
 \end{verbatim}
-The square brackets \var{[\ ]} indicate that what is between them is optional. 
+The square brackets \var{[\ ]} indicate that what is between them is optional.
 
-If your program file has the \file{.pp} or \file{.pas} extension, 
-you can omit this on the command line, e.g. in the previous example you 
+If your program file has the \file{.pp} or \file{.pas} extension,
+you can omit this on the command line, e.g. in the previous example you
 could have typed:
 \begin{verbatim}
   ppc386 [options] prog
@@ -605,17 +615,17 @@ could have typed:
 If all went well, the compiler will produce an executable, or, for version 1
 of the \dos extender, a file which can be converted to an executable.
 
-Unless you are using \dos and version 1 of the \dos extender, 
-the file you obtained is the executable. 
-You can execute it straight away, you don't need to do 
+Unless you are using \dos and version 1 of the \dos extender,
+the file you obtained is the executable.
+You can execute it straight away, you don't need to do
 anything else. Under version 1 of the \dos extender,
 additional processing is required. See section \ref{go32v1} on how to
 create an executable in this case.
 
 You will notice that there is also another file in your directory, with
-extensions \file{.o}. This contains the object file for your program. 
-If you compiled a program, you can delete the object file (\file{.o}), 
-but not if you compiled a unit. 
+extensions \file{.o}. This contains the object file for your program.
+If you compiled a program, you can delete the object file (\file{.o}),
+but not if you compiled a unit.
 Then the object file contains the code of the unit, and will be
 linked in any program that uses the unit you compiled, so you shouldn't
 remove it.
@@ -641,7 +651,7 @@ compiled.
 \item \file{foo.o} This file contains the actual code of the unit.
 This file will eventually end up in the executables.
 \end{enumerate}
-Both files are needed if you plan to use the unit for some programs. 
+Both files are needed if you plan to use the unit for some programs.
 So don't delete them. If you want to distribute the unit, you must
 provide both the \file{.ppu} and \file{.o} file. One is useless without the
 other.
@@ -655,7 +665,7 @@ changes the name of the unit to all lowercase when looking for unit files.
 The compiler produces lowercase files, so your unit will be found, even if
 your source file has uppercase letters in it. Only when the compiler tries to
 recompile the unit, it will not find your source because of the uppercase
-letters. 
+letters.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creating an executable for GO32V1, PMODE/DJ targets
@@ -663,14 +673,14 @@ letters.
 \label{go32v1}
 
 The GO32V1 platform is officially no longer supported, so this section
-is of interest only to people who wish to make go32V1 binaries anyway. 
+is of interest only to people who wish to make go32V1 binaries anyway.
 
 %
 % GO32V1
 %
 \subsection{GO32V1}
 When compiling under \dos, GO32V2 is the default target. However, if you use
-go32V1 (using the \var{-TGO32V1} switch), the 
+go32V1 (using the \var{-TGO32V1} switch), the
 compilation process leaves you with a file which you cannot execute right away.
 There are 2 things you can do when compiling has finished.
 
@@ -685,22 +695,22 @@ would be easier if you could just type the program name, i.e.
   prog
 \end{verbatim}
 This can be accomplished by making a \dos executable of your compiled program.
- 
-There two ways to create a \dos executable (under \dos only): 
+
+There two ways to create a \dos executable (under \dos only):
 \begin{enumerate}
 \item if the \file{GO32.EXE} is already
 installed on the computers where the program should run, you must
 only copy a program called \file{STUB.EXE} at the begin of
-the AOUT file. This is accomplished with the \file{AOUT2EXE.EXE} program. 
+the AOUT file. This is accomplished with the \file{AOUT2EXE.EXE} program.
 which comes with the compiler:
 \begin{verbatim}
 AOUT2EXE PROG
 \end{verbatim}
-and you get a \dos executable which loads the \file{GO32.EXE} automatically. 
-the \file{GO32.EXE} executable must be in current directory or be 
+and you get a \dos executable which loads the \file{GO32.EXE} automatically.
+the \file{GO32.EXE} executable must be in current directory or be
 in a directory in the \var{PATH} variable.
 \item
-The second way to create a \dos executable is to put 
+The second way to create a \dos executable is to put
 \file{GO32.EXE} at the beginning of the \file{AOUT} file. To do this, at the
 command prompt, type :
 \begin{verbatim}
@@ -766,9 +776,9 @@ information from your program. This can lead to size reductions of up to
 
 You can use the \var{-Xs} switch to let the compiler do this stripping
 automatically at program compile time (the switch has no effect when
-compiling units). 
+compiling units).
 
-Another technique to reduce the size of a program is to use smartlinking. 
+Another technique to reduce the size of a program is to use smartlinking.
 Normally, units (including the system unit) are linked in as a whole.
 It is however possible to compile units such that the can be smartlinked.
 This means that only the functions and procedures are linked in your
@@ -802,23 +812,23 @@ a configuration file.
 \section{Problems you may encounter under DOS}
 \begin{itemize}
 \item \textbf{No space in environment}.\\
-An error message like this can occur, if you call 
+An error message like this can occur, if you call
 \verb|SET_PP.BAT| in the \file{AUTOEXEC.BAT}.\\
 To solve this problem, you must extend your environment memory.
 To do this, search a line in the \file{CONFIG.SYS} like
 \begin{verbatim}
 SHELL=C:\DOS\COMMAND.COM
 \end{verbatim}
-and change it to the following: 
+and change it to the following:
 \begin{verbatim}
 SHELL=C:\DOS\COMMAND.COM /E:1024
 \end{verbatim}
 You may just need to specify a higher value, if this parameter is already set.
-\item \textbf{ Coprocessor missing}\\ 
+\item \textbf{ Coprocessor missing}\\
 If the compiler writes
 a message that there is no coprocessor, install
 the coprocessor emulation.
-\item \textbf{Not enough DPMI memory}\\ 
+\item \textbf{Not enough DPMI memory}\\
 If you want to use the compiler with \var{DPMI} you must have at least
 7-8 MB free \var{DPMI} memory, but 16 Mb is a more realistic amount.
 \end{itemize}
@@ -845,13 +855,13 @@ command line options, and then we explain how to specify the command
 line options in the configuration file. When reading this, keep in mind
 that the options are case sensitive. While this is customary for \linux, it
 isn't under \dos.
-  
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using the command-line options
 \section{Using the command-line options}
 
-The available options for version 0.99.10 of the compiler are listed by 
+The available options for version 0.99.10 of the compiler are listed by
 category (see appendix A for a listing as generated by the compiler):
 
 %
@@ -860,7 +870,7 @@ category (see appendix A for a listing as generated by the compiler):
 
 \subsection{General options}
 \begin{description}
-\item[-h] if you specify this option, the compiler outputs a list of all options, 
+\item[-h] if you specify this option, the compiler outputs a list of all options,
 and exits after that.
 \olabel{h}
 \item[-?] idem as \var{-h}, waiting after every screenfull for the enter key.
@@ -899,7 +909,7 @@ output. It also gives you the \fpc version number.
 file. Numbers are shown per 100.
 \item \var{u} : Tells the compiler to print the names of the files it opens.
 \item \var{t} : Tells the compiler to print the names of the files it tries
-to open. 
+to open.
 \item \var{p} : Tells the compiler to print the names of procedures and
 functions as it is processing them.
 \item \var{c} : Tells the compiler to warn you when it processes a
@@ -924,14 +934,14 @@ differently, so they are understood by RHIDE.
 %
 \subsection{Options concerning files and directories}
 \begin{description}
-\item [-exxx] \file{xxx} specifies the directory where the 
+\item [-exxx] \file{xxx} specifies the directory where the
 compiler can find the executables \file{as} (the assembler) and \file{ld} (the
 compiler).
 \olabel{e}
 \item [-FD] same as \var{-e}.
-\item [-Fexxx] This option tells the compiler to write errors, etc. to 
+\item [-Fexxx] This option tells the compiler to write errors, etc. to
 the file in \file{xxx}.
-\olabel{Fe} 
+\olabel{Fe}
 \item [-Fgxxx] (\linux only, obsolete) \file{xxx} specifies the path where the compiler
 can find the \gnu C library. This is superseded by the \var{-Fl} option.
 \olabel{Fg}
@@ -947,7 +957,7 @@ dynamic linker. Default this is \file{/lib/ld-linux.so.2}, or
 \olabel{FL}
 \item[-Foxxx] Adds \file{xxx} to the object file path. This path is used
 when looking for files that need to be linked in.
-\olabel{Fo} 
+\olabel{Fo}
 \item [-Frxxx] \file{xxx} specifies the file which contain the compiler
 messages. Default the compiler ahs built-in messages. Specifying this option
 will override the default messages.
@@ -963,7 +973,7 @@ the compiler on \ostwo and \linux. Only with assemblers (such as \gnu
 \file{as}) that support piping..
 \item [-Upxxx] \olabel{Up} Tells the compiler to add \file{xxx} to the path where to find
 units. \\
-By default, the compiler only searches for units in the current directory 
+By default, the compiler only searches for units in the current directory
 and the directory where the compiler itself resides. This option tells the
 compiler also to look in the directory \file{xxx}.
 \end{description}
@@ -994,9 +1004,9 @@ be between 1024 and 67107840.
 \item [-Cn] \olabel{Cn} Omit the linking stage.
 \item [-Co] \olabel{Co} Generate Integer overflow checking code.
 \item [-Cr] \olabel{Cr} Generate Range checking code.
-\item [-Csxxx] \olabel{Cs} Set stack size to \var{xxx}. 
+\item [-Csxxx] \olabel{Cs} Set stack size to \var{xxx}.
 \item [-CS] \olabel{CS} Create static library.
-\item [-Ct] \olabel{Ct} generate stack checking code. 
+\item [-Ct] \olabel{Ct} generate stack checking code.
 \item [-Cx] \olabel{Cx} Use smartlinking when compiling and linking units.
 \item [-dxxx] \olabel{d} Define the symbol name \var{xxx}. This can be used
 to conditionally compile parts of your code.
@@ -1017,7 +1027,7 @@ caution).
 \item[1] Level 1 optimizations (quick optimizations).
 \item[2] Level 2 optimizations (\var{-O1} plus some slower optimizations).
 \item[3] Level 3 optimizations (\var{-O2} plus \var{-Ou}).
-\item[Pn] Specify processor: \var{n} can be one of 
+\item[Pn] Specify processor: \var{n} can be one of
 \begin{description}
 \item[1] optimize for 386/486
 \item[2] optimize for Pentium/PentiumMMX (tm)
@@ -1052,10 +1062,10 @@ can be one of the following:
 % \item \textbf{e} : (\linux only) Create an \file{ELF} executable (default).
 \item \textbf{c} : (\linux only) Link with the C library. You should only use this when
   you start to port \fpc to another operating system.
-\item \textbf{D} : Link with dynamic libraries (defines the 
+\item \textbf{D} : Link with dynamic libraries (defines the
 \var{FPC\_LINK\_DYNAMIC} symbol)
 \item \textbf{s} : Strip the symbols from the executable.
-\item \textbf{S} : Link with static libraries (defines the 
+\item \textbf{S} : Link with static libraries (defines the
 \var{FPC\_LINK\_STATIC} symbol)
 \end{itemize}
 \end{description}
@@ -1074,7 +1084,7 @@ blocks. Here \var{xxx} is one of the following:
 \item [att\ ] \var{asm} blocks contain AT\&T assembler.
 \item [intel] \var{asm} blocks contain Intel assembler.
 \item [direct] \var{asm} blocks should be copied as-is in the assembler
-file.   
+file.
 \end{description}
 \item [-S2] \olabel{Stwo} Switch on Delphi 2 extensions.
 \item [-Sc] \olabel{Sc} Support C-style operators, i.e. \var{*=, +=, /= and
@@ -1115,12 +1125,12 @@ You can specify comments in the configuration file with the \var{\#} sign.
 Everything from the \var{\#} on will be ignored.
 
 The compiler looks for the \file{ppc386.cfg} file in the following places :
-\begin{itemize} 
+\begin{itemize}
 \item Under \linux
 \begin{enumerate}
 \item The current directory.
 \item In your home directory, it looks for \file{.ppc386.cfg}.
-\item The directory specified in the environment variable 
+\item The directory specified in the environment variable
 \var{PPC\_CONFIG\_PATH}, and if it's not set under \file{/etc}.
 \end{enumerate}
 \item Under all other OSes:
@@ -1128,7 +1138,7 @@ The compiler looks for the \file{ppc386.cfg} file in the following places :
 \item The current directory.
 \item If it is set, the directory specified in the environment variable.
 \var{PPC\_CONFIG\_PATH}.
-\item The directory where the compiler is. 
+\item The directory where the compiler is.
 \end{enumerate}
 \end{itemize}
 When the compiler has finished reading the configuration file, it continues
@@ -1160,7 +1170,7 @@ What follows is a description of the different directives.
 Syntax:
 \begin{verbatim}
 #IFDEF name
-\end{verbatim} 
+\end{verbatim}
 Lines following \var{\#IFDEF} are skipped read if the keyword \var{name}
 following it is not defined.
 
@@ -1180,7 +1190,7 @@ the path if you're compiling with version 0.99.5 of the compiler.
 Syntax:
 \begin{verbatim}
 #IFNDEF name
-\end{verbatim} 
+\end{verbatim}
 Lines following \var{\#IFDEF} are skipped read if the keyword \var{name}
 following it is defined.
 
@@ -1200,7 +1210,7 @@ the path if you're NOT compiling with version 0.99.5 of the compiler.
 Syntax:
 \begin{verbatim}
 #ELSE
-\end{verbatim} 
+\end{verbatim}
 \var{\#ELSE} can be specified after a \var{\#IFDEF} or \var{\#IFNDEF}
 directive as an alternative.
 Lines following \var{\#ELSE} are skipped read if the preceding \var{\#IFDEF}
@@ -1225,7 +1235,7 @@ otherwise \file{/usr/lib/fpc/0.99.6/linuxunits} will be added to the path.
 Syntax:
 \begin{verbatim}
 #ENDIF
-\end{verbatim} 
+\end{verbatim}
 \var{\#ENDIF} marks the end of a block that started with \var{\#IF(N)DEF},
 possibly with an \var{\#ELSE} between it.
 
@@ -1234,7 +1244,7 @@ Syntax:
 \begin{verbatim}
 #DEFINE name
 \end{verbatim}
-\var{\#DEFINE} defines a new keyword. This has the same effect as a 
+\var{\#DEFINE} defines a new keyword. This has the same effect as a
 \var{-dname}  command-line option.
 
 \subsection{\#UNDEF}
@@ -1242,7 +1252,7 @@ Syntax:
 \begin{verbatim}
 #UNDEF name
 \end{verbatim}
-\var{\#UNDEF} un-defines a keyword if it existed. 
+\var{\#UNDEF} un-defines a keyword if it existed.
 This has the same effect as a \var{-uname}  command-line option.
 
 \subsection{\#WRITE}
@@ -1327,20 +1337,20 @@ Pascal language.
 % Things that will not work
 \section{Things that will not work}
 Here we give a list of things which are defined/allowed in Turbo Pascal, but
-which are not supported by \fpc. Where possible, we indicate the reason. 
+which are not supported by \fpc. Where possible, we indicate the reason.
 \begin{enumerate}
 \item Parameter lists of previously defined functions and procedures must
 match exactly. The reason for this is the function overloading mechanism of
 \fpc. (however, the \var{-So} switch solves this. \seeo{So})
 \item \var {(* ... *)} as comment delimiters are not allowed in versions
-older than 0.9.1. This can easily be remedied with a grown-up editor. 
+older than 0.9.1. This can easily be remedied with a grown-up editor.
 \item The \var{MEM, MEMW, MEML} and \var{PORT} variables for memory and port
 access are not available in the system unit. This is due to the operating system. Under
 \dos, the extender unit (\file {GO32.PPU}) implements the mem constuct.
 under \linux, the \file{ports} unit implements such a construct.
-\item \var{PROTECTED, PUBLIC, PUBLISHED, TRY, FINALLY, EXCEPT, RAISE} 
-are reserved words. This means you cannot create procedures or variables 
-with the same name. While they are not reserved words in Turbo Pascal, 
+\item \var{PROTECTED, PUBLIC, PUBLISHED, TRY, FINALLY, EXCEPT, RAISE}
+are reserved words. This means you cannot create procedures or variables
+with the same name. While they are not reserved words in Turbo Pascal,
 they are in Delphi. Using the \var{-So} switch will solve this problem if
 you want to compile Turbo Pascal code that uses these words.
 \item The reserved words \var{FAR, NEAR} are ignored. This is
@@ -1348,7 +1358,7 @@ because \fpc is a 32 bit compiler, so they're obsolete.
 \item \var{INTERRUPT} only will work on a DOS machine.
 \item Boolean expressions are only evaluated until their result is completely
 determined. The rest of the expression will be ignored.
-\item By default the compiler uses  \var{AT\&T} assembler syntax. 
+\item By default the compiler uses  \var{AT\&T} assembler syntax.
 This is mainly because \fpc uses \gnu \var{as}. However other assembler
 forms are available, \progref.
 \item Turbo Vision is not available.
@@ -1373,7 +1383,7 @@ didn't exist in Turbo Pascal or Delphi.
 \item There are more reserved words. (see appendix \ref{ch:reserved} for a
 list of all reserved words.)
 \item Functions can also return complex types, such as records and arrays.
-\item You can handle function results in the function itself, as a variable. 
+\item You can handle function results in the function itself, as a variable.
 Example
 \begin{verbatim}
 function a : longint;
@@ -1388,7 +1398,7 @@ end;
 \end{verbatim}
 The example above would work with TP, but the compiler would assume
 that the \var{a>4} is a recursive call. To do a recursive call in
-this you must append \var{()} behind the function name: 
+this you must append \var{()} behind the function name:
 \begin{verbatim}
 function a : longint;
 
@@ -1427,7 +1437,7 @@ procedure DoSomething (a : real);
 begin
 {...}
 end;
-\end{verbatim} 
+\end{verbatim}
 You can then call procedure \var{DoSomething} with an argument of type
 \var{Longint} or \var{Real}.\\
 This feature has the consequence that a previously declared function must
@@ -1435,7 +1445,7 @@ always be defined with the header completely the same:
 \begin{verbatim}
 procedure x (v : longint); forward;
 
-{...} 
+{...}
 
 procedure x;{ This will overload the previously declared x}
 begin
@@ -1498,11 +1508,11 @@ Function expr : Longint;
 begin
   ...
   Expr:=L:
-  Writeln (Expr); 
+  Writeln (Expr);
   ...
 end;
 \end{verbatim}
-In Turbo Pascal compatibility mode, the function will be called recursively 
+In Turbo Pascal compatibility mode, the function will be called recursively
 when the \var{writeln} statement is processed. In \fpc, the function result
 will be printed. In order to call the function recusively under \fpc, you
 need to implement it as follows :
@@ -1512,7 +1522,7 @@ Function expr : Longint;
 begin
   ...
   Expr:=L:
-  Writeln (Expr()); 
+  Writeln (Expr());
   ...
 end;
 \end{verbatim}
@@ -1520,7 +1530,7 @@ end;
 this text is processed too.
 \item You cannot assign procedural variables to void pointers.
 \item The @ operator is typed when applied on procedures.
-\item You cannot nest comments. 
+\item You cannot nest comments.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1530,7 +1540,7 @@ this text is processed too.
 \chapter{Utilities and units that come with Free Pascal}
 \label{ch:Utilities}
 Besides the compiler and the Run-Time Library, \fpc comes with some utility
-programs and units. Here we list these programs and units. 
+programs and units. Here we list these programs and units.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied programs
@@ -1547,8 +1557,8 @@ to display the contents of the \file{foo.ppu} unit. You can specify multiple
 files on the command line.
 
 The options can be used to change the verbosity of the display. By default,
-all available information is displayed. 
-You can set the verbosity level using the \var{-Vxxx} option. 
+all available information is displayed.
+You can set the verbosity level using the \var{-Vxxx} option.
 Here, \var{xxx} is a combination of the following
 letters:
 \begin{description}
@@ -1575,7 +1585,7 @@ will find all example sources.
 \subsection{ppumove program}
 
 \file{ppumove} is a program to make shared or static libraries from
-multiple units. It can be compared with the \file{tpumove} program that 
+multiple units. It can be compared with the \file{tpumove} program that
 comes with
 Turbo Pascal.
 
@@ -1588,9 +1598,9 @@ ppumove [options] unit1.ppu unit2.ppu ... unitn.ppu
 Where \var{options} is a combination of
 \begin{description}
 \item[-b:\ ] If specified, ppumve will generate a batch file that will
-contain the external linking and archiving commands that must be 
-executed. The name of this batch file is \file{pmove.sh} on \linux, and 
-\file{pmove.bat} otherwise. 
+contain the external linking and archiving commands that must be
+executed. The name of this batch file is \file{pmove.sh} on \linux, and
+\file{pmove.bat} otherwise.
 \item[-d xxx:\ ] If specified, the output files will put in the directory
 \file{xxx}
 \item[-e xxx:\ ] Sets the extension of the moved unit files to \file{xxx}.
@@ -1600,7 +1610,7 @@ containing all the units. This parameter is mandatory when you use multiple
 files. On \linux, \file{ppumove} will prepend this name with \file{lib} if it isn't
 already there, and will add an extension appropriate to the type of library.
 \item [-q:\ ] Causes \file{ppumove} to operate silently.
-\item [-s:\ ] Tells \file{ppumove} to make a static library instead of a 
+\item [-s:\ ] Tells \file{ppumove} to make a static library instead of a
 dynamic one; By default a dynamic library is made on \linux.
 \item [-w:\ ] Tells ppumove that it is working under \windowsnt. This will
 change the names of te linker and archiving program to \file{ldw} and
@@ -1610,16 +1620,16 @@ change the names of te linker and archiving program to \file{ldw} and
 
 The action of the ppumve program is as follows:
 It takes each of the unit files, and modifies it so that the compile will
-know that it should look for the unit code in the library. The new unit 
+know that it should look for the unit code in the library. The new unit
 files will have an extension \file{.ppu}, this can be changed with the
 \var{-e} option. It will then put together all the object files of the units
 into one library, static or dynamic, depending on the presence of the
-\var{-s} option. 
+\var{-s} option.
 
-The name of this library must be set with the \var{-o} option. 
-If needed, the prefix \file{lib} will be prepended under \linux.. 
-The extension will be set to \file{.a} for static libraries, 
-for shared libraries the extensions are \var{.so} on linux, and \var{.dll} 
+The name of this library must be set with the \var{-o} option.
+If needed, the prefix \file{lib} will be prepended under \linux..
+The extension will be set to \file{.a} for static libraries,
+for shared libraries the extensions are \var{.so} on linux, and \var{.dll}
 under \windowsnt and \ostwo.
 
 As an example, the following command
@@ -1638,7 +1648,7 @@ Done.
 \end{verbatim}
 And it will produce the following files:
 \begin{enumerate}
-\item \file{libboth.so} : The shared library containing the code from 
+\item \file{libboth.so} : The shared library containing the code from
 \file{ppu.o} and \file{timer.o}. Under \windowsnt, this file would be called
 \file{both.dll}.
 \item \file{timer.ppl} : The unit file that tells the \fpc compiler to look
@@ -1653,7 +1663,7 @@ and \file{ppu.ppl}.
 
 \subsubsection{ptop program}
 % This section was supplied by Marco Van de voort, for which my thanks.
-% I did some cleaning, and added the subsubsection with help on on the 
+% I did some cleaning, and added the subsubsection with help on on the
 % object. MVC.
 
 \file{ptop} is a source beautifier written by Peter Grogono based on the ancient pretty-printer
@@ -1684,17 +1694,17 @@ Some options modify the behaviour of ptop:
 
 \subsubsection{The ptop configuration file}
 
-Creating and distributing a configuration file for ptop is not necesarry, 
-unless you want to modify the standard behaviour of \file{ptop}. The configuration 
+Creating and distributing a configuration file for ptop is not necesarry,
+unless you want to modify the standard behaviour of \file{ptop}. The configuration
 file is never preloaded, so if you want to use it you should always specify
 it with a \var{-c ptop.cfg} parameter.
 
-The structure of a ptop configuration file is a simple buildingblock repeated 
-several (20-30) times, for each pascal keyword known to the \file{ptop} program. 
+The structure of a ptop configuration file is a simple buildingblock repeated
+several (20-30) times, for each pascal keyword known to the \file{ptop} program.
 (see the default configuration file or \file{ptopu.pp} source to
 find out which keywords are known)
 
-The basic building block of the configuration file consists out of one or two 
+The basic building block of the configuration file consists out of one or two
 lines, describing how \file{ptop} should react on a certain keyword.
 First a line without square brackets with the following format:
 
@@ -1777,7 +1787,7 @@ mean the following:
 \begin{itemize}
 \item The keyword this block is about is \textbf{else} because it's on the LEFT side
 of both equal signs.
-\item The option \var{crbefore} signals not to allow other code (so just spaces) 
+\item The option \var{crbefore} signals not to allow other code (so just spaces)
 before the ELSE keyword on the same line.
 \item The option \var{dindonkey} de-indents if the parser finds any of the keywords
  in the square brackets line (if,then,else)
@@ -1785,7 +1795,7 @@ before the ELSE keyword on the same line.
 \item The option \var{upper} uppercase the keyword (else or Else becomes ELSE)
 \end{itemize}
 
-Try to play with the configfile step by step until you find the effect you desire. 
+Try to play with the configfile step by step until you find the effect you desire.
 The configurability and possibilities of ptop are quite large. E.g. I like all
 keywords uppercased instead of capitalized, so I replaced all capital keywords in
 the default file by upper.
@@ -1797,7 +1807,7 @@ source and try to compile it, to see if \file{ptop} hasn't made any errors.
 
 The source of the \file{PtoP} program is conveniently split in two files:
 One is a unit containing an object that does the actual beautifying of the
-source, the other is a shell built around this object so it can be used 
+source, the other is a shell built around this object so it can be used
 from the command line. This design makes it possible to include the object
 in some program (e.g. an IDE) and use it's features to format code.
 
@@ -1817,7 +1827,7 @@ The object resided in the \file{PtoPU} unit, and is declared as follows
 Using this object is very simple. The procedure is as follows:
 \begin{enumerate}
 \item Create the object, using it's constructor.
-\item Set the \var{Ins} stream. This is an open stream, from which pascal source will be 
+\item Set the \var{Ins} stream. This is an open stream, from which pascal source will be
 read. This is a mandatory step.
 \item Set the \var{OutS} stream. This is an open stream, to which the
 beautified pascal source will be written. This is a mandatory step.
@@ -1831,7 +1841,7 @@ step is optional. If you don't set this, a default configuration is used.
 when indenting. Tab characters are not used in the program. This step is
 optional. The indent variable is initialized to 2.
 \item Call \var{PrettyPrint}. This will pretty-print the source in \var{Ins}
-and write the result to \var{OutS}. The function returns \var{True} if no 
+and write the result to \var{OutS}. The function returns \var{True} if no
 errors occurred, \var{False} otherwise.
 \end{enumerate}
 
@@ -1875,11 +1885,11 @@ routines in standard \var{C} libraries.
 routines for handling objects.
 \item [dos] This unit provides basic routines for
 accessing the operating system \dos. It provides almost the same
-functionality as the Turbo Pascal unit. 
+functionality as the Turbo Pascal unit.
 \item [printer]  This unit provides all you
 need for rudimentary access to the printer.
 \item [getopts] This unit gives you the
-\gnu \var{getopts} command-line arguments  handling mechanism. 
+\gnu \var{getopts} command-line arguments  handling mechanism.
 It also supports long options.
 \item [crt] This unit provides basic screen
 handling routines. It provides the same functionality  as the Turbo Pascal \var{CRT}
@@ -1921,7 +1931,7 @@ Dos.
 \item [printer] This unit provides an
 interface to the standard Unix printing mechanism.
 \item [getopts] This unit gives you the
-\gnu \var{getopts} command-line arguments  handling mechanism. 
+\gnu \var{getopts} command-line arguments  handling mechanism.
 It also supports long options.
 \item [mmx] This unit provides support for \var{mmx} extensions in your
 code.
@@ -1933,7 +1943,7 @@ non-functional things are the fillpatterns and line styles. It uses the
 libvga and libvgagl graphics libraries, so you need these installed for this
 unit to work. Also, programs using this library need to be run as root, or
 setuid  root, and hence are a potential security risk.
-\item [ports] This implements the various \var{port[]} constructs. These are 
+\item [ports] This implements the various \var{port[]} constructs. These are
 provided for compatibility only, and it is not recommended to use them
 extensively. Programs using this construct must be run as ruit or setuid
 root, and are a serious security risk on your system.
@@ -1945,7 +1955,7 @@ root, and are a serious security risk on your system.
 
 \chapter{Debugging your Programs}
 
-\fpc supports debug information for the \gnu debugger \var{gdb}. 
+\fpc supports debug information for the \gnu debugger \var{gdb}.
 This chapter describes shortly how to use this feature. It doesn't attempt
 to describe completely the \gnu debugger, however.
 For more information on the workings of the \gnu debugger, see the \var{gdb}
@@ -1969,17 +1979,17 @@ ppc386 -g hello.pp
 This will generate debugging information in the executable from your
 program. You will notice that the size of the executable increases
 substantially because of this\footnote{A good reason not to include debug
-information in an executable you plan to distribute.}. 
+information in an executable you plan to distribute.}.
 
 Note that the above will only generate debug information {\var for the code
 that has been generated} when compiling \file{hello.pp}. This means that if
 you used some units (the system unit, for instance) which were not compiled
 with debugging support, no debugging support will be available for the code
-in these units. 
+in these units.
 
-There are 2 solutions for this problem. 
+There are 2 solutions for this problem.
 \begin{enumerate}
-\item Recompile all units manually with the \var{-g} option. 
+\item Recompile all units manually with the \var{-g} option.
 \item Specify the 'build' option (\var{-B}) when compiling with debugging
 support. This will recompile all units, and insert debugging information in
 each of the units.
@@ -1988,7 +1998,7 @@ The second option may have undesirable side effects. It may be that some
 units aren't found, or compile incorrectly due to missing conditionals,
 etc..
 
-If all went well, the executable now contains the necessary information with 
+If all went well, the executable now contains the necessary information with
 which you can debug it using \gnu \var{gdb}.
 
 
@@ -2018,7 +2028,7 @@ GDB 4.15.1 (i486-slackware-linux),
 Copyright 1995 Free Software Foundation, Inc...
 (gdb)
 \end{verbatim}
-To start the program you can use the \var{run} command. You can optionally 
+To start the program you can use the \var{run} command. You can optionally
 specify command-line parameters, which will then be fed to your program, for
 example:
 \begin{verbatim}
@@ -2030,7 +2040,7 @@ the message \var{'Program exited normally'}.
 
 If something went wrong (a segmentation fault or so), \var{gdb} will stop
 the execution of your program, and inform you of this with an appropriate
-message. You can then use the other \var{gdb} commands to see what happened.  
+message. You can then use the other \var{gdb} commands to see what happened.
 Alternatively, you can instruct \var{gdb} to stop at a certain point in your
 program, with the \var{break} command.
 
@@ -2049,8 +2059,8 @@ path, otherwise it doesn't find the sources.
 specify a line number or function name.
 \item [break\ ] Sets a breakpoint at a specified line or function
 \item [awatch\ ] Sets a watch-point for an expression. A watch-point stops
-execution of your program whenever the value of an expression is either 
-read or written. 
+execution of your program whenever the value of an expression is either
+read or written.
 \end{description}
 
 for more information, see the \var{gdb} users' guide, or use the \var{'help'}
@@ -2077,7 +2087,7 @@ As an example, of you want to watch the value of a loop variable
 \begin{verbatim}
 watch COUNT
 \end{verbatim}
-Or if you want stop when a certain function (e.g \var{MyFunction}) is called, 
+Or if you want stop when a certain function (e.g \var{MyFunction}) is called,
 type
 \begin{verbatim}
 break MYFUNCTION
@@ -2088,7 +2098,7 @@ fixed as soon as possible.
 
 \item \var{gdb} does not know sets.
 
-\item \var{gdb} doesn't know strings. Strings are represented in \var{gdb} 
+\item \var{gdb} doesn't know strings. Strings are represented in \var{gdb}
 as records with a length field and an array of char contaning the string.
 
 You can also use the following user function to print strings:
@@ -2101,7 +2111,7 @@ end
 
 document pst
   Print out a Pascal string
-end 
+end
 \end{verbatim}
 If you insert it in your \file{gdb.ini} file, you can look at a string with this
 function. There is a sample \file{gdb.ini} in appendix \ref{ch:GdbIniFile}.
@@ -2131,7 +2141,7 @@ starting linenumber of the function.
 
 You can compile your programs with profiling support. for this, you just
 have to use the compiler switch \var{-pg}. The compiler wil insert the
-necessary stuff for profiling. 
+necessary stuff for profiling.
 
 When you have done this, you can run your program as you normally would run
 it.
@@ -2165,7 +2175,7 @@ done with almost any tool you wish, most languages aren't designed for it.
 Perl may be a notable exception, but perl is an interpreted language, the
 executable is quite big, and hence puts a big load on the server machine.
 
-Because of its simple, almost intuitive, string handling and its easy syntax, 
+Because of its simple, almost intuitive, string handling and its easy syntax,
 Pascal is very well suited for CGI programming. Pascal allows you to quickly
 produce some results, while giving you all the tools you need for more
 complex programming. The basic RTL routines in principle are enough to get
@@ -2173,15 +2183,15 @@ the job done, but you can create, with relatively little effort, some units
 which can be used as a base for more complex CGI programming.
 
 That's why, in this chapter, we will discuss the basics of CGI in \fpc.
-In the subsequent, we will assume that the server for which the programs are 
+In the subsequent, we will assume that the server for which the programs are
 created, are based upon the NCSA \var{httpd} WWW server, as the examples
-will be based upon the NCSA method of CGI programming\footnote{... and it's 
+will be based upon the NCSA method of CGI programming\footnote{... and it's
 the only WWW-server I have to my disposition at the moment.}.
-They have been tested with the \file{apache} server on \linux, and 
+They have been tested with the \file{apache} server on \linux, and
 the \file{xitami} server on \windowsnt.
 
-The two example programs in this chapter have been tested on the command line 
-and worked, under the condition that no spaces were present in the name and 
+The two example programs in this chapter have been tested on the command line
+and worked, under the condition that no spaces were present in the name and
 value pairs provided to them.
 
 There is however, a faster and generally better \file{uncgi} unit available,
@@ -2226,7 +2236,7 @@ The following example shows how this can be achieved:
 \begin{verbatim}
 program cgi_post;
 
-uses dos; 
+uses dos;
 
 const max_data = 1000;
 
@@ -2262,7 +2272,7 @@ while not eof(input) do
   literal:=false;
   read(c);
   if c='\' then
-     begin 
+     begin
      literal:=true;
      read(c);
      end;
@@ -2271,12 +2281,12 @@ while not eof(input) do
         if aname then name:=name+c else value:=value+c
   else
      begin
-     if c='&' then 
+     if c='&' then
          begin
          inc (nrdata);
          aname:=true;
-         end 
-      else 
+         end
+      else
          aname:=false;
       end
   end;
@@ -2290,8 +2300,8 @@ end.
 While this program isn't shorter than the C program provided as an example
 at NCSA, it doesn't need any other units. everythig is done using standard
 Pascal procedures\footnote{actually, this program will give faulty results,
-since spaces in the input are converted to plus signs by the web browser. 
-The program doesn't check for this, but that is easy to change. 
+since spaces in the input are converted to plus signs by the web browser.
+The program doesn't check for this, but that is easy to change.
 The main concern here is to give the working principle.}.
 
 Note that this program has a limitation: the length of names and values is
@@ -2305,8 +2315,8 @@ this may be needed.
 % Data passed through an environment variable
 \subsection{Data passed through an environment variable}
 If your form uses the \var{GET} method of passing it's data, the CGI script
-needs to read the \var{QUERY\_STRING} environment variable to get it's data. 
-Since this variable can, and probably will, be more than 255 characters long, 
+needs to read the \var{QUERY\_STRING} environment variable to get it's data.
+Since this variable can, and probably will, be more than 255 characters long,
 you will not be able to use normal string methods, present in pascal. \fpc
 implements the \var{pchar} type, which is a pointer to a null-terminated
 array of characters.
@@ -2319,7 +2329,7 @@ The following example illustrates what to do in case of a method of \var{GET}
 \begin{verbatim}
 program cgi_get;
 
-uses strings,linux; 
+uses strings,linux;
 
 const max_data = 1000;
 
@@ -2350,7 +2360,7 @@ while p^<>#0  do
   begin
   literal:=false;
   if p^='\' then
-     begin 
+     begin
      literal:=true;
      inc(longint(p));
      end;
@@ -2359,12 +2369,12 @@ while p^<>#0  do
         if aname then name:=name+p^ else value:=value+p^
   else
      begin
-     if p^='&' then 
+     if p^='&' then
          begin
          inc (nrdata);
          aname:=true;
-         end 
-      else 
+         end
+      else
          aname:=false;
       end;
   inc(longint(p));
@@ -2391,13 +2401,13 @@ field. This can be done with a
 \begin{verbatim}
  getmem (data[nrdata].value,needed_number_of_bytes);
 \end{verbatim}
-call. After that you can do a 
+call. After that you can do a
 \begin{verbatim}
 strlcopy (data[nrdata].value,p,needed_number_of_bytes);
 \end{verbatim}
 to copy the data into place.
 
-You may have noticed the following unorthodox call : 
+You may have noticed the following unorthodox call :
 \begin{verbatim}
 inc(longint(p));
 \end{verbatim}
@@ -2406,7 +2416,7 @@ inc(longint(p));
 \var{longint} allows you to do arithmetic on the \var{pointer}.
 
 Note however, that this is a non-portable call. This may work on the I386
-processor, but not on a ALPHA processor (where a pointer is 8 bytes long). 
+processor, but not on a ALPHA processor (where a pointer is 8 bytes long).
 This will be remedied in future releases of \fpc.
 
 
@@ -2434,8 +2444,8 @@ And that's all there is to it !
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % I'm under Windows, what now ?
 \section{I'm under Windows, what now ?}
-Under Windows the system of writing CGI scripts can be totally different. 
-If you use \fpc under Windows then you also should be able to do CGI 
+Under Windows the system of writing CGI scripts can be totally different.
+If you use \fpc under Windows then you also should be able to do CGI
 programming, but the above instructions may not work. They are known to work
 for the \file{xitami} server, however.
 
@@ -2566,7 +2576,7 @@ Processor specific options:
            -TLINUX    Linux
            -TOS2      OS/2 2.x
            -TWin32    Windows 32 Bit
-  
+
   -?     shows this help
   -h     shows this help without waiting
 \end{verbatim}
@@ -2578,14 +2588,9 @@ Processor specific options:
 
 \chapter{Alphabetical list of reserved words}
 \label{ch:reserved}
-\begin{latexonly}
 \begin{multicols}{3}
 \input{reserved.tex}
 \end{multicols}
-\end{latexonly}
-\begin{htmlonly}
-\input{reserved.tex}
-\end{htmlonly}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % APPENDIX C.
@@ -2593,7 +2598,7 @@ Processor specific options:
 
 \chapter{Compiler messages}
 \label{ch:ErrorMessages}
-This appendix is meant to list all the compiler messages. The list of 
+This appendix is meant to list all the compiler messages. The list of
 messages is generated from he compiler source itself, and should be faitly
 complete. At this point, only assembler errors are not in the list.
 
@@ -2888,7 +2893,7 @@ If this happens, the file variable you are using is trashed; it
 indicates that your memory is corrupted.
 \item [12  Invalid file access code]
 This will happen if you do a reset or rewrite of a file when \var{FileMode}
-is invalid. 
+is invalid.
 \item [15  Invalid drive number]
 The number given to the Getdir function specifies a non-existent disk.
 \item [16  Cannot remove current directory]
@@ -2917,27 +2922,27 @@ Reported by write if a text file isn't opened with Rewrite.
 Reported when a non-numerice value is read from a text file, when a numeric
 value was expected.
 \item [150  Disk is write-protected]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [151  Bad drive request struct length]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [152  Drive not ready]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [154  CRC error in data]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [156  Disk seek error]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [157  Unknown media type]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [158  Sector Not Found]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [159  Printer out of paper]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [160  Device write fault]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [161  Device read fault]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [162  Hardware failure]
-(Critical error, \dos only.) 
+(Critical error, \dos only.)
 \item [200  Division by zero]
 You are dividing a number by zero.
 \item [201  Range check error]
@@ -2947,10 +2952,10 @@ error in the following cases:
 \item An array was accessed with an index outside its declared range.
 \item You're trying to assign a value to a variable outside its range (for
 instance a enumerated type).
-\end{enumerate} 
+\end{enumerate}
 \item [202  Stack overflow error]
 The stack has grown beyond itss maximum size. This error can easily occur if
-you have recursive functions. 
+you have recursive functions.
 \item [203  Heap overflow error]
 The heap has grown beyond its boundaries, ad you are rying to get more
 memory. Please note that \fpc provides a growing heap, i.e. the heap will
@@ -2961,9 +2966,9 @@ this error.
 This you will get if you call dispose or Freemem with an invalid pointer
 (notably, \var{Nil})
 \item [205  Floating point overflow]
-You are trying to use or produce too large real numbers. 
+You are trying to use or produce too large real numbers.
 \item [206  Floating point underflow]
-You are trying to use or produce too small real numbers. 
+You are trying to use or produce too small real numbers.
 \item [207  Invalid floating point operation]
 Can occur if you try to calculate the square root or logarithm of a negative
 number.
@@ -2977,7 +2982,7 @@ should be overridden, and the overriding method should be called.
 This occurs when an invalid type is registered in the objects unit.
 \item [213  Collection index out of range]
 You are trying to access a collection item with an invalid index.
-(objects unit) 
+(objects unit)
 \item [214  Collection overflow error]
 The collection has reached its maximal size, and you are trying to add
 another element. (objects unit)
@@ -2992,7 +2997,7 @@ all excpetions and exits gracefully.
 
 \chapter{The Floating Point Coprocessor emulator}
 
-In this appendix we note some caveats when using the floating point 
+In this appendix we note some caveats when using the floating point
 emulator on GO32V2 systems. Under GO32V1 systems, all is as described in
 the installation section.
 
@@ -3072,8 +3077,8 @@ the installation section.
 
 Here you have a sample \file{gdb.ini} file listing, which gives better
 results when using \var{gdb}. Under \linux you should put this in a
-\file{.gdbinit} file in your home directory or the current directory..  
- 
+\file{.gdbinit} file in your home directory or the current directory..
+
 \begin{verbatim}
 set print demangle off
 set gnutarget auto
@@ -3095,7 +3100,7 @@ end
 
 document pst
   Print out a pascal string
-end    
+end
 \end{verbatim}
 
 \end{document}

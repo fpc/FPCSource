@@ -16,14 +16,15 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
 %
 \ProvidesPackage{fpc}[1996/12/09]
 \NeedsTeXFormat{LaTeX2e}
 \RequirePackage{xspace}
+\RequirePackage{ifthen}
 \ExecuteOptions{titlepage}
 % Some style elements
-\parindent 0pt%  
+\parindent 0pt%
 \parskip 0.35\baselineskip%
 % First, all definitions for latex only.
 \newcommand{\docdescription}[1]{\def\@FPCDescription{#1}}
@@ -58,7 +59,7 @@
   % end of \maketitle
 % For the \procedure and \function commands, we don't want heading numbers.
 \setcounter{secnumdepth}{1}
-% redefine the subsection command to leave less space, 
+% redefine the subsection command to leave less space,
 %and to use sans serif
 \renewcommand\subsection{\@startsection%
 {subsection}%
@@ -71,44 +72,50 @@
 \newcommand{\FPClabel}[1]{%
 \raggedleft\makebox[0pt][r]{\textsf{#1:}}
 }
+
+%
+% FPC environments
+%
+% Lists
 \newenvironment{FPCList}
 {\begin{list}{}{%
-\renewcommand{\makelabel}[1]{\FPClabel{##1}\hfil\relax}
- \setlength{\labelwidth}{0pt}%
- \setlength{\leftmargin}{0pt}}%
- \setlength{\labelsep}{0pt}%
+  \renewcommand{\makelabel}[1]{\FPClabel{##1}\hfil\relax}
+  \setlength{\labelwidth}{0pt}%
+  \setlength{\leftmargin}{0pt}}%
+  \setlength{\labelsep}{0pt}%
 }
 {\end{list}}
+% For Tables.
+\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+% The same, but with label in third argument (tab:#3)
+\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+
 %
+% Refs
 %
+\newcommand{\seefl}[2]{\textsf{#1} (\pageref{fu:#2})}
+\newcommand{\seepl}[2]{\textsf{#1} (\pageref{pro:#2})}
+\newcommand{\seetyl}[2]{\textsf{#1} (\pageref{ty:#2})}
+\newcommand{\seec}[1]{chapter \ref{ch:#1}, page \pageref{ch:#1}\xspace}
+\newcommand{\sees}[1]{section \ref{se:#1}, page \pageref{se:#1}\xspace}
+\newcommand{\seeo}[1]{See \ref{option:#1}}
+\newcommand{\seet}[1]{table (\ref{tab:#1}) }
+
+%
+% Function/procedure environments
+%
+\newenvironment{functionl}[2]{\subsection{#1}\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{procedurel}[2]{\subsection{#1}\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
+\newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
+\newenvironment{typel}[2]{\subsection{#1}\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{type}[1]{\begin{typel}{#1}{#1}}{\end{typel}}
 \newcommand{\Declaration}{\item[Declaration]\ttfamily}
 \newcommand{\Description}{\item[Description]\rmfamily}
 \newcommand{\Errors}{\item[Errors]\rmfamily}
 \newcommand{\SeeAlso}{\item[See also]\rmfamily}
 %
-%  The environments
-%
-\newenvironment{functionl}[2]{\subsection{#1}%
-\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
-\newenvironment{procedurel}[2]{\subsection{#1}%
-\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
-\newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
-\newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
-\newenvironment{typel}[2]{\subsection{#1}%
-\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
-\newenvironment{type}[1]{\begin{typel}{#1}{#1}}{\end{typel}}
-% Now the referencing commands.
-%
-% First, the ones with alternate label (second argument}
-%
-\newcommand{\seefl}[2]{
-\textsf{#1} (\pageref{fu:#2})}
-\newcommand{\seepl}[2]{
-\textsf{#1} (\pageref{pro:#2})}
-\newcommand{\seetyl}[2]{
-\textsf{#1} (\pageref{ty:#2})}
-%
-% Now the ones with label.
+% Ref without labels
 %
 \newcommand{\seef}[1]{\seefl{#1}{#1}}
 \newcommand{\seep}[1]{\seepl{#1}{#1}}
@@ -138,21 +145,11 @@
 \newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}\xspace}
 \newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}\xspace}
 \newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}\xspace}
-\newcommand{\seec}[1]{chapter \ref{ch:#1}, page \pageref{ch:#1}\xspace}
-\newcommand{\sees}[1]{section \ref{se:#1}, page \pageref{se:#1}\xspace}
-%
-% Nice environments
-%
-% For Code examples (complete programs only)
-\newenvironment{CodEx}{\begin{quote}}{\end{quote}}
-% For Tables.
-\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
-% The same, but with label in third argument (tab:#3)
-\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 %
 % Commands to reference these things.
 %
-\newcommand{\seet}[1]{table (\ref{tab:#1}) }
+\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
+\newcommand{\olabel}[1]{\label{option:#1}}
 %
 % some OSes
 %
@@ -169,18 +166,21 @@
 \newcommand{\win}{\textsc{Win32}\xspace}
 \newcommand{\freebsd}{\textsc{FreeBSD}\xspace}
 %
-% Some versions 
+% Some versions
 %
 \newcommand{\fpcversion}{0.99.12}
+
 %
 % PDF support
 %
-\newif\ifpdf
-\ifx\pdfoutput\undefined
-   \pdffalse
-\else
-   \pdfoutput=1
-   \pdftrue
-\fi
+\latex{%
+  \newif\ifpdf
+  \ifx\pdfoutput\undefined
+     \pdffalse
+  \else
+     \pdfoutput=1
+     \pdftrue
+  \fi
+}
 %
 % end of fpc.sty

@@ -16,28 +16,54 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
 %
 \documentclass{report}
-\usepackage{a4}
+%
+% Preamble
+%
+\usepackage{ifthen}
+\usepackage{xspace}
+\usepackage{a4dutch}
+\usepackage{makeidx}
 \usepackage{html}
-\makeindex
-\latex{\usepackage{multicol}}
-\latex{\usepackage{fpcman}}
-\latex{\usepackage{epsfig}}
+\usepackage{htmllist}
+\usepackage{fancyheadings}
+\usepackage{epsfig}
+\usepackage{multicol}
+\usepackage{fpc}
+\latex{%
+  \ifpdf
+  \usepackage[pdftex,bookmarks=true]{hyperref}
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Compiler documentation)
+           /Subject(Free Pascal Compiler documentation)
+           /Keywords(Free Pascal, Compiler, Internals)
+           }
+  \fi
+}
+%
 \html{\input{fpc-html.tex}}
-\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
-\newcommand{\olabel}[1]{\label{option:#1}}
-% We should change this to something better. See \seef etc.
-\newcommand{\seeo}[1]{See \ref{option:#1}}
+%
+% Settings
+%
+\pagestyle{fancy}
+\makeindex
+%
+% Start of document.
+%
 \begin{document}
 \title{Free Pascal :\\ Compiler documentation}
 \docdescription{Compiler documentation for \fpc, version \fpcversion}
 \docversion{1.0}
-\date{September 1998}
+\input{date.inc}
 \author{Micha\"el Van Canneyt\\Florian Kl\"ampfl}
 \maketitle
 \tableofcontents
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Introduction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +154,7 @@ for big symbol tables some hash technics are used. The implementation
 can be found in symtable.pas, object tsymtable.
 
 The symbol table module can't be associated with a stage of the compiler,
-each stage accesses it. 
+each stage accesses it.
 The scanner uses a symbol table to handle preprocessor symbols, the
 parser inserts declaration and the code generator uses the collected
 information about symbols and types to generate the code.
@@ -140,7 +166,7 @@ information about symbols and types to generate the code.
 Definitions are one of the most important data structures in \fpc.
 They are used to describe types, for example the type of a variable
 symbol is given by a definition and the result type
-of a expression is given as a definition. 
+of a expression is given as a definition.
 They have nothing to do with the definition of a procedure.
 Definitions are implemented as an object (in file \file{symtable.pas},
 \var{tdef} and its descendents). There are a lot of different
@@ -213,7 +239,7 @@ The register allocation is very hairy, so it gets
 an own chapter in this manual. Please be careful when changing things
 regarding the register allocation and test such changes intensive.
 
-Future versions will may implement another kind of register allocation 
+Future versions will may implement another kind of register allocation
 to make this part of the compiler more robust, see
 \ref{se:future_plans}. But the current
 system is less or more working and changing it would be a lot of
@@ -391,7 +417,7 @@ procedure test;
      l,i,j,k : longint;
 
   begin
-     l:=i;  // this forces the compiler to assign as much as       
+     l:=i;  // this forces the compiler to assign as much as
      j:=k;  // possible variables to registers
      // here you should insert your code
   end;

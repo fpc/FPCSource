@@ -16,19 +16,24 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
-%
-\documentclass{report}
+%   Boston, MA 02111-1307, USA.
 %
 % This is just a main file. All units are described in separate files.
 %
+\documentclass{report}
+%
 % Preamble
 %
+\usepackage{ifthen}
+\usepackage{xspace}
 \usepackage{a4dutch}
 \usepackage{makeidx}
 \usepackage{html}
+\usepackage{htmllist}
+\usepackage{syntax}
 \usepackage{fancyheadings}
 \usepackage{fpc}
+\latex{\usepackage{multicol}}
 \latex{%
   \ifpdf
   \usepackage[pdftex,bookmarks=true]{hyperref}
@@ -38,13 +43,22 @@
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Standard units Reference Guide)
            /Subject(Free Pascal Standard units reference guide)
-           /Keywords(Free Pascal, Units,RTL)
-  }
+           /Keywords(Free Pascal, Units, RTL)
+           }
   \fi
 }
 %
-% syntax style
+\html{\input{fpc-html.tex}}
 %
+% Settings
+%
+\pagestyle{fancy}
+\makeindex
+%
+% Syntax style
+%
+\usepackage{syntax}
+\input{syntax/diagram.tex}
 \latex{\usepackage{listings}\usepackage{lst017}\usepackage{lstdelphi}%
   \blankstringtrue
   \selectlisting{delphi}
@@ -52,12 +66,8 @@
   \keywordstyle{\bfseries}
   \prelisting{\sffamily\sloppy}
 }
-\html{\input{fpc-html.tex}}
-\pagestyle{fancy}
-\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
-\makeindex
 %
-% start of document.
+% Start of document.
 %
 \begin{document}
 \title{Free Pascal supplied units : \\ Reference guide.}
@@ -67,6 +77,7 @@
 \author{Micha\"el Van Canneyt\\ Florian Kl\"ampfl}
 \maketitle
 \tableofcontents
+\makeindex
 \newpage
 
 \section*{About this guide}
@@ -75,7 +86,7 @@ procedures as they are declared in the units that come standard with \fpc.
 
 Throughout this document, we will refer to functions, types and variables
 with \var{typewriter} font. Functions and procedures gave their own
-subsections, and for each function or procedure we have the following 
+subsections, and for each function or procedure we have the following
 topics:
 \begin{description}
 \item [Declaration] The exact declaration of the function.

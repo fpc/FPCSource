@@ -16,16 +16,22 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
 %
 \documentclass{report}
-
+%
+% Preamble
+%
+\usepackage{ifthen}
+\usepackage{xspace}
 \usepackage{a4dutch}
 \usepackage{makeidx}
 \usepackage{html}
+\usepackage{htmllist}
 \usepackage{fancyheadings}
+\usepackage{epsfig}
+\usepackage{multicol}
 \usepackage{fpc}
-\latex{\usepackage{multicol}}
 \latex{%
   \ifpdf
   \usepackage[pdftex,bookmarks=true]{hyperref}
@@ -36,25 +42,25 @@
            /Title(Programmers' Guide)
            /Subject(Free Pascal Programmers' guide)
            /Keywords(Free Pascal)
-  }
+           }
   \fi
 }
+%
 \html{\input{fpc-html.tex}}
+%
+% Settings
+%
 \pagestyle{fancy}
-\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 \makeindex
-\newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
-\newcommand{\olabel}[1]{\label{option:#1}}
 %
-% start of document.
+% Start of document.
 %
+\begin{document}
 \title{Free Pascal \\ Programmers' manual}
 \docdescription{Programmers' manual for \fpc, version \fpcversion}
 \docversion{1.5}
 \input{date.inc}
 \author{Micha\"el Van Canneyt}
-\makeindex
-\begin{document}
 \maketitle
 \tableofcontents
 \newpage
@@ -101,12 +107,12 @@ Many switches have a long form also. If they do, then the name of the
 long form is given also. For long switches, the + or - character to switch
 the option on or off, may be replaced by \var{ON} or \var{OFF} keywords.
 
-Thus \verb|{$I+}| is equivalent to \verb|{$IOCHECKS ON}| or 
-\verb|{$IOCHECKS +}| and 
+Thus \verb|{$I+}| is equivalent to \verb|{$IOCHECKS ON}| or
+\verb|{$IOCHECKS +}| and
 \verb|{$C-}| is equivalent to \verb|{$ASSERTIONS OFF}| or
 \verb|{$ASSERTIONS -}|
 
-The long forms of the switches are the same as their Delphi 
+The long forms of the switches are the same as their Delphi
 counterparts.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,8 +133,8 @@ yet implemented. The alignment of data will be different in any case, since
 \subsection{\var{\$ASMMODE} : Assembler mode}
 \label{se:AsmReader}
 
-The \var{\{\$ASMMODE XXX} directive informs the compiler what kind of assembler 
-it can expect in an \var{asm} block. The \var{XXX} should be replaced by one 
+The \var{\{\$ASMMODE XXX} directive informs the compiler what kind of assembler
+it can expect in an \var{asm} block. The \var{XXX} should be replaced by one
 of the following:
 \begin{description}
 \item [att\ ] Indicates that \var{asm} blocks contain AT\&T syntax assembler.
@@ -175,9 +181,9 @@ insensitive.
 \subsection{\var{\$ELSE} : Switch conditional compilation}
 
 The \var{\{\$ELSE \}} switches between compiling and ignoting the source
-text delimited by the preceding \var{\{\$IFxxx\}} and following 
-\var{\{\$ENDIF\}}. Any text after the \var{ELSE} keyword but before the 
-brace is ignored: 
+text delimited by the preceding \var{\{\$IFxxx\}} and following
+\var{\{\$ENDIF\}}. Any text after the \var{ELSE} keyword but before the
+brace is ignored:
 \begin{verbatim}
 {$ELSE some ignored text}
 \end{verbatim}
@@ -207,8 +213,8 @@ The following code
 \begin{verbatim}
 {$ERROR This code is erroneous !}
 \end{verbatim}
-will display an error message when the compiler encounters it, 
-and increase the error count of the compiler. 
+will display an error message when the compiler encounters it,
+and increase the error count of the compiler.
 The compiler will continue to compile, but no code will be emitted.
 
 \subsection{\var{\$F} : Far or near functions}
@@ -268,16 +274,16 @@ The following code
 {$FATAL This code is erroneous !}
 \end{verbatim}
 will display an error message when the compiler encounters it, and trigger
-and increase the error count of the compiler. 
+and increase the error count of the compiler.
 The compiler will immediatly stop the compilation process.
 
 
 \subsection{\var{\$H} or \var{\$LONGSTRINGS} : Use AnsiStrings}
 
 If \var{\{\$LONGSTRINGS ON\}} is specified, the keyword \var{String} (no
-length specifier) will be treated as \var{AnsiString}, and the compiler 
-will treat the corresponding varible as an ansistring, and will 
-generate corresponding code. 
+length specifier) will be treated as \var{AnsiString}, and the compiler
+will treat the corresponding varible as an ansistring, and will
+generate corresponding code.
 
 By default, the use of ansistrings is off, corresponding to \var{\{\$H-\}}.
 
@@ -295,36 +301,36 @@ will display a hint message when the compiler encounters it.
 
 \subsection{\var{\$HINTS} : Emit hints}
 
-\var{\{\$HINTS ON\}} switches the generation of hints on. 
-\var{\{\$HINTS OFF\}} switches the generation of hints off. 
-Contrary to the command-line option \var{-vh} this is a local switch, 
+\var{\{\$HINTS ON\}} switches the generation of hints on.
+\var{\{\$HINTS OFF\}} switches the generation of hints off.
+Contrary to the command-line option \var{-vh} this is a local switch,
 this is useful for checking parts of your code.
 
 \subsection{\var{\$IF} : Start conditional compilation}
 
 The directive \var{\{\$IF expr\}} will continue the compilation
-if the boolean expression \var{expr} evaluates to \var{true}. If the 
+if the boolean expression \var{expr} evaluates to \var{true}. If the
 compilation evaluates to false, then the source are skipped to the first
 \var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
 
 The compiler must be able to evaluate the expression at compile time.
 This means that you cannot use variables or constants that are defined in
-the source. Macros and symbols may be used, however.   
+the source. Macros and symbols may be used, however.
 
-More information on this can be found in the section about 
+More information on this can be found in the section about
 conditionals.
 
 \subsection{\var{\$IFDEF} : Start conditional compilation}
 
 The \var{\{\$IFDEF name\}} will skip the compilation of the text that
 follows it if the symbol \var{name} is not defined. If it is defined, then
-compilation continues as if the directive wasn't there. 
+compilation continues as if the directive wasn't there.
 
 \subsection{\var{\$IFNDEF} : Start conditional compilation}
 
 The \var{\{\$IFNDEF name\}} will skip the compilation of the text that
 follows it if the symbol \var{name} is defined. If it is not defined, then
-compilation continues as if the directive wasn't there. 
+compilation continues as if the directive wasn't there.
 
 \subsection{\var{\$IFOPT} : Start conditional compilation}
 
@@ -344,7 +350,7 @@ Will compile the writeln statement if generation of type information is on.
 \subsection{\var{\$INFO} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
-option, then 
+option, then
 \begin{verbatim}
 {$INFO This was coded on a rainy day by Bugs Bunny }
 \end{verbatim}
@@ -352,7 +358,7 @@ will display an info message when the compiler encounters it.
 
 
 \subsection{\var{\$I} or \var{\$IOCHECK} : Input/Output checking}
-The \var{\{\$I-\}} or \var{\{\$IOCHECK OFF\}} directive tells the compiler 
+The \var{\{\$I-\}} or \var{\{\$IOCHECK OFF\}} directive tells the compiler
 not to generate input/output checking code in your program. By default, the
 compiler does not generate this code, you must switch it on using the
 \var{-Ci} command-lne switch.
@@ -384,9 +390,9 @@ if IOResult<>0 then
 \end{verbatim}
 
 \subsection{\var{\$I} or \var{\$INCLUDE} : Include file }
-The \var{\{\$I filename\}} or \var{\{\$INCLUDE filename\}} directive 
-tells the compiler to read further statements from the file \var{filename}. 
-The statements read there will be inserted as if they occurred in the 
+The \var{\{\$I filename\}} or \var{\{\$INCLUDE filename\}} directive
+tells the compiler to read further statements from the file \var{filename}.
+The statements read there will be inserted as if they occurred in the
 current file.
 
 The compiler will append the \file{.pp} extension to the file if you don't
@@ -404,12 +410,12 @@ i.e. an identifier, keyword or operator.
 The compiler will look for the file to include in the following places:
 
 \begin{enumerate}
-\item It will look in the path specified in the incude file name. 
+\item It will look in the path specified in the incude file name.
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the include file search
 path.
 \end{enumerate}
-You can add files to the include file search path with the \var{-I} 
+You can add files to the include file search path with the \var{-I}
 command-line option.
 
 \subsection{\var{\$I} or \var{\$INCLUDE} : Include compiler info}
@@ -429,7 +435,7 @@ For example, the following program
 Program InfoDemo;
 
 Const User = {$I %USER%};
-       
+
 begin
   Write ('This program was comilped at ',{$I %TIME%});
   Writeln (' on ',{$I %DATE%});
@@ -437,7 +443,7 @@ begin
   Writeln ('Compiler version : ',{$I %FPCVERSION%});
   Writeln ('Target CPU : ',{$I %FPCTARGET%});
 end.
-\end{verbatim} 
+\end{verbatim}
 Creates the following output :
 \begin{verbatim}
 This program was comilped at 17:40:18 on 1998/09/09
@@ -452,21 +458,21 @@ This switch selects the assembler reader. \var{\{\$I386\_XXX\}}
 has the same effect as \var{\{\$ASMMODE XXX\}}, \sees{AsmReader}
 
 \subsection{\var{\$L} or \var{\$LINK} : Link object file}
-The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive 
-tells the compiler that the file \file{filename} should be linked to 
-your program. 
+The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive
+tells the compiler that the file \file{filename} should be linked to
+your program.
 
 the compiler will look for this file in the following way:
 
 \begin{enumerate}
-\item It will look in the path specified in the object file name. 
+\item It will look in the path specified in the object file name.
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the object file search path.
 \end{enumerate}
 You can add files to the object file search path with the \var{-Fo}
 option.
 
-On \linux systems, the name is case sensitive, and must be typed 
+On \linux systems, the name is case sensitive, and must be typed
 exactly as it appears on your system.
 
 {\em Remark :} Take care that the object file you're linking is in a
@@ -482,7 +488,7 @@ linked.
 
 \subsection{\var{\$LINKLIB} : Link to a library}
 The \var{\{\$LINKLIB name\}} will link to a library \file{name}.
-This has the effect of passing \var{-lname} to the linker. 
+This has the effect of passing \var{-lname} to the linker.
 
 As an example, consider the following unit:
 \begin{verbatim}
@@ -503,7 +509,7 @@ If one would issue the command the command
 \begin{verbatim}
 ppc386 foo.pp
 \end{verbatim}
-where foo.pp has the above unit in its \var{uses} clause, 
+where foo.pp has the above unit in its \var{uses} clause,
 then the compiler would link your program to the c library, by passing the
 linker the \var{-lc} option.
 
@@ -521,14 +527,14 @@ of type information isn't fully implemented yet.
 \subsection{\var{\$MESSAGE} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
-option, then 
+option, then
 \begin{verbatim}
 {$MESSAGE This was coded on a rainy day by Bugs Bunny }
 \end{verbatim}
 will display an info message when the compiler encounters it. The effect is
 the same as the \var{\{\$INFO\}} directive.
 
- 
+
 \subsection{\var{\$MMX} : Intel MMX support}
 As of version 0.9.8, \fpc supports optimization for the \textbf{MMX} Intel
 processor (see also \ref{ch:MMXSupport}).
@@ -588,7 +594,7 @@ will display a note message when the compiler encounters it.
 
 \subsection{\var{\$NOTES} : Emit notes}
 
-\var{\{\$NOTES ON\}} switches the generation of notes on. 
+\var{\{\$NOTES ON\}} switches the generation of notes on.
 \var{\{\$NOTES OFF\}} switches the generation of notes off.
  Contrary to the command-line option \var{-vn} this
 is a local switch, this is useful for checking parts of your code.
@@ -624,7 +630,7 @@ var{xxx} can be one of \var{1,2} or \var{4}, or \var{NORMAL} or
 \var{DEFAULT}, corresponding to the default value of 4.
 
 
-As an alternative form one can use \var{\{\$Z1\}}, \var{\{\$Z2\}} 
+As an alternative form one can use \var{\{\$Z1\}}, \var{\{\$Z2\}}
 \var{\{\$Z4\}}. Contrary to Delphi, the default size is 4 bytes
 (\var{\{\$Z4\}}).
 
@@ -632,7 +638,7 @@ So the follwoing code
 \begin{verbatim}
 {$PACKENUM 1}
 Type
-  Days = (monday, tuesday, wednesday, thursday, friday, 
+  Days = (monday, tuesday, wednesday, thursday, friday,
           saturday, sunday);
 \end{verbatim}
 will use 1 byte to store a variable of type \var{Days}, wheras it nomally
@@ -640,7 +646,7 @@ would use 4 bytes. The above code is equivalent to
 \begin{verbatim}
 {$Z1}
 Type
-  Days = (monday, tuesday, wednesday, thursday, friday, 
+  Days = (monday, tuesday, wednesday, thursday, friday,
           saturday, sunday);
 \end{verbatim}
 
@@ -657,24 +663,24 @@ It is of the following form:
 {$PACKRECORDS n}
 \end{verbatim}
 
-Where \var{n} is one of 1,2,4,16 or \var{NORMAL} or \var{DEFAULT}. 
+Where \var{n} is one of 1,2,4,16 or \var{NORMAL} or \var{DEFAULT}.
 This means that the elements of a record that have size greater than \var{n}
 will be aligned on \var{n} byte boundaries. Elements with size less than or
 equal to \var{n} will be aligned to a natural boundary, i.e. to a power of
 two that is equal to or larger than the element's size.
 
-The default alignment (which can be selected with \var{DEFAULT}) is 2, 
+The default alignment (which can be selected with \var{DEFAULT}) is 2,
 contrary to Turbo Pascal, where it is 1.
 
-More information on this and an exmple program can be found in the reference 
+More information on this and an exmple program can be found in the reference
 guide, in the section about record types.
 
 {\em Remark:}
 Sets are always put in 32 bit or 32 bytes, this cannot be changed
 
 \subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
-The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on 
-integer overflow checking. This means that the compiler inserts code 
+The \var{\{\$Q+\}} or \var{\{\$OVERFLOWCHECKS ON\}} directive turns on
+integer overflow checking. This means that the compiler inserts code
 to check for overflow when doing computations with integers.
 When an overflow occurs, the run-time library will print a message
 \var{Overflow at xxx}, and exit the program with exit code 215.
@@ -709,7 +715,7 @@ implemented.
 \subsection{\var{\$SATURATION} : Saturation operations}
 This works only on the intel compiler, and MMX support must be on
 (\var{\{\$MMX +\}}) for this to have any effect. See the section on
-saturation support (\sees{SaturationSupport}) for more information 
+saturation support (\sees{SaturationSupport}) for more information
 on the effect of this directive.
 
 \subsection{\var{\$STOP} : Generate fatal error message}
@@ -726,9 +732,9 @@ It has the same effect as the \var{\{\$FATAL\}} directive.
 \subsection{\var{\$T} or \var{\$TYPEDADDRESS} : Typed address operator (@)}
 
 In the \var{\{\$T+\}} or \var{\{\$TYPEDADDRESS ON\}} state the @ operator,
-when applied to a variable, returns a result of type \var{\^{}T}, if the 
+when applied to a variable, returns a result of type \var{\^{}T}, if the
 type of the variable is \var{T}. In the \var{\{\$T-\}} state, the result is
-always an untyped pointer, which is assignment compatible with all other 
+always an untyped pointer, which is assignment compatible with all other
 pointer types.
 
 \subsection{\var{\$UNDEF} : Undefine a symbol}
@@ -743,7 +749,7 @@ un-defines the symbol \var{name} if it was previously defined.
 
 \subsection{\var{\$V} or \var{\$VARSTRINGCHECKS} : Var-string checking}
 
-When in the \var{+} or \var{ON} state, the compiler checks that strings 
+When in the \var{+} or \var{ON} state, the compiler checks that strings
 passed as parameters are of the same, identical, string type as the declared
 parameters of the procedure.
 
@@ -754,7 +760,7 @@ If the compiler encounters a
 {$WAIT }
 \end{verbatim}
 directive, it will resume compiling only after the user has pressed the
-enter key. If the generation of info messages is turned on, then the compiler 
+enter key. If the generation of info messages is turned on, then the compiler
 will display the follwing message:
 \begin{verbatim}
 Press <return> to continue
@@ -764,7 +770,7 @@ compilation processes. It should be used for debuggig purposes only.
 
 \subsection{\var{\$WARNING} : Generate warning message}
 
-If the generation of warnings is turned on, through the \var{-vw} 
+If the generation of warnings is turned on, through the \var{-vw}
 command-line option or the \var{\{\$WARNINGS ON\}} directive, then
 \begin{verbatim}
 {$WARNING This is dubious code }
@@ -773,8 +779,8 @@ will display a warning message when the compiler encounters it.
 
 \subsection{\var{\$WARNINGS} : Emit warnings}
 
-\var{\{\$WARNINGS ON\}} switches the generation of warnings on. 
-\var{\{\$WARNINGS OFF\}} switches the generation of warnings off. 
+\var{\{\$WARNINGS ON\}} switches the generation of warnings on.
+\var{\{\$WARNINGS OFF\}} switches the generation of warnings off.
 Contrary to the command-line option \var{-vw} this
 is a local switch, this is useful for checking parts of your code.
 
@@ -815,7 +821,7 @@ given for each of the directives.
 
 \subsection{\var{\$D} or \var{\$DEBUGINFO}: Debugging symbols}
 
-When this switch is on (\var{\{\$DEBUGINFO ON\}}), 
+When this switch is on (\var{\{\$DEBUGINFO ON\}}),
 the compiler inserts GNU debugging information in
 the executable. The effect of this switch is the same as the command-line
 switch \var{-g}. By default, insertion of debugging information is off.
@@ -834,7 +840,7 @@ a warning.
 The compiler itself doesn't do the emulation of the coprocessor.
 
 To use coprocessor emulation under \dos go32v1 there is nothing special
-required, as it is handled automatically. (As of version 0.99.10, the 
+required, as it is handled automatically. (As of version 0.99.10, the
 go32v1 platform will no longer be supported)
 
 To use coprocessor emulation under \dos go32v2 you must use the
@@ -880,7 +886,7 @@ and \var{-Cs} switches.
 
 \subsection{\var{\$MODE} : Set compiler compatibility mode}
 
-The \var{\{\$MODE\}} sets the compatibility mode of the compiler. This 
+The \var{\{\$MODE\}} sets the compatibility mode of the compiler. This
 is equivalent to setting one of the command-line options \var{-So} or
 \var{-Sd} or \var{-S2}. it has the following arguments:
 \begin{description}
@@ -890,14 +896,14 @@ the command-line.
 enabled. This is the same as the command-line option \var{-Sd}.
 \item[TP] Turbo pascal compatibility mode. Object pascal extensions are
 disabled, except ansistrings, which remain valid. This is the same as the command-line option \var{-So}
-\item[FPC] FPC mode. 
+\item[FPC] FPC mode.
 \item[OBJFPC] Object pascal mode. This is the same as the \var{-S2}
 command-line option.
 \item[GPC] GNU pascal mode. This is the same as the \var{-Sp} command-line
 option.
 \end{description}
 
-For an exact description of each of these modes, see appendix \ref{ch:AppD}, 
+For an exact description of each of these modes, see appendix \ref{ch:AppD},
 on page \pageref{ch:AppD}
 
 \subsection{\var{\$N} : Numeric processing }
@@ -1049,9 +1055,9 @@ As an example : Version 0.9.1 of the compiler, running on a Linux system,
 defines the following symbols before reading the command line arguments:
 \var{FPC}, \var{VER0}, \var{VER0\_9}, \var{VER0\_9\_1} and \var{LINUX}.
 Specifying \var{-TOS2} on the command-line will undefine the \var{LINUX}
-symbol, and will define the \var{OS2} symbol. 
+symbol, and will define the \var{OS2} symbol.
 
-{\em Remark: } Symbols, even when they're defined in the interface part of 
+{\em Remark: } Symbols, even when they're defined in the interface part of
 a unit, are not available outside that unit.
 
 %\fpc supports the \var{\{\$IFOPT \}} directive for Turbo Pascal
@@ -1060,7 +1066,7 @@ a unit, are not available outside that unit.
 
 Except for the Turbo Pascal constructs, from version 0.9.8 and higher,
 the \fpc compiler also supports a stronger conditional compile mechanism:
-The \var{\{\$If \}} construct. 
+The \var{\{\$If \}} construct.
 
 The prototype of this construct is as follows :
 \begin{verbatim}
@@ -1071,10 +1077,10 @@ The prototype of this construct is as follows :
 {$endif}
 \end{verbatim}
 In this directive \var{expr} is a Pascal expression which is evaluated using
-strings, unless both parts of a comparision can be evaluated as numbers, 
+strings, unless both parts of a comparision can be evaluated as numbers,
 in which case they are evaluated using numbers\footnote{Otherwise
 \var{\{\$If 8>54} would evaluate to \var{True}}.
-If the complemete expression evaluates to \var{'0'}, then it is considered 
+If the complemete expression evaluates to \var{'0'}, then it is considered
 false and rejected. Otherwise it is considered true and accepted. This may
 have unexpected consequences :
 \begin{verbatim}
@@ -1200,8 +1206,8 @@ begin
 
 end.
 \end{verbatim}
-As you can see from the example, this construct isn't useful when used  
-with normal symbols, but it is if you use macros, which are explained in 
+As you can see from the example, this construct isn't useful when used
+with normal symbols, but it is if you use macros, which are explained in
 \sees{Macros}, they can be very useful. When trying this example, you must
 switch on macro support, with the \var{-Sm} command-line switch.
 
@@ -1209,7 +1215,7 @@ switch on macro support, with the \var{-Sm} command-line switch.
 % Macros
 \section{Messages}
 \label{se:Messages}
-\fpc lets you define normal, warning and error messages in your code. 
+\fpc lets you define normal, warning and error messages in your code.
 Messages can be used to display useful information, such as copyright
 notices, a list of symbols that your code reacts on etc.
 
@@ -1230,7 +1236,7 @@ For messages, the syntax is as follows  :
 \begin{verbatim}
 {$Message Message text }
 \end{verbatim}
-Or 
+Or
 \begin{verbatim}
 {$Info Message text }
 \end{verbatim}
@@ -1261,13 +1267,13 @@ to compile. With a fatal error, the compiler stops.
 {\em Remark :} You cannot use the '\var{\}}' character in your message, since
 this will be treated as the closing brace of the message.
 
-As an example, the following piece of code will generate an error when 
+As an example, the following piece of code will generate an error when
 the symbol \var{RequiredVar} isn't defined:
 \begin{verbatim}
 {$ifndef RequiredVar}
 {$Error Requiredvar isn't defined !}
 {$endif}
-\end{verbatim} 
+\end{verbatim}
 But the compiler will continue to compile. It will not, however, generate a
 unit file or a program (since an error occurred).
 
@@ -1280,7 +1286,7 @@ macros have a value whereas a symbol simply is defined or is not defined.
 If you want macro support, you need to specify the \var{-Sm} command-line
 switch, otherwise your macro will be regarded as a symbol.
 
-Defining a macro in your program is done in the same way as defining a symbol; 
+Defining a macro in your program is done in the same way as defining a symbol;
 in a \var{\{\$define \}} preprocessor statement\footnote{In compiler
 versions older than 0.9.8, the assignment operator for a macros wasn't
 \var{:=}, but \var{=}}:
@@ -1291,29 +1297,29 @@ If the compiler encounters \var{ident} in the rest of the source file, it
 will be replaced immediately by \var{expr}. This replacement works
 recursive, meaning that when the compiler expanded one of your macros, it
 will look at the resulting expression again to see if another replacement
-can be made. You need to be careful with this, because an infinite loop can 
+can be made. You need to be careful with this, because an infinite loop can
 occur in this manner.
 
 Here are two examples which illustrate the use of macros:
 \begin{verbatim}
 {$define sum:=a:=a+b;}
 ...
-sum          { will be expanded to 'a:=a+b;' 
+sum          { will be expanded to 'a:=a+b;'
                remark the absence of the semicolon}
 ...
 {$define b:=100}
-sum          { Will be expanded recursively to a:=a+100; }                   
+sum          { Will be expanded recursively to a:=a+100; }
 ...
 \end{verbatim}
 The previous example could go wrong :
 \begin{verbatim}
 {$define sum:=a:=a+b;}
 ...
-sum          { will be expanded to 'a:=a+b;' 
+sum          { will be expanded to 'a:=a+b;'
                remark the absence of the semicolon}
 ...
 {$define b=sum} { DON'T do this !!!}
-sum          { Will be infinitely recursively expanded... }                   
+sum          { Will be infinitely recursively expanded... }
 ...
 \end{verbatim}
 On my system, the last example results in a heap error, causing the compiler
@@ -1506,8 +1512,8 @@ the Intel construct \mbox{'\var{mov al bl}} is equivalent to the AT\&T style '\v
 \item AT\&T immediate operands are designated with '\$', while Intel syntax
 doesn't use a prefix for immediate operands. Thus the Intel construct
 '\var{mov ax, 2}' becomes '\var{movb \$2, \%al}' in AT\&T syntax.
-\item AT\&T register names are preceded by a '\var{\%}' sign. 
-They are undelimited in Intel syntax. 
+\item AT\&T register names are preceded by a '\var{\%}' sign.
+They are undelimited in Intel syntax.
 \item AT\&T indicates absolute jump/call operands with '\var{*}', Intel
 syntax doesn't delimit these addresses.
 \item The order of the source and destination operands are switched. AT\&T
@@ -1551,7 +1557,7 @@ into account :
 \begin{description}
 \item[.align]
 \item[.lcomm]
-\end{description} 
+\end{description}
 Eventually they will be supported.
 \item Directives are case sensitive, other identifiers are not case sensitive.
 \item  Contrary to GAS local labels/symbols {\em must} start with \var{.L}
@@ -1559,7 +1565,7 @@ Eventually they will be supported.
 \item  String expressions in operands are not supported.
 \item  CBTW,CWTL,CWTD and CLTD are not supported, use the normal intel
 equivalents instead.
-\item  Constant expressions which represent memory references are not 
+\item  Constant expressions which represent memory references are not
 allowed even though constant immediate value expressions are supported. \\
 examples:
 \begin{verbatim}
@@ -1572,7 +1578,7 @@ movl myid(%esi),%eax  -- not allowed.
     it is made public and is immediately emitted.
     Therefore label names with this name will be ignored.
 \item  Only Single and Double FPU opcodes are supported.
-\end{itemize} 
+\end{itemize}
 
 The AT\&T inline assembler supports the following macros :
 \begin{description}
@@ -1851,7 +1857,7 @@ This method is equivalent to the following statement:
 Procedure ProcName (Args : TPRocArgs); cdecl; external;
 \end{verbatim}
 However, the \var{[ C ]} directive is no longer supported as of version
-0.99.5  of \fpc, therefore you should use the \var{external} directive, 
+0.99.5  of \fpc, therefore you should use the \var{external} directive,
 with the \var{cdecl} directive, if needed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1871,7 +1877,7 @@ The effect of this declaration is twofold:
 \begin{enumerate}
 \item No space is allocated for this variable.
 \item The name of the variable used in the assebler code is \var{varname}.
-This is a case sensitive name, so you must be careful. 
+This is a case sensitive name, so you must be careful.
 \end{enumerate}
 The variable will be
 accessible with it's declared name, i.e. \var{MyVar} in this case.
@@ -1883,14 +1889,14 @@ Var
 \end{verbatim}
 The effect of this declaration is twofold as in the previous case:
 \begin{enumerate}
-\item The \var{external} modifier ensures that no space is allocated for 
+\item The \var{external} modifier ensures that no space is allocated for
 this variable.
-\item The \var{cvar} modifier tells the compiler that the name of the 
+\item The \var{cvar} modifier tells the compiler that the name of the
 variable used in the assebler code is exactly as specified in the
-declaration. This is a case sensitive name, so you must be careful. 
+declaration. This is a case sensitive name, so you must be careful.
 \end{enumerate}
 In this case, you access the variable with it's C name, but case
-insensitive. The first possibility allows you to change the name of the 
+insensitive. The first possibility allows you to change the name of the
 external variable for  internal use.
 
 In order to be able to compile such statements, the compiler switch \var{-Sv}
@@ -1898,8 +1904,8 @@ must be used.
 
 As an example, let's look at the following C file (in \file{extvar.c}):
 \begin{verbatim}
-/* 
-Declare a variable, allocate storage 
+/*
+Declare a variable, allocate storage
 */
 int extvar = 12;
 \end{verbatim}
@@ -1923,7 +1929,7 @@ Compiling the C file, and the pascal program:
 gcc -c -o extvar.o extvar.c
 ppc386 -Sv extdemo
 \end{verbatim}
-Will produce a program \file{extdemo} which will print 
+Will produce a program \file{extdemo} which will print
 \begin{verbatim}
 Variable 'extvar' has value : 12
 Variable 'I'      has value : 12
@@ -1952,29 +1958,29 @@ Here we present an example. Consider that you have some assembly routine that
 calculates the nth Fibonacci number :
 \begin{verbatim}
 .text
-	.align 4
+        .align 4
 .globl Fibonacci
-	.type Fibonacci,@function
+        .type Fibonacci,@function
 Fibonacci:
-	pushl %ebp
-	movl %esp,%ebp
-	movl 8(%ebp),%edx
-	xorl %ecx,%ecx
-	xorl %eax,%eax
-	movl $1,%ebx
-	incl %edx
+        pushl %ebp
+        movl %esp,%ebp
+        movl 8(%ebp),%edx
+        xorl %ecx,%ecx
+        xorl %eax,%eax
+        movl $1,%ebx
+        incl %edx
 loop:
-	decl %edx
-	je endloop
-	movl %ecx,%eax
-	addl %ebx,%eax
-	movl %ebx,%ecx
-	movl %eax,%ebx
-	jmp loop
+        decl %edx
+        je endloop
+        movl %ecx,%eax
+        addl %ebx,%eax
+        movl %ebx,%ecx
+        movl %eax,%ebx
+        jmp loop
 endloop:
-	movl %ebp,%esp
+        movl %ebp,%esp
         popl %ebp
-	ret
+        ret
 \end{verbatim}
 Then you can call this function with the following Pascal Program:
 \begin{verbatim}
@@ -2005,7 +2011,7 @@ and your Pascal program in \file{fibo.pp}.
 \label{se:LinkOut}
 
 To link your program to a library, the procedure depends on how you declared
-the external procedure. 
+the external procedure.
 %If you used thediffers a little from the
 %procedure when you link in an object file. although the declaration step
 %remains the same (see \ref{se:ExternalFunction} on how to do that).
@@ -2016,7 +2022,7 @@ Procedure ProcName (Args : TPRocArgs); external 'Name';
 \end{verbatim}
 You don't need to take additional steps to link your file in, the compiler
 will do all that is needed for you. On \windowsnt it will link to
-\file{Name.dll}, on \linux your program will be linked to library 
+\file{Name.dll}, on \linux your program will be linked to library
 \file{libname}, which can be a static or dynamic library.
 
 In case you used
@@ -2070,7 +2076,7 @@ arguments in C. Pascal doesn't support this feature of C.
 \section{Making libraries}
 \label{se:SharedLib}
 
-\fpc supports making shared or static libraries in a straightforward and 
+\fpc supports making shared or static libraries in a straightforward and
 easy manner.
 If you want to make libraries for other \fpc programmers, you just need to
 provide a command line switch. If you want C programmers to be able to use
@@ -2127,7 +2133,7 @@ as you declared it. The \fpc compiler ''mangles'' the name you give your
 function. It makes the name all-uppercase, and adds the types of all
 parameters to it. There are cases when you want to provide a mangled name
 without changing the calling convention. In such cases, you can use the
-\var{Alias} modifier. 
+\var{Alias} modifier.
 
 The \var{Alias} modifier allows you to specify
 another name (a nickname) for your function or procedure.
@@ -2155,7 +2161,7 @@ one declares it with the \var{cvar} modifier:
 Var MyVar : MyTpe; cvar;
 \end{verbatim}
 This will tell the compiler that the assembler name of the variable (the one
-which is used by C programs) should be exactly as specified in the 
+which is used by C programs) should be exactly as specified in the
 declaration, i.e., case sensitive.
 
 It is not allowed to declare multiple variables as \var{cvar} in one
@@ -2189,7 +2195,7 @@ The \file{myunit.ppu} is the unit file needed by the \fpc compiler.
 The resulting files are then libraries. To make static libraries, you need
 the \file{ranlib} or \var{ar} program on your system. It is standard on any
 \linux system, and is provided with the \file{GCC} compiler under \dos.
-For the dos distribution, a copy of ar is included in the file 
+For the dos distribution, a copy of ar is included in the file
 \file{gnuutils.zip}.
 
 {\em BEWARE:} This command doesn't include anything but the current unit in
@@ -2217,12 +2223,12 @@ libraries. It is provided with the compiler.
 
 When you compile a program or unit, the compiler will by
 default always look for \file{.ppl} files. If it doesn't find one, it will
-look for a \file{.ppu} file. 
+look for a \file{.ppu} file.
 
 To be able to differentiate between units that have been compiled as static
 or dynamic libraries, there are 2 switches:
 
-\begin{description} 
+\begin{description}
 \item [-XD:\ ] This will define the symbol \var{FPC\_LINK\_DYNAMIC}
 \item [-XS:\ ] This will define the symbol \var{FPC\_LINK\_STATIC}
 \end{description}
@@ -2250,10 +2256,10 @@ different directories, depending on whether \var{-XD} or \var{-XS} is used.
 You can compile your units using smart linking. When you use smartl linking,
 the compiler creates a series of code blocks that are as small as possible,
 i.e. a code block will contain only the code for one procedure or function.
- 
+
 When you compile a program that uses a smart-linked unit, the compiler will
 only link in the code that you actually need, and will leave out all other
-code. This will result in a smaller binary, which is loaded in memory  
+code. This will result in a smaller binary, which is loaded in memory
 faster, thus speeding up execution.
 
 To enable smartlinking, one can give the smartlink option on the command
@@ -2264,12 +2270,12 @@ Unit Testunit
 
 {SMARTLINK ON}
 Interface
-... 
+...
 \end{verbatim}
 Smartlinking will slow down the compilation process, expecially for large
 units.
 
-When a unit \file{foo.pp} is smartlinked, the name of the codefile is 
+When a unit \file{foo.pp} is smartlinked, the name of the codefile is
 changed to \file{libfoo.a}.
 
 Technically speaking, the compiler makes small assembler files for each
@@ -2283,7 +2289,7 @@ exclusive, that is, if you turn on smartlinking, then the creation of shared
 libraries is turned of. The creation of static libraries is still possible.
 The reason for this is that it has little sense in making a smarlinked
 dynamica library. The whole shared library is loaded into memory anyway by
-the dynamic linker (or \windowsnt), so there would be no gain in size by 
+the dynamic linker (or \windowsnt), so there would be no gain in size by
 making it smartinked.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2979,8 +2985,8 @@ were evaluated.
 \subsection{ Constant set inlining }
 
 Using the \var{in} operator is always more efficient then using the
-equivalent \verb|<>|, \verb|=|, \verb|<=|, \verb|>=|, \verb|<| and \verb|>| 
-operators. This is because range comparisons can be done more easily with 
+equivalent \verb|<>|, \verb|=|, \verb|<=|, \verb|>=|, \verb|<| and \verb|>|
+operators. This is because range comparisons can be done more easily with
 \var{in} then with normal comparison operators.
 
 \subsection{ Small sets }
@@ -3072,7 +3078,7 @@ Conditions for omission of the stack frame :
 \begin{itemize}
 \item The function has no parameters nor local variables.
 \item Routine does not call other routines.
-\item Routine does not contain assembler statements. However, 
+\item Routine does not contain assembler statements. However,
 a \var{assembler} routine may omit it's stack frame.
 \item Routine is not declared using the \var{Interrupt} directive.
 \item Routine is not a constructor or destructor.
@@ -3213,46 +3219,46 @@ runtime library call will be generated
 \end{itemize}
 
 \section{Optimization switches}
-This is where the various optimizing switches and their actions are 
+This is where the various optimizing switches and their actions are
 described, grouped per switch.
 
 \begin{description}
-\item [-On:\ ] with n = 1..3: these switches activate the optimizer. 
+\item [-On:\ ] with n = 1..3: these switches activate the optimizer.
 A higher level automatically includes all lower levels.
-\begin{itemize}	
-\item Level 1 (\var{-O1}) activates the peephole optimizer 
+\begin{itemize}
+\item Level 1 (\var{-O1}) activates the peephole optimizer
  (common instruction sequences are replaced by faster equivalents).
-\item Level 2 (\var{-O2}) enables the assembler data flow analyzer, 
-which allows the common subexpression elimination procedure to 
+\item Level 2 (\var{-O2}) enables the assembler data flow analyzer,
+which allows the common subexpression elimination procedure to
 remove unnecessary reloads of registers with values they already contain.
 \item Level 3 (\var{-O3}) enables uncertain optimizations. For more info, see -Ou.
 \end{itemize}
-\item[-OG:\ ] 
-This causes the code generator (and optimizer, IF activated), to favor 
-faster, but code-wise larger, instruction sequences (such as 
-"\verb|subl $4,%esp|") instead of slower, smaller instructions 
+\item[-OG:\ ]
+This causes the code generator (and optimizer, IF activated), to favor
+faster, but code-wise larger, instruction sequences (such as
+"\verb|subl $4,%esp|") instead of slower, smaller instructions
 ("\verb|enter $4|").  This is the default setting.
 
-\item[-Og:\ ] This one is exactly the reverse of -OG, and as such these 
+\item[-Og:\ ] This one is exactly the reverse of -OG, and as such these
 switches are mutually exclusive: enabling one will disable the other.
 
-\item[-Or:\ ] this setting (once it's fixed) causes the code generator to 
+\item[-Or:\ ] this setting (once it's fixed) causes the code generator to
 check which variables are used most, so it can keep those in a register.
 
-\item[-Opn:\ ] with n = 1..3: setting the target processor does NOT 
-activate the optimizer. It merely influences the code generator and, 
+\item[-Opn:\ ] with n = 1..3: setting the target processor does NOT
+activate the optimizer. It merely influences the code generator and,
 if activated, the optimizer:
 \begin{itemize}
-\item During the code generation process, this setting is used to 
-decide whether a jump table or a sequence of successive jumps provides 
+\item During the code generation process, this setting is used to
+decide whether a jump table or a sequence of successive jumps provides
 the best performance in a case statement.
-\item The peephole optimizer takes a number of decisions based on this 
-setting, for example it translates certain complex instructions, such 
-as 
+\item The peephole optimizer takes a number of decisions based on this
+setting, for example it translates certain complex instructions, such
+as
 \begin{verbatim}
 movzbl (mem), %eax|
 \end{verbatim}
-to a combination of simpler instructions 
+to a combination of simpler instructions
 \begin{verbatim}
 xorl %eax, %eax
 movb (mem), %al
@@ -3269,12 +3275,12 @@ Here some general tips for getting better code are presented. They
 mainly concern coding style.
 
 \begin{itemize}
-\item Find a better algorithm. No matter how much you and the compiler 
-tweak the code, a quicksort will (almost) always outperform a bubble 
+\item Find a better algorithm. No matter how much you and the compiler
+tweak the code, a quicksort will (almost) always outperform a bubble
 sort, for example.
 
-\item Use variables of the native size of the processor you're writing 
-for. For the 80x86 and compatibles, this is 32 bit, so you're best of 
+\item Use variables of the native size of the processor you're writing
+for. For the 80x86 and compatibles, this is 32 bit, so you're best of
 using longint and cardinal variables.
 
 \item Turn on the optimizer.
@@ -3282,18 +3288,18 @@ using longint and cardinal variables.
 \item Write your if/then/else statements so that the code in the "then"-part
 gets executed most of the time (improves the rate of successful jump prediction).
 
-\item If you are allocating and disposing a lot of small memory blocks, 
+\item If you are allocating and disposing a lot of small memory blocks,
 check out the heapblocks variable (heapblocks are on by default from
 release 0.99.8 and later)
 
-\item Profile your code (see the -pg switch) to find out where the 
-bottlenecks are. If you want, you can rewrite those parts in assembler. 
+\item Profile your code (see the -pg switch) to find out where the
+bottlenecks are. If you want, you can rewrite those parts in assembler.
 You can take the code generated by the compiler as a starting point. When
 given the \var{-a} command-line switch, the compiler will not erase the
 assembler file at the end of the assembly process, so you can study the
 assembler file.
- 
-{\em Note:} Code blocks which contain an assembler block, are not processed 
+
+{\em Note:} Code blocks which contain an assembler block, are not processed
 at all by the optimizer at this time. Update: as of versino 0.99.11, the Pascal
 code surrounding the assembler blocks is optimized.
 \end{itemize}
@@ -3401,41 +3407,41 @@ entry) it sets the \var{ppufile.error} variable.
 The header consists of a record containing 24 bytes:
 
 \begin{verbatim}
-tppuheader=packed record                                                      
-    id       : array[1..3] of char; { = 'PPU' }                                 
-    ver      : array[1..3] of char;                                             
-    compiler : word;                                                            
-    cpu      : word;                                                            
-    target   : word;                                                            
-    flags    : longint;                                                         
-    size     : longint; { size of the ppufile without header }                  
-    checksum : longint; { checksum for this ppufile }                           
-  end;                 
+tppuheader=packed record
+    id       : array[1..3] of char; { = 'PPU' }
+    ver      : array[1..3] of char;
+    compiler : word;
+    cpu      : word;
+    target   : word;
+    flags    : longint;
+    size     : longint; { size of the ppufile without header }
+    checksum : longint; { checksum for this ppufile }
+  end;
 \end{verbatim}
 
-The header is already read by the \var{ppufile.open} command. 
-You can access all fields using \var{ppufile.header} which holds 
+The header is already read by the \var{ppufile.open} command.
+You can access all fields using \var{ppufile.header} which holds
 the current header record.
 
 \begin{tabular}{lp{10cm}}
 \raggedright
 field & description \\ \hline
-\var{id} & 
+\var{id} &
 this is allways 'PPU', can be checked with
 \mbox{\var{function ppufile.CheckPPUId:boolean;}} \\
 \var{ver} & ppu version, currently '015', can be checked with
 \mbox{\var{function ppufile.GetPPUVersion:longint;}} (returns 15) \\
 \var{compiler}
  & compiler version used to create the unit. Doesn't contain the
-	 patchlevel. Currently 0.99 where 0 is the high byte and 99 the
-	 low byte \\
+         patchlevel. Currently 0.99 where 0 is the high byte and 99 the
+         low byte \\
 \var{cpu} & cpu for which this unit is created.
           0 = i386
           1 = m68k \\
 \var{target} & target for which this unit is created, this depends also on the
-	 cpu! 
+         cpu!
 
-	 For i386:
+         For i386:
 \begin{tabular}[t]{ll}
 0 & Go32v1 \\
 1 & Go32V2 \\
@@ -3451,31 +3457,31 @@ For m68k:
 2 & Atari \\
 3 & Linux-m68k
 \end{tabular} \\
-\var{flag} & 
+\var{flag} &
 the unit flags, contains a combination of the uf\_ constants which
 are definied in \file{ppu.pas} \\
 \var{size} & size of this unit without this header \\
-\var{checksum} & 
+\var{checksum} &
   checksum of the interface parts of this unit, which determine if
          a unit is changed or not, so other units can see if they need to
-	 be recompiled 
+         be recompiled
 \\ \hline
 \end{tabular}
 
 % The sections
 \section{The sections}
 
-After this header follow the sections. All sections work the same! 
+After this header follow the sections. All sections work the same!
 A section contains of entries and is ended with also an entry, but
 containing the specific ibend constant (see \file{ppu.pas} for a list).
 
 Each entry starts with an entryheader.
 \begin{verbatim}
-  tppuentry=packed record                                                       
-    id   : byte;                                                                
-    nr   : byte;                                                                
-    size : longint;                                                             
-  end;      
+  tppuentry=packed record
+    id   : byte;
+    nr   : byte;
+    size : longint;
+  end;
 \end{verbatim}
 
 \begin{tabular}{lp{10cm}}
@@ -3490,9 +3496,9 @@ size & size of this entry without the header, can be used to skip entries
 very easily. \\ \hline
 \end{tabular}
 
-To read an entry you can simply call \var{ppufile.readentry:byte}, 
+To read an entry you can simply call \var{ppufile.readentry:byte},
 it returns the
-\var{tppuentry.nr} field, which holds the type of the entry. 
+\var{tppuentry.nr} field, which holds the type of the entry.
 A common way how this works is (example is for the symbols):
 
 \begin{verbatim}
@@ -3516,25 +3522,25 @@ Parsing an entry can be done with \var{ppufile.getxxx} functions. The
 available functions are:
 \begin{verbatim}
 procedure ppufile.getdata(var b;len:longint);
-function  getbyte:byte;                                                     
-function  getword:word;                                                     
-function  getlongint:longint;                                               
-function  getreal:ppureal;                                                  
-function  getstring:string;      
+function  getbyte:byte;
+function  getword:word;
+function  getlongint:longint;
+function  getreal:ppureal;
+function  getstring:string;
 \end{verbatim}
 
 To check if you're at the end of an entry you can use the following
 function:
 
 \begin{verbatim}
-function  EndOfEntry:boolean;                                               
+function  EndOfEntry:boolean;
 \end{verbatim}
 {\em notes:}
 \begin{enumerate}
 \item \var{ppureal} is the best real that exists for the cpu where the
-unit is created for. Currently it is \var{extended} for i386 and 
+unit is created for. Currently it is \var{extended} for i386 and
 \var{single} for m68k.
-\item the \var{ibobjectdef} and \var{ibrecorddef} have stored a definition 
+\item the \var{ibobjectdef} and \var{ibrecorddef} have stored a definition
 and symbol section for themselves. So you'll need a recursive call. See
 \file{ppudump.pp} for a correct implementation.
 \end{enumerate}
@@ -3565,16 +3571,16 @@ care that you write at least the basic entries for the sections:
 Writing an entry is a little different than reading it. You need to first
 put everything in the entry with ppufile.putxxx:
 \begin{verbatim}
-procedure putdata(var b;len:longint);                                       
-procedure putbyte(b:byte);                                                  
-procedure putword(w:word);                                                  
-procedure putlongint(l:longint);                                            
-procedure putreal(d:ppureal);                                               
-procedure putstring(s:string); 
+procedure putdata(var b;len:longint);
+procedure putbyte(b:byte);
+procedure putword(w:word);
+procedure putlongint(l:longint);
+procedure putreal(d:ppureal);
+procedure putstring(s:string);
 \end{verbatim}
 
 After putting all the things in the entry you need to call
-\var{ppufile.writeentry(ibnr:byte)} where \var{ibnr} is the entry number 
+\var{ppufile.writeentry(ibnr:byte)} where \var{ibnr} is the entry number
 you're writing.
 
 At the end of the file you need to call \var{ppufile.writeheader} to write the
@@ -3584,13 +3590,13 @@ object.
 
 Extra functions/variables available for writing are:
 \begin{verbatim}
-ppufile.NewHeader;                                           
-ppufile.NewEntry;   
+ppufile.NewHeader;
+ppufile.NewEntry;
 \end{verbatim}
 This will give you a clean header or entry. Normally called automatically
 in \var{ppufile.writeentry}, so you can't forget it.
 \begin{verbatim}
-ppufile.flush;                                                            
+ppufile.flush;
 \end{verbatim}
 
 to flush the current buffers to the disk
@@ -3599,7 +3605,7 @@ ppufile.do_crc:boolean;
 \end{verbatim}
 set to false if you don't want that the crc is updated, this is necessary
 if you write for example the browser data.
-   
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3630,7 +3636,7 @@ some limitations to the compiler:
 \item Procedure or Function definitions can be nested to a level of 32.
 \item Maximally 255 units can be used in a program when using the real-mode
 compiler (i.e. a binary that was compiled by Borland Pascal). When using the 32-bit compiler, the limit is set to 1024. You can
-change this by redefining the \var{maxunits} constant in the 
+change this by redefining the \var{maxunits} constant in the
 \file{files.pas} compiler source file.
 \end{enumerate}
 
@@ -3723,7 +3729,7 @@ consequences of this is that the type \var{Integer} is redefined as
 \newcommand{\mvar}[1]{\var{\$(#1)}}
 
 \section{Introduction}
-\fpc comes with a special makefile, \file{makefile.fpc}, which can be 
+\fpc comes with a special makefile, \file{makefile.fpc}, which can be
 included in any makefile you use to compile with \fpc. There is a template
 \file{Makefile} provided also. All sources from the \fpc team are compiled
 with this system.
@@ -3762,7 +3768,7 @@ The following programs are needed by the makefile to function correctly:
 \item[rm] a program to delete files.
 \end{description}
 These are standard programs on linux systems, with the possible exception of
-\file{make}. For \dos or \windowsnt, they can be found in the 
+\file{make}. For \dos or \windowsnt, they can be found in the
 file \file{gnuutils.zip} on the \fpc FTP site.
 
 \section{Variables used by \file{makefile.fpc}}
@@ -3790,37 +3796,37 @@ expects to find a directory \file{rtl} below this directory.
 The first set of variables controls the directories used in the makefile:
 
 \begin{description}
-\item[INC] this is a list of directories, separated by spaces, that will 
+\item[INC] this is a list of directories, separated by spaces, that will
 be added as include directories to the compiler command-line.
 
 \item[LIBDIR] is a list of library paths, separated by spaces. Each
-directory in the list is prepended with \var{-Fl} and added to the 
+directory in the list is prepended with \var{-Fl} and added to the
 compiler options.
 
 \item[NEEDLIBDIR] is a space-separated list of library paths. Each
-directory in the list is 
+directory in the list is
 prepended with \var{-Fl} and added to the compiler options.
 
 \item[NEEDOBJDIR] is a list of object file directories, separated by
- spaces. Each directory in the list is prepended with \var{-Fo} and 
+ spaces. Each directory in the list is prepended with \var{-Fo} and
 added to the compiler options.
 
 \item[NEEDUNITDIR] is a list of unit directories, separated by spaces.
 Each directory in the list is prepended with \var{-Fu} and is added to the
 compiler options.
 
-\item[OBJDIR] is a list of object file directories, separated by spaces, that is 
-added to the object files path, i.e. Each directory in the list is prepended with 
+\item[OBJDIR] is a list of object file directories, separated by spaces, that is
+added to the object files path, i.e. Each directory in the list is prepended with
 \var{-Fo}.
 
-\item[OSINC] this is a space-separated list of OS-dependent directories 
+\item[OSINC] this is a space-separated list of OS-dependent directories
 that will be added as include directories to the compiler command line.
 
-\item[PROCINC] is a space-separated list of processor-dependent directories 
+\item[PROCINC] is a space-separated list of processor-dependent directories
 that will be added as include directories to the compiler command-line.
 
 \item[RTL] If \var{RTLDIR} is not set, \var{RTL} is used to construct
-\var{RTLDIR}, after which \var{RTLDIR} is added to the compiler unit 
+\var{RTLDIR}, after which \var{RTLDIR} is added to the compiler unit
 path, with \var{-Fu} prepended. If \var{RTLDIR} is not set, it is set
  to \mvar{RTL}/\mvar{OS\_TARGET}.
 
@@ -3835,7 +3841,7 @@ the compiler, where all units and executables are written, i.e. it gets
 
 \item[UNIT] If \var{UNITDIR} is not set, \var{UNIT} is used to construct
 \var{UNITDIR}. \var{UNITDIR} is added to the compiler unit path, with \var{-Fu}
-prepended. 
+prepended.
 
 \item[UNITDIR] Directory where the \var{RTL} compiled units are.
 If \var{UNITDIR} is not set, it is set to \mvar{UNIT}/\mvar{OS\_TARGET}. \\
@@ -3886,12 +3892,12 @@ Automatically determined by the makefile.
 
 \item[LIBTYPE] if set to \var{shared}, then the compiler will emit a shared
 library, with name \var{LIBNAME}.If \var{LIBTYPE} is set to \var{static},
-the compiler will emit a static, smartlinked library, 
+the compiler will emit a static, smartlinked library,
 
 \item[NEEDGCCLIB] if this variable is defined, then the path to \file{libgcc}
 is added to the library path.
 
-\item[NEEDOTHERLIB] (\linux only) If this is defined, then the makefile will 
+\item[NEEDOTHERLIB] (\linux only) If this is defined, then the makefile will
 append all directories that appear in \var{/etc/ld.so.conf} to the library path.
 
 
@@ -3952,11 +3958,11 @@ is.
 \item[PREFIXINSTALLDIR] is set to \file{/usr} on \linux, \file{/pp} on \dos
 or \windowsnt.
 
-\item[SHARED\_LIBINSTALLDIR] is where shared libraries are 
+\item[SHARED\_LIBINSTALLDIR] is where shared libraries are
 installed. This equals \mvar{PREFIXINSTALLDIR}/\var{lib} on \linux, and
 \var{SHARED\_UNITINSTALLDIR} on other systems.
 
-\item[SHARED\_UNITINSTALLDIR] is where units from libraries are 
+\item[SHARED\_UNITINSTALLDIR] is where units from libraries are
 installed. This equals \mvar{UNITINSTALLDIR}/\var{shared}
 
 \item[STATIC\_LIBINSTALLDIR] is where static libraries will be
@@ -4018,7 +4024,7 @@ executable startup code.
 \item[PACKAGESUFFIX] is a suffix that is appended to package names in zip
 targets. This serves so packages can be made for different OSes.
 \item[PASEXT] is the extension of pascal files used in the compile rules.
-It is determined by looking at the first \var{EXEOBJECTS} source file or 
+It is determined by looking at the first \var{EXEOBJECTS} source file or
 the first \var{UNITOBJECTS} files.
 \item[PPLEXT] is the extension of shared library unit files.
 \item[PPUEXT] is the extension of default units.
@@ -4041,9 +4047,9 @@ makefile.
 by the makefile.
 \item[LOADEROFILES] is a list of object files that will be made from the
 loader assembler files. This is mainly for use in the compiler's RTL sources.
-\item[UNITFILES] a list of unit files that will be made. This is just 
+\item[UNITFILES] a list of unit files that will be made. This is just
 the list of unit objects, with the correct unit extension appended.
-\item[UNITOFILES] a list of unit object files that will be made. 
+\item[UNITOFILES] a list of unit object files that will be made.
 This is just the list of unit objects, with the correct object file
 extension appended.
 \end{description}
@@ -4093,7 +4099,7 @@ deletes all object, unit and assembler files that are present.
 The following archiving targets are defined:
 \begin{description}
 \item[fpc\_zipinstalladd] will add to a (possibibly existing) archive file (it's
-name is taken from \mvar{ZIPNAME}. 
+name is taken from \mvar{ZIPNAME}.
 \item[fpc\_zipinstall] is the same, only the archive is cleared first.
 \end{description}
 The zip is made uzing the \var{ZIPEXE} program. Under \linux, a
@@ -4115,8 +4121,8 @@ the makefile, the compiler version, target OS, CPU.
 
 \section{Using the provided template}
 
-The template makefile that comes with \fpc does nothing other than 
-offering you some variables to be set for the \file{makefile.fpc}. 
+The template makefile that comes with \fpc does nothing other than
+offering you some variables to be set for the \file{makefile.fpc}.
 After that it loads the \var{makefile.fpc} in the indicated places.
 
 Finally it declares a set of default targets:
@@ -4148,14 +4154,14 @@ You may want to set some of the following variables:
 \item[NEEDOPT] additional options added to the compile command.
 \item[NEEDUNITDIR] space-separated list of directories where units that you
 need are located.
-\item[TARGETDIR,UNITTARGETDIR] where do you want executables and units to 
-be written. Be aware that setting this variable may interfere with 
+\item[TARGETDIR,UNITTARGETDIR] where do you want executables and units to
+be written. Be aware that setting this variable may interfere with
 \var{make}, since it will not find the target files.
 \item[DEFAULTUNITS] if you define this variable (to whatever value you want)
 then the \var{all} target will by default only make the units.
 \end{description}
 
-You may also set any of the variables that appear in the previous sections, 
+You may also set any of the variables that appear in the previous sections,
 to override default behaviour of the makefile.
 
 After having set these variables, you can run 'make info' to see whether all
@@ -4173,7 +4179,7 @@ After that, a simple 'make all' will make all units and executables.
 
 \section{Introduction}
 
-The \fpc team releases at intervals a completely prepared package, with 
+The \fpc team releases at intervals a completely prepared package, with
 compiler and units all ready to use, the so-called releases.  After a
 release, work on the compiler continues, bugs are fixed and features are
 added. The \fpc team doesn't make a new release whenever they change
@@ -4183,7 +4189,7 @@ and put on the web.
 
 There are, nevertheless, circumstances when you'll want to compile the
 compiler yourself. For instance if you made changes to compiler code,
-or when you download the compiler via CVS. 
+or when you download the compiler via CVS.
 
 There are essentially 2 ways of recompiling the compiler: by hand, or using
 the makefiles. Each of these methods will be discussed.
@@ -4221,7 +4227,7 @@ first, with a previously compiled RTL.
 How to decide which should be compiled first? In general, the answer is that
 you should compile the RTL first. There are 2 exceptions to this rule:
 \begin{enumerate}
-\item The first case is when some of the internal routines in the RTL 
+\item The first case is when some of the internal routines in the RTL
 have changed, or if new internal routines appeared. Since the OLD compiler
 doesn't know about these changed internal routines, it will emit function
 calls that are based on the old compiled RTL, and hence are not correct.
@@ -4231,7 +4237,7 @@ compiler needs to know about (a new default assembler mechanism, for
 example).
 \end{enumerate}
 How to know if one of these things has occurred ? There is no way to know.
-(except by mailing the \fpc team) Iff you cannot recompile the compiler 
+(except by mailing the \fpc team) Iff you cannot recompile the compiler
 when you first compile the RTL, then try the other way.
 
 \section{Compiling using \file{make}}
@@ -4263,7 +4269,7 @@ last step, the compiler is compiled again.
 \end{enumerate}
 The last two steps are repeated 3 times, until three passes have been made or
 until the generated compiler binary is equal to the binary it was compiled
-with. This process ensures that the compiler binary is correct. 
+with. This process ensures that the compiler binary is correct.
 
 Compiling for another target:
 When you want to compile the compiler for another target, you must specify
@@ -4278,7 +4284,7 @@ make cycle OS_TARGET=go32v2
 This will compile the go32v2 RTL, and compile a \var{go32v2} compiler.
 
 If you want to compile a new compiler, but you want the compiler to be
-compiled first using an existing compiled RTL, you should specify the 
+compiled first using an existing compiled RTL, you should specify the
 \var{all} target, and specify another RTL directory than the default (which
 is the \file{../rtl/\$(OS\_TARGET)} directory). For instance, assuming that
 the compiled RTL units are in \var{/pp/rtl}, you could type
@@ -4289,7 +4295,7 @@ make all UNITDIR=/pp/rtl
 \end{verbatim}
 
 This will then compile the compiler using the RTL units in \file{/pp/rtl}.
-After this has been done, you can do the 'make cycle', starting with this 
+After this has been done, you can do the 'make cycle', starting with this
 compiler:
 \begin{verbatim}
 make cycle PP=./ppc386
@@ -4305,11 +4311,11 @@ specify additional options (e.g. optimization options) by passing them in
 
 \section{Compiling by hand}
 
-Compiling by hand is difficult and tedious, but can be done. We'll treat the 
+Compiling by hand is difficult and tedious, but can be done. We'll treat the
 compilation of RTl and compiler separately.
 
 \subsection{Compiling the RTL}
-To recompile the RTL, so a new compiler can be built, at least the following 
+To recompile the RTL, so a new compiler can be built, at least the following
 units must be built, in the order specified:
 \begin{enumerate}
 \item[loaders] the program stubs, that are the startup code for each pascal
@@ -4337,10 +4343,10 @@ of the RTL.
 \end{enumerate}
 To compile these units on a i386, the following statements will do:
 \begin{verbatim}
-ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 -Us -Sg syslinux.pp 
-ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 ../inc/strings.pp 
-ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 dos.pp 
-ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 ../inc/objects.pp 
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 -Us -Sg syslinux.pp
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 ../inc/strings.pp
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 dos.pp
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 ../inc/objects.pp
 \end{verbatim}
 These are the minimum command-line options, needed to compile the RTL.
 
@@ -4350,20 +4356,20 @@ processor. For another operating system (target) you should change the
 the target OS setting (\var{-T}).
 
 Depending on the target OS there are other units that you may wish to
-compile, but which are not strictly needed to recompile the compiler. 
-The following units are available for all plaforms: 
+compile, but which are not strictly needed to recompile the compiler.
+The following units are available for all plaforms:
 \begin{description}
 \item[objpas] Needed for Delphi mode. needs \var{-S2} as an option. Resides
 in the \file{inc} subdirectory.
 \item[sysutils] many utility functions, like in Delphi. Resides in the
 \file{inc} directory, and needs \var{-S2}
-\item[typinfo] functions to access RTTI information, like Delphi. 
+\item[typinfo] functions to access RTTI information, like Delphi.
 \item[math] math functions like in Delphi.
 \item[mmx] extensions for MMX class Intel processors. Resides in
 in the \file{i386} directory.
 \item[getopts] a GNU compatible getopts unit.
 \item[heaptrc] to debug the heap.
-\end{description} 
+\end{description}
 
 \subsection{Compiling the compiler}
 
