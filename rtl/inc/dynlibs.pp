@@ -59,14 +59,17 @@ end;
 Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
 
 begin
-  Result:=GetProcAddress(Lib,Procname);
+  Result:=GetProcedureAddress(Lib,Procname);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.4  2004-06-12 13:30:33  michael
+  Revision 1.5  2004-06-13 09:34:52  michael
+  + Fix for bug 3164 by Michalis Kamburelis
+
+  Revision 1.4  2004/06/12 13:30:33  michael
   Fixed bug 3156, as suggested by Michalis Kamburelis
 
   Revision 1.3  2004/05/04 17:14:52  marco
