@@ -6137,12 +6137,12 @@
           cbClsExtra : longint;
           cbWndExtra : longint;
           hInstance : HANDLE;
-          _hIcon : HICON;
+          hIcon : HICON;
           hCursor : HCURSOR;
           hbrBackground : HBRUSH;
           lpszMenuName : LPCTSTR;
           lpszClassName : LPCTSTR;
-          hIconSm : HICON;
+          hIconSm : HANDLE;
        end;
      LPWNDCLASSEX = ^WNDCLASSEX;
      _WNDCLASSEX = WNDCLASSEX;
@@ -6961,7 +6961,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2000-10-11 16:05:56  peter
+  Revision 1.4  2000-11-21 08:49:14  jonas
+    * workaround for the "hicon: hicon" bug (merged from fixes branch)
+
+  Revision 1.3  2000/10/11 16:05:56  peter
     * stdcall for callbacks (merged)
 
   Revision 1.2  2000/07/13 11:34:01  michael
