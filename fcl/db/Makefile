@@ -210,6 +210,12 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 override TARGET_DIRS+=mysql interbase
 endif
+ifeq ($(OS_TARGET),netbsd)
+override TARGET_DIRS+=mysql interbase
+endif
+ifeq ($(OS_TARGET),openbsd)
+override TARGET_DIRS+=mysql interbase
+endif
 override TARGET_UNITS+=db ddg_ds ddg_rec
 override TARGET_EXAMPLEDIRS+=tests
 override INSTALL_FPCPACKAGE=y
@@ -806,6 +812,8 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(OS_TARGET),netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -824,6 +832,8 @@ REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(OS_TARGET),openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),wdosx)
 REQUIRE_PACKAGES_RTL=1
@@ -1300,6 +1310,14 @@ TARGET_DIRS_MYSQL=1
 TARGET_DIRS_INTERBASE=1
 endif
 ifeq ($(OS_TARGET),freebsd)
+TARGET_DIRS_MYSQL=1
+TARGET_DIRS_INTERBASE=1
+endif
+ifeq ($(OS_TARGET),netbsd)
+TARGET_DIRS_MYSQL=1
+TARGET_DIRS_INTERBASE=1
+endif
+ifeq ($(OS_TARGET),openbsd)
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_INTERBASE=1
 endif

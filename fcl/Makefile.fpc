@@ -11,6 +11,7 @@ packages=paszlib
 packages_linux=inet
 packages_freebsd=inet
 packages_netbsd=inet
+packages_openbsd=inet
 
 # clean package units
 [clean]
@@ -21,6 +22,7 @@ dirs=xml db shedit
 units=classes contnrs inifiles registry ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls
 units_freebsd=process asyncio ssockets http
 units_netbsd=process asyncio ssockets http
+units_openbsd=process asyncio ssockets http
 units_linux=process asyncio ssockets http
 units_win32=process fileinfo
 rsts=classes ssockets cachecls
@@ -33,6 +35,7 @@ includedir=$(OS_TARGET) inc
 includedir_linux=unix
 includedir_freebsd=unix
 includedir_netbsd=unix
+includedir_openbsd=unix
 includedir_sunos=posix
 includedir_qnx=posix
 sourcedir=$(OS_TARGET) inc

@@ -215,6 +215,9 @@ endif
 ifeq ($(OS_TARGET),netbsd)
 override TARGET_UNITS+=process asyncio ssockets http
 endif
+ifeq ($(OS_TARGET),openbsd)
+override TARGET_UNITS+=process asyncio ssockets http
+endif
 override TARGET_RSTS+=classes ssockets cachecls
 override TARGET_EXAMPLEDIRS+=tests
 override CLEAN_UNITS+=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil
@@ -235,6 +238,9 @@ override COMPILER_INCLUDEDIR+=posix
 endif
 ifeq ($(OS_TARGET),qnx)
 override COMPILER_INCLUDEDIR+=posix
+endif
+ifeq ($(OS_TARGET),openbsd)
+override COMPILER_INCLUDEDIR+=unix
 endif
 override COMPILER_SOURCEDIR+=$(OS_TARGET) inc
 override COMPILER_TARGETDIR+=$(OS_TARGET)
@@ -839,6 +845,8 @@ ifeq ($(OS_TARGET),netbsd)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_INET=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -863,6 +871,9 @@ endif
 ifeq ($(OS_TARGET),openbsd)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_INET=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_IBASE=1
 endif
 ifeq ($(OS_TARGET),wdosx)
 REQUIRE_PACKAGES_RTL=1
