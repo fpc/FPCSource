@@ -2531,7 +2531,8 @@ Const local_symtable_index : longint = $8001;
          else
            begin
               { only write the overloads from the same unit }
-              if nextoverloaded^.owner=owner then
+              if assigned(nextoverloaded) and
+                 (nextoverloaded^.owner=owner) then
                 writedefref(nextoverloaded)
               else
                 writedefref(nil);
@@ -3472,7 +3473,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.102  1999-04-17 22:01:28  pierre
+  Revision 1.103  1999-04-19 09:28:20  peter
+    * fixed crash when writing overload operator to ppu
+
+  Revision 1.102  1999/04/17 22:01:28  pierre
    * typo error fix in STORENUMBER code
 
   Revision 1.101  1999/04/14 09:14:58  peter
