@@ -342,8 +342,9 @@ unit ag386nsm;
 
       ait_section2nasmstr : array[tsection] of string[8]=
        ('','.text','.data','.bss',
+        '.stab','.stabstr',
         '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
-        '.stab','.stabstr','');
+        '');
 
     Function PadTabs(const p:string;addch:char):string;
     var
@@ -751,7 +752,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.23  1999-03-04 13:55:39  pierre
+  Revision 1.24  1999-03-10 13:25:44  pierre
+    section order changed to get closer output from coff writer
+
+  Revision 1.23  1999/03/04 13:55:39  pierre
     * some m68k fixes (still not compilable !)
     * new(tobj) does not give warning if tobj has no VMT !
 

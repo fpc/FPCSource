@@ -72,8 +72,9 @@ unit aasm;
 
        tsection=(sec_none,
          sec_code,sec_data,sec_bss,
+         sec_stab,sec_stabstr,
          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_edata,
-         sec_stab,sec_stabstr,sec_fake
+         sec_fake
        );
 
 
@@ -1012,7 +1013,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.36  1999-03-08 14:51:04  peter
+  Revision 1.37  1999-03-10 13:25:42  pierre
+    section order changed to get closer output from coff writer
+
+  Revision 1.36  1999/03/08 14:51:04  peter
     + smartlinking for ag386bin
 
   Revision 1.35  1999/03/05 13:09:48  peter

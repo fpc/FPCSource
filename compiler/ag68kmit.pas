@@ -259,8 +259,10 @@ unit ag68kmit;
         (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
 
       ait_section2str : array[tsection] of string[8]=
-       ('','.text','.data','.bss','.idata2','.idata4','.idata5','.idata6','.idata7',
-        '.edata','.stab','.stabstr');
+       ('','.text','.data','.bss',
+        '.stab','.stabstr',
+        '.idata2','.idata4','.idata5','.idata6','.idata7',
+        '.edata','');
 
     procedure tm68kmitasmlist.WriteTree(p:paasmoutput);
     var
@@ -666,7 +668,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.20  1999-03-04 13:55:40  pierre
+  Revision 1.21  1999-03-10 13:25:45  pierre
+    section order changed to get closer output from coff writer
+
+  Revision 1.20  1999/03/04 13:55:40  pierre
     * some m68k fixes (still not compilable !)
     * new(tobj) does not give warning if tobj has no VMT !
 
