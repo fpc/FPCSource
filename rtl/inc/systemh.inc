@@ -118,6 +118,9 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Double;
+  
+  { map comp to int64, but this doesn't mean to compile the comp support in! }
+  Comp = Int64;
 {$endif powerpc}
 
 { Zero - terminated strings }
@@ -593,7 +596,10 @@ const
 
 {
   $Log$
-  Revision 1.55  2002-09-26 21:50:37  florian
+  Revision 1.56  2002-09-28 21:18:02  florian
+    * map comp to int64 for the powerpc
+
+  Revision 1.55  2002/09/26 21:50:37  florian
     + some WideString<->AnsiString conversion functions added
 
   Revision 1.54  2002/09/07 21:20:50  carl
