@@ -1,6 +1,6 @@
 
 You can have a fp.cfg file in the same directory as fp.exe. It works the
-same as ppc386.cfg
+same as ppc.cfg
 
 To compile the IDE you need to choose whether to build with or without
 debugger (gdb) support. When debugger support is used a check will be
