@@ -26,6 +26,12 @@ OS/2 only rtl                                 medium
   - autothunking for 16-bit calls
   - ? linker (ALINK)
 
+FCL
+  - thread.inc
+  - pipes.inc
+  - ? unit SyncObjs
+  - ? unit HTTPApp
+
 other OS/2 APIs                               low
   - TCP/IP
     - Sockets
