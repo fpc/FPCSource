@@ -170,10 +170,18 @@ strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
 	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
+	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
 	$(DEL) objpas.pp
+
+SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
+	$(DEL) sysutils.pp
+
 
 #
 # System Dependent Units
@@ -226,7 +234,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 14:17:51  peter
+# Revision 1.2  1998-10-11 13:46:31  michael
+# Sysutils changes
+#
+# Revision 1.1  1998/09/10 14:17:51  peter
 #   -renamed
 #
 #
