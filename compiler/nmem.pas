@@ -347,7 +347,8 @@ implementation
               the procedure that is stored in the procvar.}
             if not(m_tp_procvar in aktmodeswitches) then
               begin
-                 if assigned(getprocvardef) then
+                 if assigned(getprocvardef) and
+                    (tprocsym(tloadnode(left).symtableentry).procdef_count>1) then
                   begin
                     hp3:=tprocsym(tloadnode(left).symtableentry).search_procdef_byprocvardef(getprocvardef);
                     if not assigned(hp3)  then
@@ -924,7 +925,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-10-31 15:52:58  peter
+  Revision 1.70  2003-10-31 18:44:18  peter
+    * don't search for compatible procvars when the proc is not
+      overloaded
+
+  Revision 1.69  2003/10/31 15:52:58  peter
     * support creating classes using <class of tobject>.create
 
   Revision 1.68  2003/10/23 14:44:07  peter
