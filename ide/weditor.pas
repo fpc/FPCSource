@@ -562,7 +562,7 @@ type
     public
      { Syntax highlight support }
    {a}function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-   {a}function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+   {a}function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
    {a}function    IsReservedWord(const S: string): boolean; virtual;
    {a}function    IsAsmReservedWord(const S: string): boolean; virtual;
     public
@@ -749,13 +749,16 @@ const
      ReplaceStr         : String[FindStrSize] = '';
      FindReplaceEditor  : PCustomCodeEditor = nil;
      FindFlags          : word = ffPromptOnReplace;
-     WhiteSpaceChars    : set of char = [#0,#32,#255];
-     TabChars           : set of char = [#9];
-     HashChars          : set of char = ['#'];
-     AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
-     NumberChars        : set of char = ['0'..'9'];
-     HexNumberChars     : set of char = ['0'..'9','A'..'F','a'..'f'];
-     RealNumberChars    : set of char = ['E','e','.'{,'+','-'}];
+{$ifndef NO_UNTYPEDSET}
+  {$define USE_UNTYPEDSET}
+{$endif ndef NO_UNTYPEDSET}
+     WhiteSpaceChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#0,#32,#255];
+     TabChars           {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#9];
+     HashChars          {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['#'];
+     AlphaChars         {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['A'..'Z','a'..'z','_'];
+     NumberChars        {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9'];
+     HexNumberChars     {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9','A'..'F','a'..'f'];
+     RealNumberChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['E','e','.'{,'+','-'}];
 
 procedure RegisterWEditor;
 
@@ -2099,7 +2102,7 @@ var
     for I:=1 to Editor^.GetSpecSymbolCount(SClass) do
     begin
       SymbolIndex:=I;
-      S:=Editor^.GetSpecSymbol(SClass,I-1);
+      Editor^.GetSpecSymbol(SClass,I-1,S);
       if (length(SymbolConcat)<length(S)) or
          ((PartialMatch=pmNone) and (length(S)<>length(SymbolConcat)))
           then
@@ -2133,7 +2136,7 @@ var
     for I:=1 to Editor^.GetSpecSymbolCount(SClass) do
     begin
       SymbolIndex:=I;
-      S:=Editor^.GetSpecSymbol(SClass,I-1);
+      Editor^.GetSpecSymbol(SClass,I-1,S);
       if (length(S)<>length(What)) then
         Match:=false
       else
@@ -2163,7 +2166,7 @@ var
   begin
     IsCommentPrefix:=MatchesAnySpecSymbol(ssCommentPrefix,pmLeft);
   end;
-
+                              {** **}
   function IsSingleLineCommentPrefix: boolean;
   begin
     IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(ssCommentSingleLinePrefix,pmLeft);
@@ -2295,6 +2298,7 @@ var
   procedure ProcessChar(C: char);
   var CC: TCharClass;
       EX: Sw_integer;
+      EndComment: string;
   begin
     CC:=GetCharClass(C);
     if ClassStart=X then
@@ -2358,7 +2362,8 @@ var
                   { Remove (* from SymbolConcat to avoid problem with (*) PM }
                   { fixes part of bug 1617 }
                   { but removed proper directive prefix detection ... }
-                  if MatchingSymbol[length(MatchingSymbol)]=Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex)[1] then
+                  Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex,EndComment);
+                  if MatchingSymbol[length(MatchingSymbol)]=EndComment[1] then
                     Delete(SymbolConcat,1,length(MatchingSymbol));
                 end
               else if InComment and IsCommentSuffix then
@@ -3095,10 +3100,11 @@ begin
   GetSpecSymbolCount:=0;
 end;
 
-function TCustomCodeEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+function TCustomCodeEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string):boolean;
 begin
   Abstract;
-  GetSpecSymbol:='';
+  Symbol:='';
+  GetSpecSymbol:=false;
 end;
 
 function TCustomCodeEditor.IsReservedWord(const S: string): boolean;
@@ -7159,7 +7165,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  2002-09-11 10:05:10  pierre
+  Revision 1.34  2002-09-11 11:23:48  pierre
+   * more changes to speed syntax highlighting up
+
+  Revision 1.33  2002/09/11 10:05:10  pierre
    * try to speed up syntax highlighting
 
   Revision 1.32  2002/09/11 08:39:44  pierre

@@ -139,7 +139,7 @@ type
       function  IsReservedWord(const S: string): boolean; virtual;
       function  IsAsmReservedWord(const S: string): boolean; virtual;
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-      function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+      function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
       { CodeTemplates }
       function    TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
       function    SelectCodeTemplate(var ShortCut: string): boolean; virtual;
@@ -420,7 +420,7 @@ type
                     PScrollBar; AIndicator: PIndicator);
       function    IsReservedWord(const S: string): boolean; virtual;
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
       function    GetPalette: PPalette; virtual;
     end;
 
@@ -430,7 +430,7 @@ type
                     PScrollBar; AIndicator: PIndicator);
       function    IsReservedWord(const S: string): boolean; virtual;
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
     end;
 
 function  SearchFreeWindowNo: integer;
@@ -1130,43 +1130,49 @@ begin
     ssAsmSuffix       : Count:=1;
     ssDirectivePrefix : Count:=1;
     ssDirectiveSuffix : Count:=1;
+  else
+    Count:=0;
   end;
   GetSpecSymbolCount:=Count;
 end;
 
-function TSourceEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+function TSourceEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean;
 begin
+  GetSpecSymbol:=true;
   case SpecClass of
     ssCommentPrefix :
       case Index of
-        0 : GetSpecSymbol:='{';
-        1 : GetSpecSymbol:='(*';
-        2 : GetSpecSymbol:='//';
+        0 : Symbol:='{';
+        1 : Symbol:='(*';
+        2 : Symbol:='//';
       end;
     ssCommentSingleLinePrefix :
       case Index of
-        0 : GetSpecSymbol:='//';
+        0 : Symbol:='//';
       end;
     ssCommentSuffix :
       case Index of
-        0 : GetSpecSymbol:='}';
-        1 : GetSpecSymbol:='*)';
+        0 : Symbol:='}';
+        1 : Symbol:='*)';
       end;
     ssStringPrefix :
-      GetSpecSymbol:='''';
+      Symbol:='''';
     ssStringSuffix :
-      GetSpecSymbol:='''';
-    { must ne uppercased to avoid calling UpCaseStr in MatchesAnyAsmSymbol PM }
+      Symbol:='''';
+    { must be uppercased to avoid calling UpCaseStr in MatchesAnyAsmSymbol PM }
     ssAsmPrefix :
-      GetSpecSymbol:='ASM';
+      Symbol:='ASM';
     ssAsmSuffix :
-      GetSpecSymbol:='END';
+      Symbol:='END';
     ssDirectivePrefix :
-      GetSpecSymbol:='{$';
+      Symbol:='{$';
     ssDirectiveSuffix :
-      GetSpecSymbol:='}';
+      Symbol:='}';
     else
-      GetSpecSymbol:='';
+      begin
+        Symbol:='';
+        GetSpecSymbol:=false;
+      end;
   end;
 end;
 
@@ -4221,10 +4227,11 @@ begin
   GetSpecSymbolCount:=0;
 end;
 
-function TFPMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+function TFPMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean;
 begin
   Abstract;
-  GetSpecSymbol:='';
+  GetSpecSymbol:=false;
+  Symbol:='';
 end;
 
 function TFPMemo.IsReservedWord(const S: string): boolean;
@@ -4251,40 +4258,48 @@ begin
     ssAsmSuffix       : Count:=1;
     ssDirectivePrefix : Count:=1;
     ssDirectiveSuffix : Count:=1;
+  else
+    Count:=0;
   end;
   GetSpecSymbolCount:=Count;
 end;
 
-function TFPCodeMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+function TFPCodeMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean;
 begin
+  GetSpecSymbol:=true;
   case SpecClass of
     ssCommentPrefix :
       case Index of
-        0 : GetSpecSymbol:='{';
-        1 : GetSpecSymbol:='(*';
-        2 : GetSpecSymbol:='//';
+        0 : Symbol:='{';
+        1 : Symbol:='(*';
+        2 : Symbol:='//';
       end;
     ssCommentSingleLinePrefix :
       case Index of
-        0 : GetSpecSymbol:='//';
+        0 : Symbol:='//';
       end;
     ssCommentSuffix :
       case Index of
-        0 : GetSpecSymbol:='}';
-        1 : GetSpecSymbol:='*)';
+        0 : Symbol:='}';
+        1 : Symbol:='*)';
       end;
     ssStringPrefix :
-      GetSpecSymbol:='''';
+      Symbol:='''';
     ssStringSuffix :
-      GetSpecSymbol:='''';
+      Symbol:='''';
     ssAsmPrefix :
-      GetSpecSymbol:='ASM';
+      Symbol:='ASM';
     ssAsmSuffix :
-      GetSpecSymbol:='END';
+      Symbol:='END';
     ssDirectivePrefix :
-      GetSpecSymbol:='{$';
+      Symbol:='{$';
     ssDirectiveSuffix :
-      GetSpecSymbol:='}';
+      Symbol:='}';
+  else
+    begin
+      GetSpecSymbol:=false;
+      Symbol:='';
+    end;
   end;
 end;
 
@@ -4354,7 +4369,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.30  2002-09-11 10:05:10  pierre
+  Revision 1.31  2002-09-11 11:23:48  pierre
+   * more changes to speed syntax highlighting up
+
+  Revision 1.30  2002/09/11 10:05:10  pierre
    * try to speed up syntax highlighting
 
   Revision 1.29  2002/09/07 15:40:46  peter
