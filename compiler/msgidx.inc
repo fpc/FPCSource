@@ -205,8 +205,8 @@ type tmsgconst=(
   sym_e_label_already_defined,
   sym_e_ill_type_decl_set,
   sym_e_class_forward_not_resolved,
-  sym_n_para_identifier_not_used,
-  sym_w_local_identifier_not_used,
+  sym_h_para_identifier_not_used,
+  sym_n_local_identifier_not_used,
   sym_e_set_expected,
   sym_w_function_result_not_set,
   sym_e_illegal_field,
@@ -579,6 +579,8 @@ type tmsgconst=(
   ol121,
   ol122,
   ol123,
+  ol124,
+  ol125,
   ol_end,
 endmsgconst
 );
