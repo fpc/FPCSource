@@ -419,6 +419,9 @@ implementation
            case left.nodetype of
              calln :
                begin
+                 { a load of a procvar can't have parameters }
+                 if assigned(tcallnode(left).left) then
+                   CGMessage(cg_e_illegal_expression);
                  { is it a procvar? }
                  hp:=tcallnode(left).right;
                  if assigned(hp) then
@@ -449,7 +452,10 @@ implementation
 
         { proc 2 procvar ? }
         if left.nodetype=calln then
-         internalerror(200103253)
+         { if it were a valid construct, the addr node would already have }
+         { been removed in the parser. This happens for (in FPC mode)     }
+         { procvar1 := @procvar2(parameters);                             }
+         CGMessage(cg_e_illegal_expression)
         else
          if (left.nodetype=loadn) and (tloadnode(left).symtableentry.typ=procsym) then
           begin
@@ -1034,7 +1040,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-12-06 17:57:34  florian
+  Revision 1.26  2002-04-01 20:57:13  jonas
+    * fixed web bug 1907
+    * fixed some other procvar related bugs (all related to accepting procvar
+        constructs with either too many or too little parameters)
+    (both merged, includes second typo fix of pexpr.pas)
+
+  Revision 1.25  2001/12/06 17:57:34  florian
     + parasym to tparaitem added
 
   Revision 1.24  2001/12/03 21:48:42  peter

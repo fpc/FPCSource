@@ -917,11 +917,15 @@ implementation
       begin
         if ((m_tp_procvar in aktmodeswitches) or
             not getaddr) then
-          if (p2.nodetype=calln) then
+          if (p2.nodetype=calln) and
+             { a procvar can't have parameters! }
+             not assigned(tcallnode(p2).left) then
            doconv(pv,p2)
           else
            if (p2.nodetype=typeconvn) and
-              (ttypeconvnode(p2).left.nodetype=calln) then
+              (ttypeconvnode(p2).left.nodetype=calln) and
+              { a procvar can't have parameters! }
+              not assigned(tcallnode(ttypeconvnode(p2).left).left) then
             doconv(pv,ttypeconvnode(p2).left);
       end;
 
@@ -2452,7 +2456,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-03-31 20:26:35  jonas
+  Revision 1.60  2002-04-01 20:57:13  jonas
+    * fixed web bug 1907
+    * fixed some other procvar related bugs (all related to accepting procvar
+        constructs with either too many or too little parameters)
+    (both merged, includes second typo fix of pexpr.pas)
+
+  Revision 1.59  2002/03/31 20:26:35  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -1409,7 +1409,9 @@ implementation
          procvar is passed explicit a addrn would be there }
          if (m_tp_procvar in aktmodeswitches) and
             (def_from.deftype=procvardef) and
-            (fromtreetype=loadn) then
+            (fromtreetype=loadn) and
+            { only if the procvar doesn't require any paramters }
+            (tprocvardef(def_from).minparacount = 0) then
           begin
             def_from:=tprocvardef(def_from).rettype.def;
           end;
@@ -1953,7 +1955,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-01-24 18:25:53  peter
+  Revision 1.65  2002-04-01 20:57:14  jonas
+    * fixed web bug 1907
+    * fixed some other procvar related bugs (all related to accepting procvar
+        constructs with either too many or too little parameters)
+    (both merged, includes second typo fix of pexpr.pas)
+
+  Revision 1.64  2002/01/24 18:25:53  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
