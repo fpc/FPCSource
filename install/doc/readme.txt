@@ -179,7 +179,7 @@ os2106.zip specific:
       ObjDump 2.9.1 for EMX
       Strip 2.9.1 for EMX
       RANLIB 2.9.1 for EMX
-  utilemx.zip     contains additional GNU utilities which might be useful to
+  makeemx.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
       Make 3.76.1
       RM 3.13
@@ -190,6 +190,7 @@ os2106.zip specific:
       Install 3.13
       Date 1.12
       Echo 1.12
+      Diff 2.8
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
