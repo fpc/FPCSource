@@ -42,7 +42,6 @@ unit cgcpu;
         procedure done_register_allocators;override;
 
         function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getaddressregister(list:Taasmoutput):Tregister;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
@@ -95,7 +94,9 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
+        procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
+
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
@@ -173,7 +174,7 @@ const
     uses
        globtype,globals,verbose,systems,cutils,
        symconst,symdef,symsym,
-       rgobj,tgobj,cpupi,procinfo;
+       rgobj,tgobj,cpupi,procinfo,paramgr;
 
 
     procedure tcgppc.init_register_allocators;
@@ -204,12 +205,6 @@ const
     function tcgppc.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
         result:=rgint.getregister(list,cgsize2subreg(size));
-      end;
-
-
-    function tcgppc.getaddressregister(list:Taasmoutput):Tregister;
-      begin
-        result:=rgint.getregister(list,R_SUBWHOLE);
       end;
 
 
@@ -1992,131 +1987,80 @@ const
          tg.ungetiftemp(list,source);
       end;
 
-    procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
+
+    procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
       var
-        power,len  : longint;
-{$ifndef __NOWINPECOFF__}
-        again,ok : tasmlabel;
-{$endif}
-//        r,r2,rsp:Tregister;
+        sizereg,sourcereg : tregister;
+        paraloc1,paraloc2,paraloc3 : tparalocation;
       begin
-         {$warning !!!! FIX ME !!!!}
-         internalerror(200305231);
-(* !!!!
-        lenref:=ref;
-        inc(lenref.offset,4);
-        { get stack space }
-        r.enum:=R_INTREGISTER;
-        r.number:=NR_EDI;
-        rsp.enum:=R_INTREGISTER;
-        rsp.number:=NR_ESP;
-        r2.enum:=R_INTREGISTER;
-        rg.getexplicitregisterint(list,NR_EDI);
-        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
-        list.concat(Taicpu.op_reg(A_INC,S_L,r));
-        if (elesize<>1) then
-         begin
-           if ispowerof2(elesize, power) then
-             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r))
-           else
-             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,r));
-         end;
-{$ifndef __NOWINPECOFF__}
-        { windows guards only a few pages for stack growing, }
-        { so we have to access every page first              }
-        if target_info.system=system_i386_win32 then
-          begin
-             objectlibrary.getlabel(again);
-             objectlibrary.getlabel(ok);
-             a_label(list,again);
-             list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,r));
-             a_jmp_cond(list,OC_B,ok);
-             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,rsp));
-             r2.number:=NR_EAX;
-             list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
-             list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,r));
-             a_jmp_always(list,again);
-
-             a_label(list,ok);
-             list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
-             rgint.ungetregister(list,r);
-             { now reload EDI }
-             rg.getexplicitregisterint(list,NR_EDI);
-             list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
-             list.concat(Taicpu.op_reg(A_INC,S_L,r));
-
-             if (elesize<>1) then
-              begin
-                if ispowerof2(elesize, power) then
-                  list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r))
-                else
-                  list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,r));
-              end;
-          end
-        else
-{$endif __NOWINPECOFF__}
-          list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
-        { align stack on 4 bytes }
-        list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,rsp));
-        { load destination }
-        a_load_reg_reg(list,OS_INT,OS_INT,rsp,r);
-
-        { don't destroy the registers! }
-        r2.number:=NR_ECX;
-        list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
-        r2.number:=NR_ESI;
-        list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
-
-        { load count }
-        r2.number:=NR_ECX;
-        a_load_ref_reg(list,OS_INT,lenref,r2);
-
+        { because ppc abi doesn't support dynamic stack allocation properly
+          open array value parameters are copied onto the heap
+        }
+        { allocate two registers for len and source }
+        sizereg:=getintregister(list,OS_INT);
+        sourcereg:=getintregister(list,OS_INT);
+        { calculate necessary memory }
+        a_load_ref_reg(list,OS_INT,OS_INT,lenref,sizereg);
+        a_op_const_reg_reg(list,OP_MUL,OS_INT,elesize,sizereg,sizereg);
         { load source }
-        r2.number:=NR_ESI;
-        a_load_ref_reg(list,OS_INT,ref,r2);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg);
 
-        { scheduled .... }
-        r2.number:=NR_ECX;
-        list.concat(Taicpu.op_reg(A_INC,S_L,r2));
+        { do getmem call }
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
+        paraloc2:=paramanager.getintparaloc(pocall_default,2);
+        paramanager.allocparaloc(list,paraloc2);
+        a_param_reg(list,OS_INT,sizereg,paraloc2);
+        paramanager.allocparaloc(list,paraloc1);
+        a_paramaddr_ref(list,ref,paraloc1);
+        paramanager.freeparaloc(list,paraloc2);
+        paramanager.freeparaloc(list,paraloc1);
+        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        a_call_name(list,'FPC_GETMEM');
+        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
-        { calculate size }
-        len:=elesize;
-        opsize:=S_B;
-        if (len and 3)=0 then
-         begin
-           opsize:=S_L;
-           len:=len shr 2;
-         end
-        else
-         if (len and 1)=0 then
-          begin
-            opsize:=S_W;
-            len:=len shr 1;
-          end;
+        { do move call }
+        paraloc1:=paramanager.getintparaloc(pocall_default,1);
+        paraloc2:=paramanager.getintparaloc(pocall_default,2);
+        paraloc3:=paramanager.getintparaloc(pocall_default,3);
+        { load size }
+        paramanager.allocparaloc(list,paraloc3);
+        a_param_reg(list,OS_INT,sizereg,paraloc3);
+        { load destination }
+        paramanager.allocparaloc(list,paraloc2);
+        a_param_ref(list,OS_ADDR,ref,paraloc2);
+        { load source }
+        paramanager.allocparaloc(list,paraloc1);
+        a_param_reg(list,OS_ADDR,sourcereg,paraloc1);
+        paramanager.freeparaloc(list,paraloc3);
+        paramanager.freeparaloc(list,paraloc2);
+        paramanager.freeparaloc(list,paraloc1);
+        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        a_call_name(list,'FPC_MOVE');
+        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
-        if ispowerof2(len, power) then
-          list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r2))
-        else
-          list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,r2));
-        list.concat(Taicpu.op_none(A_REP,S_NO));
-        case opsize of
-          S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
-          S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
-        end;
-        rgint.ungetregister(list,r);
-        r2.number:=NR_ESI;
-        list.concat(Taicpu.op_reg(A_POP,S_L,r2));
-        r2.number:=NR_ECX;
-        list.concat(Taicpu.op_reg(A_POP,S_L,r2));
-
-        { patch the new address }
-        a_load_reg_ref(list,OS_INT,rsp,ref);
-!!!! *)
+        { release used registers }
+        ungetregister(list,sizereg);
+        ungetregister(list,sourcereg);
       end;
 
-    procedure tcgppc.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
 
+    procedure tcgppc.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
+      var
+        paraloc : tparalocation;
+      begin
+        { do move call }
+        paraloc:=paramanager.getintparaloc(pocall_default,1);
+        { load source }
+        paramanager.allocparaloc(list,paraloc);
+        a_param_ref(list,OS_ADDR,ref,paraloc);
+        paramanager.freeparaloc(list,paraloc);
+        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        a_call_name(list,'FPC_FREEMEM');
+        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+      end;
+
+
+    procedure tcgppc.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
       var
          hl : tasmlabel;
       begin
@@ -2499,7 +2443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2003-11-02 15:20:06  jonas
+  Revision 1.136  2003-11-02 17:19:33  florian
+    + copying of open array value parameters to the heap implemented
+
+  Revision 1.135  2003/11/02 15:20:06  jonas
     * fixed releasing of references (ppc also has a base and an index, not
       just a base)
 
