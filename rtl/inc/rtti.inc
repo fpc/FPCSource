@@ -83,16 +83,242 @@ TArrayRec = record
   Info : Pointer;
   end;
 
-{ The actual Routines are implemented per processor. }
 
-{ Include the cpu dependant part }
-{$i rttip.inc}
-{ Include the generic part }
-{$i genrtti.inc}
+Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias : 'FPC_INITIALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
+
+Var Temp       : PByte;
+    I          : longint;
+    Size,Count : longint;
+    TInfo : Pointer;
+
+begin
+  Temp:=PByte(TypeInfo);
+  case temp^ of
+    tkAstring,tkWstring,tkInterface,tkDynArray:
+      PPchar(Data)^:=Nil;
+    tkArray:
+      begin
+         inc(temp);
+         I:=temp^;
+         inc(temp,(I+1));                // skip name string;
+         Size:=PArrayRec(Temp)^.Size;    // get element size
+         Count:=PArrayRec(Temp)^.Count;  // get element Count
+         TInfo:=PArrayRec(Temp)^.Info;   // Get element info
+         For I:=0 to Count-1 do
+           int_Initialize (Data+(I*size),TInfo);
+      end;
+    tkRecord,tkClass,tkObject:
+      begin
+         inc(Temp);
+         I:=Temp^;
+         inc(temp,I+1);             // skip name string;
+         { if it isn't necessary, why should we load it ? FK
+           Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+         }
+         Count:=PRecRec(Temp)^.Count;  // get element Count
+         For I:=1 to count Do
+           With PRecRec(Temp)^.elements[I] do
+             int_Initialize (Data+Offset,Info);
+      end;
+{$ifdef HASVARIANT}
+    tkVariant:
+      variant_init(Variant(PVarData(Data)^))
+{$endif HASVARIANT}
+  end;
+end;
+
+
+Procedure fpc_finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
+    PPointer = ^Pointer;
+Var Temp       : PByte;
+    I          : longint;
+    Size,Count : longint;
+    TInfo : Pointer;
+
+begin
+  Temp:=PByte(TypeInfo);
+  case temp^ of
+    tkAstring :
+      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+{$ifdef HASWIDESTRING}
+    tkWstring :
+      fpc_WideStr_Decr_Ref(PPointer(Data)^);
+{$endif HASWIDESTRING}
+    tkArray :
+      begin
+         inc(Temp);
+         I:=temp^;
+         inc(temp,I+1);                   // skip name string;
+         Size:=PArrayRec(Temp)^.Size;     // get element size
+         Count:=PArrayRec(Temp)^.Count;   // get element Count
+         TInfo:=PArrayRec(Temp)^.Info;    // Get element info
+         For I:=0 to Count-1 do
+           int_Finalize (Data+(I*size),TInfo);
+      end;
+    tkRecord,tkObject,tkClass:
+      begin
+         inc(Temp);
+         I:=Temp^;
+         inc(temp,I+1);                // skip name string;
+         { if it isn't necessary, why should we load it? FK
+           Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+         }
+         Count:=PRecRec(Temp)^.Count;  // get element Count
+         For I:=1 to count do
+           With PRecRec(Temp)^.elements[I] do
+             int_Finalize (Data+Offset,Info);
+      end;
+{$ifdef HASINTF}
+    tkInterface:
+      Intf_Decr_Ref(PPointer(Data)^);
+{$endif HASINTF}
+    tkDynArray:
+      fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
+{$ifdef HASVARIANT}
+    tkVariant:
+      variant_clear(Variant(PVarData(Data)^))
+{$endif HASVARIANT}
+  end;
+end;
+
+
+Procedure fpc_Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'FPC_ADDREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
+    PPointer = ^Pointer;
+Var Temp       : PByte;
+    I          : longint;
+    Size,Count : longint;
+    TInfo : Pointer;
+begin
+  Temp:=PByte(TypeInfo);
+  case temp^ of
+    tkAstring :
+      fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
+{$ifdef HASWIDESTRING}
+    tkWstring :
+      fpc_WideStr_Incr_Ref(PPointer(Data)^);
+{$endif HASWIDESTRING}
+    tkArray :
+      begin
+        Inc(Temp);
+        I:=temp^;
+        inc(temp,I+1);               // skip name string;
+        Size:=PArrayRec(Temp)^.Size;     // get element size
+        Count:=PArrayRec(Temp)^.Count;  // get element Count
+        TInfo:=PArrayRec(Temp)^.Info;   // Get element info
+        For I:=0 to Count-1 do
+          int_AddRef (Data+(I*size),TInfo);
+      end;
+    tkrecord :
+      begin
+        Inc(Temp);
+        I:=Temp^;
+        temp:=temp+(I+1);             // skip name string;
+        Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+        Count:=PRecRec(Temp)^.Count;  // get element Count
+        For I:=1 to count do
+          With PRecRec(Temp)^.elements[I] do
+            int_AddRef (Data+Offset,Info);
+      end;
+    tkDynArray:
+      fpc_dynarray_incr_ref(PPointer(Data)^);
+{$ifdef HASINTF}
+    tkInterface:
+      Intf_Incr_Ref(PPointer(Data)^);
+{$endif HASINTF}
+  end;
+end;
+
+
+{ alias for internal use }
+{ we use another name else the compiler gets puzzled because of the wrong forward def }
+procedure fpc_systemDecRef (Data, TypeInfo : Pointer);saveregisters;[external name 'FPC_DECREF'];
+
+Procedure fpc_DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
+    PPointer = ^Pointer;
+Var Temp       : PByte;
+    I          : longint;
+    Size,Count : longint;
+    TInfo : Pointer;
+
+begin
+  Temp:=PByte(TypeInfo);
+  case temp^ of
+    { see AddRef for comment about below construct (JM) }
+    tkAstring:
+      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+{$ifdef HASWIDESTRING}      
+    tkWstring:
+      fpc_WideStr_Decr_Ref(PPointer(Data)^);
+{$endif HASWIDESTRING}      
+    tkArray:
+      begin
+         inc(Temp);
+         I:=temp^;
+         inc(temp,I+1);               // skip name string;
+         Size:=PArrayRec(Temp)^.Size;     // get element size
+         Count:=PArrayRec(Temp)^.Count;  // get element Count
+         TInfo:=PArrayRec(Temp)^.Info;   // Get element info
+         For I:=0 to Count-1 do
+           fpc_systemDecRef (Data+(I*size),TInfo);
+      end;
+    tkrecord:
+      begin
+      Temp:=Temp+1;
+      I:=Temp^;
+      temp:=temp+(I+1);             // skip name string;
+      Size:=PRecRec(Temp)^.Size;    // get record size; not needed.
+      Count:=PRecRec(Temp)^.Count;  // get element Count
+      For I:=1 to count do
+        With PRecRec(Temp)^.elements[I] do
+          fpc_systemDecRef (Data+Offset,Info);
+      end;
+    tkDynArray:
+      fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
+{$ifdef HASINTF}
+    tkInterface:
+      Intf_Decr_Ref(PPointer(Data)^);
+{$endif HASINTF}
+  end;
+end;
+
+
+procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+     i : longint;
+  begin
+     for i:=0 to count-1 do
+       int_finalize(data+size*i,typeinfo);
+  end;
+
+
 
 {
   $Log$
-  Revision 1.5  2001-11-17 16:56:08  florian
+  Revision 1.6  2002-09-02 18:42:41  peter
+    * moved genrtti.inc code to rtti
+    * removed rttip.inc, the generic code is almost as fast and
+      much easier to maintain and has less risks on bugs
+
+  Revision 1.5  2001/11/17 16:56:08  florian
     * init and final code in genrtti.inc updated
 
   Revision 1.4  2001/04/23 18:25:45  peter
