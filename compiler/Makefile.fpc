@@ -313,7 +313,7 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
         $(COMPILER) pp.pas
         $(EXECPPAS)
-        $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(COMPILER_TARGETDIR)/$(EXENAME)
+        $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
@@ -324,7 +324,7 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
         $(EXECPPAS)
         $(COMPILER) pp.pas
         $(EXECPPAS)
-        $(MOVE) $(PPEXENAME) $(EXENAME)
+        $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
 endif
 
 tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
@@ -457,7 +457,8 @@ cvstest:
 #
 # 1. build a compiler using cycle
 # 2. remove all .ppufiles
-# 3. build all supported cross compilers
+# 3. build all supported cross compilers except the
+#    current PPC_TARGET which was already build
 #
 
 full: fullcycle
@@ -465,7 +466,7 @@ full: fullcycle
 fullcycle:
         $(MAKE) cycle
         $(MAKE) ppuclean
-        $(MAKE) $(CYCLETARGETS) 'FPC=$(BASEDIR)/$(EXENAME)'
+        $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 
 #####################################################################
 # Docs
