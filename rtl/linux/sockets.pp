@@ -107,8 +107,12 @@ Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint
 Function Bind(Sock:longint;const addr:string):boolean;
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean;
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
 
 
 Implementation
@@ -406,8 +410,6 @@ begin
   DoConnect:=Connect(Sock,UnixAddr,AddrLen);
 end;
 
-
-
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
 var
   s : longint;
@@ -463,14 +465,100 @@ begin
   else
    Connect:=false;
 end;
+
+{******************************************************************************
+                               InetSock
+******************************************************************************}
+
+
+
+Function DoAccept(Sock:longint;Var addr:TInetSockAddr):longint;
+
+Var AddrLen : Longint;
+
+begin
+  AddrLEn:=SizeOf(Addr);
+  DoAccept:=Accept(Sock,Addr,AddrLen);
+end;
+
+
+
+Function DoConnect(Sock:longint;const addr: TInetSockAddr):Boolean;
+
+begin
+  DoConnect:=Connect(Sock,Addr,SizeOF(TInetSockAddr));
+end;
+
+
+
+Function Connect(Sock:longint;const addr: TInetSockAddr;var SockIn,SockOut:text):Boolean;
+begin
+  if DoConnect(Sock,addr) then
+   begin
+     Sock2Text(Sock,SockIn,SockOut);
+     Connect:=true;
+   end
+  else
+   Connect:=false;
+end;
+
+
+
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
+begin
+  if DoConnect(Sock,addr) then
+   begin
+     Sock2File(Sock,SockIn,SockOut);
+     Connect:=true;
+   end
+  else
+   Connect:=false;
+end;
+
+
           
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
+var
+  s : longint;
+begin
+  S:=DoAccept(Sock,addr);
+  if S>0 then
+   begin
+     Sock2Text(S,SockIn,SockOut);
+     Accept:=true;
+   end
+  else     
+   Accept:=false;
+end;
+
+
+
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean;
+var
+  s : longint;
+begin
+  S:=DoAccept(Sock,addr);
+  if S>0 then
+   begin
+     Sock2File(S,SockIn,SockOut);
+     Accept:=true;
+   end
+  else     
+   Accept:=false;
+end;
+
+
+
 
 end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-07-16 10:36:45  michael
+  + added connect call for inet sockets
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.1  1998/02/13 08:35:05  michael
   + Initial implementation
