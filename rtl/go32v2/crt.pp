@@ -402,10 +402,12 @@ begin
    end
   else
    begin
-     regs.realeax:=$0000;
+     regs.ah:=$10;
      realintr($16,regs);
-     char1:=chr(regs.realeax and $ff);
-     char2:=chr((regs.realeax and $ff00) shr 8);
+     if (regs.al=$e0) and (regs.ah<>0) then
+      regs.al:=0;
+     char1:=chr(regs.al);
+     char2:=chr(regs.ah);
      if char1=#0 then
       begin
         is_last:=true;
@@ -427,7 +429,7 @@ begin
    end
   else
    begin
-     regs.realeax:=$0100;
+     regs.ah:=$11;
      realintr($16,regs);
      keypressed:=((regs.realflags and zeroflag) = 0);
    end;
@@ -815,7 +817,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1999-10-22 14:36:20  peter
+  Revision 1.7  1999-11-03 23:47:34  peter
+    * support extended keys
+
+  Revision 1.6  1999/10/22 14:36:20  peter
     * crtreturn also needs f:textrec as parameter
 
   Revision 1.5  1999/06/09 16:46:09  peter
