@@ -293,7 +293,7 @@ var Regs: registers;
 begin
   StringToTB(FileName);
   Regs.Edx := tb_offset;
-  Regs.Ds := tb_offset;
+  Regs.Ds := tb_segment;
   if LFNSupport then
     Regs.Eax := $7141
   else
@@ -350,9 +350,9 @@ SystemTime.Day := Regs.Dl;
 end ;
 
 { ---------------------------------------------------------------------
-    Internationalization settings 
+    Internationalization settings
   ---------------------------------------------------------------------}
-  
+
 
 {  Codepage constants  }
 const
@@ -421,13 +421,13 @@ for i := 91 to 255 do
 
 {  Get country and codepage info  }
 GetExtendedCountryInfo(1, $FFFF, $FFFF, CountryInfo);
-if CountryInfo.CodePage = 850 then 
+if CountryInfo.CodePage = 850 then
   begin
   { Special, known case }
   Move(CP850UCT, UpperCaseTable[128], 128);
   Move(CP850LCT, LowerCaseTable[128], 128);
   end
-else 
+else
   begin
   { this needs to be checked !!
   this is correct only if UpperCaseTable is
@@ -435,7 +435,7 @@ else
   {  get the uppercase table from dosmemory  }
   GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
   DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
-  for i := 128 to 255 do 
+  for i := 128 to 255 do
      begin
      if UpperCaseTable[i] <> chr(i) then
         LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
@@ -454,7 +454,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-08-19 14:00:08  pierre
+  Revision 1.7  1999-08-24 13:14:28  peter
+    * fixed DeleteFile()
+
+  Revision 1.6  1999/08/19 14:00:08  pierre
    * bug in country info code fixed
 
   Revision 1.5  1999/02/28 13:18:12  michael
