@@ -117,7 +117,7 @@ interface
       {$LINKLIB m}
       {$LINKLIB iberty}
       {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
-				but I use GDB CVS snapshots for the *BSDs} 
+				but I use GDB CVS snapshots for the *BSDs}
     {$endif GDB_V5}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -351,6 +351,7 @@ type
     got_error,
     reset_command,
     call_reset,
+    signaled,
     Debuggee_started : boolean;
     { frames and frame info while recording a frame }
     frames        : ppframeentry;
@@ -365,6 +366,8 @@ type
     current_line_number,
     signal_start,
     signal_end,
+    signal_name_start,
+    signal_name_end,
     error_start,
     error_end,
     function_start,
@@ -375,6 +378,8 @@ type
     file_end,
     line_start,
     line_end : longint;
+    signal_name,
+    signal_string : pchar;
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
@@ -412,6 +417,7 @@ type
     procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;
     procedure DoEndSession(code:longint);virtual;
+    procedure DoUserSignal;virtual;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
     function  AllowQuit : boolean;virtual;
@@ -1284,9 +1290,9 @@ procedure annotate_signal_name;cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|signal_name|');
-  with curr_gdb^ do
-   signal_start:=gdboutputbuf.idx;
 {$endif}
+  with curr_gdb^ do
+   signal_name_start:=gdboutputbuf.idx;
 end;
 
 
@@ -1295,6 +1301,8 @@ begin
 {$ifdef Verbose}
   Debug('|signal_name_end|');
 {$endif}
+  with curr_gdb^ do
+   signal_name_end:=gdboutputbuf.idx;
 end;
 
 
@@ -1303,10 +1311,14 @@ begin
 {$ifdef Verbose}
   Debug('|signal_string|');
 {$endif}
+  with curr_gdb^ do
+   signal_start:=gdboutputbuf.idx;
 end;
 
 
 procedure annotate_signal_string_end;cdecl;public;
+var
+  c : char;
 begin
 {$ifdef Verbose}
   Debug('|signal_string_end|');
@@ -1314,17 +1326,28 @@ begin
   with curr_gdb^ do
    begin
      signal_end:=gdboutputbuf.idx;
-{
-  signal = (char *)alloca(signal_end-signal_start+1);
-  strncpy(signal,gdb_output_buffer+signal_start,signal_end-signal_start);
-  signal[signal_end-signal_start] = 0;
-  if (user_screen_shown)
-    __DebuggerScreen();
-    _UserWarning(WARN_SIGNALED,signal);
-    __UserScreen();
-  else
-    _UserWarning(WARN_SIGNALED,signal); }
+     c:=gdboutputbuf.buf[signal_end];
+     gdboutputbuf.buf[signal_end]:=#0;
+     if assigned(signal_string) then
+       strdispose(signal_string);
+     signal_string:=strnew(gdboutputbuf.buf+signal_start);
+     gdboutputbuf.buf[signal_end]:=c;
+     c:=gdboutputbuf.buf[signal_name_end];
+     gdboutputbuf.buf[signal_name_end]:=#0;
+     if assigned(signal_name) then
+       strdispose(signal_name);
+     signal_name:=strnew(gdboutputbuf.buf+signal_name_start);
+     gdboutputbuf.buf[signal_name_end]:=c;
+     if (user_screen_shown) then
+       begin
+         DebuggerScreen;
+         DoUserSignal;
+         UserScreen;
+       end
+     else
+       DoUserSignal;
      call_reset:=true;
+     signaled:=false;
    end;
 end;
 
@@ -1334,6 +1357,8 @@ begin
 {$ifdef Verbose}
   Debug('|signal|');
 {$endif}
+  with curr_gdb^ do
+   signaled:=true;
 end;
 
 
@@ -2305,6 +2330,12 @@ begin
 {$endif}
 {$endif}
   DoEndSession(code);
+  if assigned(signal_name) then
+    strdispose(signal_name);
+  signal_name:=nil;
+  if assigned(signal_string) then
+    strdispose(signal_string);
+  signal_string:=nil;
 end;
 
 
@@ -2359,6 +2390,10 @@ begin
 end;
 
 procedure tgdbinterface.DoEndSession(code:longint);
+begin
+end;
+
+procedure tgdbinterface.DoUserSignal;
 begin
 end;
 
@@ -2524,7 +2559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-02-05 11:03:59  marco
+  Revision 1.3  2002-02-06 14:42:45  pierre
+   + code to handle signals
+
+  Revision 1.2  2002/02/05 11:03:59  marco
    * library fix, and define GDB_V502 for BSD
 
   Revision 1.1  2002/01/29 17:54:49  peter
