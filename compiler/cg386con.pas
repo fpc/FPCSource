@@ -137,7 +137,7 @@ implementation
     procedure secondstringconst(var p : ptree);
       var
          hp1 : pai;
-         l1,
+         l1,l2,
          lastlabel   : plabel;
          pc          : pchar;
          same_string : boolean;
@@ -204,6 +204,8 @@ implementation
                            else
                              begin
                                 getdatalabel(l1);
+                                getdatalabel(l2);
+                                consts^.concat(new(pai_label,init(l2)));
                                 consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
@@ -216,7 +218,7 @@ implementation
                                 { with the ending null char }
                                 consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
                                 { return the offset of the real string }
-                                p^.lab_str:=l1;
+                                p^.lab_str:=l2;
                              end;
                         end;
                       st_shortstring:
@@ -362,7 +364,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1998-11-26 14:39:12  peter
+  Revision 1.24  1998-11-28 15:36:02  michael
+  Fixed generation of constant ansistrings
+
+  Revision 1.23  1998/11/26 14:39:12  peter
     * ansistring -> pchar fixed
     * ansistring constants fixed
     * ansistring constants are now written once
