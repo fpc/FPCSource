@@ -260,4 +260,5 @@ bug0190.pp   can't have typecast for var params ??
 bug0191.pp   missing vecn constant evaluation
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0194.pp   @procedure var returns value in it instead of address !!
-bug0195.pp   Problem with Putimage, crash of DOS box, even with dpmiexcp!!
+bug0195.pp   Problem with Getimage, crash of DOS box, even with dpmiexcp!!
+bug0196.pp   "function a;" is accepted (should require result type)
