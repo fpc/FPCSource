@@ -1,4 +1,5 @@
 {****************************************************************************
+  $Id$
 
                    Copyright (c) 1993,94 by Florian Kl„mpfl
                    Translated By Eric Molitor (emolitor@freenet.fsu.edu)
@@ -12,11 +13,12 @@ program eratosthenes;
 
   const
      max = 1000000;
+  var
+     a : array[1..max] of boolean;
 
   procedure eratos;
 
     var
-       a : array[1..max] of boolean;
        i,j : longint;
 
     begin
@@ -37,3 +39,8 @@ program eratosthenes;
      write('Calculating the Prime Numbers from 1 to ',max,'...');
      eratos;
   end.
+
+{ $Log$
+{ Revision 1.2  1998-04-06 12:17:00  pierre
+{   * made array a global to avoid stack overflow
+{ }
