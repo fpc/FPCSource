@@ -916,7 +916,7 @@ begin
   temp:='/bin/sh'#0'-c'#0+prog+#0;
   p:=pp;
   GetMem(p^,Length(Temp));
-  Move(@Temp[1],p^^,Length(Temp));
+  Move(Temp[1],p^^,Length(Temp));
   inc(p);
   p^:=@pp[0][8];
   inc(p);
@@ -2931,7 +2931,10 @@ End.
 
 {
   $Log$
-  Revision 1.71  2000-05-25 19:59:57  michael
+  Revision 1.72  2000-05-26 18:21:04  peter
+    * fixed @ with var parameters
+
+  Revision 1.71  2000/05/25 19:59:57  michael
   + Added munmap call
 
   Revision 1.70  2000/05/21 17:10:13  michael

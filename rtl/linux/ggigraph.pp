@@ -323,7 +323,7 @@ type
 procedure ggi_putimageproc (X,Y: smallint; var Bitmap; BitBlt: Word);
 begin
   With TBitMap(BitMap) do
-    ggiputbox(Visual,x, y, width, height, @Data);
+    ggiputbox(Visual,x, y, width, height, Data);
 end;
 
 procedure ggi_getimageproc (X1,Y1,X2,Y2: smallint; Var Bitmap);
@@ -332,7 +332,7 @@ begin
     begin
     Width := x2 - x1 + 1;
     Height := y2 - y1 + 1;
-    ggigetbox(Visual,x1,y1, x2 - x1 + 1, y2 - y1 + 1, @Data);
+    ggigetbox(Visual,x1,y1, x2 - x1 + 1, y2 - y1 + 1, Data);
     end;
 end;
 
@@ -514,7 +514,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-03-19 11:20:14  peter
+  Revision 1.2  2000-05-26 18:21:04  peter
+    * fixed @ with var parameters
+
+  Revision 1.1  2000/03/19 11:20:14  peter
     * graph unit include is now independent and the dependent part
       is now in graph.pp
     * ggigraph unit for linux added
