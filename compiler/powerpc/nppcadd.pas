@@ -1407,7 +1407,11 @@ interface
                    addn:
                      op := A_ADDO;
                    subn:
-                     op := A_SUBO;
+                     begin
+                       op := A_SUBO;
+                       if (nf_swaped in flags) then
+                         swapleftright;
+                     end;
                    muln:
                      op := A_MULLWO;
                    else
@@ -1460,7 +1464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-11-26 12:17:04  jonas
+  Revision 1.54  2004-11-26 12:30:47  jonas
+    * fixed intermittent bug in overflow checking of subtractions
+
+  Revision 1.53  2004/11/26 12:17:04  jonas
     * fixed overflow checking of unsigned multiplications
 
   Revision 1.52  2004/10/31 21:45:03  peter
