@@ -126,8 +126,8 @@ strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 baseunix$(PPUEXT) : unixtype$(PPUEXT) sysctl$(PPUEXT) errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
-  $(BSDINC)/bunxfunc.inc \
+  signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/ostypes.inc \
+  $(BSDINC)/bunxsysc.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -135,7 +135,7 @@ unixtype$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(UNIXINC)/unixtype.pp ptypes.inc $(B
 
 unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  sysconst.inc $(UNIXINC)/timezone.inc \
-                 unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                 unixfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 

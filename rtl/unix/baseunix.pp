@@ -19,83 +19,83 @@ Interface
 
 Uses UnixType;
 
+{$i bunxdefs.inc}       { Compile time defines }
+
 {$i aliasptp.inc}
 
 {$packrecords C}
-{$define oldreaddir}		// Keep using readdir system call instead
-				// of userland getdents stuff.
-{$define usedomain}		// Allow uname with "domain" entry.
-				// (which is a GNU extension)
-{$define posixworkaround}	// Temporary ugly workaround for signal handler.
-				// (mainly until baseunix migration is complete)
 
 {$ifndef FPC_USE_LIBC}
-{$define FPC_USE_SYSCALL}
+  {$define FPC_USE_SYSCALL}
 {$endif}
 
-{$i errno.inc}		{ Error numbers }
-{$i bunxtype.inc}	{ Types }
+{$i errno.inc}          { Error numbers }
+{$i bunxtype.inc}       { Types }
 {$i ostypes.inc}
 {$ifdef FPC_USE_LIBC}
-const clib = 'c';
-{$i oscdeclh.inc}
+  const clib = 'c';
+  {$i oscdeclh.inc}
 {$ELSE}
-{$i bunxh.inc}		{ Functions}
+  {$i bunxh.inc}                { Functions}
 {$ENDIF}
 
 {$ifndef ver1_0}
-function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+  function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+  procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+  property errno : cint read fpgeterrno write fpseterrno;
 {$else}
-function fpgeterrno:longint; 
-procedure fpseterrno(err:longint); 
-{$endif}
-
-{$ifndef ver1_0}
-property errno : cint read fpgeterrno write fpseterrno;
+  function fpgeterrno:longint;
+  procedure fpseterrno(err:longint);
 {$endif}
 
 {$i bunxovlh.inc}
 
-{$ifdef FPC_USE_LIBC}
-function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
-{$else}
-function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
-{$endif}
 
 implementation
 
+{$ifdef hassysctl}
 Uses Sysctl;
+{$endif}
 
-{$ifndef ver1_0}
-//function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-//procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
-{$else}
+{$ifdef ver1_0}
 // workaround for 1.0.10 bugs.
 
 function intgeterrno:longint; external name 'FPC_SYS_GETERRNO';
 procedure intseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
 
-function fpgeterrno:longint; 
+function fpgeterrno:longint;
 begin
   fpgeterrno:=intgeterrno;
 end;
 
-procedure fpseterrno(err:longint); 
+procedure fpseterrno(err:longint);
 begin
   intseterrno(err);
 end;
 
 {$endif}
 
-{$i bunxmain.inc}	{ implementation}
-{$i bunxovl.inc}	{ redefs and overloads implementation}
-{$i settimeo.inc}
-end.
+{$i genfuncs.inc}       // generic calls. (like getenv)
+{$I gensigset.inc}     // general sigset funcs implementation.
+{$I genfdset.inc}      // general fdset funcs.
 
+{$ifndef FPC_USE_LIBC}
+  {$i syscallh.inc}       // do_syscall declarations themselves
+  {$i sysnr.inc}          // syscall numbers.
+  {$i bunxsysc.inc}       // syscalls in system unit.
+  {$i settimeo.inc}
+{$endif}
+
+{$i bunxmacr.inc}       { macro implenenations }
+{$i bunxovl.inc}        { redefs and overloads implementation }
+
+end.
 {
   $Log$
-  Revision 1.14  2004-12-02 18:24:35  marco
+  Revision 1.1  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.14  2004/12/02 18:24:35  marco
    * fpsettimeofday.
 
   Revision 1.13  2004/12/02 15:11:42  marco

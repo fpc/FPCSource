@@ -61,26 +61,17 @@ end;
 { OS dependant parts  }
 
 {$I errno.inc}                          // error numbers
-{$I bunxtype.inc}                       // c-types, unix base types, unix
-                                        //    base structures
-
-{*****************************************************************************
-                 Extra cdecl declarations for FPC_USE_LIBC for this os
-*****************************************************************************}
-
-{$ifdef FPC_USE_LIBC}
-Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
-function fpgetcwd(buf:pchar;_size:size_t):pchar; cdecl; external name 'getcwd';
-{$endif}
-
-
+{$I bunxtype.inc}                       // c-types, unix base types, unix base structures
 {$I ossysc.inc}                         // base syscalls
 {$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
 
 
 {
    $Log$
-   Revision 1.3  2005-02-07 22:04:55  peter
+   Revision 1.4  2005-02-13 20:01:38  peter
+     * include file cleanup
+
+   Revision 1.3  2005/02/07 22:04:55  peter
      * moved to unix
 
    Revision 1.2  2005/02/06 13:06:20  peter

@@ -13,45 +13,33 @@
 
 **********************************************************************}
 
-{$ifdef linux}
-{$ifdef i386}
-  {$define usestime}
-{$endif}
-{$endif}
-
 {$ifdef usestime}
 
-{$ifdef FPC_USE_LIBC}
-function stime (t:ptime_t):cint; cdecl; external name 'stime';
-{$else}
 function stime (t:ptime_t):cint; 
 begin
  stime:=do_SysCall(Syscall_nr_stime,TSysParam(t));
 end;
-{$endif}
 
 function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
-
 begin
   fpsettimeofday:=stime(@tp^.tv_sec);
 end;
 
 {$else}
 
-{$ifdef FPC_USE_LIBC}
-//function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
-{$else}
 function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
-
 begin
   fpsettimeofday:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tp),TSysParam(tzp));
 end;
-{$endif}
+
 {$endif}
 
 {
   $Log$
-  Revision 1.6  2004-12-02 18:24:35  marco
+  Revision 1.7  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.6  2004/12/02 18:24:35  marco
    * fpsettimeofday.
 
   Revision 1.5  2004/10/31 18:49:02  marco

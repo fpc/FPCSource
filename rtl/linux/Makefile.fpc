@@ -158,14 +158,14 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 sysc11.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 unixsysc.inc
+                 sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
+                 unixfunc.inc
 
 unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 
 baseunix$(PPUEXT) : errno.inc bunxtype.inc ptypes.inc ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc bunxmain.inc ostypes.inc \
-  bunxfunc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
+  signal.inc $(UNIXINC)/bunxh.inc ostypes.inc \
+  bunxsysc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
   ostypes.inc ossysch.inc bunxmacr.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 

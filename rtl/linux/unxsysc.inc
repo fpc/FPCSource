@@ -14,9 +14,68 @@
 
  ***********************************************************************}
 
+Function  fsync (fd : cint) : cint;
+begin
+  fsync := do_SysCall(syscall_nr_fsync, fd);
+end;
+
+Function  fpFlock (fd,mode : cint) : cint;
+begin
+  fpflock:=do_Syscall(Syscall_nr_flock,fd,mode);
+end;
+
+
+Function StatFS(Path:Pchar;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Path is the name of a file/directory on the fileSystem you wish to
+  investigate.
+}
+begin
+  StatFS:=(do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(@Info)));
+end;
+
+Function fStatFS(Fd:cint;Var Info:tstatfs):cint;
+{
+  Get all information on a fileSystem, and return it in Info.
+  Fd is the file descriptor of a file/directory on the fileSystem
+  you wish to investigate.
+}
+begin
+  fStatFS:=(do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(@info)));
+end;
+
+
+{--------------------------------
+      Port IO functions
+--------------------------------}
+
+{$ifdef cpui386}
+
+Function IOperm (From,Num : cuint; Value : cint) : boolean;
+{
+  Set permissions on NUM ports starting with port FROM to VALUE
+  this works ONLY as root.
+}
+
+begin
+  IOPerm:=do_Syscall(Syscall_nr_ioperm,from,num,value)=0;
+end;
+
+Function IoPL(Level : cint) : Boolean;
+
+begin
+  IOPL:=do_Syscall(Syscall_nr_iopl,level)=0;
+end;
+
+{$endif cpui386}
+
 {
  $Log$
- Revision 1.7  2004-11-14 12:21:08  marco
+ Revision 1.8  2005-02-13 20:01:38  peter
+   * include file cleanup
+
+ Revision 1.7  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.6  2004/11/03 15:00:43  marco

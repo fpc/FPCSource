@@ -228,18 +228,7 @@ Uses Strings{$ifndef FPC_USE_LIBC},Syscall{$endif};
 {$i textrec.inc}
 {$i filerec.inc}
 
-{$ifndef FPC_USE_LIBC}
-{ Raw System calls are in Syscalls.inc}
-{$ifdef Linux}                  // Linux has more "oldlinux" compability.
-{$i sysc11.inc}
-{$else}
-{$i syscalls.inc}
-{$endif}
-
-{$endif}
-
-{$i unixsysc.inc}   {Has platform specific libc part under ifdef, besides
-			syscalls}
+{$i unixfunc.inc}   { Platform specific implementations }
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 
@@ -262,13 +251,8 @@ begin
     WaitProcess:=-1 // return -1 to indicate an error.  fpwaitpid updated it.
   else
    begin
-{$ifndef Solaris}
-     { at least correct for Linux and Darwin (JM) }
-     if (s and $7F)=0 then // Only this is a valid returncode
-{$else}
-     if (s and $FF)=0 then // Only this is a valid returncode
-{$endif}
-      WaitProcess:=s shr 8
+     if wifexited(s) then
+      WaitProcess:=wexitstatus(s)
      else if (s>0) then  // Until now there is not use of the highest bit , but check this for the future
       WaitProcess:=-s // normal case
      else
@@ -1244,7 +1228,10 @@ End.
 
 {
   $Log$
-  Revision 1.81  2005-02-06 11:20:52  peter
+  Revision 1.82  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.81  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 

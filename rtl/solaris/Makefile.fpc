@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal SunOS RTL
+#   Makefile.fpc for Free Pascal solaris RTL
 #
 
 [package]
@@ -29,7 +29,7 @@ fpcpackage=y
 
 [default]
 fpcdir=../..
-target=sunos
+target=solaris
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC) $(OSPROCINC) $(POSIXINC)
@@ -50,7 +50,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
-OSPROCINC=$(RTL)/sunos/$(CPU_TARGET)
+OSPROCINC=$(RTL)/solaris/$(CPU_TARGET)
 POSIXINC=$(RTL)/posix
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
@@ -102,7 +102,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)

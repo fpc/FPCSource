@@ -61,9 +61,9 @@ begin
  FPS_ISSOCK:=((m and S_IFMT) = S_IFSOCK);
 end;
 
-function wifexited(status : cint): cint;
+function wifexited(status : cint): boolean;
 begin
- wifexited:=cint((status AND $7f) =0);
+ wifexited:=(status AND $7f) =0;
 end;
 
 function wexitstatus(status : cint): cint;
@@ -78,9 +78,9 @@ end;
 
 const wstopped=127;
 
-function wifsignaled(status : cint): cint;
+function wifsignaled(status : cint): boolean;
 begin
- wifsignaled:=cint(((status and $FF)<>wstopped) and ((status and 127)<>0));
+ wifsignaled:=((status and $FF)<>wstopped) and ((status and 127)<>0);
 end;
 
 function wtermsig(status : cint):cint;
@@ -91,7 +91,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-09-27 12:51:33  peter
+  Revision 1.4  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.3  2003/09/27 12:51:33  peter
     * fpISxxx macros renamed to C compliant fpS_ISxxx
 
   Revision 1.2  2003/09/17 11:24:46  marco

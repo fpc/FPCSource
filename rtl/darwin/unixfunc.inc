@@ -62,7 +62,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-07-01 18:34:53  jonas
+  Revision 1.1  2005-02-13 20:01:37  peter
+    * include file cleanup
+
+  Revision 1.3  2004/07/01 18:34:53  jonas
     * adapted second pclose as well
 
   Revision 1.2  2004/07/01 18:28:15  jonas

@@ -16,23 +16,6 @@
 
  **********************************************************************}
 
-{$ifndef FPC_USE_LIBC}
-{$i syscallh.inc}       // do_syscall declarations themselves
-{$i sysnr.inc}          // syscall numbers.
-{$i ossysch.inc}        // external interface to syscalls in system unit.
-{$endif}
-{$i genfuncs.inc}       // generic calls. (like getenv)
-
-
-{$I gensigset.inc}     // general sigset funcs implementation.
-{$I genfdset.inc}      // general fdset funcs.
-
-{$ifndef FPC_USE_LIBC}
-{  $ ifndef ver1_0}
-// Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
-{   $ endif}
-{$USER BLA!}
-
 Function FPKill(Pid:pid_t;Sig:cint):cint;
 {
   Send signal 'sig' to a process, or a group of processes.
@@ -551,14 +534,12 @@ begin
  fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
 end;
 
-
-{$endif}
-
-
-
 {
  $Log$
- Revision 1.10  2004-11-19 13:15:14  marco
+ Revision 1.1  2005-02-13 20:01:37  peter
+   * include file cleanup
+
+ Revision 1.10  2004/11/19 13:15:14  marco
   * external rework. Mostly done.
 
  Revision 1.9  2004/11/14 12:21:08  marco

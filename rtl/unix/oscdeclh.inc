@@ -49,17 +49,12 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FPSigaction (sig: cInt; act :pSigActionRec;oact:pSigActionRec):cint;cdecl; external clib name 'sigaction';
     Function  FpChmod      (path : pChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
     Function  FPUtime(path:pchar;times:putimbuf):cint; cdecl; external clib name 'utime';
-    Function FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
-    {ifdef BSD}
-    function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
-    function FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
-    {endif}
+    Function  FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
+    function  FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
+    function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
     function  FpStat	  (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
-//    {$ifdef FPC_IS_SYSTEM}
     function  FpTime	   (tloc:ptime_t): time_t; cdecl; external clib name 'time';
-//    {$else}
     Function  FpTime       (var tloc : TTime): TTime; cdecl; external clib name 'time';
-//    {$endif}
     function  FpUname	(var name: utsname): cint; cdecl; external clib name 'uname';
     function  FpUnlink	(path: pchar): cint; cdecl; external clib name 'unlink';
     function  FpWaitpid	(pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';
@@ -87,19 +82,21 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
-
-    Function fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
-//    function fpMUnMap 	   (P : Pointer; Size : size_t) : cint; cdecl; external clib name 'munmap';
-    function fpNice	   (N:cint):cint; cdecl; external clib name 'nice';
-    Function fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
-    Function fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
-    Function fpSymlink	   (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
-    Function fpReadLink	   (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
-    Function FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
+    Function  fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
+    function  fpNice	   (N:cint):cint; cdecl; external clib name 'nice';
+    Function  fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
+    Function  fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
+    Function  fpSymlink	   (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
+    Function  fpReadLink	   (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
+    Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
+    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 
 {
    $Log$
-   Revision 1.12  2004-12-31 14:27:49  marco
+   Revision 1.13  2005-02-13 20:01:38  peter
+     * include file cleanup
+
+   Revision 1.12  2004/12/31 14:27:49  marco
     * fpumask
 
    Revision 1.11  2004/12/22 13:53:51  marco

@@ -19,13 +19,13 @@
 {$I ostypes.inc}
 
 {$ifdef FPC_USE_LIBC}
-  {$Linklib c}
-  // Out of date atm.
 
-{$ifdef FPC_IS_SYSTEM}
-{$i oscdeclh.inc}
-{$endif}
-{$I bunxmacr.inc}
+  {$Linklib c}
+
+  {$ifdef FPC_IS_SYSTEM}
+    {$i oscdeclh.inc}
+  {$endif}
+  {$I bunxmacr.inc}
 
 {$else}
 
@@ -398,11 +398,6 @@ type
 {$define OLDMMAP}
 {$endif cpuarm}
 
-const
-  { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$20;
-
 
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
@@ -525,7 +520,10 @@ end;
 
 {
  $Log$
- Revision 1.33  2005-02-06 12:16:52  peter
+ Revision 1.34  2005-02-13 20:01:38  peter
+   * include file cleanup
+
+ Revision 1.33  2005/02/06 12:16:52  peter
    * bsd thread updates
 
  Revision 1.32  2005/01/31 20:13:24  peter

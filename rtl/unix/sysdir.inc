@@ -78,7 +78,9 @@ End;
 
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
-{$ifndef usegetcwd}
+{$ifdef usegetcwd}
+  buf          : array[0..254] of char;
+{$else}  
   cwdinfo      : stat;
   rootinfo     : stat;
   thedir,dummy : string[255];
@@ -86,15 +88,15 @@ var
   d            : pdirent;
   name         : string[255];
   thisdir      : stat;
-{$endif}
   tmp          : string[255];
+{$endif}
 
 begin
-{$ifdef usegetcwd}
- Fpgetcwd(@tmp[1],4096);
- dir:=tmp;
-{$else}
   dir:='';
+{$ifdef usegetcwd}
+ if Fpgetcwd(@buf,sizeof(buf))<>nil then
+   dir:=strpas(buf);
+{$else}
   thedir:='';
   dummy:='';
 
@@ -151,7 +153,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-07 22:04:55  peter
+  Revision 1.2  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.1  2005/02/07 22:04:55  peter
     * moved to unix
 
   Revision 1.1  2005/02/06 13:06:20  peter

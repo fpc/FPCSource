@@ -24,7 +24,11 @@ const
   JMPSIG_BLOCK   = 1;
   JMPSIG_SETMASK = 4;
 
-function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'FPC_SYSC_SIGPROCMASK';
+{$ifdef FPC_USE_LIBC}
+  function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'sigprocmask';
+{$else}
+  function JmpSigProcMask(how:longint;nset : pjmpsigset;oset : pjmpsigset):longint; external name 'FPC_SYSC_SIGPROCMASK';
+{$endif}
 
 procedure savesigmask(var s:jmp_buf);
 begin
@@ -124,7 +128,10 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
 
 {
   $Log$
-  Revision 1.10  2005-01-20 16:38:28  peter
+  Revision 1.11  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.10  2005/01/20 16:38:28  peter
     * restore sigprocmask for linux
 
   Revision 1.9  2004/09/12 12:04:22  peter

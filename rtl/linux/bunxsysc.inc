@@ -16,21 +16,6 @@
 
  **********************************************************************}
 
-{i ostypes.inc}
-
-{$ifndef FPC_USE_LIBC}
-{$i syscallh.inc}       // do_syscall declarations themselves
-{$i sysnr.inc}          // syscall numbers.
-{$i ossysch.inc}        // external interface to syscalls in system unit.
-{$endif}
-//{$i genfuncs.inc}
-
-{$i bunxmacr.inc}       // macros.
-
-{$I gensigset.inc}     // general sigset funcs implementation.
-{$I genfdset.inc}
-
-{$ifndef FPC_USE_LIBC}
 Function fpKill(Pid:pid_t;Sig:cint):cint;
 {
   Send signal 'sig' to a process, or a group of processes.
@@ -46,24 +31,6 @@ begin
 // if kill<0 THEN
 //  Kill:=0;
 end;
-
-{overload}
-//Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROGMASK';
-
-Function fpSigProcMask(how:cint;nset : pSigSet; oset : pSigSet):cint; [public, alias : 'FPC_SYSC_SIGPROGMASK'];
-{
-  Change the list of currently blocked signals.
-  How determines which signals will be blocked :
-   SigBlock   : Add SSet to the current list of blocked signals
-   SigUnBlock : Remove the signals in SSet from the list of blocked signals.
-   SigSetMask : Set the list of blocked signals to SSet
-  if OldSSet is non-null, the old set will be saved there.
-}
-
-begin
-  fpsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset));
-end;
-
 
 Function fpSigPending(var nset: TSigSet):cint;
 {
@@ -561,11 +528,12 @@ begin
 end;
 
 
-{$endif}
-
 {
  $Log$
- Revision 1.15  2005-01-30 18:01:15  peter
+ Revision 1.1  2005-02-13 20:01:38  peter
+   * include file cleanup
+
+ Revision 1.15  2005/01/30 18:01:15  peter
    * signal cleanup for linux
    * sigactionhandler instead of tsigaction for bsds
    * sigcontext moved to cpu dir

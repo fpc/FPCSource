@@ -88,10 +88,6 @@ Const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
-  { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$20;
-
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   {$ifdef PowerPC}
   IOCtl_TCGETS=$402c7413;
@@ -100,7 +96,10 @@ Const
   {$endif}
 {
   $Log$
-  Revision 1.11  2004-11-14 12:21:08  marco
+  Revision 1.12  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.11  2004/11/14 12:21:08  marco
    * moved some calls from unix to baseunix. Darwin untested.
 
   Revision 1.10  2004/02/21 16:27:29  marco

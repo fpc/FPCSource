@@ -65,11 +65,6 @@ Uses
 {$I dos.inc}
 
 
-{$ifndef FPC_USE_LIBC}
-{$i sysnr.inc}
-{$endif}
-{$i settimeo.inc}
-
 {******************************************************************************
                            --- Link C Lib if set ---
 ******************************************************************************}
@@ -892,7 +887,10 @@ End.
 
 {
   $Log$
-  Revision 1.43  2004-12-18 16:29:09  michael
+  Revision 1.44  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.43  2004/12/18 16:29:09  michael
   + Patch from Michalis Kamburelis so FSearch does not find a directory
 
   Revision 1.42  2004/12/05 21:04:56  hajny

@@ -14,19 +14,14 @@
  ****************************************************************************
 }
 
-//Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer; external name 'FPC_SYSC_MMAP';
-//Function Fpmunmap(adr:pointer;len:size_t):cint; external name 'FPC_SYSC_MUNMAP';
-
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
-//function fpNice(N:cint):cint;
-//Function fpGetPriority(Which,Who:cint):cint;
-//Function fpSetPriority(Which,Who,What:cint):cint;
-//Function fpSymlink(oldname,newname:pchar):cint;
-//Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;
 
 {
   $Log$
-  Revision 1.7  2004-11-14 12:21:08  marco
+  Revision 1.8  2005-02-13 20:01:38  peter
+    * include file cleanup
+
+  Revision 1.7  2004/11/14 12:21:08  marco
    * moved some calls from unix to baseunix. Darwin untested.
 
   Revision 1.6  2004/11/03 15:00:43  marco

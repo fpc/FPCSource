@@ -20,46 +20,12 @@
 
 {$ifdef FPC_USE_LIBC}
   {$Linklib c}
-  // Out of date atm.
 
-{$ifdef FPC_IS_SYSTEM}
-{$i oscdeclh.inc}
-{$endif}
-{$I bunxmacr.inc}
+  {$ifdef FPC_IS_SYSTEM}
+    {$i oscdeclh.inc}
+  {$endif}
+  {$i bunxmacr.inc}
 
-{   var
-     Errno : cint; external name 'errno';
-
-    function Fptime(tloc:ptime_t): time_t; cdecl; external name 'time';
-    function Fpopen(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
-    function Fpclose(fd : cint): cint; cdecl; external name 'close';
-    function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
-    function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external name 'read';
-    function Fpwrite(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
-    function Fpunlink(const path: pchar): cint; cdecl; external name 'unlink';
-    function Fprename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
-    function Fpstat(const path: pchar; var buf : stat): cint; cdecl; external name 'stat';
-    function Fpchdir(const path : pchar): cint; cdecl; external name 'chdir';
-    function Fpmkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
-    function Fprmdir(const path : pchar): cint; cdecl; external name 'rmdir';
-    function Fpopendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
-    function Fpreaddir(var dirp : dir) : pdirent;cdecl; external name 'readdir';
-    function Fpclosedir(var dirp : dir): cint; cdecl; external name 'closedir';
-    procedure Fpexit(status : cint); cdecl; external name '_exit';
-    function Fpsigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
-    function Fpftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
-    function Fprename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
-    function Fpfstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
-    function Fpfork : pid_t; cdecl; external name 'fork';
-    function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
-    function Fpwaitpid(pid : pid_t; tat_loc : pcint; options: cint): pid_t; cdecl; external name 'waitpid';
-    function Fpaccess(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
-
-    function Fpuname(var name: utsname): cint; cdecl; external name 'uname';
-
-    function FpDup(oldd:cint):cint; cdecl; external name 'dup';
-    function FpDup2(oldd:cint;newd:cint):cint; cdecl; external name 'dup2';
-}
 {$else}
 
 {*****************************************************************************
@@ -616,7 +582,10 @@ end;
 
 {
  $Log$
- Revision 1.21  2005-02-06 12:16:52  peter
+ Revision 1.22  2005-02-13 20:01:37  peter
+   * include file cleanup
+
+ Revision 1.21  2005/02/06 12:16:52  peter
    * bsd thread updates
 
  Revision 1.20  2004/11/14 12:21:08  marco

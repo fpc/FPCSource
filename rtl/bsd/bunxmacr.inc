@@ -60,9 +60,9 @@ begin
  FPS_ISSOCK:=((m and S_IFMT) = S_IFSOCK);
 end;
 
-function wifexited(status : cint): cint;
+function wifexited(status : cint): boolean;
 begin
- wifexited:=cint((status AND 127) =0);
+ wifexited:=(status AND 127) =0;
 end;
 
 function wexitstatus(status : cint): cint;
@@ -77,9 +77,9 @@ end;
 
 const wstopped=127;
 
-function wifsignaled(status : cint): cint;
+function wifsignaled(status : cint): boolean;
 begin
- wifsignaled:=cint(((status and 127)<>wstopped) and ((status and 127)<>0));
+ wifsignaled:=((status and 127)<>wstopped) and ((status and 127)<>0);
 end;
 
 function wtermsig(status : cint):cint;
@@ -90,7 +90,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-09-27 13:04:58  peter
+  Revision 1.6  2005-02-13 20:01:37  peter
+    * include file cleanup
+
+  Revision 1.5  2003/09/27 13:04:58  peter
     * fpISxxx renamed
 
   Revision 1.4  2003/09/17 11:52:05  marco

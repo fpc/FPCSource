@@ -84,16 +84,19 @@ Function  fpS_ISFIFO   (m : TMode): Boolean;
 Function  fpS_ISLNK       (m:TMode) : Boolean;
 Function  fpS_ISSOCK      (m:TMode) : Boolean;
 
-Function  wifexited    (Status : cInt): cInt;
+Function  wifexited    (Status : cInt): boolean;
 Function  wexitStatus  (Status : cInt): cInt;
 Function  wstopsig     (Status : cInt): cInt;
-Function  wifsignaled  (Status : cInt): cInt;
+Function  wifsignaled  (Status : cInt): boolean;
 Function  wtermsig     (Status : cInt): cInt;
 
 Function fpReadLink(Name:ansistring):ansistring;
 {
  $Log$
- Revision 1.6  2004-11-23 08:40:34  michael
+ Revision 1.7  2005-02-13 20:01:38  peter
+   * include file cleanup
+
+ Revision 1.6  2004/11/23 08:40:34  michael
  + Added overloaded functions
 
  Revision 1.5  2004/11/14 12:21:08  marco
