@@ -634,16 +634,24 @@ begin
 end;
 
 
+type swap_proc = procedure;
+
 var
-  _swap_in  : pointer;external name '_swap_in';
-  _swap_out : pointer;external name '_swap_out';
+  _swap_in  : swap_proc;external name '_swap_in';
+  _swap_out : swap_proc;external name '_swap_out';
   _exception_exit : pointer;external name '_exception_exit';
   _v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
 
 procedure swapvectors;
 begin
   DosError:=0;
-  asm
+  if _exception_exit<>nil then
+    if _v2prt0_exceptions_on then
+      _swap_in()
+    else
+      _swap_out();
+
+(*  asm
 { uses four global symbols from v2prt0.as to be able to know the current
   exception state without using dpmiexcp unit }
             movl _exception_exit,%eax
@@ -652,14 +660,12 @@ begin
             movl _v2prt0_exceptions_on,%eax
             orl  %eax,%eax
             je   .Lexceptions_off
-            movl _swap_out,%eax
-            call  %eax
+            call *_swap_out
             jmp  .Lno_excep
          .Lexceptions_off:
-            movl _swap_in,%eax
-            call %eax
+            call *_swap_in
          .Lno_excep:
-  end;
+  end; *)
 end;
 
 
@@ -997,7 +1003,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.6  1999-04-28 11:42:44  peter
+  Revision 1.7  1999-05-04 23:55:50  pierre
+   * unneeded assembler code converted to pascal
+
+  Revision 1.6  1999/04/28 11:42:44  peter
     + FileNameCaseSensetive boolean
 
   Revision 1.5  1999/04/02 00:01:29  peter
