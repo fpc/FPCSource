@@ -153,8 +153,8 @@ End;
   End;
 
   Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
-  {skips ait_regalloc, ait_regdealloc and ait_stab* objects and puts the
-   last pai object in Last. Returns false if there isn't any}
+  {skips the ait-types in SkipInstr puts the previous pai object in
+   Last. Returns false if there isn't any}
   Begin
     GetLastInstruction := False;
     Current := Pai(Current^.previous);
@@ -727,7 +727,7 @@ End;
                  A_MOV:
                    Begin
                      If (Pai386(p)^.op2t = top_reg) And
-                        (TRegister(Pai386(p)^.op2) In [R_EAX, R_EBX, R_EDX, R_EDI]) And
+                        (TRegister(Pai386(p)^.op2) In [R_EAX{, R_EBX, R_EDX, R_EDI}]) And
 {                        Assigned(p^.next) And}
                         GetNextInstruction(p, hp1) And
                         (Pai(hp1)^.typ = ait_instruction) And
@@ -924,7 +924,7 @@ End;
                                           RefsEqual(TReference(Pai386(hp2)^.op1^),
                                                     TReference(Pai386(hp1)^.op2^))
                                          Then
-                                           If (TRegister(Pai386(p)^.op2) <> R_ESI)
+                                           If (TRegister(Pai386(p)^.op2) = R_EDI)
                                              Then
                                     {   mov mem1, reg1
                                         mov reg1, mem2
@@ -953,7 +953,7 @@ End;
                                                  Pai386(hp1)^.op2 := Pai386(hp2)^.op2;
                                                  Pai386(hp2)^.opxt := top_reg + top_ref shl 4;
                                                  Pai386(hp2)^.op2 := Pai386(hp2)^.op1;
-                                                 Pai386(hp2)^.op1 := Pointer(R_ESI)
+                                                 Pai386(hp2)^.op1 := Pai386(p)^.op2;
                                                End;
                                      End;
                                End
@@ -1445,7 +1445,10 @@ End;
                            While Assigned(hp1) And
                                  (Pai(hp1)^.typ In [ait_instruction]+SkipInstr) And
                                   Not((Pai(hp1)^.typ = ait_instruction) And
-                                      (Pai386(hp1)^._operator in [A_CALL,A_PUSH])) do
+                                      ((Pai386(hp1)^._operator = A_PUSH) or
+                                       ((Pai386(hp1)^._operator = A_MOV) And
+                                        (Pai386(hp1)^.op2t = top_ref) And
+                                        (TReference(Pai386(hp1)^.op2^).base = r_esp)))) do
                              hp1 := Pai(hp1^.next);
                            If Assigned(hp1) And
                                (Pai(hp1)^.typ = ait_instruction) And
@@ -1618,7 +1621,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.9  1998-05-06 08:38:34  pierre
+  Revision 1.10  1998-05-10 12:06:30  jonas
+    * bugfix in a_mov optimizations; completed bugfix of "sub $2,esp;...;movw reg, y(%esp)"
+
+  Revision 1.9  1998/05/06 08:38:34  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
