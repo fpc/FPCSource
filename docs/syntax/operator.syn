@@ -1,0 +1,49 @@
+\begin{diagram}{Operator definitions}{operatordef}
+\begin{mysyntdiag}
+\synt{operator\ definition} 
+\lit*{operator}
+\(
+\synt{assignment\ operator\ definition} \\
+\synt{arithmetic\ operator\ definition} \\
+\synt{comparision\ operator\ definition}
+\)
+\synt{result\ identifier}
+\lit*{:}
+\synt{result\ type}
+\lit*{;}
+\synt{subroutine\ block}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{assignment\ operator\ definition}
+\lit*{:=}
+\lit*{(}
+\synt{value\ parameter}
+\lit*{)}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{arithmetic\ operator\ definition}
+\(
+\lit*{+}\\
+\lit*{-}\\
+\lit*{*}\\
+\lit*{/}\\
+\lit*{**}
+\)
+\lit*{(}
+\synt{parameter\ list}
+\lit*{)}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{comparision\ operator\ definition}
+\(
+\verb+ = + \\
+\verb+ < + \\
+\verb+ <= + \\
+\verb+ > + \\
+\verb+ >= +
+\)
+\lit*{(}
+\synt{parameter\ list}
+\lit*{)}
+\end{mysyntdiag}
+\end{diagram}
