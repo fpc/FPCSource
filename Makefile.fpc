@@ -288,11 +288,14 @@ endif
 ifeq ($(OS_TARGET),win32)
         $(COPY) $(CVSINSTALL)/binw32/* $(INSTALL_BINDIR)
 endif
-# manpages for linux
+# manpages for UNIX systems
 ifeq ($(OS_TARGET),linux)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
 ifeq ($(OS_TARGET),freebsd)
+        $(MAKE) -C $(CVSINSTALL)/man installman
+endif
+ifeq ($(OS_TARGET),sunos)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
 endif
@@ -397,6 +400,9 @@ freebsd: checkfpcdir
 
 os2: checkfpcdir
         $(MAKE) install OS_TARGET=os2
+        
+sunos: checkfpcdir        
+        $(MAKE) install OS_TARGET=sunos
 
 go32v2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=go32v2
@@ -416,6 +422,10 @@ beoszip : checkfpcdir
 
 os2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=os2
+        
+sunoszip: checkfpcdir        
+        $(MAKE) zipinstall OS_TARGET=sunos TARPROG=gtar
+        
 
 ##########################################################################
 # Debian

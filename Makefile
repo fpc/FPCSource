@@ -1588,6 +1588,9 @@ endif
 ifeq ($(OS_TARGET),freebsd)
 	$(MAKE) -C $(CVSINSTALL)/man installman
 endif
+ifeq ($(OS_TARGET),sunos)
+	$(MAKE) -C $(CVSINSTALL)/man installman
+endif
 endif
 	$(MAKE) compiler_$(INSTALLTARGET) $(INSTALLOPTS)
 	$(MAKE) rtl_$(INSTALLTARGET) $(INSTALLOPTS)
@@ -1648,6 +1651,8 @@ freebsd: checkfpcdir
 	$(MAKE) install OS_TARGET=freebsd
 os2: checkfpcdir
 	$(MAKE) install OS_TARGET=os2
+sunos: checkfpcdir        
+	$(MAKE) install OS_TARGET=sunos
 go32v2zip: checkfpcdir
 	$(MAKE) zipinstall OS_TARGET=go32v2
 win32zip: checkfpcdir
@@ -1660,6 +1665,8 @@ beoszip : checkfpcdir
 	$(MAKE) zipinstall OS_TARGET=beos USEZIP=1
 os2zip: checkfpcdir
 	$(MAKE) zipinstall OS_TARGET=os2
+sunoszip: checkfpcdir        
+	$(MAKE) install OS_TARGET=sunos TARPROG=gtar
 ifdef inUnix
 ifneq ($(wildcard $(CVSINSTALL)/debian/changelog),)
 .PHONY: debcopy deb
