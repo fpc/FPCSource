@@ -25,14 +25,6 @@ Unit catch;
 
 {$i fpcdefs.inc}
 
-{$ifdef go32v2}
-  { go32v2 stack check goes nuts if ss is not the data selector (PM) }
-  {$S-}
-{$endif}
-{$ifdef watcom} // wiktor: pewnei nie potrzeba
-  {$S-}
-{$endif}
-
 {$ifdef DEBUG}
   {$define NOCATCH}
 {$endif DEBUG}
@@ -61,13 +53,16 @@ uses
 
 {$ifdef has_signal}
 Var
-  NewSignal,OldSigSegm,
-  OldSigInt,OldSigFPE : SignalHandler;
+  NewSignal,
+  OldSigInt : SignalHandler;
 {$endif}
 
 Const in_const_evaluation : boolean = false;
 
 Implementation
+
+uses
+  sysutils;
 
 {$ifdef has_signal}
 {$ifdef unix}
@@ -77,22 +72,8 @@ Function CatchSignal(Sig : longint):longint;
 {$endif}
 begin
   case Sig of
-   SIGSEGV : begin
-             { Temporary message - until we get an error number... }
-               writeln ('Panic : Internal compiler error, exiting.');
-               internalerror(9999);
-             end;
-    SIGFPE : begin
-               If in_const_evaluation then
-                 Writeln('FPE error computing constant expression')
-               else
-                 Writeln('FPE error inside compiler');
-               Stop(1);
-             end;
-    SIGINT : begin
-               WriteLn('Ctrl-C Signaled!');
-               Stop(1);
-             end;
+    SIGINT :
+      raise Exception.Create('Ctrl-C Signaled!');
   end;
 {$ifndef unix}
   CatchSignal:=0;
@@ -104,18 +85,18 @@ begin
 {$ifndef nocatch}
   {$ifdef has_signal}
     NewSignal:=SignalHandler(@CatchSignal);
-    {$ifndef sunos}
-      OldSigSegm:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif} (SIGSEGV,NewSignal);
-    {$endif} // lxrun on solaris hooks this for handling linux-calls!
-     OldSigInt:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGINT,NewSignal);
-     OldSigFPE:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGFPE,NewSignal);
+    OldSigInt:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGINT,NewSignal);
   {$endif}
 {$endif nocatch}
 end.
 
 {
   $Log$
-  Revision 1.20  2004-10-15 09:14:16  mazen
+  Revision 1.21  2005-01-26 16:23:28  peter
+    * detect arithmetic overflows for constants at compile time
+    * use try..except instead of setjmp
+
+  Revision 1.20  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

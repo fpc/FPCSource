@@ -46,9 +46,6 @@ implementation
 {$ifdef BrowserLog}
       browlog,
 {$endif BrowserLog}
-{$ifdef UseExcept}
-      tpexcept,
-{$endif UseExcept}
 {$ifdef GDB}
       gdb,
 {$endif GDB}
@@ -369,10 +366,6 @@ implementation
 
       var
          olddata : polddata;
-{$ifdef USEEXCEPT}
-         recoverpos    : jmp_buf;
-         oldrecoverpos : pjmp_buf;
-{$endif useexcept}
        begin
          inc(compile_level);
          parser_current_file:=filename;
@@ -516,191 +509,161 @@ implementation
 
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
-{$ifdef USEEXCEPT}
-         if setjmp(recoverpos)=0 then
-          begin
-            oldrecoverpos:=recoverpospointer;
-            recoverpospointer:=@recoverpos;
-{$endif USEEXCEPT}
-
-            if (token=_UNIT) or (compile_level>1) then
-              begin
-                current_module.is_unit:=true;
-                proc_unit;
-              end
-            else
-              proc_program(token=_LIBRARY);
-{$ifdef USEEXCEPT}
-            recoverpospointer:=oldrecoverpos;
-          end
-         else
-          begin
-            recoverpospointer:=oldrecoverpos;
-            longjump_used:=true;
-          end;
-{$endif USEEXCEPT}
-
-         { restore old state }
-         done_module;
-
-         if assigned(current_module) then
-          begin
-            { module is now compiled }
-            tppumodule(current_module).state:=ms_compiled;
-
-            { free ppu }
-            if assigned(tppumodule(current_module).ppufile) then
+         try
+           if (token=_UNIT) or (compile_level>1) then
              begin
-               tppumodule(current_module).ppufile.free;
-               tppumodule(current_module).ppufile:=nil;
-             end;
+               current_module.is_unit:=true;
+               proc_unit;
+             end
+           else
+             proc_program(token=_LIBRARY);
+         finally
+           { restore old state }
+           done_module;
 
-            { free scanner }
-            if assigned(current_module.scanner) then
-             begin
-               if current_scanner=tscannerfile(current_module.scanner) then
-                 current_scanner:=nil;
-               tscannerfile(current_module.scanner).free;
-               current_module.scanner:=nil;
-             end;
-          end;
+           if assigned(current_module) then
+            begin
+              { module is now compiled }
+              tppumodule(current_module).state:=ms_compiled;
 
-         if (compile_level>1) then
-           begin
-              with olddata^ do
+              { free ppu }
+              if assigned(tppumodule(current_module).ppufile) then
                begin
-                 { restore scanner }
-                 c:=oldc;
-                 pattern:=oldpattern;
-                 orgpattern:=oldorgpattern;
-                 token:=oldtoken;
-                 idtoken:=oldidtoken;
-                 akttokenpos:=oldtokenpos;
-                 block_type:=old_block_type;
-                 { restore cg }
-                 parse_only:=oldparse_only;
-                 { restore asmlists }
-                 exprasmlist:=oldexprasmlist;
-                 datasegment:=olddatasegment;
-                 bsssegment:=oldbsssegment;
-                 codesegment:=oldcodesegment;
-                 consts:=oldconsts;
-                 debuglist:=olddebuglist;
-                 withdebuglist:=oldwithdebuglist;
-                 importssection:=oldimports;
-                 exportssection:=oldexports;
-                 resourcesection:=oldresource;
-                 rttilist:=oldrttilist;
-                 picdata:=oldpicdata;
-                 resourcestringlist:=oldresourcestringlist;
-                 { object data }
-                 ResourceStrings:=OldResourceStrings;
-                 objectlibrary:=oldobjectlibrary;
-                 { restore previous scanner }
-                 if assigned(old_compiled_module) then
-                   current_scanner:=tscannerfile(old_compiled_module.scanner)
-                 else
-                   current_scanner:=nil;
-                 if assigned(current_scanner) then
-                   parser_current_file:=current_scanner.inputfile.name^;
-                 { restore symtable state }
-                 refsymtable:=oldrefsymtable;
-                 symtablestack:=oldsymtablestack;
-                 macrosymtablestack:=oldmacrosymtablestack;
-                 defaultsymtablestack:=olddefaultsymtablestack;
-                 defaultmacrosymtablestack:=olddefaultmacrosymtablestack;
-                 aktdefproccall:=oldaktdefproccall;
-                 current_procinfo:=oldcurrent_procinfo;
-                 aktsourcecodepage:=oldsourcecodepage;
-                 aktlocalswitches:=oldaktlocalswitches;
-                 aktmoduleswitches:=oldaktmoduleswitches;
-                 aktalignment:=oldaktalignment;
-                 aktpackenum:=oldaktpackenum;
-                 aktpackrecords:=oldaktpackrecords;
-                 aktmaxfpuregisters:=oldaktmaxfpuregisters;
-                 aktoutputformat:=oldaktoutputformat;
-                 set_target_asm(aktoutputformat);
-                 aktoptprocessor:=oldaktoptprocessor;
-                 aktspecificoptprocessor:=oldaktspecificoptprocessor;
-                 aktfputype:=oldaktfputype;
-                 aktasmmode:=oldaktasmmode;
-                 aktinterfacetype:=oldaktinterfacetype;
-                 aktfilepos:=oldaktfilepos;
-                 aktmodeswitches:=oldaktmodeswitches;
-                 aktexceptblock:=0;
-                 exceptblockcounter:=0;
-{$ifdef GDB}
-                 dbx_counter:=store_dbx;
-{$endif GDB}
+                 tppumodule(current_module).ppufile.free;
+                 tppumodule(current_module).ppufile:=nil;
                end;
-           end
-         else
-           begin
-             parser_current_file:='';
-             { Shut down things when the last file is compiled }
-             if (compile_level=1) then
-              begin
-                { Close script }
-                if (not AsmRes.Empty) then
-                 begin
-                   Message1(exec_i_closing_script,AsmRes.Fn);
-                   AsmRes.WriteToDisk;
-                 end;
 
-{$ifdef USEEXCEPT}
-                if not longjump_used then
-{$endif USEEXCEPT}
+              { free scanner }
+              if assigned(current_module.scanner) then
+               begin
+                 if current_scanner=tscannerfile(current_module.scanner) then
+                   current_scanner:=nil;
+                 tscannerfile(current_module.scanner).free;
+                 current_module.scanner:=nil;
+               end;
+            end;
+
+           if (compile_level>1) then
+             begin
+                with olddata^ do
                  begin
-                   { do not create browsers on errors !! }
-                   if status.errorcount=0 then
-                    begin
+                   { restore scanner }
+                   c:=oldc;
+                   pattern:=oldpattern;
+                   orgpattern:=oldorgpattern;
+                   token:=oldtoken;
+                   idtoken:=oldidtoken;
+                   akttokenpos:=oldtokenpos;
+                   block_type:=old_block_type;
+                   { restore cg }
+                   parse_only:=oldparse_only;
+                   { restore asmlists }
+                   exprasmlist:=oldexprasmlist;
+                   datasegment:=olddatasegment;
+                   bsssegment:=oldbsssegment;
+                   codesegment:=oldcodesegment;
+                   consts:=oldconsts;
+                   debuglist:=olddebuglist;
+                   withdebuglist:=oldwithdebuglist;
+                   importssection:=oldimports;
+                   exportssection:=oldexports;
+                   resourcesection:=oldresource;
+                   rttilist:=oldrttilist;
+                   picdata:=oldpicdata;
+                   resourcestringlist:=oldresourcestringlist;
+                   { object data }
+                   ResourceStrings:=OldResourceStrings;
+                   objectlibrary:=oldobjectlibrary;
+                   { restore previous scanner }
+                   if assigned(old_compiled_module) then
+                     current_scanner:=tscannerfile(old_compiled_module.scanner)
+                   else
+                     current_scanner:=nil;
+                   if assigned(current_scanner) then
+                     parser_current_file:=current_scanner.inputfile.name^;
+                   { restore symtable state }
+                   refsymtable:=oldrefsymtable;
+                   symtablestack:=oldsymtablestack;
+                   macrosymtablestack:=oldmacrosymtablestack;
+                   defaultsymtablestack:=olddefaultsymtablestack;
+                   defaultmacrosymtablestack:=olddefaultmacrosymtablestack;
+                   aktdefproccall:=oldaktdefproccall;
+                   current_procinfo:=oldcurrent_procinfo;
+                   aktsourcecodepage:=oldsourcecodepage;
+                   aktlocalswitches:=oldaktlocalswitches;
+                   aktmoduleswitches:=oldaktmoduleswitches;
+                   aktalignment:=oldaktalignment;
+                   aktpackenum:=oldaktpackenum;
+                   aktpackrecords:=oldaktpackrecords;
+                   aktmaxfpuregisters:=oldaktmaxfpuregisters;
+                   aktoutputformat:=oldaktoutputformat;
+                   set_target_asm(aktoutputformat);
+                   aktoptprocessor:=oldaktoptprocessor;
+                   aktspecificoptprocessor:=oldaktspecificoptprocessor;
+                   aktfputype:=oldaktfputype;
+                   aktasmmode:=oldaktasmmode;
+                   aktinterfacetype:=oldaktinterfacetype;
+                   aktfilepos:=oldaktfilepos;
+                   aktmodeswitches:=oldaktmodeswitches;
+                   aktexceptblock:=0;
+                   exceptblockcounter:=0;
+  {$ifdef GDB}
+                   dbx_counter:=store_dbx;
+  {$endif GDB}
+                 end;
+             end
+           else
+             begin
+               { Shut down things when the last file is compiled succesfull }
+               if (compile_level=1) and
+                  (status.errorcount=0) then
+                begin
+                  parser_current_file:='';
+                  { Close script }
+                  if (not AsmRes.Empty) then
+                   begin
+                     Message1(exec_i_closing_script,AsmRes.Fn);
+                     AsmRes.WriteToDisk;
+                   end;
+
+                  { do not create browsers on errors !! }
+                  if status.errorcount=0 then
+                   begin
 {$ifdef BrowserLog}
-                      { Write Browser Log }
-                      if (cs_browser_log in aktglobalswitches) and
-                         (cs_browser in aktmoduleswitches) then
-                       begin
-                         if browserlog.elements_to_list.empty then
-                          begin
-                            Message1(parser_i_writing_browser_log,browserlog.Fname);
-                            WriteBrowserLog;
-                          end
-                         else
-                          browserlog.list_elements;
-                       end;
+                     { Write Browser Log }
+                     if (cs_browser_log in aktglobalswitches) and
+                        (cs_browser in aktmoduleswitches) then
+                      begin
+                        if browserlog.elements_to_list.empty then
+                         begin
+                           Message1(parser_i_writing_browser_log,browserlog.Fname);
+                           WriteBrowserLog;
+                         end
+                        else
+                         browserlog.list_elements;
+                      end;
+                     { Write Browser Collections }
+                     do_extractsymbolinfo{$ifdef FPC}(){$endif};
 {$endif BrowserLog}
+                   end;
+                end;
+             end;
 
-                      { Write Browser Collections }
-                      do_extractsymbolinfo{$ifdef FPC}(){$endif};
-                    end;
-                 end;
+           dec(compile_level);
+           compiled_module:=olddata^.old_compiled_module;
 
-{$ifdef dummy}
-                if current_module.in_second_compile then
-                 begin
-                   current_module.in_second_compile:=false;
-                   current_module.in_compile:=true;
-                 end
-                else
-                 current_module.in_compile:=false;
-{$endif dummy}
-              end;
-           end;
-
-         dec(compile_level);
-         compiled_module:=olddata^.old_compiled_module;
-
-         dispose(olddata);
-
-{$ifdef USEEXCEPT}
-         if longjump_used then
-           longjmp(recoverpospointer^,1);
-{$endif USEEXCEPT}
-      end;
+           dispose(olddata);
+         end;
+    end;
 
 end.
 {
   $Log$
-  Revision 1.70  2005-01-19 22:19:41  peter
+  Revision 1.71  2005-01-26 16:23:28  peter
+    * detect arithmetic overflows for constants at compile time
+    * use try..except instead of setjmp
+
+  Revision 1.70  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

@@ -112,6 +112,7 @@ general_i_hint=01016_I_Hint:
 % Prefix for Hints
 general_e_path_does_not_exist=01017_E_Path "$1" does not exist
 % The specified path does not exist.
+general_e_compilation_aborted=01018_E_Compilation aborted
 % \end{description}
 #
 # Scanner
@@ -996,6 +997,8 @@ parser_w_implicit_uses_of_variants_unit=03211_W_Implicit uses of Variants unit
 parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't be used in INTERFACES
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
+parser_e_arithmetic_operation_overflow=03213_E_Overflow in arithmetic operation
+% An operation on two integers values produced an overflow
 % \end{description}
 #
 # Type Checking
@@ -2315,7 +2318,7 @@ S*2Tlinux_Linux
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
 **2*_a : Show everything             x : Executable info (Win32 only)
 **2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info      
+**2*_    lots of debugging info
 3*1W<x>_Win32-like target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application

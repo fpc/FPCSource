@@ -69,6 +69,7 @@ interface
 implementation
 
     uses
+      sysutils,
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symtype,symdef,symsym,symtable,defutil,defcmp,
@@ -265,6 +266,7 @@ implementation
              ((rt = pointerconstn) or (rt = niln)) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
            begin
+              t:=nil;
               { when comparing/substracting  pointers, make sure they are }
               { of the same  type (JM)                                    }
               if (lt = pointerconstn) and (rt = pointerconstn) then
@@ -317,24 +319,81 @@ implementation
                 lv := lv * tpointerdef(right.resulttype.def).pointertype.def.size;
               case nodetype of
                 addn :
-                  if (lt <> pointerconstn) then
-                    t := genintconstnode(lv+rv)
-                  else
-                    t := cpointerconstnode.create(lv+rv,left.resulttype);
+                  begin
+                    {$ifopt Q-}
+                      {$define OVERFLOW_OFF}
+                      {$Q+}
+                    {$endif}
+                    try
+                      if (lt <> pointerconstn) then
+                        t := genintconstnode(lv+rv)
+                      else
+                        t := cpointerconstnode.create(lv+rv,left.resulttype);
+                    except
+                      on E:EIntOverflow do
+                        begin
+                          Message(parser_e_arithmetic_operation_overflow);
+                          { Recover }
+                          t:=genintconstnode(0)
+                        end;
+                    end;
+                    {$ifdef OVERFLOW_OFF}
+                      {$Q-}
+                      {$undef OVERFLOW_OFF}
+                    {$endif}
+                  end;
                 subn :
-                  if (lt=pointerconstn) and (rt=pointerconstn) and
-                    (tpointerdef(rd).pointertype.def.size>1) then
-                    t := genintconstnode((lv-rv) div tpointerdef(left.resulttype.def).pointertype.def.size)
-                  else if (lt <> pointerconstn) or (rt = pointerconstn) then
-                    t := genintconstnode(lv-rv)
-                  else
-                    t := cpointerconstnode.create(lv-rv,left.resulttype);
+                  begin
+                    {$ifopt Q-}
+                      {$define OVERFLOW_OFF}
+                      {$Q+}
+                    {$endif}
+                    try
+                      if (lt=pointerconstn) and (rt=pointerconstn) and
+                        (tpointerdef(rd).pointertype.def.size>1) then
+                        t := genintconstnode((lv-rv) div tpointerdef(left.resulttype.def).pointertype.def.size)
+                      else if (lt <> pointerconstn) or (rt = pointerconstn) then
+                        t := genintconstnode(lv-rv)
+                      else
+                        t := cpointerconstnode.create(lv-rv,left.resulttype);
+                    except
+                      on E:EIntOverflow do
+                        begin
+                          Message(parser_e_arithmetic_operation_overflow);
+                          { Recover }
+                          t:=genintconstnode(0)
+                        end;
+                    end;
+                    {$ifdef OVERFLOW_OFF}
+                      {$Q-}
+                      {$undef OVERFLOW_OFF}
+                    {$endif}
+                  end;
                 muln :
-                  if (torddef(ld).typ <> u64bit) or
-                     (torddef(rd).typ <> u64bit) then
-                    t:=genintconstnode(lv*rv)
-                  else
-                    t:=genintconstnode(int64(qword(lv)*qword(rv)));
+                  begin
+                    {$ifopt Q-}
+                      {$define OVERFLOW_OFF}
+                      {$Q+}
+                    {$endif}
+                    try
+                      if (torddef(ld).typ <> u64bit) or
+                         (torddef(rd).typ <> u64bit) then
+                        t:=genintconstnode(lv*rv)
+                      else
+                        t:=genintconstnode(int64(qword(lv)*qword(rv)));
+                    except
+                      on E:EIntOverflow do
+                        begin
+                          Message(parser_e_arithmetic_operation_overflow);
+                          { Recover }
+                          t:=genintconstnode(0)
+                        end;
+                    end;
+                    {$ifdef OVERFLOW_OFF}
+                      {$Q-}
+                      {$undef OVERFLOW_OFF}
+                    {$endif}
+                  end;
                 xorn :
                   if is_integer(ld) then
                     t:=genintconstnode(lv xor rv)
@@ -2071,7 +2130,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2005-01-16 11:56:37  peter
+  Revision 1.137  2005-01-26 16:23:28  peter
+    * detect arithmetic overflows for constants at compile time
+    * use try..except instead of setjmp
+
+  Revision 1.136  2005/01/16 11:56:37  peter
     * fixed some tabs
 
   Revision 1.135  2005/01/16 11:13:40  peter

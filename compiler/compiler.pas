@@ -122,9 +122,6 @@ uses
 {    dpmiexcp, }
   {$endif WATCOM}
 {$endif}
-{$ifdef USEEXCEPT}
-  tpexcept,
-{$endif USEEXCEPT}
 {$ifdef BrowserLog}
   browlog,
 {$endif BrowserLog}
@@ -132,6 +129,7 @@ uses
 {$ELSE USE_SYSUTILS}
   dos,
 {$ENDIF USE_SYSUTILS}
+  sysutils,
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,import,export,tokens,pass_1
@@ -245,16 +243,6 @@ var
   CompilerInited : boolean;
   olddo_stop : tstopprocedure;
 
-{$ifdef USEEXCEPT}
-procedure RecoverStop(err:longint);
-begin
-  if recoverpospointer<>nil then
-    LongJmp(recoverpospointer^,1)
-  else
-    Stop(err);
-end;
-{$endif USEEXCEPT}
-
 
 {****************************************************************************
                                 Compiler
@@ -286,10 +274,6 @@ begin
   DoneSymtable;
   DoneGlobals;
   donetokens;
-{$ifdef USEEXCEPT}
-  recoverpospointer:=nil;
-  longjump_used:=false;
-{$endif USEEXCEPT}
 end;
 
 
@@ -372,83 +356,80 @@ function Compile(const cmd:string):longint;
 
 var
   starttime  : real;
-{$ifdef USEEXCEPT}
-  recoverpos : jmp_buf;
-{$endif}
 {$ifdef HASGETHEAPSTATUS}
   hstatus : THeapStatus;
 {$endif HASGETHEAPSTATUS}
 begin
-  olddo_stop:=do_stop;
-  do_stop:=@minimal_stop;
-{ Initialize the compiler }
-  InitCompiler(cmd);
+  try
+    try
+       { Initialize the compiler }
+       InitCompiler(cmd);
 
-{ show some info }
-  Message1(general_t_compilername,FixFileName(system.paramstr(0)));
-  Message1(general_d_sourceos,source_info.name);
-  Message1(general_i_targetos,target_info.name);
-  Message1(general_t_exepath,exepath);
-  WritePathList(general_t_unitpath,unitsearchpath);
-  WritePathList(general_t_includepath,includesearchpath);
-  WritePathList(general_t_librarypath,librarysearchpath);
-  WritePathList(general_t_objectpath,objectsearchpath);
+       { show some info }
+       Message1(general_t_compilername,FixFileName(system.paramstr(0)));
+       Message1(general_d_sourceos,source_info.name);
+       Message1(general_i_targetos,target_info.name);
+       Message1(general_t_exepath,exepath);
+       WritePathList(general_t_unitpath,unitsearchpath);
+       WritePathList(general_t_includepath,includesearchpath);
+       WritePathList(general_t_librarypath,librarysearchpath);
+       WritePathList(general_t_objectpath,objectsearchpath);
 
-{$ifdef USEEXCEPT}
-  if setjmp(recoverpos)=0 then
-   begin
-     recoverpospointer:=@recoverpos;
-     do_stop:=@recoverstop;
-{$endif USEEXCEPT}
-     starttime:=getrealtime;
-{$ifdef PREPROCWRITE}
-     if parapreprocess then
-      parser.preprocess(inputdir+inputfile+inputextension)
-     else
-{$endif PREPROCWRITE}
-      parser.compile(inputdir+inputfile+inputextension);
-     if status.errorcount=0 then
-      begin
-        starttime:=getrealtime-starttime;
-        if starttime<0 then
-          starttime:=starttime+3600.0*24.0;
-        Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(starttime))+
-          '.'+tostr(trunc(frac(starttime)*10)));
-      end;
-{$ifdef USEEXCEPT}
-    end;
-{$endif USEEXCEPT}
+       starttime:=getrealtime;
 
-{ Stop is always called, so we come here when a program is compiled or not }
-  do_stop:=olddo_stop;
-{ Stop the compiler, frees also memory }
-{ no message possible after this !!    }
-  DoneCompiler;
+       { Compile the program }
+  {$ifdef PREPROCWRITE}
+       if parapreprocess then
+        parser.preprocess(inputdir+inputfile+inputextension)
+       else
+  {$endif PREPROCWRITE}
+        parser.compile(inputdir+inputfile+inputextension);
 
-{ Set the return value if an error has occurred }
-  if status.errorcount=0 then
-   Compile:=0
-  else
-   Compile:=1;
+       { Show statistics }
+       if status.errorcount=0 then
+        begin
+          starttime:=getrealtime-starttime;
+          if starttime<0 then
+            starttime:=starttime+3600.0*24.0;
+          Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(starttime))+
+            '.'+tostr(trunc(frac(starttime)*10)));
+        end;
+     finally
+       { no message possible after this !!    }
+       DoneCompiler;
+     end;
+  except
 
-  DoneVerbose;
+    Message(general_e_compilation_aborted);
+
+    DoneVerbose;
+
+    Raise;
+  end;
 {$ifdef SHOWUSEDMEM}
   {$ifdef HASGETHEAPSTATUS}
-    GetHeapStatus(hstatus);
-    Writeln('Max Memory used/heapsize: ',DStr(hstatus.MaxHeapUsed shr 10),'/',DStr(hstatus.MaxHeapSize shr 10),' Kb');
+      GetHeapStatus(hstatus);
+      Writeln('Max Memory used/heapsize: ',DStr(hstatus.MaxHeapUsed shr 10),'/',DStr(hstatus.MaxHeapSize shr 10),' Kb');
   {$else HASGETHEAPSTATUS}
-    Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
+      Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
   {$endif HASGETHEAPSTATUS}
 {$endif SHOWUSEDMEM}
-{$ifdef fixLeaksOnError}
-  do_stop;
-{$endif fixLeaksOnError}
+
+  { Set the return value if an error has occurred }
+  if status.errorcount=0 then
+    result:=0
+  else
+    result:=1;
 end;
 
 end.
 {
   $Log$
-  Revision 1.51  2005-01-09 20:24:43  olle
+  Revision 1.52  2005-01-26 16:23:28  peter
+    * detect arithmetic overflows for constants at compile time
+    * use try..except instead of setjmp
+
+  Revision 1.51  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 
