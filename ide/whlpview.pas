@@ -733,8 +733,16 @@ end;
 procedure THelpViewer.ChangeBounds(var Bounds: TRect);
 var
   LinePos,NewLineIndex,I : longint;
+  ymin, ymax : sw_integer;
+  prop : real;
 begin
   if Owner<>nil then Owner^.Lock;
+  ymin:=Delta.Y;
+  ymax:=ymin+Size.Y;
+  if ymax>ymin then
+    prop:=(CurPos.Y-ymin)/(ymax-ymin)
+  else
+    prop:=0;
   inherited ChangeBounds(Bounds);
   if (HelpTopic<>nil) and (HelpTopic^.Topic<>nil) and
      (HelpTopic^.Topic^.FileID<>0) then
@@ -749,7 +757,13 @@ begin
             break;
           end;
       if NewLineIndex>=0 then
-        SetCurPtr(LinePos-HelpTopic^.LinesPos^.At(NewLineIndex),NewLineIndex);
+        Begin
+          ymin:=NewLineIndex - trunc(prop * Size.Y);
+          if ymin<0 then
+            ymin:=0;
+          ScrollTo(0,ymin);
+          SetCurPtr(LinePos-HelpTopic^.LinesPos^.At(NewLineIndex),NewLineIndex);
+        End;
     End;
   if Owner<>nil then Owner^.UnLock;
 end;
@@ -1386,7 +1400,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2001-09-26 22:46:04  pierre
+  Revision 1.5  2001-09-30 22:18:57  pierre
+   * try to fix problem when unzooming help
+
+  Revision 1.4  2001/09/26 22:46:04  pierre
    * remove break for #1 in THelpTopic.Rebuild
 
   Revision 1.3  2001/09/24 23:54:46  pierre
