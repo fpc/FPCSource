@@ -1002,9 +1002,12 @@ implementation
              CGMessage(type_e_mismatch);
           end
 
-         { generic conversion is not allowed anymore }
+         { generic conversion, this is for error recovery }
          else
-           internalerror(200106042);
+          begin
+            inserttypeconv(left,s32bittype);
+            inserttypeconv(right,s32bittype);
+          end;
 
          { set resulttype if not already done }
          if not assigned(resulttype.def) then
@@ -1293,7 +1296,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-06-04 18:13:53  peter
+  Revision 1.30  2001-06-04 21:41:26  peter
+    * readded generic conversion to s32bit that i removed yesterday. It
+      is still used for error recovery, added a small note about that
+
+  Revision 1.29  2001/06/04 18:13:53  peter
     * Support kylix hack of having enum+integer in a enum declaration.
 
   Revision 1.28  2001/05/27 14:30:55  florian
