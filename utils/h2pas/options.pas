@@ -174,40 +174,10 @@ end.
 
 {
    $Log$
-   Revision 1.2  2000-01-07 16:46:05  daniel
+   Revision 1.3  2000-02-09 16:44:15  peter
+     * log truncated
+
+   Revision 1.2  2000/01/07 16:46:05  daniel
      * copyright 2000
-
-   Revision 1.1  1999/05/12 16:11:39  peter
-     * moved
-
-   Revision 1.10  1999/04/08 20:47:02  florian
-     * misplaced line in the help screen fixed
-
-   Revision 1.9  1998/09/04 17:26:33  pierre
-     * better packed field handling
-
-   Revision 1.8  1998/08/05 15:50:10  florian
-     * small problems with // comments fixed (invalid line counting)
-     + SYS_TRAP support for PalmOS
-     + switch -x for PalmOS
-     + switch -i to generate include files instead of units
-
-   Revision 1.7  1998/07/24 20:55:44  michael
-   * Fixed some minor bugs in Pierres stuff
-
-   Revision 1.6  1998/07/23 23:26:04  michael
-   + added -D option instead of -d, restored old -d
-
-   Revision 1.5  1998/06/08 08:13:47  pierre
-     + merged version of h2pas
-     + added -w for special win32 header directives
-
-   Revision 1.4  1998/04/27 12:06:40  michael
-   + Added GPL statement
-
-   Revision 1.3  1998/04/24 18:23:46  florian
-     + parameter -v added (replaces pointer parameters by call by reference
-       parameters)
-       void p(int *i) =>   procedure p(var i : longint);
 
 }

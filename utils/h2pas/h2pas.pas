@@ -6419,105 +6419,12 @@ end.
 (*
 
  $Log$
- Revision 1.2  2000-01-07 16:46:04  daniel
+ Revision 1.3  2000-02-09 16:44:15  peter
+   * log truncated
+
+ Revision 1.2  2000/01/07 16:46:04  daniel
    * copyright 2000
 
- Revision 1.1  1999/05/12 16:11:39  peter
-   * moved
-
- Revision 1.22  1998/11/12 11:38:21  peter
-   + new cdecl support
-   + ... -> array of const
-
- Revision 1.21  1998/09/10 13:52:42  peter
-   * removed warnings
-
- Revision 1.20  1998/09/04 17:26:32  pierre
-   * better packed field handling
-
- Revision 1.18  1998/08/05 15:50:09  florian
-   * small problems with // comments fixed (invalid line counting)
-   + SYS_TRAP support for PalmOS
-   + switch -x for PalmOS
-   + switch -i to generate include files instead of units
-
- Revision 1.17  1998/07/27 11:03:48  florian
-   * probelm with funtions which resturns a pointer solved
-
- Revision 1.16  1998/07/24 20:55:43  michael
- * Fixed some minor bugs in Pierres stuff
-
- Revision 1.15  1998/07/23 23:26:03  michael
- + added -D option instead of -d, restored old -d
-
- Revision 1.14  1998/06/12 16:53:52  pierre
-   + syntax of C var changed again !!
-     this reflect now the current state of the compiler
-   * improvements in & address operator handling
-
- Revision 1.12  1998/06/08 08:13:44  pierre
-   + merged version of h2pas
-   + added -w for special win32 header directives
-
-   5.1998 : reworked by Pierre Muller
-
-     - added better parsing of defines
-     - handles type casting
-     - error recovery partially implemented
-     - WIN32 specific stuff
-
-     still missing
-     - tags not stored
-     - conditionnals inside typed definitions
-     - complicated defines not supported
-     ( sets .. use of ## ... )
-     - what should we do about
-      const specifier ? can we ignored this
-      FAR modifier ?
-
- Revision 1.11  1998/04/30 11:22:20  florian
-   + support of direct struct declaration added
-
- Revision 1.10  1998/04/27 12:06:40  michael
- + Added GPL statement
-
- Revision 1.9  1998/04/24 22:34:40  florian
-   + enumerations with assigments implemented
-
- Revision 1.8  1998/04/24 18:23:46  florian
-   + parameter -v added (replaces pointer parameters by call by reference
-     parameters)
-     void p(int *i) =>   procedure p(var i : longint);
-
- History:
-   25.9.1996:
-      first version
-
-   26.9.1996:
-      - structs are supported
-      - unsigned implemented
-      - procedure variables implemented
-      - void * becomes pointer
-      - unions implemented
-      - enumerations
-      - number post- and prefixes
-      - operatores unary-, << and >>
-      - problem with the priority of [], (), and * fixed
-      - procedures and functions
-
-   28.9.1996:
-      - formal paramters
-
-   22-26.5.1997  made by Mark Malakanov     mark@av.krasnoyarsk.su
-      - full ariphmetic and logic expressions in #define
-
-      - #define with params changes to function (first param
-        disappears by unknown reason!).
-        Adds func body into implementation section.
-
-      - real numbers
-
-      - handling
        #ifdef ID  to {$ifdef ID}
        #ifundef ID  to {$ifundef ID}
        #else to {$else}

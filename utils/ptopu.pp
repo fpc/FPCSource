@@ -1223,30 +1223,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-02-06 19:57:45  carl
+  Revision 1.6  2000-02-09 16:44:15  peter
+    * log truncated
+
+  Revision 1.5  2000/02/06 19:57:45  carl
   + More TP syntax compatible
 
   Revision 1.4  2000/01/07 16:46:04  daniel
     * copyright 2000
-
-  Revision 1.3  1999/07/08 21:17:11  michael
-  + Made output linesize variable
-
-  Revision 1.2  1999/05/31 10:08:36  michael
-  * Fix by Marco van de Voort to enable #13#10
-
-  Revision 1.1  1999/05/12 16:11:39  peter
-    * moved
-
-  Revision 1.4  1999/05/03 18:03:15  peter
-    * renamed mkdep -> ppdep
-    * removed obsolete units
-    * add .cod files
-
-  Revision 1.3  1999/03/25 16:52:30  michael
-  + Implemented Delphi keywords and delphi comments
-
-  Revision 1.2  1999/03/23 14:19:02  michael
-  Added GPL and log
 
 }

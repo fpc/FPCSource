@@ -1303,7 +1303,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2000-02-08 00:03:35  peter
+  Revision 1.32  2000-02-09 16:44:14  peter
+    * log truncated
+
+  Revision 1.31  2000/02/08 00:03:35  peter
     * fixed zipinstall with defaultdir
 
   Revision 1.30  2000/02/02 11:30:00  peter
@@ -1373,41 +1376,5 @@ end.
   Revision 1.12  1999/12/19 15:15:04  peter
     * fpcmade.<TARGET> added
     * parameter support. So it can be using with "find -name 'Makefile.fpc'"
-
-  Revision 1.11  1999/12/02 11:30:24  peter
-    * better dup checking
-
-  Revision 1.10  1999/11/26 00:20:15  peter
-    * fpcmake updated
-
-  Revision 1.9  1999/11/25 20:23:01  peter
-    * package requireencies
-
-  Revision 1.8  1999/11/24 23:53:00  peter
-    * packages
-    * lot of other changes
-
-  Revision 1.7  1999/11/23 09:43:35  peter
-    + internal .ini file
-    + packages support
-    * ppufiles,data2inc support
-
-  Revision 1.6  1999/11/10 22:10:49  peter
-    * fpcmake updated
-
-  Revision 1.5  1999/11/09 14:38:32  peter
-    * sections section to leave out whole info/tools
-
-  Revision 1.4  1999/11/08 15:01:39  peter
-    * fpcmake support
-
-  Revision 1.3  1999/11/04 12:07:13  michael
-  + Now envvar is used
-
-  Revision 1.2  1999/11/03 23:39:53  peter
-    * lot of updates
-
-  Revision 1.1  1999/11/02 23:57:40  peter
-    * initial version
 
 }

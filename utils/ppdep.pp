@@ -579,58 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:46:02  daniel
+  Revision 1.4  2000-02-09 16:44:14  peter
+    * log truncated
+
+  Revision 1.3  2000/01/07 16:46:02  daniel
     * copyright 2000
 
-  Revision 1.2  1999/06/08 20:24:53  michael
-  * Fixed usage
-
-  Revision 1.1  1999/05/12 16:11:39  peter
-    * moved
-
-  Revision 1.1  1999/05/03 18:03:15  peter
-    * renamed mkdep -> ppdep
-    * removed obsolete units
-    * add .cod files
-
-  Revision 1.7  1998/11/18 11:15:14  michael
-  + Added support for different unit extensions
-
-  Revision 1.6  1998/10/22 23:51:35  peter
-    * better comment support
-
-  Revision 1.5  1998/08/10 09:55:21  peter
-    * fix for uses in rejected part
-
-  Revision 1.4  1998/06/24 14:02:17  peter
-    + (* *) support
-
-  Revision 1.3  1998/06/23 14:01:18  peter
-    + -F to add a line to only the first file
-
-  Revision 1.2  1998/03/27 18:39:20  peter
-    * fixed the preprocessor
-    + -A<call> to add the <call> to all the entries
-
-  Revision 1.1.1.1  1998/03/25 11:18:48  root
-  * Restored version
-
-  Revision 1.5  1998/03/15 15:39:23  peter
-    * fixed $ELSE
-
-  Revision 1.4  1998/03/10 12:53:24  peter
-    * much better preprocessor
-    + IFOPT skipping
-
-  Revision 1.3  1998/03/02 13:45:34  peter
-    * works better and exefile name is written when a program is parsed
-
-  Revision 1.2  1998/02/24 13:55:07  michael
-  + Added option to write to file. Default is to stdout
-  + Added option to write/not write a compiler call
-  + Nr of defines is now unlimited.
-  * Fixed bug with uppercase filenames under linux.
-
-  Revision 1.1  1998/02/23 23:16:48  peter
-    + Initial implementation
 }

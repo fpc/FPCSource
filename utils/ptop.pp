@@ -183,7 +183,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-02-07 13:41:51  peter
+  Revision 1.6  2000-02-09 16:44:15  peter
+    * log truncated
+
+  Revision 1.5  2000/02/07 13:41:51  peter
     * fix wrong $ifdef tp
 
   Revision 1.4  2000/02/06 19:58:24  carl
@@ -191,17 +194,5 @@ end.
 
   Revision 1.3  2000/01/07 16:46:04  daniel
     * copyright 2000
-
-  Revision 1.2  1999/07/08 21:17:10  michael
-  + Made output linesize variable
-
-  Revision 1.1  1999/05/12 16:11:39  peter
-    * moved
-
-  Revision 1.3  1999/03/25 16:52:29  michael
-  + Implemented Delphi keywords and delphi comments
-
-  Revision 1.2  1999/03/23 13:47:47  michael
-  Added GPL and log
 
 }

@@ -1453,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-01-23 16:34:36  peter
+  Revision 1.14  2000-02-09 16:44:14  peter
+    * log truncated
+
+  Revision 1.13  2000/01/23 16:34:36  peter
     * updated for new aktlocalindex
 
   Revision 1.12  2000/01/07 16:46:03  daniel
@@ -1476,127 +1479,5 @@ end.
 
   Revision 1.6  1999/07/27 23:45:29  peter
     * updated for typesym writing
-
-  Revision 1.5  1999/07/05 12:32:40  florian
-    * new property ppu writing implemented
-
-  Revision 1.4  1999/07/03 00:25:44  peter
-    * 0.99.13
-    * new link support
-
-  Revision 1.3  1999/06/08 22:16:06  peter
-    * version 0.99.12
-
-  Revision 1.2  1999/05/14 17:52:04  peter
-    * new deref
-
-  Revision 1.1  1999/05/12 16:11:39  peter
-    * moved
-
-  Revision 1.31  1999/04/29 17:22:34  peter
-    * fixed property sym
-
-  Revision 1.30  1999/04/26 18:27:39  peter
-    * more updates
-
-  Revision 1.29  1999/04/26 13:30:44  peter
-    * support new unit format
-
-  Revision 1.28  1999/04/26 09:35:04  peter
-    * support for v16
-
-  Revision 1.27  1999/03/16 21:00:03  peter
-    * fixed varsym
-
-  Revision 1.26  1999/03/02 22:54:54  peter
-    * merged some of my code back which was changed after pierres commit
-
-  Revision 1.25  1999/03/02 14:21:44  pierre
-   * adapted to symtable changes mainly local browser
-
-  Revision 1.24  1999/03/02 13:48:16  peter
-    * better procoptions display and easy maintainance
-    * removed implementation section printing, becuase it's not used
-    * linkunitfiles support
-
-  Revision 1.23  1999/02/22 13:22:00  pierre
-   + static browser reading
-
-  Revision 1.22  1999/02/16 00:48:42  peter
-    * updated for new flags
-
-  Revision 1.21  1998/11/28 16:21:02  peter
-    + support for dll variables
-
-  Revision 1.20  1998/11/12 11:36:43  peter
-    * fixed target name
-
-  Revision 1.19  1998/11/04 10:17:42  peter
-    + const,var,value is written for parameters
-
-  Revision 1.18  1998/10/13 13:06:14  peter
-    * updated for new target enum
-
-  Revision 1.17  1998/09/25 09:51:53  peter
-    + symtable size and # of symbols
-
-  Revision 1.16  1998/09/24 23:24:11  peter
-    * small update to support ibstartdef
-
-  Revision 1.12  1998/09/21 08:45:28  pierre
-    + added vmt_offset in tobjectdef.write for fututre use
-      (first steps to have objects without vmt if no virtual !!)
-    + added fpu_used field for tabstractprocdef  :
-      sets this level to 2 if the functions return with value in FPU
-      (is then set to correct value at parsing of implementation)
-      THIS MIGHT refuse some code with FPU expression too complex
-      that were accepted before and even in some cases
-      that don't overflow in fact
-      ( like if f : float; is a forward that finally in implementation
-       only uses one fpu register !!)
-      Nevertheless I think that it will improve security on
-      FPU operations !!
-    * most other changes only for UseBrowser code
-      (added symtable references for record and objects)
-      local switch for refs to args and local of each function
-      (static symtable still missing)
-      UseBrowser still not stable and probably broken by
-      the definition hash array !!
-
-  Revision 1.11  1998/09/18 08:01:42  pierre
-    + improvement on the usebrowser part
-      (does not work correctly for now)
-
-  Revision 1.10  1998/09/01 17:35:33  peter
-    * update for new po's
-
-  Revision 1.9  1998/09/01 12:46:52  peter
-    + enum savesize
-
-  Revision 1.8  1998/08/26 10:01:18  peter
-    + set support
-
-  Revision 1.7  1998/08/20 13:01:41  peter
-    + object_options, new enumdef
-
-  Revision 1.6  1998/08/17 10:26:28  peter
-    * updated for new shared/static style
-
-  Revision 1.5  1998/08/13 10:56:28  peter
-    * check if a whole entry is read
-    + support for constset
-
-  Revision 1.4  1998/08/11 15:31:44  peter
-    * write extended to ppu file
-    * new version 0.99.7
-
-  Revision 1.3  1998/07/10 10:59:17  peter
-    + m68k target support
-
-  Revision 1.2  1998/06/17 13:58:28  peter
-    + symbol/def nrs are now listed
-
-  Revision 1.1  1998/06/13 00:05:01  peter
-    + new util to dump v15+ ppu
 
 }

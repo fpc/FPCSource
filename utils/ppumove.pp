@@ -596,7 +596,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 16:46:04  daniel
+  Revision 1.9  2000-02-09 16:44:15  peter
+    * log truncated
+
+  Revision 1.8  2000/01/07 16:46:04  daniel
     * copyright 2000
 
   Revision 1.7  1999/11/25 00:00:39  peter
@@ -612,18 +615,4 @@ end.
     * updated for new linking, but still doesn't work because ld-linux.so.2
       requires some more crt*.o files
 
-  Revision 1.3  1999/07/06 11:32:54  peter
-    * updated for new ppu.pas
-
-  Revision 1.2  1999/06/08 22:16:07  peter
-    * version 0.99.12
-
-  Revision 1.1  1999/05/12 16:11:39  peter
-    * moved
-
-  Revision 1.3  1998/08/17 10:26:30  peter
-    * updated for new shared/static style
-
-  Revision 1.2  1998/06/18 10:47:55  peter
-    * new for v15
 }
