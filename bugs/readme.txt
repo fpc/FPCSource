@@ -344,6 +344,8 @@ Fixed bugs:
   bug0287.pp   (true > false) not supported                         OK 0.99.13 (PFV)
   bug0288.pp   crash with virtual method in except part             OK 0.99.13 (PFV)
   bug0291.pp   @procvar in tp mode bugs                             OK 0.99.13 (PFV)
+  bug0292.pp   objects not finalized when disposed                  OK 0.99.13 (FK)
+
 
 Unproducable bugs:
 ------------------
@@ -380,4 +382,3 @@ bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
 bug0290.pp   problem with storing hex numbers in integers
-bug0292.pp   objects not finalized when disposed
