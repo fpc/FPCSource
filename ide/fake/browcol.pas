@@ -217,7 +217,7 @@ begin
   if assigned(ModuleNames) then
    begin
      dispose(ModuleNames,Done);
-     Modules:=nil;
+     ModuleNames:=nil;
    end;
   if assigned(TypeNames) then
    begin
@@ -247,7 +247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-01-21 11:54:08  peter
+  Revision 1.3  1999-01-22 10:24:16  peter
+    + gdbcon fake unit
+
+  Revision 1.2  1999/01/21 11:54:08  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
