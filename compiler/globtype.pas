@@ -26,6 +26,18 @@ interface
        maxidlen = 64;
 
     type
+       { Compiler dependent types }
+{$ifdef TP}
+       TSearchPathString = string;
+{$endif}
+{$ifdef FPC}
+       TSearchPathString = ansistring;
+{$endif}
+{$ifdef Delphi}
+       TSearchPathString = ansistring;
+{$endif}
+
+    type
        { System independent float names }
 {$ifdef i386}
        bestreal = extended;
@@ -179,7 +191,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-10-22 10:39:34  peter
+  Revision 1.21  1999-11-04 10:55:31  peter
+    * TSearchPathString for the string type of the searchpaths, which is
+      ansistring under FPC/Delphi
+
+  Revision 1.20  1999/10/22 10:39:34  peter
     * split type reading from pdecl to ptype unit
     * parameter_dec routine is now used for procedure and procvars
 

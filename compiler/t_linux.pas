@@ -233,6 +233,7 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
+  HPath        : TSearchPathString;
   s,s2         : string;
   found,
   linkdynamic,
@@ -270,17 +271,17 @@ begin
   { Write path to search libraries }
   if assigned(current_module^.locallibrarysearchpath) then
    begin
-     S:=current_module^.locallibrarysearchpath^;
-     while s<>'' do
+     HPath:=current_module^.locallibrarysearchpath^;
+     while HPath<>'' do
       begin
-        s2:=GetPathFromList(s);
+        s2:=GetPathFromList(HPath);
         LinkRes.Add('SEARCH_DIR('+s2+')');
       end;
    end;
-  S:=LibrarySearchPath;
-  while s<>'' do
+  HPath:=LibrarySearchPath;
+  while HPath<>'' do
    begin
-     s2:=GetPathFromList(s);
+     s2:=GetPathFromList(HPath);
      LinkRes.Add('SEARCH_DIR('+s2+')');
    end;
 
@@ -434,7 +435,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-10-21 14:29:38  peter
+  Revision 1.2  1999-11-04 10:55:31  peter
+    * TSearchPathString for the string type of the searchpaths, which is
+      ansistring under FPC/Delphi
+
+  Revision 1.1  1999/10/21 14:29:38  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 

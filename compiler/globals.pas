@@ -100,7 +100,7 @@ unit globals;
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
-       includesearchpath  : string;
+       includesearchpath  : TSearchPathString;
 
        { deffile }
        usewindowapi  : boolean;
@@ -236,9 +236,9 @@ unit globals;
     Function FixPath(s:string;allowdot:boolean):string;
     function FixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr,cstr:string);
-    procedure AddPathToList(var list:string;s:string;first:boolean);
-    function  getpathfromlist(var list:string):string;
-    function  search(const f : string;path : string;var b : boolean) : string;
+    procedure AddPathToList(var list:TSearchPathString;s:string;first:boolean);
+    function  getpathfromlist(var list:TSearchPathString):string;
+    function search(const f : string;path : TSearchPathString;var b : boolean) : string;
     procedure SynchronizeFileTime(const fn1,fn2:string);
     function FindExe(bin:string;var found:boolean):string;
     Procedure Shell(const command:string);
@@ -994,7 +994,7 @@ unit globals;
 
 
 
-   procedure AddPathToList(var list:string;s:string;first:boolean);
+   procedure AddPathToList(var list:TSearchPathString;s:string;first:boolean);
      var
        LastAdd,
        starti,i,j : longint;
@@ -1008,7 +1008,7 @@ unit globals;
      { Support default macro's }
        DefaultReplacements(s);
      { Fix List }
-       if (length(list)>0) and (list[length(list)]<>';') then
+       if (list<>'') and (list[length(list)]<>';') then
         list:=list+';';
        GetDir(0,CurrentDir);
        CurrentDir:=FixPath(CurrentDir,false);
@@ -1060,7 +1060,7 @@ unit globals;
      end;
 
 
-   function getpathfromlist(var list:string):string;
+   function getpathfromlist(var list:TSearchPathString):string;
      var
        s : string;
        i : longint;
@@ -1080,7 +1080,7 @@ unit globals;
      end;
 
 
-   function search(const f : string;path : string;var b : boolean) : string;
+   function search(const f : string;path : TSearchPathString;var b : boolean) : string;
       Var
         singlepathstring : string;
         i : longint;
@@ -1315,7 +1315,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1999-10-26 12:30:41  peter
+  Revision 1.28  1999-11-04 10:55:31  peter
+    * TSearchPathString for the string type of the searchpaths, which is
+      ansistring under FPC/Delphi
+
+  Revision 1.27  1999/10/26 12:30:41  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
