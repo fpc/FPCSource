@@ -89,7 +89,7 @@ asm
         addl     $4,%ebx
 // push data
         pushl    %eax
-        call    INITIALIZE
+        call    Initialize
         jmp     .LMyRecordInitLoop
 // Array handling
 .LDoArrayInit:
@@ -117,7 +117,7 @@ asm
         addl    Data,%eax
 // push data
         pushl   %eax
-        call    INITIALIZE
+        call    Initialize
         jmp     .LMyArrayInitLoop
 // AnsiString handling :
 .LDoAnsiStringInit:
@@ -165,7 +165,7 @@ asm
         // Interfaces
 .LDoInterfaceFinal:
         pushl   Data
-        call    FPC_INTF_DECR_REF
+        call    Intf_Decr_Ref
         jmp     .LExitFinalize
         // Variants
 .LDoVariantFinal:
@@ -279,7 +279,7 @@ asm
         // Interfaces
 .LDoInterfaceAddRef:
         pushl   Data
-        call    FPC_INTF_INCR_REF
+        call    INTF_INCR_REF
         jmp     .LExitAddRef
         // Variants
 .LDoVariantAddRef:
@@ -393,7 +393,7 @@ asm
         // Interfaces
 .LDoInterfaceDecRef:
         pushl   Data
-        call    FPC_INTF_DECR_REF
+        call    INTF_DECR_REF
         jmp     .LExitDecRef
         // Variants
 .LDoVariantDecRef:
@@ -472,7 +472,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-11-04 16:30:35  florian
+  Revision 1.5  2000-11-06 21:35:59  peter
+    * removed some warnings
+
+  Revision 1.4  2000/11/04 16:30:35  florian
     + interfaces support
 
   Revision 1.3  2000/10/21 18:20:17  florian

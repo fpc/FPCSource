@@ -65,7 +65,7 @@ procedure dynarray_setlength(var p : pointer;ti : pdynarraytypeinfo;
      realp,newp : pdynarray;
 
   begin
-{!!!!!!
+(* !!!!!!
      realp:=pdynarray(p-sizeof(tdynarray));
      if dims[0]<0 then
        HandleErrorFrame(201,get_frame);
@@ -120,7 +120,7 @@ procedure dynarray_setlength(var p : pointer;ti : pdynarraytypeinfo;
               ti.eletype,dimcount-1,@dims[1]);
        end;
      p:=newp+sizeof(tdynarray);
-!!!!!!}
+!!!!!! *)
   end;
 
 function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
@@ -132,7 +132,10 @@ function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
 
 {
   $Log$
-  Revision 1.1  2000-11-04 17:52:46  florian
+  Revision 1.2  2000-11-06 21:35:59  peter
+    * removed some warnings
+
+  Revision 1.1  2000/11/04 17:52:46  florian
     * fixed linker errors
 
 }

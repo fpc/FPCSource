@@ -268,7 +268,7 @@ function strlen(p:pchar):longint;
 
 { Shortstring functions }
 {$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : ShortString; l : longint);
+Procedure SetLength (Var S:ShortString;len:StrLenInt);
 {$endif INTERNSETLENGTH}
 Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
 Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
@@ -484,7 +484,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2000-11-06 20:34:24  peter
+  Revision 1.10  2000-11-06 21:35:59  peter
+    * removed some warnings
+
+  Revision 1.9  2000/11/06 20:34:24  peter
     * changed ver1_0 defines to temporary defs
 
   Revision 1.8  2000/10/23 16:15:40  jonas

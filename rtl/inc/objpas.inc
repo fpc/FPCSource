@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+Procedure Finalize (Data,TypeInfo: Pointer);forward;
+
 {****************************************************************************
                   Internal Routines called from the Compiler
 ****************************************************************************}
@@ -34,38 +36,38 @@
 
 {$ifndef HASINTF}
     { dummies for make cycle with 1.0.x }
-    procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
       begin
       end;
 
-    procedure int_do_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
       begin
       end;
 
-    procedure int_do_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+    procedure intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
       begin
       end;
 
-    procedure int_do_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+    procedure intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
       begin
       end;
 
 {$else HASINTF}
     { interface helpers }
-    procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+    procedure intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
       begin
         if assigned(i) then
           IUnknown(i)._Release;
         i:=nil;
       end;
 
-    procedure int_do_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+    procedure intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
       begin
          if assigned(i) then
            IUnknown(i)._AddRef;
       end;
 
-    procedure int_do_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+    procedure intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
       begin
          if assigned(S) then
            IUnknown(S)._AddRef;
@@ -74,7 +76,7 @@
          D:=S;
       end;
 
-    procedure int_do_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+    procedure intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
       const
         S_OK = 0;
       var
@@ -88,9 +90,10 @@
              D:=tmpi;
           end
         else
-          int_do_intf_decr_ref(D);
+          intf_decr_ref(D);
       end;
 {$endif HASINTF}
+
 
 {****************************************************************************
                                TOBJECT
@@ -606,7 +609,10 @@
 
 {
   $Log$
-  Revision 1.6  2000-11-06 20:34:24  peter
+  Revision 1.7  2000-11-06 21:35:59  peter
+    * removed some warnings
+
+  Revision 1.6  2000/11/06 20:34:24  peter
     * changed ver1_0 defines to temporary defs
 
   Revision 1.5  2000/11/04 17:52:46  florian
