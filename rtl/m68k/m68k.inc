@@ -285,13 +285,14 @@
   asm
    XDEF CHECK_OBJECT
      { save important registers }
-     movem.l  a0/d0,-(sp)
+     move.l   a0/d0,-(sp)
 
-     { check if pointer is nil.... before trying to access it }
-     move.l   8(sp),a0
+     { check if pointer is nil.... before trying to access it      }
+     { offset is 12 contrary to i386 because we save two registers }
+     move.l   12(sp),a0
      { z flag set by move }
-     beq      @co_re      
-   
+     beq      @co_re
+
      move.l   (a0),d0
      add.l    4(a0),d0
      bne      @co_re
@@ -412,7 +413,7 @@
             move.l 8(a6),d1      { Get length              }
 
             move.b (a0)+,d0     { Get source length }
-            cmp.b  d1,d0
+            cmp.b  d0,d1
             ble    @LM4
             move.b d1,d0        { If longer than maximum size of target, cut
                                   source length }
@@ -435,7 +436,7 @@
          asm
           move.b  #255,d0
           move.l  s1,a0
-          move.l  s1,a1
+          move.l  s2,a1
           sub.b   (a0),d0              {  copyl:= 255 -length(s1)    }
           move.b  (a1),d6
           cmp.b   d0,d6                { if copyl > length(s2) then  }
@@ -721,23 +722,11 @@ XDEF RE_BOUNDS_CHECK
 @reboundend:
  end;
 
-Function Random(l : Longint) : Longint
-{
-  the problem Wwth this Function is if l is maxLongint*3/4 then the
-  probability to obtain a number in the range maxlongint*1/4 to maxlongint*1/2
-  is two times smaller than the probability for other numbers !
-}
-Begin
-  Randseed:=Randseed*134775813+1;
-  Random:=abs(Randseed mod l);
-End;
-
-
-
 {
   $Log$
-  Revision 1.3  1998-04-08 07:53:32  michael
-  + Changed Random() function. Moved from system to processor dependent files (from Pedro Gimeno)
+  Revision 1.4  1998-05-25 12:18:48  carl
+    * strcopy bugfix
+     * co bugfix with stack
 
   Revision 1.2  1998/03/27 23:48:06  carl
     * bugfix of STRCONCAT alignment problem
