@@ -667,6 +667,8 @@ destructor TResourceFile.Done;
 begin
   Flush;
   inherited Done;
+  if assigned(S) then dispose(S,Done);
+  S:=nil;
   if Resources<>nil then Dispose(Resources, Done); Resources:=nil;
   if Entries<>nil then
     begin Entries^.DeleteAll; Dispose(Entries, Done); Entries:=nil; end;
@@ -701,7 +703,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-04-07 21:56:05  peter
+  Revision 1.5  1999-06-17 23:45:21  pierre
+   * dipsoe of S field in TResourceFile destructor
+
+  Revision 1.4  1999/04/07 21:56:05  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
