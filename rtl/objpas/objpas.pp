@@ -25,21 +25,23 @@ interface
 
     const
        // vmtSelfPtr           = -36;  { not implemented yet }
-       vmtIntfTable         = -32;
-       vmtAutoTable         = -28;
-       vmtInitTable         = -24;
-       vmtTypeInfo          = -20;
-       vmtFieldTable        = -16;
-       vmtMethodTable       = -12;
-       vmtDynamicTable      = -8;
-       vmtClassName         = -4;
-       vmtInstanceSize      = 0;
-       vmtParent            = 8;
-       vmtDestroy           = 12;
-       vmtNewInstance       = 16;
-       vmtFreeInstance      = 20;
-       vmtSafeCallException = 24;
-       vmtDefaultHandler    = 28;
+       vmtIntfTable            = -32;
+       vmtAutoTable            = -28;
+       vmtInitTable            = -24;
+       vmtTypeInfo             = -20;
+       vmtFieldTable           = -16;
+       vmtMethodTable          = -12;
+       vmtDynamicTable         = -8;
+       vmtClassName            = -4;
+       vmtInstanceSize         = 0;
+       vmtParent               = 8;
+       vmtDestroy              = 12;
+       vmtNewInstance          = 16;
+       vmtFreeInstance         = 20;
+       vmtSafeCallException    = 24;
+       vmtDefaultHandler       = 28;
+       vmtAfterConstruction    = 32;
+       vmtBeforeDestruction    = 36;
 
     type
        { first, in object pascal, the types must be redefined }
@@ -92,6 +94,10 @@ interface
           class function methodname(address : pointer) : shortstring;
           function fieldaddress(const name : shortstring) : pointer;
 
+          { new since Delphi 4 }
+          procedure AfterConstruction;virtual;
+          procedure BeforeDestruction;virtual;
+
           { interface functions, I don't know if we need this }
           {
           function getinterface(const iid : tguid;out obj) : boolean;
@@ -104,6 +110,7 @@ interface
 
        var
           abstracterrorproc : pointer;
+
        Const
           ExceptProc : Pointer {TExceptProc} = Nil;
 
@@ -311,7 +318,7 @@ interface
            fieldaddress:=nil;
         end;
 
-      function TObject.safecallexception(exceptobject : tobject;
+      function TObject.SafeCallException(exceptobject : tobject;
         exceptaddr : pointer) : integer;
 
         begin
@@ -380,6 +387,16 @@ interface
              end;
         end;
 
+      procedure TObject.AfterConstruction;
+
+        begin
+        end;
+
+      procedure TObject.BeforeDestruction;
+
+        begin
+        end;
+
 
 {****************************************************************************
                              Exception Support
@@ -398,7 +415,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1998-09-24 16:13:48  michael
+  Revision 1.16  1998-10-03 15:07:16  florian
+    + TObject.AfterConstruction and TObject.BeforeDestruction of Delphi 4
+
+  Revision 1.15  1998/09/24 16:13:48  michael
   Changes in exception and open array handling
 
   Revision 1.14  1998/09/23 12:40:43  michael
