@@ -22,10 +22,13 @@
 }
 unit pmodules;
             { close old_current_ppu on system that are
-              short on file handles like DOS PM }
-{$ifdef DOS}
+              short on file handles like DOS system PM }
+{$ifdef GO32V1}
 {$define SHORT_ON_FILE_HANDLES}
-{$endif DOS}
+{$endif GO32V1}
+{$ifdef GO32V2}
+{$define SHORT_ON_FILE_HANDLES}
+{$endif GO32V2}
 
 {$define New_GDB}
 
@@ -586,7 +589,7 @@ unit pmodules;
           end;
          { set the old module }
 {$ifdef SHORT_ON_FILE_HANDLES}
-         old_current_ppu^.tempreopen;
+         old_current_ppu^.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
          current_ppu:=old_current_ppu;
          current_module:=old_current_module;
@@ -1211,12 +1214,12 @@ unit pmodules;
   {$ifndef Dont_use_double_checksum}
          if not(cs_compilesystem in aktmoduleswitches) then
            if store_interface_crc<>current_module^.interface_crc then
-             Def_comment(V_Warning,current_module^.ppufilename^+' Interface CRC changed '+
+             Do_comment(V_Warning,current_module^.ppufilename^+' Interface CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
   {$ifdef EXTDEBUG}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module^.crc) and simplify_ppu then
-             Def_comment(V_Warning,current_module^.ppufilename^+' implementation CRC changed '+
+             Do_comment(V_Warning,current_module^.ppufilename^+' implementation CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
   {$endif EXTDEBUG}
   {$endif ndef Dont_use_Double_checksum}
@@ -1449,7 +1452,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.149  1999-08-28 15:34:19  florian
+  Revision 1.150  1999-08-30 16:21:40  pierre
+   * tempclosing of ppufiles under dos was wrong
+
+  Revision 1.149  1999/08/28 15:34:19  florian
     * bug 519 fixed
 
   Revision 1.148  1999/08/27 14:53:00  pierre

@@ -189,7 +189,8 @@ type
     entryidx : longint;
     entry    : tppuentry;
     entrytyp : byte;
-    closed   : boolean;
+    closed,
+    tempclosed : boolean;
     closepos : longint;
     constructor init(fn:string);
     destructor  done;
@@ -338,6 +339,7 @@ begin
   NewHeader;
   Error:=false;
   closed:=true;
+  tempclosed:=false;
   getmem(buf,ppubufsize);
 end;
 
@@ -852,7 +854,7 @@ begin
        begin
          if (crcindex2<crc_array_size) and (crcindex2<crc_index2) and
             (crc_test2^[crcindex2]<>crc) then
-           Def_comment(V_Warning,'impl CRC changed');
+           Do_comment(V_Warning,'impl CRC changed');
 {$ifdef Test_Double_checksum_write}
          Writeln(CRCFile,crc);
 {$endif Test_Double_checksum_write}
@@ -876,7 +878,7 @@ begin
           begin
             if (crcindex<crc_array_size) and (crcindex<crc_index) and
                (crc_test^[crcindex]<>interface_crc) then
-              Def_comment(V_Warning,'CRC changed');
+              Do_comment(V_Warning,'CRC changed');
 {$ifdef Test_Double_checksum_write}
             Writeln(CRCFile,interface_crc);
 {$endif Test_Double_checksum_write}
@@ -952,6 +954,7 @@ end;
            {$I+}
            i:=ioresult;
            closed:=true;
+           tempclosed:=true;
          end;
       end;
 
@@ -961,7 +964,7 @@ end;
         ofm : byte;
       begin
         tempopen:=false;
-        if not closed then
+        if not closed or not tempclosed then
          exit;
         ofm:=filemode;
         filemode:=0;
@@ -972,6 +975,8 @@ end;
         if ioresult<>0 then
          exit;
         closed:=false;
+        tempclosed:=false;
+        
       { restore state }
         seek(f,closepos);
         tempopen:=true;
@@ -980,7 +985,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1999-08-27 10:48:40  pierre
+  Revision 1.41  1999-08-30 16:21:40  pierre
+   * tempclosing of ppufiles under dos was wrong
+
+  Revision 1.40  1999/08/27 10:48:40  pierre
     + tppufile.tempclose and tempopen added
     * some changes so that nothing is writtedn to disk while
       calculating CRC only
