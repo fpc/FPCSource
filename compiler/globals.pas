@@ -33,6 +33,9 @@ interface
 {$ifdef unix}
       linux,
 {$endif}
+{$ifdef os2}
+      doscalls,
+{$endif}
 {$ifdef Delphi}
       sysutils,
       dmisc,
@@ -191,7 +194,7 @@ interface
        debugstop,
        only_one_pass : boolean;
 {$EndIf EXTDEBUG}
-       { windows application type }
+       { windows / OS/2 application type }
        apptype : tapptype;
 
     const
@@ -948,6 +951,10 @@ implementation
         i,len : longint;
         hp,p,p2 : pchar;
       {$endif}
+      {$ifdef os2}
+      var
+        P1, P2: PChar;
+      {$endif}
       begin
       {$ifdef unix}
         GetEnvPchar:=Linux.Getenv(envname);
@@ -975,6 +982,18 @@ implementation
         FreeEnvironmentStrings(p);
         {$define GETENVOK}
       {$endif}
+      {$ifdef os2}
+        P1 := StrPNew (EnvName);
+        if Assigned (P1) then
+        begin
+         if DosCalls.DosScanEnv (P1, P2) = 0 then
+          GetEnvPChar := P2
+         else
+          GetEnvPChar := nil;
+         StrDispose (P1);
+        end else GetEnvPChar := nil;
+        {$define GETENVOK}
+      {$endif}
       {$ifdef GETENVOK}
         {$undef GETENVOK}
       {$else}
@@ -986,7 +1005,9 @@ implementation
     procedure FreeEnvPChar(p:pchar);
       begin
       {$ifndef unix}
+       {$ifndef os2}
         StrDispose(p);
+       {$endif}
       {$endif}
       end;
 
@@ -1278,7 +1299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-01-13 00:03:41  peter
+  Revision 1.24  2001-01-20 18:32:52  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.23  2001/01/13 00:03:41  peter
     * fixed findexe to also support already extension in name
 
   Revision 1.22  2000/12/26 15:57:25  peter

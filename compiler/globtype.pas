@@ -147,9 +147,9 @@ interface
        );
        tmodeswitches = set of tmodeswitch;
 
-       { win32 sub system }
+       { win32 & OS/2 application types }
        tapptype = (app_none,
-         app_gui,app_cui
+         app_gui,app_cui,app_fs
        );
 
        { interface types }
@@ -219,7 +219,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-11-29 00:30:30  florian
+  Revision 1.11  2001-01-20 18:32:52  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.10  2000/11/29 00:30:30  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

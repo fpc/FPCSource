@@ -1082,7 +1082,8 @@ const
          hs : string;
 
       begin
-        if target_info.target<>target_i386_win32 then
+        if (target_info.target<>target_i386_win32)
+                                 and (target_info.target<>target_i386_os2) then
           Message(scan_w_app_type_not_support);
         if not current_module.in_global then
           Message(scan_w_switch_is_global)
@@ -1094,6 +1095,8 @@ const
                apptype:=app_gui
              else if hs='CONSOLE' then
                apptype:=app_cui
+             else if (hs='FS') and (target_info.target=target_i386_os2) then
+               apptype:=app_fs
              else
                Message1(scan_w_unsupported_app_type,hs);
           end;
@@ -1390,7 +1393,10 @@ const
 
 {
   $Log$
-  Revision 1.16  2001-01-13 00:09:21  peter
+  Revision 1.17  2001-01-20 18:32:52  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.16  2001/01/13 00:09:21  peter
     * made Pavel O. happy ;)
 
   Revision 1.15  2000/12/25 00:07:28  peter

@@ -365,7 +365,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld $OPT -o $EXE @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $PM $RSRC -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
    end;
 end;
 
@@ -438,7 +438,7 @@ var
   cmdstr  : string;
   success : boolean;
   i       : longint;
-  PMStr,
+  AppTypeStr,
   StripStr: string[40];
   RsrcStr : string;
 begin
@@ -450,10 +450,11 @@ begin
    StripStr := '-s'
   else
    StripStr := '';
-  if usewindowapi then
-   PMStr := '-p'
-  else
-   PMStr := '';
+  if (usewindowapi) or (AppType = app_gui) then
+   AppTypeStr := '-p'
+  else if AppType = app_fs then
+   AppTypeStr := '-f'
+  else AppTypeStr := '-w';
   if not (Current_module.ResourceFiles.Empty) then
    RsrcStr := '-r ' + Current_module.ResourceFiles.GetFirst
   else
@@ -478,7 +479,7 @@ begin
          same memory pool. The heap grows upwards, the stack grows downwards.}
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
         Replace(cmdstr,'$STRIP',StripStr);
-        Replace(cmdstr,'$PM',PMStr);
+        Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
@@ -502,7 +503,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:30  peter
+  Revision 1.7  2001-01-20 18:32:52  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.6  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -1933,6 +1933,7 @@ option_help_pages=11025_[
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
 3*2WD_Use DEFFILE to export functions of DLL or EXE
+3*2WF_Specify full-screen type application (OS/2 only)
 3*2WG_Specify graphic type application
 3*2WN_Do not generate relocation code (necessary for debugging)
 3*2WR_Generate relocation code

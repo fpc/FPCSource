@@ -748,6 +748,7 @@ begin
                              end;
                         'C': apptype:=app_cui;
                         'D': ForceDeffileForExport:=true;
+                        'F': apptype:=app_fs;
                         'G': apptype:=app_gui;
                         'N': begin
                                RelocSection:=false;
@@ -1517,7 +1518,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2001-01-12 19:21:09  peter
+  Revision 1.27  2001-01-20 18:36:51  hajny
+    + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
+
+  Revision 1.26  2001/01/12 19:21:09  peter
     * fixed writing of quickinfo when no ppc386.cfg is available
 
   Revision 1.25  2001/01/05 17:36:57  florian
