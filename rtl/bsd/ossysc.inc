@@ -226,6 +226,7 @@ begin
     end
    else
     dirP^.dd_loc:=retval;
+   dirP^.dd_size:=retval;
  readbuffer:=retval;
 end;
 
@@ -239,7 +240,7 @@ begin
  if (dirp^.dd_buf=nil) or (dirp^.dd_loc=0) THEN
   exit(nil);
  if (dirp^.dd_loc=-1)   OR     {First readdir on this pdir. Initial fill of buffer}
-   (dirp^.dd_rewind>=(longint(dirp^.dd_buf)+dirblksiz)) then  {no more entries left?}
+   (dirp^.dd_rewind>=(longint(dirp^.dd_buf)+dirp^.dd_size)) then  {no more entries left?}
   Begin
     if readbuffer=0 then        {succesful read?}
      Exit(NIL);                 {No more data}
@@ -534,7 +535,10 @@ end;
 
 {
  $Log$
- Revision 1.24  2005-02-14 17:13:21  peter
+ Revision 1.25  2005-03-13 14:11:06  marco
+  * fix from mischi
+
+ Revision 1.24  2005/02/14 17:13:21  peter
    * truncate log
 
  Revision 1.23  2005/02/13 21:47:56  peter
