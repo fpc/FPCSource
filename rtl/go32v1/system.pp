@@ -135,18 +135,6 @@ begin
   HandleError(202);
 end;
 
-procedure halt(errnum : byte);
-begin
-  do_exit;
-  flush(stderr);
-  asm
-        movl    $0x4c00,%eax
-        movb    errnum,%al
-        int     $0x21
-  end;
-end;
-
-
 function paramcount : longint;
 begin
   paramcount := argc - 1;
@@ -596,7 +584,16 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 Procedure system_exit;
+var
+  err : byte;
 begin
+  flush(stderr);
+  err:=exitcode and $ff;
+  asm
+        movl    $0x4c00,%eax
+        movb    err,%al
+        int     $0x21
+  end;
 end;
 
 {*****************************************************************************
@@ -618,7 +615,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  2000-01-20 23:38:02  peter
+  Revision 1.10  2000-02-28 09:42:16  pierre
+   * system_exit instead of halt
+
+  Revision 1.9  2000/01/20 23:38:02  peter
     * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
       rewrite opens always with filemode 2
 
