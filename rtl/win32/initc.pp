@@ -28,9 +28,7 @@ uses
 
 {$i textrec.inc}
 
-const clib = 'crtdll'; 
-
-function geterrnolocation: Plibcint; cdecl;external clib name '_errno';
+function geterrnolocation: Plibcint; cdecl;external name '___errno';
 
 function fpgetCerrno:libcint; 
 begin
@@ -126,7 +124,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.11  2004-09-12 17:41:40  hajny
+  Revision 1.12  2004-09-14 20:08:58  hajny
+    * use errno from cygwin (like in fixes branch)
+
+  Revision 1.11  2004/09/12 17:41:40  hajny
     * hopefully fixed the problem with missing __error symbol
 
   Revision 1.10  2003/12/11 09:21:52  marco
