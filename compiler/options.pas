@@ -83,6 +83,7 @@ const
   page_size = 24;
 
 var
+  option     : poption;
   read_configfile,        { read config file, set when a cfgfile is found }
   target_is_set : boolean;  { do not allow contradictory target settings }
   asm_is_set  : boolean; { -T also change initoutputformat if not set idrectly }
@@ -159,6 +160,18 @@ end;
                                  Toption
 ****************************************************************************}
 
+procedure StopOptions;
+begin
+  if assigned(Option) then
+   begin
+     dispose(Option,Done);
+     Option:=nil;
+   end;
+  DoneVerbose;
+  Stop;
+end;
+
+
 procedure Toption.WriteLogo;
 var
   i : tmsgconst;
@@ -176,7 +189,7 @@ begin
   MaybeLoadMessageFile;
   for i:=option_info_start to option_info_end do
    Message(i);
-  Stop;
+  StopOptions;
 end;
 
 
@@ -283,7 +296,7 @@ begin
               write('*** press enter ***');
               readln(input);
               if upper(input)='Q' then
-               stop;
+               StopOptions;
             end;
            lines:=0;
          end;
@@ -292,7 +305,7 @@ begin
         inc(Lines);
       end;
    end;
-  stop;
+  StopOptions;
 end;
 
 
@@ -302,7 +315,7 @@ begin
     Write(s+#10)
   else
     Writeln(s);
-  Stop;
+  StopOptions;
 end;
 
 
@@ -310,7 +323,7 @@ procedure Toption.IllegalPara(const opt:string);
 begin
   Message1(option_illegal_para,opt);
   Message(option_help_pages_para);
-  stop;
+  StopOptions;
 end;
 
 
@@ -530,10 +543,10 @@ begin
                       Delete(more,1,1);
                       case c of
                        'D' : begin
-       			      if not ispara then
-			       DefaultReplacements(More);
-			      utilsdirectory:=FixPath(More,true);
-			     end;
+                              if not ispara then
+                               DefaultReplacements(More);
+                              utilsdirectory:=FixPath(More,true);
+                             end;
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
                        'i' : if ispara then
@@ -813,7 +826,7 @@ begin
        end;
  '@' : begin
          Message(option_no_nested_response_file);
-         Stop;
+         StopOptions;
        end;
   else
    begin
@@ -904,7 +917,7 @@ begin
                if Level>=maxlevel then
                 begin
                   Message(option_too_many_ifdef);
-                  stop;
+                  stopOptions;
                 end;
                inc(Level);
                skip[level]:=(skip[level-1] or (not check_symbol(upper(GetName(opts)))));
@@ -916,7 +929,7 @@ begin
                if Level>=maxlevel then
                 begin
                   Message(option_too_many_ifdef);
-                  stop;
+                  stopOptions;
                 end;
                inc(Level);
                skip[level]:=(skip[level-1] or (check_symbol(upper(GetName(opts)))));
@@ -931,7 +944,7 @@ begin
                if Level=0 then
                 begin
                   Message(option_too_many_endif);
-                  stop;
+                  stopOptions;
                 end;
                dec(level);
              end
@@ -1119,7 +1132,6 @@ end;
 procedure read_arguments(cmd:string);
 var
   configpath : pathstr;
-  option     : poption;
 begin
 {$ifdef Delphi}
   option:=new(poption386,Init);
@@ -1286,7 +1298,7 @@ begin
 
 { Stop if errors in options }
   if ErrorCount>0 then
-   Stop;
+   StopOptions;
 
 { write logo if set }
   if option^.DoWriteLogo then
@@ -1296,7 +1308,7 @@ begin
   if param_file='' then
    begin
      Message(option_no_source_found);
-     Stop;
+     StopOptions;
    end;
 {$ifndef linux}
   param_file:=FixFileName(param_file);
@@ -1358,13 +1370,19 @@ begin
   MaybeLoadMessageFile;
 
   dispose(option,Done);
+  Option:=nil;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.48  2000-01-07 22:22:02  marco
+  Revision 1.49  2000-01-10 11:14:19  peter
+    * fixed memory leak with options, you must use StopOptions instead of
+      Stop
+    * fixed memory leak with forward resolving, make_ref is now false
+
+  Revision 1.48  2000/01/07 22:22:02  marco
    * Added $target support for -FD
 
   Revision 1.47  2000/01/07 01:14:27  peter

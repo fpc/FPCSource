@@ -899,7 +899,9 @@ unit pdecl;
                     stpos:=tokenpos;
                     tokenpos:=pforwarddef(hpd)^.forwardpos;
                     resolving_forward:=true;
+                    make_ref:=false;
                     getsym(pforwarddef(hpd)^.tosymname,false);
+                    make_ref:=true;
                     resolving_forward:=false;
                     tokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
@@ -1180,7 +1182,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.176  2000-01-07 01:14:28  peter
+  Revision 1.177  2000-01-10 11:14:19  peter
+    * fixed memory leak with options, you must use StopOptions instead of
+      Stop
+    * fixed memory leak with forward resolving, make_ref is now false
+
+  Revision 1.176  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.175  1999/12/10 10:04:21  peter
