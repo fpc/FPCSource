@@ -155,7 +155,7 @@ Var SInfo : Stat;
     GlobSearchRec : PGlobSearchrec;
     
 begin
-  TAttr:=$ffffffff;
+  TAttr:=longint($ffffffff);
   GlobSearchRec:=PGlobSearchrec(Info.FindHandle);
   P:=GlobSearchRec^.GlobHandle;
   Result:=P<>Nil;
@@ -458,7 +458,10 @@ end.
 {
 
   $Log$
-  Revision 1.3  2000-11-28 20:06:12  michael
+  Revision 1.4  2000-12-18 14:01:42  jonas
+    * fixed constant range error
+
+  Revision 1.3  2000/11/28 20:06:12  michael
   + merged fix for findfirst/findnext/findclose
 
   Revision 1.2  2000/09/18 13:14:51  marco
