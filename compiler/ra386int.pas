@@ -1345,7 +1345,7 @@ var
 
     { this makes cpu.pp uncompilable, but i think this code should be }
     { inserted in the system unit anyways.                            }
-    if (instruc >= lastop_in_table) then
+    if (instruc > lastop_in_table) then
       begin
          Message1(assem_w_opcode_not_in_table,upper(int_op2str[instruc]));
          fits:=true;
@@ -3484,7 +3484,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-11-15 14:37:16  peter
+  Revision 1.14  1998-11-16 15:38:56  peter
+    * fixed instruct not in table msg
+
+  Revision 1.13  1998/11/15 14:37:16  peter
     + support for result in delphimode
 
   Revision 1.12  1998/11/13 15:40:30  pierre

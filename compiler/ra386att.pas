@@ -1593,7 +1593,7 @@ const
     { I think this is too dangerous for me therefore i decided that for }
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
-    if (instruc >= lastop_in_table) then
+    if (instruc > lastop_in_table) then
       begin
          Message1(assem_w_opcode_not_in_table,upper(att_op2str[instruc]));
          fits:=true;
@@ -3891,7 +3891,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  1998-11-13 15:40:27  pierre
+  Revision 1.21  1998-11-16 15:38:54  peter
+    * fixed instruct not in table msg
+
+  Revision 1.20  1998/11/13 15:40:27  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined
