@@ -1,0 +1,36 @@
+This directory contains test programs for different elements/classes in
+the FCL. 
+
+If you add a test give in this file a short description of what 
+class/function it tests, and your initials..
+
+Names
+-----
+MVC : Michael Van Canneyt
+SG  : Sebastian Guenther
+MH  : Michael Hess
+
+
+File         Tests what ?
+----         ------------
+
+list.pp      TList object from unit 'classes'.  (MVC)
+mstream.pp   TMemorySteam object from unit 'classes' (MVC)
+fstream.pp   TFileStream object from unit 'classes' (MVC)
+dparser.pp   TParser object from unit 'classes' (MVC)
+stringl.pp   TStringList object from unit classes' (MVC) 
+thread.pp    TTHread object from unit classes (PFV)
+testz.pp     T(De)Compressionstream objects from Zstream (MVC)
+testz2.pp    TGZFilestream object from Zstream (MVC)
+testrtf.pp   TRTFParser object from rtfpars (MVC)
+cfgtest.pp   Example for using XML read/write as cfg file (SG)
+xmldump.pp   xml dump program (SG)
+htdump.pp    htdump dumps XL IDL definition as ObjectPascal classes (MVC)
+testcgi.pp   test program for ezcgi class (MH)
+tidea.pp     test program for IDEA encryption/decryption streams (MVC)
+b64test.pp   test program for base64 encoding streams (SG)
+b64test2.pp  test program for base64 encoding streams (SG)
+b64enc.pp    base64-encodes StdIn to StdOut (SG)
+b64dec.pp    base64-decodes StdIn to StdOut (SG)
+restest.pp   test program for resourcestrings with GNU gettext. (MVC)
+             (see also intl subdirectory)

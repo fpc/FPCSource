@@ -1,0 +1,8 @@
+<?xml version = '1.0' encoding='UTF-8' ?>
+<!-- This is a comment -->
+<TAG>
+  <SUBTAG value="TestValue"/>
+  Just a test! This &lt; was an entity reference.
+  <EMPTYTAG/>
+  <![CDATA[A CDATA section!]]>
+</TAG>

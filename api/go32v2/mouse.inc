@@ -1,0 +1,505 @@
+{
+  System dependent mouse implementation for go32v2
+
+  $Id$
+}
+
+uses
+  go32;
+
+var
+  RealSeg : Word;                                    { Real mode segment }
+  RealOfs : Word;                                    { Real mode offset }
+  CurrentMask : word;
+  MouseCallback : Pointer;                           { Mouse call back ptr }
+{$ifdef DEBUG}
+  EntryEDI,EntryESI : longint;
+  EntryDS,EntryES : word;
+{$endif DEBUG}
+  { Real mode registers in text segment below $ffff limit
+    for Windows NT
+    NOTE this might cause problem if someone want to
+    protect text section against writing (would be possible
+    with CWSDPMI under raw dos, not implemented yet !) }
+  ActionRegs    : TRealRegs;external name '___v2prt0_rmcb_regs';
+  v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
+const
+  MousePresent : boolean = false;
+{$ifdef DEBUG}
+  MouseError   : longint = 0;
+  CallCounter  : longint = 0;
+{$endif DEBUG}
+{$ASMMODE ATT}
+procedure MouseInt;assembler;
+asm
+        movb    %bl,mousebuttons
+        movw    %cx,mousewherex
+        movw    %dx,mousewherey
+        cmpb    MouseEventBufSize,PendingMouseEvents
+        je      .Lmouse_exit
+        movl    PendingMouseTail,%edi
+        shrw    $3,%cx
+        shrw    $3,%dx
+        movw    %bx,(%edi)
+        movw    %cx,2(%edi)
+        movw    %dx,4(%edi)
+        movw    $0,6(%edi)
+        addl    $8,%edi
+        leal    PendingMouseEvent,%eax
+        addl    MouseEventBufSize*8,%eax
+        cmpl    %eax,%edi
+        jne     .Lmouse_nowrap
+        leal    PendingMouseEvent,%edi
+.Lmouse_nowrap:
+        movl    %edi,PendingMouseTail
+        incb    PendingMouseEvents
+.Lmouse_exit:
+end;
+
+
+
+PROCEDURE Mouse_Trap; ASSEMBLER;
+ASM
+   PUSH %ES;                                          { Save ES register }
+   PUSH %DS;                                          { Save DS register }
+   PUSHL %EDI;                                        { Save register }
+   PUSHL %ESI;                                        { Save register }
+   ;{ caution : ds is not the selector for our data !! }
+{$ifdef DEBUG}
+   MOVL  %EDI,%ES:EntryEDI
+   MOVL  %ESI,%ES:EntryESI
+   MOVW  %DS,%AX
+   MOVW  %AX,%ES:EntryDS
+   MOVW  %ES,%AX
+   MOVW  %AX,%ES:EntryES
+{$endif DEBUG}
+ {  movw  %cs:v2prt0_ds_alias,%ax v2prt0 is not locked !!
+   movw  %ax,%ds
+   movw  %ax,%es }
+   PUSH %ES;                                          { Push data seg }
+   POP %DS;                                           { Load data seg }
+{$ifdef DEBUG}
+   incl callcounter
+   CMPL $ACTIONREGS,%edi
+   JE  .L_ActionRegsOK
+   INCL MouseError
+   JMP  .L_NoCallBack
+.L_ActionRegsOK:
+{$endif DEBUG}
+   MOVL MOUSECALLBACK, %EAX;                          { Fetch callback addr }
+   CMPL $0, %EAX;                                     { Check for nil ptr }
+   JZ .L_NoCallBack;                                  { Ignore if nil }
+   MOVL %EDI,%EAX;                                    { %EAX = @actionregs }
+   MOVL (%EAX), %EDI;                                 { EDI from actionregs }
+   MOVL 4(%EAX), %ESI;                                { ESI from actionregs }
+   MOVL 16(%EAX), %EBX;                               { EBX from actionregs }
+   MOVL 20(%EAX), %EDX;                               { EDX from actionregs }
+   MOVL 24(%EAX), %ECX;                               { ECX from actionregs }
+   MOVL 28(%EAX), %EAX;                               { EAX from actionregs }
+   CALL *MOUSECALLBACK;                               { Call callback proc }
+.L_NoCallBack:
+   POPL %ESI;                                         { Recover register }
+   POPL %EDI;                                         { Recover register }
+   POP %DS;                                           { Restore DS register }
+   POP %ES;                                           { Restore ES register }
+   {  This works for WinNT
+   movzwl %si,%eax
+   but CWSDPMI need this }
+   movl %esi,%eax
+   MOVL %ds:(%Eax), %EAX;
+   MOVL %EAX, %ES:42(%EDI);                           { Set as return addr }
+   ADDW $4, %ES:46(%EDI);                             { adjust stack }
+   IRET;                                              { Interrupt return }
+END;
+
+Function Allocate_mouse_bridge : boolean;
+var
+  error : word;
+begin
+  ASM
+    LEAL ACTIONREGS, %EDI;                       { Addr of actionregs }
+    LEAL MOUSE_TRAP, %ESI;                       { Procedure address }
+    PUSH %DS;                                    { Save DS segment }
+    PUSH %ES;                                    { Save ES segment }
+    MOVW v2prt0_ds_alias,%ES;                    { ES now has dataseg  alias that is never invalid }
+    PUSH %CS;
+    POP  %DS;                                    { DS now has codeseg }
+    MOVW $0x303, %AX;                            { Function id }
+    INT  $0x31;                                  { Call DPMI bridge }
+    JNC .L_call_ok;                              { Branch if ok }
+    POP  %ES;                                    { Restore ES segment }
+    POP  %DS;                                    { Restore DS segment }
+    MOVW $0,REALSEG;
+    MOVW $0,REALOFS;
+    JMP  .L_exit
+  .L_call_ok:
+    POP  %ES;                                    { Restore ES segment }
+    POP  %DS;                                    { Restore DS segment }
+    MOVW %CX,REALSEG;                            { Transfer real seg }
+    MOVW %DX,REALOFS;                            { Transfer real ofs }
+    MOVW $0, %AX;                                { Force error to zero }
+  .L_exit:
+    MOVW %AX, ERROR;                             { Return error state }
+  END;
+  Allocate_mouse_bridge:=error=0;
+end;
+
+Procedure Release_mouse_bridge;
+begin
+  ASM
+     MOVW $0x304, %AX;                            { Set function id }
+     MOVW REALSEG, %CX;                           { Bridged real seg }
+     MOVW REALOFS, %DX;                           { Bridged real ofs }
+     INT $0x31;                                   { Release bridge }
+     MOVW $0,REALSEG;
+     MOVW $0,REALOFS;
+  END;
+end;
+
+PROCEDURE Mouse_Action (Mask : Word; P : Pointer);
+VAR
+  Error : Word;
+  Rg    : TRealRegs;
+BEGIN
+  Error := 0;                                         { Preset no error }
+  If (P <> MouseCallBack) or (Mask<>CurrentMask) Then                        { Check func different }
+   Begin
+   { Remove old calback }
+     If (CurrentMask <> 0) Then
+      Begin
+        Rg.AX := 12;                                   { Function id }
+        Rg.CX := 0;                                    { Zero mask register }
+        Rg.ES := 0;                                    { Zero proc seg }
+        Rg.DX := 0;                                    { Zero proc ofs }
+        RealIntr($33, Rg);                             { Stop INT 33 callback }
+      End;
+     if RealSeg=0 then
+       error:=1;
+    { test addresses for Windows NT }
+    if (longint(@actionregs)>$ffff) {or
+       (longint(@mouse_trap)>$ffff)} then
+      begin
+         error:=1;
+      end
+    else If (P = Nil) Then
+     Begin
+       Mask := 0;                                    { Zero mask register }
+     End;
+    If (Error = 0) Then
+     Begin
+       MouseCallback := P;                            { Set call back addr }
+       if Mask<>0 then
+         begin
+           Rg.AX := 12;                                   { Set function id }
+           Rg.CX := Mask;                                 { Set mask register }
+           If Mask<>0 then
+             begin
+               Rg.ES := RealSeg;                              { Real mode segment }
+               Rg.DX := RealOfs;                              { Real mode offset }
+             end
+           else
+             begin
+               Rg.ES:=0;
+               Rg.DX:=0;
+             end;
+           RealIntr($33, Rg);                             { Set interrupt 33 }
+         end;
+       CurrentMask:=Mask;
+     End;
+   End;
+  If (Error <> 0) Then
+   Begin
+     Writeln('GO32V2 mouse handler set failed !!');
+     ReadLn;                                          { Wait for user to see }
+   End;
+END;
+
+
+{ We need to remove the mouse callback before exiting !! PM }
+
+const StoredExit : Pointer = Nil;
+      FirstMouseInitDone : boolean = false;
+
+procedure MouseSafeExit;
+begin
+  ExitProc:=StoredExit;
+  if MouseCallBack<>Nil then
+    Mouse_Action(0, Nil);
+  if not FirstMouseInitDone then
+    exit;
+  FirstMouseInitDone:=false;
+  Unlock_Code(Pointer(@Mouse_Trap), 400);            { Release trap code }
+  Unlock_Code(Pointer(@MouseInt), 400);               { Lock MouseInt code  }
+  Unlock_Data(ActionRegs, SizeOf(TRealRegs));        { Release registers }
+{$ifdef DEBUG}
+  Unlock_Data(EntryEDI, 4*SizeOf(longint));
+  Unlock_Data(callcounter, 2*SizeOf(longint));
+{$endif DEBUG}
+  { unlock Mouse Queue and related stuff ! }
+  Unlock_Data(PendingMouseEvent,
+        MouseEventBufSize*Sizeof(TMouseEvent)+2*Sizeof(PMouseEvent)+256);
+  UnLock_Data(MouseCallBack,SizeOf(Pointer));
+  Release_mouse_bridge;
+end;
+
+
+procedure InitMouse;
+begin
+  if not MousePresent then
+    begin
+      if DetectMouse=0 then
+        begin
+          Writeln('No mouse driver found ');
+          exit;
+        end
+      else
+        MousePresent:=true;
+    end;
+  PendingMouseHead:=@PendingMouseEvent;
+  PendingMouseTail:=@PendingMouseEvent;
+  PendingMouseEvents:=0;
+  FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
+
+  { don't do this twice !! PM }
+
+  If not FirstMouseInitDone then
+    begin
+      StoredExit:=ExitProc;
+      ExitProc:=@MouseSafeExit;
+      Lock_Code(Pointer(@Mouse_Trap), 400);              { Lock trap code }
+      Lock_Code(Pointer(@MouseInt), 400);               { Lock MouseInt code  }
+      Lock_Data(ActionRegs, SizeOf(TRealRegs));          { Lock registers }
+      Lock_Data(MouseCallBack, SizeOf(pointer));
+      { lock Mouse Queue and related stuff ! }
+      Lock_Data(PendingMouseEvent,
+        MouseEventBufSize*Sizeof(TMouseEvent)+2*Sizeof(PMouseEvent)+256);
+{$ifdef DEBUG}
+      Lock_Data(EntryEDI, 4*SizeOf(longint));
+      Lock_Data(callcounter, 2*SizeOf(longint));
+{$endif DEBUG}
+      Allocate_mouse_bridge;
+      FirstMouseInitDone:=true;
+    end;
+  If MouseCallBack=Nil then
+    Mouse_Action($ffff, @MouseInt);                    { Set masks/interrupt }
+  ShowMouse;
+end;
+
+
+procedure DoneMouse;
+begin
+  HideMouse;
+  If (MouseCallBack <> Nil) Then
+    Mouse_Action(0, Nil);                            { Clear mask/interrupt }
+end;
+
+
+function DetectMouse:byte;assembler;
+asm
+        movl    $0x200,%eax
+        movl    $0x33,%ebx
+        int     $0x31
+        movw    %cx,%ax
+        orw     %ax,%dx
+        jz      .Lno_mouse
+        xorl    %eax,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+        orw     %ax,%ax
+        jz      .Lno_mouse
+        movl    %ebx,%eax
+.Lno_mouse:
+end;
+
+
+procedure ShowMouse;assembler;
+asm
+        cmpb    $1,MousePresent
+        jne     .LShowMouseExit
+        movl    $1,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+.LShowMouseExit:
+end;
+
+
+procedure HideMouse;assembler;
+asm
+        cmpb    $1,MousePresent
+        jne     .LHideMouseExit
+        movl    $2,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+.LHideMouseExit:
+end;
+
+
+function GetMouseX:word;assembler;
+asm
+        cmpb    $1,MousePresent
+        jne     .LGetMouseXError
+        movl    $3,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+        movzwl  %cx,%eax
+        shrl    $3,%eax
+        incl    %eax
+        ret
+.LGetMouseXError:
+        xorl    %eax,%eax
+end;
+
+
+function GetMouseY:word;assembler;
+asm
+        cmpb    $1,MousePresent
+        jne     .LGetMouseYError
+        movl    $3,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+        movzwl  %dx,%eax
+        shrl    $3,%eax
+        incl    %eax
+        ret
+.LGetMouseYError:
+        xorl    %eax,%eax
+end;
+
+
+function GetMouseButtons:word;assembler;
+asm
+        cmpb    $1,MousePresent
+        jne     .LGetMouseButtonsError
+        movl    $3,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+        movw    %bx,%ax
+        ret
+.LGetMouseButtonsError:
+        xorl    %eax,%eax
+end;
+
+
+procedure SetMouseXY(x,y:word);assembler;
+asm
+        cmpb    $1,MousePresent
+        jne     .LSetMouseXYExit
+        movw    x,%cx
+        movw    y,%dx
+        movl    $4,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+.LSetMouseXYExit:
+end;
+
+
+const
+  LastCallcounter : longint = 0;
+
+procedure GetMouseEvent(var MouseEvent: TMouseEvent);
+begin
+  if not MousePresent then
+    begin
+      Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
+    end;
+{$ifdef DEBUG}
+  if mouseError>0 then
+    Writeln('Errors in mouse Handler ',MouseError);
+{$ifdef EXTMOUSEDEBUG}
+  if callcounter>LastCallcounter then
+    Writeln('Number of calls in mouse Handler ',Callcounter);
+{$endif EXTMOUSEDEBUG}
+  LastCallcounter:=Callcounter;
+{$endif DEBUG}
+  repeat until PendingMouseEvents>0;
+  MouseEvent:=PendingMouseHead^;
+  inc(PendingMouseHead);
+  if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
+   PendingMouseHead:=@PendingMouseEvent;
+  dec(PendingMouseEvents);
+  if (LastMouseEvent.x<>MouseEvent.x) or (LastMouseEvent.y<>MouseEvent.y) then
+   MouseEvent.Action:=MouseActionMove;
+  if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
+   begin
+     if (LastMouseEvent.Buttons=0) then
+      MouseEvent.Action:=MouseActionDown
+     else
+      MouseEvent.Action:=MouseActionUp;
+   end;
+  LastMouseEvent:=MouseEvent;
+end;
+
+
+function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
+begin
+  if PendingMouseEvents>0 then
+   begin
+     MouseEvent:=PendingMouseHead^;
+     PollMouseEvent:=true;
+   end
+  else
+   PollMouseEvent:=false;
+end;
+
+{
+  $Log$
+  Revision 1.1  2000-01-06 01:20:30  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.2  1999/12/08 13:25:20  pierre
+   * fix form bug 731
+
+  Revision 1.12  1999/11/24 23:36:56  peter
+    * moved to packages dir
+
+  Revision 1.11  1999/10/18 15:46:24  pierre
+   * not int $0x33 call if no mouse driver present
+
+  Revision 1.10  1999/10/18 07:37:05  pierre
+   * Unlock code moved to exitproc because CWSDPMI has no lock counter
+
+  Revision 1.9  1999/10/16 08:35:52  jonas
+    * MouseCallBack was never unlocked
+
+  Revision 1.8  1999/10/15 23:53:07  pierre
+   * mouse problem with CWSDPMI solved
+
+  Revision 1.7  1999/10/15 11:46:33  pierre
+   * MouseInt was not locked !!
+
+  Revision 1.6  1999/03/03 16:42:27  pierre
+   + test for NT compatibility
+
+  Revision 1.5  1999/02/19 16:44:48  peter
+    * fixed (esi) which also got the 0xffff limit under NT
+
+  Revision 1.4  1999/02/19 12:28:39  pierre
+    + Uses now v2prt0_ds_alias for RMCB regs
+      regs are located in text section of v2prt0.as
+      so that its offset is below $ffff limit (for window NT !)
+
+  Revision 1.3  1999/02/08 09:39:13  pierre
+   * added exitproc to avoid real mode crash with function 12 of mouse interrupt
+
+  Revision 1.2  1998/12/11 00:13:19  peter
+    + SetMouseXY
+    * use far for exitproc procedure
+
+  Revision 1.1  1998/12/04 12:48:27  peter
+    * moved some dirs
+
+  Revision 1.2  1998/10/28 21:18:25  peter
+    * more fixes
+
+  Revision 1.1  1998/10/28 00:02:08  peter
+    + mouse
+    + video.clearscreen, video.videobufsize
+
+}

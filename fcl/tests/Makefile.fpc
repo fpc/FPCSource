@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for Free Component Library Examples/Tests
+#
+
+[targets]
+programs=stringl dparser fstream mstream list threads testrtf \
+         cfgtest xmldump htdump testcgi tidea \
+         b64test b64test2 b64enc b64dec restest testz testz2
+rst=restest
+
+[require]
+options=-S2
+packages=fcl
+
+[dirs]
+fpcdir=../..
+targetdir=.

@@ -1,0 +1,41 @@
+#
+#   Makefile.fpc for Free Pascal API (used by Free Vision) for linux
+#
+
+[defaults]
+defaulttarget=linux
+
+[targets]
+units=terminfo $(APIOBJECTS)
+examples=$(TESTOBJECTS)
+
+[install]
+unitsubdir=api
+
+[libs]
+libname=fpapi
+
+[dirs]
+fpcdir=../..
+targetdir=.
+sourcesdir=$(INC)
+
+
+[presettings]
+INC=../inc
+
+# Override defaults
+override PASEXT=.pas
+
+include ../test/Makefile.api
+include $(INC)/Makefile.api
+
+
+[rules]
+video$(PPUEXT): $(INC)/video.pas video.inc
+
+keyboard$(PPUEXT): $(INC)/keyboard.pas keyboard.inc
+
+mouse$(PPUEXT): $(INC)/mouse.pas mouse.inc
+
+filectrl$(PPUEXT): $(INC)/filectrl.pas filectrl.inc

@@ -1,0 +1,16 @@
+#: testo:testing
+msgid "Testing :"
+msgstr "Teste :"
+
+#: testo:first
+msgid "First"
+msgstr "Erster"
+
+#: testo:second
+msgid "Second"
+msgstr "Zweiter"
+
+#: testo:third
+msgid "Third"
+msgstr "Dritter"
+

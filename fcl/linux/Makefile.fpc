@@ -1,0 +1,49 @@
+#
+#   Makefile.fpc for Free Component Library for Linux
+#
+
+[targets]
+units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS)
+
+[defaults]
+defaulttarget=linux
+
+[require]
+options=-S2
+packages=zlib
+
+[install]
+unitsubdir=fcl
+
+[libs]
+libname=fpfcl
+
+[dirs]
+fpcdir=../..
+targetdir=.
+incdir=$(INC)
+sourcesdir=$(INC) $(XML) $(SHEDIT)
+
+
+[presettings]
+# Include files
+INC=../inc
+XML=../xml
+SHEDIT=../shedit
+
+# INCUNITS,XMLUNITS is defined in makefile.inc
+# They are default units for all platforms.
+include $(INC)/Makefile.inc
+include $(XML)/Makefile.inc
+include $(SHEDIT)/Makefile.inc
+
+
+[rules]
+classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) classes$(PASEXT)
+
+inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
+
+ezcgi$(PPUEXT): $(INC)/ezcgi$(PASEXT)
+
+shedit$(PPUEXT): $(SHEDIT)/shedit$(PASEXT)
+        $(COMPILER) $(SHEDIT)/shedit$(PASEXT) -I$(SHEDIT) $(REDIR)

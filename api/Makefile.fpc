@@ -1,0 +1,13 @@
+#
+#   Makefile.fpc for Free Component Library
+#
+
+[targets]
+dirs=go32v2 linux win32 os2 test
+
+[defaults]
+defaultdir=$(OS_TARGET)
+
+[sections]
+none=1
+

@@ -1,0 +1,43 @@
+#
+#   Makefile.fpc for Free Pascal API (used by Free Vision) for win32
+#
+
+[defaults]
+defaulttarget=win32
+
+[targets]
+units=event $(APIOBJECTS)
+examples=$(TESTOBJECTS)
+
+[install]
+unitsubdir=api
+
+[libs]
+libname=fpapi
+
+[dirs]
+fpcdir=../..
+targetdir=.
+sourcesdir=$(INC)
+
+
+[presettings]
+INC=../inc
+
+# Override defaults
+override PASEXT=.pas
+
+include ../test/Makefile.api
+include $(INC)/Makefile.api
+
+
+[rules]
+video$(PPUEXT): $(INC)/video.pas video.inc event$(PPUEXT)
+
+keyboard$(PPUEXT): $(INC)/keyboard.pas keyboard.inc event$(PPUEXT)
+
+mouse$(PPUEXT): $(INC)/mouse.pas mouse.inc event$(PPUEXT)
+
+filectrl$(PPUEXT): $(INC)/filectrl.pas filectrl.inc
+
+event$(PPUEXT): event.pas
