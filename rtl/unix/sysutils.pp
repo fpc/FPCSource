@@ -507,7 +507,13 @@ Begin
        CommandLine:=ComLine;
        cmdline2:=StringtoPPChar(CommandLine,1);
        cmdline2^:=pchar(Path);
-     end;	
+     end
+   else
+     begin
+       getmem(cmdline2,2*sizeof(pchar));
+       cmdline2^:=pchar(Path);
+       cmdline2[1]:=nil; 
+     end;
   {$else}
   if Pos ('"', Path) = 0 then
     CommandLine := '"' + Path + '"'
@@ -629,7 +635,10 @@ end.
 {
 
   $Log$
-  Revision 1.37  2004-03-04 22:15:16  marco
+  Revision 1.38  2004-04-20 18:24:32  marco
+   * small fix for NIL arg ptr in first executeprocess
+
+  Revision 1.37  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.36  2004/02/13 10:50:23  marco
