@@ -239,6 +239,89 @@ end;
 {$endif Win32}
 
 
+{$ifdef linux}
+function LoadElf32:boolean;
+type
+  telf32header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longword;
+      e_entry           : longword;                  // entrypoint
+      e_phoff           : longword;                  // program header offset
+      e_shoff           : longword;                  // sections header offset
+      e_flags           : longword;
+      e_ehsize          : word;             // elf header size in bytes
+      e_phentsize       : word;             // size of an entry in the program header array
+      e_phnum           : word;             // 0..e_phnum-1 of entrys
+      e_shentsize       : word;             // size of an entry in sections header array
+      e_shnum           : word;             // 0..e_shnum-1 of entrys
+      e_shstrndx        : word;             // index of string section header
+  end;
+  telf32sechdr=packed record
+      sh_name           : longword;
+      sh_type           : longword;
+      sh_flags          : longword;
+      sh_addr           : longword;
+      sh_offset         : longword;
+      sh_size           : longword;
+      sh_link           : longword;
+      sh_info           : longword;
+      sh_addralign      : longword;
+      sh_entsize        : longword;
+    end;
+var
+  elfheader : telf32header;
+  elfsec    : telf32sechdr;
+  secnames  : array[0..255] of char;
+  pname     : pchar;
+  i : longint;
+begin
+  LoadElf32:=false;
+  stabofs:=-1;
+  stabstrofs:=-1;
+  { read and check header }
+  if filesize(f)<sizeof(telf32header) then
+   exit;
+  blockread(f,elfheader,sizeof(telf32header));
+  if elfheader.magic0123<>$464c457f then
+   exit;
+  if elfheader.e_shentsize<>sizeof(telf32sechdr) then
+   exit;
+  { read section names }
+  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*sizeof(telf32sechdr));
+  blockread(f,elfsec,sizeof(telf32sechdr));
+  seek(f,elfsec.sh_offset);
+  blockread(f,secnames,sizeof(secnames));
+  { read section info }
+  seek(f,elfheader.e_shoff);
+  for i:=1to elfheader.e_shnum do
+   begin
+     blockread(f,elfsec,sizeof(telf32sechdr));
+     pname:=@secnames[elfsec.sh_name];
+     if (pname[4]='b') and
+        (pname[1]='s') and
+        (pname[2]='t') then
+      begin
+        if (pname[5]='s') and
+           (pname[6]='t') then
+         stabstrofs:=elfsec.sh_offset
+        else
+         begin
+           stabofs:=elfsec.sh_offset;
+           stabcnt:=elfsec.sh_size div sizeof(tstab);
+         end;
+      end;
+   end;
+  LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
+end;
+{$endif linux}
+
+
 {****************************************************************************
                           Executable Open/Close
 ****************************************************************************}
@@ -274,6 +357,13 @@ begin
 {$endif}
 {$ifdef win32}
   if LoadPECoff then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif}
+{$ifdef linux}
+  if LoadElf32 then
    begin
      OpenStabs:=true;
      exit;
@@ -414,7 +504,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2000-02-06 17:19:22  peter
+  Revision 1.2  2000-02-06 19:14:22  peter
+    * linux elf support
+
+  Revision 1.1  2000/02/06 17:19:22  peter
     * lineinfo unit added which uses stabs to get lineinfo for backtraces
 
 }
