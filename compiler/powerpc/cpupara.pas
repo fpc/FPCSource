@@ -66,6 +66,7 @@ unit cpupara;
               result.reference.index.number:=NR_STACK_POINTER_REG;
               result.reference.offset:=(nr-8)*4;
            end;
+         result.size := OS_INT;
       end;
 
     function getparaloc(p : tdef) : tcgloc;
@@ -240,9 +241,9 @@ unit cpupara;
                    end;
                  LOC_FPUREGISTER:
                    begin
+                      hp.paraloc.size:=def_cgsize(paradef);
                       if nextfloatreg.enum<=R_F10 then
                         begin
-                           hp.paraloc.size:=def_cgsize(paradef);
                            hp.paraloc.loc:=LOC_FPUREGISTER;
                            hp.paraloc.register:=nextfloatreg;
                            inc(nextfloatreg.enum);
@@ -332,7 +333,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-05-19 12:15:28  florian
+  Revision 1.31  2003-05-24 11:48:40  jonas
+    * added some missing paralocation size settings
+
+  Revision 1.30  2003/05/19 12:15:28  florian
     * fixed calling sequence for subroutines using the aix abi
 
   Revision 1.29  2003/05/12 20:14:47  florian
