@@ -62,19 +62,7 @@ END;
 end;
 }
 
-{
-Procedure GetTimeOfDay(var tv:timeval);
-{
-  Get the number of seconds since 00:00, January 1 1970, GMT
-  the time NOT corrected any way
-}
-
-var  tz : timezone;
-
-begin
- do_syscall(syscall_nr_gettimeofday,longint(@tv),longint(@tz));
-end;
-}
+{$ifndef FPC_USE_LIBC}
 Function  fsync (fd : cint) : cint;
 
 begin
@@ -85,19 +73,6 @@ Function  Flock (fd,mode : longint) : cint;
 
 begin
  Flock:=do_syscall(syscall_nr_flock,fd,mode);
-end;
-
-Function StatFS(Path:Pathstr;Var Info:Tstatfs):cint;
-
-{
-  Get all information on a fileSystem, and return it in Info.
-  Path is the name of a file/directory on the fileSystem you wish to
-  investigate.
-}
-
-begin
-  path:=path+#0;
-  StatFS:=Do_Syscall(syscall_nr_statfs,longint(@path[1]),longint(@info));
 end;
 
 Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
@@ -140,24 +115,8 @@ begin
  end;
 end;
 
-// can't have oldfpccall here, linux doesn't need it.
-Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
-{
-  Sets up a pair of file variables, which act as a pipe. The first one can
-  be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
-}
-var
-  ret  : longint;
-  errn : cint;
-begin
- ret:=intAssignPipe(pipe_in,pipe_out,errn);
- if ret=-1 Then
-  fpseterrno(errn);
- AssignPipe:=ret;
-end;
 
-Function PClose(Var F:text) :longint;
+Function PClose(Var F:text) :cint;
 var
   pl  : ^longint;
   res : longint;
@@ -183,11 +142,68 @@ begin
   pclose:=res shr 8;
 end;
 
-function MUnMap (P : Pointer; Size : Longint) : Boolean;
+function MUnMap (P : Pointer; Size : size_t) : cint;
 
 begin
-  MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size)=0;
+  MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size);
 end;
+{$else}
+
+Function PClose(Var F:file) : cint;
+var
+  pl : ^cint;
+  res : cint;
+
+begin
+  fpclose(filerec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(filerec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+Function PClose(Var F:text) :cint;
+var
+  pl  : ^longint;
+  res : longint;
+
+begin
+  fpclose(Textrec(F).Handle);
+{ closed our side, Now wait for the other - this appears to be needed ?? }
+  pl:=@(textrec(f).userdata[2]);
+  fpwaitpid(pl^,@res,0);
+  pclose:=res shr 8;
+end;
+
+{$endif}
+// can't have oldfpccall here, linux doesn't need it.
+Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
+{
+  Sets up a pair of file variables, which act as a pipe. The first one can
+  be read from, the second one can be written to.
+  If the operation was unsuccesful, linuxerror is set.
+}
+var
+  ret  : longint;
+  errn : cint;
+  {$ifdef FPC_USE_LIBC}
+   fdis : array[0..1] of cint;
+  {$endif}
+begin
+{$ifndef FPC_USE_LIBC}
+ ret:=intAssignPipe(pipe_in,pipe_out,errn);
+ if ret=-1 Then
+  fpseterrno(errn);
+{$ELSE}
+ fdis[0]:=pipe_in;
+ fdis[1]:=pipe_out;
+ ret:=pipe(fdis);
+ pipe_in:=fdis[0];
+ pipe_out:=fdis[1];
+{$ENDIF}
+ AssignPipe:=ret;
+end;
+
 
 {
 function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
@@ -235,6 +251,8 @@ end;
   intClone:=Res; 
 end;
 
+
+
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; 
 
 begin
@@ -246,7 +264,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2003-11-19 17:11:40  marco
+  Revision 1.17  2003-12-30 12:32:30  marco
+  *** empty log message ***
+
+  Revision 1.16  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.15  2003/11/19 10:12:02  marco

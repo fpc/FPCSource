@@ -71,6 +71,7 @@ type
     time_t   = clong;           { used for returning the time  }
     TTime    = time_t; 
     pTime    = ^time_t;
+    ptime_t =  ^time_t;
 
     socklen_t= cuint32;
     TSocklen = socklen_t;
@@ -99,7 +100,10 @@ CONST
 
 {
   $Log$
-  Revision 1.7  2003-09-27 13:45:58  peter
+  Revision 1.8  2003-12-30 12:32:30  marco
+  *** empty log message ***
+
+  Revision 1.7  2003/09/27 13:45:58  peter
     * fpnanosleep exported in baseunix
     * fpnanosleep has pointer arguments to be C compliant
 
