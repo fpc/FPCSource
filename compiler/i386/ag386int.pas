@@ -652,9 +652,10 @@ implementation
                           { nasm prefers prefix on a line alone
                           AsmWriteln(#9#9+prefix); but not masm PM
                           prefix:=''; }
-                          if (aktoutputformat = as_i386_masm) then
+                          if aktoutputformat in [as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
+                            as_i386_nasmelf,as_i386_nasmobj,as_i386_nasmbeos] then
                              begin
-                               AsmWriteln(s);
+                               AsmWriteln(prefix);
                                prefix:='';
                              end;
                         end
@@ -875,7 +876,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.54  2004-12-12 10:50:34  florian
+  Revision 1.55  2005-01-24 20:44:29  florian
+    * wrong prefix output for masm fixed
+
+  Revision 1.54  2004/12/12 10:50:34  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 
