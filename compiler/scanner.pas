@@ -269,7 +269,8 @@ implementation
     constructor tscannerfile.init(const fn:string);
       begin
         inputfile:=new(pinputfile,init(fn));
-        current_module^.sourcefiles^.register_file(inputfile);
+        if assigned(current_module) then
+          current_module^.sourcefiles^.register_file(inputfile);
       { reset localinput }
         inputbuffer:=nil;
         inputpointer:=nil;
@@ -1788,7 +1789,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.107  2000-02-29 23:59:47  pierre
+  Revision 1.108  2000-03-12 17:53:16  florian
+    * very small change to scanner ...
+
+  Revision 1.107  2000/02/29 23:59:47  pierre
    Use $GOTO ON
 
   Revision 1.106  2000/02/28 17:23:57  daniel
