@@ -473,8 +473,6 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 
-(* var oflags:byte;
-*)
 var Action: longint;
 
 begin
@@ -495,8 +493,6 @@ begin
     { reset file handle }
     filerec(f).handle := UnusedHandle;
     Action := 0;
-(*    oflags:=2;
-*)
     { convert filemode to filerec modes }
     case (flags and 3) of
         0 : filerec(f).mode:=fminput;
@@ -505,17 +501,6 @@ begin
     end;
     if (flags and $1000)<>0 then
         Action := $50000; (* Create / replace *)
-(*        begin
-            filerec(f).mode:=fmoutput;
-            oflags:=2;
-        end
-    else
-        if (flags and $100)<>0 then
-            begin
-                filerec(f).mode:=fmoutput;
-                oflags:=2;
-            end;
-*)
     { empty name is special }
     if p[0]=#0 then
         begin
@@ -534,14 +519,9 @@ begin
             exit;
         end;
     Action := Action or (Flags and $FF);
-(* DenyNone if sharing not specified. *)
+(* DenyAll if sharing not specified. *)
     if Flags and 112 = 0 then
-(*        begin
-            if Flags and 3 = 0 then*)
-                Action := Action or 64;
-(*            else
-                Action := Action or 32;
-        end;*)
+        Action := Action or 16;
     asm
         movl $0x7f2b, %eax
         movl Action, %ecx
@@ -562,43 +542,14 @@ begin
             movl Action, %ecx
             movl p, %edx
             call syscall
-            jnc .LOPEN2
-            movw %ax, InOutRes;
+            cmpl $0xffffffff, %eax
+            jnz .LOPEN1
+            movw %cx, InOutRes
             movw UnusedHandle, %ax
 .LOPEN2:
             movl f,%edx
             movw %ax,(%edx)
         end;
-(*
-    if (flags and $1000)<>0 then
-        {Use create function.}
-        asm
-            movb $0x3c,%ah
-            movl p,%edx
-            xorw %cx,%cx
-            call syscall
-            jnc .LOPEN1
-            movw %ax,inoutres;
-            movw $0xffff,%ax
-        .LOPEN1:
-            movl f,%edx
-            movw %ax,(%edx)
-        end
-    else
-        {Use open function.}
-        asm
-            movb $0x3d,%ah
-            movb oflags,%al
-            movl p,%edx
-            call syscall
-            jnc .LOPEN2
-            movw %ax,inoutres;
-            movw $0xffff,%ax
-        .LOPEN2:
-            movl f,%edx
-            movw %ax,(%edx)
-        end;
-*)
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
         FileHandleCount := FileRec (F).Handle;
@@ -631,7 +582,6 @@ asm
     dec eax
 @IsDevEnd:
 end;
-(*        do_isdevice := (Handle <= 5);*)
 {$ASMMODE ATT}
 
 
@@ -856,7 +806,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2000-06-11 09:47:57  hajny
+  Revision 1.33  2000-07-09 17:05:24  hajny
+    * default sharing mode changed to deny all (compatibility)
+
+  Revision 1.32  2000/06/11 09:47:57  hajny
     * error handling and sharing corrected
 
   Revision 1.31  2000/06/05 18:53:30  hajny
