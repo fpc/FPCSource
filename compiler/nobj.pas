@@ -133,6 +133,7 @@ implementation
 {$endif}
        globtype,globals,verbose,
        symtable,symconst,symtype,symsym,types,
+       fmodule,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -811,8 +812,8 @@ implementation
 
     function  tclassheader.gintfgetvtbllabelname(intfindex: integer): string;
       begin
-        gintfgetvtbllabelname:='_$$_'+upper(_class.objname^)+'_$$_'+
-          upper(_class.implementedinterfaces.interfaces(intfindex).objname^)+'_$$_VTBL';
+        gintfgetvtbllabelname:='VTBL_'+current_module.modulename^+'$_'+upper(_class.objname^)+
+                               '_$$_'+upper(_class.implementedinterfaces.interfaces(intfindex).objname^);
       end;
 
 
@@ -826,7 +827,10 @@ implementation
       begin
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
-        rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),0));
+        if (cs_create_smart in aktmoduleswitches) then
+         rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),0))
+        else
+         rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),0));
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
@@ -1004,11 +1008,9 @@ implementation
                 ioffsets(i)^:=ioffsets(impintfindexes[i])^;
             gintfgenentry(i,impintfindexes[i],rawdata);
           end;
-        dataSegment.insertlist(rawdata);
+        dataSegment.concatlist(rawdata);
         rawdata.free;
-        if (cs_create_smart in aktmoduleswitches) then
-          rawcode.insert(Tai_cut.Create);
-        codeSegment.insertlist(rawcode);
+        codeSegment.concatlist(rawcode);
         rawcode.free;
         freemem(impintfindexes,(max+1)*sizeof(longint));
       end;
@@ -1153,10 +1155,21 @@ implementation
          vmtlist:=TAasmoutput.Create;
          genvmt(vmtlist);
 
+         if (cs_create_smart in aktmoduleswitches) then
+           dataSegment.concat(Tai_cut.Create);
+
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }
          if is_class(_class) then
           begin
+            { interface table }
+            if _class.implementedinterfaces.count>0 then
+             begin
+               if (cs_create_smart in aktmoduleswitches) then
+                codeSegment.concat(Tai_cut.Create);
+               interfacetable:=genintftable;
+             end;
+
             methodnametable:=genpublishedmethodstable;
             fieldtablelabel:=_class.generate_field_table;
             { write class name }
@@ -1171,9 +1184,6 @@ implementation
               intmessagetable:=genintmsgtab
             else
               dataSegment.concat(Tai_const.Create_32bit(0));
-            { interface table }
-            if _class.implementedinterfaces.count>0 then
-              interfacetable:=genintftable;
           end;
 
         { write debug info }
@@ -1260,7 +1270,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-08-30 20:13:53  peter
+  Revision 1.4  2001-09-19 11:04:42  michael
+  * Smartlinking with interfaces fixed
+  * Better smartlinking for rtti and init tables
+
+  Revision 1.3  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

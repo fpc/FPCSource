@@ -2433,6 +2433,8 @@ implementation
            def.rttitablesym:=rsym;
            { write rtti data }
            def.write_child_rtti_data(fullrtti);
+           if (cs_create_smart in aktmoduleswitches) then
+            rttiList.concat(Tai_cut.Create);
            rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
@@ -2469,6 +2471,8 @@ implementation
            def.inittablesym:=rsym;
            { write inittable data }
            def.write_child_rtti_data(initrtti);
+           if (cs_create_smart in aktmoduleswitches) then
+            rttiList.concat(Tai_cut.Create);
            rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
            def.write_rtti_data(initrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
@@ -2480,7 +2484,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-09-02 21:18:29  peter
+  Revision 1.22  2001-09-19 11:04:42  michael
+  * Smartlinking with interfaces fixed
+  * Better smartlinking for rtti and init tables
+
+  Revision 1.21  2001/09/02 21:18:29  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.

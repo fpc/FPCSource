@@ -31,9 +31,10 @@ implementation
 
 uses
   systems,
-  verbose,globals,
+  verbose,globals,globtype,
   aasm,
-  symconst,symbase,symtype,symtable,symdef,symsym,
+  symconst,symtype,symdef,symsym,
+  fmodule,
   nobj,
   temp_gen,
   cpubase,
@@ -141,7 +142,7 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
 var
   oldexprasmlist: TAAsmoutput;
   lab : tasmsymbol;
-
+  make_global : boolean;
 begin
   if procdef.proctypeoption<>potype_none then
     Internalerror(200006137);
@@ -149,11 +150,22 @@ begin
      (procdef.procoptions*[po_containsself, po_classmethod, po_staticmethod,
        po_methodpointer, po_interrupt, po_iocheck]<>[]) then
     Internalerror(200006138);
+  if procdef.owner.symtabletype<>objectsymtable then
+    Internalerror(200109191);
 
   oldexprasmlist:=exprasmlist;
   exprasmlist:=asmlist;
 
-  exprasmList.concat(Tai_symbol.Createname(labelname,0));
+  make_global:=false;
+  if (not current_module.is_unit) or
+     (cs_create_smart in aktmoduleswitches) or
+     (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+    make_global:=true;
+
+  if make_global then
+   exprasmList.concat(Tai_symbol.Createname_global(labelname,0))
+  else
+   exprasmList.concat(Tai_symbol.Createname(labelname,0));
 
   { set param1 interface to self  }
   adjustselfvalue(ioffset);
@@ -211,7 +223,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2001-08-26 13:37:00  florian
+  Revision 1.3  2001-09-19 11:04:41  michael
+  * Smartlinking with interfaces fixed
+  * Better smartlinking for rtti and init tables
+
+  Revision 1.2  2001/08/26 13:37:00  florian
     * some cg reorganisation
     * some PPC updates
 

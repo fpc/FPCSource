@@ -1053,6 +1053,8 @@ implementation
              begin
                getdatalabel(localrttilab[rt]);
                write_child_rtti_data(rt);
+               if (cs_create_smart in aktmoduleswitches) then
+                rttiList.concat(Tai_cut.Create);
                rttiList.concat(Tai_symbol.Create(localrttilab[rt],0));
                write_rtti_data(rt);
                rttiList.concat(Tai_symbol_end.Create(localrttilab[rt]));
@@ -4844,6 +4846,8 @@ implementation
          count:=0;
          tablecount:=0;
          symtable.foreach({$ifdef FPC}@{$endif}count_published_fields);
+         if (cs_create_smart in aktmoduleswitches) then
+          rttiList.concat(Tai_cut.Create);
          rttiList.concat(Tai_label.Create(fieldtable));
          rttiList.concat(Tai_const.Create_16bit(count));
          rttiList.concat(Tai_const_symbol.Create(classtable));
@@ -5416,7 +5420,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2001-09-17 21:29:12  peter
+  Revision 1.51  2001-09-19 11:04:42  michael
+  * Smartlinking with interfaces fixed
+  * Better smartlinking for rtti and init tables
+
+  Revision 1.50  2001/09/17 21:29:12  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.49  2001/09/10 10:26:27  jonas
