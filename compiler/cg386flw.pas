@@ -389,6 +389,13 @@ implementation
          do_jmp;
       begin
          if assigned(p^.left) then
+         if p^.left^.treetype=assignn then
+           begin
+              { just do a normal assignment followed by exit }
+              secondpass(p^.left);
+              emitjmp(C_None,aktexitlabel);
+           end
+         else
            begin
               otlabel:=truelabel;
               oflabel:=falselabel;
@@ -811,7 +818,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.52  1999-09-27 23:44:46  peter
+  Revision 1.53  1999-10-05 22:01:52  pierre
+   * bug exit('test') + fail for classes
+
+  Revision 1.52  1999/09/27 23:44:46  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
@@ -1011,4 +1021,3 @@ end.
     * splitted cgi386
 
 }
-

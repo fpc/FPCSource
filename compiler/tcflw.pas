@@ -322,6 +322,8 @@ implementation
 *****************************************************************************}
 
     procedure firstexit(var p : ptree);
+      var
+         pt : ptree;
       begin
          if assigned(p^.left) then
            begin
@@ -332,6 +334,14 @@ implementation
               { Check the 2 types }
               p^.left:=gentypeconvnode(p^.left,p^.resulttype);
               firstpass(p^.left);
+              if ret_in_param(p^.resulttype) then
+                begin
+                  pt:=genzeronode(funcretn);
+                  pt^.retdef:=p^.resulttype;
+                  pt^.funcretprocinfo:=procinfo; 
+                  p^.left:=gennode(assignn,pt,p^.left);
+                  firstpass(p^.left);
+                end;
               p^.registers32:=p^.left^.registers32;
               p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -497,7 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-10-04 20:27:41  peter
+  Revision 1.23  1999-10-05 22:01:53  pierre
+   * bug exit('test') + fail for classes
+
+  Revision 1.22  1999/10/04 20:27:41  peter
     * fixed first pass for if branches if the expression got an error
 
   Revision 1.20  1999/09/27 23:45:01  peter

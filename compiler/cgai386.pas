@@ -3223,10 +3223,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   getlabel(okexitlabel);
                   emitjmp(C_NONE,okexitlabel);
                   emitlab(faillabel);
-                  emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
-                  emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
-                  emitcall('FPC_HELP_FAIL');
+                  if procinfo^._class^.is_class then
+                    begin
+                      emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,8),R_ESI);
+                      emitcall('FPC_HELP_FAIL_CLASS');
+                    end
+                  else
+                    begin
+                      emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
+                      emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
+                      emitcall('FPC_HELP_FAIL');
+                    end;
                   emitlab(okexitlabel);
+
                   emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
                   emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
               end;
@@ -3377,7 +3386,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.50  1999-09-29 11:46:18  florian
+  Revision 1.51  1999-10-05 22:01:52  pierre
+   * bug exit('test') + fail for classes
+
+  Revision 1.50  1999/09/29 11:46:18  florian
     * fixed bug 292 from bugs directory
 
   Revision 1.49  1999/09/28 21:07:53  florian
