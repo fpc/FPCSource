@@ -19,6 +19,12 @@ interface
 Procedure DumpHeap;
 Procedure MarkHeap;
 
+{ define EXTRA to add more
+  tests :
+   - keep all memory after release and
+   check by CRC value if not changed after release
+   WARNING this needs extremely much memory (PM) }
+
 type
     FillExtraInfoType = procedure(p : pointer);
 
@@ -31,16 +37,32 @@ Procedure SetExtraInfo( size : longint;func : FillExtraInfoType);
 const
   { tracing level
     splitted in two if memory is released !! }
+{$ifdef EXTRA}
+  tracesize = 16;
+{$else EXTRA}
   tracesize = 8;
+{$endif EXTRA}
   quicktrace : boolean=true;
   { calls halt() on error by default !! }
   HaltOnError : boolean = true;
   { set this to true if you suspect that memory
     is freed several times }
+{$ifdef EXTRA}
+  keepreleased : boolean=true;
+  add_tail : boolean = true;
+{$else EXTRA}
   keepreleased : boolean=false;
+  add_tail : boolean = false;
+{$endif EXTRA}
+  { put crc in sig
+    this allows to test for writing into that part }
+  usecrc : boolean = true;
 
 implementation
 
+type
+   plongint = ^longint;
+   
 const
   { allows to add custom info in heap_mem_info }
   extra_info_size : longint = 0;
@@ -57,10 +79,13 @@ type
     sizeof(theap_mem_info = 16+tracesize*4 so
     tracesize must be even !! PM }
   theap_mem_info = record
-    next,
-    previous : pheap_mem_info;
+    previous,
+    next     : pheap_mem_info;
     size     : longint;
     sig      : longint;
+{$ifdef EXTRA}
+    release_sig : longint;
+{$endif EXTRA}
     calls    : array [1..tracesize] of longint;
     extra_info : record
                  end;
@@ -77,10 +102,110 @@ var
 
 
 {*****************************************************************************
-                                Helpers
+                                   Crc 32
 *****************************************************************************}
 
-type plongint = ^longint;
+var
+{$ifdef Delphi}
+  Crc32Tbl : array[0..255] of longword;
+{$else Delphi}
+  Crc32Tbl : array[0..255] of longint;
+{$endif Delphi}
+
+procedure MakeCRC32Tbl;
+var
+{$ifdef Delphi}
+  crc : longword;
+{$else Delphi}
+  crc : longint;
+{$endif Delphi}
+  i,n : byte;
+begin
+  for i:=0 to 255 do
+   begin
+     crc:=i;
+     for n:=1 to 8 do
+      if odd(crc) then
+       crc:=(crc shr 1) xor $edb88320
+      else
+       crc:=crc shr 1;
+     Crc32Tbl[i]:=crc;
+   end;
+end;
+
+
+{$ifopt R+}
+{$define Range_check_on}
+{$endif opt R+}
+
+{$R- needed here }
+
+Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
+var
+  i : longint;
+  p : pchar;
+begin
+  p:=@InBuf;
+  for i:=1 to InLen do
+   begin
+     InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
+     inc(longint(p));
+   end;
+  UpdateCrc32:=InitCrc;
+end;
+
+Function calculate_sig(p : pheap_mem_info) : longint;
+var
+   crc : longint;
+   pl : plongint;
+begin
+   crc:=$ffffffff;
+   crc:=UpdateCrc32(crc,p^.size,sizeof(longint));
+   crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(longint));
+   if extra_info_size>0 then
+     crc:=UpdateCrc32(crc,p^.extra_info,exact_info_size);
+   if add_tail then
+     begin
+        { Check also 4 bytes just after allocation !! }
+        pl:=pointer(p)+extra_info_size+sizeof(theap_mem_info)+p^.size;
+        crc:=UpdateCrc32(crc,pl^,sizeof(longint));
+     end;
+   calculate_sig:=crc;
+end;
+
+{$ifdef EXTRA}
+Function calculate_release_sig(p : pheap_mem_info) : longint;
+var
+   crc : longint;
+   pl : plongint;
+begin
+   crc:=$ffffffff;
+   crc:=UpdateCrc32(crc,p^.size,sizeof(longint));
+   crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(longint));
+   if extra_info_size>0 then
+     crc:=UpdateCrc32(crc,p^.extra_info,exact_info_size);
+   { Check the whole of the whole allocation }
+   pl:=pointer(p)+extra_info_size+sizeof(theap_mem_info);
+   crc:=UpdateCrc32(crc,pl^,p^.size);
+   { Check also 4 bytes just after allocation !! }
+   if add_tail then
+     begin
+        { Check also 4 bytes just after allocation !! }
+        pl:=pointer(p)+extra_info_size+sizeof(theap_mem_info)+p^.size;
+        crc:=UpdateCrc32(crc,pl^,sizeof(longint));
+     end;
+   calculate_release_sig:=crc;
+end;
+{$endif EXTRA}
+
+{$ifdef Range_check_on}
+{$R+}
+{$undef Range_check_on}
+{$endif Range_check_on}
+
+{*****************************************************************************
+                                Helpers
+*****************************************************************************}
 
 procedure call_stack(pp : pheap_mem_info);
 var
@@ -123,9 +248,21 @@ end;
 procedure dump_error(p : pheap_mem_info);
 begin
   Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' invalid');
-  Writeln(stderr,'Wrong signature $',hexstr(p^.sig,8));
+  Writeln(stderr,'Wrong signature $',hexstr(p^.sig,8)
+    ,' instead of ',hexstr(calculate_sig(p),8));
   dump_stack(stderr,get_caller_frame(get_frame));
 end;
+
+{$ifdef EXTRA}
+procedure dump_change_after(p : pheap_mem_info);
+begin
+  Writeln(stderr,'Marked memory at ',HexStr(longint(p+sizeof(theap_mem_info)),8),' invalid');
+  Writeln(stderr,'Wrong release CRC $',hexstr(p^.release_sig,8)
+    ,' instead of ',hexstr(calculate_release_sig(p),8));
+  Writeln(stderr,'This memory was changed after call to freemem !');
+  call_free_stack(p);
+end;
+{$endif EXTRA}
 
 procedure dump_wrong_size(p : pheap_mem_info;size : longint);
 var
@@ -150,7 +287,9 @@ begin
   i:=0;
   while pp<>nil do
    begin
-     if (pp^.sig<>$DEADBEEF) and (pp^.sig <> $AAAAAAAA) then
+     if ((pp^.sig<>$DEADBEEF) or usecrc) and
+        ((pp^.sig<>calculate_sig(pp)) or not usecrc) and
+        (pp^.sig <> $AAAAAAAA) then
       begin
         writeln(stderr,'error in linked list of heap_mem_info');
         RunError(204);
@@ -172,14 +311,23 @@ end;
 procedure TraceGetMem(var p:pointer;size:longint);
 var
   i,bp : longint;
+  pl : plongint;
 begin
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
 { Do the real GetMem, but alloc also for the info block }
-  SysGetMem(p,size+sizeof(theap_mem_info)+extra_info_size);
+  bp:=size+sizeof(theap_mem_info)+extra_info_size;
+  if add_tail then
+    bp:=bp+sizeof(longint);
+  SysGetMem(p,bp);
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
+  if add_tail then
+    begin
+      pl:=pointer(p)+bp-sizeof(longint);
+      pl^:=$DEADBEEF;
+    end;
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
@@ -195,6 +343,8 @@ begin
   if assigned(fill_extra_info) then
     fill_extra_info(@pheap_mem_info(p)^.extra_info);
 { update the pointer }
+  if usecrc then
+    pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
   inc(p,sizeof(theap_mem_info)+extra_info_size);
   inc(getmem_cnt);
 end;
@@ -212,6 +362,8 @@ begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
   ppsize:= size + sizeof(theap_mem_info)+extra_info_size;
+  if add_tail then
+    ppsize:=ppsize+sizeof(longint);
   dec(p,sizeof(theap_mem_info)+extra_info_size);
   pp:=pheap_mem_info(p);
   if not quicktrace and not(is_in_getmem_list(p)) then
@@ -222,7 +374,8 @@ begin
        dump_already_free(pp);
        if haltonerror then halt(1);
     end
-  else if pp^.sig<>$DEADBEEF then
+  else if ((pp^.sig<>$DEADBEEF) or usecrc) and
+        ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
     begin
        error_in_heap:=true;
        dump_error(pp);
@@ -248,6 +401,9 @@ begin
          pp^.previous^.next:=pp^.next;
        if pp=heap_mem_root then
          heap_mem_root:=heap_mem_root^.previous;
+    end
+  else
+    begin
        bp:=get_caller_frame(get_frame);
        for i:=(tracesize div 2)+1 to tracesize do
         begin
@@ -260,8 +416,14 @@ begin
   { this way we keep all info about all released memory !! }
   if keepreleased then
     begin
+{$ifndef EXTRA}
        dec(ppsize,sizeof(theap_mem_info)+extra_info_size);
        inc(p,sizeof(theap_mem_info)+extra_info_size);
+{$else EXTRA}
+      { We want to check if the memory was changed after release !! }
+       pp^.release_sig:=calculate_release_sig(pp);
+       exit;
+{$endif EXTRA}
     end;
   SysFreeMem(p,ppsize);
 end;
@@ -294,14 +456,20 @@ begin
           Writeln(stderr,'More memory blocks than expected');
           exit;
        end;
-     if pp^.sig=$DEADBEEF then
+     if ((pp^.sig=$DEADBEEF) and not usecrc) or
+        ((pp^.sig=calculate_sig(pp)) and usecrc) then
        begin
           { this one was not released !! }
           call_stack(pp);
           dec(i);
        end
      else if pp^.sig<>$AAAAAAAA then
-       dump_error(pp);
+       dump_error(pp)
+{$ifdef EXTRA}
+     else if pp^.release_sig<>calculate_release_sig(pp) then
+       dump_change_after(pp)
+{$endif EXTRA}
+       ;
      pp:=pp^.previous;
    end;
 end;
@@ -336,6 +504,14 @@ var
 procedure TraceExit;
 begin
   ExitProc:=SaveExit;
+  { no dump if error
+    because this gives long long listings }
+  if (exitcode<>0) or (erroraddr<>nil) then
+    begin
+       Writeln(stderr,'No heap dump by heaptrc unit');
+       Writeln(stderr,'Exitcode = ',exitcode);
+       exit;
+    end;
   if not error_in_heap then
     Dumpheap;
 end;
@@ -359,13 +535,17 @@ procedure SetExtraInfo( size : longint;func : fillextrainfotype);
 
 
 begin
+  MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
   SaveExit:=ExitProc;
   ExitProc:=@TraceExit;
 end.
 {
   $Log$
-  Revision 1.11  1999-03-26 19:10:34  peter
+  Revision 1.12  1999-05-11 12:52:42  pierre
+   + extra's with -dEXTRA, uses a CRC check for released memory
+
+  Revision 1.11  1999/03/26 19:10:34  peter
     * show also allocation stack for a wrong size
 
   Revision 1.10  1999/02/16 17:20:26  pierre
