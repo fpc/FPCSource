@@ -787,6 +787,53 @@ implementation
                   ltn,lten,
                   gtn,gten,
            equaln,unequaln : begin
+{$IfNDef NoSetInclusion}
+                               If is_set Then
+                                 Case p^.treetype of
+                                   lten,gten:
+                                     Begin
+                                      If p^.treetype = gten then
+                                        swaptree(p);
+                                      if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                                        begin
+                                         ungetiftemp(p^.left^.location.reference);
+                                         del_reference(p^.left^.location.reference);
+                                         hregister:=getregister32;
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                         newreference(p^.left^.location.reference),hregister)));
+                                         clear_location(p^.left^.location);
+                                         p^.left^.location.loc:=LOC_REGISTER;
+                                         p^.left^.location.register:=hregister;
+                                         set_location(p^.location,p^.left^.location);
+                                       end
+                                      else
+                                       if p^.left^.location.loc = LOC_CREGISTER Then
+                                        {save the register var in a temp register, because
+                                          its value is going to be modified}
+                                          begin
+                                            hregister := getregister32;
+                                            exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                              p^.left^.location.register,hregister)));
+                                             clear_location(p^.left^.location);
+                                             p^.left^.location.loc:=LOC_REGISTER;
+                                             p^.left^.location.register:=hregister;
+                                             set_location(p^.location,p^.left^.location);
+                                           end;
+                                     {here, p^.left^.location should be LOC_REGISTER}
+                                      If p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] Then
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_AND,opsize,
+                                           newreference(p^.right^.location.reference),p^.left^.location.register)))
+                                      Else
+                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_AND,opsize,
+                                          p^.right^.location.register,p^.left^.location.register)));
+                {warning: ugly hack ahead: we need a "jne" after the cmp, so
+                 change the treetype from lten/gten to equaln}
+                                      p^.treetype := equaln
+                                     End;
+                           {no < or > support for sets}
+                                   ltn,gtn: CGMessage(type_e_mismatch);
+                                 End;
+{$EndIf NoSetInclusion}
                                op:=A_CMP;
                                cmpop:=true;
                              end;
@@ -1759,7 +1806,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-01-20 17:39:22  jonas
+  Revision 1.41  1999-01-20 19:23:10  jonas
+    * fixed set1 <= set2 for small sets
+
+  Revision 1.40  1999/01/20 17:39:22  jonas
     + fixed bug0163 (set1 <= set2 support)
 
   Revision 1.39  1999/01/19 10:18:58  florian
