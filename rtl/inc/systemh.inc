@@ -423,6 +423,9 @@ Function  Swap (X:LongInt):LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Swap (X:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Swap (X:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+Function Align (Addr : PtrInt; Alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Align (Addr : Pointer; Alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+
 Function  Random(l:longint):longint;
 Function  Random(l:int64):int64;
 Function  Random: extended;
@@ -761,7 +764,11 @@ const
 
 {
   $Log$
-  Revision 1.103  2004-10-09 21:00:46  jonas
+  Revision 1.104  2004-10-14 17:39:33  florian
+    + added system.align
+    + threadvars are now aligned
+
+  Revision 1.103  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is

@@ -1084,7 +1084,27 @@ procedure inclocked(var l:int64);
 {_$error Sptr must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_SPTR}
 
+
 procedure prefetch(const mem);[internproc:in_prefetch_var];
+
+
+function align(addr : PtrInt;alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    if addr mod alignment<>0 then
+      result:=addr+(alignment-(addr mod alignment))
+    else
+      result:=addr;
+  end;
+
+
+function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    if PtrInt(addr) mod alignment<>0 then
+      result:=pointer(addr+(alignment-(PtrInt(addr) mod alignment)))
+    else
+      result:=addr;
+  end;
+
 
 {****************************************************************************
                                  Str()
@@ -1225,7 +1245,11 @@ end;
 
 {
   $Log$
-  Revision 1.81  2004-10-09 21:00:46  jonas
+  Revision 1.82  2004-10-14 17:39:33  florian
+    + added system.align
+    + threadvars are now aligned
+
+  Revision 1.81  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is

@@ -60,12 +60,38 @@ Uses
     const
       threadvarblocksize : dword = 0;
 
+
     var
       TLSKey : pthread_key_t;
 
     procedure CInitThreadvar(var offset : dword;size : dword);
       begin
+        {$ifdef cpusparc}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpusparc}
+
+        {$ifdef cpupowerpc}
+        threadvarblocksize:=align(threadvarblocksize,8);
+        {$endif cpupowerc}
+
+        {$ifdef cpui386}
+        threadvarblocksize:=align(threadvarblocksize,8);
+        {$endif cpui386}
+
+        {$ifdef cpuarm}
+        threadvarblocksize:=align(threadvarblocksize,4);
+        {$endif cpuarm}
+
+        {$ifdef cpum68k}
+        threadvarblocksize:=align(threadvarblocksize,2);
+        {$endif cpum68k}
+
+        {$ifdef cpux86_64}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpux86_64}
+
         offset:=threadvarblocksize;
+
         inc(threadvarblocksize,size);
       end;
 
@@ -535,7 +561,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-09-09 20:29:06  jonas
+  Revision 1.13  2004-10-14 17:39:33  florian
+    + added system.align
+    + threadvars are now aligned
+
+  Revision 1.12  2004/09/09 20:29:06  jonas
     * fixed definition of pthread_mutex_t for non-linux targets (and for
       linux as well, actually).
     * base libpthread definitions are now in ptypes.inc, included in unixtype
