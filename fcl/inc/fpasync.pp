@@ -100,7 +100,7 @@ type
     RealBuffer, FBuffer: PChar;
     FBytesInBuffer: Integer;
     FOnLine: TLineNotify;
-    DoStopAndFree: Boolean;
+    InCallback, DoStopAndFree: Boolean;
 
     function  Read(var ABuffer; count: Integer): Integer; virtual; abstract;
     procedure NoData; virtual; abstract;
@@ -150,6 +150,7 @@ type
     FBufferSent: Boolean;
     FOnBufferEmpty: TNotifyEvent;
     FOnBufferSent: TNotifyEvent;
+    InCallback: Boolean;
 
     function  Seek(Offset: LongInt; Origin: Word): LongInt; override;
     function  Write(const ABuffer; Count: LongInt): LongInt; override;
@@ -508,7 +509,8 @@ begin
   begin
     BytesRead := Read(NewData, SizeOf(NewData));
     //WriteLn('Linereader: ', BytesRead, ' bytes read');
-    if BytesRead <= 0 then begin
+    if BytesRead <= 0 then
+    begin
       if FirstRun then
         NoData;
       break;
@@ -546,10 +548,16 @@ begin
           Inc(i);
         LastEndOfLine := i + 1;
 
-        if Assigned(FOnLine) then begin
+        if Assigned(FOnLine) then
+	begin
           FBuffer := RealBuffer + LastEndOfLine;
           FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
-          FOnLine(line);
+	  InCallback := True;
+	  try
+            FOnLine(line);
+	  finally
+	    InCallback := False;
+	  end;
           // Check if <this> has been destroyed by FOnLine:
           if DoStopAndFree then
 	    exit;
@@ -605,12 +613,16 @@ end;
 
 procedure TAsyncStreamLineReader.StopAndFree;
 begin
-  if Assigned(NotifyHandle) then
+  if InCallback then
   begin
-    EventLoop.ClearDataAvailableNotify(NotifyHandle);
-    NotifyHandle := nil;
-  end;
-  DoStopAndFree := True;
+    if Assigned(NotifyHandle) then
+    begin
+      EventLoop.ClearDataAvailableNotify(NotifyHandle);
+      NotifyHandle := nil;
+    end;
+    DoStopAndFree := True;
+  end else
+    Self.Free;
 end;
 
 function TAsyncStreamLineReader.Read(var ABuffer; count: Integer): Integer;
@@ -637,7 +649,14 @@ begin
     EventLoop.ClearDataAvailableNotify(NotifyHandle);
     NotifyHandle := nil;
     if Assigned(FOnEOF) then
-      FOnEOF(Self);
+    begin
+      InCallback := True;
+      try
+        FOnEOF(Self);
+      finally
+        InCallback := False;
+      end;
+    end;
   end;
 end;
 
@@ -656,7 +675,11 @@ end;
 procedure TWriteBuffer.BufferEmpty;
 begin
   if Assigned(FOnBufferEmpty) then
+  begin
+    InCallback := True;
     FOnBufferEmpty(Self);
+    InCallback := False;
+  end;
 end;
 
 constructor TWriteBuffer.Create;
@@ -778,7 +801,14 @@ begin
     end;
     FBufferSent := True;
     if Assigned(FOnBufferSent) then
-      FOnBufferSent(Self);
+    begin
+      InCallback := True;
+      try
+        FOnBufferSent(Self);
+      finally
+        InCallback := False;
+      end;
+    end;
   end else
     Run;
   if DoStopAndFree then
@@ -811,12 +841,16 @@ end;
 
 procedure TAsyncWriteStream.StopAndFree;
 begin
-  if Assigned(NotifyHandle) then
+  if InCallback then
   begin
-    EventLoop.ClearCanWriteNotify(NotifyHandle);
-    NotifyHandle := nil;
-  end;
-  DoStopAndFree := True;
+    if Assigned(NotifyHandle) then
+    begin
+      EventLoop.ClearCanWriteNotify(NotifyHandle);
+      NotifyHandle := nil;
+    end;
+    DoStopAndFree := True;
+  end else
+    Self.Free;
 end;
 
 
@@ -825,7 +859,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-11-22 11:46:40  sg
+  Revision 1.6  2004-02-02 16:50:44  sg
+  * Destroying a line reader or write buffer now works within an event
+    handler of these classes
+
+  Revision 1.5  2003/11/22 11:46:40  sg
   * Removed TAsyncWriteStream.BufferEmpty (not needed anymore)
 
   Revision 1.4  2003/08/03 21:18:40  sg
