@@ -24,80 +24,6 @@ const
   cardinal_to_real_helper: int64 = $430000000000000;
   int_to_real_factor: double = double(high(cardinal))+1.0;
 
-function fpc_int64_to_double(i: int64): double; compilerproc;
-{assembler;}
-{ input: high(i) in r3, low(i) in r4 }
-{ output: double(i) in f0            }
-var
-  temp: packed record
-      case byte of
-        0: (l1,l2: cardinal);
-        1: (d: double);
-    end;
-begin{asm}
-(*           lis    r0,0x4330
-           stw    r0,temp
-           xoris  r3,r3,0x8000
-           stw    r3,4+temp
-           {$ifndef macos}
-           lis    r3,longint_to_real_helper@ha
-           lfd    f1,longint_to_real_helper@l(r3)
-           {$else}
-           lfd    f1,longint_to_real_helper(r2)
-           {$endif}
-           lfd    f0,temp
-           stw    r4,4+temp
-           fsub   f0,f0,f1
-           {$ifndef macos}
-           lis    r4,cardinal_to_real_helper@ha
-           lfd    f1,cardinal_to_real_helper@l(r4)
-           lis    r3,int_to_real_factor@ha
-           lfd    f3,temp
-           lfd    f2,int_to_real_factor@l(r3)
-           {$else}
-           lfd    f1,cardinal_to_real_helper(r2)
-           lfd    f3,temp
-           lfd    f2,int_to_real_factor(r2)
-           {$endif}
-           fsub   f3,f3,f1
-           fmadd  f1,f0,f2,f3*)
-end{ ['R0','R3','R4','F0','F1','F2','F3']};
-
-
-function fpc_qword_to_double(q: qword): double; compilerproc;
-{assembler;}
-{ input: high(q) in r3, low(q) in r4 }
-{ output: double(q) in f0            }
-var
-  temp: packed record
-      case byte of
-        0: (l1,l2: cardinal);
-        1: (d: double);
-    end;
-begin{asm}
-(*           lis    r0,0x4330
-           stw    r0,temp
-           stw    r3,4+temp
-           lfd    f0,temp
-           {$ifndef macos}
-           lis    r3,cardinal_to_real_helper@ha
-           lfd    f1,cardinal_to_real_helper@l(r3)
-           {$else}
-           lfd    f1,cardinal_to_real_helper(r2)
-           {$endif}
-           stw    r4,4+temp
-           fsub   f0,f0,f1
-           lfd    f3,temp
-           {$ifndef macos}
-           lis    r3,int_to_real_factor@ha
-           lfd    f2,int_to_real_factor@l(r3)
-           {$else}
-           lfd    f2,int_to_real_factor(r2)
-           {$endif}
-           fsub   f3,f3,f1
-           fmadd  f1,f0,f2,f3*)
-end{ ['R0','R3','F0','F1','F2','F3']};
-
 
 {****************************************************************************
                        EXTENDED data type routines
@@ -308,7 +234,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-09-01 20:46:32  peter
+  Revision 1.6  2003-09-02 17:41:49  peter
+    * updated for int64 to double
+
+  Revision 1.5  2003/09/01 20:46:32  peter
     * new dummies
 
   Revision 1.4  2003/04/23 21:28:21  peter
