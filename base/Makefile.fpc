@@ -170,7 +170,7 @@ ide_comp:
         $(MAKE) -C ide full
 
 # Look if libgdb.a is available then use fullgdb
-ifneq ($(wildcard packages/gdbint/libgdb/go32v2/libgdb.a),)
+ifneq ($(wildcard packages/gdbint/libgdb/$(OS_TARGET)/libgdb.a),)
 ide_full:
         $(MAKE) -C compiler ppuclean
         $(MAKE) -C ide fullgdb
