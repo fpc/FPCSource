@@ -296,7 +296,7 @@ scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 25
 #
 # Parser
 #
-# 03191 is the last used one
+# 03192 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -901,7 +901,9 @@ parser_w_cdecl_has_no_high=03190_W_cdecl'ared functions have no high parameter
 % Functions declared with cdecl modifier do not pass an extra implicit parameter.
 parser_w_cdecl_no_openstring=03191_W_cdecl'ared functions do not support open strings
 % Openstring is not supported for cdecl'ared functions.
-%
+parser_e_initialized_not_for_threadvar=03192_E_Cannot initialize variables declared as threadvar
+% Variables declared as threadvar can not be initialized with a default value.
+% The variables will always be filled with zero at the start of a new thread.
 % \end{description}
 #
 # Type Checking
@@ -1103,7 +1105,7 @@ type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of
 % this may cause a range-check error, or may lead to possible loss of data.
 type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of data / range check error
 % There is an assignment to a smaller type than the source type. This means that
-% this may cause a range-check error, or may lead to possible loss of data. 
+% this may cause a range-check error, or may lead to possible loss of data.
 % \end{description}
 #
 # Symtable
