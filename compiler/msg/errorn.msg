@@ -59,7 +59,7 @@
 #   Let ook op voorvoegingen: "Interface and implementation names" wordt:
 #    "Interface- en implementatienamen" (streepje!)
 # - Pas op met het vernederlandsen van Engelse woorden. Bijvoorbeeld
-#   "symbool". Voor deze categorie woorden bestaat geen goede
+#   "identifieerder". Voor deze categorie woorden bestaat geen goede
 #   vertaling. Iedereen die zo'n vernederlandsing ziet krijgt echter gelijk
 #   een pijnscheut in zijn taalknobbel. Soms helpt een woordenboek, anders
 #   is het beter om de engelse term te laten staan. Wat improvisatie helpt
