@@ -95,7 +95,7 @@ end;
 Function RemoveDir (Const Dir : String) : Boolean;
 
 begin
-  ChDir (Dir);
+  RmDir (Dir);
   RemoveDir:=true;
 end;
 
@@ -103,7 +103,10 @@ end;
 
 {
  $Log$
- Revision 1.2  1999-04-08 11:31:00  peter
+ Revision 1.3  1999-04-26 07:40:40  michael
+ + Fixed removedir
+
+ Revision 1.2  1999/04/08 11:31:00  peter
    * removed warnings
 
  Revision 1.1  1998/10/11 13:42:04  michael
