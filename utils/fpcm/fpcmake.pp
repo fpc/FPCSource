@@ -39,6 +39,7 @@ program fpcmake;
       ParaMode : TMode;
       ParaVerboseLevel : TVerboseLevel;
       ParaTargets : string;
+      ParaRecursive : boolean;
 
 
 {*****************************************************************************
@@ -85,10 +86,8 @@ program fpcmake;
       var
         CurrFPCMake : TFPCMakeConsole;
         CurrMakefile : TMakefileWriter;
-{$ifdef SUBDIRS}
-        s,Subdirs : string;
+        s,s2,Subdirs : string;
         t : ttarget;
-{$endif SUBDIRS}
       begin
         Show(V_Default,'Processing '+fn);
         CurrFPCMake:=nil;
@@ -102,11 +101,31 @@ program fpcmake;
           CurrFPCMake.LoadMakefileFPC;
 //          CurrFPCMake.Print;
 
-{$ifdef SUBDIRS}
+          { Add the subdirs }
           subdirs:=CurrFPCMake.GetVariable('target_dirs',true);
           for t:=low(ttarget) to high(ttarget) do
-           subdirs:=subdirs+' '+CurrFPCMake.GetVariable('target_dirs'+targetsuffix[t],true);
-{$endif SUBDIRS}
+           if t in CurrFPCMake.IncludeTargets then
+            begin
+              s2:=CurrFPCMake.GetVariable('target_dirs'+targetsuffix[t],true);
+              repeat
+                s:=GetToken(s2,' ');
+                if s='' then
+                 break;
+                AddTokenNoDup(subdirs,s,' ');
+              until false;
+            end;
+          AddToken(subdirs,CurrFPCMake.GetVariable('target_exampledirs',true),' ');
+          for t:=low(ttarget) to high(ttarget) do
+           if t in CurrFPCMake.IncludeTargets then
+            begin
+              s2:=CurrFPCMake.GetVariable('target_exampledirs'+targetsuffix[t],true);
+              repeat
+                s:=GetToken(s2,' ');
+                if s='' then
+                 break;
+                AddTokenNoDup(subdirs,s,' ');
+              until false;
+            end;
 
           { Write Makefile }
           CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Makefile');
@@ -118,24 +137,24 @@ program fpcmake;
           on e : exception do
            begin
              Error(e.message);
-  {$ifdef SUBDIRS}
              Subdirs:='';
-  {$endif SUBDIRS}
            end;
         end;
 {$endif NOEXCEPT}
         CurrFPCMake.Free;
 
-{$ifdef SUBDIRS}
         { Process subdirs }
-        writeln('Subdirs found: ',subdirs);
-        repeat
-          s:=GetToken(subdirs);
-          if s='' then
-           break;
-          ProcessFile(ExtractFilePath(fn)+s+'/Makefile.fpc');
-        until false;
-{$endif SUBDIRS}
+        if (Subdirs<>'') and
+           ParaRecursive then
+         begin
+           Show(v_Verbose,'Subdirs found: '+subdirs);
+           repeat
+             s:=GetToken(subdirs,' ');
+             if s='' then
+              break;
+             ProcessFile_Makefile(ExtractFilePath(fn)+s+'/Makefile.fpc');
+           until false;
+         end;
 
       end;
 
@@ -222,10 +241,11 @@ begin
   writeln(' -w  Write Makefile');
   writeln('');
   writeln('Options:');
-  writeln(' -T<target>[,target]   Support only specified targets');
-  writeln(' -v                    Be more verbose');
-  writeln(' -q                    Be quiet');
-  writeln(' -h                    This help screen');
+  writeln(' -T<target>[,target] Support only specified targets');
+  writeln(' -r                  Recursively process target directories from Makefile.fpc');
+  writeln(' -v                  Be more verbose');
+  writeln(' -q                  Be quiet');
+  writeln(' -h                  This help screen');
   Halt(0);
 end;
 
@@ -236,15 +256,15 @@ Procedure ProcessOpts;
   Process command line opions, and checks if command line options OK.
 }
 const
-  ShortOpts = 'pwqvhT:';
+  ShortOpts = 'pwqrvhT:';
 var
   C : char;
 begin
-  if paramcount=0 then
-   usage;
 { Reset }
-  ParaMode:=m_none;
+  ParaMode:=m_Makefile;
   ParaVerboseLevel:=v_default;
+  ParaTargets:=LowerCase({$I %FPCTARGETOS});
+{ Parse options }
   repeat
     c:=Getopt (ShortOpts);
     Case C of
@@ -252,6 +272,7 @@ begin
       'p' : ParaMode:=m_PackageFpc;
       'w' : ParaMode:=m_Makefile;
       'q' : ParaVerboseLevel:=v_quiet;
+      'r' : ParaRecursive:=true;
       'v' : ParaVerboseLevel:=v_verbose;
       'T' : ParaTargets:=OptArg;
       '?' : Usage;
@@ -270,7 +291,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-08-02 20:50:29  peter
+  Revision 1.7  2002-01-27 21:42:35  peter
+    * -r option to process target dirs also
+    * default changed to build only for current target
+    * removed auto building of required packages
+    * removed makefile target because it causes problems with
+      an internal rule of make
+
+  Revision 1.6  2001/08/02 20:50:29  peter
     * -T<target> support
     * better error reporting for not found dirs
     * some cleanups and nicer strings

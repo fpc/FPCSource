@@ -30,35 +30,35 @@ interface
       );
 
       trules=(
-        r_all,r_debug,r_smart,
+        r_all,r_debug,r_smart,r_release,
         r_examples,
         r_shared,
         r_install,r_sourceinstall,r_exampleinstall,r_distinstall,
         r_zipinstall,r_zipsourceinstall,r_zipexampleinstall,r_zipdistinstall,
         r_clean,r_distclean,r_cleanall,
-        r_info,r_makefile,r_makefiles,r_makefile_dirs
+        r_info,r_makefiles
       );
 
 
     const
       rule2str : array[trules] of string=(
-        'all','debug','smart',
+        'all','debug','smart','release',
         'examples',
         'shared',
         'install','sourceinstall','exampleinstall','distinstall',
         'zipinstall','zipsourceinstall','zipexampleinstall','zipdistinstall',
         'clean','distclean','cleanall',
-        'info','makefile','makefiles','makefile_dirs'
+        'info','makefiles'
       );
 
       rule2sec : array[trules] of tsections=(
-        sec_compile,sec_compile,sec_compile,
+        sec_compile,sec_compile,sec_compile,sec_compile,
         sec_examples,
         sec_libs,
         sec_install,sec_install,sec_install,sec_distinstall,
         sec_zipinstall,sec_zipinstall,sec_zipinstall,sec_zipinstall,
         sec_clean,sec_clean,sec_clean,
-        sec_info,sec_makefile,sec_makefile,sec_makefile
+        sec_info,sec_makefile
       );
 
 
@@ -88,6 +88,7 @@ interface
         function  CheckTargetVariable(const inivar:string):boolean;
         function  CheckVariable(const inivar:string):boolean;
         procedure AddDefaultTools;
+        procedure AddMakefileTargets;
         procedure OptimizeSections;
       public
         constructor Create(AFPCMake:TFPCMake;const AFileName:string);
@@ -150,44 +151,6 @@ implementation
              'a'..'z' :
                result[i]:=chr(ord(result[i])-32);
            end;
-         end;
-      end;
-
-
-    procedure AddStrNoDup(var s:string;const s2:string);
-      var
-        i,idx : longint;
-        again,add : boolean;
-      begin
-        add:=false;
-        idx:=0;
-        repeat
-          again:=false;
-          i:=posidx(s2,s,idx);
-          if (i=0) then
-           add:=true
-          else
-           if (i=1) then
-            begin
-              if (length(s)>length(s2)) and
-                 (s[length(s2)+1]<>' ') then
-               add:=true;
-            end
-          else
-           if (i>1) and
-              ((s[i-1]<>' ') or
-               ((length(s)>=i+length(s2)) and (s[i+length(s2)]<>' '))) then
-            begin
-              idx:=i+length(s2);
-              again:=true;
-            end;
-        until not again;
-        if add then
-         begin
-           if s='' then
-            s:=s2
-           else
-            s:=s+' '+s2;
          end;
       end;
 
@@ -394,7 +357,7 @@ implementation
            end;
           FOutput.Add(prefix+VarName(name)+'=1');
           { add to the list of dirs without duplicates }
-          AddStrNoDup(result,name);
+          AddTokenNoDup(result,name,' ');
         until false;
         for t:=low(TTarget) to high(TTarget) do
          if t in FInput.IncludeTargets then
@@ -418,7 +381,7 @@ implementation
                   end;
                  FOutput.Add(prefix+VarName(name)+'=1');
                  { add to the list of dirs without duplicates }
-                 AddStrNoDup(result,name);
+                 AddTokenNoDup(result,name,' ');
                until false;
                FOutput.Add('endif');
              end;
@@ -499,14 +462,14 @@ implementation
             call other targets with a only extra settings, if the
             section was not included, then still process the targets }
           if CheckTargetVariable('target_dirs') and
-             (not(rule in [r_info,r_shared,r_smart,r_debug,r_distinstall]) or
+             (not(rule in [r_info,r_shared,r_smart,r_debug,r_release,r_distinstall]) or
               not FHasSection[Rule2Sec[rule]]) then
            begin
              if CheckVariable('default_dir') then
               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
              else
               if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall,
-                              r_makefile,r_makefiles,r_makefile_dirs]) or
+                              r_makefiles]) or
                  not(CheckVariable('package_name')) then
                hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
            end;
@@ -592,13 +555,9 @@ implementation
             direct in the corresponding target directory }
           if pack='rtl' then
            FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/$(OS_TARGET)/Makefile.fpc,$(PACKAGESDIR))))))')
-          else 
+          else
            FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
           FOutput.Add('ifneq ($('+packdirvar+'),)');
-          { If Packagedir found look for FPCMade }
-          FOutput.Add('override COMPILEPACKAGES+=$('+packdirvar+')/$(FPCMADE)');
-          FOutput.Add('$('+packdirvar+')/$(FPCMADE):');
-          FOutput.Add(#9'$(MAKE) -C $('+packdirvar+') all');
           { Create unit dir, check if os dependent dir exists }
           FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/$(OS_TARGET)),)');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')/$(OS_TARGET)');
@@ -644,7 +603,7 @@ implementation
                for i:=0 to sl.count-1 do
                 begin
                   FOutput.Add(prefix+VarName(sl[i])+'=1');
-                  AddStrNoDup(reqs,sl[i]);
+                  AddTokenNoDup(reqs,sl[i],' ');
                 end;
                FOutput.Add('endif');
              end;
@@ -675,6 +634,20 @@ implementation
         AddTool('ZIPPROG','zip','');
         AddTool('TARPROG','tar','');
         AddIniSection('defaulttools');
+      end;
+
+    procedure TMakefileWriter.AddMakefileTargets;
+      var
+        s : string;
+        t : Ttarget;
+      begin
+        s:='';
+        for t:=low(ttarget) to high(ttarget) do
+         if t in FInput.IncludeTargets then
+          begin
+            AddToken(s,TargetStr[t],' ');
+          end;
+        FOutput.Add('MAKEFILETARGETS='+s);
       end;
 
     procedure TMakefileWriter.OptimizeSections;
@@ -747,6 +720,8 @@ implementation
             Add('default: '+FInput.GetVariable('default_rule',false))
            else
             Add('default: all');
+           { Supported targets by this Makefile }
+           AddMakefileTargets;
            { Add automatic detect sections }
            AddIniSection('osdetect');
            { Forced target }
@@ -825,6 +800,7 @@ implementation
            { Add default tools }
            AddDefaultTools;
            { Required packages }
+           AddVariable('require_packages');
            AddRequiredPackages;
            { commandline }
            AddIniSection('command_begin');
@@ -884,7 +860,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-01-06 21:50:05  peter
+  Revision 1.20  2002-01-27 21:42:35  peter
+    * -r option to process target dirs also
+    * default changed to build only for current target
+    * removed auto building of required packages
+    * removed makefile target because it causes problems with
+      an internal rule of make
+
+  Revision 1.19  2002/01/06 21:50:05  peter
     * lcl updates
     * small optimizes for package check
 

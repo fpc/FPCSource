@@ -172,6 +172,7 @@ interface
     function posidx(const substr,s : string;idx:integer):integer;
     function GetToken(var s:string;sep:char):string;
     procedure AddToken(var s:string;const tok:string;sep:char);
+    procedure AddTokenNoDup(var s:string;const s2:string;sep:char);
 
 
 implementation
@@ -273,6 +274,45 @@ implementation
         else
          s:=tok;
       end;
+
+
+    procedure AddTokenNoDup(var s:string;const s2:string;sep:char);
+      var
+        i,idx : integer;
+        again,add : boolean;
+      begin
+        add:=false;
+        idx:=0;
+        repeat
+          again:=false;
+          i:=posidx(s2,s,idx);
+          if (i=0) then
+           add:=true
+          else
+           if (i=1) then
+            begin
+              if (length(s)>length(s2)) and
+                 (s[length(s2)+1]<>sep) then
+               add:=true;
+            end
+          else
+           if (i>1) and
+              ((s[i-1]<>sep) or
+               ((length(s)>=i+length(s2)) and (s[i+length(s2)]<>sep))) then
+            begin
+              idx:=i+length(s2);
+              again:=true;
+            end;
+        until not again;
+        if add then
+         begin
+           if s='' then
+            s:=s2
+           else
+            s:=s+sep+s2;
+         end;
+      end;
+
 
 
 {****************************************************************************
@@ -640,6 +680,13 @@ implementation
           hs:=LowerCase(GetToken(hslst,','));
           if hs='' then
            break;
+          { target 'all' includes all targets }
+          if hs='all' then
+           begin
+             for t:=low(TTarget) to high(TTarget) do
+              include(FIncludeTargets,t);
+             break;
+           end;
           for t:=low(TTarget) to high(TTarget) do
            if hs=TargetStr[t] then
             include(FIncludeTargets,t);
@@ -1088,17 +1135,13 @@ implementation
       var
         hs,s : string;
       begin
-        { LCL Platform }
-        s:=GetVariable('lcl_platform',true);
-        if s='' then
-         SetVariable('lcl_platform','gtk',false);
         { Already set LCLDIR }
-        hs:=SubstVariables('$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM))');
+        hs:=SubstVariables('$(wildcard $(LCLDIR)/units)');
         { Load from environment }
         if hs='' then
          begin
            SetVariable('LCLDIR',GetEnv('LCLDIR'),false);
-           hs:=SubstVariables('$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM))');
+           hs:=SubstVariables('$(wildcard $(LCLDIR)/units)');
          end;
         { default_lcldir }
         if hs='' then
@@ -1114,20 +1157,20 @@ implementation
 {$endif}
                s:=ExtractFilePath(FFileName)+s;
               SetVariable('LCLDIR',s,false);
-              hs:=SubstVariables('$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM))');
+              hs:=SubstVariables('$(wildcard $(LCLDIR)/units)');
             end
          end;
         { OS defaults }
-{$ifdef UNIX}
         if hs='' then
          begin
-           hs:=SubstVariables('$(subst /units/$(LCL_PLATFORM),,$(firstword $(wildcard $(addsuffix /units/$(LCL_PLATFORM),$(BASEDIR)/lcl $(BASEDIR)))))');
+           hs:=SubstVariables('$(subst /units,,$(firstword $(wildcard $(addsuffix /units,$(BASEDIR)/lcl $(BASEDIR)))))');
            if hs<>'' then
             SetVariable('LCLDIR',hs,false);
          end;
+{$ifdef UNIX}
         if hs='' then
          begin
-           hs:=SubstVariables('$(subst /units/$(LCL_PLATFORM),,$(firstword $(wildcard $(addsuffix /lib/lazarus/units/$(LCL_PLATFORM),/usr/local /usr))))');
+           hs:=SubstVariables('$(subst /units,,$(firstword $(wildcard $(addsuffix /lib/lazarus/units,/usr/local /usr))))');
            if hs<>'' then
             SetVariable('LCLDIR',hs,false);
          end;
@@ -1434,7 +1477,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-01-06 21:50:04  peter
+  Revision 1.20  2002-01-27 21:42:35  peter
+    * -r option to process target dirs also
+    * default changed to build only for current target
+    * removed auto building of required packages
+    * removed makefile target because it causes problems with
+      an internal rule of make
+
+  Revision 1.19  2002/01/06 21:50:04  peter
     * lcl updates
     * small optimizes for package check
 
