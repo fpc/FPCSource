@@ -849,7 +849,7 @@ begin
      begin
         s:=strpas(hp);
         i:=pos('=',s);
-        if copy(s,1,i-1)=envvar then
+        if upcase(copy(s,1,i-1))=upcase(envvar) then
           begin
              getenv:=copy(s,i+1,length(s)-i);
              break;
@@ -881,7 +881,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.11  1998-10-22 15:32:38  pierre
+  Revision 1.12  1998-10-27 10:55:55  michael
+  * environment vars are case insensitive under WinNT/DOS
+
+  Revision 1.11  1998/10/22 15:32:38  pierre
    * fsplit adapted to long filenames
 
   Revision 1.10  1998/10/16 14:20:06  peter
