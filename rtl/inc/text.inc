@@ -56,7 +56,10 @@ Begin
    fmOutput : Flags:=$1101;
    fmAppend : Flags:=$1011;
   else
-   HandleError(102);
+   begin
+     InOutRes:=102;
+     exit;
+   end;
   End;
   Do_Open(t,PChar(@t.Name),Flags);
   t.CloseFunc:=@FileCloseFunc;
@@ -991,7 +994,7 @@ Begin
    ReadNumeric(f,hs,Base);
   Val(hs,l,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 
 
@@ -1004,8 +1007,9 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<-32768) or (ll>32767) Then
-   HandleError(106);
-  l:=ll;
+   InOutRes:=106
+  else
+   l:=ll;
 End;
 
 
@@ -1018,8 +1022,9 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>$ffff) Then
-   HandleError(106);
-  l:=ll;
+   InOutRes:=106
+  else
+   l:=ll;
 End;
 
 
@@ -1032,8 +1037,9 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>255) Then
-   HandleError(106);
-  l:=ll;
+   InOutRes:=106
+  else
+   l:=ll;
 End;
 
 
@@ -1046,8 +1052,9 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<-128) or (ll>127) Then
-   HandleError(106);
-  l:=ll;
+   InOutRes:=106
+  else
+   l:=ll;
 End;
 
 
@@ -1073,7 +1080,7 @@ Begin
    ReadNumeric(f,hs,Base);
   val(hs,l,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 
 
@@ -1125,7 +1132,7 @@ var
 Begin
   val(ReadRealStr(f),d,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 
 
@@ -1136,7 +1143,7 @@ var
 Begin
   val(ReadRealStr(f),d,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 {$endif SUPPORT_SINGLE}
 
@@ -1148,7 +1155,7 @@ var
 Begin
   val(ReadRealStr(f),d,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 {$endif SUPPORT_EXTENDED}
 
@@ -1160,7 +1167,7 @@ var
 Begin
   val(ReadRealStr(f),d,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 {$endif SUPPORT_COMP}
 
@@ -1172,7 +1179,7 @@ var
 Begin
   val(ReadRealStr(f),d,code);
   If code<>0 Then
-   HandleError(106);
+   InOutRes:=106;
 End;
 {$endif SUPPORT_FIXED}
 
@@ -1201,7 +1208,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  1999-03-01 15:41:04  peter
+  Revision 1.41  1999-03-02 18:23:37  peter
+    * changed so handlerror() -> inoutres:= to have $I- support
+
+  Revision 1.40  1999/03/01 15:41:04  peter
     * use external names
     * removed all direct assembler modes
 
