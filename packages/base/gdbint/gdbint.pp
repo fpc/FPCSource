@@ -2148,8 +2148,7 @@ const
   MaskAllExceptions = $ff;
 {$else}
 type
-  tfpustate : longint;
-
+  tfpustate = longint;
 const
   MaskAllExceptions = 0;
 {$endif}
@@ -2619,7 +2618,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-09-17 20:20:05  pierre
+  Revision 1.10  2002-09-27 17:49:09  pierre
+   * fix not i386 typo bug
+
+  Revision 1.9  2002/09/17 20:20:05  pierre
    * mask all fpu exceptions in GDB commands as GDB relies on that
 
   Revision 1.8  2002/09/07 15:42:52  peter
