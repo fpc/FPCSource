@@ -38,10 +38,20 @@ uses
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
+initialization
+  CommonInit;
+
+finalization
+  CommonCleanup;
+
 end.
 {
   $Log$
-  Revision 1.9  2000-04-01 10:45:52  hajny
+  Revision 1.10  2000-07-01 12:28:38  sg
+  * Added initialisation and finalisation code which is common to all
+    platforms.
+
+  Revision 1.9  2000/04/01 10:45:52  hajny
     OS/2 implementation started
 
   Revision 1.8  2000/01/07 01:24:34  peter

@@ -14,10 +14,10 @@
 
 // Generic text document class
 
+unit doc_text;
+
 {$MODE objfpc}
 {$H+}
-
-unit doc_text;
 
 interface
 
@@ -32,7 +32,7 @@ type
   end;
 
   PLineArray = ^TLineArray;
-  TLineArray = array[0..$7fffffff div SizeOf(TLine)] of TLine;
+  TLineArray = array[0..MaxInt div SizeOf(TLine) - 1] of TLine;
 
 const
 
@@ -105,12 +105,13 @@ type
 
 
 implementation
+
 uses Strings;
 
 
 constructor TTextDoc.Create;
 begin
-  FModified := false;
+  FModified := False;
 {$IFDEF Linux}
   LineEnding := #10;
 {$ELSE}
@@ -127,10 +128,12 @@ destructor TTextDoc.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to FLineCount - 1 do
-    SetLength(FLines^[i].s, 0);
   if Assigned(FLines) then
+  begin
+    for i := 0 to FLineCount - 1 do
+      SetLength(FLines^[i].s, 0);
     FreeMem(FLines);
+  end;
 
   FViewInfos.Free;
   inherited Destroy;
@@ -153,12 +156,14 @@ procedure TTextDoc.Clear;
 var
   i: Integer;
 begin
-  for i := 0 to FLineCount - 1 do
-    SetLength(FLines^[i].s, 0);
   if Assigned(FLines) then
+  begin
+    for i := 0 to FLineCount - 1 do
+      SetLength(FLines^[i].s, 0);
     FreeMem(FLines);
+    FLineCount:=0;
+  end;
 
-  FLineCount:=0;
   FLineWidth:=0;
 
   for i := 0 to FViewInfos.Count - 1 do
@@ -171,8 +176,9 @@ var
   l: PLine;
   i: Integer;
 begin
-  if BeforeLine > FLineCount then
-    exit;  // *** throw an intelligent exception
+  if (BeforeLine < 0) or (BeforeLine > FLineCount) then
+    exit;  // !!!: throw an exception
+
   ReAllocMem(FLines, (FLineCount + 1) * SizeOf(TLine));
   Move(FLines^[BeforeLine], FLines^[BeforeLine + 1], (FLineCount - BeforeLine) * SizeOf(TLine));
   l := @FLines^[BeforeLine];
@@ -217,32 +223,18 @@ procedure TTextDoc.LoadFromStream(AStream: TStream);
     i: Integer;
   begin
     // Expand tabs to spaces
+    s2 := '';
     for i := 1 to Length(s) do
-      if s[i] = #9 then begin
-        repeat s2 := s2 + ' ' until (Length(s2) mod 8) = 0;
+      if s[i] = #9 then
+      begin
+        repeat
+	  s2 := s2 + ' '
+	until (Length(s2) mod 8) = 0;
       end else
         s2 := s2 + s[i];
     AddLine(s2);
   end;
 
-{var
-  read: LongInt;
-  buf: Char;
-  s: String;
-begin
-  Clear;
-  SetLength(s, 0);
-  while True do begin
-    read := AStream.Read(buf, 1);
-    if read <= 0 then break;
-    if buf = #10 then begin
-      ProcessLine(s);
-      SetLength(s, 0);
-    end else
-      s := s + buf;
-  end;
-  ProcessLine(s);
-end;}
 var
   NewData: array[0..1023] of Byte;
   buffer, p: PChar;
@@ -254,9 +246,11 @@ begin
   BytesInBuffer := 0;
   buffer := nil;
 
-  while True do begin
+  while True do
+  begin
     BytesRead := AStream.Read(NewData, SizeOf(NewData));
-    if BytesRead <= 0 then break;
+    if BytesRead <= 0 then
+      break;
     OldBufSize := BytesInBuffer;
 
     // Append the new received data to the read buffer
@@ -270,8 +264,10 @@ begin
     else
       i := 0;
 
-    while i <= BytesInBuffer - 2 do begin
-      if (buffer[i] = #13) or (buffer[i] = #10) then begin
+    while i <= BytesInBuffer - 2 do
+    begin
+      if (buffer[i] = #13) or (buffer[i] = #10) then
+      begin
         LineLength := i - LastEndOfLine;
 	SetLength(line, LineLength);
 	if LineLength > 0 then
@@ -287,7 +283,8 @@ begin
       Inc(i);
     end;
 
-    if LastEndOfLine > 0 then begin
+    if LastEndOfLine > 0 then
+    begin
       // Remove all processed lines from the buffer
       Dec(BytesInBuffer, LastEndOfLine);
       GetMem(p, BytesInBuffer);
@@ -297,15 +294,19 @@ begin
     end;
   end;
 
- if BytesInBuffer > 0 then
-    if buffer[BytesInBuffer - 1] in [#13, #10] then begin
+  if BytesInBuffer > 0 then
+    if buffer[BytesInBuffer - 1] in [#13, #10] then
+    begin
       SetLength(line, BytesInBuffer - 1);
-      Move(buffer^, line[1], BytesInBuffer - 1);
+      if BytesInBuffer > 1 then
+        Move(buffer^, line[1], BytesInBuffer - 1);
       ProcessLine(line);
       ProcessLine('');
-    end else begin
+    end else
+    begin
       SetLength(line, BytesInBuffer);
-      Move(buffer^, line[1], BytesInBuffer);
+      if BytesInBuffer > 1 then
+        Move(buffer^, line[1], BytesInBuffer);
       ProcessLine(line);
     end;
 
@@ -327,7 +328,8 @@ procedure TTextDoc.SaveToStream(AStream: TStream);
 var
   i: Integer;
 begin
-  for i := 0 to FLineCount - 2 do begin
+  for i := 0 to FLineCount - 2 do
+  begin
     AStream.Write(FLines^[i].s, Length(FLines^[i].s));
     AStream.Write(FLineEnding, Length(FLineEnding));
   end;
@@ -348,7 +350,8 @@ procedure TTextDoc.SetModified(AModified: Boolean);
 var
   i: Integer;
 begin
-  if AModified = FModified then exit;
+  if AModified = FModified then
+    exit;
   FModified := AModified;
 
   for i := 0 to FViewInfos.Count - 1 do
@@ -368,7 +371,8 @@ procedure TTextDoc.SetLineText(LineNumber: Integer; const NewText: String);
 var
   i: Integer;
 begin
-  if FLines^[LineNumber].s <> NewText then begin
+  if FLines^[LineNumber].s <> NewText then
+  begin
     FLines^[LineNumber].s := NewText;
     if Length(NewText) > FLineWidth then
       FLineWidth := Length(NewText);
@@ -406,7 +410,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-02-24 13:32:10  sg
+  Revision 1.13  2000-07-01 12:28:38  sg
+  * Added initialisation and finalisation code which is common to all
+    platforms.
+
+  Revision 1.12  2000/02/24 13:32:10  sg
   * The last line in a document is now read correctly
 
   Revision 1.11  2000/02/22 14:26:52  sg

@@ -37,10 +37,20 @@ uses
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
+initialization
+  CommonInit;
+
+finalization
+  CommonCleanup;
+
 end.
 {
   $Log$
-  Revision 1.12  2000-01-07 00:01:33  peter
+  Revision 1.13  2000-07-01 12:28:38  sg
+  * Added initialisation and finalisation code which is common to all
+    platforms.
+
+  Revision 1.12  2000/01/07 00:01:33  peter
     * uses typinfo moved to interface
 
   Revision 1.11  2000/01/06 01:20:36  peter
