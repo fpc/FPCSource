@@ -405,7 +405,7 @@ unit i_bsd;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            first_parm_offset : 8;
+            first_parm_offset : 24;
             heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
@@ -443,7 +443,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-01-29 15:48:10  marco
+  Revision 1.9  2004-02-08 20:03:05  jonas
+    * corrected first_param_offset for darwin
+
+  Revision 1.8  2004/01/29 15:48:10  marco
    * fix added as comment till I can test (8 byte C alignment on netbsd/ppc)
 
   Revision 1.7  2004/01/21 20:53:51  marco
