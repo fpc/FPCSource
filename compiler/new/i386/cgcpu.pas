@@ -44,6 +44,7 @@ unit cgcpu;
 
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+          procedure tcg386.g_ret_from_proc(list : paasmoutput;para size : aword);
           constructor init;
        end;
 
@@ -122,10 +123,29 @@ unit cgcpu;
        begin
           list^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
        end;
+
+     procedure tcg386.g_ret_from_proc(list : paasmoutput;para size : aword);
+
+       begin
+          { parameters are limited to 65535 bytes because }
+          { ret allows only imm16                    }
+          if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+            CGMessage(cg_e_parasize_too_big);
+          { Routines with the poclearstack flag set use only a ret.}
+          { also routines with parasize=0     }
+          if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+            list^.concat(new(pai386,op_none(A_RET,S_NO)))
+          else
+            list^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
+       end;
+
 end.
 {
   $Log$
-  Revision 1.3  1999-08-06 13:26:54  florian
+  Revision 1.4  1999-08-06 14:15:56  florian
+    * made the alpha version compilable
+
+  Revision 1.3  1999/08/06 13:26:54  florian
     * more changes ...
 
   Revision 1.2  1999/08/01 23:19:59  florian

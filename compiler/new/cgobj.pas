@@ -1,6 +1,7 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-99 by Florian Klaempfl
+    Member of the Free Pascal development team
 
     This unit implements the basic code generator object
 
@@ -88,7 +89,6 @@ unit cgobj;
 
           procedure a_call_name(list : paasmoutput;const s : string;
             offset : longint);virtual;
-          procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
 
           { move instructions }
           procedure a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
@@ -101,7 +101,7 @@ unit cgobj;
 	    l : pasmlabel);virtual;
           procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
           procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
-          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;l : longint;reg : tregister;
+          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
 	    l : pasmlabel);
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
@@ -120,7 +120,7 @@ unit cgobj;
           procedure g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
           { that procedure pops a exception value                             }
           procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
-
+          procedure g_return_from_proc(list : paasmoutput;parasize : aword);virtual;
           {********************************************************}
           { these methods can be overriden for extra functionality }
 
@@ -188,6 +188,12 @@ unit cgobj;
          list^.concat(new(pairegalloc,dealloc(r)));
       end;
 
+    procedure tcg.a_label(list : paasmoutput;l : pasmlabel);
+
+      begin
+         list^.concat(new(pai_label,init(l)));
+      end;
+
 {*****************************************************************************
             this methods must be overridden for extra functionality
 ******************************************************************************}
@@ -211,16 +217,22 @@ unit cgobj;
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);
-
-      begin
-         a_push_reg(list,r);
-      end;
-
     procedure tcg.a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);
 
       begin
-         {!!!!!!!! a_push_const8(list,b); }
+         a_reg_alloc(list,scratch_register);
+         a_load_const_reg(list,size,a,scratch_register);
+         a_param_reg(list,size,scratch_register,nr);
+         a_reg_dealloc(list,scratch_register);
+      end;
+
+    procedure tcg.a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);
+
+      begin
+         a_reg_alloc(list,scratch_register);
+         a_load_ref_reg(list,size,r,scratch_register);
+         a_param_reg(list,size,scratch_register,nr);
+         a_reg_dealloc(list,scratch_register);
       end;
 
     procedure tcg.a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);
@@ -462,10 +474,10 @@ unit cgobj;
                                tg.availabletempregsmm)) then
                        begin
                           if not(r in tg.usedinproc) then
-                            a_push_reg(list,r)
+                            {!!!!!!!!!!!! a_push_reg(list,r) }
                        end
                      else
-                       a_push_reg(list,r);
+                       {!!!!!!!! a_push_reg(list,r) };
                 end;
            end;
         { omit stack frame ? }
@@ -736,19 +748,7 @@ unit cgobj;
            if po_interrupt in aktprocsym^.definition^.procoptions then
              g_interrupt_stackframe_exit(list)
          else
-          begin
-         { parameters are limited to 65535 bytes because }
-         { ret allows only imm16                    }
-         if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
-          CGMessage(cg_e_parasize_too_big);
-          {Routines with the poclearstack flag set use only a ret.}
-          { also routines with parasize=0     }
-            if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
-             exprasmlist^.concat(new(pai386,op_none(A_RET,S_NO)))
-            else
-             exprasmlist^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
-          end;
-
+           g_return_from_proc(list,parasize);
          list^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
 
     {$ifdef GDB}
@@ -798,20 +798,8 @@ unit cgobj;
                        some abstract definitions
  ****************************************************************************}
 
-    procedure tcg.a_push_reg(list : paasmoutput;r : tregister);
-
-      begin
-         abstract;
-      end;
-
     procedure tcg.a_call_name(list : paasmoutput;const s : string;
       offset : longint);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_const_ref(list : paasmoutput;a : aword;const ref : treference);
 
       begin
          abstract;
@@ -835,7 +823,13 @@ unit cgobj;
          abstract;
       end;
 
-    procedure tcg.a_loadaddress_ref_reg(list : paasmoutput;ref : treference;r : tregister);
+    procedure g_return_from_proc(list : paasmoutput;parasize : aword);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);
 
       begin
          abstract;
@@ -853,13 +847,75 @@ unit cgobj;
          abstract;
       end;
 
-    procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);
+    procedure tcg.g_pop_exception_value_reg(list : paasmoutput;reg : tregister);
 
       begin
          abstract;
       end;
 
-    procedure a_param_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+    procedure tcg.a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister;
+      l : pasmlabel);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+     l : pasmlabel);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.g_return_from_proc(list : paasmoutput;parasize : aword);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);
 
       begin
          abstract;
@@ -868,7 +924,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.13  1999-08-06 13:26:50  florian
+  Revision 1.14  1999-08-06 14:15:51  florian
+    * made the alpha version compilable
+
+  Revision 1.13  1999/08/06 13:26:50  florian
     * more changes ...
 
   Revision 1.12  1999/08/05 17:10:56  florian

@@ -44,13 +44,13 @@ type
      LS,LU : longint;
     Constructor init (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
     end;
-    
+
   paient = ^taient;
   taient = object(tai)
     Name : string;
     Constructor Init (ProcName : String);
     end;
-     
+
 
   paialpha = ^taialpha;
   taialpha = object(tai)
@@ -78,10 +78,11 @@ type
      constructor op_ref_ref(op : tasmop;_op1,_op2 : preference);
 
      constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
-     constructor op_const_reg_reg(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : tregister);
+     constructor op_reg_const_reg(op : tasmop;_op1 : tregister;_op2 : longint;_op3 : tregister);
      constructor op_const_ref_reg(op : tasmop;_op1 : longint;_op2 : preference;_op3 : tregister);
      constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3 : preference);
      constructor op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
+     constructor op_reg_ref_const(op : tasmop;_op1 : tregister;_op2 : preference;_op3 : longint);
 
      { this is for Jmp instructions }
      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
@@ -239,7 +240,7 @@ implementation
          ops:=3;
       end;
 
-    constructor taialpha.op_const_reg_reg(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : tregister);
+    constructor taialpha.op_reg_const_reg(op : tasmop;_op1 : tregister;_op2 : longint;_op3 : tregister);
       begin
          inherited init;
          init(op);
@@ -261,6 +262,13 @@ implementation
       end;
 
      constructor taialpha.op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
+      begin
+         inherited init;
+         init(op);
+         ops:=3;
+      end;
+
+     constructor taialpha.op_reg_ref_const(op : tasmop;_op1 : tregister;_op2 : preference;_op3 : longint);
       begin
          inherited init;
          init(op);
@@ -356,7 +364,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1999-08-05 15:50:33  michael
+  Revision 1.3  1999-08-06 14:15:54  florian
+    * made the alpha version compilable
+
+  Revision 1.2  1999/08/05 15:50:33  michael
   * more changes
 
   Revision 1.1  1999/08/03 00:24:01  michael

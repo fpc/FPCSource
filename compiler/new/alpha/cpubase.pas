@@ -105,6 +105,7 @@ Const
   accumulator   = R_0;
   global_pointer = R_29;
   scratch_register = R_1;
+  return_pointer = R_26;
 
   cpuflags = [cf_64bitaddr];
 
@@ -237,7 +238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-06 13:26:53  florian
+  Revision 1.10  1999-08-06 14:15:55  florian
+    * made the alpha version compilable
+
+  Revision 1.9  1999/08/06 13:26:53  florian
     * more changes ...
 
   Revision 1.8  1999/08/05 17:10:58  florian
