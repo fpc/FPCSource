@@ -28,18 +28,6 @@ unit aasm;
        globtype,systems,cobjects,files,globals;
 
     type
-       { Types of operand }
-        toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-
-        toper=record
-          ot  : longint;
-          case typ : toptype of
-           top_none   : ();
-           top_reg    : (reg:tregister);
-           top_ref    : (ref:preference);
-           top_const  : (val:longint);
-           top_symbol : (sym:pasmsymbol;symofs:longint);
-        end;
 
        tait = (
           ait_none,
@@ -978,7 +966,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.56  1999-08-02 20:45:47  michael
+  Revision 1.57  1999-08-02 21:01:41  michael
+  * Moved toperand type back =(
+
+  Revision 1.56  1999/08/02 20:45:47  michael
   * Moved toperand type to aasm
 
   Revision 1.55  1999/08/01 23:55:55  michael

@@ -465,6 +465,24 @@ const
 
 
 {*****************************************************************************
+                                Operands
+*****************************************************************************}
+
+
+       { Types of operand }
+        toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+
+        toper=record
+          ot  : longint;
+          case typ : toptype of
+           top_none   : ();
+           top_reg    : (reg:tregister);
+           top_ref    : (ref:preference);
+           top_const  : (val:longint);
+           top_symbol : (sym:pasmsymbol;symofs:longint);
+        end;
+
+{*****************************************************************************
                                 Conditions
 *****************************************************************************}
 
@@ -989,7 +1007,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-08-02 20:45:49  michael
+  Revision 1.9  1999-08-02 21:01:45  michael
+  * Moved toperand type back =(
+
+  Revision 1.8  1999/08/02 20:45:49  michael
   * Moved toperand type to aasm
 
   Revision 1.7  1999/08/02 17:17:09  florian
