@@ -235,6 +235,7 @@ endif
 export PPC_OS
 CPU_UNITDIR=.
 UTILSDIR=../utils
+COMPILERSOURCEDIR=$(PPC_TARGET) systems
 COMPILERUTILSDIR=utils
 ifndef FPCLANG
 FPCLANG=e
@@ -319,7 +320,7 @@ override FPCOPT:=$(LOCALOPT)
 override TARGET_DIRS+=utils
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(PPC_TARGET)
-override COMPILER_UNITDIR+=$(PPC_TARGET) systems
+override COMPILER_UNITDIR+=$(COMPILERSOURCEDIR)
 override COMPILER_TARGETDIR+=$(CPU_UNITDIR)
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1607,7 +1608,7 @@ echotime:
 	@echo Start $(STARTTIME) now $(ENDTIME)
 ppuclean:
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-	-$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILER_UNITDIR))
+	-$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILERSOURCEDIR))
 execlean :
 	-$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
 $(addsuffix _clean,$(CYCLETARGETS)):

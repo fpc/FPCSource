@@ -11,7 +11,7 @@ dirs=utils
 
 [compiler]
 targetdir=$(CPU_UNITDIR)
-unitdir=$(PPC_TARGET) systems
+unitdir=$(COMPILERSOURCEDIR)
 includedir=$(PPC_TARGET)
 
 [require]
@@ -71,6 +71,9 @@ CPU_UNITDIR=.
 
 # RTL
 UTILSDIR=../utils
+
+# Directories containing compiler sources
+COMPILERSOURCEDIR=$(PPC_TARGET) systems
 
 # Utils used by compiler development/installation
 COMPILERUTILSDIR=utils
@@ -290,7 +293,7 @@ echotime:
 
 ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-        -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILER_UNITDIR))
+        -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILERSOURCEDIR))
 
 execlean :
         -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
