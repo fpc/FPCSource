@@ -980,6 +980,12 @@ implementation
 	while assigned(pd) do
 	    begin
 		a:=is_equal(retdef,pd^.def.rettype.def);
+		{Alert alert alert alert alert alert alert!!!
+
+		 Make sure you never call isconvertable when a=false. You get
+		 endless recursion then.  Originally a and b were placed in a
+		 single if statement. There was only one reason that it worked:
+		 short circuit boolean eval.}
 		if a then
 		    case matchtype of
 			dm_exact:
@@ -2666,7 +2672,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-07-23 09:51:26  daniel
+  Revision 1.46  2002-07-23 10:13:23  daniel
+  * Added important comment
+
+  Revision 1.45  2002/07/23 09:51:26  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 
