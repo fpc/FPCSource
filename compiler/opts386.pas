@@ -50,7 +50,10 @@ begin
              Begin
                case opt[j] of
                  '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
-                           cs_regalloc,cs_uncertainopts];
+                           cs_regalloc,cs_uncertainopts,cs_align];
+{$ifdef OPTALIGN}
+                 'a' : initglobalswitches:=initglobalswitches+[cs_align];
+{$endif OPTALIGN}
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' : initglobalswitches:=initglobalswitches+[cs_regalloc];
@@ -111,7 +114,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-02-09 13:22:55  peter
+  Revision 1.20  2000-05-31 06:58:50  florian
+    * first implementation of -Oa switch
+
+  Revision 1.19  2000/02/09 13:22:55  peter
     * log truncated
 
   Revision 1.18  2000/01/23 21:29:17  florian

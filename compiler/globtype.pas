@@ -96,7 +96,7 @@ interface
          cs_load_gpc_unit,
          { optimizer }
          cs_regalloc,cs_uncertainopts,cs_littlesize,cs_optimize,
-         cs_fastoptimize, cs_slowoptimize,
+         cs_fastoptimize, cs_slowoptimize,cs_align,
          { browser }
          cs_browser_log,
          { debugger }
@@ -199,7 +199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2000-05-16 20:19:05  pierre
+  Revision 1.31  2000-05-31 06:57:11  florian
+    * first implementation of -Oa switch
+
+  Revision 1.30  2000/05/16 20:19:05  pierre
     + -CR option to enable check for object virtual method
 
   Revision 1.29  2000/02/28 17:23:57  daniel
