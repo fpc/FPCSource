@@ -2171,7 +2171,7 @@ implementation
           { sets are not recognized by GDB}
           {***}
       end;
-      stabstring:=stabstr_evaluate('"${name}:c=$1",${N_FUNCTION},0,${line},0;',[st]);
+      stabstring:=stabstr_evaluate('"${name}:c=$1;",${N_FUNCTION},0,${line},0',[st]);
     end;
 {$endif GDB}
 
@@ -2547,7 +2547,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2004-01-26 22:08:20  daniel
+  Revision 1.147  2004-01-27 22:45:30  daniel
+    * Stab generation bug fixed
+
+  Revision 1.146  2004/01/26 22:08:20  daniel
     * Bugfix on constant strings stab generation. Never worked and still
       doesn't work for unknown reasons.
 
