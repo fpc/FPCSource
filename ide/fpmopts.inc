@@ -968,7 +968,7 @@ end;
 
 procedure TIDEApp.CodeTemplates;
 begin
-  ExecuteDialog(New(PCodeTemplatesDialog, Init(false)),nil);
+  ExecuteDialog(New(PCodeTemplatesDialog, Init(false,'')),nil);
 end;
 
 procedure TIDEApp.BrowserOptions(Browser: PBrowserWindow);
@@ -1285,7 +1285,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-01-24 09:21:42  pierre
+  Revision 1.7  2002-09-04 08:52:46  pierre
+   * adapt to fpcodtmp interface change
+
+  Revision 1.6  2002/01/24 09:21:42  pierre
    * only disable Alt-X in Options|Compiler dialog
 
   Revision 1.5  2001/11/09 11:14:40  pierre
