@@ -1,0 +1,546 @@
+{ TFPCustomCanvas }
+
+constructor TFPCustomCanvas.Create;
+begin
+  inherited create;
+  FClipRect := Rect(-1,-1,-1,-1);
+  FClipping := false;
+  FRemovingHelpers := false;
+  FHelpers := TList.Create;
+  FDefaultFont := CreateDefaultFont;
+  FDefaultPen := CreateDefaultPen;
+  FDefaultBrush := CreateDefaultBrush;
+end;
+
+destructor TFPCustomCanvas.Destroy;
+begin
+  FRemovingHelpers := True;
+  FDefaultFont.Free;
+  FDefaultBrush.Free;
+  FDefaultPen.Free;
+  RemoveHelpers;
+  FHelpers.Free;
+  FRemovingHelpers := False;
+  inherited;
+end;
+
+procedure TFPCustomCanvas.CheckHelper (AHelper:TFPCanvasHelper);
+var r : integer;
+begin
+  if AHelper = FPen then
+    FPen := nil
+  else if AHelper = FFont then
+    FFont := nil
+  else if AHelper = FBrush then
+    FBrush := nil;
+  if not FRemovingHelpers then
+    begin
+    if AHelper = FDefaultFont then
+      FDefaultFont := CreateDefaultFont
+    else if AHelper = FDefaultPen then
+      FDefaultPen := CreateDefaultPen
+    else if AHelper = FDefaultBrush then
+      FDefaultBrush := CreateDefaultBrush;
+    end;
+  r := FHelpers.IndexOf (AHelper);
+  if (r >= 0) then
+    FHelpers.delete (r);
+end;
+
+procedure TFPCustomCanvas.RemoveHelpers;
+var r : integer;
+    OldState : boolean;
+begin
+  for r := FHelpers.count-1 downto 0 do
+    with TFPCanvasHelper(FHelpers[r]) do
+      if FCanvas = self then
+        if FFixedCanvas then
+          DeallocateResources
+        else
+          FCanvas := nil;
+  FHelpers.Clear;
+end;
+
+procedure TFPCustomCanvas.AddHelper (AHelper : TFPCanvasHelper);
+var r : integer;
+begin
+  r := FHelpers.IndexOf (AHelper);
+  if r < 0 then
+    FHelpers.Add (AHelper);
+end;
+
+function TFPCustomCanvas.CreateDefaultFont : TFPCustomFont;
+begin
+  result := DoCreateDefaultFont;
+  if not assigned (result) then
+    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EPen])
+  else
+    begin
+    result.AllocateResources (self);
+    FHelpers.Add (result);
+    end;
+end;
+
+function TFPCustomCanvas.CreateDefaultPen : TFPCustomPen;
+begin
+  result := DoCreateDefaultPen;
+  if not assigned (result) then
+    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EPen])
+  else
+    begin
+    result.AllocateResources (self);
+    FHelpers.Add (result);
+    end;
+end;
+
+function TFPCustomCanvas.CreateDefaultBrush : TFPCustomBrush;
+begin
+  result := DoCreateDefaultBrush;
+  if not assigned (result) then
+    raise TFPCanvasException.CreateFmt (ErrCouldNotCreate, [EPen])
+  else
+    begin
+    result.AllocateResources (self);
+    FHelpers.Add (result);
+    end;
+end;
+
+function TFPCustomCanvas.CreateFont : TFPCustomFont;
+begin
+  result := DoCreateDefaultFont;
+end;
+
+function TFPCustomCanvas.CreatePen : TFPCustomPen;
+begin
+  result := DoCreateDefaultPen;
+end;
+
+function TFPCustomCanvas.CreateBrush : TFPCustomBrush;
+begin
+  result := DoCreateDefaultBrush;
+end;
+
+function TFPCustomCanvas.AllowFont (AFont : TFPCustomFont) : boolean;
+begin
+  if AFont is TFPCustomDrawFont then
+    result := true
+  else
+    result := DoAllowFont (AFont);
+end;
+
+procedure TFPCustomCanvas.SetFont (AValue:TFPCustomFont);
+begin
+  if (AValue <> FFont) and AllowFont(AValue) then
+    begin
+    AValue.AllocateResources (self);
+    FFont := AValue;
+    AddHelper (AValue);
+    end;
+end;
+
+function TFPCustomCanvas.GetFont : TFPCustomFont;
+begin
+  if assigned (FFont) then
+    result := FFont
+  else
+    result := FDefaultFont;
+end;
+
+function TFPCustomCanvas.DoAllowFont (AFont : TFPCustomFont) : boolean;
+begin
+  result := false;
+end;
+
+function TFPCustomCanvas.AllowBrush (ABrush : TFPCustomBrush) : boolean;
+begin
+  if ABrush is TFPCustomDrawBrush then
+    result := true
+  else
+    result := DoAllowBrush (ABrush);
+end;
+
+procedure TFPCustomCanvas.SetBrush (AValue:TFPCustomBrush);
+begin
+  if (AValue <> FBrush) and AllowBrush(AValue) then
+    begin
+    AValue.AllocateResources (self);
+    FBrush := AValue;
+    AddHelper (AValue);
+    end;
+end;
+
+function TFPCustomCanvas.GetBrush : TFPCustomBrush;
+begin
+  if assigned (FBrush) then
+    result := FBrush
+  else
+    result := FDefaultBrush
+end;
+
+function TFPCustomCanvas.DoAllowBrush (ABrush : TFPCustomBrush) : boolean;
+begin
+  result := false;
+end;
+
+function TFPCustomCanvas.AllowPen (APen : TFPCustomPen) : boolean;
+begin
+  if APen is TFPCustomDrawPen then
+    result := true
+  else
+    result := DoAllowPen (APen);
+end;
+
+procedure TFPCustomCanvas.SetPen (AValue:TFPCustomPen);
+begin
+  if (AValue <> FPen) and AllowPen (AValue) then
+    begin
+    AValue.AllocateResources (self);
+    FPen := AValue;
+    AddHelper (AValue);
+    end;
+end;
+
+function TFPCustomCanvas.GetPen : TFPCustomPen;
+begin
+  if assigned (FPen) then
+    result := FPen
+  else
+    result := FDefaultPen;
+end;
+
+function TFPCustomCanvas.DoAllowPen (APen : TFPCustomPen) : boolean;
+begin
+  result := false;
+end;
+
+procedure TFPCustomCanvas.DoLockCanvas;
+begin
+end;
+
+procedure TFPCustomCanvas.DoUnlockCanvas;
+begin
+end;
+
+procedure TFPCustomCanvas.LockCanvas;
+begin
+  if FLocks = 0 then
+    DoLockCanvas;
+  inc (FLocks);
+end;
+
+procedure TFPCustomCanvas.UnlockCanvas;
+begin
+  if FLocks > 0 then
+    begin
+    dec (FLocks);
+    if FLocks = 0 then
+      DoUnlockCanvas;
+    end
+  else
+    raise TFPCanvasException.Create (ErrNoLock);
+end;
+
+procedure TFPCustomCanvas.TextOut (x,y:integer;text:string);
+begin
+  if Font is TFPCustomDrawFont then
+    TFPCustomDrawFont(Font).DrawText(x,y, text)
+  else
+    DoTextOut (x,y, text);
+end;
+
+procedure TFPCustomCanvas.GetTextSize (text:string; var w,h:integer);
+begin
+  if Font is TFPCustomDrawFont then
+    TFPCustomDrawFont(Font).GetTextSize (text, w, h)
+  else
+    DoGetTextSize (Text, w, h);
+end;
+
+function TFPCustomCanvas.GetTextHeight (text:string) : integer;
+begin
+  if Font is TFPCustomDrawFont then
+    result := TFPCustomDrawFont(Font).GetTextHeight (text)
+  else
+    result := DoGetTextHeight (Text);
+end;
+
+function TFPCustomCanvas.GetTextWidth (text:string) : integer;
+begin
+  if Font is TFPCustomDrawFont then
+    result := TFPCustomDrawFont(Font).GetTextWidth (text)
+  else
+    result := DoGetTextWidth (Text);
+end;
+
+procedure TFPCustomCanvas.DoMoveTo (x,y:integer);
+begin
+end;
+
+procedure TFPCustomCanvas.DoLineTo (x,y:integer);
+begin
+  DoLine (FCurrent.X,FCurrent.y, x,y);
+end;
+
+procedure TFPCustomCanvas.MoveTo (x,y:integer);
+begin
+  FCurrent.x := x;
+  FCurrent.y := y;
+  DoMoveTo (x,y);
+end;
+
+procedure TFPCustomCanvas.MoveTo (p:TPoint);
+begin
+  FCurrent := p;
+  DoMoveTo (p.x,p.y);
+end;
+
+procedure TFPCustomCanvas.LineTo (x,y:integer);
+begin
+  if Pen.Style <> psClear then
+    if Pen is TFPCustomDrawPen then
+      TFPCustomDrawPen(Pen).DrawLine (FCurrent.x, FCurrent.y, x, y)
+    else
+      DoLineTo (x,y);
+  FCurrent.x := x;
+  FCurrent.y := y;
+end;
+
+procedure TFPCustomCanvas.LineTo (p:TPoint);
+begin
+  LineTo (p.x, p.y);
+end;
+
+procedure TFPCustomCanvas.Line (x1,y1,x2,y2:integer);
+begin
+  if Pen.Style <> psClear then
+    if Pen is TFPCustomDrawPen then
+      TFPCustomDrawPen(Pen).DrawLine (x1,y1, x2,y2)
+    else
+      DoLine (x1,y1, x2,y2);
+  FCurrent.x := x2;
+  FCurrent.y := y2;
+end;
+
+procedure TFPCustomCanvas.Line (p1,p2:TPoint);
+begin
+  Line (p1.x,p1.y,p2.x,p2.y);
+end;
+
+procedure TFPCustomCanvas.Line (points:TRect);
+begin
+  with points do
+    Line (left,top, right,bottom);
+end;
+
+procedure TFPCustomCanvas.Polyline (points:array of TPoint);
+begin
+  if Pen.Style <> psClear then
+   if Pen is TFPCustomDrawPen then
+     TFPCustomDrawPen(Pen).Polyline (points,false)
+   else
+     DoPolyline (points);
+  FCurrent := points[high(points)];
+end;
+
+procedure TFPCustomCanvas.Clear;
+var r : TRect;
+begin
+  if Brush.Style <> bsClear then
+    begin
+    if Brush is TFPCustomDrawBrush then
+      TFPCustomDrawBrush(Brush).Rectangle(0,0, width, height)
+    else
+      begin
+      r := Rect(0,0, width, height);
+      DoRectangleFill (r);
+      end;
+    end;
+end;
+
+procedure TFPCustomCanvas.DoRectangleAndFill (Bounds:TRect);
+begin
+  DoRectangleFill (Bounds);
+  DoRectangle (Bounds);
+end;
+
+procedure TFPCustomCanvas.DoEllipseAndFill (Bounds:TRect);
+begin
+  DoEllipseFill (Bounds);
+  DoEllipse (Bounds);
+end;
+
+procedure TFPCustomCanvas.DoPolygonAndFill (points:array of TPoint);
+begin
+  DoPolygonFill (points);
+  DoPolygon (points);
+end;
+
+procedure TFPCustomCanvas.Ellipse (Bounds:TRect);
+var p,b,dp,db,pb : boolean;
+begin
+  p := Pen.style <> psClear;
+  b := Brush.style <> bsClear;
+  if p and (Pen is TFPCustomDrawPen) then
+      begin
+      p := false;
+      dp := true;
+      end;
+  if b and (Brush is TFPCustomDrawBrush) then
+      begin
+      b := false;
+      db := true;
+      end;
+  if p and b then
+    begin
+    p := false;
+    b := false;
+    pb := true;
+    end;
+  if pb then
+    DoEllipseAndFill (bounds)
+  else
+    begin
+    if p then
+      DoEllipse (bounds)
+    else
+      with bounds do
+        TFPCustomDrawPen(Pen).Ellipse (left,top,right,bottom);
+    if b then
+      DoEllipseFill (bounds)
+    else
+      with bounds do
+        TFPCustomDrawBrush(Brush).Ellipse (left,top,right,bottom);
+    end;
+end;
+
+procedure TFPCustomCanvas.Ellipse (left,top,right,bottom:integer);
+var b : TRect;
+begin
+  Ellipse (Rect(left,top,right,bottom));
+end;
+
+procedure TFPCustomCanvas.Rectangle (left,top,right,bottom:integer);
+begin
+  Rectangle (Rect(left,top,right,bottom));
+end;
+
+procedure TFPCustomCanvas.Rectangle (Bounds:TRect);
+var p,b,dp,db,pb : boolean;
+begin
+  p := Pen.style <> psClear;
+  b := Brush.style <> bsClear;
+  if p and (pen is TFPCustomDrawPen) then
+      begin
+      p := false;
+      dp := true;
+      end;
+  if b and (brush is TFPCustomDrawBrush) then
+      begin
+      b := false;
+      db := true;
+      end;
+  if p and b then
+    begin
+    p := false;
+    b := false;
+    pb := true;
+    end;
+  if pb then
+    DoRectangleAndFill (bounds)
+  else
+    begin
+    if p then
+      DoRectangle (bounds)
+    else
+      with bounds do
+        TFPCustomDrawPen(Pen).Rectangle (left,top,right,bottom);
+    if b then
+      DoRectangleFill (bounds)
+    else
+      with bounds do
+        TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
+    end;
+end;
+
+procedure TFPCustomCanvas.FloodFill (x,y:integer);
+begin
+  if Brush.Style <> bsClear then
+    begin
+    if Brush is TFPCustomDrawBrush then
+      TFPCustomDrawBrush (Brush).FloodFill (x,y)
+    else
+      DoFloodFill (x,y); 
+    end;
+end;
+
+procedure TFPCustomCanvas.Polygon (points:array of TPoint);
+var p,b,dp,db,pb : boolean;
+begin
+  p := Pen.style <> psClear;
+  b := Brush.style <> bsClear;
+  if p and (pen is TFPCustomDrawPen) then
+      begin
+      p := false;
+      dp := true;
+      end;
+  if b and (brush is TFPCustomDrawBrush) then
+      begin
+      b := false;
+      db := true;
+      end;
+  if p and b then
+    begin
+    p := false;
+    b := false;
+    pb := true;
+    end;
+  if pb then
+    DoPolygonAndFill (points)
+  else
+    begin
+    if p then
+      DoPolygon (points)
+    else
+      TFPCustomDrawPen(Pen).Polyline (points, true);
+    if b then
+      DoPolygonFill (points)
+    else
+      TFPCustomDrawBrush(Brush).Polygon (points);
+    end;
+end;
+
+procedure TFPCustomCanvas.CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
+var xx,r,t : integer;
+begin
+  SortRect (SourceRect);
+  with SourceRect do
+    for r := left to right do
+      begin
+      xx := r - left + x; 
+      for t := bottom to top do
+        colors[xx,(t - bottom + y)] := canvas.colors[r,t];
+      end;
+end;
+
+procedure TFPCustomCanvas.Draw (x,y:integer; image:TFPCustomImage);
+var xx,xi,yi,xm,ym,r,t : integer;
+begin
+  xm := x + image.width-1;
+  if xm >= width then
+    xm := width - 1;
+  ym := y + image.height-1;
+  if ym >= height then
+    ym := height - 1;
+  xi := x;
+  yi := y;
+  if clipping then
+    CheckRectClipping (ClipRect, xi,yi, xm,ym);
+  for r := xi to xm do
+    begin
+    xx := r - x;
+    for t := yi to ym do
+      colors [r,t] := image.colors[xx,t-y];
+    end;
+end;
+
+
