@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Free Pascal installation script for Unixy platforms.
 # Copyright 1996-2004 Michael Van Canneyt, Marco van de Voort and Peter Vreman
