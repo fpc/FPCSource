@@ -313,7 +313,7 @@ implementation
                      if isreal then
                       CGMessage(type_e_mismatch)
                      else
-                      hp:=cordconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
+                      hp:=cpointerconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
                    end;
                  in_const_sqrt :
                    begin
@@ -634,6 +634,7 @@ implementation
                         { check type }
                         while assigned(ppn.right) do
                           begin
+                             set_varstate(ppn.left,true);
                              inserttypeconv(ppn.left,s32bittype);
                              inc(counter);
                              ppn:=tcallparanode(ppn.right);
@@ -1720,7 +1721,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2001-04-13 01:22:09  peter
+  Revision 1.37  2001-04-13 22:22:30  peter
+    * call set_varstate for setlength
+    * ptr returns pointerconstnode instead of ordconstnode
+
+  Revision 1.36  2001/04/13 01:22:09  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
