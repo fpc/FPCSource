@@ -52,6 +52,7 @@ type
     procedure GetFace;
   public
     constructor create; override;
+    destructor Destroy; override;
     property FontIndex : integer read FIndex write SetIndex;
     property Resolution : longword read FResolution write FResolution;
     property AntiAliased : boolean read FAntiAliased write FAntiAliased;
@@ -88,6 +89,12 @@ begin
   FFontID := -1;
   FAntiAliased := True;
   FResolution := DefaultResolution;
+end;
+
+destructor TFreeTypeFont.Destroy;
+begin
+  ClearLastText;
+  inherited Destroy;
 end;
 
 procedure TFreeTypeFont.DoCopyProps (From:TFPCanvasHelper);

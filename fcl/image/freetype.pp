@@ -416,7 +416,7 @@ function TFontManager.CreateSize (aSize, aResolution : integer) : PMgrSize;
 begin
   new (result);
   result^.Size := aSize;
-  result^.Size := aResolution;
+  result^.Resolution := aResolution;
   result^.Glyphs := Tlist.Create;
   SetPixelSize (aSize,aResolution);
   CurFont.FSizes.Add (result);
@@ -497,14 +497,14 @@ var r : integer;
 begin
   With CurSize^ do
     begin
-    r := FList.Count;
+    r := Glyphs.Count;
     repeat
       dec (r)
-    until (r < 0) or (PMgrGlyph(Flist[r])^.character = c);
+    until (r < 0) or (PMgrGlyph(Glyphs[r])^.character = c);
     if r < 0 then
       result := CreateGlyph (c)
     else
-      result := PMgrGlyph(Flist[r]);
+      result := PMgrGlyph(Glyphs[r]);
     end;
 end;
 
