@@ -532,6 +532,7 @@ implementation
          jumptable_no_range : boolean;
          { where to put the jump table }
          jumpsegment : paasmoutput;
+         min_label : longint;
 
       procedure gentreejmp(p : pcaserecord);
 
@@ -576,6 +577,51 @@ implementation
           if assigned(p^.greater) then
            gentreejmp(p^.greater);
       end;
+
+      procedure genlinearcmplist(hp : pcaserecord);
+
+        var
+           first : boolean;
+           last : longint;
+
+        procedure genitem(t : pcaserecord);
+
+          begin
+             if assigned(t^.less) then
+               genitem(t^.less);
+             if t^._low=t^._high then
+               begin
+                  emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                  emitjmp(C_Z,t^.statement);
+                  last:=t^._low;
+               end
+             else
+               begin
+                  { if there is no unused label between the last and the }
+                  { present label then the lower limit can be checked    }
+                  { immediately. else check the range in between:        }
+                  if first or (t^._low-last>1) then
+                    begin
+                       emit_const_reg(A_CMP,opsize,t^._low,hregister);
+                       emitjmp(jmp_le,elselabel);
+                    end;
+
+                  emit_const_reg(A_CMP,opsize,t^._high,hregister);
+                  emitjmp(jmp_lee,t^.statement);
+
+                  last:=t^._high;
+               end;
+             first:=false;
+             if assigned(t^.greater) then
+               genitem(t^.greater);
+          end;
+
+        begin
+           last:=0;
+           first:=true;
+           genitem(hp);
+           emitjmp(C_None,elselabel);
+        end;
 
       procedure genlinearlist(hp : pcaserecord);
 
@@ -646,10 +692,16 @@ implementation
           end;
 
         begin
-           last:=0;
-           first:=true;
-           genitem(hp);
-           emitjmp(C_None,elselabel);
+           { do we need to generate cmps? }
+           if with_sign and (min_label<0) then
+             genlinearcmplist(hp)
+           else
+             begin
+                last:=0;
+                first:=true;
+                genitem(hp);
+                emitjmp(C_None,elselabel);
+             end;
         end;
 
       procedure genjumptable(hp : pcaserecord;min_,max_ : longint);
@@ -729,7 +781,7 @@ implementation
         end;
 
       var
-         lv,hv,min_label,max_label,labels : longint;
+         lv,hv,max_label,labels : longint;
          max_linear_list : longint;
 {$ifdef Delphi}
          dist : cardinal;
@@ -904,7 +956,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2000-05-11 09:56:20  pierre
+  Revision 1.51  2000-05-16 18:56:04  florian
+    * fixed a problem with case and negative labels if a linear list
+      was generated (fixes tests\test\testcase)
+
+  Revision 1.50  2000/05/11 09:56:20  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan
