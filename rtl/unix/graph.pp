@@ -396,6 +396,9 @@ begin
   Xmax:=StartXViewPort+ViewWidth-1;
   For i:=StartYViewPort to StartYViewPort+ViewHeight-1 do
     vga_drawline(StartXViewPort,I,Xmax,I);
+  { reset coordinates }
+  CurrentX := 0;
+  CurrentY := 0;
 end;
 
 { Bitmap utilities }
@@ -598,7 +601,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-04-13 23:49:48  peter
+  Revision 1.6  2001-11-19 13:56:57  jonas
+      * fixed libvga_ClrViewProc (it didn't reset the coords to (0,0))
+        (merged)
+
+  Revision 1.5  2001/04/13 23:49:48  peter
     * fixes for the stricter compiler
 
   Revision 1.4  2001/01/21 20:21:40  marco
