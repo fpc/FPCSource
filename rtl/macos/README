@@ -17,6 +17,9 @@ and add these options:
 -al	# dont delete asm output
 -s	# dont generate executable
 
+Note that at the moment, FPC yells about not supporting 
+creating of executables at the platform, nevertheless
+it creates all asm files to produce an application on the Mac.
 
 
 Use MPW to assemble and link the output from FreePascal
@@ -30,3 +33,21 @@ For PPCLink, use options
 -dead on
 -tocdataref off
 -m program_init
+
+Note on the compiler implementation
+===================================
+
+Procedure pointers
+------------------
+The entries in the transition vector is used as procedure pointers.
+That is the symbol xxx[DS].
+
+Global variables
+----------------
+Currently all global variables are indirect, that is the entry in
+the TOC is always a pointer to data. (In the future small data items
+may be stored directly in the TOC, but I have not found out how this
+is supported by PPCLink.)
+
+Thus all references to globals are via a construct like:
+lwz rX, yyy[TC](r2)  ;loads a pointer to a global into rX
