@@ -1926,10 +1926,15 @@ Begin
                    (hp1.typ = ait_instruction) And
                    (Taicpu(hp1).opcode = A_JMP) Then
                   Begin
-                    Inc(Taicpu(hp1).oper[0].sym^.refs);
-                    hp2 := Taicpu.Op_sym(A_PUSH,S_L,Taicpu(hp1).oper[0].sym);
+                    case Taicpu(hp1).oper[0].typ of
+                      top_symbol:
+                        hp2 := Taicpu.Op_sym(A_PUSH,S_L,Taicpu(hp1).oper[0].sym);
+                      top_ref:
+                        hp2 := Taicpu.Op_ref(A_PUSH,S_L,newreference(Taicpu(hp1).oper[0].ref^));
+                    end;
                     InsertLLItem(AsmL, p.previous, p, hp2);
                     Taicpu(p).opcode := A_JMP;
+                    Taicpu(p).is_jmp := true;
                     asml.Remove(hp1);
                     hp1.free;
                   End;
@@ -2000,7 +2005,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:33  peter
+  Revision 1.7  2001-01-07 15:49:49  jonas
+    * fixed bug in call/jmp optimization with -Op1 and -Op2
+
+  Revision 1.6  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
