@@ -823,11 +823,7 @@ implementation
         datasegment^.concat(new(pai_const_symbol,init(tmplabel)));
       end;
 
-    type
-       tlongintarr = array[0..0] of longint;
-       plongintarr = ^tlongintarr;
-
-    procedure gintfoptimizevtbls(_class: pobjectdef; var implvtbl: tlongintarr);
+    procedure gintfoptimizevtbls(_class: pobjectdef; implvtbl : plongint);
       type
         tcompintfentry = record
           weight: longint;
@@ -909,14 +905,14 @@ implementation
     procedure gintfwritedata(_class: pobjectdef);
       var
         rawdata,rawcode: taasmoutput;
-        impintfindexes: plongintarr;
+        impintfindexes: plongint;
         max: longint;
         i: longint;
       begin
         max:=_class^.implementedinterfaces^.count;
         getmem(impintfindexes,(max+1)*sizeof(longint));
 
-        gintfoptimizevtbls(_class,impintfindexes^);
+        gintfoptimizevtbls(_class,impintfindexes);
 
         rawdata.init;
         rawcode.init;
@@ -924,7 +920,7 @@ implementation
         { Two pass, one for allocation and vtbl creation }
         for i:=1 to max do
           begin
-            if impintfindexes^[i]=i then { if implement itself }
+            if impintfindexes[i]=i then { if implement itself }
               begin
                 { allocate a pointer in the object memory }
                 with pstoredsymtable(_class^.symtable)^ do
@@ -943,9 +939,10 @@ implementation
         { second pass: for fill interfacetable and remained ioffsets }
         for i:=1 to max do
           begin
-            if i<>impintfindexes^[i] then { why execute x:=x ? }
-              with _class^.implementedinterfaces^ do ioffsets(i)^:=ioffsets(impintfindexes^[i])^;
-            gintfgenentry(_class,i,impintfindexes^[i],@rawdata);
+            if i<>impintfindexes[i] then { why execute x:=x ? }
+              with _class^.implementedinterfaces^ do 
+	        ioffsets(i)^:=ioffsets(impintfindexes[i])^;
+            gintfgenentry(_class,i,impintfindexes[i],@rawdata);
           end;
         datasegment^.insertlist(@rawdata);
         rawdata.done;
@@ -1073,7 +1070,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-11-06 23:13:53  peter
+  Revision 1.13  2000-11-08 00:07:40  florian
+     * potential range check error fixed
+
+  Revision 1.12  2000/11/06 23:13:53  peter
     * uppercase manglednames
 
   Revision 1.11  2000/11/04 17:31:00  florian
