@@ -116,7 +116,7 @@ const
   type
      pthread = record
        end;
-
+    
      pthread_attr = record
        end;
 
@@ -129,6 +129,7 @@ const
      pthread_mutex = record
        end;
 
+  
      pthread_mutex_attr = record
        end;
 
@@ -141,6 +142,14 @@ const
 
      pthread_rwlockattr = record
        end;
+
+{ from semaphore.h }
+
+     sem 		= record end;
+     sem_t		= ^sem;
+     psem_t		= ^sem_t;
+     TSemaphore 	= sem_t;
+     PSemaphore         = ^TSemaphore;
 
     {
      Primitive system data type definitions required by P1003.1c.
@@ -159,6 +168,17 @@ const
      pthread_key_t 		= cint;
      pthread_rwlock_t 		= ^pthread_rwlock;
      pthread_rwlockattr_t 	= ^pthread_rwlockattr;
+
+     TThreadID = pthread_t;
+     PThreadID = ^TThreadID;
+     TThreadAttr = pthread_attr_t;
+     PThreadAttr = ^TThreadAttr;
+     TPthreadMutex = pthread_mutex_t;
+     PTpthreadmutex= ^pthread_mutex;
+     TMutexAttribute = pthread_mutexattr_t;
+     PMutexAttribute = ^TMutexAttribute;
+     TPthreadCondattr = pthread_condattr_t;
+     PPthreadCondattr = ^TPthreadCondattr;
 
 {added, adjust these if hdr conv went wrong}
      {from sched.h}
@@ -179,6 +199,8 @@ const
      ppthread_rwlockattr_t 	= ^pthread_rwlockattr_t;
      ppthread_once_t 		= ^pthread_once_t;
      psched_param		= ^sched_param;
+     TSchedParam = sched_param;
+     PSchedParam = ^TSchedParam;
 
     {
      Additional type definitions:
@@ -374,9 +396,34 @@ function pthread_setconcurrency(_para1:cint):cint;cdecl;external;
 function pthread_attr_setfloatstate(_para1:Ppthread_attr_t; _para2:cint):cint;cdecl;external; 
 function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;cdecl;external; 
 
+{ semaphore.h }
+
+
+  function sem_init(__sem:Psem_t; __pshared:cint;__value:dword):cint;cdecl; external;
+  function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
+  function sem_close(__sem:Psem_t):cint;cdecl;external ;
+  function sem_unlink(__name:Pchar):cint;cdecl;external ;
+  function sem_wait(__sem:Psem_t):cint;cdecl;external ;
+  function sem_trywait(__sem:Psem_t):cint;cdecl;external ;
+  function sem_post(__sem:Psem_t):cint;cdecl;external ;
+  function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
+
+
+  function sem_init(var __sem: sem_t; __pshared:cint; __value:dword):cint cdecl;external;
+  function sem_destroy(var __sem: sem_t):cint;cdecl;external;
+  function sem_close(var __sem: sem_t):cint;cdecl;external; 
+  function sem_wait(var __sem: sem_t):cint;cdecl;external; 
+  function sem_trywait(var __sem: sem_t):cint;cdecl;external;
+  function sem_post(var __sem: sem_t):cint;cdecl;external;
+  function sem_getvalue(var __sem: sem_t; var __sval:cint):cint;cdecl;external;
+
+
 {  
    $Log$
-   Revision 1.1  2003-11-03 11:38:38  marco
+   Revision 1.2  2003-11-04 09:02:18  marco
+    * freebsd fixes to get syncobjs running
+
+   Revision 1.1  2003/11/03 11:38:38  marco
     * freebsd translation
 
 
