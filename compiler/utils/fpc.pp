@@ -82,6 +82,7 @@ program fpc;
 
   var
      s,
+     processorname,
      ppcbin,
      processorstr   : shortstring;
      ppccommandline : ansistring;
@@ -90,15 +91,19 @@ program fpc;
      ppccommandline:='';
 {$ifdef i386}
      ppcbin:='ppc386';
+     processorname:='i386';
 {$endif i386}
 {$ifdef m68k}
      ppcbin:='ppc68k';
+     processorname:='m68k';
 {$endif m68k}
 {$ifdef alpha}
      ppcbin:='ppcapx';
+     processorname:='alpha';
 {$endif alpha}
 {$ifdef powerpc}
      ppcbin:='ppcppc';
+     processorname:='powerpc';
 {$endif powerpc}
      for i:=1 to paramcount do
        begin
@@ -106,14 +111,23 @@ program fpc;
           if pos('-P',s)=1 then
             begin
                processorstr:=copy(s,3,length(s)-2);
-               { -P? is a special code that will show the
+               { -PB is a special code that will show the
                  default compiler and exit immediatly. It's
                  main usage is for Makefile }
-               if processorstr='?' then
+               if processorstr='B' then
                 begin
                   { report the full name of the ppcbin }
                   findexe(ppcbin);
                   writeln(ppcbin);
+                  halt(0);
+                end
+               { -PP is a special code that will show the
+                 processor and exit immediatly. It's
+                 main usage is for Makefile }
+               else if processorstr='P' then
+                begin
+                  { report the processor }
+                  writeln(processorname);
                   halt(0);
                 end
                else if processorstr='i386' then
@@ -143,7 +157,11 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.2  2001-09-22 11:11:43  peter
+  Revision 1.3  2001-10-16 20:52:34  peter
+    * fpc -PB instead of -P?
+    * check if fpc exists if not found fallback to ppc386
+
+  Revision 1.2  2001/09/22 11:11:43  peter
     * "fpc -P?" command to query for used ppcXXX compiler
 
   Revision 1.1.2.1  2001/04/25 22:43:24  peter
