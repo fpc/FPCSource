@@ -53,6 +53,7 @@ const
   secSearch      = 'Search';
   secTools       = 'Tools';
   secSourcePath  = 'SourcePath';
+  secPreferences = 'Preferences';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
@@ -86,6 +87,11 @@ const
   ieBreakpointLine   = 'LineNumber';
   ieBreakpointCond   = 'Condition';
   ieSourceList       = 'SourceList';
+  ieVideoMode        = 'VideoMode';
+  ieAutoSave         = 'AutoSaveFlags';
+  ieMiscOptions      = 'MiscOptions';
+  ieDesktopLocation  = 'DesktopLocation';
+  ieDesktopFlags     = 'DesktopFileFlags';
 
 procedure InitINIFile;
 var S: string;
@@ -338,6 +344,12 @@ begin
       { remove it because otherwise we allways keep old files }
       INIFile^.DeleteEntry(secFiles,ieOpenFile+IntToStr(I));
     end;
+  { Desktop }
+  DesktopFileFlags:=INIFile^.GetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
+  { Preferences }
+  AutoSaveOptions:=INIFile^.GetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
+  MiscOptions:=INIFile^.GetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
+  DesktopLocation:=INIFile^.GetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
   Dispose(INIFile, Done);
  end;
   ReadINIFile:=OK;
@@ -456,6 +468,12 @@ begin
     INIFile^.SetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40)));
     INIFile^.SetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40)));
   end;
+  { Desktop }
+  INIFile^.SetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
+  { Preferences }
+  INIFile^.SetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
+  INIFile^.SetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
+  INIFile^.SetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
   OK:=INIFile^.Update;
   Dispose(INIFile, Done);
   WriteINIFile:=OK;
@@ -464,7 +482,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-03-12 01:13:58  peter
+  Revision 1.18  1999-03-23 15:11:31  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.17  1999/03/12 01:13:58  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 

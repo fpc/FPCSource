@@ -24,6 +24,7 @@ const
       cmFileNameChanged      = 51234;
       cmASCIIChar            = 51235;
       cmClearLineHighlights  = 51236;
+      cmSaveCancelled        = 51237;
 
 {$ifdef FPC}
       EditorTextBufSize = 32768;
@@ -3117,7 +3118,10 @@ begin
     case EditorDialog(D, @FileName) of
       cmYes    : OK := Save;
       cmNo     : begin Modified := False; OK:=true; end;
-      cmCancel : OK := False;
+      cmCancel : begin
+                   OK := False;
+                   Message(Application,evBroadcast,cmSaveCancelled,@Self);
+                 end;
     end;
   end;
   SaveAsk:=OK;
@@ -3405,7 +3409,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  1999-03-08 14:58:17  peter
+  Revision 1.28  1999-03-23 15:11:39  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.27  1999/03/08 14:58:17  peter
     + prompt with dialogs for tools
 
   Revision 1.26  1999/03/07 22:58:57  pierre

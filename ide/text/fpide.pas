@@ -31,6 +31,7 @@ type
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string);
       function    OpenSearch(FileName: string) : boolean;
+      function    SaveAll: boolean;
       procedure   Idle; virtual;
       procedure   Update;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -45,7 +46,6 @@ type
       procedure NewEditor;
       procedure NewFromTemplate;
       procedure OpenRecentFile(RecentIndex: integer);
-      procedure SaveAll;
       procedure ChangeDir;
       procedure ShowClipboard;
       procedure FindProcedure;
@@ -105,6 +105,7 @@ type
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
     private
+      SaveCancelled: boolean;
       procedure CurDirChanged;
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
@@ -451,6 +452,8 @@ begin
          end;
        evBroadcast :
          case Event.Command of
+           cmSaveCancelled :
+             SaveCancelled:=true;
            cmUpdateTools :
              UpdateTools;
            cmUpdate              :
@@ -731,7 +734,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  1999-03-19 16:04:29  peter
+  Revision 1.25  1999-03-23 15:11:29  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.24  1999/03/19 16:04:29  peter
     * new compiler dialog
 
   Revision 1.23  1999/03/16 12:38:10  peter

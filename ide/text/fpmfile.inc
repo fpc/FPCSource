@@ -136,7 +136,7 @@ begin
      RemoveRecentFile(RecentIndex);
 end;
 
-procedure TIDEApp.SaveAll;
+function TIDEApp.SaveAll: boolean;
 
   procedure SendSave(P: PView); {$ifndef FPC}far;{$endif}
   begin
@@ -144,7 +144,9 @@ procedure TIDEApp.SaveAll;
   end;
 
 begin
+  SaveCancelled:=false;
   Desktop^.ForEach(@SendSave);
+  SaveAll:=not SaveCancelled;
 end;
 
 
@@ -156,7 +158,12 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-02-19 18:43:47  peter
+  Revision 1.10  1999-03-23 15:11:32  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.9  1999/02/19 18:43:47  peter
     + open dialog supports mask list
 
   Revision 1.8  1999/02/05 12:11:57  pierre

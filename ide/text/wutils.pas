@@ -27,10 +27,29 @@ type
   PByteArray = ^TByteArray;
   TByteArray = array[0..65520] of byte;
 
+  PNoDisposeCollection = ^TNoDisposeCollection;
+  TNoDisposeCollection = object(TCollection)
+    procedure FreeItem(Item: Pointer); virtual;
+  end;
+
   PUnsortedStringCollection = ^TUnsortedStringCollection;
   TUnsortedStringCollection = object(TCollection)
     function  At(Index: Integer): PString;
     procedure FreeItem(Item: Pointer); virtual;
+  end;
+
+  PSubStream = ^TSubStream;
+  TSubStream = object(TStream)
+    constructor Init(AStream: PStream; AStartPos, ASize: longint);
+    function    GetPos: Longint; virtual;
+    function    GetSize: Longint; virtual;
+    procedure   Read(var Buf; Count: Word); virtual;
+    procedure   Seek(Pos: Longint); virtual;
+    procedure   Write(var Buf; Count: Word); virtual;
+  private
+    StartPos: longint;
+    Size    : longint;
+    S       : PStream;
   end;
 
 {$ifdef TPUNIXLF}
@@ -196,6 +215,10 @@ begin
 end;
 
 
+procedure TNoDisposeCollection.FreeItem(Item: Pointer);
+begin
+  { don't do anything here }
+end;
 
 function TUnsortedStringCollection.At(Index: Integer): PString;
 begin
@@ -207,10 +230,57 @@ begin
   if Item<>nil then DisposeStr(Item);
 end;
 
+constructor TSubStream.Init(AStream: PStream; AStartPos, ASize: longint);
+begin
+  inherited Init;
+  S:=AStream; StartPos:=AStartPos; Size:=ASize;
+  inherited Seek(StartPos);
+end;
+
+function TSubStream.GetPos: Longint;
+var Pos: longint;
+begin
+  Pos:=inherited GetPos; Dec(Pos,StartPos);
+  GetPos:=Pos;
+end;
+
+function TSubStream.GetSize: Longint;
+begin
+  GetSize:=Size;
+end;
+
+procedure TSubStream.Read(var Buf; Count: Word);
+var Pos: longint;
+    RCount: word;
+begin
+  Pos:=GetPos;
+  if Pos+Count>Size then RCount:=Size-Pos else RCount:=Count;
+  inherited Read(Buf,RCount);
+  if RCount<Count then
+    Error(stReadError,0);
+end;
+
+procedure TSubStream.Seek(Pos: Longint);
+var RPos: longint;
+begin
+  if (Pos<=Size) then RPos:=Pos else RPos:=Size;
+  inherited Seek(StartPos+RPos);
+end;
+
+procedure TSubStream.Write(var Buf; Count: Word);
+begin
+  inherited Write(Buf,Count);
+end;
+
 END.
 {
   $Log$
-  Revision 1.2  1999-03-08 14:58:22  peter
+  Revision 1.3  1999-03-23 15:11:41  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.2  1999/03/08 14:58:22  peter
     + prompt with dialogs for tools
 
   Revision 1.1  1999/03/01 15:51:43  peter

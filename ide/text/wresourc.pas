@@ -138,6 +138,12 @@ type
        procedure  WriteResourceTable;
      end;
 
+     PSimpleResourceFile = ^TSimpleResourceFile;
+     TSimpleResourceFile = object(TResourceFile)
+       constructor Create(AFileName: string);
+       constructor Load(AFileName: string);
+     end;
+
 implementation
 
 uses  CallSpec,
@@ -670,11 +676,38 @@ begin
     begin Entries^.DeleteAll; Dispose(Entries, Done); Entries:=nil; end;
 end;
 
+constructor TSimpleResourceFile.Create(AFileName: string);
+var B: PBufStream;
+begin
+  New(B, Init(AFileName, stCreate, 4096));
+  if (B<>nil) and (B^.Status<>stOK) then
+    begin Dispose(B, Done); B:=nil; end;
+  if B=nil then Fail;
+  if inherited Create(B^)=false then
+    Fail;
+end;
+
+constructor TSimpleResourceFile.Load(AFileName: string);
+var B: PBufStream;
+begin
+  New(B, Init(AFileName, stCreate, 4096));
+  if (B<>nil) and (B^.Status<>stOK) then
+    begin Dispose(B, Done); B:=nil; end;
+  if B=nil then Fail;
+  if inherited Load(B^)=false then
+    Fail;
+end;
+
 
 END.
 {
   $Log$
-  Revision 1.1  1999-03-16 12:38:18  peter
+  Revision 1.2  1999-03-23 15:11:40  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.1  1999/03/16 12:38:18  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

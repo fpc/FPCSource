@@ -278,6 +278,11 @@ type
       destructor  Done; virtual;
     end;
 
+    PVideoModeListBox = ^TVideoModeListBox;
+    TVideoModeListBox = object(TDropDownListBox)
+      function    GetText(Item: pointer; MaxLen: sw_integer): string; virtual;
+    end;
+
 function  SearchFreeWindowNo: integer;
 
 function IsThereAnyEditor: boolean;
@@ -301,6 +306,10 @@ function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
+
+{$ifndef FV20}
+procedure InitVESAScreenModes;
+{$endif}
 
 const
       SourceCmds  : TCommandSet =
@@ -326,8 +335,9 @@ var  MsgParms : array[1..10] of
 implementation
 
 uses
-  Strings,Keyboard,Memory,MsgBox,Validate,
+  Video,Strings,Keyboard,Memory,MsgBox,Validate,
   Tokens,Version,
+  {$ifndef FV20}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp;
 
 const
@@ -730,6 +740,7 @@ begin
   inherited Init(Bounds);
   Options:=Options or gfGrowHiX or gfGrowHiY;
   EventMask:=EventMask or evIdle;
+  GrowMode:=gfGrowAll;
 end;
 
 constructor TFPHeapView.InitKb(var Bounds: TRect);
@@ -737,6 +748,7 @@ begin
   inherited InitKb(Bounds);
   Options:=Options or gfGrowHiX or gfGrowHiY;
   EventMask:=EventMask or evIdle;
+  GrowMode:=gfGrowAll;
 end;
 
 procedure TFPHeapView.HandleEvent(var Event: TEvent);
@@ -2436,10 +2448,52 @@ begin
   inherited Done;
 end;
 
+function TVideoModeListBox.GetText(Item: pointer; MaxLen: sw_integer): string;
+var P: PVideoModeList;
+    S: string;
+begin
+  P:=Item;
+  S:=IntToStr(P^.Col)+'x'+IntToStr(P^.Row)+' ';
+  if P^.Color then
+    S:=S+'color'
+  else
+    S:=S+'mono';
+  GetText:=copy(S,1,MaxLen);
+end;
+
+{$ifndef FV20}
+function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean; {$ifndef FPC}far;{$endif}
+begin
+  VESASetMode(Params);
+end;
+
+procedure InitVESAScreenModes;
+var ML: TVESAModeList;
+    MI: TVESAModeInfoBlock;
+    I: integer;
+begin
+  if VESAInit=false then Exit;
+  if VESAGetModeList(ML)=false then Exit;
+  for I:=1 to ML.Count do
+    begin
+      if VESAGetModeInfo(ML.Modes[I],MI) then
+      with MI do
+        if (Attributes and vesa_vma_GraphicsMode)=0 then
+          RegisterVideoMode(XResolution,YResolution,
+            (Attributes and vesa_vma_ColorMode)<>0,VESASetVideoModeProc,ML.Modes[I]);
+    end;
+end;
+{$endif}
+
 END.
 {
   $Log$
-  Revision 1.24  1999-03-21 22:51:37  florian
+  Revision 1.25  1999-03-23 15:11:37  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.24  1999/03/21 22:51:37  florian
     + functional screen mode switching added
 
   Revision 1.23  1999/03/19 16:04:33  peter

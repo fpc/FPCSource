@@ -129,7 +129,7 @@ procedure ClearToolMessages;
 procedure UpdateToolMessages;
 
 const
-     ToolFilter     : string           = '';
+     ToolFilter     : string[128]      = '';
      CaptureToolTo  : TCaptureTarget   = capNone;
      ToolMessages   : PCollection      = nil;
      ToolModuleNames: PStoreCollection = nil;
@@ -1426,7 +1426,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-03-16 12:38:14  peter
+  Revision 1.7  1999-03-23 15:11:35  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.6  1999/03/16 12:38:14  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

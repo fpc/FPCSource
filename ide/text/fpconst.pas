@@ -30,6 +30,7 @@ const
 
      ININame              = 'fp.ini';
      SwitchesName         = 'fp.cfg';
+     DesktopName          = 'fp.dsk';
 
      ToolCaptureName      = '$$TOOL$$.OUT';
      FilterCaptureName    = '$FILTER$.OUT';
@@ -68,6 +69,20 @@ const
      dfBreakpoints        = $00000008;
      dfOpenWindows        = $00000010;
      dfSymbolInformation  = $00000020;
+
+     { Auto Save flag constants }
+     asEditorFiles        = $00000001; { Editor files }
+     asEnvironment        = $00000002; { .INI file }
+     asDesktop            = $00000004; { .DSK file }
+
+     { Misc. Options flag constants }
+     moAutoTrackSource    = $00000001;
+     moCloseOnGotoSource  = $00000002;
+     moChangeDirOnOpen    = $00000004;
+
+     { Desktop Location constants }
+     dlCurrentDir         = $00;
+     dlConfigFileDir      = $01;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -308,7 +323,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.15  1999-03-19 16:04:28  peter
+  Revision 1.16  1999-03-23 15:11:27  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.15  1999/03/19 16:04:28  peter
     * new compiler dialog
 
   Revision 1.14  1999/03/16 12:38:08  peter

@@ -21,8 +21,10 @@ uses
 {$endif IDEHeapTrc}
   Dos,
   BrowCol,
-  FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,FPDebug,FPTemplt,FPCatch,FPRedir
+  WViews,
+  FPIDE,
+  FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
+  FPTools,FPDebug,FPTemplt,FPCatch,FPRedir,FPDesk
 {$ifdef TEMPHEAP}
   ,dpmiexcp
 {$endif TEMPHEAP}
@@ -68,6 +70,8 @@ begin
   end;
 end;
 
+var CanExit : boolean;
+
 BEGIN
   {$ifdef DEV}HeapLimit:=4096;{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
@@ -76,6 +80,9 @@ BEGIN
 
   ProcessParams(true);
 
+{$ifndef FV20}
+  InitVESAScreenModes;
+{$endif}
   InitRedir;
   InitBreakpoints;
   InitReservedWords;
@@ -92,16 +99,29 @@ BEGIN
 
   { load all options after init because of open files }
   ReadINIFile;
+  InitDesktopFile;
+  LoadDesktop;
 
   { Update IDE }
   MyApp.Update;
 
   ProcessParams(false);
 
+  repeat
   MyApp.Run;
+    if (AutoSaveOptions and asEditorFiles)=0 then CanExit:=true else
+      CanExit:=MyApp.SaveAll;
+  until CanExit;
 
   { must be written before done for open files }
-  WriteINIFile;
+  if (AutoSaveOptions and asEnvironment)<>0 then
+    if WriteINIFile=false then
+      ErrorBox('Error saving configuration.',nil);
+  if (AutoSaveOptions and asDesktop)<>0 then
+    if SaveDesktop=false then
+      ErrorBox('Error saving desktop.',nil);
+
+  DoneDesktopFile;
 
   MyApp.Done;
 
@@ -119,7 +139,12 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.18  1999-03-21 22:51:35  florian
+  Revision 1.19  1999-03-23 15:11:26  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.18  1999/03/21 22:51:35  florian
     + functional screen mode switching added
 
   Revision 1.17  1999/03/16 12:38:06  peter

@@ -24,6 +24,8 @@ const
       cmUpdate               = 54101;
       cmListFocusChanged     = 54102;
 
+      CPlainCluster          = #7#8#9#9;
+
 type
     PCenterDialog = ^TCenterDialog;
     TCenterDialog = object(TDialog)
@@ -103,6 +105,64 @@ type
       procedure Draw; virtual;
     end;
 
+    PDropDownListBox = ^TDropDownListBox;
+
+    PDDHelperLB = ^TDDHelperLB;
+    TDDHelperLB = object(TLocalMenuListBox)
+      constructor Init(ALink: PDropDownListBox; var Bounds: TRect; ANumCols: Word; AScrollBar: PScrollBar);
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   SelectItem(Item: Integer); virtual;
+      function    GetText(Item: sw_Integer; MaxLen: Integer): String; virtual;
+      function    GetLocalMenu: PMenu; virtual;
+      function    GetCommandTarget: PView; virtual;
+    private
+      Link : PDropDownListBox;
+      LastTT: longint;
+      InClose: boolean;
+    end;
+
+    TDropDownListBox = object(TView)
+      Text: string;
+      Focused: sw_integer;
+      List: PCollection;
+      constructor Init(var Bounds: TRect; ADropLineCount: integer; AList: PCollection);
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetText(Item: pointer; MaxLen: sw_integer): string; virtual;
+      procedure   NewList(AList: PCollection); virtual;
+      procedure   CreateListBox(var R: TRect);
+      procedure   DropList(Drop: boolean); virtual;
+      function    GetItemCount: sw_integer; virtual;
+      procedure   FocusItem(Item: sw_integer); virtual;
+      function    LBGetLocalMenu: PMenu; virtual;
+      function    LBGetCommandTarget: PView; virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   Draw; virtual;
+      function    GetPalette: PPalette; virtual;
+      destructor  Done; virtual;
+    private
+      DropLineCount: integer;
+      ListDropped : boolean;
+      ListBox     : PDDHelperLB;
+      SB          : PScrollBar;
+    end;
+
+    PGroupView = ^TGroupView;
+    TGroupView = object(TLabel)
+      constructor Init(var Bounds: TRect; AText: String; ALink: PView);
+      procedure   Draw; virtual;
+    end;
+
+    PPlainCheckBoxes = ^TPlainCheckBoxes;
+    TPlainCheckBoxes = object(TCheckBoxes)
+      function GetPalette: PPalette; virtual;
+    end;
+
+    PPlainRadioButtons = ^TPlainRadioButtons;
+    TPlainRadioButtons = object(TRadioButtons)
+      function GetPalette: PPalette; virtual;
+    end;
+
 procedure InsertOK(ADialog: PDialog);
 procedure InsertButtons(ADialog: PDialog);
 
@@ -128,7 +188,9 @@ procedure NotImplemented;
 
 implementation
 
-uses Commands,App,MsgBox;
+uses Mouse,
+     Commands,App,MsgBox,
+     WUtils;
 
 const
   MessageDialog  : PCenterDialog = nil;
@@ -651,6 +713,7 @@ constructor TAdvancedMenuBar.Init(var Bounds: TRect; AMenu: PMenu);
 begin
   inherited Init(Bounds, AMenu);
   EventMask:=EventMask or evBroadcast;
+  GrowMode:=gfGrowHiX;
 end;
 
 function TAdvancedMenuBar.NewSubView(var Bounds: TRect; AMenu: PMenu;
@@ -1419,11 +1482,465 @@ begin
 end;
 
 
+constructor TDDHelperLB.Init(ALink: PDropDownListBox; var Bounds: TRect; ANumCols: Word; AScrollBar: PScrollBar);
+begin
+  inherited Init(Bounds,ANumCols,AScrollBar);
+  EventMask:=EventMask or (evMouseMove+evIdle);
+{  Options:=Options or ofPreProcess;}
+  Link:=ALink;
+end;
+
+procedure TDDHelperLB.SetState(AState: Word; Enable: Boolean);
+var OState: longint;
+begin
+  OState:=State;
+  inherited SetState(AState,Enable);
+{  if (((State xor OState) and sfFocused)<>0) and (GetState(sfFocused)=false) then
+    Link^.DropList(false);}
+end;
+
+function TDDHelperLB.GetText(Item: sw_Integer; MaxLen: Integer): String;
+var P: pointer;
+    S: string;
+begin
+  P:=List^.At(Item);
+  if Link=nil then S:='' else
+    S:=Link^.GetText(P,MaxLen);
+  GetText:=S;
+end;
+
+function TDDHelperLB.GetLocalMenu: PMenu;
+begin
+  GetLocalMenu:=Link^.LBGetLocalMenu;
+end;
+
+function TDDHelperLB.GetCommandTarget: PView;
+begin
+  GetCommandTarget:=Link^.LBGetCommandTarget;
+end;
+
+procedure TDDHelperLB.HandleEvent(var Event: TEvent);
+const
+  MouseAutosToSkip = 4;
+var
+  Mouse : TPoint;
+  OldItem, NewItem : Sw_Integer;
+  ColWidth,Count : Sw_Word;
+  GoSelectItem: sw_integer;
+  MouseWhere: TPoint;
+begin
+  GoSelectItem:=-1;
+  TView.HandleEvent(Event);
+  case Event.What of
+    evMouseDown :
+      if MouseInView(Event.Where)=false then
+        GoSelectItem:=-2
+      else
+      begin
+        ColWidth := Size.X div NumCols + 1;
+        OldItem := Focused;
+        MakeLocal(Event.Where, Mouse);
+        if MouseInView(Event.Where) then
+          NewItem := Mouse.Y + (Size.Y * (Mouse.X div ColWidth)) + TopItem
+        else
+          NewItem := OldItem;
+        Count := 0;
+        repeat
+          if NewItem <> OldItem then
+           begin
+             FocusItemNum(NewItem);
+             DrawView;
+           end;
+          OldItem := NewItem;
+          MakeLocal(Event.Where, Mouse);
+          if MouseInView(Event.Where) then
+            NewItem := Mouse.Y + (Size.Y * (Mouse.X div ColWidth)) + TopItem
+          else
+          begin
+            if NumCols = 1 then
+            begin
+              if Event.What = evMouseAuto then Inc(Count);
+              if Count = MouseAutosToSkip then
+              begin
+                Count := 0;
+                if Mouse.Y < 0 then NewItem := Focused-1
+                else if Mouse.Y >= Size.Y then NewItem := Focused+1;
+              end;
+            end
+            else
+            begin
+              if Event.What = evMouseAuto then Inc(Count);
+              if Count = MouseAutosToSkip then
+              begin
+                Count := 0;
+                if Mouse.X < 0 then NewItem := Focused-Size.Y
+                else if Mouse.X >= Size.X then NewItem := Focused+Size.Y
+                else if Mouse.Y < 0 then
+                  NewItem := Focused - Focused mod Size.Y
+                else if Mouse.Y > Size.Y then
+                  NewItem := Focused - Focused mod Size.Y + Size.Y - 1;
+              end
+            end;
+          end;
+        until not MouseEvent(Event, evMouseMove + evMouseAuto);
+        FocusItemNum(NewItem);
+        DrawView;
+        if Event.Double and (Range > Focused) then SelectItem(Focused);
+        ClearEvent(Event);
+        GoSelectItem:=Focused;
+      end;
+    evMouseMove,evMouseAuto:
+     if GetState(sfFocused) then
+      if MouseInView(Event.Where) then
+        begin
+          MakeLocal(Event.Where,Mouse);
+          FocusItemNum(TopItem+Mouse.Y);
+          ClearEvent(Event);
+        end;
+    evKeyDown :
+      begin
+        if (Event.KeyCode=kbEsc) then
+          begin
+            GoSelectItem:=-2;
+            ClearEvent(Event);
+          end else
+        if (Event.CharCode = ' ') and (Focused < Range) then
+          begin
+            GoSelectItem:=Focused;
+            NewItem := Focused;
+          end
+        else
+          case CtrlToArrow(Event.KeyCode) of
+            kbUp   : NewItem := Focused - 1;
+            kbDown : NewItem := Focused + 1;
+            kbRight: if NumCols > 1 then NewItem := Focused + Size.Y else Exit;
+            kbLeft : if NumCols > 1 then NewItem := Focused - Size.Y else Exit;
+            kbPgDn : NewItem := Focused + Size.Y * NumCols;
+            kbPgUp : NewItem := Focused - Size.Y * NumCols;
+            kbHome : NewItem := TopItem;
+            kbEnd  : NewItem := TopItem + (Size.Y * NumCols) - 1;
+            kbCtrlPgDn: NewItem := Range - 1;
+            kbCtrlPgUp: NewItem := 0;
+        else
+          Exit;
+        end;
+        FocusItemNum(NewItem);
+        DrawView;
+        ClearEvent(Event);
+      end;
+    evBroadcast :
+      case Event.Command of
+        cmReceivedFocus :
+          if (Event.InfoPtr<>@Self) and (InClose=false) then
+            begin
+              GoSelectItem:=-2;
+            end;
+      else
+        if Options and ofSelectable <> 0 then
+          if (Event.Command = cmScrollBarClicked) and
+             ((Event.InfoPtr = HScrollBar) or (Event.InfoPtr = VScrollBar)) then
+            Select
+          else
+            if (Event.Command = cmScrollBarChanged) then
+              begin
+                if (VScrollBar = Event.InfoPtr) then
+                  begin
+                    FocusItemNum(VScrollBar^.Value);
+                    DrawView;
+                  end
+                else
+                  if (HScrollBar = Event.InfoPtr) then
+                    DrawView;
+              end;
+      end;
+    evIdle :
+      begin
+        MouseWhere.X:=MouseWhereX shr 3; MouseWhere.Y:=MouseWhereY shr 3;
+        if MouseInView(MouseWhere)=false then
+         if abs(GetDosTicks-LastTT)>=1 then
+          begin
+            LastTT:=GetDosTicks;
+            MakeLocal(MouseWhere,Mouse);
+            if ((Mouse.Y<-1) or (Mouse.Y>=Size.Y)) and
+               ((0<=Mouse.X) and (Mouse.X<Size.X)) then
+            if Range>0 then
+              if Mouse.Y<0 then
+                FocusItemNum(Focused-(0-Mouse.Y))
+              else
+                FocusItemNum(Focused+(Mouse.Y-(Size.Y-1)));
+          end;
+      end;
+  end;
+  if (Range>0) and (GoSelectItem<>-1) then
+   begin
+     InClose:=true;
+     if GoSelectItem=-2 then
+       Link^.DropList(false)
+     else
+       SelectItem(GoSelectItem);
+   end;
+end;
+
+procedure TDDHelperLB.SelectItem(Item: Integer);
+begin
+  inherited SelectItem(Item);
+  Link^.FocusItem(Focused);
+  Link^.DropList(false);
+end;
+
+constructor TDropDownListBox.Init(var Bounds: TRect; ADropLineCount: integer; AList: PCollection);
+begin
+  inherited Init(Bounds);
+  Options:=Options or (ofSelectable);
+  EventMask:=EventMask or (evBroadcast);
+  DropLineCount:=ADropLineCount;
+  NewList(AList);
+end;
+
+procedure TDropDownListBox.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+    Count: sw_integer;
+begin
+  case Event.What of
+    evKeyDown :
+      if GetState(sfFocused) then
+       begin
+         DontClear:=false;
+         Count:=GetItemCount;
+         if Count>0 then
+         case Event.KeyCode of
+           kbUp :
+             if Focused>0 then
+               FocusItem(Focused-1);
+           kbDown :
+             if Focused<Count-1 then
+               FocusItem(Focused+1);
+           kbHome :
+             FocusItem(0);
+           kbEnd  :
+             FocusItem(Count-1);
+           kbPgDn :
+             DropList(true);
+         else DontClear:=true;
+         end;
+         if DontClear=false then ClearEvent(Event);
+       end;
+    evBroadcast :
+      case Event.Command of
+{        cmReleasedFocus :
+          if (ListBox<>nil) and (Event.InfoPtr=ListBox) then
+            DropList(false);}
+        cmListItemSelected :
+          if (ListBox<>nil) and (Event.InfoPtr=ListBox) then
+            begin
+              FocusItem(ListBox^.Focused);
+              Text:=GetText(List^.At(Focused),255);
+              DrawView;
+              DropList(false);
+            end;
+      end;
+    evMouseDown :
+      if MouseInView(Event.Where) then
+        begin
+          DropList(not ListDropped);
+          ClearEvent(Event);
+        end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+function TDropDownListBox.GetText(Item: pointer; MaxLen: integer): string;
+var S: string;
+begin
+  S:=GetStr(Item);
+  GetText:=copy(S,1,MaxLen);
+end;
+
+procedure TDropDownListBox.NewList(AList: PCollection);
+begin
+  if List<>nil then Dispose(List, Done); List:=nil;
+  List:=AList; FocusItem(0);
+end;
+
+procedure TDropDownListBox.CreateListBox(var R: TRect);
+var R2: TRect;
+begin
+  R2.Copy(R); R2.A.X:=R2.B.X-1;
+  New(SB, Init(R2));
+  Dec(R.B.X);
+  New(ListBox, Init(@Self,R,1,SB));
+end;
+
+procedure TDropDownListBox.DropList(Drop: boolean);
+var R: TRect;
+begin
+  if ListDropped=Drop then Exit;
+
+  if Drop then
+    begin
+      R.Assign(Origin.X+1,Origin.Y+Size.Y,Origin.X+Size.X,Origin.Y+Size.Y+DropLineCount);
+      if Owner<>nil then Owner^.Lock;
+      CreateListBox(R);
+      if SB<>nil then
+        Owner^.Insert(SB);
+      if ListBox<>nil then
+        begin
+          ListBox^.NewList(List);
+          ListBox^.FocusItem(Focused);
+          Owner^.Insert(ListBox);
+        end;
+      if Owner<>nil then Owner^.UnLock;
+    end
+  else
+    begin
+      if Owner<>nil then Owner^.Lock;
+      if ListBox<>nil then
+        begin
+{          ListBox^.List:=nil;}
+          Dispose(ListBox, Done);
+          ListBox:=nil;
+        end;
+      if SB<>nil then
+        begin
+          Dispose(SB, Done);
+          SB:=nil;
+        end;
+      Select;
+      if Owner<>nil then Owner^.UnLock;
+    end;
+
+  ListDropped:=Drop;
+  DrawView;
+end;
+
+function TDropDownListBox.GetItemCount: sw_integer;
+var Count: sw_integer;
+begin
+  if assigned(List)=false then Count:=0 else
+    Count:=List^.Count;
+  GetItemCount:=Count;
+end;
+
+procedure TDropDownListBox.FocusItem(Item: sw_integer);
+var P: pointer;
+begin
+  Focused:=Item;
+  if assigned(ListBox) and (Item>=0) then
+    ListBox^.FocusItem(Item);
+  if (GetItemCount>0) and (Focused>=0) then
+    begin
+      P:=List^.At(Focused);
+      Text:=GetText(P,Size.X-4);
+    end;
+  DrawView;
+end;
+
+function TDropDownListBox.LBGetLocalMenu: PMenu;
+begin
+  LBGetLocalMenu:=nil;
+end;
+
+function TDropDownListBox.LBGetCommandTarget: PView;
+begin
+  LBGetCommandTarget:=@Self;
+end;
+
+procedure TDropDownListBox.SetState(AState: Word; Enable: Boolean);
+begin
+  inherited SetState(AState,Enable);
+  if (AState and (sfSelected + sfActive + sfFocused)) <> 0 then DrawView;
+end;
+
+procedure TDropDownListBox.Draw;
+var B: TDrawBuffer;
+    C,TextC: word;
+    LC: char;
+begin
+  if GetState(sfFocused)=false then
+    begin
+      C:=GetColor(2);
+      TextC:=GetColor(2);
+    end
+  else
+    begin
+      C:=GetColor(3);
+      TextC:=GetColor(3);
+    end;
+  MoveChar(B,' ',C,Size.X);
+  MoveStr(B[1],copy(Text,1,Size.X-2),TextC);
+  if ListDropped then LC:=#30 else LC:=#31;
+  MoveChar(B[Size.X-2],LC,C,1);
+  WriteLine(0,0,Size.X,Size.Y,B);
+end;
+
+function TDropDownListBox.GetPalette: PPalette;
+const P: string[length(CListViewer)] = CListViewer;
+begin
+  GetPalette:=@P;
+end;
+
+destructor TDropDownListBox.Done;
+begin
+  if ListDropped then DropList(false);
+  inherited Done;
+end;
+
+constructor TGroupView.Init(var Bounds: TRect; AText: String; ALink: PView);
+begin
+  inherited Init(Bounds,AText,ALink);
+end;
+
+procedure TGroupView.Draw;
+var B: TDrawBuffer;
+    FrameC,LabelC: word;
+begin
+  FrameC:=GetColor(1);
+  if Light then
+    LabelC:=GetColor(2)+GetColor(4) shl 8
+  else
+    LabelC:=GetColor(1)+GetColor(3) shl 8;
+  { First Line }
+  MoveChar(B[0],'Ú',FrameC,1);
+  MoveChar(B[1],'Ä',FrameC,Size.X-2);
+  MoveChar(B[Size.X-1],'¿',FrameC,1);
+  if Text<>nil then
+    begin
+      MoveCStr(B[1],' '+Text^+' ',LabelC);
+    end;
+  WriteLine(0,0,Size.X,1,B);
+  { Mid Lines }
+  MoveChar(B[0],'³',FrameC,1);
+  MoveChar(B[1],' ',FrameC,Size.X-2);
+  MoveChar(B[Size.X-1],'³',FrameC,1);
+  WriteLine(0,1,Size.X,Size.Y-2,B);
+  { Last Line }
+  MoveChar(B[0],'À',FrameC,1);
+  MoveChar(B[1],'Ä',FrameC,Size.X-2);
+  MoveChar(B[Size.X-1],'Ù',FrameC,1);
+  WriteLine(0,Size.Y-1,Size.X,1,B);
+end;
+
+function TPlainCheckBoxes.GetPalette: PPalette;
+const P: string[length(CPlainCluster)] = CPlainCluster;
+begin
+  GetPalette:=@P;
+end;
+
+function TPlainRadioButtons.GetPalette: PPalette;
+const P: string[length(CPlainCluster)] = CPlainCluster;
+begin
+  GetPalette:=@P;
+end;
 
 END.
 {
   $Log$
-  Revision 1.3  1999-03-19 16:04:35  peter
+  Revision 1.4  1999-03-23 15:11:42  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.3  1999/03/19 16:04:35  peter
     * new compiler dialog
 
   Revision 1.2  1999/03/08 14:58:23  peter

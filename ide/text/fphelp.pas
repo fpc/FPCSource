@@ -61,7 +61,7 @@ uses Objects,Views,App,MsgBox,
      FPConst,FPVars,FPUtils;
 
 const
-    MaxStatusLevel = 5;
+    MaxStatusLevel = {$ifdef FPC}10{$else}2{$endif};
 
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
@@ -379,7 +379,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-03-16 12:38:09  peter
+  Revision 1.13  1999-03-23 15:11:28  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.12  1999/03/16 12:38:09  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

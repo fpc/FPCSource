@@ -60,7 +60,11 @@ const ClipboardWindow  : PClipboardWindow = nil;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
+      DesktopPath      : string = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows;
+      DesktopLocation  : byte    = dlConfigFileDir;
+      AutoSaveOptions  : longint = asEnvironment+asDesktop;
+      MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -75,7 +79,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.14  1999-03-19 16:04:32  peter
+  Revision 1.15  1999-03-23 15:11:36  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.14  1999/03/19 16:04:32  peter
     * new compiler dialog
 
   Revision 1.13  1999/03/16 12:38:15  peter

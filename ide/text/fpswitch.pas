@@ -113,7 +113,7 @@ const
       ('~N~ormal','~D~ebug','~R~elease');
     SwitchesModeStr : array[TSwitchMode] of string[8]=
       ('NORMAL','DEBUG','RELEASE');
-    CustomArg : array[TSwitchMode] of string=
+    CustomArg : array[TSwitchMode] of string{$ifndef FPC}[128]{$endif}=
       ('','','');
 
 var
@@ -841,7 +841,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-03-12 01:14:01  peter
+  Revision 1.12  1999-03-23 15:11:34  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.11  1999/03/12 01:14:01  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 

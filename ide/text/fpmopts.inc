@@ -475,7 +475,7 @@ begin
   ExecuteDialog(New(PToolsDialog, Init),nil);
 end;
 
-procedure TIDEApp.Preferences;
+(*procedure TIDEApp.Preferences;
 var R,R2: TRect;
     D: PCenterDialog;
     RB1 : PRadioButtons;
@@ -549,6 +549,141 @@ begin
         end;
    end;
   Dispose(D, Done);
+end;*)
+
+type
+     PVideoModeCollection = ^TVideoModeCollection;
+     TVideoModeCollection = object(TSortedCollection)
+       function  Compare(Key1, Key2: Pointer): Integer; virtual;
+       procedure FreeItem(Item: Pointer); virtual;
+     end;
+
+function TVideoModeCollection.Compare(Key1, Key2: Pointer): Integer;
+var R: integer;
+    K1: PVideoModeList absolute Key1;
+    K2: PVideoModeList absolute Key2;
+begin
+  if K1^.Col<K2^.Col then R:=-1 else
+  if K1^.Col>K2^.Col then R:= 1 else
+  if K1^.Row<K2^.Row then R:=-1 else
+  if K1^.Row>K2^.Row then R:= 1 else
+  if (K1^.Color=false) and (K2^.Color=true ) then R:=-1 else
+  if (K1^.Color=true ) and (K2^.Color=false) then R:= 1 else
+  R:=0;
+  Compare:=R;
+end;
+
+procedure TVideoModeCollection.FreeItem(Item: Pointer);
+begin
+  { don't do anything here }
+end;
+
+procedure TIDEApp.Preferences;
+function SearchVideoMode(Col,Row: word; Color: boolean): PVideoModeList;
+var I,P: PVideoModeList;
+begin
+  I:=nil; P:=Video.Modes;
+  while (I=nil) and (P<>nil) do
+    begin
+      if (P^.Col=Col) and (P^.Row=Row) and (P^.Color=Color) then
+        I:=P
+      else
+        P:=P^.Next;
+    end;
+  SearchVideoMode:=I;
+end;
+var R,R2,R3: TRect;
+    D: PCenterDialog;
+    C: PVideoModeCollection;
+    VMLB: PVideoModeListBox;
+    VP: PVideoModeList;
+    VM: TVideoMode;
+    RB1,RB2: PPlainRadioButtons;
+    CB1,CB2: PPlainCheckBoxes;
+    CurM: PVideoModeList;
+    CurIdx: integer;
+begin
+  New(C, Init(10,50));
+  VP:=Video.Modes; CurM:=nil;
+  while VP<>nil do
+    begin
+      C^.Insert(VP);
+      if (VP^.Row=ScreenMode.Row) and (VP^.Col=ScreenMode.Col) and
+         (VP^.Color=ScreenMode.Color) then
+       CurM:=VP;
+      VP:=VP^.Next;
+    end;
+  R.Assign(0,0,64,15);
+  New(D, Init(R, 'Preferences'));
+  with D^ do
+  begin
+    GetExtent(R); R.Grow(-2,-2);
+    R.B.X:=R.A.X+(R.B.X-R.A.X) div 2 - 1;
+
+    R.B.Y:=R.A.Y+3;
+    R2.Copy(R); R2.Grow(-1,-1);
+    New(VMLB, Init(R2, Min(4,C^.Count), C));
+    if CurM=nil then CurIdx:=-1 else
+      CurIdx:=C^.IndexOf(CurM);
+    if CurIdx<>-1 then
+      VMLB^.FocusItem(CurIdx);
+    Insert(New(PGroupView, Init(R, 'Video mode', VMLB)));
+    Insert(VMLB);
+
+    R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+4;
+    R2.Copy(R); R2.Grow(-1,-1);
+    New(RB1, Init(R2,
+      NewSItem('C~u~rrent directory',
+      NewSItem('Conf~i~g file directory',
+      nil))));
+    RB1^.Press(DesktopLocation);
+    Insert(New(PGroupView, Init(R, 'Desktop file', RB1)));
+    Insert(RB1);
+
+    R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+5;
+    R2.Copy(R); R2.Grow(-1,-1);
+    New(CB1, Init(R2,
+      NewSItem('Editor ~f~iles',
+      NewSItem('~E~nvironment',
+      NewSItem('~D~esktop',
+      nil)))));
+    CB1^.Value:=AutoSaveOptions;
+    Insert(New(PGroupView, Init(R, 'Auto save', CB1)));
+    Insert(CB1);
+
+    GetExtent(R); R.Grow(-2,-2);
+    R.A.X:=R.B.X-(R.B.X-R.A.X) div 2 + 1;
+    R.B.Y:=R.A.Y+7;
+
+    R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+5;
+    R2.Copy(R); R2.Grow(-1,-1);
+    New(CB2, Init(R2,
+      NewSItem('~A~uto track source',
+      NewSItem('C~l~ose on go to source',
+      NewSItem('C~h~ange dir on open',
+      nil)))));
+    CB2^.Value:=MiscOptions;
+    Insert(New(PGroupView, Init(R, 'Options', CB2)));
+    Insert(CB2);
+
+  end;
+  InsertButtons(D);
+  if Desktop^.ExecView(D)=cmOK then
+   begin
+     with PVideoModeList(C^.At(VMLB^.Focused))^ do
+      begin
+        VM.Col:=Col;
+        VM.Row:=Row;
+        VM.Color:=Color;
+      end;
+     if (VM.Col<>ScreenMode.Col) or (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color) then
+       SetScreenVideoMode(VM);
+     AutoSaveOptions:=CB1^.Value;
+     MiscOptions:=CB2^.Value;
+     DesktopLocation:=RB1^.Value;
+   end;
+  Dispose(D, Done);
+  Dispose(C, Done);
 end;
 
 procedure TIDEApp.EditorOptions(Editor: PEditor);
@@ -930,7 +1065,12 @@ end;
 
 {
   $Log$
-  Revision 1.22  1999-03-21 22:51:36  florian
+  Revision 1.23  1999-03-23 15:11:33  peter
+    * desktop saving things
+    * vesa mode
+    * preferences dialog
+
+  Revision 1.22  1999/03/21 22:51:36  florian
     + functional screen mode switching added
 
   Revision 1.21  1999/03/16 12:38:12  peter
