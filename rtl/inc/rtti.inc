@@ -149,16 +149,10 @@ begin
   Temp:=PByte(TypeInfo);
   case temp^ of
     tkAstring :
-      begin
-        fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-        PPchar(Data)^:=Nil;
-      end;	
+      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
 {$ifdef HASWIDESTRING}
     tkWstring :
-      begin
-        fpc_WideStr_Decr_Ref(PPointer(Data)^);
-        PPchar(Data)^:=Nil;
-      end;	
+      fpc_WideStr_Decr_Ref(PPointer(Data)^);
 {$endif HASWIDESTRING}
     tkArray :
       begin
@@ -319,7 +313,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.8  2004-01-22 22:09:05  peter
+  Revision 1.9  2004-02-26 12:42:34  michael
+  + Patch from peter to fix finalize (bug 2975)
+
+  Revision 1.8  2004/01/22 22:09:05  peter
     * finalize needs to reset to nil after decr_ref
 
   Revision 1.7  2002/09/07 15:07:46  peter
