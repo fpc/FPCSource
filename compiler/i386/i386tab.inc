@@ -8849,6 +8849,13 @@
     flags   : if_386 or if_sm
   ),
   (
+    opcode  : A_XSTORE;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#167#192;
+    flags   : if_p6 or if_cyrix
+  ),
+  (
     opcode  : A_CMOVcc;
     ops     : 2;
     optypes : (ot_reg16,ot_memory,ot_none);
