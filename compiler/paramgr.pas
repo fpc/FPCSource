@@ -126,11 +126,16 @@ unit paramgr;
          end;
       end;
 
+finalization
+  paramanager.free;
 end.
 
 {
    $Log$
-   Revision 1.1  2002-07-11 14:41:28  florian
+   Revision 1.2  2002-07-13 07:17:15  jonas
+     * fixed memory leak reported by  Sergey Korshunoff
+
+   Revision 1.1  2002/07/11 14:41:28  florian
      * start of the new generic parameter handling
 
 }
