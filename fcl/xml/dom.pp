@@ -286,11 +286,11 @@ type
   protected
     FDocType: TDOMDocumentType;
     FImplementation: TDOMImplementation;
-    FDocumentElement: TDOMElement;
+    function GetDocumentElement: TDOMElement;
   public
     property DocType: TDOMDocumentType read FDocType;
     property Impl: TDOMImplementation read FImplementation;
-    property DocumentElement: TDOMElement read FDocumentElement;
+    property DocumentElement: TDOMElement read GetDocumentElement;
 
     function CreateElement(const tagName: DOMString): TDOMElement; virtual;
     function CreateDocumentFragment: TDOMDocumentFragment;
@@ -309,7 +309,6 @@ type
     // Extensions to DOM interface:
     constructor Create; virtual;
     function CreateEntity(const data: DOMString): TDOMEntity;
-    procedure SetDocumentElement(ADocumentElement: TDOMElement);
   end;
 
   TXMLDocument = class(TDOMDocument)
@@ -673,7 +672,8 @@ function TDOMNode_WithChildren.ReplaceChild(NewChild, OldChild: TDOMNode):
   TDOMNode;
 begin
   InsertBefore(NewChild, OldChild);
-  RemoveChild(OldChild);
+  if Assigned(OldChild) then
+    RemoveChild(OldChild);
   Result := NewChild;
 end;
 
@@ -932,9 +932,19 @@ begin
   FOwnerDocument := Self;
 end;
 
-procedure TDOMDocument.SetDocumentElement(ADocumentElement: TDOMElement);
+function TDOMDocument.GetDocumentElement: TDOMElement;
+var
+  node: TDOMNode;
 begin
-  FDocumentElement := ADocumentElement;
+  node := FFirstChild;
+  while Assigned(node) do begin
+    if node.FNodeType = ELEMENT_NODE then begin
+      Result := TDOMElement(node);
+      exit;
+    end;
+    node := node.NextSibling;
+  end;
+  Result := nil;
 end;
 
 function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
@@ -1283,7 +1293,13 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-01-30 22:18:16  sg
+  Revision 1.12  2000-02-13 10:03:31  sg
+  * Hopefully final fix for TDOMDocument.DocumentElement:
+    - Reading this property always delivers the first element in the document
+    - Removed SetDocumentElement. Use "AppendChild" or one of the other
+      generic methods for TDOMNode instead.
+
+  Revision 1.11  2000/01/30 22:18:16  sg
   * Fixed memory leaks, all nodes are now freed by their parent
   * Many cosmetic changes
 

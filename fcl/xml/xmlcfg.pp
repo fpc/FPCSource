@@ -78,15 +78,14 @@ begin
     Close(f);
   end;
 
-  if doc = nil then
+  if not Assigned(doc) then
     doc := TXMLDocument.Create;
 
   cfg :=TDOMElement(doc.FindNode('CONFIG'));
-  if cfg = nil then begin
+  if not Assigned(cfg) then begin
     cfg := doc.CreateElement('CONFIG');
     doc.AppendChild(cfg);
   end;
-  doc.SetDocumentElement(cfg);
 end;
 
 destructor TXMLConfig.Destroy;
@@ -121,17 +120,17 @@ begin
     name := Copy(path, 1, i - 1);
     path := Copy(path, i + 1, Length(path));
     subnode := node.FindNode(name);
-    if subnode = nil then begin
+    if not Assigned(subnode) then begin
       Result := ADefault;
       exit;
     end;
     node := subnode;
   end;
   attr := node.Attributes.GetNamedItem(path);
-  if attr = nil then
-    Result := ADefault
+  if Assigned(attr) then
+    Result := attr.NodeValue
   else
-    Result := attr.NodeValue;
+    Result := ADefault;
 end;
 
 function TXMLConfig.GetValue(const APath: String; ADefault: Integer): Integer;
@@ -172,14 +171,14 @@ begin
     name := Copy(path, 1, i - 1);
     path := Copy(path, i + 1, Length(path));
     subnode := node.FindNode(name);
-    if subnode = nil then begin
+    if not Assigned(subnode) then begin
       subnode := doc.CreateElement(name);
       node.AppendChild(subnode);
     end;
     node := subnode;
   end;
   attr := node.Attributes.GetNamedItem(path);
-  if attr = nil then begin
+  if not Assigned(attr) then begin
     attr := doc.CreateAttribute(path);
     node.Attributes.SetNamedItem(attr);
   end;
@@ -205,7 +204,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-01-30 22:20:08  sg
+  Revision 1.9  2000-02-13 10:03:31  sg
+  * Hopefully final fix for TDOMDocument.DocumentElement:
+    - Reading this property always delivers the first element in the document
+    - Removed SetDocumentElement. Use "AppendChild" or one of the other
+      generic methods for TDOMNode instead.
+
+  Revision 1.8  2000/01/30 22:20:08  sg
   * TXMLConfig now frees its XML document (major memory leak...)
 
   Revision 1.7  2000/01/07 01:24:34  peter

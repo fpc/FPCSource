@@ -188,11 +188,6 @@ begin
   ExpectElement(doc);
   ParseMisc(doc);
 
-  if Assigned(LastNodeBeforeDoc) then
-    doc.SetDocumentElement(LastNodeBeforeDoc.NextSibling as TDOMElement)
-  else
-    doc.SetDocumentElement(doc.FirstChild as TDOMElement);
-
   if buf[0] <> #0 then
     RaiseExc('Text after end of document element found');
 
@@ -985,7 +980,13 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-01-30 22:19:13  sg
+  Revision 1.15  2000-02-13 10:03:31  sg
+  * Hopefully final fix for TDOMDocument.DocumentElement:
+    - Reading this property always delivers the first element in the document
+    - Removed SetDocumentElement. Use "AppendChild" or one of the other
+      generic methods for TDOMNode instead.
+
+  Revision 1.14  2000/01/30 22:19:13  sg
   * Made some optimizations and cosmetic changes
 
   Revision 1.13  2000/01/07 01:24:34  peter
