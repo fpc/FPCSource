@@ -348,7 +348,7 @@ type
     FAttributes: TDOMNamedNodeMap;
     function FGetAttributes: TDOMNamedNodeMap; override;
 
-    constructor Create(AOwner: TDOMDocument);
+    constructor Create(AOwner: TDOMDocument);virtual;
   public
     property  TagName: DOMString read FNodeName;
     function  GetAttribute(const name: DOMString): DOMString;
@@ -1228,7 +1228,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-07-09 21:05:49  michael
+  Revision 1.3  1999-07-10 21:48:26  michael
+  + Made domelement constructor virtual, needs overriding in thtmlelement
+
+  Revision 1.2  1999/07/09 21:05:49  michael
   + fixes from Guenther Sebastian
 
   Revision 1.1  1999/07/09 08:35:09  michael
