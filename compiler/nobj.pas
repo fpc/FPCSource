@@ -1007,12 +1007,9 @@ implementation
                 { allocate a pointer in the object memory }
                 with tobjectsymtable(_class.symtable) do
                   begin
-                    if (dataalignment>=pointer_size) then
-                      datasize:=align(datasize,dataalignment)
-                    else
-                      datasize:=align(datasize,pointer_size);
+                    datasize:=align(datasize,min(POINTER_SIZE,fieldalignment));
                     _class.implementedinterfaces.ioffsets(i)^:=datasize;
-                    datasize:=datasize+pointer_size;
+                    inc(datasize,POINTER_SIZE);
                   end;
                 { write vtbl }
                 gintfcreatevtbl(i,rawdata,rawcode);
@@ -1370,7 +1367,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.58  2004-01-21 14:22:00  florian
+  Revision 1.59  2004-01-28 20:30:18  peter
+    * record alignment splitted in fieldalignment and recordalignment,
+      the latter is used when this record is inserted in another record.
+
+  Revision 1.58  2004/01/21 14:22:00  florian
     + reintroduce implemented
 
   Revision 1.57  2003/12/08 22:34:24  peter

@@ -92,8 +92,9 @@ interface
 
        tabstractrecordsymtable = class(tstoredsymtable)
        public
-          datasize  : longint;
-          dataalignment : byte;
+          datasize       : longint;
+          recordalignment,       { alignment required when inserting this record }
+          fieldalignment : byte; { alignment used when fields are inserted }
           constructor create(const n:string);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -978,7 +979,7 @@ implementation
       begin
         inherited create(n);
         datasize:=0;
-        dataalignment:=1;
+        fieldalignment:=1;
       end;
 
 
@@ -1040,52 +1041,56 @@ implementation
 
     procedure tabstractrecordsymtable.insertfield(sym : tvarsym;addsym:boolean);
       var
-        l,varalign : longint;
+        l,
+        varalignrecord,
+        varalignfield,
+        varalign : longint;
         vardef : tdef;
       begin
         if addsym then
           insert(sym);
-        { Calculate field offset }
-        l:=tvarsym(sym).getvaluesize;
-        vardef:=tvarsym(sym).vartype.def;
         { this symbol can't be loaded to a register }
         exclude(tvarsym(sym).varoptions,vo_regable);
         exclude(tvarsym(sym).varoptions,vo_fpuregable);
-        { get the alignment size }
+        { Calculate field offset }
+        l:=tvarsym(sym).getvaluesize;
+        vardef:=tvarsym(sym).vartype.def;
+        varalign:=vardef.alignment;
+        { Calc the alignment size for C style records }
         if (aktalignment.recordalignmax=-1) then
          begin
-           varalign:=vardef.alignment;
            if (varalign>4) and
               ((varalign mod 4)<>0) and
               (vardef.deftype=arraydef) then
              Message1(sym_w_wrong_C_pack,vardef.typename);
            if varalign=0 then
              varalign:=l;
-           if (dataalignment<aktalignment.maxCrecordalign) then
+           if (fieldalignment<aktalignment.maxCrecordalign) then
             begin
-              if (varalign>16) and (dataalignment<32) then
-               dataalignment:=32
-              else if (varalign>12) and (dataalignment<16) then
-               dataalignment:=16
+              if (varalign>16) and (fieldalignment<32) then
+               fieldalignment:=32
+              else if (varalign>12) and (fieldalignment<16) then
+               fieldalignment:=16
               { 12 is needed for long double }
-              else if (varalign>8) and (dataalignment<12) then
-               dataalignment:=12
-              else if (varalign>4) and (dataalignment<8) then
-               dataalignment:=8
-              else if (varalign>2) and (dataalignment<4) then
-               dataalignment:=4
-              else if (varalign>1) and (dataalignment<2) then
-               dataalignment:=2;
+              else if (varalign>8) and (fieldalignment<12) then
+               fieldalignment:=12
+              else if (varalign>4) and (fieldalignment<8) then
+               fieldalignment:=8
+              else if (varalign>2) and (fieldalignment<4) then
+               fieldalignment:=4
+              else if (varalign>1) and (fieldalignment<2) then
+               fieldalignment:=2;
             end;
-           dataalignment:=min(dataalignment,aktalignment.maxCrecordalign);
-         end
-        else
-         varalign:=vardef.alignment;
+           fieldalignment:=min(fieldalignment,aktalignment.maxCrecordalign);
+         end;
         if varalign=0 then
           varalign:=size_2_align(l);
-        varalign:=used_align(varalign,aktalignment.recordalignmin,dataalignment);
-        tvarsym(sym).fieldoffset:=align(datasize,varalign);
+        varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
+        tvarsym(sym).fieldoffset:=align(datasize,varalignfield);
         datasize:=tvarsym(sym).fieldoffset+l;
+        { Calc alignment needed for this record }
+        varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
+        recordalignment:=max(recordalignment,varalignrecord);
       end;
 
 
@@ -1112,7 +1117,7 @@ implementation
         storesize,storealign : longint;
       begin
         storesize:=tsymt.datasize;
-        storealign:=tsymt.dataalignment;
+        storealign:=tsymt.fieldalignment;
         tsymt.datasize:=offset;
         ps:=tvarsym(symindex.first);
         while assigned(ps) do
@@ -1143,7 +1148,7 @@ implementation
             pd:=npd;
           end;
         tsymt.datasize:=storesize;
-        tsymt.dataalignment:=storealign;
+        tsymt.fieldalignment:=storealign;
       end;
 
 
@@ -2297,7 +2302,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2004-01-26 16:12:28  daniel
+  Revision 1.127  2004-01-28 20:30:18  peter
+    * record alignment splitted in fieldalignment and recordalignment,
+      the latter is used when this record is inserted in another record.
+
+  Revision 1.126  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

@@ -244,7 +244,8 @@ implementation
          typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;
          { may be scale record size to a size of n*4 ? }
-         trecordsymtable(symtablestack).datasize:=align(trecordsymtable(symtablestack).datasize,trecordsymtable(symtablestack).dataalignment);
+         trecordsymtable(symtablestack).datasize:=align(trecordsymtable(symtablestack).datasize,
+             trecordsymtable(symtablestack).fieldalignment);
          { restore symtable stack }
          symtablestack:=symtable.next;
       end;
@@ -643,7 +644,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-10-21 18:16:13  peter
+  Revision 1.61  2004-01-28 20:30:18  peter
+    * record alignment splitted in fieldalignment and recordalignment,
+      the latter is used when this record is inserted in another record.
+
+  Revision 1.60  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 

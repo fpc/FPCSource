@@ -1073,7 +1073,7 @@ implementation
                 Uniondef.owner:=symtablestack.defowner.owner;
               registerdef:=true;
               startvarrecsize:=UnionSymtable.datasize;
-              startvarrecalign:=UnionSymtable.dataalignment;
+              startvarrecalign:=UnionSymtable.fieldalignment;
               symtablestack:=UnionSymtable;
               repeat
                 repeat
@@ -1096,10 +1096,10 @@ implementation
                 consume(_RKLAMMER);
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,unionsymtable.datasize);
-                maxalignment:=max(maxalignment,unionsymtable.dataalignment);
+                maxalignment:=max(maxalignment,unionsymtable.fieldalignment);
                 { the items of the next variant are overlayed }
                 unionsymtable.datasize:=startvarrecsize;
-                unionsymtable.dataalignment:=startvarrecalign;
+                unionsymtable.fieldalignment:=startvarrecalign;
                 if (token<>_END) and (token<>_RKLAMMER) then
                   consume(_SEMICOLON)
                 else
@@ -1107,7 +1107,7 @@ implementation
               until (token=_END) or (token=_RKLAMMER);
               { at last set the record size to that of the biggest variant }
               unionsymtable.datasize:=maxsize;
-              unionsymtable.dataalignment:=maxalignment;
+              unionsymtable.fieldalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
               UnionSym:=tvarsym.create('$case',vs_value,uniontype);
@@ -1135,8 +1135,8 @@ implementation
               usedalign:=used_align(maxalignment,minalignment,maxalignment);
               offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
               trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
-              if maxalignment>trecordsymtable(symtablestack).dataalignment then
-                trecordsymtable(symtablestack).dataalignment:=maxalignment;
+              if maxalignment>trecordsymtable(symtablestack).fieldalignment then
+                trecordsymtable(symtablestack).fieldalignment:=maxalignment;
               Unionsymtable.Insert_in(trecordsymtable(symtablestack),offset);
               Unionsym.owner:=nil;
               unionsym.free;
@@ -1152,7 +1152,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-12-10 16:37:01  peter
+  Revision 1.60  2004-01-28 20:30:18  peter
+    * record alignment splitted in fieldalignment and recordalignment,
+      the latter is used when this record is inserted in another record.
+
+  Revision 1.59  2003/12/10 16:37:01  peter
     * global property support for fpc modes
 
   Revision 1.58  2003/11/23 17:05:15  peter

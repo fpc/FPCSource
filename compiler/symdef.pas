@@ -3047,9 +3047,9 @@ implementation
          { recordalign -1 means C record packing, that starts
            with an alignment of 1 }
          if aktalignment.recordalignmax=-1 then
-           trecordsymtable(symtable).dataalignment:=1
+           trecordsymtable(symtable).fieldalignment:=1
          else
-           trecordsymtable(symtable).dataalignment:=aktalignment.recordalignmax;
+           trecordsymtable(symtable).fieldalignment:=aktalignment.recordalignmax;
          isunion:=false;
       end;
 
@@ -3061,7 +3061,8 @@ implementation
          savesize:=ppufile.getlongint;
          symtable:=trecordsymtable.create;
          trecordsymtable(symtable).datasize:=ppufile.getlongint;
-         trecordsymtable(symtable).dataalignment:=ppufile.getbyte;
+         trecordsymtable(symtable).fieldalignment:=ppufile.getbyte;
+         trecordsymtable(symtable).recordalignment:=ppufile.getbyte;
          trecordsymtable(symtable).ppuload(ppufile);
          symtable.defowner:=self;
          isunion:=false;
@@ -3120,7 +3121,8 @@ implementation
          inherited ppuwritedef(ppufile);
          ppufile.putlongint(savesize);
          ppufile.putlongint(trecordsymtable(symtable).datasize);
-         ppufile.putbyte(trecordsymtable(symtable).dataalignment);
+         ppufile.putbyte(trecordsymtable(symtable).fieldalignment);
+         ppufile.putbyte(trecordsymtable(symtable).recordalignment);
          ppufile.writeentry(ibrecorddef);
          trecordsymtable(symtable).ppuwrite(ppufile);
       end;
@@ -3133,36 +3135,8 @@ implementation
 
 
     function trecorddef.alignment:longint;
-      var
-        l  : longint;
-        hp : tvarsym;
       begin
-        { also check the first symbol for it's size, because a
-          packed record has dataalignment of 1, but the first
-          sym could be a longint which should be aligned on 4 bytes,
-          this is compatible with C record packing (PFV) }
-        hp:=tvarsym(symtable.symindex.first);
-        if assigned(hp) then
-         begin
-           if hp.vartype.def.deftype in [recorddef,arraydef] then
-            l:=hp.vartype.def.alignment
-           else
-            l:=hp.vartype.def.size;
-           if l>trecordsymtable(symtable).dataalignment then
-            begin
-              if l>=4 then
-               alignment:=4
-              else
-               if l>=2 then
-                alignment:=2
-              else
-               alignment:=1;
-            end
-           else
-            alignment:=trecordsymtable(symtable).dataalignment;
-         end
-        else
-         alignment:=trecordsymtable(symtable).dataalignment;
+        alignment:=trecordsymtable(symtable).recordalignment;
       end;
 
 
@@ -4700,9 +4674,9 @@ implementation
         { recordalign -1 means C record packing, that starts
           with an alignment of 1 }
         if aktalignment.recordalignmax=-1 then
-         tobjectsymtable(symtable).dataalignment:=1
+         tobjectsymtable(symtable).fieldalignment:=1
         else
-         tobjectsymtable(symtable).dataalignment:=aktalignment.recordalignmax;
+         tobjectsymtable(symtable).fieldalignment:=aktalignment.recordalignmax;
         lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(upper(n));
@@ -4763,7 +4737,8 @@ implementation
 
          symtable:=tobjectsymtable.create(objrealname^);
          tobjectsymtable(symtable).datasize:=ppufile.getlongint;
-         tobjectsymtable(symtable).dataalignment:=ppufile.getbyte;
+         tobjectsymtable(symtable).fieldalignment:=ppufile.getbyte;
+         tobjectsymtable(symtable).recordalignment:=ppufile.getbyte;
          tobjectsymtable(symtable).ppuload(ppufile);
 
          symtable.defowner:=self;
@@ -4832,7 +4807,8 @@ implementation
            end;
 
          ppufile.putlongint(tobjectsymtable(symtable).datasize);
-         ppufile.putbyte(tobjectsymtable(symtable).dataalignment);
+         ppufile.putbyte(tobjectsymtable(symtable).fieldalignment);
+         ppufile.putbyte(tobjectsymtable(symtable).recordalignment);
          ppufile.writeentry(ibobjectdef);
 
          tobjectsymtable(symtable).ppuwrite(ppufile);
@@ -4938,7 +4914,7 @@ implementation
         else
           begin
              tobjectsymtable(symtable).datasize:=align(tobjectsymtable(symtable).datasize,
-                 tobjectsymtable(symtable).dataalignment);
+                 tobjectsymtable(symtable).fieldalignment);
              vmt_offset:=tobjectsymtable(symtable).datasize;
              inc(tobjectsymtable(symtable).datasize,POINTER_SIZE);
              include(objectoptions,oo_has_vmt);
@@ -5045,7 +5021,7 @@ implementation
 
     function tobjectdef.alignment:longint;
       begin
-        alignment:=tobjectsymtable(symtable).dataalignment;
+        alignment:=tobjectsymtable(symtable).recordalignment;
       end;
 
 
@@ -6185,7 +6161,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.210  2004-01-27 10:29:32  daniel
+  Revision 1.211  2004-01-28 20:30:18  peter
+    * record alignment splitted in fieldalignment and recordalignment,
+      the latter is used when this record is inserted in another record.
+
+  Revision 1.210  2004/01/27 10:29:32  daniel
     * Fix string type stab generation. String constant still unsupported.
 
   Revision 1.209  2004/01/26 19:54:42  daniel
