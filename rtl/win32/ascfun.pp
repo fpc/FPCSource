@@ -892,24 +892,29 @@ uses
 
   function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL;
 
-  function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal;
+  function DragQueryFileA(_para1:HDROP; _para2:cardinal; _para3:pchar;
+    _para4:cardinal):cardinal;
 
-  function ExtractAssociatedIconA(_para1:HINST; var _para2:char; var _para3:WORD):HICON;
+  function ExtractAssociatedIconA(_para1:HINST;_para2:pchar; var _para3:WORD):HICON;
 
-  function ExtractIconA(_para1:HINST; var _para2:char; _para3:cardinal):HICON;
+  function ExtractIconA(_para1:HINST;_para2:pchar; _para3:cardinal):HICON;
 
-  function FindExecutableA(var _para1:char; var _para2:char; var _para3:char):HINST;
+  function FindExecutableA(_para1:pchar;_para2:pchar; _para3:pchar):HINST;
 
-  function ShellAboutA(_para1:HWND; var _para2:char; var _para3:char; _para4:HICON):longint;
+  function ShellAboutA(_para1:HWND; _para2:pchar;
+    _para3:pchar; _para4:HICON):longint;
 
-  function ShellExecuteA(_para1:HWND; var _para2:char; var _para3:char; var _para4:char; var _para5:char;
-             _para6:longint):HINST;
+  function ShellExecuteA(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:pchar; _para5:pchar;_para6:longint):HINST;
 
-  function DdeCreateStringHandleA(_para1:DWORD; var _para2:char; _para3:longint):HSZ;
+  function DdeCreateStringHandleA(_para1:DWORD; _para2:pchar;
+    _para3:longint):HSZ;
 
-  function DdeInitializeA(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
+  function DdeInitializeA(var _para1:DWORD; _para2:CALLB;
+    _para3:DWORD; _para4:DWORD):UINT;
 
-  function DdeQueryStringA(_para1:DWORD; _para2:HSZ; var _para3:char; _para4:DWORD; _para5:longint):DWORD;
+  function DdeQueryStringA(_para1:DWORD; _para2:HSZ; _para3:pchar;
+    _para4:DWORD; _para5:longint):DWORD;
 
   function LogonUserA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL;
@@ -1775,24 +1780,33 @@ uses
 
   function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL; external 'advapi32' name 'StartServiceA';
 
-  function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
+  function DragQueryFileA(_para1:HDROP; _para2:cardinal; _para3:Pchar;
+    _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
 
-  function ExtractAssociatedIconA(_para1:HINST; var _para2:char; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
+  function ExtractAssociatedIconA(_para1:HINST; _para2:Pchar;
+    var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
 
-  function ExtractIconA(_para1:HINST; var _para2:char; _para3:cardinal):HICON; external 'shell32' name 'ExtractIconA';
+  function ExtractIconA(_para1:HINST; _para2:Pchar; _para3:cardinal):HICON;
+    external 'shell32' name 'ExtractIconA';
 
-  function FindExecutableA(var _para1:char; var _para2:char; var _para3:char):HINST; external 'shell32' name 'FindExecutableA';
+  function FindExecutableA(_para1:pchar; _para2:pchar;
+    _para3:pchar):HINST; external 'shell32' name 'FindExecutableA';
 
-  function ShellAboutA(_para1:HWND; var _para2:char; var _para3:char; _para4:HICON):longint; external 'shell32' name 'ShellAboutA';
+  function ShellAboutA(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:HICON):longint; external 'shell32' name 'ShellAboutA';
 
-  function ShellExecuteA(_para1:HWND; var _para2:char; var _para3:char; var _para4:char; var _para5:char;
-             _para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
+  function ShellExecuteA(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:pchar; _para5:pchar;
+    _para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
 
-  function DdeCreateStringHandleA(_para1:DWORD; var _para2:char; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
+  function DdeCreateStringHandleA(_para1:DWORD; _para2:pchar;
+    _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
 
-  function DdeInitializeA(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT; external 'user32' name 'DdeInitializeA';
+  function DdeInitializeA(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
+    external 'user32' name 'DdeInitializeA';
 
-  function DdeQueryStringA(_para1:DWORD; _para2:HSZ; var _para3:char; _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
+  function DdeQueryStringA(_para1:DWORD; _para2:HSZ; _para3:pchar;
+    _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
 
   function LogonUserA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
@@ -1808,7 +1822,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.9  1999-05-10 19:34:09  florian
+  Revision 1.10  1999-07-05 14:47:43  florian
+    * some more functions fixed to get them work
+
+  Revision 1.9  1999/05/10 19:34:09  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 

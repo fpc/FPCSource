@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    This unit contains the record definition for the Win32 API
-    Copyright (c) 1993,97 by Florian KLaempfl,
-    member of the Free Pascal development team.
+    Copyright (c) 1999 by the Free Pascal development team.
+
+    Contains the Unicode functions for windows unit
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -68,7 +68,7 @@ uses
 
   function GetShortPathName(lpszLongPath:LPCWSTR; lpszShortPath:LPWSTR; cchBuffer:DWORD):DWORD;
 
-  function GetEnvironmentStrings:LPWSTR;
+  function GetEnvironmentStrings : LPWSTR;
 
   function FreeEnvironmentStrings(_para1:LPWSTR):WINBOOL;
 
@@ -118,7 +118,7 @@ uses
 
   procedure FatalAppExit(uAction:UINT; lpMessageText:LPCWSTR);
 
-  function GetCommandLine:LPWSTR;
+  function GetCommandLine : LPWSTR;
 
   function GetEnvironmentVariable(lpName:LPCWSTR; lpBuffer:LPWSTR; nSize:DWORD):DWORD;
 
@@ -908,8 +908,6 @@ uses
 
   function StartService(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCWSTR):WINBOOL;
 
-  { -------------------------------------  }
-  { From shellapi.h in old Cygnus headers  }
   function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3:LPCWSTR; _para4:cardinal):cardinal;
 
   function ExtractAssociatedIcon(_para1:HINST; _para2:LPCWSTR; var _para3:WORD):HICON;
@@ -951,7 +949,7 @@ uses
 
   function GetShortPathName(lpszLongPath:LPCWSTR; lpszShortPath:LPWSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetShortPathNameW';
 
-  function GetEnvironmentStrings:LPWSTR; external 'kernel32' name 'GetEnvironmentStringsW';
+  function GetEnvironmentStrings : LPWSTR; external 'kernel32' name 'GetEnvironmentStringsW';
 
   function FreeEnvironmentStrings(_para1:LPWSTR):WINBOOL; external 'kernel32' name 'FreeEnvironmentStringsW';
 
@@ -1001,7 +999,7 @@ uses
 
   procedure FatalAppExit(uAction:UINT; lpMessageText:LPCWSTR); external 'kernel32' name 'FatalAppExitW';
 
-  function GetCommandLine:LPWSTR; external 'kernel32' name 'GetCommandLineW';
+  function GetCommandLine : LPWSTR; external 'kernel32' name 'GetCommandLineW';
 
   function GetEnvironmentVariable(lpName:LPCWSTR; lpBuffer:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetEnvironmentVariableW';
 
@@ -1839,11 +1837,14 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.10  1999-05-10 19:34:12  florian
+  Revision 1.11  1999-07-05 14:47:45  florian
+    * some more functions fixed to get them work
+
+  Revision 1.9  1999/05/10 19:34:14  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 
-  Revision 1.9  1999/05/01 12:27:53  peter
+  Revision 1.8  1999/05/01 12:27:54  peter
     * fixed conflicting declarations
 
   Revision 1.7  1999/04/20 11:36:21  peter

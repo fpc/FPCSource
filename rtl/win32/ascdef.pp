@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    This unit contains the record definition for the Win32 API
-    Copyright (c) 1993,97 by Florian KLaempfl,
-    member of the Free Pascal development team.
+    Copyright (c) 1999 by the Free Pascal development team.
+
+    Contains the Ascii functions for windows unit
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -65,7 +65,7 @@ uses
 
   function GetShortPathName(lpszLongPath:LPCSTR; lpszShortPath:LPSTR; cchBuffer:DWORD):DWORD;
 
-  function GetEnvironmentStrings:LPSTR;
+  function GetEnvironmentStrings : LPSTR;
 
   function FreeEnvironmentStrings(_para1:LPSTR):WINBOOL;
 
@@ -115,7 +115,7 @@ uses
 
   procedure FatalAppExit(uAction:UINT; lpMessageText:LPCSTR);
 
-  function GetCommandLine:LPSTR;
+  function GetCommandLine : LPSTR;
 
   function GetEnvironmentVariable(lpName:LPCSTR; lpBuffer:LPSTR; nSize:DWORD):DWORD;
 
@@ -894,22 +894,27 @@ uses
 
   function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3:pchar; _para4:cardinal):cardinal;
 
-  function ExtractAssociatedIcon(_para1:HINST; _para2:pchar; var _para3:WORD):HICON;
+  function ExtractAssociatedIcon(_para1:HINST; _para2:pchar;
+    var _para3:WORD):HICON;
 
   function ExtractIcon(_para1:HINST; _para2:pchar; _para3:cardinal):HICON;
 
   function FindExecutable(_para1:pchar; _para2:pchar; _para3:pchar):HINST;
 
-  function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar; _para4:HICON):longint;
+  function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:HICON):longint;
 
-  function ShellExecute(_para1:HWND; _para2:pchar;_para3:pchar;_para4:pchar;_para5:pchar;
-             _para6:longint):HINST;
+  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar; _para4:pchar;
+    _para5:pchar; _para6:longint):HINST;
 
-  function DdeCreateStringHandle(_para1:DWORD; _para2:pchar; _para3:longint):HSZ;
+  function DdeCreateStringHandle(_para1:DWORD; _para2:pchar;
+    _para3:longint):HSZ;
 
-  function DdeInitialize(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
+  function DdeInitialize(var _para1:DWORD; _para2:CALLB; _para3:DWORD;
+    _para4:DWORD):UINT;
 
-  function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar; _para4:DWORD; _para5:longint):DWORD;
+  function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar;
+    _para4:DWORD; _para5:longint):DWORD;
 
   function LogonUser(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL;
@@ -933,7 +938,7 @@ uses
 
   function GetShortPathName(lpszLongPath:LPCSTR; lpszShortPath:LPSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetShortPathNameA';
 
-  function GetEnvironmentStrings:LPSTR; external 'kernel32' name 'GetEnvironmentStringsA';
+  function GetEnvironmentStrings : LPSTR; external 'kernel32' name 'GetEnvironmentStringsA';
 
   function FreeEnvironmentStrings(_para1:LPSTR):WINBOOL; external 'kernel32' name 'FreeEnvironmentStringsA';
 
@@ -983,7 +988,7 @@ uses
 
   procedure FatalAppExit(uAction:UINT; lpMessageText:LPCSTR); external 'kernel32' name 'FatalAppExitA';
 
-  function GetCommandLine:LPSTR; external 'kernel32' name 'GetCommandLineA';
+  function GetCommandLine : LPSTR; external 'kernel32' name 'GetCommandLineA';
 
   function GetEnvironmentVariable(lpName:LPCSTR; lpBuffer:LPSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetEnvironmentVariableA';
 
@@ -1777,22 +1782,29 @@ uses
 
   function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3 : pchar; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
 
-  function ExtractAssociatedIcon(_para1:HINST; _para2 : pchar; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
+  function ExtractAssociatedIcon(_para1:HINST; _para2:pchar;
+    var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
 
-  function ExtractIcon(_para1:HINST; _para2 : pchar; _para3:cardinal):HICON; external 'shell32' name 'ExtractIconA';
+  function ExtractIcon(_para1:HINST; _para2:pchar; _para3:cardinal):HICON;
+    external 'shell32' name 'ExtractIconA';
 
-  function FindExecutable(_para1 : pchar; _para2 : pchar; _para3:pchar):HINST; external 'shell32' name 'FindExecutableA';
+  function FindExecutable(_para1:pchar; _para2:pchar; _para3:pchar):HINST;
+    external 'shell32' name 'FindExecutableA';
 
-  function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar; _para4:HICON):longint; external 'shell32' name 'ShellAboutA';
+  function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:HICON):longint; external 'shell32' name 'ShellAboutA';
 
-  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar; _para4:pchar;_para5:pchar;
-             _para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
+  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar; _para4:pchar;
+   _para5:pchar;_para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
 
-  function DdeCreateStringHandle(_para1:DWORD; _para2 : pchar; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
+  function DdeCreateStringHandle(_para1:DWORD; _para2:pchar;
+    _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
 
-  function DdeInitialize(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT; external 'user32' name 'DdeInitializeA';
+  function DdeInitialize(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
+    external 'user32' name 'DdeInitializeA';
 
-  function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3 : pchar; _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
+  function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar; _para4:DWORD; _para5:longint):DWORD;
+    external 'user32' name 'DdeQueryStringA';
 
   function LogonUser(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
@@ -1808,14 +1820,17 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.11  1999-07-05 14:01:40  michael
+  Revision 1.12  1999-07-05 14:47:42  florian
+    * some more functions fixed to get them work
+
+  Revision 1.11  1999/07/05 14:01:40  michael
   + Fixed declarations of chars to pchars
 
   Revision 1.10  1999/05/10 19:34:08  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 
-  Revision 1.9  1999/05/01 12:27:48  peter
+  Revision 1.8  1999/05/01 12:27:50  peter
     * fixed conflicting declarations
 
   Revision 1.7  1999/04/20 11:36:08  peter
