@@ -273,7 +273,7 @@ var go32_info_block : t_go32_info_block;
 
 var argc : longint;
     doscmd : string;
-    args : ^pchar;
+    args : ppchar;
 
 function far_strlen(selector : word;linear_address : longint) : longint;
 begin
@@ -316,6 +316,7 @@ var psp : word;
     i,j : byte;
     quote : char;
     proxy_s : string[7];
+    tempargs : ppchar;
     al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
     largs : array[0..127] of pchar;
     rm_argv : ^arrayword;
@@ -396,8 +397,9 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
 getmem(args,argc*SizeOf(pchar));
 for i := 0 to argc-1  do
    args[i] := largs[i];
+  tempargs:=args;
   asm
-     movl _ARGS,%eax
+     movl tempargs,%eax
      movl %eax,_args
   end;
 end;
@@ -530,16 +532,6 @@ end;
       end;
 
     function paramstr(l : longint) : string;
-
-{      function args : pointer;
-
-        begin
-           asm
-              movl _args,%eax
-              leave
-              ret
-           end ['EAX'];
-        end;}
 
       var
          p : ^pchar;
@@ -1042,80 +1034,9 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  1998-05-04 16:21:54  florian
+  Revision 1.4  1998-05-04 17:58:41  peter
+    * fix for smartlinking with _ARGS
+
+  Revision 1.3  1998/05/04 16:21:54  florian
     + win95 flag to the interface moved
-
-  Revision 1.2  1998/03/30 21:49:12  florian
-    + seg* added
-
-  Revision 1.1.1.1  1998/03/25 11:18:42  root
-  * Restored version
-
-  Revision 1.18  1998/03/24 21:48:47  florian
-    * extended to support mem*
-
-  Revision 1.17  1998/02/06 18:10:21  pierre
-    * replaced -1 by UnusedHandle (caused error)
-
-  Revision 1.16  1998/01/28 22:56:02  peter
-    + Win95 LFN Support
-    * double log entries removed
-
-  Revision 1.15  1998/01/26 11:57:21  michael
-  + Added log at the end
-
-  Revision 1.14  1998/01/25 21:53:23  peter
-    + Universal Handles support for StdIn/StdOut/StdErr
-    * Updated layout of sysamiga.pas
-
-  Revision 1.13  1998/01/21 10:19:37  pierre
-    * bug with _args not being set fixed
-      version 1.12 removed (based on 1.8!!)
-
-  Revision 1.11  1998/01/20 00:19:36  peter
-    * uses now again the new rtl layout
-
-  Revision 1.10  1998/01/19 09:14:17  michael
-  * Getdir bug fixed (by Peter Vreman)
-
-  Revision 1.9  1998/01/16 23:10:51  florian
-    + some tobject stuff
-
-  Revision 1.8  1998/01/16 16:54:23  pierre
-    + logs added at end
-    + dxeload and emu387 added in makefile
-  
-  revision 1.7
-  date: 1998/01/11 02:47:32;  author: michael;  state: Exp;  lines: +390 -515
-  * Changed files to use the new filestructure in /inc directory.
-    (By Peter Vreman)
-  ----------------------------
-  revision 1.6
-  date: 1998/01/07 09:11:03;  author: michael;  state: Exp;  lines: +14 -14
-  Final adjustments for uniform file handling system (From Peter Vreman)
-  ----------------------------
-  revision 1.5
-  date: 1998/01/06 00:29:31;  author: michael;  state: Exp;  lines: +92 -114
-  Implemented a system independent sequence of reset/rewrite/append fileopenfunc etc system \n (from Peter Vreman)
-  ----------------------------
-  revision 1.4
-  date: 1998/01/05 16:51:20;  author: michael;  state: Exp;  lines: +11 -33
-  + Moved init of heap to heap.inc: INITheap() (From Peter Vreman)
-  ----------------------------
-  revision 1.3
-  date: 1998/01/03 00:47:15;  author: michael;  state: Exp;  lines: +86 -96
-  * Implemented a uniform file opening system. (From Peter Vreman)
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:26:09;  author: michael;  state: Exp;  lines: +10 -5
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:52;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:52;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }
