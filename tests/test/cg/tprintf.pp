@@ -3,7 +3,11 @@
 {$mode objfpc}
 
 
+{$ifdef win32}
+{$linklib msvcrt}
+{$else}
 {$linklib c}
+{$endif}
 
 uses
   strings;
