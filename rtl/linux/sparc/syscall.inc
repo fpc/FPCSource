@@ -22,164 +22,269 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-begin{asm}
-{  mr  r0,r3
-  sc
-  bnslr
-  neg   r3, r3
-  lis   r4,Errno@ha
-  stw   r3,Errno@l(r4)
-  li    r3,-1}
-end;
-
-function FpSysCall(sysnr,param1:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-begin{asm}
-{  mr  r0,r3
-  mr  r3,r4
-  sc
-  bnslr
-  neg   r3, r3
-  lis   r4,Errno@ha
-  stw   r3,Errno@l(r4)
-  li    r3,-1}
-end;
-
-
-function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL2'];
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-begin{asm}
-{  mr  r0,r3
-  mr  r3,r4
-  mr  r4,r5
-  sc
-   bnslr
-   neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
-   li    r3,-1}
-end;
-
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL3'];
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-begin{asm}
-{  mr  r0,r3
-  mr  r3,r4
-  mr  r4,r5
-  mr  r5,r6
-  sc
-   bnslr
-   neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
-   li    r3,-1}
-
+asm
+        or      %i0,%g0,%g1
+        ta      0x10
+        bcc     .LSyscOK0
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread0
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread0
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread0:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread0:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK0:
 end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-begin{asm}
-{  mr  r0,r3
-  mr  r3,r4
-  mr  r4,r5
-  mr  r5,r6
-  mr  r6,r7
-  sc
-   bnslr
-   neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
-   li    r3,-1}
-end;
-
-function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL5'];
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-begin{asm}
-{  mr  r0,r3
-  mr  r3,r4
-  mr  r4,r5
-  mr  r5,r6
-  mr  r6,r7
-  mr  r7,r8
-  sc
-   bnslr
-   neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
-   li    r3,-1}
+asm
+        or      %i0,%g0,%g1
+        or      %i1,%g0,%o0
+        ta      0x10
+        bcc     .LSyscOK1
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread1
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread1
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread1:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread1:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK1:
 end;
 
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL6'];
+function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-begin{asm}
-{  mr  r0,r3
-  mr  r3,r4
-  mr  r4,r5
-  mr  r5,r6
-  mr  r6,r7
-  mr  r7,r8
-  sc
-   bnslr
-   neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
-   li    r3,-1}
+asm
+        or      %i0,%g0,%g1
+        or      %i1,%g0,%o0
+        or      %i2,%g0,%o1
+        ta      0x10
+        bcc     .LSyscOK2
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread2
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread2
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread2:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread2:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK2:
+end;
+
+
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+asm
+        or      %i0,%g0,%g1
+        or      %i1,%g0,%o0
+        or      %i2,%g0,%o1
+        or      %i3,%g0,%o2
+        ta      0x10
+        bcc     .LSyscOK3
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread3
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread3
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread3:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread3:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK3:
+end;
+
+
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+asm
+        or      %i0,%g0,%g1
+        or      %i1,%g0,%o0
+        or      %i2,%g0,%o1
+        or      %i3,%g0,%o2
+        or      %i4,%g0,%o3
+        ta      0x10
+        bcc     .LSyscOK4
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread4
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread4
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread4:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread4:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK4:
+end;
+
+
+function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+asm
+        or      %i0,%g0,%g1
+        or      %i1,%g0,%o0
+        or      %i2,%g0,%o1
+        or      %i3,%g0,%o2
+        or      %i4,%g0,%o3
+        or      %i5,%g0,%o4
+        ta      0x10
+        bcc     .LSyscOK5
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread5
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread5
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread5:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread5:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK5:
+end;
+
+
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+asm
+        or      %i0,%g0,%g1
+        or      %i1,%g0,%o0
+        or      %i2,%g0,%o1
+        or      %i3,%g0,%o2
+        or      %i4,%g0,%o3
+        ld      [%i6+92],%o5
+        or      %i5,%g0,%o4
+        ta      0x10
+        bcc     .LSyscOK6
+        nop
+        sethi   %hi(FPC_THREADVAR_RELOCATE),%o0
+        or      %o0,%lo(FPC_THREADVAR_RELOCATE),%o0
+        ld      [%o0],%o7
+        subcc   %o7,%g0,%g0
+        bne     .LThread6
+        nop
+        sethi   %hi(U_SYSTEM_ERRNO+4),%o0
+        ba      .LNoThread6
+        or      %o0,%lo(U_SYSTEM_ERRNO+4),%o0
+.LThread6:
+        sethi   %hi(U_SYSTEM_ERRNO),%o0
+        ld      [%o7],%o1
+        or      %o0,%lo(U_SYSTEM_ERRNO),%o0
+        call    %o1
+.LNoThread6:
+        st      %i0,[%o0]
+        mov     -1,%o0
+.LSyscOK6:
 end;
 
 
 // Old style syscall:
 // Better use ktrace/strace/gdb for debugging.
 
-Procedure FpSysCall( callnr:longint;var regs : SysCallregs );{assembler;}
+Procedure FpSysCall( callnr:longint;var regs : SysCallregs );assembler;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-begin{asm}
-{ load the registers... }
-(*  lwz  r5, 12(r4)
-  lwz  r6, 16(r4)
-  lwz  r7, 20(r4)
-  mr   r0, r3
-  lwz  r3, 4(r4)
-  stw  r4, regs
-  lwz  r4, 8(r4)
+asm
+  or   %i0,%g0,%g1
+  ld   [%i1],%o0
+  ld   [%i1+4],%o1
+  ld   [%i1+8],%o2
+  ld   [%i1+12],%o3
+  ld   [%i1+16],%o4
 { Go ! }
-  sc
-  nop
+  ta   0x10
 { Put back the registers... }
-  lwz    r8, regs
-  stw    r3, 0(r8)
-  stw    r4, 4(r8)
-  stw    r5, 8(r8)
-  stw    r6, 12(r8)
-  stw    r7, 16(r8)*)
+  st   %o0,[%i1]
+  st   %o1,[%i1+4]
+  st   %o2,[%i1+8]
+  st   %o3,[%i1+12]
+  st   %o4,[%i1+16]
 end;
+
 
 {$IFDEF SYSCALL_DEBUG}
 Const
@@ -237,7 +342,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-06-02 22:05:03  mazen
+  Revision 1.6  2003-07-03 21:03:57  peter
+    * syscalls implemented
+
+  Revision 1.5  2003/06/02 22:05:03  mazen
   * fixing naming conflict in public clause of
    FPC_SYSCALL? definition
 
