@@ -5,6 +5,7 @@
 [dirs]
 fpcdir=..
 targetdir=.
+unitdir=$(CPU_TARGET)
 
 [install]
 packagename=compiler

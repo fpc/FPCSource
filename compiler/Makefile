@@ -240,6 +240,7 @@ override NEEDOPT=-Sg
 
 # Directories
 
+override NEEDUNITDIR=$(CPU_TARGET)
 ifndef TARGETDIR
 TARGETDIR=.
 endif
