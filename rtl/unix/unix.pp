@@ -2124,75 +2124,21 @@ begin
 end;
 
 
+(*
+function FExpand (const Path: PathStr): PathStr;
+- declared in fexpand.inc
+*)
 
-Function FExpand(Const Path:PathStr):PathStr;
-var
-  temp  : pathstr;
-  i,j   : longint;
-  p     : pchar;
-Begin
-{Remove eventual drive - doesn't exist in Linux}
-  if path[2]=':' then
-   i:=3
-  else
-   i:=1;
-  temp:='';
-{Replace ~/ with $HOME}
-  if (path[i]='~') and ((i+1>length(path)) or (path[i+1]='/'))  then
-   begin
-     p:=getenv('HOME');
-     if not (p=nil) then
-      Insert(StrPas(p),temp,i);
-     i:=1;
-     temp:=temp+Copy(Path,2,255);
-   end;
-{Do we have an absolute path ? No - prefix the current dir}
-  if temp='' then
-   begin
-     if path[i]<>'/' then
-      begin
-        {$I-}
-         getdir(0,temp);
-        {$I+}
-        if ioresult<>0 then;
-      end
-     else
-      inc(i);
-     temp:=temp+'/'+copy(path,i,length(path)-i+1)+'/';
-   end;
-{First remove all references to '/./'}
-  while pos('/./',temp)<>0 do
-   delete(temp,pos('/./',temp),2);
-{Now remove also all references to '/../' + of course previous dirs..}
-  repeat
-    i:=pos('/../',temp);
-   {Find the pos of the previous dir}
-    if i>1 then
-     begin
-       j:=i-1;
-       while (j>1) and (temp[j]<>'/') do
-        dec (j);{temp[1] is always '/'}
-       delete(temp,j,i-j+3);
-      end
-     else
-      if i=1 then               {i=1, so we have temp='/../something', just delete '/../'}
-       delete(temp,1,3);
-  until i=0;
-  { Remove ending /.. }
-  i:=pos('/..',temp);
-  if (i<>0) and (i =length(temp)-2) then
-    begin
-    j:=i-1;
-    while (j>1) and (temp[j]<>'/') do
-      dec (j);
-    delete (temp,j,i-j+3);
-    end;
-  { if last character is / then remove it - dir is also a file :-) }
-  if (length(temp)>0) and (temp[length(temp)]='/') then
-   dec(byte(temp[0]));
-  fexpand:=temp;
-End;
+{$DEFINE FPC_FEXPAND_TILDE} (* Tilde is expanded to home *)
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} (* GetEnv result is a PChar *)
 
+const
+  LFNSupport = true;
+
+{$I fexpand.inc}
+
+{$UNDEF FPC_FEXPAND_GETENVPCHAR}
+{$UNDEF FPC_FEXPAND_TILDE}
 
 
 Function FSearch(const path:pathstr;dirlist:string):pathstr;
@@ -2894,7 +2840,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2001-01-22 07:25:10  marco
+  Revision 1.3  2001-03-16 20:09:58  hajny
+    * universal FExpand
+
+  Revision 1.2  2001/01/22 07:25:10  marco
    * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
 
   Revision 1.1  2001/01/21 20:21:41  marco

@@ -482,7 +482,8 @@ Begin
 End;
 
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
+                                               [public, alias: 'FPC_GETDIRIO'];
 var
   thisdir      : stat;
   rootino,
@@ -497,6 +498,7 @@ var
   mountpoint,validdir : boolean;
   predot       : string[255];
 begin
+  GetDirIO := 0;
   drivenr:=0;
   dir:='';
   thedir:='/'#0;
@@ -550,6 +552,12 @@ begin
    end;
 { Now rootino=thisino and rootdev=thisdev so we've reached / }
   dir:=thedir
+end;
+
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
+
+begin
+    InOutRes := GetDirIO (DriveNr, Dir);
 end;
 
 
@@ -746,7 +754,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2001-02-20 21:31:12  peter
+  Revision 1.6  2001-03-16 20:09:58  hajny
+    * universal FExpand
+
+  Revision 1.5  2001/02/20 21:31:12  peter
     * chdir,mkdir,rmdir with empty string fixed
 
   Revision 1.4  2000/12/17 14:00:57  peter

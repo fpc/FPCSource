@@ -1280,12 +1280,15 @@ begin
 end;
 
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
+                                               [public, alias: 'FPC_GETDIRIO'];
 var
   temp : array[0..255] of char;
   i    : longint;
   regs : trealregs;
+  IOR: word;
 begin
+  IOR := 0;
   regs.realedx:=drivenr;
   regs.realesi:=tb_offset;
   regs.realds:=tb_segment;
@@ -1298,7 +1301,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     GetInOutRes(lo(regs.realeax));
+     IOR := lo(regs.realeax);
      exit;
    end
   else
@@ -1329,6 +1332,12 @@ begin
      i:= (regs.realeax and $ff) + ord('A');
      dir[1]:=chr(i);
    end;
+end;
+
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
+
+begin
+  GetInOutRes (GetDirIO (DriveNr, Dir));
 end;
 
 
@@ -1417,7 +1426,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2001-02-20 21:31:12  peter
+  Revision 1.5  2001-03-16 20:09:58  hajny
+    * universal FExpand
+
+  Revision 1.4  2001/02/20 21:31:12  peter
     * chdir,mkdir,rmdir with empty string fixed
 
   Revision 1.3  2000/08/13 19:23:26  peter

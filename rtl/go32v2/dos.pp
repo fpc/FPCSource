@@ -796,110 +796,18 @@ begin
 end;
 
 
-function fexpand(const path : pathstr) : pathstr;
-var
-  s,pa : pathstr;
-  i,j  : longint;
-begin
-  getdir(0,s);
-  i:=ioresult;
-  if LFNSupport then
-   begin
-     pa:=path;
-   end
-  else
-   if FileNameCaseSensitive then
-    pa:=path
-   else
-    pa:=upcase(path);
+(*
+function FExpand (const Path: PathStr): PathStr;
+- declared in fexpand.inc
+*)
 
-  { allow slash as backslash }
-  for i:=1 to length(pa) do
-   if pa[i]='/' then
-    pa[i]:='\';
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
-  if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
-    begin
-       { Always uppercase driveletter }
-       if (pa[1] in ['a'..'z']) then
-        pa[1]:=Chr(Ord(Pa[1])-32);
-       { we must get the right directory }
-       getdir(ord(pa[1])-ord('A')+1,s);
-       i:=ioresult;
-       if (ord(pa[0])>2) and (pa[3]<>'\') then
-         if pa[1]=s[1] then
-           begin
-             { remove ending slash if it already exists }
-             if s[length(s)]='\' then
-              dec(s[0]);
-             pa:=s+'\'+copy (pa,3,length(pa));
-           end
-         else
-           pa:=pa[1]+':\'+copy (pa,3,length(pa))
-    end
-  else
-    if pa[1]='\' then
-      begin
-        { Do not touch Network drive names if LFNSupport is true }
-        if not ((Length(pa)>1) and (pa[2]='\') and LFNSupport) then
-          pa:=s[1]+':'+pa;
-      end
-    else if s[0]=#3 then
-      pa:=s+pa
-    else
-      pa:=s+'\'+pa;
+{$I fexpand.inc}
 
-{ Turbo Pascal gives current dir on drive if only drive given as parameter! }
-if length(pa) = 2 then
- begin
-   getdir(byte(pa[1])-64,s);
-   pa := s;
- end;
-
-{First remove all references to '\.\'}
-  while pos ('\.\',pa)<>0 do
-   delete (pa,pos('\.\',pa),2);
-{Now remove also all references to '\..\' + of course previous dirs..}
-  repeat
-    i:=pos('\..\',pa);
-    if i<>0 then
-     begin
-       j:=i-1;
-       while (j>1) and (pa[j]<>'\') do
-        dec (j);
-       if pa[j+1] = ':' then j := 3;
-       delete (pa,j,i-j+3);
-     end;
-  until i=0;
-
-  { Turbo Pascal gets rid of a \.. at the end of the path }
-  { Now remove also any reference to '\..'  at end of line
-    + of course previous dir.. }
-  i:=pos('\..',pa);
-  if i<>0 then
-   begin
-     if i = length(pa) - 2 then
-      begin
-        j:=i-1;
-        while (j>1) and (pa[j]<>'\') do
-         dec (j);
-        delete (pa,j,i-j+3);
-      end;
-      pa := pa + '\';
-    end;
-  { Remove End . and \}
-  if (length(pa)>0) and (pa[length(pa)]='.') then
-   dec(byte(pa[0]));
-  { if only the drive + a '\' is left then the '\' should be left to prevtn the program
-    accessing the current directory on the drive rather than the root!}
-  { if the last char of path = '\' then leave it in as this is what TP does! }
-  if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
-   dec(byte(pa[0]));
-  { if only a drive is given in path then there should be a '\' at the
-    end of the string given back }
-  if length(pa) = 2 then pa := pa + '\';
-  fexpand:=pa;
-end;
+{$UNDEF FPC_FEXPAND_DRIVES}
+{$UNDEF FPC_FEXPAND_UNC}
 
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
@@ -1139,7 +1047,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.11  2000-12-16 15:27:15  peter
+  Revision 1.12  2001-03-16 20:09:58  hajny
+    * universal FExpand
+
+  Revision 1.11  2000/12/16 15:27:15  peter
     * fixed disksize to return -1 on error
 
   Revision 1.10  2000/10/11 15:38:03  peter

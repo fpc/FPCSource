@@ -684,27 +684,23 @@ function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PC
 function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWORD):DWORD;
     external 'kernel32' name 'GetShortPathNameA';
 
-function FExpand(const path : pathstr) : pathstr;
-var value      : Array[0..255] of char;
-    tmp        : PChar;
-    p          : string;
-    i          : Longint;
-begin
-  { if path is empty then return the current dir }
-  if path<>'' then
-   p:=path
-  else
-   p:='.';
-  { allow slash as backslash }
-  for i:=1 to length(p) do
-   if p[i]='/' then
-    p[i]:='\';
-  StringToPchar(p);
-  tmp:=nil;
-  fillchar(value,sizeof(value),0);
-  GetFullPathName(@p, 255, value, tmp);
-  FExpand := strpas(value);
-end;
+
+(*
+function FExpand (const Path: PathStr): PathStr;
+- declared in fexpand.inc
+*)
+
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
+const
+  LFNSupport = true;
+
+{$I fexpand.inc}
+
+{$UNDEF FPC_FEXPAND_DRIVES}
+{$UNDEF FPC_FEXPAND_UNC}
+
 
   function SearchPath(lpPath : PChar; lpFileName : PChar; lpExtension : PChar; nBufferLength : Longint; lpBuffer : PChar;
     var lpFilePart : PChar) : Longint; external 'kernel32' name 'SearchPathA';
@@ -1016,7 +1012,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-12-18 17:28:58  jonas
+  Revision 1.8  2001-03-16 20:09:58  hajny
+    * universal FExpand
+
+  Revision 1.7  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.6  2000/09/06 20:47:34  peter
