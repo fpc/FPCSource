@@ -393,7 +393,7 @@ begin
   Result:=FFIeldList[index];
 end;
 
-{
+(*
   This is not yet allowed, FPC doesn't allow typed consts of Classes...
 
 Const
@@ -420,7 +420,7 @@ Const
       { ftTypedBinary} Nil,
       { ftCursor} Nil
     );
-}
+*)
 
 Function TDataset.GetFieldClass(FieldType: TFieldType): TFieldClass;
 
@@ -915,14 +915,14 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
 Var Buffer : PChar;
     BookBeforeInsert : TBookmarkStr;
-    
+
 begin
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
   CheckBrowseMode;
   DoBeforeInsert;
   DoBeforeScroll;
-  If Not DoAppend then 
+  If Not DoAppend then
     begin
     {$ifdef dsdebug}
     Writeln ('going to insert mode');
@@ -939,7 +939,7 @@ begin
     else
       SetBookMarkData(ActiveBuffer,Pointer(BookBeforeInsert));
     // update buffer count.
-    If FRecordCount<FBufferCount then 
+    If FRecordCount<FBufferCount then
       Inc(FRecordCount);
     end
   else
@@ -962,7 +962,7 @@ begin
     FactiveRecord:=FRecordCount-1;
     end;
   SetState(dsInsert);
-  try 
+  try
     DoOnNewRecord;
   except
     UpdateCursorPos;
@@ -992,7 +992,7 @@ begin
     end;
   CheckBrowseMode;
   DoBeforeEdit;
-  If Not TryDoing(@InternalEdit,OnEditError) then 
+  If Not TryDoing(@InternalEdit,OnEditError) then
     exit;
   SetState(dsedit);
   DoAfterEdit;
@@ -1250,38 +1250,38 @@ begin
 end;
 
 Procedure TDataset.Post;
-  
+
   Procedure Checkrequired;
-  
+
     Var I : longint;
-    
+
   begin
     For I:=0 to FFieldList.Count-1 do
-      With FFieldList[i] do 
+      With FFieldList[i] do
         // Required fields that are NOT autoinc !! Autoinc cannot be set !!
         if Required and not ReadOnly and
            (FieldKind=fkData) and Not (DataType=ftAutoInc) then
           DatabaseErrorFmt(SNeedField,[DisplayName],Self);
-  end;  
+  end;
 
 begin
   if State in [dsEdit,dsInsert] then
     begin
-{$ifdef dsdebug}    
+{$ifdef dsdebug}
     writeln ('Post: checking required fields');
 {$endif}
     CheckRequired;
     DoBeforePost;
     If Not TryDoing(@InternalPost,OnPostError) then exit;
-{$ifdef dsdebug}    
+{$ifdef dsdebug}
     writeln ('Post: Internalpost succeeded');
 {$endif}
     FreeFieldBuffers;
-{$ifdef dsdebug}    
+{$ifdef dsdebug}
     writeln ('Post: Freeing field buffers');
 {$endif}
     SetState(dsBrowse);
-{$ifdef dsdebug}    
+{$ifdef dsdebug}
     writeln ('Post: Browse mode set');
 {$endif}
     Resync([]);
@@ -1376,7 +1376,7 @@ begin
   Result:=True;
   Retry:=daRetry;
   while Retry=daRetry do
-    Try 
+    Try
   {$ifdef dsdebug}
   Writeln ('Trying : updatecursorpos');
   {$endif dsdebug}
@@ -1387,7 +1387,7 @@ begin
       P;
       exit;
     except
-      On E : EDatabaseError do 
+      On E : EDatabaseError do
         begin
         retry:=daFail;
         If Assigned(Ev) then
@@ -1398,7 +1398,7 @@ begin
         end;
         end;
     else
-      Raise;  
+      Raise;
     end;
   {$ifdef dsdebug}
   Writeln ('Exit Trying to do');
@@ -1475,7 +1475,35 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-08-05 18:22:29  peter
+    * removed comment level 2 warnings
+
+  Revision 1.1  2000/07/13 06:31:27  michael
+  + Initial import
+
+  Revision 1.9  2000/01/07 01:24:32  peter
+    * updated copyright to 2000
+
+  Revision 1.8  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:05  peter
+    * moved to packages dir
+
+  Revision 1.6  1999/12/01 22:11:02  michael
+  + tested edit and insert methods
+
+  Revision 1.5  1999/11/12 22:53:32  michael
+  + Added append() insert() tested append. Datetime as string works now
+
+  Revision 1.4  1999/11/11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.3  1999/11/09 13:33:47  peter
+    * reallocmem fixes
+
+  Revision 1.2  1999/10/24 17:07:54  michael
+  + Added copyright header
+
 }
