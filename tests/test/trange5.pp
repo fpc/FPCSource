@@ -1,8 +1,18 @@
 {$mode objfpc}
 uses sysutils;
 
+{$ifndef FPC}
+  {$define ENDIAN_LITTLE}
+{$endif}
 type
-  int64rec = record lo,hi:cardinal end;
+  int64rec = record
+{$ifdef ENDIAN_LITTLE}
+    lo,hi:
+{$else }
+    hi,lo :
+{$endif}
+       cardinal;
+   end;
 
 var
   haserror,
