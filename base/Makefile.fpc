@@ -83,6 +83,11 @@ endif
 override RELEASE=1
 export RELEASE
 
+# We want to have the resulting .zips in the current dir
+ifndef DESTZIPDIR
+export DESTZIPDIR:=$(BASEDIR)
+endif
+
 # Temporary path to pack a file
 BASEPACKDIR=$(BASEDIR)/basepack
 
@@ -101,6 +106,21 @@ ifdef PPUFILESNEW
 override INSTALLOPT+=PPUFILES=$(PPUFILESNEW)
 endif
 
+# Compile also IDE (check for ide and fv dir)
+ifneq ($(wildcard ide),)
+ifneq ($(wildcard fv),)
+ifeq ($(OS_TARGET),go32v2)
+IDE=1
+endif
+ifeq ($(OS_TARGET),win32)
+IDE=1
+endif
+ifeq ($(OS_TARGET),linux)
+IDE=1
+endif
+endif
+endif
+
 
 [rules]
 # These values can change
@@ -111,12 +131,12 @@ unexport FPC_VERSION OS_SOURCE
 #####################################################################
 
 .PHONY: help checkfpcdir
-	
+
 help:
-	@echo
-	@echo Directory targets:
-	@echo
-	@echo $(DIROBJECTS)
+        @echo
+        @echo Directory targets:
+        @echo
+        @echo $(DIROBJECTS)
         @echo
         @echo Packing targets are:
         @echo
@@ -138,6 +158,7 @@ help:
 compiler_cycle:
         $(MAKE) -C compiler cycle
 
+
 #######################################
 # IDE
 #######################################
@@ -145,10 +166,19 @@ compiler_cycle:
 .PHONY: ide_comp ide_full
 
 ide_comp:
+        $(MAKE) -C compiler ppuclean
         $(MAKE) -C ide full
 
+# Look if libgdb.a is available then use fullgdb
+ifneq ($(wildcard packages/gdbint/libgdb/go32v2/libgdb.a),)
 ide_full:
+        $(MAKE) -C compiler ppuclean
         $(MAKE) -C ide fullgdb
+else
+ide_full:
+        $(MAKE) -C compiler ppuclean
+        $(MAKE) -C ide full
+endif
 
 
 #######################################
@@ -169,10 +199,6 @@ doc_install:
 # Packaging targets
 #######################################
 
-ifndef DESTZIPDIR
-export DESTZIPDIR:=$(BASEDIR)
-endif
-
 idezips: clean ide_allzip ide_gdbzip ide_fullzip ide_fullgdbzip
 
 ide_allzip:
@@ -183,7 +209,7 @@ ide_gdbzip:
         $(MAKE) ide_clean
         $(MAKE) ide_gdb
         $(MAKE) -C ide/text zipinstall ZIPNAME=ide-gdb-$(PACKAGESUFFIX)
-ide_fullzip:
+ide_compzip:
         $(MAKE) compiler_clean
         $(MAKE) ide_clean
         $(MAKE) ide_full
@@ -229,7 +255,7 @@ export RELEASE DESTZIPDIR
 all: build
 
 clean: $(addsuffix _distclean,$(DIROBJECTS))
-	$(DEL) build-stamp
+        $(DEL) build-stamp
 
 distclean: clean
 
@@ -244,13 +270,19 @@ build-stamp:
         $(MAKE) fcl_clean
         $(MAKE) packages_clean
         $(MAKE) utils_clean
+ifdef IDE
+        $(MAKE) fv_clean
+        $(MAKE) ide_clean
+endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) api_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
-
+ifdef IDE
+        $(MAKE) ide_full $(BUILDOPTS)
+endif
         $(ECHO) Build > build-stamp
 
 installbase: build-stamp
@@ -267,7 +299,8 @@ endif
 # binw32 (cygwin1.dll)
 ifeq ($(OS_TARGET),win32)
         $(COPY) $(CVSINSTALL)/binw32/* $(BININSTALLDIR)
-endif# manpages for linux
+endif
+# manpages for linux
 ifeq ($(OS_TARGET),linux)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
@@ -281,6 +314,9 @@ install: build-stamp
         $(MAKE) api_install $(INSTALLOPTS)
         $(MAKE) fcl_install $(INSTALLOPTS)
         $(MAKE) packages_install $(INSTALLOPTS)
+ifdef IDE
+        $(MAKE) ide_install $(BUILDOPTS)
+endif
 
 zipinstall: $(FPCDIRSET) build-stamp
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
@@ -288,6 +324,9 @@ zipinstall: $(FPCDIRSET) build-stamp
         $(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
         $(MAKE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
         $(MAKE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+ifdef IDE
+        $(MAKE) ide_zipinstall $(INSTALLOPTS)
+endif
 
 
 ##########################################################################
@@ -411,9 +450,9 @@ RPMSPECDIR:=$(REDHATDIR)/SPECS
 RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
 DOCSRCDIR:=$(RPMSOURCESDIR)/fpcdoc
 rpmcopy: distclean
-	install -d $(REDHATDIR)
-	install -d $(RPMSPECDIR)
-	install -d $(RPMSOURCESDIR)
+        install -d $(REDHATDIR)
+        install -d $(RPMSPECDIR)
+        install -d $(RPMSOURCESDIR)
 # fpc.rpm
         rm -rf $(RPMSRCDIR)
         cp $(CVSINSTALL)/fpc-$(FPC_VERSION).spec $(RPMSPECDIR)
@@ -442,4 +481,4 @@ rpmcopy: distclean
 rpm: rpmcopy
         cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
         cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
-	
+
