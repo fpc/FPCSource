@@ -6,7 +6,12 @@ unit dbtests;
 Interface
 
 Uses
-  mysql3,testu;
+{$ifndef ver1_0}
+  mysql3,
+{$else}
+  mysql,
+{$endif}  
+  testu;
 
 { ---------------------------------------------------------------------
   High-level access
