@@ -470,7 +470,7 @@ BEGIN
       DEC(X,FieldX-1);
       DEC(Y,FieldY-1);
       X:=X SHR 1;
-      IF (X<PlayFieldXDimension) AND (Y<PlayFieldYDimension) THEN
+      IF (x>=0) and (y>=0) and (X<PlayFieldXDimension) AND (Y<PlayFieldYDimension) THEN
        BEGIN
         IF MarkField[X,Y]<>4 THEN
          BEGIN
@@ -600,7 +600,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2004-02-18 16:43:29  marco
+  Revision 1.8  2004-06-21 07:01:34  marco
+   * 1st and 3rd recommendation of bug 3177
+
+  Revision 1.7  2004/02/18 16:43:29  marco
    *  added an API call to avoid the "Graph Window" window title, and readded previously removed variable
   	It was used in usegraph
 

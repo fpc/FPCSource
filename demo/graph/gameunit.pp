@@ -332,7 +332,7 @@ BEGIN
  IF Negative THEN
   Score:=-Score;
  I:=0;
- WHILE (Score>HighScore[I].Score) AND (I<10) DO
+ WHILE (i<10) and (Score>HighScore[I].Score) DO
   INC(I);
  IF I<>0 THEN
   BEGIN
@@ -911,7 +911,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.8  2002-09-07 15:06:35  peter
+  Revision 1.9  2004-06-21 07:01:34  marco
+   * 1st and 3rd recommendation of bug 3177
+
+  Revision 1.8  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/06/02 17:34:21  marco
