@@ -321,8 +321,8 @@ unit ag68kgas;
 {$ifdef GDB}
          if cs_debuginfo in aktmoduleswitches then
           begin
-            if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,
-                   ait_label,ait_cut,ait_align,ait_stab_function_name]) then
+            if not (hp^.typ in  [ait_external,ait_regalloc, ait_regdealloc,ait_stabn,ait_stabs,
+                    ait_label,ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
               WriteFileLineInfo(hp^.fileinfo);
           end;
 {$endif GDB}
@@ -701,7 +701,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.21  1998-12-11 00:02:39  peter
+  Revision 1.22  1998-12-23 22:53:44  peter
+    * don't count ait_marker for lineinfo
+
+  Revision 1.21  1998/12/11 00:02:39  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.20  1998/11/12 11:19:35  pierre
