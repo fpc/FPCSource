@@ -16,10 +16,16 @@
 { OS handling utilities }
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
+{$ifdef HAS_EXEC_ANSI}	// define is temporarily.
+function Exec (Const Path: AnsiString; Const ComLine: AnsiString):integer;  
+{$endif}
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-01-03 08:55:58  marco
+   * Exec(ansistring) function
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.3  2002/09/07 16:01:22  peter
