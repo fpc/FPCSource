@@ -676,20 +676,29 @@ function TResourceFile.CalcSizes(IncludeHeaders, UpdatePosData: boolean): longin
 var RH  : TResourceHeader;
     REH : TResourceEntryHeader;
     Size: longint;
+    NamesSize: longint;
 procedure AddResourceEntrySize(P: PResourceEntry); {$ifndef FPC}far;{$endif}
 begin
   if UpdatePosData then P^.DataOfs:=Size;
   P^.BuildHeader(REH);
   Inc(Size,REH.DataLen);
 end;
+procedure AddResourceSize(P: PResource); {$ifndef FPC}far;{$endif}
+var RH: TResourceHeader;
 begin
-  Size:=0;
+  P^.BuildHeader(RH);
+  Inc(NamesSize,RH.NameLen);
+end;
+begin
+  Size:=0; NamesSize:=0;
   Inc(Size,SizeOf(Header)); { this is on start so we always include it }
   ForEachResourceEntry(@AddResourceEntrySize);
   if IncludeHeaders then
     begin
+      ForEachResource(@AddResourceSize);
       Inc(Size,SizeOf(RH)*Resources^.Count);
       Inc(Size,SizeOf(REH)*Entries^.Count);
+      Inc(Size,NamesSize);
     end;
   CalcSizes:=Size;
 end;
@@ -747,8 +756,7 @@ destructor TResourceFile.Done;
 begin
   Flush;
   inherited Done;
-  if assigned(S) then dispose(S,Done);
-  S:=nil;
+{  if assigned(S) then dispose(S,Done); S:=nil;}
   if Resources<>nil then Dispose(Resources, Done); Resources:=nil;
   if Entries<>nil then
     begin Entries^.DeleteAll; Dispose(Entries, Done); Entries:=nil; end;
@@ -783,7 +791,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-09-07 09:26:26  pierre
+  Revision 1.8  2000-02-07 08:29:14  michael
+  [*] the fake (!) TOKENS.PAS still contained the typo bug
+       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
+  [*] CodeComplete had a very ugly bug - coordinates were document-relative
+      (instead of being screen-relative)
+  [*] TResourceStream didn't count the size of the resource names when
+      determining the file size and this could lead to the last resources not
+      loaded correctly
+
+
+  [+] Ctrl-Enter in editor now tries to open the file at cursor
+  [+] CodeComplete option added to Options|Environment|Editor
+  [+] user interface for managing CodeComplete implemented
+  [+] user interface for CodeTemplates implemented
+  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
+  [+] help topic size no longer limited to 64KB when compiled with FPC
+
+  Revision 1.7  1999/09/07 09:26:26  pierre
    * E^.DataLen=-1 sets OK to false in TResourceFile.ReadSourceEntryToStream
 
   Revision 1.6  1999/08/03 20:22:44  peter

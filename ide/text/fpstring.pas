@@ -13,7 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
+{$i globdir.inc}
+{$ifdef USERESSTRINGS}{$mode objfpc}{$endif}
 unit fpstring;
 
   interface
@@ -21,7 +22,7 @@ unit fpstring;
     uses
        fpconst;
 
-{$ifdef FPC}
+{$ifdef USERESSTRINGS}
     resourcestring
 {$else}
     const
@@ -110,6 +111,8 @@ unit fpstring;
       menu_options_env       = '~E~nvironment';
       menu_options_env_preferences = '~P~references...';
       menu_options_env_editor= '~E~ditor...';
+      menu_options_env_codecomplete = 'Code~C~omplete...';
+      menu_options_env_codetemplates = 'Code~T~emplates...';
       menu_options_env_desktop = '~D~esktop...';
       menu_options_env_mouse = '~M~ouse...';
       menu_options_env_startup = '~S~tartup...';
@@ -181,6 +184,15 @@ unit fpstring;
       menu_key_help_topicsearch = 'Ctrl+F1';
       menu_key_help_prevtopic= 'Alt+F1';
 
+      dialog_codecomplete_add = 'Add new keyword';
+      label_codecomplete_add_keyword = 'Keyword';
+
+      dialog_codecomplete_edit = 'Edit keyword';
+      label_codecomplete_edit_keyword = 'Keyword';
+
+      dialog_codetemplates_add = 'Add new template';
+      dialog_codetemplates_edit = 'Edit template';
+
       { status line entries }
       status_help            = '~F1~ Help';
       status_help_on_help    = '~F1~ Help on help';
@@ -210,7 +222,24 @@ unit fpstring;
 end.
 {
   $Log$
-  Revision 1.1  2000-01-23 21:25:17  florian
+  Revision 1.2  2000-02-07 08:29:13  michael
+  [*] the fake (!) TOKENS.PAS still contained the typo bug
+       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
+  [*] CodeComplete had a very ugly bug - coordinates were document-relative
+      (instead of being screen-relative)
+  [*] TResourceStream didn't count the size of the resource names when
+      determining the file size and this could lead to the last resources not
+      loaded correctly
+
+
+  [+] Ctrl-Enter in editor now tries to open the file at cursor
+  [+] CodeComplete option added to Options|Environment|Editor
+  [+] user interface for managing CodeComplete implemented
+  [+] user interface for CodeTemplates implemented
+  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
+  [+] help topic size no longer limited to 64KB when compiled with FPC
+
+  Revision 1.1  2000/01/23 21:25:17  florian
     + start of internationalization support
 
 }

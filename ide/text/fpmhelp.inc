@@ -44,7 +44,7 @@ end;
 type
     PHelpFileListBox = ^THelpFileListBox;
     THelpFileListBox = object(TListBox)
-      function GetText(Item: Integer; MaxLen: Integer): String; virtual;
+      function GetText(Item: sw_Integer; MaxLen: sw_Integer): String; virtual;
     end;
 
     PHelpFilesDialog = ^THelpFilesDialog;
@@ -57,7 +57,7 @@ type
       C : PUnsortedStringCollection;
     end;
 
-function THelpFileListBox.GetText(Item: Integer; MaxLen: Integer): String;
+function THelpFileListBox.GetText(Item: sw_Integer; MaxLen: sw_Integer): String;
 var S: string;
     P: integer;
 begin
@@ -190,7 +190,24 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-05-22 13:44:31  peter
+  Revision 1.8  2000-02-07 08:29:13  michael
+  [*] the fake (!) TOKENS.PAS still contained the typo bug
+       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
+  [*] CodeComplete had a very ugly bug - coordinates were document-relative
+      (instead of being screen-relative)
+  [*] TResourceStream didn't count the size of the resource names when
+      determining the file size and this could lead to the last resources not
+      loaded correctly
+
+
+  [+] Ctrl-Enter in editor now tries to open the file at cursor
+  [+] CodeComplete option added to Options|Environment|Editor
+  [+] user interface for managing CodeComplete implemented
+  [+] user interface for CodeTemplates implemented
+  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
+  [+] help topic size no longer limited to 64KB when compiled with FPC
+
+  Revision 1.7  1999/05/22 13:44:31  peter
     * fixed couple of bugs
 
   Revision 1.6  1999/03/01 15:41:56  peter

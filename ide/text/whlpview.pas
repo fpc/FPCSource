@@ -57,7 +57,7 @@ type
       PHelpKeyword = ^THelpKeyword;
       THelpKeyword = record
         KWord    : PString;
-        Index    : integer;
+        Index    : sw_integer;
       end;
 
       PLinkCollection = ^TLinkCollection;
@@ -72,9 +72,9 @@ type
 
       PKeywordCollection = ^TKeywordCollection;
       TKeywordCollection = object({TSorted}TCollection)
-        function  At(Index: Integer): PHelpKeyword;
+        function  At(Index: sw_Integer): PHelpKeyword;
         procedure FreeItem(Item: Pointer); virtual;
-        function  Compare(Key1, Key2: Pointer): Integer; virtual;
+        function  Compare(Key1, Key2: Pointer): sw_Integer; virtual;
       end;
 
 {      TSearchRelation = (srEqual,srGreater,srLess,srGreatEqu,srLessEqu);
@@ -91,19 +91,19 @@ type
         Links: PLinkCollection;
         ColorAreas: PColorAreaCollection;
         constructor Init(ATopic: PTopic);
-        procedure   SetParams(AMargin, AWidth: integer); virtual;
+        procedure   SetParams(AMargin, AWidth: sw_integer); virtual;
         function    GetLineCount: sw_integer; virtual;
         function    GetLineText(Line: sw_integer): string; virtual;
-        function    GetLinkCount: integer; virtual;
-        procedure   GetLinkBounds(Index: integer; var R: TRect); virtual;
-        function    GetLinkFileID(Index: integer): word; virtual;
-        function    GetLinkContext(Index: integer): THelpCtx; virtual;
-        function    GetColorAreaCount: integer; virtual;
-        procedure   GetColorAreaBounds(Index: integer; var R: TRect); virtual;
-        function    GetColorAreaColor(Index: integer): word; virtual;
+        function    GetLinkCount: sw_integer; virtual;
+        procedure   GetLinkBounds(Index: sw_integer; var R: TRect); virtual;
+        function    GetLinkFileID(Index: sw_integer): word; virtual;
+        function    GetLinkContext(Index: sw_integer): THelpCtx; virtual;
+        function    GetColorAreaCount: sw_integer; virtual;
+        procedure   GetColorAreaBounds(Index: sw_integer; var R: TRect); virtual;
+        function    GetColorAreaColor(Index: sw_integer): word; virtual;
         destructor  Done; virtual;
       private
-        Width,Margin: integer;
+        Width,Margin: sw_integer;
         StockItem: boolean;
         procedure  ReBuild;
       end;
@@ -112,15 +112,15 @@ type
         Context_     : THelpCtx;
         Delta_       : TPoint;
         CurPos_      : TPoint;
-        CurLink_     : integer;
+        CurLink_     : sw_integer;
         FileID_      : word;
       end;
 
       PHelpViewer = ^THelpViewer;
       THelpViewer = object(TEditor)
-        Margin: integer;
+        Margin: sw_integer;
         HelpTopic: PHelpTopic;
-        CurLink: integer;
+        CurLink: sw_integer;
         constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
         procedure   ChangeBounds(var Bounds: TRect); virtual;
         procedure   Draw; virtual;
@@ -128,20 +128,20 @@ type
         procedure   SetCurPtr(X,Y: sw_integer); virtual;
         function    GetLineCount: sw_integer; virtual;
         function    GetLineText(Line: sw_integer): string; virtual;
-        function    GetLinkCount: integer; virtual;
-        procedure   GetLinkBounds(Index: integer; var R: TRect); virtual;
-        function    GetLinkFileID(Index: integer): word; virtual;
-        function    GetLinkContext(Index: integer): THelpCtx; virtual;
-        function    GetLinkText(Index: integer): string; virtual;
-        function    GetColorAreaCount: integer; virtual;
-        procedure   GetColorAreaBounds(Index: integer; var R: TRect); virtual;
-        function    GetColorAreaColor(Index: integer): word; virtual;
+        function    GetLinkCount: sw_integer; virtual;
+        procedure   GetLinkBounds(Index: sw_integer; var R: TRect); virtual;
+        function    GetLinkFileID(Index: sw_integer): word; virtual;
+        function    GetLinkContext(Index: sw_integer): THelpCtx; virtual;
+        function    GetLinkText(Index: sw_integer): string; virtual;
+        function    GetColorAreaCount: sw_integer; virtual;
+        procedure   GetColorAreaBounds(Index: sw_integer; var R: TRect); virtual;
+        function    GetColorAreaColor(Index: sw_integer): word; virtual;
         procedure   SelectNextLink(ANext: boolean); virtual;
         procedure   SwitchToIndex; virtual;
         procedure   SwitchToTopic(SourceFileID: word; Context: THelpCtx); virtual;
         procedure   SetTopic(Topic: PTopic); virtual;
-        procedure   SetCurLink(Link: integer); virtual;
-        procedure   SelectLink(Index: integer); virtual;
+        procedure   SetCurLink(Link: sw_integer); virtual;
+        procedure   SelectLink(Index: sw_integer); virtual;
         procedure   PrevTopic; virtual;
         procedure   RenderTopic; virtual;
         procedure   Lookup(S: string); virtual;
@@ -187,7 +187,8 @@ type
 implementation
 
 uses
-  Video;
+  Video,
+  WViews;
 
 const CommentColor = Blue;
 
@@ -218,7 +219,7 @@ begin
   if P<>nil then Dispose(P);
 end;
 
-function NewKeyword(Index: integer; KWord: string): PHelpKeyword;
+function NewKeyword(Index: sw_integer; KWord: string): PHelpKeyword;
 var P: PHelpKeyword;
 begin
   New(P); FillChar(P^, SizeOf(P^), 0);
@@ -245,7 +246,7 @@ begin
   if Item<>nil then DisposeColorArea(Item);
 end;
 
-function TKeywordCollection.At(Index: Integer): PHelpKeyword;
+function TKeywordCollection.At(Index: sw_Integer): PHelpKeyword;
 begin
   At:=inherited At(Index);
 end;
@@ -255,8 +256,8 @@ begin
   if Item<>nil then DisposeKeyword(Item);
 end;
 
-function TKeywordCollection.Compare(Key1, Key2: Pointer): Integer;
-var R: integer;
+function TKeywordCollection.Compare(Key1, Key2: Pointer): sw_Integer;
+var R: sw_integer;
     K1: PHelpKeyword absolute Key1;
     K2: PHelpKeyword absolute Key2;
     S1,S2: string;
@@ -268,9 +269,9 @@ begin
   Compare:=R;
 end;
 
-{function TAdvancedStringCollection.SearchItem(Key: pointer; Rel: TSearchRelation; var Index: integer): boolean;
+{function TAdvancedStringCollection.SearchItem(Key: pointer; Rel: TSearchRelation; var Index: sw_integer): boolean;
 var
-  L, H, I, C: Integer;
+  L, H, I, C: sw_Integer;
 const resSmaller = -1; resEqual = 0; resGreater = 1;
 begin
   Index:=-1;
@@ -311,7 +312,7 @@ begin
   New(Lines, Init(100,100)); New(Links, Init(50,50)); New(ColorAreas, Init(50,50));
 end;
 
-procedure THelpTopic.SetParams(AMargin, AWidth: integer);
+procedure THelpTopic.SetParams(AMargin, AWidth: sw_integer);
 begin
   if Width<>AWidth then
   begin
@@ -321,16 +322,16 @@ begin
 end;
 
 procedure THelpTopic.ReBuild;
-var TextPos,LinkNo: word;
+var TextPos,LinkNo: sw_word;
     Line,CurWord: string;
     C: char;
     InLink,InColorArea: boolean;
     LinkStart,LinkEnd,ColorAreaStart,ColorAreaEnd: TPoint;
     CurPos: TPoint;
-    ZeroLevel: integer;
-    LineStart,NextLineStart: integer;
+    ZeroLevel: sw_integer;
+    LineStart,NextLineStart: sw_integer;
     LineAlign : (laLeft,laCenter,laRight);
-    FirstLink,LastLink: integer;
+    FirstLink,LastLink: sw_integer;
 procedure ClearLine;
 begin
   Line:='';
@@ -338,7 +339,7 @@ end;
 procedure AddWord(TheWord: string); forward;
 procedure NextLine;
 var P: sw_integer;
-    I,Delta: integer;
+    I,Delta: sw_integer;
 begin
   Line:=CharStr(' ',Margin)+Line;
   repeat
@@ -487,45 +488,45 @@ begin
   GetLineText:=S;
 end;
 
-function THelpTopic.GetLinkCount: integer;
+function THelpTopic.GetLinkCount: sw_integer;
 begin
   GetLinkCount:=Links^.Count;
 end;
 
-procedure THelpTopic.GetLinkBounds(Index: integer; var R: TRect);
+procedure THelpTopic.GetLinkBounds(Index: sw_integer; var R: TRect);
 var P: PHelpLink;
 begin
   P:=Links^.At(Index);
   R:=P^.Bounds;
 end;
 
-function THelpTopic.GetLinkFileID(Index: integer): word;
+function THelpTopic.GetLinkFileID(Index: sw_integer): word;
 var P: PHelpLink;
 begin
   P:=Links^.At(Index);
   GetLinkFileID:=P^.FileID;
 end;
 
-function THelpTopic.GetLinkContext(Index: integer): THelpCtx;
+function THelpTopic.GetLinkContext(Index: sw_integer): THelpCtx;
 var P: PHelpLink;
 begin
   P:=Links^.At(Index);
   GetLinkContext:=P^.Context;
 end;
 
-function THelpTopic.GetColorAreaCount: integer;
+function THelpTopic.GetColorAreaCount: sw_integer;
 begin
   GetColorAreaCount:=ColorAreas^.Count;
 end;
 
-procedure THelpTopic.GetColorAreaBounds(Index: integer; var R: TRect);
+procedure THelpTopic.GetColorAreaBounds(Index: sw_integer; var R: TRect);
 var P: PHelpColorArea;
 begin
   P:=ColorAreas^.At(Index);
   R:=P^.Bounds;
 end;
 
-function THelpTopic.GetColorAreaColor(Index: integer): word;
+function THelpTopic.GetColorAreaColor(Index: sw_integer): word;
 var P: PHelpColorArea;
 begin
   P:=ColorAreas^.At(Index);
@@ -579,7 +580,7 @@ begin
 end;
 
 procedure THelpViewer.SetCurPtr(X,Y: sw_integer);
-var OldCurLink,I: integer;
+var OldCurLink,I: sw_integer;
     OldPos,P: TPoint;
     R: TRect;
 begin
@@ -600,7 +601,7 @@ begin
 end;
 
 function THelpViewer.GetLineCount: sw_integer;
-var Count: integer;
+var Count: sw_integer;
 begin
   if HelpTopic=nil then Count:=0 else Count:=HelpTopic^.GetLineCount;
   GetLineCount:=Count;
@@ -613,32 +614,32 @@ begin
   GetLineText:=S;
 end;
 
-function THelpViewer.GetLinkCount: integer;
-var Count: integer;
+function THelpViewer.GetLinkCount: sw_integer;
+var Count: sw_integer;
 begin
   if HelpTopic=nil then Count:=0 else Count:=HelpTopic^.GetLinkCount;
   GetLinkCount:=Count;
 end;
 
-procedure THelpViewer.GetLinkBounds(Index: integer; var R: TRect);
+procedure THelpViewer.GetLinkBounds(Index: sw_integer; var R: TRect);
 begin
   HelpTopic^.GetLinkBounds(Index,R);
 end;
 
-function THelpViewer.GetLinkFileID(Index: integer): word;
+function THelpViewer.GetLinkFileID(Index: sw_integer): word;
 begin
   GetLinkFileID:=HelpTopic^.GetLinkFileID(Index);
 end;
 
-function THelpViewer.GetLinkContext(Index: integer): THelpCtx;
+function THelpViewer.GetLinkContext(Index: sw_integer): THelpCtx;
 begin
   GetLinkContext:=HelpTopic^.GetLinkContext(Index);
 end;
 
-function THelpViewer.GetLinkText(Index: integer): string;
+function THelpViewer.GetLinkText(Index: sw_integer): string;
 var S: string;
     R: TRect;
-    Y,StartX,EndX: integer;
+    Y,StartX,EndX: sw_integer;
 begin
   S:=''; GetLinkBounds(Index,R);
   Y:=R.A.Y;
@@ -652,25 +653,25 @@ begin
   GetLinkText:=S;
 end;
 
-function THelpViewer.GetColorAreaCount: integer;
-var Count: integer;
+function THelpViewer.GetColorAreaCount: sw_integer;
+var Count: sw_integer;
 begin
   if HelpTopic=nil then Count:=0 else Count:=HelpTopic^.GetColorAreaCount;
   GetColorAreaCount:=Count;
 end;
 
-procedure THelpViewer.GetColorAreaBounds(Index: integer; var R: TRect);
+procedure THelpViewer.GetColorAreaBounds(Index: sw_integer; var R: TRect);
 begin
   HelpTopic^.GetColorAreaBounds(Index,R);
 end;
 
-function THelpViewer.GetColorAreaColor(Index: integer): word;
+function THelpViewer.GetColorAreaColor(Index: sw_integer): word;
 begin
   GetColorAreaColor:=HelpTopic^.GetColorAreaColor(Index);
 end;
 
 procedure THelpViewer.SelectNextLink(ANext: boolean);
-var I,Link: integer;
+var I,Link: sw_integer;
     R: TRect;
 begin
   if HelpTopic=nil then Exit;
@@ -694,7 +695,7 @@ begin
   SetCurLink(Link);
 end;
 
-procedure THelpViewer.SetCurLink(Link: integer);
+procedure THelpViewer.SetCurLink(Link: sw_integer);
 var R: TRect;
 begin
   if Link<>-1 then
@@ -797,7 +798,7 @@ begin
 end;
 
 procedure THelpViewer.BuildTopicWordList;
-var I: integer;
+var I: sw_integer;
 begin
   WordList^.FreeAll;
   for I:=0 to GetLinkCount-1 do
@@ -861,7 +862,7 @@ begin
   InLookup:=false;
 end;
 
-procedure THelpViewer.SelectLink(Index: integer);
+procedure THelpViewer.SelectLink(Index: sw_integer);
 var ID: word;
     Ctx: THelpCtx;
 begin
@@ -940,8 +941,8 @@ procedure THelpViewer.Draw;
 var NormalColor, LinkColor,
     SelectColor, SelectionColor: word;
     B: TDrawBuffer;
-    DX,DY,X,Y,I,MinX,MaxX,ScreenX: integer;
-    LastLinkDrawn,LastColorAreaDrawn: integer;
+    DX,DY,X,Y,I,MinX,MaxX,ScreenX: sw_integer;
+    LastLinkDrawn,LastColorAreaDrawn: sw_integer;
     S: string;
     R: TRect;
 {$ifndef EDITORS}
@@ -1138,7 +1139,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-08-16 18:25:31  peter
+  Revision 1.11  2000-02-07 08:29:13  michael
+  [*] the fake (!) TOKENS.PAS still contained the typo bug
+       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
+  [*] CodeComplete had a very ugly bug - coordinates were document-relative
+      (instead of being screen-relative)
+  [*] TResourceStream didn't count the size of the resource names when
+      determining the file size and this could lead to the last resources not
+      loaded correctly
+
+
+  [+] Ctrl-Enter in editor now tries to open the file at cursor
+  [+] CodeComplete option added to Options|Environment|Editor
+  [+] user interface for managing CodeComplete implemented
+  [+] user interface for CodeTemplates implemented
+  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
+  [+] help topic size no longer limited to 64KB when compiled with FPC
+
+  Revision 1.10  1999/08/16 18:25:31  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
