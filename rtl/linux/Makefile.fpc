@@ -122,7 +122,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 syscalls.inc systypes.inc sysconst.inc timezone.inc $(SYSTEMPPU)
+                 syscalls.inc systypes.inc sysconst.inc timezone.inc $(SYSTEMPPU) \
+                 linsysca.inc
 
 ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
 
