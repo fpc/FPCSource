@@ -291,10 +291,10 @@ implementation
          popecx:=false;
 
          secondpass(p^.left);
-         pushed:=maybe_push(p^.right^.registers32,p,is_64bitint(p^.left^.resulttype));
+         pushed:=maybe_push(p^.right^.registers32,p^.left,is_64bitint(p^.left^.resulttype));
          secondpass(p^.right);
          if pushed then
-           restore(p,is_64bitint(p^.left^.resulttype));
+           restore(p^.left,is_64bitint(p^.left^.resulttype));
 
          if is_64bitint(p^.left^.resulttype) then
            begin
@@ -940,7 +940,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-09-27 23:37:26  peter
+  Revision 1.34  1999-09-28 19:43:47  florian
+    * the maybe_push fix of Pierre wasn't 100%, the tree parameter
+      must contain a valid location (which is saved if necessary)
+
+  Revision 1.33  1999/09/27 23:37:26  peter
     * fixed push/restore bug in div/mod
 
   Revision 1.32  1999/09/02 17:07:38  florian

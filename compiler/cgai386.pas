@@ -102,7 +102,7 @@ unit cgai386;
     procedure push_value_para(p:ptree;inlined:boolean;para_offset:longint;alignment : longint);
 
 {$ifdef TEMPS_NOT_PUSH}
-    { does the same as restore/maybe_push, but uses temp. space instead of pushing }
+    { does the same as restore/, but uses temp. space instead of pushing }
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
     procedure restorefromtemp(p : ptree;isint64 : boolean);
 {$endif TEMPS_NOT_PUSH}
@@ -3359,7 +3359,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.47  1999-09-27 23:44:50  peter
+  Revision 1.48  1999-09-28 19:43:47  florian
+    * the maybe_push fix of Pierre wasn't 100%, the tree parameter
+      must contain a valid location (which is saved if necessary)
+
+  Revision 1.47  1999/09/27 23:44:50  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

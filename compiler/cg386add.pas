@@ -190,13 +190,10 @@ implementation
                      begin
                         cmpop:=true;
                         secondpass(p^.left);
-                        pushed:=maybe_push(p^.right^.registers32,p,false);
+                        pushed:=maybe_push(p^.right^.registers32,p^.left,false);
                         secondpass(p^.right);
                         if pushed then
-                          begin
-                             restore(p,false);
-                             set_location(p^.left^.location,p^.location);
-                          end;
+                          restore(p^.left,false);
                         { release used registers }
                         del_location(p^.right^.location);
                         del_location(p^.left^.location);
@@ -289,13 +286,10 @@ implementation
                           begin
                              secondpass(p^.left);
                              { are too few registers free? }
-                             pushed:=maybe_push(p^.right^.registers32,p,false);
+                             pushed:=maybe_push(p^.right^.registers32,p^.left,false);
                              secondpass(p^.right);
                              if pushed then
-                               begin
-                                  restore(p,false);
-                                  set_location(p^.left^.location,p^.location);
-                               end;
+                               restore(p^.left,false);
                              { only one node can be stringconstn }
                              { else pass 1 would have evaluted   }
                              { this node                         }
@@ -364,17 +358,12 @@ implementation
          end;
 
         { are too few registers free? }
-        pushed:=maybe_push(p^.right^.registers32,p,false);
+        pushed:=maybe_push(p^.right^.registers32,p^.left,false);
         secondpass(p^.right);
         if codegenerror then
           exit;
         if pushed then
-          begin
-             restore(p,false);
-             set_location(p^.left^.location,p^.location);
-          end;
-
-
+          restore(p^.left,false);
 
         set_location(p^.location,p^.left^.location);
 
@@ -2142,7 +2131,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  1999-09-26 13:26:01  florian
+  Revision 1.81  1999-09-28 19:43:45  florian
+    * the maybe_push fix of Pierre wasn't 100%, the tree parameter
+      must contain a valid location (which is saved if necessary)
+
+  Revision 1.80  1999/09/26 13:26:01  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure
