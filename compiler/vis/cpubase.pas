@@ -66,18 +66,24 @@ uses
 *****************************************************************************}
 
     type
-      tregister = (R_NO,R_R0,R_R1,R_R2,R_R3,
+      toldregister = (R_NO,R_R0,R_R1,R_R2,R_R3,
                    R_R4,R_R5,R_R6,R_R7,
                    R_R8,R_R9,R_R10,R_R11,
                    R_CCR,R_SP,R_FP,R_PC,
                    R_FP0,R_FP1,R_FP2,R_FP3,
                    R_FP4,R_FP5,R_FP6,R_FP7,
                    R_FP8,R_FP9,R_FP10,R_FP11,
-                   R_FP12,R_FP13,R_FP14,R_FP15
+                   R_FP12,R_FP13,R_FP14,R_FP15,
+                   R_INTREGISTER,R_FPUREGISTER
       );
 
       {# Set type definition for registers }
-      tregisterset = set of tregister;
+      tregisterset = set of Toldregister;
+      
+      tregister=record
+        enum:toldregister;
+        number:word;
+      end;
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -88,19 +94,31 @@ uses
       treg64 = tregister64;
 
       {# Type definition for the array of string of register nnames }
-      treg2strtable = array[tregister] of string[5];
+      treg2strtable = array[toldregister] of string[5];
 
     Const
+
+    {Special registers:}
+      NR_NO = $0000;  {Invalid register}
+
+    {Normal registers:}
+
+    {General purpose registers:}
+      NR_R0 = $0100; NR_R1 = $0200; NR_R2 = $0300;
+      NR_R3 = $0400; NR_R4 = $0500; NR_R5 = $0600;
+      NR_R6 = $0700; NR_R7 = $0800; NR_R8 = $0900;
+      NR_R9 = $0A00; NR_R10 = $0B00; NR_R11 = $0C00;
+
       {# First register in the tregister enumeration }
-      firstreg = low(tregister);
+      firstreg = low(toldregister);
       {# Last register in the tregister enumeration }
-      lastreg  = high(tregister);
+      lastreg  = high(toldregister);
 
 
       std_reg2str : treg2strtable = ('',
         'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','ccr',
         'sp','fp','pc','fp0','fp1','fp2','fp3','fp4','fp5','fp6','fp7', 
-        'fp8','fp9','fp10','fp11','fp12','fp13','fp14','fp15'
+        'fp8','fp9','fp10','fp11','fp12','fp13','fp14','fp15','',''
       );
 
 
@@ -199,6 +217,16 @@ uses
 {*****************************************************************************
                                 Operand Sizes
 *****************************************************************************}
+       { S_NO = No Size of operand   }
+       { S_B  = 8-bit size operand   }
+       { S_W  = 16-bit size operand  }
+       { S_L  = 32-bit size operand  }
+       { Floating point types        }
+       { S_FS  = single type (32 bit) }
+       { S_FD  = double/64bit integer }
+       { S_FX  = Extended type      }
+       topsize = (S_NO,S_B,S_W,S_L,S_FS,S_FD,S_FX,S_IQ);
+
 
 {*****************************************************************************
                                Generic Location
@@ -350,6 +378,12 @@ uses
       mmregs     = [];
       usableregsmm  = [];
       c_countusableregsmm  = 0;
+      
+      { no distinction on this platform }      
+      maxaddrregs = 0;
+      addrregs    = [];
+      usableregsaddr = [];
+      c_countusableregsaddr = 0;
 
       firstsaveintreg = R_R2;
       lastsaveintreg  = R_R11;
@@ -359,11 +393,11 @@ uses
       lastsavemmreg   = R_NO;
 
       maxvarregs = 10;
-      varregs : Array [1..maxvarregs] of Tregister =
+      varregs : Array [1..maxvarregs] of toldregister =
                 (R_R2,R_R3,R_R4,R_R5,R_R6,R_R7,R_R8,R_R9,R_R10,R_R11);
 
       maxfpuvarregs = 15;
-      fpuvarregs : Array [1..maxfpuvarregs] of Tregister =
+      fpuvarregs : Array [1..maxfpuvarregs] of toldregister =
                 (R_FP1,R_FP2,R_FP3,
                  R_FP4,R_FP5,R_FP6,
                  R_FP7,R_FP8,R_FP9,
@@ -381,7 +415,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 2;
-      scratch_regs: Array[1..max_scratch_regs] of TRegister = (R_R0,R_R1);
+      scratch_regs: Array[1..max_scratch_regs] of toldregister = (R_R0,R_R1);
 
 {*****************************************************************************
                           Default generic sizes
@@ -406,7 +440,7 @@ uses
          Currently unsupported by abstract machine
       }
 
-          stab_regindex : array[tregister] of shortint =
+          stab_regindex : array[toldregister] of shortint =
           (-1,
            { r0..r11 }
            -1,-1,-1,-1,-1,-1,
@@ -416,7 +450,9 @@ uses
            { FP0..FP7 }
            -1,-1,-1,-1,-1,-1,-1,-1,
            { FP8..FP15 }
-           -1,-1,-1,-1,-1,-1,-1,-1
+           -1,-1,-1,-1,-1,-1,-1,-1,
+           { invalid }
+           -1,-1
         );
 
 
@@ -440,11 +476,11 @@ uses
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+    return_result_reg       =   accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+    function_result_reg =   accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_R1;
       fpu_result_reg = R_FP0;
@@ -480,6 +516,7 @@ uses
 
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
+    procedure convert_register_to_enum(var r:Tregister);
 
 
 implementation
@@ -531,10 +568,40 @@ implementation
         flags_to_cond := flags2cond[f];
       end;
 
+
+    procedure convert_register_to_enum(var r:Tregister);
+
+    begin
+      if r.enum = R_INTREGISTER then
+        case r.number of
+          NR_NO: r.enum:= R_NO;
+          NR_R0: r.enum:= R_R0;
+          NR_R1: r.enum:= R_R1;
+          NR_R2: r.enum:= R_R2;
+          NR_R3: r.enum:= R_R3;
+          NR_R4: r.enum:= R_R4;
+          NR_R5: r.enum:= R_R5;
+          NR_R6: r.enum:= R_R6;
+          NR_R7: r.enum:= R_R7;
+          NR_R8: r.enum:= R_R8;
+          NR_R9: r.enum:= R_R9;
+          NR_R10: r.enum:= R_R10;
+          NR_R11: r.enum:= R_R11;
+        else
+          internalerror(200301082);
+        end;
+    end;
+
+
 end.
 {
   $Log$
-  Revision 1.3  2002-11-17 18:26:16  mazen
+  Revision 1.4  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.3  2002/11/17 18:26:16  mazen
   * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
 
   Revision 1.2  2002/11/17 17:49:09  mazen

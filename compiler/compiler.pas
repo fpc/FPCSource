@@ -49,6 +49,15 @@ unit compiler;
    {$endif}
    {$endif}
 
+   {$ifdef vis}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+
+
    {$ifdef powerpc}
    {$ifndef CPUOK}
    {$DEFINE CPUOK}
@@ -377,7 +386,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2002-09-05 19:28:31  peter
+  Revision 1.36  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.35  2002/09/05 19:28:31  peter
     * removed repetitive pass counting
     * display heapsize also for extdebug
 

@@ -121,12 +121,12 @@ const
   IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
   IF_PMASK  = LongInt($FF000000);  { the mask for processor types  }
   IF_PFMASK = LongInt($F001FF00);  { the mask for disassembly "prefer"  }
-  IF_V7			= $00000000;  { SPARC V7 instruction only (not supported)}
-  IF_V8			= $01000000;  { SPARC V8 instruction (the default)}
-  IF_V9			= $02000000;  { SPARC V9 instruction (not yet	supported)}
+  IF_V7     = $00000000;  { SPARC V7 instruction only (not supported)}
+  IF_V8     = $01000000;  { SPARC V8 instruction (the default)}
+  IF_V9     = $02000000;  { SPARC V9 instruction (not yet supported)}
   { added flags }
   IF_PRE    = $40000000;  { it's a prefix instruction }
-  IF_PASS2 	=	LongInt($80000000);{instruction can change in a second pass?}
+  IF_PASS2  = LongInt($80000000);{instruction can change in a second pass?}
 TYPE
 {$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
   { don't change the order of these opcodes! }
@@ -378,6 +378,12 @@ const
   mmregs=[];
   usableregsmm=[];
   c_countusableregsmm=0;
+  { no distinction on this platform }      
+  maxaddrregs = 0;
+  addrregs    = [];
+  usableregsaddr = [];
+  c_countusableregsaddr = 0;
+  
   
   firstsaveintreg = R_O0;
   lastsaveintreg = R_I7;
@@ -400,15 +406,15 @@ const
   Taken from rs6000.h (DBX_REGISTER_NUMBER) from GCC 3.x source code.}
   stab_regindex:ARRAY[firstreg..lastreg]OF ShortInt=({$INCLUDE stabregi.inc});
 {*************************** generic register names **************************}
-	stack_pointer_reg		=	R_O6;
-  frame_pointer_reg		=	R_I6;
+  stack_pointer_reg   = R_O6;
+  frame_pointer_reg   = R_I6;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	R_I0;
+  return_result_reg   = R_I0;
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	R_O0;
+  function_result_reg = R_O0;
   self_pointer_reg  =R_G5;
   {There is no accumulator in the SPARC architecture. There are just families
   of registers. All registers belonging to the same family are identical except
@@ -493,6 +499,8 @@ const
   max_operands = 3;
   maxintregs = maxvarregs;
   maxfpuregs = maxfpuvarregs;
+  
+  
 
 FUNCTION is_calljmp(o:tasmop):boolean;
 FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
@@ -603,7 +611,12 @@ END.
 
 {
   $Log$
-  Revision 1.21  2003-01-20 22:21:36  mazen
+  Revision 1.22  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.21  2003/01/20 22:21:36  mazen
   * many stuff related to RTL fixed
 
   Revision 1.20  2003/01/09 20:41:00  daniel

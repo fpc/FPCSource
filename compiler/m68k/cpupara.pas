@@ -47,19 +47,51 @@ unit cpupara;
   implementation
 
     uses
-       verbose;
+       verbose,
+       globals,
+       globtype,
+       systems,
+       cpuinfo,cginfo,cgbase,
+       defutil;
 
     function tm68kparamanager.getintparaloc(nr : longint) : tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
+         if nr<1 then
+           internalerror(2002070801)
+         else
+           begin
+              { warning : THIS ONLY WORKS WITH INTERNAL ROUTINES,
+                WHICH MUST ALWAYS PASS 4-BYTE PARAMETERS!!
+              }
+              result.loc:=LOC_REFERENCE;
+              result.reference.index.enum:=frame_pointer_reg;
+              result.reference.offset:=target_info.first_parm_offset
+                  +nr*4;
+           end;
       end;
 
     procedure tm68kparamanager.create_param_loc_info(p : tabstractprocdef);
+      var
+        param_offset : integer;  
+        hp : tparaitem;
       begin
-         { set default para_alignment to target_info.stackalignment }
-         { if para_alignment=0 then
-           para_alignment:=aktalignment.paraalign;
-         }
+         { frame pointer for nested procedures? }
+         { inc(nextintreg);                     }
+         { constructor? }
+         { destructor? }
+         param_offset := target_info.first_parm_offset;    
+         hp:=tparaitem(p.para.last);
+         while assigned(hp) do
+           begin
+              hp.paraloc.loc:=LOC_REFERENCE;
+              hp.paraloc.sp_fixup:=0;
+              hp.paraloc.reference.index.enum:=frame_pointer_reg;
+              hp.paraloc.reference.offset:=param_offset;
+              inc(param_offset,aktalignment.paraalign);  
+              hp.paraloc.size := def_cgsize(hp.paratype.def);
+              hp:=tparaitem(hp.previous);
+           end;
       end;
 
     function tm68kparamanager.getselflocation(p : tabstractprocdef) : tparalocation;
@@ -75,7 +107,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-01-08 18:43:57  daniel
+  Revision 1.4  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.3  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.2  2002/12/14 15:02:03  carl

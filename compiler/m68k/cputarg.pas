@@ -37,7 +37,7 @@ implementation
 **************************************}
 
     {$ifndef NOTARGETLINUX}
-      ,t_linux
+      ,t_linux,t_amiga
     {$endif}
 
 {**************************************
@@ -50,7 +50,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-08-13 18:01:52  carl
+  Revision 1.2  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.1  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

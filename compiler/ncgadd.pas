@@ -33,7 +33,7 @@ interface
        tcgaddnode = class(taddnode)
 {          function pass_1: tnode; override;}
           procedure pass_2;override;
-         private
+         protected
           procedure pass_left_and_right;
           { load left and right nodes into registers }
           procedure load_left_right(cmpop, load_constants: boolean);
@@ -51,12 +51,10 @@ interface
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
 {          procedure second_cmpfloat;virtual;}
-          procedure second_cmpboolean;virtual;
-          procedure second_cmpsmallset;virtual;
-          procedure second_cmp64bit;virtual;
-          procedure second_cmpordinal;virtual;
-       
-
+          procedure second_cmpboolean;virtual;abstract;
+          procedure second_cmpsmallset;virtual;abstract;
+          procedure second_cmp64bit;virtual;abstract;
+          procedure second_cmpordinal;virtual;abstract;
        end;
 
   implementation
@@ -75,50 +73,6 @@ interface
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-(*
-    function tcgaddnode.getresflags(unsigned : boolean) : tresflags;
-      begin
-         case nodetype of
-           equaln : getresflags:=F_E;
-           unequaln : getresflags:=F_NE;
-          else
-           if not(unsigned) then
-             begin
-                if nf_swaped in flags then
-                  case nodetype of
-                     ltn : getresflags:=F_G;
-                     lten : getresflags:=F_GE;
-                     gtn : getresflags:=F_L;
-                     gten : getresflags:=F_LE;
-                  end
-                else
-                  case nodetype of
-                     ltn : getresflags:=F_L;
-                     lten : getresflags:=F_LE;
-                     gtn : getresflags:=F_G;
-                     gten : getresflags:=F_GE;
-                  end;
-             end
-           else
-             begin
-                if nf_swaped in flags then
-                  case nodetype of
-                     ltn : getresflags:=F_A;
-                     lten : getresflags:=F_AE;
-                     gtn : getresflags:=F_B;
-                     gten : getresflags:=F_BE;
-                  end
-                else
-                  case nodetype of
-                     ltn : getresflags:=F_B;
-                     lten : getresflags:=F_BE;
-                     gtn : getresflags:=F_A;
-                     gten : getresflags:=F_AE;
-                  end;
-             end;
-         end;
-      end;
-*)
 
     procedure tcgaddnode.pass_left_and_right;
       var
@@ -249,58 +203,6 @@ interface
       end;
       
       
-    procedure tcgaddnode.second_cmpsmallset;
-     begin
-       location_reset(location,LOC_FLAGS,OS_NO);
-          
-       case nodetype of
-          equaln,
-          unequaln :
-            begin
-              {emit_compare(true);}
-            end;
-          lten,gten:
-            begin
-(*
-              If (not(nf_swaped in flags) and
-                  (nodetype = lten)) or
-                 ((nf_swaped in flags) and
-                  (nodetype = gten)) then
-                swapleftright;
-              // now we have to check whether left >= right
-              tmpreg := cg.get_scratch_reg_int(exprasmlist);
-              if left.location.loc = LOC_CONSTANT then
-                begin
-                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
-                    not(left.location.value),right.location.register,tmpreg);
-                  exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,tmpreg,0));
-                  // the two instructions above should be folded together by
-                  // the peepholeoptimizer
-                end
-              else
-                begin
-                  if right.location.loc = LOC_CONSTANT then
-                    begin
-                      cg.a_load_const_reg(exprasmlist,OS_INT,
-                        aword(right.location.value),tmpreg);
-                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
-                        tmpreg,left.location.register));
-                    end
-                  else
-                    exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
-                      right.location.register,left.location.register));
-                end;
-              cg.free_scratch_reg(exprasmlist,tmpreg);
-              location.resflags.cr := R_CR0;
-              location.resflags.flag := F_EQ;
-              opdone := true;*)
-            end;
-          else
-            internalerror(2002072701);
-        end;
-          
-          
-     end;
      
 
     procedure tcgaddnode.second_addsmallset;
@@ -425,6 +327,8 @@ interface
         { calculate the operator which is more difficult }
         firstcomplex(self);
 
+        cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
+
         if cmpop then
             second_cmpboolean
         else
@@ -433,21 +337,15 @@ interface
 
       end;
 
-    procedure tcgaddnode.second_cmpboolean;
-      begin
-      end;
-    
     procedure tcgaddnode.second_addboolean;
       var
         cgop      : TOpCg;
         cgsize  : TCgSize;
-        cmpop,
         isjump  : boolean;
         otl,ofl : tasmlabel;
         pushedregs : tmaybesave;
       begin
 
-        cmpop:=false;
         if (torddef(left.resulttype.def).typ=bool8bit) or
            (torddef(right.resulttype.def).typ=bool8bit) then
          cgsize:=OS_8
@@ -457,7 +355,7 @@ interface
            cgsize:=OS_16
         else
            cgsize:=OS_32;
-(*
+
         if (cs_full_boolean_eval in aktlocalswitches) or
            (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
           begin
@@ -500,60 +398,37 @@ interface
                falselabel:=ofl;
              end;
 
-            cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
 
             { set result location }
-            if not cmpop then
-              location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
-             else
-              location_reset(location,LOC_FLAGS,OS_NO);
+            location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
 
-            load_left_right(cmpop,false);
+            load_left_right(false,false);
 
             if (left.location.loc = LOC_CONSTANT) then
               swapleftright;
 
-            { compare the }
             case nodetype of
-              ltn,lten,gtn,gten,
-              equaln,unequaln :
-                begin
-                  if (right.location.loc <> LOC_CONSTANT) then
-                    exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,
-                      left.location.register,right.location.register))
-                  else
-                    exprasmlist.concat(taicpu.op_reg_const(A_CMPLWI,
-                      left.location.register,longint(right.location.value)));
-                  location.resflags := getresflags;
-                end;
+              xorn :
+                cgop:=OP_XOR;
+              orn :
+                cgop:=OP_OR;
+              andn :
+                cgop:=OP_AND;
               else
-                begin
-                  case nodetype of
-                    xorn :
-                      cgop:=OP_XOR;
-                    orn :
-                      cgop:=OP_OR;
-                    andn :
-                      cgop:=OP_AND;
-                    else
-                      internalerror(200203247);
-                  end;
+                 internalerror(200203247);
+              end;
 
-                  if right.location.loc <> LOC_CONSTANT then
-                    cg.a_op_reg_reg_reg(exprasmlist,cgop,OS_INT,
-                      left.location.register,right.location.register,
-                      location.register)
-                  else
-                    cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
-                      aword(right.location.value),left.location.register,
-                      location.register);
-                end;
-            end;
+              if right.location.loc <> LOC_CONSTANT then
+                cg.a_op_reg_reg_reg(exprasmlist,cgop,OS_INT,
+                   left.location.register,right.location.register,
+                   location.register)
+              else
+                 cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
+                    aword(right.location.value),left.location.register,
+                    location.register);
          end
         else
          begin
-           // just to make sure we free the right registers
-           cmpop := true;
            case nodetype of
              andn,
              orn :
@@ -585,9 +460,9 @@ interface
                  maketojumpbool(exprasmlist,right,lr_load_regvars);
                end;
            end;
-         end;*)
+         end;
         { free used register (except the result register) }
-        clear_left_right(cmpop);
+        clear_left_right(true);
       end;
 
 
@@ -616,104 +491,6 @@ interface
         clear_left_right(cmpop);
      end;
 
-    procedure tcgaddnode.second_cmp64bit;
-     begin
-(*        load_left_right(true,false);
-
-        case nodetype of  
-          ltn,lten,
-          gtn,gten:
-           begin
-             emit_cmp64_hi;
-             firstjmp64bitcmp;
-             emit_cmp64_lo;
-             secondjmp64bitcmp;
-           end;
-          equaln,unequaln:
-           begin
-             // instead of doing a complicated compare, do
-             // (left.hi xor right.hi) or (left.lo xor right.lo)
-             // (somewhate optimized so that no superfluous 'mr's are
-             //  generated)
-                  if (left.location.loc = LOC_CONSTANT) then
-                    swapleftright;
-                  if (right.location.loc = LOC_CONSTANT) then
-                    begin
-                      if left.location.loc = LOC_REGISTER then
-                        begin
-                          tempreg64.reglo := left.location.registerlow;
-                          tempreg64.reghi := left.location.registerhigh;
-                        end
-                      else
-                        begin
-                          if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
-                          else
-                            tempreg64.reglo := left.location.registerlow;
-                          if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
-                          else
-                            tempreg64.reghi := left.location.registerhigh;
-                        end;
-
-                      if (aword(right.location.valueqword) <> 0) then
-                        { negative values can be handled using SUB, }
-                        { positive values < 65535 using XOR.        }
-                        if (longint(right.location.valueqword) >= -32767) and
-                           (longint(right.location.valueqword) < 0) then
-                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                            aword(right.location.valueqword),
-                            left.location.registerlow,tempreg64.reglo)
-                        else
-                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            aword(right.location.valueqword),
-                            left.location.registerlow,tempreg64.reglo);
-
-                      if ((right.location.valueqword shr 32) <> 0) then
-                        if (longint(right.location.valueqword shr 32) >= -32767) and
-                           (longint(right.location.valueqword shr 32) < 0) then
-                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
-                            aword(right.location.valueqword shr 32),
-                            left.location.registerhigh,tempreg64.reghi)
-                        else
-                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            aword(right.location.valueqword shr 32),
-                            left.location.registerhigh,tempreg64.reghi);
-                    end
-                  else
-                    begin
-                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist);
-                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist);
-                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
-                         left.location.register64,right.location.register64,
-                         tempreg64);
-                    end;
-
-                  cg.a_reg_alloc(exprasmlist,R_0);
-                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
-                    tempreg64.reglo,tempreg64.reghi));
-                  cg.a_reg_dealloc(exprasmlist,R_0);
-                  if (tempreg64.reglo <> left.location.registerlow) then
-                    cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
-                  if (tempreg64.reghi <> left.location.registerhigh) then
-                    cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
-
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags := getresflags;
-                end;
-              else
-                internalerror(2002072803);
-            end;
-
-
-        { set result location }
-        { (emit_compare sets it to LOC_FLAGS for compares, so set the }
-        {  real location only now) (JM)                               }
-        if cmpop and
-           not(nodetype in [equaln,unequaln]) then
-          location_reset(location,LOC_JUMP,OS_NO);
-*)
-     end;
 
 
     procedure tcgaddnode.second_add64bit;
@@ -841,22 +618,6 @@ interface
 {*****************************************************************************
                                 Ordinals
 *****************************************************************************}
-    procedure tcgaddnode.second_cmpordinal;
-     var
-      unsigned : boolean;
-     begin
-       { set result location }
-       location_reset(location,LOC_FLAGS,OS_NO);
-
-       { load values into registers (except constants) }
-       load_left_right(true, false);
-
-       { determine if the comparison will be unsigned }
-       unsigned:=not(is_signed(left.resulttype.def)) or
-                   not(is_signed(right.resulttype.def));
-
-     end;
-
 
     procedure tcgaddnode.second_addordinal;
      var
@@ -1049,10 +810,17 @@ interface
         clear_left_right(cmpop);
       end;
 
+begin
+   caddnode:=tcgaddnode;
 end.
 {
   $Log$
-  Revision 1.4  2003-01-08 18:43:56  daniel
+  Revision 1.5  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.4  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.3  2002/12/14 15:02:03  carl

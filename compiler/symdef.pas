@@ -715,6 +715,9 @@ interface
 {$ifdef SPARC}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif SPARC}
+{$ifdef vis}
+       pbestrealtype : ^ttype = @s64floattype;
+{$endif vis}
 
     function mangledname_prefix(typeprefix:string;st:tsymtable):string;
 
@@ -5648,7 +5651,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2003-01-21 14:36:44  pierre
+  Revision 1.128  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.127  2003/01/21 14:36:44  pierre
    * set sizes needs to be passes in bits not bytes to stabs info
 
   Revision 1.126  2003/01/16 22:11:33  peter

@@ -371,6 +371,13 @@ const
        mmregs = [R_MM0..R_MM7];
        usableregsmm = [R_XMM0..R_XMM15];
        c_countusableregsmm  = 8;
+       
+      { no distinction on this platform }      
+       maxaddrregs = 0;
+       addrregs    = [];
+       usableregsaddr = [];
+       c_countusableregsaddr = 0;
+       
 
        firstsaveintreg = R_EAX;
        lastsaveintreg  = R_R15;
@@ -417,11 +424,11 @@ const
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+  return_result_reg   = accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+  function_result_reg = accumulator;
        accumulatorhigh = R_RDX;
        { the register where the vmt offset is passed to the destructor }
        { helper routine                                                }
@@ -500,7 +507,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-01-05 13:36:54  florian
+  Revision 1.6  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.5  2003/01/05 13:36:54  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

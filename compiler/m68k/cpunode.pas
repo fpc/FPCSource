@@ -30,12 +30,12 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgmat,ncgadd
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,ncgmat,ncgadd,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
        }
-//       nm68kadd,
+         ncpuadd,
 //       nppccal,
 //       nppccon,
 //       nppcflw,
@@ -46,13 +46,19 @@ unit cpunode;
        { this not really a node }
 //       nppcobj,
 //       nppcmat,
-         ,n68kcnv
+         n68kmat,
+         n68kcnv
        ;
 
 end.
 {
   $Log$
-  Revision 1.3  2002-12-14 15:02:03  carl
+  Revision 1.4  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.3  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

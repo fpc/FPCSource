@@ -30,31 +30,34 @@ unit i_amiga;
     const
        system_m68k_amiga_info : tsysteminfo =
           (
-            system       : target_m68k_Amiga;
+            system       : system_m68k_Amiga;
             name         : 'Commodore Amiga';
             shortname    : 'amiga';
             flags        : [];
             cpu          : cpu_m68k;
-            short_name   : 'AMIGA';
             unit_env     : '';
             extradefines : '';
-            sharedlibext : '.library';
-            staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
-            defext       : '';
-            scriptext    : '';
+            defext       : '.def';
+            scriptext    : '.sh';
             smartext     : '.sl';
-            unitext      : '.ppa';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
             asmext       : '.asm';
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            staticlibprefix : '';
+            sharedlibext : '.library';
+            staticlibext : '.a';
+            staticlibprefix : 'lib';
             sharedlibprefix : '';
-            Cprefix      : '_';
+            sharedClibext : '.library';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
             files_case_relevent : true;
@@ -62,16 +65,31 @@ unit i_amiga;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_m68k_ar;
+            ar           : ar_gnu_ar;
             res          : res_none;
             script       : script_amiga;
             endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            heapsize     : 128*1024;
-            stacksize    : 8192;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            heapsize     : 256*1024;
+            stacksize    : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : false
+            use_function_relative_addresses : true
           );
 
   implementation
@@ -79,13 +97,18 @@ unit i_amiga;
 initialization
 {$ifdef cpu68}
   {$ifdef AMIGA}
-    set_source_info(system_m68k_Amiga);
+    set_source_info(system_m68k_Amiga_info);
   {$endif amiga}
 {$endif cpu68}
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.3  2002/08/13 18:01:51  carl

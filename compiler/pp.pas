@@ -31,6 +31,7 @@ program pp;
   M68K                generate a compiler for the M68000
   SPARC               generate a compiler for SPARC
   POWERPC             generate a compiler for the PowerPC
+  VIS                 generate a compile for the VIS  
   USEOVERLAY          compiles a TP version which uses overlays
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
@@ -77,6 +78,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif M68K}
+   {$ifdef vis}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif}
    {$ifdef iA64}
      {$ifdef CPUDEFINED}
         {$fatal ONLY one of the switches for the CPU type must be defined}
@@ -179,7 +186,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-11-15 01:58:53  peter
+  Revision 1.20  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.19  2002/11/15 01:58:53  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

@@ -27,7 +27,7 @@ unit n68kmat;
 interface
 
     uses
-      node,nmat;
+      node,nmat,ncgmat,cpubase,cginfo;
 
     type
 
@@ -36,16 +36,22 @@ interface
          procedure pass_2;override;
       end;
 
+      tm68kmoddivnode = class(tcgmoddivnode)
+         procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
+         procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
+      end;  
+
+
 
 implementation
 
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,defbase,
-      cginfo,cgbase,pass_1,pass_2,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,
+      cgbase,pass_1,pass_2,
       ncon,
-      cpubase,cpuinfo,paramgr,
+      cpuinfo,paramgr,defutil,
       tgobj,ncgutil,cgobj,rgobj,rgcpu,cgcpu,cg64f32;
 
 
@@ -114,21 +120,134 @@ implementation
            end
          else
           begin
-            secondpass(left);
-            location_copy(location,left.location);
-            location_force_reg(exprasmlist,location,opsize,false);
-            cg.a_op_reg_reg(exprasmlist,OP_NOT,opsize,location.register,location.register);
+             secondpass(left);
+             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+             location_copy(location,left.location);
+             if location.loc=LOC_CREGISTER then
+              location.register := rg.getregisterint(exprasmlist);
+             { perform the NOT operation }
+             cg.a_op_reg_reg(exprasmlist,OP_NOT,opsize,location.register,left.location.register);
           end;
       end;
+
+
+{*****************************************************************************
+                               TM68KMODDIVNODE
+*****************************************************************************}
+  procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
+   var
+     continuelabel : tasmlabel;  
+     reg_d0,reg_d1 : tregister;
+   begin
+     { no RTL call, so inline a zero denominator verification }   
+     if aktoptprocessor <> MC68000 then
+       begin 
+         { verify if denominator is zero }
+         objectlibrary.getlabel(continuelabel);
+         { compare against zero, if not zero continue }
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
+         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(1));
+         cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
+         cg.a_label(exprasmlist, continuelabel);
+         if signed then 
+            exprasmlist.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
+         else
+            exprasmlist.concat(taicpu.op_reg_reg(A_DIVU,S_L,denum,num));
+         { result should be in denuminator }
+         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,denum);   
+       end
+     else
+       begin
+         { On MC68000/68010 mw must pass through RTL routines }
+         reg_d0:=rg.getexplicitregisterint(exprasmlist,R_D0);
+         reg_d1:=rg.getexplicitregisterint(exprasmlist,R_D1);
+         { put numerator in d0 }
+         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,reg_d0);   
+         { put denum in D1 }
+         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,denum,reg_d1);   
+         if signed then 
+             cg.a_call_name(exprasmlist,'FPC_DIV_LONGINT')
+         else
+             cg.a_call_name(exprasmlist,'FPC_DIV_CARDINAL');
+        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,reg_d0,denum);   
+        rg.ungetregisterint(exprasmlist,reg_d0);
+        rg.ungetregisterint(exprasmlist,reg_d1);
+       end;
+   end;
+     
+  procedure tm68kmoddivnode.emit_mod_reg_reg(signed: boolean;denum,num : tregister);
+      var tmpreg : tregister;
+          continuelabel : tasmlabel;  
+          signlabel : tasmlabel;
+          reg_d0,reg_d1 : tregister;
+    begin
+     { no RTL call, so inline a zero denominator verification }   
+     if aktoptprocessor <> MC68000 then
+       begin 
+         { verify if denominator is zero }
+         objectlibrary.getlabel(continuelabel);
+         { compare against zero, if not zero continue }
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
+         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(1));
+         cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
+         cg.a_label(exprasmlist, continuelabel);
+
+         tmpreg := cg.get_scratch_reg_int(exprasmlist);       
+
+         { we have to prepare the high register with the  }
+         { correct sign. i.e we clear it, check if the low dword reg }
+         { which will participate in the division is signed, if so we}
+         { we extend the sign to the high doword register by inverting }
+         { all the bits.                                             }
+         exprasmlist.concat(taicpu.op_reg(A_CLR,S_L,tmpreg));
+         objectlibrary.getlabel(signlabel);
+         exprasmlist.concat(taicpu.op_reg(A_TST,S_L,tmpreg));
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_A,0,tmpreg,signlabel);
+         { its a negative value, therefore change sign }
+         cg.a_label(exprasmlist,signlabel);
+         { tmpreg:num / denum }
+
+         if signed then
+           exprasmlist.concat(taicpu.op_reg_reg_reg(A_DIVSL,S_L,denum,tmpreg,num))
+         else
+           exprasmlist.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,tmpreg,num));
+         { remainder in tmpreg }
+         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tmpreg,denum);
+         cg.free_scratch_reg(exprasmlist,tmpreg);   
+       end
+     else
+       begin
+         { On MC68000/68010 mw must pass through RTL routines }
+         Reg_d0:=rg.getexplicitregisterint(exprasmlist,R_D0);
+         Reg_d1:=rg.getexplicitregisterint(exprasmlist,R_D1);
+         { put numerator in d0 }
+         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,Reg_D0);   
+         { put denum in D1 }
+         cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,denum,Reg_D1);   
+         if signed then 
+             cg.a_call_name(exprasmlist,'FPC_MOD_LONGINT')
+         else
+             cg.a_call_name(exprasmlist,'FPC_MOD_CARDINAL');
+        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,Reg_D0,denum);   
+        rg.ungetregisterint(exprasmlist,Reg_D0);
+        rg.ungetregisterint(exprasmlist,Reg_D1);
+       end;
+    end;
 
 
 
 begin
    cnotnode:=tm68knotnode;
+   cmoddivnode:=tm68kmoddivnode;
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 15:25:13  peter
+  Revision 1.5  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.4  2002/09/07 15:25:13  peter
     * old logs removed and tabs fixed
 
   Revision 1.3  2002/08/15 15:15:55  carl

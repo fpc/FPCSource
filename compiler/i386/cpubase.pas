@@ -519,6 +519,12 @@ uses
       mmregs = [R_MM0..R_MM7];
       usableregsmm = [R_MM0..R_MM7];
       c_countusableregsmm  = 8;
+      
+      maxaddrregs = 0;
+      addrregs    = [];
+      usableregsaddr = [];
+      c_countusableregsaddr = 0;
+      
 
       firstsaveintreg = R_EAX;
       lastsaveintreg  = R_EBX;
@@ -599,11 +605,11 @@ uses
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+  return_result_reg   = accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+  function_result_reg = accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_EDX;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
@@ -714,7 +720,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-01-13 18:37:44  daniel
+  Revision 1.41  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.40  2003/01/13 18:37:44  daniel
     * Work on register conversion
 
   Revision 1.39  2003/01/09 20:41:00  daniel

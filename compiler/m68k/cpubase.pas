@@ -109,7 +109,8 @@ uses
          R_SPPUSH,R_SPPULL,
          { misc. }
          R_CCR,R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
-         R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR);
+         R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
+         R_INTREGISTER,R_FLOATREGISTER);
 
       {# Set type definition for registers }
       tregisterset = set of Toldregister;
@@ -128,7 +129,22 @@ uses
       treg64 = tregister64;
 
 
-    Const
+    {New register coding:}
+
+    {Special registers:}
+    const
+      NR_NO = $0000;  {Invalid register}
+
+    {Normal registers:}
+
+    {General purpose registers:}
+      NR_D0 = $0100; NR_D1 = $0200; NR_D2 = $0300;
+      NR_D3 = $0400; NR_D4 = $0500; NR_D5 = $0600;
+      NR_D6 = $0700; NR_D7 = $0800; NR_A0 = $0900;
+      NR_A1 = $0A00; NR_A2 = $0B00; NR_A3 = $0C00;
+      NR_A4 = $0D00; NR_A5 = $0E00; NR_A6 = $0F00;
+      NR_A7 = $1000; 
+
       {# First register in the tregister enumeration }
       firstreg = low(Toldregister);
       {# Last register in the tregister enumeration }
@@ -442,8 +458,8 @@ uses
       {# Registers which are defined as scratch integer and no need to save across
          routine calls or in assembler blocks.
       }
-      max_scratch_regs = 2;
-      scratch_regs: Array[1..max_scratch_regs] of Toldregister = (R_D0,R_D1);
+      max_scratch_regs = 4;
+      scratch_regs: Array[1..max_scratch_regs] of Toldregister = (R_D0,R_D1,R_A0,R_A1);
 
 {*****************************************************************************
                           Default generic sizes
@@ -600,14 +616,39 @@ implementation
     procedure convert_register_to_enum(var r:Tregister);
 
     begin
-      {$warning Convert_register_to_enum implementation is missing!}
-      internalerror(200301082);
+      if r.enum = R_INTREGISTER then
+        case r.number of
+          NR_NO: r.enum:= R_NO;
+          NR_D0: r.enum:= R_D0;
+          NR_D1: r.enum:= R_D1;
+          NR_D2: r.enum:= R_D2;
+          NR_D3: r.enum:= R_D3;
+          NR_D4: r.enum:= R_D4;
+          NR_D5: r.enum:= R_D5;
+          NR_D6: r.enum:= R_D6;
+          NR_D7: r.enum:= R_D7;
+          NR_A0: r.enum:= R_A0;
+          NR_A1: r.enum:= R_A1;
+          NR_A2: r.enum:= R_A2;
+          NR_A3: r.enum:= R_A3;
+          NR_A4: r.enum:= R_A4;
+          NR_A5: r.enum:= R_A5;
+          NR_A6: r.enum:= R_A6;
+          NR_A7: r.enum:= R_SP;
+        else
+          internalerror(200301082);
+        end;
     end;
 
 end.
 {
   $Log$
-  Revision 1.16  2003-01-09 15:49:56  daniel
+  Revision 1.17  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.16  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.15  2003/01/08 18:43:57  daniel

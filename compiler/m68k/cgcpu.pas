@@ -69,6 +69,11 @@ unit cgcpu;
           procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
           procedure g_save_all_registers(list : taasmoutput);override;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
+          { for address register allocation }
+          function get_scratch_reg_address(list : taasmoutput) : tregister;override;
+          function get_scratch_reg_int(list : taasmoutput) : tregister; override;
+
+
      protected
          function fixref(list: taasmoutput; var ref: treference): boolean;
      private
@@ -167,6 +172,59 @@ Implementation
            end;
       end;
 
+    function tcg68k.get_scratch_reg_int(list : taasmoutput) : tregister;
+
+      var
+         r : tregister;
+         i : longint;
+
+      begin
+         if unusedscratchregisters=[] then
+           internalerror(68996);
+
+         if R_D0 in unusedscratchregisters then
+           begin
+              r.enum := R_D0;
+           end
+         else if R_D1 in unusedscratchregisters then
+           begin
+              r.enum := R_D1;
+           end
+         else
+           internalerror(10);
+
+         exclude(unusedscratchregisters,r.enum);
+         a_reg_alloc(list,r);
+         get_scratch_reg_int:=r;
+      end;
+
+
+     function tcg68k.get_scratch_reg_address(list : taasmoutput) : tregister;
+      var
+         r : tregister;
+         i : longint;
+
+      begin
+         if unusedscratchregisters=[] then
+           internalerror(68996);
+        
+         if R_A0 in unusedscratchregisters then
+           begin
+              r.enum := R_A0;
+           end
+         else if R_A1 in unusedscratchregisters then
+           begin
+              r.enum := R_A1;
+           end
+         else
+           internalerror(10);
+
+         exclude(unusedscratchregisters,r.enum);
+         a_reg_alloc(list,r);
+         get_scratch_reg_address:=r;
+      end;
+
+
 {****************************************************************************}
 {                               TCG68K                                       }
 {****************************************************************************}
@@ -242,7 +300,7 @@ Implementation
       begin
         if (rg.isaddressregister(register)) then
          begin
-           list.concat(taicpu.op_const_reg(A_MOVE,S_L,a,register))
+           list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
          end
         else
         if a = 0 then
@@ -250,9 +308,9 @@ Implementation
         else
          begin
            if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
-              list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,a,register))
+              list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
-              list.concat(taicpu.op_const_reg(A_MOVE,S_L,a,register))
+              list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
          end;
       end;
 
@@ -318,6 +376,7 @@ Implementation
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
+        href := ref;
         fixref(list,href);
         { in emulation mode, only 32-bit single is supported }
         if cs_fp_emulation in aktmoduleswitches then
@@ -683,8 +742,12 @@ Implementation
           OP_NEG,
           OP_NOT :
               Begin
+                { if there are two operands, move the register,
+                  since the operation will only be done on the result
+                  register.
+                }
                 if reg1.enum <> R_NO then
-                  internalerror(200112291);
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,reg1,reg2);
 
                 if (rg.isaddressregister(reg2)) then
                   begin
@@ -1124,14 +1187,10 @@ Implementation
          { zero extend }
          OS_8:
               begin
-                if (rg.isaddressregister(reg)) then
-                   internalerror(20020729);
                 list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
               end;
          OS_16:
               begin
-                if (rg.isaddressregister(reg)) then
-                   internalerror(20020729);
                 list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
               end;
         end; { otherwise the size is already correct }
@@ -1276,7 +1335,12 @@ end.
 
 {
   $Log$
-  Revision 1.15  2003-01-08 18:43:57  daniel
+  Revision 1.16  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.15  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.14  2003/01/05 13:36:53  florian

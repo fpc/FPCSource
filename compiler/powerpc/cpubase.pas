@@ -512,6 +512,13 @@ uses
       usableregsmm  = [R_M14..R_M31];
       c_countusableregsmm  = 31-14+1;
 
+      { no distinction on this platform }      
+      maxaddrregs = 0;
+      addrregs    = [];
+      usableregsaddr = [];
+      c_countusableregsaddr = 0;
+      
+
       firstsaveintreg = R_13;
       lastsaveintreg  = R_27;
       firstsavefpureg = R_F14;
@@ -821,7 +828,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-01-16 11:31:28  olle
+  Revision 1.43  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.42  2003/01/16 11:31:28  olle
     + added new register constants
     + implemented register convertion proc
 

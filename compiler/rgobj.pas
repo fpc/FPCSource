@@ -43,6 +43,8 @@ unit rgobj;
       ;
 
     type
+
+
        regvar_longintarray = array[firstreg..lastreg] of longint;
        regvar_booleanarray = array[firstreg..lastreg] of boolean;
        regvar_ptreearray = array[firstreg..lastreg] of tnode;
@@ -54,6 +56,48 @@ unit rgobj;
        end;
 
        tpushedsaved = array[firstreg..lastreg] of tpushedsavedloc;
+
+      (******************************* private struct **********************)
+      psavedstate = ^tsavedstate;
+      tsavedstate = record
+        unusedregsint,usableregsint : tregisterset;
+        unusedregsfpu,usableregsfpu : tregisterset;
+        unusedregsmm,usableregsmm : tregisterset;
+        unusedregsaddr,usableregsaddr : tregisterset;
+        countunusedregsaddr,
+        countunusedregsint,
+        countunusedregsfpu,
+        countunusedregsmm : byte;
+        countusableregsaddr,
+        countusableregsint,
+        countusableregsfpu,
+        countusableregsmm : byte;
+        { contains the registers which are really used by the proc itself }
+        usedbyproc,
+        usedinproc : tregisterset;
+        reg_pushes : regvar_longintarray;
+        is_reg_var : regvar_booleanarray;
+        regvar_loaded: regvar_booleanarray;
+{$ifdef TEMPREGDEBUG}
+         reg_user   : regvar_ptreearray;
+         reg_releaser : regvar_ptreearray;
+{$endif TEMPREGDEBUG}
+      end;
+
+      (******************************* private struct **********************)
+      punusedstate = ^tunusedstate;
+      tunusedstate = record
+        unusedregsint : tregisterset;
+        unusedregsfpu : tregisterset;
+        unusedregsmm : tregisterset;
+        unusedregsaddr : tregisterset; 
+        countunusedregsaddr,
+        countunusedregsint,
+        countunusedregsfpu,
+        countunusedregsmm : byte;
+      end;
+
+
 
        {#
           This class implements the abstract register allocator
@@ -213,11 +257,11 @@ unit rgobj;
 
           procedure makeregvar(reg: tregister);
 
-          procedure saveStateForInline(var state: pointer);
-          procedure restoreStateAfterInline(var state: pointer);
+          procedure saveStateForInline(var state: pointer);virtual;
+          procedure restoreStateAfterInline(var state: pointer);virtual;
 
-          procedure saveUnusedState(var state: pointer);
-          procedure restoreUnusedState(var state: pointer);
+          procedure saveUnusedState(var state: pointer);virtual;
+          procedure restoreUnusedState(var state: pointer);virtual;
        protected
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
@@ -275,40 +319,8 @@ unit rgobj;
        globals,verbose,
        cgobj,tgobj,regvars;
 
-    type
-      psavedstate = ^tsavedstate;
-      tsavedstate = record
-        unusedregsint,usableregsint : tregisterset;
-        unusedregsfpu,usableregsfpu : tregisterset;
-        unusedregsmm,usableregsmm : tregisterset;
-        countunusedregsint,
-        countunusedregsfpu,
-        countunusedregsmm : byte;
-        countusableregsint,
-        countusableregsfpu,
-        countusableregsmm : byte;
-        { contains the registers which are really used by the proc itself }
-        usedbyproc,
-        usedinproc : tregisterset;
-        reg_pushes : regvar_longintarray;
-        is_reg_var : regvar_booleanarray;
-        regvar_loaded: regvar_booleanarray;
-{$ifdef TEMPREGDEBUG}
-         reg_user   : regvar_ptreearray;
-         reg_releaser : regvar_ptreearray;
-{$endif TEMPREGDEBUG}
-      end;
 
 
-      punusedstate = ^tunusedstate;
-      tunusedstate = record
-        unusedregsint : tregisterset;
-        unusedregsfpu : tregisterset;
-        unusedregsmm : tregisterset;
-        countunusedregsint,
-        countunusedregsfpu,
-        countunusedregsmm : byte;
-      end;
 
 
     constructor trgobj.create;
@@ -532,6 +544,8 @@ unit rgobj;
            ungetregisterfpu(list,r)
          else if r.enum in mmregs then
            ungetregistermm(list,r)
+         else if r.enum in addrregs then
+           ungetaddressregister(list,r)
          else internalerror(2002070602);
       end;
 
@@ -1016,7 +1030,12 @@ end.
 
 {
   $Log$
-  Revision 1.21  2003-01-08 18:43:57  daniel
+  Revision 1.22  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.21  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.20  2002/10/05 12:43:28  carl

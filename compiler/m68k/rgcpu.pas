@@ -38,6 +38,10 @@ unit rgcpu;
           unusedregsaddr,usableregsaddr : tregisterset;
           countunusedregsaddr,
           countusableregsaddr : byte;
+          procedure saveStateForInline(var state: pointer);override;
+          procedure restoreStateAfterInline(var state: pointer);override;
+          procedure saveUnusedState(var state: pointer);override;
+          procedure restoreUnusedState(var state: pointer);override;
           function isaddressregister(reg: tregister): boolean; override;
           function getaddressregister(list: taasmoutput): tregister; override;
           procedure ungetaddressregister(list: taasmoutput; r: tregister); override;
@@ -46,6 +50,7 @@ unit rgcpu;
              const saved : tpushedsaved);override;
           procedure saveusedregisters(list: taasmoutput;
         var saved : tpushedsaved; const s: tregisterset);override;
+          procedure cleartempgen;override;
 
        end;
 
@@ -107,8 +112,8 @@ unit rgcpu;
                     may not be real (JM) }
                 else
                   begin
-                    dec(countunusedregsint);
-                    exclude(unusedregsint,r.enum);
+                    dec(countunusedregsaddr);
+                    exclude(unusedregsaddr,r.enum);
                   end;
                 tg.ungettemp(list,hr);
               end;
@@ -138,11 +143,54 @@ unit rgcpu;
                 saved[r.enum].ofs:=hr.offset;
                 cg.a_load_reg_ref(list,OS_ADDR,r,hr);
                 cg.a_reg_dealloc(list,r);
-                include(unusedregsint,r.enum);
-                inc(countunusedregsint);
+                include(unusedregsaddr,r.enum);
+                inc(countunusedregsaddr);
               end;
           end;
 
+      end;
+
+
+
+    procedure trgcpu.saveStateForInline(var state: pointer);
+      begin
+        inherited savestateforinline(state);
+        psavedstate(state)^.unusedregsaddr := unusedregsaddr;
+        psavedstate(state)^.usableregsaddr := usableregsaddr;
+        psavedstate(state)^.countunusedregsaddr := countunusedregsaddr;
+      end;
+
+
+    procedure trgcpu.restoreStateAfterInline(var state: pointer);
+      begin
+        unusedregsaddr := psavedstate(state)^.unusedregsaddr;
+        usableregsaddr := psavedstate(state)^.usableregsaddr;
+        countunusedregsaddr := psavedstate(state)^.countunusedregsaddr;
+        inherited restoreStateAfterInline(state);
+      end;
+
+
+    procedure trgcpu.saveUnusedState(var state: pointer);
+      begin
+        inherited saveUnusedState(state);
+        punusedstate(state)^.unusedregsaddr := unusedregsaddr;
+        punusedstate(state)^.countunusedregsaddr := countunusedregsaddr;
+      end;
+
+
+    procedure trgcpu.restoreUnusedState(var state: pointer);
+      begin
+        unusedregsaddr := punusedstate(state)^.unusedregsaddr;
+        countunusedregsaddr := punusedstate(state)^.countunusedregsaddr;
+        inherited restoreUnusedState(state);
+      end;
+
+    procedure trgcpu.cleartempgen;
+
+      begin
+         inherited cleartempgen;
+         countunusedregsaddr:=countusableregsaddr;
+         unusedregsaddr:=usableregsaddr;
       end;
 
 
@@ -152,7 +200,12 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-01-08 18:43:57  daniel
+  Revision 1.6  2003-02-02 19:25:54  carl
+    * Several bugfixes for m68k target (register alloc., opcode emission)
+    + VIS target
+    + Generic add more complete (still not verified)
+
+  Revision 1.5  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.4  2002/09/07 15:25:14  peter

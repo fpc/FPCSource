@@ -64,13 +64,18 @@ unit paramgr;
             is required for cdecl procedures
           }
           function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
-          { Returns a structure giving the information on
+          {# Returns a structure giving the information on
             the storage of the parameter (which must be
-            an integer parameter)
+            an integer parameter). This is only used when calling
+            internal routines directly, where all parameters must
+            be 4-byte values.
 
             @param(nr Parameter number of routine, starting from 1)
           }
           function getintparaloc(nr : longint) : tparalocation;virtual;abstract;
+          {# This is used to populate the location information on all parameters
+             for the routine. This is used for normal call resolution.
+          }
           procedure create_param_loc_info(p : tabstractprocdef);virtual;abstract;
 
           {
@@ -400,7 +405,12 @@ end.
 
 {
    $Log$
-   Revision 1.30  2003-01-08 18:43:56  daniel
+   Revision 1.31  2003-02-02 19:25:54  carl
+     * Several bugfixes for m68k target (register alloc., opcode emission)
+     + VIS target
+     + Generic add more complete (still not verified)
+
+   Revision 1.30  2003/01/08 18:43:56  daniel
     * Tregister changed into a record
 
    Revision 1.29  2002/12/23 20:58:03  peter
