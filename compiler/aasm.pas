@@ -60,6 +60,7 @@ unit aasm;
           ait_regalloc, { for register,temp allocation debugging }
           ait_tempalloc,
           ait_marker,
+          ait_frame, 
           { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
 
@@ -966,7 +967,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.57  1999-08-02 21:01:41  michael
+  Revision 1.58  1999-08-04 00:39:56  michael
+  + Added ait_frame
+
+  Revision 1.57  1999/08/02 21:01:41  michael
   * Moved toperand type back =(
 
   Revision 1.56  1999/08/02 20:45:47  michael
