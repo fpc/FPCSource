@@ -1,3 +1,18 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2003 by the Free Pascal development team
+
+    test netdb unit, host part
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}
 {$h+}
 
@@ -66,3 +81,10 @@ begin
   Writeln('ResolveHostByAddr:');  
   testaddr('212.224.143.202');
 end.
+
+{
+  $Log$
+  Revision 1.2  2003-05-17 20:54:03  michael
+  + uriparser unit added. Header/Footer blocks added
+
+}
