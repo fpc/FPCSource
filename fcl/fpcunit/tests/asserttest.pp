@@ -20,7 +20,7 @@ unit asserttest;
 interface
 
 uses
-  fpcunit;
+  fpcunit, testregistry;
 
 type
 
@@ -209,6 +209,10 @@ begin
   obj1.Free;
   Fail('Error: Objects are the same!');
 end;
+
+initialization
+
+  RegisterTests([TAssertTest]);
 
 end.
 

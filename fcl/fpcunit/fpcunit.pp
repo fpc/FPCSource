@@ -90,14 +90,14 @@ type
     class procedure AssertNotSame(Expected, Actual: Pointer); overload;
     class procedure AssertNotNull(const AMessage: string; AObject: TObject); overload;
     class procedure AssertNotNull(AObject: TObject); overload;
-    class procedure AssertNotNull(const AMessage: string; AInterface: IInterface); overload;
-    class procedure AssertNotNull(AInterface: IInterface); overload;
+    class procedure AssertNotNullIntf(const AMessage: string; AInterface: IInterface); overload;
+    class procedure AssertNotNullIntf(AInterface: IInterface); overload;
     class procedure AssertNotNull(const AMessage: string; APointer: Pointer); overload;
     class procedure AssertNotNull(APointer: Pointer); overload;
     class procedure AssertNull(const AMessage: string; AObject: TObject); overload;
     class procedure AssertNull(AObject: TObject); overload;
-    class procedure AssertNull(const AMessage: string; AInterface: IInterface); overload;
-    class procedure AssertNull(AInterface: IInterface); overload;
+    class procedure AssertNullIntf(const AMessage: string; AInterface: IInterface); overload;
+    class procedure AssertNullIntf(AInterface: IInterface); overload;
     class procedure AssertNull(const AMessage: string; APointer: Pointer); overload;
     class procedure AssertNull(APointer: Pointer); overload;
     class procedure AssertNotNull(const AMessage, AString: string); overload;
@@ -518,12 +518,12 @@ begin
   AssertNotNull('', AObject);
 end;
 
-class procedure TAssert.AssertNotNull(const AMessage: string; AInterface: IInterface);
+class procedure TAssert.AssertNotNullIntf(const AMessage: string; AInterface: IInterface);
 begin
   AssertTrue(AMessage, (AInterface <> nil));
 end;
 
-class procedure TAssert.AssertNotNull(AInterface: IInterface);
+class procedure TAssert.AssertNotNullIntf(AInterface: IInterface);
 begin
   AssertNotNull('', AInterface);
 end;
@@ -548,12 +548,12 @@ begin
   AssertNull('', AObject);
 end;
 
-class procedure TAssert.AssertNull(const AMessage: string; AInterface: IInterface);
+class procedure TAssert.AssertNullIntf(const AMessage: string; AInterface: IInterface);
 begin
   AssertTrue(AMessage, (AInterface = nil));
 end;
 
-class procedure TAssert.AssertNull(AInterface: IInterface);
+class procedure TAssert.AssertNullINtf(AInterface: IInterface);
 begin
   AssertNull('', AInterface);
 end;

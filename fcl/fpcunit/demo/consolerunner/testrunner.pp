@@ -17,8 +17,7 @@
  **********************************************************************}
 program testrunner;
 uses
-  custapp, classes, SysUtils, fpcunit, suiteconfig, testreport, 
-  testregistry;
+  custapp, classes, SysUtils, fpcunit, suiteconfig, testreport;
 
 Const
   ShortOpts = 'alh';
@@ -125,7 +124,6 @@ Var
   App : TTestRunner;
 
 begin
-  RegisterUnitTests;
   App:=TTestRunner.Create(Nil);
   App.Initialize;
   App.Title := 'FPCUnit Console Test Case runner.';

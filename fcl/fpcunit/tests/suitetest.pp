@@ -20,7 +20,7 @@ unit suitetest;
 interface
 
 uses
-  fpcunit, testreport;
+  fpcunit, testreport, testregistry;
 
 type
 
@@ -217,6 +217,10 @@ begin
     ts.Free;
   end;
 end;
+
+initialization
+
+  RegisterTests([TSuiteTest]);
 
 end.
 

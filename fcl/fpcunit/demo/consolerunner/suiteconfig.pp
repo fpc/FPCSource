@@ -20,15 +20,8 @@ unit suiteconfig;
 interface
 
 uses
-  fpcunittests, testregistry;
-
-procedure RegisterUnitTests;
+  fpcunittests, moneytest;
 
 implementation
-
-procedure RegisterUnitTests;
-begin
-  RegisterTests([TTestCaseTest, TTestSuiteTest, TAssertTest, TListenerTest]);
-end;
 
 end.

@@ -5,7 +5,7 @@ unit moneytest;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, money;
+  Classes, SysUtils, fpcunit, money, testregistry;
 
 type
 
@@ -289,6 +289,10 @@ begin
   mb := TMoneyBag.CreateWith(TMoney.Create(28, 'CHF'), TMoney.Create(42, 'USD'));
   AssertTrue('expected ' + mb.toString + ' but was ' + (FMB2 *2).toString, (FMB2 * 2).equals(mb));
 end;
+
+initialization
+
+  RegisterTests([TMoneyTest]);
 
 end.
 

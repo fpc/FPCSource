@@ -20,7 +20,7 @@ unit fpcunittests;
 interface
 
 uses
-  SysUtils, Classes, fpcunit, testutils;
+  SysUtils, Classes, fpcunit, testutils, testregistry;
 
 type
 
@@ -47,6 +47,8 @@ type
     procedure CheckCountTestCases;
     procedure TestExtractMethods;
   end;
+
+  { TAssertTest }
 
   TAssertTest = class(TTestCase)
   private
@@ -78,6 +80,7 @@ type
     procedure TestNull;
     procedure TestNullInterface;
     procedure TestNotNull;
+    procedure TestNotNullWithInterface;
     procedure TestNotNullInterface;
     procedure TestFailEqualsInt;
     procedure TestFailEqualsInt64;
@@ -306,6 +309,15 @@ var
   obj: TTestCase;
 begin
   obj := TTestCase.Create;
+  AssertNotNull(obj);
+  obj.Free;
+end;
+
+procedure TAssertTest.TestNotNullWithInterface;
+var
+  obj: TMyIntfObj;
+begin
+  obj := TMyIntfObj.Create;
   AssertNotNull(obj);
   obj.Free;
 end;
@@ -731,5 +743,9 @@ procedure TExampleStepTest.TestException;
 begin
   AssertTrue(True);
 end;
+
+initialization
+
+  RegisterTests([TTestCaseTest, TTestSuiteTest, TAssertTest, TListenerTest]);
 
 end.
