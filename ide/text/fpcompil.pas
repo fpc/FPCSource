@@ -27,7 +27,7 @@ interface
 
 uses
   Objects,
-  files,
+  finput,
   Drivers,Views,Dialogs,
   WUtils,WViews,WCEdit,
   FPSymbol,
@@ -1051,7 +1051,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-08-22 09:41:39  pierre
+  Revision 1.3  2000-09-01 21:33:25  peter
+    * files to finput
+
+  Revision 1.2  2000/08/22 09:41:39  pierre
    * first big merge from fixes branch
 
   Revision 1.1.2.4  2000/08/16 18:46:14  peter
