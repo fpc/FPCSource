@@ -233,7 +233,9 @@ implementation
                           begin
                              emit_reg(A_PUSH,S_L,R_EAX);
                              popeax:=true;
-                          end;
+                          end
+                        else
+                          getexplicitregister32(R_EAX);
                        emit_reg_reg(A_MOV,S_L,R_EDX,R_EAX);
                      end
                    else
@@ -996,7 +998,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-07 17:19:46  jonas
+  Revision 1.10  2001-02-03 12:52:34  jonas
+    * fixed web bug 1383
+
+  Revision 1.9  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
