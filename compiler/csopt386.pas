@@ -263,8 +263,10 @@ Begin
                       Begin {destination is always a register in this case}
                         With PPaiProp(p^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
                           Begin
-                            If GetLastInstruction (p, hp1) And
-                              (hp1^.typ <> ait_marker) Then
+                            If (p = StartMod) And
+                               GetLastInstruction (p, hp1) And
+                               (hp1^.typ <> ait_marker)
+                              Then
 {so we don't try to check a sequence when p is the first instruction of the block}
                                If CheckSequence(p, Pai386(p)^.oper[1].reg, Cnt, RegInfo) And
                                   (Cnt > 0)
@@ -292,7 +294,12 @@ Begin
                                        Begin
                                          If (hp1 = nil) And
                                             Not(RegInInstruction(Pai386(hp2)^.oper[1].reg, p) Or
-                                                RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p))
+                                                RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p)) And
+                                            Not((p^.typ = ait_instruction) And
+                                                (pai386(p)^.OpCode = A_MOV) And
+                                                (pai386(p)^.Oper[0].typ = top_ref) And
+                                                (PPaiProp(p^.OptInfo)^.Regs[Reg32(pai386(p)^.Oper[1].reg)].NrOfMods
+                                                   <= (Cnt - Cnt2 + 1)))
                                            Then hp1 := p;
 {$ifndef noremove}
                                          PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
@@ -548,7 +555,11 @@ End.
 
 {
  $Log$
- Revision 1.21  1999-05-08 20:38:03  jonas
+ Revision 1.22  1999-06-03 15:45:08  jonas
+   * sequences are now checked only once (previously, some long ones were
+     checked once completely and then several times partially)
+
+ Revision 1.21  1999/05/08 20:38:03  jonas
    * seperate OPTimizer INFO pointer field in tai object
 
  Revision 1.20  1999/05/01 13:24:19  peter
