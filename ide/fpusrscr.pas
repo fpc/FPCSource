@@ -842,6 +842,8 @@ procedure TWin32Screen.SwitchBackToIDEScreen;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
   WindowPos : Small_rect;
+  res : boolean;
+  error : longint;
 begin
   GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
     @ConsoleScreenBufferInfo);
@@ -855,7 +857,16 @@ begin
   WindowPos.top:=0;
   WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
                    -ConsoleScreenBufferInfo.srWindow.top;
-  SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
+  with ConsoleScreenBufferInfo.dwMaximumWindowSize do
+    begin
+    if WindowPos.Right<X-1 then
+      WindowPos.right:=X-1;
+    if WindowPos.Bottom<Y-1 then
+      WindowPos.Bottom:=Y-1;
+    end;
+  res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
+  if not res then
+    error:=GetLastError;
   IDEActive:=true;
 end;
 
@@ -898,7 +909,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-11-08 16:38:25  pierre
+  Revision 1.7  2001-11-08 17:06:22  pierre
+   * impose the correct size for win32 console window
+
+  Revision 1.6  2001/11/08 16:38:25  pierre
     * fix win32 scrolling
     + always go back to 0,0 position in IDE mode
 
