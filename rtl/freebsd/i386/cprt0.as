@@ -55,12 +55,12 @@ _start:
         movl %edx,%edx
 #NO_APP
         leal 8(%ebp),%edi
-        movl %edi,U_SYSBSD_ARGV
+        movl %edi,U_SYSTEM_ARGV
         mov -4(%edi),%eax
-        movl %eax,U_SYSBSD_ARGC
+        movl %eax,U_SYSTEM_ARGC
         movl 4(%ebp),%ebx
         leal 12(%ebp,%ebx,4),%esi
-        movl %esi,U_SYSBSD_ENVP
+        movl %esi,U_SYSTEM_ENVP
         movl %esi,environ
         testl %ebx,%ebx
         jle .L2
@@ -116,7 +116,7 @@ _start:
 
 _haltproc:
            mov $1,%eax  
-           movzwl U_SYSBSD_EXITCODE,%ebx
+           movzwl U_SYSTEM_EXITCODE,%ebx
            pushl %ebx
            call .Lactualsyscall
            addl  $4,%esp
