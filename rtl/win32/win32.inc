@@ -17,11 +17,34 @@
  **********************************************************************}
 
     const
+       { constants for GetStdHandle }
        STD_INPUT_HANDLE = $fffffff6;
        STD_OUTPUT_HANDLE = $fffffff5;
        STD_ERROR_HANDLE = $fffffff4;
        INVALID_HANDLE_VALUE = $ffffffff;
-       LMEM_FIXED = 0;
+
+       { flags for CreateFile }
+       GENERIC_READ=$80000000;
+       GENERIC_WRITE=$40000000;
+       CREATE_NEW = 1;
+       CREATE_ALWAYS = 2;
+       OPEN_EXISTING = 3;
+       OPEN_ALWAYS = 4;
+       TRUNCATE_EXISTING = 5;
+
+       FILE_ATTRIBUTE_ARCHIVE = 32;
+       FILE_ATTRIBUTE_COMPRESSED = 2048;
+       FILE_ATTRIBUTE_NORMAL = 128;
+       FILE_ATTRIBUTE_DIRECTORY = 16;
+       FILE_ATTRIBUTE_HIDDEN = 2;
+       FILE_ATTRIBUTE_READONLY = 1;
+       FILE_ATTRIBUTE_SYSTEM = 4;
+       FILE_ATTRIBUTE_TEMPORARY = 256;
+
+       { flags for SetFilePos }
+       FILE_BEGIN = 0;
+       FILE_CURRENT = 1;
+       FILE_END = 2;
 
     type
        UINT = longint;
@@ -44,12 +67,13 @@
        PSTR = pchar;
 
        OVERLAPPED = record
-            Internal : DWORD;
-            InternalHigh : DWORD;
-            Offset : DWORD;
-            OffsetHigh : DWORD;
-            hEvent : HANDLE;
-         end;
+         Internal : DWORD;
+         InternalHigh : DWORD;
+         Offset : DWORD;
+         OffsetHigh : DWORD;
+         hEvent : HANDLE;
+       end;
+
        LPOVERLAPPED = ^OVERLAPPED;
 
        SYSTEMTIME = record
@@ -101,8 +125,8 @@
      external 'kernel32' name 'SetFilePointer';
    function GetFileSize(h:longint;p:pointer) : longint;
      external 'kernel32' name 'GetFileSize';
-   function CreateFile(name:pointer;access,sharing:longint;security:pointer;
-     how,attr,template:longint) : longint;
+   function CreateFile(name : pointer;access,sharing : longint;
+     security : pointer;how,attr,template : longint) : longint;
      external 'kernel32' name 'CreateFileA';
    function CreateDirectory(name : pointer;sec : pointer) : longint;
      external 'kernel32' name 'CreateDirectoryA';
@@ -120,6 +144,8 @@
      external 'kernel32' name 'GetFileTime';
    function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFILETIME) : boolean;
      external 'kernel32' name 'SetFileTime';
+   function SetEndOfFile(h : longint) : boolean;
+     external 'kernel32' name 'SetEndOfFile';
 
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
@@ -173,7 +199,10 @@
 
 {
   $Log$
-  Revision 1.4  1998-04-26 22:37:22  florian
+  Revision 1.5  1998-04-27 18:25:36  florian
+    + constants for CreateFile added
+
+  Revision 1.4  1998/04/26 22:37:22  florian
     * some small extensions
 
   Revision 1.3  1998/04/26 21:49:58  florian
