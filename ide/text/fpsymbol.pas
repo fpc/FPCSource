@@ -45,6 +45,7 @@ type
     PSymbolScopeView = ^TSymbolScopeView;
     TSymbolScopeView = object(TSymbolView)
       constructor Init(var Bounds: TRect; ASymbols: PSymbolCollection; AHScrollBar, AVScrollBar: PScrollBar);
+      destructor  Done; virtual;
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Draw; virtual;
@@ -59,6 +60,7 @@ type
     PSymbolReferenceView = ^TSymbolReferenceView;
     TSymbolReferenceView = object(TSymbolView)
       constructor Init(var Bounds: TRect; AReferences: PReferenceCollection; AHScrollBar, AVScrollBar: PScrollBar);
+      destructor  Done; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   SelectItem(Item: Sw_Integer); virtual;
@@ -71,6 +73,7 @@ type
     PSymbolMemInfoView = ^TSymbolMemInfoView;
     TSymbolMemInfoView = object(TStaticText)
       constructor  Init(var Bounds: TRect; AMemInfo: PSymbolMemInfo);
+      destructor  Done; virtual;
       procedure    GetText(var S: String); virtual;
       function     GetPalette: PPalette; virtual;
     private
@@ -80,6 +83,7 @@ type
     PSymbolInheritanceView = ^TSymbolInheritanceView;
     TSymbolInheritanceView = object(TOutlineViewer)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar; ARoot: PObjectSymbol);
+      destructor   Done; virtual;
       function     GetRoot: Pointer; virtual;
       function     HasChildren(Node: Pointer): Boolean; virtual;
       function     GetChild(Node: Pointer; I: Integer): Pointer; virtual;
@@ -144,11 +148,52 @@ function IsSymbolInfoAvailable: boolean;
 
 procedure OpenOneSymbolBrowser(Name : String);
 
+procedure CloseAllBrowsers;
+
+procedure RemoveBrowsersCollection;
+
+const
+   GlobalsCollection : PSortedCollection = nil;
+   ModulesCollection : PSortedCollection = nil;
+
 implementation
 
 uses Commands,App,
      WEditor,WViews,
      FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif};
+
+procedure CloseAllBrowsers;
+  procedure SendCloseIfBrowser(P: PView); {$ifndef FPC}far;{$endif}
+  begin
+    if assigned(P) and
+       ((TypeOf(P^)=TypeOf(TBrowserWindow)) or
+       (TypeOf(P^)=TypeOf(TSymbolView)) or
+       (TypeOf(P^)=TypeOf(TSymbolScopeView)) or
+       (TypeOf(P^)=TypeOf(TSymbolReferenceView)) or
+       (TypeOf(P^)=TypeOf(TSymbolMemInfoView)) or
+       (TypeOf(P^)=TypeOf(TSymbolInheritanceView))) then
+      Message(P,evCommand,cmClose,nil);
+  end;
+
+begin
+  Desktop^.ForEach(@SendCloseIfBrowser);
+end;
+
+procedure RemoveBrowsersCollection;
+begin
+  if assigned(GlobalsCollection) then
+    begin
+      GlobalsCollection^.deleteAll;
+      Dispose(GlobalsCollection,done);
+      GlobalsCollection:=nil;
+    end;
+  if assigned(ModulesCollection) then
+    begin
+      ModulesCollection^.deleteAll;
+      Dispose(ModulesCollection,done);
+      ModulesCollection:=nil;
+    end;
+end;                                                                                                                                                                                                                                                           
 
 function NewBrowserTabItem(ASign: char; ALink: PView; ANext: PBrowserTabItem): PBrowserTabItem;
 var P: PBrowserTabItem;
@@ -435,6 +480,17 @@ begin
   SetRange(Symbols^.Count);
 end;
 
+destructor TSymbolScopeView.Done;
+begin
+  {if assigned(Symbols) then
+    begin
+       the elements belong to other lists
+       Symbols^.DeleteAll;
+       dispose(Symbols,done);
+    end;}
+  Inherited Done;
+end;
+
 procedure TSymbolScopeView.HandleEvent(var Event: TEvent);
 var OldFocus: sw_integer;
 begin
@@ -520,6 +576,11 @@ begin
   SetRange(References^.Count);
 end;
 
+destructor TSymbolReferenceView.Done;
+begin
+  Inherited Done;
+end;
+
 procedure TSymbolReferenceView.HandleEvent(var Event: TEvent);
 var OldFocus: sw_integer;
 begin
@@ -563,16 +624,24 @@ begin
   MemInfo:=AMemInfo;
 end;
 
+destructor TSymbolMemInfoView.Done;
+begin
+{  if assigned(MemInfo) then
+    dispose(MemInfo);}
+  Inherited Done;
+end;
+
 procedure TSymbolMemInfoView.GetText(var S: String);
 function SizeStr(Size: longint): string;
 var S: string[40];
 begin
   S:=IntToStrL(Size,7);
   S:=S+' byte';
-  if Size>0 then S:=S+'s';
+  if Size>1 then S:=S+'s';
   SizeStr:=S;
 end;
 function AddrStr(Addr: longint): string;
+{ Warning this is endian specific code !! (PM) }
 type TLongint = record LoW,HiW: word; end;
 begin
   with TLongint(Addr) do
@@ -607,6 +676,15 @@ begin
   Options:=Options or (ofSelectable+ofTopSelect);
   Root:=ARoot;
   ExpandAll(GetRoot); Update;
+end;
+
+destructor TSymbolInheritanceView.Done;
+begin
+  { do not dispose,
+    belongs to a symbolcollection (PM) 
+  if assigned(Root) then
+    dispose(Root,done); }
+  Inherited Done;
 end;
 
 function TSymbolInheritanceView.GetRoot: Pointer;
@@ -811,8 +889,8 @@ end;
 
 destructor TBrowserTab.Done;
 begin
-  inherited Done;
   if Items<>nil then DisposeBrowserTabList(Items);
+  inherited Done;
 end;
 
 constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
@@ -1082,7 +1160,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  1999-06-17 23:44:01  pierre
+  Revision 1.17  1999-06-28 12:35:05  pierre
+    + CloseAllBrowsers needed before compilation to avoid problems
+    + ModulesCollection and GlobalsCollection to avoid memory leaks
+
+  Revision 1.16  1999/06/17 23:44:01  pierre
    * problem with Inheritance list
 
   Revision 1.15  1999/04/15 08:58:06  peter
