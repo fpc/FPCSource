@@ -12,6 +12,11 @@
 ; arguments   bytes   flags
 ;
 
+;*****************************************************************************************
+; Insert i386 instructions only above the line ;!!!x86_64 ! x86-64 only instructions go
+; below this line
+;*****************************************************************************************
+
 [NONE]
 (Ch_None, Ch_None, Ch_None)
 void                  void                            none
@@ -3399,9 +3404,28 @@ xmmreg,xmmreg		\3\xF3\x0F\x16\110		PRESCOTT,SSE3
 xmmreg,mem		\301\3\xF3\x0F\x12\110		PRESCOTT,SSE3
 xmmreg,xmmreg           \3\xF3\x0F\x12\110              PRESCOTT,SSE3
 
+;*****************************************************************************************
+; tell the i386 instruction table converter to stop here
+;!!!x86_64
+;
+;
+; x86-64 instructions
+;
+[MOVABS]
+(Ch_Wop2, Ch_Rop1, Ch_None)
+reg32,imm               \321\10\xB8\41                  X86_64
+
+;*****************************************************************************************
+; Insert i386 instructions only above the line ;!!!x86_64 !
+;*****************************************************************************************
+
+
 ;
 ; $Log$
-; Revision 1.6  2003-12-25 12:01:35  florian
+; Revision 1.7  2004-01-15 14:01:32  florian
+;   + x86 instruction tables for x86-64 extended
+;
+; Revision 1.6  2003/12/25 12:01:35  florian
 ;   + possible sse2 unit usage for double calculations
 ;   * some sse2 assembler issues fixed
 ;

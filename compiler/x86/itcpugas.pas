@@ -35,8 +35,8 @@ interface
     const
 {$ifdef x86_64}
       {x86att.inc contains the name for each x86-64 mnemonic}
-      gas_op2str:op2strtable={$i x64att.inc}
-      gas_needsuffix:array[tasmop] of TAttSuffix={$i x64atts.inc}
+      gas_op2str:op2strtable={$i x8664att.inc}
+      gas_needsuffix:array[tasmop] of TAttSuffix={$i x8664ats.inc}
 {$else x86_64}
       {x86att.inc contains the name for each i386 mnemonic}
       gas_op2str:op2strtable={$i i386att.inc}
@@ -133,7 +133,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-11-12 16:05:40  florian
+  Revision 1.2  2004-01-15 14:01:32  florian
+    + x86 instruction tables for x86-64 extended
+
+  Revision 1.1  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

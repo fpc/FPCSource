@@ -331,7 +331,6 @@ unit cpupara;
                            inc(nextintreg);
                            if target_info.abi=abi_powerpc_aix then
                              inc(stack_offset,4);
-
                         end
                       else
                          begin
@@ -443,7 +442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-12-28 22:09:12  florian
+  Revision 1.56  2004-01-15 14:01:18  florian
+    + x86 instruction tables for x86-64 extended
+
+  Revision 1.55  2003/12/28 22:09:12  florian
     + setting of bit 6 of cr for c var args on ppc implemented
 
   Revision 1.54  2003/12/28 15:33:06  jonas

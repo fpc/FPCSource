@@ -125,7 +125,7 @@ interface
 
       { Size of the instruction table converted by nasmconv.pas }
 {$ifdef x86_64}
-      instabentries = {$i x86_64no.inc}
+      instabentries = {$i x8664nop.inc}
 {$else x86_64}
       instabentries = {$i i386nop.inc}
 {$endif x86_64}
@@ -282,7 +282,7 @@ implementation
        IF_WILLAMETTE = $08000000;
        { Prescott instructions }
        IF_PRESCOTT = $09000000;
-       IF_ATHLON64 = $0a000000;
+       IF_X86_64 = $0a000000;
        IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
        IF_AMD    = $20000000;  { AMD-specific instruction  }
        { added flags }
@@ -295,7 +295,7 @@ implementation
 
      const
 {$ifdef x86_64}
-       InsTab:array[0..instabentries-1] of TInsEntry={$i x86_64ta.inc}
+       InsTab:array[0..instabentries-1] of TInsEntry={$i x8664tab.inc}
 {$else x86_64}
        InsTab:array[0..instabentries-1] of TInsEntry={$i i386tab.inc}
 {$endif x86_64}
@@ -1971,7 +1971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2004-01-12 16:37:59  peter
+  Revision 1.45  2004-01-15 14:01:32  florian
+    + x86 instruction tables for x86-64 extended
+
+  Revision 1.44  2004/01/12 16:37:59  peter
     * moved spilling code from taicpu to rg
 
   Revision 1.43  2003/12/26 14:02:30  peter

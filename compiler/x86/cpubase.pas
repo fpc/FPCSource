@@ -52,7 +52,7 @@ uses
 
     type
 {$ifdef x86_64}
-      TAsmOp={$i x86_64op.inc}
+      TAsmOp={$i x8664op.inc}
 {$else x86_64}
       TAsmOp={$i i386op.inc}
 {$endif x86_64}
@@ -535,7 +535,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2004-01-14 23:39:05  florian
+  Revision 1.37  2004-01-15 14:01:32  florian
+    + x86 instruction tables for x86-64 extended
+
+  Revision 1.36  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 

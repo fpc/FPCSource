@@ -16,11 +16,12 @@
 program mkx86ins;
 
 const
-  Version = '1.00';
+  Version = '1.5.0';
 
 var
    s : string;
    i : longint;
+   x86_64 : boolean;
 
 {$ifndef FPC}
   procedure readln(var t:text;var s:string);
@@ -217,21 +218,36 @@ var
    optypes : array[1..3] of string;
 begin
    writeln('Nasm Instruction Table Converter Version ',Version);
+   x86_64:=paramstr(1)='x86_64';
    insns:=0;
    maxinfolen:=0;
    { open dat file }
    assign(infile,'..\x86\x86ins.dat');
-   reset(infile);
-   { create inc files }
-   openinc(insfile,'i386tab.inc');
-   openinc(opfile,'i386op.inc');
-   assign(nopfile,'i386nop.inc');
+   if x86_64 then
+     begin
+       { create inc files }
+       openinc(insfile,'x8664tab.inc');
+       openinc(opfile,'x8664op.inc');
+       assign(nopfile,'x8664nop.inc');
+       openinc(attfile,'x8664att.inc');
+       openinc(attsuffile,'x8664ats.inc');
+       openinc(intfile,'x8664int.inc');
+       openinc(propfile,'x8664pro.inc');
+     end
+   else
+     begin
+       { create inc files }
+       openinc(insfile,'i386tab.inc');
+       openinc(opfile,'i386op.inc');
+       assign(nopfile,'i386nop.inc');
+       openinc(attfile,'i386att.inc');
+       openinc(attsuffile,'i386atts.inc');
+       openinc(intfile,'i386int.inc');
+       openinc(propfile,'i386prop.inc');
+     end;
    rewrite(nopfile);
    writeln(nopfile,'{ don''t edit, this file is generated from x86ins.dat }');
-   openinc(attfile,'i386att.inc');
-   openinc(attsuffile,'i386atts.inc');
-   openinc(intfile,'i386int.inc');
-   openinc(propfile,'i386prop.inc');
+   reset(infile);
    first:=true;
    opcode:='';
    firstopcode:=true;
@@ -241,6 +257,8 @@ begin
         readln(infile,s);
         while (s[1]=' ') do
          delete(s,1,1);
+        if (s=';!!!x86_64') and not(x86_64) then
+          break;
         if (s='') or (s[1]=';') then
           continue;
         if (s[1]='[') then
@@ -386,7 +404,8 @@ begin
         while not(s[i] in [' ',#9,#13,#10]) and (i<=length(s)) do
           begin
              hs:=readstr;
-             if hs='ignore' then
+             if (hs='ignore') or
+               ((upcase(hs)='X86_64') and not(x86_64)) then
               begin
                 flags:='0';
                 break;
@@ -429,7 +448,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-09-09 12:54:45  florian
+  Revision 1.4  2004-01-15 14:01:32  florian
+    + x86 instruction tables for x86-64 extended
+
+  Revision 1.3  2003/09/09 12:54:45  florian
     * x86 instruction table updated to nasm 0.98.37:
         - sse3 aka prescott support
         - small fixes
