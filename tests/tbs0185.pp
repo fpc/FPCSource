@@ -1,6 +1,7 @@
 Program bug0185;
 
 {shows some bugs with rangechecks}
+{ readln from input changed to from a file to render it non-interactive }
 
 var s: String;
     i: integer;

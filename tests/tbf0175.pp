@@ -1,6 +1,6 @@
-{ this will just give out a warning }
+{ this will just give out an error }
 {$asmmode att}
-{$R-}
+{$R+}
 var
   w : word;
 begin
