@@ -216,20 +216,16 @@ begin
     else
       result := Img;
     FImage := result;
-    writeln ('Checking contents');
     if CheckContents (Str) then
       begin
-      writeln ('Correct header(s), reading image');
       InternalRead (Str, result)
       end
     else
       raise FPImageException.Create ('Wrong image format');
   finally
-    writeln ('ImageRead finally');
     FStream := nil;
     FImage := nil;
   end;
-  writeln ('ImageRead end.');
 end;
 
 function TFPCustomImageReader.CheckContents (Str:TStream) : boolean;

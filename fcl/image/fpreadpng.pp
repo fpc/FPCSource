@@ -600,14 +600,6 @@ begin
       height := swap (height);
       result := (width > 0) and (height > 0) and (compression = 0)
                 and (filter = 0) and (Interlace in [0,1]);
-      writeln ('Header:');
-      writeln ('  Width: ',width);
-      writeln ('  Height: ',Height);
-      writeln ('  compression ',compression);
-      writeln ('  filter ',filter);
-      writeln ('  interlace ',interlace);
-      writeln ('  ColorType ',ColorType);
-      writeln ('  BitDepth ',BitDepth);
       end;
   except
     on e : exception do

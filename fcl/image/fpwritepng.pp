@@ -121,7 +121,6 @@ begin
         raise PNGImageException.create ('Doesn''t have a chunktype to write')
     else
       chead.CType := ReadType;
-    writeln ('Writing chunk ',Readtype,' with length ',alength);
     c := CalculateCRC (All1Bits, ReadType, sizeOf(ReadType));
     c := CalculateCRC (c, data^, alength);
     crc := swap(c xor All1Bits);
@@ -136,7 +135,6 @@ end;
 
 procedure TFPWriterPNG.SetChunkLength(aValue : longword);
 begin
-  writeln ('Setting length to ',AValue);
   with Fchunk do
     begin
     alength := aValue;
@@ -342,18 +340,12 @@ begin
     begin
     // problem: TheImage has integer width, PNG header longword width.
     //          Integer Swap can give negative value
-    writeln ('Using header, swapping width ',Theimage.Width);
     Width := swap (longword(TheImage.Width));
-    writeln ('Swapping height ',TheImage.height);
     height := swap (longword(TheImage.Height));
-    writeln (' - Width ',Width, '(',TheImage.Width,')');
-    writeln (' - height ', Height, '(',TheImage.Height,')');
-    writeln ('- Alpha');
     if FUseAlpha then
       c := CountAlphas
     else
       c := 0;
-    writeln ('- Colortype');
     if FIndexed then
       begin
       if TheImage.UsePalette then
@@ -383,9 +375,7 @@ begin
         BitDepth := 8;
       DetermineColorFormat;
       FByteWidth := BytesNeeded[CFmt];
-      writeln ('Color format ', ord(CFmt), ' bytes needed:',FByteWidth);
       end;
-    writeln ('- Fixed values');
     Compression := 0;
     Filter := 0;
     Interlace := 0;
@@ -395,19 +385,14 @@ end;
 procedure TFPWriterPNG.WriteIHDR;
 begin
   // signature for PNG
-  writeln ('Signature to stream');
   TheStream.writeBuffer(Signature,sizeof(Signature));
   // Determine all settings for filling the header
-  writeln ('Filling header');
   DetermineHeader (FHeader);
   // write the header chunk
-  writeln ('Filling chunk');
   SetChunkLength (13);   // (sizeof(FHeader)); gives 14 and is wrong !!
   move (FHeader, ChunkDataBuffer^, 13);  // sizeof(FHeader));
   SetChunkType (ctIHDR);
-  writeln ('writing chunk');
   WriteChunk;
-  writeln ('Finished header');
 end;
 
 function TFPWriterPNG.GetColorPixel (x,y:longword) : TColorData;
@@ -431,16 +416,13 @@ begin
     3 : if TheImage.UsePalette then
           begin
           result := @GetPalettePixel;
-          writeln ('GetPalettePixel');
           end
         else
           begin
           result := @GetColPalPixel;
-          writeln ('GetColPalPixel');
           end;
     else  begin
           result := @GetColorPixel;
-          writeln ('GetColorPixel');
           end
   end;
 end;
@@ -511,7 +493,6 @@ var x,y : integer;
 begin
   for y := 0 to pred(TheImage.height) do
     begin
-    write ('*');
     FSwitchLine := FCurrentLine;
     FCurrentLine := FPreviousLine;
     FPreviousLine := FSwitchLine;
@@ -522,14 +503,12 @@ begin
     Compressor.Write (lf, sizeof(lf));
     Compressor.Write (FCurrentLine^, FDataLineLength);
     end;
-  writeln;
 end;
 
 procedure TFPWriterPNG.WriteCompressedData;
 var l : longword;
 begin
   Compressor.Free;  // Close compression and finish the writing in ZData
-  writeln (' -- ZData position: ',zdata.position, '  --  size: ',zdata.size);
   l := ZData.position;
   ZData.position := 0;
   SetChunkLength(l);
@@ -628,21 +607,14 @@ end;
 
 procedure TFPWriterPNG.InternalWrite (Str:TStream; Img:TFPCustomImage);
 begin
-  writeln ('PNG Writing');
   WriteIHDR;
-  writeln ('Header finished');
   if Fheader.colorType = 3 then
     WritePLTE;
-  writeln ('Palette finished');
   if FUsetRNS then
     WritetRNS;
-  writeln ('Finished transparency');
   WriteIDAT;
-  writeln ('Finished data');
   WriteTexts;
-  writeln ('Finished Texts');
   WriteIEND;
-  writeln ('Finished texts');
 end;
 
 end.
