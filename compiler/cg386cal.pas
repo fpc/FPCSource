@@ -903,7 +903,8 @@ implementation
                    { process the inlinecode }
                    secondpass(inlinecode);
                    { free the args }
-                   ungetpersistanttemp(pprocdef(p^.procdefinition)^.parast^.address_fixup);
+                   if pprocdef(p^.procdefinition)^.parast^.datasize>0 then
+                     ungetpersistanttemp(pprocdef(p^.procdefinition)^.parast^.address_fixup);
                 end;
            end
          else
@@ -1407,7 +1408,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2000-03-01 00:03:11  pierre
+  Revision 1.128  2000-03-16 15:18:13  pierre
+   * avoid wrong ungetpersistanttemp
+
+  Revision 1.127  2000/03/01 00:03:11  pierre
     * fixes for locals in inlined procedures
       fix for bug797
     + stabs generation for inlined paras and locals
