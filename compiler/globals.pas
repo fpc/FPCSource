@@ -69,6 +69,8 @@ interface
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
+       macmodeswitches : tmodeswitches=
+         [m_mac,m_all,m_class,m_result,m_repeat_forward];
 
 
        { maximum number of locals in bytes before warning is emitted }
@@ -1227,6 +1229,9 @@ implementation
          if s='GPC' then
           aktmodeswitches:=gpcmodeswitches
         else
+         if s='MAC' then
+          aktmodeswitches:=macmodeswitches
+        else
          b:=false;
 
         if b and changeInit then
@@ -1597,7 +1602,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-09-03 11:18:36  florian
+  Revision 1.94  2003-09-04 21:37:29  olle
+    + added new lagnuage mode: MAC
+
+  Revision 1.93  2003/09/03 11:18:36  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

@@ -87,7 +87,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_gpc,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_gpc,m_mac,
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }
@@ -206,7 +206,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-09-03 15:55:00  peter
+  Revision 1.41  2003-09-04 21:37:29  olle
+    + added new lagnuage mode: MAC
+
+  Revision 1.40  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.39  2003/08/09 18:56:54  daniel
