@@ -50,7 +50,7 @@ const
 {$endif ORDERSOURCES}
 {$else newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=21;
+  CurrentPPUVersion=22;
 {$else ORDERSOURCES}
   CurrentPPUVersion=20;
 {$endif ORDERSOURCES}
@@ -923,7 +923,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:45  michael
+  Revision 1.3  2000-08-13 13:04:38  peter
+    * new ppu version
+
+  Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
 
 }

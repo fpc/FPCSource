@@ -105,8 +105,12 @@ end;
 {$undef Range_check_on}
 {$endif Range_check_on}
 
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:32:39  michael
-end.  + removed logs
 end.
+{
+  $Log$
+  Revision 1.3  2000-08-13 13:04:38  peter
+    * new ppu version
+
+  Revision 1.2  2000/07/13 11:32:39  michael
+  + removed logs
 }
