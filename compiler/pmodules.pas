@@ -1,4 +1,3 @@
-
 {
     $Id$
     Copyright (c) 1998 by Florian Klaempfl
@@ -333,25 +332,7 @@ unit pmodules;
                   scanner^.invalid:=true;
                 compile(name,compile_system);
                 if (not current_scanner^.invalid) then
-                 current_scanner^.tempopeninputfile;
-(*
-                if assigned(old_current_module^.scanner) then
-                 begin
-                   current_scanner^.tempcloseinputfile;
-                   current_scanner:=nil;
-                   { the current_scanner is always the same
-                     as current_module^.scanner (PFV) }
-                     NO !!! unless you changed the code
-                     because it is only change in compile
-                     whereas current_module is changed here !!
-                 end;
-                compile(current_module^.mainsource^,compile_system);
-                if (not old_current_module^.compiled) and
-                   assigned(old_current_module^.scanner) then
-                 begin
-                   current_scanner:=old_current_module^.scanner;
-                   current_scanner^.tempopeninputfile;
-                 end; *)
+                  current_scanner^.tempopeninputfile;
               end;
            end
           else
@@ -625,6 +606,12 @@ unit pmodules;
 
 
     procedure proc_unit;
+
+      function is_assembler_generated:boolean;
+      begin
+        is_assembler_generated:=not(codesegment^.empty and datasegment^.empty and bsssegment^.empty);
+      end;
+
       var
          { unitname : stringid; }
          names  : Tstringcontainer;
@@ -905,7 +892,8 @@ unit pmodules;
           end;
 
          { insert own objectfile }
-         insertobjectfile;
+         if is_assembler_generated then
+           insertobjectfile;
 
          { Write out the ppufile }
          writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
@@ -939,11 +927,13 @@ unit pmodules;
          if current_module^.uses_imports then
           importlib^.generatelib;
 
-         { finish asmlist by adding segment starts }
-         insertsegment;
-
-         { assemble }
-         create_objectfile;
+         if is_assembler_generated then
+          begin
+          { finish asmlist by adding segment starts }
+            insertsegment;
+          { assemble }
+            create_objectfile;
+          end;
       end;
 
 
@@ -1080,7 +1070,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.68  1998-10-19 08:54:59  pierre
+  Revision 1.69  1998-10-19 18:05:08  peter
+    + empty .o files are not written anymore
+
+  Revision 1.68  1998/10/19 08:54:59  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!
