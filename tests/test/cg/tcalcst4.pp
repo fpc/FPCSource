@@ -202,7 +202,7 @@ var
       gets32bit:=RESULT_S32BIT;
     end;
 
-   function gets64bit: unt64;
+   function gets64bit: int64;
     begin
       gets64bit:=RESULT_S64BIT;
     end;
@@ -847,7 +847,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-22 09:08:40  carl
+  Revision 1.5  2002-09-22 14:16:12  carl
+    * fix small typo
+
+  Revision 1.4  2002/09/22 09:08:40  carl
     * gets64bit was not returning an int64!
 
   Revision 1.3  2002/09/07 15:40:50  peter
