@@ -245,7 +245,6 @@
      WCHAR = word;
 
      UINT   = cardinal;
-     WORD   = word;
      ULONG  = cardinal;
      USHORT = word;
 
@@ -941,7 +940,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-08-16 18:35:19  peter
+    * removed word=word declaration
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
- 
+
 }
