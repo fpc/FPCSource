@@ -209,7 +209,7 @@ type
                         {and extended-ASCII format, the turn-around character}
                         {is defined as the carriage return, in ASCII format  }
                         {only, the turn-around character is defined in the   }
-                        {low-order byte; usually $000D                                }
+                        {low-order byte; usually $000D                       }
         fsInterim,      {interim character flags: bits 0-4 and 6 - reserved   }
                         {                                        and set to 0,}
                         {                         bit 5          - application}
@@ -1545,9 +1545,8 @@ function KbdXlate(var TransData:TKbdTrans;KbdHandle:word):word;
 {Install, on the specified handle, the translate table which this call points
 to. This translate table affects only this handle.}
 {XLateTbl is the translation table used to translate scan code to ASCII code
-for a specified handle (the format of the translation table is documented in
-the Set Code Page IOCTL 50h), KbdHandle is the default keyboard (0) or a
-logical keyboard.}
+for a specified handle, KbdHandle is the default keyboard (0) or a logical
+keyboard.}
 {Possible return codes:
     0         NO_ERROR
     377       ERROR_KBD_INVALID_ECHO_MASK
@@ -1676,3 +1675,4 @@ external 'EMXWRAP' index 201;
 
 end.
 
+
