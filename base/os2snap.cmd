@@ -481,6 +481,10 @@ echo *Compiling unit GetOpts ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\GETOPTS.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit LineInfo ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\LINEINFO.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit KbdCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KBDCALLS.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
@@ -654,7 +658,10 @@ goto End
 
 
   $Log$
-  Revision 1.14  2000-03-28 19:30:50  hajny
+  Revision 1.15  2000-04-03 17:42:46  hajny
+    + LineInfo added
+
+  Revision 1.14  2000/03/28 19:30:50  hajny
     * another change of order
 
   Revision 1.13  2000/03/16 19:43:36  hajny
