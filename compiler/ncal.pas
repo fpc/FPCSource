@@ -45,9 +45,10 @@ interface
           exact_count,
           equal_count,
           cl1_count,
-          cl2_count   : integer; { should be signed }
+          cl2_count,
+          coper_count : integer; { should be signed }
           ordinal_distance : bestreal;
-          invalid : boolean;
+          invalid     : boolean;
           wrongparanr : byte;
        end;
 
@@ -60,6 +61,9 @@ interface
           procedure candidates_get_information(procs:pcandidate);
           function  candidates_choose_best(procs:pcandidate;var bestpd:tprocdef):integer;
           procedure candidates_find_wrong_para(procs:pcandidate);
+{$ifdef EXTDEBUG}
+          procedure candidates_dump_info(lvl:longint;procs:pcandidate);
+{$endif EXTDEBUG}
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -264,7 +268,8 @@ type
 
             To choose the best candidate we use the following order:
             - Incompatible flag
-            - (Smaller) Number of convertlevel 2 parameters (needs less).
+            - (Smaller) Number of convert operator parameters.
+            - (Smaller) Number of convertlevel 2 parameters.
             - (Smaller) Number of convertlevel 1 parameters.
             - (Bigger) Number of exact parameters.
             - (Smaller) Number of equal parameters.
@@ -283,30 +288,35 @@ type
             res:=-1
           else
            begin
-             { less cl2 parameters? }
-             res:=(bestpd^.cl2_count-currpd^.cl2_count);
+             { less operator parameters? }
+             res:=(bestpd^.coper_count-currpd^.coper_count);
              if (res=0) then
               begin
-                { less cl1 parameters? }
-                res:=(bestpd^.cl1_count-currpd^.cl1_count);
+                { less cl2 parameters? }
+                res:=(bestpd^.cl2_count-currpd^.cl2_count);
                 if (res=0) then
                  begin
-                   { more exact parameters? }
-                   res:=(currpd^.exact_count-bestpd^.exact_count);
+                   { less cl1 parameters? }
+                   res:=(bestpd^.cl1_count-currpd^.cl1_count);
                    if (res=0) then
                     begin
-                      { less equal parameters? }
-                      res:=(bestpd^.equal_count-currpd^.equal_count);
+                      { more exact parameters? }
+                      res:=(currpd^.exact_count-bestpd^.exact_count);
                       if (res=0) then
                        begin
-                         { smaller ordinal distance? }
-                         if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                          res:=1
-                         else
-                          if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                           res:=-1
-                         else
-                          res:=0;
+                         { less equal parameters? }
+                         res:=(bestpd^.equal_count-currpd^.equal_count);
+                         if (res=0) then
+                          begin
+                            { smaller ordinal distance? }
+                            if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
+                             res:=1
+                            else
+                             if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
+                              res:=-1
+                            else
+                             res:=0;
+                          end;
                        end;
                     end;
                  end;
@@ -1321,10 +1331,66 @@ type
          begin
            if all or
               (not hp^.invalid) then
-             MessagePos1(hp^.data.fileinfo,sym_b_param_list,hp^.data.fullprocname);
+             MessagePos1(hp^.data.fileinfo,sym_h_param_list,hp^.data.fullprocname);
            hp:=hp^.next;
          end;
       end;
+
+
+{$ifdef EXTDEBUG}
+    procedure Tcallnode.candidates_dump_info(lvl:longint;procs:pcandidate);
+
+        function ParaTreeStr(p:tcallparanode):string;
+        begin
+          result:='';
+          while assigned(p) do
+           begin
+             if result<>'' then
+              result:=result+',';
+             result:=result+p.resulttype.def.typename;
+             p:=tcallparanode(p.right);
+           end;
+        end;
+
+      var
+        hp : pcandidate;
+        currpara : tparaitem;
+      begin
+        if not CheckVerbosity(lvl) then
+         exit;
+        Comment(lvl+V_LineInfo,'Overloaded callnode: '+symtableprocentry.name+'('+ParaTreeStr(tcallparanode(left))+')');
+        hp:=procs;
+        while assigned(hp) do
+         begin
+           Comment(lvl,'  '+hp^.data.fullprocname);
+           if (hp^.invalid) then
+            Comment(lvl,'   invalid')
+           else
+            begin
+              Comment(lvl,'   ex: '+tostr(hp^.exact_count)+
+                          ' eq: '+tostr(hp^.equal_count)+
+                          ' l1: '+tostr(hp^.cl1_count)+
+                          ' l2: '+tostr(hp^.cl2_count)+
+                          ' oper: '+tostr(hp^.coper_count)+
+                          ' ord: '+realtostr(hp^.exact_count));
+              { Print parameters in left-right order }
+              currpara:=hp^.firstpara;
+              if assigned(currpara) then
+               begin
+                 while assigned(currpara.next) do
+                  currpara:=tparaitem(currpara.next);
+               end;
+              while assigned(currpara) do
+               begin
+                 if (currpara.paratyp<>vs_hidden) then
+                   Comment(lvl,'    - '+currpara.paratype.def.typename+' : '+EqualTypeName[currpara.eqval]);
+                 currpara:=tparaitem(currpara.previous);
+               end;
+            end;
+           hp:=hp^.next;
+         end;
+      end;
+{$endif EXTDEBUG}
 
 
     procedure Tcallnode.candidates_get_information(procs:pcandidate);
@@ -1352,6 +1418,7 @@ type
            while assigned(pt) and assigned(currpara) do
             begin
               { retrieve current parameter definitions to compares }
+              eq:=te_incompatible;
               def_from:=pt.resulttype.def;
               def_to:=currpara.paratype.def;
               if not(assigned(def_from)) then
@@ -1368,12 +1435,14 @@ type
                  (currparanr>hp^.data.minparacount) then
                begin
                  inc(hp^.equal_count);
+                 eq:=te_equal;
                end
               else
               { same definition -> exact }
                if (def_from=def_to) then
                 begin
                   inc(hp^.exact_count);
+                  eq:=te_exact;
                 end
               else
               { for value and const parameters check if a integer is constant or
@@ -1384,6 +1453,7 @@ type
                   is_in_limit(def_from,def_to) then
                  begin
                    inc(hp^.equal_count);
+                   eq:=te_equal;
                    hp^.ordinal_distance:=hp^.ordinal_distance+
                      abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
                    hp^.ordinal_distance:=hp^.ordinal_distance+
@@ -1423,9 +1493,10 @@ type
                      inc(hp^.equal_count);
                    te_convert_l1 :
                      inc(hp^.cl1_count);
-                   te_convert_l2,
-                   te_convert_operator :
+                   te_convert_l2 :
                      inc(hp^.cl2_count);
+                   te_convert_operator :
+                     inc(hp^.coper_count);
                    te_incompatible :
                      hp^.invalid:=true;
                    else
@@ -1442,6 +1513,11 @@ type
                  hp^.wrongparanr:=currparanr;
                  break;
                end;
+
+{$ifdef EXTDEBUG}
+              { store equal in node tree for dump }
+              currpara.eqval:=eq;
+{$endif EXTDEBUG}
 
               { next parameter in the call tree }
               pt:=tcallparanode(pt.right);
@@ -1682,6 +1758,11 @@ type
 
                    { Retrieve information about the candidates }
                    candidates_get_information(procs);
+{$ifdef EXTDEBUG}
+                   { Display info when multiple candidates are found }
+                   if assigned(procs^.next) then
+                     candidates_dump_info(V_Debug,procs);
+{$endif EXTDEBUG}
 
                    { Choose the best candidate and count the number of
                      candidates left }
@@ -1695,7 +1776,11 @@ type
                       if cand_cnt>1 then
                        begin
                          CGMessage(cg_e_cant_choose_overload_function);
+{$ifdef EXTDEBUG}
+                         candidates_dump_info(V_Hint,procs);
+{$else}
                          candidates_list(procs,false);
+{$endif EXTDEBUG}
                          { we'll just use the first candidate to make the
                            call }
                        end;
@@ -1722,6 +1807,9 @@ type
                         message that the wrong type is passed }
                       candidates_find_wrong_para(procs);
                       candidates_list(procs,true);
+{$ifdef EXTDEBUG}
+                      candidates_dump_info(V_Hint,procs);
+{$endif EXTDEBUG}
 
                       { We can not proceed, release all procs and exit }
                       candidates_free(procs);
@@ -2286,7 +2374,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2002-12-26 18:24:33  jonas
+  Revision 1.124  2003-01-09 21:45:46  peter
+    * extended information about overloaded candidates when compiled
+      with EXTDEBUG
+
+  Revision 1.123  2002/12/26 18:24:33  jonas
   * fixed check for whether or not a high parameter was already generated
   * no type checking/conversions for invisible parameters
 
