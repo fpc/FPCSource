@@ -50,11 +50,18 @@ function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirSt
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 procedure RestoreRedirOut;
+procedure DisableRedirOut;
+procedure EnableRedirOut;
 function  ChangeRedirIn(Const Redir : String) : Boolean;
 procedure RestoreRedirIn;
+procedure DisableRedirIn;
+procedure EnableRedirIn;
 function  ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
 procedure RestoreRedirError;
-
+procedure DisableRedirError;
+procedure EnableRedirError;
+procedure RedirDisableAll;
+procedure RedirEnableAll;
 
 Implementation
 
@@ -105,6 +112,7 @@ var
   RedirChangedOut,
   RedirChangedIn    : Boolean;
   RedirChangedError : Boolean;
+  InRedirDisabled,OutRedirDisabled,ErrorRedirDisabled : Boolean;
   TempHOut, TempHIn,TempHError : longint;
 
 { For linux the following functions exist
@@ -198,10 +206,14 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
     OldHandleOut:=Handles^[StdOutputHandle];
     Handles^[StdOutputHandle]:=Handles^[FileRec (FOUT^).Handle];
     ChangeRedirOut:=True;
+    OutRedirDisabled:=False;
 {$else}
     if dup(StdOutputHandle,TempHOut) and
        dup2(FileRec(FOUT^).Handle,StdOutputHandle) then
-      ChangeRedirOut:=True;
+      begin
+         ChangeRedirOut:=True;
+         OutRedirDisabled:=False;
+      end;
 {$endif def FPC}
      RedirChangedOut:=True;
   end;
@@ -221,10 +233,14 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
     OldHandleIn:=Handles^[StdInputHandle];
     Handles^[StdInputHandle]:=Handles^[FileRec (FIN^).Handle];
     ChangeRedirIn:=True;
+    InRedirDisabled:=False;
 {$else}
     if dup(StdInputHandle,TempHIn) and
        dup2(FileRec(FIN^).Handle,StdInputHandle) then
-      ChangeRedirIn:=True;
+      begin
+         ChangeRedirIn:=True;
+         InRedirDisabled:=False;
+      end;
 {$endif def FPC}
      RedirChangedIn:=True;
   end;
@@ -248,10 +264,14 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     OldHandleError:=Handles^[StdErrorHandle];
     Handles^[StdErrorHandle]:=Handles^[FileRec (FERR^).Handle];
     ChangeRedirError:=True;
+    ErrorRedirDisabled:=False;
 {$else}
     if dup(StdErrorHandle,TempHError) and
        dup2(FileRec(FERR^).Handle,StdErrorHandle) then
-      ChangeRedirError:=True;
+      begin
+         ChangeRedirError:=True;
+         ErrorRedirDisabled:=False;
+      end;
 {$endif}
      RedirChangedError:=True;
   end;
@@ -325,6 +345,68 @@ end;
 
   {............................................................................}
 
+  procedure DisableRedirIn;
+
+  begin
+    If not RedirChangedIn then Exit;
+    If InRedirDisabled then Exit;
+{$ifndef FPC}
+    Handles^[StdInputHandle]:=OldHandleIn;
+{$else}
+    dup2(TempHIn,StdInputHandle);
+{$endif}
+    InRedirDisabled:=True;
+  end;
+
+  {............................................................................}
+
+  procedure EnableRedirIn;
+
+  begin
+    If not RedirChangedIn then Exit;
+    If not InRedirDisabled then Exit;
+{$ifndef FPC}
+    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
+    Handles^[StdInputHandle]:=Handles^[FileRec (FIn^).Handle];
+{$else}
+    dup2(FileRec(FIn^).Handle,StdInputHandle);
+{$endif}
+    InRedirDisabled:=False;
+  end;
+
+  {............................................................................}
+
+  procedure DisableRedirOut;
+
+  begin
+    If not RedirChangedOut then Exit;
+    If OutRedirDisabled then Exit;
+{$ifndef FPC}
+    Handles^[StdOutputHandle]:=OldHandleOut;
+{$else}
+    dup2(TempHOut,StdOutputHandle);
+{$endif}
+    OutRedirDisabled:=True;
+  end;
+
+  {............................................................................}
+
+  procedure EnableRedirOut;
+
+  begin
+    If not RedirChangedOut then Exit;
+    If not OutRedirDisabled then Exit;
+{$ifndef FPC}
+    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
+    Handles^[StdOutputHandle]:=Handles^[FileRec (FOut^).Handle];
+{$else}
+    dup2(FileRec(FOut^).Handle,StdOutputHandle);
+{$endif}
+    OutRedirDisabled:=False;
+  end;
+
+  {............................................................................}
+
   procedure RestoreRedirError;
 
   begin
@@ -338,6 +420,37 @@ end;
     Close (FERR^);
     fdClose(TempHError);
     RedirChangedError:=false;
+  end;
+
+  {............................................................................}
+
+  procedure DisableRedirError;
+
+  begin
+    If not RedirChangedError then Exit;
+    If ErrorRedirDisabled then Exit;
+{$ifndef FPC}
+    Handles^[StdErrorHandle]:=OldHandleError;
+{$else}
+    dup2(TempHError,StdErrorHandle);
+{$endif}
+    ErrorRedirDisabled:=True;
+  end;
+
+  {............................................................................}
+
+  procedure EnableRedirError;
+
+  begin
+    If not RedirChangedError then Exit;
+    If not ErrorRedirDisabled then Exit;
+{$ifndef FPC}
+    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
+    Handles^[StdErrorHandle]:=Handles^[FileRec (FErr^).Handle];
+{$else}
+    dup2(FileRec(FERR^).Handle,StdErrorHandle);
+{$endif}
+    ErrorRedirDisabled:=False;
   end;
 
 {............................................................................}
@@ -384,6 +497,30 @@ Begin
                 (RedirErrorIn=0) and (RedirErrorError=0) and
                 (ExecuteResult=0);
 End;
+
+{............................................................................}
+
+procedure RedirDisableAll;
+  begin
+    If RedirChangedIn and InRedirDisabled then
+      DisableRedirIn;
+    If RedirChangedOut and OutRedirDisabled then
+      DisableRedirOut;
+    If RedirChangedError and not ErrorRedirDisabled then
+      DisableRedirError;
+  end;
+  
+{............................................................................}
+
+procedure RedirEnableAll;
+  begin
+    If RedirChangedIn and InRedirDisabled then
+      EnableRedirIn;
+    If RedirChangedOut and OutRedirDisabled then
+      EnableRedirOut;
+    If RedirChangedError and ErrorRedirDisabled then
+      EnableRedirError;
+  end;
 
 
 procedure InitRedir;
@@ -438,7 +575,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.15  1999-04-07 21:55:52  peter
+  Revision 1.16  1999-04-29 22:57:09  pierre
+   + added code for temporary disabling of redirection
+
+  Revision 1.15  1999/04/07 21:55:52  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
