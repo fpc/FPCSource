@@ -32,6 +32,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
       RecentFileCount  : integer = 0;
       HighlightExts    : string[80] = '*.pas;*.pp;*.inc';
+      TabsPattern      : string = 'make*;make*.*';
       PrimaryFile      : string = '';
       IsEXECompiled    : boolean = false;
       MainFile         : string = '';
@@ -62,7 +63,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.5  1999-01-21 11:54:26  peter
+  Revision 1.6  1999-02-04 13:15:40  pierre
+   + TabsPattern added
+
+  Revision 1.5  1999/01/21 11:54:26  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
