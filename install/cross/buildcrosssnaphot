@@ -3,10 +3,12 @@
 CROSSTOOLSROOT=~/cross
 FPCCVS=~/cvs/devel/fpc
 DESTDIR=~/fpcsnap
+LOGDIR=~/logs
 MYINTEL=i686
 EXTRAOPT=-gl
 TARGETS_OS="freebsd linux netbsd openbsd solaris win32 darwin"
 TARGETS_CPU="i386 powerpc sparc"
+
 
 ###########################################################################
 # don't edit below
@@ -14,6 +16,10 @@ TARGETS_CPU="i386 powerpc sparc"
 #
 #
 #
+
+MYHOSTARCH=`uname -p | tr "[:upper:]" "[:lower:]"`
+MYHOSTOS=`uname -s | tr "[:upper:]" "[:lower:]"`
+echo HOST platform is ${MYHOSTARCH}-${MYHOSTOS}
 
 #
 #
@@ -23,16 +29,15 @@ TARGETS_CPU="i386 powerpc sparc"
 CROSSTOOLSROOT=${CROSSTOOLSROOT%/}/
 FPCCVS=${FPCCVS%/}/
 DESTDIR=${DESTDIR%/}/
-
-MAKE=make
+LOGDIR=${LOGDIR%/}/
 
 #
 # BSD? -> ${MAKE}
 #
 
-SYSTEM=`uname -s`
+MAKE=make
 
-case "$SYSTEM" in
+case "$MYHOSTOS" in
  *BSD*) MAKE=gmake
   ;;
  *bsd*) MAKE=gmake  
@@ -44,6 +49,11 @@ esac
 #
 
 mkdir -p ${DESTDIR}
+mkdir -p ${LOGDIR}
+
+#
+# Real build starts here
+#
 
 cd ${FPCCVS}
 
@@ -71,6 +81,14 @@ if [ "${OS}" = "win32" ]; then
 MOS=cygwin
 fi
 
+dothisbuild=1
+if [ "${CPU}" = "${MYHOSTARCH}" ]; then
+if [ "${OS}" = "${MYHOSTOS}" ]; then
+dothisbuild=0
+fi
+fi
+
+if [ $dothisbuild -eq 1 ]; then
 echo Building ${CPU}-${OS}
 if [  -f ${CROSSTOOLSROOT}bin/${MCPU}-${MOS}-as ]; then
 ${MAKE} clean all CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${FPCCVS}log-${CPU}-${OS} 2>&1
@@ -83,9 +101,9 @@ echo ${CPU}-${OS} FAILES!
 FAILURES="${FAILURES} ${CPU}-${OS}"
 else
 mkdir -p ${DESTDIR}${CPU}-${OS}
-${MAKE} install INSTALL_PREFIX=${DESTDIR}${CPU}-${OS} CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${FPCCVS}log-${CPU}-${OS} 2>&1
+${MAKE} install INSTALL_PREFIX=${DESTDIR}${CPU}-${OS} CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${LOGDIR}log-${CPU}-${OS} 2>&1
 fi
-
+fi
 done;
 done;
 
