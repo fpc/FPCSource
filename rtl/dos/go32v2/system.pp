@@ -91,9 +91,11 @@ var go32_info_block : t_go32_info_block;
           reales,realds,realfs,realgs,
           realip,realcs,realsp,realss : word;
        end;
-var
-         dos_argv0 : pchar;
-         environ : ppchar;
+    var
+       dos_argv0 : pchar;
+       environ : ppchar;
+       { Running under Win95 ? }
+       Win95 : boolean;
 
     function do_write(h,addr,len : longint) : longint;
     function do_read(h,addr,len : longint) : longint;
@@ -112,9 +114,6 @@ var
        plongint = ^longint;
 
     const carryflag = 1;
-
-    var
-      Win95 : boolean;  {Running under Win95?}
 
 {$S-}
     procedure st1(stack_size : longint);[public,alias: 'STACKCHECK'];
@@ -788,6 +787,7 @@ begin
 end;
 
 
+{ truncate at a given position }
 procedure do_truncate (handle,pos:longint);
 var
   regs : trealregs;
@@ -1042,7 +1042,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  1998-03-30 21:49:12  florian
+  Revision 1.3  1998-05-04 16:21:54  florian
+    + win95 flag to the interface moved
+
+  Revision 1.2  1998/03/30 21:49:12  florian
     + seg* added
 
   Revision 1.1.1.1  1998/03/25 11:18:42  root
