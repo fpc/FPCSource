@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 1.0.10
-version=1.0.10
+title=Free Pascal Compiler 1.9.0
+version=1.9.0
 
 #
 # General
@@ -257,7 +257,7 @@ package=unetdbsrc.zip[undbsrc.zip],NetDB units
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.0.10
+# Example fpc.cfg for Free Pascal Compiler Version 1.9.0
 #
 
 # ----------------------
