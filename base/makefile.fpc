@@ -39,7 +39,7 @@ nopwd:
 	@echo Get ftp://tflily.fys.kuleuven.ac.be/pub/fpc/dist/go32v2/utilgo32.zip
 	@exit
 else
-inlinux=1	
+inlinux=1
 endif
 else
 PWD:=$(firstword $(PWD))
@@ -96,6 +96,9 @@ endif
 ifndef CPU
 CPU=$(shell $(PP) -iTP)
 endif
+
+# FPC version
+FPC_VERSION=$(shell $(PP) -iV)
 
 # Options
 ifndef OPT
@@ -648,7 +651,7 @@ endif
 # Export commandline values, so nesting use the same values
 #####################################################################
 
-export FPCDIR FPCMAKE
+export FPCDIR FPCMAKE FPC_VERSION
 export RELEASEVER OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
 export SMARTLINK LIBTYPE LIBNAME
 export BASEINSTALLDIR PACKAGESUFFIX
@@ -892,6 +895,7 @@ fpc_cfginfo:
 	@$(ECHO)  Source.... $(OS_SOURCE)
 	@$(ECHO)  Target.... $(OS_TARGET)
 	@$(ECHO)  Basedir... $(BASEDIR)
+	@$(ECHO)  Version... $(FPC_VERSION)
 	@$(ECHO)
 
 fpc_dirinfo:
@@ -990,7 +994,10 @@ endif
 
 #
 # $Log$
-# Revision 1.21  1999-05-03 22:38:10  peter
+# Revision 1.22  1999-05-04 23:20:42  pierre
+#  + FPC_VERSION (with shell $(PP) -iV)
+#
+# Revision 1.21  1999/05/03 22:38:10  peter
 #   * typo with -TP which should be -iTP
 #
 # Revision 1.20  1999/05/03 22:29:04  peter
