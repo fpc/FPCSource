@@ -671,7 +671,7 @@ const
          { shutdown current file }
            current_scanner^.tempcloseinputfile;
          { load new file }
-           hp:=new(pinputfile,init(path+name+ext));
+           hp:=do_openinputfile(path+name+ext);
            current_scanner^.addfile(hp);
            if not current_scanner^.openinputfile then
             Message1(scan_f_cannot_open_includefile,hs);
@@ -1432,11 +1432,14 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-08-08 19:28:57  peter
+  Revision 1.4  2000-08-12 15:30:44  peter
+    * IDE patch for stream reading (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 
   Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
- 
+
 }

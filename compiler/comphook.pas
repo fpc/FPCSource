@@ -23,6 +23,8 @@
 unit comphook;
 interface
 
+uses files;
+
 Const
 { <$10000 will show file and line }
   V_None         = $0;
@@ -84,6 +86,8 @@ function  def_internalerror(i:longint):boolean;
 procedure def_initsymbolinfo;
 procedure def_donesymbolinfo;
 procedure def_extractsymbolinfo;
+function  def_openinputfile(const filename: string): pinputfile;
+Function  def_getnamedfiletime(Const F : String) : Longint;
 {$ifdef DEBUG}
 { allow easy stopping in GDB
   using
@@ -102,6 +106,9 @@ type
   tinitsymbolinfoproc = procedure;
   tdonesymbolinfoproc = procedure;
   textractsymbolinfoproc = procedure;
+  topeninputfilefunc = function(const filename: string): pinputfile;
+  tgetnamedfiletimefunc = function(const filename: string): longint;
+
 const
   do_stop          : tstopprocedure   = def_stop;
   do_halt          : thaltprocedure   = def_halt;
@@ -113,11 +120,19 @@ const
   do_donesymbolinfo : tdonesymbolinfoproc = def_donesymbolinfo;
   do_extractsymbolinfo : textractsymbolinfoproc = def_extractsymbolinfo;
 
+  do_openinputfile : topeninputfilefunc = def_openinputfile;
+  do_getnamedfiletime : tgetnamedfiletimefunc = def_getnamedfiletime;
+
 implementation
 
+  uses
 {$ifdef USEEXCEPT}
-  uses tpexcept;
+   tpexcept,
 {$endif USEEXCEPT}
+{$ifdef Linux}
+   linux,
+{$endif}
+   dos;
 
 {****************************************************************************
                           Helper Routines
@@ -315,10 +330,50 @@ procedure def_extractsymbolinfo;
 begin
 end;
 
+function  def_openinputfile(const filename: string): pinputfile;
+begin
+  def_openinputfile:=new(pdosinputfile, init(filename));
+end;
+
+Function def_GetNamedFileTime (Const F : String) : Longint;
+   var
+     L : Longint;
+   {$ifndef linux}
+     info : SearchRec;
+   {$else}
+     info : stat;
+   {$endif}
+   begin
+     l:=-1;
+   {$ifdef linux}
+     if FStat (F,Info) then
+      L:=info.mtime;
+   {$else}
+{$ifdef delphi}
+     dmisc.FindFirst (F,archive+readonly+hidden,info);
+{$else delphi}
+     FindFirst (F,archive+readonly+hidden,info);
+{$endif delphi}
+     if DosError=0 then
+      l:=info.time;
+     {$ifdef Linux}
+       FindClose(info);
+     {$endif}
+     {$ifdef Win32}
+       FindClose(info);
+     {$endif}
+   {$endif}
+     def_GetNamedFileTime:=l;
+   end;
+
+
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:38  michael
+  Revision 1.3  2000-08-12 15:30:45  peter
+    * IDE patch for stream reading (merged)
+
+  Revision 1.2  2000/07/13 11:32:38  michael
   + removed logs
 
 }

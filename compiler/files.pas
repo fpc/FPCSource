@@ -76,7 +76,6 @@ unit files;
          path,name : pstring;       { path and filename }
          next      : pinputfile;    { next file for reading }
 
-         f            : file;       { current file handle }
          is_macro,
          endoffile,                 { still bytes left to read }
          closed       : boolean;    { is the file closed }
@@ -109,6 +108,24 @@ unit files;
          procedure setmacro(p:pchar;len:longint);
          procedure setline(line,linepos:longint);
          function  getlinestr(l:longint):string;
+       {$ifdef FPC}protected{$else}public{$endif}
+         function fileopen(const filename: string): boolean; virtual;
+         function fileseek(pos: longint): boolean; virtual;
+         function fileread(var databuf; maxsize: longint): longint; virtual;
+         function fileeof: boolean; virtual;
+         function fileclose: boolean; virtual;
+       end;
+
+       pdosinputfile = ^tdosinputfile;
+       tdosinputfile = object(tinputfile)
+       {$ifdef FPC}protected{$else}public{$endif}
+         function fileopen(const filename: string): boolean; virtual;
+         function fileseek(pos: longint): boolean; virtual;
+         function fileread(var databuf; maxsize: longint): longint; virtual;
+         function fileeof: boolean; virtual;
+         function fileclose: boolean; virtual;
+       private
+         f            : file;       { current file handle }
        end;
 
        pfilemanager = ^tfilemanager;
@@ -355,49 +372,31 @@ uses
       begin
         if closed then
          exit;
-        seek(f,fpos);
+        fileseek(fpos);
         bufstart:=fpos;
         bufsize:=0;
       end;
 
 
     procedure tinputfile.readbuf;
-    {$ifdef TP}
-      var
-        w : word;
-    {$endif}
       begin
         if is_macro then
          endoffile:=true;
         if closed then
          exit;
         inc(bufstart,bufsize);
-      {$ifdef VER70}
-        blockread(f,buf^,maxbufsize-1,w);
-        bufsize:=w;
-      {$else}
-        blockread(f,buf^,maxbufsize-1,bufsize);
-      {$endif}
+        bufsize:=fileread(buf^,maxbufsize-1);
         buf[bufsize]:=#0;
-        endoffile:=eof(f);
+        endoffile:=fileeof;
       end;
 
 
     function tinputfile.open:boolean;
-      var
-        ofm : byte;
       begin
         open:=false;
         if not closed then
          Close;
-        ofm:=filemode;
-        filemode:=0;
-        Assign(f,path^+name^);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        filemode:=ofm;
-        if ioresult<>0 then
+        if not fileopen(path^+name^) then
          exit;
       { file }
         endoffile:=false;
@@ -423,10 +422,7 @@ uses
          end;
         if not closed then
          begin
-           {$I-}
-            system.close(f);
-           {$I+}
-           if ioresult<>0 then;
+           if fileclose then;
            closed:=true;
          end;
         if assigned(buf) then
@@ -444,20 +440,14 @@ uses
          exit;
         if not closed then
          begin
-           {$I-}
-            system.close(f);
-           {$I+}
-           if ioresult<>0 then;
+           if fileclose then;
            Freemem(buf,maxbufsize);
            buf:=nil;
            closed:=true;
          end;
       end;
 
-
     function tinputfile.tempopen:boolean;
-      var
-        ofm : byte;
       begin
         tempopen:=false;
         if is_macro then
@@ -473,20 +463,13 @@ uses
          end;
         if not closed then
          exit;
-        ofm:=filemode;
-        filemode:=0;
-        Assign(f,path^+name^);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        filemode:=ofm;
-        if ioresult<>0 then
+        if not fileopen(path^+name^) then
          exit;
         closed:=false;
       { get new mem }
         Getmem(buf,maxbufsize);
       { restore state }
-        seek(f,BufStart);
+        fileseek(BufStart);
         bufsize:=0;
         readbuf;
         tempopen:=true;
@@ -584,6 +567,92 @@ uses
              getlinestr[0]:=chr(i);
            {$endif}
          end;
+      end;
+
+
+    function tinputfile.fileopen(const filename: string): boolean;
+      begin
+        abstract;
+        fileopen:=false;
+      end;
+
+
+    function tinputfile.fileseek(pos: longint): boolean;
+      begin
+        abstract;
+        fileseek:=false;
+      end;
+
+
+    function tinputfile.fileread(var databuf; maxsize: longint): longint;
+      begin
+        abstract;
+        fileread:=0;
+      end;
+
+
+    function tinputfile.fileeof: boolean;
+      begin
+        abstract;
+        fileeof:=false;
+      end;
+
+
+    function tinputfile.fileclose: boolean;
+      begin
+        abstract;
+        fileclose:=false;
+      end;
+
+
+{****************************************************************************
+                                TDOSINPUTFILE
+ ****************************************************************************}
+
+    function tdosinputfile.fileopen(const filename: string): boolean;
+      var
+        ofm : byte;
+      begin
+        ofm:=filemode;
+        filemode:=0;
+        Assign(f,filename);
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        fileopen:=(ioresult=0);
+      end;
+
+
+    function tdosinputfile.fileseek(pos: longint): boolean;
+      begin
+        {$I-}
+         seek(f,BufStart);
+        {$I+}
+        fileseek:=(ioresult=0);
+      end;
+
+
+    function tdosinputfile.fileread(var databuf; maxsize: longint): longint;
+      var w: {$ifdef TP}word{$else}longint{$endif};
+      begin
+        blockread(f,databuf,maxsize,w);
+        fileread:=w;
+      end;
+
+
+    function tdosinputfile.fileeof: boolean;
+      begin
+        fileeof:=eof(f);
+      end;
+
+
+    function tdosinputfile.fileclose: boolean;
+      begin
+        {$I-}
+         system.close(f);
+        {$I+}
+        fileclose:=(ioresult=0);
       end;
 
 
@@ -1408,7 +1477,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-08-12 15:30:44  peter
+    * IDE patch for stream reading (merged)
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

@@ -270,7 +270,7 @@ implementation
 
     constructor tscannerfile.init(const fn:string);
       begin
-        inputfile:=new(pinputfile,init(fn));
+        inputfile:=do_openinputfile(fn);
         if assigned(current_module) then
           current_module^.sourcefiles^.register_file(inputfile);
       { reset localinput }
@@ -492,7 +492,7 @@ implementation
         tempcloseinputfile;
       { create macro 'file' }
         { use special name to dispose after !! }
-        hp:=new(pinputfile,init('_Macro_.'+macname));
+        hp:=do_openinputfile('_Macro_.'+macname);
         addfile(hp);
         with inputfile^ do
          begin
@@ -1837,7 +1837,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.3  2000-08-08 19:28:57  peter
+  Revision 1.4  2000-08-12 15:30:44  peter
+    * IDE patch for stream reading (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 

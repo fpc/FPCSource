@@ -1266,34 +1266,8 @@ implementation
 
 
    Function GetNamedFileTime (Const F : String) : Longint;
-   var
-     L : Longint;
-   {$ifndef linux}
-     info : SearchRec;
-   {$else}
-     info : stat;
-   {$endif}
    begin
-     l:=-1;
-   {$ifdef linux}
-     if FStat (F,Info) then
-      L:=info.mtime;
-   {$else}
-{$ifdef delphi}
-     dmisc.FindFirst (F,archive+readonly+hidden,info);
-{$else delphi}
-     FindFirst (F,archive+readonly+hidden,info);
-{$endif delphi}
-     if DosError=0 then
-      l:=info.time;
-     {$ifdef Linux}
-       FindClose(info);
-     {$endif}
-     {$ifdef Win32}
-       FindClose(info);
-     {$endif}
-   {$endif}
-     GetNamedFileTime:=l;
+     GetNamedFileTime:=do_getnamedfiletime(F);
    end;
 
 
@@ -1588,7 +1562,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-08-02 19:49:59  peter
+  Revision 1.5  2000-08-12 15:30:44  peter
+    * IDE patch for stream reading (merged)
+
+  Revision 1.4  2000/08/02 19:49:59  peter
     * first things for default parameters
 
   Revision 1.3  2000/07/13 12:08:25  michael
