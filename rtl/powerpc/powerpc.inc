@@ -25,6 +25,7 @@
 { This function is never called directly, it's a dummy to hold the register save/
   load subroutines
 }
+{$ifndef MACOS}
 procedure saverestorereg;assembler;
 asm
 { exit }
@@ -111,7 +112,7 @@ _restfpr_31_l:  lwz     r0, 4(r11)
                 ori     r1, r11, 0
                 blr
 end;
-
+{$endif MACOS}
 
 {****************************************************************************
                                 Move / Fill
@@ -957,7 +958,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.24  2002-10-20 13:40:55  jonas
+  Revision 1.25  2002-10-23 15:26:00  olle
+    * excluded saverestorereg for target macos
+
+  Revision 1.24  2002/10/20 13:40:55  jonas
     * move/fill*/index*/comp* routines immediately exit if length is negative
 
   Revision 1.23  2002/10/17 10:12:50  jonas
