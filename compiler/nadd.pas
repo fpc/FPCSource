@@ -738,39 +738,20 @@ implementation
              { is there a cardinal? }
              else if ((torddef(rd).typ=u32bit) or (torddef(ld).typ=u32bit)) then
                begin
-                 if is_signed(ld) and
-                    { then rd = u32bit }
-                    (nodetype in [addn,subn,muln]) and
-                    { convert positive constants to u32bit }
-                    not(is_constintnode(left) and
-                        (tordconstnode(left).value >= 0)) then
+                 { and,or,xor work on bit patterns and don't care
+                   about the sign }
+                 if nodetype in [andn,orn,xorn] then
                    begin
-                     { perform the operation in 64bit }
-                     CGMessage(type_w_mixed_signed_unsigned);
-                     inserttypeconv(left,cs64bittype);
-                     inserttypeconv(right,cs64bittype);
+                     inserttypeconv_explicit(left,u32bittype);
+                     inserttypeconv_explicit(right,u32bittype);
                    end
                  else
                    begin
-                     { and,or,xor work on bit patterns and don't care
-                       about the sign }
-                     if nodetype in [andn,orn,xorn] then
-                      inserttypeconv_explicit(left,u32bittype)
-                     else
-                      begin
-                        if is_signed(ld) and
-                           not(is_constintnode(left) and
-                               (tordconstnode(left).value >= 0)) then
-                          CGMessage(type_w_mixed_signed_unsigned2);
-                        inserttypeconv(left,u32bittype);
-                      end;
-
-                     if is_signed(rd) and
-                        { then ld = u32bit }
-                        (nodetype in [addn,subn,muln]) and
+                     if is_signed(ld) and
+                        { then rd = u32bit }
                         { convert positive constants to u32bit }
-                        not(is_constintnode(right) and
-                            (tordconstnode(right).value >= 0)) then
+                        not(is_constintnode(left) and
+                            (tordconstnode(left).value >= 0)) then
                        begin
                          { perform the operation in 64bit }
                          CGMessage(type_w_mixed_signed_unsigned);
@@ -779,18 +760,31 @@ implementation
                        end
                      else
                        begin
-                         { and,or,xor work on bit patterns and don't care
-                           about the sign }
-                         if nodetype in [andn,orn,xorn] then
-                          inserttypeconv_explicit(left,u32bittype)
+                         if is_signed(ld) and
+                            not(is_constintnode(left) and
+                                (tordconstnode(left).value >= 0)) then
+                           CGMessage(type_w_mixed_signed_unsigned2);
+                         inserttypeconv(left,u32bittype);
+
+                         if is_signed(rd) and
+                            { then ld = u32bit }
+                            { convert positive constants to u32bit }
+                            not(is_constintnode(right) and
+                                (tordconstnode(right).value >= 0)) then
+                           begin
+                             { perform the operation in 64bit }
+                             CGMessage(type_w_mixed_signed_unsigned);
+                             inserttypeconv(left,cs64bittype);
+                             inserttypeconv(right,cs64bittype);
+                           end
                          else
-                          begin
-                            if is_signed(rd) and
-                               not(is_constintnode(right) and
-                                   (tordconstnode(right).value >= 0)) then
-                              CGMessage(type_w_mixed_signed_unsigned2);
-                            inserttypeconv(right,u32bittype);
-                          end;
+                           begin
+                             if is_signed(rd) and
+                                not(is_constintnode(right) and
+                                    (tordconstnode(right).value >= 0)) then
+                               CGMessage(type_w_mixed_signed_unsigned2);
+                             inserttypeconv(right,u32bittype);
+                           end;
                        end;
                    end;
                end
@@ -1875,7 +1869,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2003-10-21 18:16:13  peter
+  Revision 1.99  2003-10-28 15:35:18  peter
+    * compare longint-cardinal also makes types wider
+
+  Revision 1.98  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 
