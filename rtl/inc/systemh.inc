@@ -147,6 +147,8 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
   ValReal = Double;
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
@@ -730,7 +732,10 @@ const
 
 {
   $Log$
-  Revision 1.92  2004-05-05 21:26:34  florian
+  Revision 1.93  2004-05-30 16:51:38  peter
+    * sparc need software shl shr
+
+  Revision 1.92  2004/05/05 21:26:34  florian
     * some m68k and amiga related stuff fixed
 
   Revision 1.91  2004/05/01 23:55:18  peter
