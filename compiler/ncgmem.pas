@@ -279,6 +279,7 @@ implementation
            begin
              location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
              case left.location.loc of
+                LOC_CREGISTER,
                 LOC_REGISTER:
                   begin
                     if not rg.isaddressregister(left.location.register) then
@@ -291,7 +292,6 @@ implementation
                     else
                       location.reference.base := left.location.register;
                   end;
-                LOC_CREGISTER,
                 LOC_CREFERENCE,
                 LOC_REFERENCE:
                   begin
@@ -824,7 +824,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-06-01 21:38:06  peter
+  Revision 1.57  2003-06-02 22:35:45  florian
+    * better handling of CREGISTER in subscript nodes
+
+  Revision 1.56  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
