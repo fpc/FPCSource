@@ -1580,13 +1580,13 @@ LPJOYINFO = ^_joyinfo;
 _joyinfoex = packed record
 dwSize: DWORD;
 dwFlags: DWORD;
-dwXpos: DWORD;
-dwYpos: DWORD;
-dwZpos: DWORD;
+wXpos: UINT;
+wYpos: UINT;
+wZpos: UINT;
 dwRpos: DWORD;
 dwUpos: DWORD;
 dwVpos: DWORD;
-dwButtons: DWORD;
+wButtons: UINT;
 dwButtonNumber: DWORD;
 dwPOV: DWORD;
 dwReserved1: DWORD;
