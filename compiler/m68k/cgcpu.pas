@@ -66,6 +66,7 @@ unit cgcpu;
           procedure g_restore_frame_pointer(list : taasmoutput);override;
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
           procedure g_restore_standard_registers(list:Taasmoutput);override;
+          procedure g_save_standard_registers(list:Taasmoutput);override;
           procedure g_save_all_registers(list : taasmoutput);override;
           procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
      protected
@@ -105,7 +106,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defutil,paramgr,
+       symdef,symsym,defutil,paramgr,procinfo,
        rgobj,tgobj,rgcpu,
        cgutils;
 
@@ -986,7 +987,7 @@ unit cgcpu;
            end { endif localsize <> 0 }
           else
            begin
-             reference_reset_base(ref,NR_STACK_POINTER_REG);
+             reference_reset_base(ref,NR_STACK_POINTER_REG,0);
              ref.direction:=dir_dec;
              list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));
              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,rsp,r));
@@ -1038,7 +1039,7 @@ unit cgcpu;
 
                 { save the PC counter (pop it from the stack)         }
                 hregister := getaddressregister(list);
-                reference_reset_base(ref,NR_STACK_POINTER_REG);
+                reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_inc;
                 list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
                 { can we do a quick addition ... }
@@ -1049,7 +1050,7 @@ unit cgcpu;
                    list.concat(taicpu.op_const_reg(A_ADD,S_L,parasize,r));
 
                 { restore the PC counter (push it on the stack)       }
-                reference_reset_base(ref,NR_STACK_POINTER_REG);
+                reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_dec;
                 list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
                 list.concat(taicpu.op_none(A_RTS,S_NO));
@@ -1060,41 +1061,43 @@ unit cgcpu;
       end;
 
 
-    procedure Tcg68k.g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);
+    procedure Tcg68k.g_save_standard_registers(list:Taasmoutput);
       var
-        tosave:Tsupregset;
+        tosave : tcpuregisterset;
         ref : treference;
       begin
+
         tosave:=std_saved_registers;
         { only save the registers which are not used and must be saved }
-        tosave:=tosave*usedinproc;
-        reference_reset_base(ref,NR_STACK_POINTER_REG);
+        tosave:=tosave*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
+        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
         ref.direction:=dir_dec;
         if tosave<>[] then
-          list.concat(taicpu.op_reglist_reg(A_MOVEM,S_L,tosave,r));
+          list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,tosave,ref));
       end;
 
 
-    procedure Tcg68k.g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);
+    procedure Tcg68k.g_restore_standard_registers(list:Taasmoutput);
       var
-        torestore:Tsupregset;
+        torestore : tcpuregisterset;
         r:Tregister;
         ref : treference;
       begin
         torestore:=std_saved_registers;
         { should be intersected with used regs, no ? }
-        torestore:=torestore*usedinproc;
-        reference_reset_base(ref,NR_STACKPOINTER_REG);
+        torestore:=torestore*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
+        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
         ref.direction:=dir_inc;
         if torestore<>[] then
-          list.concat(taicpu.op_ref_reglist(A_MOVEM,S_L,ref,torestore));
+          list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,ref,torestore));
       end;
+
 
     procedure tcg68k.g_save_all_registers(list : taasmoutput);
       begin
       end;
 
-    procedure tcg68k.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
+    procedure tcg68k.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
       begin
       end;
 
@@ -1273,7 +1276,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-04-18 21:13:59  florian
+  Revision 1.24  2004-04-19 21:15:12  florian
+    * fixed compilation
+
+  Revision 1.23  2004/04/18 21:13:59  florian
     * more adaptions for m68k
 
   Revision 1.22  2004/03/02 00:36:33  olle
