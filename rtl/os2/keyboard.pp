@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Keyboard unit for linux
+    Keyboard unit for OS/2
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -77,12 +77,12 @@ end;
 function SysPollKeyEvent: TKeyEvent;
 var
  K: TKbdKeyInfo;
- key : TKeyEvent;
+ Key : TKeyEvent;
  
 begin
   Key:=0;
   KbdGetFocus (IO_NoWait, Handle);
-  if (KbdCharIn (K, IO_NoWait, Handle) <> No_Error) or
+  if (KbdPeek (K, Handle) <> No_Error) or
      (K.fbStatus and $40 = 0) then 
     FillChar (K, SizeOf (K), 0) 
   else
@@ -119,12 +119,16 @@ Const
     TranslateKeyEventUnicode : Nil; 
   );
 
+
 begin 
   SetKeyBoardDriver(SysKeyBoardDriver);
 end.
 {
   $Log$
-  Revision 1.3  2001-09-21 21:33:36  michael
+  Revision 1.4  2002-03-03 21:08:33  hajny
+    * SysPollKeyEvent fixed
+
+  Revision 1.3  2001/09/21 21:33:36  michael
   + Merged driver support from fixbranch
 
   Revision 1.2.2.2  2001/09/21 21:20:43  michael
