@@ -79,6 +79,7 @@ var D: PFileDialog;
     OpenIt: boolean;
     DriveNumber : byte;
     StoreDir,StoreDir2 : DirStr;
+    NewPSW : PSourceWindow;
 begin
   OpenIt:=FileName<>'';
   DriveNumber:=0;
@@ -127,9 +128,16 @@ begin
    begin
      FileName:=FExpand(LocatePasFile(FileName));
      if ExistsFile(FileName) then
+     { like for BP unexistant files should  be created PM }
        OpenEditorWindow(nil,FileName,0,0)
      else
-       ErrorBox(FormatStrStr(msg_cantfindfile,FileName),nil);
+       {ErrorBox(FormatStrStr(msg_cantfindfile,FileName),nil);}
+       begin
+         NewPSW:=OpenEditorWindow(nil,'',0,0);
+         NewPSW^.Editor^.FileName:=FileName;
+         NewPSW^.SetTitle(FileName);
+         Message(Application,evBroadcast,cmFileNameChanged,NewPSW^.Editor);
+       end;
    end;
 end;
 
@@ -213,7 +221,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-09-12 09:49:35  pierre
+  Revision 1.3  2002-04-10 22:38:11  pierre
+   * allow to open non existant file
+
+  Revision 1.2  2001/09/12 09:49:35  pierre
    + Call to TDebugController.SetDirectories when SourceDirs changes
 
   Revision 1.1  2001/08/04 11:30:23  peter
