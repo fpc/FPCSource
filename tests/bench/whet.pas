@@ -47,6 +47,13 @@ C       WRITE statements and FORMAT sttements removed.
 C
 C**********************************************************************)
 
+
+const
+(* With loopcount NLoop=10, one million Whetstone instructions
+   will be executed in each major loop.
+   A major loop is executed 'II' times to increase wall-clock timing accuracy *)
+   NLoopValue = 100;
+
 {$IFDEF OS2}
 function TimeNow : LongInt;
 var
@@ -58,14 +65,14 @@ begin
 end;
 
 {$ELSE}
-function TimeNow : Double;
+function TimeNow : Int64;
 
 var
    h,m,s,s100 : word;
 
 begin
   gettime(h,m,s,s100);
-  TimeNow := h*3600+m*60+s+s100*0.01;
+  TimeNow := h*3600*1000+m*60*1000+s*1000+s100*10;
 end;
 {$ENDIF}
 
@@ -128,10 +135,7 @@ BEGIN
         T  := 0.499975;
         T1 := 0.50025;
         T2 := 2.0;
-(* With loopcount NLoop=10, one million Whetstone instructions
-   will be executed in each major loop.
-   A major loop is executed 'II' times to increase wall-clock timing accuracy *)
-        NLoop := 30;
+        NLoop := NLoopValue;
         II    := 400;
         FOR JJ:=1 TO II DO BEGIN
 (* Establish the relative loop counts of each module. *)
@@ -270,10 +274,9 @@ BEGIN
 --------------------------------------------------------------------*)
         WriteLn;
         WriteLn ('Double Whetstone KIPS ',
-                 (TRUNC ((100.0 * NLoop * II) /
-                                ((time1 - time0)/1000))));
-        WriteLn ('Whetstone MIPS ',
-                  1.0*NLoop*II /((1.0*time1 - 1.0*time0)/1000 * 10):12:2);
+                 (TRUNC ((100.0 * NLoop * II) * 1000 / (time1 - time0))));
+        WriteLn ('Whetstone MIPS   ',
+                  1.0*NLoop*II * 1000 / (time1 - time0):12:2);
 END;
 
 BEGIN
