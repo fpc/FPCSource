@@ -383,25 +383,24 @@ unit cgx86;
 
       var
         tmpreg: tregister;
+        baseno,indexno:boolean;
 
       begin
         if r.segment.enum<>R_NO then
           CGMessage(cg_e_cant_use_far_pointer_there);
-        if r.base.enum>lastreg then
-          internalerror(200301081);
-        if r.index.enum>lastreg then
-          internalerror(200301081);
-        if (r.base.enum=R_NO) and (r.index.enum=R_NO) then
+        baseno:=(r.base.enum=R_NO) or ((r.base.enum=R_INTREGISTER) and (r.base.number=NR_NO));
+        indexno:=(r.index.enum=R_NO) or ((r.index.enum=R_INTREGISTER) and (r.index.number=NR_NO));
+        if baseno and indexno then
           begin
             if assigned(r.symbol) then
               list.concat(Taicpu.Op_sym_ofs(A_PUSH,S_L,r.symbol,r.offset))
             else
               list.concat(Taicpu.Op_const(A_PUSH,S_L,r.offset));
           end
-        else if (r.base.enum=R_NO) and (r.index.enum<>R_NO) and
+        else if baseno and not indexno and
                 (r.offset=0) and (r.scalefactor=0) and (r.symbol=nil) then
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.index))
-        else if (r.base.enum<>R_NO) and (r.index.enum=R_NO) and
+        else if not baseno and indexno and
                 (r.offset=0) and (r.symbol=nil) then
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.base))
         else
@@ -1911,7 +1910,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.30  2003-01-13 23:00:18  daniel
+  Revision 1.31  2003-01-21 10:41:13  daniel
+    * Fixed another 200301081
+
+  Revision 1.30  2003/01/13 23:00:18  daniel
     * Fixed internalerror
 
   Revision 1.29  2003/01/13 14:54:34  daniel
