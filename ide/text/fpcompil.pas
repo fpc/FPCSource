@@ -299,9 +299,12 @@ begin
      inc(r.b.y,r.a.y-4);
      ChangeBounds(r);
    { remove infost and line }
-     Delete(CurrSt);
-     Delete(InfoSt);
-     Delete(LineSt);
+     Dispose(CurrSt,Done);
+     CurrSt:=nil;
+     Dispose(InfoSt,Done);
+     InfoSt:=nil;
+     Dispose(LineSt,Done);
+     LineSt:=nil;
    end;
   CompileShowed:=b;
 { update all windows }
@@ -421,6 +424,7 @@ end;
 
 destructor TCompilerMessageWindow.Done;
 begin
+  SetCompileShow(false);
   CompilerMessageWindow:=nil;
   inherited Done;
 end;
@@ -804,7 +808,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-03-23 16:16:38  peter
+  Revision 1.21  1999-04-01 10:15:17  pierre
+    * CurrSt,InfoSt and LineSt were not disposed correctly in done
+    * TComiplerMessage destructor first calls SetCompileShow(false)
+      to get proper cleaning up
+
+  Revision 1.20  1999/03/23 16:16:38  peter
     * linux fixes
 
   Revision 1.19  1999/03/19 16:04:27  peter
