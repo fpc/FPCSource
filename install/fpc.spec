@@ -62,7 +62,8 @@ fi
 
 NEWPP=`pwd`/compiler/ppc386
 INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{buildlibdir} \
-		INSTALL_DOCDIR=%{builddocdir} INSTALL_BINDIR=%{buildbindir}"
+		INSTALL_DOCDIR=%{builddocdir} INSTALL_BINDIR=%{buildbindir} \
+		INSTALL_EXAMPLEDIR=%{buildexampledir}"
 	make compiler_distinstall ${INSTALLOPTS}
 	make rtl_distinstall ${INSTALLOPTS}
 	make packages_distinstall ${INSTALLOPTS}
