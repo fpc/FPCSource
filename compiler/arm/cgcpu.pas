@@ -272,6 +272,7 @@ unit cgcpu;
 
      procedure tcgarm.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
        begin
+         a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
        end;
 
 
@@ -283,7 +284,44 @@ unit cgcpu;
 
      procedure tcgarm.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
        size: tcgsize; src1, src2, dst: tregister);
+       const
+         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
+           (A_NONE,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
+            A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
+       var
+         so : tshifterop;
        begin
+         case op of
+           OP_NEG:
+             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,dst));
+           OP_NOT:
+             list.concat(taicpu.op_reg_reg(A_MVN,dst,dst));
+           OP_DIV,OP_IDIV:
+             internalerror(200308281);
+           OP_SHL:
+             begin
+               shifterop_reset(so);
+               so.rs:=src2;
+               so.shiftertype:=SO_LSL;
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+             end;
+           OP_SHR:
+             begin
+               shifterop_reset(so);
+               so.rs:=src2;
+               so.shiftertype:=SO_LSR;
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+             end;
+           OP_SAR:
+             begin
+               shifterop_reset(so);
+               so.rs:=src2;
+               so.shiftertype:=SO_LSL;
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+             end;
+           else
+             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
+         end;
        end;
 
 
@@ -345,7 +383,61 @@ unit cgcpu;
 
 
      procedure tcgarm.a_load_reg_reg(list : taasmoutput; fromsize, tosize : tcgsize;reg1,reg2 : tregister);
+       var
+         instr: taicpu;
+         so : tshifterop;
        begin
+         shifterop_reset(so);
+         if (reg1.enum<>R_INTREGISTER) or (reg1.number = 0) then
+           internalerror(200303101);
+         if (reg2.enum<>R_INTREGISTER) or (reg2.number = 0) then
+           internalerror(200303102);
+         if (reg1.number<>reg2.number) or
+            (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
+            ((tcgsize2size[tosize] = tcgsize2size[fromsize]) and
+             (tosize <> fromsize) and
+             not(fromsize in [OS_32,OS_S32])) then
+           begin
+             case tosize of
+               OS_8:
+                 instr := taicpu.op_reg_reg_const(A_AND,
+                   reg2,reg1,$ff);
+               OS_S8:
+                 begin
+                   so.shiftertype:=SO_LSL;
+                   so.shiftimm:=24;
+                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
+                   so.shiftertype:=SO_ASR;
+                   so.shiftimm:=24;
+                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
+                 end;
+               OS_16:
+                 begin
+                   so.shiftertype:=SO_LSL;
+                   so.shiftimm:=16;
+                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
+                   so.shiftertype:=SO_LSR;
+                   so.shiftimm:=16;
+                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
+                 end;
+               OS_S16:
+                 begin
+                   so.shiftertype:=SO_LSL;
+                   so.shiftimm:=16;
+                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
+                   so.shiftertype:=SO_ASR;
+                   so.shiftimm:=16;
+                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
+                 end;
+               OS_32,OS_S32:
+                 begin
+                   instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
+                   rg.add_move_instruction(instr);
+                   list.concat(instr);
+                 end;
+               else internalerror(2002090901);
+             end;
+           end;
        end;
 
 
@@ -383,7 +475,13 @@ unit cgcpu;
 
 
      procedure tcgarm.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
+       var
+         ai : taicpu;
        begin
+         ai := Taicpu.op_sym(A_B,l);
+         ai.SetCondition(flags_to_cond(f));
+         ai.is_jmp := true;
+         list.concat(ai);
        end;
 
 
@@ -493,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-08-25 23:20:38  florian
+  Revision 1.6  2003-08-28 00:05:29  florian
+    * today's arm patches
+
+  Revision 1.5  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 

@@ -38,14 +38,17 @@ unit cpunode;
        narmadd,
        narmcal,
        narmmat,
-//!!!       narminl,
+       narminl,
        narmcnv
        ;
 
 end.
 {
   $Log$
-  Revision 1.6  2003-08-27 00:27:56  florian
+  Revision 1.7  2003-08-28 00:05:29  florian
+    * today's arm patches
+
+  Revision 1.6  2003/08/27 00:27:56  florian
     + same procedure as very day: today's work on arm
 
   Revision 1.5  2003/08/25 23:20:38  florian

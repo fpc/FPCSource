@@ -155,6 +155,7 @@ implementation
          loadreg(1,_op2);
       end;
 
+
     constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
       begin
          inherited create(op);
@@ -201,6 +202,7 @@ implementation
          loadreg(2,_op3);
       end;
 
+
      constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
        begin
          inherited create(op);
@@ -213,6 +215,7 @@ implementation
          loadreg(1,_op2);
          loadconst(2,aword(_op3));
       end;
+
 
      constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
        begin
@@ -318,6 +321,7 @@ implementation
          loadconst(4,cardinal(_op5));
       end;
 
+
      constructor taicpu.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
       begin
          inherited create(op);
@@ -333,6 +337,7 @@ implementation
          loadconst(4,cardinal(_op5));
       end;
 
+
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
       begin
          inherited create(op);
@@ -340,6 +345,7 @@ implementation
          ops:=1;
          loadsymbol(0,_op1,0);
       end;
+
 
      constructor taicpu.op_const_const_sym(op : tasmop;_op1,_op2 : longint; _op3: tasmsymbol);
       begin
@@ -406,7 +412,8 @@ implementation
                              r:Tsupregset;
                              var unusedregsint:Tsupregset;
                               const spilltemplist:Tspill_temp_list): boolean;
-{$ifdef dummy}
+
+
       function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
 
       var back:Tsupregset;
@@ -466,63 +473,11 @@ implementation
           result := true;
           wasload := true;
           case op of
-            A_LBZ:
+            A_LDR:
               begin
-                counterpart := A_STB;
+                counterpart := A_STR;
               end;
-            A_LBZX:
-              begin
-                counterpart := A_STBX;
-              end;
-            A_LHZ,A_LHA:
-              begin
-                counterpart := A_STH;
-              end;
-            A_LHZX,A_LHAX:
-              begin
-                counterpart := A_STHX;
-              end;
-            A_LWZ:
-              begin
-                counterpart := A_STW;
-              end;
-            A_LWZX:
-              begin
-                counterpart := A_STWX;
-              end;
-            A_STB:
-              begin
-                counterpart := A_LBZ;
-                wasload := false;
-              end;
-            A_STBX:
-              begin
-                counterpart := A_LBZX;
-                wasload := false;
-              end;
-            A_STH:
-              begin
-                counterpart := A_LHZ;
-                wasload := false;
-              end;
-            A_STHX:
-              begin
-                counterpart := A_LHZX;
-                wasload := false;
-              end;
-            A_STW:
-              begin
-                counterpart := A_LWZ;
-                wasload := false;
-              end;
-            A_STWX:
-              begin
-                counterpart := A_LWZX;
-                wasload := false;
-              end;
-            A_LBZU,A_LBZUX,A_LHZU,A_LHZUX,A_LHAU,A_LHAUX,
-            A_LWZU,A_LWZUX,A_STBU,A_STBUX,A_STHU,A_STHUX,
-            A_STWU,A_STWUX:
+            A_LDM:
               internalerror(2003070602);
             else
               result := false;
@@ -602,7 +557,7 @@ implementation
                   pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,0,0);
                 rgget(list,pos,0,helpreg);
                 spill_registers:=true;
-                helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+                helpins:=Taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
                 if pos=nil then
                   list.insertafter(helpins,list.first)
                 else
@@ -626,7 +581,7 @@ implementation
                   pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,0,0);
                 rgget(list,pos,0,helpreg);
                 spill_registers:=true;
-                helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+                helpins:=Taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
                 if pos=nil then
                   list.insertafter(helpins,list.first)
                 else
@@ -675,9 +630,9 @@ implementation
             pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
             rgget(list,pos,0,helpreg);
             spill_registers := true;
-            helpins := taicpu.op_reg_ref(A_STW,helpreg,spilltemplist[supreg]);
+            helpins := taicpu.op_reg_ref(A_STR,helpreg,spilltemplist[supreg]);
             list.insertafter(helpins,self);
-            helpins := taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+            helpins := taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
             if pos=nil then
               list.insertafter(helpins,list.first)
             else
@@ -709,7 +664,7 @@ implementation
                   pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
                   rgget(list,pos,0,helpreg);
                   spill_registers := true;
-                  helpins := taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+                  helpins := taicpu.op_reg_ref(A_LDR,helpreg,spilltemplist[supreg]);
                   if pos=nil then
                     list.insertafter(helpins,list.first)
                   else
@@ -724,10 +679,6 @@ implementation
                 end;
             end;
       end;
-{$else dummy}
-      begin
-      end;
-{$endif dummy}
 
 
     procedure InitAsm;
@@ -742,7 +693,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-08-27 00:27:56  florian
+  Revision 1.6  2003-08-28 00:05:29  florian
+    * today's arm patches
+
+  Revision 1.5  2003/08/27 00:27:56  florian
     + same procedure as very day: today's work on arm
 
   Revision 1.4  2003/08/25 23:20:38  florian

@@ -612,10 +612,17 @@ uses
 
     procedure shifterop_reset(var so : tshifterop);
 
-implementation
+  implementation
+
+    uses
+      verbose;
 
     procedure convert_register_to_enum(var r:Tregister);
       begin
+        if r.enum = R_INTREGISTER then
+          r.enum := toldregister(r.number shr 8)
+        else
+          internalerror(200308271);
       end;
 
 
@@ -643,13 +650,36 @@ implementation
 
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
+      const
+        flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
+          (C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
+           C_GE,C_LT,C_GT,C_LE);
       begin
+        if f>high(flag_2_cond) then
+          internalerror(200112301);
+        result:=flag_2_cond[f];
       end;
 
 
     function supreg_name(r:Tsuperregister):string;
+      const
+        supreg_names:array[0..last_supreg] of string[3]=
+          ('inv',
+           'r0' ,'r2', 'r3','r4','r5','r6','r7','r8',
+           'r8' ,'r9', 'r10','r11','r12','r13','r14','pc'
+           );
+      var
+        s : string[4];
       begin
+        if r in [0..last_supreg] then
+          supreg_name:=supreg_names[r]
+        else
+          begin
+            str(r,s);
+            supreg_name:='reg'+s;
+          end;
       end;
+
 
     procedure shifterop_reset(var so : tshifterop);
       begin
@@ -660,7 +690,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-08-25 23:20:38  florian
+  Revision 1.8  2003-08-28 00:05:29  florian
+    * today's arm patches
+
+  Revision 1.7  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 

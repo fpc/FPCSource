@@ -100,10 +100,6 @@ unit agarmgas;
                s:=s+tostr(offset);
             end;
 
-           if (index.enum < firstreg) or (index.enum > lastreg) then
-             internalerror(20030312);
-           if (base.enum < firstreg) or (base.enum > lastreg) then
-             internalerror(200303123);
            if (index.enum=R_NO) and (base.enum<>R_NO) then
              begin
                 if offset=0 then
@@ -113,7 +109,10 @@ unit agarmgas;
                      else
                        s:=s+'0';
                   end;
-                s:=s+'['+std_reg2str[base.enum]+']'
+                if base.enum=R_INTREGISTER then
+                  s:=s+'('+gas_regname(base.number)+')'
+                else
+                  s:=s+'('+gas_reg2str[base.enum]+')';
              end
            else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
              s:=s+std_reg2str[base.enum]+','+std_reg2str[index.enum]
@@ -175,12 +174,23 @@ unit agarmgas;
       case o.typ of
         top_reg:
           begin
-            if (o.reg.enum < R_R0) or (o.reg.enum > lastreg) then
-              internalerror(200303125);
-            getopstr:=std_reg2str[o.reg.enum];
+            if o.reg.enum=R_INTREGISTER then
+              getopstr:=gas_regname(o.reg.number)
+            else
+              getopstr:=gas_reg2str[o.reg.enum];
           end;
         top_shifterop:
           begin
+            if (o.shifterop^.rs.enum<>R_NO) and (o.shifterop^.shiftimm=0) then
+              begin
+                if o.shifterop^.rs.enum=R_INTREGISTER then
+                  getopstr:=shifterop2str[o.shifterop^.shiftertype]+' '+gas_regname(o.shifterop^.rs.number)
+                else
+                  getopstr:=shifterop2str[o.shifterop^.shiftertype]+' '+gas_reg2str[o.shifterop^.rs.enum];
+              end
+            else if (o.shifterop^.rs.enum=R_NO) then
+              getopstr:=shifterop2str[o.shifterop^.shiftertype]+' #'+tostr(o.shifterop^.shiftimm)
+            else internalerror(200308282);
           end;
         top_const:
           getopstr:=tostr(longint(o.val));
@@ -263,7 +273,16 @@ unit agarmgas;
 
 
   function gas_regname(const r:Tnewregister):string;
+    var s:Tsuperregister;
     begin
+      s:=r shr 8;
+      if s in [RS_R0..RS_R15] then
+        gas_regname:='r'+tostr(s-RS_R0)
+      else
+        begin
+          {Generate a systematic name.}
+          gas_regname:='reg'+tostr(s)+'d';
+        end;
     end;
 
 
@@ -273,7 +292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-08-24 12:27:26  florian
+  Revision 1.4  2003-08-28 00:05:29  florian
+    * today's arm patches
+
+  Revision 1.3  2003/08/24 12:27:26  florian
     * continued to work on the arm port
 
   Revision 1.2  2003/08/20 15:50:12  florian
