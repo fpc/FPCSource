@@ -68,13 +68,16 @@ procedure TGDBController.Command(const s:string);
 begin
 end;
 
+
 procedure TGDBController.CommandBegin(const s:string);
 begin
 end;
 
+
 procedure TGDBController.CommandEnd(const s:string);
 begin
 end;
+
 
 procedure TGDBController.Reset;
 begin
@@ -91,34 +94,24 @@ begin
 end;
 
 
-var
-  stepline : longint;
 procedure TGDBController.StartTrace;
 begin
   Run;
 end;
 
+
 procedure TGDBController.Run;
 begin
-  stepline:=1;
-  DoSelectSourceLine('test.pas',stepline);
 end;
+
 
 procedure TGDBController.TraceStep;
 begin
-  inc(stepline);
-  DoUserScreen;
-  DoDebuggerScreen;
-  DoSelectSourceLine('test.pas',stepline);
 end;
 
 
 procedure TGDBController.TraceNext;
 begin
-  inc(stepline,2);
-  DoUserScreen;
-  DoDebuggerScreen;
-  DoSelectSourceLine('test.pas',stepline);
 end;
 
 
@@ -141,10 +134,12 @@ procedure TGDBController.WriteOutputBuf;
 begin
 end;
 
+
 function  TGDBController.GetOutput : Pchar;
 begin
   GetOutput:=nil;
 end;
+
 
 function  TGDBController.GetError : Pchar;
 begin
@@ -154,7 +149,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-02-16 10:44:14  peter
+  Revision 1.11  1999-02-19 16:54:41  peter
+    * removed step tests
+
+  Revision 1.10  1999/02/16 10:44:14  peter
     * updated
 
   Revision 1.9  1999/02/11 13:03:28  pierre
