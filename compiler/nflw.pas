@@ -732,7 +732,8 @@ implementation
              ) and
              not(
                  (tloadnode(hp).symtableentry.typ=varsym) and
-                 (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions)
+                 ((tvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
+                  (vo_is_thread_var in tvarsym(tloadnode(hp).symtableentry).varoptions))
                 )
             ) then
           begin
@@ -1452,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-01-09 21:52:37  peter
+  Revision 1.65  2003-03-20 15:54:46  peter
+    * don't allow var and out parameters as for loop counter
+
+  Revision 1.64  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 
