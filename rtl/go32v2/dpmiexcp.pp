@@ -482,7 +482,7 @@ function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
 {$ifndef CREATE_C_FUNCTIONS}
 external name 'FPC_setjmp';
 {$else CREATE_C_FUNCTIONS}
-[alias : 'FPC_setjmp'];
+[public, alias : 'FPC_setjmp'];
 begin
   asm
         pushl   %edi
@@ -1009,6 +1009,7 @@ var
    export name '_ori_exceptions';
 {$endif def DPMIEXCP_DEBUG}
   kbd_ori    : tseginfo;
+  int0_ori,
   npx_ori    : tseginfo;
   cbrk_ori,
   cbrk_rmcb  : trealseginfo;
@@ -1062,6 +1063,9 @@ begin
   get_pm_interrupt($75,_except);
   set_pm_interrupt($75,npx_ori);
   npx_ori:=_except;
+  get_pm_interrupt($0,_except);
+  set_pm_interrupt($0,int0_ori);
+  int0_ori:=_except;
   get_pm_interrupt(9,_except);
   set_pm_interrupt(9,kbd_ori);
   kbd_ori:=_except;
@@ -1251,6 +1255,12 @@ begin
   __djgpp__traceback_exit:=0;
 end;
 
+procedure djgpp_int0;
+begin
+  HandleError(200);
+end;
+
+
 procedure djgpp_exception_setup;
 [alias : '___djgpp_exception_setup'];
 var
@@ -1304,6 +1314,8 @@ begin
   kbd_ori.segment:=_except.segment;
   npx_ori.segment:=_except.segment;
   npx_ori.offset:=@djgpp_npx_hdlr;
+  int0_ori.segment:=_except.segment;
+  int0_ori.offset:=@djgpp_int0;
   if (go32_info_block.linear_address_of_primary_screen <> $a0000) then
    kbd_ori.offset:=@djgpp_kbd_hdlr
   else
@@ -1483,19 +1495,8 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.6  2001-06-18 20:36:29  peter
-    * -Ur added
+  Revision 1.7  2001-11-24 14:42:19  carl
+  * completely moerged (except for smartlink option) from fixes branch
 
-  Revision 1.5  2001/06/13 18:27:14  peter
-    * missing exceptions for restoring (merged)
-
-  Revision 1.4  2000/10/05 21:56:45  pierre
-   + exceptions 18 and 19 contributed by Thomas Schatzl (merged)
-
-  Revision 1.3  2000/08/13 19:23:26  peter
-    * fixed double declared ___exit() (merged)
-
-  Revision 1.2  2000/07/13 11:33:39  michael
-  + removed logs
 
 }
