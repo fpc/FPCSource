@@ -93,6 +93,7 @@ type
        procedure   Write(Const S: string); virtual;
        procedure   WriteLn(Const S: string); virtual;
        procedure   WriteChar(C: char); virtual;
+       procedure   WriteCharRaw(C: char); virtual;
        procedure   DelLine(LineCount: integer); virtual;
        procedure   InsLine(LineCount: integer); virtual;
        procedure   HighVideo; virtual;
@@ -169,6 +170,7 @@ type
        procedure   ClrScr; virtual;
        procedure   ClrEol; virtual;
        procedure   WriteChar(C: char); virtual;
+       procedure   WriteCharRaw(C: char); virtual;
        procedure   DelLine(LineCount: integer); virtual;
        procedure   InsLine(LineCount: integer); virtual;
        procedure   UpdateCursor; virtual;
@@ -290,6 +292,11 @@ begin
 end;
 
 procedure TConsoleObject.WriteChar(C: char);
+begin
+  Abstract;
+end;
+
+procedure TConsoleObject.WriteCharRaw(C: char);
 begin
   Abstract;
 end;
@@ -501,14 +508,38 @@ var SkipThis : boolean;
     X,Y,Z    : integer;
 begin
   SkipThis:=false;
-  if C=Esc then begin ANSILevel:=1; SkipThis:=true; end else
-  if (ANSILevel=1) then
+  if C=Esc then
+    begin
+       { Treat EscEsc as a request to print a single Escape #27 char PM }
+      if AnsiLevel=0 then
+        begin
+          ANSILevel:=1;
+          SkipThis:=true;
+        end
+      else
+        begin
+          AnsiLevel:=0;
+          WriteCharRaw(c);
+          SkipThis:=true;
+        end;
+    end
+  else if (ANSILevel=1) then
      begin
        ANSILevel:=0;
        case C of
-            '[' : begin ANSILevel:=2; SkipThis:=true; end;
+            '[' : begin
+                    ANSILevel:=2;
+                    SkipThis:=true;
+                  end;
+       else
+       { Treat Esc+ AnyChar as a request to print that single char raw PM }
+         begin
+           WriteCharRaw(c);
+           SkipThis:=true;
+         end;
        end;
      end;
+
   if SkipThis=false then
   if (ANSILevel=2)
      then begin
@@ -706,6 +737,14 @@ begin
               GotoXY(1,WhereY);
   else {$IFDEF DEBUG}RunError(241){$ENDIF};
   end;
+end;
+
+procedure TANSIViewConsole.WriteCharRaw(C: char);
+var Pos: longint;
+begin
+  Pos:=(CurPos.Y-1)*MaxViewWidth+(WhereX-1);
+  Owner^.Buffer^[Pos]:=ord(C)+256*word(TextAttr);
+  GotoXY(WhereX+1,WhereY);
 end;
 
 procedure TANSIViewConsole.DelLine(LineCount: integer);
@@ -1052,7 +1091,10 @@ end;
 END.
 {
  $Log$
- Revision 1.2  2001-08-12 00:04:50  pierre
+ Revision 1.3  2002-03-25 11:51:43  pierre
+  * Escape Escape and chars ord(char)<=16
+
+ Revision 1.2  2001/08/12 00:04:50  pierre
   * some speed improvements for string operations
 
  Revision 1.1  2001/08/04 11:30:25  peter

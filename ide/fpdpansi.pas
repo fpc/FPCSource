@@ -102,6 +102,9 @@ begin
           textattr:=Buffer[i*linesize+j] shr 8;
           if (textattr<>CurColor) and not SaveAsText then
             ChangeColor(textattr);
+          { Escape escape, by printing two #27 PM }
+          if (ch=#27) or (ord(ch)<=16) then
+            Write(f,#27);
           Write(f,ch);
         end;
       writeln(f);
@@ -112,7 +115,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-11-15 13:30:14  pierre
+  Revision 1.3  2002-03-25 11:51:43  pierre
+   * Escape Escape and chars ord(char)<=16
+
+  Revision 1.2  2001/11/15 13:30:14  pierre
    + save ansi dump as text is filename suffix is '.txt'
 
   Revision 1.1  2001/08/04 11:30:23  peter
