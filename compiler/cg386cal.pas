@@ -523,10 +523,12 @@ implementation
                           end;
                         arraydef,recorddef,stringdef,setdef,objectdef :
                           begin
-                             { 32 bit type set ? }
+                             { even some structured types are 32 bit }
                              if is_widestring(p^.resulttype) or
                                 is_ansistring(p^.resulttype) or
-                                is_smallset(p^.resulttype) then
+                                is_smallset(p^.resulttype) or
+                                ((p^.resulttype^.deftype=objectdef) and
+                                 pobjectdef(p^.resulttype)^.isclass) then
                                begin
                                   inc(pushedparasize,4);
                                   if inlined then
@@ -1590,7 +1592,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1998-11-30 09:43:00  pierre
+  Revision 1.50  1998-12-06 13:12:44  florian
+    * better code generation for classes which are passed as parameters to
+      subroutines
+
+  Revision 1.49  1998/11/30 09:43:00  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
