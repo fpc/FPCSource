@@ -11,6 +11,7 @@ units=unixutils
 
 [require]
 libc=y
+packages=libc fcl
 
 [install]
 fpcpackage=y
