@@ -118,7 +118,7 @@ unit hcodegen;
        aktexit2label : pasmlabel;
 
        { only used in constructor for fail or if getmem fails }
-       quickexitlabel : pasmlabel;
+       faillabel,quickexitlabel : pasmlabel;
 
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
@@ -296,7 +296,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  1999-08-16 18:23:56  peter
+  Revision 1.39  1999-08-19 13:10:18  pierre
+   + faillabel for _FAIL
+
+  Revision 1.38  1999/08/16 18:23:56  peter
     * reset resourcestringlist in newmodule.
 
   Revision 1.37  1999/08/04 00:23:02  florian
