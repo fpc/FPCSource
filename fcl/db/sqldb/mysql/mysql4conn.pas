@@ -127,10 +127,17 @@ end;
 
 
 function TMySQLConnection.GetClientInfo: string;
+
 begin
-  CheckConnected;
-// Ask MvC
-  Result:=strpas(pchar(mysql_get_client_info));
+{$IfDef LinkDynamically}
+  // To make it possible to call this if there's no connection yet
+  InitialiseMysql4;
+{$EndIf}
+  Result:=strpas(mysql_get_client_info());
+{$IfDef LinkDynamically}
+  ReleaseMysql4;
+{$EndIf}
+
 end;
 
 function TMySQLConnection.GetServerStatus: String;
