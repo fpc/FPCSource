@@ -72,7 +72,7 @@ var
 
 begin
   TTYName:='';
-  if (fpfstat(handle,st)=-1) and isatty(handle) then
+  if (fpfstat(handle,st)=-1) and (isatty (handle)<>-1) then
    exit;
   mydev:=st.st_dev;
   myino:=st.st_ino;
@@ -90,10 +90,8 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-07-08 13:23:21  daniel
-    * gpm now uses a Pascal translation of libgpm instead of linking against
-      it.
-    * isatty result type changed into boolean
+  Revision 1.3  2004-07-09 19:03:35  peter
+    * isatty return cint again
 
   Revision 1.1  2003/11/19 17:13:00  marco
    * new termio units

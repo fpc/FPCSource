@@ -470,11 +470,11 @@ begin
         end
       else
         begin {use your current vc}
-          if isatty(0) then
+          if isatty(0)<>0 then
             tty:=ttyname(0);     { stdin }
-          if (tty='') and isatty(1) then
+          if (tty='') and (isatty(1)<>0) then
             tty:=ttyname(1);     { stdout }
-          if (tty='') and isatty(2) then
+          if (tty='') and (isatty(2)<>0) then
             tty:=ttyname(2);     { stderr }
           if (tty='') then
             begin
@@ -953,7 +953,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-07-08 13:23:21  daniel
+  Revision 1.8  2004-07-09 19:03:35  peter
+    * isatty return cint again
+
+  Revision 1.7  2004/07/08 13:23:21  daniel
     * gpm now uses a Pascal translation of libgpm instead of linking against
       it.
     * isatty result type changed into boolean

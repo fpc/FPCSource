@@ -1,3 +1,7 @@
+{
+  $Id$
+}
+
 {******************************************************************************
                          IOCtl and Termios calls
 ******************************************************************************}
@@ -140,18 +144,18 @@ begin
  {$endif}
 end;
 
-Function IsATTY (Handle:cint):boolean;
+Function IsATTY (Handle:cint):cint;
 {
   Check if the filehandle described by 'handle' is a TTY (Terminal)
 }
 var
   t : Termios;
 begin
- IsAtty:=TCGetAttr(Handle,t)<>-1;
+ IsAtty:=TCGetAttr(Handle,t);
 end;
 
 
-Function IsATTY(var f: text):boolean;
+Function IsATTY(var f: text):cint;
 {
   Idem as previous, only now for text variables.
 }
@@ -159,3 +163,9 @@ begin
   IsATTY:=IsaTTY(textrec(f).handle);
 end;
 
+{
+  $Log$
+  Revision 1.4  2004-07-09 19:03:35  peter
+    * isatty return cint again
+
+}
