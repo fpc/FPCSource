@@ -1,3 +1,5 @@
+{ %skiptarget=go32v2 }
+
 {$mode objfpc}
 uses
    sysutils;
