@@ -27,18 +27,18 @@ Type
   EPipeSeek = Class (EPipeError);
   EPipeCreation = Class (EPipeError);
 
-  TPipeStream = Class (THandleStream)
-    public
-      Function Seek (Offset : Longint;Origin : Word) : longint;override;
-    end;
-
-  TInputPipeStream = Class(TPipeStream)
+  TInputPipeStream = Class(THandleStream)
+    Private 
+      FPos : longint;
     public
       Function Write (Const Buffer; Count : Longint) :Longint; Override;
+      Function Seek (Offset : Longint;Origin : Word) : longint;override;
+      Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
 
-  TOutputPipeStream = Class(TPipeStream)
+  TOutputPipeStream = Class(THandleStream)
     Public
+      Function Seek (Offset : Longint;Origin : Word) : longint;override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
 
@@ -70,22 +70,52 @@ begin
     Raise EPipeCreation.Create (EPipeMsg)
 end;
 
-Function TPipeStream.Seek (Offset : Longint;Origin : Word) : longint;
-
-begin
-  Raise EPipeSeek.Create (ENoSeekMsg);
-end;
-
 Function TInputPipeStream.Write (Const Buffer; Count : Longint) : longint;
 
 begin
   Raise ENoWritePipe.Create (ENoWriteMsg);
 end;
 
+Function TInputPipeStream.Read (Var Buffer; Count : Longint) : longint;
+
+begin
+  Result:=Inherited Read(Buffer,Count);
+  Inc(FPos,Result);
+end;
+
+Function TInputPipeStream.Seek (Offset : Longint;Origin : Word) : longint;
+
+Const BufSize = 100;
+
+Var Buf : array[1..BufSize] of Byte;
+
+begin
+  If (Origin=soFromCurrent) and (Offset=0) then
+     result:=FPos;
+  { Try to fake seek by reading and discarding }
+  if Not((Origin=soFromCurrent) and (Offset>=0) or  
+         ((Origin=soFrombeginning) and (OffSet>=FPos))) then 
+     Raise EPipeSeek.Create(ENoSeekMSg);
+  if Origin=soFromBeginning then
+    Dec(Offset,FPos);
+  While ((Offset Div BufSize)>0) 
+        and (Read(Buf,SizeOf(Buf))=BufSize) do
+     Dec(Offset,BufSize);
+  If (Offset>0) then
+    Read(Buf,BufSize);
+  Result:=FPos;   
+end;
+
 Function TOutputPipeStream.Read(Var Buffer; Count : Longint) : longint;
 
 begin
   Raise ENoReadPipe.Create (ENoReadMsg);
+end;
+
+Function TOutputPipeStream.Seek (Offset : Longint;Origin : Word) : longint;
+
+begin
+  Raise EPipeSeek.Create (ENoSeekMsg);
 end;
 
 end.
