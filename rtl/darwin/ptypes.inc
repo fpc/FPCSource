@@ -102,7 +102,7 @@ CONST
     NAME_MAX = 255;     {14}    { Maximum number of bytes in filename }
     PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
 
-    SYS_NMLN = 32;              {BSD utsname struct limit}
+    SYS_NMLN = 256;              {BSD utsname struct limit}
 
     SIG_MAXSIG      = 32;	// highest signal version
 
@@ -175,7 +175,10 @@ Const
 
 {
   $Log$
-  Revision 1.9  2004-11-14 12:24:33  marco
+  Revision 1.10  2005-02-11 13:07:05  jonas
+    * fixed SYS_NMLN constant
+
+  Revision 1.9  2004/11/14 12:24:33  marco
    * priority constants
 
   Revision 1.8  2004/09/09 20:29:06  jonas
