@@ -69,6 +69,9 @@ unit systems;
        );
 
      const
+       { alias for supported_target field in tasminfo }
+       target_any = target_none;
+
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
        {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
@@ -162,6 +165,7 @@ unit systems;
           idtxt       : string[9];
           asmbin      : string[8];
           asmcmd      : string[50];
+          supported_target : ttarget;
           allowdirect,
           externals,
           needar      : boolean;
@@ -538,6 +542,7 @@ implementation
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -553,6 +558,7 @@ implementation
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_i386_os2;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -568,6 +574,7 @@ implementation
             idtxt  : 'ASW';
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_i386_win32;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -584,6 +591,7 @@ implementation
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
+            supported_target : target_i386_go32v2;
             allowdirect : true;
             externals : true;
             needar : true;
@@ -599,6 +607,7 @@ implementation
             idtxt  : 'NASMWIN32';
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
+            supported_target : target_i386_win32;
             allowdirect : true;
             externals : true;
             needar : true;
@@ -614,6 +623,7 @@ implementation
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
+            supported_target : target_i386_linux;
             allowdirect : true;
             externals : true;
             needar : true;
@@ -629,6 +639,7 @@ implementation
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
+            supported_target : target_any; { what should I write here ?? }
             allowdirect : true;
             externals : true;
             needar : true;
@@ -644,6 +655,7 @@ implementation
             idtxt  : 'TASM';
             asmbin : 'tasm';
             asmcmd : '/m2 $ASM $OBJ';
+            supported_target : target_any; { what should I write here ?? }
             allowdirect : true;
             externals : true;
             needar : true;
@@ -659,6 +671,7 @@ implementation
             idtxt  : 'MASM';
             asmbin : 'masm';
             asmcmd : '$ASM $OBJ';
+            supported_target : target_any; { what should I write here ?? }
             allowdirect : true;
             externals : true;
             needar : true;
@@ -674,6 +687,7 @@ implementation
             idtxt  : 'DBG';
             asmbin : '';
             asmcmd : '';
+            supported_target : target_any;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -689,6 +703,7 @@ implementation
             idtxt  : 'COFF';
             asmbin : '';
             asmcmd : '';
+            supported_target : target_i386_go32v2;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -704,6 +719,7 @@ implementation
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
+            supported_target : target_i386_win32;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -721,6 +737,7 @@ implementation
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -736,6 +753,7 @@ implementation
             idtxt  : 'GAS';
             asmbin : 'as68k'; { Gas for the Amiga}
             asmcmd : '--register-prefix-optional -o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -751,6 +769,7 @@ implementation
             idtxt  : 'MIT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -766,6 +785,7 @@ implementation
             idtxt  : 'MOT';
             asmbin : '';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -781,6 +801,7 @@ implementation
             idtxt  : 'MPW';
             asmbin : '';
             asmcmd : '-model far -o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -798,6 +819,7 @@ implementation
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -815,6 +837,7 @@ implementation
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -830,6 +853,7 @@ implementation
             idtxt  : 'PPCAsm';
             asmbin : 'PPCAsm';
             asmcmd : '-o $OBJ $ASM';
+            supported_target : target_any;
             allowdirect : true;
             externals : false;
             needar : true;
@@ -1599,7 +1623,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2000-05-11 09:07:45  pierre
+  Revision 1.104  2000-05-23 21:26:52  pierre
+    + added supported_target fiedl to tasminfo record
+      to disregard wrong assembler settings
+
+  Revision 1.103  2000/05/11 09:07:45  pierre
    * change tosinfo.shortname length, reported by Kovacs Attila Zoltan
 
   Revision 1.102  2000/04/22 14:25:03  jonas
