@@ -293,6 +293,10 @@ interface
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
+       cpu2str : array[TSystemCpu] of string =
+            ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
+             'mips','arm');
+
     var
        targetinfos   : array[tsystem] of psysteminfo;
        arinfos       : array[tar] of parinfo;
@@ -690,7 +694,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.86  2004-02-22 16:51:50  peter
+  Revision 1.87  2004-03-20 22:57:42  florian
+    + cpu2str added
+
+  Revision 1.86  2004/02/22 16:51:50  peter
     * tf_need_symbol_size added
 
   Revision 1.85  2004/02/19 20:40:15  olle
