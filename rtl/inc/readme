@@ -9,7 +9,6 @@ file.inc        Untyped file support routines.
 filerec.inc     Untyped file record definition.
 heap.inc        Runtime heap manager .
 heaph.inc       Declarations of Heap functions.
-heaptrc.inc     Runtime memory leak tracer.
 innr.inc        Internal function delcarations.
 int64.inc       Support for 64-bit integer arithmetic.
 lstrings.pp     LongStrings routine implementation.
@@ -29,3 +28,5 @@ The unit files are:
 ucomplex.pp     Complex functions using operator overloading
 getopts.pp      Pascal implementation of the GNU Getops
 objects.pp      Turbo Pascal like implementation of objects unit
+heaptrc.pp      Runtime memory leak tracer.
+
