@@ -1,40 +1,46 @@
 unit mysql_version;
-
-{$undef use_mysql_321} { if undefined, use mysql 3.23 interface }
-
-
-{
-  Translated from mysql_version.h by Michael Van Canneyt
-  (michael@tfdec1.fys.kuleuven.ac.be)
-
-  updated to match version 3.23 header files of mysql by Bernhard Steffen
-  (bernhard.steffen@gmx.net)
-}
-
 interface
 
+{
+  Automatically converted by H2Pas 0.99.15 from mysql_version.ph
+  The following command line parameters were used:
+    -p
+    -D
+    -l
+    mysqlclient
+    mysql_version.ph
+}
 
-{ Version numbers for protocol & mysqld }
-Const
+  const
+    External_library='mysqlclient'; {Setup as you need}
 
-{$ifdef use_mysql_321}
-  MYSQL_SERVER_VERSION : pchar ='3.21.28-gamma';
-  FRM_VER = 6;
-  MYSQL_VERSION_ID =32128;
-{$else}
-  MYSQL_SERVER_VERSION : pchar ='3.23.34';
-  FRM_VER = 6; { ??? }
-  MYSQL_VERSION_ID =32334;
-{$endif}
+  { Pointers to basic pascal types, inserted by h2pas conversion program.}
+  Type
+    PLongint  = ^Longint;
+    PSmallInt = ^SmallInt;
+    PByte     = ^Byte;
+    PWord     = ^Word;
+    PDWord    = ^DWord;
+    PDouble   = ^Double;
+
+{$PACKRECORDS C}
+
+  { Copyright Abandoned 1996, 1999, 2001 MySQL AB
+     This file is public domain and comes with NO WARRANTY of any kind  }
+  { Version numbers for protocol & mysqld  }
+
+  const
+     PROTOCOL_VERSION = 10;
+     MYSQL_SERVER_VERSION = '4.0.1-alpha';
+     MYSQL_SERVER_SUFFIX = '-max';
+     FRM_VER = 6;
+     MYSQL_VERSION_ID = 40001;
+     MYSQL_PORT = 3306;
+     MYSQL_UNIX_ADDR = '/tmp/mysql.sock';
+  { mysqld compile time options  }
+     MYSQL_CHARSET = 'latin1';
 
 implementation
 
+
 end.
-  $Log$
-  Revision 1.3  2002-09-07 15:42:53  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/26 17:52:31  michael
-  + Upgraded to 3.23
-
-}
