@@ -564,7 +564,8 @@ unit pmodules;
             { close old_current_ppu on system that are
               short on file handles like DOS PM }
 {$ifdef SHORT_ON_FILE_HANDLES}
-            old_current_ppu^.tempclose;
+            if assigned(old_current_ppu) then
+              old_current_ppu^.tempclose;
 {$endif SHORT_ON_FILE_HANDLES}
           { now we can register the unit }
             current_module^.loaded_from:=old_current_module;
@@ -593,7 +594,8 @@ unit pmodules;
           end;
          { set the old module }
 {$ifdef SHORT_ON_FILE_HANDLES}
-         old_current_ppu^.tempopen;
+         if assigned(old_current_ppu) then
+           old_current_ppu^.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
          current_ppu:=old_current_ppu;
          current_module:=old_current_module;
@@ -1457,7 +1459,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.152  1999-09-01 22:18:42  peter
+  Revision 1.153  1999-09-13 22:56:17  peter
+    * fixed crashes under plain dos
+
+  Revision 1.152  1999/09/01 22:18:42  peter
     * moved parsing interface/implementation to -vu
 
   Revision 1.151  1999/08/31 15:51:10  pierre
