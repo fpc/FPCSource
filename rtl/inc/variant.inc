@@ -55,13 +55,16 @@ procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
      variantmanager.varclear(v);
   end;
 
-Procedure fpc_Write_Text_Variant(Len : Longint;var f : Text;const v : variant); iocheck; [Public,Alias:'FPC_WRITE_TEXT_VARIANT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); iocheck; [Public,Alias:'FPC_WRITE_TEXT_VARIANT']; compilerproc;
 Begin
   If (InOutRes<>0) then
    exit;
   case TextRec(f).mode of
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
-      variantmanager.writevariant(f,v,len);
+      if len=-1 then
+        variantmanager.write0variant(f,v)
+      else
+        variantmanager.writevariant(f,v,len);
     fmInput: InOutRes:=105
     else InOutRes:=103;
   end;
@@ -70,7 +73,7 @@ End;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
   begin
   end;
-  
+
 function fpc_dynarray_to_variant(const v : variant;typeinfo : pointer) : pointer;compilerproc;
   begin
   end;
@@ -586,7 +589,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.13  2003-09-03 14:09:37  florian
+  Revision 1.14  2003-10-04 23:40:42  florian
+    * write helper comproc for variants fixed
+
+  Revision 1.13  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...

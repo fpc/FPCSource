@@ -169,8 +169,8 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 {$endif HASWIDECHAR}
 
 {$ifdef HASVARIANT}
-// Procedure fpc_Write_Text_Variant(Len : Longint;var f : Text;const v : variant);compilerproc;
 // function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 {$endif HASVARIANT}
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
@@ -309,7 +309,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.48  2003-09-02 13:04:08  florian
+  Revision 1.49  2003-10-04 23:40:42  florian
+    * write helper comproc for variants fixed
+
+  Revision 1.48  2003/09/02 13:04:08  florian
     * ifdef'd some helpers
 
   Revision 1.47  2003/09/01 20:47:23  peter

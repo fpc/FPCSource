@@ -152,7 +152,7 @@ type
       {!!!!!!!}
 
       { operators }
-      varop : procedure(var left : variant;const right : variant;opcdoe : tvarop);
+      varop : procedure(var left : variant;const right : variant;opcode : tvarop);
       cmpop : function(const left,right : variant;const opcode : tvarop) : boolean;
       varneg : procedure(var v : variant);
       varnot : procedure(var v : variant);
@@ -282,7 +282,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.11  2002-10-10 19:24:28  florian
+  Revision 1.12  2003-10-04 23:40:42  florian
+    * write helper comproc for variants fixed
+
+  Revision 1.11  2002/10/10 19:24:28  florian
     + write(ln) support for variants added
 
   Revision 1.10  2002/10/09 19:08:22  florian
