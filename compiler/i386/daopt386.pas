@@ -1702,11 +1702,11 @@ begin
            ) or
            (refInSequence(ref,c,refsEq) and
             ((reg <> regWritten) or
-             ((nrOfMods <> 1) and
-              {StarMod is always of the type ait_instruction}
-              (Taicpu(StartMod).oper[0].typ = top_ref) and
-              refsEq(Taicpu(StartMod).oper[0].ref^, ref)
-             )
+             not((nrOfMods = 1) and
+                 {StarMod is always of the type ait_instruction}
+                 (Taicpu(StartMod).oper[0].typ = top_ref) and
+                 refsEq(Taicpu(StartMod).oper[0].ref^, ref)
+                )
             )
            )
           )
@@ -2454,7 +2454,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2000-12-25 00:07:32  peter
+  Revision 1.15  2000-12-31 11:00:31  jonas
+    * fixed potential bug in writeToMemDestroysContents
+
+  Revision 1.14  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
