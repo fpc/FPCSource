@@ -688,7 +688,8 @@ function CompilerOpenInputFile(const filename: string): pinputfile; {$ifndef FPC
 var f: pinputfile;
     W: PSourceWindow;
 begin
-  if assigned(CompilingHiddenFile) then
+  if assigned(CompilingHiddenFile) and
+     (NameandExtof(filename)=CompilingHiddenFile^.Editor^.Filename) then
     W:=CompilingHiddenFile
   else
     W:=EditorWindowFile(FExpand(filename));
@@ -705,7 +706,11 @@ function CompilerOpenInputFile(const filename: string): tinputfile; {$ifndef FPC
 var f: tinputfile;
     W: PSourceWindow;
 begin
-  W:=EditorWindowFile(FExpand(filename));
+  if assigned(CompilingHiddenFile) and
+     (NameandExtof(filename)=CompilingHiddenFile^.Editor^.Filename) then
+    W:=CompilingHiddenFile
+  else
+    W:=EditorWindowFile(FExpand(filename));
   if Assigned(W) and (W^.Editor^.GetModified) then
     f:=TFPInputFile.Create(W^.Editor)
   else
@@ -1293,7 +1298,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-09-13 22:30:50  pierre
+  Revision 1.15  2002-09-26 15:00:35  pierre
+   * fix problems with system unit is not present for __fp__ compilation
+
+  Revision 1.14  2002/09/13 22:30:50  pierre
    * only fpc uses video unit
 
   Revision 1.13  2002/09/09 06:53:54  pierre
