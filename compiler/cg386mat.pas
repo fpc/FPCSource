@@ -365,11 +365,8 @@ implementation
                         del_reference(p^.left^.location.reference);
                         hregisterlow:=getregister32;
                         hregisterhigh:=getregister32;
-                        emit_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
-                          hregisterlow);
-                        hr:=newreference(p^.left^.location.reference);
-                        inc(hr^.offset,4);
-                        emit_ref_reg(A_MOV,S_L,hr,
+                        emit_mov_ref_reg64(p^.left^.location.reference,
+                          hregisterlow,
                           hregisterhigh);
                      end;
                 end
@@ -706,12 +703,9 @@ implementation
                      del_reference(p^.left^.location.reference);
                      p^.location.registerlow:=getregister32;
                      p^.location.registerhigh:=getregister32;
-                     emit_ref_reg(A_MOV,S_L,
-                       newreference(p^.left^.location.reference),p^.location.registerlow);
-                     hr:=newreference(p^.left^.location.reference);
-                     inc(hr^.offset,4);
-                     emit_ref_reg(A_MOV,S_L,
-                       hr,p^.location.registerhigh);
+                     emit_mov_ref_reg64(p^.left^.location.reference,
+                       p^.location.registerlow,
+                       p^.location.registerhigh);
                   end;
               end;
             {
@@ -956,12 +950,9 @@ implementation
                      del_reference(p^.left^.location.reference);
                      p^.location.registerlow:=getregister32;
                      p^.location.registerhigh:=getregister32;
-                     emit_ref_reg(A_MOV,S_L,
-                       newreference(p^.left^.location.reference),p^.location.registerlow);
-                     hr:=newreference(p^.left^.location.reference);
-                     inc(hr^.offset,4);
-                     emit_ref_reg(A_MOV,S_L,
-                       hr,p^.location.registerhigh);
+                     emit_mov_ref_reg64(p^.left^.location.reference,
+                       p^.location.registerlow,
+                       p^.location.registerhigh);
                      emit_reg(A_NOT,S_L,p^.location.registerlow);
                      emit_reg(A_NOT,S_L,p^.location.registerhigh);
                   end;
@@ -1001,7 +992,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2000-02-09 13:22:47  peter
+  Revision 1.43  2000-02-18 21:25:48  florian
+    * fixed a bug in int64/qword handling was a quite ugly one
+
+  Revision 1.42  2000/02/09 13:22:47  peter
     * log truncated
 
   Revision 1.41  2000/01/27 15:46:00  florian

@@ -1690,23 +1690,13 @@ implementation
                                     begin
                                        hregister:=p^.location.registerlow;
                                        hregister2:=p^.location.registerhigh;
-                                       emit_ref_reg(A_MOV,S_L,
-                                         newreference(p^.left^.location.reference),hregister);
-                                       hr:=newreference(p^.left^.location.reference);
-                                       inc(hr^.offset,4);
-                                       emit_ref_reg(A_MOV,S_L,
-                                         hr,hregister2);
+                                       emit_mov_ref_reg64(p^.left^.location.reference,hregister,hregister2);
                                     end
                                   else
                                     begin
                                        hregister:=getregister32;
                                        hregister2:=getregister32;
-                                       emit_ref_reg(A_MOV,S_L,
-                                         newreference(p^.left^.location.reference),hregister);
-                                       hr:=newreference(p^.left^.location.reference);
-                                       inc(hr^.offset,4);
-                                       emit_ref_reg(A_MOV,S_L,
-                                         hr,hregister2);
+                                       emit_mov_ref_reg64(p^.left^.location.reference,hregister,hregister2);
                                     end;
                                end;
                              clear_location(p^.location);
@@ -2277,7 +2267,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2000-02-18 16:13:28  florian
+  Revision 1.96  2000-02-18 21:25:48  florian
+    * fixed a bug in int64/qword handling was a quite ugly one
+
+  Revision 1.95  2000/02/18 16:13:28  florian
     * optimized ansistring compare with ''
     * fixed 852
 

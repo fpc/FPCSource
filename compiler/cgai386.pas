@@ -68,6 +68,7 @@ unit cgai386;
 
     procedure emit_mov_loc_ref(const t:tlocation;const ref:treference;siz:topsize);
     procedure emit_mov_loc_reg(const t:tlocation;reg:tregister);
+    procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
     procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
     procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
     procedure emit_push_loc(const t:tlocation);
@@ -852,6 +853,34 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         end;
       end;
 
+    procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
+
+      var
+         hr : preference;
+
+      begin
+         { if we load a 64 bit reference, we must be careful because }
+         { we could overwrite the registers of the reference by      }
+         { accident                                                  }
+         if r.base=rl then
+           begin
+              emit_reg_reg(A_MOV,S_L,r.base,
+                R_EDI);
+              r.base:=R_EDI;
+           end
+         else if r.index=rl then
+           begin
+              emit_reg_reg(A_MOV,S_L,r.index,
+                R_EDI);
+              r.index:=R_EDI;
+           end;
+         emit_ref_reg(A_MOV,S_L,
+           newreference(r),rl);
+         hr:=newreference(r);
+         inc(hr^.offset,4);
+         emit_ref_reg(A_MOV,S_L,
+           hr,rh);
+      end;
 
 {*****************************************************************************
                            Emit String Functions
@@ -3752,7 +3781,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.82  2000-02-18 20:53:14  pierre
+  Revision 1.83  2000-02-18 21:25:48  florian
+    * fixed a bug in int64/qword handling was a quite ugly one
+
+  Revision 1.82  2000/02/18 20:53:14  pierre
     * fixes a stabs problem for functions
     + includes a stabs local var for with statements
       the name is with in lowercase followed by an index
