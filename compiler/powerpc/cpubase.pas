@@ -384,7 +384,6 @@ uses
       toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool);
 
       toper=record
-        ot  : longint;
         case typ : toptype of
          top_none   : ();
          top_reg    : (reg:tregister);
@@ -861,7 +860,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-08-17 16:59:20  jonas
+  Revision 1.65  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.64  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

@@ -382,6 +382,7 @@ implementation
          if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
            begin
              aktfilepos:=left.fileinfo;
+             printnode(output,left);
              CGMessage(cg_e_illegal_expression);
            end;
 
@@ -854,7 +855,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-08-10 17:25:23  peter
+  Revision 1.61  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.60  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.59  2003/06/17 19:24:08  jonas

@@ -55,7 +55,7 @@ interface
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
           procedure second_cmpfloat;virtual;abstract;
-          procedure second_cmpboolean;virtual;abstract;
+          procedure second_cmpboolean;virtual;
           procedure second_cmpsmallset;virtual;abstract;
           procedure second_cmp64bit;virtual;abstract;
           procedure second_cmpordinal;virtual;abstract;
@@ -702,6 +702,12 @@ interface
       end;
 
 
+    procedure tcgaddnode.second_cmpboolean;
+      begin
+         second_cmpordinal;
+      end;
+
+
 {*****************************************************************************
                                 pass_2
 *****************************************************************************}
@@ -754,7 +760,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-07-08 21:24:59  peter
+  Revision 1.16  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.15  2003/07/08 21:24:59  peter
     * sparc fixes
 
   Revision 1.14  2003/07/06 17:44:12  peter

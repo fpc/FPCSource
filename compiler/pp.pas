@@ -112,6 +112,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif SPARC}
+   {$ifdef ARM}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif ARM}
    {$ifndef CPUDEFINED}
      {$fatal A CPU type switch must be defined}
    {$endif CPUDEFINED}
@@ -190,7 +196,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-07-07 19:59:41  peter
+  Revision 1.25  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.24  2003/07/07 19:59:41  peter
     * Fix halt() call
 
   Revision 1.23  2003/07/06 15:31:21  daniel

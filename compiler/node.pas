@@ -619,7 +619,8 @@ implementation
         else
           write(t,' ,resulttype = <nil>');
         writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
-                  ', loc = ',tcgloc2str[location.loc],
+                  // ', loc = ',tcgloc2str[location.loc],
+                  ', expectloc = ',tcgloc2str[expectloc],
                   ', intregs = ',registers32,
                   ', fpuregs = ',registersfpu);
       end;
@@ -980,7 +981,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-08-10 17:25:23  peter
+  Revision 1.64  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.63  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.62  2003/05/26 21:17:17  peter

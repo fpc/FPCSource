@@ -420,7 +420,7 @@ unit i_linux;
             name         : 'Linux for ARM';
             shortname    : 'linux';
             flags        : [];
-            cpu          : cpu_SPARC;
+            cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
@@ -454,7 +454,7 @@ unit i_linux;
             ar           : ar_gnu_ar;
             res          : res_none;
             script       : script_unix;
-            endian       : endian_big;
+            endian       : endian_little;
             alignment    :
               (
                 procalign       : 4;
@@ -522,7 +522,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-07-21 11:52:57  florian
+  Revision 1.11  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.10  2003/07/21 11:52:57  florian
     * very basic stuff for the arm
 
   Revision 1.9  2003/07/06 17:58:22  peter

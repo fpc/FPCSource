@@ -273,6 +273,10 @@ implementation
         ordpointertype:=u32bittype;
         defaultordconsttype:=s32bittype;
 {$endif}
+{$ifdef arm}
+        ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
+{$endif arm}
       end;
 
 
@@ -344,6 +348,14 @@ implementation
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif}
+{$ifdef arm}
+        ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif arm}
         { some other definitions }
         voidpointertype.setdef(tpointerdef.create(voidtype));
         charpointertype.setdef(tpointerdef.create(cchartype));
@@ -492,7 +504,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-08-10 17:25:23  peter
+  Revision 1.54  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.53  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.52  2003/05/26 21:17:18  peter

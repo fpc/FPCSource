@@ -93,6 +93,10 @@ uses
         { nothing to add }
       end;
 
+    function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
+    function setroundingmode(i : taicpu;rm : troundingmode) : taicpu;
+    function setcondition(i : taicpu;c : tasmcond) : taicpu;
+
     procedure InitAsm;
     procedure DoneAsm;
 
@@ -720,10 +724,39 @@ implementation
       begin
       end;
 
+
+    function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
+      begin
+        i.oppostfix:=pf;
+        result:=i;
+      end;
+
+
+    function setroundingmode(i : taicpu;rm : troundingmode) : taicpu;
+      begin
+        i.roundingmode:=rm;
+        result:=i;
+      end;
+
+
+    function setcondition(i : taicpu;c : tasmcond) : taicpu;
+      begin
+        i.condition:=c;
+        result:=i;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.7  2003-08-29 21:36:28  florian
+  Revision 1.8  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.7  2003/08/29 21:36:28  florian
     * fixed procedure entry/exit code
     * started to fix reference handling
 

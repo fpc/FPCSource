@@ -370,6 +370,7 @@ var
   j,l  : longint;
   d    : DirStr;
   e    : ExtStr;
+  s    : string;
   forceasm : tasm;
 begin
   if opt='' then
@@ -483,6 +484,26 @@ begin
                            include(initmoduleswitches,cs_fp_emulation);
                        end;
 {$endif cpufpemu}
+{$ifdef arm}
+                   'f' :
+                     begin
+                       s:=upper(copy(more,j+1,length(more)-j));
+                       if s='SOFT' then
+                         initfputype:=fpu_soft
+                       else if s='FPA' then
+                         initfputype:=fpu_fpa
+                       else if s='FPA10' then
+                         initfputype:=fpu_fpa10
+                       else if s='FPA11' then
+                         initfputype:=fpu_fpa11
+                       else if s='VFP' then
+                         initfputype:=fpu_vfp
+                       else
+                         IllegalPara(opt);
+                       break;
+                     end;
+{$endif arm}
+
                     'h' :
                        begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1700,6 +1721,12 @@ begin
   def_symbol('CPUVIS');
   def_symbol('CPU32');
 {$endif}
+{$ifdef arm}
+  def_symbol('CPUARM');
+  def_symbol('CPU32');
+  def_symbol('FPC_HAS_TYPE_DOUBLE');
+  def_symbol('FPC_HAS_TYPE_SINGLE');
+{$endif arm}
 
 { get default messagefile }
 {$ifdef Delphi}
@@ -1925,7 +1952,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.99  2003-05-13 19:14:41  peter
+  Revision 1.100  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.99  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

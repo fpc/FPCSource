@@ -369,7 +369,8 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); virtual; abstract;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const arrayref,lenref:treference;elesize:integer);virtual;abstract;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);virtual;abstract;
+//          procedure g_copyvaluepara_openarray(list : taasmoutput;const arrayref,lenref:tparalocation;elesize:integer);virtual;
           {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
@@ -1812,6 +1813,91 @@ unit cgobj;
                             Entry/Exit Code Functions
 *****************************************************************************}
 
+{    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const arrayloc,lenloc : tparalocation;elesize:integer);
+      var
+        power,len  : longint;
+        opsize : topsize;
+        r,r2,rsp:Tregister;
+      begin
+      {
+        { get stack space }
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EDI;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
+        r2.enum:=R_INTREGISTER;
+        rg.getexplicitregisterint(list,NR_EDI);
+        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
+        list.concat(Taicpu.op_reg(A_INC,S_L,r));
+        if (elesize<>1) then
+         begin
+           if ispowerof2(elesize, power) then
+             list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r))
+           else
+             list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,r));
+         end;
+        list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
+        { align stack on 4 bytes }
+        list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,rsp));
+        { load destination }
+        a_load_reg_reg(list,OS_INT,OS_INT,rsp,r);
+
+        { don't destroy the registers! }
+        r2.number:=NR_ECX;
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
+        r2.number:=NR_ESI;
+        list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
+
+        { load count }
+        r2.number:=NR_ECX;
+        a_load_ref_reg(list,OS_INT,OS_INT,lenref,r2);
+
+        { load source }
+        r2.number:=NR_ESI;
+        a_load_ref_reg(list,OS_INT,OS_INT,ref,r2);
+
+        { scheduled .... }
+        r2.number:=NR_ECX;
+        list.concat(Taicpu.op_reg(A_INC,S_L,r2));
+
+        { calculate size }
+        len:=elesize;
+        opsize:=S_B;
+        if (len and 3)=0 then
+         begin
+           opsize:=S_L;
+           len:=len shr 2;
+         end
+        else
+         if (len and 1)=0 then
+          begin
+            opsize:=S_W;
+            len:=len shr 1;
+          end;
+
+        if ispowerof2(len, power) then
+          list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,r2))
+        else
+          list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,r2));
+        list.concat(Taicpu.op_none(A_REP,S_NO));
+        case opsize of
+          S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
+          S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
+          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+        end;
+        rg.ungetregisterint(list,r);
+        r2.number:=NR_ESI;
+        list.concat(Taicpu.op_reg(A_POP,S_L,r2));
+        r2.number:=NR_ECX;
+        list.concat(Taicpu.op_reg(A_POP,S_L,r2));
+
+        { patch the new address }
+        a_load_reg_ref(list,OS_INT,OS_INT,rsp,ref);
+      }
+      end;
+
+}
+
     procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
       end;
@@ -1879,7 +1965,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.116  2003-08-17 16:59:20  jonas
+  Revision 1.117  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.116  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

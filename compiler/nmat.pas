@@ -38,6 +38,7 @@ interface
           { parts explicitely in the code generator (JM)    }
           function first_moddiv64bitint: tnode; virtual;
           function firstoptimize: tnode; virtual;
+          function first_moddivint: tnode; virtual;
        end;
        tmoddivnodeclass = class of tmoddivnode;
 
@@ -236,6 +237,38 @@ implementation
       end;
 
 
+    function tmoddivnode.first_moddivint: tnode;
+      var
+        procname: string[31];
+      begin
+{$ifdef cpuneedsdiv32helper}
+      begin
+        result := nil;
+
+        { otherwise create a call to a helper }
+        if nodetype = divn then
+          procname := 'fpc_div_'
+        else
+          procname := 'fpc_mod_';
+        { only qword needs the unsigned code, the
+          signed code is also used for currency }
+        if is_signed(resulttype.def) then
+          procname := procname + 'longint'
+        else
+          procname := procname + 'dword';
+
+        result := ccallnode.createintern(procname,ccallparanode.create(left,
+          ccallparanode.create(right,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+{$else cpuneedsdiv32helper}
+        result:=nil;
+{$endif cpuneedsdiv32helper}
+      end;
+
+
     function tmoddivnode.first_moddiv64bitint: tnode;
       var
         procname: string[31];
@@ -351,6 +384,9 @@ implementation
            end
          else
            begin
+             result := first_moddivint;
+             if assigned(result) then
+               exit;
              left_right_max;
              if left.registers32<=right.registers32 then
               inc(registers32);
@@ -795,7 +831,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-05-24 16:32:34  jonas
+  Revision 1.50  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.49  2003/05/24 16:32:34  jonas
     * fixed expectloc of notnode for all processors that have flags
 
   Revision 1.48  2003/05/09 17:47:02  peter

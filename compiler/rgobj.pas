@@ -2445,7 +2445,10 @@ unit rgobj;
         ref.index.enum:=R_INTREGISTER;
       {$ifdef i386}
         ref.segment.enum:=R_INTREGISTER;
-      {$endif}
+      {$endif i386}
+      {$ifdef arm}
+        ref.signindex:=1;
+      {$endif arm}
       end;
 
     procedure reference_reset_old(var ref : treference);
@@ -2489,7 +2492,6 @@ unit rgobj;
    end;
 
 
-
 {****************************************************************************
                                   TLocation
 ****************************************************************************}
@@ -2512,6 +2514,9 @@ unit rgobj;
             {$ifdef i386}
               l.reference.segment.enum:=R_INTREGISTER;
             {$endif}
+            {$ifdef arm}
+              l.reference.signindex:=1;
+            {$endif arm}
             end;
         end;
       end;
@@ -2565,7 +2570,14 @@ end.
 
 {
   $Log$
-  Revision 1.67  2003-08-23 10:46:21  daniel
+  Revision 1.68  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.67  2003/08/23 10:46:21  daniel
     * Register allocator bugfix for h2pas
 
   Revision 1.66  2003/08/17 16:59:20  jonas

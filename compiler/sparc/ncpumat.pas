@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Generate PowerPC assembler for math nodes
+    Generate SPARC assembler for math nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -353,7 +353,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-07-06 22:09:32  peter
+  Revision 1.13  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.12  2003/07/06 22:09:32  peter
     * shr and div fixed
 
   Revision 1.11  2003/06/12 16:43:07  peter

@@ -739,6 +739,9 @@ interface
 {$ifdef vis}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif vis}
+{$ifdef ARM}
+       pbestrealtype : ^ttype = @s64floattype;
+{$endif ARM}
 
     function mangledname_prefix(typeprefix:string;st:tsymtable):string;
 
@@ -5838,7 +5841,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.158  2003-08-11 21:18:20  peter
+  Revision 1.159  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.158  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.157  2003/07/08 15:20:56  peter

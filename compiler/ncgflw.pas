@@ -918,7 +918,6 @@ implementation
      end;
 
 
-
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
     procedure cleanupobjectstack;
@@ -1544,7 +1543,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-08-24 21:38:43  olle
+  Revision 1.77  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.76  2003/08/24 21:38:43  olle
     * made FPC_RAISEEXCEPTION compatible with MacOS
 
   Revision 1.75  2003/08/10 17:25:23  peter

@@ -281,6 +281,7 @@ implementation
           oldaktoutputformat : tasm;
           oldaktspecificoptprocessor,
           oldaktoptprocessor : tprocessors;
+          oldaktfputype      : tfputype;
           oldaktasmmode      : tasmmode;
           oldaktinterfacetype: tinterfacetypes;
           oldaktmodeswitches : tmodeswitches;
@@ -355,6 +356,7 @@ implementation
             oldaktmoduleswitches:=aktmoduleswitches;
             oldaktalignment:=aktalignment;
             oldaktpackenum:=aktpackenum;
+            oldaktfputype:=aktfputype;
             oldaktmaxfpuregisters:=aktmaxfpuregisters;
             oldaktoutputformat:=aktoutputformat;
             oldaktoptprocessor:=aktoptprocessor;
@@ -409,6 +411,7 @@ implementation
          aktsetalloc:=initsetalloc;
          {$ENDIF}
          aktalignment:=initalignment;
+         aktfputype:=initfputype;
          aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
          set_target_asm(aktoutputformat);
@@ -542,6 +545,7 @@ implementation
                  set_target_asm(aktoutputformat);
                  aktoptprocessor:=oldaktoptprocessor;
                  aktspecificoptprocessor:=oldaktspecificoptprocessor;
+                 aktfputype:=oldaktfputype;
                  aktasmmode:=oldaktasmmode;
                  aktinterfacetype:=oldaktinterfacetype;
                  aktfilepos:=oldaktfilepos;
@@ -619,7 +623,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-06-13 21:19:30  peter
+  Revision 1.56  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.55  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.54  2003/06/12 16:41:51  peter

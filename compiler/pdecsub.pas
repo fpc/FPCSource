@@ -181,6 +181,7 @@ implementation
                   end;
                 vs:=tvarsym.create('$self',vsp,tt);
                 include(vs.varoptions,vo_is_self);
+                include(vs.varoptions,vo_regable);
                 { Insert as hidden parameter }
                 pd.parast.insert(vs);
                 pd.insertpara(vs.vartype,vs,nil,true);
@@ -2167,7 +2168,14 @@ const
 end.
 {
   $Log$
-  Revision 1.129  2003-07-02 22:18:04  peter
+  Revision 1.130  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.129  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

@@ -83,6 +83,9 @@ implementation
 {$ifdef i386}
       ,itx86att
 {$endif}
+{$ifdef arm}
+      ,agarmgas
+{$endif}
 {$ifdef powerpc}
       ,agppcgas
 {$endif}
@@ -832,7 +835,14 @@ var
 end.
 {
   $Log$
-  Revision 1.29  2003-08-19 11:53:03  daniel
+  Revision 1.30  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.29  2003/08/19 11:53:03  daniel
     * Fixed PowerPC compilation
 
   Revision 1.28  2003/08/18 11:49:47  daniel
@@ -949,4 +959,3 @@ end.
   + basic GNU assembler writer class
 
 }
-

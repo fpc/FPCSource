@@ -54,6 +54,14 @@ Type
        ClassP6
       );
 
+   tfputype =
+     (no_fpuprocessor,
+      fpu_soft,
+      fpu_x87,
+      fpu_sse,
+      fpu_sse2
+     );
+
 
 Const
    {# Size of native extended floating point type }
@@ -77,7 +85,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-12-05 14:18:09  florian
+  Revision 1.17  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.16  2002/12/05 14:18:09  florian
     * two comments fixed
 
   Revision 1.15  2002/09/07 20:48:43  carl

@@ -57,13 +57,13 @@ uses
       TAsmOp={$i i386op.inc}
 {$endif x86_64}
 
-      {# This should define the array of instructions as string }
+      { This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
 
     const
-      {# First value of opcode enumeration }
+      { First value of opcode enumeration }
       firstop = low(tasmop);
-      {# Last value of opcode enumeration  }
+      { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
 {*****************************************************************************
@@ -723,7 +723,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-08-20 07:48:04  daniel
+  Revision 1.14  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.13  2003/08/20 07:48:04  daniel
     * Made internal assembler use new register coding
 
   Revision 1.12  2003/08/17 16:59:20  jonas

@@ -70,6 +70,7 @@
 
 {$ifdef arm}
   {$define callparatemp}
+  {$define cpuneedsdiv32helper}
 {$endif arm}
 
 { FPU Emulator support }
@@ -84,7 +85,14 @@
 
 {
   $Log$
-  Revision 1.22  2003-08-11 21:18:20  peter
+  Revision 1.23  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.22  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.21  2003/07/21 11:52:57  florian

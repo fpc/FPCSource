@@ -46,6 +46,13 @@ Type
        ppc604
       );
 
+   tfputype =
+     (no_fpuprocessor,
+      fpu_soft,
+      fpu_standard
+     );
+
+
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
@@ -67,7 +74,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-04-26 20:15:22  florian
+  Revision 1.14  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.13  2003/04/26 20:15:22  florian
     * fixed setjmp record size
 
   Revision 1.12  2002/09/07 20:57:08  carl

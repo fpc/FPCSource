@@ -90,6 +90,14 @@ unit compiler;
    {$endif}
    {$endif}
 
+   {$ifdef ARM}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif ARM}
+   {$endif ARM}
+
 
    {$ifndef CPUOK}
    {$fatal One of the switches I386, iA64, Alpha, PowerPC or M68K must be defined}
@@ -391,7 +399,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2003-05-22 21:39:51  peter
+  Revision 1.39  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.38  2003/05/22 21:39:51  peter
     * add cgcpu
 
   Revision 1.37  2003/03/23 23:20:38  hajny

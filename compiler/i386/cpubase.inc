@@ -95,6 +95,8 @@
 
       maxfpuvarregs = 8;
 
+      maxmmvarregs = 8;
+
       {# Registers which are defined as scratch and no need to save across
          routine calls or in assembler blocks.
       }
@@ -208,7 +210,14 @@
 
 {
   $Log$
-  Revision 1.7  2003-07-06 17:58:22  peter
+  Revision 1.8  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.7  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

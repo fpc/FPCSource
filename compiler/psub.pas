@@ -726,9 +726,15 @@ implementation
         if assigned(aktlocaldata) and
            (not aktlocaldata.empty) then
          begin
-           aktproccode.concat(Tai_section.Create(sec_data));
-           aktproccode.concatlist(aktlocaldata);
-           aktproccode.concat(Tai_section.Create(sec_code));
+           { because of the limited constant size of the arm, all data access is done pc relative }
+           if target_info.cpu=cpu_arm then
+             aktproccode.concatlist(aktlocaldata)
+           else
+             begin
+               aktproccode.concat(Tai_section.Create(sec_data));
+               aktproccode.concatlist(aktlocaldata);
+               aktproccode.concat(Tai_section.Create(sec_code));
+             end;
         end;
 
         { add the procedure to the codesegment }
@@ -1306,7 +1312,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2003-08-20 17:48:49  peter
+  Revision 1.139  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.138  2003/08/20 17:48:49  peter
     * fixed stackalloc to not allocate localst.datasize twice
     * order of stackalloc code fixed for implicit init/final
 

@@ -175,6 +175,7 @@ interface
        initalignment      : talignmentinfo;
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
+       initfputype        : tfputype;
        initasmmode        : tasmmode;
        initinterfacetype  : tinterfacetypes;
        initoutputformat   : tasm;
@@ -196,6 +197,7 @@ interface
        aktalignment       : talignmentinfo;
        aktoptprocessor,
        aktspecificoptprocessor : tprocessors;
+       aktfputype        : tfputype;
        aktasmmode         : tasmmode;
        aktinterfacetype   : tinterfacetypes;
        aktoutputformat    : tasm;
@@ -1538,6 +1540,9 @@ implementation
 {$ifdef i386}
         initoptprocessor:=Class386;
         initspecificoptprocessor:=Class386;
+
+        initfputype:=fpu_x87;
+
         initpackenum:=4;
         {$IFDEF testvarsets}
         initsetalloc:=0;
@@ -1559,6 +1564,7 @@ implementation
          initsetalloc:=0;
         {$ENDIF}
         initasmmode:=asmmode_direct;
+        initfputype:=fpu_standard;
 {$endif powerpc}
 {$ifdef sparc}
         initoptprocessor:=SPARC_V8;
@@ -1568,6 +1574,14 @@ implementation
         {$ENDIF}
         initasmmode:=asmmode_direct;
 {$endif sparc}
+{$ifdef arm}
+        initpackenum:=4;
+        {$IFDEF testvarsets}
+        initsetalloc:=0;
+        {$ENDIF}
+        initasmmode:=asmmode_direct;
+        initfputype:=fpu_fpa;
+{$endif arm}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_none;
         initdefines:=TStringList.Create;
@@ -1583,7 +1597,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-05-23 22:33:48  florian
+  Revision 1.93  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.92  2003/05/23 22:33:48  florian
     * fix some small flaws which prevent sparc linux system unit from compiling
     * some reformatting done
 

@@ -214,6 +214,8 @@ implementation
                          location_release(list,p.location);
                          cg.a_jmp_always(list,falselabel);
                        end;
+                     LOC_JUMP:
+                       ;
 {$ifdef cpuflags}
                      LOC_FLAGS :
                        begin
@@ -222,6 +224,8 @@ implementation
                          cg.a_jmp_always(list,falselabel);
                        end;
 {$endif cpuflags}
+                     else
+                       internalerror(200308241);
                    end;
                 end;
            end
@@ -2079,7 +2083,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2003-08-20 20:29:06  daniel
+  Revision 1.138  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.137  2003/08/20 20:29:06  daniel
     * Some more R_NO changes
     * Preventive code to loadref added
 

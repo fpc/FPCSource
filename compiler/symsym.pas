@@ -1,4 +1,4 @@
- {
+{
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
@@ -2669,7 +2669,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-08-20 20:29:06  daniel
+  Revision 1.114  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.113  2003/08/20 20:29:06  daniel
     * Some more R_NO changes
     * Preventive code to loadref added
 

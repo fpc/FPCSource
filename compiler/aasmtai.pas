@@ -442,12 +442,11 @@ interface
           procedure loadref(opidx:longint;const r:treference);
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
+          procedure clearop(opidx:longint);
           function is_nop:boolean;virtual;abstract;
           function is_move:boolean;virtual;abstract;
 {$ifdef NEWRA}
           { register allocator }
-          function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var unusedregsint:Tsupregset):Tai;
-          procedure forward_allocation(p:Tai;var unusedregsint:Tsupregset);
           function spill_registers(list:Taasmoutput;
                                    rgget:Trggetproc;
                                    rgunget:Trgungetproc;
@@ -490,7 +489,6 @@ interface
       importssection,exportssection,
       resourcesection,rttilist,
       resourcestringlist         : taasmoutput;
-
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
     procedure ppuwriteai(ppufile:tcompilerppufile;n:tai);
@@ -1491,6 +1489,10 @@ implementation
         case oper[i].typ of
           top_ref:
             dispose(oper[i].ref);
+{$ifdef ARM}
+          top_shifterop:
+            dispose(oper[i].shifterop);
+{$endif ARM}
         end;
         inherited destroy;
       end;
@@ -1506,8 +1508,8 @@ implementation
          ops:=opidx+1;
         with oper[opidx] do
          begin
-           if typ=top_ref then
-            dispose(ref);
+           if typ<>top_const then
+             clearop(opidx);
            val:=l;
            typ:=top_const;
          end;
@@ -1522,8 +1524,8 @@ implementation
          ops:=opidx+1;
         with oper[opidx] do
          begin
-           if typ=top_ref then
-            dispose(ref);
+           if typ<>top_symbol then
+             clearop(opidx);
            sym:=s;
            symofs:=sofs;
            typ:=top_symbol;
@@ -1541,7 +1543,11 @@ implementation
         with oper[opidx] do
           begin
             if typ<>top_ref then
-              new(ref);
+              begin
+                clearop(opidx);
+                new(ref);
+              end;
+
             ref^:=r;
 {$ifdef i386}
             { We allow this exception for i386, since overloading this would be
@@ -1569,8 +1575,8 @@ implementation
          ops:=opidx+1;
         with oper[opidx] do
          begin
-           if typ=top_ref then
-            dispose(ref);
+           if typ<>top_reg then
+             clearop(opidx);
            reg:=r;
            typ:=top_reg;
          end;
@@ -1581,73 +1587,39 @@ implementation
       begin
         if opidx>=ops then
          ops:=opidx+1;
-        if oper[opidx].typ=top_ref then
-         dispose(oper[opidx].ref);
+        clearop(opidx);
         oper[opidx]:=o;
         { copy also the reference }
-        if oper[opidx].typ=top_ref then
-         begin
-           new(oper[opidx].ref);
-           oper[opidx].ref^:=o.ref^;
+        case oper[opidx].typ of
+          top_ref:
+            begin
+              new(oper[opidx].ref);
+              oper[opidx].ref^:=o.ref^;
+            end;
+{$ifdef ARM}
+          top_shifterop:
+            begin
+              new(oper[opidx].shifterop);
+              oper[opidx].shifterop^:=o.shifterop^;
+            end;
+{$endif ARM}
          end;
       end;
 
-{$ifdef NEWRA}
-{ ---------------------------------------------------------------------
-    Register allocator methods.
-  ---------------------------------------------------------------------}
 
-    function taicpu_abstract.get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var unusedregsint:Tsupregset):Tai;
-      var
-        back:Tsupregset;
+    procedure taicpu_abstract.clearop(opidx:longint);
       begin
-        back:=unusedregsint;
-        get_insert_pos:=p;
-        while (p<>nil) and (p.typ=ait_regalloc) do
-          begin
-            {Rewind the register allocation.}
-            if Tai_regalloc(p).allocation then
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              begin
-                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-              end;
-            p:=Tai(p.previous);
-          end;
-        unusedregsint:=back;
-      end;
-
-
-    procedure taicpu_abstract.forward_allocation(p:Tai;var unusedregsint:Tsupregset);
-      begin
-        {Forward the register allocation again.}
-        while (p<>self) do
-          begin
-            if p.typ<>ait_regalloc then
-              internalerror(200305311);
-            if Tai_regalloc(p).allocation then
-              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-            p:=Tai(p.next);
+        with oper[opidx] do
+          case typ of
+            top_ref:
+              dispose(ref);
+{$ifdef ARM}
+            top_shifterop:
+              dispose(shifterop);
+{$endif ARM}
           end;
       end;
-{$endif NEWRA}
+
 
 { ---------------------------------------------------------------------
     Miscellaneous methods.
@@ -1798,7 +1770,7 @@ implementation
            begin
               { find the last file information record }
               if not (tai(last).typ in SkipLineInfo) then
-                 getlasttaifilepos:=@tailineinfo(last).fileinfo
+                getlasttaifilepos:=@tailineinfo(last).fileinfo
               else
                { go through list backwards to find the first entry
                  with line information
@@ -1809,7 +1781,7 @@ implementation
                     hp:=hp.Previous;
                  { found entry }
                  if assigned(hp) then
-                     getlasttaifilepos:=@tailineinfo(hp).fileinfo
+                   getlasttaifilepos:=@tailineinfo(hp).fileinfo
                end;
            end;
       end;
@@ -1819,6 +1791,10 @@ implementation
     var p,q:Tai;
         i:shortint;
         r:Preference;
+{$ifdef arm}
+        so:pshifterop;
+{$endif arm}
+
 
     begin
       p:=Tai(first);
@@ -1831,26 +1807,37 @@ implementation
             ait_instruction:
               begin
                 for i:=0 to Taicpu_abstract(p).ops-1 do
-                  if Taicpu_abstract(p).oper[i].typ=Top_reg then
-                    Taicpu_abstract(p).oper[i].reg.number:=(Taicpu_abstract(p).oper[i].reg.number and $ff) or
-                                                           (table[Taicpu_abstract(p).oper[i].reg.number shr 8] shl 8)
-                  else if Taicpu_abstract(p).oper[i].typ=Top_ref then
-                    begin
-                      r:=Taicpu_abstract(p).oper[i].ref;
-                      if r^.base.number<>NR_NO then
-                        r^.base.number:=(r^.base.number and $ff) or
-                                        (table[r^.base.number shr 8] shl 8);
-                      if r^.index.number<>NR_NO then
-                        r^.index.number:=(r^.index.number and $ff) or
-                                         (table[r^.index.number shr 8] shl 8);
-                    end;
-                if Taicpu_abstract(p).is_nop then
-                  begin
-                    q:=p;
-                    p:=Tai(p.next);
-                    remove(q);
-                    continue;
+                  case Taicpu_abstract(p).oper[i].typ of
+                    Top_reg:
+                      Taicpu_abstract(p).oper[i].reg.number:=(Taicpu_abstract(p).oper[i].reg.number and $ff) or
+                                                             (table[Taicpu_abstract(p).oper[i].reg.number shr 8] shl 8);
+                    Top_ref:
+                      begin
+                        r:=Taicpu_abstract(p).oper[i].ref;
+                        if r^.base.number<>NR_NO then
+                          r^.base.number:=(r^.base.number and $ff) or
+                                          (table[r^.base.number shr 8] shl 8);
+                        if r^.index.number<>NR_NO then
+                          r^.index.number:=(r^.index.number and $ff) or
+                                           (table[r^.index.number shr 8] shl 8);
+                      end;
+{$ifdef arm}
+                    Top_shifterop:
+                      begin
+                        so:=Taicpu_abstract(p).oper[i].shifterop;
+                        if so^.rs.number<>NR_NO then
+                          so^.rs.number:=(so^.rs.number and $ff) or
+                                          (table[so^.rs.number shr 8] shl 8);
+                      end;
+{$endif arm}
                   end;
+                  if Taicpu_abstract(p).is_nop then
+                    begin
+                      q:=p;
+                      p:=Tai(p.next);
+                      remove(q);
+                      continue;
+                    end;
               end;
           end;
           p:=Tai(p.next);
@@ -1860,7 +1847,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-08-21 14:47:41  peter
+  Revision 1.36  2003-09-03 11:18:36  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.35  2003/08/21 14:47:41  peter
     * remove convert_registers
 
   Revision 1.34  2003/08/20 20:29:06  daniel

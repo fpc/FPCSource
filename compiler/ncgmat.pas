@@ -97,6 +97,8 @@ type
       end;
 
       tcgshlshrnode = class(tshlshrnode)
+         procedure second_64bit;virtual;
+         procedure second_integer;virtual;
          procedure pass_2;override;
       end;
 
@@ -354,117 +356,125 @@ implementation
 *****************************************************************************}
 
 
-    procedure tcgshlshrnode.pass_2;
+    procedure tcgshlshrnode.second_64bit;
       var
-         hcountreg : tregister;
-         op : topcg;
-         pushedregs : tmaybesave;
          freescratch : boolean;
+         op : topcg;
       begin
-         freescratch:=false;
-         secondpass(left);
-      {$ifndef newra}
-         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-      {$endif newra}
-         secondpass(right);
-      {$ifndef newra}
-         maybe_restore(exprasmlist,left.location,pushedregs);
-      {$endif}
+{$ifdef cpu64bit}
          { determine operator }
          case nodetype of
            shln: op:=OP_SHL;
            shrn: op:=OP_SHR;
          end;
+         freescratch:=false;
+         location_reset(location,LOC_REGISTER,OS_64);
 
-         if is_64bit(left.resulttype.def) then
+         { load left operator in a register }
+         location_force_reg(exprasmlist,left.location,OS_64,false);
+         location_copy(location,left.location);
+
+         if (right.nodetype=ordconstn) then
            begin
-              { already hanled in 1st pass }
-              internalerror(2002081501);
-(*  Normally for 64-bit cpu's this here should be here,
-    and only pass_1 need to be overriden, but dunno how to
-    do that!
-              location_reset(location,LOC_REGISTER,OS_64);
-
-              { load left operator in a register }
-              location_force_reg(exprasmlist,left.location,OS_64,false);
-              location_copy(location,left.location);
-
-              if (right.nodetype=ordconstn) then
-                begin
-                   cg64.a_op64_const_reg(exprasmlist,op,tordconstnode(right).value,
-                     joinreg64(location.registerlow,location.registerhigh));
-                end
-              else
-                begin
-                  { this should be handled in pass_1 }
-                  internalerror(2002081501);
-
-                   if right.location.loc<>LOC_REGISTER then
-                     begin
-                       if right.location.loc<>LOC_CREGISTER then
-                        location_release(exprasmlist,right.location);
-                       hcountreg:=cg.get_scratch_reg_int(exprasmlist);
-                       cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
-                       freescratch := true;
-                     end
-                   else
-                      hcountreg:=right.location.register;
-                   cg64.a_op64_reg_reg(exprasmlist,op,hcountreg,
-                     joinreg64(location.registerlow,location.registerhigh));
-                   if freescratch then
-                      cg.free_scratch_reg(exprasmlist,hcountreg);
-                end;*)
+              cg64.a_op64_const_reg(exprasmlist,op,tordconstnode(right).value,
+                joinreg64(location.registerlow,location.registerhigh));
            end
          else
            begin
-              { load left operators in a register }
-              location_copy(location,left.location);
-              location_force_reg(exprasmlist,location,OS_INT,false);
+             { this should be handled in pass_1 }
+             internalerror(2002081501);
 
-              { shifting by a constant directly coded: }
-              if (right.nodetype=ordconstn) then
+              if right.location.loc<>LOC_REGISTER then
                 begin
-                   { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
-                   if right.value<=31 then
-                   }
-                   cg.a_op_const_reg(exprasmlist,op,location.size,
-                     tordconstnode(right).value and 31,location.register);
-                   {
-                   else
-                     emit_reg_reg(A_XOR,S_L,hregister1,
-                       hregister1);
-                   }
+                  if right.location.loc<>LOC_CREGISTER then
+                   location_release(exprasmlist,right.location);
+                  hcountreg:=cg.get_scratch_reg_int(exprasmlist);
+                  cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
+                  freescratch := true;
                 end
               else
-                begin
-                   { load right operators in a register - this
-                     is done since most target cpu which will use this
-                     node do not support a shift count in a mem. location (cec)
-                   }
-                   if right.location.loc<>LOC_REGISTER then
-                     begin
-                       if right.location.loc<>LOC_CREGISTER then
-                        location_release(exprasmlist,right.location);
-                     {$ifdef newra}
-                       hcountreg:=rg.getregisterint(exprasmlist,OS_INT);
-                     {$else}
-                       hcountreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                     {$endif}
-                       freescratch := true;
-                       cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
-                     end
-                   else
-                     hcountreg:=right.location.register;
-                   cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
-                 {$ifdef newra}
-                   if freescratch then
-                      rg.ungetregisterint(exprasmlist,hcountreg);
-                 {$else}
-                   if freescratch then
-                      cg.free_scratch_reg(exprasmlist,hcountreg);
-                 {$endif}
-                end;
+                 hcountreg:=right.location.register;
+              cg64.a_op64_reg_reg(exprasmlist,op,hcountreg,
+                joinreg64(location.registerlow,location.registerhigh));
+              if freescratch then
+                 cg.free_scratch_reg(exprasmlist,hcountreg);
            end;
+{$else cpu64bit}
+         { already hanled in 1st pass }
+         internalerror(2002081501);
+{$endif cpu64bit}
+      end;
+
+    procedure tcgshlshrnode.second_integer;
+      var
+         freescratch : boolean;
+         op : topcg;
+         hcountreg : tregister;
+      begin
+         freescratch:=false;
+         { determine operator }
+         case nodetype of
+           shln: op:=OP_SHL;
+           shrn: op:=OP_SHR;
+         end;
+         { load left operators in a register }
+         location_copy(location,left.location);
+         location_force_reg(exprasmlist,location,OS_INT,false);
+
+         { shifting by a constant directly coded: }
+         if (right.nodetype=ordconstn) then
+           begin
+              { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
+              if right.value<=31 then
+              }
+              cg.a_op_const_reg(exprasmlist,op,location.size,
+                tordconstnode(right).value and 31,location.register);
+              {
+              else
+                emit_reg_reg(A_XOR,S_L,hregister1,
+                  hregister1);
+              }
+           end
+         else
+           begin
+              { load right operators in a register - this
+                is done since most target cpu which will use this
+                node do not support a shift count in a mem. location (cec)
+              }
+              if right.location.loc<>LOC_REGISTER then
+                begin
+                  if right.location.loc<>LOC_CREGISTER then
+                   location_release(exprasmlist,right.location);
+                {$ifdef newra}
+                  hcountreg:=rg.getregisterint(exprasmlist,OS_INT);
+                {$else}
+                  hcountreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                {$endif}
+                  freescratch := true;
+                  cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
+                end
+              else
+                hcountreg:=right.location.register;
+              cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
+            {$ifdef newra}
+              if freescratch then
+                rg.ungetregisterint(exprasmlist,hcountreg);
+            {$else}
+              if freescratch then
+                cg.free_scratch_reg(exprasmlist,hcountreg);
+            {$endif}
+           end;
+      end;
+
+    procedure tcgshlshrnode.pass_2;
+      begin
+         secondpass(left);
+         secondpass(right);
+
+         if is_64bit(left.resulttype.def) then
+           second_64bit
+         else
+           second_integer;
       end;
 
 
@@ -514,7 +524,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-07-02 22:18:04  peter
+  Revision 1.16  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.15  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

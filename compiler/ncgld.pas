@@ -672,7 +672,7 @@ implementation
          end;
 
         if releaseright then
-         location_release(exprasmlist,right.location);
+          location_release(exprasmlist,right.location);
         location_release(exprasmlist,left.location);
 
         truelabel:=otlabel;
@@ -938,7 +938,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-08-20 20:13:08  daniel
+  Revision 1.78  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.77  2003/08/20 20:13:08  daniel
     * Fixed the fixed trouble
 
   Revision 1.76  2003/08/20 20:11:24  daniel

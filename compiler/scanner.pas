@@ -2720,8 +2720,12 @@ exit_label:
            end;
          repeat
            case c of
+{$ifndef arm}
+             // the { ... } is used in ARM assembler to define register sets,  so we can't used
+             // it as comment, either (* ... *), /* ... */ or // ... should be used instead
              '{' :
                skipcomment;
+{$endif arm}
              '/' :
                begin
                   readchar;
@@ -2808,7 +2812,14 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.60  2003-08-10 17:25:23  peter
+  Revision 1.61  2003-09-03 11:18:37  florian
+    * fixed arm concatcopy
+    + arm support in the common compiler sources added
+    * moved some generic cg code around
+    + tfputype added
+    * ...
+
+  Revision 1.60  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.59  2003/05/25 10:26:43  peter
