@@ -45,6 +45,7 @@ Type
    ts32real = single;
    ts64real = double;
    ts80real = extended;
+   ts128real = extended;
    ts64comp = extended;
 
    pbestreal=^bestreal;
@@ -119,7 +120,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-11-07 15:58:32  florian
+  Revision 1.19  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.18  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

@@ -195,6 +195,20 @@ uses
 {$ifdef win32}
   ,i_win32
 {$endif win32}
+  { assembler readers }
+{$ifdef i386}
+  {$ifndef NoRa386Int}
+       ,ra386int
+  {$endif NoRa386Int}
+  {$ifndef NoRa386Att}
+       ,ra386att
+  {$endif NoRa386Att}
+{$else}
+  ,rasm
+{$endif i386}
+{$ifdef powerpc}
+  ,rappcgas
+{$endif powerpc}
   ;
 
 function Compile(const cmd:string):longint;
@@ -403,7 +417,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2003-09-05 17:41:12  florian
+  Revision 1.41  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.40  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.39  2003/09/03 11:18:36  florian

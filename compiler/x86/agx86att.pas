@@ -49,7 +49,7 @@ interface
     uses
       cutils,systems,
       verbose,
-      itx86att,
+      itcpugas,
       cgbase,
       aasmcpu;
 
@@ -293,7 +293,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2003-10-28 18:46:49  peter
+  Revision 1.11  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.10  2003/10/28 18:46:49  peter
     * fix crash with ops=0
 
   Revision 1.9  2003/10/21 15:15:36  peter

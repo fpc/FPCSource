@@ -282,22 +282,15 @@ interface
           abi : tabi;
        end;
 
-       pasmmodeinfo = ^tasmmodeinfo;
-       tasmmodeinfo = packed record
-          id    : tasmmode;
-          idtxt : string[8];
-       end;
-
     const
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
     var
        targetinfos   : array[tsystem] of psysteminfo;
-       asminfos      : array[tasm] of pasminfo;
        arinfos       : array[tar] of parinfo;
        resinfos      : array[tres] of presinfo;
-       asmmodeinfos  : array[tasmmode] of pasmmodeinfo;
+       asminfos      : array[tasm] of pasminfo;
 
        source_info : tsysteminfo;
        target_cpu  : tsystemcpu;
@@ -314,14 +307,12 @@ interface
 
     function set_target_by_string(const s : string) : boolean;
     function set_target_asm_by_string(const s : string) : boolean;
-    function set_asmmode_by_string(const s:string;var t:tasmmode):boolean;
 
     procedure set_source_info(const ti : tsysteminfo);
 
     procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
 
     procedure RegisterTarget(const r:tsysteminfo);
-    procedure RegisterAsmMode(const r:tasmmodeinfo);
     procedure RegisterRes(const r:tresinfo);
     procedure RegisterAr(const r:tarinfo);
     { Register the external linker. This routine is called to setup the
@@ -442,24 +433,6 @@ begin
 end;
 
 
-function set_asmmode_by_string(const s:string;var t:tasmmode):boolean;
-var
-  hs : string;
-  ht : tasmmode;
-begin
-  set_asmmode_by_string:=false;
-  { this should be case insensitive !! PM }
-  hs:=upper(s);
-  for ht:=low(tasmmode) to high(tasmmode) do
-   if assigned(asmmodeinfos[ht]) and
-      (asmmodeinfos[ht]^.idtxt=hs) then
-    begin
-      t:=asmmodeinfos[ht]^.id;
-      set_asmmode_by_string:=true;
-    end;
-end;
-
-
 procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
 begin
   with d do
@@ -517,19 +490,6 @@ begin
 end;
 
 
-procedure RegisterAsmmode(const r:tasmmodeinfo);
-var
-  t : tasmmode;
-begin
-  t:=r.id;
-  if assigned(asmmodeinfos[t]) then
-    writeln('Warning: Asmmode is already registered!')
-  else
-    Getmem(asmmodeinfos[t],sizeof(tasmmodeinfo));
-  asmmodeinfos[t]^:=r;
-end;
-
-
 procedure RegisterRes(const r:tresinfo);
 var
   t : tres;
@@ -572,7 +532,6 @@ var
   assem   : tasm;
   target  : tsystem;
   ar      : tar;
-  asmmode : tasmmode;
   res     : tres;
 begin
   for target:=low(tsystem) to high(tsystem) do
@@ -598,12 +557,6 @@ begin
     begin
       freemem(resinfos[res],sizeof(tresinfo));
       resinfos[res]:=nil;
-    end;
-  for asmmode:=low(tasmmode) to high(tasmmode) do
-   if assigned(asmmodeinfos[asmmode]) then
-    begin
-      freemem(asmmodeinfos[asmmode],sizeof(tasmmodeinfo));
-      asmmodeinfos[asmmode]:=nil;
     end;
 end;
 
@@ -693,7 +646,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.71  2003-10-18 09:04:11  hajny
+  Revision 1.72  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.71  2003/10/18 09:04:11  hajny
     * Watcom target name didn't fit in name field length
 
   Revision 1.70  2003/10/03 22:00:33  peter

@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit itx86att;
+unit itcpugas;
 
 {$i fpcdefs.inc}
 
@@ -133,7 +133,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-10-01 20:34:51  peter
+  Revision 1.1  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.6  2003/10/01 20:34:51  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

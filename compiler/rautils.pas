@@ -35,8 +35,6 @@ Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
   OpMax  = 25;
 
-
-
 {---------------------------------------------------------------------
                        Local Label Management
 ---------------------------------------------------------------------}
@@ -68,7 +66,7 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST);
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND);
 
   TOprRec = record
     case typ:TOprType of
@@ -80,8 +78,9 @@ type
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (reglist:Tsupregset);
-{$else not m68k}
-      OPR_REGLIST   : ();
+{$endif m68k}
+{$ifdef powerpc}
+      OPR_COND      : (cond : tasmcond);
 {$endif m68k}
   end;
 
@@ -90,9 +89,8 @@ type
     hasvar : boolean; { if the operand is loaded with a variable }
     size   : TCGSize;
     opr    : TOprRec;
-    constructor create;
+    constructor create;virtual;
     destructor  destroy;override;
-    Procedure BuildOperand;virtual;
     Procedure SetSize(_size:longint;force:boolean);virtual;
     Procedure SetCorrectSize(opcode:tasmop);virtual;
     Function  SetupResult:boolean;virtual;
@@ -102,6 +100,7 @@ type
     Function  SetupDirectVar(const hs:string): Boolean;
     Procedure InitRef;
   end;
+  TCOperand = class of TOperand;
 
   TInstruction = class
     opcode    : tasmop;
@@ -109,14 +108,16 @@ type
     ops       : byte;
     labeled   : boolean;
     operands  : array[1..max_operands] of toperand;
-    constructor create;
+    constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
-    Procedure InitOperands;virtual;
-    Procedure BuildOpcode;virtual;
+    Procedure BuildOpcode;virtual;abstract;
     procedure ConcatInstruction(p:TAAsmoutput);virtual;
     Procedure Swapoperands;
   end;
 
+  tstr2opentry = class(Tnamedindexitem)
+    op: TAsmOp;
+  end;
 
   {---------------------------------------------------------------------}
   {                   Expression parser types                           }
@@ -1047,41 +1048,31 @@ Begin
 end;
 
 
-procedure TOperand.BuildOperand;
-begin
-  abstract;
-end;
-
-
 {****************************************************************************
                                  TInstruction
 ****************************************************************************}
 
-constructor TInstruction.create;
-Begin
-  Opcode:=A_NONE;
-  Condition:=C_NONE;
-  Ops:=0;
-  InitOperands;
-  Labeled:=false;
-end;
+constructor TInstruction.create(optype : tcoperand);
+  var
+    i : longint;
+  Begin
+    { these field are set to 0 anyways by the constructor helper (FK)
+    Opcode:=A_NONE;
+    Condition:=C_NONE;
+    Ops:=0;
+    }
+    for i:=1 to max_operands do
+      Operands[i]:=optype.create;
+    Labeled:=false;
+  end;
 
 
 destructor TInstruction.destroy;
 var
   i : longint;
 Begin
-  for i:=1 to 3 do
+  for i:=1 to max_operands do
    Operands[i].free;
-end;
-
-
-procedure TInstruction.InitOperands;
-var
-  i : longint;
-begin
-  for i:=1 to 3 do
-   Operands[i].create;
 end;
 
 
@@ -1106,16 +1097,38 @@ Begin
 end;
 
 
-procedure TInstruction.ConcatInstruction(p:TAAsmOutput);
-begin
-  abstract;
-end;
+  procedure TInstruction.ConcatInstruction(p:TAAsmoutput);
+    var
+      ai   : taicpu;
+      i : longint;
+    begin
+      ai:=taicpu.op_none(opcode);
+      ai.Ops:=Ops;
+      ai.Allocate_oper(Ops);
+      for i:=1 to Ops do
+       begin
+         case operands[i].opr.typ of
+           OPR_CONSTANT :
+             ai.loadconst(i-1,aword(operands[i].opr.val));
+           OPR_REGISTER:
+             ai.loadreg(i-1,operands[i].opr.reg);
+           OPR_SYMBOL:
+             ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
+           OPR_LOCAL :
+             ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs,operands[i].opr.localindexreg,
+                          operands[i].opr.localscale,operands[i].opr.localgetoffset);
+           OPR_REFERENCE:
+             ai.loadref(i-1,operands[i].opr.ref);
+         end;
+       end;
+     ai.SetCondition(condition);
 
-
-procedure TInstruction.BuildOpcode;
-begin
-  abstract;
-end;
+     { Concat the opcode or give an error }
+      if assigned(ai) then
+         p.concat(ai)
+      else
+       Message(asmr_e_invalid_opcode_and_operand);
+    end;
 
 
 {***************************************************************************
@@ -1603,7 +1616,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.76  2003-10-30 19:59:00  peter
+  Revision 1.77  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.76  2003/10/30 19:59:00  peter
     * support scalefactor for opr_local
     * support reference with opr_local set, fixes tw2631
 
@@ -1850,5 +1868,4 @@ end.
   Revision 1.26  2002/01/24 18:25:50  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
 }

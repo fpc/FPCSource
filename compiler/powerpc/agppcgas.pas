@@ -48,7 +48,7 @@ unit agppcgas;
        cutils,globals,verbose,
        cgbase,systems,
        assemble,
-       itppcgas,
+       itcpugas,
        aasmcpu;
 
     procedure TPPCGNUAssembler.WriteExtraHeader;
@@ -244,6 +244,10 @@ unit agppcgas;
               { case tempstr := 'tw';}
             end;
       end;
+      case c.dirhint of
+        DH_Minus:
+          cond2str:=cond2str+'-';
+      end;
     end;
 
     Procedure TPPCGNUAssembler.WriteInstruction(hp : tai);
@@ -298,7 +302,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-10-25 10:37:26  florian
+  Revision 1.33  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.32  2003/10/25 10:37:26  florian
     * fixed compilation of ppc compiler
 
   Revision 1.31  2003/10/01 20:34:49  peter

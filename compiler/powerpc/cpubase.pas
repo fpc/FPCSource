@@ -46,7 +46,7 @@ uses
         a_ba, a_bl, a_bla, a_bc, a_bca, a_bcl, a_bcla, a_bcctr, a_bcctrl, a_bclr,
         a_bclrl, a_cmp, a_cmpi, a_cmpl, a_cmpli, a_cntlzw, a_cntlzw_, a_crand,
         a_crandc, a_creqv, a_crnand, a_crnor, a_cror, a_crorc, a_crxor, a_dcba,
-        a_dcbf, a_dcbi, a_dcbst, a_dcbt, a_divw, a_divw_, a_divwo, a_divwo_,
+        a_dcbf, a_dcbi, a_dcbst, a_dcbt, a_dcbtst, a_dcbz, a_divw, a_divw_, a_divwo, a_divwo_,
         a_divwu, a_divwu_, a_divwuo, a_divwuo_, a_eciwx, a_ecowx, a_eieio, a_eqv,
         a_eqv_, a_extsb, a_extsb_, a_extsh, a_extsh_, a_fabs, a_fabs_, a_fadd,
         a_fadd_, a_fadds, a_fadds_, a_fcmpo, a_fcmpu, a_fctiw, a_fctw_, a_fctwz,
@@ -70,7 +70,7 @@ uses
         a_srawi, a_srawi_,a_srw, a_srw_, a_stb, a_stbu, a_stbux, a_stbx, a_stfd,
         a_stfdu, a_stfdux, a_stfdx, a_stfiwx, a_stfs, a_stfsu, a_stfsux, a_stfsx,
         a_sth, a_sthbrx, a_sthu, a_sthux, a_sthx, a_stmw, a_stswi, a_stswx, a_stw,
-        a_stwbrx, a_stwx_, a_stwu, a_stwux, a_stwx, a_subf, a_subf_, a_subfo,
+        a_stwbrx, a_stwcx_, a_stwu, a_stwux, a_stwx, a_subf, a_subf_, a_subfo,
         a_subfo_, a_subfc, a_subfc_, a_subfco, a_subfco_, a_subfe, a_subfe_,
         a_subfeo, a_subfeo_, a_subfic, a_subfme, a_subfme_, a_subfmeo, a_subfmeo_,
         a_subfze, a_subfze_, a_subfzeo, a_subfzeo_, a_sync, a_tlbia, a_tlbie,
@@ -154,6 +154,8 @@ uses
         { conditions when using ctr decrement etc }
         C_T,C_F,C_DNZ,C_DNZT,C_DNZF,C_DZ,C_DZT,C_DZF);
 
+      TDirHint = (DH_None,DH_Minus);
+
     const
       { these are in the XER, but when moved to CR_x they correspond with the }
       { bits below (still needs to be verified!!!)                            }
@@ -165,6 +167,7 @@ uses
                    case simple: boolean of
                      false: (BO, BI: byte);
                      true: (
+                       dirhint : tdirhint;
                        cond: TAsmCondFlag;
                        case byte of
                          0: ();
@@ -190,7 +193,12 @@ uses
       AsmCondFlag2Str: Array[TAsmCondFlag] of string[4] = ({cf_none}'',
         { conditions when not using ctr decrement etc}
         'lt','le','eq','ge','gt','nl','ne','ng','so','ns','un','nu',
-        't','f','dnz','dzt','dnzf','dz','dzt','dzf');
+        't','f','dnz','dnzt','dnzf','dz','dzt','dzf');
+
+      UpperAsmCondFlag2Str: Array[TAsmCondFlag] of string[4] = ({cf_none}'',
+        { conditions when not using ctr decrement etc}
+        'LT','LE','EQ','GE','GT','NL','NE','NG','SO','NS','UN','NU',
+        'T','F','DNZ','DNZT','DNZF','DZ','DZT','DZF');
 
     const
       CondAsmOps=3;
@@ -637,6 +645,10 @@ implementation
         end;
       end;
 
+    function is_condreg(r : tregister):boolean;
+      begin
+        result:=(r>=NR_CR0) and (r<=NR_CR0);
+      end;
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
       begin
@@ -682,7 +694,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2003-10-31 08:42:28  mazen
+  Revision 1.76  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.75  2003/10/31 08:42:28  mazen
   * rgHelper renamed to rgBase
   * using findreg_by_<name|number>_table directly to decrease heap overheading
 

@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 1998-2003 by Carl Eric Codere and Peter Vreman
+    Copyright (c) 1998-2003 by Peter Vreman, Florian Klaempfl and Carl Eric Codere
 
-    Handles the common ppc assembler reader routines
+    Basic stuff for assembler readers
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,29 +20,56 @@
 
  ****************************************************************************
 }
-unit rappc;
+unit rasm;
 
 {$i fpcdefs.inc}
 
   interface
 
     uses
-      aasmbase,aasmtai,aasmcpu,
-      cpubase,rautils,cclasses;
+      cclasses,
+      rabase,
+      aasmtai,
+      systems,
+      cpubase,
+      cgbase;
 
     type
-      TPPCOperand=class(TOperand)
-      end;
-
-      TPPCInstruction=class(TInstruction)
-      end;
+       tasmreader = class(tbaseasmreader)
+         firsttoken     : boolean;
+         _asmsorted     : boolean;
+         curlist        : TAAsmoutput;
+         c              : char;
+         actasmpattern  : string;
+         actopcode      : tasmop;
+         actasmregister : tregister;
+         actcondition   : tasmcond;
+         iasmops        : tdictionary;
+         constructor create;override;
+         destructor destroy;override;
+       end;
 
   implementation
+
+    constructor tasmreader.create;
+      begin
+        inherited create;
+        firsttoken:=true;
+      end;
+
+
+    destructor tasmreader.destroy;
+      begin
+        if assigned(iasmops) then
+          iasmops.Free;
+        inherited destroy;
+      end;
+
 
 end.
 {
   $Log$
-  Revision 1.3  2003-11-12 16:05:40  florian
+  Revision 1.1  2003-11-12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

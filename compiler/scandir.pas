@@ -36,7 +36,8 @@ implementation
       globtype,globals,systems,widestr,
       verbose,comphook,
       scanner,switches,
-      fmodule;
+      fmodule,
+      rabase;
 
 
 {*****************************************************************************
@@ -151,8 +152,8 @@ implementation
         if s='DEFAULT' then
          aktasmmode:=initasmmode
         else
-         if not set_asmmode_by_string(s,aktasmmode) then
-          Message1(scan_w_unsupported_asmmode_specifier,s);
+         if not SetAsmReadMode(s,aktasmmode) then
+           Message1(scan_e_illegal_asmmode_specifier,s);
       end;
 
 {$ifdef m68k}
@@ -987,7 +988,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2003-11-07 15:58:32  florian
+  Revision 1.28  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.27  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

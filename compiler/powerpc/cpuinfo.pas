@@ -17,6 +17,9 @@ Unit CPUInfo;
 
 Interface
 
+  uses
+    globtype;
+
 Type
    { Architecture word - Native unsigned type }
    AWord  = Longword;
@@ -35,6 +38,7 @@ Type
    ts32real = single;
    ts64real = double;
    ts80real = extended;
+   ts128real = extended;
    ts64comp = comp;
 
    pbestreal=^bestreal;
@@ -81,12 +85,27 @@ Const
      pocall_cppdecl
    ];
 
+   processorsstr : array[tprocessors] of string[10] = ('',
+     '603',
+     '604'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'SOFT',
+     'STANDARD'
+   );
+
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.15  2003-11-07 15:58:33  florian
+  Revision 1.16  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.15  2003/11/07 15:58:33  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit itppcgas;
+unit itcpugas;
 
 {$i fpcdefs.inc}
 
@@ -38,11 +38,11 @@ interface
         'ba','bl','bla','bc','bca','bcl','bcla','bcctr','bcctrl','bclr',
         'bclrl','cmp','cmpi','cmpl','cmpli','cntlzw','cntlzw.','crand',
         'crandc','creqv','crnand','crnor','cror','crorc','crxor','dcba',
-        'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.',
+        'dcbf','dcbi','dcbst','dcbt','dcbtst','dcbz','divw','divw.','divwo','divwo.',
         'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv',
         'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd',
-        'fadd.','fadds','fadds.','fcmpo','fcmpu','fctiw','fctw.','fctwz',
-        'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
+        'fadd.','fadds','fadds.','fcmpo','fcmpu','fctiw','fctiw.','fctiwz',
+        'fctiwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
         'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.',
         'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd',
         'fnmadd.','fnmadds','fnmadds.','fnmsub','fnmsub.','fnmsubs',
@@ -62,7 +62,7 @@ interface
         'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
         'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
         'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
-        'stwbrx', 'stwx.', 'stwu', 'stwux', 'stwx', 'subf', 'subf.', 'subfo',
+        'stwbrx', 'stwcx.', 'stwu', 'stwux', 'stwx', 'subf', 'subf.', 'subfo',
         'subfo.', 'subfc', 'subc.', 'subfco', 'subfco.', 'subfe', 'subfe.',
         'subfeo', 'subfeo.', 'subfic', 'subfme', 'subfme.', 'subfmeo', 'subfmeo.',
         'subfze', 'subfze.', 'subfzeo', 'subfzeo.', 'sync', 'tlbia', 'tlbie',
@@ -135,7 +135,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-10-01 20:34:49  peter
+  Revision 1.1  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.2  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

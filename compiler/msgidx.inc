@@ -63,7 +63,7 @@ const
   scan_n_version_not_support=02047;
   scan_n_only_exe_version=02048;
   scan_w_wrong_version_ignored=02049;
-  scan_w_unsupported_asmmode_specifier=02050;
+  scan_e_illegal_asmmode_specifier=02050;
   scan_w_no_asm_reader_switch_inside_asm=02051;
   scan_e_wrong_switch_toggle=02052;
   scan_e_resourcefiles_not_supported=02053;
@@ -631,7 +631,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35814;
+  MsgTxtSize = 35810;
 
   MsgIdxMax : array[1..20] of longint=(
     17,63,196,53,57,44,98,20,35,60,

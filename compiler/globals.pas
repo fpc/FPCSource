@@ -1380,12 +1380,12 @@ implementation
       var
         t : tproccalloption;
       begin
-        SetAktProcCall:=false;
+        result:=false;
         for t:=low(tproccalloption) to high(tproccalloption) do
          if DefProcCallName[t]=s then
           begin
             AktDefProcCall:=t;
-            SetAktProcCall:=true;
+            result:=true;
             break;
           end;
         if changeinit then
@@ -1673,6 +1673,8 @@ implementation
         initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
         initoutputformat:=target_asm.id;
         fillchar(initalignment,sizeof(talignmentinfo),0);
+        { might be overridden later }
+        initasmmode:=asmmode_standard;
 {$ifdef i386}
         initoptprocessor:=Class386;
         initspecificoptprocessor:=Class386;
@@ -1691,7 +1693,6 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_standard;
 {$endif m68k}
 {$ifdef powerpc}
         initoptprocessor:=PPC604;
@@ -1699,7 +1700,6 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_direct;
         initfputype:=fpu_standard;
 {$endif powerpc}
 {$ifdef sparc}
@@ -1745,7 +1745,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2003-11-10 17:22:28  marco
+  Revision 1.115  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.114  2003/11/10 17:22:28  marco
    * havelinuxrtl10 fixes
 
   Revision 1.113  2003/11/07 15:58:32  florian

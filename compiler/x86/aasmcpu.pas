@@ -153,6 +153,7 @@ interface
 
       taicpu = class(taicpu_abstract)
          opsize    : topsize;
+         constructor op_none(op : tasmop);
          constructor op_none(op : tasmop;_size : topsize);
 
          constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
@@ -237,7 +238,7 @@ implementation
 
      uses
        cutils,
-       itx86att;
+       itcpugas;
 
 {*****************************************************************************
                               Instruction table
@@ -432,6 +433,13 @@ implementation
          InsOffset:=0;
          InsSize:=0;
 {$endif}
+      end;
+
+
+    constructor taicpu.op_none(op : tasmop);
+      begin
+         inherited create(op);
+         init(S_NO);
       end;
 
 
@@ -2334,7 +2342,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-10-30 19:59:00  peter
+  Revision 1.38  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.37  2003/10/30 19:59:00  peter
     * support scalefactor for opr_local
     * support reference with opr_local set, fixes tw2631
 

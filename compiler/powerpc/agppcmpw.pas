@@ -60,7 +60,7 @@ interface
       cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
       cgbase,
-      itppcgas
+      itcpugas
       ;
 
     const
@@ -1337,7 +1337,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2003-10-25 10:37:26  florian
+  Revision 1.28  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.27  2003/10/25 10:37:26  florian
     * fixed compilation of ppc compiler
 
   Revision 1.26  2003/10/01 20:34:49  peter

@@ -50,7 +50,7 @@ type
   T386Instruction=class(TInstruction)
     OpOrder : TOperandOrder;
     opsize  : topsize;
-    constructor Create;
+    constructor Create(optype : tcoperand);override;
     { Operand sizes }
     procedure AddReferenceSizes;
     procedure SetInstructionOpsize;
@@ -59,10 +59,6 @@ type
     procedure SwapOperands;
     { opcode adding }
     procedure ConcatInstruction(p : taasmoutput);override;
-  end;
-
-  tstr2opentry = class(Tnamedindexitem)
-    op: TAsmOp;
   end;
 
 const
@@ -89,7 +85,7 @@ implementation
 uses
   globtype,globals,systems,verbose,
   cpuinfo,cgbase,
-  itx86att,cgx86;
+  itcpugas,cgx86;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -233,9 +229,9 @@ end;
                               T386Instruction
 *****************************************************************************}
 
-constructor T386Instruction.Create;
+constructor T386Instruction.Create(optype : tcoperand);
 begin
-  inherited Create;
+  inherited Create(optype);
   Opsize:=S_NO;
 end;
 
@@ -664,7 +660,7 @@ begin
   ai.SetOperandOrder(OpOrder);
   ai.Ops:=Ops;
   ai.Allocate_oper(Ops);
-  for i:=1to Ops do
+  for i:=1 to Ops do
    begin
      case operands[i].opr.typ of
        OPR_CONSTANT :
@@ -736,7 +732,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2003-10-30 19:59:00  peter
+  Revision 1.14  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.13  2003/10/30 19:59:00  peter
     * support scalefactor for opr_local
     * support reference with opr_local set, fixes tw2631
 

@@ -56,18 +56,9 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       procinfo,cgbase
-       ,radirect
-{$ifdef i386}
-  {$ifndef NoRa386Int}
-       ,ra386int
-  {$endif NoRa386Int}
-  {$ifndef NoRa386Att}
-       ,ra386att
-  {$endif NoRa386Att}
-{$else}
-       ,rasm
-{$endif i386}
+       procinfo,cgbase,
+       { assembler reader }
+       rabase
        ;
 
 
@@ -776,39 +767,28 @@ implementation
         asmstat : tasmnode;
         Marker  : tai;
         reg     : tregister;
+        asmreader : tbaseasmreader;
       begin
          Inside_asm_statement:=true;
-         case aktasmmode of
-           asmmode_none : ; { just be there to allow to compile a compiler without
-                              any assembler readers }
-{$ifdef i386}
-  {$ifndef NoRA386Att}
-           asmmode_i386_att:
-             asmstat:=tasmnode(ra386att.assemble);
-  {$endif NoRA386Att}
-  {$ifndef NoRA386Int}
-           asmmode_i386_intel:
-             asmstat:=tasmnode(ra386int.assemble);
-  {$endif NoRA386Int}
-{$else not i386}
-           asmmode_standard:
-             asmstat:=tasmnode(rasm.assemble);
-{$endif i386}
-           asmmode_direct:
-             begin
-               if not target_asm.allowdirect then
-                 Message(parser_f_direct_assembler_not_allowed);
-               if (current_procinfo.procdef.proccalloption=pocall_inline) then
-                 Begin
-                    Message1(parser_w_not_supported_for_inline,'direct asm');
-                    Message(parser_w_inlining_disabled);
-                    current_procinfo.procdef.proccalloption:=pocall_default;
-                 End;
-               asmstat:=tasmnode(radirect.assemble);
-             end;
+         if aktasmmode=asmmode_direct then
+           begin
+             if not target_asm.allowdirect then
+               Message(parser_f_direct_assembler_not_allowed);
+             if (current_procinfo.procdef.proccalloption=pocall_inline) then
+               Begin
+                  Message1(parser_w_not_supported_for_inline,'direct asm');
+                  Message(parser_w_inlining_disabled);
+                  current_procinfo.procdef.proccalloption:=pocall_default;
+               End;
+           end;
+         if assigned(asmmodeinfos[aktasmmode]) then
+           begin
+             asmreader:=asmmodeinfos[aktasmmode]^.casmreader.create;
+             asmstat:=casmnode.create(asmreader.assemble as taasmoutput);
+             asmreader.free;
+           end
          else
            Message(parser_f_assembler_reader_not_supported);
-         end;
 
          { Read first the _ASM statement }
          consume(_ASM);
@@ -1124,7 +1104,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-11-11 21:10:12  peter
+  Revision 1.122  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.121  2003/11/11 21:10:12  peter
     * remove temporary stdcall hack
 
   Revision 1.120  2003/11/10 22:02:52  peter

@@ -221,14 +221,21 @@ implementation
                    curconstSegment.concat(Tai_real_64bit.Create(ts64real(value)));
                  s80real :
                    curconstSegment.concat(Tai_real_80bit.Create(value));
+
 {$ifdef ver1_0}
                  s64comp :
                    curconstSegment.concat(Tai_comp_64bit.Create(value));
+                 s64currency:
+                   curconstSegment.concat(Tai_comp_64bit.Create(value*10000));
 {$else ver1_0}
                  { the round is necessary for native compilers where comp isn't a float }
                  s64comp :
                    curconstSegment.concat(Tai_comp_64bit.Create(round(value)));
+                 s64currency:
+                   curconstSegment.concat(Tai_comp_64bit.Create(round(value*10000)));
 {$endif ver1_0}
+                 s128real:
+                   curconstSegment.concat(Tai_real_128bit.Create(value));
                  else
                    internalerror(18);
               end;
@@ -994,7 +1001,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-11-08 10:23:35  florian
+  Revision 1.74  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.73  2003/11/08 10:23:35  florian
     * fixed parsing of typed widestring constants with length 1
 
   Revision 1.72  2003/10/21 18:16:13  peter

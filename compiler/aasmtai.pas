@@ -191,7 +191,7 @@ interface
 {$endif GDB}
                   ait_cut,ait_marker,ait_align,ait_section,ait_comment,
                   ait_const_8bit,ait_const_16bit,ait_const_32bit,
-                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit
+                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit
                   ];
 
 
@@ -373,6 +373,14 @@ interface
        { Generates an extended float (80 bit real) }
        tai_real_80bit = class(tai)
           value : ts80real;
+          constructor Create(_value : ts80real);
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+       end;
+
+       { Generates an extended float (128 bit real) }
+       tai_real_128bit = class(tai)
+          value : ts128real;
           constructor Create(_value : ts80real);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1088,6 +1096,33 @@ implementation
 
 
     procedure tai_real_80bit.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putreal(value);
+      end;
+
+
+{****************************************************************************
+                               TAI_real_80bit
+ ****************************************************************************}
+
+    constructor tai_real_128bit.Create(_value : ts128real);
+
+      begin
+         inherited Create;
+         typ:=ait_real_128bit;
+         value:=_value;
+      end;
+
+
+    constructor tai_real_128bit.ppuload(t:taitype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        value:=ppufile.getreal;
+      end;
+
+
+    procedure tai_real_128bit.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
         ppufile.putreal(value);
@@ -2153,7 +2188,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-11-07 15:58:32  florian
+  Revision 1.55  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.54  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

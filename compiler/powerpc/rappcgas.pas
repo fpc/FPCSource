@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-Unit rappcatt;
+Unit rappcgas;
 
 {$i fpcdefs.inc}
 
@@ -193,16 +193,16 @@ Unit rappcatt;
             l:=0;
             hasdot:=(actasmtoken=AS_DOT);
             if hasdot then
-             begin
-               if expr<>'' then
-                 begin
-                   BuildRecordOffsetSize(expr,toffset,tsize);
-                   inc(l,toffset);
-                   oper.SetSize(tsize,true);
-                 end;
-             end;
+              begin
+                if expr<>'' then
+                  begin
+                    BuildRecordOffsetSize(expr,toffset,tsize);
+                    inc(l,toffset);
+                    oper.SetSize(tsize,true);
+                  end;
+              end;
             if actasmtoken in [AS_PLUS,AS_MINUS] then
-             inc(l,BuildConstExpression(true,false));
+              inc(l,BuildConstExpression(true,false));
             case oper.opr.typ of
               OPR_LOCAL :
                 begin
@@ -364,6 +364,25 @@ Unit rappcatt;
                      begin
                        if oper.SetupVar(expr,false) then
                         begin
+                          { check for ...@ }
+                          if actasmtoken=AS_AT then
+                            begin
+                              if oper.opr.ref.symbol=nil then
+                                Message(asmr_e_invalid_reference_syntax);
+                              Consume(AS_AT);
+                              if actasmtoken=AS_ID then
+                                begin
+                                  if upper(actasmpattern)='L' then
+                                    oper.opr.ref.symaddr:=refs_l
+                                  else if upper(actasmpattern)='HA' then
+                                    oper.opr.ref.symaddr:=refs_ha
+                                  else
+                                    Message(asmr_e_invalid_reference_syntax);
+                                  Consume(AS_ID);
+                                end
+                              else
+                                Message(asmr_e_invalid_reference_syntax);
+                            end;
                         end
                        else
                         Begin
@@ -437,6 +456,20 @@ Unit rappcatt;
                     Message(asmr_e_invalid_operand_type);
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
+                end
+              else if is_condreg(tempreg) then
+                begin
+                  if actasmtoken=AS_STAR then
+                    begin
+                      consume(AS_STAR);
+                      if (actasmtoken=AS_INTNUM) and (actasmpattern='4') then
+                        begin
+                        end
+                      else
+                        Message(asmr_e_syn_operand);
+                    end
+                  else
+                    Message(asmr_e_syn_operand);
                 end
               else
                 Message(asmr_e_syn_operand);
@@ -602,6 +635,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-11-06 20:48:02  florian
+  Revision 1.2  2003-11-12 16:05:40  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.1  2003/11/06 20:48:02  florian
     * initial revision
 }

@@ -79,13 +79,13 @@ implementation
       ,gdb
 {$endif GDB}
 {$ifdef x86}
-      ,itx86att
+      ,itcpugas
 {$endif}
 {$ifdef powerpc}
-      ,itppcgas
+      ,itcpugas
 {$endif}
 {$ifdef arm}
-      ,itarmgas
+      ,itcpugas
 {$endif}
       ;
 
@@ -832,7 +832,12 @@ var
 end.
 {
   $Log$
-  Revision 1.36  2003-10-01 20:34:48  peter
+  Revision 1.37  2003-11-12 16:05:39  florian
+    * assembler readers OOPed
+    + typed currency constants
+    + typed 128 bit float constants if the CPU supports it
+
+  Revision 1.36  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

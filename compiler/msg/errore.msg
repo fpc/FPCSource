@@ -257,7 +257,7 @@ scan_n_only_exe_version=02048_N_VERSION only for exes or DLLs
 scan_w_wrong_version_ignored=02049_W_Wrong format for VERSION directive "$1"
 % The \var{\{\$VERSION\}} directive format is majorversion.minorversion
 % where majorversion and minorversion are words.
-scan_w_unsupported_asmmode_specifier=02050_W_Unsupported assembler style specified "$1"
+scan_e_illegal_asmmode_specifier=02050_E_Illegal assembler style specified "$1"
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM reader switch is not possible inside asm statement, "$1" will be effective only for next
