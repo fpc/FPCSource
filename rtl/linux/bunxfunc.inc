@@ -438,6 +438,14 @@ begin
   Selectarray[5]:=TSysParam(TimeOut);
   fpSelect:=do_syscall(syscall_nr_select,TSysParam(@selectarray));
 {$endif cpui386}
+{$ifdef cpux86_64}
+  {$define bunxfunc_fpselect_implemented}
+  fpSelect:=do_syscall(syscall_nr_select,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
+{$endif cpux86_64}
+{$ifdef cpuarm}
+  {$define bunxfunc_fpselect_implemented}
+  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
+{$endif cpuarm}
 {$ifdef cpupowerpc}
   {$define bunxfunc_fpselect_implemented}
   fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
@@ -455,7 +463,10 @@ end;
 
 {
  $Log$
- Revision 1.11  2004-10-13 20:47:12  florian
+ Revision 1.12  2004-10-24 13:55:52  peter
+   * fpselect for amd64,arm
+
+ Revision 1.11  2004/10/13 20:47:12  florian
    + implemented fpselect for sparc
 
  Revision 1.10  2004/04/28 20:48:20  peter
