@@ -78,11 +78,16 @@ implementation
         hp : ptree;
         hdef : porddef;
         hreg : tregister;
+        hregister : tregister;
         oldregisterdef : boolean;
       begin
+        { Get the accumulator first so it can't be used in the dest }
+        hregister:=getexplicitregister32(accumulator);
+        { process dest }
         SecondPass(dest);
         if Codegenerror then
          exit;
+        { store the value }
         Case dest^.resulttype^.deftype of
           floatdef:
             floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
@@ -95,9 +100,9 @@ implementation
               else
                begin
                  Case dest^.resulttype^.size of
-                  1 : hreg:=regtoreg8(accumulator);
-                  2 : hreg:=regtoreg16(accumulator);
-                  4 : hreg:=accumulator;
+                  1 : hreg:=regtoreg8(hregister);
+                  2 : hreg:=regtoreg16(hregister);
+                  4 : hreg:=hregister;
                  End;
                  emit_mov_reg_loc(hreg,dest^.location);
                  If (cs_check_range in aktlocalswitches) and
@@ -117,12 +122,12 @@ implementation
                       u8bit,u16bit,u32bit:
                         begin
                           new(hdef,init(u32bit,0,$ffffffff));
-                          hreg:=accumulator;
+                          hreg:=hregister;
                         end;
                       s8bit,s16bit,s32bit:
                         begin
                           new(hdef,init(s32bit,$80000000,$7fffffff));
-                          hreg:=accumulator;
+                          hreg:=hregister;
                         end;
                     end;
                     { create a fake node }
@@ -146,6 +151,9 @@ implementation
           else
             internalerror(66766766);
         end;
+        { free used registers }
+        del_locref(dest^.location);
+        ungetregister(hregister);
       end;
 
 
@@ -1238,7 +1246,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-05-27 19:44:13  peter
+  Revision 1.56  1999-05-31 12:43:32  peter
+    * fixed register allocation for storefuncresult
+
+  Revision 1.55  1999/05/27 19:44:13  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
