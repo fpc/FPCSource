@@ -815,8 +815,9 @@ implementation
       var
          membercall,
          prevafterassn : boolean;
-         para,p2 : tnode;
-         currpara : tparaitem;
+         i        : integer;
+         para,p2  : tnode;
+         currpara : tparavarsym;
          aprocdef : tprocdef;
       begin
          prevafterassn:=afterassignment;
@@ -878,12 +879,11 @@ implementation
               begin
                 if not assigned(current_procinfo) then
                   internalerror(200305054);
-                currpara:=tparaitem(current_procinfo.procdef.para.first);
-                while assigned(currpara) do
-                 begin
-                   if not currpara.is_hidden then
-                     para:=ccallparanode.create(cloadnode.create(currpara.parasym,currpara.parasym.owner),para);
-                   currpara:=tparaitem(currpara.next);
+                for i:=0 to current_procinfo.procdef.paras.count-1 do
+                  begin
+                    currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+                    if not(vo_is_hidden_para in currpara.varoptions) then
+                      para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner),para);
                  end;
               end
              else
@@ -1082,7 +1082,7 @@ implementation
            begin
               { pattern is still valid unless
               there is another ID just after the ID of sym }
-              Message1(sym_e_id_no_member,pattern);
+              Message1(sym_e_id_no_member,orgpattern);
               p1.free;
               p1:=cerrornode.create;
               { try to clean up }
@@ -1301,7 +1301,7 @@ implementation
                               srsym:=search_class_member(tobjectdef(htype.def),pattern);
                               check_hints(srsym);
                               if not assigned(srsym) then
-                               Message1(sym_e_id_no_member,pattern)
+                               Message1(sym_e_id_no_member,orgpattern)
                               else if not(getaddr) and not(sp_static in srsym.symoptions) then
                                Message(sym_e_only_static_in_static)
                               else
@@ -1327,7 +1327,7 @@ implementation
                                 srsym:=search_class_member(tobjectdef(htype.def),pattern);
                                 check_hints(srsym);
                                 if not assigned(srsym) then
-                                 Message1(sym_e_id_no_member,pattern)
+                                 Message1(sym_e_id_no_member,orgpattern)
                                 else
                                  begin
                                    consume(_ID);
@@ -1706,7 +1706,7 @@ implementation
                                check_hints(hsym);
                                if hsym=nil then
                                  begin
-                                   Message1(sym_e_id_no_member,pattern);
+                                   Message1(sym_e_id_no_member,orgpattern);
                                    p1.destroy;
                                    p1:=cerrornode.create;
                                    { try to clean up }
@@ -1733,7 +1733,7 @@ implementation
                                allow_only_static:=store_static;
                                if hsym=nil then
                                  begin
-                                    Message1(sym_e_id_no_member,pattern);
+                                    Message1(sym_e_id_no_member,orgpattern);
                                     p1.destroy;
                                     p1:=cerrornode.create;
                                     { try to clean up }
@@ -1821,7 +1821,7 @@ implementation
          pd       : tprocdef;
          classh   : tobjectdef;
          d        : bestreal;
-         hs       : string;
+         hs,hsorg : string;
          htype    : ttype;
          filepos  : tfileposinfo;
 
@@ -1883,6 +1883,7 @@ implementation
                   if token in endtokens then
                    begin
                      hs:=current_procinfo.procdef.procsym.name;
+                     hsorg:=current_procinfo.procdef.procsym.realname;
                      anon_inherited:=true;
                      { For message methods we need to search using the message
                        number or string }
@@ -1898,6 +1899,7 @@ implementation
                   else
                    begin
                      hs:=pattern;
+                     hsorg:=orgpattern;
                      consume(_ID);
                      anon_inherited:=false;
                      sym:=searchsym_in_class(classh,hs);
@@ -1940,7 +1942,7 @@ implementation
                       end
                      else
                       begin
-                        Message1(sym_e_id_no_member,hs);
+                        Message1(sym_e_id_no_member,hsorg);
                         p1:=cerrornode.create;
                       end;
                      again:=false;
@@ -2018,7 +2020,7 @@ implementation
                              begin
                                 consume(_INTCONST);
                                 htype:=u64inttype;
-                                p1:=cordconstnode.create(card,htype,true);
+                                p1:=cordconstnode.create(tconstexprint(qc),htype,true);
                              end;
                          end;
                      end;
@@ -2502,7 +2504,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2004-11-08 22:09:59  peter
+  Revision 1.172  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.171  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.170  2004/11/04 17:57:58  peter

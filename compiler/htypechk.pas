@@ -40,10 +40,10 @@ interface
 
       pcandidate = ^tcandidate;
       tcandidate = record
-         next        : pcandidate;
-         data        : tprocdef;
-         wrongpara,
-         firstpara   : tparaitem;
+         next         : pcandidate;
+         data         : tprocdef;
+         wrongparaidx,
+         firstparaidx : integer;
          exact_count,
          equal_count,
          cl1_count,
@@ -1360,7 +1360,7 @@ implementation
                                while assigned(hp) do
                                 begin
                                   { Only compare visible parameters for the user }
-                                  if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
+                                  if compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
                                    begin
                                      found:=true;
                                      break;
@@ -1440,7 +1440,7 @@ implementation
                             while assigned(hp) do
                               begin
                                 { Only compare visible parameters for the user }
-                                if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
+                                if compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
                                   begin
                                     found:=true;
                                     break;
@@ -1475,7 +1475,7 @@ implementation
 
     function tcallcandidates.proc_add(pd:tprocdef):pcandidate;
       var
-        i : integer;
+        defaultparacnt : integer;
       begin
         { generate new candidate entry }
         new(result);
@@ -1486,17 +1486,18 @@ implementation
         inc(FProccnt);
         { Find last parameter, skip all default parameters
           that are not passed. Ignore this skipping for varargs }
-        result^.firstpara:=tparaitem(pd.Para.last);
+        result^.firstparaidx:=pd.paras.count-1;
         if not(po_varargs in pd.procoptions) then
          begin
            { ignore hidden parameters }
-           while assigned(result^.firstpara) and (result^.firstpara.is_hidden) do
-             result^.firstpara:=tparaitem(result^.firstpara.previous);
-           for i:=1 to pd.maxparacount-FParalength do
+           while (result^.firstparaidx>=0) and (vo_is_hidden_para in tparavarsym(pd.paras[result^.firstparaidx]).varoptions) do
+             dec(result^.firstparaidx);
+           defaultparacnt:=pd.maxparacount-FParalength;
+           if defaultparacnt>0 then
              begin
-               if not assigned(result^.firstpara) then
+               if defaultparacnt>result^.firstparaidx then
                  internalerror(200401141);
-               result^.firstpara:=tparaitem(result^.firstPara.previous);
+               dec(result^.firstparaidx,defaultparacnt);
              end;
          end;
       end;
@@ -1534,7 +1535,8 @@ implementation
 
       var
         hp : pcandidate;
-        currpara : tparaitem;
+        i  : integer;
+        currpara : tparavarsym;
       begin
         if not CheckVerbosity(lvl) then
          exit;
@@ -1555,17 +1557,11 @@ implementation
                           ' oper: '+tostr(hp^.coper_count)+
                           ' ord: '+realtostr(hp^.exact_count));
               { Print parameters in left-right order }
-              currpara:=hp^.firstpara;
-              if assigned(currpara) then
+              for i:=0 to hp^.data.paras.count-1 do
                begin
-                 while assigned(currpara.next) do
-                  currpara:=tparaitem(currpara.next);
-               end;
-              while assigned(currpara) do
-               begin
-                 if (not currpara.is_hidden) then
-                   Comment(lvl,'    - '+currpara.paratype.def.typename+' : '+EqualTypeName[currpara.eqval]);
-                 currpara:=tparaitem(currpara.previous);
+                 currpara:=tparavarsym(hp^.data.paras[i]);
+                 if (vo_is_hidden_para in currpara.varoptions) then
+                   Comment(lvl,'    - '+currpara.vartype.def.typename+' : '+EqualTypeName[currpara.eqval]);
                end;
             end;
            hp:=hp^.next;
@@ -1577,7 +1573,8 @@ implementation
     procedure tcallcandidates.get_information;
       var
         hp       : pcandidate;
-        currpara : tparaitem;
+        currpara : tparavarsym;
+        paraidx  : integer;
         currparanr : byte;
         def_from,
         def_to   : tdef;
@@ -1600,12 +1597,13 @@ implementation
              the firstpara is already pointing to the last parameter
              were we need to start comparing }
            currparanr:=FParalength;
-           currpara:=hp^.firstpara;
-           while assigned(currpara) and (currpara.is_hidden) do
-             currpara:=tparaitem(currpara.previous);
+           paraidx:=hp^.firstparaidx;
+           while (paraidx>=0) and (vo_is_hidden_para in tparavarsym(hp^.data.paras[paraidx]).varoptions) do
+             dec(paraidx);
            pt:=tcallparanode(FParaNode);
-           while assigned(pt) and assigned(currpara) do
+           while assigned(pt) and (paraidx>=0) do
             begin
+              currpara:=tparavarsym(hp^.data.paras[paraidx]);
               { currpt can be changed from loadn to calln when a procvar
                 is passed. This is to prevent that the change is permanent }
               currpt:=pt;
@@ -1613,7 +1611,7 @@ implementation
               { retrieve current parameter definitions to compares }
               eq:=te_incompatible;
               def_from:=currpt.resulttype.def;
-              def_to:=currpara.paratype.def;
+              def_to:=currpara.vartype.def;
               if not(assigned(def_from)) then
                internalerror(200212091);
               if not(
@@ -1651,7 +1649,7 @@ implementation
               else
               { for value and const parameters check if a integer is constant or
                 included in other integer -> equal and calc ordinal_distance }
-               if not(currpara.paratyp in [vs_var,vs_out]) and
+               if not(currpara.varspez in [vs_var,vs_out]) and
                   is_integer(def_from) and
                   is_integer(def_to) and
                   is_in_limit(def_from,def_to) then
@@ -1675,14 +1673,14 @@ implementation
                    some special case for parameter passing }
                  if (eq<te_equal) then
                   begin
-                    if currpara.paratyp in [vs_var,vs_out] then
+                    if currpara.varspez in [vs_var,vs_out] then
                       begin
                         { para requires an equal type so the previous found
                           match was not good enough, reset to incompatible }
                         eq:=te_incompatible;
                         { var_para_allowed will return te_equal and te_convert_l1 to
                           make a difference for best matching }
-                        var_para_allowed(eq,currpt.resulttype.def,currpara.paratype.def)
+                        var_para_allowed(eq,currpt.resulttype.def,currpara.vartype.def)
                       end
                     else
                       para_allowed(eq,currpt,def_to);
@@ -1720,7 +1718,7 @@ implementation
                begin
                  { store the current parameter info for
                    a nice error message when no procedure is found }
-                 hp^.wrongpara:=currpara;
+                 hp^.wrongparaidx:=paraidx;
                  hp^.wrongparanr:=currparanr;
                  break;
                end;
@@ -1744,13 +1742,13 @@ implementation
                begin
                  { Ignore vs_hidden parameters }
                  repeat
-                   currpara:=tparaitem(currpara.previous);
-                 until (not assigned(currpara)) or (not currpara.is_hidden);
+                   dec(paraidx);
+                 until (paraidx<0) or not(vo_is_hidden_para in tparavarsym(hp^.data.paras[paraidx]).varoptions);
                end;
               dec(currparanr);
             end;
            if not(hp^.invalid) and
-              (assigned(pt) or assigned(currpara) or (currparanr<>0)) then
+              (assigned(pt) or (paraidx>=0) or (currparanr<>0)) then
              internalerror(200212141);
            { next candidate }
            hp:=hp^.next;
@@ -1895,6 +1893,7 @@ implementation
         currparanr : smallint;
         hp : pcandidate;
         pt : tcallparanode;
+        wrongpara : tparavarsym;
       begin
         { Only process the first overloaded procdef }
         hp:=FProcs;
@@ -1912,28 +1911,33 @@ implementation
           internalerror(200212094);
         { Show error message, when it was a var or out parameter
           guess that it is a missing typeconv }
-        if hp^.wrongpara.paratyp in [vs_var,vs_out] then
+        wrongpara:=tparavarsym(hp^.data.paras[hp^.wrongparaidx]);
+        if wrongpara.varspez in [vs_var,vs_out] then
           begin
             { Maybe passing the correct type but passing a const to var parameter }
-            if (compare_defs(pt.resulttype.def,hp^.wrongpara.paratype.def,pt.nodetype)<>te_incompatible) and
+            if (compare_defs(pt.resulttype.def,wrongpara.vartype.def,pt.nodetype)<>te_incompatible) and
                not valid_for_var(pt.left) then
               CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
               CGMessagePos2(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,
-                FullTypeName(pt.left.resulttype.def,hp^.wrongpara.paratype.def),
-                FullTypeName(hp^.wrongpara.paratype.def,pt.left.resulttype.def))
+                FullTypeName(pt.left.resulttype.def,wrongpara.vartype.def),
+                FullTypeName(wrongpara.vartype.def,pt.left.resulttype.def))
           end
         else
           CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
-            FullTypeName(pt.left.resulttype.def,hp^.wrongpara.paratype.def),
-            FullTypeName(hp^.wrongpara.paratype.def,pt.left.resulttype.def));
+            FullTypeName(pt.left.resulttype.def,wrongpara.vartype.def),
+            FullTypeName(wrongpara.vartype.def,pt.left.resulttype.def));
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.103  2004-11-08 22:09:58  peter
+  Revision 1.104  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.103  2004/11/08 22:09:58  peter
     * tvarsym splitted
 
   Revision 1.102  2004/11/01 16:58:57  peter

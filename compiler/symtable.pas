@@ -729,7 +729,7 @@ implementation
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
-              (vo_is_hidden in tabstractvarsym(p).varoptions) then
+              (vo_is_hidden_para in tabstractvarsym(p).varoptions) then
              exit;
            if (tstoredsym(p).refs=0) then
              begin
@@ -2307,7 +2307,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.163  2004-11-09 23:10:22  peter
+  Revision 1.164  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.163  2004/11/09 23:10:22  peter
     * use helper call to retrieve address of input/output to reduce
       code that is generated in the main program for loading the
       threadvar

@@ -38,7 +38,7 @@ implementation
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmtai,aasmcpu,aasmbase,
-       cgbase,cpuinfo,cgobj,
+       cgbase,cgobj,
        nbas,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,procinfo,
@@ -46,7 +46,7 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       scanner,pbase,pexpr,psystem,psub;
+       scanner,pbase,pexpr,psystem,psub,pdecsub;
 
     procedure fixseg(p:TAAsmoutput; sec:TAsmSectionType; secname: string);
       begin
@@ -167,17 +167,17 @@ implementation
          end;
         { align code segment }
         codeSegment.concat(Tai_align.Create(aktalignment.procalign));
-				{ Insert start and end of sections }
-				fixseg(codesegment,sec_code,'____seg_code');
-				fixseg(datasegment,sec_data,'____seg_data');
-				fixseg(bsssegment,sec_bss,'____seg_bss');
-				{ we should use .rdata section for these two no ?
-					.rdata is a read only data section (PM) }
-				fixseg(rttilist,sec_data,'____seg_rtti');
-				fixseg(consts,sec_data,'____seg_consts');
-				fixseg(picdata,sec_data,'____seg_picdata');
-				if assigned(resourcestringlist) then
-					fixseg(resourcestringlist,sec_data,'____seg_resstrings');
+        { Insert start and end of sections }
+        fixseg(codesegment,sec_code,'____seg_code');
+        fixseg(datasegment,sec_data,'____seg_data');
+        fixseg(bsssegment,sec_bss,'____seg_bss');
+        { we should use .rdata section for these two no ?
+          .rdata is a read only data section (PM) }
+        fixseg(rttilist,sec_data,'____seg_rtti');
+        fixseg(consts,sec_data,'____seg_consts');
+        fixseg(picdata,sec_data,'____seg_picdata');
+        if assigned(resourcestringlist) then
+          fixseg(resourcestringlist,sec_data,'____seg_resstrings');
 {$ifdef GDB}
         if assigned(debuglist) then
           begin
@@ -798,6 +798,7 @@ implementation
         pd.forwarddef:=false;
         pd.setmangledname(target_info.cprefix+name);
         pd.aliasnames.insert(pd.mangledname);
+        calc_parast(pd);
         { We don't need is a local symtable. Change it into the static
           symtable }
         pd.localst.free;
@@ -1520,7 +1521,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.173  2004-11-08 22:09:59  peter
+  Revision 1.174  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.173  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.172  2004/11/05 20:04:49  florian

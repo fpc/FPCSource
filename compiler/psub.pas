@@ -948,24 +948,23 @@ implementation
 
     function checknodeinlining(procdef: tprocdef): boolean;
       var
-        paraitem: tparaitem;
+        i : integer;
+        currpara : tparavarsym;
       begin
         result := false;
         if not assigned(procdef.inlininginfo^.code) or
            (po_assembler in procdef.procoptions) then
           exit;
-        paraitem:=tparaitem(procdef.para.first);
-
-        while assigned(paraitem) do
+        for i:=0 to procdef.paras.count-1 do
           begin
+            currpara:=tparavarsym(procdef.paras[i]);
             { we can't handle formaldefs and special arrays (the latter may need a    }
             { re-basing of the index, i.e. if you pass an array[1..10] as open array, }
             { you have to add 1 to all index operations if you directly inline it     }
-            if ((paraitem.paratyp in [vs_out,vs_var]) and
-                (paraitem.paratype.def.deftype=formaldef)) or
-               is_special_array(paraitem.paratype.def)  then
+            if ((currpara.varspez in [vs_out,vs_var]) and
+                (currpara.vartype.def.deftype=formaldef)) or
+               is_special_array(currpara.vartype.def)  then
               exit;
-            paraitem := tparaitem(paraitem.next);
           end;
         { we currently can't handle exit-statements (would exit the caller) }
         result := not foreachnodestatic(procdef.inlininginfo^.code,@containsforbiddennode,nil);
@@ -1403,7 +1402,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.214  2004-11-08 22:09:59  peter
+  Revision 1.215  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.214  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.213  2004/11/02 12:55:17  peter

@@ -30,7 +30,7 @@ unit cpupara;
        cclasses,
        aasmtai,
        cpubase,cpuinfo,
-       symconst,symbase,symtype,symdef,
+       symconst,symbase,symtype,symdef,symsym,
        paramgr,parabase,cgbase;
 
     type
@@ -41,14 +41,14 @@ unit cpupara;
 
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
 
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
-          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tlist;
               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
-          function parseparaloc(p : tparaitem;const s : string) : boolean;override;
+          function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        end;
 
   implementation
@@ -57,7 +57,7 @@ unit cpupara;
        verbose,systems,
        procinfo,
        rgobj,
-       defutil,symsym,cpupi;
+       defutil,cpupi;
 
 
     function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -284,21 +284,22 @@ unit cpupara;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
-        result := create_paraloc_info_intern(p,side,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        result := create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
         create_funcret_paraloc_info(p,side);
       end;
 
 
 
-    function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+    function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tlist;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
       var
          stack_offset: aword;
          nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
          paradef : tdef;
          paraloc,paraloc2 : pcgparalocation;
-         hp : tparaitem;
+         i  : integer;
+         hp : tparavarsym;
          loc : tcgloc;
          paracgsize: tcgsize;
          is_64bit: boolean;
@@ -342,13 +343,13 @@ unit cpupara;
            else internalerror(2004070912);
          end;
 
-         hp:=firstpara;
-         while assigned(hp) do
-           begin
+          for i:=0 to paras.count-1 do
+            begin
+              hp:=tparavarsym(paras[i]);
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
               if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                 is_array_of_const(hp.paratype.def) then
+                 is_array_of_const(hp.vartype.def) then
                 begin
                   paraloc:=hp.paraloc[side].add_location;
                   { hack: the paraloc must be valid, but is not actually used }
@@ -358,7 +359,7 @@ unit cpupara;
                   break;
                 end;
 
-              if (hp.paratyp in [vs_var,vs_out]) then
+              if (hp.varspez in [vs_var,vs_out]) then
                 begin
                   paradef:=voidpointertype.def;
                   loc:=LOC_REGISTER;
@@ -366,7 +367,7 @@ unit cpupara;
                 end
               else
                 begin
-                  paradef := hp.paratype.def;
+                  paradef := hp.vartype.def;
                   loc:=getparaloc(paradef);
                   paracgsize:=def_cgsize(paradef);
                   { for things like formaldef }
@@ -457,7 +458,7 @@ unit cpupara;
                  LOC_REFERENCE:
                    begin
                       paraloc^.size:=OS_ADDR;
-                      if push_addr_param(hp.paratyp,paradef,p.proccalloption) or
+                      if push_addr_param(hp.varspez,paradef,p.proccalloption) or
                         is_open_array(paradef) or
                         is_array_of_const(paradef) then
                         assignintreg
@@ -466,13 +467,12 @@ unit cpupara;
                            paraloc^.loc:=LOC_REFERENCE;
                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
                            paraloc^.reference.offset:=stack_offset;
-                           inc(stack_offset,hp.paratype.def.size);
+                           inc(stack_offset,hp.vartype.def.size);
                         end;
                    end;
                  else
                    internalerror(2002071002);
               end;
-              hp:=tparaitem(hp.next);
            end;
          curintreg:=nextintreg;
          curfloatreg:=nextfloatreg;
@@ -482,36 +482,36 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
+    function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         parasize, l: longint;
         curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
-        hp: tparaitem;
+        i : integer;
+        hp: tparavarsym;
         paraloc: pcgparalocation;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
         firstfloatreg:=curfloatreg;
 
-        result:=create_paraloc_info_intern(p,callerside,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
         if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
           { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,tparaitem(varargspara.first),curintreg,curfloatreg,curmmreg,cur_stack_offset)
+          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset)
         else
           begin
-            hp:=tparaitem(varargspara.first);
             parasize:=cur_stack_offset;
-            while assigned(hp) do
+            for i:=0 to varargspara.count-1 do
               begin
+                hp:=tparavarsym(varargspara[i]);
                 hp.paraloc[callerside].alignment:=4;
                 paraloc:=hp.paraloc[callerside].add_location;
                 paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.size:=def_cgsize(hp.paratype.def);
+                paraloc^.size:=def_cgsize(hp.vartype.def);
                 paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
                 paraloc^.reference.offset:=parasize;
                 parasize:=parasize+l;
-                hp:=tparaitem(hp.next);
               end;
             result:=parasize;
           end;
@@ -520,7 +520,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.parseparaloc(p : tparaitem;const s : string) : boolean;
+    function tppcparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -529,10 +529,10 @@ unit cpupara;
           system_powerpc_morphos:
             begin
               p.paraloc[callerside].alignment:=4;
-              p.paraloc[callerside].size:=def_cgsize(p.paratype.def);
+              p.paraloc[callerside].size:=def_cgsize(p.vartype.def);
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REFERENCE;
-              paraloc^.size:=def_cgsize(p.paratype.def);
+              paraloc^.size:=def_cgsize(p.vartype.def);
               paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
               { pattern is always uppercase'd }
               if s='D0' then
@@ -589,7 +589,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2004-11-14 16:26:29  florian
+  Revision 1.71  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.70  2004/11/14 16:26:29  florian
     * fixed morphos syscall
 
   Revision 1.69  2004/09/25 20:28:20  florian

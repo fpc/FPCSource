@@ -940,7 +940,6 @@ implementation
       var
         list : TAAsmoutput;
         href : treference;
-        l : tlocation;
       begin
         if not(tsym(p).typ=paravarsym) then
           exit;
@@ -1271,7 +1270,8 @@ implementation
          end;
 
       var
-        hp      : tparaitem;
+        i : integer;
+        currpara : tparavarsym;
         paraloc : pcgparalocation;
 {$ifdef sparc}
         tempref,
@@ -1282,30 +1282,29 @@ implementation
           exit;
 
         { Allocate registers used by parameters }
-        hp:=tparaitem(current_procinfo.procdef.para.first);
-        while assigned(hp) do
+        for i:=0 to current_procinfo.procdef.paras.count-1 do
           begin
-            paraloc:=hp.paraloc[calleeside].location;
+            currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+            paraloc:=currpara.paraloc[calleeside].location;
             while assigned(paraloc) do
               begin
                 if paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER] then
                   get_para(paraloc^);
                 paraloc:=paraloc^.next;
               end;
-            hp:=tparaitem(hp.next);
           end;
 
         { Copy parameters to local references/registers }
-        hp:=tparaitem(current_procinfo.procdef.para.first);
-        while assigned(hp) do
+        for i:=0 to current_procinfo.procdef.paras.count-1 do
           begin
-            paraloc:=hp.paraloc[calleeside].location;
+            currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+            paraloc:=currpara.paraloc[calleeside].location;
             if not assigned(paraloc) then
               internalerror(200408203);
-            case tabstractnormalvarsym(hp.parasym).localloc.loc of
+            case currpara.localloc.loc of
               LOC_REFERENCE :
                 begin
-                  href:=tparavarsym(hp.parasym).localloc.reference;
+                  href:=currpara.localloc.reference;
                   while assigned(paraloc) do
                     begin
                       unget_para(paraloc^);
@@ -1317,28 +1316,28 @@ implementation
               LOC_CREGISTER :
                 begin
 {$ifndef cpu64bit}
-                  if tparavarsym(hp.parasym).localloc.size in [OS_64,OS_S64] then
+                  if currpara.localloc.size in [OS_64,OS_S64] then
                     begin
                       { First 32bits }
                       unget_para(paraloc^);
                       if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reghi)
+                        gen_load_reg(paraloc^,currpara.localloc.register64.reghi)
                       else
-                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reglo);
+                        gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
                       { Second 32bits }
                       if not assigned(paraloc^.next) then
                         internalerror(200410104);
                       unget_para(paraloc^);
                       if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reglo)
+                        gen_load_reg(paraloc^,currpara.localloc.register64.reglo)
                       else
-                        gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register64.reghi);
+                        gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
                     end
                   else
 {$endif cpu64bit}
                     begin
                       unget_para(paraloc^);
-                      gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register);
+                      gen_load_reg(paraloc^,currpara.localloc.register);
                       if assigned(paraloc^.next) then
                         internalerror(200410105);
                     end;
@@ -1348,7 +1347,7 @@ implementation
 {$ifdef sparc}
                   { Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
-                  tg.GetTemp(list,TCGSize2Size[tparavarsym(hp.parasym).localloc.size],tt_normal,tempref);
+                  tg.GetTemp(list,TCGSize2Size[currpara.localloc.size],tt_normal,tempref);
                   href:=tempref;
                   while assigned(paraloc) do
                     begin
@@ -1357,11 +1356,11 @@ implementation
                       inc(href.offset,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
                     end;
-                  cg.a_loadfpu_ref_reg(list,tparavarsym(hp.parasym).localloc.size,tempref,tparavarsym(hp.parasym).localloc.register);
+                  cg.a_loadfpu_ref_reg(list,currpara.localloc.size,tempref,currpara.localloc.register);
                   tg.UnGetTemp(list,tempref);
 {$else sparc}
                   unget_para(paraloc^);
-                  gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register);
+                  gen_load_reg(paraloc^,currpara.localloc.register);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
 {$endif sparc}
@@ -1369,12 +1368,11 @@ implementation
               LOC_CMMREGISTER :
                 begin
                   unget_para(paraloc^);
-                  gen_load_reg(paraloc^,tparavarsym(hp.parasym).localloc.register);
+                  gen_load_reg(paraloc^,currpara.localloc.register);
                   if assigned(paraloc^.next) then
                     internalerror(200410108);
                 end;
             end;
-            hp:=tparaitem(hp.next);
           end;
 
         { generate copies of call by value parameters, must be done before
@@ -1859,7 +1857,7 @@ implementation
                     if (sym.typ=paravarsym) and
                        (po_assembler in current_procinfo.procdef.procoptions) then
                       begin
-                        tparavarsym(sym).paraitem.paraloc[calleeside].get_location(localloc);
+                        tparavarsym(sym).paraloc[calleeside].get_location(localloc);
                       end
                     else
                       begin
@@ -1914,10 +1912,10 @@ implementation
                               parasymtable :
                                 begin
                                   { Reuse the parameter location for values to are at a single location on the stack }
-                                  if (tparavarsym(sym).paraitem.paraloc[calleeside].is_simple_reference) then
+                                  if (tparavarsym(sym).paraloc[calleeside].is_simple_reference) then
                                     begin
-                                      reference_reset_base(localloc.reference,tparavarsym(sym).paraitem.paraloc[calleeside].location^.reference.index,
-                                          tparavarsym(sym).paraitem.paraloc[calleeside].location^.reference.offset);
+                                      reference_reset_base(localloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
+                                          tparavarsym(sym).paraloc[calleeside].location^.reference.offset);
                                     end
                                   else
                                     begin
@@ -2025,8 +2023,8 @@ implementation
                     localloc.loc:=LOC_REFERENCE;
                     localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
                     tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
-                    calleeparaloc:=paraitem.paraloc[calleeside].location;
-                    callerparaloc:=paraitem.paraloc[callerside].location;
+                    calleeparaloc:=paraloc[calleeside].location;
+                    callerparaloc:=paraloc[callerside].location;
                     while assigned(calleeparaloc) do
                       begin
                         if not assigned(callerparaloc) then
@@ -2212,7 +2210,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.240  2004-11-11 19:31:33  peter
+  Revision 1.241  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.240  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.239  2004/11/09 17:26:47  peter

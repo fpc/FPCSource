@@ -636,7 +636,7 @@ implementation
                 { possible proc directives }
                 if parseprocvardir then
                   begin
-                    if is_proc_directive(token,true) then
+                    if check_proc_directive(true) then
                       begin
                          newtype:=ttypesym.create('unnamed',tt);
                          parse_var_proc_directives(tsym(newtype));
@@ -659,7 +659,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2004-11-01 23:30:11  peter
+  Revision 1.70  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.69  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 

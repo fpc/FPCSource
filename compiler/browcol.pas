@@ -1243,27 +1243,28 @@ end;
   end;
   function GetAbsProcParmDefStr(def: tabstractprocdef): string;
   var Name: string;
-      dc: tparaitem;
+      dc: tparavarsym;
+      i,
       Count: integer;
       CurName: string;
   begin
     Name:='';
-    dc:=tparaitem(def.para.first);
     Count:=0;
-    while assigned(dc) do
+    for i:=0 to def.paras.count-1 do
      begin
-       CurName:='';
-       case dc.paratyp of
+       dc:=tparavarsym(def.paras[i]);
+       if i=0 then
+         CurName:=''
+       else
+         CurName:=', '+CurName;
+       case dc.varspez of
          vs_Value : ;
          vs_Const : CurName:=CurName+'const ';
          vs_Var   : CurName:=CurName+'var ';
        end;
-       if assigned(dc.paratype.def) then
-         CurName:=CurName+GetDefinitionStr(dc.paratype.def);
-       if dc.next<>nil then
-         CurName:=', '+CurName;
+       if assigned(dc.vartype.def) then
+         CurName:=CurName+GetDefinitionStr(dc.vartype.def);
        Name:=CurName+Name;
-       dc:=tparaitem(dc.next);
        Inc(Count);
      end;
     GetAbsProcParmDefStr:=Name;
@@ -2143,7 +2144,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-11-09 16:46:05  peter
+  Revision 1.42  2004-11-15 23:35:30  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.41  2004/11/09 16:46:05  peter
     * fixed compile
 
   Revision 1.40  2004/10/14 16:53:26  mazen

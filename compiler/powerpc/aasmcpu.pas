@@ -27,10 +27,9 @@ unit aasmcpu;
 interface
 
 uses
-  cclasses,
-  globtype,globals,verbose,
+  globtype,verbose,
   aasmbase,aasmtai,
-  cpubase,cpuinfo,cgbase,cgutils;
+  cpubase,cgbase,cgutils;
 
     const
       { "mov reg,reg" source operand number }
@@ -101,7 +100,7 @@ uses
 
 implementation
 
-uses cutils,rgobj;
+uses cutils;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -407,10 +406,18 @@ uses cutils,rgobj;
       begin
       end;
 
+
+begin
+  cai_align:=tai_align;
+  cai_cpu:=taicpu;
 end.
 {
   $Log$
-  Revision 1.28  2004-10-31 21:45:03  peter
+  Revision 1.29  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.28  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -106,7 +106,7 @@ interface
       search for a routine with default parameters, before
       searching for the same definition with no parameters)
     }
-    function compare_paras(paralist1,paralist2 : TLinkedList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+    function compare_paras(para1,para2 : tlist; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
@@ -1138,53 +1138,59 @@ implementation
       end;
 
 
-    function compare_paras(paralist1,paralist2 : TLinkedList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+    function compare_paras(para1,para2 : tlist; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
       var
         currpara1,
-        currpara2 : TParaItem;
+        currpara2 : tparavarsym;
         eq,lowesteq : tequaltype;
-        hpd      : tprocdef;
-        convtype : tconverttype;
+        hpd       : tprocdef;
+        convtype  : tconverttype;
         cdoptions : tcompare_defs_options;
+        i1,i2     : byte;
       begin
          compare_paras:=te_incompatible;
          cdoptions:=[cdo_check_operator,cdo_allow_variant];
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
-         currpara1:=TParaItem(paralist1.first);
-         currpara2:=TParaItem(paralist2.first);
+         i1:=0;
+         i2:=0;
          if cpo_ignorehidden in cpoptions then
            begin
-             while assigned(currpara1) and currpara1.is_hidden do
-               currpara1:=tparaitem(currpara1.next);
-             while assigned(currpara2) and currpara2.is_hidden do
-               currpara2:=tparaitem(currpara2.next);
+             while (i1<para1.count) and
+                   (vo_is_hidden_para in tparavarsym(para1[i1]).varoptions) do
+               inc(i1);
+             while (i2<para2.count) and
+                   (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
+               inc(i2);
            end;
-         while (assigned(currpara1)) and (assigned(currpara2)) do
+         while (i1<para1.count) and (i2<para2.count) do
            begin
              eq:=te_incompatible;
 
+             currpara1:=tparavarsym(para1[i1]);
+             currpara2:=tparavarsym(para2[i2]);
+
              { Unique types must match exact }
-             if ((df_unique in currpara1.paratype.def.defoptions) or (df_unique in currpara2.paratype.def.defoptions)) and
-                (currpara1.paratype.def<>currpara2.paratype.def) then
+             if ((df_unique in currpara1.vartype.def.defoptions) or (df_unique in currpara2.vartype.def.defoptions)) and
+                (currpara1.vartype.def<>currpara2.vartype.def) then
                exit;
 
              { Handle hidden parameters separately, because self is
                defined as voidpointer for methodpointers }
-             if (currpara1.is_hidden or
-                 currpara2.is_hidden) then
+             if (vo_is_hidden_para in currpara1.varoptions) or
+                (vo_is_hidden_para in currpara2.varoptions) then
               begin
                 { both must be hidden }
-                if currpara1.is_hidden<>currpara2.is_hidden then
+                if (vo_is_hidden_para in currpara1.varoptions)<>(vo_is_hidden_para in currpara2.varoptions) then
                   exit;
                 eq:=te_equal;
-                if not(vo_is_self in tabstractvarsym(currpara1.parasym).varoptions) and
-                   not(vo_is_self in tabstractvarsym(currpara2.parasym).varoptions) then
+                if not(vo_is_self in currpara1.varoptions) and
+                   not(vo_is_self in currpara2.varoptions) then
                  begin
-                   if (currpara1.paratyp<>currpara2.paratyp) then
+                   if (currpara1.varspez<>currpara2.varspez) then
                     exit;
-                   eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                   eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
                                         convtype,hpd,cdoptions);
                  end;
               end
@@ -1194,33 +1200,33 @@ implementation
                   cp_value_equal_const :
                     begin
                        if (
-                           (currpara1.paratyp<>currpara2.paratyp) and
-                           ((currpara1.paratyp in [vs_var,vs_out]) or
-                            (currpara2.paratyp in [vs_var,vs_out]))
+                           (currpara1.varspez<>currpara2.varspez) and
+                           ((currpara1.varspez in [vs_var,vs_out]) or
+                            (currpara2.varspez in [vs_var,vs_out]))
                           ) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                       eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_all :
                     begin
-                       if (currpara1.paratyp<>currpara2.paratyp) then
+                       if (currpara1.varspez<>currpara2.varspez) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                       eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_procvar :
                     begin
-                       if (currpara1.paratyp<>currpara2.paratyp) then
+                       if (currpara1.varspez<>currpara2.varspez) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                       eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
                                             convtype,hpd,cdoptions);
                        { Parameters must be at least equal otherwise the are incompatible }
                        if (eq<te_equal) then
                          eq:=te_incompatible;
                     end;
                   else
-                    eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                    eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
                                          convtype,hpd,cdoptions);
                  end;
                end;
@@ -1231,29 +1237,31 @@ implementation
                 lowesteq:=eq;
               { also check default value if both have it declared }
               if (cpo_comparedefaultvalue in cpoptions) and
-                 assigned(currpara1.defaultvalue) and
-                 assigned(currpara2.defaultvalue) then
+                 assigned(currpara1.defaultconstsym) and
+                 assigned(currpara2.defaultconstsym) then
                begin
-                 if not equal_constsym(tconstsym(currpara1.defaultvalue),tconstsym(currpara2.defaultvalue)) then
+                 if not equal_constsym(tconstsym(currpara1.defaultconstsym),tconstsym(currpara2.defaultconstsym)) then
                    exit;
                end;
-              currpara1:=TParaItem(currpara1.next);
-              currpara2:=TParaItem(currpara2.next);
+              inc(i1);
+              inc(i2);
               if cpo_ignorehidden in cpoptions then
                 begin
-                  while assigned(currpara1) and currpara1.is_hidden do
-                    currpara1:=tparaitem(currpara1.next);
-                  while assigned(currpara2) and currpara2.is_hidden do
-                    currpara2:=tparaitem(currpara2.next);
+                  while (i1<para1.count) and
+                        (vo_is_hidden_para in tparavarsym(para1[i1]).varoptions) do
+                    inc(i1);
+                  while (i2<para2.count) and
+                        (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
+                    inc(i2);
                 end;
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
            value assigned then the parameters are also equal }
-         if ((currpara1=nil) and (currpara2=nil)) or
+         if ((i1>=para1.count) and (i2>=para2.count)) or
             ((cpo_allowdefaults in cpoptions) and
-             ((assigned(currpara1) and assigned(currpara1.defaultvalue)) or
-              (assigned(currpara2) and assigned(currpara2.defaultvalue)))) then
+             (((i1<para1.count) and assigned(tparavarsym(para1[i1]).defaultconstsym)) or
+              ((i2<para2.count) and assigned(tparavarsym(para2[i2]).defaultconstsym)))) then
            compare_paras:=lowesteq;
       end;
 
@@ -1286,7 +1294,7 @@ implementation
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
               te_equal }
-            eq:=compare_paras(def1.para,def2.para,cp_procvar,[]);
+            eq:=compare_paras(def1.paras,def2.paras,cp_procvar,[]);
             if eq=te_exact then
              eq:=te_equal;
             proc_to_procvar_equal:=eq;
@@ -1296,7 +1304,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2004-11-08 22:09:58  peter
+  Revision 1.59  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.58  2004/11/08 22:09:58  peter
     * tvarsym splitted
 
   Revision 1.57  2004/11/01 10:31:48  peter

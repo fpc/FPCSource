@@ -99,6 +99,15 @@ const
   main_program_level    = 1;
   normal_function_level = 2;
 
+  { implicit parameter positions, normal parameters start at 10
+    and will increase with 10 for each parameter. The high parameters
+    will be inserted with n+1 }
+  paranr_parentfp = 1;
+  paranr_result = 2;
+  paranr_self = 3;
+  paranr_vmt = 4;
+  paranr_syscall          = high(word)-2;
+  paranr_result_leftright = high(word)-1;
 
 type
   { Deref entry options }
@@ -284,14 +293,16 @@ type
     vo_has_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported,
-    vo_is_high_value,
+    vo_is_high_para,
     vo_is_funcret,
     vo_is_self,
     vo_is_vmt,
     vo_is_result,  { special result variable }
     vo_is_parentfp,
     vo_is_loop_counter, { used to detect assignments to loop counter }
-    vo_is_hidden
+    vo_is_hidden_para,
+    vo_has_explicit_paraloc,
+    vo_is_syscall_lib
   );
   tvaroptions=set of tvaroption;
 
@@ -412,7 +423,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.92  2004-11-08 22:09:59  peter
+  Revision 1.93  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.92  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.91  2004/11/01 10:33:01  peter

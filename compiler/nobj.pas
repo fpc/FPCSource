@@ -649,7 +649,7 @@ implementation
                                 begin
                                   if procdefcoll^.visible and
                                      (not(pdoverload or hasoverloads) or
-                                      (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
+                                      (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) then
                                    begin
                                      if is_visible then
                                        procdefcoll^.hidden:=true;
@@ -667,7 +667,7 @@ implementation
                                    begin
                                      { we start a new virtual tree, hide the old }
                                      if (not(pdoverload or hasoverloads) or
-                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) and
+                                         (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) and
                                         (procdefcoll^.visible) then
                                       begin
                                         if is_visible then
@@ -677,7 +677,7 @@ implementation
                                       end;
                                    end
                                   { same parameters }
-                                  else if (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal) then
+                                  else if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal) then
                                    begin
                                      { overload is inherited }
                                      if (po_overload in procdefcoll^.data.procoptions) then
@@ -754,7 +754,7 @@ implementation
                                     if the new defintion has not the overload directive }
                                   if is_visible and
                                      ((not(pdoverload or hasoverloads)) or
-                                      (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
+                                      (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) then
                                     procdefcoll^.hidden:=true;
                                 end;
                              end
@@ -764,7 +764,7 @@ implementation
                                  has not the overload directive }
                                if is_visible and
                                   ((not pdoverload) or
-                                   (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
+                                   (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) then
                                  procdefcoll^.hidden:=true;
                              end;
                           end; { not hidden }
@@ -1091,7 +1091,7 @@ implementation
             for i:=1 to tprocsym(sym).procdef_count do
               begin
                 implprocdef:=tprocsym(sym).procdef[i];
-                if (compare_paras(proc.para,implprocdef.para,cp_none,[])>=te_equal) and
+                if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
                    (proc.proccalloption=implprocdef.proccalloption) then
                   begin
                     gintfgetcprocdef:=implprocdef;
@@ -1375,10 +1375,9 @@ implementation
         end;
       hsym:=tsym(procdef.parast.search('self'));
       if not(assigned(hsym) and
-             (hsym.typ=paravarsym) and
-             assigned(tparavarsym(hsym).paraitem)) then
+             (hsym.typ=paravarsym)) then
         internalerror(200305251);
-      paraloc:=tparavarsym(hsym).paraitem.paraloc[callerside].location^;
+      paraloc:=tparavarsym(hsym).paraloc[callerside].location^;
       case paraloc.loc of
         LOC_REGISTER:
           cg.a_op_const_reg(exprasmlist,OP_SUB,paraloc.size,ioffset,paraloc.register);
@@ -1400,7 +1399,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.80  2004-11-08 22:09:59  peter
+  Revision 1.81  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.80  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.79  2004/10/24 13:35:39  peter

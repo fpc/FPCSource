@@ -197,7 +197,7 @@ implementation
                       { support p : procedure;stdcall=nil; }
                       if try_to_consume(_SEMICOLON) then
                        begin
-                         if is_proc_directive(token,true) then
+                         if check_proc_directive(true) then
                           parse_var_proc_directives(sym)
                          else
                           begin
@@ -208,7 +208,7 @@ implementation
                       else
                       { support p : procedure stdcall=nil; }
                        begin
-                         if is_proc_directive(token,true) then
+                         if check_proc_directive(true) then
                           parse_var_proc_directives(sym);
                        end;
                       { add default calling convention }
@@ -484,7 +484,7 @@ implementation
                      consume(_SEMICOLON)
                     else
                      begin
-                       if not is_proc_directive(token,true) then
+                       if not check_proc_directive(true) then
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
                        handle_calling_convention(tprocvardef(tt.def));
@@ -653,7 +653,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2004-11-08 22:09:59  peter
+  Revision 1.91  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.90  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.89  2004/10/15 09:14:17  mazen

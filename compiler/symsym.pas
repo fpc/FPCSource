@@ -37,7 +37,7 @@ interface
        cclasses,symnot,
        { aasm }
        aasmbase,aasmtai,
-       cpuinfo,cpubase,cgbase,cgutils
+       cpuinfo,cpubase,cgbase,cgutils,parabase
        ;
 
     type
@@ -121,9 +121,7 @@ interface
           function last_procdef:Tprocdef;
           function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-          function search_procdef_bypara(params:Tlinkedlist;
-                                         retdef:tdef;
-                                         cpoptions:tcompare_paras_options):Tprocdef;
+          function search_procdef_bypara(para:tlist;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
@@ -206,9 +204,14 @@ interface
       end;
 
       tparavarsym = class(tabstractnormalvarsym)
-          paraitem : tparaitem;
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          paraloc       : array[tcallercallee] of TCGPara;
+          paranr        : word; { position of this parameter }
+{$ifdef EXTDEBUG}
+          eqval         : tequaltype;
+{$endif EXTDEBUG}
+          constructor create(const n : string;nr:word;vsp:tvarspez;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -781,8 +784,6 @@ implementation
         pd^.defderef.reset;
         pd^.next:=nil;
         pd^.own:=(pd^.def.procsym=self);
-{        if not pd^.own then
-          internalerror(2222222);}
         { Add at end of list to keep always
           a correct order, also after loading from ppu }
         if assigned(pdlistlast) then
@@ -847,7 +848,7 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if Aprocsym.search_procdef_bypara(pd^.def.para,nil,cpoptions)=nil then
+            if Aprocsym.search_procdef_bypara(pd^.def.paras,nil,cpoptions)=nil then
               Aprocsym.addprocdef(pd^.def);
             pd:=pd^.next;
           end;
@@ -935,8 +936,7 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_bypara(params:Tlinkedlist;
-                                            retdef:tdef;
+    function Tprocsym.search_procdef_bypara(para:tlist;retdef:tdef;
                                             cpoptions:tcompare_paras_options):Tprocdef;
       var
         pd : pprocdeflist;
@@ -953,7 +953,7 @@ implementation
            if (eq>=te_equal) or
               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
             begin
-              eq:=compare_paras(params,pd^.def.para,cp_value_equal_const,cpoptions);
+              eq:=compare_paras(para,pd^.def.paras,cp_value_equal_const,cpoptions);
               if (eq>=te_equal) or
                  ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
                 begin
@@ -1002,12 +1002,12 @@ implementation
     function Tprocsym.search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
       var
         convtyp : tconverttype;
-        pd : pprocdeflist;
-        bestpd : tprocdef;
+        pd      : pprocdeflist;
+        bestpd  : tprocdef;
         eq,
-        besteq : tequaltype;
-        hpd : tprocdef;
-        currpara : tparaitem;
+        besteq  : tequaltype;
+        hpd     : tprocdef;
+        i       : byte;
       begin
         result:=nil;
         bestpd:=nil;
@@ -1017,13 +1017,14 @@ implementation
           begin
             if equal_defs(todef,pd^.def.rettype.def) then
              begin
-               currpara:=Tparaitem(pd^.def.para.first);
+               i:=0;
                { ignore vs_hidden parameters }
-               while assigned(currpara) and (currpara.is_hidden) do
-                currpara:=tparaitem(currpara.next);
-               if assigned(currpara) then
+               while assigned(pd^.def.paras[i]) and
+                     (vo_is_hidden_para in tparavarsym(pd^.def.paras[i]).varoptions) do
+                 inc(i);
+               if assigned(pd^.def.paras[i]) then
                 begin
-                  eq:=compare_defs_ext(fromdef,currpara.paratype.def,nothingn,convtyp,hpd,[]);
+                  eq:=compare_defs_ext(fromdef,tparavarsym(pd^.def.paras[i]).vartype.def,nothingn,convtyp,hpd,[]);
                   if eq=te_exact then
                    begin
                      result:=pd^.def;
@@ -1717,17 +1718,40 @@ implementation
                               TPARAVARSYM
 ****************************************************************************}
 
-    constructor tparavarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;const tt : ttype);
       begin
          inherited create(n,vsp,tt);
          typ:=paravarsym;
-         paraitem:=nil;
+         paranr:=nr;
+         paraloc[calleeside].init;
+         paraloc[callerside].init;
+      end;
+
+
+    destructor tparavarsym.destroy;
+      begin
+        paraloc[calleeside].done;
+        paraloc[callerside].done;
+        inherited destroy;
       end;
 
 
     constructor tparavarsym.ppuload(ppufile:tcompilerppufile);
+      var
+        b : byte;
       begin
          inherited ppuload(ppufile);
+         paranr:=ppufile.getword;
+         paraloc[calleeside].init;
+         paraloc[callerside].init;
+         if vo_has_explicit_paraloc in varoptions then
+           begin
+             b:=ppufile.getbyte;
+             if b<>sizeof(paraloc[callerside].location^) then
+               internalerror(200411154);
+             ppufile.getdata(paraloc[callerside].add_location^,sizeof(paraloc[callerside].location^));
+             paraloc[callerside].size:=paraloc[callerside].location^.size;
+           end;
          typ:=paravarsym;
       end;
 
@@ -1735,6 +1759,13 @@ implementation
     procedure tparavarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
+         ppufile.putword(paranr);
+         if vo_has_explicit_paraloc in varoptions then
+           begin
+             paraloc[callerside].check_simple_location;
+             ppufile.putbyte(sizeof(paraloc[callerside].location^));
+             ppufile.putdata(paraloc[callerside].location^,sizeof(paraloc[callerside].location^));
+           end;
          ppufile.writeentry(ibparavarsym);
       end;
 
@@ -1874,6 +1905,7 @@ implementation
     procedure tabsolutevarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
+         ppufile.putbyte(byte(abstyp));
          case abstyp of
            tovar :
              ppufile.putsymlist(ref);
@@ -1887,7 +1919,7 @@ implementation
 {$endif i386}
              end;
          end;
-        ppufile.writeentry(ibabsolutevarsym);
+         ppufile.writeentry(ibabsolutevarsym);
       end;
 
 
@@ -2509,7 +2541,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.191  2004-11-08 22:09:59  peter
+  Revision 1.192  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.191  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.190  2004/11/04 17:09:54  peter

@@ -33,7 +33,7 @@ unit paramgr;
        cpubase,cgbase,
        parabase,
        aasmtai,
-       symconst,symtype,symdef;
+       symconst,symtype,symsym,symdef;
 
     type
        {# This class defines some methods to take care of routine
@@ -109,12 +109,12 @@ unit paramgr;
             for the routine that are passed as varargs. It returns
             the size allocated on the stack (including the normal parameters)
           }
-          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;virtual;abstract;
+          function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
 
-          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);virtual;
-          procedure duplicateparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
+          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);virtual;
+          procedure duplicateparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 
-          function parseparaloc(paraitem : tparaitem;const s : string) : boolean;virtual;abstract;
+          function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;abstract;
        end;
 
 
@@ -366,7 +366,7 @@ implementation
       end;
 
 
-    procedure tparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
+    procedure tparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
       var
         href : treference;
         len  : aint;
@@ -374,13 +374,13 @@ implementation
         newparaloc : pcgparalocation;
       begin
         cgpara.reset;
-        cgpara.size:=paraitem.paraloc[callerside].size;
-        cgpara.alignment:=paraitem.paraloc[callerside].alignment;
-        paraloc:=paraitem.paraloc[callerside].location;
+        cgpara.size:=parasym.paraloc[callerside].size;
+        cgpara.alignment:=parasym.paraloc[callerside].alignment;
+        paraloc:=parasym.paraloc[callerside].location;
         while assigned(paraloc) do
           begin
             if paraloc^.size=OS_NO then
-              len:=push_size(paraitem.paratyp,paraitem.paratype.def,calloption)
+              len:=push_size(parasym.varspez,parasym.vartype.def,calloption)
             else
               len:=tcgsize2size[paraloc^.size];
             newparaloc:=cgpara.add_location;
@@ -412,15 +412,15 @@ implementation
       end;
 
 
-    procedure tparamanager.duplicateparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var cgpara:TCGPara);
+    procedure tparamanager.duplicateparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
       var
         paraloc,
         newparaloc : pcgparalocation;
       begin
         cgpara.reset;
-        cgpara.size:=paraitem.paraloc[callerside].size;
-        cgpara.alignment:=paraitem.paraloc[callerside].alignment;
-        paraloc:=paraitem.paraloc[callerside].location;
+        cgpara.size:=parasym.paraloc[callerside].size;
+        cgpara.alignment:=parasym.paraloc[callerside].alignment;
+        paraloc:=parasym.paraloc[callerside].location;
         while assigned(paraloc) do
           begin
             newparaloc:=cgpara.add_location;
@@ -447,7 +447,11 @@ end.
 
 {
    $Log$
-   Revision 1.80  2004-10-31 21:45:03  peter
+   Revision 1.81  2004-11-15 23:35:31  peter
+     * tparaitem removed, use tparavarsym instead
+     * parameter order is now calculated from paranr value in tparavarsym
+
+   Revision 1.80  2004/10/31 21:45:03  peter
      * generic tlocation
      * move tlocation to cgutils
 

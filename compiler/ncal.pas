@@ -59,7 +59,7 @@ interface
           function  gen_self_tree_methodpointer:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
-          procedure bind_paraitem;
+          procedure bind_parasym;
 
           { function return node, this is used to pass the data for a
             ret_in_param return value }
@@ -91,8 +91,8 @@ interface
           methodpointer  : tnode;
           { inline function body }
           inlinecode : tnode;
-          { varargs tparaitems }
-          varargsparas : tvarargspara;
+          { varargs parasyms }
+          varargsparas : tvarargsparalist;
           { node that specifies where the result should be put for calls }
           { that return their result in a parameter                      }
           property funcretnode: tnode read _funcretnode write setfuncretnode;
@@ -148,7 +148,7 @@ interface
        tcallparanode = class(tbinarynode)
        public
           callparaflags : tcallparaflags;
-          paraitem : tparaitem;
+          parasym       : tparavarsym;
           used_by_callnode : boolean;
           { only the processor specific nodes need to override this }
           { constructor                                             }
@@ -407,7 +407,7 @@ type
       begin
          n:=tcallparanode(inherited getcopy);
          n.callparaflags:=callparaflags;
-         n.paraitem:=paraitem;
+         n.parasym:=parasym;
          result:=n;
       end;
 
@@ -462,7 +462,7 @@ type
                here to make the change permanent. in the overload
                choosing the changes are only made temporary }
              if (left.resulttype.def.deftype=procvardef) and
-                (paraitem.paratype.def.deftype<>procvardef) then
+                (parasym.vartype.def.deftype<>procvardef) then
                begin
                  if maybe_call_procvar(left,true) then
                    resulttype:=left.resulttype;
@@ -481,12 +481,12 @@ type
                  end;
                  set_varstate(left,vs_used,true);
                  resulttype:=left.resulttype;
-                 { also update paraitem type to get the correct parameter location
+                 { also update parasym type to get the correct parameter location
                    for the new types }
-                 paraitem.paratype:=left.resulttype;
+                 parasym.vartype:=left.resulttype;
                end
              else
-              if (paraitem.is_hidden) then
+              if (vo_is_hidden_para in parasym.varoptions) then
                begin
                  set_varstate(left,vs_used,true);
                  resulttype:=left.resulttype;
@@ -498,13 +498,13 @@ type
                    it here before the arrayconstructor node breaks the tree
                    with its conversions of enum->ord }
                  if (left.nodetype=arrayconstructorn) and
-                    (paraitem.paratype.def.deftype=setdef) then
-                   inserttypeconv(left,paraitem.paratype);
+                    (parasym.vartype.def.deftype=setdef) then
+                   inserttypeconv(left,parasym.vartype);
 
                  { set some settings needed for arrayconstructor }
                  if is_array_constructor(left.resulttype.def) then
                   begin
-                    if is_array_of_const(paraitem.paratype.def) then
+                    if is_array_of_const(parasym.vartype.def) then
                      begin
                        { force variant array }
                        include(left.flags,nf_forcevaria);
@@ -514,37 +514,37 @@ type
                        include(left.flags,nf_novariaallowed);
                        { now that the resultting type is know we can insert the required
                          typeconvs for the array constructor }
-                       if paraitem.paratype.def.deftype=arraydef then
-                         tarrayconstructornode(left).force_type(tarraydef(paraitem.paratype.def).elementtype);
+                       if parasym.vartype.def.deftype=arraydef then
+                         tarrayconstructornode(left).force_type(tarraydef(parasym.vartype.def).elementtype);
                      end;
                   end;
 
                  { check if local proc/func is assigned to procvar }
                  if left.resulttype.def.deftype=procvardef then
-                   test_local_to_procvar(tprocvardef(left.resulttype.def),paraitem.paratype.def);
+                   test_local_to_procvar(tprocvardef(left.resulttype.def),parasym.vartype.def);
 
                  { test conversions }
                  if not(is_shortstring(left.resulttype.def) and
-                        is_shortstring(paraitem.paratype.def)) and
-                    (paraitem.paratype.def.deftype<>formaldef) then
+                        is_shortstring(parasym.vartype.def)) and
+                    (parasym.vartype.def.deftype<>formaldef) then
                    begin
                       { Process open parameters }
-                      if paramanager.push_high_param(paraitem.paratyp,paraitem.paratype.def,aktcallnode.procdefinition.proccalloption) then
+                      if paramanager.push_high_param(parasym.varspez,parasym.vartype.def,aktcallnode.procdefinition.proccalloption) then
                        begin
                          { insert type conv but hold the ranges of the array }
                          oldtype:=left.resulttype;
-                         inserttypeconv(left,paraitem.paratype);
+                         inserttypeconv(left,parasym.vartype);
                          left.resulttype:=oldtype;
                        end
                       else
                        begin
                          { for ordinals, floats and enums, verify if we might cause
                            some range-check errors. }
-                         if (paraitem.paratype.def.deftype in [enumdef,orddef,floatdef]) and
+                         if (parasym.vartype.def.deftype in [enumdef,orddef,floatdef]) and
                             (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
                             (left.nodetype in [vecn,loadn,calln]) then
                            begin
-                              if (left.resulttype.def.size>paraitem.paratype.def.size) then
+                              if (left.resulttype.def.size>parasym.vartype.def.size) then
                                 begin
                                   if (cs_check_range in aktlocalswitches) then
                                      Message(type_w_smaller_possible_range_check)
@@ -552,7 +552,7 @@ type
                                      Message(type_h_smaller_possible_range_check);
                                 end;
                            end;
-                         inserttypeconv(left,paraitem.paratype);
+                         inserttypeconv(left,parasym.vartype);
                        end;
                       if codegenerror then
                         begin
@@ -564,17 +564,17 @@ type
                  { check var strings }
                  if (cs_strict_var_strings in aktlocalswitches) and
                     is_shortstring(left.resulttype.def) and
-                    is_shortstring(paraitem.paratype.def) and
-                    (paraitem.paratyp in [vs_out,vs_var]) and
-                    not(is_open_string(paraitem.paratype.def)) and
-                    not(equal_defs(left.resulttype.def,paraitem.paratype.def)) then
+                    is_shortstring(parasym.vartype.def) and
+                    (parasym.varspez in [vs_out,vs_var]) and
+                    not(is_open_string(parasym.vartype.def)) and
+                    not(equal_defs(left.resulttype.def,parasym.vartype.def)) then
                    begin
                      aktfilepos:=left.fileinfo;
                      CGMessage(type_e_strict_var_string_violation);
                    end;
 
                  { Handle formal parameters separate }
-                 if (paraitem.paratype.def.deftype=formaldef) then
+                 if (parasym.vartype.def.deftype=formaldef) then
                    begin
                      { load procvar if a procedure is passed }
                      if (m_tp_procvar in aktmodeswitches) and
@@ -582,7 +582,7 @@ type
                         (is_void(left.resulttype.def)) then
                        load_procvar_from_calln(left);
 
-                     case paraitem.paratyp of
+                     case parasym.varspez of
                        vs_var,
                        vs_out :
                          begin
@@ -599,11 +599,11 @@ type
                  else
                    begin
                      { check if the argument is allowed }
-                     if (paraitem.paratyp in [vs_out,vs_var]) then
+                     if (parasym.varspez in [vs_out,vs_var]) then
                        valid_for_var(left);
                    end;
 
-                 if paraitem.paratyp = vs_var then
+                 if parasym.varspez = vs_var then
                    set_unique(left);
 
                  { When the address needs to be pushed then the register is
@@ -611,10 +611,10 @@ type
                    parameter and we can pass the address transparently }
                  if (
                      not(
-                         paraitem.is_hidden and
+                         (vo_is_hidden_para in parasym.varoptions) and
                          (left.resulttype.def.deftype in [pointerdef,classrefdef])
                         ) and
-                     paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                     paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
                          aktcallnode.procdefinition.proccalloption) and
                      not(
                          (left.nodetype=loadn) and
@@ -625,13 +625,13 @@ type
 
                  if do_count then
                   begin
-                    if paraitem.paratyp in [vs_var,vs_out] then
+                    if parasym.varspez in [vs_var,vs_out] then
                       set_varstate(left,vs_used,false)
                     else
                       set_varstate(left,vs_used,true);
                   end;
                  { must only be done after typeconv PM }
-                 resulttype:=paraitem.paratype;
+                 resulttype:=parasym.vartype;
                end;
             end;
 
@@ -803,8 +803,8 @@ type
             para := tcallparanode(left);
             while assigned(para) do
               begin
-                if para.paraitem.is_hidden and
-                   (vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) then
+                if (vo_is_hidden_para in para.parasym.varoptions) and
+                   (vo_is_funcret in tparavarsym(para.parasym).varoptions) then
                  begin
                    para.left.free;
                    para.left := _funcretnode.getcopy;
@@ -885,7 +885,7 @@ type
     procedure tcallnode.derefimpl;
       var
         pt : tcallparanode;
-        currpara : tparaitem;
+        i  : integer;
       begin
         inherited derefimpl;
         symtableprocentry:=tprocsym(symtableprocentryderef.resolve);
@@ -901,21 +901,19 @@ type
           _funcretnode.derefimpl;
         if assigned(inlinecode) then
           inlinecode.derefimpl;
-        { Connect paraitems }
+        { Connect parasyms }
         pt:=tcallparanode(left);
         while assigned(pt) and
               (cpf_varargs_para in pt.callparaflags) do
           pt:=tcallparanode(pt.right);
-        currpara:=tparaitem(procdefinition.Para.last);
-        while assigned(currpara) do
+        for i:=procdefinition.paras.count-1 downto 0 do
           begin
             if not assigned(pt) then
               internalerror(200311077);
-            pt.paraitem:=currpara;
+            pt.parasym:=tparavarsym(procdefinition.paras[i]);
             pt:=tcallparanode(pt.right);
-            currpara:=tparaitem(currpara.previous);
           end;
-        if assigned(currpara) or assigned(pt) then
+        if assigned(pt) then
           internalerror(200311078);
       end;
 
@@ -923,7 +921,8 @@ type
     function tcallnode.getcopy : tnode;
       var
         n : tcallnode;
-        hp : tparaitem;
+        i : integer;
+        hp,hpn : tparavarsym;
         oldleft : tnode;
       begin
         { Need to use a hack here to prevent the parameters from being copied.
@@ -966,13 +965,13 @@ type
          n.inlinecode:=nil;
         if assigned(varargsparas) then
          begin
-           n.varargsparas:=tvarargspara.create;
-           hp:=tparaitem(varargsparas.first);
-           while assigned(hp) do
-            begin
-              n.varargsparas.concat(hp.getcopy);
-              hp:=tparaitem(hp.next);
-            end;
+           n.varargsparas:=tvarargsparalist.create;
+           for i:=0 to varargsparas.count-1 do
+             begin
+               hp:=tparavarsym(varargsparas[i]);
+               hpn:=tparavarsym.create(hp.realname,0,hp.varspez,hp.vartype);
+               n.varargsparas.add(hpn);
+             end;
          end
         else
          n.varargsparas:=nil;
@@ -1016,7 +1015,7 @@ type
               end;
           end;
         { Remove value of old array of const parameter, but keep it
-          in the list because it is required for bind_paraitem.
+          in the list because it is required for bind_parasym.
           Generate a nothign to keep callparanoed.left valid }
         oldleft.left.free;
         oldleft.left:=cnothingnode.create;
@@ -1261,13 +1260,13 @@ type
       end;
 
 
-    procedure tcallnode.bind_paraitem;
+    procedure tcallnode.bind_parasym;
       var
         i        : integer;
         pt       : tcallparanode;
         oldppt   : ^tcallparanode;
         varargspara,
-        currpara : tparaitem;
+        currpara : tparavarsym;
         used_by_callnode : boolean;
         hiddentree : tnode;
         newstatement : tstatementnode;
@@ -1292,15 +1291,15 @@ type
           pt:=tcallparanode(pt.right);
 
         { process normal parameters and insert hidden parameters }
-        currpara:=tparaitem(procdefinition.Para.last);
-        while assigned(currpara) do
+        for i:=procdefinition.paras.count-1 downto 0 do
          begin
-           if currpara.is_hidden then
+           currpara:=tparavarsym(procdefinition.paras[i]);
+           if vo_is_hidden_para in currpara.varoptions then
             begin
               { generate hidden tree }
               used_by_callnode:=false;
               hiddentree:=nil;
-              if (vo_is_funcret in tparavarsym(currpara.parasym).varoptions) then
+              if (vo_is_funcret in currpara.varoptions) then
                begin
                  { Generate funcretnode if not specified }
                  if assigned(funcretnode) then
@@ -1319,15 +1318,16 @@ type
                   end;
                end
               else
-               if vo_is_high_value in tparavarsym(currpara.parasym).varoptions then
+               if vo_is_high_para in currpara.varoptions then
                 begin
-                  if not assigned(pt) then
+                  if not assigned(pt) or
+                     (i=0) then
                     internalerror(200304082);
                   { we need the information of the previous parameter }
-                  hiddentree:=gen_high_tree(pt.left,tparaitem(currpara.previous).paratype.def);
+                  hiddentree:=gen_high_tree(pt.left,tparavarsym(procdefinition.paras[i-1]).vartype.def);
                 end
               else
-               if vo_is_self in tparavarsym(currpara.parasym).varoptions then
+               if vo_is_self in currpara.varoptions then
                  begin
                    if assigned(right) then
                      hiddentree:=gen_self_tree_methodpointer
@@ -1335,27 +1335,25 @@ type
                      hiddentree:=gen_self_tree;
                  end
               else
-               if vo_is_vmt in tparavarsym(currpara.parasym).varoptions then
+               if vo_is_vmt in currpara.varoptions then
                  begin
                    hiddentree:=gen_vmt_tree;
                  end
+{$ifdef powerpc}
               else
-               if vo_is_parentfp in tparavarsym(currpara.parasym).varoptions then
+               if vo_is_syscall_lib in currpara.varoptions then
+                 begin
+                   { lib parameter has no special type but proccalloptions must be a syscall }
+                   hiddentree:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
+                 end
+{$endif powerpc}
+              else
+               if vo_is_parentfp in currpara.varoptions then
                  begin
                    if not(assigned(procdefinition.owner.defowner)) then
                      internalerror(200309287);
                    hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner));
-                 end
-{$ifdef powerpc}
-              else
-                { lib parameter has no special type but proccalloptions must be a syscall }
-                if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) and
-                  (procdefinition.proccalloption=pocall_syscall) then
-                  begin
-                    hiddentree:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
-                  end
-{$endif powerpc}
-              else
+                 end;
               { add the hidden parameter }
               if not assigned(hiddentree) then
                 internalerror(200304073);
@@ -1367,27 +1365,25 @@ type
             end;
            if not assigned(pt) then
              internalerror(200310052);
-           pt.paraitem:=currpara;
+           pt.parasym:=currpara;
            oldppt:=@pt.right;
            pt:=tcallparanode(pt.right);
-           currpara:=tparaitem(currpara.previous)
          end;
 
-        { Create paraitems for varargs }
+        { Create parasyms for varargs }
         pt:=tcallparanode(left);
+        i:=0;
         while assigned(pt) do
           begin
             if cpf_varargs_para in pt.callparaflags then
               begin
                 if not assigned(varargsparas) then
-                  varargsparas:=tvarargspara.create;
-                varargspara:=tparaitem.create;
-                varargspara.paratyp:=vs_value;
-                varargspara.paratype:=pt.resulttype;
+                  varargsparas:=tvarargsparalist.create;
+                varargspara:=tparavarsym.create('va'+tostr(i),0,vs_value,pt.resulttype);
                 { varargspara is left-right, use insert
                   instead of concat }
-                varargsparas.insert(varargspara);
-                pt.paraitem:=varargspara;
+                varargsparas.add(varargspara);
+                pt.parasym:=varargspara;
               end;
             pt:=tcallparanode(pt.right);
           end;
@@ -1401,7 +1397,8 @@ type
         hpt : tnode;
         pt : tcallparanode;
         lastpara : longint;
-        currpara : tparaitem;
+        currpara : tparavarsym;
+        paraidx,
         cand_cnt : integer;
         i : longint;
         method_must_be_valid,
@@ -1449,45 +1446,45 @@ type
               procdefinition:=tabstractprocdef(right.resulttype.def);
 
               { Compare parameters from right to left }
-              currpara:=tparaitem(procdefinition.Para.last);
+              paraidx:=procdefinition.Paras.count-1;
               { Skip default parameters }
               if not(po_varargs in procdefinition.procoptions) then
                 begin
                   { ignore hidden parameters }
-                  while assigned(currpara) and (currpara.is_hidden) do
-                    currpara:=tparaitem(currpara.previous);
+                  while (paraidx>=0) and (vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions) do
+                    dec(paraidx);
                   for i:=1 to procdefinition.maxparacount-paralength do
                     begin
-                      if not assigned(currpara) then
+                      if paraidx<0 then
                         internalerror(200402261);
-                      if not assigned(currpara.defaultvalue) then
+                      if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                         begin
                           CGMessage(parser_e_wrong_parameter_size);
                           goto errorexit;
                         end;
-                      currpara:=tparaitem(currpara.previous);
+                      dec(paraidx);
                     end;
                 end;
-              while assigned(currpara) and (currpara.is_hidden) do
-                currpara:=tparaitem(currpara.previous);
+              while (paraidx>=0) and (vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions) do
+                dec(paraidx);
               pt:=tcallparanode(left);
               lastpara:=paralength;
-              while assigned(currpara) and assigned(pt) do
+              while (paraidx>=0) and assigned(pt) do
                 begin
                   { only goto next para if we're out of the varargs }
                   if not(po_varargs in procdefinition.procoptions) or
                      (lastpara<=procdefinition.maxparacount) then
                    begin
                      repeat
-                       currpara:=tparaitem(currpara.previous);
-                     until (not assigned(currpara)) or (not currpara.is_hidden);
+                       dec(paraidx);
+                     until (paraidx<0) or not(vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions);
                    end;
                   pt:=tcallparanode(pt.right);
                   dec(lastpara);
                 end;
               if assigned(pt) or
-                 (assigned(currpara) and
-                  not assigned(currpara.defaultvalue)) then
+                 ((paraidx>=0) and
+                  not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)) then
                 begin
                    if assigned(pt) then
                      aktfilepos:=pt.fileinfo;
@@ -1617,27 +1614,28 @@ type
           if assigned(procdefinition) and
              (paralength<procdefinition.maxparacount) then
            begin
-             currpara:=tparaitem(procdefinition.Para.first);
+             paraidx:=0;
              i:=0;
              while (i<paralength) do
               begin
-                if not assigned(currpara) then
+                if paraidx>=procdefinition.Paras.count then
                   internalerror(200306181);
-                if not currpara.is_hidden then
+                if not(vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions) then
                   inc(i);
-                currpara:=tparaitem(currpara.next);
+                inc(paraidx);
               end;
-             while assigned(currpara) and currpara.is_hidden do
-               currpara:=tparaitem(currpara.next);
-             while assigned(currpara) do
+             while (paraidx<procdefinition.paras.count) and (vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions) do
+               inc(paraidx);
+             while (paraidx<procdefinition.paras.count) do
               begin
-                if not assigned(currpara.defaultvalue) then
+                if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                  internalerror(200212142);
-                left:=ccallparanode.create(genconstsymtree(tconstsym(currpara.defaultvalue)),left);
+                left:=ccallparanode.create(genconstsymtree(
+                    tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)),left);
                 { Ignore vs_hidden parameters }
                 repeat
-                  currpara:=tparaitem(currpara.next);
-                until (not assigned(currpara)) or (not currpara.is_hidden);
+                  inc(paraidx);
+                until (paraidx>=procdefinition.paras.count) or not(vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions);
               end;
            end;
 
@@ -1764,12 +1762,12 @@ type
 
          { Change loading of array of const to varargs }
          if assigned(left) and
-            is_array_of_const(tparaitem(procdefinition.para.last).paratype.def) and
+            is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vartype.def) and
             (procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
            convert_carg_array_of_const;
 
-         { bind paraitems to the callparanodes and insert hidden parameters }
-         bind_paraitem;
+         { bind parasyms to the callparanodes and insert hidden parameters }
+         bind_parasym;
 
          { methodpointer is only needed for virtual calls, and
            it should then be loaded with the VMT }
@@ -1819,7 +1817,7 @@ type
                 3. LOC_REGISTER with most registers
               For the moment we only look at the first parameter field. Combining it
               with multiple parameter fields will make things a lot complexer (PFV) }
-            currloc:=hpcurr.paraitem.paraloc[callerside].location^.loc;
+            currloc:=hpcurr.parasym.paraloc[callerside].location^.loc;
             hpprev:=nil;
             hp:=hpfirst;
             while assigned(hp) do
@@ -1827,7 +1825,7 @@ type
                 case currloc of
                   LOC_REFERENCE :
                     begin
-                      case hp.paraitem.paraloc[callerside].location^.loc of
+                      case hp.parasym.paraloc[callerside].location^.loc of
                         LOC_REFERENCE :
                           begin
                             { Offset is calculated like:
@@ -1841,7 +1839,7 @@ type
                             }
                             if (hpcurr.registersint>hp.registersint)
 {$ifdef x86}
-                               or (hpcurr.paraitem.paraloc[callerside].location^.reference.offset>hp.paraitem.paraloc[callerside].location^.reference.offset)
+                               or (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset)
 {$endif x86}
                                then
                               break;
@@ -1854,7 +1852,7 @@ type
                   LOC_FPUREGISTER,
                   LOC_REGISTER :
                     begin
-                      if (hp.paraitem.paraloc[callerside].location^.loc=currloc) and
+                      if (hp.parasym.paraloc[callerside].location^.loc=currloc) and
                          (hpcurr.registersint>hp.registersint) then
                         break;
                     end;
@@ -1885,7 +1883,7 @@ type
           begin
             paras := tcallparanode(left);
             while assigned(paras) and
-                  (paras.paraitem.parasym <> tloadnode(n).symtableentry) do
+                  (paras.parasym <> tloadnode(n).symtableentry) do
               paras := tcallparanode(paras.right);
             if assigned(paras) then
               begin
@@ -1987,23 +1985,23 @@ type
         para := tcallparanode(left);
         while assigned(para) do
           begin
-            if (para.paraitem.parasym.typ = paravarsym) and
+            if (para.parasym.typ = paravarsym) and
                { para.left will already be the same as funcretnode in the following case, so don't change }
-               (not(vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) or
+               (not(vo_is_funcret in tparavarsym(para.parasym).varoptions) or
                 (not assigned(funcretnode))) then
               begin
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
-                if (vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) or
-                   (para.paraitem.paratyp = vs_value) or
-                   ((para.paraitem.paratyp = vs_const) and
+                if (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
+                   (para.parasym.varspez = vs_value) or
+                   ((para.parasym.varspez = vs_const) and
                     (not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption) or
                     { the problem is that we can't take the address of a function result :( }
                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
                   begin
                     if (cs_regvars in aktglobalswitches) and
-                       (tparavarsym(para.paraitem.parasym).varregable<>vr_none) and
-                       (not tparavarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
+                       (tparavarsym(para.parasym).varregable<>vr_none) and
+                       (not tparavarsym(para.parasym).vartype.def.needs_inittable) then
                       tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
                     else
                       tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent);
@@ -2011,7 +2009,7 @@ type
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
                     {  only need a temprefnode, so delete the old stuff)                                   }
-                    if not(vo_is_funcret in tparavarsym(para.paraitem.parasym).varoptions) then
+                    if not(vo_is_funcret in tparavarsym(para.parasym).varoptions) then
                       begin
                         addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                           para.left));
@@ -2030,7 +2028,7 @@ type
                 else if node_complexity(para.left) > 1 then
                   begin
                     if (cs_regvars in aktglobalswitches) and
-                       not tparavarsym(para.paraitem.parasym).vartype.def.needs_inittable then
+                       not tparavarsym(para.parasym).vartype.def.needs_inittable then
                       tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent)
                     else
                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
@@ -2370,8 +2368,8 @@ type
         ppn:=tcallparanode(left);
         while assigned(ppn) do
           begin
-            if not(assigned(ppn.paraitem) and
-                   ppn.paraitem.is_hidden) then
+            if not(assigned(ppn.parasym) and
+                   (vo_is_hidden_para in ppn.parasym.varoptions)) then
               inc(result);
             ppn:=tcallparanode(ppn.right);
           end;
@@ -2415,7 +2413,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.259  2004-11-09 17:26:47  peter
+  Revision 1.260  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.259  2004/11/09 17:26:47  peter
     * fixed wrong typecasts
 
   Revision 1.258  2004/11/08 22:09:58  peter

@@ -899,8 +899,8 @@ const
   );
 var
   proctypeoption  : tproctypeoption;
-  i,params : longint;
-  first    : boolean;
+  i     : longint;
+  first : boolean;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -939,20 +939,6 @@ begin
        end;
      writeln;
    end;
-  params:=ppufile.getbyte;
-  writeln(space,' Nr of parameters : ',params);
-  for i:=1 to params do
-   begin
-     writeln(space,' - Parameter ',i);
-     writeln(space,'       Spez : ',Varspez2Str(ppufile.getbyte));
-     write  (space,'       Type : ');
-     readtype;
-     write  (space,'    Default : ');
-     readderef;
-     write  (space,'     Symbol : ');
-     readderef;
-     writeln(space,'  Is Hidden : ',(ppufile.getbyte<>0));
-   end;
 end;
 
 
@@ -966,14 +952,15 @@ type
     vo_has_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported,
-    vo_is_high_value,
+    vo_is_high_para,
     vo_is_funcret,
     vo_is_self,
     vo_is_vmt,
     vo_is_result,  { special result variable }
     vo_is_parentfp,
     vo_is_loop_counter, { used to detect assignments to loop counter }
-    vo_is_hidden
+    vo_is_hidden_para,
+    vo_has_explicit_paraloc
   );
   tvaroptions=set of tvaroption;
   { register variable }
@@ -989,7 +976,7 @@ type
     str  : string[30];
   end;
 const
-  varopts=15;
+  varopts=16;
   varopt : array[1..varopts] of tvaropt=(
      (mask:vo_is_C_var;        str:'CVar'),
      (mask:vo_is_external;     str:'External'),
@@ -998,14 +985,15 @@ const
      (mask:vo_has_local_copy;  str:'HasLocalCopy'),
      (mask:vo_is_const;        str:'Constant'),
      (mask:vo_is_exported;     str:'Exported'),
-     (mask:vo_is_high_value;   str:'HighValue'),
+     (mask:vo_is_high_para;    str:'HighValue'),
      (mask:vo_is_funcret;      str:'Funcret'),
      (mask:vo_is_self;         str:'Self'),
      (mask:vo_is_vmt;          str:'VMT'),
      (mask:vo_is_result;       str:'Result'),
      (mask:vo_is_parentfp;     str:'ParentFP'),
      (mask:vo_is_loop_counter; str:'LoopCounter'),
-     (mask:vo_is_hidden;       str:'Hidden')
+     (mask:vo_is_hidden_para;  str:'Hidden'),
+     (mask:vo_has_explicit_paraloc;str:'ExplicitParaloc')
   );
 var
   i : longint;
@@ -1088,6 +1076,7 @@ var
   symcnt,
   i,j,len : longint;
   guid : tguid;
+  tempbuf : array[0..127] of char;
   varoptions : tvaroptions;
 begin
   symcnt:=1;
@@ -1252,6 +1241,12 @@ begin
              readabstractvarsym('Parameter Variable symbol ',varoptions);
              write  (space,' DefaultConst : ');
              readderef;
+             writeln(space,'       ParaNr : ',getword);
+             if (vo_has_explicit_paraloc in varoptions) then
+	       begin
+	         i:=getbyte;
+		 getdata(tempbuf,i);
+	       end;
            end;
 
          ibenumsym :
@@ -2088,7 +2083,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-11-08 22:09:59  peter
+  Revision 1.59  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.58  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.57  2004/11/02 22:17:25  olle

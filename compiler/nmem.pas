@@ -28,8 +28,7 @@ interface
 
     uses
        node,
-       symdef,symsym,symtable,symtype,
-       cpubase;
+       symdef,symsym,symtable,symtype;
 
     type
        tloadvmtaddrnode = class(tunarynode)
@@ -128,7 +127,7 @@ implementation
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
+      cutils,cclasses,verbose,globals,
       symconst,symbase,defutil,defcmp,
       nbas,nutils,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
@@ -302,10 +301,29 @@ implementation
       end;
 
 
+    procedure copyparasym(p:TNamedIndexItem;arg:pointer);
+      var
+        newparast : tsymtable absolute arg;
+        vs : tparavarsym;
+      begin
+        if tsym(p).typ<>paravarsym then
+          exit;
+        with tparavarsym(p) do
+          begin
+            vs:=tparavarsym.create(realname,paranr,varspez,vartype);
+            vs.varoptions:=varoptions;
+//            vs.paraloc[callerside]:=paraloc[callerside].getcopy;
+//            vs.paraloc[callerside]:=paraloc[callerside].getcopy;
+            vs.defaultconstsym:=defaultconstsym;
+            newparast.insert(vs);
+          end;
+      end;
+
+
     function taddrnode.det_resulttype:tnode;
       var
          hp  : tnode;
-         hp2 : TParaItem;
+         hp2 : TParavarsym;
          hp3 : tabstractprocdef;
       begin
         result:=nil;
@@ -395,7 +413,6 @@ implementation
                  else
                   hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).first_procdef);
 
-
                  { create procvardef }
                  resulttype.setdef(tprocvardef.create(hp3.parast.symtablelevel));
                  tprocvardef(resulttype.def).proctypeoption:=hp3.proctypeoption;
@@ -412,14 +429,11 @@ implementation
                  if not assigned(tloadnode(left).left) then
                    include(tprocvardef(resulttype.def).procoptions,po_addressonly);
 
-                 { Add parameters in left to right order }
-                 hp2:=TParaItem(hp3.Para.first);
-                 while assigned(hp2) do
-                   begin
-                      tprocvardef(resulttype.def).concatpara(nil,hp2.paratype,hp2.parasym,
-                          hp2.defaultvalue,hp2.is_hidden);
-                      hp2:=TParaItem(hp2.next);
-                   end;
+                 { Add parameters use only references, we don't need to keep the
+                   parast. We use the parast from the original function to calculate
+                   our parameter data and reset it afterwards }
+                 hp3.parast.foreach_static(@copyparasym,tprocvardef(resulttype.def).parast);
+                 tprocvardef(resulttype.def).calcparas;
               end
             else
               resulttype:=voidpointertype;
@@ -982,7 +996,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2004-11-08 22:09:59  peter
+  Revision 1.89  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.88  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.87  2004/11/02 12:55:16  peter

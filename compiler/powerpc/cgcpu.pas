@@ -1003,7 +1003,8 @@ const
          parastart : aint;
          l : tasmlabel;
          regcounter2, firstfpureg: Tsuperregister;
-         hp: tparaitem;
+         i : integer;
+         hp: tparavarsym;
          cond : tasmcond;
          instr : taicpu;
          size: tcgsize;
@@ -1171,18 +1172,17 @@ const
             if not (po_assembler in current_procinfo.procdef.procoptions) then
               begin
                 { copy memory parameters to local parast }
-                hp:=tparaitem(current_procinfo.procdef.para.first);
-                while assigned(hp) do
+                for i:=0 to current_procinfo.procdef.paras.count-1 do
                   begin
+                    hp:=tparavarsym(current_procinfo.procdef.paras[i]);
                     if (hp.paraloc[calleeside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
                         if assigned(hp.paraloc[callerside].location^.next) then
                           internalerror(2004091210);
-                        case tabstractnormalvarsym(hp.parasym).localloc.loc of
+                        case hp.localloc.loc of
                           LOC_REFERENCE:
                             begin
-                              reference_reset_base(href,tabstractnormalvarsym(hp.parasym).localloc.reference.base,
-                                  tabstractnormalvarsym(hp.parasym).localloc.reference.offset);
+                              reference_reset_base(href,hp.localloc.reference.base,hp.localloc.reference.offset);
                               reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
                               { we can't use functions here which allocate registers (FK)
                                cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
@@ -1228,7 +1228,6 @@ const
 }
                         end;
                       end;
-                    hp := tparaitem(hp.next);
                   end;
               end;
           end;
@@ -2357,7 +2356,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.185  2004-11-11 19:31:33  peter
+  Revision 1.186  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.185  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.184  2004/10/31 21:45:03  peter

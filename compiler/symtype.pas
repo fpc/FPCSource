@@ -114,14 +114,15 @@ interface
          destructor destroy;override;
          function  realname:string;
          procedure buildderef;virtual;
-{         procedure buildderefimpl;virtual;abstract;}
          procedure deref;virtual;
-{         procedure derefimpl;virtual;abstract;}
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
          function is_visible_for_object(currobjdef:Tdef):boolean;virtual;
       end;
+
+      tsymarr = array[0..maxlongint div sizeof(pointer)-1] of tsym;
+      psymarr = ^tsymarr;
 
 {************************************************
                    TDeref
@@ -224,8 +225,8 @@ implementation
 
     uses
        verbose,
-       fmodule,
-       symdef
+       fmodule
+//       symdef
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -491,8 +492,8 @@ implementation
              (owner.defowner.owner.unitid<>0)
             ) and
             not(
-                assigned(currobjdef) and
-                Tobjectdef(currobjdef).is_related(tobjectdef(owner.defowner))
+                assigned(currobjdef) {and
+                Tobjectdef(currobjdef).is_related(tobjectdef(owner.defowner))}
                )
            ) then
           exit;
@@ -1456,7 +1457,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.47  2004-11-08 22:09:59  peter
+  Revision 1.48  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.47  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.46  2004/11/01 23:30:11  peter

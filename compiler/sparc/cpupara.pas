@@ -29,7 +29,7 @@ interface
       cclasses,
       aasmtai,
       cpubase,cpuinfo,
-      symconst,symbase,symtype,symdef,paramgr,parabase,cgbase;
+      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase;
 
     type
       TSparcParaManager=class(TParaManager)
@@ -42,10 +42,10 @@ interface
         @param(nr Parameter number of routine, starting from 1)}
         procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
-        function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargspara):longint;override;
+        function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
       private
         procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
-        procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+        procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tlist;
                                              var intparareg,parasize:longint);
       end;
 
@@ -208,11 +208,12 @@ implementation
       end;
 
 
-    procedure tsparcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;firstpara:tparaitem;
+    procedure tsparcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tlist;
                                                            var intparareg,parasize:longint);
       var
         paraloc      : pcgparalocation;
-        hp           : tparaitem;
+        i            : integer;
+        hp           : tparavarsym;
         paracgsize   : tcgsize;
         hparasupregs : pparasupregs;
         paralen      : longint;
@@ -221,13 +222,13 @@ implementation
           hparasupregs:=@paraoutsupregs
         else
           hparasupregs:=@parainsupregs;
-        hp:=firstpara;
-        while assigned(hp) do
+        for i:=0 to paras.count-1 do
           begin
+            hp:=tparavarsym(paras[i]);
             { currently only support C-style array of const,
               there should be no location assigned to the vararg array itself }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-               is_array_of_const(hp.paratype.def) then
+               is_array_of_const(hp.vartype.def) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
@@ -237,11 +238,11 @@ implementation
                 break;
               end;
 
-            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+            if push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption) then
               paracgsize:=OS_ADDR
             else
               begin
-                paracgsize:=def_cgSize(hp.paratype.def);
+                paracgsize:=def_cgSize(hp.vartype.def);
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
               end;
@@ -277,12 +278,11 @@ implementation
                   end;
                 dec(paralen,tcgsize2size[paraloc^.size]);
               end;
-            hp:=TParaItem(hp.Next);
           end;
       end;
 
 
-    function TSparcParaManager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;
+    function TSparcParaManager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         intparareg,
         parasize : longint;
@@ -290,9 +290,9 @@ implementation
         intparareg:=0;
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,tparaitem(p.para.first),intparareg,parasize);
+        create_paraloc_info_intern(p,callerside,p.paras,intparareg,parasize);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,tparaitem(varargspara.first),intparareg,parasize);
+        create_paraloc_info_intern(p,callerside,varargspara,intparareg,parasize);
         result:=parasize;
       end;
 
@@ -305,7 +305,7 @@ implementation
       begin
         intparareg:=0;
         parasize:=0;
-        create_paraloc_info_intern(p,side,tparaitem(p.para.first),intparareg,parasize);
+        create_paraloc_info_intern(p,side,p.paras,intparareg,parasize);
         { Create Function result paraloc }
         create_funcret_paraloc_info(p,side);
         { We need to return the size allocated on the stack }
@@ -318,7 +318,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2004-11-07 00:33:45  florian
+  Revision 1.47  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.46  2004/11/07 00:33:45  florian
     * marked o* registers as volatile
 
   Revision 1.45  2004/10/24 17:32:53  florian

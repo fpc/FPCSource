@@ -39,6 +39,8 @@ interface
        get_var_value_proc=function(const s:string):string of object;
        Tcharset=set of char;
 
+    var
+      internalerrorproc : procedure(i:longint);
 
     {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
@@ -137,6 +139,7 @@ interface
     {Lzw encode/decode to compress strings -> save memory.}
     function minilzw_encode(const s:string):string;
     function minilzw_decode(const s:string):string;
+
 
 implementation
 
@@ -938,7 +941,7 @@ uses
                  until s[i]='}';
                  varvalues[varcounter]:=Pstring(varptr);
                  if varptr>@varvaluedata+maxdata then
-                   runerror($8001); {No internalerror available}
+                   internalerrorproc(200411152);
                  Pstring(varptr)^:=get_var_value(varname);
                  inc(len,length(Pstring(varptr)^));
                  inc(varptr,length(Pstring(varptr)^)+1);
@@ -1246,13 +1249,26 @@ uses
         end;
     end;
 
+
+    procedure defaulterror(i:longint);
+      begin
+        writeln('Internal error ',i);
+        runerror(255);
+      end;
+
+
 initialization
+  internalerrorproc:=@defaulterror;
   makecrc32tbl;
   initupperlower;
 end.
 {
   $Log$
-  Revision 1.46  2004-10-15 09:14:16  mazen
+  Revision 1.47  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.46  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

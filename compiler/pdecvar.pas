@@ -208,6 +208,7 @@ implementation
          pt : tnode;
          propname : stringid;
          sc : tsinglelist;
+         paranr : word;
          oldregisterdef : boolean;
          hreadparavs,
          hparavs      : tparavarsym;
@@ -219,6 +220,7 @@ implementation
            procedures. the readprocdef will store all definitions }
          oldregisterdef:=registerdef;
          registerdef:=false;
+         paranr:=0;
          readprocdef:=tprocvardef.create(normal_function_level);
          writeprocdef:=tprocvardef.create(normal_function_level);
          registerdef:=oldregisterdef;
@@ -275,7 +277,8 @@ implementation
                   varspez:=vs_value;
                 sc.reset;
                 repeat
-                  hreadparavs:=tparavarsym.create(orgpattern,varspez,generrortype);
+                  inc(paranr);
+                  hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrortype);
                   readprocdef.parast.insert(hreadparavs);
                   sc.insert(hreadparavs);
                   consume(_ID);
@@ -303,14 +306,13 @@ implementation
                   tt:=cformaltype;
                 hreadparavs:=tparavarsym(sc.first);
                 while assigned(hreadparavs) do
-                 begin
-                   readprocdef.concatpara(nil,tt,hreadparavs,nil,false);
-                   { also update the writeprocdef }
-                   hparavs:=tparavarsym.create(hreadparavs.realname,vs_value,generrortype);
-                   writeprocdef.parast.insert(hparavs);
-                   writeprocdef.concatpara(nil,tt,hparavs,nil,false);
-                   hreadparavs:=tparavarsym(hreadparavs.listnext);
-                 end;
+                  begin
+                    hreadparavs.vartype:=tt;
+                    { also update the writeprocdef }
+                    hparavs:=tparavarsym.create(hreadparavs.realname,hreadparavs.paranr,vs_value,tt);
+                    writeprocdef.parast.insert(hparavs);
+                    hreadparavs:=tparavarsym(hreadparavs.listnext);
+                  end;
               until not try_to_consume(_SEMICOLON);
               sc.free;
               dec(testcurobject);
@@ -318,14 +320,14 @@ implementation
 
               { the parser need to know if a property has parameters, the
                 index parameter doesn't count (PFV) }
-              if readprocdef.minparacount>0 then
+              if paranr>0 then
                 include(p.propoptions,ppo_hasparameters);
            end;
          { overriden property ?                                 }
          { force property interface
              there is a property parameter
              a global property }
-         if (token=_COLON) or (readprocdef.minparacount>0) or (aclass=nil) then
+         if (token=_COLON) or (paranr>0) or (aclass=nil) then
            begin
               consume(_COLON);
               { insert types in global symtable }
@@ -354,12 +356,11 @@ implementation
                    p.indextype.setdef(pt.resulttype.def);
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   hparavs:=tparavarsym.create('$index',vs_value,p.indextype);
+                   inc(paranr);
+                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype);
                    readprocdef.parast.insert(hparavs);
-                   readprocdef.concatpara(nil,p.indextype,hparavs,nil,false);
-                   hparavs:=tparavarsym.create('$index',vs_value,p.indextype);
+                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype);
                    writeprocdef.parast.insert(hparavs);
-                   writeprocdef.concatpara(nil,p.indextype,hparavs,nil,false);
                    pt.free;
                 end;
            end
@@ -399,7 +400,7 @@ implementation
                      { we ignore hidden stuff here because the property access symbol might have
                        non default calling conventions which might change the hidden stuff;
                        see tw3216.pp (FK) }
-                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert]);
+                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert]);
                      if not assigned(p.readaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
@@ -437,14 +438,14 @@ implementation
                      { write is a procedure with an extra value parameter
                        of the of the property }
                      writeprocdef.rettype:=voidtype;
-                     hparavs:=tparavarsym.create('$value',vs_value,p.proptype);
+                     inc(paranr);
+                     hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.proptype);
                      writeprocdef.parast.insert(hparavs);
-                     writeprocdef.concatpara(nil,p.proptype,hparavs,nil,false);
                      { Insert hidden parameters }
                      handle_calling_convention(writeprocdef);
                      calc_parast(writeprocdef);
                      { search procdefs matching writeprocdef }
-                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,[cpo_allowdefaults,cpo_allowconvert]);
+                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.rettype.def,[cpo_allowdefaults,cpo_allowconvert]);
                      if not assigned(p.writeaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
@@ -769,7 +770,7 @@ implementation
              { Process procvar directives }
              if (tt.def.deftype=procvardef) and
                 (tt.def.typesym=nil) and
-                is_proc_directive(token,true) then
+                check_proc_directive(true) then
                begin
                   newtype:=ttypesym.create('unnamed',tt);
                   parse_var_proc_directives(tsym(newtype));
@@ -929,7 +930,7 @@ implementation
              { Process procvar directives before = and ; }
              if (tt.def.deftype=procvardef) and
                 (tt.def.typesym=nil) and
-                is_proc_directive(token,true) then
+                check_proc_directive(true) then
                begin
                   newtype:=ttypesym.create('unnamed',tt);
                   parse_var_proc_directives(tsym(newtype));
@@ -978,7 +979,7 @@ implementation
                 (tt.def.typesym=nil) then
                begin
                  { Parse procvar directives after ; }
-                 if is_proc_directive(token,true) then
+                 if check_proc_directive(true) then
                    begin
                      newtype:=ttypesym.create('unnamed',tt);
                      parse_var_proc_directives(tsym(newtype));
@@ -1309,7 +1310,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-11-09 22:32:59  peter
+  Revision 1.84  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.83  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

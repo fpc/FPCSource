@@ -846,7 +846,9 @@ var
         status.currentsource:='';
         status.currentsourcepath:='';
         status.compiling_current:=false;
-	compiling_module:=nil;
+        compiling_module:=nil;
+        { Register internalerrorproc for cutils/cclasses }
+        internalerrorproc:=@internalerror;
       end;
 
 
@@ -868,7 +870,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2004-10-15 09:14:17  mazen
+  Revision 1.35  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.34  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -57,6 +57,7 @@ unit parabase;
           constructor init;
           destructor  done;
           procedure   reset;
+          function    getcopy:tcgpara;
           procedure   check_simple_location;
           function    is_simple_reference:boolean;
           function    add_location:pcgparalocation;
@@ -67,7 +68,7 @@ unit parabase;
          va_uses_float_reg
        );
 
-       tvarargspara = class(tlinkedlist)
+       tvarargsparalist = class(tlist)
           varargsinfo : set of tvarargsinfo;
 {$ifdef x86_64}
           { x86_64 requires %al to contain the no. SSE regs passed }
@@ -113,6 +114,23 @@ implementation
           end;
         alignment:=0;
         size:=OS_NO;
+      end;
+
+
+    function tcgpara.getcopy:tcgpara;
+      var
+        hlocation : pcgparalocation;
+      begin
+        result.init;
+        while assigned(location) do
+          begin
+            hlocation:=result.add_location;
+            hlocation^:=location^;
+            hlocation^.next:=nil;
+            location:=location^.next;
+          end;
+        result.alignment:=alignment;
+        result.size:=size;
       end;
 
 
@@ -208,7 +226,11 @@ end.
 
 {
    $Log$
-   Revision 1.4  2004-10-31 21:45:03  peter
+   Revision 1.5  2004-11-15 23:35:31  peter
+     * tparaitem removed, use tparavarsym instead
+     * parameter order is now calculated from paranr value in tparavarsym
+
+   Revision 1.4  2004/10/31 21:45:03  peter
      * generic tlocation
      * move tlocation to cgutils
 

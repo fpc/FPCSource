@@ -452,9 +452,6 @@ end;
 
 
 procedure TList.SetCapacity(NewCapacity: Integer);
-
-Var NewList,ToFree : PPointerList;
-
 begin
    If (NewCapacity<0) or (NewCapacity>MaxListSize) then
       Error (SListCapacityError,NewCapacity);
@@ -516,15 +513,10 @@ end;
 
 
 Procedure TList.Delete(Index: Integer);
-
-Var
-   OldPointer :Pointer;
-
 begin
    If (Index<0) or (Index>=FCount) then
      Error (SListIndexError,Index);
    FCount:=FCount-1;
-   OldPointer:=Flist^[Index];
    System.Move (FList^[Index+1],FList^[Index],(FCount-Index)*SizeOf(Pointer));
    // Shrink the list if appropiate
    if (FCapacity > 256) and (FCount < FCapacity shr 2) then
@@ -536,12 +528,17 @@ end;
 
 
 class procedure TList.Error(const Msg: string; Data: Integer);
-  var
-   s:string;
-   p:longint;
+{$ifdef EXTDEBUG}
+var
+  s : string;
+{$endif EXTDEBUG}
 begin
-   p:=pos('%d',Msg);
-   writeln(copy(Msg,1,pred(p)),Data,copy(Msg,p+3,255));
+{$ifdef EXTDEBUG}
+  s:=Msg;
+  Replace(s,'%d',ToStr(Data));
+  writeln(s);
+{$endif EXTDEBUG}
+  internalerrorproc(200411151);
 end;
 
 procedure TList.Exchange(Index1, Index2: Integer);
@@ -2348,7 +2345,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2004-10-15 09:14:16  mazen
+  Revision 1.39  2004-11-15 23:35:30  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.38  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -44,7 +44,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=45;
+  CurrentPPUVersion=46;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -1054,7 +1054,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  2004-11-08 22:09:59  peter
+  Revision 1.59  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.58  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.57  2004/09/21 17:25:12  peter

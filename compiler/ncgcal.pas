@@ -78,7 +78,7 @@ implementation
     uses
       systems,
       cutils,verbose,globals,
-      symconst,symsym,symtable,defutil,paramgr,
+      symconst,symtable,defutil,paramgr,
 {$ifdef GDB}
       strings,
       gdb,
@@ -292,9 +292,9 @@ implementation
         else
          begin
            { copy the value on the stack or use normal parameter push?
-             Check for varargs first because that has no paraitem }
+             Check for varargs first because that has no parasym }
            if not(cpf_varargs_para in callparaflags) and
-              paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,
+              paramanager.copy_value_on_stack(parasym.varspez,left.resulttype.def,
                   aktcallnode.procdefinition.proccalloption) then
             begin
 {$ifdef i386}
@@ -351,10 +351,7 @@ implementation
          oflabel : tasmlabel;
          hp      : tnode;
       begin
-         if not(assigned(paraitem)) or
-            not(assigned(paraitem.paratype.def)) or
-            not(assigned(paraitem.parasym) or
-                (cpf_varargs_para in callparaflags)) then
+         if not(assigned(parasym)) then
            internalerror(200304242);
 
          { Skip nothingn nodes which are used after disabling
@@ -368,11 +365,11 @@ implementation
              secondpass(left);
 
              if not(assigned(aktcallnode.inlinecode)) then
-               paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempcgpara)
+               paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara)
              else
-               paramanager.duplicateparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempcgpara);
+               paramanager.duplicateparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
 
-             { handle varargs first, because paraitem.parasym is not valid }
+             { handle varargs first, because parasym is not valid }
              if (cpf_varargs_para in callparaflags) then
                begin
                  if paramanager.push_addr_param(vs_value,left.resulttype.def,
@@ -382,23 +379,23 @@ implementation
                    push_value_para;
                end
              { hidden parameters }
-             else if paraitem.is_hidden then
+             else if (vo_is_hidden_para in parasym.varoptions) then
                begin
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
-                 if (vo_is_funcret in tparavarsym(paraitem.parasym).varoptions) or
+                 if (vo_is_funcret in parasym.varoptions) or
                     (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
-                     paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                     paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
                          aktcallnode.procdefinition.proccalloption)) then
                    push_addr_para
                  else
                    push_value_para;
                end
              { formal def }
-             else if (paraitem.paratype.def.deftype=formaldef) then
+             else if (parasym.vartype.def.deftype=formaldef) then
                begin
                   { allow passing of a constant to a const formaldef }
-                  if (tparavarsym(paraitem.parasym).varspez=vs_const) and
+                  if (parasym.varspez=vs_const) and
                      (left.location.loc=LOC_CONSTANT) then
                     location_force_mem(exprasmlist,left.location);
 
@@ -418,10 +415,10 @@ implementation
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
                  if (not(
-                         paraitem.is_hidden and
+                         (vo_is_hidden_para in parasym.varoptions) and
                          (left.resulttype.def.deftype in [pointerdef,classrefdef])
                         ) and
-                     paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                     paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
                          aktcallnode.procdefinition.proccalloption)) then
                    begin
                       { Passing a var parameter to a var parameter, we can
@@ -437,7 +434,7 @@ implementation
                       else
                         begin
                           { Check for passing a constant to var,out parameter }
-                          if (paraitem.paratyp in [vs_var,vs_out]) and
+                          if (parasym.varspez in [vs_var,vs_out]) and
                              (left.location.loc<>LOC_REFERENCE) then
                            begin
                              { passing self to a var parameter is allowed in
@@ -460,8 +457,8 @@ implementation
 
              { update return location in callnode when this is the function
                result }
-             if assigned(paraitem.parasym) and
-                (vo_is_funcret in tparavarsym(paraitem.parasym).varoptions) then
+             if assigned(parasym) and
+                (vo_is_funcret in parasym.varoptions) then
                location_copy(aktcallnode.location,left.location);
            end;
 
@@ -662,8 +659,8 @@ implementation
              if assigned(ppn.left) then
                begin
                  { don't release the funcret temp }
-                 if not(assigned(ppn.paraitem.parasym)) or
-                    not(vo_is_funcret in tparavarsym(ppn.paraitem.parasym).varoptions) then
+                 if not(assigned(ppn.parasym)) or
+                    not(vo_is_funcret in ppn.parasym.varoptions) then
                    location_freetemp(exprasmlist,ppn.left.location);
                  { process also all nodes of an array of const }
                  if ppn.left.nodetype=arrayconstructorn then
@@ -706,7 +703,7 @@ implementation
                  if not assigned(inlinecode) then
                    paramanager.freeparaloc(exprasmlist,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
-                 callerparaloc:=ppn.paraitem.paraloc[callerside].location;
+                 callerparaloc:=ppn.parasym.paraloc[callerside].location;
                  while assigned(callerparaloc) do
                    begin
                      { Every paraloc must have a matching tmpparaloc }
@@ -787,8 +784,8 @@ implementation
          while assigned(ppn) do
            begin
              if not assigned(inlinecode) or
-                (ppn.paraitem.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
-               paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
+               paramanager.freeparaloc(exprasmlist,ppn.parasym.paraloc[callerside]);
              ppn:=tcgcallparanode(ppn.right);
            end;
        end;
@@ -863,7 +860,7 @@ implementation
                  location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
 
                  { virtual methods require an index }
-                 if tprocdef(procdefinition).extnumber=-1 then
+                 if tprocdef(procdefinition).extnumber=$ffff then
                    internalerror(200304021);
                  { VMT should already be loaded in a register }
                  if methodpointer.location.register=NR_NO then
@@ -1253,7 +1250,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.184  2004-11-08 22:09:59  peter
+  Revision 1.185  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.184  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.183  2004/11/01 17:41:28  florian

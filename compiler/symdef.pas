@@ -103,22 +103,6 @@ interface
           savesize  : aint;
        end;
 
-       tparaitem = class(TLinkedListItem)
-          paratype     : ttype; { required for procvar }
-          parasym      : tsym;
-          parasymderef : tderef;
-          defaultvalue : tsym; { tconstsym }
-          defaultvaluederef : tderef;
-          paratyp       : tvarspez; { required for procvar }
-          paraloc       : array[tcallercallee] of TCGPara;
-          is_hidden     : boolean; { is this a hidden (implicit) parameter }
-{$ifdef EXTDEBUG}
-          eqval         : tequaltype;
-{$endif EXTDEBUG}
-          constructor create;
-          destructor destroy;override;
-       end;
-
        tfiletyp = (ft_text,ft_typed,ft_untyped);
 
        tfiledef = class(tstoreddef)
@@ -447,11 +431,12 @@ interface
           { saves a definition to the return type }
           rettype         : ttype;
           parast          : tsymtable;
-          para            : tlinkedlist;
+          paras           : tlist;
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
           requiredargarea : aint;
+          { number of user visibile parameters }
           maxparacount,
           minparacount    : byte;
 {$ifdef i386}
@@ -466,9 +451,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure releasemem;
-          function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
-          function  insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
-          procedure removepara(currpara:tparaitem);
+          procedure calcparas;
           function  typename_paras(showhidden:boolean): string;
           procedure test_if_fpu_result;
           function  is_methodpointer:boolean;virtual;
@@ -477,6 +460,9 @@ interface
 {$ifdef GDB}
           function  stabstring : pchar;override;
 {$endif GDB}
+       private
+          procedure count_para(p:tnamedindexitem;arg:pointer);
+          procedure insert_para(p:tnamedindexitem;arg:pointer);
        end;
 
        tprocvardef = class(tabstractprocdef)
@@ -812,7 +798,6 @@ interface
        pbestrealtype : ^ttype = @s64floattype;
 {$endif ARM}
 
-    function reverseparaitems(p: tparaitem): tparaitem;
     function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
 
     { should be in the types unit, but the types unit uses the node stuff :( }
@@ -849,24 +834,6 @@ implementation
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
-
-    function reverseparaitems(p: tparaitem): tparaitem;
-      var
-        hp1, hp2: tparaitem;
-      begin
-        hp1:=nil;
-        while assigned(p) do
-          begin
-             { pull out }
-             hp2:=p;
-             p:=tparaitem(p.next);
-             { pull in }
-             hp2.next:=hp1;
-             hp1:=hp2;
-          end;
-        reverseparaitems:=hp1;
-      end;
-
 
     function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
       var
@@ -923,26 +890,6 @@ implementation
             crc:=UpdateCrc32(0,result[201],length(result)-200);
             result:=s+'_$crc$_$'+hexstr(crc,8);
           end;
-      end;
-
-
-{****************************************************************************
-                           TParaItem
-****************************************************************************}
-
-    constructor tparaitem.create;
-      begin
-        inherited create;
-        paraloc[calleeside].init;
-        paraloc[callerside].init;
-      end;
-
-
-    destructor tparaitem.destroy;
-      begin
-        paraloc[calleeside].done;
-        paraloc[callerside].done;
-        inherited destroy;
       end;
 
 
@@ -3310,7 +3257,7 @@ implementation
          parast:=tparasymtable.create(level);
          parast.defowner:=self;
          parast.next:=owner;
-         para:=TLinkedList.Create;
+         paras:=nil;
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
@@ -3330,12 +3277,12 @@ implementation
 
     destructor tabstractprocdef.destroy;
       begin
-         if assigned(para) then
+         if assigned(paras) then
            begin
 {$ifdef MEMDEBUG}
              memprocpara.start;
 {$endif MEMDEBUG}
-             para.free;
+             paras.free;
 {$ifdef MEMDEBUG}
              memprocpara.stop;
 {$endif MEMDEBUG}
@@ -3358,73 +3305,65 @@ implementation
 
     procedure tabstractprocdef.releasemem;
       begin
-        para.free;
-        para:=nil;
+        if assigned(paras) then
+          begin
+            paras.free;
+            paras:=nil;
+          end;
         parast.free;
         parast:=nil;
       end;
 
 
-    function tabstractprocdef.concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
-      var
-        hp : TParaItem;
+    procedure tabstractprocdef.count_para(p:tnamedindexitem;arg:pointer);
       begin
-        hp:=TParaItem.Create;
-        hp.paratyp:=tparavarsym(sym).varspez;
-        hp.parasym:=sym;
-        hp.paratype:=tt;
-        hp.is_hidden:=vhidden;
-        hp.defaultvalue:=defval;
-        { Parameters are stored from left to right }
-        if assigned(afterpara) then
-          Para.insertafter(hp,afterpara)
-        else
-          Para.concat(hp);
-        { Don't count hidden parameters }
-        if not vhidden then
+        if (tsym(p).typ<>paravarsym) then
+          exit;
+        inc(plongint(arg)^);
+        if not(vo_is_hidden_para in tparavarsym(p).varoptions) then
          begin
-           if not assigned(defval) then
-            inc(minparacount);
+           if not assigned(tparavarsym(p).defaultconstsym) then
+             inc(minparacount);
            inc(maxparacount);
          end;
-        concatpara:=hp;
       end;
 
 
-    function tabstractprocdef.insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
-      var
-        hp : TParaItem;
+    procedure tabstractprocdef.insert_para(p:tnamedindexitem;arg:pointer);
       begin
-        hp:=TParaItem.Create;
-        hp.paratyp:=tparavarsym(sym).varspez;
-        hp.parasym:=sym;
-        hp.paratype:=tt;
-        hp.is_hidden:=vhidden;
-        hp.defaultvalue:=defval;
-        { Parameters are stored from left to right }
-        Para.insert(hp);
-        { Don't count hidden parameters }
-        if (not vhidden) then
-         begin
-           if not assigned(defval) then
-            inc(minparacount);
-           inc(maxparacount);
-         end;
-        insertpara:=hp;
+        if (tsym(p).typ<>paravarsym) then
+          exit;
+        paras.add(p);
       end;
 
 
-    procedure tabstractprocdef.removepara(currpara:tparaitem);
+    function ParaNrCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : tparavarsym absolute Item1;
+        I2 : tparavarsym absolute Item2;
       begin
-        { Don't count hidden parameters }
-        if (not currpara.is_hidden) then
-         begin
-           if not assigned(currpara.defaultvalue) then
-            dec(minparacount);
-           dec(maxparacount);
-         end;
-        Para.Remove(currpara);
-        currpara.free;
+        Result:=I1.paranr-I2.paranr;
+      end;
+
+
+    procedure tabstractprocdef.calcparas;
+      var
+        paracount : longint;
+      begin
+        { This can already be assigned when
+          we need to reresolve this unit (PFV) }
+        if assigned(paras) then
+          paras.free;
+        paras:=tlist.create;
+        paracount:=0;
+        minparacount:=0;
+        maxparacount:=0;
+        parast.foreach(@count_para,@paracount);
+        paras.capacity:=paracount;
+        { Insert parameters in table }
+        parast.foreach(@insert_para,nil);
+        { Order parameters }
+        paras.sort(@paranrcompare);
       end;
 
 
@@ -3443,8 +3382,6 @@ implementation
 
 
     procedure tabstractprocdef.buildderef;
-      var
-         hp : TParaItem;
       begin
          { released procdef? }
          if not assigned(parast) then
@@ -3453,57 +3390,27 @@ implementation
          rettype.buildderef;
          { parast }
          tparasymtable(parast).buildderef;
-         { paraitems }
-         hp:=TParaItem(Para.first);
-         while assigned(hp) do
-          begin
-            hp.paratype.buildderef;
-            hp.defaultvaluederef.build(hp.defaultvalue);
-            hp.parasymderef.build(hp.parasym);
-            hp:=TParaItem(hp.next);
-          end;
       end;
 
 
     procedure tabstractprocdef.deref;
-      var
-         hp : TParaItem;
       begin
          inherited deref;
          rettype.resolve;
          { parast }
          tparasymtable(parast).deref;
-         { paraitems }
-         minparacount:=0;
-         maxparacount:=0;
-         hp:=TParaItem(Para.first);
-         while assigned(hp) do
-          begin
-            hp.paratype.resolve;
-            hp.defaultvalue:=tsym(hp.defaultvaluederef.resolve);
-            hp.parasym:=tparavarsym(hp.parasymderef.resolve);
-            { connect parasym to paraitem }
-            tparavarsym(hp.parasym).paraitem:=hp;
-            { Don't count hidden parameters }
-            if (not hp.is_hidden) then
-             begin
-               if not assigned(hp.defaultvalue) then
-                 inc(minparacount);
-               inc(maxparacount);
-             end;
-            hp:=TParaItem(hp.next);
-          end;
+         { recalculated parameters }
+         calcparas;
       end;
 
 
     constructor tabstractprocdef.ppuload(ppufile:tcompilerppufile);
       var
-         hp : TParaItem;
-         count,i : word;
+        b : byte;
       begin
          inherited ppuloaddef(ppufile);
          parast:=nil;
-         Para:=TLinkedList.Create;
+         Paras:=nil;
          minparacount:=0;
          maxparacount:=0;
          ppufile.gettype(rettype);
@@ -3516,37 +3423,24 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
 
+         funcret_paraloc[callerside].init;
+         funcret_paraloc[calleeside].init;
          if po_explicitparaloc in procoptions then
-           ppufile.getdata(funcret_paraloc,sizeof(funcret_paraloc));
+           begin
+             b:=ppufile.getbyte;
+             if b<>sizeof(funcret_paraloc[callerside].location^) then
+               internalerror(200411154);
+             ppufile.getdata(funcret_paraloc[callerside].add_location^,sizeof(funcret_paraloc[callerside].location^));
+             funcret_paraloc[callerside].size:=funcret_paraloc[callerside].location^.size;
+           end;
 
-         { get the number of parameters }
-         count:=ppufile.getbyte;
          savesize:=sizeof(aint);
-         has_paraloc_info:=false;
-         for i:=1 to count do
-          begin
-            hp:=TParaItem.Create;
-            hp.paratyp:=tvarspez(ppufile.getbyte);
-            ppufile.gettype(hp.paratype);
-            ppufile.getderef(hp.defaultvaluederef);
-            hp.defaultvalue:=nil;
-            ppufile.getderef(hp.parasymderef);
-            hp.parasym:=nil;
-            hp.is_hidden:=boolean(ppufile.getbyte);
-            if po_explicitparaloc in procoptions then
-              begin
-                ppufile.getdata(hp.paraloc[callerside].add_location^,sizeof(hp.paraloc[callerside].location^));
-                has_paraloc_info:=true;
-              end;
-            { Parameters are stored left to right in both ppu and memory }
-            Para.concat(hp);
-          end;
+         has_paraloc_info:=(po_explicitparaloc in procoptions);
       end;
 
 
     procedure tabstractprocdef.ppuwrite(ppufile:tcompilerppufile);
       var
-        hp : TParaItem;
         oldintfcrc : boolean;
       begin
          { released procdef? }
@@ -3568,43 +3462,33 @@ implementation
          ppufile.putsmallset(procoptions);
          ppufile.do_interface_crc:=oldintfcrc;
 
-         if po_explicitparaloc in procoptions then
-           ppufile.putdata(funcret_paraloc,sizeof(funcret_paraloc));
-
-         { we need to store the count including vs_hidden }
-         ppufile.putbyte(para.count);
-         hp:=TParaItem(Para.first);
-         while assigned(hp) do
-          begin
-            ppufile.putbyte(byte(hp.paratyp));
-            ppufile.puttype(hp.paratype);
-            ppufile.putderef(hp.defaultvaluederef);
-            ppufile.putderef(hp.parasymderef);
-            ppufile.putbyte(byte(hp.is_hidden));
-            if po_explicitparaloc in procoptions then
-              begin
-                hp.paraloc[callerside].check_simple_location;
-                ppufile.putdata(hp.paraloc[callerside].location^,sizeof(hp.paraloc[callerside].location^));
-              end;
-            hp:=TParaItem(hp.next);
-          end;
+         if (po_explicitparaloc in procoptions) then
+           begin
+{$warning TODO Hack to make a valid funcret_paraloc for procedures}
+             { Make a 'valid' funcret_paraloc for procedures }
+             if is_void(rettype.def) and not assigned(funcret_paraloc[callerside].location) then
+               funcret_paraloc[callerside].add_location;
+             funcret_paraloc[callerside].check_simple_location;
+             ppufile.putbyte(sizeof(funcret_paraloc[callerside].location^));
+             ppufile.putdata(funcret_paraloc[callerside].location^,sizeof(funcret_paraloc[callerside].location^));
+           end;
       end;
-
 
 
     function tabstractprocdef.typename_paras(showhidden:boolean) : string;
       var
-        hs,s : string;
-        hp : TParaItem;
-        hpc : tconstsym;
+        hs,s  : string;
+        hp    : TParavarsym;
+        hpc   : tconstsym;
         first : boolean;
+        i     : integer;
       begin
-        hp:=TParaItem(Para.first);
         s:='';
         first:=true;
-        while assigned(hp) do
+        for i:=0 to paras.count-1 do
          begin
-           if (not hp.is_hidden) or
+           hp:=tparavarsym(paras[i]);
+           if not(vo_is_hidden_para in hp.varoptions) or
               (showhidden) then
             begin
                if first then
@@ -3614,7 +3498,7 @@ implementation
                 end
                else
                 s:=s+',';
-               case hp.paratyp of
+               case hp.varspez of
                  vs_var :
                    s:=s+'var';
                  vs_const :
@@ -3622,22 +3506,22 @@ implementation
                  vs_out :
                    s:=s+'out';
                end;
-               if assigned(hp.paratype.def.typesym) then
+               if assigned(hp.vartype.def.typesym) then
                  begin
                    if s<>'(' then
                     s:=s+' ';
-                   hs:=hp.paratype.def.typesym.realname;
+                   hs:=hp.vartype.def.typesym.realname;
                    if hs[1]<>'$' then
-                     s:=s+hp.paratype.def.typesym.realname
+                     s:=s+hp.vartype.def.typesym.realname
                    else
-                     s:=s+hp.paratype.def.gettypename;
+                     s:=s+hp.vartype.def.gettypename;
                  end
                else
-                 s:=s+hp.paratype.def.gettypename;
+                 s:=s+hp.vartype.def.gettypename;
                { default value }
-               if assigned(hp.defaultvalue) then
+               if assigned(hp.defaultconstsym) then
                 begin
-                  hpc:=tconstsym(hp.defaultvalue);
+                  hpc:=tconstsym(hp.defaultconstsym);
                   hs:='';
                   case hpc.consttyp of
                     conststring,
@@ -3668,7 +3552,6 @@ implementation
                    s:=s+'="'+hs+'"';
                 end;
              end;
-           hp:=TParaItem(hp.next);
          end;
         if not first then
          s:=s+')';
@@ -4370,9 +4253,10 @@ implementation
 
     function tprocdef.mangledname : string;
       var
-        hp : TParaItem;
+        hp : TParavarsym;
         s : string;
         crc : dword;
+        i   : integer;
       begin
         if assigned(_mangledname) then
          begin
@@ -4389,12 +4273,11 @@ implementation
         if overloadnumber>0 then
          mangledname:=mangledname+'$'+tostr(overloadnumber);
         { add parameter types }
-        hp:=TParaItem(Para.first);
-        while assigned(hp) do
+        for i:=0 to paras.count-1 do
          begin
-           if not hp.is_hidden then
-             mangledname:=mangledname+'$'+hp.paratype.def.mangledparaname;
-           hp:=TParaItem(hp.next);
+           hp:=tparavarsym(paras[i]);
+           if not(vo_is_hidden_para in hp.varoptions) then
+             mangledname:=mangledname+'$'+hp.vartype.def.mangledparaname;
          end;
         { cut off too long strings using a crc }
         if length(result)>200 then
@@ -4440,7 +4323,8 @@ implementation
 
       var
          s,s2 : string;
-         param : TParaItem;
+         hp   : TParavarsym;
+         i    : integer;
 
       begin
          s := procsym.realname;
@@ -4465,16 +4349,17 @@ implementation
          { !!!!! }
 
          { now we handle the parameters }
-         param := TParaItem(Para.first);
-         if assigned(param) then
-           while assigned(param) do
-             begin
-                s2:=getcppparaname(param.paratype.def);
-                if param.paratyp in [vs_var,vs_out] then
-                  s2:='R'+s2;
-                s:=s+s2;
-                param:=TParaItem(param.next);
-             end
+         if maxparacount>0 then
+           begin
+             for i:=0 to paras.count-1 do
+               begin
+                 hp:=tparavarsym(paras[i]);
+                 s2:=getcppparaname(hp.vartype.def);
+                 if hp.varspez in [vs_var,vs_out] then
+                   s2:='R'+s2;
+                 s:=s+s2;
+               end;
+           end
          else
            s:=s+'v';
          cplusplusmangledname:=s;
@@ -4642,7 +4527,7 @@ implementation
             inc(i);
             if param^.paratyp = vs_value then vartyp := '1' else vartyp := '0';
             {Here we have lost the parameter names !!}
-            pst := strpnew('p'+tostr(i)+':'+param^.paratype.def.numberstring+','+vartyp+';');
+            pst := strpnew('p'+tostr(i)+':'+param^.vartype.def.numberstring+','+vartyp+';');
             strcat(nss,pst);
             strdispose(pst);
             param := param^.next;
@@ -4665,9 +4550,34 @@ implementation
 
 
     procedure tprocvardef.write_rtti_data(rt:trttitype);
-      var
-         pdc : TParaItem;
-         methodkind, paraspec : byte;
+
+         procedure write_para(parasym:tparavarsym);
+         var
+           paraspec : byte;
+         begin
+           { only store user visible parameters }
+           if not(vo_is_hidden_para in parasym.varoptions) then
+             begin
+               case parasym.varspez of
+                 vs_value: paraspec := 0;
+                 vs_const: paraspec := pfConst;
+                 vs_var  : paraspec := pfVar;
+                 vs_out  : paraspec := pfOut;
+               end;
+               { write flags for current parameter }
+               rttiList.concat(Tai_const.Create_8bit(paraspec));
+               { write name of current parameter }
+               rttiList.concat(Tai_const.Create_8bit(length(parasym.realname)));
+               rttiList.concat(Tai_string.Create(parasym.realname));
+
+               { write name of type of current parameter }
+               tstoreddef(parasym.vartype.def).write_rtti_name;
+             end;
+         end;
+
+       var
+         methodkind : byte;
+         i : integer;
       begin
         if po_methodpointer in procoptions then
           begin
@@ -4688,38 +4598,14 @@ implementation
              { write parameter info. The parameters must be written in reverse order
                if this method uses right to left parameter pushing! }
              if proccalloption in pushleftright_pocalls then
-              pdc:=TParaItem(Para.first)
-             else
-              pdc:=TParaItem(Para.last);
-             while assigned(pdc) do
                begin
-                 { only store user visible parameters }
-                 if not pdc.is_hidden then
-                   begin
-                     case pdc.paratyp of
-                       vs_value: paraspec := 0;
-                       vs_const: paraspec := pfConst;
-                       vs_var  : paraspec := pfVar;
-                       vs_out  : paraspec := pfOut;
-                     end;
-                     { write flags for current parameter }
-                     rttiList.concat(Tai_const.Create_8bit(paraspec));
-                     { write name of current parameter }
-                     if assigned(pdc.parasym) then
-                       begin
-                         rttiList.concat(Tai_const.Create_8bit(length(pdc.parasym.realname)));
-                         rttiList.concat(Tai_string.Create(pdc.parasym.realname));
-                       end
-                     else
-                       rttiList.concat(Tai_const.Create_8bit(0));
-
-                     { write name of type of current parameter }
-                     tstoreddef(pdc.paratype.def).write_rtti_name;
-                   end;
-                 if proccalloption in pushleftright_pocalls then
-                  pdc:=TParaItem(pdc.next)
-                 else
-                  pdc:=TParaItem(pdc.previous);
+                 for i:=0 to paras.count-1 do
+                   write_para(tparavarsym(paras[i]));
+               end
+             else
+               begin
+                 for i:=paras.count-1 downto 0 do
+                   write_para(tparavarsym(paras[i]));
                end;
 
              { write name of result type }
@@ -5171,11 +5057,12 @@ implementation
           newrec : pchar;
           pd     : tprocdef;
           lindex : longint;
-          para : TParaItem;
           arglength : byte;
           sp : char;
           state:^Trecord_stabgen_state;
           olds:integer;
+          i : integer;
+          parasym : tparavarsym;
       begin
         state:=arg;
         if tsym(p).typ = procsym then
@@ -5201,12 +5088,12 @@ implementation
 
            { arguments are not listed here }
            {we don't need another definition}
-            para := TParaItem(pd.Para.first);
-            while assigned(para) do
+            for i:=0 to pd.paras.count-1 do
               begin
-                if Para.paratype.def.deftype = formaldef then
+                parasym:=tparavarsym(pd.paras[i]);
+                if Parasym.vartype.def.deftype = formaldef then
                   begin
-                    case Para.paratyp of
+                    case Parasym.varspez of
                       vs_var :
                         argnames := argnames+'3var';
                       vs_const :
@@ -5219,15 +5106,14 @@ implementation
                   begin
                     { if the arg definition is like (v: ^byte;..
                     there is no sym attached to data !!! }
-                    if assigned(Para.paratype.def.typesym) then
+                    if assigned(Parasym.vartype.def.typesym) then
                       begin
-                        arglength := length(Para.paratype.def.typesym.name);
-                        argnames := argnames + tostr(arglength)+Para.paratype.def.typesym.name;
+                        arglength := length(Parasym.vartype.def.typesym.name);
+                        argnames := argnames + tostr(arglength)+Parasym.vartype.def.typesym.name;
                       end
                     else
                       argnames:=argnames+'11unnamedtype';
                   end;
-                para := TParaItem(Para.next);
               end;
            { here 2A must be changed for private and protected }
            { 0 is private 1 protected and 2 public }
@@ -6244,7 +6130,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.270  2004-11-11 19:31:33  peter
+  Revision 1.271  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.270  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.269  2004/11/08 22:09:59  peter

@@ -42,7 +42,7 @@ interface
       );
       tpdflags=set of tpdflag;
 
-    function is_proc_directive(tok:ttoken;isprocvar:boolean):boolean;
+    function  check_proc_directive(isprocvar:boolean):boolean;
 
     procedure calc_parast(pd:tabstractprocdef);
 
@@ -94,6 +94,7 @@ implementation
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
+        paranr   : word;
       begin
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
            not is_void(pd.rettype.def) and
@@ -103,15 +104,16 @@ implementation
            if pd.deftype=procdef then
             akttokenpos:=tprocdef(pd).fileinfo;
 
-           { Generate result variable accessing function result }
-           vs:=tparavarsym.create('$result',vs_var,pd.rettype);
-           include(vs.varoptions,vo_is_funcret);
-           pd.parast.insert(vs);
            { For left to right add it at the end to be delphi compatible }
            if pd.proccalloption in pushleftright_pocalls then
-             pd.concatpara(nil,vs.vartype,vs,nil,true)
+             paranr:=paranr_result_leftright
            else
-             pd.insertpara(vs.vartype,vs,nil,true);
+             paranr:=paranr_result;
+           { Generate result variable accessing function result }
+           vs:=tparavarsym.create('$result',paranr,vs_var,pd.rettype);
+           include(vs.varoptions,vo_is_funcret);
+           include(vs.varoptions,vo_is_hidden_para);
+           pd.parast.insert(vs);
            { Store the this symbol as funcretsym for procedures }
            if pd.deftype=procdef then
             tprocdef(pd).funcretsym:=vs;
@@ -135,11 +137,11 @@ implementation
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
               from the framepointer }
-            vs:=tparavarsym.create('$parentfp',vs_var,voidpointertype);
+            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_var,voidpointertype);
             include(vs.varoptions,vo_is_parentfp);
+            include(vs.varoptions,vo_is_hidden_para);
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
-            pd.insertpara(vs.vartype,vs,nil,true);
 
             akttokenpos:=storepos;
           end;
@@ -158,11 +160,10 @@ implementation
           begin
             { Generate self variable }
             tt:=voidpointertype;
-            vs:=tparavarsym.create('$self',vs_value,tt);
+            vs:=tparavarsym.create('$self',paranr_self,vs_value,tt);
             include(vs.varoptions,vo_is_self);
-            { Insert as hidden parameter }
+            include(vs.varoptions,vo_is_hidden_para);
             pd.parast.insert(vs);
-            pd.insertpara(vs.vartype,vs,nil,true);
           end
         else
           begin
@@ -179,11 +180,10 @@ implementation
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
                    tt:=voidpointertype;
-                   vs:=tparavarsym.create('$vmt',vs_value,tt);
+                   vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,tt);
                    include(vs.varoptions,vo_is_vmt);
-                   { Insert as hidden parameter }
+                   include(vs.varoptions,vo_is_hidden_para);
                    pd.parast.insert(vs);
-                   pd.insertpara(vs.vartype,vs,nil,true);
                  end;
 
                 { Generate self variable, for classes we need
@@ -202,11 +202,10 @@ implementation
                       vsp:=vs_var;
                     tt.setdef(tprocdef(pd)._class);
                   end;
-                vs:=tparavarsym.create('$self',vsp,tt);
+                vs:=tparavarsym.create('$self',paranr_self,vsp,tt);
                 include(vs.varoptions,vo_is_self);
-                { Insert as hidden parameter }
+                include(vs.varoptions,vo_is_hidden_para);
                 pd.parast.insert(vs);
-                pd.insertpara(vs.vartype,vs,nil,true);
 
                 akttokenpos:=storepos;
               end;
@@ -269,43 +268,46 @@ implementation
       end;
 
 
-    procedure insert_hidden_para(pd:tabstractprocdef);
+    procedure insert_hidden_para(p:tnamedindexitem;arg:pointer);
       var
-        currpara : tparaitem;
         hvs : tparavarsym;
+        pd  : tabstractprocdef absolute arg;
       begin
-        { walk from right to left, so we can insert the
-          high parameters after the current parameter }
-        currpara:=tparaitem(pd.para.last);
-        while assigned(currpara) do
+        if (tsym(p).typ<>paravarsym) then
+         exit;
+        with tparavarsym(p) do
          begin
+           { We need a local copy for a value parameter when only the
+             address is pushed. Open arrays and Array of Const are
+             an exception because they are allocated at runtime and the
+             address that is pushed is patched }
+           if (varspez=vs_value) and
+              paramanager.push_addr_param(varspez,vartype.def,pd.proccalloption) and
+              not(is_open_array(vartype.def) or
+                  is_array_of_const(vartype.def)) then
+             include(varoptions,vo_has_local_copy);
+
            { needs high parameter ? }
-           if paramanager.push_high_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) then
-            begin
-              if assigned(currpara.parasym) then
-               begin
-                 hvs:=tparavarsym.create('$high'+tparavarsym(currpara.parasym).name,vs_const,sinttype);
-                 include(hvs.varoptions,vo_is_high_value);
-                 tparavarsym(currpara.parasym).owner.insert(hvs);
-               end
-              else
-               hvs:=nil;
-              pd.concatpara(currpara,sinttype,hvs,nil,true);
-            end
+           if paramanager.push_high_param(varspez,vartype.def,pd.proccalloption) then
+             begin
+               hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype);
+               include(hvs.varoptions,vo_is_high_para);
+               include(hvs.varoptions,vo_is_hidden_para);
+               owner.insert(hvs);
+             end
            else
             begin
               { Give a warning that cdecl routines does not include high()
                 support }
               if (pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                 paramanager.push_high_param(currpara.paratyp,currpara.paratype.def,pocall_default) then
+                 paramanager.push_high_param(varspez,vartype.def,pocall_default) then
                begin
-                 if is_open_string(currpara.paratype.def) then
+                 if is_open_string(vartype.def) then
                     Message(parser_w_cdecl_no_openstring);
                  if not (po_external in pd.procoptions) then
                    Message(parser_w_cdecl_has_no_high);
                end;
             end;
-           currpara:=tparaitem(currpara.previous);
          end;
       end;
 
@@ -328,10 +330,35 @@ implementation
                  if is_array_of_const(vartype.def) and
                     assigned(indexnext) and
                     (tsym(indexnext).typ=paravarsym) and
-                    not(vo_is_high_value in tparavarsym(indexnext).varoptions) then
+                    not(vo_is_high_para in tparavarsym(indexnext).varoptions) then
                    Message(parser_e_C_array_of_const_must_be_last);
                end;
             end;
+         end;
+      end;
+
+
+    procedure check_inline_para(p:tnamedindexitem;arg:pointer);
+      var
+        pd : tabstractprocdef absolute arg;
+      begin
+        if (pd.proccalloption<>pocall_inline) or
+           (tsym(p).typ<>paravarsym) then
+         exit;
+        with tparavarsym(p) do
+         begin
+           case vartype.def.deftype of
+             arraydef :
+               begin
+                 with tarraydef(vartype.def) do
+                   if IsVariant or IsConstructor then
+                     begin
+                       Message1(parser_w_not_supported_for_inline,'array of const');
+                       Message(parser_w_inlining_disabled);
+                       pd.proccalloption:=pocall_default;
+                     end;
+               end;
+           end;
          end;
       end;
 
@@ -367,6 +394,7 @@ implementation
         currparast : tparasymtable;
         explicit_paraloc : boolean;
         locationstr : string;
+        paranr : integer;
       begin
         explicit_paraloc:=false;
         consume(_LKLAMMER);
@@ -380,6 +408,7 @@ implementation
         { reset }
         sc:=tsinglelist.create;
         defaultrequired:=false;
+        paranr:=0;
         { the variables are always public }
         old_object_option:=current_object_option;
         current_object_option:=[sp_public];
@@ -410,7 +439,8 @@ implementation
           { read identifiers and insert with error type }
           sc.reset;
           repeat
-            vs:=tparavarsym.create(orgpattern,varspez,generrortype);
+            inc(paranr);
+            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrortype);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.insert(vs)
@@ -534,7 +564,7 @@ implementation
            begin
              { update varsym }
              vs.vartype:=tt;
-             pd.concatpara(nil,tt,vs,defaultvalue,false);
+             vs.defaultconstsym:=defaultvalue;
 
              if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                begin
@@ -542,10 +572,10 @@ implementation
                    begin
                      if assigned(sc.first.listnext) then
                        Message(parser_e_paraloc_only_one_para);
-                     if (pd.para.first<>pd.para.last) and not(explicit_paraloc) then
+                     if (paranr>1) and not(explicit_paraloc) then
                        Message(parser_e_paraloc_all_paras);
                      explicit_paraloc:=true;
-                     if not(paramanager.parseparaloc(tparaitem(pd.para.last),upper(locationstr))) then
+                     if not(paramanager.parseparaloc(vs,upper(locationstr))) then
                        message(parser_e_illegal_explicit_paraloc);
                    end
                  else
@@ -951,7 +981,7 @@ implementation
             end;
         end;
         { support procedure proc stdcall export; }
-        if not(is_proc_directive(token,false)) then
+        if not(check_proc_directive(false)) then
           consume(_SEMICOLON);
         result:=pd;
       end;
@@ -1016,27 +1046,11 @@ begin
   tprocdef(pd).forwarddef:=false;
 end;
 
+
 procedure pd_inline(pd:tabstractprocdef);
-var
-  hp : tparaitem;
 begin
-  { check if there is an array of const }
-  hp:=tparaitem(pd.para.first);
-  while assigned(hp) do
-   begin
-     if assigned(hp.paratype.def) and
-        (hp.paratype.def.deftype=arraydef) then
-      begin
-        with tarraydef(hp.paratype.def) do
-         if IsVariant or IsConstructor {or IsArrayOfConst} then
-          begin
-            Message1(parser_w_not_supported_for_inline,'array of const');
-            Message(parser_w_inlining_disabled);
-            pd.proccalloption:=pocall_default;
-          end;
-      end;
-     hp:=tparaitem(hp.next);
-   end;
+  { Check if there are parameters that can't be inlined }
+  pd.parast.foreach_static(@check_inline_para,pd);
 end;
 
 procedure pd_intern(pd:tabstractprocdef);
@@ -1130,7 +1144,7 @@ begin
   { check parameter type }
   if ((pd.minparacount<>1) or
       (pd.maxparacount<>1) or
-      (TParaItem(pd.Para.first).paratyp<>vs_var)) then
+      (tparavarsym(pd.paras[0]).varspez<>vs_var)) then
     Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
   if pt.nodetype=stringconstn then
@@ -1162,6 +1176,7 @@ end;
 procedure pd_syscall(pd:tabstractprocdef);
 {$ifdef powerpc}
 var
+  vs  : tparavarsym;
   sym : tsym;
   symtable : tsymtable;
 {$endif powerpc}
@@ -1176,14 +1191,18 @@ begin
       include(pd.procoptions,po_explicitparaloc);
       if consume_sym(sym,symtable) then
         begin
-          if (sym.typ in [localvarsym,paravarsym,globalvarsym]) and
-            ((tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
+          if (sym.typ=globalvarsym) and
+             (
+              (tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
               is_32bitint(tabstractvarsym(sym).vartype.def)
-            ) then
+             ) then
             begin
               tprocdef(pd).libsym:=sym;
-              pd.concatpara(nil,tabstractvarsym(sym).vartype,tabstractvarsym(sym),nil,true);
-              paramanager.parseparaloc(tparaitem(pd.para.last),'A6');
+              vs:=tparavarsym.create('$syscalllib',paranr_syscall,vs_value,tabstractvarsym(sym).vartype);
+              include(vs.varoptions,vo_is_syscall_lib);
+              include(vs.varoptions,vo_is_hidden_para);
+              paramanager.parseparaloc(vs,'A6');
+              pd.parast.insert(vs);
             end
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
@@ -1615,19 +1634,19 @@ const
    );
 
 
-    function is_proc_directive(tok:ttoken;isprocvar:boolean):boolean;
+    function check_proc_directive(isprocvar:boolean):boolean;
       var
         i : longint;
       begin
-        is_proc_directive:=false;
+        result:=false;
         for i:=1 to num_proc_directives do
          if proc_direcdata[i].idtok=idtoken then
           begin
             if ((not isprocvar) or
                (pd_procvar in proc_direcdata[i].pd_flags)) and
                { don't eat a public directive in classes }
-               not((proc_direcdata[i].idtok=_PUBLIC) and (symtablestack.symtabletype=objectsymtable)) then
-              is_proc_directive:=true;
+               not((idtoken=_PUBLIC) and (symtablestack.symtabletype=objectsymtable)) then
+              result:=true;
             exit;
           end;
       end;
@@ -1876,11 +1895,9 @@ const
 
 
     procedure calc_parast(pd:tabstractprocdef);
-      var
-        currpara : tparaitem;
       begin
         { insert hidden high parameters }
-        insert_hidden_para(pd);
+        pd.parast.foreach_static(@insert_hidden_para,pd);
         { insert hidden self parameter }
         insert_self_and_vmt_para(pd);
         { insert funcret parameter if required }
@@ -1888,27 +1905,8 @@ const
         { insert parentfp parameter if required }
         insert_parentfp_para(pd);
 
-        if not(po_explicitparaloc in pd.procoptions) then
-          begin
-            currpara:=tparaitem(pd.para.first);
-            while assigned(currpara) do
-             begin
-               if not(assigned(currpara.parasym) and (currpara.parasym.typ=paravarsym)) then
-                 internalerror(200304232);
-               { connect parasym to paraitem }
-               tparavarsym(currpara.parasym).paraitem:=currpara;
-               { We need a local copy for a value parameter when only the
-                 address is pushed. Open arrays and Array of Const are
-                 an exception because they are allocated at runtime and the
-                 address that is pushed is patched }
-               if (currpara.paratyp=vs_value) and
-                  paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) and
-                  not(is_open_array(currpara.paratype.def) or
-                      is_array_of_const(currpara.paratype.def)) then
-                 include(tparavarsym(currpara.parasym).varoptions,vo_has_local_copy);
-               currpara:=tparaitem(currpara.next);
-             end;
-          end;
+        { Calculate parameter tlist }
+        pd.calcparas;
       end;
 
 
@@ -1951,7 +1949,7 @@ const
                  (token=_EQUAL) then
                break;
               { support procedure proc;stdcall export; }
-              if not(is_proc_directive(token,(pd.deftype=procvardef))) then
+              if not(check_proc_directive((pd.deftype=procvardef))) then
                consume(_SEMICOLON);
             end
            else
@@ -2035,7 +2033,7 @@ const
               ) or
               { check arguments }
               (
-               (compare_paras(pd.para,hd.para,cp_none,[cpo_comparedefaultvalue])>=te_equal) and
+               (compare_paras(pd.paras,hd.paras,cp_none,[cpo_comparedefaultvalue])>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 equal_defs(hd.rettype.def,pd.rettype.def))
@@ -2054,7 +2052,7 @@ const
                       (
                        (m_repeat_forward in aktmodeswitches) and
                        (not((pd.maxparacount=0) or
-                            (compare_paras(pd.para,hd.para,cp_all,[cpo_comparedefaultvalue])>=te_equal)))
+                            (compare_paras(pd.paras,hd.paras,cp_all,[cpo_comparedefaultvalue])>=te_equal)))
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
@@ -2269,7 +2267,11 @@ const
 end.
 {
   $Log$
-  Revision 1.204  2004-11-14 16:26:29  florian
+  Revision 1.205  2004-11-15 23:35:31  peter
+    * tparaitem removed, use tparavarsym instead
+    * parameter order is now calculated from paranr value in tparavarsym
+
+  Revision 1.204  2004/11/14 16:26:29  florian
     * fixed morphos syscall
 
   Revision 1.203  2004/11/11 19:31:33  peter
