@@ -189,11 +189,11 @@ const
     needar:true;
     labelprefix_only_inside_procedure:false;
     labelprefix:'.L';
-    comment:'## ';
+    comment:';#';
     secnames:({sec_none}'',           {no section}
               {sec_code}'.text',      {executable code}
               {sec_data}'.data',      {initialized R/W data}
-              {sec_bss}'.bss',        {uninitialized R/W data}
+              {sec_bss}'.section ".bss"',        {uninitialized R/W data}
               {sec_idata2}'.comment', {comments}
               {sec_idata4}'.debug',   {debugging information}
               {sec_idata5}'.rodata',  {RO data}
@@ -209,7 +209,11 @@ initialization
 end.
 {
     $Log$
-    Revision 1.12  2003-03-15 22:51:58  mazen
+    Revision 1.13  2003-05-06 14:55:27  mazen
+    * comment changed to ;# instead of ##
+    * .bss section changed to .section ".bss"
+
+    Revision 1.12  2003/03/15 22:51:58  mazen
     * remaking sparc rtl compile
 
     Revision 1.11  2003/01/08 18:43:58  daniel
