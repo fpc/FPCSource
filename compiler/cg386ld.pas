@@ -40,6 +40,7 @@ interface
     procedure secondload(var p : ptree);
     procedure secondassignment(var p : ptree);
     procedure secondfuncret(var p : ptree);
+    procedure secondarrayconstruct(var p : ptree);
 
 
 implementation
@@ -559,10 +560,157 @@ implementation
       end;
 
 
+{*****************************************************************************
+                           SecondArrayConstruct
+*****************************************************************************}
+
+      const
+        vtInteger    = 0;
+        vtBoolean    = 1;
+        vtChar       = 2;
+        vtExtended   = 3;
+        vtString     = 4;
+        vtPointer    = 5;
+        vtPChar      = 6;
+        vtObject     = 7;
+        vtClass      = 8;
+        vtWideChar   = 9;
+        vtPWideChar  = 10;
+        vtAnsiString = 11;
+        vtCurrency   = 12;
+        vtVariant    = 13;
+        vtInterface  = 14;
+        vtWideString = 15;
+        vtInt64      = 16;
+
+    procedure emit_mov_value_ref(const t:tlocation;const ref:treference);
+      begin
+        case t.loc of
+          LOC_REGISTER,
+         LOC_CREGISTER : begin
+                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                             t.register,newreference(ref))));
+                         end;
+               LOC_MEM,
+         LOC_REFERENCE : begin
+                           if t.reference.isintvalue then
+                             exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+                               t.reference.offset,newreference(ref))))
+                           else
+                             begin
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                 newreference(t.reference),R_EDI)));
+                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                 R_EDI,newreference(ref))));
+                             end;
+                         end;
+        else
+         internalerror(330);
+        end;
+      end;
+
+
+    procedure emit_mov_addr_ref(const t:tlocation;const ref:treference);
+      begin
+        case t.loc of
+               LOC_MEM,
+         LOC_REFERENCE : begin
+                           if t.reference.isintvalue then
+                             internalerror(331)
+                           else
+                             begin
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+                                 newreference(t.reference),R_EDI)));
+                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                 R_EDI,newreference(ref))));
+                             end;
+                         end;
+        else
+         internalerror(332);
+        end;
+      end;
+
+
+    procedure secondarrayconstruct(var p : ptree);
+      var
+        hp    : ptree;
+        href  : treference;
+        hreg  : tregister;
+        lt    : pdef;
+        vtype : longint;
+      begin
+        clear_reference(p^.location.reference);
+        gettempofsizereference(parraydef(p^.resulttype)^.highrange*8,p^.location.reference);
+        hp:=p;
+        href:=p^.location.reference;
+        while assigned(hp) do
+         begin
+           secondpass(hp^.left);
+           if codegenerror then
+            exit;
+           { find the correct vtype value }
+           vtype:=$ff;
+           lt:=hp^.left^.resulttype;
+           case lt^.deftype of
+           enumdef,
+            orddef : begin
+                       if (lt^.deftype=enumdef) or
+                          is_integer(lt) then
+                        vtype:=vtInteger
+                       else
+                        if is_boolean(lt) then
+                         vtype:=vtBoolean
+                       else
+                        if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
+                         vtype:=vtChar;
+                       emit_mov_value_ref(hp^.left^.location,href);
+                     end;
+        pointerdef : begin
+                       if is_pchar(lt) then
+                        vtype:=vtPChar
+                       else
+                        vtype:=vtPointer;
+                       emit_mov_value_ref(hp^.left^.location,href);
+                     end;
+       classrefdef : begin
+                       vtype:=vtClass;
+                       emit_mov_value_ref(hp^.left^.location,href);
+                     end;
+         stringdef : begin
+                       if is_shortstring(lt) then
+                        begin
+                          vtype:=vtString;
+                          emit_mov_addr_ref(hp^.left^.location,href);
+                        end
+                       else
+                        if is_ansistring(lt) then
+                         begin
+                           vtype:=vtAnsiString;
+                           emit_mov_value_ref(hp^.left^.location,href);
+                         end;
+                     end;
+           end;
+           if vtype=$ff then
+            internalerror(14357);
+           { update href to the vtype field and write it }
+           inc(href.offset,4);
+           exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+             vtype,newreference(href))));
+           { update href to the next element }
+           inc(href.offset,4);
+           { load next entry }
+           hp:=hp^.right;
+         end;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.17  1998-09-20 18:00:19  florian
+  Revision 1.18  1998-09-23 09:58:48  peter
+    * first working array of const things
+
+  Revision 1.17  1998/09/20 18:00:19  florian
     * small compiling problems fixed
 
   Revision 1.16  1998/09/20 17:46:48  florian

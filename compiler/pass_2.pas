@@ -196,6 +196,8 @@ implementation
              secondfail,        {failn}
              secondadd,         {starstarn}
              secondprocinline,  {procinlinen}
+             secondarrayconstruct, {arrayconstructn}
+             secondnothing,     {arrayconstructrangen}
              secondnothing,     {nothingn}
              secondloadvmt      {loadvmtn}
              );
@@ -483,7 +485,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-21 10:01:06  peter
+  Revision 1.6  1998-09-23 09:58:52  peter
+    * first working array of const things
+
+  Revision 1.5  1998/09/21 10:01:06  peter
     * check if procinfo.def is assigned before storing registersfpu
 
   Revision 1.4  1998/09/21 08:45:16  pierre

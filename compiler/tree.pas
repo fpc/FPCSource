@@ -120,7 +120,9 @@ unit tree;
                    caretn,          {Represents the ^ operator.}
                    failn,           {Represents the fail statement.}
                    starstarn,       {Represents the ** operator exponentiation }
-                   procinlinen,      {Procedures that can be inlined }
+                   procinlinen,     {Procedures that can be inlined }
+                   arrayconstructn, {Construction node for [...] parsing}
+                   arrayconstructrangen, {Range element to allow sets in array construction tree}
                    { added for optimizations where we cannot suppress }
                    nothingn,
                    loadvmtn);       {???.}
@@ -1567,7 +1569,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.40  1998-09-22 15:34:07  peter
+  Revision 1.41  1998-09-23 09:58:55  peter
+    * first working array of const things
+
+  Revision 1.40  1998/09/22 15:34:07  peter
     + pchar -> string conversion
 
   Revision 1.39  1998/09/21 08:45:27  pierre

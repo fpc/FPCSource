@@ -56,7 +56,7 @@ unit pass_1;
       we don't count the ref }
     const
        count_ref : boolean = true;
-
+       allow_array_constructor : boolean = false;
 
     { marks an lvalue as "unregable" }
     procedure make_not_regable(p : ptree);
@@ -146,6 +146,218 @@ unit pass_1;
 
 
     function is_assignment_overloaded(from_def,to_def : pdef) : boolean;forward;
+
+
+    procedure arrayconstructor_to_set(var p:ptree);
+      var
+        constp,
+        buildp,
+        p2,p3,p4    : ptree;
+        pd          : pdef;
+        constset    : pconstset;
+        constsetlo,
+        constsethi  : longint;
+
+        procedure update_constsethi(p:pdef);
+        begin
+          if ((p^.deftype=orddef) and
+              (porddef(p)^.high>constsethi)) then
+            constsethi:=porddef(p)^.high
+          else
+            if ((p^.deftype=enumdef) and
+                (penumdef(p)^.max>constsethi)) then
+              constsethi:=penumdef(p)^.max;
+        end;
+
+        procedure do_set(pos : longint);
+        var
+          mask,l : longint;
+        begin
+          if (pos>255) or (pos<0) then
+           Message(parser_e_illegal_set_expr);
+          if pos>constsethi then
+           constsethi:=pos;
+          if pos<constsetlo then
+           constsetlo:=pos;
+          l:=pos shr 3;
+          mask:=1 shl (pos mod 8);
+          { do we allow the same twice }
+          if (constset^[l] and mask)<>0 then
+           Message(parser_e_illegal_set_expr);
+          constset^[l]:=constset^[l] or mask;
+        end;
+
+      var
+        l : longint;
+      begin
+        new(constset);
+        FillChar(constset^,sizeof(constset^),0);
+        pd:=nil;
+        constsetlo:=0;
+        constsethi:=0;
+        constp:=gensinglenode(setconstn,nil);
+        constp^.value_set:=constset;
+        buildp:=constp;
+        if assigned(p^.left) then
+         begin
+           while assigned(p) do
+            begin
+              p4:=nil; { will contain the tree to create the set }
+            { split a range into p2 and p3 }
+              if p^.left^.treetype=arrayconstructrangen then
+               begin
+                 p2:=p^.left^.left;
+                 p3:=p^.left^.right;
+               { node is not used anymore }
+                 putnode(p^.left);
+               end
+              else
+               begin
+                 p2:=p^.left;
+                 p3:=nil;
+               end;
+              firstpass(p2);
+              if codegenerror then
+               break;
+              case p2^.resulttype^.deftype of
+            enumdef,
+             orddef : begin
+                        if (p2^.resulttype^.deftype=orddef) and
+                           (porddef(p2^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
+                         begin
+                           p2:=gentypeconvnode(p2,u8bitdef);
+                           firstpass(p2);
+                         end;
+                        { set settype result }
+                        if pd=nil then
+                          pd:=p2^.resulttype;
+                        if not(is_equal(pd,p2^.resulttype)) then
+                         begin
+                           Message(type_e_typeconflict_in_set);
+                           disposetree(p2);
+                         end
+                        else
+                         begin
+                           if assigned(p3) then
+                            begin
+                              if (p3^.resulttype^.deftype=orddef) and
+                                 (porddef(p3^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
+                               begin
+                                 p3:=gentypeconvnode(p3,u8bitdef);
+                                 firstpass(p3);
+                               end;
+                              if not(is_equal(pd,p3^.resulttype)) then
+                                Message(type_e_typeconflict_in_set)
+                              else
+                                begin
+                                  if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
+                                   begin
+                                     for l:=p2^.value to p3^.value do
+                                      do_set(l);
+                                     disposetree(p3);
+                                     disposetree(p2);
+                                   end
+                                  else
+                                   begin
+                                     update_constsethi(p3^.resulttype);
+                                     p4:=gennode(setelementn,p2,p3);
+                                   end;
+                                end;
+                            end
+                           else
+                            begin
+                           { Single value }
+                              if p2^.treetype=ordconstn then
+                               begin
+                                 do_set(p2^.value);
+                                 disposetree(p2);
+                               end
+                              else
+                               begin
+                                 update_constsethi(p2^.resulttype);
+                                 p4:=gennode(setelementn,p2,nil);
+                               end;
+                            end;
+                         end;
+                      end;
+          stringdef : begin
+                        if pd=nil then
+                         pd:=cchardef;
+                        if not(is_equal(pd,cchardef)) then
+                         Message(type_e_typeconflict_in_set)
+                        else
+                         for l:=1 to length(pstring(p2^.value_str)^) do
+                          do_set(ord(pstring(p2^.value_str)^[l]));
+                        disposetree(p2);
+                      end;
+              else
+               Internalerror(4234);
+              end;
+            { insert the set creation tree }
+              if assigned(p4) then
+               buildp:=gennode(addn,buildp,p4);
+            { load next and dispose current node }
+              p2:=p;
+              p:=p^.right;
+              putnode(p2);
+            end;
+         end
+        else
+         begin
+         { empty set [], only remove node }
+           putnode(p);
+         end;
+      { set the initial set type }
+        constp^.resulttype:=new(psetdef,init(pd,constsethi));
+      { set the new tree }
+        p:=buildp;
+      end;
+
+
+    procedure firstarrayconstruct(var p : ptree);
+      var
+        pd : pdef;
+        hp : ptree;
+        len : longint;
+      begin
+      { are we allowing array constructor? Then convert it to a set }
+        if not allow_array_constructor then
+         begin
+           arrayconstructor_to_set(p);
+           firstpass(p);
+           exit;
+         end;
+      { only pass left tree, right tree contains next construct if any }
+        pd:=nil;
+        len:=0;
+        if assigned(p^.left) then
+         begin
+           hp:=p;
+           while assigned(hp) do
+            begin
+              firstpass(hp^.left);
+              if (pd=nil) then
+               pd:=hp^.left^.resulttype
+              else
+               Comment(V_Warning,'Variant type found !!');
+              inc(len);
+              hp:=hp^.right;
+            end;
+           if len=0 then
+            Internalerror(4235);
+         end;
+        calcregisters(p,0,0,0);
+        p^.resulttype:=new(parraydef,init(0,len,pd));
+        p^.location.loc:=LOC_REFERENCE;
+      end;
+
+
+    procedure firstarrayconstructrange(var p : ptree);
+      begin
+      { This is not allowed, it's only to support sets when parsing the [a..b] }
+        Internalerror(4236);
+        Codegenerror:=true;
+      end;
 
 
     function isconvertable(def_from,def_to : pdef;
@@ -422,7 +634,7 @@ unit pass_1;
 
          { string constant to zero terminated string constant }
           if (fromtreetype=stringconstn) and
-             ((def_to^.deftype=pointerdef) and is_equal(Ppointerdef(def_to)^.definition,cchardef)) then
+             is_pchar(def_to) then
            begin
              doconv:=tc_cstring_charpointer;
              b:=true;
@@ -1928,6 +2140,7 @@ unit pass_1;
          { assignements to open arrays aren't allowed }
          if is_open_array(p^.left^.resulttype) then
            CGMessage(type_e_mismatch);
+
          { test if we can avoid copying string to temp
            as in s:=s+...; (PM) }
 {$ifdef dummyi386}
@@ -2895,6 +3108,7 @@ unit pass_1;
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
 
       var store_valid : boolean;
+          old_array_constructor : boolean;
           convtyp     : tconverttype;
       begin
          inc(parsing_para_level);
@@ -2912,21 +3126,17 @@ unit pass_1;
            end;
          if defcoll=nil then
            begin
-              { this breaks typeconversions in write !!! (PM) }
-              {if not(assigned(p^.resulttype)) then }
+              old_array_constructor:=allow_array_constructor;
+              allow_array_constructor:=true;
               if not(assigned(p^.resulttype)) or
                 (p^.left^.treetype=typeconvn) then
                 firstpass(p^.left);
-              {else
-                exit; this broke the
-                value of registers32 !! }
-
+              allow_array_constructor:=old_array_constructor;
               if codegenerror then
                 begin
                    dec(parsing_para_level);
                    exit;
                 end;
-
               p^.resulttype:=p^.left^.resulttype;
            end
          { if we know the routine which is called, then the type }
@@ -2948,7 +3158,12 @@ unit pass_1;
                       p^.left^.treetype,false) then
                       if convtyp=tc_array_to_pointer then
                         must_be_valid:=false;
-                    firstpass(p^.left);
+                    { only process typeconvn, else it will break other trees }
+                    old_array_constructor:=allow_array_constructor;
+                    allow_array_constructor:=true;
+{                    if (p^.left^.treetype=typeconvn) then }
+                      firstpass(p^.left);
+                    allow_array_constructor:=old_array_constructor;
                     must_be_valid:=store_valid;
                  end;
               if not(is_shortstring(p^.left^.resulttype) and
@@ -4596,7 +4811,7 @@ unit pass_1;
 
          firstpass(p^.right);
          if codegenerror then
-           exit;
+          exit;
 
          if p^.right^.resulttype^.deftype<>setdef then
           CGMessage(sym_e_set_expected);
@@ -5211,7 +5426,7 @@ unit pass_1;
            pobjectdef(p^.left^.resulttype)))) then
            CGMessage(type_e_mismatch);
 
-         p^.location:=p^.left^.location;
+         set_location(p^.location,p^.left^.location);
          p^.resulttype:=pclassrefdef(p^.right^.resulttype)^.definition;
       end;
 
@@ -5427,7 +5642,9 @@ unit pass_1;
              firstgoto,firstsimplenewdispose,firsttryexcept,
              firstraise,firstnothing,firsttryfinally,
              firstonn,firstis,firstas,firstadd,
-             firstnothing,firstadd,firstprocinline,firstnothing,firstloadvmt);
+             firstnothing,firstadd,firstprocinline,
+             firstarrayconstruct,firstarrayconstructrange,
+             firstnothing,firstloadvmt);
 
       var
          oldcodegenerror  : boolean;
@@ -5516,7 +5733,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.89  1998-09-22 15:34:10  peter
+  Revision 1.90  1998-09-23 09:58:49  peter
+    * first working array of const things
+
+  Revision 1.89  1998/09/22 15:34:10  peter
     + pchar -> string conversion
 
   Revision 1.88  1998/09/21 08:45:14  pierre

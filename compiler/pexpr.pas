@@ -972,146 +972,42 @@ unit pexpr;
          { Read a set between [] }
          function factor_read_set:ptree;
          var
-           constp,
-           buildp,
-           p2,p3,p4    : ptree;
-           pd          : pdef;
-           constset    : pconstset;
-           constsetlo,
-           constsethi  : longint;
-
-           procedure update_constsethi(p:pdef);
-           begin
-             if ((p^.deftype=orddef) and
-                 (porddef(p)^.high>constsethi)) then
-               constsethi:=porddef(p)^.high
-             else
-               if ((p^.deftype=enumdef) and
-                   (penumdef(p)^.max>constsethi)) then
-                 constsethi:=penumdef(p)^.max;
-           end;
-
-           procedure do_set(pos : longint);
-           var
-             mask,l : longint;
-           begin
-             if (pos>255) or (pos<0) then
-              Message(parser_e_illegal_set_expr);
-             if pos>constsethi then
-              constsethi:=pos;
-             if pos<constsetlo then
-              constsetlo:=pos;
-             l:=pos shr 3;
-             mask:=1 shl (pos mod 8);
-             { do we allow the same twice }
-             if (constset^[l] and mask)<>0 then
-              Message(parser_e_illegal_set_expr);
-             constset^[l]:=constset^[l] or mask;
-           end;
-
-         var
-           l : longint;
+           p1,
+           lastp,
+           buildp : ptree;
          begin
-           new(constset);
-           FillChar(constset^,sizeof(constset^),0);
-           constsetlo:=0;
-           constsethi:=0;
-           constp:=gensinglenode(setconstn,nil);
-           constp^.value_set:=constset;
-           buildp:=constp;
-           pd:=nil;
-           if token<>RECKKLAMMER then
+           buildp:=nil;
+         { be sure that a least one arrayconstructn is used, also for an
+           empty [] }
+           if token=RECKKLAMMER then
+            buildp:=gennode(arrayconstructn,nil,buildp)
+           else
             begin
               while true do
                begin
-                 p4:=nil; { will contain the tree to create the set }
-                 p2:=comp_expr(true);
-                 do_firstpass(p2);
+                 p1:=comp_expr(true);
+                 do_firstpass(p1);
                  if codegenerror then
                   break;
-                 case p2^.resulttype^.deftype of
-               enumdef,
-                orddef : begin
-                           if (p2^.resulttype^.deftype=orddef) and
-                              (porddef(p2^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
-                            begin
-                              p2:=gentypeconvnode(p2,u8bitdef);
-                              do_firstpass(p2);
-                            end;
-                           { set settype result }
-                           if pd=nil then
-                             pd:=p2^.resulttype;
-                           if not(is_equal(pd,p2^.resulttype)) then
-                            begin
-                              Message(type_e_typeconflict_in_set);
-                              disposetree(p2);
-                            end
-                           else
-                            begin
-                              if token=POINTPOINT then
-                               begin
-                                 consume(POINTPOINT);
-                                 p3:=comp_expr(true);
-                                 do_firstpass(p3);
-                                 if codegenerror then
-                                  break;
-                                 if (p3^.resulttype^.deftype=orddef) and
-                                    (porddef(p3^.resulttype)^.typ in [s8bit,s16bit,s32bit,u16bit,u32bit]) then
-                                  begin
-                                    p3:=gentypeconvnode(p3,u8bitdef);
-                                    do_firstpass(p3);
-                                  end;
-                                 if not(is_equal(pd,p3^.resulttype)) then
-                                   Message(type_e_typeconflict_in_set)
-                                 else
-                                   begin
-                                     if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
-                                      begin
-                                        for l:=p2^.value to p3^.value do
-                                         do_set(l);
-                                        disposetree(p3);
-                                        disposetree(p2);
-                                      end
-                                     else
-                                      begin
-                                        update_constsethi(p3^.resulttype);
-                                        p4:=gennode(setelementn,p2,p3);
-                                      end;
-                                   end;
-                               end
-                              else
-                               begin
-                              { Single value }
-                                 if p2^.treetype=ordconstn then
-                                  begin
-                                    do_set(p2^.value);
-                                    disposetree(p2);
-                                  end
-                                 else
-                                  begin
-                                    update_constsethi(p2^.resulttype);
-                                    p4:=gennode(setelementn,p2,nil);
-                                  end;
-                               end;
-                            end;
-                         end;
-             stringdef : begin
-                           if pd=nil then
-                            pd:=cchardef;
-                           if not(is_equal(pd,cchardef)) then
-                            Message(type_e_typeconflict_in_set)
-                           else
-                            for l:=1 to length(pstring(p2^.value_str)^) do
-                             do_set(ord(pstring(p2^.value_str)^[l]));
-                           disposetree(p2);
-                         end;
-                 else
-                  Internalerror(4234);
-                 end;
-               { insert the set creation tree }
-                 if assigned(p4) then
+                 if token=POINTPOINT then
                   begin
-                    buildp:=gennode(addn,buildp,p4);
+                    consume(POINTPOINT);
+                    p2:=comp_expr(true);
+                    do_firstpass(p2);
+                    if codegenerror then
+                     break;
+                    p1:=gennode(arrayconstructrangen,p1,p2);
+                  end;
+               { insert at the end of the tree, to get the correct order }
+                 if not assigned(buildp) then
+                  begin
+                    buildp:=gensinglenode(arrayconstructn,p1);
+                    lastp:=buildp;
+                  end
+                 else
+                  begin
+                    lastp^.right:=gensinglenode(arrayconstructn,p1);
+                    lastp:=lastp^.right;
                   end;
                { there could be more elements }
                  if token=COMMA then
@@ -1120,7 +1016,6 @@ unit pexpr;
                    break;
                end;
             end;
-           constp^.resulttype:=new(psetdef,init(pd,constsethi));
            factor_read_set:=buildp;
          end;
 
@@ -1856,7 +1751,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.52  1998-09-20 09:38:45  florian
+  Revision 1.53  1998-09-23 09:58:54  peter
+    * first working array of const things
+
+  Revision 1.52  1998/09/20 09:38:45  florian
     * hasharray for defs fixed
     * ansistring code generation corrected (init/final, assignement)
 

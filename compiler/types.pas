@@ -40,6 +40,9 @@ unit types;
     { returns true, if def defines an ordinal type }
     function is_integer(def : pdef) : boolean;
 
+    { true if p is a boolean }
+    function is_boolean(def : pdef) : boolean;
+
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
@@ -54,6 +57,9 @@ unit types;
 
     { true if o is a short string def }
     function is_shortstring(p : pdef) : boolean;
+
+    { true if o is a pchar def }
+    function is_pchar(p : pdef) : boolean;
 
     { returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : pdef) : boolean;
@@ -204,6 +210,13 @@ unit types;
       end;
 
 
+    { true if p is a boolean }
+    function is_boolean(def : pdef) : boolean;
+      begin
+        is_boolean:=(def^.deftype=orddef) and
+                    (porddef(def)^.typ in [bool8bit,bool16bit,bool32bit]);
+      end;
+
     { true if p is signed (integer) }
     function is_signed(def : pdef) : boolean;
       var
@@ -259,6 +272,13 @@ unit types;
       begin
          is_shortstring:=(p^.deftype=stringdef) and
                          (pstringdef(p)^.string_typ=st_shortstring);
+      end;
+
+    { true if p is a pchar def }
+    function is_pchar(p : pdef) : boolean;
+      begin
+        is_pchar:=(p^.deftype=pointerdef) and
+                  is_equal(Ppointerdef(p)^.definition,cchardef);
       end;
 
 
@@ -922,7 +942,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.30  1998-09-22 15:40:58  peter
+  Revision 1.31  1998-09-23 09:58:56  peter
+    * first working array of const things
+
+  Revision 1.30  1998/09/22 15:40:58  peter
     * some extra ifdef GDB
 
   Revision 1.29  1998/09/16 12:37:31  michael
