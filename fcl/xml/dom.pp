@@ -4,7 +4,7 @@
     Copyright (c) 1999 Sebastian Guenther (sguenther@gmx.de)
 
     Implementation of DOM level 1 interfaces
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -155,14 +155,16 @@ type
 
     constructor Create(AOwner: TDOMDocument);
   public
+    // Free NodeList with TDOMNodeList.Release!
+    function GetChildNodes: TDOMNodeList; virtual;
+
     property NodeName: DOMString read FNodeName;
     property NodeValue: DOMString read FGetNodeValue write FSetNodeValue;
     property NodeType: Integer read FNodeType;
     property ParentNode: TDOMNode read FParentNode;
-    // Free NodeList with TDOMNodeList.Release!
-    function GetChildNodes: TDOMNodeList; virtual;
     property FirstChild: TDOMNode read FGetFirstChild;
     property LastChild: TDOMNode read FGetLastChild;
+    property ChildNodes: TDOMNodeList read GetChildNodes;
     property PreviousSibling: TDOMNode read FPreviousSibling;
     property NextSibling: TDOMNode read FNextSibling;
     property Attributes: TDOMNamedNodeMap read FGetAttributes;
@@ -1254,7 +1256,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-01-06 01:20:36  peter
+  Revision 1.9  2000-01-06 23:55:22  peter
+    * childnodes property as that is used instead of getchildnodes
+      in the apps
+
+  Revision 1.8  2000/01/06 01:20:36  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  2000/01/03 19:33:11  peter
