@@ -50,7 +50,7 @@ implementation
 {$ifdef logsecondpass}
      cutils,
 {$endif}
-     globtype,systems,
+     globtype,systems,verbose,
      cclasses,globals,
      symconst,symbase,symtype,symsym,aasm,
      pass_1,hcodegen,temp_gen,regvars,nflw,tgcpu;
@@ -238,7 +238,10 @@ implementation
          use_esp_stackframe:=false;
          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
          symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
-         if not(do_firstpass(p)) then
+         { firstpass everything }
+         do_firstpass(p);
+         { only do secondpass if there are no errors }
+         if ErrorCount=0 then
            begin
              if (cs_regalloc in aktglobalswitches) and
                 ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
@@ -303,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-04-15 09:48:30  peter
+  Revision 1.16  2001-05-09 19:57:07  peter
+    * check for errorcount after firstpass
+
+  Revision 1.15  2001/04/15 09:48:30  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 
