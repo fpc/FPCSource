@@ -80,13 +80,12 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean); override;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
 
@@ -834,11 +833,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;loadref:boolean);
-      begin
-      end;
-
-
     procedure tcgarm.g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);
       var
          ref : treference;
@@ -1044,7 +1038,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);
+    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);
       var
         srcref,dstref:treference;
         srcreg,destreg,countreg,r:tregister;
@@ -1084,7 +1078,7 @@ unit cgcpu;
         srcref:=source;
         if cs_littlesize in aktglobalswitches then
           helpsize:=8;
-        if not loadref and (len<=helpsize) then
+        if (len<=helpsize) then
           begin
             copysize:=4;
             cgsize:=OS_32;
@@ -1115,10 +1109,7 @@ unit cgcpu;
             reference_reset_base(dstref,destreg,0);
 
             srcreg:=getintregister(list,OS_ADDR);
-            if loadref then
-              a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,srcreg)
-            else
-              a_loadaddr_ref_reg(list,source,srcreg);
+            a_loadaddr_ref_reg(list,source,srcreg);
             reference_reset_base(srcref,srcreg,0);
 
             countreg:=getintregister(list,OS_32);
@@ -1304,7 +1295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-10-24 07:54:25  florian
+  Revision 1.57  2004-10-24 11:53:45  peter
+    * fixed compilation with removed loadref
+
+  Revision 1.56  2004/10/24 07:54:25  florian
     * fixed compilation of arm compiler
 
   Revision 1.55  2004/10/11 15:46:45  peter

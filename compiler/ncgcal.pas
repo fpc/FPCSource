@@ -748,7 +748,7 @@ implementation
                                      reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
                                      { use concatcopy, because it can also be a float which fails when
                                        load_ref_ref is used }
-                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size],false);
+                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size]);
                                    end;
                                  LOC_REGISTER:
                                    cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
@@ -1243,7 +1243,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.179  2004-10-24 11:44:28  peter
+  Revision 1.180  2004-10-24 11:53:45  peter
+    * fixed compilation with removed loadref
+
+  Revision 1.179  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

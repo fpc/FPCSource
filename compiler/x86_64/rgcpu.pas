@@ -29,7 +29,7 @@ unit rgcpu;
   interface
 
      uses
-       rgx86;
+       cgbase,rgx86;
 
      type
        trgcpu = class(trgx86)
@@ -38,6 +38,8 @@ unit rgcpu;
 
   implementation
 
+    uses
+      cpubase;
 
     procedure trgcpu.add_constraints(reg:Tregister);
       var
@@ -53,7 +55,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-10-13 21:12:51  peter
+  Revision 1.11  2004-10-24 11:53:45  peter
+    * fixed compilation with removed loadref
+
+  Revision 1.10  2004/10/13 21:12:51  peter
     * -Or fixes for open array
 
   Revision 1.9  2004/06/20 08:55:32  florian

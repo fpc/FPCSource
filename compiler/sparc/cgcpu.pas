@@ -88,8 +88,8 @@ interface
         procedure g_restore_standard_registers(list:taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_save_standard_registers(list : taasmoutput);override;
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
-        procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
+        procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);override;
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -989,7 +989,7 @@ implementation
 
     { ************* concatcopy ************ }
 
-    procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aint;loadref:boolean);
+    procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aint);
       var
         tmpreg1,
         hreg,
@@ -997,29 +997,17 @@ implementation
         src, dst: TReference;
         lab: tasmlabel;
         count, count2: aint;
-        orgsrc, orgdst: boolean;
       begin
         if len>high(longint) then
           internalerror(2002072704);
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
-        if loadref then
-          begin
-            src.base:=GetAddressRegister(list);
-            a_load_ref_reg(list,OS_32,OS_32,source,src.base);
-            orgsrc := false;
-          end
-        else
-          begin
-            src.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,source,src.base);
-            orgsrc := false;
-          end;
-          { load the address of dest into dst.base }
+        src.base:=GetAddressRegister(list);
+        a_loadaddr_ref_reg(list,source,src.base);
+        { load the address of dest into dst.base }
         dst.base:=GetAddressRegister(list);
         a_loadaddr_ref_reg(list,dest,dst.base);
-        orgdst := false;
         { generate a loop }
         count:=len div 4;
         if count>4 then
@@ -1088,7 +1076,7 @@ implementation
       end;
 
 
-    procedure tcgsparc.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);
+    procedure tcgsparc.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);
       var
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
@@ -1103,10 +1091,7 @@ implementation
         paramanager.allocparaloc(list,paraloc2);
         a_paramaddr_ref(list,dest,paraloc2);
         paramanager.allocparaloc(list,paraloc2);
-        if loadref then
-          a_param_ref(list,OS_ADDR,source,paraloc1)
-        else
-          a_paramaddr_ref(list,source,paraloc1);
+        a_paramaddr_ref(list,source,paraloc1);
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
@@ -1274,7 +1259,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2004-10-10 20:51:46  peter
+  Revision 1.96  2004-10-24 11:53:45  peter
+    * fixed compilation with removed loadref
+
+  Revision 1.95  2004/10/10 20:51:46  peter
     * fixed sparc compile
     * fixed float regvar loading
 

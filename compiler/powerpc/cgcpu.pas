@@ -86,7 +86,7 @@ unit cgcpu;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
@@ -1824,7 +1824,7 @@ const
     maxmoveunit = 4;
 {$endif ppc603}
 
-    procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; loadref : boolean);
+    procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);
 
       var
         countreg: TRegister;
@@ -1841,40 +1841,33 @@ const
 {$endif extdebug}
 
         { make sure short loads are handled as optimally as possible }
-        if not loadref then
-          if (len <= maxmoveunit) and
-             (byte(len) in [1,2,4,8]) then
-            begin
-              if len < 8 then
-                begin
-                  size := int_cgsize(len);
-                  a_load_ref_ref(list,size,size,source,dest);
-                end
-              else
-                begin
-                  a_reg_alloc(list,NR_F0);
-                  a_loadfpu_ref_reg(list,OS_F64,source,NR_F0);
-                  a_loadfpu_reg_ref(list,OS_F64,NR_F0,dest);
-                  a_reg_dealloc(list,NR_F0);
-                end;
-              exit;
-            end;
+        if (len <= maxmoveunit) and
+           (byte(len) in [1,2,4,8]) then
+          begin
+            if len < 8 then
+              begin
+                size := int_cgsize(len);
+                a_load_ref_ref(list,size,size,source,dest);
+              end
+            else
+              begin
+                a_reg_alloc(list,NR_F0);
+                a_loadfpu_ref_reg(list,OS_F64,source,NR_F0);
+                a_loadfpu_reg_ref(list,OS_F64,NR_F0,dest);
+                a_reg_dealloc(list,NR_F0);
+              end;
+            exit;
+          end;
 
         count := len div maxmoveunit;
 
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
-        if loadref then
-          begin
-            src.base := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-            a_load_ref_reg(list,OS_32,OS_32,source,src.base);
-            orgsrc := false;
-          end
-        else if (count > 4) or
-                not issimpleref(source) or
-                ((source.index <> NR_NO) and
-                 ((source.offset + longint(len)) > high(smallint))) then
+        if (count > 4) or
+           not issimpleref(source) or
+           ((source.index <> NR_NO) and
+            ((source.offset + longint(len)) > high(smallint))) then
           begin
             src.base := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
             a_loadaddr_ref_reg(list,source,src.base);
@@ -2373,7 +2366,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.180  2004-10-20 07:32:42  jonas
+  Revision 1.181  2004-10-24 11:53:45  peter
+    * fixed compilation with removed loadref
+
+  Revision 1.180  2004/10/20 07:32:42  jonas
     + support for nostackframe directive
 
   Revision 1.179  2004/10/11 07:13:14  jonas
