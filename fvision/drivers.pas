@@ -567,7 +567,8 @@ CONST
 {          >>> NEW INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES <<<            }
 {---------------------------------------------------------------------------}
 CONST
-   TextModeGFV    : Boolean = False;                  { DOS/DPMI textmode op }
+   TextModeGFV    : Boolean = False;                     { DOS/DPMI textmode op }
+   UseFixedFont   : Boolean = True;
    DefLineNum     : Sw_Integer = 25;                     { Default line number }
    DefFontHeight  : Sw_Integer = 0;                      { Default font height }
    SysFontWidth   : Sw_Integer = 8;                      { System font width }
@@ -1296,9 +1297,9 @@ if Not TextmodeGFV then
     SetTextStyle(Ts.Font, Ts.Direction, I);        { Set new font settings }
     SysFontWidth := TextWidth('H');                { Transfer font width }
     SysFontHeight := TextHeight('H')+4;            { Transfer font height }
-    ScreenWidth := (SysScreenWidth+1) DIV
+    ScreenWidth := (Graph.GetMaxX+1) DIV
       SysFontWidth;                                { Calc screen width }
-    ScreenHeight := (SysScreenHeight+1) DIV
+    ScreenHeight := (Graph.GetMaxY+1) DIV
       SysFontHeight;                               { Calc screen height }
 {$ifdef USE_VIDEO_API}
     ScreenMode.color:=true;
@@ -1567,7 +1568,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.16  2002-05-23 06:34:06  pierre
+ Revision 1.17  2002-05-23 15:07:31  pierre
+  * compute graphic size correctly
+
+ Revision 1.16  2002/05/23 06:34:06  pierre
   * fix go32v2 build failure
 
  Revision 1.15  2002/05/21 12:21:53  pierre
