@@ -262,11 +262,7 @@ distclean: clean
 build: build-stamp.$(OS_TARGET)
 build-stamp.$(OS_TARGET):
 # create new compiler
-ifeq ($(OS_TARGET),win32)
-        -$(MAKE) compiler_cycle
-else
         $(MAKE) compiler_cycle
-endif
 # clean
         $(MAKE) rtl_clean
         $(MAKE) packages_clean
@@ -442,13 +438,13 @@ debcopy: distclean
         $(COPYTREE) fcl $(DEBSRCDIR)
         $(COPYTREE) packages $(DEBSRCDIR)
         $(COPYTREE) utils $(DEBSRCDIR)
+        $(COPYTREE) demo $(DEBSRCDIR)
         $(COPYTREE) logs $(DEBSRCDIR)
         $(COPYTREE) docs $(DEBSRCDIR)
         $(COPYTREE) Makefile* $(DEBSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/debian $(DEBSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/man $(DEBSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/doc $(DEBSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/demo $(DEBSRCDIR)
         find $(DEBSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         chmod 755 $(DEBSRCDIR)/debian/rules
 
@@ -474,11 +470,11 @@ rpmcopy: distclean
         $(COPYTREE) fcl $(RPMSRCDIR)
         $(COPYTREE) packages $(RPMSRCDIR)
         $(COPYTREE) utils $(RPMSRCDIR)
+        $(COPYTREE) demo $(RPMSRCDIR)
         $(COPYTREE) logs $(RPMSRCDIR)
         $(COPYTREE) Makefile* $(RPMSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
-        $(COPYTREE) $(CVSINSTALL)/demo $(RPMSRCDIR)
         find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
         cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(FPC_VERSION)-src.tar.gz
 # fpc-docs.rpm
@@ -490,5 +486,5 @@ rpmcopy: distclean
         cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
 
 rpm: checkfpcdir rpmcopy
-        cd $(RPMSPECDIR) ; rpm -ba fpc-$(FPC_VERSION).spec
-        cd $(RPMSPECDIR) ; rpm -ba fpc-docs-$(FPC_VERSION).spec
+        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(FPC_VERSION).spec
+        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(FPC_VERSION).spec
