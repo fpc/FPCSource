@@ -55,6 +55,14 @@ type
   TBlendFunction = _BLENDFUNCTION;
   BLENDFUNCTION = _BLENDFUNCTION;
 
+  _WIN_CERTIFICATE =  Packed Record
+		       dwLength 	: DWord;
+		       wRevision	: Word;
+		       wCertificateType	: Word;
+		       bCertificate	: Array[0..0] of Byte;
+		      End;
+  TWinCertificate = _WIN_CERTIFICATE;
+  PWinCertificate = ^TWinCertificate;
 
 const
   { dll names }
@@ -884,7 +892,10 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:34:00  michael
+  Revision 1.3  2001-07-30 12:02:51  marco
+   * Added WinCertificate
+
+  Revision 1.2  2000/07/13 11:34:00  michael
   + removed logs
  
 }
