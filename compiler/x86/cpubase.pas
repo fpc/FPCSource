@@ -136,6 +136,14 @@ uses
       RS_MM5        = $05;
       RS_MM6        = $06;
       RS_MM7        = $07;
+      RS_MM8        = $08;
+      RS_MM9        = $09;
+      RS_MM10       = $0a;
+      RS_MM11       = $0b;
+      RS_MM12       = $0c;
+      RS_MM13       = $0d;
+      RS_MM14       = $0e;
+      RS_MM15       = $0f;
 
       { Float Super register first and last }
       first_mmx_supreg    = $00;
@@ -152,7 +160,7 @@ uses
 
       { Available Registers }
 {$ifdef x86_64}
-      {$i rx86_64con.inc}
+      {$i r8664con.inc}
 {$else x86_64}
       {$i r386con.inc}
 {$endif x86_64}
@@ -160,7 +168,7 @@ uses
     type
       { Number of registers used for indexing in tables }
 {$ifdef x86_64}
-      tregisterindex=0..{$i rx86_64nor.inc}-1;
+      tregisterindex=0..{$i r8664nor.inc}-1;
 {$else x86_64}
       tregisterindex=0..{$i r386nor.inc}-1;
 {$endif x86_64}
@@ -171,7 +179,7 @@ uses
 
       regnumber_table : array[tregisterindex] of tregister = (
 {$ifdef x86_64}
-        {$i rx86_64con.inc}
+        {$i r8664num.inc}
 {$else x86_64}
         {$i r386num.inc}
 {$endif x86_64}
@@ -179,7 +187,7 @@ uses
 
       regstabs_table : array[tregisterindex] of tregister = (
 {$ifdef x86_64}
-        {$i rx86_64stab.inc}
+        {$i r8664stab.inc}
 {$else x86_64}
         {$i r386stab.inc}
 {$endif x86_64}
@@ -369,6 +377,18 @@ implementation
       verbose;
 
     const
+    {$ifdef x86_64}
+      std_regname_table : array[tregisterindex] of string[7] = (
+        {$i r8664std.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i r8664rni.inc}
+      );
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i r8664sri.inc}
+      );
+    {$else x86_64}
       std_regname_table : array[tregisterindex] of string[7] = (
         {$i r386std.inc}
       );
@@ -380,6 +400,7 @@ implementation
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i r386sri.inc}
       );
+    {$endif x86_64}
 
 
 {*****************************************************************************
@@ -538,7 +559,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-09-23 17:56:06  peter
+  Revision 1.19  2003-09-24 17:12:36  florian
+    * x86-64 adaptions
+
+  Revision 1.18  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

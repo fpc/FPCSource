@@ -326,8 +326,8 @@ implementation
          )
        );
 
-      reg_ot_table : array[0..regnumber_count-1] of longint = (
-        {$i rx86_64ot.inc}
+      reg_ot_table : array[tregisterindex] of longint = (
+        {$i r8664ot.inc}
       );
 {$else x86_64}
        { Intel style operands ! }
@@ -1285,7 +1285,7 @@ implementation
     function regval(r:Tregister):byte;
       const
         opcode_table:array[tregisterindex] of tregisterindex = (
-          {$i r386op.inc}
+          {$i r8664op.inc}
         );
       begin
         result:=opcode_table[findreg_by_number(r)];
@@ -2256,7 +2256,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-09-23 17:56:06  peter
+  Revision 1.25  2003-09-24 17:12:36  florian
+    * x86-64 adaptions
+
+  Revision 1.24  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

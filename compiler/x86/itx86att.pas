@@ -70,6 +70,18 @@ implementation
       cutils,verbose;
 
     const
+    {$ifdef x86_64}
+      att_regname_table : array[tregisterindex] of string[7] = (
+        {r8664att.inc contains the AT&T name of each register.}
+        {$i r8664att.inc}
+      );
+
+      att_regname_index : array[tregisterindex] of tregisterindex = (
+        {r8664ari.inc contains an index which sorts att_regname_table by
+         ATT name.}
+        {$i r8664ari.inc}
+      );
+    {$else x86_64}
       att_regname_table : array[tregisterindex] of string[7] = (
         {r386att.inc contains the AT&T name of each register.}
         {$i r386att.inc}
@@ -80,7 +92,7 @@ implementation
          ATT name.}
         {$i r386ari.inc}
       );
-
+    {$endif x86_64}
 
     function findreg_by_attname(const s:string):byte;
       var
@@ -121,7 +133,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-09-03 15:55:02  peter
+  Revision 1.5  2003-09-24 17:12:36  florian
+    * x86-64 adaptions
+
+  Revision 1.4  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.3.2.6  2003/08/31 15:46:26  peter
