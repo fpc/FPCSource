@@ -656,17 +656,15 @@ uses
                 if (idtoken=_DEFAULT) then
                   begin
                      consume(_DEFAULT);
+                     { overriding a default propertyp is allowed
                      p2:=search_default_property(aktclass);
                      if assigned(p2) then
                        message1(parser_e_only_one_default_property,
                          pobjectdef(p2^.owner^.defowner)^.objname^)
                      else
+                     }
                        begin
-{$ifdef INCLUDEOK}
                           include(p^.propoptions,ppo_defaultproperty);
-{$else}
-                          p^.propoptions:=p^.propoptions+[ppo_defaultproperty];
-{$endif}
                           if propertyparas^.empty then
                             message(parser_e_property_need_paras);
                        end;
@@ -1541,7 +1539,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  2000-02-09 13:23:01  peter
+  Revision 1.19  2000-02-21 22:17:49  florian
+    * fixed 819
+
+  Revision 1.18  2000/02/09 13:23:01  peter
     * log truncated
 
   Revision 1.17  2000/02/05 14:33:32  florian
