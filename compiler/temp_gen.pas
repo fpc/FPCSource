@@ -37,23 +37,37 @@ unit temp_gen;
 {$endif m68k}
        cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
-      type
-{ this saves some memory }
-{$ifdef TEST_MINENUMSIZE}
-{$ifdef FPC}
-{$minenumsize 1}
-{$endif FPC}
-{$endif TEST_MINENUMSIZE}
-       ttemptype = (tt_normal,tt_ansistring,tt_widestring);
-{$ifdef TEST_MINENUMSIZE}
-{$ifdef FPC}
-{$minenumsize default}
-{$endif FPC}
-{$endif TEST_MINENUMSIZE}
+    type
+      ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
+      ttemptypeset = set of ttemptype;
+
+      ptemprecord = ^ttemprecord;
+      ttemprecord = record
+         temptype   : ttemptype;
+         pos        : longint;
+         size       : longint;
+         next       : ptemprecord;
+         nextfree   : ptemprecord; { for faster freeblock checking }
+{$ifdef EXTDEBUG}
+         posinfo,
+         releaseposinfo : tfileposinfo;
+{$endif}
+      end;
+
+    var
+      { contains all temps }
+      templist      : ptemprecord;
+      { contains all free temps using nextfree links }
+      tempfreelist  : ptemprecord;
+      { Offsets of the first/last temp }
+      firsttemp,
+      lasttemp      : longint;
+
     { generates temporary variables }
     procedure resettempgen;
     procedure setfirsttemp(l : longint);
     function gettempsize : longint;
+    function newtempofsize(size : longint) : longint;
     function gettempofsize(size : longint) : longint;
     { special call for inlined procedures }
     function gettempofsizepersistant(size : longint) : longint;
@@ -62,30 +76,11 @@ unit temp_gen;
     {procedure ungettemp(pos : longint;size : longint);}
     procedure ungetpersistanttemp(pos : longint;size : longint);
     procedure gettempofsizereference(l : longint;var ref : treference);
-    procedure gettempslotreference(slottype : ttemptype;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
     function ungetiftempansi(const ref : treference) : boolean;
     procedure gettempansistringreference(var ref : treference);
 
-    type
-       pfreerecord = ^tfreerecord;
-
-       tfreerecord = record
-          next : pfreerecord;
-          pos : longint;
-          size : longint;
-          persistant : boolean; { used for inlined procedures }
-          is_ansistring : boolean;
-          is_freeansistring : boolean;
-          temptype : ttemptype;
-{$ifdef EXTDEBUG}
-          posinfo,releaseposinfo : tfileposinfo;
-{$endif}
-       end;
-
-     var
-       tempansilist : pfreerecord;
 
   implementation
 
@@ -99,73 +94,43 @@ unit temp_gen;
 {$endif m68k}
        ;
 
-    var
-       { contains all free temps }
-       tmpfreelist : pfreerecord;
-       { contains all used temps }
-       templist : pfreerecord;
-       { contains the slots for ansi/wide string temps }
-       reftempslots : pfreerecord;
-{$ifdef EXTDEBUG}
-       tempfreedlist : pfreerecord;
-{$endif}
-       lastoccupied : longint;
-       firsttemp, maxtemp : longint;
 
     procedure resettempgen;
-
       var
-         hp : pfreerecord;
-
+         hp : ptemprecord;
       begin
-         while assigned(tmpfreelist) do
-           begin
-              hp:=tmpfreelist;
-              tmpfreelist:=hp^.next;
-              dispose(hp);
-           end;
-         while assigned(templist) do
-           begin
+        { Clear the old templist }
+        while assigned(templist) do
+         begin
 {$ifdef EXTDEBUG}
-              Comment(V_Warning,'temporary assignment of size '
-                       +tostr(templist^.size)+' from pos '+tostr(templist^.posinfo.line)
-                       +':'+tostr(templist^.posinfo.column)
-                       +' at pos '+tostr(templist^.pos)+
+           case templist^.temptype of
+             tt_normal,
+             tt_persistant :
+               Comment(V_Warning,'temporary assignment of size '+
+                       tostr(templist^.size)+' from pos '+tostr(templist^.posinfo.line)+
+                       ':'+tostr(templist^.posinfo.column)+
+                       ' at pos '+tostr(templist^.pos)+
                        ' not freed at the end of the procedure');
-{$endif}
-              hp:=templist;
-              templist:=hp^.next;
-              dispose(hp);
-           end;
-{$ifdef EXTDEBUG}
-         while assigned(tempfreedlist) do
-           begin
-              hp:=tempfreedlist;
-              tempfreedlist:=hp^.next;
-              dispose(hp);
+             tt_ansistring :
+               Comment(V_Warning,'temporary ANSI assignment of size '+
+                       tostr(templist^.size)+' from pos '+tostr(templist^.posinfo.line)+
+                       ':'+tostr(templist^.posinfo.column)+
+                       ' at pos '+tostr(templist^.pos)+
+                     ' not freed at the end of the procedure');
            end;
 {$endif}
-         while assigned(tempansilist) do
-           begin
-              hp:=tempansilist;
-{$ifdef EXTDEBUG}
-              if not hp^.is_freeansistring then
-                Comment(V_Warning,'temporary ANSI assignment of size '
-                       +tostr(hp^.size)+' from pos '+tostr(hp^.posinfo.line)
-                       +':'+tostr(hp^.posinfo.column)
-                       +' at pos '+tostr(hp^.pos)+
-                       ' not freed at the end of the procedure');
-{$endif}
-              tempansilist:=hp^.next;
-              dispose(hp);
-           end;
-         firsttemp:=0;
-         maxtemp:=0;
-         lastoccupied:=0;
+           hp:=templist;
+           templist:=hp^.next;
+           dispose(hp);
+         end;
+        templist:=nil;
+        tempfreelist:=nil;
+        firsttemp:=0;
+        lasttemp:=0;
       end;
 
-    procedure setfirsttemp(l : longint);
 
+    procedure setfirsttemp(l : longint);
       begin
          { this is a negative value normally }
          if l < 0 then
@@ -179,68 +144,108 @@ unit temp_gen;
              Inc(l);
           end;
          firsttemp:=l;
-         maxtemp:=l;
-         lastoccupied:=l;
+         lasttemp:=l;
       end;
 
-    function gettempofsize(size : longint) : longint;
 
+    function newtempofsize(size : longint) : longint;
       var
-         tl,last,hp : pfreerecord;
-         ofs : longint;
-
+        tl : ptemprecord;
       begin
-         { this code comes from the heap management of FPC ... }
+        { Just extend the temp, everything below has been use
+          already }
+        dec(lasttemp,size);
+        { now we can create the templist entry }
+        new(tl);
+        tl^.temptype:=tt_normal;
+        tl^.pos:=lasttemp;
+        tl^.size:=size;
+        tl^.next:=templist;
+        tl^.nextfree:=nil;
+        templist:=tl;
+        newtempofsize:=tl^.pos;
+      end;
+
+
+    function gettempofsize(size : longint) : longint;
+      var
+         tl,
+         bestslot,bestprev,
+         hprev,hp : ptemprecord;
+         bestsize,ofs : longint;
+      begin
+         bestprev:=nil;
+         bestslot:=nil;
+         bestsize:=0;
+         { Align needed size on 4 bytes }
          if (size mod 4)<>0 then
            size:=size+(4-(size mod 4));
-           ofs:=0;
-           if assigned(tmpfreelist) then
+         { First check the tmpfreelist }
+         if assigned(tempfreelist) then
+          begin
+            { Check for a slot with the same size first }
+            hprev:=nil;
+            hp:=tempfreelist;
+            while assigned(hp) do
              begin
-                last:=nil;
-                hp:=tmpfreelist;
-                while assigned(hp) do
-                  begin
-                     { first fit }
-                     if hp^.size>=size then
-                       begin
-                          ofs:=hp^.pos;
-                          { the whole block is needed ? }
-                          if hp^.size>size then
-                            begin
-                               dec(hp^.size,size);
-                               { the value is <0 so we need to add the size
-                                 instead of sub (PFV) }
-                               inc(hp^.pos,size);
-                            end
-                          else
-                            begin
-                               if assigned(last) then
-                                 last^.next:=hp^.next
-                               else
-                                 tmpfreelist:=nil;
-                               dispose(hp);
-                            end;
-                          break;
-                       end;
-                     last:=hp;
-                     hp:=hp^.next;
-                  end;
+{$ifdef EXTDEBUG}
+               if hp^.temptype<>tt_free then
+                 Comment(V_Warning,'Temp in freelist is not set to tt_free');
+{$endif}
+               if hp^.size>=size then
+                begin
+                  { Slot is the same size, then leave immediatly }
+                  if hp^.size=size then
+                   begin
+                     bestprev:=hprev;
+                     bestslot:=hp;
+                     bestsize:=size;
+                     break;
+                   end
+                  else
+                   begin
+                     if (bestsize=0) or (hp^.size<bestsize) then
+                      begin
+                        bestprev:=hprev;
+                        bestslot:=hp;
+                        bestsize:=size;
+                      end;
+                   end;
+                end;
+               hprev:=hp;
+               hp:=hp^.nextfree;
              end;
-          { nothing free is big enough : expand temp }
-          if ofs=0 then
-            begin
-              ofs:=lastoccupied-size;
-              lastoccupied:=lastoccupied-size;
-              if lastoccupied < maxtemp then
-                maxtemp := lastoccupied;
-            end;
-         new(tl);
-         tl^.pos:=ofs;
-         tl^.size:=size;
-         tl^.next:=templist;
-         tl^.persistant:=false;
-         tl^.temptype:=tt_normal;
-         templist:=tl;
+          end;
+         { Reuse an old temp ? }
+         if assigned(bestslot) then
+          begin
+            ofs:=bestslot^.pos;
+            if bestsize=size then
+             begin
+               bestslot^.temptype:=tt_normal;
+               { Remove from the tempfreelist }
+               if assigned(bestprev) then
+                 bestprev^.nextfree:=bestslot^.nextfree
+               else
+                 tempfreelist:=nil;
+             end
+            else
+             begin
+               { Resize the old block }
+               dec(bestslot^.size,size);
+               { Create new block and link after bestslot }
+               new(tl);
+               tl^.temptype:=tt_normal;
+               tl^.pos:=bestslot^.pos+bestslot^.size;
+               tl^.size:=size;
+               tl^.nextfree:=nil;
+               { link the new block }
+               tl^.next:=bestslot^.next;
+               bestslot^.next:=tl;
+             end;
+          end
+         else
+          ofs:=newtempofsize(size);
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
 {$endif}
@@ -248,14 +253,13 @@ unit temp_gen;
          gettempofsize:=ofs;
       end;
 
-    function gettempofsizepersistant(size : longint) : longint;
 
+    function gettempofsizepersistant(size : longint) : longint;
       var
          l : longint;
-
       begin
          l:=gettempofsize(size);
-         templist^.persistant:=true;
+         templist^.temptype:=tt_persistant;
 {$ifdef EXTDEBUG}
          Comment(V_Debug,'temp managment  : call to gettempofsizepersistant()'+
                      ' with size '+tostr(size)+' returned '+tostr(l));
@@ -263,29 +267,14 @@ unit temp_gen;
          gettempofsizepersistant:=l;
       end;
 
+
     function gettempsize : longint;
-
       begin
-{$ifdef i386}
-
-         { align local data to dwords }
-         if (maxtemp mod 4)<>0 then
-           dec(maxtemp,4+(maxtemp mod 4));
-{$endif}
-{$ifdef m68k}
-
-         { we only push words and we want to stay on }
-         { even stack addresses                      }
-         { maxtemp is negative                       }
-         if (maxtemp mod 2)<>0 then
-           dec(maxtemp);
-{$endif}
-
-         gettempsize:=-maxtemp;
+        gettempsize:=-lasttemp;
       end;
 
-    procedure gettempofsizereference(l : longint;var ref : treference);
 
+    procedure gettempofsizereference(l : longint;var ref : treference);
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
@@ -293,57 +282,40 @@ unit temp_gen;
          ref.base:=procinfo.framepointer;
       end;
 
+
     function gettempansioffset : longint;
       var
-         ofs : longint;
-         tl : pfreerecord;
+         ofs      : longint;
+         foundslot,tl : ptemprecord;
       begin
-         tl:=tempansilist;
+         { Reuse old ansi slot ? }
+         foundslot:=nil;
+         tl:=templist;
          while assigned(tl) do
-           begin
-              if tl^.is_freeansistring then
-                break;
-              tl:=tl^.next;
-           end;
-         if assigned(tl) then
-           begin
-              tl^.is_freeansistring:=false;
-              ofs:=tl^.pos;
-           end
+          begin
+            if tl^.temptype=tt_freeansistring then
+             begin
+               foundslot:=tl;
+               break;
+             end;
+            tl:=tl^.next;
+          end;
+         if assigned(foundslot) then
+          begin
+            foundslot^.temptype:=tt_ansistring;
+            ofs:=foundslot^.pos;
+          end
          else
-           begin
-              if lastoccupied<>maxtemp then
-                begin
-                  { we cannnot use already used temp
-                    so we need to convert that space into
-                    a tempfreeitem ! }
-                    new(tl);
-                    tl^.pos:=maxtemp;
-                    tl^.size:=lastoccupied-maxtemp;
-                    tl^.next:=tmpfreelist;
-                    lastoccupied:=maxtemp;
-                    tl^.persistant:=false;
-                    tl^.is_ansistring:=false;
-                    tl^.is_freeansistring:=false;
-                    tmpfreelist:=tl;
-                end;
-              ofs:=maxtemp-target_os.size_of_pointer;
-              maxtemp:=maxtemp-target_os.size_of_pointer;
-              new(tl);
-              tl^.pos:=ofs;
-              tl^.size:=target_os.size_of_pointer;
-              tl^.next:=tempansilist;
-              tl^.persistant:=false;
-              tl^.is_ansistring:=true;
-              tl^.is_freeansistring:=false;
-              tempansilist:=tl;
-           end;
+          begin
+            ofs:=newtempofsize(target_os.size_of_pointer);
+            templist^.temptype:=tt_ansistring;
+          end;
+         exprasmlist^.concat(new(paitempalloc,alloc(ofs,target_os.size_of_pointer)));
          gettempansioffset:=ofs;
-         exprasmlist^.concat(new(paitempalloc,alloc(tl^.pos,tl^.size)));
       end;
 
-    procedure gettempansistringreference(var ref : treference);
 
+    procedure gettempansistringreference(var ref : treference);
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
@@ -351,304 +323,180 @@ unit temp_gen;
          ref.base:=procinfo.framepointer;
       end;
 
+
     function ungetiftempansi(const ref : treference) : boolean;
       var
-         tl : pfreerecord;
+         tl : ptemprecord;
       begin
-         ungetiftempansi:=false;
-         tl:=tempansilist;
-         while assigned(tl) do
-           begin
-              if tl^.pos=ref.offset then
-                if tl^.is_ansistring and not tl^.is_freeansistring then
-                  begin
-                     tl^.is_freeansistring:=true;
-                     ungetiftempansi:=true;
-                     exprasmlist^.concat(new(paitempalloc,dealloc(tl^.pos,tl^.size)));
-                     exit;
+        ungetiftempansi:=false;
+        tl:=templist;
+        while assigned(tl) do
+         begin
+           if tl^.pos=ref.offset then
+            begin
+              if tl^.temptype=tt_ansistring then
+               begin
+                 tl^.temptype:=tt_freeansistring;
+                 ungetiftempansi:=true;
+                 exprasmlist^.concat(new(paitempalloc,dealloc(tl^.pos,tl^.size)));
+                 exit;
 {$ifdef EXTDEBUG}
-                  end
-                else
-                  begin
-                   Comment(V_Debug,'temp ansi managment problem : ungetiftempansi()'+
+               end
+              else
+               begin
+                 Comment(V_Debug,'temp ansi managment problem : ungetiftempansi()'+
                      ' at pos '+tostr(ref.offset)+ ' already free !');
 {$endif}
-                  end;
-              tl:=tl^.next;
-           end;
-      end;
-
-    procedure gettempslotreference(slottype : ttemptype;var ref : treference);
-      begin
-         { do a reset, because the reference isn't used }
-         reset_reference(ref);
-         { this is not enough in my opinion PM }
-         { because it still can mix different types !! }
-         ref.offset:=gettempofsize(4);
-         ref.base:=procinfo.framepointer;
-         templist^.temptype:=slottype;
+               end;
+            end;
+           tl:=tl^.next;
+         end;
       end;
 
 
     function istemp(const ref : treference) : boolean;
-
       begin
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
          istemp:=((ref.base=procinfo.framepointer) and
-           (ref.offset<firsttemp) and (ref.index=R_NO));
+                  (ref.index=R_NO) and
+                  (ref.offset<firsttemp));
       end;
 
+
     procedure persistanttemptonormal(pos : longint);
-
-      var hp : pfreerecord;
-
+      var
+        hp : ptemprecord;
       begin
          hp:=templist;
          while assigned(hp) do
-           if (hp^.persistant) and (hp^.pos=pos) then
+           if (hp^.pos=pos) and (hp^.temptype=tt_persistant) then
              begin
 {$ifdef EXTDEBUG}
-                   Comment(V_Debug,'temp managment : persistanttemptonormal()'+
-                     ' at pos '+tostr(pos)+ ' found !');
+               Comment(V_Debug,'temp managment : persistanttemptonormal()'+
+                  ' at pos '+tostr(pos)+ ' found !');
 {$endif}
-                hp^.persistant:=false;
+                hp^.temptype:=tt_normal;
                 exit;
              end
            else
              hp:=hp^.next;
 {$ifdef EXTDEBUG}
-                   Comment(V_Debug,'temp managment problem : persistanttemptonormal()'+
-                     ' at pos '+tostr(pos)+ ' not found !');
+         Comment(V_Debug,'temp managment problem : persistanttemptonormal()'+
+            ' at pos '+tostr(pos)+ ' not found !');
 {$endif}
       end;
 
 
-    procedure ungettemp(pos : longint;size : longint);
-
+    function ungettemp(pos:longint;allowtype:ttemptype):ttemptype;
       var
-         hp,newhp : pfreerecord;
-
+         hp,hnext,hprev,hprevfree : ptemprecord;
       begin
-         if (size mod 4)<>0 then
-           size:=size+(4-(size mod 4));
-         if size = 0 then
-           exit;
-         exprasmlist^.concat(new(paitempalloc,dealloc(pos,size)));
-         if pos<=lastoccupied then
-           if pos=lastoccupied then
+         ungettemp:=tt_none;
+         hp:=templist;
+         hprev:=nil;
+         hprevfree:=nil;
+         while assigned(hp) do
+          begin
+            if (hp^.pos=pos) then
              begin
-                lastoccupied:=pos+size;
-                hp:=tmpfreelist;
-                newhp:=nil;
-                while assigned(hp) do
-                  begin
-                     { conneting a free block }
-                     if hp^.pos=lastoccupied then
-                        begin
-                           if assigned(newhp) then newhp^.next:=nil
-                             else tmpfreelist:=nil;
-                           lastoccupied:=lastoccupied+hp^.size;
-                           dispose(hp);
-                           break;
-                        end;
-                     newhp:=hp;
-                     hp:=hp^.next;
-                  end;
-             end
-           else
-             begin
-{$ifdef EXTDEBUG}
-              Comment(V_Warning,'temp managment problem : ungettemp()'+
-                'pos '+tostr(pos)+ '< lastoccupied '+tostr(lastoccupied)+' !');
-{$endif}
-             end
-         else
-           begin
-              new(newhp);
-              { size can be allways set }
-              newhp^.size:=size;
-              newhp^.pos := pos;
-              { if there is no free list }
-              if not assigned(tmpfreelist) then
+               { check type }
+               if hp^.temptype<>allowtype then
                 begin
-                   { then generate one }
-                   tmpfreelist:=newhp;
-                   newhp^.next:=nil;
-                   exit;
+                  ungettemp:=hp^.temptype;
+                  exit;
                 end;
-              { search the position to insert }
-              hp:=tmpfreelist;
-              while assigned(hp) do
+               exprasmlist^.concat(new(paitempalloc,dealloc(hp^.pos,hp^.size)));
+               { set this block to free }
+               hp^.temptype:=tt_free;
+               { Update tempfreelist }
+               if assigned(hprevfree) then
                 begin
-                   { conneting two blocks ? }
-                   if hp^.pos+hp^.size=pos then
-                      begin
-                         inc(hp^.size,size);
-                         dispose(newhp);
-                         break;
-                      end
-                   { if the end is reached, then concat }
-                   else if hp^.next=nil then
-                     begin
-                        hp^.next:=newhp;
-                        newhp^.next:=nil;
-                        break;
-                     end
-                   { falls der n„chste Zeiger gr”áer ist, dann }
-                   { Einh„ngen                                 }
-                   else if hp^.next^.pos<=pos+size then
-                     begin
-                        { concat two blocks ? }
-                        if pos+size=hp^.next^.pos then
-                          begin
-                             newhp^.next:=hp^.next^.next;
-                             inc(newhp^.size,hp^.next^.size);
-                             dispose(hp^.next);
-                             hp^.next:=newhp;
-                          end
-                        else
-                          begin
-                             newhp^.next:=hp^.next;
-                             hp^.next:=newhp;
-                          end;
-                        break;
-                     end;
-                   hp:=hp^.next;
+                  { Connect with previous? }
+                  if assigned(hprev) and (hprev^.temptype=tt_free) then
+                   begin
+                     inc(hprev^.size,hp^.size);
+                     hprev^.next:=hp^.next;
+                     dispose(hp);
+                     hp:=hprev;
+                   end
+                  else
+                   hprevfree^.nextfree:=hp;
+                end
+               else
+                begin
+                  hp^.nextfree:=tempfreelist;
+                  tempfreelist:=hp;
                 end;
-           end;
+               { Next block free ? Yes, then concat }
+               hnext:=hp^.next;
+               if assigned(hnext) and (hnext^.temptype=tt_free) then
+                begin
+                  inc(hp^.size,hnext^.size);
+                  hp^.nextfree:=hnext^.nextfree;
+                  hp^.next:=hnext^.next;
+                  dispose(hnext);
+                end;
+               exit;
+             end;
+            if (hp^.temptype=tt_free) then
+             hprevfree:=hp;
+            hprev:=hp;
+            hp:=hp^.next;
+          end;
+        ungettemp:=tt_none;
       end;
+
 
     procedure ungetpersistanttemp(pos : longint;size : longint);
-      var
-         prev,hp : pfreerecord;
-
       begin
-         ungettemp(pos,size);
-         prev:=nil;
-         hp:=templist;
-         while assigned(hp) do
-           begin
-              if (hp^.persistant) and (hp^.pos=pos) and (hp^.size=size) then
-                begin
-                   if assigned(prev) then
-                     prev^.next:=hp^.next
-                   else
-                     templist:=hp^.next;
 {$ifdef EXTDEBUG}
-                   Comment(V_Debug,'temp managment  : ungetpersistanttemp()'+
-                     ' at pos '+tostr(pos)+ ' found !');
-                   hp^.next:=tempfreedlist;
-                   tempfreedlist:=hp;
-                   hp^.releaseposinfo:=aktfilepos;
+        if ungettemp(pos,tt_persistant)<>tt_persistant then
+          Comment(V_Warning,'temp managment problem : ungetpersistanttemp()'+
+                  ' at pos '+tostr(pos)+ ' not found !');
 {$else}
-                   dispose(hp);
-{$endif}
-                   exit;
-                end;
-              prev:=hp;
-              hp:=hp^.next;
-           end;
-{$ifdef EXTDEBUG}
-       Comment(V_Warning,'temp managment problem : ungetpersistanttemp()'+
-                ' at pos '+tostr(pos)+ ' not found !');
+        ungettemp(pos,tt_persistant);
 {$endif}
       end;
 
+
     procedure ungetiftemp(const ref : treference);
-
       var
-         tl,prev : pfreerecord;
-
+         tt : ttemptype;
       begin
          if istemp(ref) then
            begin
               { first check if ansistring }
               if ungetiftempansi(ref) then
                 exit;
-              prev:=nil;
-              tl:=templist;
-              while assigned(tl) do
-                begin
-                   { no release of persistant blocks this way!! }
-                   if (tl^.persistant) or (tl^.temptype<>tt_normal) then
-                     if (ref.offset>=tl^.pos) and
-                        (ref.offset<tl^.pos+tl^.size) then
-                       begin
+              tt:=ungettemp(ref.offset,tt_normal);
 {$ifdef EXTDEBUG}
-                          Comment(V_Debug,'temp '+
-                            ' at pos '+tostr(ref.offset)+ ' not released because persistant or slot!');
+              if tt=tt_persistant then
+                Comment(V_Debug,'temp at pos '+tostr(ref.offset)+ ' not released because persistant!');
+              if tt=tt_none then
+                Comment(V_Warning,'temp not found for release at offset '+tostr(ref.offset));
 {$endif}
-                          exit;
-                       end;
-                   if (ref.offset=tl^.pos) then
-                     begin
-                        ungettemp(ref.offset,tl^.size);
-{$ifdef TEMPDEBUG}
-                        Comment(V_Debug,'temp managment  : ungettemp()'+
-                          ' at pos '+tostr(tl^.pos)+ ' found !');
-{$endif}
-                        if assigned(prev) then
-                          prev^.next:=tl^.next
-                        else
-                          templist:=tl^.next;
-{$ifdef EXTDEBUG}
-                        tl^.next:=tempfreedlist;
-                        tempfreedlist:=tl;
-                        tl^.releaseposinfo:=aktfilepos;
-{$else}
-                        dispose(tl);
-{$endif}
-                        exit;
-                     end
-                   else
-                     begin
-                        prev:=tl;
-                        tl:=tl^.next;
-                     end;
-                end;
-{$ifdef EXTDEBUG}
-              Comment(V_Warning,'Internal: temp managment problem : '+
-                'temp not found for release at offset '+tostr(ref.offset));
-              tl:=tempfreedlist;
-              while assigned(tl) do
-                begin
-                   if (ref.offset=tl^.pos) then
-                     begin
-                        Comment(V_Warning,'Last temporary assignment of size '
-                          +tostr(tl^.size)+' from pos '+tostr(tl^.posinfo.line)
-                          +':'+tostr(tl^.posinfo.column)
-                          +' at pos '+tostr(tl^.pos)+
-                          ' has been already freed at '
-                          +tostr(tl^.releaseposinfo.line)
-                          +':'+tostr(tl^.releaseposinfo.column)
-                          );
-                        Exit;
-                     end;
-                   tl:=tl^.next;
-                end;
-
-{$endIf}
            end;
       end;
 
-   procedure inittemps;
 
+   procedure inittemps;
      begin
-        { hp:=temp }
+       tempfreelist:=nil;
+       templist:=nil;
      end;
 
 begin
-   tmpfreelist:=nil;
-   templist:=nil;
-   reftempslots:=nil;
-   { just to be sure }
-   tempansilist:=nil;
+  InitTemps;
 end.
 {
   $Log$
-  Revision 1.21  1999-05-01 13:24:59  peter
+  Revision 1.22  1999-05-15 21:33:21  peter
+    * redesigned temp_gen temp allocation so temp allocation for
+      ansistring works correct. It also does a best fit instead of first fit
+
+  Revision 1.21  1999/05/01 13:24:59  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
