@@ -38,13 +38,23 @@ end;
 {---------------------------------------------------------------------------}
 
 FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
+var
+ AMode: word;
 begin
+   if (Mode AND stOpenRead) = stOpenRead then
+   { Read access only }
+     AMode := $8001
+   else
+   { Read/write access or Write access }
+     AMode := $8402;
+   if (Mode AND stCreate) = stCreate then
+     AMode := $8404;
    asm
      xorl  %eax, %eax
      movw  %ax, DosStreamError
-     movl  FileName, %edx
-     xorw  %cx,%cx
-     movw  Mode, %ax
+     movl  FileName, %ebx
+     movw  $0xff02, %ax
+     movw  AMode, %cx
      pushl %ebp
      int   $0x21
      popl  %ebp
@@ -62,6 +72,8 @@ end;
 {***************************************************************************}
 FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
 Var Actual: LongInt): Word;
+Var
+ val : longint;
 BEGIN
   asm
      movw MoveType, %ax;                              { Load move type }
@@ -75,16 +87,16 @@ BEGIN
      int $0x21;                                         { Position the file }
      popl %ebp;
      jc .Lexit4
-     movl Actual,%edi                                { New position address }
-     movw %ax, %bx;
-     movw %dx, %ax;
-     shll $0x10, %eax;                                   { Roll to high part }
-     movw %bx, %ax;
-     movl %eax, (%edi);                               { Update new position }
+     shll    $16,%edx
+     movzwl  %ax,%eax
+     orl     %edx,%eax
+     movl    %eax,val                               { Update new position }
      xorl %eax, %eax;
    .Lexit4:
      movw %ax, DosStreamError                         { DOS error returned }
+   .Lend:
    END;
+   Actual := val;
    SetFilePos := DosStreamError;                   { Return any error }
 END;
 
@@ -157,7 +169,10 @@ END;
 
 {
   $Log$
-  Revision 1.2  1998-05-31 14:18:18  peter
+  Revision 1.3  1998-07-02 12:25:27  carl
+    * NOTHING would work, FileOpen is now correct!!
+
+  Revision 1.2  1998/05/31 14:18:18  peter
     * force att or direct assembling
     * cleanup of some files
 
