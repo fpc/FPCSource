@@ -56,5 +56,6 @@ make -C docs clean
 %{bindir}/mkdep
 %{bindir}/msg2inc
 %{vlibdir}
+%/usr/lib/libfpc.so
 %dir %{libdir}
 %doc %{docdir}
