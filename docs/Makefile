@@ -19,7 +19,7 @@
 
 # Where do you want the html files to be put ?
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=/usr/doc/fpc-0.99.0
+DOCINSTALLDIR=/usr/doc/fpc-0.99.5
 endif 
 
 #
@@ -38,9 +38,15 @@ endif
 
 # Options for converter
 ifndef LATEX2HTMLOPTS
-LATEX2HTMLOPTS = -ascii_mode -no_reuse -up_url "../fpctoc.html"\
+LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
                  -html_version 3.0
+endif
+
+# Ascii mode ? (i.e. no pics)
+ifndef ASCIIMODE
+ASCIIMODE=NO
+#ASCIIMODE=YES
 endif
 
 # DVI to PS converter
@@ -77,6 +83,11 @@ TXT = $(addsuffix .txt, $(HTML))
 PDF = $(addsuffix .pdf, $(HTML))
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer strings)
+
+# Check if ascii-mode requested
+ifeq ($(ASCIIMODE),YES)
+LATEX2HTMLOPTS:=$(LATEX2HTMLOPTS) -ascii_mode
+endif
 
 #####################################################################
 # Conversion from types
@@ -165,29 +176,40 @@ ps : dvi $(PS)
 
 pdf : $(PDF)
 
-user:
+user: user.chk
+
+user.chk: user.tex
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
          -t "User's guide for Free Pascal" user.tex
 	sed -f foot.sed <user/footnode.html >user/footnote.html
 	mv user/footnote.html user/footnode.html
 	rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 	rm -f user/images.* user/*.log
+	touch user.chk
 	
-units: unitex.chk
+units: units.chk
+
+units.chk: units.tex unitex.chk
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Unit reference for Free Pascal" units.tex
 	sed -f foot.sed <units/footnode.html >units/footnote.html
 	mv units/footnote.html units/footnode.html
 	rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
+	touch units.chk
 
-ref: refex.chk
+ref: ref.chk
+
+ref.chk: refex.chk ref.tex
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Free Pascal reference guide" ref.tex
 	sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	mv ref/footnote.html ref/footnode.html
 	rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
-	
-prog:
+	touch ref.chk	
+
+prog: prog.chk
+
+prog.chk: prog.tex 
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
         -t "Free Pascal programmers guide" prog.tex
 	sed -f foot.sed <prog/footnode.html >prog/footnote.html
@@ -209,12 +231,13 @@ all-formats: ps txt pdf html
 	
 install:
 	install -d -m 755 $(DOCINSTALLDIR)
-	cp -R $(HTML) $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
+	cp -R buttons $(DOCINSTALLDIR)
+	cp -R $(HTML) $(DOCINSTALLDIR)
 
 www-install: psdist htmldist htm
-	rcp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
-	rsh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
+	scp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
+	ssh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
 
 #####################################################################
 # Distribution
