@@ -10,6 +10,19 @@ begin
 {$IFDEF LINUX}
   OS:='Linux';
 {$ENDIF}
+{$ifdef FreeBSD}
+  OS:='FreeBSD';
+{$endif}
+{$ifdef NetBSD}
+  OS:='NetBSD';
+{$endif}
+{$ifdef Solaris}
+  OS:='Solaris';
+{$endif}
+{$ifdef QNX}
+  OS:='QNX';
+{$endif}
+
 {$IFDEF DOS}
   OS:='Dos';
 {$ENDIF}  
