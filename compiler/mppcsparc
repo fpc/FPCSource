@@ -20,7 +20,7 @@ then
   if [[ "$1" == "-gdb" ]]
   then
     shift 1
-    eval gdb -d "$SRC_DIR" --args $COMPILE_COMMAND "$@"
+    eval gdb -d \"$SRC_DIR\" --args $COMPILE_COMMAND "$@"
   else
     FILES_LIST=`ls $1`
     shift 1
