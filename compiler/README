@@ -36,11 +36,13 @@ Changes in the syntax or semantic of FPC:
   21/04/99   Default assembler for i386 changed to AT&T instead of direct
   25/04/99:  initialized vars supported in Delphi mode (only $J+ mode)
              getting the address of an untyped const is now
-             forbidden as in BP 
+             forbidden as in BP
   27/04/99   New unit format PPU016, you need to recompile all older units
   01/05/99   Internal assembler. Assembler readers now support MMX,KNI
              instructions.
   12/05/99   rtl/utils/ directory moved to utils/. Moved the utils only needed
              for compiler development to compiler/utils/
-	     
- 
+  13/05/99   Classes are now only allowed in the ObjFpc or Delphi mode. Use
+             {$mode objfpc} or {$mode delphi}. Or from commandline -S2 or -Sd
+
+
