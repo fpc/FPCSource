@@ -333,5 +333,8 @@ end.
 
 
 {
- $Log
+ $Log$
+ Revision 1.2  2001-06-24 23:58:14  carl
+ * fixed problem with log
+
 }
