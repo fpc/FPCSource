@@ -1964,7 +1964,7 @@ begin
     Editor^.AddLine('');
   Insert(Editor);
   if assigned(Debugger) then
-    Debugger^.Command('set width '+IntToStr(Size.X-1));
+    Debugger^.SetWidth(Size.X-1);
   Editor^.silent:=false;
   Editor^.AutoRepeat:=true;
   Editor^.InsertText(GDBPrompt);
@@ -4204,7 +4204,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2002-01-09 09:48:00  pierre
+  Revision 1.13  2002-04-02 11:17:40  pierre
+   * Use new SetWidth method for GDB window
+
+  Revision 1.12  2002/01/09 09:48:00  pierre
    try to fix bug 1732
 
   Revision 1.11  2001/12/19 10:59:18  pierre
