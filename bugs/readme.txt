@@ -177,6 +177,7 @@ Fixed bugs:
   bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash  OK 0.99.7 (PFV)
   bug0150.pp   Shows that the assert() macro is missing under Delphi OK 0.99.9 (PFV)
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
+  bug0153.pp   Asm, indexing a local/para var should produce an error like tp7 OK 0.99.9 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
   bug0156.pp   (a,b) forward type def in record crashes when loading ppu OK 0.99.7 (PM/PFV)
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
@@ -189,6 +190,9 @@ Fixed bugs:
   bug0166.pp   forward type used in declaration crashes instead of error OK 0.99.9 (PFV)
   bug0167.pp   crash when declaring a procedure with same name as object OK 0.99.9 (PFV)
   bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
+  bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
+  bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
+  bug0174.pp   Asm, offsets of fields are not possible yet           OK 0.99.9 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -213,12 +217,8 @@ bug0057.pp   Graph, shows a crash with switch graph/text/graph
 
 bug0123.pp   Asm, problem with intel assembler (shrd)
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
-bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
-             because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
-bug0170.pp   Asm, {$ifdef} is seen as a separator
-bug0174.pp   Asm, offsets of fields are not possible yet
-bug0175.pp   Asm, word variable should be allowed with a %eax without casting
+bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
@@ -226,4 +226,3 @@ bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0172.pp   with with absolute seg:ofs should not be possible
-bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode
