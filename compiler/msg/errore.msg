@@ -2255,7 +2255,11 @@ S*2Aas_assemble using GNU AS
 **2Sc_supports operators like C (*=,+=,/= and -=)
 **2Sa_include assertion code.
 **2Sd_same as -Mdelphi
-**2Se<x>_compiler stops after the <x> errors (default is 1)
+**2Se<x>_error options. <x> is a combination of the following:
+**3*_<n> : compiler stops after the <n> errors (default is 1)
+**3*_w : compiler stops also after warnings
+**3*_n : compiler stops also after notes
+**3*_h : compiler stops also after hints
 **2Sg_allow LABEL and GOTO
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
