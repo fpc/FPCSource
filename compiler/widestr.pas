@@ -32,6 +32,7 @@ unit widestr;
 
     type
        tcompilerwidechar = word;
+       tcompilerwidecharptr = ^tcompilerwidechar;
 {$ifdef delphi}
        { delphi doesn't allow pointer accessing as array }
        tcompilerwidechararray = array[0..0] of tcompilerwidechar;
@@ -188,13 +189,13 @@ unit widestr;
 *)
       var
         source : pchar;
-        dest   : pcompilerwidechar;
+        dest   : tcompilerwidecharptr;
         i      : longint;
       begin
         setlengthwidestring(r,l);
         source:=p;
         r^.len:=l;
-        dest:=r^.data;
+        dest:=tcompilerwidecharptr(r^.data);
         for i:=1 to l do
          begin
            if byte(source^)<128 then
@@ -224,11 +225,11 @@ unit widestr;
       end;
 *)
       var
-        source : pcompilerwidechar;
+        source : tcompilerwidecharptr;
         dest   : pchar;
         i      : longint;
       begin
-        source:=r^.data;
+        source:=tcompilerwidecharptr(r^.data);
         dest:=p;
         for i:=1 to r^.len do
          begin
@@ -256,7 +257,10 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.6  2001-07-08 21:00:16  peter
+  Revision 1.7  2001-09-02 21:16:25  peter
+    * delphi fixes
+
+  Revision 1.6  2001/07/08 21:00:16  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

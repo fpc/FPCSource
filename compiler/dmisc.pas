@@ -26,6 +26,10 @@ unit dmisc;
 
 interface
 
+{$ifndef linux}
+   {$define MSWindows}
+{$endif}
+
 uses
 {$ifdef linux}
   Libc,
@@ -244,7 +248,9 @@ end;
 
 procedure getdate(var year,month,mday,wday : word);
 begin
-  DecodeDateFully(Now,Year,Month,MDay,WDay);
+  DecodeDate(Now,Year,Month,MDay);
+  WDay:=0;
+//  DecodeDateFully(Now,Year,Month,MDay,WDay);
 end;
 
 
@@ -654,7 +660,11 @@ end;
 
 procedure setftime(var f;time : longint);
 begin
+{$ifdef linux}
   FileSetDate(filerec(f).name,Time);
+{$else}
+  FileSetDate(filerec(f).handle,Time);
+{$endif}
 end;
 
 
@@ -687,7 +697,7 @@ procedure getfattr(var f;var attr : word);
 var
    l : longint;
 begin
-  l:=FileGetAttr(filerec(f).handle);
+  l:=FileGetAttr(filerec(f).name);
   attr:=l;
 end;
 {$endif}
@@ -695,8 +705,8 @@ end;
 
 procedure setfattr(var f;attr : word);
 begin
-{$ifndef linux}
-  FileSetAttr(filerec(f).handle,attr);
+{$ifdef MSWindows}
+  FileSetAttr(filerec(f).name,attr);
 {$endif}
 end;
 
@@ -826,7 +836,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.5  2001-06-03 20:21:08  peter
+  Revision 1.6  2001-09-02 21:16:25  peter
+    * delphi fixes
+
+  Revision 1.5  2001/06/03 20:21:08  peter
     * Kylix fixes, mostly case names of units
 
   Revision 1.4  2000/09/24 21:19:50  peter
