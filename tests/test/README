@@ -58,6 +58,8 @@ Range checking ........ trange1.pp     range checking when converting int64/
 Random ................ trandom.pp     tests random (interactive)
 Floating Point ........ tfpu1.pp
                         tfpu2.pp
+Assembler readers.......tasmread.pp    tests for support of unit or program specifier
+                        testmovd.pp    testspecial issues about MOVD instruction
 
 RTL
 ---
