@@ -26,6 +26,11 @@
 unit ppu;
 interface
 
+{ Also write the ppu if only crc if done, this can be used with ppudump to
+  see the differences between the intf and implementation }
+{ define INTFPPU}
+{$define ORDERSOURCES}
+
 {$ifdef Test_Double_checksum}
 var
   CRCFile : text;
@@ -39,15 +44,15 @@ type
 const
 {$ifdef newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=101;
+  CurrentPPUVersion=103;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=100;
+  CurrentPPUVersion=102;
 {$endif ORDERSOURCES}
 {$else newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=19;
+  CurrentPPUVersion=21;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=18;
+  CurrentPPUVersion=20;
 {$endif ORDERSOURCES}
 {$endif newcg}
 
@@ -246,94 +251,11 @@ type
 
 implementation
 
-{$ifdef Test_Double_checksum}
   uses
-    comphook;
+{$ifdef Test_Double_checksum}
+    comphook,
 {$endif def Test_Double_checksum}
-
-
-{*****************************************************************************
-                                   Crc 32
-*****************************************************************************}
-
-var
-{$ifdef Delphi}
-  Crc32Tbl : array[0..255] of longword;
-{$else Delphi}
-  Crc32Tbl : array[0..255] of longint;
-{$endif Delphi}
-
-procedure MakeCRC32Tbl;
-var
-{$ifdef Delphi}
-  crc : longword;
-{$else Delphi}
-  crc : longint;
-{$endif Delphi}
-  i,n : byte;
-begin
-  for i:=0 to 255 do
-   begin
-     crc:=i;
-     for n:=1 to 8 do
-      if odd(crc) then
-       crc:=(crc shr 1) xor $edb88320
-      else
-       crc:=crc shr 1;
-     Crc32Tbl[i]:=crc;
-   end;
-end;
-
-
-{$ifopt R+}
-{$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-{CRC 32}
-Function Crc32(Const HStr:String):longint;
-var
-  i,InitCrc : longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  InitCrc:=$ffffffff;
-  for i:=1to Length(Hstr) do
-   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(Hstr[i])] xor (InitCrc shr 8);
-  Crc32:=InitCrc;
-end;
-
-
-
-Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
-var
-  i : word;
-  p : pchar;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  p:=@InBuf;
-  for i:=1 to InLen do
-   begin
-     InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
-     inc(longint(p));
-   end;
-  UpdateCrc32:=InitCrc;
-end;
-
-
-
-Function UpdCrc32(InitCrc:longint;b:byte):longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  UpdCrc32:=Crc32Tbl[byte(InitCrc) xor b] xor (InitCrc shr 8);
-end;
-
-{$ifdef Range_check_on}
-{$R+}
-{$undef Range_check_on}
-{$endif Range_check_on}
+    crc;
 
 {*****************************************************************************
                                   TPPUFile
@@ -713,6 +635,13 @@ end;
 function tppufile.create:boolean;
 begin
   create:=false;
+{$ifdef INTFPPU}
+  if crc_only then
+   begin
+     fname:=fname+'.intf';
+     crc_only:=false;
+   end;
+{$endif}
   if not crc_only then
     begin
       assign(f,fname);
@@ -994,14 +923,36 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.1.2.1  2000-08-13 13:00:15  peter
+    * ppu.pas updated
+
+  Revision 1.1  2000/07/13 06:29:54  michael
   + Initial import
 
-  Revision 1.9  2000/01/07 16:46:02  daniel
-    * copyright 2000
+  Revision 1.59  2000/05/15 13:19:04  pierre
+   CRC stuff moved to CRC unit
 
-  Revision 1.8  1999/11/30 10:35:36  peter
-    * support new readtype
+  Revision 1.58  2000/05/12 08:58:51  pierre
+   * adapted to Delphi 3
+
+  Revision 1.57  2000/05/11 06:54:29  florian
+    * fixed some vmt problems, especially related to overloaded methods
+      in objects/classes
+
+  Revision 1.56  2000/02/29 21:58:31  pierre
+   * ORDERSOURCES released
+
+  Revision 1.55  2000/02/09 13:22:59  peter
+    * log truncated
+
+  Revision 1.54  2000/01/07 01:14:30  peter
+    * updated copyright to 2000
+
+  Revision 1.53  1999/12/02 11:29:07  peter
+    * INFTPPU define to write the ppu of the interface to .ppu.intf
+
+  Revision 1.52  1999/11/30 10:40:45  peter
+    + ttype, tsymlist
 
   Revision 1.51  1999/11/23 09:42:38  peter
     * makefile updates to work with new fpcmake
@@ -1059,35 +1010,5 @@ end.
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.35  1999/07/05 16:21:30  peter
-    * fixed linking for units without linking necessary
-
-  Revision 1.34  1999/07/03 00:29:57  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.33  1999/05/13 21:59:36  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.32  1999/05/05 09:19:15  florian
-    * more fixes to get it with delphi running
-
-  Revision 1.31  1999/05/04 21:44:59  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.30  1999/04/26 18:30:00  peter
-    * farpointerdef moved into pointerdef.is_far
-
-  Revision 1.29  1999/04/26 13:31:41  peter
-    * release storenumber,double_checksum
-
-  Revision 1.28  1999/04/26 09:33:07  peter
-    * header extended to 40 bytes so there is room for future
-
-  Revision 1.27  1999/04/17 13:16:20  peter
-    * fixes for storenumber
 
 }
