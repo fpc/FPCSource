@@ -2055,7 +2055,8 @@ type
         errorexit;
       begin
          result:=nil;
-(*
+
+{$ifdef NODEINLINE}
          if (procdefinition.proccalloption=pocall_inline) and
             { can we inline this procedure at the node level? }
             (tprocdef(procdefinition).inlininginfo^.inlinenode) then
@@ -2078,10 +2079,11 @@ type
                 begin
                   createblock := internalstatements(createstatement);
                   deleteblock := internalstatements(deletestatement);
+                  inlinelocals:=tlist.create;
                   { replace complex parameters with temps }
                   createinlineparas(createstatement,deletestatement);
-                  { replace the parameter loads with the parameter values }
-                  foreachnode(result,replaceparaload,@fileinfo);
+                  { replace the parameter loads with the parameter values }
+                  foreachnode(result,@replaceparaload,@fileinfo);
                   { free the temps for the locals }
                   for i := 0 to inlinelocals.count-1 do
                     if assigned(inlinelocals[i]) then
@@ -2103,7 +2105,7 @@ type
                   exit;
                 end;
            end;
-*)
+{$endif NODEINLINE}
 
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
@@ -2404,7 +2406,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.262  2004-11-22 22:01:19  peter
+  Revision 1.263  2004-11-22 22:19:00  peter
+    * enabled pass1 inlining from Jonas
+
+  Revision 1.262  2004/11/22 22:01:19  peter
     * fixed varargs
     * replaced dynarray with tlist
 
