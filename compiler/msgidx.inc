@@ -492,6 +492,7 @@ const
   asmw_e_duplicate_label=08016;
   asmw_e_redefined_label=08017;
   asmw_e_first_defined_label=08018;
+  asmw_e_invalid_register=08019;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -628,9 +629,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35664;
+  MsgTxtSize = 35697;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,63,195,52,57,44,98,19,35,60,
+    17,63,195,52,57,44,98,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );
