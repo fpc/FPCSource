@@ -2867,7 +2867,7 @@ Begin
   until i=0;
   { Remove ending /.. }
   i:=pos('/..',temp);
-  if i<>0 and (i =length(temp)-2) then
+  if (i<>0) and (i =length(temp)-2) then
     begin
     j:=i-1;
     while (j>1) and (temp[j]<>'/') do
@@ -3529,7 +3529,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  1998-08-16 10:23:28  michael
+  Revision 1.17  1998-08-19 00:50:31  peter
+    * 'i<>0 and ' needs brackets
+
+  Revision 1.16  1998/08/16 10:23:28  michael
   fixed typos
 
   Revision 1.15  1998/08/16 09:12:14  michael
