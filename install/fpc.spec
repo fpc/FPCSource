@@ -109,7 +109,7 @@ fi
 
 %post
 # Create a version independent config
-%{fpcdir}/samplecfg %{_libdir}/fpc/\$version
+%{fpcdir}/samplecfg %{_libdir}/fpc/\$fpcversion
 
 %files
 %defattr(-, root, root)
