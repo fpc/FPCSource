@@ -225,6 +225,8 @@ CONST
 {$ifdef USE_VIDEO_API}
    SysFontWidth   : Integer = 8;                      { System font width }
    SysFontHeight  : Integer = 16;                     { System font height }
+   TextScreenWidth : Integer = 80;
+   TextScreenHeight : Integer = 25;
 {$endif USE_VIDEO_API}
 
 {$ifdef DEBUG}
@@ -338,6 +340,29 @@ BEGIN
 {$IFDEF GRAPH_API}
    End Else Begin                                     { GRAPHICS MODE GFV }
      Graph.SetViewPort(X1, Y1, X2, Y2, Clip);         { Call graph proc }
+     X1:=X1 div SysFontWidth;
+     X2:=X2 div SysFontWidth;
+     Y1:=Y1 div SysFontHeight;
+     Y2:=Y2 div SysFontHeight;
+     If (X1 < 0) Then X1 := 0;                        { X1 negative fix }
+     If (X1 >SysScreenWidth) Then
+       X1 := SysScreenWidth;                             { X1 off screen fix }
+     If (Y1 < 0) Then Y1 := 0;                        { Y1 negative fix }
+     If (Y1 > SysScreenHeight) Then
+       Y1 := SysScreenHeight;                            { Y1 off screen fix }
+     If (X2 < 0) Then X2 := 0;                        { X2 negative fix }
+     If (X2 > SysScreenWidth) Then
+       X2 := SysScreenWidth;                             { X2 off screen fix }
+     If (Y2 < 0) Then Y2 := 0;                        { Y2 negative fix }
+     If (Y2 > SysScreenHeight) Then
+       Y2 := SysScreenHeight;                            { Y2 off screen fix }
+     ViewPort.X1 := X1;                               { Set X1 port value }
+     ViewPort.Y1 := Y1;                               { Set Y1 port value }
+     ViewPort.X2 := X2;                               { Set X2 port value }
+     ViewPort.Y2 := Y2;                               { Set Y2 port value }
+     ViewPort.Clip := Clip;                           { Set port clip value }
+     Cxp := X1;                                       { Set current x pos }
+     Cyp := Y1;                                       { Set current y pos }
    End;
 {$ENDIF GRAPH_API}
 END;
@@ -427,6 +452,8 @@ var
    SavedColor,SavedBkColor : longint;
    CurColor,CurBkColor : longint;
    NextColor,NextBkColor : longint;
+   StoreFillSettings: FillSettingsType;
+
 
 begin
 {$IFDEF GRAPH_API}
@@ -454,38 +481,49 @@ begin
       SavedBkColor:=Graph.GetBkColor;
       CurColor:=SavedColor;
       CurBkColor:=SavedBkColor;
-      for y := 0 to ScreenHeight - 1 do
+      Graph.GetFillSettings(StoreFillSettings);
+      Graph.SetFillStyle(EmptyFill,0);
+      for y := 0 to TextScreenHeight - 1 do
         begin
-           for x := 0  to ScreenWidth - 1 do
+           for x := 0  to TextScreenWidth - 1 do
              begin
-               i:=y*ScreenWidth+x;
+               i:=y*TextScreenWidth+x;
                if OldVideoBuf^[i]<>VideoBuf^[i] then
                  begin
                    ch:=chr(VideoBuf^[i] and $ff);
                    if ch<>#0 then
                      begin
-                       Attr:=VideoBuf^[i] shr 16;
+                       Attr:=VideoBuf^[i] shr 8;
                        NextColor:=Attr and $f;
-                       NextBkColor:=(Attr and $70) shr 8;
-                       if NextColor<>CurColor then
-                         begin
-                           SetColor(NextColor);
-                           CurColor:=NextColor;
-                         end;
+                       NextBkColor:=(Attr and $70) shr 4;
                        if NextBkColor<>CurBkColor then
                          begin
-                           SetBkColor(NextBkColor);
+                           Graph.SetBkColor(NextBkColor);
                            CurBkColor:=NextBkColor;
                          end;
-                       Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth,(y+1)*SysFontHeight);
-                       OutTextXY(x*SysFontWidth,y*SysFontHeight,ch);
+
+                       Graph.Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth,(y+1)*SysFontHeight);
+                       if NextColor<>CurColor then
+                         begin
+                           Graph.SetColor(NextColor);
+                           CurColor:=NextColor;
+                         end;
+                       { SetBkColor does change the palette index 0 entry...
+                         which leads to troubles if we want to write in dark }
+                       if (CurColor=0) then
+                         begin
+                           Graph.SetBkColor(0);
+                           CurBkColor:=0;
+                         end;
+                       Graph.OutTextXY(x*SysFontWidth,y*SysFontHeight,ch);
                      end;
                    OldVideoBuf^[i]:=VideoBuf^[i];
                  end;
              end;
         end;
-      SetColor(SavedColor);
-      SetBkColor(SavedBkColor);
+      Graph.SetFillStyle(StoreFillSettings.pattern,StoreFillSettings.color);
+      Graph.SetColor(SavedColor);
+      Graph.SetBkColor(SavedBkColor);
     end;
 {$else not USE_VIDEO_API}
   RunError(219);
@@ -497,7 +535,10 @@ end;
 END.
 {
  $Log$
- Revision 1.12  2002-05-28 19:42:32  pierre
+ Revision 1.13  2002-05-29 19:35:31  pierre
+  * fix GraphUpdateScreen procedure
+
+ Revision 1.12  2002/05/28 19:42:32  pierre
   * fix non graphic mode compilation
 
  Revision 1.11  2002/05/28 19:13:44  pierre
