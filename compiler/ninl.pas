@@ -1210,7 +1210,7 @@ implementation
                   If (tcallparanode(hp).left.resulttype^.deftype<>stringdef) then
                    begin
                      tcallparanode(hp).left:=gentypeconvnode(tcallparanode(hp).left,cshortstringdef);
-                     firstpass(hp);
+                     firstpass(tcallparanode(hp).left);
                    end;
                   { calc registers }
                   left_max;
@@ -1491,7 +1491,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-11-29 00:30:33  florian
+  Revision 1.20  2000-12-17 14:35:41  peter
+    * fixed crash with val()
+
+  Revision 1.19  2000/11/29 00:30:33  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
