@@ -32,6 +32,7 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     __destr_func_t  = procedure (p :pointer);cdecl;
     __startroutine_t= function (p :pointer):pointer;cdecl;
     ppthread_mutexattr_t = ^pthread_mutexattr_t;
+    ppthread_mutex_attr_t = ^pthread_mutexattr_t;
 
     sem_t	    = cint;
     psem_t	    = ^sem_t;
@@ -73,7 +74,10 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 
 {
   $Log$
-  Revision 1.4  2004-09-09 20:29:06  jonas
+  Revision 1.5  2004-09-10 15:15:45  marco
+   * small glitch fixes
+
+  Revision 1.4  2004/09/09 20:29:06  jonas
     * fixed definition of pthread_mutex_t for non-linux targets (and for
       linux as well, actually).
     * base libpthread definitions are now in ptypes.inc, included in unixtype
