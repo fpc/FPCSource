@@ -262,6 +262,7 @@ begin
   FConnectString := '';
   if (UserName <> '') then FConnectString := FConnectString + ' user=''' + UserName + '''';
   if (Password <> '') then FConnectString := FConnectString + ' password=''' + Password + '''';
+  if (HostName <> '') then FConnectString := FConnectString + ' host=''' + HostName + '''';
   if (DatabaseName <> '') then FConnectString := FConnectString + ' dbname=''' + DatabaseName + '''';
 
   FSQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
