@@ -23,21 +23,19 @@ function GetEnv (var EnvVar: AnsiString): AnsiString;
 var P: PChar;
 
 begin
- if DosScanEnv (PChar (EnvVar), P) = 0 then GetEnv := P else GetEnv := nil;
+ if DosScanEnv (PChar (EnvVar), P) = 0 then GetEnv := P else GetEnv := '';
 end;
 
 {
   $Log$
-  Revision 1.5  2001-01-28 18:40:35  hajny
+  Revision 1.6  2001-02-26 04:57:38  hajny
+    * correction of a previously introduced bug
+
+  Revision 1.1.2.2  2001/01/28 18:41:07  hajny
     * error checking added
 
-  Revision 1.4  2000/10/28 16:56:02  hajny
+  Revision 1.1.2.1  2000/10/28 16:56:43  hajny
     + real (ansistring) implementation
 
-  Revision 1.3  2000/08/25 17:33:44  hajny
-    * Made compilable again (missing bracket at the begin of logs)
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
  
 }
