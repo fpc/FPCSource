@@ -31,14 +31,15 @@ const
        (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335));
 
 function DoEncodeDate(Year, Month, Day: Word): longint;
-var c, ya: word;
+var
+  c, ya: cardinal;
 begin
-if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then 
+if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then
    begin
-     if month > 2 then Month := Month - 3 else 
+     if month > 2 then Month := Month - 3 else
      begin
        Month := Month + 9;
-       Year:= Year - 1; 
+       Year:= Year - 1;
      end;
      c:= Year DIV 100;
      ya:= Year - 100*c;
@@ -118,7 +119,7 @@ end ;
 
 procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
 var
-  j: word;
+  j : cardinal;
 begin
   j := pred((Trunc(System.Int(Date)) + 693901) SHL 2);
   Year:= j DIV 146097;
@@ -139,9 +140,8 @@ end ;
     Hour, Minute, Second and MilliSecond    }
 
 procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
-
-Var l : longint;
-
+Var
+  l : cardinal;
 begin
  l := Trunc(Frac(time) * MSecsPerDay);
  Hour   := l div 3600000;
@@ -151,23 +151,14 @@ begin
  Second := l div 1000;
  l := l mod 1000;
  MilliSecond := l;
-{
-  Time := Frac(Time) * 24;
-  Hour := Trunc(Time);
-  Time := Frac(Time) * 60;
-  Minute  := Trunc(Time);
-  Time := Frac(Time) * 60;
-  Second  := Trunc(Time);
-  MilliSecond := Trunc(Frac(Time) * 1000);
-  }
 end;
 
 {   DateTimeToSystemTime converts DateTime value to SystemTime   }
 
 procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
 begin
-DecodeDate(DateTime, SystemTime.Year, SystemTime.Month, SystemTime.Day);
-DecodeTime(DateTime, SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond);
+  DecodeDate(DateTime, SystemTime.Year, SystemTime.Month, SystemTime.Day);
+  DecodeTime(DateTime, SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond);
 end ;
 
 {   SystemTimeToDateTime converts SystemTime to a TDateTime value   }
@@ -461,15 +452,15 @@ var
       end ;
    StoreStr(pchar(@S[1]), Len);
    end ;
-   
+
    Function TimeReFormat(Const S : string) : string;
    // Change m into n for time formatting.
    Var i : longint;
-   
+
    begin
      Result:=S;
      For I:=1 to Length(Result) do
-       If Result[i]='m' then 
+       If Result[i]='m' then
          result[i]:='n';
    end;
 
@@ -652,7 +643,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-07-14 08:47:54  michael
+  Revision 1.15  1999-07-24 11:21:14  peter
+    * fixed encode/decode date/time
+
+  Revision 1.14  1999/07/14 08:47:54  michael
   * faster En/Decodedate routines from Frank Reichert
   * Fixed FormatDateTime with short/longtimeformat.
 
