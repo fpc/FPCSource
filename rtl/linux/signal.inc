@@ -138,6 +138,12 @@ type
     { dummy for now PM }
   end;
 {$endif powerpc}
+{$ifdef SPARC}
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+    { dummy for now PM }
+  end;
+{$endif SPARC}
 
 (*
   PSigInfoRec = ^SigInfoRec;
@@ -218,7 +224,12 @@ type
 
 {
   $Log$
-  Revision 1.8  2002-12-18 16:43:26  marco
+  Revision 1.9  2002-12-24 21:30:20  mazen
+  - some writeln(s) removed in compiler
+  + many files added to RTL
+  * some errors fixed in RTL
+
+  Revision 1.8  2002/12/18 16:43:26  marco
    * new unix rtl, linux part.....
 
   Revision 1.7  2002/11/12 14:51:44  marco

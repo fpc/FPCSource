@@ -34,45 +34,45 @@ Type
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function Do_SysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function Do_SysCall(sysnr:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
-  mr  r0,r3
+begin{asm}
+{  mr  r0,r3
   sc
   bnslr
   neg   r3, r3
   lis   r4,Errno@ha
   stw   r3,Errno@l(r4)
-  li    r3,-1
+  li    r3,-1}
 end;
 
-function Do_SysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function Do_SysCall(sysnr,param1:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
-  mr  r0,r3
+begin{asm}
+{  mr  r0,r3
   mr  r3,r4   
   sc
   bnslr
   neg   r3, r3
   lis   r4,Errno@ha
   stw   r3,Errno@l(r4)
-  li    r3,-1
+  li    r3,-1}
 end;
 
 
-function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
+function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL2'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
-  mr  r0,r3
+begin{asm}
+{  mr  r0,r3
   mr  r3,r4   
   mr  r4,r5
   sc
@@ -80,16 +80,16 @@ asm
    neg   r3, r3
    lis   r4,Errno@ha
    stw   r3,Errno@l(r4)
-   li    r3,-1
+   li    r3,-1}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL3'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
-  mr  r0,r3
+begin{asm}
+{  mr  r0,r3
   mr  r3,r4   
   mr  r4,r5
   mr  r5,r6
@@ -98,18 +98,18 @@ asm
    neg   r3, r3
    lis   r4,Errno@ha
    stw   r3,Errno@l(r4)
-   li    r3,-1
+   li    r3,-1}
 
 end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL4'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
-  mr  r0,r3
+begin{asm}
+{  mr  r0,r3
   mr  r3,r4   
   mr  r4,r5
   mr  r5,r6
@@ -119,16 +119,16 @@ asm
    neg   r3, r3
    lis   r4,Errno@ha
    stw   r3,Errno@l(r4)
-   li    r3,-1
+   li    r3,-1}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL5'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
-  mr  r0,r3
+begin{asm}
+{  mr  r0,r3
   mr  r3,r4   
   mr  r4,r5
   mr  r5,r6
@@ -139,20 +139,20 @@ asm
    neg   r3, r3
    lis   r4,Errno@ha
    stw   r3,Errno@l(r4)
-   li    r3,-1
+   li    r3,-1}
 end;
 
 // Old style syscall:
 // Better use ktrace/strace/gdb for debugging.
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
+Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );{assembler;}
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
-asm
+begin{asm}
 { load the registers... }
-  lwz  r5, 12(r4)
+(*  lwz  r5, 12(r4)
   lwz  r6, 16(r4)
   lwz  r7, 20(r4)
   mr   r0, r3
@@ -168,7 +168,7 @@ asm
   stw    r4, 4(r8)
   stw    r5, 8(r8)
   stw    r6, 12(r8)
-  stw    r7, 16(r8)
+  stw    r7, 16(r8)*)
 end;
 
 {$IFDEF SYSCALL_DEBUG}
@@ -227,7 +227,12 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-11-15 12:08:37  mazen
+  Revision 1.2  2002-12-24 21:30:20  mazen
+  - some writeln(s) removed in compiler
+  + many files added to RTL
+  * some errors fixed in RTL
+
+  Revision 1.1  2002/11/15 12:08:37  mazen
   + SPARC support added based on PowerPc sources
 
   Revision 1.1  2002/11/09 20:32:14  marco

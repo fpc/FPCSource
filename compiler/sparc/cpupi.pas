@@ -79,9 +79,6 @@ procedure TSparcProcInfo.after_pass1;
         else
           procdef.localst.address_fixup:=parast.address_fixup+6*4;
 		    firsttemp_offset:=localst.address_fixup+localst.datasize;
-	      WriteLn('Parameter copies start at: %i6+'+tostr(parast.address_fixup));
-    		WriteLn('Locals start at: %o6+'+tostr(localst.address_fixup));
-	      WriteLn('Temp. space start: %o6+'+tostr(firsttemp_offset));
         with tg do
           begin
         		FirstTemp:=firsttemp_offset;
@@ -94,7 +91,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-12-21 23:21:47  mazen
+  Revision 1.10  2002-12-24 21:30:20  mazen
+  - some writeln(s) removed in compiler
+  + many files added to RTL
+  * some errors fixed in RTL
+
+  Revision 1.9  2002/12/21 23:21:47  mazen
   + added support for the shift nodes
   + added debug output on screen with -an command line option
 

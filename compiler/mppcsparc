@@ -17,6 +17,6 @@ then
     SRC_DIR=`echo "$COMP_DIR/"{,sparc,systems}":"`
     gdb -d "$SRC_DIR" --args "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
   else
-    "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
+    "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc,linux/sparc} -dSPARC "$@"
   fi
 fi

@@ -16,19 +16,24 @@
  **********************************************************************}
 
 { the necessary code can be copied from the linux kernel sources }
-function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
-  asm
+function setjmp(var S : jmp_buf) : longint;{assembler;}[Public, alias : 'FPC_SETJMP'];
+  begin{asm}
     {$warning FIXME!!!!}
   end;
 
-procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
-  asm
+procedure longjmp(var S : jmp_buf;value : longint);{assembler;}[Public, alias : 'FPC_LONGJMP'];
+  begin{asm}
     {$warning FIXME!!!!}
   end;
 
 {
   $Log$
-  Revision 1.2  2002-11-24 18:19:44  mazen
+  Revision 1.3  2002-12-24 21:30:20  mazen
+  - some writeln(s) removed in compiler
+  + many files added to RTL
+  * some errors fixed in RTL
+
+  Revision 1.2  2002/11/24 18:19:44  mazen
   + setjmp and longjmp
 
   Revision 1.1  2002/11/16 20:10:31  florian
