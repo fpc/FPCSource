@@ -101,7 +101,7 @@ end;
 
 { ******************** TBits ***************************** }
 
-constructor TBits.Create(theSize : longint);
+constructor TBits.Create(theSize : longint {$ifndef VER1_0} = 0 {$endif});
 begin
    FSize := 0;
    FBits := nil;
@@ -380,7 +380,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-10-30 16:25:07  peter
+    * tbits.create is now supported
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.9  2003/05/25 16:05:18  jonas
