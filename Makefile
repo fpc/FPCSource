@@ -2223,7 +2223,14 @@ ifdef inUnix
 ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 .PHONY: rpmcopy rpm
 RPMFPCVERSION:=$(shell grep '^Version:' $(CVSINSTALL)/fpc.spec | awk '{ print $$2 }')
+RPMBUILD=$(shell which rpmbuild)
+ifeq ($(RPMBUILD),)
+RPMBUILD=rpm
+endif
 REDHATDIR=/usr/src/redhat
+ifeq ($(wildcard REDHATDIR),)
+REDHATDIR=/usr/src/rpm
+endif
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
 RPMSPECDIR:=$(REDHATDIR)/SPECS
 RPMSRCDIR:=$(RPMSOURCESDIR)/fpc
@@ -2233,6 +2240,9 @@ rpmcopy: distclean
 	install -d $(RPMSOURCESDIR)
 	rm -rf $(RPMSRCDIR)
 	cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(RPMFPCVERSION).spec
+ifndef NODOCS
+	cat $(CVSINSTALL)/fpcdoc.spec >> $(RPMSPECDIR)/fpc-$(RPMFPCVERSION).spec
+endif
 	install -d $(RPMSRCDIR)
 	$(COPYTREE) compiler $(RPMSRCDIR)
 	$(COPYTREE) rtl $(RPMSRCDIR)
@@ -2244,10 +2254,14 @@ rpmcopy: distclean
 	$(COPYTREE) Makefile* $(RPMSRCDIR)
 	$(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
 	$(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
+	$(COPY) $(CVSINSTALL)/smart_strip.sh $(RPMSRCDIR)
+	chmod +x $(RPMSRCDIR)/smart_strip.sh
+ifndef NODOCS
 	$(COPYTREE) docs $(RPMSRCDIR)
+endif
 	find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
 	cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
 rpm: checkfpcdir rpmcopy
-	cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(RPMFPCVERSION).spec
+	cd $(RPMSPECDIR) ; $(RPMBUILD) --nodeps -ba fpc-$(RPMFPCVERSION).spec
 endif   # spec found
 endif

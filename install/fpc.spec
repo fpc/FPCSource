@@ -21,6 +21,10 @@ BuildRequires: fpc
 %define buildlibdir %{buildroot}%{_libdir}
 %define buildexampledir %{buildroot}%{exampledir}
 
+# The normal redhat rpm scripts does not recognize properly, what files to strip
+# Hook our own strip command
+%define __strip %{buildroot}/smart_strip.sh
+
 
 %description
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -47,7 +51,9 @@ NEWFPDOC=`pwd`/utils/fpdoc/fpdoc
 	make fcl_smart FPC=${NEWPP}
 	make packages_extra_smart FPC=${NEWPP}
 	make utils_all FPC=${NEWPP}
+if [ -z ${NODOCS} ]; then
 	make -C docs pdf FPDOC=${NEWFPDOC}
+fi
 
 %install
 if [ %{buildroot} != "/" ]; then
@@ -67,10 +73,17 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 	make doc_install ${INSTALLOPTS}
 	make man_install ${INSTALLOPTS} INSTALL_PREFIX=%{buildmandir}
 	
+if [ -z ${NODOCS} ]; then
 	make -C docs pdfinstall DOCINSTALLDIR=%{builddocdir}
+fi
 
 	# create link
 	ln -sf %{fpcdir}/ppc386 %{buildroot}%{_bindir}/ppc386
+
+        # Workaround:
+        # newer rpm versions do not allow garbage
+        # delete lexyacc
+        rm -rf %{buildroot}/usr/lib/fpc/lexyacc
 
 
 %clean
@@ -86,8 +99,8 @@ if [ %{buildroot} != "/" ]; then
 fi
 
 %post
-# Create config
-%{fpcdir}/samplecfg %{fpcdir}
+# Create a version independent config
+%{fpcdir}/samplecfg %{_libdir}/fpc/\$version
 
 %files
 %defattr(-, root, root)
@@ -98,24 +111,3 @@ fi
 %doc %{docdir}/faq*
 %doc %{exampledir}/*
 %{_mandir}/*/*
-
-###############################################################################
-# fpc-docs.rpm
-#
-
-%package docs
-Group: Development/Languages
-Summary: Free Pascal Compiler - Documentation
-%description docs
-The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
-Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
-Some extensions are added to the language, like function overloading. Shared
-libraries can be linked. Basic Delphi support is already implemented (classes,
-exceptions,ansistrings,RTTI). This package contains commandline compiler and
-utils. Provided units are the runtime library (RTL), free component library
-(FCL), gtk,ncurses,zlib, mysql,postgres,ibase bindings.
-This package contains the documentation in PDF format
-
-%files docs
-%defattr(-, root, root)
-%doc %{docdir}/*.pdf
