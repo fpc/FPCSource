@@ -110,8 +110,8 @@ implementation
 var
   v2prt0_ds_alias : pointer;external name '___v2prt0_ds_alias';
   djgpp_ds_alias  : pointer;external name '___djgpp_ds_alias';
-  endtext         : byte;external name '_etext';
-  starttext       : byte;external name 'start';
+  endtext        : longint;external name '_etext';
+  starttext       : longint;external name 'start';
   djgpp_old_kbd : tseginfo;external name '___djgpp_old_kbd';
   djgpp_hw_lock_start : longint;external name '___djgpp_hw_lock_start';
   djgpp_hw_lock_end : longint;external name '___djgpp_hw_lock_end';
@@ -352,7 +352,9 @@ traceback_exit:
      do_faulting_finish_message();   { Exits, does not return }
      exit(-1);
    end;
-  if ((longint(temp) < longint(starttext)) or (longint(temp) > longint(endtext))) then
+  { this is incompatible with dxegen-dxeload stuff PM }
+  if ((cardinal(temp) < cardinal(@starttext)) or
+      (cardinal(temp) > cardinal(@endtext))) then
    begin
      errln('Bad signal handler, ');
      goto traceback_exit;
@@ -831,7 +833,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-10-13 21:42:42  peter
+  Revision 1.11  1998-11-17 09:42:50  pierre
+   * position check of signal handler was wrong
+
+  Revision 1.10  1998/10/13 21:42:42  peter
     * cleanup and use of external var
     * fixed ctrl-break crashes
 
