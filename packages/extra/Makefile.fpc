@@ -2,40 +2,40 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs_linux=unzip uncgi \
+dirs_linux=unzip \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
            utmp cmem bfd zlib gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk
-dirs_netbsd=unzip uncgi \
+dirs_netbsd=unzip \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1 
-dirs_freebsd=unzip uncgi \
+            utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+dirs_freebsd=unzip \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
-dirs_openbsd=unzip uncgi  \
+dirs_openbsd=unzip  \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
-dirs_win32=unzip uncgi opengl gtk \
+dirs_win32=unzip  opengl gtk \
            zlib mmsystem tcl cdrom fpgtk
 dirs_os2=os2units \
          rexx \
-         unzip uncgi \
+         unzip \
          x11 gtk \
          libpng \
          zlib tcl \
          imlib fpgtk
 dirs_emx=os2units \
          rexx \
-         unzip uncgi \
+         unzip \
          x11 gtk \
          libpng \
          zlib tcl \
          imlib fpgtk
-dirs_go32v2=unzip uncgi
+dirs_go32v2=unzip
 dirs_netware=cmem zlib
 
 [install]
