@@ -54,8 +54,8 @@ type
  constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
  constructor op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
  constructor op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:tregister);
+ constructor op_reg_ref_reg(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference;_op3:TRegister);
  constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
- constructor op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister; const _op3:treference);
  constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
 
  { this is for Jmp instructions }
@@ -250,14 +250,14 @@ LoadReg(0,_op1);
 LoadConst(1,_op2);
 LoadReg(2,_op3);
   END;
-constructor taicpu.op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister;const _op3:treference);
+constructor taicpu.op_reg_ref_reg(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference;_op3:tregister);
   begin
-     inherited create(op);
-     init(_size);
-     ops:=3;
-     loadreg(0,_op1);
-     loadreg(1,_op2);
-     loadref(2,_op3);
+    inherited create(op);
+    init(_size);
+    ops:=3;
+    LoadReg(0,_op1);
+    LoadRef(1,_op2);
+    LoadReg(2,_op3);
   end;
 constructor taicpu.op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
   begin
@@ -1138,7 +1138,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.9  2002-10-28 20:59:17  mazen
+    Revision 1.10  2002-11-05 16:15:00  mazen
+    *** empty log message ***
+
+    Revision 1.9  2002/10/28 20:59:17  mazen
     * TOpSize values changed S_L --> S_SW
 
     Revision 1.8  2002/10/22 13:43:01  mazen

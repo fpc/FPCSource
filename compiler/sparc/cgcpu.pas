@@ -237,7 +237,7 @@ procedure tcgSPARC.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST 
   END;
 procedure tcgSPARC.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CONST ref:TReference);
   BEGIN
-    list.concat(taicpu.op_reg_ref(A_LD,reg,ref));
+    list.concat(taicpu.op_reg_ref(A_ST,reg,ref));
   END;
 procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);
   var
@@ -1254,7 +1254,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.20  2002-11-03 20:22:40  mazen
+  Revision 1.21  2002-11-05 16:15:00  mazen
+  *** empty log message ***
+
+  Revision 1.20  2002/11/03 20:22:40  mazen
   * parameter handling updated
 
   Revision 1.19  2002/10/28 20:59:17  mazen
