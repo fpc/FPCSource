@@ -507,7 +507,10 @@ begin
   clear_globals;
   clear_values;
   proc_var_openstring(value_smallstring);
-  if (value_smallstring <> RESULT_SMALLSTRING) or (global_u8bit <> high(value_smallstring)) then
+  if (value_smallstring <> RESULT_SMALLSTRING) or
+     { high is not passed to cdecl'ared functions thus
+       value_smallstring should be 255 on retyurn PM }
+     (global_u8bit <> {high(value_smallstring)}255) then
     failed := true;
 
 
@@ -655,7 +658,10 @@ begin
   clear_globals;
   clear_values;
   proc_var_openstring_mixed(RESULT_U8BIT, value_smallstring, RESULT_U8BIT);
-  if (value_smallstring <> RESULT_SMALLSTRING) or (global_u8bit <> high(value_smallstring)) then
+  if (value_smallstring <> RESULT_SMALLSTRING) or
+     { high is not passed to cdecl'ared functions thus
+       value_smallstring should be 255 on retyurn PM }
+     (global_u8bit <> {high(value_smallstring)}255) then
     failed := true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
@@ -709,7 +715,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-11-20 19:39:21  carl
+  Revision 1.7  2002-12-05 15:54:20  pierre
+   * update as openstrings are transformed into normal string in cdecl'ared functions
+
+  Revision 1.6  2002/11/20 19:39:21  carl
   - high() cannot be used in cdecle'd routines
 
   Revision 1.5  2002/11/09 21:47:37  carl
