@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -102,6 +103,7 @@ type
    procedure Abort;
    procedure OutOfMemoryError;
    procedure Beep;
+   function SysErrorMessage(ErrorCode: Integer): String;
 
 Var
    OnShowException : Procedure (Msg : ShortString);
@@ -130,7 +132,17 @@ Var
 
 {
   $Log$
-  Revision 1.2  2000-08-20 15:46:46  peter
+  Revision 1.3  2000-08-29 17:56:32  michael
+  Merged syserrormsg fix
+
+  Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 
+  Revision 1.1.2.2  2000/08/22 19:21:48  michael
+  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
+  * Changed linux/errors.pp so it uses pchars for storage.
+
+  Revision 1.1.2.1  2000/08/20 15:07:36  peter
+    * sysutils.pp moved into target specific directory and merged
+      disk.inc and filutil.inc in it
 }

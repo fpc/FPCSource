@@ -1,5 +1,6 @@
 {
     $Id$
+
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -27,11 +28,6 @@ uses
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
-
-{ platform dependent functions }
-
-function SysErrorMessage(ErrorCode: Integer): String;
-
 
 
 implementation
@@ -618,7 +614,23 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-08-20 15:46:46  peter
+  Revision 1.3  2000-08-29 18:01:52  michael
+  Merged syserrormsg fix
+
+  Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+  $Log$
+  Revision 1.3  2000-08-29 18:01:52  michael
+  Merged syserrormsg fix
+
+  Revision 1.1.2.3  2000/08/22 19:21:49  michael
+  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
+  * Changed linux/errors.pp so it uses pchars for storage.
+
+  Revision 1.1.2.2  2000/08/20 15:40:03  peter
+    * syserrormessage function added
+
+  Revision 1.1.2.1  2000/08/20 15:08:32  peter
+    * forgot the add command :(
 
 }
