@@ -28,14 +28,17 @@ type
     Handle    : THandle;
     Mode      : longint;
     RecSize   : SizeInt;
-    _private  : array[1..32] of byte;
+    _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
     UserData  : array[1..16] of byte;
     name      : array[0..filerecnamelength] of char;
   End;
 
 {
   $Log$
-  Revision 1.5  2004-02-05 01:16:12  florian
+  Revision 1.6  2004-09-21 23:36:51  hajny
+    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
+
+  Revision 1.5  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.4  2003/11/03 09:42:27  marco

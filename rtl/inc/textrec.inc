@@ -25,12 +25,17 @@ const
   TextRecNameLength = 256;
   TextRecBufSize    = 256;
 type
+  TLineEndStr = string [3];
   TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
     Handle    : THandle;
     Mode      : longint;
-    bufsize,
-    _private,
+    bufsize   : SizeInt;
+{$IFDEF FPC_LINEEND_IN_TEXTREC}
+    _private  : SizeInt;
+{$ELSE FPC_LINEEND_IN_TEXTREC}
+    LineEnd   : TLineEndStr;
+{$ENDIF FPC_LINEEND_IN_TEXTREC}
     bufpos,
     bufend    : SizeInt;
     bufptr    : ^textbuf;
@@ -40,12 +45,18 @@ type
     closefunc : pointer;
     UserData  : array[1..16] of byte;
     name      : array[0..textrecnamelength-1] of char;
+{$IFDEF FPC_LINEEND_IN_TEXTREC}
+    LineEnd   : TLineEndStr;
+{$ENDIF FPC_LINEEND_IN_TEXTREC}
     buffer    : textbuf;
   End;
 
 {
   $Log$
-  Revision 1.6  2004-05-18 20:16:23  peter
+  Revision 1.7  2004-09-21 23:36:51  hajny
+    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
+
+  Revision 1.6  2004/05/18 20:16:23  peter
     * unix thandle is always 32bit
     * textrec fixed for 64bit
 

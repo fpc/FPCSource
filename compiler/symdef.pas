@@ -2237,15 +2237,15 @@ implementation
 {$ifdef cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=608;
+            savesize:=612;
           ft_typed,
           ft_untyped :
-            savesize:=320;
+            savesize:=352;
         end;
 {$else cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=572;
+            savesize:=576;
           ft_typed,
           ft_untyped :
             savesize:=316;
@@ -6184,7 +6184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.255  2004-09-21 17:25:12  peter
+  Revision 1.256  2004-09-21 23:36:51  hajny
+    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
+
+  Revision 1.255  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.254  2004/09/14 16:33:17  peter

@@ -87,6 +87,7 @@ Begin
   TextRec(t).BufSize:=TextRecBufSize;
   TextRec(t).Bufptr:=@TextRec(t).Buffer;
   TextRec(t).OpenFunc:=@FileOpenFunc;
+  TextRec(t).LineEnd:=LineEnding;
   Move(s[1],TextRec(t).Name,Length(s));
 End;
 
@@ -435,6 +436,11 @@ Begin
   TextRec(f).BufEnd:=0;
 End;
 
+Procedure SetTextLineEnding(Var f:Text; Ending:string);
+Begin
+  TextRec(F).LineEnd:=Ending;
+End;
+
 
 {*****************************************************************************
                                Write(Ln)
@@ -489,16 +495,13 @@ end;
 
 
 Procedure fpc_Writeln_End(var f:Text);[Public,Alias:'FPC_WRITELN_END']; iocheck; {$ifdef hascompilerproc} compilerproc; {$endif}
-var
-  eol : array[0..3] of char;
 begin
   If InOutRes <> 0 then exit;
   case TextRec(f).mode of
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
-        eol:=sLineBreak;
         { Write EOL }
-        fpc_WriteBuffer(f,eol,length(sLineBreak));
+        fpc_WriteBuffer(f,TextRec(f).LineEnd[1],length(TextRec(f).LineEnd));
         { Flush }
         if TextRec(f).FlushFunc<>nil then
           FileFunc(TextRec(f).FlushFunc)(TextRec(f));
@@ -1274,7 +1277,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2004-08-20 10:04:39  olle
+  Revision 1.26  2004-09-21 23:36:51  hajny
+    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
+
+  Revision 1.25  2004/08/20 10:04:39  olle
   * prefixed write[buffer|blanks] with fpc_ and made them externally visible
 
   Revision 1.24  2004/06/21 18:48:48  olle
