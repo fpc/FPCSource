@@ -41,9 +41,9 @@ interface
 
       pprocdefcoll = ^tprocdefcoll;
       tprocdefcoll = record
-         data : tprocdef;
-         hidden : boolean;
-         next : pprocdefcoll;
+         data    : tprocdef;
+         hidden  : boolean;
+         next    : pprocdefcoll;
       end;
 
       psymcoll = ^tsymcoll;
@@ -510,6 +510,7 @@ implementation
         begin
            new(procdefcoll);
            procdefcoll^.data:=pd;
+           procdefcoll^.hidden:=false;
            procdefcoll^.next:=symcoll^.data;
            symcoll^.data:=procdefcoll;
 
@@ -560,10 +561,6 @@ implementation
          { put only sub routines into the VMT }
          if tsym(sym).typ=procsym then
            begin
-              { skip private symbols that can not been seen }
-              if not tstoredsym(sym).is_visible_for_object(_class) then
-               exit;
-
               { check the current list of symbols }
               _name:=sym.name;
               symcoll:=wurzel;
@@ -597,8 +594,9 @@ implementation
                                        has no overload directive }
                                      if not(po_virtualmethod in pd.procoptions) then
                                       begin
-                                        if not pdoverload or
-                                           equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) then
+                                        if (not pdoverload or
+                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) and
+                                           (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                          begin
                                            procdefcoll^.hidden:=true;
                                            if _class=pd._class then
@@ -614,13 +612,20 @@ implementation
                                            not(po_overridingmethod in pd.procoptions) then
                                          begin
                                            { we start a new virtual tree, hide the old }
-                                           if not pdoverload or
-                                              equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) then
+                                           if (not pdoverload or
+                                               equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) and
+                                              (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
                                               procdefcoll^.hidden:=true;
                                               if _class=pd._class then
                                                 MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
                                             end;
+                                         end
+                                        { check if the method to override is visible }
+                                        else if (po_overridingmethod in pd.procoptions) and
+                                                (not tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
+                                         begin
+                                           { do nothing, the error will follow when adding the entry }
                                          end
                                         { same parameters }
                                         else if (equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
@@ -1275,7 +1280,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-12-31 16:59:41  peter
+  Revision 1.13  2002-02-11 18:51:35  peter
+    * fixed vmt generation for private procedures that were skipped after
+      my previous changes
+
+  Revision 1.12  2001/12/31 16:59:41  peter
     * protected/private symbols parsing fixed
 
   Revision 1.11  2001/11/20 18:49:43  peter
