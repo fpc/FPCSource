@@ -544,12 +544,9 @@ begin
               'F' : begin
                       c:=more[1];
                       Delete(more,1,1);
+                      DefaultReplacements(More);
                       case c of
-                       'D' : begin
-                              if not ispara then
-                               DefaultReplacements(More);
-                              utilsdirectory:=FixPath(More,true);
-                             end;
+                       'D' : utilsdirectory:=FixPath(More,true);
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
                        'i' : if ispara then
@@ -1562,7 +1559,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2001-02-05 21:26:36  peter
+  Revision 1.29  2001-02-26 07:49:50  michael
+  Support replacements for all -F<x> options
+
+  Revision 1.28  2001/02/05 21:26:36  peter
     * applied patches from Sergey Korshunoff
 
   Revision 1.27  2001/01/20 18:36:51  hajny
