@@ -4,7 +4,7 @@
 
                          Free Pascal Runtime-Library
                               DOS unit for OS/2
-                   Copyright (c) 1997,1998 by Dani‰l Mantione,
+                   Copyright (c) 1997,1998 by Daniel Mantione,
                    member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -17,8 +17,6 @@
  ****************************************************************************}
 
 unit dos;
-
-{$I os.inc}
 
 {$ASMMODE ATT}
 
@@ -179,6 +177,9 @@ function fsearch(path:pathstr;dirlist:string):pathstr;
 var i,p1:longint;
     s:searchrec;
     newdir:pathstr;
+    RC, Handle, Count: longint;
+    FStat: PFileFindBuf3;
+    ND: PathStr;
 
 begin
     {No wildcards allowed in these things:}
@@ -204,8 +205,20 @@ begin
                 if (newdir<>'') and
                  not (newdir[length(newdir)] in ['\',':']) then
                     newdir:=newdir+'\';
-                findfirst(newdir+path,anyfile,s);
-                if doserror=0 then
+                if OS_Mode = osOS2 then
+                begin
+                 New (FStat);
+                 ND := NewDir + Path;
+                 RC := DosFindFirst (ND, Handle, $39, FStat, SizeOf (FStat^),
+                                                            Count, ilStandard);
+                 DosFindClose (Handle);
+                 Dispose (FStat);
+                end else
+                begin
+                 findfirst(newdir+path,anyfile,s);
+                 RC := DosError;
+                end;
+                if RC = 0 then
                     newdir:=newdir+path
                 else
                     newdir:='';
@@ -985,7 +998,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-01-22 16:25:58  pierre
+  Revision 1.13  1999-09-09 09:20:43  hajny
+    * FSearch under OS/2 fixed
+
+  Revision 1.12  1999/01/22 16:25:58  pierre
    + findclose added
 
   Revision 1.11  1999/01/18 16:22:51  jonas
