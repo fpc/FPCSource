@@ -704,7 +704,7 @@
       begin
          if declocked(frefcount) then
            begin
-              destroy;
+              self.destroy;
               _Release:=0;
            end
          else
@@ -747,7 +747,10 @@
 
 {
   $Log$
-  Revision 1.44  2004-11-03 11:33:50  florian
+  Revision 1.45  2004-12-05 21:09:54  florian
+    * fixed memory release in TInterfacedObject._Release
+
+  Revision 1.44  2004/11/03 11:33:50  florian
     * fixed dyn. array handling for 32 bit architectures requiering proper alignment
 
   Revision 1.42  2004/10/24 20:01:41  peter
