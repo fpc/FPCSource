@@ -21,6 +21,20 @@
 # so a make html and make install goes quickly
 #INSTALLDEBUG=1
 
+override PATH:=$(patsubst %/,%,$(subst \,/,$(PATH)))
+ifneq ($(findstring darwin,$(OSTYPE)),)
+inUnix=1 #darwin
+SEARCHPATH:=$(filter-out .,$(subst :, ,$(PATH)))
+else
+ifeq ($(findstring ;,$(PATH)),)
+inUnix=1
+SEARCHPATH:=$(filter-out .,$(subst :, ,$(PATH)))
+else
+SEARCHPATH:=$(subst ;, ,$(PATH))
+endif
+endif
+SEARCHPATH+=$(patsubst %/,%,$(subst \,/,$(dir $(MAKE))))
+
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -578,7 +592,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.27  2004-07-17 21:02:28  marco
+# Revision 1.28  2004-09-23 21:41:08  florian
+#   * fixed Makefile to work on non i386 platforms
+#
+# Revision 1.27  2004/07/17 21:02:28  marco
 #  * x86 dependancy fixed, reported by Claviola
 #
 # Revision 1.26  2004/05/18 22:10:56  michael
