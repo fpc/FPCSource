@@ -33,7 +33,7 @@ LD              linker to use
                 Default: LD=ld
 
 RELEASE         setting this to a value (for example RELEASE=1) will compile
-                for a release, no ppc386.cfg is read an compile is done with
+                for a release, no ppc.cfg is read an compile is done with
                 the following settings: '-Xs -OG2p2 -n'
 
 VERBOSE         setting this to a value (for example VERBOSE=1) will compile
