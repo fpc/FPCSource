@@ -52,9 +52,13 @@ units/$(FPCMADE):
         $(MAKE) -C units
 
 DOTEST=./dotest$(EXEEXT)
-$(DOTEST) : units utils/dotest.pp utils/redir.pp
-        $(FPC) -Fuunits -FE. utils/dotest
+$(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
+        $(FPC) -Fuunits -FE. utils/dotest.pp
 
+DIGEST=./digest$(EXEEXT)
+$(DIGEST) : units utils/digest.pp utils/teststr.pp
+	$(FPC) -Fuunits -FE. utils/digest.pp
+	
 testcheck: units allpreps $(DOTEST)
 
 #
@@ -163,11 +167,14 @@ distclean: clean
 # Main rules
 #
 
-.PHONY: all full
+.PHONY: all full rundigest
+
+rundigest :
+	-$(DIGEST)
 
 all : allexectests
 
-full : clean allexectests
+full : clean allexectests rundigest
 
 info :
         @echo This Makefile allows to test the compiler
