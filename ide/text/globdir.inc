@@ -15,7 +15,7 @@
 {$ifdef TP}
   {$define SUPPORTVESA}
   {$define TPUNIXLF}
-  {$undef WinClipSupported}
+  {$define WinClipSupported}
 
   {$C FIXED PRELOAD PERMANENT}
   {
@@ -65,6 +65,10 @@
   {$endif GDB_V418}
 {$endif}
 
+{ ----------- define DOS for DOS targets ---------- }
+{$ifdef GO32V2}{$define DOS}{$endif}
+{$ifdef TP}{$define DOS}{$endif}
+
 { include Undo/Redo code from Visa Harvey }
 { let everybody try it out  PM }
 { undo should be a bit improved - it does work only with "normal" keystrokes.
@@ -90,10 +94,20 @@
 { $ undef UNDO}
 { $ undef DEBUGUNDO}
 
+{$define BROWSERCOL}
+
+{$ifdef SUPPORTVESA}
+  {$define VESA}
+{$endif}
+
 {$ifdef GABOR}
   {.$define NOOBJREG}
   {$define NODEBUG}
   {$define DEBUG}
   {$undef EXEDEBUG}
   {$undef USERESSTRINGS}
+{$endif}
+
+{$ifdef NOWINCLIP}
+  {$undef WINCLIPSUPPORTED}
 {$endif}

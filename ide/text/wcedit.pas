@@ -45,10 +45,11 @@ type
       Text        : PString;
       EditorInfos : PEditorLineInfoCollection;
       Flags       : longint;
+      Owner       : PCustomCodeEditorCore;
       procedure AddEditorInfo(Index: sw_integer; AEditor: PCustomCodeEditor); virtual;
       procedure RemoveEditorInfo(AEditor: PCustomCodeEditor); virtual;
     public
-      constructor Init(const AText: string; AFlags: longint);
+      constructor Init(AOwner: PCustomCodeEditorCore; const AText: string; AFlags: longint);
       function    GetText: string; virtual;
       procedure   SetText(const AText: string); virtual;
       function    GetEditorInfo(Editor: PCustomCodeEditor): PEditorLineInfo; virtual;
@@ -266,10 +267,11 @@ const
   );
 {$endif}
 
-constructor TLine.Init(const AText: string; AFlags: longint);
+constructor TLine.Init(AOwner: PCustomCodeEditorCore; const AText: string; AFlags: longint);
 begin
   inherited Init(AText,AFlags);
   New(EditorInfos, Init(10,10));
+  Owner:=AOwner;
 end;
 
 procedure TLine.AddEditorInfo(Index: sw_integer; AEditor: PCustomCodeEditor);
@@ -311,6 +313,8 @@ end;
 procedure TLine.SetFlags(AFlags: longint);
 begin
   Flags:=AFlags;
+  if Assigned(Owner) then
+    Owner^.ContentsChanged;
 end;
 
 destructor TLine.Done;
@@ -482,7 +486,7 @@ begin
   AddCount:=0;
   while (Lines^.Count<I+1) do
    begin
-     LinesInsert(-1,New(PLine, Init('',0)));
+     LinesInsert(-1,New(PLine, Init(@Self,'',0)));
      Inc(AddCount);
    end;
   if AddCount>0 then
@@ -584,12 +588,12 @@ end;
 
 procedure TCodeEditorCore.InsertLine(LineNo: sw_integer; const S: string);
 begin
-  LinesInsert(LineNo, New(PLine, Init(S,0)));
+  LinesInsert(LineNo, New(PLine, Init(@Self,S,0)));
 end;
 
 procedure TCodeEditorCore.AddLine(const S: string);
 begin
-  LinesInsert(-1,New(PLine, Init(S,0)));
+  LinesInsert(-1,New(PLine, Init(@Self,S,0)));
 end;
 
 procedure TCodeEditorCore.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
@@ -1129,11 +1133,26 @@ procedure TCodeEditor.Undo;
 var
   Temp,Idx,Last,Count : Longint;
   Is_grouped : boolean;
+  MaxY,MinY : sw_integer;
+
+  procedure SetMinMax(y : sw_integer);
+    begin
+      if MinY=-1 then
+        MinY:=Y;
+      if Y<MinY then
+        MinY:=Y;
+      if MaxY=-1 then
+        MaxY:=Y;
+      if Y>MaxY then
+        MaxY:=Y;
+    end;
 {$endif Undo}
 begin
 {$ifdef Undo}
   Core^.SetStoreUndo(False);
   Lock;
+  MinY:=-1;
+  MaxY:=-1;
   if Core^.UndoList^.count > 0 then
   begin
     Last:=Core^.UndoList^.count-1;
@@ -1163,6 +1182,7 @@ begin
                 if assigned(text) then
                   for Temp := 1 to length(Text^) do
                     DelChar;
+                SetMinMax(StartPos.Y);
               end;
             eaDeleteText :
               begin
@@ -1171,22 +1191,26 @@ begin
                 if assigned(text) then
                   for Temp := 1 to length(Text^) do
                     AddChar(Text^[Temp]);
+                SetMinMax(EndPos.Y);
                 SetCurPtr(StartPos.X,StartPos.Y);
               end;
             eaInsertLine :
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 SetDisplayText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
+                SetMinMax(EndPos.Y);
                 BackSpace;
                 SetCurPtr(StartPos.X,StartPos.Y);
+                SetMinMax(StartPos.Y);
               end;
             eaDeleteLine :
               begin
                 SetCurPtr(EndPos.X,EndPos.Y);
-                {DelEnd;wrong for eaCut at least }
+                DelEnd;{ wrong for eaCut at least }
                 InsertNewLine;
                 SetCurPtr(StartPos.X,StartPos.Y);
-                SetLineText(StartPos.Y,GetStr(Text));
+                SetLineText(StartPos.Y,Copy(GetDisplayText(StartPos.Y),1,StartPos.X)+GetStr(Text));
+                SetMinMax(StartPos.Y);
               end;
             eaSelectionChanged :
               begin
@@ -1219,6 +1243,8 @@ begin
         SetCmdState(UndoCmd,false);
       SetCmdState(RedoCmd,true);
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
+      if MinY<>-1 then
+        UpdateAttrsRange(MinY,MaxY,attrAll);
       DrawView;
     end;
   Core^.SetStoreUndo(True);
@@ -1284,9 +1310,10 @@ begin
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
             DeleteLine(StartPos.Y);
-            { SetCurPtr(EndPos.X,EndPos.Y);
-            for Temp := 1 to length(GetStr(Text)) do
-              DelChar;}
+            SetCurPtr(EndPos.X,EndPos.Y);
+            SetDisplayText(StartPos.Y,RExpand(
+              copy(GetDisplayText(StartPos.Y),1,StartPos.X),StartPos.X)
+              +GetStr(Text));
             SetCurPtr(EndPos.X,EndPos.Y);
           end;
         eaSelectionChanged :
@@ -1728,3 +1755,7 @@ end;
 
 
 END.
+{ 
+ $Log $ 
+ 
+}

@@ -440,12 +440,11 @@ end;
 
 procedure THelpFile.MaintainTopicCache;
 var Count: sw_integer;
-    MinP: PTopic;
     MinLRU: longint;
 procedure CountThem(P: PTopic); {$ifndef FPC}far;{$endif}
 begin if (P^.Text<>nil) or (P^.Links<>nil) then Inc(Count); end;
 procedure SearchLRU(P: PTopic); {$ifndef FPC}far;{$endif}
-begin if P^.LastAccess<MinLRU then begin MinLRU:=P^.LastAccess; MinP:=P; end; end;
+begin if P^.LastAccess<MinLRU then begin MinLRU:=P^.LastAccess; end; end;
 var P: PTopic;
 begin
   Count:=0; Topics^.ForEach(@CountThem);
@@ -494,7 +493,15 @@ begin
       rtIndex       : begin IndexTablePos:=L; {OK:=ReadIndexTable; }end;
       rtCompression : begin F^.Seek(L); OK:=ReadCompression; end;
       rtIndexTags   : begin IndexTagsPos:=L; {OK:=ReadIndexTags; }end;
-    else {Skip};
+    else
+     begin
+     {$ifdef DEBUGMSG}
+       ErrorBox('Uknown help record tag 0x'+IntToHex(R.SClass)+' encountered, offset 0x'+IntToHex(L)+
+         ', size '+IntToStr(R.Size),nil);
+     {$else}
+       {Skip};
+     {$endif}
+     end;
     end;
     if OK then
        begin Inc(L, SizeOf(THLPRecordHeader)); Inc(L, R.Size); F^.Seek(L); OK:=(F^.Status=stOK); end
@@ -970,7 +977,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2000-02-07 11:47:25  pierre
+  Revision 1.18  2000-04-18 11:42:38  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.17  2000/02/07 11:47:25  pierre
    * Remove 64Kb limitation for FPC by Gabor
 
   Revision 1.16  2000/01/03 14:59:03  marco

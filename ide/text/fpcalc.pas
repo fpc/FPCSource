@@ -385,7 +385,7 @@ end;
 
 procedure TCalculator.HandleEvent(var Event: TEvent);
 var R: extended;
-    Re: real;
+{    Re: real;}
 begin
   if (State and sfSelected)<>0 then
   case Event.What of
@@ -404,7 +404,7 @@ begin
        kbCtrlEnter :
          begin
            ClearEvent(Event);
-           CD^.GetDisplay(R); Re:=R;
+           CD^.GetDisplay(R); {Re:=R;}
            Close;
            CalcClipboard:=R;
            Message(Application,evBroadcast,cmCalculatorPaste,nil);
@@ -463,7 +463,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-03-21 23:34:10  pierre
+  Revision 1.9  2000-04-18 11:42:36  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.8  2000/03/21 23:34:10  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.7  1999/09/13 16:24:42  peter

@@ -25,7 +25,7 @@ uses
 
 type
   PByteArray = ^TByteArray;
-  TByteArray = array[0..65520] of byte;
+  TByteArray = array[0..MaxBytes] of byte;
 
   PNoDisposeCollection = ^TNoDisposeCollection;
   TNoDisposeCollection = object(TCollection)
@@ -91,6 +91,7 @@ function RTrim(const S: string): string;
 function Trim(const S: string): string;
 function IntToStr(L: longint): string;
 function StrToInt(const S: string): longint;
+function IntToHex(L: longint): string;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
@@ -236,18 +237,6 @@ begin
   UpcaseStr[0]:=S[0];
 end;
 
-function LowerCaseStr(S: string): string;
-var
-  I: Longint;
-begin
-  for I:=1 to length(S) do
-    if S[I] in ['A'..'Z'] then
-      LowerCaseStr[I]:=chr(ord(S[I])+32)
-    else
-      LowerCaseStr[I]:=S[I];
-  LowercaseStr[0]:=S[0];
-end;
-
 function RExpand(const S: string; MinLen: byte): string;
 begin
   if length(S)<MinLen then
@@ -297,6 +286,29 @@ begin
   LastStrToIntResult:=C;
   StrToInt:=L;
 end;
+
+function IntToHex(L: longint): string;
+const HexNums : string[16] = '0123456789ABCDEF';
+var S: string;
+    R: real;
+function DivF(Mit,Mivel: real): longint;
+begin
+  DivF:=trunc(Mit/Mivel);
+end;
+function ModF(Mit,Mivel: real): longint;
+begin
+  ModF:=trunc(Mit-DivF(Mit,Mivel)*Mivel);
+end;
+begin
+  S:='';
+  R:=L; if R<0 then begin R:=R+2147483647+2147483647+2; end;
+  repeat
+    S:=HexNums[ModF(R,16)+1]+S;
+    R:=DivF(R,16);
+  until R=0;
+  IntToHex:=S;
+end;
+
 
 function GetStr(P: PString): string;
 begin
@@ -596,7 +608,7 @@ end;
 function TTextCollection.LookUp(const S: string; var Idx: sw_integer): string;
 var OLI,ORI,Left,Right,Mid: integer;
     LeftP,RightP,MidP: PString;
-    LeftS,MidS,RightS: string;
+    {LeftS,}MidS{,RightS}: string;
     FoundS: string;
     UpS : string;
 begin
@@ -610,8 +622,8 @@ begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
       LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
-      LeftS:=UpCaseStr(LeftP^); MidS:=UpCaseStr(MidP^);
-      RightS:=UpCaseStr(RightP^);
+{      LeftS:=UpCaseStr(LeftP^); }MidS:=UpCaseStr(MidP^);
+{      RightS:=UpCaseStr(RightP^);}
       if copy(MidS,1,length(UpS))=UpS then
         begin
           Idx:=Mid; FoundS:=GetStr(MidP);
@@ -679,7 +691,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  2000-03-21 23:19:13  pierre
+  Revision 1.19  2000-04-18 11:42:39  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.18  2000/03/21 23:19:13  pierre
    + TrimEndSlash and CompareText by Gabor
 
   Revision 1.17  2000/03/20 19:19:45  pierre

@@ -13,12 +13,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$i globdir.inc}
 unit FPSymbol;
 
 interface
 
-uses Objects,Drivers,Views,Dialogs,Outline,
+uses Objects,Drivers,Views,Menus,Dialogs,Outline,
      BrowCol,
+     WViews,
      FPViews;
 
 const
@@ -53,15 +55,23 @@ type
 
 
     PSymbolView = ^TSymbolView;
-    TSymbolView = object(TListBox)
+    TSymbolView = object(TLocalMenuListBox)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       procedure    HandleEvent(var Event: TEvent); virtual;
-      procedure    GotoItem(Item: sw_integer); virtual;
-      procedure    TrackItem(Item: sw_integer); virtual;
+      procedure    SetState(AState: Word; Enable: Boolean); virtual;
+      function     GotoItem(Item: sw_integer): boolean; virtual;
+      function     TrackItem(Item: sw_integer; AutoTrack: boolean): boolean; virtual;
       function     GetPalette: PPalette; virtual;
+      function     GetLocalMenu: PMenu; virtual;
+      procedure    ClearHighlights;
+      procedure    AutoTrackSource; virtual;
+      procedure    Browse; virtual;
+      procedure    GotoSource; virtual;
+      procedure    TrackSource; virtual;
+      procedure    OptionsDlg; virtual;
     private
       MyBW         : PBrowserWindow;
-      function     TrackReference(R: PReference): boolean; virtual;
+      function     TrackReference(R: PReference; AutoTrack: boolean): boolean; virtual;
       function     GotoReference(R: PReference): boolean; virtual;
     end;
 
@@ -74,8 +84,8 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Draw; virtual;
       procedure   LookUp(S: string); virtual;
-      procedure   GotoItem(Item: sw_integer); virtual;
-      procedure   TrackItem(Item: sw_integer); virtual;
+      function    GotoItem(Item: sw_integer): boolean; virtual;
+      function    TrackItem(Item: sw_integer; AutoTrack: boolean): boolean; virtual;
     private
       Symbols: PSymbolCollection;
       SymbolsValue : PGDBValueCollection;
@@ -89,8 +99,9 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   SelectItem(Item: Sw_Integer); virtual;
-      procedure   GotoItem(Item: sw_integer); virtual;
-      procedure   TrackItem(Item: sw_integer); virtual;
+      function    GotoItem(Item: sw_integer): boolean; virtual;
+      function    TrackItem(Item: sw_integer; AutoTrack: boolean): boolean; virtual;
+      procedure   Browse; virtual;
     private
       References: PReferenceCollection;
     end;
@@ -118,6 +129,7 @@ type
       procedure    Adjust(Node: Pointer; Expand: Boolean); virtual;
       function     IsExpanded(Node: Pointer): Boolean; virtual;
       procedure    Selected(I: Integer); virtual;
+      procedure    HandleEvent(var Event: TEvent); virtual;
       function     GetPalette: PPalette; virtual;
     private
       Root         : PObjectSymbol;
@@ -194,8 +206,8 @@ uses Commands,App,
 {$ifdef BROWSERCOL}
      symconst,
 {$endif BROWSERCOL}
-     WEditor,WViews,WUtils,
-     FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif};
+     WUtils,WEditor,
+     FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif},FPIDE;
 
 procedure CloseAllBrowsers;
   procedure SendCloseIfBrowser(P: PView); {$ifndef FPC}far;{$endif}
@@ -438,6 +450,7 @@ end;
 
 procedure TGDBValue.GetValue;
 begin
+{$ifdef BROWSERCOL}
 {$ifndef NODEBUG}
   if not assigned(Debugger) then
     exit;
@@ -453,6 +466,7 @@ begin
       GDBI:=Debugger^.RunCount;
     end;
 {$endif ndef NODEBUG}
+{$endif BROWSERCOL}
 end;
 
 function TGDBValue.GetText : String;
@@ -483,6 +497,54 @@ begin
   if assigned(HScrollBar) then
     HScrollBar^.SetRange(1,80);
   Options:=Options or (ofSelectable+ofTopSelect);
+  EventMask:=EventMask or evBroadcast;
+end;
+
+procedure TSymbolView.ClearHighlights;
+begin
+  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+end;
+
+procedure TSymbolView.AutoTrackSource;
+begin
+  if Range>0 then
+    TrackSource;
+end;
+
+procedure TSymbolView.OptionsDlg;
+begin
+  { Abstract }
+end;
+
+procedure TSymbolView.SetState(AState: Word; Enable: Boolean);
+var OState: longint;
+begin
+  OState:=State;
+  inherited SetState(AState,Enable);
+  if ((OState xor State) and sfFocused)<>0 then
+    if GetState(sfFocused) then
+      begin
+        if (MiscOptions and moAutoTrackSource)<>0 then
+          AutoTrackSource;
+      end
+    else
+      Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+end;
+
+procedure TSymbolView.Browse;
+begin
+  SelectItem(Focused);
+end;
+
+procedure TSymbolView.GotoSource;
+begin
+  if GotoItem(Focused) then
+    PutCommand(Owner,evCommand,cmClose,nil);
+end;
+
+procedure TSymbolView.TrackSource;
+begin
+  TrackItem(Focused,false);
 end;
 
 procedure TSymbolView.HandleEvent(var Event: TEvent);
@@ -494,9 +556,11 @@ begin
         DontClear:=false;
         case Event.KeyCode of
           kbEnter :
-            GotoItem(Focused);
+            Browse;
+          kbCtrlEnter :
+            GotoSource;
           kbSpaceBar :
-            TrackItem(Focused);
+            TrackSource;
           kbRight,kbLeft :
             if HScrollBar<>nil then
               HScrollBar^.HandleEvent(Event);
@@ -505,8 +569,37 @@ begin
         if DontClear=false then ClearEvent(Event);
       end;
     evMouseDown :
-      if Event.double then
-        GotoItem(Focused);
+      begin
+        if Event.double then
+          begin
+            Browse;
+            ClearEvent(Event);
+          end;
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmSymBrowse :
+            Browse;
+          cmSymGotoSource :
+            GotoSource;
+          cmSymTrackSource :
+            TrackSource;
+          cmSymOptions :
+            OptionsDlg;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+    evBroadcast :
+      case Event.Command of
+        cmListFocusChanged :
+         if Event.InfoPtr=@Self then
+          if (MiscOptions and moAutoTrackSource)<>0 then
+            if GetState(sfFocused) then
+              AutoTrackSource;
+      end;
   end;
   inherited HandleEvent(Event);
 end;
@@ -518,14 +611,27 @@ begin
   GetPalette:=@P;
 end;
 
-procedure TSymbolView.GotoItem(Item: sw_integer);
+function TSymbolView.GetLocalMenu: PMenu;
 begin
-  SelectItem(Item);
+  GetLocalMenu:=NewMenu(
+    NewItem('~B~rowse','',kbNoKey,cmSymBrowse,hcSymBrowse,
+    NewItem('~G~oto source','',kbNoKey,cmSymGotoSource,hcSymGotoSource,
+    NewItem('~T~rack source','',kbNoKey,cmSymTrackSource,hcSymTrackSource,
+    NewLine(
+    NewItem('~O~ptions...','',kbNoKey,cmSymOptions,hcSymOptions,
+    nil))))));
 end;
 
-procedure TSymbolView.TrackItem(Item: sw_integer);
+function TSymbolView.GotoItem(Item: sw_integer): boolean;
 begin
   SelectItem(Item);
+  GotoItem:=true;
+end;
+
+function TSymbolView.TrackItem(Item: sw_integer; AutoTrack: boolean): boolean;
+begin
+  SelectItem(Item);
+  TrackItem:=true;
 end;
 
 function LastBrowserWindow: PBrowserWindow;
@@ -541,15 +647,18 @@ begin
   LastBrowserWindow:=BW;
 end;
 
-function TSymbolView.TrackReference(R: PReference): boolean;
+function TSymbolView.TrackReference(R: PReference; AutoTrack: boolean): boolean;
 var W: PSourceWindow;
     BW: PBrowserWindow;
     P: TPoint;
 begin
-  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+  ClearHighlights;
   Desktop^.Lock;
   P.X:=R^.Position.X-1; P.Y:=R^.Position.Y-1;
-  W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y,true);
+  if AutoTrack then
+    W:=SearchOnDesktop(R^.GetFileName,false)
+  else
+    W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y,true);
   if W<>nil then
   begin
     BW:=LastBrowserWindow;
@@ -563,6 +672,8 @@ begin
     W^.Editor^.SetLineFlagExclusive(lfHighlightRow,P.Y);
   end;
   Desktop^.UnLock;
+  if Assigned(W)=false then
+    ErrorBox('Can''t find '+R^.GetFileName,nil);
   TrackReference:=W<>nil;
 end;
 
@@ -571,8 +682,11 @@ var W: PSourceWindow;
 begin
   Desktop^.Lock;
   W:=TryToOpenFile(nil,R^.GetFileName,R^.Position.X-1,R^.Position.Y-1,true);
-  if W<>nil then W^.Select;
+  if Assigned(W) then
+    W^.Select;
   Desktop^.UnLock;
+  if Assigned(W)=false then
+    ErrorBox('Can''t find '+R^.GetFileName,nil);
   GotoReference:=W<>nil;
 end;
 
@@ -651,18 +765,34 @@ begin
   DrawView;
 end;
 
-procedure TSymbolScopeView.GotoItem(Item: sw_integer);
+function TSymbolScopeView.GotoItem(Item: sw_integer): boolean;
+var S: PSymbol;
+    OK: boolean;
 begin
-  SelectItem(Item);
+  OK:=Range>0;
+  if OK then
+  begin
+    S:=List^.At(Item);
+    OK:=(S^.References<>nil) and (S^.References^.Count>0);
+    if OK then
+      OK:=GotoReference(S^.References^.At(0));
+  end;
+  GotoItem:=OK;
 end;
 
-procedure TSymbolScopeView.TrackItem(Item: sw_integer);
+function TSymbolScopeView.TrackItem(Item: sw_integer; AutoTrack: boolean): boolean;
 var S: PSymbol;
+    OK: boolean;
 begin
-  if Range=0 then Exit;
-  S:=List^.At(Item);
-  if (S^.References<>nil) and (S^.References^.Count>0) then
-    TrackReference(S^.References^.At(0));
+  OK:=Range>0;
+  if OK then
+  begin
+    S:=List^.At(Item);
+    OK:=(S^.References<>nil) and (S^.References^.Count>0);
+    if OK then
+      OK:=TrackReference(S^.References^.At(0),AutoTrack);
+  end;
+  TrackItem:=OK;
 end;
 
 procedure TSymbolScopeView.SetGDBCol;
@@ -714,11 +844,32 @@ end;
 
 procedure TSymbolReferenceView.HandleEvent(var Event: TEvent);
 var OldFocus: sw_integer;
+    DontClear: boolean;
 begin
   OldFocus:=Focused;
+{  case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbEnter :
+            TrackItem(Focused,false);
+          kbCtrlEnter :
+            GotoItem(Focused);
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+  end;}
   inherited HandleEvent(Event);
   if OldFocus<>Focused then
-    Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+   if (MiscOptions and moAutoTrackSource)=0 then
+    ClearHighlights;
+end;
+
+procedure TSymbolReferenceView.Browse;
+begin
+  { do nothing here }
 end;
 
 function TSymbolReferenceView.GetText(Item,MaxLen: Sw_Integer): String;
@@ -730,16 +881,22 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
-procedure TSymbolReferenceView.GotoItem(Item: sw_integer);
+function TSymbolReferenceView.GotoItem(Item: sw_integer): boolean;
+var OK: boolean;
 begin
-  if Range=0 then Exit;
-  GotoReference(List^.At(Item));
+  OK:=Range>0;
+  if OK then
+    OK:=GotoReference(List^.At(Item));
+  GotoItem:=OK;
 end;
 
-procedure TSymbolReferenceView.TrackItem(Item: sw_integer);
+function TSymbolReferenceView.TrackItem(Item: sw_integer; AutoTrack: boolean): boolean;
+var OK: boolean;
 begin
-  if Range=0 then Exit;
-  TrackReference(List^.At(Item));
+  OK:=Range>0;
+  if OK then
+    OK:=TrackReference(List^.At(Item),AutoTrack);
+  TrackItem:=OK;
 end;
 
 procedure TSymbolReferenceView.SelectItem(Item: Sw_Integer);
@@ -854,6 +1011,28 @@ end;
 function TSymbolInheritanceView.IsExpanded(Node: Pointer): Boolean;
 begin
   IsExpanded:=PObjectSymbol(Node)^.Expanded;
+end;
+
+procedure TSymbolInheritanceView.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+begin
+  case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbLeft,kbRight,
+          kbCtrlLeft,kbCtrlRight :
+            if Assigned(HScrollBar) then
+              HScrollBar^.HandleEvent(Event)
+            else
+              DontClear:=true;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
 end;
 
 function TSymbolInheritanceView.GetPalette: PPalette;
@@ -1005,6 +1184,7 @@ begin
         DontClear:=false; Idx:=-1;
         for I:=0 to GetItemCount-1 do
           if GetCtrlCode(GetItem(I)^.Sign)=Event.KeyCode then
+           if (Flags and (1 shl I))<>0 then
             begin
               Idx:=I;
               Break;
@@ -1097,7 +1277,9 @@ begin
     end;
   if assigned(AInheritance) then
     begin
-      New(InheritanceView, Init(R, nil,nil, AInheritance));
+      HSB:=CreateHSB(R); Insert(HSB);
+      VSB:=CreateVSB(R); Insert(VSB);
+      New(InheritanceView, Init(R, HSB,VSB, AInheritance));
       InheritanceView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(InheritanceView);
       InheritanceView^.MyBW:=@Self;
@@ -1220,18 +1402,17 @@ begin
 end;
 
 procedure TBrowserWindow.SetState(AState: Word; Enable: Boolean);
-var OldState: word;
+{var OldState: word;}
 begin
-  OldState:=State;
+{  OldState:=State;}
   inherited SetState(AState,Enable);
-  if ((State xor OldState) and sfActive)<>0 then
+{  if ((State xor OldState) and sfActive)<>0 then
     if GetState(sfActive)=false then
-      Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+      Message(Desktop,evBroadcast,cmClearLineHighlights,nil);}
 end;
 
 procedure TBrowserWindow.Close;
 begin
-  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
   inherited Close;
 end;
 
@@ -1370,7 +1551,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2000-03-21 23:26:55  pierre
+  Revision 1.25  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.24  2000/03/21 23:26:55  pierre
    adapted to wcedit addition
 
   Revision 1.23  2000/03/15 10:29:03  pierre

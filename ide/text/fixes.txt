@@ -1,0 +1,45 @@
+========================= Fixes to apply ==============================
+
+The GO32 mouse.inc (API) displays a message ("No mouse driver found!") when
+it doesn't find a mouse driver. This message should be removed.
+
+========================= Already fixed ================================
+
+ [*] when saving a file with different name (or saving a new file) the
+     default extension of '.pas' wasn't applied to the name specified
+ [*] THelpViewer didn't care about LockFlag, and thus flickered on complex
+     updates
+ [*] sever sheets of the symbol browser were selectable thru keyboard, even
+     when they were disabled/non-visible
+ [*] Ctrl--> and Ctrl-<- skipped over '[' and ']'
+ [*] unsaved new windows (nonamexx.pas) aren't stored to desktop file any more
+     (on the next startup the IDE tried to open the file with no name)
+ [*] clock view didn't stay in the upper left corner when the desktop has been
+     resized (for ex. at video-mode change)
+ [*] the IDE didn't switch correctly between video modes
+     (especially 80x50 caused trouble)
+ [*] buttons in Breakpoints window didn't move when resizing the window
+ [*] tracking source didn't work correctly (for ex. in symbol browser,msgs,..)
+ [*] symbol browser didn't respond to Ctrl+Enter (goto source)
+ [*] symbol browser views' behaviour unified
+ [*] BuildObjectTree failed to build the object tree correctly when there were
+     multiple objects defined with the same name. for ex. in object pascal mode
+     there are 2 objects called TObject (the built-in base object for classes
+     and the one in objects.pp) and thus the entire object tree of TObject
+     object was "lost"
+ [*] in the linking state the text 'Please wait...' is displayed now, instead
+     of 'Press Esc to cancel' (which won't work and is incorrect)
+ [+] Inheritance symbol viewer scrolls now, and acts on [Ctrl+]Left,Right keys
+
+========================== Other improvements ============================
+
+ [+] at startup the IDE checks whether there's a file called FP.ANS in any
+     of the search directories, and if it founds one, then loads it as the
+     background for the desktop (the file is interpreted as an ANSI file)
+     (Peter, you can finally put your favorite FPC-logo on your desktop now ;)
+ [+] 'Auto track source' option implemented (-> symbol browser)
+ [+] 'Compiler messages' window is only shown when there's something to
+     display (ie. if there's no error/message, then it won't be shown)
+
+=========================== Todo ========================================
+

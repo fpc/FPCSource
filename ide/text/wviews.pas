@@ -274,10 +274,8 @@ procedure TrackMouse;
 var
   Mouse: TPoint;
   R: TRect;
-  OldC: PMenuItem;
 begin
   MakeLocal(E.Where, Mouse);
-  OldC:=Current;
   Current := Menu^.Items;
   while Current <> nil do
   begin
@@ -291,7 +289,7 @@ begin
   end;
   if (Current<>nil) and IsDisabled(Current) then
   begin
-     Current:={OldC}nil;
+     Current:=nil;
      MouseActive:=false;
   end;
 end;
@@ -1610,9 +1608,9 @@ begin
 end;
 
 procedure TDDHelperLB.SetState(AState: Word; Enable: Boolean);
-var OState: longint;
+{var OState: longint;}
 begin
-  OState:=State;
+{  OState:=State;}
   inherited SetState(AState,Enable);
 {  if (((State xor OState) and sfFocused)<>0) and (GetState(sfFocused)=false) then
     Link^.DropList(false);}
@@ -2079,7 +2077,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2000-01-10 15:53:37  pierre
+  Revision 1.12  2000-04-18 11:42:39  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.11  2000/01/10 15:53:37  pierre
   * WViews objects were not registered
 
   Revision 1.10  1999/08/03 20:22:46  peter

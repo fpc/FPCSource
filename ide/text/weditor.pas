@@ -1,5 +1,4 @@
 {
-    $Id$
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -748,7 +747,7 @@ end;
 
 function IsWordSeparator(C: char): boolean;
 begin
-  IsWordSeparator:=C in[' ',#0,#255,':','=','''','"','.',',','/',';','$','#','(',')','<','>','^','*','+','-','?','&'];
+  IsWordSeparator:=C in[' ',#0,#255,':','=','''','"','.',',','/',';','$','#','(',')','<','>','^','*','+','-','?','&','[',']'];
 end;
 
 function IsSpace(C: char): boolean;
@@ -2007,11 +2006,9 @@ var
   end;
 
 var CurLine: Sw_integer;
-    Line,NextLine,PrevLine,OldLine: PCustomLine;
-    B: PEditorBinding;
+    Line,NextLine,PrevLine{,OldLine}: PCustomLine;
     PrevLI,LI,NextLI: PEditorLineInfo;
 begin
-  B:=SearchBinding(Editor);
   if (not Editor^.IsFlagSet(efSyntaxHighlight)) or (FromLine>=GetLineCount) then
   begin
     SetLineFormat(Editor,FromLine,'');
@@ -2059,7 +2056,7 @@ begin
        CurrentCommentType:=0;
        InDirective:=false;
      end;
-    OldLine:=Line;
+{    OldLine:=Line;}
     LI^.BeginsWithAsm:=InAsm;
     LI^.BeginsWithComment:=InComment;
     LI^.BeginsWithDirective:=InDirective;
@@ -2793,6 +2790,7 @@ procedure TCustomCodeEditor.SetLineFlagExclusive(Flags: longint; LineNo: sw_inte
 var I,Count: sw_integer;
     L: PCustomLine;
 begin
+  Lock;
   Count:=GetLineCount;
   for I:=0 to Count-1 do
   begin
@@ -2802,6 +2800,7 @@ begin
     else
       L^.SetFlags(L^.GetFlags and (not Flags));
   end;
+  UnLock;
 end;
 
 procedure TCustomCodeEditor.HandleEvent(var Event: TEvent);
@@ -3601,7 +3600,7 @@ begin
   end;
   IndentStr:=CharStr(' ',Ind);
 end;
-var SelBack: sw_integer;
+var {SelBack: sw_integer;}
     SCP: TPoint;
     HoldUndo : Boolean;
 begin
@@ -3613,11 +3612,11 @@ begin
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
   if Overwrite=false then
   begin
-    SelBack:=0;
+{    SelBack:=0;}
     if GetLineCount>0 then
     begin
       S:=GetDisplayText(CurPos.Y);
-      SelBack:=length(S)-SelEnd.X;
+{      SelBack:=length(S)-SelEnd.X;}
       SetDisplayText(CurPos.Y,RTrim(S,not IsFlagSet(efUseTabCharacters)));
     end;
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
@@ -3950,43 +3949,52 @@ begin
   LineCount:=(SelEnd.Y-SelStart.Y)+1;
   LineDelta:=0; LastX:=CurPos.X;
   CurLine:=SelStart.Y;
-  while (LineDelta<LineCount) do
-  begin
-    S:=GetDisplayText(CurLine);
-    if LineDelta=0 then StartX:=SelStart.X else StartX:=0;
-    if LineDelta=LineCount-1 then EndX:=SelEnd.X else EndX:=length(S);
-    if (LineDelta<LineCount-1) and ((StartX=0) and (EndX>=length(S))) then
-      begin
-      { delete the complete line }
-        DeleteLine(CurLine);
-        if CurLine>0 then
-          LastX:=length(GetDisplayText(CurLine-1))
-        else
-          LastX:=0;
-      end
-    else
-      begin
-        if GetStoreUndo then
-          begin
-            SPos.X:=StartX;
-            SPos.Y:=CurLine;
-            AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,EndX-StartX));
-          end;
-        SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)+copy(S,EndX+1,255));
-        LastX:=StartX;
-        if (StartX=0) and (0<LineDelta) and
-           not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
-          begin
-            S:=GetDisplayText(CurLine-1);
-            SetDisplayText(CurLine-1,S+GetLineText(CurLine));
-            DeleteLine(CurLine);
-            LastX:=length(S);
-          end
-        else
-         Inc(CurLine);
-      end;
-    Inc(LineDelta);
-  end;
+  { single line : easy }
+  if LineCount=1 then
+    begin
+      S:=GetDisplayText(CurLine);
+      StartX:=SelStart.X;
+      EndX:=SelEnd.X;
+      SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)
+        +copy(S,EndX+1,255));
+      if GetStoreUndo then
+        begin
+          SPos.X:=StartX;
+          SPos.Y:=CurLine;
+          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,EndX-StartX));
+        end;
+      Inc(CurLine);
+      LastX:=SelStart.X;
+    end
+  { several lines : a bit less easy }
+  else
+    begin
+      S:=GetDisplayText(CurLine);
+      StartX:=SelStart.X;
+      EndX:=SelEnd.X;
+      SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)
+        +copy(GetDisplayText(CurLine+LineCount-1),EndX+1,255));
+      if GetStoreUndo then
+        begin
+          SPos.X:=StartX;
+          SPos.Y:=CurLine;
+          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,255));
+          S:=GetDisplayText(CurLine+LineCount-1);
+        end;
+      Inc(CurLine);
+      Inc(LineDelta);
+      LastX:=SelStart.X;
+      while (LineDelta<LineCount) do
+        begin
+        { delete the complete line }
+          DeleteLine(CurLine);
+          Inc(LineDelta);
+        end;
+      if GetStoreUndo then
+        begin
+          AddAction(eaInsertText,SPos,SPos,Copy(S,EndX+1,255));
+        end;
+    end;
   HideSelect;
   SetCurPtr(LastX,CurLine-1);
   UpdateAttrs(CurPos.Y,attrAll);
@@ -4890,14 +4898,14 @@ begin
 end;
 
 procedure TCustomCodeEditor.SetCurPtr(X,Y: sw_integer);
-var OldPos,OldSEnd,OldSStart: TPoint;
+var OldPos,{OldSEnd,}OldSStart: TPoint;
     Extended: boolean;
 begin
   Lock;
   X:=Max(0,Min(MaxLineLength+1,X));
   Y:=Max(0,Min(GetLineCount-1,Y));
   OldPos:=CurPos;
-  OldSEnd:=SelEnd;
+{  OldSEnd:=SelEnd;}
   OldSStart:=SelStart;
   CurPos.X:=X;
   CurPos.Y:=Y;
@@ -5488,7 +5496,7 @@ begin
         if (Length(FileDir)>1) and (FileDir[2]=':') then
           begin
             { does not assume that lowercase are greater then uppercase ! }
-            if (FileDir[1]>='a') and (FileDir[1]>='z') then
+            if (FileDir[1]>='a') and (FileDir[1]<='z') then
               DriveNumber:=Ord(FileDir[1])-ord('a')+1
             else
               DriveNumber:=Ord(FileDir[1])-ord('A')+1;
@@ -5522,7 +5530,12 @@ begin
         Re:=Application^.ExecuteDialog(New(PFileDialog, Init(DefExt,
           Title, '~N~ame', fdOkButton, FileId)), @Name);
         case Dialog of
-          edSaveAs     : AskOW:=(Name<>PString(Info)^);
+          edSaveAs     :
+            begin
+              if ExtOf(Name)='' then
+                Name:=Name+DefaultSaveExt;
+              AskOW:=(Name<>PString(Info)^);
+            end;
           edWriteBlock : AskOW:=true;
           edReadBlock  : AskOW:=false;
         else AskOW:=true;
@@ -5587,7 +5600,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.86  2000-03-23 21:36:19  pierre
+  Revision 1.87  2000-04-18 11:42:38  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.86  2000/03/23 21:36:19  pierre
    * get correct position in indicator again
 
   Revision 1.85  2000/03/21 23:17:47  pierre

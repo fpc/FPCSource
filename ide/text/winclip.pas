@@ -14,11 +14,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$i globdir.inc}
 unit WinClip;
 
 interface
 
-{$i globdir.inc}
 {$ifdef WinClipSupported}
 
 function WinClipboardSupported : boolean;
@@ -32,20 +32,23 @@ function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
 implementation
 
 {$ifdef WinClipSupported}
-{$ifdef go32v2}
+{$ifdef DOS}
   uses
-    strings,go32;
+{$ifdef go32v2}
+    go32,{ sorry Gabor, but its still not compiling without that ! }
 {$endif go32v2}
+    strings,dos,pmode;
+{$endif DOS}
 
 {$ifdef win32}
   uses
     strings,windows;
 {$endif win32}
 
-{$ifdef go32v2}
+{$ifdef DOS}
 function WinClipboardSupported : boolean;
 var
-  r : Registers;
+  r : registers;
 begin
   r.ax:=$1700;
   RealIntr($2F,r);
@@ -88,7 +91,7 @@ begin
   RealIntr($2F,r);
   InternGetDataSize:=(r.dx shl 16) + r.ax;
 end;
-{$endif go32v2}
+{$endif DOS}
 
 {$ifdef win32}
 function WinClipboardSupported : boolean;
@@ -135,11 +138,11 @@ end;
 
 function GetTextWinClipBoardData(var p : pchar;var l : longint) : boolean;
 var
-{$ifdef go32v2}
+{$ifdef DOS}
   r : Registers;
   tb_all : longint;
   tb_seg,tb_ofs,tb_sel : word;
-{$endif go32v2}
+{$endif DOS}
 {$ifdef win32}
   h : HGlobal;
   pp : pchar;
@@ -208,11 +211,11 @@ end;
 
 function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
 var
-{$ifdef go32v2}
+{$ifdef DOS}
   r : Registers;
   tb_all : longint;
   tb_seg,tb_ofs,tb_sel : word;
-{$endif go32v2}
+{$endif DOS}
 {$ifdef win32}
   h : HGlobal;
   pp : pchar;
@@ -270,7 +273,10 @@ end.
 
 {
  $Log$
- Revision 1.4  1999-11-05 13:46:26  pierre
+ Revision 1.5  2000-04-18 11:42:39  pierre
+  lot of Gabor changes : see fixes.txt
+
+ Revision 1.4  1999/11/05 13:46:26  pierre
    * Use CF_OEMTEXT under win32 and dx=7 under go32v2 to obtain
      OEM to ANSI conversion
    * GetClipboardDataSize for Win32

@@ -131,6 +131,8 @@ type
       procedure UpdateTools;
     end;
 
+procedure PutEvent(TargetView: PView; E: TEvent);
+procedure PutCommand(TargetView: PView; What, Command: Word; InfoPtr: Pointer);
 
 var
   IDEApp: TIDEApp;
@@ -156,6 +158,61 @@ uses
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
 
+type
+   TTargetedEvent = record
+     Target: PView;
+     Event: TEvent;
+   end;
+
+const
+     TargetedEventHead   : integer = 0;
+     TargetedEventTail   : integer = 0;
+var
+     TargetedEvents      : array[0..10] of TTargetedEvent;
+
+function IncTargetedEventPtr(I: integer): integer;
+begin
+  Inc(I);
+  if I>High(TargetedEvents) then I:=Low(TargetedEvents);
+  IncTargetedEventPtr:=I;
+end;
+
+procedure PutEvent(TargetView: PView; E: TEvent);
+begin
+  if IncTargetedEventPtr(TargetedEventHead)=TargetedEventTail then Exit;
+  with TargetedEvents[TargetedEventHead] do
+  begin
+    Target:=TargetView;
+    Event:=E;
+  end;
+  TargetedEventHead:=IncTargetedEventPtr(TargetedEventHead);
+end;
+
+procedure PutCommand(TargetView: PView; What, Command: Word; InfoPtr: Pointer);
+var E: TEvent;
+begin
+  FillChar(E,Sizeof(E),0);
+  E.What:=What;
+  E.Command:=Command;
+  E.InfoPtr:=InfoPtr;
+  PutEvent(TargetView,E);
+end;
+
+function GetTargetedEvent(var P: PView; var E: TEvent): boolean;
+var OK: boolean;
+begin
+  OK:=TargetedEventHead<>TargetedEventTail;
+  if OK then
+  begin
+    with TargetedEvents[TargetedEventTail] do
+    begin
+      P:=Target;
+      E:=Event;
+    end;
+    TargetedEventTail:=IncTargetedEventPtr(TargetedEventTail);
+  end;
+  GetTargetedEvent:=OK;
+end;
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -185,6 +242,7 @@ begin
   InsideDone:=false;
   MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
   New(ClockView, Init(R));
+  ClockView^.GrowMode:=gfGrowLoX+gfGrowHiX;
   Application^.Insert(ClockView);
   New(ClipboardWindow, Init);
   Desktop^.Insert(ClipboardWindow);
@@ -437,7 +495,11 @@ begin
 end;
 
 procedure TIDEApp.GetEvent(var Event: TEvent);
+var P: PView;
 begin
+  { first of all dispatch queued targeted events }
+  while GetTargetedEvent(P,Event) do
+    P^.HandleEvent(Event);
   inherited GetEvent(Event);
   if Event.What<>evNothing then
     LastEvent:=GetDosTicks
@@ -773,10 +835,10 @@ end;
 
 procedure TIDEApp.UpdateRecentFileList;
 var P: PMenuItem;
-    ID,I: word;
+    {ID,}I: word;
     FileMenu: PMenuItem;
 begin
-  ID:=cmRecentFileBase;
+{  ID:=cmRecentFileBase;}
   FileMenu:=SearchSubMenu(MenuBar^.Menu,menuFile);
   repeat
 {    Inc(ID);
@@ -813,12 +875,12 @@ end;
 
 procedure TIDEApp.UpdateTools;
 var P: PMenuItem;
-    ID,I: word;
+{    ID,}I: word;
     ToolsMenu: PMenuItem;
     S1,S2,S3: string;
     W: word;
 begin
-  ID:=cmToolsBase;
+{  ID:=cmToolsBase;}
   ToolsMenu:=SearchSubMenu(MenuBar^.Menu,menuTools);
   repeat
     P:=GetMenuItemBefore(ToolsMenu^.SubMenu,nil);
@@ -927,7 +989,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.56  2000-03-21 23:30:49  pierre
+  Revision 1.57  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.56  2000/03/21 23:30:49  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.55  2000/03/13 20:41:35  pierre

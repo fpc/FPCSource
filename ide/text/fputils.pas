@@ -151,9 +151,11 @@ end;
 function FixFileName(const s:string):string;
 var
   i      : longint;
+{$ifdef Linux}
   NoPath : boolean;
+{$endif}
 begin
-  NoPath:=true;
+  {$ifdef Linux}NoPath:=true;{$endif}
   for i:=length(s) downto 1 do
    begin
      case s[i] of
@@ -662,7 +664,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2000-01-03 11:38:34  michael
+  Revision 1.15  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.14  2000/01/03 11:38:34  michael
   Changes from Gabor
 
   Revision 1.13  1999/04/15 08:58:07  peter

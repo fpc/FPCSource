@@ -242,7 +242,7 @@ procedure TIDEApp.DoToggleBreak;
 var
   W : PSourceWindow;
   FileName : string;
-  b : boolean;
+{  b : boolean;}
   LineNr : longint;
 {$endif}
 begin
@@ -259,7 +259,7 @@ begin
     begin
       FileName:=W^.Editor^.FileName;
       LineNr:=W^.Editor^.CurPos.Y+1;
-      b:=BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
+{      b:=}BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
       {W^.Editor^.SetLineBreakState(LineNr,b);
         already done PM }
     end;
@@ -270,7 +270,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2000-03-21 23:27:35  pierre
+  Revision 1.31  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.30  2000/03/21 23:27:35  pierre
    Gabor fixes to avoid unused vars
 
   Revision 1.29  2000/03/08 16:58:12  pierre

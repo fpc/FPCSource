@@ -72,6 +72,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
+      BackgroundPath   : string{$ifdef GABOR}[80]{$endif} = BackgroundName;
       DesktopPath      : string{$ifdef GABOR}[80]{$endif} = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
                                    dfCodeCompleteWords+dfCodeTemplates;
@@ -99,7 +100,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.30  2000-03-13 20:35:36  pierre
+  Revision 1.31  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.30  2000/03/13 20:35:36  pierre
     * IniPath replaced by IniFileName
     + UseMouse variable
 

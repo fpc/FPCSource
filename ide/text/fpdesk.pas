@@ -45,7 +45,7 @@ implementation
 uses Dos,
      Objects,Drivers,Video,
      Views,App,HistList,BrowCol,
-     WResource,WViews,WEditor,
+     WResourc,WViews,WEditor,
      WUtils,
 {$ifndef NODEBUG}
      fpdebug,
@@ -259,7 +259,6 @@ end;
 function ReadOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
-    R : TRect;
     W: word;
     WI: TWindowInfo;
     Title: string;
@@ -406,6 +405,11 @@ begin
      (P^.HelpCtx=hcASCIITableWindow)
    then
      W:=PWindow(P);
+
+  if Assigned(W) and (P^.HelpCtx=hcSourceWindow) then
+    if SW^.Editor^.FileName='' then
+      W:=nil;
+
   if W=nil then Exit;
   FillChar(WI,sizeof(WI),0);
   Title:=W^.GetTitle(255);
@@ -457,6 +461,12 @@ begin
       PutSubViewPtr(S^,UserScreenWindow);
       PutSubViewPtr(S^,ASCIIChart);
       PutSubViewPtr(S^,MessagesWindow);
+    end;}
+{    PV:=Application^.Last;
+    while PV<>nil do
+    begin
+      CollectInfo(PV);
+      PV:=PV^.PrevView;
     end;}
     PV:=Desktop^.Last;
     while PV<>nil do
@@ -671,7 +681,10 @@ begin
     VOK:=ReadVideoMode(F,VM);
     if VOK and ((VM.Col<>ScreenMode.Col) or
        (VM.Row<>ScreenMode.Row) or (VM.Color<>ScreenMode.Color)) then
-      Application^.SetScreenVideoMode(VM);
+      begin
+        if Assigned(Application) then
+          Application^.SetScreenVideoMode(VM);
+      end;
     if ((DesktopFileFlags and dfHistoryLists)<>0) then
       OK:=OK and ReadHistory(F);
     if ((DesktopFileFlags and dfWatches)<>0) then
@@ -779,7 +792,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2000-03-21 23:32:05  pierre
+  Revision 1.26  2000-04-18 11:42:36  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.25  2000/03/21 23:32:05  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.24  2000/03/20 19:19:46  pierre

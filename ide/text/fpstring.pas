@@ -59,7 +59,7 @@ unit fpstring;
       menu_search_objects    = '~O~bjects';
       menu_search_modules    = 'Mod~u~les';
       menu_search_globals    = 'G~l~obals';
-      menu_search_symbol     = 'S~y~mbol';
+      menu_search_symbol     = 'S~y~mbol...';
 
       menu_run               = '~R~un';
       menu_run_run           = '~R~un';
@@ -222,7 +222,10 @@ unit fpstring;
 end.
 {
   $Log$
-  Revision 1.2  2000-02-07 08:29:13  michael
+  Revision 1.3  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.2  2000/02/07 08:29:13  michael
   [*] the fake (!) TOKENS.PAS still contained the typo bug
        FSplit(,n,d,e) (correctly FSplit(,d,n,e))
   [*] CodeComplete had a very ugly bug - coordinates were document-relative

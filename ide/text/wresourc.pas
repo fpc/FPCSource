@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit WResource;
+unit WResourc;
 
 interface
 
@@ -791,7 +791,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2000-02-07 08:29:14  michael
+  Revision 1.9  2000-04-18 11:42:39  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.8  2000/02/07 08:29:14  michael
   [*] the fake (!) TOKENS.PAS still contained the typo bug
        FSplit(,n,d,e) (correctly FSplit(,d,n,e))
   [*] CodeComplete had a very ugly bug - coordinates were document-relative

@@ -111,7 +111,10 @@ end;
 procedure TWindowListDialog.UpdateList;
 procedure AddIt(P: PView); {$ifndef FPC}far;{$endif}
 begin
-  if (P<>pointer(Desktop^.Background)) and (P^.GetState(sfVisible)) then
+  if (P<>pointer(Desktop^.Background)) and
+     (P^.GetState(sfDisabled)=false) and
+     ((P^.Options and ofSelectable)<>0) and
+     (P^.GetState(sfVisible)) then
      C^.Insert(P);
 end;
 begin
@@ -165,7 +168,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2000-03-07 21:51:52  pierre
+  Revision 1.16  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.15  2000/03/07 21:51:52  pierre
    * Reconginze UserScreenWindow
 
   Revision 1.14  2000/01/28 22:36:46  pierre

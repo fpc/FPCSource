@@ -72,7 +72,7 @@ type
       procedure   DeleteEntry(const Section, Tag: string);
       destructor  Done; virtual;
     private
-      ReadOnly: boolean;
+{      ReadOnly: boolean;}
       Sections: PCollection;
       FileName: PString;
     end;
@@ -478,7 +478,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-03-08 14:58:21  peter
+  Revision 1.9  2000-04-18 11:42:39  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.8  1999/03/08 14:58:21  peter
     + prompt with dialogs for tools
 
   Revision 1.7  1999/03/05 17:53:03  pierre

@@ -34,6 +34,7 @@ const
      SwitchesName         = 'fp.cfg';
      DesktopName          = 'fp.dsk';
      BrowserName          = 'fp.brw';
+     BackgroundName       = 'fp.ans';
 
      ToolCaptureName      = '__tool__.out'; { all '$' signs replaces with '_'s }
      FilterCaptureName    = '_filter_.out';
@@ -206,6 +207,11 @@ const
 
      cmDebuggerStopped   = 2600;
 
+     cmSymBrowse         = 2700;
+     cmSymGotoSource     = 2701;
+     cmSymTrackSource    = 2702;
+     cmSymOptions        = 2703;
+
      { Help constants }
      hcSourceWindow      = 8000;
      hcHelpWindow        = 8001;
@@ -313,6 +319,10 @@ const
      hcMsgClear          = hcShift+cmMsgClear;
      hcMsgGotoSource     = hcShift+cmMsgGotoSource;
      hcMsgTrackSource    = hcShift+cmMsgTrackSource;
+     hcSymBrowse         = hcShift+cmSymBrowse;
+     hcSymGotoSource     = hcShift+cmSymGotoSource;
+     hcSymTrackSource    = hcShift+cmSymTrackSource;
+     hcSymOptions        = hcShift+cmSymOptions;
      hcGotoCursor        = hcShift+cmGotoCursor;
      hcNewBreakpoint     = hcShift+cmNewBreakpoint;
      hcEditBreakpoint    = hcShift+cmEditBreakpoint;
@@ -386,7 +396,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.35  2000-03-14 14:16:13  pierre
+  Revision 1.36  2000-04-18 11:42:36  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.35  2000/03/14 14:16:13  pierre
    + cmDebuggerStopped
 
   Revision 1.34  2000/02/07 11:51:40  pierre

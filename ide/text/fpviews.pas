@@ -27,7 +27,7 @@ uses
 {$else}
   WEditor,WCEdit,
 {$endif}
-  WUtils,WHelp,WHlpView,WViews,
+  WUtils,WHelp,WHlpView,WViews,WANSI,
   Comphook,
   FPConst,FPUsrScr;
 
@@ -66,7 +66,7 @@ type
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
-      procedure   Update;
+      procedure   Update; virtual;
     end;
 
     PFPHelpViewer = ^TFPHelpViewer;
@@ -346,6 +346,8 @@ type
 
     PFPDesktop = ^TFPDesktop;
     TFPDesktop = object(TDesktop)
+      constructor Init(var Bounds: TRect);
+      procedure   InitBackground; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
     end;
@@ -766,8 +768,11 @@ begin
   end;
   Match:=OK;
 end;
+var W: PView;
 begin
-  SearchWindow:=PWindow(Desktop^.FirstThat(@Match));
+  W:=Application^.FirstThat(@Match);
+  if Assigned(W)=false then W:=Desktop^.FirstThat(@Match);
+  SearchWindow:=PWindow(W);
 end;
 
 function SearchFreeWindowNo: integer;
@@ -1003,8 +1008,8 @@ begin
        if is_grouped_action then
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
        else
-         AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
-           ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
+         AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.Y+1)+':'+IntToStr(StartPos.X+1)+
+           ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetStr(Text)+'"',0,0);
       end;
   if Core^.RedoList^.count>0 then
     AddToolCommand('RedoList Dump');
@@ -1014,8 +1019,8 @@ begin
        if is_grouped_action then
          AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
        else
-         AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
-         ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
+         AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.Y)+':'+IntToStr(StartPos.X+1)+
+         ' '+IntToStr(EndPos.Y+1)+':'+IntToStr(EndPos.X+1)+' "'+GetStr(Text)+'"',0,0);
       end;
   UpdateToolMessages;
   if Assigned(MessagesWindow) then
@@ -3107,6 +3112,35 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
+constructor TFPDesktop.Init(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+end;
+
+procedure TFPDesktop.InitBackground;
+var AV: PANSIBackground;
+    FileName: string;
+    R: TRect;
+begin
+  AV:=nil;
+  FileName:=LocateFile(BackgroundPath);
+  if FileName<>'' then
+  begin
+    GetExtent(R);
+    New(AV, Init(R));
+    AV^.GrowMode:=gfGrowHiX+gfGrowHiY;
+    if AV^.LoadFile(FileName)=false then
+    begin
+      Dispose(AV, Done); AV:=nil;
+    end;
+    if Assigned(AV) then
+      Insert(AV);
+  end;
+  Background:=AV;
+  if Assigned(Background)=false then
+    inherited InitBackground;
+end;
+
 constructor TFPDesktop.Load(var S: TStream);
 begin
   inherited Load(S);
@@ -3308,7 +3342,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.66  2000-03-23 22:22:25  pierre
+  Revision 1.67  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.66  2000/03/23 22:22:25  pierre
    * file loading problem fixed
 
   Revision 1.65  2000/03/21 23:25:16  pierre

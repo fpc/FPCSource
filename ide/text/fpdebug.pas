@@ -1643,6 +1643,7 @@ var R,R2: TRect;
     ST: PStaticText;
     S: String;
     X,X1 : Sw_integer;
+    Btn: PButton;
 const White = 15;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
@@ -1674,16 +1675,24 @@ begin
   X:=(R.B.X-R.A.X) div 4;
   X1:=R.A.X+(X div 2);
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~C~lose', cmClose, bfDefault)));
+  New(Btn, Init(R, '~C~lose', cmClose, bfDefault));
+  Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Btn);
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~N~ew', cmNewBreakpoint, bfNormal)));
+  New(Btn, Init(R, '~N~ew', cmNewBreakpoint, bfNormal));
+  Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Btn);
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~E~dit', cmEditBreakpoint, bfNormal)));
+  New(Btn, Init(R, '~E~dit', cmEditBreakpoint, bfNormal));
+  Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Btn);
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteBreakpoint, bfNormal)));
+  New(Btn, Init(R, '~D~elete', cmDeleteBreakpoint, bfNormal));
+  Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Btn);
   BreakLB^.Select;
   Update;
   BreakpointsWindow:=@self;
@@ -2731,10 +2740,10 @@ end;
        p,po : pchar;
        p1 : pchar;
     {$ifndef NODEBUG}
-       reg,value : string;
+{       reg,value : string;
        buffer : array[0..255] of char;
        v : dword;
-       code : word;
+       code : word;}
     {$endif}
 
     begin
@@ -2826,7 +2835,7 @@ end;
 
     var
        rs : tfpuregs;
-       color :byte;
+{       color :byte;
 
     procedure SetColor(x,y : longint);
     begin
@@ -2834,7 +2843,7 @@ end;
         color:=7
       else
         color:=8;
-    end;
+    end;}
 
     begin
        inherited draw;
@@ -3331,7 +3340,10 @@ end.
 
 {
   $Log$
-  Revision 1.58  2000-03-21 23:32:38  pierre
+  Revision 1.59  2000-04-18 11:42:36  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.58  2000/03/21 23:32:38  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.57  2000/03/14 14:22:30  pierre

@@ -104,7 +104,7 @@ type
         destructor  Done; virtual;
       private
         Width,Margin: sw_integer;
-        StockItem: boolean;
+{        StockItem: boolean;}
         procedure  ReBuild;
       end;
 
@@ -951,6 +951,14 @@ var NormalColor, LinkColor,
     C: word;
     CurP: TPoint;
 begin
+  if LockFlag>0 then
+    begin
+      DrawCalled:=true;
+      Exit;
+    end;
+  DrawCalled:=false;
+
+
   NormalColor:=GetColor(1); LinkColor:=GetColor(2);
   SelectColor:=GetColor(3); SelectionColor:=GetColor(4);
 {$ifndef EDITORS}
@@ -1139,7 +1147,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2000-03-21 23:21:38  pierre
+  Revision 1.13  2000-04-18 11:42:39  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.12  2000/03/21 23:21:38  pierre
    adapted to wcedit addition
 
   Revision 1.11  2000/02/07 08:29:13  michael

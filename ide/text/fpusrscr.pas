@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$i globdir.inc}
 unit FPUsrScr;
 
 interface
@@ -140,6 +140,9 @@ uses
     {$ifdef GO32V2}
     ,Go32
     {$endif}
+  {$endif}
+  {$ifdef VESA}
+    ,VESA
   {$endif}
   ;
 
@@ -353,7 +356,11 @@ begin
   MI.Mode:=r.al;
   MI.Page:=r.bh;
   MI.Cols:=r.ah;
+{$ifdef VESA}
+  VESAGetMode(MI.Mode);
+{$endif}
   MI.Rows:=MI.ScreenSize div (MI.Cols*2);
+  if MI.Rows=51 then MI.Rows:=50;
   r.ah:=$03;
   r.bh:=MI.Page;
   intr($10,r);
@@ -392,17 +399,31 @@ end;
 
 procedure TDOSScreen.SetVideoMode(MI: TDOSVideoInfo);
 var r: registers;
+    CM: TDOSVideoInfo;
 {$ifdef TP}
     P: pointer;
     Sel: longint;
 {$I realintr.inc}
 {$endif}
 begin
-  r.ah:=$0f;
-  intr($10,r);
-  if r.al<>MI.Mode then
+  FillChar(CM,sizeof(CM),0);
+  GetVideoMode(CM);
+
+  if (CM.Mode<>MI.Mode) or (CM.Cols<>MI.Cols) or (CM.Rows<>MI.Rows) then
    begin
-     r.ah:=$00; r.al:=MI.Mode; intr($10,r);
+     {$ifdef VESA}
+     if MI.Mode>=$100 then
+       VESASetMode(MI.Mode)
+     else
+     {$endif}
+       begin
+         r.ah:=$00; r.al:=MI.Mode; intr($10,r);
+       end;
+     if (MI.Mode=3) and (MI.Cols=80) and (MI.Rows=50) then
+     begin
+       r.ax:=$1112; r.bx:=$0;
+       intr($10,r);
+     end;
    end;
   r.ah:=$05; r.al:=MI.Page; intr($10,r);
   r.ah:=$02; r.bh:=MI.Page; r.dl:=MI.CurPos.X; r.dh:=MI.CurPos.Y; intr($10,r);
@@ -702,7 +723,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-03-13 20:30:37  pierre
+  Revision 1.11  2000-04-18 11:42:37  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.10  2000/03/13 20:30:37  pierre
    + stores IDE screen before Switching for DOS
 
   Revision 1.9  2000/02/04 23:17:25  pierre

@@ -193,6 +193,7 @@ BEGIN
   InitDesktopFile;
   LoadDesktop;
   ParseUserScreen;
+  { why are the screen contents parsed at startup? Gabor }
 
   { Update IDE }
   IDEApp.Update;
@@ -236,7 +237,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.42  2000-03-21 23:34:10  pierre
+  Revision 1.43  2000-04-18 11:42:36  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.42  2000/03/21 23:34:10  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.41  2000/03/13 20:41:34  pierre

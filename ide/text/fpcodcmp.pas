@@ -186,6 +186,8 @@ function TCodeCompleteDialog.Execute: Word;
 var R: word;
     C: PCodeCompleteWordList;
     I: integer;
+    S1,S2,S3: string;
+    W: word;
 begin
   New(C, Init(10,20));
   if Assigned(CodeCompleteWords) then

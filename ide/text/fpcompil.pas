@@ -61,7 +61,7 @@ type
       procedure   Store(var S: TStream);
     private
       {CompileShowed : boolean;}
-      Mode   : TCompileMode;
+      {Mode   : TCompileMode;}
       MsgLB  : PCompilerMessageListBox;
       {CurrST,
       InfoST : PColorStaticText;}
@@ -435,10 +435,11 @@ end;
 
 procedure TCompilerStatusDialog.Update;
 const
-  CtrlBS   = 'Press ESC to cancel';
-  SuccessS = 'Compile successful: ~Press Enter~';
-  FailS    = 'Compile failed';
-  AbortS   = 'Compile aborted';
+  CtrlBS      = 'Press ESC to cancel';
+  SuccessS    = 'Compile successful: ~Press Enter~';
+  FailS       = 'Compile failed';
+  AbortS      = 'Compile aborted';
+  PleaseWaitS = 'Please wait...';
 var
   StatusS,KeyS: string;
 begin
@@ -454,7 +455,7 @@ begin
     cpLinking   :
       begin
         StatusS:='Linking '+ExeFile;
-        KeyS:=CtrlBS;
+        KeyS:={CtrlBS}PleaseWaitS;
       end;
     cpDone      :
       begin
@@ -553,6 +554,10 @@ begin
      RedirDisableAll;
 {$endif}
 
+     if not CompilerMessageWindow^.GetState(sfVisible) then
+       CompilerMessageWindow^.Show;
+     if Desktop^.First<>PView(CompilerMessageWindow) then
+       CompilerMessageWindow^.MakeFirst;
      CompilerMessageWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
        status.currentline,status.currentcolumn);
      { update info messages }
@@ -648,9 +653,9 @@ begin
       Exit;
     end;
 { Show Compiler Messages Window }
-  if not CompilerMessageWindow^.GetState(sfVisible) then
+{  if not CompilerMessageWindow^.GetState(sfVisible) then
    CompilerMessageWindow^.Show;
-  CompilerMessageWindow^.MakeFirst;
+  CompilerMessageWindow^.MakeFirst;}
   CompilerMessageWindow^.ClearMessages;
   { Tell why we compile }
   NeedRecompile(true);
@@ -868,7 +873,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2000-03-23 22:23:21  pierre
+  Revision 1.55  2000-04-18 11:42:36  pierre
+   lot of Gabor changes : see fixes.txt
+
+  Revision 1.54  2000/03/23 22:23:21  pierre
    + Use PushStatus in ParseUserScreen
 
   Revision 1.53  2000/03/21 23:33:18  pierre
