@@ -153,6 +153,7 @@ Fixed bugs:
   bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (FK)
   bug0125.pp   wrong colors with DOS CRT unit                        OK 0.99.6 (PFV)
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
+  bug0127.pp   problem with cdecl in implementation part             OK 0.99.7 (PFV)
   bug0128.pp   problem with ^[                                       OK 0.99.6 (PFV)
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
   bug0130.pp   in [..#255] problem                                   OK 0.99.6 (PFV)
@@ -175,6 +176,8 @@ Fixed bugs:
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
                base type
+  bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
+  bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -202,13 +205,10 @@ bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
              because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
 
-bug0127.pp   problem with cdecl in implementation part
 bug0132.pp   segmentation fault with type loop
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
 bug0156.pp   (a,b) forward type def in record crashes when loading ppu
-bug0157.pp   Invalid compilation and also crashes
-bug0158.pp   Invalid boolean typecast
 bug0159.pp   Invalid virtual functions - should compile
