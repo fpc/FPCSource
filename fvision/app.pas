@@ -1,3 +1,5 @@
+
+{ $Id$}
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of APP.PAS          }
@@ -1294,6 +1296,12 @@ BEGIN
 END;
 
 END.
+{
+ $Log$
+ Revision 1.2  2000-08-24 11:43:13  marco
+  * Added CVS log and ID entries.
 
+
+}
 
 
