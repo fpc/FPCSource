@@ -300,7 +300,7 @@ del %FPCSNAPRTL%\*.oo2 >> %FPCERRLOG%
 del %FPCSNAPRTL%\ppas.bat >> %FPCERRLOG%
 del %FPCSNAPRTL%\ppas.cmd >> %FPCERRLOG%
 del %FPCSNAPRTL%\link.res >> %FPCERRLOG%
-goto ContCleanRTL
+goto ContClRTL
 :JPCleanRTL
 echo *Cleaning up the RTL ... >> %FPCERRLOG%
 del %OS2OPTF% >& nul >> %FPCERRLOG%
@@ -314,7 +314,7 @@ del %FPCSNAPRTL%\*.oo2 >& nul >> %FPCERRLOG%
 del %FPCSNAPRTL%\ppas.bat >& nul >> %FPCERRLOG%
 del %FPCSNAPRTL%\ppas.cmd >& nul >> %FPCERRLOG%
 del %FPCSNAPRTL%\link.res >& nul >> %FPCERRLOG%
-:ContCleanRTL
+:ContClRTL
 if %PARAMS% == rtl goto Branches
 :CleanCompiler
 if %@EVAL[0] == 0 goto JPCleanComp
@@ -336,7 +336,7 @@ del %FPCSNAPBIN%\ppos2.exe >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.bat >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.cmd >> %FPCERRLOG%
 del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
-goto ContCleanComp
+goto ContClComp
 :JPCleanComp
 echo *Cleaning up the compiler ... >> %FPCERRLOG%
 del %OS2OPTF% >& nul >> %FPCERRLOG%
@@ -356,7 +356,7 @@ del %FPCSNAPBIN%\ppos2.exe >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.bat >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\ppas.cmd >& nul >> %FPCERRLOG%
 del %FPCSNAPBIN%\link.res >& nul >> %FPCERRLOG%
-:ContCleanComp
+:ContClComp
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
 :CleanSnapshot
@@ -367,7 +367,7 @@ del %FPCSNAPDOC%\*.htm* >> %FPCERRLOG%
 del %FPCSNAPDOC%\copying.* >> %FPCERRLOG%
 del %FPCSNAPMSG%\*.msg >> %FPCERRLOG%
 del %FPCSNAP%\baseemx.zip >> %FPCERRLOG%
-goto ContCleanSnap
+goto ContClSnap
 :JPCleanSnap
 echo *Deleting the old snapshot ... >> %FPCERRLOG%
 del %FPCSNAP%\baseemx.zip >& nul >> %FPCERRLOG%
@@ -375,7 +375,7 @@ del %FPCSNAPDOC%\*.txt >& nul >> %FPCERRLOG%
 del %FPCSNAPDOC%\*.htm* >& nul >> %FPCERRLOG%
 del %FPCSNAPDOC%\copying.* >& nul >> %FPCERRLOG%
 del %FPCSNAPMSG%\*.msg >& nul >> %FPCERRLOG%
-:ContCleanSnap
+:ContClSnap
 if %PARAMS% == clean goto End
 
 :Branches
@@ -406,12 +406,12 @@ if not .%FPCLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -a >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -s >> %OS2OPTF%
 if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
-if not .%DOVERBOSE% == .1 goto CompStart1
+if not .%DOVERBOSE% == .1 goto CompS1
 echo *Start of basic options used for compilation >> %FPCERRLOG%
 type %OS2OPTF% >> %FPCERRLOG%
 echo *End of basic options used for compilation >> %FPCERRLOG%
 if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG%
-:CompStart1
+:CompS1
 echo *Assembling the helpers ... >> %FPCERRLOG%
 %REALTOOLS%\as -o %FPCSNAPRTL%\prt0.oo2 %OS2RTL%\prt0.as >> %FPCERRLOG%
 %REALTOOLS%\as -o %FPCSNAPRTL%\prt1.oo2 %OS2RTL%\prt1.as >> %FPCERRLOG%
@@ -546,12 +546,12 @@ if not .%FPCLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -a >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -s >> %OS2OPTF%
 if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
-if not .%DOVERBOSE% == .1 goto CompStart2
+if not .%DOVERBOSE% == .1 goto CompS2
 echo *Start of basic options used for compilation >> %FPCERRLOG%
 type %OS2OPTF% >> %FPCERRLOG%
 echo *End of basic options used for compilation >> %FPCERRLOG%
 if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG%
-:CompStart2
+:CompS2
 echo *Compiling the compiler ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
@@ -659,7 +659,10 @@ goto End
 
 
   $Log$
-  Revision 1.17  2000-05-21 16:09:42  hajny
+  Revision 1.18  2000-06-26 17:31:12  hajny
+    * workaround for MS command shell limitation
+
+  Revision 1.17  2000/05/21 16:09:42  hajny
     * os2def.pas added
 
   Revision 1.16  2000/05/14 16:46:09  hajny
