@@ -34,6 +34,14 @@ type
   TFPColorArray = array [0..maxint] of TFPColor;
   PFPColorArray = ^TFPColorArray;
 
+  TFPImgProgressStage = (psStarting, psRunning, psEnding);
+  TFPImgProgressEvent = procedure (Sender: TObject; Stage: TFPImgProgressStage;
+                                   PercentDone: Byte; RedrawNow: Boolean; const R: TRect;
+                                   const Msg: AnsiString; var Continue : Boolean) of object;
+  // Delphi compatibility
+  TProgressStage = TFPImgProgressStage;
+  TProgressEvent = TFPImgProgressEvent;
+
   TFPPalette = class
     private
       FData : PFPColorArray;
@@ -57,6 +65,7 @@ type
 
   TFPCustomImage = class
     private
+      FOnProgress : TFPImgProgressEvent;
       FExtra : TStringlist;
       FPalette : TFPPalette;
       FHeight, FWidth : integer;
@@ -82,6 +91,9 @@ type
       function GetInternalColor (x,y:integer) : TFPColor; virtual;
       procedure SetInternalPixel (x,y:integer; Value:integer); virtual; abstract;
       function GetInternalPixel (x,y:integer) : integer; virtual; abstract;
+      procedure Progress(Sender: TObject; Stage: TProgressStage;
+                         PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
+                         const Msg: AnsiString; var Continue: Boolean); Virtual;
     public
       constructor create (AWidth,AHeight:integer); virtual;
       destructor destroy; override;
@@ -105,6 +117,7 @@ type
       property  ExtraKey [index:integer] : string read GetExtraKey write SetExtraKey;
       procedure RemoveExtra (const key:string);
       function  ExtraCount : integer;
+      property OnProgress: TFPImgProgressEvent read FOnProgress write FOnProgress;
   end;
   TFPCustomImageClass = class of TFPCustomImage;
 
@@ -125,13 +138,17 @@ type
 
   TFPCustomImageHandler = class
     private
+      FOnProgress : TFPImgProgressEvent;
       FStream : TStream;
       FImage : TFPCustomImage;
     protected
+      procedure Progress(Stage: TProgressStage; PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
+                         const Msg: AnsiString; var Continue: Boolean); Virtual;
       property TheStream : TStream read FStream;
       property TheImage : TFPCustomImage read FImage;
     public
       constructor Create; virtual;
+      Property OnProgress : TFPImgProgressEvent Read FOnProgress Write FOnProgress;
   end;
 
   TFPCustomImageReader = class (TFPCustomImageHandler)

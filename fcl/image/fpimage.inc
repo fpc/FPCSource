@@ -217,6 +217,14 @@ begin
     FPImgError (StrInvalidIndex,[ErrorText[StrImageY],y]);
 end;
 
+Procedure TFPCustomImage.Progress(Sender: TObject; Stage: TProgressStage;
+                         PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
+                         const Msg: AnsiString; var Continue: Boolean);
+begin
+  If Assigned(FOnProgress) then
+    FonProgress(Sender,Stage,PercentDone,RedrawNow,R,Msg,Continue);
+end;                         
+                         
 
 { TFPMemoryImage }
 

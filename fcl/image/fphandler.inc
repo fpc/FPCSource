@@ -170,6 +170,18 @@ begin
   inherited create;
 end;
 
+procedure TFPCustomImageHandler.Progress(Stage: TProgressStage;
+                         PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
+                         const Msg: AnsiString; var Continue: Boolean); 
+
+begin
+  If Assigned(FOnProgress) then
+    FOnProgress(Self,Stage,PercentDone,RedrawNow,R,Msg,Continue)
+  else If Assigned(FImage) then
+    // It is debatable whether we should pass ourselves or the image ?
+    FImage.Progress(Self,Stage,PercentDone,RedrawNow,R,Msg,Continue);
+end;
+
 { TFPCustomImageReader }
 
 constructor TFPCustomImageReader.Create;
