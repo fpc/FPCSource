@@ -671,7 +671,7 @@ uses
 
   function FindNextFileA(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL;
 
-  function GetVersionExA(lpVersionInformation:LPOSVERSIONINFO):WINBOOL;
+  function GetVersionExA(var VersionInformation:OSVERSIONINFO):WINBOOL;
 
   { was #define dname(params) def_expr }
   function CreateWindowA(lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
@@ -729,7 +729,7 @@ uses
 
   function RegOpenKeyA(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG;
 
-  function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG;
+  function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM;var phkResult:HKEY):LONG;
 
   function RegQueryInfoKeyA(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
@@ -1544,7 +1544,7 @@ uses
 
   function FindNextFileA(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileA';
 
-  function GetVersionExA(lpVersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExA';
+  function GetVersionExA(var VersionInformation:OSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExA';
 
   { was #define dname(params) def_expr }
   function CreateWindowA(lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
@@ -1617,7 +1617,7 @@ uses
 
   function RegOpenKeyA(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyA';
 
-  function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyExA';
+  function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; var phkResult:HKEY):LONG; external 'advapi32' name 'RegOpenKeyExA';
 
   function RegQueryInfoKeyA(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
@@ -1822,7 +1822,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.10  1999-07-05 14:47:43  florian
+  Revision 1.11  1999-07-06 22:44:10  florian
+    * some fixes to compile ddraw units from the jedi project
+
+  Revision 1.10  1999/07/05 14:47:43  florian
     * some more functions fixed to get them work
 
   Revision 1.9  1999/05/10 19:34:09  florian

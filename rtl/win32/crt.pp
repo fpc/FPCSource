@@ -129,7 +129,7 @@ var OsVersion: TOSVersionInfo;
 begin
   OsVersion.dwOsVersionInfoSize := SizeOf(OsVersion);
 
-  GetVersionEx(@OsVersion);
+  GetVersionEx(OsVersion);
 
   Result := OsVersion.dwPlatformID;
 end; { func. GetPlatformID }
@@ -920,7 +920,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.8  1999-06-09 16:46:11  peter
+  Revision 1.9  1999-07-06 22:44:11  florian
+    * some fixes to compile ddraw units from the jedi project
+
+  Revision 1.8  1999/06/09 16:46:11  peter
     * fixed fullwin,textbackground
 
   Revision 1.7  1999/05/22 14:01:01  peter

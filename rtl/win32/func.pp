@@ -3536,7 +3536,8 @@ in define line 6852 *)
     function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint;
 
 (* Const before type ignored *)
-    function SetPixelFormat(_para1:HDC; _para2:longint; var _para3:PIXELFORMATDESCRIPTOR):WINBOOL;
+    function SetPixelFormat(_para1:HDC; _para2:longint; 
+       _para3:PPIXELFORMATDESCRIPTOR):WINBOOL;
 
     function SwapBuffers(_para1:HDC):WINBOOL;
 
@@ -5526,7 +5527,7 @@ in define line 6852 *)
   { was #define dname(params) def_expr }
   function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
     begin
-       Animate_Create:=CreateWindow(LPCSTR(@ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
+       Animate_Create:=CreateWindow(LPCSTR(ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
     end;
 
   { was #define dname(params) def_expr }
@@ -6621,7 +6622,8 @@ in define line 6826 *)
 
 {    function GetPixelFormat(_para1:HDC):longint; external 'gdi32' name 'GetPixelFormat'; }
 
-    function SetPixelFormat(_para1:HDC; _para2:longint; var _para3:PIXELFORMATDESCRIPTOR):WINBOOL; external 'gdi32' name 'SetPixelFormat';
+    function SetPixelFormat(_para1:HDC; _para2:longint; 
+      _para3:PPIXELFORMATDESCRIPTOR):WINBOOL; external 'gdi32' name 'SetPixelFormat';
 
     function SwapBuffers(_para1:HDC):WINBOOL; external 'gdi32' name 'SwapBuffers';
 
@@ -6696,7 +6698,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.11  1999-05-10 19:34:10  florian
+  Revision 1.12  1999-07-06 22:44:12  florian
+    * some fixes to compile ddraw units from the jedi project
+
+  Revision 1.11  1999/05/10 19:34:10  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 

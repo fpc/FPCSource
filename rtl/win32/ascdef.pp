@@ -671,7 +671,7 @@ uses
 
   function FindNextFile(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL;
 
-  function GetVersionEx(lpVersionInformation:LPOSVERSIONINFO):WINBOOL;
+  function GetVersionEx(var VersionInformation:OSVERSIONINFO):WINBOOL;
 
   { was #define dname(params) def_expr }
   function CreateWindow(lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
@@ -729,7 +729,7 @@ uses
 
   function RegOpenKey(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG;
 
-  function RegOpenKeyEx(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG;
+  function RegOpenKeyEx(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM;var phkResult:HKEY):LONG;
 
   function RegQueryInfoKey(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
@@ -892,26 +892,26 @@ uses
 
   function StartService(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL;
 
-  function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3:pchar; _para4:cardinal):cardinal;
+  function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3:pchar;
+    _para4:cardinal):cardinal;
 
-  function ExtractAssociatedIcon(_para1:HINST; _para2:pchar;
-    var _para3:WORD):HICON;
+  function ExtractAssociatedIcon(_para1:HINST;_para2:pchar; var _para3:WORD):HICON;
 
-  function ExtractIcon(_para1:HINST; _para2:pchar; _para3:cardinal):HICON;
+  function ExtractIcon(_para1:HINST;_para2:pchar; _para3:cardinal):HICON;
 
-  function FindExecutable(_para1:pchar; _para2:pchar; _para3:pchar):HINST;
+  function FindExecutable(_para1:pchar;_para2:pchar; _para3:pchar):HINST;
 
-  function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar;
-    _para4:HICON):longint;
+  function ShellAbout(_para1:HWND; _para2:pchar;
+    _para3:pchar; _para4:HICON):longint;
 
-  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar; _para4:pchar;
-    _para5:pchar; _para6:longint):HINST;
+  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:pchar; _para5:pchar;_para6:longint):HINST;
 
   function DdeCreateStringHandle(_para1:DWORD; _para2:pchar;
     _para3:longint):HSZ;
 
-  function DdeInitialize(var _para1:DWORD; _para2:CALLB; _para3:DWORD;
-    _para4:DWORD):UINT;
+  function DdeInitialize(var _para1:DWORD; _para2:CALLB;
+    _para3:DWORD; _para4:DWORD):UINT;
 
   function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar;
     _para4:DWORD; _para5:longint):DWORD;
@@ -1544,7 +1544,7 @@ uses
 
   function FindNextFile(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileA';
 
-  function GetVersionEx(lpVersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExA';
+  function GetVersionEx(var VersionInformation:OSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExA';
 
   { was #define dname(params) def_expr }
   function CreateWindow(lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
@@ -1617,7 +1617,7 @@ uses
 
   function RegOpenKey(hKey:HKEY; lpSubKey:LPCSTR; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyA';
 
-  function RegOpenKeyEx(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyExA';
+  function RegOpenKeyEx(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; var phkResult:HKEY):LONG; external 'advapi32' name 'RegOpenKeyExA';
 
   function RegQueryInfoKey(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
@@ -1780,22 +1780,24 @@ uses
 
   function StartService(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL; external 'advapi32' name 'StartServiceA';
 
-  function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3 : pchar; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
+  function DragQueryFile(_para1:HDROP; _para2:cardinal; _para3:Pchar;
+    _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
 
-  function ExtractAssociatedIcon(_para1:HINST; _para2:pchar;
+  function ExtractAssociatedIcon(_para1:HINST; _para2:Pchar;
     var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
 
-  function ExtractIcon(_para1:HINST; _para2:pchar; _para3:cardinal):HICON;
+  function ExtractIcon(_para1:HINST; _para2:Pchar; _para3:cardinal):HICON;
     external 'shell32' name 'ExtractIconA';
 
-  function FindExecutable(_para1:pchar; _para2:pchar; _para3:pchar):HINST;
-    external 'shell32' name 'FindExecutableA';
+  function FindExecutable(_para1:pchar; _para2:pchar;
+    _para3:pchar):HINST; external 'shell32' name 'FindExecutableA';
 
   function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar;
     _para4:HICON):longint; external 'shell32' name 'ShellAboutA';
 
-  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar; _para4:pchar;
-   _para5:pchar;_para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
+  function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar;
+    _para4:pchar; _para5:pchar;
+    _para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
 
   function DdeCreateStringHandle(_para1:DWORD; _para2:pchar;
     _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
@@ -1803,8 +1805,8 @@ uses
   function DdeInitialize(var _para1:DWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;
     external 'user32' name 'DdeInitializeA';
 
-  function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar; _para4:DWORD; _para5:longint):DWORD;
-    external 'user32' name 'DdeQueryStringA';
+  function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar;
+    _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
 
   function LogonUser(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
@@ -1820,13 +1822,13 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.12  1999-07-05 14:47:42  florian
+  Revision 1.13  1999-07-06 22:44:09  florian
+    * some fixes to compile ddraw units from the jedi project
+
+  Revision 1.10  1999/07/05 14:47:43  florian
     * some more functions fixed to get them work
 
-  Revision 1.11  1999/07/05 14:01:40  michael
-  + Fixed declarations of chars to pchars
-
-  Revision 1.10  1999/05/10 19:34:08  florian
+  Revision 1.9  1999/05/10 19:34:09  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 

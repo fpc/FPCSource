@@ -683,7 +683,7 @@ uses
 
   function FindNextFileW(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL;
 
-  function GetVersionExW(lpVersionInformation:LPOSVERSIONINFO):WINBOOL;
+  function GetVersionExW(var VersionInformation:OSVERSIONINFO):WINBOOL;
 
   { was #define dname(params) def_expr }
   function CreateWindowW(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;
@@ -769,7 +769,7 @@ uses
 
   function RegOpenKeyW(hKey:HKEY; lpSubKey:LPCWSTR; phkResult:PHKEY):LONG;
 
-  function RegOpenKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG;
+  function RegOpenKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM;var phkResult:HKEY):LONG;
 
   function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
@@ -1563,7 +1563,7 @@ uses
 
   function FindNextFileW(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileW';
 
-  function GetVersionExW(lpVersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExW';
+  function GetVersionExW(var VersionInformation:OSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExW';
 
   { was #define dname(params) def_expr }
   function CreateWindowW(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;
@@ -1664,7 +1664,7 @@ uses
 
   function RegOpenKeyW(hKey:HKEY; lpSubKey:LPCWSTR; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyW';
 
-  function RegOpenKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyExW';
+  function RegOpenKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM; var phkResult:HKEY):LONG; external 'advapi32' name 'RegOpenKeyExW';
 
   function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
              lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
@@ -1837,7 +1837,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.9  1999-05-10 19:34:14  florian
+  Revision 1.10  1999-07-06 22:44:17  florian
+    * some fixes to compile ddraw units from the jedi project
+
+  Revision 1.9  1999/05/10 19:34:14  florian
     * moved all opengl32.dll stuff to a newly created opengl32 unit, so
       win32 programs should also run on Windows without opengl32.dll
 
