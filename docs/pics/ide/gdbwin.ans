@@ -1,0 +1,16 @@
+[25m[1m[37m[44mษอ[[32mþ[37m]ออออออออออออ GDB window อออออออออออ2อ[[32m[37m]อป
+บ[33minfo[37m [33mstack[37m [33m--[37m [33mBacktrace[37m [33mof[37m [33mthe[37m [33mstack         [21m[34m[46m
+[1m[37m[44mบ[33minfo[37m [33msymbol[37m [33m--[37m [33mDescribe[37m [33mwhat[37m [33msymbol[37m [33mis[37m [33mat[37m [33mloc[21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mtarget[37m [33m--[37m [33mNames[37m [33mof[37m [33mtargets[37m [33mand[37m [33mfiles[37m [33mbei[21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mterminal[37m [33m--[37m [33mPrint[37m [33minferior[36m's saved termi[21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mthreads[37m [33m--[37m [33mIDs[37m [33mof[37m [33mcurrently[37m [33mknown[37m [33mthread[21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mtracepoints[37m [33m--[37m [33mStatus[37m [33mof[37m [33mtracepoints    [21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mtypes[37m [33m--[37m [33mAll[37m [33mtype[37m [33mnames                 [21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mvariables[37m [33m--[37m [33mAll[37m [33mglobal[37m [33mand[37m [33mstatic[37m [33mvaria[21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mwarranty[37m [33m--[37m [33mVarious[37m [33mkinds[37m [33mof[37m [33mwarranty[37m [33myo[21m[34m[46mฑ
+[1m[37m[44mบ[33minfo[37m [33mwatchpoints[37m [33m--[37m [33mSynonym[37m [33mfor[37m [33m``info[37m [33mbreakp[21m[34m[46mฑ
+[1m[37m[44mบ[33m                                             [21m[34m[46mฑ
+[1m[37m[44mบ[33mType[37m [33m"help[37m [33minfo"[37m [33mfollowed[37m [33mby[37m [33minfo[37m [33msubcommand[37m [21m[34m[46mฑ
+[1m[37m[44mบ[33mCommand[37m [33mname[37m [33mabbreviations[37m [33mare[37m [33mallowed[37m [33mif[37m [33muna[21m[34m[46mþ
+[1m[37m[44mบgdb[33m>[37m [33m                                        [21m[34m[46m
+[1m[37m[44mศออออออออ1:1 อ[21m[34m[46mþฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ[1m[32m[44mู
