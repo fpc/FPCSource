@@ -906,8 +906,8 @@ implementation
                     begin
                       firstpass(hpp^.left);
                       set_varstate(hpp^.left,true);
-                      if (not is_integer(hpp^.resulttype)) then
-                        CGMessage1(type_e_integer_expr_expected,hpp^.resulttype^.typename)
+                      if (not is_integer(hpp^.left^.resulttype)) then
+                        CGMessage1(type_e_integer_expr_expected,hpp^.left^.resulttype^.typename)
                       else
                         hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                       hpp:=hpp^.right;
@@ -915,13 +915,12 @@ implementation
                         begin
                           if isreal then
                            begin
-                             if (not is_integer(hpp^.resulttype)) then
-                               CGMessage1(type_e_integer_expr_expected,hpp^.resulttype^.typename)
+                             if (not is_integer(hpp^.left^.resulttype)) then
+                               CGMessage1(type_e_integer_expr_expected,hpp^.left^.resulttype^.typename)
                              else
                                begin
                                  firstpass(hpp^.left);
                                  set_varstate(hpp^.left,true);
-
                                  hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                                end;
                            end
@@ -1281,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-12-02 12:38:45  florian
+  Revision 1.63  1999-12-30 15:02:10  peter
+    * fixed crash with undefined variable
+
+  Revision 1.62  1999/12/02 12:38:45  florian
     + added support for succ/pred(<qword/int64>)
 
   Revision 1.61  1999/11/30 10:40:58  peter
