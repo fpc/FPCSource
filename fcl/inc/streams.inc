@@ -549,7 +549,7 @@ end;
 procedure TStringStream.SetSize(NewSize: Longint);
 
 begin
- //!! Setlength(FDataString,NewSize);
+ Setlength(FDataString,NewSize);
  If FPosition>NewSize then FPosition:=NewSize;
 end;
 
@@ -568,7 +568,7 @@ begin
   Result:=Length(FDataString)-FPosition;
   If Result>Count then Result:=Count;
   // This supposes FDataString to be of type AnsiString !
-  //!! Move (Pchar(FDataString)[FPosition],Buffer,Count);
+  Move (Pchar(FDataString)[FPosition],Buffer,Count);
   FPosition:=FPosition+Count;
 end;
 
@@ -580,8 +580,8 @@ Var NewLen : Longint;
 begin
   NewLen:=Length(FDataString)-FPosition;
   If NewLen>Count then NewLen:=Count;
-  //!! SetLength(Result,NewLen);
-  //!! Read (Pointer(Result)^,NewLen);
+  SetLength(Result,NewLen);
+  Read (Pointer(Result)^,NewLen);
   ReadString:='';
 end;
 
@@ -606,7 +606,7 @@ begin
   Result:=Count;
   SetSize(FPosition+Count);
   // This supposes that FDataString is of type AnsiString)
-  //!! Move (Buffer,PCHar(FDataString)[Fposition],Count);
+  Move (Buffer,PCHar(FDataString)[Fposition],Count);
   FPosition:=FPosition+Count;
 end;
 
@@ -614,7 +614,7 @@ end;
 procedure TStringStream.WriteString(const AString: string);
 
 begin
-  //!! Write (PChar(Astring)[0],Length(AString));
+  Write (PChar(Astring)[0],Length(AString));
 end;
 
 
@@ -656,7 +656,43 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:00  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2001-03-08 19:13:09  michael
+  Fixed stringstream
+
+  Revision 1.1  2000/07/13 06:31:31  michael
+  + Initial import
+
+  Revision 1.21  2000/06/29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.20  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.19  2000/01/06 01:20:33  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.2  2000/01/04 18:07:16  michael
+  + Streaming implemented
+
+  Revision 1.1  2000/01/03 19:33:08  peter
+    * moved to packages dir
+
+  Revision 1.17  1999/11/30 15:28:38  michael
+  + Added FileNAme property for filestreams
+
+  Revision 1.16  1999/10/03 19:38:06  peter
+    * fixed readansistring
+    * fixed constants
+
+  Revision 1.15  1999/09/13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.14  1999/07/18 20:58:47  michael
+  * fixed bug in realloc and setcapacity of tmemorystream
+
+  Revision 1.13  1999/04/08 10:18:55  peter
+    * makefile updates
+
 }
