@@ -209,7 +209,7 @@ begin
           { if the newReg gets stored back to the oldReg, we can change }
           { "mov %oldReg,%newReg; <operations on %newReg>; mov %newReg, }
           { %oldReg" to "<operations on %oldReg>"                       }
-          switchLast := storeBack(endP,reg1,reg2);
+          switchLast := storeBack(start,endP,reg1,reg2);
           reg1StillUsed := reg1 in pTaiprop(endp.optinfo)^.usedregs;
           reg2StillUsed := reg2 in pTaiprop(endp.optinfo)^.usedregs;
           isInstruction := endp.typ = ait_instruction;
@@ -303,7 +303,17 @@ begin
           getNextInstruction(hp,hp);
         end;
       if switchLast then
-        doSwitchReg(taicpu(hp),reg1,reg2)
+        begin
+          { this is in case of a storeback, make sure the same size of register }
+          { contents as the initial move is transfered                          }
+          doSwitchReg(taicpu(hp),reg1,reg2);
+          if taicpu(hp).opsize <> taicpu(start).opsize then
+            begin
+              taicpu(hp).opsize := taicpu(start).opsize;
+              taicpu(hp).oper[0]^.reg := taicpu(start).oper[0]^.reg;
+              taicpu(hp).oper[1]^.reg := taicpu(start).oper[1]^.reg;
+            end;
+        end
       else
         getLastInstruction(hp,hp);
       allocRegBetween(asmL,newreg(R_INTREGISTER,reg1,R_SUBWHOLE),start,lastreg1);
@@ -350,7 +360,13 @@ End.
 
 {
   $Log$
-  Revision 1.24  2003-12-07 19:19:56  jonas
+  Revision 1.25  2003-12-15 16:08:16  jonas
+    - disable removal of dead loads before a call, because register
+      parameters are released before a call
+    * fix storeback of registers in case of different sizes (e.g., first
+      a "movl %eax,%edx" and later a "movb %dl,%al")
+
+  Revision 1.24  2003/12/07 19:19:56  jonas
     * fixed some more bugs which only showed up in a ppc cross compiler
 
   Revision 1.23  2003/11/22 00:40:19  jonas

@@ -33,7 +33,7 @@ function CSE(asml: TAAsmoutput; first, last: tai; pass: longint): boolean;
 
 function doReplaceReg(hp: taicpu; newReg, orgReg: tsuperregister): boolean;
 function changeOp(var o: toper; newReg, orgReg: tsuperregister): boolean;
-function storeBack(p1: tai; orgReg, newReg: tsuperregister): boolean;
+function storeBack(start, current: tai; orgReg, newReg: tsuperregister): boolean;
 function NoHardCodedRegs(p: taicpu; orgReg, newReg: tsuperregister): boolean;
 function RegSizesOK(oldReg,newReg: tsuperregister; p: taicpu): boolean;
 
@@ -1135,17 +1135,27 @@ begin
 end;
 
 
-function storeBack(p1: tai; orgReg, newReg: tsuperregister): boolean;
+function storeBack(start, current: tai; orgReg, newReg: tsuperregister): boolean;
 { returns true if p1 contains an instruction that stores the contents }
 { of newReg back to orgReg                                            }
 begin
-  storeBack :=
-    (p1.typ = ait_instruction) and
-    (taicpu(p1).opcode = A_MOV) and
-    (taicpu(p1).oper[0]^.typ = top_reg) and
-    (getsupreg(taicpu(p1).oper[0]^.reg) = newReg) and
-    (taicpu(p1).oper[1]^.typ = top_reg) and
-    (getsupreg(taicpu(p1).oper[1]^.reg) = orgReg);
+  storeback := false;
+  if (current.typ = ait_instruction) and
+     (taicpu(current).opcode = A_MOV) and
+     (taicpu(current).oper[0]^.typ = top_reg) and
+     (getsupreg(taicpu(current).oper[0]^.reg) = newReg) and
+     (taicpu(current).oper[1]^.typ = top_reg) and
+     (getsupreg(taicpu(current).oper[1]^.reg) = orgReg) then
+    case taicpu(current).opsize of
+      S_B:
+        storeback := true;
+      S_W:
+        storeback := taicpu(start).opsize <> S_B;
+      S_L:
+        storeback := taicpu(start).opsize = S_L;
+      else
+        internalerror(2003121501);
+    end;
 end;
 
 
@@ -1196,7 +1206,7 @@ begin
           { if the newsupreg gets stored back to the oldReg, we can change }
           { "mov %oldReg,%newReg; <operations on %newReg>; mov %newReg, }
           { %oldReg" to "<operations on %oldReg>"                       }
-          removeLast := storeBack(endP, orgsupreg, newsupreg);
+          removeLast := storeBack(p,endP, orgsupreg, newsupreg);
           sequenceEnd :=
             { no support for (i)div, mul and imul with hardcoded operands }
             noHardCodedRegs(taicpu(endP),orgsupreg,newsupreg) and
@@ -1670,9 +1680,13 @@ begin
         ait_instruction:
           begin
             case taicpu(p).opcode of
+{
+     Does not work anymore with register calling because the registers are
+     released before the call
               A_CALL:
                 for regCounter := RS_EAX to RS_EBX do
                   removePrevNotUsedLoad(p,regCounter,true);
+}
               A_CLD: if GetLastInstruction(p, hp1) and
                         (ptaiprop(hp1.optinfo)^.DirFlag = F_NotSet) then
                        ptaiprop(tai(p).optinfo)^.CanBeRemoved := True;
@@ -2060,7 +2074,13 @@ end.
 
 {
   $Log$
-  Revision 1.56  2003-12-14 22:42:14  peter
+  Revision 1.57  2003-12-15 16:08:15  jonas
+    - disable removal of dead loads before a call, because register
+      parameters are released before a call
+    * fix storeback of registers in case of different sizes (e.g., first
+      a "movl %eax,%edx" and later a "movb %dl,%al")
+
+  Revision 1.56  2003/12/14 22:42:14  peter
     * fixed csdebug
 
   Revision 1.55  2003/12/14 14:18:59  peter
