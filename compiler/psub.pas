@@ -229,32 +229,17 @@ begin
 
   if assigned(aktprocsym) then
    begin
-     { Check if overloading is enabled }
-     if not(m_fpc in aktmodeswitches) then
+     { Check if overloaded is a procsym, we use a different error message
+       for tp7 so it looks more compatible }
+     if aktprocsym^.typ<>procsym then
       begin
-        if aktprocsym^.typ<>procsym then
-         begin
-           DuplicateSym(aktprocsym);
-           { try to recover by creating a new aktprocsym }
-           tokenpos:=procstartfilepos;
-           aktprocsym:=new(pprocsym,init(sp));
-         end
+        if (m_fpc in aktmodeswitches) then
+         Message1(parser_e_overloaded_no_procedure,aktprocsym^.name)
         else
-         begin
-           if not(aktprocsym^.definition^.forwarddef) then
-            Message(parser_e_procedure_overloading_is_off);
-         end;
-      end
-     else
-      begin
-        { Check if the overloaded sym is realy a procsym }
-        if aktprocsym^.typ<>procsym then
-         begin
-           Message1(parser_e_overloaded_no_procedure,aktprocsym^.name);
-           { try to recover by creating a new aktprocsym }
-           tokenpos:=procstartfilepos;
-           aktprocsym:=new(pprocsym,init(sp));
-         end;
+         DuplicateSym(aktprocsym);
+        { try to recover by creating a new aktprocsym }
+        tokenpos:=procstartfilepos;
+        aktprocsym:=new(pprocsym,init(sp));
       end;
    end
   else
@@ -649,6 +634,10 @@ begin
     Message(parser_e_no_object_override);
 end;
 
+procedure pd_overload(const procnames:Tstringcontainer);
+begin
+end;
+
 procedure pd_message(const procnames:Tstringcontainer);
 var
   pt : ptree;
@@ -731,7 +720,13 @@ end;
 
 procedure pd_register(const procnames:Tstringcontainer);
 begin
-  Message(parser_w_proc_register_ignored);
+  Message1(parser_w_proc_directive_ignored,'REGISTER');
+end;
+
+
+procedure pd_reintroduce(const procnames:Tstringcontainer);
+begin
+  Message1(parser_w_proc_directive_ignored,'REINTRODUCE');
 end;
 
 
@@ -842,7 +837,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=29;
+  num_proc_directives=31;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -999,6 +994,15 @@ const
       mutexclpotype : [];
       mutexclpo     : []
     ),(
+      idtok:_OVERLOAD;
+      pd_flags : pd_implemen+pd_interface+pd_body;
+      handler  : {$ifndef TP}@{$endif}pd_overload;
+      pocall   : [];
+      pooption : [po_overload];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : []
+    ),(
       idtok:_OVERRIDE;
       pd_flags : pd_interface+pd_object;
       handler  : {$ifndef TP}@{$endif}pd_override;
@@ -1043,6 +1047,15 @@ const
       mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_REINTRODUCE;
+      pd_flags : pd_interface+pd_object;
+      handler  : {$ifndef TP}@{$endif}pd_reintroduce;
+      pocall   : [];
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [];
+      mutexclpo     : []
     ),(
       idtok:_SAFECALL;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
@@ -1251,18 +1264,37 @@ begin
       { walk the procdef list }
         while (assigned(pd)) and (assigned(pd^.nextoverloaded)) do
          begin
+           hd:=pd^.nextoverloaded;
+           { check for allowing overloading }
+           if not(m_fpc in aktmodeswitches) then
+            begin
+              { if one of the two has overload directive then
+                we should issue an other error }
+              if (po_overload in pd^.procoptions) or
+                 (po_overload in hd^.procoptions) then
+               begin
+                 if not((po_overload in pd^.procoptions) and
+                        (po_overload in hd^.procoptions)) then
+                  Message1(parser_e_no_overload_for_all_procs,aktprocsym^.name);
+               end
+              else
+               begin
+                 if not(hd^.forwarddef) then
+                  Message(parser_e_procedure_overloading_is_off);
+               end;
+            end;
+           { check the parameters }
            if (not(m_repeat_forward in aktmodeswitches) and
                (aktprocsym^.definition^.para^.count=0)) or
-              (equal_paras(aktprocsym^.definition^.para,pd^.nextoverloaded^.para,false) and
+              (equal_paras(aktprocsym^.definition^.para,hd^.para,false) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                is_equal(pd^.nextoverloaded^.rettype.def,aktprocsym^.definition^.rettype.def))) then
              begin
-               if pd^.nextoverloaded^.forwarddef then
+               if hd^.forwarddef then
                { remove the forward definition  but don't delete it,      }
                { the symtable is the owner !!  }
                  begin
-                   hd:=pd^.nextoverloaded;
                  { Check if the procedure type and return type are correct }
                    if (hd^.proctypeoption<>aktprocsym^.definition^.proctypeoption) or
                       (not(is_equal(hd^.rettype.def,aktprocsym^.definition^.rettype.def)) and
@@ -2042,7 +2074,10 @@ end.
 
 {
   $Log$
-  Revision 1.62  2000-06-02 21:24:48  pierre
+  Revision 1.63  2000-06-18 18:12:40  peter
+    * support overload keyword
+
+  Revision 1.62  2000/06/02 21:24:48  pierre
     * operator overloading now uses isbinaryoperatoracceptable
       and is unaryoperatoracceptable
 

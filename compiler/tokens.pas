@@ -182,6 +182,7 @@ type
     _EXTERNAL,
     _FUNCTION,
     _OPERATOR,
+    _OVERLOAD,
     _OVERRIDE,
     _POPSTACK,
     _PROPERTY,
@@ -203,6 +204,7 @@ type
     _OPENSTRING,
     _CONSTRUCTOR,
     _INTERNCONST,
+    _REINTRODUCE,
     _SHORTSTRING,
     _FINALIZATION,
     _SAVEREGISTERS,
@@ -383,6 +385,7 @@ const
       (str:'EXTERNAL'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FUNCTION'      ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'OPERATOR'      ;special:false;keyword:m_fpc;op:NOTOKEN),
+      (str:'OVERLOAD'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OVERRIDE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'POPSTACK'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PROPERTY'      ;special:false;keyword:m_class;op:NOTOKEN),
@@ -404,6 +407,7 @@ const
       (str:'OPENSTRING'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'INTERNCONST'   ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'REINTRODUCE'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
@@ -515,7 +519,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2000-06-05 20:41:18  pierre
+  Revision 1.24  2000-06-18 18:12:40  peter
+    * support overload keyword
+
+  Revision 1.23  2000/06/05 20:41:18  pierre
     + support for NOT overloading
     + unsupported overloaded operators generate errors
 
