@@ -46,14 +46,12 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,fmodule,
-      symconst,symdef,defutil,
-      aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_1,pass_2,
-      cpubase,paramgr,
-      nbas,ncon,ncal,ncnv,nld,
-      cga,tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      cutils,globals,
+      aasmtai,aasmcpu,
+      symconst,symdef,
+      cginfo,cgbase,pass_2,
+      cpubase,ncgutil,
+      cgobj,rgobj;
 
 
 {*****************************************************************************
@@ -87,8 +85,13 @@ implementation
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
            secondpass(left);
+           location_force_fpureg(exprasmlist,location,true);
            location_copy(location,left.location);
-           location_force_fpureg(exprasmlist,location,false);
+           if (location.loc = LOC_CFPUREGISTER) then
+             begin
+               location.loc := LOC_FPUREGISTER;
+               location.register := rg.getregisterfpu(exprasmlist,OS_F64);
+             end;
          end;
 
      procedure tppcinlinenode.second_abs_real;
@@ -104,7 +107,7 @@ implementation
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,
-           left.location.register,left.location.register));
+           location.register,left.location.register));
        end;
 
 begin
@@ -112,7 +115,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-06-01 21:38:06  peter
+  Revision 1.8  2003-06-13 17:03:38  jonas
+    * fixed bugs in case the left node was a LOC_(C)REFERENCE
+
+  Revision 1.7  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
@@ -143,3 +149,4 @@ end.
 
 
 }
+
