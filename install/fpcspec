@@ -6,7 +6,7 @@ Copyright: GPL
 Group: Development/Languages
 Source: fpc-0.99.8-src.tar.gz
 Summary: Free Pascal Compiler
-Packager: Peter Vreman (pfv@cooldown.demon.nl)
+Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/
 %description
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi II compatible
