@@ -124,6 +124,9 @@ end;
 
 Procedure PopAddrStack ;[Public, Alias : 'FPC_POPADDRSTACK'];
 
+var
+   hp : PExceptAddr;
+
 begin
 {$ifdef excdebug}
   writeln ('In Popaddrstack');
@@ -134,7 +137,12 @@ begin
     halt (1);
     end
   else
-    ExceptAddrStack:=ExceptAddrStack^.Next;
+    begin
+       dispose(ExceptAddrStack^.buf);
+       hp:=ExceptAddrStack^.Next;
+       dispose(ExceptAddrStack);
+       ExceptAddrStack:=hp;
+    end;
 end;
 
 Procedure PopObjectStack ;
@@ -194,3 +202,9 @@ begin
   ExceptObjectstack:=Nil;
   ExceptAddrStack:=Nil;
 end;
+{
+  $Log$
+  Revision 1.9  1999-05-13 16:30:18  florian
+    * popaddrstack didn't release any memory, fixed
+
+}
