@@ -60,11 +60,19 @@ implementation
         ld:=p^.left^.resulttype;
         if (p^.treetype=starstarn) or
            (ld^.deftype=recorddef) or
+           (rd^.deftype=recorddef) or
+           { array def, but not mmx or chararray+char }
            ((ld^.deftype=arraydef) and
-             not((cs_mmx in aktlocalswitches) and
-             is_mmx_able_array(ld)) and
-            (not (rd^.deftype in [orddef])) and
-            (not is_chararray(ld))
+            not((cs_mmx in aktlocalswitches) and
+                is_mmx_able_array(ld)) and
+            not(is_char(rd) and
+                is_chararray(ld))
+           ) or
+           ((rd^.deftype=arraydef) and
+            not((cs_mmx in aktlocalswitches) and
+                is_mmx_able_array(rd)) and
+            not(is_char(ld) and
+                is_chararray(rd))
            ) or
            { <> and = are defined for classes }
            ((ld^.deftype=objectdef) and
@@ -72,14 +80,6 @@ implementation
              not(p^.treetype in [equaln,unequaln])
             )
            ) or
-           (rd^.deftype=recorddef) or
-           ((rd^.deftype=arraydef) and
-             not((cs_mmx in aktlocalswitches) and
-             is_mmx_able_array(rd)) and
-            (not (ld^.deftype in [orddef])) and
-            (not is_chararray(rd))
-           ) or
-           { <> and = are defined for classes }
            ((rd^.deftype=objectdef) and
             (not(pobjectdef(rd)^.is_class) or
              not(p^.treetype in [equaln,unequaln])
@@ -1301,7 +1301,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2000-04-25 14:43:36  jonas
+  Revision 1.76  2000-05-11 16:47:37  peter
+    * fixed check for overloaded operator with array and chararray check
+
+  Revision 1.75  2000/04/25 14:43:36  jonas
     - disabled "string_var := string_var + ... " and "string_var + char_var"
       optimizations (were only active with -dnewoptimizations) because of
       several internal issues
