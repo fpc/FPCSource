@@ -1,0 +1,161 @@
+{******************************************************************************
+                         IOCtl and Termios calls
+******************************************************************************}
+
+Function TCGetAttr(fd:cint;var tios:TermIOS):cint;
+begin
+ {$ifndef BSD}
+  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios);
+ {$else}
+  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios);
+ {$endif}
+end;
+
+
+Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
+var
+  nr:cint;
+begin
+ {$ifndef BSD}
+  case OptAct of
+   TCSANOW   : nr:=TCSETS;
+   TCSADRAIN : nr:=TCSETSW;
+   TCSAFLUSH : nr:=TCSETSF;
+ {$else}
+  case OptAct of
+   TCSANOW   : nr:=TIOCSETA;
+   TCSADRAIN : nr:=TIOCSETAW;
+   TCSAFLUSH : nr:=TIOCSETAF;
+  {$endif}
+  else
+   begin
+     fpsetErrNo(ESysEINVAL);
+     TCSetAttr:=-1;
+     exit;
+   end;
+  end;
+  TCSetAttr:=fpIOCtl(fd,nr,@Tios);
+end;
+
+
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
+begin
+ {$ifndef BSD}
+  tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
+ {$else}
+  tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
+ {$endif}
+end;
+
+
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
+begin
+  {$ifndef BSD}
+   CFSetISpeed(tios,speed);
+  {$else}
+   tios.c_ospeed:=speed;
+  {$endif}
+end;
+
+
+
+Procedure CFMakeRaw(var tios:TermIOS);
+begin
+ {$ifndef BSD}
+  with tios do
+   begin
+     c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
+                                INLCR or IGNCR or ICRNL or IXON));
+     c_oflag:=c_oflag and (not OPOST);
+     c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
+     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
+   end;
+ {$else}
+  with tios do
+   begin
+     c_iflag:=c_iflag and (not (IMAXBEL or IXOFF or INPCK or BRKINT or
+                PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
+                IGNPAR));
+     c_iflag:=c_iflag OR IGNBRK;
+     c_oflag:=c_oflag and (not OPOST);
+     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or
+                                ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
+     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or (CS8 OR cread);
+     c_cc[VMIN]:=1;
+     c_cc[VTIME]:=0;
+   end;
+ {$endif}
+end;
+
+Function TCSendBreak(fd,duration:cint):cint;
+begin
+  {$ifndef BSD}
+  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration));
+  {$else}
+  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0);
+  {$endif}
+end;
+
+
+Function TCSetPGrp(fd,id:cint):cint;
+begin
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
+end;
+
+
+Function TCGetPGrp(fd:cint;var id:cint):cint;
+begin
+  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
+end;
+
+Function TCDrain(fd:cint):cint;
+begin
+ {$ifndef BSD}
+  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1));
+ {$else}
+  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
+ {$endif}
+end;
+
+
+Function TCFlow(fd,act:cint):cint;
+begin
+  {$ifndef BSD}
+   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act));
+  {$else}
+    case act OF
+     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0);
+     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0);
+     TCIOFF :  {N/I}
+    end;
+  {$endif}
+end;
+
+Function TCFlush(fd,qsel:cint):cint;
+begin
+ {$ifndef BSD}
+  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel));
+ {$else}
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+ {$endif}
+end;
+
+Function IsATTY (Handle:cint):cint;
+{
+  Check if the filehandle described by 'handle' is a TTY (Terminal)
+}
+var
+  t : Termios;
+begin
+ IsAtty:=TCGetAttr(Handle,t);
+end;
+
+
+Function IsATTY(var f: text):cint;
+{
+  Idem as previous, only now for text variables.
+}
+begin
+  IsATTY:=IsaTTY(textrec(f).handle);
+end;
+
