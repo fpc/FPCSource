@@ -421,7 +421,7 @@ interface
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+att_reg2str[tairegalloc(hp).reg]+
+                 AsmWriteLn(target_asm.comment+'Register '+gas_reg2str[tairegalloc(hp).reg]+
                    allocstr[tairegalloc(hp).allocation]);
              end;
 
@@ -883,7 +883,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-04-04 18:27:37  carl
+  Revision 1.15  2002-04-14 16:58:41  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.14  2002/04/04 18:27:37  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.13  2002/04/02 17:11:33  peter

@@ -69,6 +69,7 @@ implementation
 **************************************}
 
     {$ifndef NOAG386ATT}
+      ,aggas
       ,ag386att
     {$endif}
     {$ifndef NOAG386NSM}
@@ -85,7 +86,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-04-04 18:31:37  carl
+  Revision 1.5  2002-04-14 17:00:49  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.4  2002/04/04 18:31:37  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.3  2002/03/28 20:48:04  carl

@@ -1171,10 +1171,10 @@ Begin
   firstRemovedWasAlloc := false;
   first := true;
 {$ifdef allocregdebug}
-  hp := Tai_asm_comment.Create(strpnew('allocating '+att_reg2str[reg]+
+  hp := Tai_asm_comment.Create(strpnew('allocating '+gas_reg2str[reg]+
     ' from here...')));
   insertllitem(asml,p1.previous,p1,hp);
-  hp := Tai_asm_comment.Create(strpnew('allocated '+att_reg2str[reg]+
+  hp := Tai_asm_comment.Create(strpnew('allocated '+gas_reg2str[reg]+
     ' till here...')));
   insertllitem(asml,p2,p1.next,hp);
 {$endif allocregdebug}
@@ -1525,7 +1525,7 @@ Begin {checks whether two Taicpu instructions are equal}
                   Begin
                     RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
 {$ifdef csdebug}
-                    Writeln(att_reg2str[base], ' added');
+                    Writeln(gas_reg2str[base], ' added');
 {$endif csdebug}
                   end;
                 If Not(Index in [procinfo^.FramePointer,
@@ -1533,7 +1533,7 @@ Begin {checks whether two Taicpu instructions are equal}
                   Begin
                     RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
 {$ifdef csdebug}
-                    Writeln(att_reg2str[index], ' added');
+                    Writeln(gas_reg2str[index], ' added');
 {$endif csdebug}
                   end;
 
@@ -1544,7 +1544,7 @@ Begin {checks whether two Taicpu instructions are equal}
                   RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
                                                  [Reg32(Taicpu(p2).oper[1].reg)];
 {$ifdef csdebug}
-                  Writeln(att_reg2str[Reg32(Taicpu(p2).oper[1].reg)], ' removed');
+                  Writeln(gas_reg2str[Reg32(Taicpu(p2).oper[1].reg)], ' removed');
 {$endif csdebug}
                 end;
             InstructionsEquivalent :=
@@ -1891,7 +1891,7 @@ Begin
     top_reg:
       begin
 {$ifdef statedebug}
-        hp := Tai_asm_comment.Create(strpnew('destroying '+att_reg2str[o.reg]));
+        hp := Tai_asm_comment.Create(strpnew('destroying '+gas_reg2str[o.reg]));
         hp.next := Taiobj^.next;
         hp.previous := Taiobj;
         Taiobj^.next := hp;
@@ -1940,7 +1940,7 @@ Begin
           invalidateDependingRegs(p.optinfo,reg);
           pTaiprop(p.optinfo)^.regs[reg].memwrite := nil;
 {$ifdef StateDebug}
-          hp := Tai_asm_comment.Create(strpnew(att_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)
+          hp := Tai_asm_comment.Create(strpnew(gas_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)
                 + ' -- ' + tostr(PTaiProp(p.optinfo)^.Regs[reg].nrofmods))));
           InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
@@ -1948,12 +1948,12 @@ Begin
       Else
         Begin
 {$ifdef statedebug}
-          hp := Tai_asm_comment.Create(strpnew('destroying '+att_reg2str[reg]));
+          hp := Tai_asm_comment.Create(strpnew('destroying '+gas_reg2str[reg]));
           insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
           DestroyReg(PTaiProp(p.optinfo), Reg, true);
 {$ifdef StateDebug}
-          hp := Tai_asm_comment.Create(strpnew(att_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)));
+          hp := Tai_asm_comment.Create(strpnew(gas_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)));
           InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
         End
@@ -2242,7 +2242,7 @@ Begin
                           Begin
 {$ifdef statedebug}
                             hp := Tai_asm_comment.Create(strpnew('destroying '+
-                              att_reg2str[Taicpu(p).oper[1].reg])));
+                              gas_reg2str[Taicpu(p).oper[1].reg])));
                             insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
 
@@ -2270,7 +2270,7 @@ Begin
                           else
                             begin
 {$ifdef statedebug}
-                              hp := Tai_asm_comment.Create(strpnew('destroying & initing '+att_reg2str[tmpreg]));
+                              hp := Tai_asm_comment.Create(strpnew('destroying & initing '+gas_reg2str[tmpreg]));
                               insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                               destroyReg(curprop, tmpreg, true);
@@ -2283,7 +2283,7 @@ Begin
                                   end
                             end;
 {$ifdef StateDebug}
-                  hp := Tai_asm_comment.Create(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.regs[TmpReg].WState)));
+                  hp := Tai_asm_comment.Create(strpnew(gas_reg2str[TmpReg]+': '+tostr(CurProp^.regs[TmpReg].WState)));
                   InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
                           End;
@@ -2308,7 +2308,7 @@ Begin
                             Begin
                               TmpReg := Reg32(Taicpu(p).oper[1].reg);
 {$ifdef statedebug}
-          hp := Tai_asm_comment.Create(strpnew('destroying '+att_reg2str[tmpreg]));
+          hp := Tai_asm_comment.Create(strpnew('destroying '+gas_reg2str[tmpreg]));
           insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                               With CurProp^.regs[TmpReg] Do
@@ -2378,7 +2378,7 @@ Begin
                     begin
 {$ifdef statedebug}
                       hp := Tai_asm_comment.Create(strpnew('destroying & initing'+
-                        att_reg2str[Taicpu(p).oper[1].reg])));
+                        gas_reg2str[Taicpu(p).oper[1].reg])));
                       insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                       destroyreg(curprop,Taicpu(p).oper[1].reg,true);
@@ -2404,7 +2404,7 @@ Begin
                               ReadReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
 {$ifdef statedebug}
                             hp := Tai_asm_comment.Create(strpnew('destroying '+
-                              att_reg2str[TCh2Reg(InstrProp.Ch[Cnt])])));
+                              gas_reg2str[TCh2Reg(InstrProp.Ch[Cnt])])));
                             insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                             DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]), true);
@@ -2586,7 +2586,10 @@ End.
 
 {
   $Log$
-  Revision 1.28  2002-04-02 17:11:34  peter
+  Revision 1.29  2002-04-14 17:00:49  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.28  2002/04/02 17:11:34  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

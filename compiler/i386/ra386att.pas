@@ -121,7 +121,7 @@ Begin
   { registers }
   new(iasmregs);
   for j:=firstreg to lastreg do
-   iasmregs^[j] := upper(att_reg2str[j]);
+   iasmregs^[j] := upper(gas_reg2str[j]);
 end;
 
 
@@ -2129,7 +2129,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2002-04-04 19:06:13  peter
+  Revision 1.20  2002-04-14 17:01:52  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.19  2002/04/04 19:06:13  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

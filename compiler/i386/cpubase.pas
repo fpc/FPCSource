@@ -399,7 +399,7 @@ const
 {$endif}
 
 {$ifdef ATTREG}
-  att_reg2str : reg2strtable = ('',
+  gas_reg2str : reg2strtable = ('',
     '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
     '%ax','%cx','%dx','%bx','%sp','%bp','%si','%di',
     '%al','%cl','%dl','%bl','%ah','%ch','%bh','%dh',
@@ -930,7 +930,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-04-02 17:11:34  peter
+  Revision 1.13  2002-04-14 16:59:41  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.12  2002/04/02 17:11:34  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

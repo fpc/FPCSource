@@ -87,7 +87,7 @@ interface
           is_fpu(aktprocdef.rettype.def) then
          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
        if (not is_void(aktprocdef.rettype.def)) then
-         retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
+         retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
          c:=current_scanner.asmgetchar;
@@ -168,7 +168,7 @@ interface
                                                hs:=tvarsym(sym).mangledname
                                              else
                                                hs:='-'+tostr(tvarsym(sym).address)+
-                                                   '('+att_reg2str[procinfo^.framepointer]+')';
+                                                   '('+gas_reg2str[procinfo^.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
@@ -191,7 +191,7 @@ interface
                                                      l:=tvarsym(sym).address;
                                                      { set offset }
                                                      inc(l,aktprocdef.parast.address_fixup);
-                                                     hs:=tostr(l)+'('+att_reg2str[procinfo^.framepointer]+')';
+                                                     hs:=tostr(l)+'('+gas_reg2str[procinfo^.framepointer]+')';
                                                      if pos(',',s) > 0 then
                                                        tvarsym(sym).varstate:=vs_used;
                                                   end;
@@ -237,7 +237,7 @@ interface
                                              begin
                                                 if assigned(procinfo^._class) then
                                                   hs:=tostr(procinfo^.selfpointer_offset)+
-                                                      '('+att_reg2str[procinfo^.framepointer]+')'
+                                                      '('+gas_reg2str[procinfo^.framepointer]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
@@ -254,7 +254,7 @@ interface
                                                 { we do it: }
                                                 if lexlevel>normal_function_level then
                                                   hs:=tostr(procinfo^.framepointer_offset)+
-                                                    '('+att_reg2str[procinfo^.framepointer]+')'
+                                                    '('+gas_reg2str[procinfo^.framepointer]+')'
                                                 else
                                                   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                              end;
@@ -302,7 +302,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-11-02 22:58:11  peter
+  Revision 1.13  2002-04-14 17:01:52  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.12  2001/11/02 22:58:11  peter
     * procsym definition rewrite
 
   Revision 1.11  2001/08/26 13:37:02  florian

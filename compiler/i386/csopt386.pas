@@ -574,7 +574,7 @@ begin
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
                       temp := Tai_asm_comment.Create(strpnew(
-                                att_reg2str[regCounter]+' removed')));
+                                gas_reg2str[regCounter]+' removed')));
                       temp.next := prev.next;
                       temp.previous := prev;
                       prev.next := temp;
@@ -624,7 +624,7 @@ begin
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
                       temp := Tai_asm_comment.Create(strpnew(
-                                att_reg2str[regCounter]+' removed')));
+                                gas_reg2str[regCounter]+' removed')));
                       temp.next := next.next;
                       temp.previous := next;
                       next.next := temp;
@@ -667,7 +667,7 @@ begin
           break
         end;
 {$ifdef alignregdebug}
-  next := Tai_asm_comment.Create(strpnew(att_reg2str[lastRemoved]+
+  next := Tai_asm_comment.Create(strpnew(gas_reg2str[lastRemoved]+
                ' chosen as alignment register')));
   next.next := p.next;
   next.previous := p;
@@ -703,7 +703,7 @@ begin
 {$ifdef replaceregdebug}
   l := random(1000);
   hp := Tai_asm_comment.Create(strpnew(
-          'cleared '+att_reg2str[reg]+' from here... '+tostr(l))));
+          'cleared '+gas_reg2str[reg]+' from here... '+tostr(l))));
   hp.next := p;
   hp.previous := p.previous;
   p.previous := hp;
@@ -738,7 +738,7 @@ begin
   if assigned(p) then
     begin
       hp := Tai_asm_comment.Create(strpnew(
-        'cleared '+att_reg2str[reg]+' till here... '+tostr(l))));
+        'cleared '+gas_reg2str[reg]+' till here... '+tostr(l))));
       hp.next := p;
       hp.previous := p.previous;
       p.previous := hp;
@@ -759,7 +759,7 @@ begin
 {$ifdef replaceregdebug}
   l := random(1000);
   hp := Tai_asm_comment.Create(strpnew(
-          'restored '+att_reg2str[reg]+' with data from here... '+tostr(l))));
+          'restored '+gas_reg2str[reg]+' with data from here... '+tostr(l))));
   hp.next := p;
   hp.previous := p.previous;
   p.previous := hp;
@@ -784,7 +784,7 @@ begin
   if assigned(p) then
     begin
       hp := Tai_asm_comment.Create(strpnew(
-        'restored '+att_reg2str[reg]+' till here... '+tostr(l))));
+        'restored '+gas_reg2str[reg]+' till here... '+tostr(l))));
       hp.next := p;
       hp.previous := p.previous;
       p.previous := hp;
@@ -1171,7 +1171,7 @@ begin
     begin
 {$ifdef replaceregdebug}
       hp := Tai_asm_comment.Create(strpnew(
-        'replacing '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+        'replacing '+gas_reg2str[newreg]+' with '+gas_reg2str[orgreg]+
         ' from here...')));
       hp.next := p;
       hp.previous := p.previous;
@@ -1180,7 +1180,7 @@ begin
         hp.previous^.next := hp;
 
       hp := Tai_asm_comment.Create(strpnew(
-        'replaced '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+        'replaced '+gas_reg2str[newreg]+' with '+gas_reg2str[orgreg]+
         ' till here')));
       hp.next := endp.next;
       hp.previous := endp;
@@ -1243,7 +1243,7 @@ begin
      else
        begin
          hp := Tai_asm_comment.Create(strpnew(
-           'replacing '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+           'replacing '+gas_reg2str[newreg]+' with '+gas_reg2str[orgreg]+
            ' from here...')));
          hp.previous := p.previous;
          hp.next := p;
@@ -1252,7 +1252,7 @@ begin
           hp.previous^.next := hp;
 
       hp := Tai_asm_comment.Create(strpnew(
-        'replacing '+att_reg2str[newreg]+' with '+att_reg2str[orgreg]+
+        'replacing '+gas_reg2str[newreg]+' with '+gas_reg2str[orgreg]+
         ' failed here')));
       hp.next := endp.next;
       hp.previous := endp;
@@ -1460,7 +1460,7 @@ Begin
                               begin
 {$ifdef csdebug}
                                hp5 := Tai_asm_comment.Create(strpnew(
-                                 'cse checking '+att_reg2str[Reg32(Taicpu(p).oper[1].reg)])));
+                                 'cse checking '+gas_reg2str[Reg32(Taicpu(p).oper[1].reg)])));
                                insertLLItem(asml,p,p.next,hp5);
 {$endif csdebug}
                                If CheckSequence(p,prevSeq,Taicpu(p).oper[1].reg, Cnt, RegInfo, findPrevSeqs) And
@@ -1542,8 +1542,8 @@ Begin
               For RegCounter := R_EAX To R_EDI Do
                 If (RegCounter in RegInfo.RegsLoadedForRef) Then
                   Begin
-           hp5 := Tai_asm_comment.Create(strpnew('New: '+att_reg2str[RegCounter]+', Old: '+
-                                                  att_reg2str[RegInfo.New2OldReg[RegCounter]])));
+           hp5 := Tai_asm_comment.Create(strpnew('New: '+gas_reg2str[RegCounter]+', Old: '+
+                                                  gas_reg2str[RegInfo.New2OldReg[RegCounter]])));
            InsertLLItem(AsmL, Tai(hp2.previous), hp2, hp5);
                   End;
 {$EndIf CSDebug}
@@ -1983,7 +1983,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  2002-04-04 19:06:10  peter
+  Revision 1.28  2002-04-14 17:00:49  carl
+  + att_reg2str -> gas_reg2str
+
+  Revision 1.27  2002/04/04 19:06:10  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
