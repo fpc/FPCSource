@@ -87,15 +87,15 @@ end;
 Const
  CMemoryManager : TMemoryManager =
     (
-      GetMem : @CGetmem;
-      FreeMem : @CFreeMem;
-      FreememSize : @CFreememSize;
-      AllocMem : @CAllocMem;
-      ReallocMem : @CReAllocMem;
-      MemSize : @CMemSize;
-      MemAvail : @CMemAvail;
-      MaxAvail : @MaxAvail;
-      HeapSize : @CHeapSize;
+      GetMem : {$ifdef fpc}@{$endif}CGetmem;
+      FreeMem : {$ifdef fpc}@{$endif}CFreeMem;
+      FreememSize : {$ifdef fpc}@{$endif}CFreememSize;
+      AllocMem : {$ifdef fpc}@{$endif}CAllocMem;
+      ReallocMem : {$ifdef fpc}@{$endif}CReAllocMem;
+      MemSize : {$ifdef fpc}@{$endif}CMemSize;
+      MemAvail : {$ifdef fpc}@{$endif fpc}CMemAvail;
+      MaxAvail : {$ifdef fpc}@{$endif}MaxAvail;
+      HeapSize : {$ifdef fpc}@{$endif}CHeapSize;
     );
   
 Var 
@@ -111,7 +111,10 @@ end.
 
 {   
  $Log$
- Revision 1.3  2001-06-07 16:14:48  marco
+ Revision 1.4  2001-06-07 16:34:41  jonas
+   * added ifdef fpc round @ for procvars
+
+ Revision 1.3  2001/06/07 16:14:48  marco
   * Fixed @ procvar
 
     Revision 1.2  2000/07/13 11:33:10  michael
