@@ -371,6 +371,7 @@ bug0275.pp   too many warnings
 bug0277.pp   typecasting with const not possible
 bug0279.pp   crash with ansistring and new(^ansistring)
 bug0281.pp   dup id checking with property is wrong
-bug0282.pp   long mangledname problem with -Aas
 bug0283.pp   wrong file position with dup id in other unit
 bug0284.pp   bug in constant char comparison evaluation
+bug0285.pp   Asm, TYPE not support in intel mode
+bug0286.pp   #$08d not allowed as Char constant
