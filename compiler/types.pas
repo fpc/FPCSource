@@ -1004,12 +1004,18 @@ implementation
          { pointer with an equal definition are equal }
            if (def1^.deftype=pointerdef) and (def2^.deftype=pointerdef) then
              begin
-                { here a problem detected in tabsolutesym }
-                { the types can be forward type !!        }
-                if assigned(def1^.typesym) and (ppointerdef(def1)^.pointertype.def^.deftype=forwarddef) then
-                  b:=(def1^.typesym=def2^.typesym)
+                { check if both are farpointer }
+                if (ppointerdef(def1)^.is_far=ppointerdef(def2)^.is_far) then
+                 begin
+                   { here a problem detected in tabsolutesym }
+                   { the types can be forward type !!        }
+                   if assigned(def1^.typesym) and (ppointerdef(def1)^.pointertype.def^.deftype=forwarddef) then
+                    b:=(def1^.typesym=def2^.typesym)
+                   else
+                    b:=ppointerdef(def1)^.pointertype.def=ppointerdef(def2)^.pointertype.def;
+                 end
                 else
-                  b:=ppointerdef(def1)^.pointertype.def=ppointerdef(def2)^.pointertype.def;
+                 b:=false;
              end
          else
          { ordinals are equal only when the ordinal type is equal }
@@ -1489,8 +1495,12 @@ implementation
                         { well, but it's handy to use, it isn't ? (FK) }
                         is_equal(ppointerdef(def_from)^.pointertype.def,voiddef) then
                        begin
-                         doconv:=tc_equal;
-                         b:=1;
+                         { but don't allow conversion between farpointer-pointer }
+                         if (ppointerdef(def_to)^.is_far=ppointerdef(def_from)^.is_far) then
+                          begin
+                            doconv:=tc_equal;
+                            b:=1;
+                          end;
                        end;
                    end;
                  procvardef :
@@ -1700,7 +1710,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-11-06 22:30:30  peter
+  Revision 1.20  2000-11-11 16:13:31  peter
+    * farpointer and normal pointer aren't compatible
+
+  Revision 1.19  2000/11/06 22:30:30  peter
     * more fixes
 
   Revision 1.18  2000/11/04 14:25:22  florian
