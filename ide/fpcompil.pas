@@ -136,7 +136,7 @@ uses
   {$ifdef VER1_0}
     Linux,
   {$else}
-    Unix,
+    Unix, BaseUnix,
   {$endif}
 {$endif}
 {$ifdef go32v2}
@@ -1038,8 +1038,14 @@ begin
        ChangeRedirError(FPErrFileName,false);
 {$endif}
 {$ifdef Unix}
+       {$ifdef ver1_0}
        Shell(GetExePath+PpasFile);
        Error:=LinuxError;
+       {$else}
+       error:=0;
+       If Shell(GetExePath+PpasFile)=-1 Then 
+        Error:=fpgeterrno;
+       {$endif}
 {$else}
        DosExecute(GetEnv('COMSPEC'),'/C '+GetExePath+PpasFile);
        Error:=DosError;
@@ -1330,7 +1336,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2003-03-28 09:55:46  armin
+  Revision 1.23  2003-11-14 17:29:38  marco
+   * linuxerrorcide
+
+  Revision 1.22  2003/03/28 09:55:46  armin
   * Fixed TCompilerMessageWindow.AddMessage to see line numbers with 1.1
 
   Revision 1.21  2003/03/27 14:11:53  pierre
