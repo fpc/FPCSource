@@ -2,16 +2,22 @@
 
 unit mysql;
 
+{$undef use_mysql_321} { if undefined, use mysql 3.23 interface }
+
 {
   Import unit for the mysql header files.
+
   Translated form the original mysql.h by Michael Van Canneyt
   (michael@tfdec1.fys.kuleuven.ac.be)
-  
-}
+
+  updated to mysql version 3.23 header files by Bernhard Steffen
+  (bernhard.steffen@gmx.net)
+  }
+{$r+,i+,o+}
 
 interface
 
-uses mysql_com;
+uses mysql_com, mysql_version;
 {$ifdef win32}
 Const mysqllib = 'libmysql';
 {$else}
@@ -32,7 +38,7 @@ type
    Socket = Longint;
    PCardinal = ^Cardinal;    
 
-{$ifdef Unix}    
+{$ifdef linux}    
 Var
   mysql_port : cardinal; external name 'mysql_port';
   mysql_unix_port : pchar; external name 'mysql_unix_port';
@@ -94,20 +100,56 @@ st_mysql_options = record
   port : cardinal;
   host,init_command,user,password,unix_socket,db : pchar;
   my_cnf_file,my_cnf_group : pchar;
+{$ifndef use_mysql_321}
+  charset_dir, charset_name : pchar;
+  use_ssl : my_bool;
+  ssl_key, ssl_cert, ssl_ca, ssl_capath : pchar;
+{$endif}
 end;  
+
+{$ifndef use_mysql_321}
+mysql_option = (MYSQL_OPT_CONNECT_TIMEOUT, MYSQL_OPT_COMPRESS,
+		    MYSQL_OPT_NAMED_PIPE, MYSQL_INIT_COMMAND,
+		    MYSQL_READ_DEFAULT_FILE, MYSQL_READ_DEFAULT_GROUP,
+		    MYSQL_SET_CHARSET_DIR, MYSQL_SET_CHARSET_NAME);
+{$endif}
 
 mysql_status = (MYSQL_STATUS_READY,
                 MYSQL_STATUS_GET_RESULT,
                 MYSQL_STATUS_USE_RESULT);
 
+{$ifndef use_mysql_321}
+(*
+charset_info_st = Record
+	number : cardinal;
+	name : pchar;
+	ctype : pointer {uchar*};
+	to_lower : pointer {uchar*};
+	to_upper : pointer {uchar*};
+	sort_order : pointer {uchar*};
+	strxfrm_multiply : cardinal;
+
+	{ einige nicht näher definierte Felder }
+	a, strxfrm, strnncoll, strnxfrm, like_range : pointer;
+	mbmaxlen : cardinal;
+	ismbchar, ismbhead, mbcharlen : pointer;
+end;
+*)
+{$endif}
 
 st_mysql = Record
   NET : TNET;			{ Communication parameters }
+{$ifndef use_mysql_321}
+  connector_fd : gptr;
+{$endif}
   host,user,passwd,unix_socket,server_version,host_info,
   info,db : pchar;
   port,client_flag,server_capabilities : cardinal;
   protocol_version : cardinal;
   field_count : cardinal;
+{$ifndef use_mysql_321}
+  server_status : cardinal;
+{$endif}
   thread_id : cardinal;		{ Id for connection in server }
   affected_rows : my_ulonglong;
   insert_id : my_ulonglong;		{ id if insert on table with NEXTNR }
@@ -118,7 +160,12 @@ st_mysql = Record
   field_alloc : TMEM_ROOT;
   free_me : my_bool;		{ If free in mysql_close }
   reconnect : my_bool;		{ set to 1 if automatic reconnect }
-  options : st_mysql_options;   
+  options : st_mysql_options;
+{$ifndef use_mysql_321}
+  scramble_buf : array[0..8] of char;
+  charset : pointer { struct charset_info_st};
+  server_language : cardinal;
+{$endif}
 end;
 TMYSQL = st_mysql;
 PMYSQL = ^TMYSQL;
@@ -160,82 +207,82 @@ Function mysql_error(mysql : PMYSQL) : pchar;
 
 { Original functions }
 
-Function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL; {$ifdef win32} stdcall {$else} cdecl {$endif};
+Function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL; stdcall;
 Function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : pchar;
 				   port : cardinal;
 				   unix_socket : pchar;
-				   clientflag : cardinal) : PMYSQL;{$ifdef win32} stdcall {$else} cdecl {$endif};
+				   clientflag : cardinal) : PMYSQL;stdcall;
 				   
-Function mysql_close(sock : PMYSQL) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_query(mysql : PMYSQL; q : pchar) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_real_query(mysql : PMYSQL; q : Pchar; length : longint) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_create_db(mysql : PMYSQL; db : pchar) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_drop_db(mysql : PMYSQL; DB : Pchar) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_shutdown(mysql : PMYSQL) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_dump_debug_info(mysql : PMYSQL) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_refresh(mysql : PMYSQL; refresh_options : cardinal) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_kill(mysql : PMYSQL; pid : Cardinal) : longint; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_stat(mysql : PMYSQL) : Pchar; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_get_server_info(mysql : PMYSQL) : pchar; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_get_client_info : pchar; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_get_host_info(mysql : PMYSQL) : pchar; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_get_proto_info(mysql : PMYSQL) : Cardinal; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_list_dbs(mysql : PMYSQL;wild : Pchar) : PMYSQL_RES; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function  mysql_list_tables(mysql : PMYSQL;Wild : Pchar) : PMYSQL_RES; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function  mysql_list_fields(mysql : PMYSQL; table,wild : pchar) : PMYSQL_RES; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function  mysql_list_processes(mysql : PMYSQL) : PMYSQL_RES; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function  mysql_store_result(mysql : PMYSQL) : PMYSQL_RES; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function  mysql_use_result(mysql : PMYSQL) : PMYSQL_RES; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Procedure mysql_free_result(res : PMYSQL_RES);{$ifdef win32} stdcall {$else} cdecl {$endif};
-Procedure mysql_data_seek(mysql : PMYSQL_RES; offs : cardinal);{$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_row_seek(mysql : PMYSQL_RES; Offs: TMYSQL_ROW_OFFSET): TMYSQL_ROW_OFFSET; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_field_seek(musql : PMYSQL_RES;offs : TMYSQL_FIELD_OFFSET): TMYSQL_FIELD_OFFSET; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_fetch_row(mysql : PMYSQL_RES) : TMYSQL_ROW; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_fetch_lengths(mysql : PMYSQL_RES) : PCardinal; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_fetch_field(handle : PMYSQL_RES) : PMYSQL_FIELD; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Function mysql_escape_string(escto,escfrom : pchar; length : Cardinal) : cardinal; {$ifdef win32} stdcall {$else} cdecl {$endif};
-Procedure mysql_debug(debug : pchar);{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function mysql_close(sock : PMYSQL) : longint; stdcall;
+Function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint; stdcall;
+Function mysql_query(mysql : PMYSQL; q : pchar) : longint; stdcall;
+Function mysql_real_query(mysql : PMYSQL; q : Pchar; length : longint) : longint; stdcall;
+Function mysql_create_db(mysql : PMYSQL; db : pchar) : longint; stdcall;
+Function mysql_drop_db(mysql : PMYSQL; DB : Pchar) : longint; stdcall;
+Function mysql_shutdown(mysql : PMYSQL) : longint; stdcall;
+Function mysql_dump_debug_info(mysql : PMYSQL) : longint; stdcall;
+Function mysql_refresh(mysql : PMYSQL; refresh_options : cardinal) : longint; stdcall;
+Function mysql_kill(mysql : PMYSQL; pid : Cardinal) : longint; stdcall;
+Function mysql_stat(mysql : PMYSQL) : Pchar; stdcall;
+Function mysql_get_server_info(mysql : PMYSQL) : pchar; stdcall;
+Function mysql_get_client_info : pchar; stdcall;
+Function mysql_get_host_info(mysql : PMYSQL) : pchar; stdcall;
+Function mysql_get_proto_info(mysql : PMYSQL) : Cardinal; stdcall;
+Function mysql_list_dbs(mysql : PMYSQL;wild : Pchar) : PMYSQL_RES; stdcall;
+Function  mysql_list_tables(mysql : PMYSQL;Wild : Pchar) : PMYSQL_RES; stdcall;
+Function  mysql_list_fields(mysql : PMYSQL; table,wild : pchar) : PMYSQL_RES; stdcall;
+Function  mysql_list_processes(mysql : PMYSQL) : PMYSQL_RES; stdcall;
+Function  mysql_store_result(mysql : PMYSQL) : PMYSQL_RES; stdcall;
+Function  mysql_use_result(mysql : PMYSQL) : PMYSQL_RES; stdcall;
+Procedure mysql_free_result(res : PMYSQL_RES);stdcall;
+Procedure mysql_data_seek(mysql : PMYSQL_RES; offs : cardinal);stdcall;
+Function mysql_row_seek(mysql : PMYSQL_RES; Offs: TMYSQL_ROW_OFFSET): TMYSQL_ROW_OFFSET; stdcall;
+Function mysql_field_seek(musql : PMYSQL_RES;offs : TMYSQL_FIELD_OFFSET): TMYSQL_FIELD_OFFSET; stdcall;
+Function mysql_fetch_row(mysql : PMYSQL_RES) : TMYSQL_ROW; stdcall;
+Function mysql_fetch_lengths(mysql : PMYSQL_RES) : PCardinal; stdcall;
+Function mysql_fetch_field(handle : PMYSQL_RES) : PMYSQL_FIELD; stdcall;
+Function mysql_escape_string(escto,escfrom : pchar; length : Cardinal) : cardinal; stdcall;
+Procedure mysql_debug(debug : pchar);stdcall;
 
 implementation
 
 
-function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_connect';
+function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL;stdcall; external mysqllib name 'mysql_connect';
 function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : pchar;
 				   port : cardinal;
 				   unix_socket : pchar;
-				   clientflag : cardinal) : PMYSQL;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib;
+				   clientflag : cardinal) : PMYSQL;stdcall; external mysqllib;
 				   
-function mysql_close(sock : PMYSQL) : longint ;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_close';
-function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_select_db';
-function mysql_query(mysql : PMYSQL; q : pchar) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_query';
-function mysql_real_query(mysql : PMYSQL; q : Pchar; length : longint) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_real_query';
-function mysql_create_db(mysql : PMYSQL; db : pchar) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_create_db';
-Function mysql_drop_db(mysql : PMYSQL; DB : Pchar) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_drop_db';
-Function mysql_shutdown(mysql : PMYSQL) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_shutdown';
-Function mysql_dump_debug_info(mysql : PMYSQL) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_dump_debug_info';
-Function mysql_refresh(mysql : PMYSQL; refresh_options : cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_refresh';
-Function mysql_kill(mysql : PMYSQL; pid : Cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_kill';
-Function mysql_stat(mysql : PMYSQL) : Pchar;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_stat';
-Function mysql_get_server_info(mysql : PMYSQL) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_get_server_info';
-Function mysql_get_client_info : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib;
-Function mysql_get_host_info(mysql : PMYSQL) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_get_host_info';
-Function mysql_get_proto_info(mysql : PMYSQL) : Cardinal;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_get_proto_info';
-Function mysql_list_dbs(mysql : PMYSQL;wild : Pchar) : PMYSQL_RES;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_list_dbs';
-Function mysql_list_tables(mysql : PMYSQL;Wild : Pchar) : PMYSQL_RES;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_list_tables';
-Function mysql_list_fields(mysql : PMYSQL; table,wild : pchar) : PMYSQL_RES;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_list_fields';
-Function mysql_list_processes(mysql : PMYSQL) : PMYSQL_RES;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_list_processes';
-Function mysql_store_result(mysql : PMYSQL) : PMYSQL_RES;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_store_result';
-Function mysql_use_result(mysql : PMYSQL) : PMYSQL_RES;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_use_result';
-Procedure mysql_free_result(res : PMYSQL_RES);{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_free_result';
-Procedure mysql_data_seek(mysql : PMYSQL_RES; offs : cardinal);{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_data_seek';
-Function mysql_row_seek(mysql : PMYSQL_RES; Offs: TMYSQL_ROW_OFFSET): TMYSQL_ROW_OFFSET;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_row_seek';
-Function mysql_field_seek(musql : PMYSQL_RES;offs : TMYSQL_FIELD_OFFSET): TMYSQL_FIELD_OFFSET;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_field_seek';
-function mysql_fetch_row(mysql : PMYSQL_RES) : TMYSQL_ROW;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_fetch_row';
-function mysql_fetch_lengths(mysql : PMYSQL_RES) : PCardinal;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_fetch_lengths';
-function mysql_fetch_field(handle : PMYSQL_RES) : PMYSQL_FIELD;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_fetch_field';
-Function mysql_escape_string(escto,escfrom : pchar; length : Cardinal) : cardinal;{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_escape_string';
-Procedure mysql_debug(debug : pchar);{$ifdef win32} stdcall {$else} cdecl {$endif}; external mysqllib name 'mysql_debug';
+function mysql_close(sock : PMYSQL) : longint ;stdcall; external mysqllib name 'mysql_close';
+function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint;stdcall; external mysqllib name 'mysql_select_db';
+function mysql_query(mysql : PMYSQL; q : pchar) : longint;stdcall; external mysqllib name 'mysql_query';
+function mysql_real_query(mysql : PMYSQL; q : Pchar; length : longint) : longint;stdcall; external mysqllib name 'mysql_real_query';
+function mysql_create_db(mysql : PMYSQL; db : pchar) : longint;stdcall; external mysqllib name 'mysql_create_db';
+Function mysql_drop_db(mysql : PMYSQL; DB : Pchar) : longint;stdcall; external mysqllib name 'mysql_drop_db';
+Function mysql_shutdown(mysql : PMYSQL) : longint;stdcall; external mysqllib name 'mysql_shutdown';
+Function mysql_dump_debug_info(mysql : PMYSQL) : longint;stdcall; external mysqllib name 'mysql_dump_debug_info';
+Function mysql_refresh(mysql : PMYSQL; refresh_options : cardinal) : longint;stdcall; external mysqllib name 'mysql_refresh';
+Function mysql_kill(mysql : PMYSQL; pid : Cardinal) : longint;stdcall; external mysqllib name 'mysql_kill';
+Function mysql_stat(mysql : PMYSQL) : Pchar;stdcall; external mysqllib name 'mysql_stat';
+Function mysql_get_server_info(mysql : PMYSQL) : pchar;stdcall; external mysqllib name 'mysql_get_server_info';
+Function mysql_get_client_info : pchar;stdcall; external mysqllib;
+Function mysql_get_host_info(mysql : PMYSQL) : pchar;stdcall; external mysqllib name 'mysql_get_host_info';
+Function mysql_get_proto_info(mysql : PMYSQL) : Cardinal;stdcall; external mysqllib name 'mysql_get_proto_info';
+Function mysql_list_dbs(mysql : PMYSQL;wild : Pchar) : PMYSQL_RES;stdcall; external mysqllib name 'mysql_list_dbs';
+Function mysql_list_tables(mysql : PMYSQL;Wild : Pchar) : PMYSQL_RES;stdcall; external mysqllib name 'mysql_list_tables';
+Function mysql_list_fields(mysql : PMYSQL; table,wild : pchar) : PMYSQL_RES;stdcall; external mysqllib name 'mysql_list_fields';
+Function mysql_list_processes(mysql : PMYSQL) : PMYSQL_RES;stdcall; external mysqllib name 'mysql_list_processes';
+Function mysql_store_result(mysql : PMYSQL) : PMYSQL_RES;stdcall; external mysqllib name 'mysql_store_result';
+Function mysql_use_result(mysql : PMYSQL) : PMYSQL_RES;stdcall; external mysqllib name 'mysql_use_result';
+Procedure mysql_free_result(res : PMYSQL_RES);stdcall; external mysqllib name 'mysql_free_result';
+Procedure mysql_data_seek(mysql : PMYSQL_RES; offs : cardinal);stdcall; external mysqllib name 'mysql_data_seek';
+Function mysql_row_seek(mysql : PMYSQL_RES; Offs: TMYSQL_ROW_OFFSET): TMYSQL_ROW_OFFSET;stdcall; external mysqllib name 'mysql_row_seek';
+Function mysql_field_seek(musql : PMYSQL_RES;offs : TMYSQL_FIELD_OFFSET): TMYSQL_FIELD_OFFSET;stdcall; external mysqllib name 'mysql_field_seek';
+function mysql_fetch_row(mysql : PMYSQL_RES) : TMYSQL_ROW;stdcall; external mysqllib name 'mysql_fetch_row';
+function mysql_fetch_lengths(mysql : PMYSQL_RES) : PCardinal;stdcall; external mysqllib name 'mysql_fetch_lengths';
+function mysql_fetch_field(handle : PMYSQL_RES) : PMYSQL_FIELD;stdcall; external mysqllib name 'mysql_fetch_field';
+Function mysql_escape_string(escto,escfrom : pchar; length : Cardinal) : cardinal;stdcall; external mysqllib name 'mysql_escape_string';
+Procedure mysql_debug(debug : pchar);stdcall; external mysqllib name 'mysql_debug';
 
 Function  mysql_error(mysql : PMYSQL) : pchar;
 
@@ -325,11 +372,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:53  peter
-    * splitted to base and extra
-
-  Revision 1.5  2001/03/13 08:50:38  michael
-  + merged Fixed calling convention for win32
+  Revision 1.2  2002-08-26 17:52:31  michael
+  + Upgraded to 3.23
 
   Revision 1.4  2000/12/03 13:41:39  sg
   * Fixed small merging bug by Michael

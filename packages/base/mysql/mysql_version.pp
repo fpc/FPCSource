@@ -1,25 +1,38 @@
 unit mysql_version;
 
+{$undef use_mysql_321} { if undefined, use mysql 3.23 interface }
+
+
 {
   Translated from mysql_version.h by Michael Van Canneyt
   (michael@tfdec1.fys.kuleuven.ac.be)
+
+  updated to match version 3.23 header files of mysql by Bernhard Steffen
+  (bernhard.steffen@gmx.net)
 }
 
 interface
 
+
 { Version numbers for protocol & mysqld }
 Const
 
- MYSQL_SERVER_VERSION : pchar ='3.21.28-gamma';
- FRM_VER = 6;
- MYSQL_VERSION_ID =32128;
+{$ifdef use_mysql_321}
+  MYSQL_SERVER_VERSION : pchar ='3.21.28-gamma';
+  FRM_VER = 6;
+  MYSQL_VERSION_ID =32128;
+{$else}
+  MYSQL_SERVER_VERSION : pchar ='3.23.34';
+  FRM_VER = 6; { ??? }
+  MYSQL_VERSION_ID =32334;
+{$endif}
 
 implementation
 
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:54:53  peter
-    * splitted to base and extra
+  Revision 1.2  2002-08-26 17:52:31  michael
+  + Upgraded to 3.23
 
   Revision 1.2  2000/07/13 11:33:26  michael
   + removed logs
