@@ -29,6 +29,8 @@ includedir=$(OS_TARGET) inc
 includedir_linux=unix
 includedir_freebsd=unix
 includedir_netbsd=unix
+includedir_sunos=posix
+includedir_qnx=posix
 sourcedir=$(OS_TARGET) inc
 
 [libs]
