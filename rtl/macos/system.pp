@@ -27,6 +27,7 @@ const
  DriveSeparator = ':';
  PathSeparator = ',';  {Is used in MPW and OzTeX}
  FileNameCaseSensitive = false;
+ CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
  maxExitCode = 65535;
 
@@ -559,7 +560,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2005-03-20 19:37:31  olle
+  Revision 1.32  2005-04-03 21:10:59  hajny
+    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
+
+  Revision 1.31  2005/03/20 19:37:31  olle
     + Added optional path translation mechanism
 
   Revision 1.30  2005/02/14 17:13:30  peter

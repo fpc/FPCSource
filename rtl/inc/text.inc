@@ -12,11 +12,6 @@
 
  **********************************************************************}
 
-{
-  Possible Defines:
-
-  EOF_CTRLZ       Is Ctrl-Z (#26) a EOF mark for textfiles
-}
 
 {****************************************************************************
                     subroutines For TextFile handling
@@ -257,11 +252,7 @@ Begin
      If TextRec(t).BufPos>=TextRec(t).BufEnd Then
       exit(true);
    end;
-{$ifdef EOF_CTRLZ}
-  Eof:=(TextRec(t).Bufptr^[TextRec(t).BufPos]=#26);
-{$else}
-  Eof:=false;
-{$endif EOL_CTRLZ}
+  Eof:=CtrlZMarksEOF and (TextRec(t).Bufptr^[TextRec(t).BufPos]=#26);
 end;
 
 
@@ -316,13 +307,11 @@ Begin
         end;
      end;
     case TextRec(t).Bufptr^[TextRec(t).BufPos] of
-{$ifdef EOF_CTRLZ}
-         #26 :
-           begin
-             SeekEof := true;
-             break;
-           end;
-{$endif EOF_CTRLZ}
+         #26 : if CtrlZMarksEOF then
+                begin
+                 SeekEof := true;
+                 break;
+                end;
      #10,#13,
       #9,' ' : ;
     else
@@ -378,6 +367,8 @@ Begin
      If TextRec(t).BufPos>=TextRec(t).BufEnd Then
       exit(true);
    end;
+  if CtrlZMarksEOF and (TextRec (T).BufPtr^[TextRec (T).BufPos] = #26) then
+   exit (true);
   Eoln:=(TextRec(t).Bufptr^[TextRec(t).BufPos] in [#10,#13]);
 End;
 
@@ -408,7 +399,8 @@ Begin
         exit(true);
      end;
     case TextRec(t).Bufptr^[TextRec(t).BufPos] of
-         #26,
+         #26: if CtrlZMarksEOF then
+               exit (true);
      #10,#13 : exit(true);
       #9,' ' : ;
     else
@@ -763,8 +755,9 @@ End;
 
 Function NextChar(var f:Text;var s:string):Boolean;
 begin
-  if TextRec(f).BufPos<TextRec(f).BufEnd then
-   begin
+  if (TextRec(f).BufPos<TextRec(f).BufEnd) then
+   if not (CtrlZMarksEOF) or (TextRec(f).Bufptr^[TextRec(f).BufPos]<>#26) then
+    begin
      if length(s)<high(s) then
       begin
         inc(s[0]);
@@ -793,12 +786,17 @@ begin
   { Return false when already at EOF }
   if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
    exit;
-  while (TextRec(f).Bufptr^[TextRec(f).BufPos] in [#9,#10,#13,' ']) do
+(* Check performed separately to avoid accessing memory outside buffer *)
+  if CtrlZMarksEOF and (TextRec(f).Bufptr^[TextRec(f).BufPos]=#26) then
+   exit;
+  while (TextRec(f).Bufptr^[TextRec(f).BufPos] <= ' ') do
    begin
      if not NextChar(f,s) then
       exit;
      { EOF? }
      if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      break;
+     if CtrlZMarksEOF and (TextRec(f).Bufptr^[TextRec(f).BufPos]=#26) then
       break;
    end;
   IgnoreSpaces:=true;
@@ -813,7 +811,7 @@ begin
   repeat
     if not NextChar(f,s) then
       exit;
-  until (length(s)=high(s)) or (TextRec(f).BufPtr^[TextRec(f).BufPos] in [#9,#10,#13,' ']);
+  until (length(s)=high(s)) or (TextRec(f).BufPtr^[TextRec(f).BufPos] <= ' ');
 end;
 
 
@@ -851,6 +849,8 @@ Begin
          exit;
        end;
    end;
+  if CtrlZMarksEOF and (TextRec (F).BufPtr^ [TextRec (F).BufPos] = #26) then
+   Exit;
   repeat
     prev := TextRec(f).BufPtr^[TextRec(f).BufPos];
     inc(TextRec(f).BufPos);
@@ -875,6 +875,8 @@ Begin
            exit;
          end;
       end;
+   if CtrlZMarksEOF and (TextRec (F).BufPtr^ [TextRec (F).BufPos] = #26) then
+    Exit;
    if (prev=#13) then
      { is there also a #10 after it? }
      begin
@@ -1058,15 +1060,29 @@ Begin
        then we return 0 }
      if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
       exit;
+     if CtrlZMarksEOF and (TextRec(f).Bufptr^[TextRec(f).BufPos]=#26) then
+      exit;
      ReadNumeric(f,hs);
    end;
 {$ifdef hascompilerproc}
-  Val(hs,l,code);
+   if (hs = '') then
+    L := 0
+   else
+    begin
+     Val(hs,l,code);
+     if Code <> 0 then
+      InOutRes:=106;
+    end;
 {$else hascompilerproc}
-  Val(hs,fpc_Read_Text_SInt,code);
+   if (hs = '') then
+    fpc_Read_Text_SInt := 0
+   else
+    begin
+     Val(hs,fpc_Read_Text_SInt,code);
+     if Code <> 0 then
+      InOutRes:=106;
+    end;
 {$endif hascompilerproc}
-  If code<>0 Then
-   InOutRes:=106;
 End;
 
 
@@ -1291,7 +1307,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2005-02-14 17:13:29  peter
+  Revision 1.30  2005-04-03 21:10:59  hajny
+    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
+
+  Revision 1.29  2005/02/14 17:13:29  peter
     * truncate log
 
 }

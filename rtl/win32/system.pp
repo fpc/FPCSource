@@ -28,9 +28,6 @@ interface
   {$define Set_i386_Exception_handler}
 {$endif cpui386}
 
-{ Ctrl-Z means EOF }
-{$DEFINE EOF_CTRLZ}
-
 { include system-independent routine headers }
 {$I systemh.inc}
 
@@ -58,6 +55,7 @@ const
   StdErrorHandle  : THandle = 0;
 
   FileNameCaseSensitive : boolean = true;
+  CtrlZMarksEOF: boolean = true; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
@@ -1110,7 +1108,10 @@ end.
 
 {
   $Log$
-  Revision 1.72  2005-03-21 16:31:33  peter
+  Revision 1.73  2005-04-03 21:10:59  hajny
+    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
+
+  Revision 1.72  2005/03/21 16:31:33  peter
     * fix crash under win32 with previous reallocmem fix
 
   Revision 1.71  2005/03/02 19:18:42  florian

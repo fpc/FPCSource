@@ -27,8 +27,6 @@ interface
   {.$define DEBUGARGUMENTS}
 {$endif SYSTEMDEBUG}
 
-{$DEFINE EOF_CTRLZ}
-
 { $DEFINE OS2EXCEPTIONS}
 
 {$I systemh.inc}
@@ -104,6 +102,7 @@ const   UnusedHandle=-1;
 
         LFNSupport: boolean = true;
         FileNameCaseSensitive: boolean = false;
+        CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
         sLineBreak = LineEnding;
         DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
@@ -771,7 +770,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2005-03-27 20:50:35  hajny
+  Revision 1.83  2005-04-03 21:10:59  hajny
+    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
+
+  Revision 1.82  2005/03/27 20:50:35  hajny
     * correction of previous mistyping
 
   Revision 1.81  2005/03/27 20:40:54  hajny

@@ -52,6 +52,7 @@ CONST
    StdErrorHandle  : THandle = 0;
 
    FileNameCaseSensitive : boolean = false;
+   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
    sLineBreak = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
@@ -488,7 +489,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.36  2005-02-14 17:13:30  peter
+  Revision 1.37  2005-04-03 21:10:59  hajny
+    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
+
+  Revision 1.36  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.35  2005/02/06 16:57:18  peter

@@ -29,8 +29,6 @@ interface
 {$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
 
-{$DEFINE EOF_CTRLZ}
-
 
 { include system-independent routine headers }
 
@@ -55,6 +53,7 @@ const
   StdErrorHandle  = 2;
 
   FileNameCaseSensitive : boolean = false;
+  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
 
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
@@ -654,7 +653,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.49  2005-02-14 17:13:22  peter
+  Revision 1.50  2005-04-03 21:10:59  hajny
+    * EOF_CTRLZ conditional define replaced with CtrlZMarksEOF, #26 handling made more consistent (fix for bug 2453)
+
+  Revision 1.49  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.48  2005/02/06 16:57:18  peter
