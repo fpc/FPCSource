@@ -28,9 +28,12 @@ unit objpas;
        smallint = system.integer;
        integer  = system.longint;
 
-       { the compiler searches in the objpas unit for the tvarrec symbol }
-       TVarRec = System.TVarRec;
-       PVarRec = ^TVarRec;
+{ Old compilers search for these variables in objpas unit }
+{$ifndef SYSTEMTVARREC}
+       pvarrec = system.pvarrec;
+       tvarrec = system.tvarrec;
+{$endif}
+
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
@@ -357,7 +360,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  1999-09-28 21:13:33  florian
+  Revision 1.42  1999-10-03 19:41:30  peter
+    * moved tvarrec to systemunit
+
+  Revision 1.41  1999/09/28 21:13:33  florian
     * fixed bug 626, objpas must redefine maxint!
 
   Revision 1.40  1999/09/17 17:14:12  peter
