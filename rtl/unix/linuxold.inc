@@ -43,6 +43,7 @@ Uses BaseUnix,Unix;
 {$i errno.inc}
 {$I signal.inc}
 
+{$ifdef linux}
 {$IFNDEF VER1_0}		// ugly voodoo. Sacrifice a chicken and hope
 				// that it works.
 Type stat=baseunix.tstat;
@@ -50,7 +51,9 @@ Type stat=baseunix.tstat;
 type
 {$I stat.inc}
 {$ENDIF}
-
+{$ELSE}
+Type stat=baseunix.tstat;
+{$ENDIF}
 
 var
   LinuxError : Longint;
@@ -3127,7 +3130,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2003-09-16 15:39:31  marco
+  Revision 1.5  2003-09-16 15:40:31  marco
+   * voodoo is now linux only
+
+  Revision 1.4  2003/09/16 15:39:31  marco
    * voodoo....
 
   Revision 1.3  2003/09/15 21:07:41  marco
