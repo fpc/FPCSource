@@ -441,6 +441,8 @@ begin
   p := Pen.style <> psClear;
   b := Brush.style <> bsClear;
   pb := false;
+  dp:=False;
+  db:=False;
   if p and (Pen is TFPCustomDrawPen) then
       begin
       p := false;
@@ -461,12 +463,12 @@ begin
     DoEllipseAndFill (bounds)
   else
     begin
-    if p then
+    if not dp then
       DoEllipse (bounds)
     else
       with bounds do
         TFPCustomDrawPen(Pen).Ellipse (left,top,right,bottom);
-    if b then
+    if not db then
       DoEllipseFill (bounds)
     else
       with bounds do
