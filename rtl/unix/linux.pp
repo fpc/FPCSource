@@ -1012,7 +1012,7 @@ end;
 Function fdOpen(pathname:string;flags:longint):longint;
 begin
   pathname:=pathname+#0;
-  fdOpen:=FpOpen(@pathname[1],flags,438);
+  fdOpen:=Sys_Open(@pathname[1],flags,438);
   LinuxError:=Errno;
 end;
 
@@ -1020,7 +1020,7 @@ end;
 Function fdOpen(pathname:string;flags,mode:longint):longint;
 begin
   pathname:=pathname+#0;
-  fdOpen:=FpOpen(@pathname[1],flags,mode);
+  fdOpen:=Sys_Open(@pathname[1],flags,mode);
   LinuxError:=Errno;
 end;
 
@@ -1028,7 +1028,7 @@ end;
 
 Function  fdOpen(pathname:pchar;flags:longint):longint;
 begin
-  fdOpen:=FpOpen(pathname,flags,0);
+  fdOpen:=Sys_Open(pathname,flags,0);
   LinuxError:=Errno;
 end;
 
@@ -1036,7 +1036,7 @@ end;
 
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 begin
-  fdOpen:=FpOpen(pathname,flags,mode);
+  fdOpen:=Sys_Open(pathname,flags,mode);
   LinuxError:=Errno;
 end;
 
@@ -1044,7 +1044,7 @@ end;
 
 Function fdClose(fd:longint):boolean;
 begin
-  fdClose:=(FpClose(fd)=0);
+  fdClose:=(Sys_Close(fd)=0);
   LinuxError:=Errno;
 end;
 
@@ -1052,7 +1052,7 @@ end;
 
 Function fdRead(fd:longint;var buf;size:longint):longint;
 begin
-  fdRead:=FpRead(fd,pchar(@buf),size);
+  fdRead:=Sys_Read(fd,pchar(@buf),size);
   LinuxError:=Errno;
 end;
 
@@ -1060,7 +1060,7 @@ end;
 
 Function fdWrite(fd:longint;const buf;size:longint):longint;
 begin
-  fdWrite:=FpWrite(fd,pchar(@buf),size);
+  fdWrite:=Sys_Write(fd,pchar(@buf),size);
   LinuxError:=Errno;
 end;
 
@@ -1073,7 +1073,7 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 
 }
 begin
-   fdseek:=FpLSeek (fd,pos,seektype);
+   fdseek:=Sys_LSeek (fd,pos,seektype);
    LinuxError:=Errno;
 end;
 
@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  2002-12-18 16:50:39  marco
+  Revision 1.26  2002-12-18 17:52:07  peter
+    * replaced some Fp with Sys_ to get cycle working
+
+  Revision 1.25  2002/12/18 16:50:39  marco
    * Unix RTL generic parts. Linux working, *BSD will follow shortly
 
   Revision 1.24  2002/09/13 13:03:27  jonas
