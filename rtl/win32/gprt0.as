@@ -1,6 +1,5 @@
-//Startup code for WIN32 port of Free Pascal
-//Written by P.Ozerski 1998
-// modified by Pierre Muller
+// Startup code for WIN32 port of Free Pascal
+// with profiling enabled.
      .text
      .globl _mainCRTStartup
 _mainCRTStartup:
@@ -13,9 +12,12 @@ _WinMainCRTStartup:
      
      .globl asm_exit
 asm_exit:     
-    pushl   %eax
-	call	exitprocess
-
+    pushl  %eax
+    call   __mcleanup
+    popl   %eax
+    pushl  %eax
+	call   exitprocess
+	
 .text
 .globl	exitprocess
 exitprocess:
@@ -54,15 +56,12 @@ exitprocess:
 .section .idata$7
 .L6:
 	.ascii	"kernel32.dll\000"
+     
 
-
-	
+//
 // $Log$
-// Revision 1.4  2002-11-30 18:17:35  carl
+// Revision 1.1  2002-11-30 18:17:35  carl
 //   + profiling support
 //
-// Revision 1.3  2002/07/28 20:43:51  florian
-//   * several fixes for linux/powerpc
-//   * several fixes to MT
 //
 //

@@ -874,6 +874,7 @@ end;
   procedure PascalMain;external name 'PASCALMAIN';
   procedure fpc_do_exit;external name 'FPC_DO_EXIT';
   Procedure ExitDLL(Exitcode : longint); forward;
+  procedure asm_exit; external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -889,7 +890,12 @@ begin
      { what about Input and Output ?? PM }
    end;
   remove_exception_handlers;
-  ExitProcess(ExitCode);
+  { call exitprocess, with cleanup as required }
+  asm
+    xorl %eax, %eax
+    movw exitcode,%ax    
+    call asm_exit
+  end;
 end;
 
 var
@@ -1499,7 +1505,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  2002-10-31 15:17:58  carl
+  Revision 1.37  2002-11-30 18:17:35  carl
+    + profiling support
+
+  Revision 1.36  2002/10/31 15:17:58  carl
     * always allocate argument even if its empty (bugfix web bug 2202)
 
   Revision 1.35  2002/10/14 20:40:22  florian
