@@ -47,9 +47,6 @@ uses
   sysutils,
 {$endif COMPILER_1_0}
 {$endif FPC}
-{$ifdef COMPILER_1_0}
-  tpexcept,
-{$endif COMPILER_1_0}
 {$ifndef NODEBUG}
   FPDebug,
 {$endif NODEBUG}
@@ -294,7 +291,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 15:40:43  peter
+  Revision 1.5  2002-10-04 15:23:46  pierre
+   * don't use tpexcept anymore
+
+  Revision 1.4  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
 }
