@@ -755,6 +755,9 @@ ifdef EXTRAINSTALLUNITS
 endif
 
 fpc_install : all
+	$(MAKE) fpc_install2
+
+fpc_install2 :
 # Create UnitInstallFiles
 ifdef EXTRAINSTALLUNITS
 override EXTRAINSTALLFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
@@ -1039,7 +1042,10 @@ endif
 
 #
 # $Log$
-# Revision 1.40  1999-07-17 14:22:54  peter
+# Revision 1.41  1999-07-21 14:21:00  peter
+#   * install works again
+#
+# Revision 1.40  1999/07/17 14:22:54  peter
 #   * ECHO is now again without @
 #
 # Revision 1.39  1999/07/17 11:30:23  peter
