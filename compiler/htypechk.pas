@@ -136,8 +136,9 @@ implementation
 
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
 
-        procedure internal_check(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype;var allowed:boolean);
+        function internal_check(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype;var allowed:boolean):boolean;
         begin
+          internal_check:=true;
           case ld.deftype of
             recorddef,
             variantdef :
@@ -199,7 +200,8 @@ implementation
                     is_pchar(rd) or
                     is_integer(rd) or
                     (rd.deftype=stringdef) or
-                    is_chararray(rd)) then
+                    is_chararray(rd) or
+                    (rt=niln)) then
                  begin
                    allowed:=false;
                    exit;
@@ -238,13 +240,14 @@ implementation
                  end;
                 allowed:=true;
               end;
+            else
+              internal_check:=false;
           end;
         end;
 
       var
         allowed : boolean;
       begin
-        isbinaryoperatoroverloadable:=false;
         { power ** is always possible }
         if (treetyp=starstarn) then
          begin
@@ -254,8 +257,8 @@ implementation
         { order of arguments does not matter so we have to check also
           the reversed order }
         allowed:=false;
-        internal_check(treetyp,ld,lt,rd,rt,allowed);
-        internal_check(treetyp,rd,rt,ld,lt,allowed);
+        if not internal_check(treetyp,ld,lt,rd,rt,allowed) then
+          internal_check(treetyp,rd,rt,ld,lt,allowed);
         isbinaryoperatoroverloadable:=allowed;
       end;
 
@@ -1037,7 +1040,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-01-02 19:50:21  peter
+  Revision 1.57  2003-01-02 22:21:19  peter
+    * fixed previous operator change
+
+  Revision 1.56  2003/01/02 19:50:21  peter
     * fixed operator checking for objects
     * made binary operator checking simpeler
 
