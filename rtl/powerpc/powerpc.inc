@@ -430,9 +430,9 @@ LFillCharDCBZLoop:
         b         LFillCharVerySmall
 LFillCharNoZero:
 {$ifdef FPC_ABI_AIX}
-        stw       r5,0(sp)
-        stw       r5,4(sp)
-        lfd       f0,0(sp)
+        stw       r5,0(r1)
+        stw       r5,4(r1)
+        lfd       f0,0(r1)
 {$else FPC_ABI_AIX}
         stw       r5,temp
         stw       r5,4+temp
@@ -966,7 +966,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  2003-09-06 10:44:41  olle
+  Revision 1.54  2003-09-14 20:33:28  jonas
+    * renamed sp to r1, gnu as doesn't understand sp
+
+  Revision 1.53  2003/09/06 10:44:41  olle
     + Used macros ABI_AIX and ABI_SYSV exchanged to FPC_ABI_AIX and FPC_ABI_SYSV.
 
   Revision 1.52  2003/08/24 20:47:49  olle
