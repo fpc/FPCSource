@@ -623,6 +623,12 @@ type tmsgconst=(
   ol127,
   ol128,
   ol129,
+  ol130,
+  ol131,
+  ol132,
+  ol133,
+  ol134,
+  ol135,
   ol_end,
 endmsgconst
 );
