@@ -57,7 +57,7 @@ unit cgobj;
        public
           alignment : talignment;
           rg        : array[tregistertype] of trgobj;
-          t_times:cardinal;
+          t_times   : longint;
        {$ifdef flowgraph}
           aktflownode:word;
        {$endif}
@@ -2047,7 +2047,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.186  2004-11-08 21:47:39  florian
+  Revision 1.187  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.186  2004/11/08 21:47:39  florian
     * better code generation for copying of open arrays
 
   Revision 1.185  2004/11/08 20:23:29  florian

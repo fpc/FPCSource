@@ -441,7 +441,7 @@ interface
           maxparacount,
           minparacount    : byte;
 {$ifdef i386}
-          fpu_used        : byte;    { how many stack fpu must be empty }
+          fpu_used        : longint;    { how many stack fpu must be empty }
 {$endif i386}
           funcretloc : array[tcallercallee] of TLocation;
           has_paraloc_info : boolean; { paraloc info is available }
@@ -6136,7 +6136,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.279  2004-11-22 22:01:19  peter
+  Revision 1.280  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.279  2004/11/22 22:01:19  peter
     * fixed varargs
     * replaced dynarray with tlist
 

@@ -115,65 +115,12 @@ implementation
 
     function case_statement : tnode;
       var
-         { contains the label number of currently parsed case block }
-         aktcaselabel : tasmlabel;
-         firstlabel : boolean;
-         root : pcaserecord;
-
-         { the typ of the case expression }
          casedef : tdef;
-
-      procedure newcaselabel(l,h : TConstExprInt;first:boolean);
-
-        var
-           hcaselabel : pcaserecord;
-
-        procedure insertlabel(var p : pcaserecord);
-
-          begin
-             if p=nil then p:=hcaselabel
-             else
-                if (p^._low>hcaselabel^._low) and
-                   (p^._low>hcaselabel^._high) then
-                  if (hcaselabel^.statement = p^.statement) and
-                     (p^._low = hcaselabel^._high + 1) then
-                    begin
-                      p^._low := hcaselabel^._low;
-                      dispose(hcaselabel);
-                    end
-                  else
-                    insertlabel(p^.less)
-                else
-                  if (p^._high<hcaselabel^._low) and
-                     (p^._high<hcaselabel^._high) then
-                    if (hcaselabel^.statement = p^.statement) and
-                       (p^._high+1 = hcaselabel^._low) then
-                      begin
-                        p^._high := hcaselabel^._high;
-                        dispose(hcaselabel);
-                      end
-                    else
-                      insertlabel(p^.greater)
-                  else Message(parser_e_double_caselabel);
-          end;
-
-        begin
-           new(hcaselabel);
-           hcaselabel^.less:=nil;
-           hcaselabel^.greater:=nil;
-           hcaselabel^.statement:=aktcaselabel;
-           hcaselabel^.firstlabel:=first;
-           objectlibrary.getlabel(hcaselabel^._at);
-           hcaselabel^._low:=l;
-           hcaselabel^._high:=h;
-           insertlabel(root);
-        end;
-
-      var
          code,caseexpr,p,instruc,elseblock : tnode;
+         blockid : longint;
          hl1,hl2 : TConstExprInt;
          casedeferror : boolean;
-
+         casenode : tcasenode;
       begin
          consume(_CASE);
          caseexpr:=comp_expr(true);
@@ -192,14 +139,12 @@ implementation
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
-
+         { Create casenode }
+         casenode:=ccasenode.create(caseexpr);
          consume(_OF);
-         root:=nil;
-         instruc:=nil;
+         { Parse all case blocks }
+         blockid:=0;
          repeat
-           objectlibrary.getlabel(aktcaselabel);
-           firstlabel:=true;
-
            { maybe an instruction has more case labels }
            repeat
              p:=expr;
@@ -239,7 +184,7 @@ implementation
                     end
                   else
                     CGMessage(parser_e_case_mismatch);
-                  newcaselabel(hl1,hl2,firstlabel);
+                  casenode.addlabel(blockid,hl1,hl2);
                end
              else
                begin
@@ -249,22 +194,21 @@ implementation
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
                     testrange(casedef,hl1,false);
-                  newcaselabel(hl1,hl1,firstlabel);
+                  casenode.addlabel(blockid,hl1,hl1);
                end;
              p.free;
              if token=_COMMA then
                consume(_COMMA)
              else
                break;
-             firstlabel:=false;
            until false;
            consume(_COLON);
 
-           { handles instruction block }
-           p:=clabelnode.createcase(aktcaselabel,statement);
+           { add instruction block }
+           casenode.addblock(blockid,statement);
 
-           { concats instruction }
-           instruc:=cstatementnode.create(p,instruc);
+           { next block }
+           inc(blockid);
 
            if not(token in [_ELSE,_OTHERWISE,_END]) then
              consume(_SEMICOLON);
@@ -274,7 +218,7 @@ implementation
            begin
               if not try_to_consume(_ELSE) then
                 consume(_OTHERWISE);
-              elseblock:=statements_til_end;
+              casenode.addelseblock(statements_til_end);
            end
          else
            begin
@@ -282,11 +226,7 @@ implementation
               consume(_END);
            end;
 
-         code:=ccasenode.create(caseexpr,instruc,root);
-
-         tcasenode(code).elseblock:=elseblock;
-
-         case_statement:=code;
+         result:=casenode;
       end;
 
 
@@ -1207,7 +1147,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2004-11-21 17:54:59  peter
+  Revision 1.146  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.145  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

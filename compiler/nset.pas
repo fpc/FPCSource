@@ -27,27 +27,29 @@ unit nset;
 interface
 
     uses
+       cclasses,
        node,globtype,globals,
        aasmbase,aasmtai,symtype;
 
     type
-      pcaserecord = ^tcaserecord;
-      tcaserecord = record
+       pcaselabel = ^tcaselabel;
+       tcaselabel = record
           { range }
-          _low,_high : TConstExprInt;
-
-          { only used by gentreejmp }
-          _at : tasmlabel;
-
-          { label of instruction }
-          statement : tasmlabel;
-
-          { is this the first of an case entry, needed to release statement
-            label (PFV) }
-          firstlabel : boolean;
-
+          _low,
+          _high   : TConstExprInt;
+          { unique blockid }
+          blockid : longint;
           { left and right tree node }
-          less,greater : pcaserecord;
+          less,
+          greater : pcaselabel;
+       end;
+
+       pcaseblock = ^tcaseblock;
+       tcaseblock = record
+          { label (only used in pass_2) }
+          blocklabel : tasmlabel;
+          { instructions }
+          statement  : tnode;
        end;
 
        tsetelementnode = class(tbinarynode)
@@ -71,10 +73,11 @@ interface
        end;
        trangenodeclass = class of trangenode;
 
-       tcasenode = class(tbinarynode)
-          nodes : pcaserecord;
+       tcasenode = class(tunarynode)
+          labels    : pcaselabel;
+          blocks    : tlist;
           elseblock : tnode;
-          constructor create(l,r : tnode;n : pcaserecord);virtual;
+          constructor create(l:tnode);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -85,6 +88,9 @@ interface
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
+          procedure addlabel(blockid:longint;l,h : TConstExprInt);
+          procedure addblock(blockid:longint;instr:tnode);
+          procedure addelseblock(instr:tnode);
        end;
        tcasenodeclass = class of tcasenode;
 
@@ -95,21 +101,20 @@ interface
        ccasenode : tcasenodeclass;
 
     { counts the labels }
-    function case_count_labels(root : pcaserecord) : longint;
+    function case_count_labels(root : pcaselabel) : longint;
     { searches the highest label }
 {$ifdef int64funcresok}
-    function case_get_max(root : pcaserecord) : tconstexprint;
+    function case_get_max(root : pcaselabel) : tconstexprint;
 {$else int64funcresok}
-    function case_get_max(root : pcaserecord) : longint;
+    function case_get_max(root : pcaselabel) : longint;
 {$endif int64funcresok}
     { searches the lowest label }
 {$ifdef int64funcresok}
-    function case_get_min(root : pcaserecord) : tconstexprint;
+    function case_get_min(root : pcaselabel) : tconstexprint;
 {$else int64funcresok}
-    function case_get_min(root : pcaserecord) : longint;
+    function case_get_min(root : pcaselabel) : longint;
 {$endif int64funcresok}
 
-    function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
 implementation
 
@@ -120,15 +125,6 @@ implementation
       htypechk,pass_1,
       nbas,ncnv,ncon,nld,cgobj,cgbase;
 
-    function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
-
-      var
-         t : tnode;
-
-      begin
-         t:=ccasenode.create(l,r,nodes);
-         gencasenode:=t;
-      end;
 
 {*****************************************************************************
                            TSETELEMENTNODE
@@ -376,11 +372,11 @@ implementation
                               Case Helpers
 *****************************************************************************}
 
-    function case_count_labels(root : pcaserecord) : longint;
+    function case_count_labels(root : pcaselabel) : longint;
       var
          _l : longint;
 
-      procedure count(p : pcaserecord);
+      procedure count(p : pcaselabel);
         begin
            inc(_l);
            if assigned(p^.less) then
@@ -397,12 +393,12 @@ implementation
 
 
 {$ifdef int64funcresok}
-    function case_get_max(root : pcaserecord) : tconstexprint;
+    function case_get_max(root : pcaselabel) : tconstexprint;
 {$else int64funcresok}
-    function case_get_max(root : pcaserecord) : longint;
+    function case_get_max(root : pcaselabel) : longint;
 {$endif int64funcresok}
       var
-         hp : pcaserecord;
+         hp : pcaselabel;
       begin
          hp:=root;
          while assigned(hp^.greater) do
@@ -412,12 +408,12 @@ implementation
 
 
 {$ifdef int64funcresok}
-    function case_get_min(root : pcaserecord) : tconstexprint;
+    function case_get_min(root : pcaselabel) : tconstexprint;
 {$else int64funcresok}
-    function case_get_min(root : pcaserecord) : longint;
+    function case_get_min(root : pcaselabel) : longint;
 {$endif int64funcresok}
       var
-         hp : pcaserecord;
+         hp : pcaselabel;
       begin
          hp:=root;
          while assigned(hp^.less) do
@@ -425,7 +421,7 @@ implementation
          case_get_min:=hp^._low;
       end;
 
-    procedure deletecaselabels(p : pcaserecord);
+    procedure deletecaselabels(p : pcaselabel);
 
       begin
          if assigned(p^.greater) then
@@ -435,31 +431,29 @@ implementation
          dispose(p);
       end;
 
-    function copycaserecord(p : pcaserecord) : pcaserecord;
+    function copycaselabel(p : pcaselabel) : pcaselabel;
 
       var
-         n : pcaserecord;
+         n : pcaselabel;
 
       begin
          new(n);
          n^:=p^;
          if assigned(p^.greater) then
-           n^.greater:=copycaserecord(p^.greater);
+           n^.greater:=copycaselabel(p^.greater);
          if assigned(p^.less) then
-           n^.less:=copycaserecord(p^.less);
-         copycaserecord:=n;
+           n^.less:=copycaselabel(p^.less);
+         copycaselabel:=n;
       end;
 
 
-    procedure ppuwritecaserecord(ppufile:tcompilerppufile;p : pcaserecord);
+    procedure ppuwritecaselabel(ppufile:tcompilerppufile;p : pcaselabel);
       var
         b : byte;
       begin
         ppufile.putexprint(p^._low);
         ppufile.putexprint(p^._high);
-        ppufile.putasmsymbol(p^._at);
-        ppufile.putasmsymbol(p^.statement);
-        ppufile.putbyte(byte(p^.firstlabel));
+        ppufile.putlongint(p^.blockid);
         b:=0;
         if assigned(p^.greater) then
          b:=b or 1;
@@ -467,44 +461,31 @@ implementation
          b:=b or 2;
         ppufile.putbyte(b);
         if assigned(p^.greater) then
-          ppuwritecaserecord(ppufile,p^.greater);
+          ppuwritecaselabel(ppufile,p^.greater);
         if assigned(p^.less) then
-          ppuwritecaserecord(ppufile,p^.less);
+          ppuwritecaselabel(ppufile,p^.less);
       end;
 
 
-    function ppuloadcaserecord(ppufile:tcompilerppufile):pcaserecord;
+    function ppuloadcaselabel(ppufile:tcompilerppufile):pcaselabel;
       var
         b : byte;
-        p : pcaserecord;
+        p : pcaselabel;
       begin
         new(p);
         p^._low:=ppufile.getexprint;
         p^._high:=ppufile.getexprint;
-        p^._at:=tasmlabel(ppufile.getasmsymbol);
-        p^.statement:=tasmlabel(ppufile.getasmsymbol);
-        p^.firstlabel:=boolean(ppufile.getbyte);
+        p^.blockid:=ppufile.getlongint;
         b:=ppufile.getbyte;
         if (b and 1)=1 then
-         p^.greater:=ppuloadcaserecord(ppufile)
+         p^.greater:=ppuloadcaselabel(ppufile)
         else
          p^.greater:=nil;
         if (b and 2)=2 then
-         p^.less:=ppuloadcaserecord(ppufile)
+         p^.less:=ppuloadcaselabel(ppufile)
         else
          p^.less:=nil;
-        ppuloadcaserecord:=p;
-      end;
-
-
-    procedure ppuderefcaserecord(p : pcaserecord);
-      begin
-         objectlibrary.derefasmsymbol(tasmsymbol(p^._at));
-         objectlibrary.derefasmsymbol(tasmsymbol(p^.statement));
-         if assigned(p^.greater) then
-           ppuderefcaserecord(p^.greater);
-         if assigned(p^.less) then
-           ppuderefcaserecord(p^.less);
+        ppuloadcaselabel:=p;
       end;
 
 
@@ -512,54 +493,80 @@ implementation
                               TCASENODE
 *****************************************************************************}
 
-    constructor tcasenode.create(l,r : tnode;n : pcaserecord);
+    constructor tcasenode.create(l:tnode);
       begin
-         inherited create(casen,l,r);
-         nodes:=n;
+         inherited create(casen,l);
+         labels:=nil;
+         blocks:=tlist.create;
          elseblock:=nil;
-         set_file_line(l);
       end;
 
 
     destructor tcasenode.destroy;
+      var
+        i : longint;
+        hp : pcaseblock;
       begin
          elseblock.free;
-         deletecaselabels(nodes);
+         deletecaselabels(labels);
+         for i:=0 to blocks.count-1 do
+           begin
+             pcaseblock(blocks[i])^.statement.free;
+             hp:=pcaseblock(blocks[i]);
+             dispose(hp);
+           end;
          inherited destroy;
       end;
 
 
     constructor tcasenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      var
+        cnt,i : longint;
       begin
         inherited ppuload(t,ppufile);
         elseblock:=ppuloadnode(ppufile);
-        nodes:=ppuloadcaserecord(ppufile);
+        cnt:=ppufile.getlongint();
+        blocks:=tlist.create;
+        for i:=0 to cnt-1 do
+          addblock(i,ppuloadnode(ppufile));
+        labels:=ppuloadcaselabel(ppufile);
       end;
 
 
     procedure tcasenode.ppuwrite(ppufile:tcompilerppufile);
+      var
+        i : longint;
       begin
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,elseblock);
-        ppuwritecaserecord(ppufile,nodes);
+        ppufile.putlongint(blocks.count);
+        for i:=0 to blocks.count-1 do
+          ppuwritenode(ppufile,pcaseblock(blocks[i])^.statement);
+        ppuwritecaselabel(ppufile,labels);
       end;
 
 
     procedure tcasenode.buildderefimpl;
+      var
+        i : integer;
       begin
         inherited buildderefimpl;
         if assigned(elseblock) then
           elseblock.buildderefimpl;
-        {ppubuildderefimplcaserecord(nodes);}
+        for i:=0 to blocks.count-1 do
+          pcaseblock(blocks[i])^.statement.buildderefimpl;
       end;
 
 
     procedure tcasenode.derefimpl;
+      var
+        i : integer;
       begin
         inherited derefimpl;
         if assigned(elseblock) then
           elseblock.derefimpl;
-        ppuderefcaserecord(nodes);
+        for i:=0 to blocks.count-1 do
+          pcaseblock(blocks[i])^.statement.derefimpl;
       end;
 
 
@@ -574,7 +581,8 @@ implementation
     function tcasenode.pass_1 : tnode;
       var
          old_t_times : longint;
-         hp : tstatementnode;
+         hp : tnode;
+         i  : integer;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -591,39 +599,36 @@ implementation
 
          { walk through all instructions }
 
-         {   estimates the repeat of each instruction }
+         { estimates the repeat of each instruction }
          old_t_times:=cg.t_times;
          if not(cs_littlesize in aktglobalswitches) then
            begin
-              cg.t_times:=cg.t_times div case_count_labels(nodes);
+              cg.t_times:=cg.t_times div case_count_labels(labels);
               if cg.t_times<1 then
                 cg.t_times:=1;
            end;
          { first case }
-         hp:=tstatementnode(right);
-         while assigned(hp) do
+         for i:=0 to blocks.count-1 do
            begin
-              firstpass(hp.left);
+
+              firstpass(pcaseblock(blocks[i])^.statement);
 
               { searchs max registers }
-              if hp.left.registersint>registersint then
-                registersint:=hp.left.registersint;
-              if hp.left.registersfpu>registersfpu then
-                registersfpu:=hp.left.registersfpu;
+              hp:=pcaseblock(blocks[i])^.statement;
+              if hp.registersint>registersint then
+                registersint:=hp.registersint;
+              if hp.registersfpu>registersfpu then
+                registersfpu:=hp.registersfpu;
 {$ifdef SUPPORT_MMX}
-              if hp.left.registersmmx>registersmmx then
-                registersmmx:=hp.left.registersmmx;
+              if hp.registersmmx>registersmmx then
+                registersmmx:=hp.registersmmx;
 {$endif SUPPORT_MMX}
-
-              hp:=tstatementnode(hp.right);
            end;
 
          { may be handle else tree }
          if assigned(elseblock) then
            begin
               firstpass(elseblock);
-              if codegenerror then
-                exit;
               if registersint<elseblock.registersint then
                 registersint:=elseblock.registersint;
               if registersfpu<elseblock.registersfpu then
@@ -638,26 +643,39 @@ implementation
          { there is one register required for the case expression    }
          { for 64 bit ints we cheat: the high dword is stored in EDI }
          { so we don't need an extra register                        }
-         if registersint<1 then registersint:=1;
+         if registersint<1 then
+           registersint:=1;
       end;
 
 
     function tcasenode.getcopy : tnode;
 
       var
-         p : tcasenode;
-
+         n : tcasenode;
+         i : longint;
       begin
-         p:=tcasenode(inherited getcopy);
+         n:=tcasenode(inherited getcopy);
          if assigned(elseblock) then
-           p.elseblock:=elseblock.getcopy
+           n.elseblock:=elseblock.getcopy
          else
-           p.elseblock:=nil;
-         if assigned(nodes) then
-           p.nodes:=copycaserecord(nodes)
+           n.elseblock:=nil;
+         if assigned(labels) then
+           n.labels:=copycaselabel(labels)
          else
-           p.nodes:=nil;
-         getcopy:=p;
+           n.labels:=nil;
+         if assigned(blocks) then
+           begin
+             n.blocks:=tlist.create;
+             for i:=0 to blocks.count-1 do
+               begin
+                 if not assigned(blocks[i]) then
+                   internalerror(200411302);
+                 n.addblock(i,pcaseblock(blocks[i])^.statement.getcopy);
+               end;
+           end
+         else
+           n.labels:=nil;
+         getcopy:=n;
       end;
 
     procedure tcasenode.insertintolist(l : tnodelist);
@@ -665,25 +683,114 @@ implementation
       begin
       end;
 
-    function casenodesequal(n1,n2: pcaserecord): boolean;
+    function caselabelsequal(n1,n2: pcaselabel): boolean;
       begin
-        casenodesequal :=
+        result :=
           (not assigned(n1) and not assigned(n2)) or
           (assigned(n1) and assigned(n2) and
            (n1^._low = n2^._low) and
            (n1^._high = n2^._high) and
            { the rest of the fields don't matter for equality (JM) }
-           casenodesequal(n1^.less,n2^.less) and
-           casenodesequal(n1^.greater,n2^.greater))
+           caselabelsequal(n1^.less,n2^.less) and
+           caselabelsequal(n1^.greater,n2^.greater))
+      end;
+
+
+    function caseblocksequal(b1,b2:tlist): boolean;
+      var
+        i : longint;
+      begin
+        result:=false;
+        if b1.count<>b2.count then
+          exit;
+        for i:=0 to b1.count-1 do
+          begin
+            if not pcaseblock(b1[i])^.statement.isequal(pcaseblock(b2[i])^.statement) then
+              exit;
+          end;
+        result:=true;
       end;
 
 
     function tcasenode.docompare(p: tnode): boolean;
       begin
-        docompare :=
+        result :=
           inherited docompare(p) and
-          casenodesequal(nodes,tcasenode(p).nodes) and
+          caselabelsequal(labels,tcasenode(p).labels) and
+          caseblocksequal(blocks,tcasenode(p).blocks) and
           elseblock.isequal(tcasenode(p).elseblock);
+      end;
+
+
+    procedure tcasenode.addblock(blockid:longint;instr:tnode);
+      var
+        hcaseblock : pcaseblock;
+      begin
+        new(hcaseblock);
+        fillchar(hcaseblock^,sizeof(hcaseblock^),0);
+        hcaseblock^.statement:=instr;
+        if blockid>=blocks.count then
+          blocks.count:=blockid+1;
+        blocks[blockid]:=hcaseblock;
+      end;
+
+
+    procedure tcasenode.addelseblock(instr:tnode);
+      begin
+        elseblock:=instr;
+      end;
+
+
+    procedure tcasenode.addlabel(blockid:longint;l,h : TConstExprInt);
+      var
+        hcaselabel : pcaselabel;
+
+        function insertlabel(var p : pcaselabel):pcaselabel;
+          begin
+             if p=nil then
+               begin
+                 p:=hcaselabel;
+                 result:=p;
+               end
+             else
+              if (p^._low>hcaselabel^._low) and
+                 (p^._low>hcaselabel^._high) then
+                begin
+                  if (hcaselabel^.blockid = p^.blockid) and
+                     (p^._low = hcaselabel^._high + 1) then
+                    begin
+                      p^._low := hcaselabel^._low;
+                      dispose(hcaselabel);
+                      result:=p;
+                    end
+                  else
+                    result:=insertlabel(p^.less)
+                end
+             else
+               if (p^._high<hcaselabel^._low) and
+                  (p^._high<hcaselabel^._high) then
+                 begin
+                    if (hcaselabel^.blockid = p^.blockid) and
+                       (p^._high+1 = hcaselabel^._low) then
+                      begin
+                        p^._high := hcaselabel^._high;
+                        dispose(hcaselabel);
+                        result:=p;
+                      end
+                    else
+                      result:=insertlabel(p^.greater);
+                 end
+             else
+               Message(parser_e_double_caselabel);
+          end;
+
+      begin
+        new(hcaselabel);
+        fillchar(hcaselabel^,sizeof(tcaselabel),0);
+        hcaselabel^.blockid:=blockid;
+        hcaselabel^._low:=l;
+        hcaselabel^._high:=h;
+        insertlabel(labels);
       end;
 
 begin
@@ -694,7 +801,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-06-20 08:55:29  florian
+  Revision 1.56  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.55  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.54  2004/06/16 20:07:09  florian

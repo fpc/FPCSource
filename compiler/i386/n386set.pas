@@ -34,8 +34,8 @@ interface
       ti386casenode = class(tcgcasenode)
          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
          function  has_jumptable : boolean;override;
-         procedure genjumptable(hp : pcaserecord;min_,max_ : aint);override;
-         procedure genlinearlist(hp : pcaserecord);override;
+         procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
+         procedure genlinearlist(hp : pcaselabel);override;
       end;
 
 
@@ -77,7 +77,7 @@ implementation
       end;
 
 
-    procedure ti386casenode.genjumptable(hp : pcaserecord;min_,max_ : aint);
+    procedure ti386casenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -85,7 +85,7 @@ implementation
         href : treference;
         jumpsegment : TAAsmOutput;
 
-        procedure genitem(t : pcaserecord);
+        procedure genitem(t : pcaselabel);
           var
             i : aint;
           begin
@@ -95,7 +95,7 @@ implementation
             for i:=last+1 to t^._low-1 do
               jumpSegment.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low to t^._high do
-              jumpSegment.concat(Tai_const.Create_sym(t^.statement));
+              jumpSegment.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
             last:=t^._high;
             if assigned(t^.greater) then
               genitem(t^.greater);
@@ -133,14 +133,14 @@ implementation
       end;
 
 
-    procedure ti386casenode.genlinearlist(hp : pcaserecord);
+    procedure ti386casenode.genlinearlist(hp : pcaselabel);
       var
         first : boolean;
         lastrange : boolean;
         last : TConstExprInt;
         cond_lt,cond_le : tresflags;
 
-        procedure genitem(t : pcaserecord);
+        procedure genitem(t : pcaselabel);
           begin
              if assigned(t^.less) then
                genitem(t^.less);
@@ -152,11 +152,11 @@ implementation
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
+                    cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
                       cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low-last), hregister);
-                      cg.a_jmp_flags(exprasmlist,F_E,t^.statement);
+                      cg.a_jmp_flags(exprasmlist,F_E,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
                   lastrange:=false;
@@ -188,7 +188,7 @@ implementation
                   {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
                    using a_op_const_reg(OP_SUB) is not possible }
                   emit_const_reg(A_SUB,TCGSize2OpSize[opsize],aint(t^._high-t^._low),hregister);
-                  cg.a_jmp_flags(exprasmlist,cond_le,t^.statement);
+                  cg.a_jmp_flags(exprasmlist,cond_le,blocklabel(t^.blockid));
                   last:=t^._high;
                   lastrange:=true;
                end;
@@ -226,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2004-06-20 08:55:31  florian
+  Revision 1.77  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.76  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.75  2004/06/16 20:07:10  florian

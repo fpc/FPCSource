@@ -743,7 +743,7 @@ parser_e_cant_publish_that_property=03134_E_That kind of property can't be publi
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_e_empty_import_name=03136_W_An import name is required
+parser_e_empty_import_name=03136_E_An import name is required
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier
 parser_e_division_by_zero=03138_E_Division by zero
 % There is a divsion by zero encounted

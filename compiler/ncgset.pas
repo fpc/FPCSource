@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl and Carl Eric Codere
 
-    Generate generic assembler for in set/case nodes
+    Generate generic assembler for in set/case labels
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,12 +73,12 @@ interface
           { has the implementation jumptable support }
           min_label : tconstexprint;
 
+          function  blocklabel(id:longint):tasmlabel;
           procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);virtual;
           function  has_jumptable : boolean;virtual;
-          procedure genjumptable(hp : pcaserecord;min_,max_ : aint); virtual;
-          procedure genlinearlist(hp : pcaserecord); virtual;
-          procedure genlinearcmplist(hp : pcaserecord); virtual;
-          procedure gentreejmp(p : pcaserecord);
+          procedure genjumptable(hp : pcaselabel;min_,max_ : aint); virtual;
+          procedure genlinearlist(hp : pcaselabel); virtual;
+          procedure genlinearcmplist(hp : pcaselabel); virtual;
        end;
 
 
@@ -135,8 +135,6 @@ implementation
   procedure tcginnode.emit_bit_test_reg_reg(list : taasmoutput;
                                             bitsize: tcgsize; bitnumber,value : tregister;
                                             ressize: tcgsize; res :tregister);
-    var
-      newres: tregister;
     begin
       { first make sure that the bit number is modulo 32 }
 
@@ -473,6 +471,14 @@ implementation
                             TCGCASENODE
 *****************************************************************************}
 
+    function tcgcasenode.blocklabel(id:longint):tasmlabel;
+      begin
+        if not assigned(blocks[id]) then
+          internalerror(200411301);
+        result:=pcaseblock(blocks[id])^.blocklabel;
+      end;
+
+
     procedure tcgcasenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
       begin
         { no changes by default }
@@ -486,20 +492,20 @@ implementation
       end;
 
 
-    procedure tcgcasenode.genjumptable(hp : pcaserecord;min_,max_ : aint);
+    procedure tcgcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       begin
         internalerror(200209161);
       end;
 
 
-    procedure tcgcasenode.genlinearlist(hp : pcaserecord);
+    procedure tcgcasenode.genlinearlist(hp : pcaselabel);
 
       var
          first : boolean;
          last : TConstExprInt;
          scratch_reg: tregister;
 
-      procedure genitem(t : pcaserecord);
+      procedure genitem(t : pcaselabel);
 
           procedure gensub(value:aint);
           begin
@@ -520,11 +526,11 @@ implementation
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
+                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                 else
                   begin
                       gensub(aint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,aint(t^._low-last),scratch_reg,t^.statement);
+                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,aint(t^._low-last),scratch_reg,blocklabel(t^.blockid));
                   end;
                 last:=t^._low;
              end
@@ -548,7 +554,7 @@ implementation
                     cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_lt,aint(t^._low-last),scratch_reg,elselabel);
                   end;
                 gensub(aint(t^._high-t^._low));
-                cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_le,aint(t^._high-t^._low),scratch_reg,t^.statement);
+                cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_le,aint(t^._high-t^._low),scratch_reg,blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -571,13 +577,13 @@ implementation
       end;
 
 
-    procedure tcgcasenode.genlinearcmplist(hp : pcaserecord);
+    procedure tcgcasenode.genlinearcmplist(hp : pcaselabel);
 
       var
          last : TConstExprInt;
          lastwasrange: boolean;
 
-      procedure genitem(t : pcaserecord);
+      procedure genitem(t : pcaselabel);
 
 {$ifndef cpu64bit}
         var
@@ -594,13 +600,13 @@ implementation
                   begin
                      objectlibrary.getlabel(l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, aint(hi(int64(t^._low))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, aint(lo(int64(t^._low))),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, aint(lo(int64(t^._low))),hregister, blocklabel(t^.blockid));
                      cg.a_label(exprasmlist,l1);
                   end
                 else
 {$endif cpu64bit}
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aint(t^._low),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aint(t^._low),hregister, blocklabel(t^.blockid));
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -637,16 +643,16 @@ implementation
                   begin
                      objectlibrary.getlabel(l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aint(hi(int64(t^._high))), hregister2,
-                           t^.statement);
+                           blocklabel(t^.blockid));
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aint(hi(int64(t^._high))), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aint(lo(int64(t^._high))), hregister, t^.statement);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_BE, aint(lo(int64(t^._high))), hregister, blocklabel(t^.blockid));
                     cg.a_label(exprasmlist,l1);
                   end
                 else
 {$endif cpu64bit}
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_le, aint(t^._high), hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_le, aint(t^._high), hregister, blocklabel(t^.blockid));
                   end;
 
                 last:=t^._high;
@@ -664,48 +670,6 @@ implementation
       end;
 
 
-    procedure tcgcasenode.gentreejmp(p : pcaserecord);
-      var
-         lesslabel,greaterlabel : tasmlabel;
-      begin
-        cg.a_label(exprasmlist,p^._at);
-        { calculate labels for left and right }
-        if (p^.less=nil) then
-          lesslabel:=elselabel
-        else
-          lesslabel:=p^.less^._at;
-        if (p^.greater=nil) then
-          greaterlabel:=elselabel
-        else
-          greaterlabel:=p^.greater^._at;
-        { calculate labels for left and right }
-        { no range label: }
-        if p^._low=p^._high then
-          begin
-             if greaterlabel=lesslabel then
-               begin
-                 cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_NE,p^._low,hregister, lesslabel);
-               end
-             else
-               begin
-                 cg.a_cmp_const_reg_label(exprasmlist,opsize, jmp_lt,p^._low,hregister, lesslabel);
-                 cg.a_cmp_const_reg_label(exprasmlist,opsize, jmp_gt,p^._low,hregister, greaterlabel);
-               end;
-             cg.a_jmp_always(exprasmlist,p^.statement);
-          end
-        else
-          begin
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,p^._low, hregister, lesslabel);
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,p^._high,hregister, greaterlabel);
-             cg.a_jmp_always(exprasmlist,p^.statement);
-          end;
-         if assigned(p^.less) then
-          gentreejmp(p^.less);
-         if assigned(p^.greater) then
-          gentreejmp(p^.greater);
-      end;
-
-
     procedure ReLabel(var p:tasmsymbol);
       begin
         if p.defbind = AB_LOCAL then
@@ -718,44 +682,26 @@ implementation
       end;
 
 
-    procedure relabelcaserecord(p : pcaserecord);
-      begin
-         Relabel(p^.statement);
-         Relabel(p^._at);
-         if assigned(p^.greater) then
-           relabelcaserecord(p^.greater);
-         if assigned(p^.less) then
-           relabelcaserecord(p^.less);
-      end;
-
-
     procedure tcgcasenode.pass_2;
       var
+         i : longint;
          lv,hv,
          max_label: tconstexprint;
-         labels : aint;
+         labelcnt : aint;
          max_linear_list : aint;
          otl, ofl: tasmlabel;
          isjump : boolean;
          max_dist,
          dist : aword;
-         hp : tstatementnode;
-         relabeling: boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         { Relabel for inlining? }
-         relabeling := false;
-         if assigned(nodes) and
-            (nodes^.statement.getrefs <> 0) then
-          begin
-            objectlibrary.CreateUsedAsmSymbolList;
-            relabelcaserecord(nodes);
-            relabeling := true;
-          end;
-
+         { Allocate labels }
          objectlibrary.getlabel(endlabel);
          objectlibrary.getlabel(elselabel);
+         for i:=0 to blocks.count-1 do
+           objectlibrary.getlabel(pcaseblock(blocks[i])^.blocklabel);
+
          with_sign:=is_signed(left.resulttype.def);
          if with_sign then
            begin
@@ -769,6 +715,7 @@ implementation
               jmp_lt:=OC_B;
               jmp_le:=OC_BE;
            end;
+
          { save current truelabel and falselabel }
          isjump:=false;
          if left.location.loc=LOC_JUMP then
@@ -801,15 +748,15 @@ implementation
 
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }
-         min_label:=case_get_min(nodes);
+         min_label:=case_get_min(labels);
 
+         { Generate the jumps }
 {$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
-         { now generate the jumps }
 {$ifndef cpu64bit}
          if opsize in [OS_64,OS_S64] then
-           genlinearcmplist(nodes)
+           genlinearcmplist(labels)
          else
 {$endif cpu64bit}
            begin
@@ -822,8 +769,8 @@ implementation
                    { moreover can the size only be appro- }
                    { ximated as it is not known if rel8,  }
                    { rel16 or rel32 jumps are used   }
-                   max_label:=case_get_max(nodes);
-                   labels:=case_count_labels(nodes);
+                   max_label:=case_get_max(labels);
+                   labelcnt:=case_count_labels(labels);
                    { can we omit the range check of the jump table ? }
                    getrange(left.resulttype.def,lv,hv);
                    jumptable_no_range:=(lv=min_label) and (hv=max_label);
@@ -844,17 +791,17 @@ implementation
                    if cs_littlesize in aktglobalswitches  then
                      begin
                        if has_jumptable and
-                          not((labels<=2) or
+                          not((labelcnt<=2) or
                               ((max_label-min_label)<0) or
-                              ((max_label-min_label)>3*labels)) then
+                              ((max_label-min_label)>3*labelcnt)) then
                          begin
                            { if the labels less or more a continuum then }
-                           genjumptable(nodes,min_label,max_label);
+                           genjumptable(labels,min_label,max_label);
                          end
                        else
                          begin
                            { a linear list is always smaller than a jump tree }
-                           genlinearlist(nodes);
+                           genlinearlist(labels);
                          end;
                      end
                    else
@@ -868,55 +815,39 @@ implementation
                         { allow processor specific values }
                         optimizevalues(max_linear_list,max_dist);
 
-                        if (labels<=max_linear_list) then
-                          genlinearlist(nodes)
+                        if (labelcnt<=max_linear_list) then
+                          genlinearlist(labels)
                         else
                           begin
                             if (has_jumptable) and
-                               (dist<max_dist) then
-                              genjumptable(nodes,min_label,max_label)
+                               (dist<max_dist) and
+                               (min_label>=low(aint)) and
+                               (max_label<=high(aint)) then
+                              genjumptable(labels,min_label,max_label)
                             else
-                              begin
-{
-                                 This one expects that the case labels are a
-                                 perfectly balanced tree, which is not the case
-                                 very often -> generates really bad code (JM)
-                                 if labels>16 then
-                                   gentreejmp(nodes)
-                                 else
-}
-                                   genlinearlist(nodes);
-                              end;
+                              genlinearlist(labels);
                           end;
                      end;
                 end
               else
                 { it's always not bad }
-                genlinearlist(nodes);
+                genlinearlist(labels);
            end;
 
-         { now generate the instructions }
-         hp:=tstatementnode(right);
-         while assigned(hp) do
+         { generate the instruction blocks }
+         for i:=0 to blocks.count-1 do
            begin
-              { relabel when inlining }
-              if relabeling then
-                begin
-                  if hp.left.nodetype<>labeln then
-                    internalerror(200211261);
-                  Relabel(tlabelnode(hp.left).labelnr);
-                end;
-              secondpass(hp.left);
+              cg.a_label(exprasmlist,pcaseblock(blocks[i])^.blocklabel);
+              secondpass(pcaseblock(blocks[i])^.statement);
               { don't come back to case line }
               aktfilepos:=exprasmList.getlasttaifilepos^;
 {$ifdef OLDREGVARS}
               load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
               cg.a_jmp_always(exprasmlist,endlabel);
-              hp:=tstatementnode(hp.right);
            end;
-         cg.a_label(exprasmlist,elselabel);
          { ...and the else block }
+         cg.a_label(exprasmlist,elselabel);
          if assigned(elseblock) then
            begin
               secondpass(elseblock);
@@ -926,14 +857,9 @@ implementation
            end;
          cg.a_label(exprasmlist,endlabel);
 
-         { Remove relabels for inlining }
-         if relabeling and
-            assigned(nodes) then
-          begin
-             { restore used symbols }
-             objectlibrary.UsedAsmSymbolListResetAltSym;
-             objectlibrary.DestroyUsedAsmSymbolList;
-          end;
+         { Reset labels }
+         for i:=0 to blocks.count-1 do
+           pcaseblock(blocks[i])^.blocklabel:=nil;
       end;
 
 
@@ -944,7 +870,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2004-10-31 21:45:03  peter
+  Revision 1.71  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.70  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

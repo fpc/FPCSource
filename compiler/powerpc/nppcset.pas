@@ -33,7 +33,7 @@ interface
 
        tppccasenode = class(tcgcasenode)
          protected
-           procedure genlinearlist(hp : pcaserecord); override;
+           procedure genlinearlist(hp : pcaselabel); override;
        end;
 
 
@@ -56,13 +56,13 @@ implementation
 *****************************************************************************}
 
 
-    procedure tppccasenode.genlinearlist(hp : pcaserecord);
+    procedure tppccasenode.genlinearlist(hp : pcaselabel);
 
       var
          first, lastrange : boolean;
          last : TConstExprInt;
 
-      procedure genitem(t : pcaserecord);
+      procedure genitem(t : pcaselabel);
 
       var r:Tregister;
 
@@ -95,10 +95,10 @@ implementation
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,t^.statement)
+                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                 else
                   gensub(longint(t^._low-last));
-                tcgppc(cg).a_jmp_cond(exprasmlist,OC_EQ,t^.statement);
+                tcgppc(cg).a_jmp_cond(exprasmlist,OC_EQ,blocklabel(t^.blockid));
                 last:=t^._low;
                 lastrange := false;
              end
@@ -124,7 +124,7 @@ implementation
                       tcgppc(cg).a_jmp_cond(exprasmlist,jmp_lt,elselabel);
                   end;
                 gensub(longint(t^._high-t^._low));
-                tcgppc(cg).a_jmp_cond(exprasmlist,jmp_le,t^.statement);
+                tcgppc(cg).a_jmp_cond(exprasmlist,jmp_le,blocklabel(t^.blockid));
                 last:=t^._high;
                 lastrange := true;
              end;
@@ -156,7 +156,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2004-10-25 15:36:47  peter
+  Revision 1.17  2004-11-30 18:13:39  jonas
+    * patch from Peter to fix inlining of case statements
+
+  Revision 1.16  2004/10/25 15:36:47  peter
     * save standard registers moved to tcgobj
 
   Revision 1.15  2004/09/25 14:23:55  peter

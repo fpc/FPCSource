@@ -228,7 +228,7 @@ const msgtxt : array[0..000157,1..240] of char=(
   '03132_E_The default value of a property must be constant'#000+
   '03133_E_Symb','ol can'#039't be published, can be only a class'#000+
   '03134_E_That kind of property can'#039't be published'#000+
-  '03136_W_An import name is required'#000+
+  '03136_E_An import name is required'#000+
   '03138_E_Division by zero'#000+
   '03139_E_Invalid floating point operation'#000+
   '03140_E_Upper bound of range is less than lower',' bound'#000+
