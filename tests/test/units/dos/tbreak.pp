@@ -5,6 +5,8 @@
 {******************************************}
 Program tbreak;
 
+uses dos;
+
 
 { verifies that the DOSError variable is equal to }
 { the value requested.                            }
@@ -79,7 +81,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  2002-11-08 21:01:18  carl
+  Revision 1.2  2002-11-09 23:08:07  carl
+    * fix compilation problems
+
+  Revision 1.1  2002/11/08 21:01:18  carl
     * separated some tests
     * make tfexpand more portable
 
