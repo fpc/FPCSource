@@ -17,12 +17,10 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-
-
-unit dGlobals;
-
 {$MODE objfpc}
 {$H+}
+unit dGlobals;
+
 
 interface
 
@@ -70,15 +68,23 @@ resourcestring
   SDocByName = 'by Name';
   SDocValue = 'Value';
   SDocExplanation = 'Explanation';
+  SDocProcedure = 'Procedure';
   SDocValuesForEnum = 'Enumeration values for type %s';
   SDocSourcePosition = 'Source position: %s line %d';
-
+  SDocSynopsis = 'Synopsis';
+  SDocVisibility = 'Visibility';
+  
   // Topics
   SDocRelatedTopics = 'Related topics';
   SDocUp = 'Up';
   SDocNext = 'Next';
   SDocPrevious = 'Previous';
-  
+
+Const
+  SVisibility: array[TPasMemberVisibility] of string =
+       ('Default', 'Private', 'Protected', 'Public',
+       'Published', 'Automated');
+
 type
 
   // Assumes a list of TObject instances and frees them on destruction
@@ -1146,7 +1152,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-08-28 18:47:48  michael
+  Revision 1.6  2005-01-09 15:59:50  michael
+  + Split out latex writer to linear and latex writer
+
+  Revision 1.5  2004/08/28 18:47:48  michael
   + Removed temporary warning about reading of doc file
 
   Revision 1.4  2004/08/28 18:03:23  michael

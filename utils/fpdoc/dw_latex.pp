@@ -14,11 +14,9 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-
-unit dw_LaTeX;
-
-{$MODE objfpc}
+{$mode objfpc}
 {$H+}
+unit dw_LaTeX;
 
 interface
 
@@ -27,58 +25,61 @@ uses DOM, dGlobals, PasTree;
 const
   LateXHighLight : Boolean = False;
   TexExtension   : String = '.tex';
-    
-procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
+Procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
 implementation
 
-uses SysUtils, Classes, dWriter;
+uses SysUtils, Classes, dwLinear;
 
-type
-  TLabelType = (ltConst,ltVar,ltType,ltFunction,ltProcedure,ltClass,
-                ltChapter,ltSection,ltSubsection,
-                ltTable,ltFigure);
-  
-  TLaTeXWriter = class(TFPDocWriter)
+
+Type
+ { TLaTeXWriter }
+
+  TLaTeXWriter = class(TLinearWriter)
   protected
-    f: Text;
     FLink: String;
-    Package: TPasPackage;
-    PackageName: String;
-    Module: TPasModule;
-    ModuleName: String;
     FTableCount : Integer;
     FInVerbatim : Boolean;
-    TableRowStartFlag, TableCaptionWritten: Boolean;
-
-    function GetLabel(AElement: TPasElement): String;
-
-    procedure Write(const s: String);
-    procedure WriteF(const s: String; const Args: array of const);
-    procedure WriteLn(const s: String);
-    procedure WriteLnF(const s: String; const Args: array of const);
-    // Tex functions
-    procedure WriteLabel(El: TPasElement);
-    procedure WriteLabel(const s: String);
-    procedure WriteIndex(El: TPasElement);
-    procedure WriteIndex(const s: String);
-    procedure StartListing(Frames: Boolean; const name: String);
-    procedure StartListing(Frames: Boolean);
-    procedure EndListing;
-    Function  EscapeTex(S : String) : String;
-    Function  StripTex(S : String) : String;
-    
-    procedure WriteCommentLine;
-    procedure WriteComment(Comment : String);
-    procedure StartSection(SectionName : String; SectionLabel : String);
-    procedure StartSection(SectionName : String);
-    procedure StartSubSection(SubSectionName : String; SubSectionLabel : String);
-    procedure StartSubSection(SubSectionName : String);
-    procedure StartChapter(ChapterName : String; ChapterLabel : String);
-    procedure StartChapter(ChapterName : String);
+    Inlist,
+    TableRowStartFlag,
+    TableCaptionWritten: Boolean;
+    // Linear documentation methods overrides;
+    procedure WriteLabel(Const S : String); override;
+    procedure WriteIndex(Const S : String); override;
+    Procedure WriteExampleFile(FN : String); override;
+    Procedure StartProcedure; override;
+    Procedure EndProcedure; override;
+    Procedure StartProperty; override;
+    Procedure EndProperty; override;
+    Procedure StartSynopsis; override;
+    Procedure StartDeclaration; override;
+    Procedure StartVisibility; override;
+    Procedure StartDescription; override;
+    Procedure StartAccess; override;
+    Procedure StartErrors; override;
+    Procedure StartSeealso; override;
+    Procedure EndSeealso; override;
+    procedure StartUnitOverview(AModuleName,AModuleLabel : String);override;
+    procedure WriteUnitEntry(UnitRef : TPasType); override;
+    Procedure EndUnitOverview; override;
+    function  GetLabel(AElement: TPasElement): String; override;
+    procedure StartListing(Frames: Boolean; const name: String); override;
+    procedure EndListing; override;
+    Function  EscapeText(S : String) : String; override;
+    Function  StripText(S : String) : String; override;
+    procedure WriteCommentLine; override;
+    procedure WriteComment(Comment : String);override;
+    procedure StartSection(SectionName : String);override;
+    procedure StartSubSection(SubSectionName : String);override;
+    procedure StartSubSubSection(SubSubSectionName : String);override;
+    procedure StartChapter(ChapterName : String); override;
+    procedure StartOverview(WithAccess : Boolean); override;
+    procedure EndOverview; override;
+    procedure WriteOverviewMember(ALabel,AName,Access,ADescr : String); override;
+    procedure WriteOverviewMember(ALabel,AName,ADescr : String); override;
+    Class Function FileNameExtension : String; override;
     // Description node conversion
-    procedure DescrWriteText(const AText: DOMString); override;
     procedure DescrBeginBold; override;
     procedure DescrEndBold; override;
     procedure DescrBeginItalic; override;
@@ -123,294 +124,10 @@ type
     procedure DescrEndTableRow; override;
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
-    procedure WriteDescr(Element: TPasElement);
-    procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement);
-    function ConstValue(ConstDecl: TPasConst): String;
-    procedure ProcessSection(ASection: TPasSection);
-    // Documentation writing methods.
-    procedure WriteResourceStrings(ASection: TPasSection);
-    procedure WriteUnitOverview(ASection: TPasSection);
-    procedure WriteVarsConstsTypes(ASection: TPasSection);
-    procedure WriteConsts(ASection: TPasSection);
-    procedure WriteTypes(ASection: TPasSection);
-    procedure WriteEnumElements(TypeDecl : TPasEnumType);
-    procedure WriteVars(ASection: TPasSection);
-    procedure WriteFunctionsAndProcedures(ASection: TPasSection);
-    procedure WriteProcedure(ProcDecl: TPasProcedureBase);
-    procedure WriteClasses(ASection: TPasSection);
-    procedure WriteClassDecl(ClassDecl: TPasClassType);
-    procedure WriteClassMethodOverview(ClassDecl: TPasClassType);
-    procedure WriteClassPropertyOverview(ClassDecl: TPasClassType);
-    procedure WriteProperty(PropDecl: TPasProperty);
-    procedure WriteExample(ADocNode: TDocNode);
-    procedure WriteSeeAlso(ADocNode: TDocNode);
-    procedure WriteSeeAlso(ADocNode: TDocNode; InList : Boolean);
-    procedure SortElementList(List : TList);
-    Function  ShowMember(M : TPasElement) : boolean;
-    Procedure ProcessPackage;
-    Procedure ProcessTopics(DocNode : TDocNode; Alevel : Integer);
-    Procedure WriteTopicNode(Node : TDocNode; Level : Integer);
-  public
-    constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine);
-    procedure WriteDoc;
   end;
 
 
 
-constructor TLaTeXWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
-
-  procedure AddLabel(AElement: TPasElement);
-  begin
-    Engine.AddLink(AElement.PathName, GetLabel(AElement));
-  end;
-
-  procedure AddList(AElement: TPasElement; AList: TList);
-  var
-    i: Integer;
-  begin
-    for i := 0 to AList.Count - 1 do
-      AddLabel(TPasElement(AList[i]));
-  end;
-
-  procedure AddTopicPages(AElement: TPasElement);
-
-  var
-    PreviousTopic,
-    TopicElement : TTopicElement;
-    DocNode,
-    TopicNode : TDocNode;
-
-  begin
-    DocNode:=Engine.FindDocNode(AElement);
-    If not Assigned(DocNode) then 
-      exit;
-    TopicNode:=DocNode.FirstChild;
-    PreviousTopic:=Nil;
-    While Assigned(TopicNode) do
-      begin
-      If TopicNode.TopicNode then
-        begin
-        TopicElement:=TTopicElement.Create(TopicNode.Name,AElement);
-        Topics.Add(TopicElement);
-        TopicElement.TopicNode:=TopicNode;
-        TopicElement.Previous:=PreviousTopic;
-        If Assigned(PreviousTopic) then
-          PreviousTopic.Next:=TopicElement;
-        PreviousTopic:=TopicElement;  
-        if AElement is TTopicElement then
-          TTopicElement(AElement).SubTopics.Add(TopicElement);
-        Engine.AddLink(TopicElement.PathName, GetLabel(TopicElement));
-        if AElement is TTopicElement then
-          TTopicElement(AElement).SubTopics.Add(TopicElement)
-        else // Only one level of recursion.
-          AddTopicPages(TopicElement);
-        end;
-      TopicNode:=TopicNode.NextSibling;
-      end;
-  end;
-
-  procedure ScanModule(AModule: TPasModule);
-  var
-    i, j, k: Integer;
-    s: String;
-    ClassEl: TPasClassType;
-    FPEl, AncestorMemberEl: TPasElement;
-    DocNode: TDocNode;
-    DidAutolink: Boolean;
-  begin
-    AddLabel(AModule);
-    AddTopicPages(AModule);
-    with AModule do
-    begin
-      AddList(AModule, InterfaceSection.ResStrings);
-      AddList(AModule, InterfaceSection.Consts);
-      AddList(AModule, InterfaceSection.Types);
-      if InterfaceSection.Classes.Count > 0 then
-      begin
-        for i := 0 to InterfaceSection.Classes.Count - 1 do
-	begin
-	  ClassEl := TPasClassType(InterfaceSection.Classes[i]);
-          AddLabel(ClassEl);
-
-          for j := 0 to ClassEl.Members.Count - 1 do
-          begin
-            FPEl := TPasElement(ClassEl.Members[j]);
-            if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-	      ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
-	      continue;
-
-            DocNode := Engine.FindDocNode(FPEl);
-            if not Assigned(DocNode) then
-            begin
-              DidAutolink := False;
-	      if Assigned(ClassEl.AncestorType) and
-	        (ClassEl.AncestorType.ClassType = TPasClassType) then
-	      begin
-	        for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
-	        begin
-	          AncestorMemberEl :=
-	            TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
-	          if AncestorMemberEl.Name = FPEl.Name then
-	          begin
-	            DocNode := Engine.FindDocNode(AncestorMemberEl);
-	            if Assigned(DocNode) then
-	            begin
-	              DidAutolink := True;
-		      Engine.AddLink(FPEl.PathName,
-	    		Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
-	              break;
-	            end;
-	          end;
-	        end;
-	      end;
-	      if not DidAutolink then
-	        AddLabel(FPEl);
-	    end else
-    	      AddLabel(FPEl);
-    	  end;
-	end;
-      end;
-      AddList(AModule, InterfaceSection.Functions);
-      AddList(AModule, InterfaceSection.Variables);
-    end;
-  end;
-
-var
-  i: Integer;
-begin
-  inherited Create(AEngine);
-  Package := APackage;
-
-  { Allocate labels for all elements for which we are going to create
-    documentation. This is needed for links to work correctly. }
-
-  // Allocate label for the package itself, if a name is given (i.e. <> '#')
-  if Length(Package.Name) > 1 then
-    begin
-    AddLabel(Package);
-    AddTopicPages(Package);
-    end;
-  for i := 0 to Package.Modules.Count - 1 do
-    ScanModule(TPasModule(Package.Modules[i]));
-end;
-
-Procedure TLatexWriter.ProcessPackage;
-
-var
-  i: Integer;
-  UnitRef: TPasType;
-  DocNode: TDocNode;
-  First : Boolean;
-  
-begin
-  DocNode:=Engine.FindDocNode(Package);
-  if Assigned(DocNode) and not IsDescrNodeEmpty(DocNode.Descr) then
-    begin
-    WriteLnF('\section{%s}', [EscapeTex(SDocOverview)]);
-    WriteDescr(Package, DocNode.Descr);
-    Writeln('');
-    end;
-  WriteSeeAlso(DocNode,True);
-  ProcessTopics(DocNode,1);
-end;
-
-Procedure TlatexWriter.ProcessTopics(DocNode : TDocNode; Alevel : Integer);
-
-Var
-  Node : TDocNode;
-  First : Boolean;
-  
-begin
-  If Not Assigned(DocNode) then
-    Exit;
-  Node:=DocNode.FirstChild;
-  First:=True;
-  While Assigned(Node) do
-    begin
-    If Node.TopicNode then
-      begin
-      WriteTopicNode(Node,ALevel);
-      First:=False;
-      end;
-    Node:=Node.NextSibling;
-    end;
-end;
-
-Procedure TLatexWriter.WriteTopicNode(Node : TDocNode; Level : Integer);
-
-Var
-  Element : TTopicElement;
-  SubNode : TDocNode;
-  
-begin
-  Element:=FindTopicElement(Node);
-  If Not Assigned(Element) then 
-    Exit;
-  Case Level of
-    1 : Write('\section{');
-    2 : Write('\subsection{');
-    3 : Write('\subsubsection{');
-  end;
-  WriteDescr(Element,Node.ShortDescr);
-  Writeln('}');
-  WriteLabel(Element);
-  If Assigned(Node.Descr) then
-    WriteDescr(Element,Node.Descr);
-  WriteSeeAlso(Node,True);
-  If Level<3 then
-    begin
-    SubNode:=Node.FirstChild;
-    While Assigned(SubNode) do
-      begin
-      If SubNode.TopicNode then
-        WriteTopicNode(SubNode,Level+1);
-      SubNode:=SubNode.NextSibling;
-      end;
-    end;  
-end;
-
-procedure TLaTeXWriter.WriteDoc;
-var
-  i : Integer;
-  DocNode : TDocNode;
-  L : TstringList;
-    
-begin
-  PackageName := LowerCase(Copy(Package.Name, 2, 255));
-  If (Engine.OutPut='') then
-    Engine.Output:=PackageName+TexExtension;
-  Assign(f, Engine.Output);
-  Rewrite(f);
-  try
-    WriteLn('% This file has been created automatically by FPDoc,');
-    WriteLn('% (c) 2000-2003 by Areca Systems GmbH / Sebastian Guenther (sg@freepascal.org)');
-    ProcessPackage;
-    L:=TStringList.Create;
-    Try
-      L.Sorted:=True;
-      // Sort modules.
-      For I:=0 to Package.Modules.Count-1 do 
-        L.AddObject(TPasModule(Package.Modules[i]).Name,TPasModule(Package.Modules[i]));
-      // Now create table.
-      for i:=0 to L.Count - 1 do
-        begin
-        Module := TPasModule(L.Objects[i]);
-        ModuleName := LowerCase(Module.Name);
-        WriteLn('');
-        WriteLnF('\chapter{%s}', [EscapeTex(Format(SDocUnitTitle, [Module.Name]))]);
-        WriteLabel(Module);
-        DocNode:=Engine.FindDocNode(Module);
-        If Assigned(DocNode) then
-          ProcessTopics(DocNode,1);
-        ProcessSection(Module.InterfaceSection);
-        end;
-    Finally
-      L.Free;
-    end;
-  finally
-    Close(f);
-  end;
-end;
 
 function TLaTeXWriter.GetLabel(AElement: TPasElement): String;
 var
@@ -428,27 +145,8 @@ begin
       Result[i] := ':';
 end;
 
-procedure TLaTeXWriter.Write(const s: String);
-begin
-  System.Write(f, s);
-end;
 
-procedure TLaTeXWriter.WriteF(const s: String; const Args: array of const);
-begin
-  System.Write(f, Format(s, Args));
-end;
-
-procedure TLaTeXWriter.WriteLn(const s: String);
-begin
-  System.WriteLn(f, s);
-end;
-
-procedure TLaTeXWriter.WriteLnF(const s: String; const Args: array of const);
-begin
-  System.WriteLn(f, Format(s, Args));
-end;
-
-Function TLatexWriter.EscapeTex(S : String) : String;
+Function TLatexWriter.EscapeText(S : String) : String;
 
 var
   i: Integer;
@@ -473,10 +171,10 @@ begin
     end;  
 end;
 
-Function TLatexWriter.StripTex(S : String) : String;
+Function TLatexWriter.StripText(S : String) : String;
 
 var
-  I,L: Integer;
+  I: Integer;
 
 begin
   SetLength(Result, 0);
@@ -485,11 +183,6 @@ begin
       Result := Result + S[i];
 end;
 
-procedure TLaTeXWriter.DescrWriteText(const AText: DOMString);
-
-begin
-  Write(EscapeTex(AText));
-end;
 
 procedure TLaTeXWriter.DescrBeginBold;
 begin
@@ -543,8 +236,6 @@ begin
 end;
 
 procedure TLaTeXWriter.DescrBeginLink(const AId: DOMString);
-var
-  i: Integer;
 begin
   FLink := Engine.ResolveLink(Module, AId);
 //  System.WriteLn('Link "', AId, '" => ', FLink);
@@ -552,7 +243,7 @@ end;
 
 procedure TLaTeXWriter.DescrEndLink;
 begin
-  WriteF(' (\pageref{%s})',[StripTex(Flink)]);
+  WriteF(' (\pageref{%s})',[StripText(Flink)]);
 end;
 
 procedure TLaTeXWriter.DescrWriteLinebreak;
@@ -574,7 +265,7 @@ end;
 procedure TLaTeXWriter.DescrBeginCode(HasBorder: Boolean;
   const AHighlighterName: String);
 begin
-  StartListing(HasBorder);
+  StartListing(HasBorder,'');
 end;
 
 procedure TLaTeXWriter.DescrWriteCodeLine(const ALine: String);
@@ -740,635 +431,15 @@ begin
   // Do nothing
 end;
 
-
-procedure TLaTeXWriter.WriteDescr(Element: TPasElement);
-var
-  DocNode: TDocNode;
-begin
-  DocNode := Engine.FindDocNode(Element);
-  if Assigned(DocNode) then
-    begin
-    if not IsDescrNodeEmpty(DocNode.Descr) then
-      WriteDescr(Element, DocNode.Descr)
-    else if not IsDescrNodeEmpty(DocNode.ShortDescr) then
-      WriteDescr(Element, DocNode.ShortDescr);
-    end;
-end;
-
-procedure TLaTeXWriter.WriteDescr(AContext: TPasElement; DescrNode: TDOMElement);
-begin
-  if Assigned(DescrNode) then
-    ConvertDescr(AContext, DescrNode, False);
-end;
-
-function TLaTeXWriter.ConstValue(ConstDecl: TPasConst): String;
-begin
-  if Assigned(ConstDecl) then
-    Result := ConstDecl.ClassName
-  else
-    Result := '<nil>';
-end;
-
-procedure TLaTexWriter.WriteUnitOverview(ASection: TPasSection);
-var
-  i: Integer;
-  UnitRef: TPasType;
-  DocNode: TDocNode;
-begin
-  if ASection.UsesList.Count > 0 then
-  begin
-    WriteLnF('\section{%s}', [SDocUsedUnits]);
-    WriteLnF('\begin{FPCltable}{lr}{%s}{%s:0units}',
-      [Format(SDocUsedUnitsByUnitXY, [Module.Name]), ModuleName]);
-    WriteLn('Name & Page \\ \hline');
-    for i := 0 to ASection.UsesList.Count - 1 do
-    begin
-      UnitRef := TPasType(ASection.UsesList[i]);
-      WriteLnF('%s\index{unit!%s} & \pageref{%s} \\',
-        [UnitRef.Name, UnitRef.Name, StripTex(GetLabel(UnitRef))]);
-    end;
-    WriteLn('\end{FPCltable}');
-  end;
-  DocNode := Engine.FindDocNode(ASection.Parent);
-  if Assigned(DocNode) and not IsDescrNodeEmpty(DocNode.Descr) then
-  begin
-    WriteLnF('\section{%s}', [EscapeTex(SDocOverview)]);
-    WriteDescr(ASection.Parent, DocNode.Descr);
-    Writeln('');
-  end;
-end;
-
-procedure TLaTeXWriter.WriteResourceStrings(ASection: TPasSection);
-var
-  ResStrDecl: TPasResString;
-  i: Integer;
-begin
-  if ASection.ResStrings.Count > 0 then
-  begin
-    StartSubSection(SDocResStrings,ModuleName+'ResStrings');
-    for i := 0 to ASection.ResStrings.Count - 1 do
-    begin
-      ResStrDecl := TPasResString(ASection.ResStrings[i]);
-      StartListing(false, '');
-      Writeln(ResStrDecl.GetDeclaration(True));
-      EndListing;
-      WriteLabel(ResStrDecl);
-      WriteIndex(ResStrDecl);
-      WriteDescr(ResStrDecl);
-      Writeln('');
-    end;
-  end;
-end;
-
-procedure TLaTeXWriter.WriteConsts(ASection: TPasSection);
-var
-  i: Integer;
-  ConstDecl: TPasConst;
-begin
-  if ASection.Consts.Count > 0 then
-  begin
-    WriteLnF('\subsection{%s}\label{suse:%sConstants}',
-      [EscapeTex(SDocConstants), EscapeTex(ModuleName)]);
-    for i := 0 to ASection.Consts.Count - 1 do
-    begin
-      ConstDecl := TPasConst(ASection.Consts[i]);
-      StartListing(False);
-      WriteLn(EscapeTex(ConstDecl.GetDeclaration(True)));
-      EndListing;
-      WriteLabel(ConstDecl);  
-      WriteIndex(ConstDecl);
-      WriteDescr(ConstDecl);
-    end;
-  end;
-end;
-
-procedure TLaTeXWriter.WriteEnumElements(TypeDecl : TPasEnumType);
-
-Var
-  EV : TPasEnumValue;
-  I : Integer;
-  DocNode : TDocNode;
-  
-begin
-  With TypeDecl do
-    begin
-    SortElementList(Values);
-    DescrBeginTable(2,True);
-    DescrBeginTableCaption;
-      Writeln(EscapeTex(Format(SDocValuesForEnum,[TypeDecl.Name])));
-    DescrEndTableCaption;
-    DescrBeginTableHeadRow;
-      DescrBeginTableCell;
-        Writeln(EscapeTex(SDocValue));
-      DescrEndTableCell;
-      DescrBeginTableCell;
-        Writeln(EscapeTex(SDocExplanation));
-      DescrEndTableCell;
-    DescrEndTableHeadRow;
-    For I:=0 to Values.Count-1 do
-      begin
-      EV:=TPasEnumValue(Values[i]);
-      DescrBeginTableRow;
-        DescrBeginTableCell;
-          Writeln(EscapeTex(EV.Name));
-        DescrEndTableCell;
-        DescrBeginTableCell;
-          DocNode := Engine.FindDocNode(EV);
-          if Assigned(DocNode) and (not IsDescrNodeEmpty(DocNode.ShortDescr)) then
-            WriteDescr(EV,DocNode.ShortDescr);
-        DescrEndTableCell;
-      DescrEndTableRow;  
-      end;
-    DescrEndTable;
-    end;  
-end;
-
-procedure TLaTeXWriter.WriteTypes(ASection: TPasSection);
-var
-  i: Integer;
-  TypeDecl: TPasType;
-begin
-  if ASection.Types.Count > 0 then
-  begin
-    StartSubSection(SDocTypes,ModuleName+'Types');
-    for i := 0 to ASection.Types.Count - 1 do
-    begin
-      TypeDecl := TPasType(ASection.Types[i]);
-      StartListing(False);
-      Writeln(EscapeTex(TypeDecl.GetDeclaration(True)));
-      EndListing;
-      WriteLabel(TypeDecl);
-      WriteIndex(TypeDecl);
-      If TypeDecl is TPasEnumType then
-        begin
-        WriteENumElements(TypeDecl as TPasEnumType);
-        end;
-      WriteDescr(TypeDecl);
-    end;
-  end;
-end;
-
-procedure TLaTeXWriter.WriteVars(ASection: TPasSection);
-var                        
-  VarDecl: TPasVariable;
-  i: Integer;
-begin
-  if ASection.Variables.Count > 0 then
-  begin
-    StartSubsection(SDocVariables,ModuleName+'Variables');
-    for i := 0 to ASection.Variables.Count - 1 do
-    begin
-      VarDecl := TPasVariable(ASection.Variables[i]);
-      StartListing(False);
-      WriteLn(EscapeTex(VarDecl.GetDeclaration(True)));
-      EndListing;
-      WriteLabel(VarDecl);
-      WriteIndex(VarDecl);
-      WriteDescr(VarDecl);
-    end;
-  end;
-end;
-
-procedure TLaTeXWriter.WriteVarsConstsTypes(ASection: TPasSection);
-begin
-  With Asection do
-    if (Consts.Count > 0) or 
-       (Types.Count > 0) or
-       (Variables.Count > 0) or
-       (ResStrings.Count>0) then
-      begin
-      StartSection(SDocConstsTypesVars, ModuleName+'ConstsTypesVars');
-      WriteResourceStrings(ASection);
-      WriteConsts(ASection);
-      WriteTypes(ASection);
-      WriteVars(ASection);
-      end;
-end;
-
-const 
-  SVisibility: array[TPasMemberVisibility] of string = 
-       ('Default', 'Private', 'Protected', 'Public',
-      'Published', 'Automated');
-
-procedure TLatexWriter.WriteProcedure(ProcDecl : TPasProcedureBase);
-var
-  DocNode: TDocNode;
-  OP : TPasOverloadedProc;
-  i : integer; 
-begin
-  With ProcDecl do
-    begin
-    if Not (Assigned(Parent) and Parent.InheritsFrom(TPasClassType)) then
-      begin
-      StartSubSection(Name);
-      WriteLabel(ProcDecl);
-      WriteIndex(ProcDecl);
-      end
-    else
-      begin // Parent assigned and hence method.
-      StartSubSection(Parent.Name+'.'+Name);
-      WriteLabel(ProcDecl);
-      WriteIndex(Parent.Name+'.'+Name);
-      end;  
-    Writeln('\begin{FPCList}');
-    DocNode := Engine.FindDocNode(ProcDecl);
-    if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
-      begin
-      Writeln('\Synopsis');
-      WriteDescr(ProcDecl, DocNode.ShortDescr);
-      end;
-    Writeln('\Declaration ');  
-    StartListing(False);
-    if ClassType = TPasOverloadedProc then
-      begin
-      OP:=TPasOverloadedProc(ProcDecl);
-      for i := 0 to OP.Overloads.Count - 1 do
-        begin
-        WriteLn(TPasProcedure(OP.Overloads[i]).GetDeclaration(True));
-        end;
-      end
-    else
-      WriteLn(GetDeclaration(True));
-    EndListing;
-    If Assigned(Parent) then
-      begin
-      Writeln('\Visibility');
-      Writeln(VisibilityNames[Visibility])
-      end;
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
-      begin
-      Writeln('\Description');
-      WriteDescr(ProcDecl);
-      end;
-    if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then   
-      begin
-      Writeln('\Errors');
-      WriteDescr(ProcDecl, DocNode.ErrorsDoc);
-      end;
-    WriteSeeAlso(DocNode);
-    Writeln('\end{FPCList}');
-    WriteExample(DocNode);
-    end;
-end;
-
-procedure TLaTeXWriter.WriteFunctionsAndProcedures(ASection: TPasSection);
-var
-  i: Integer;
-begin
-  if ASection.Functions.Count > 0 then
-    begin
-    StartSection(SDocProceduresAndFunctions,ModuleName+'Functions');
-    for i := 0 to ASection.Functions.Count - 1 do
-      WriteProcedure(TPasProcedureBase(ASection.Functions[i]));
-    end;
-end;
-
-procedure TlatexWriter.WriteExample(ADocNode: TDocNode);
-var
-  Example: TDOMElement;
-  S : string;
-  
-begin
-  if Assigned(ADocNode) then
-    begin
-    Example := ADocNode.FirstExample;
-    while Assigned(Example) do
-      begin
-      if (Example.NodeType = ELEMENT_NODE) and (Example.NodeName = 'example') then
-        begin
-        if (S<>'') then // not first example, start new paragraph
-          WriteLn('');
-        s:=Engine.GetExampleFileName(Example);
-        If (s<>'') then
-           WritelnF('\FPCexample{%s}', [ChangeFileExt(S,'')]);
-        if Assigned(Example.NextSibling) then
-           WriteLn('');
-        end;  
-      Example := TDomElement(Example.NextSibling);   
-      end;
-    end;
-end;
-
-procedure TLateXWriter.WriteSeeAlso(ADocNode: TDocNode);
-
-begin
-  WriteSeeAlso(ADocNode,False);
-end;
-
-procedure TLateXWriter.WriteSeeAlso(ADocNode: TDocNode; InList : Boolean);
-
-var
-  Node: TDOMNode;
-  s: String;
-  First : Boolean;
-  
-begin
-  if Not (Assigned(ADocNode) and Assigned(ADocNode.SeeAlso)) then 
-    Exit;
-  Node := ADocNode.SeeAlso.FirstChild;
-  First:=True;
-  while Assigned(Node) do
-    begin
-    if (Node.NodeType = ELEMENT_NODE) and 
-       (Node.NodeName = 'link') then
-      begin
-      If First then
-        begin
-        If InList then
-          begin
-          Writeln('');
-          Writeln('\begin{FPCList}');
-          end;
-        Writeln('\SeeAlso');
-        First:=False;
-        end
-      else  
-        Writeln(',');
-      S:=TDomElement(Node)['id'];
-      DescrBeginLink(S);
-      Writeln(EscapeTex(S));
-      DescrEndLink();
-      end;  
-    Node:=Node.NextSibling;  
-    end;
-  If Inlist and Not First then
-    Writeln('\end{FPCList}');   
-end;
-
-procedure TLaTeXWriter.WriteClasses(ASection: TPasSection);
-var
-  i: Integer;
-begin
-  if (ASection.Classes.Count > 0) then
-  begin
-    for i := 0 to ASection.Classes.Count - 1 do
-      WriteClassDecl(TPasClassType(ASection.Classes[i]));
-  end;
-
-end;
-
-procedure TLaTeXWriter.ProcessSection(ASection: TPasSection);
-begin
-  With ASection do
-    begin
-    SortElementList(UsesList);
-    SortElementList(Declarations);
-    SortElementList(ResStrings);
-    SortElementList(Types);
-    SortElementList(Consts);
-    SortElementList(Classes);
-    SortElementList(Functions);
-    SortElementList(Variables);
-    end;
-  WriteUnitOverView(ASection);
-  WriteVarsConstsTypes(ASection);
-  WriteFunctionsAndProcedures(ASection);
-  WriteClasses(ASection);
-end;
-
-Function TLatexWriter.ShowMember(M : TPasElement) : boolean;
-
-begin
-  Result:=not ((M.Visibility=visPrivate) and Engine.HidePrivate);
-  If Result then
-    Result:=Not ((M.Visibility=visProtected) and Engine.HideProtected)
-end;
-
-procedure TLatexWriter.WriteClassMethodOverview(ClassDecl : TPasClassType);
-var
-  Member: TPasElement;
-  i, j: Integer;
-  s: String;
-  Arg: TPasArgument;
-  DocNode: TDocNode;
-  List : TStringList;
-  
-begin
-  List:=TStringList.Create;
-  Try
-    List.Sorted:=True;
-    for i := 0 to ClassDecl.Members.Count - 1 do
-      begin
-      Member := TPasElement(ClassDecl.Members[i]);
-      With Member do 
-        if InheritsFrom(TPasProcedureBase) and ShowMember(Member) then
-      List.AddObject(Member.Name,Member);
-      end;
-    If List.Count>0 then
-      begin
-      StartSubSection(SDocMethodOverview);
-      WriteLabel(GetLabel(ClassDecl) + ':Methods');
-      WriteLn('\begin{tabularx}{\textwidth}{llX}');
-      WriteLnF('%s & %s & %s \\ \hline',  [EscapeTex(SDocPage), EscapeTex(SDocMethod), EscapeTex(SDocDescription)]);
-      For I:=0 to List.Count-1 do
-        begin
-        Member:=TPasElement(List.Objects[i]);
-        DocNode := Engine.FindDocNode(Member);
-        WriteF('\pageref{%s} & %s & ',[StripTex(GetLabel(Member)), EscapeTex(Member.Name)]);
-        if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
-          WriteDescr(Member, DocNode.ShortDescr);
-        WriteLn('\\');
-        end;
-      WriteLn('\hline');
-      WriteLn('\end{tabularx}');
-      end;
-  Finally
-    List.Free;
-  end;  
-end;
-
-procedure TLatexWriter.WriteClassPropertyOverview(ClassDecl : TPasClassType);
-var
-  Member: TPasElement;
-  i, j: Integer;
-  s: String;
-  Arg: TPasArgument;
-  DocNode: TDocNode;
-  List : TStringList;
-  
-begin
-  // Write property overview
-  List:=TStringList.Create;
-  Try
-    List.Sorted:=True;
-    for i := 0 to ClassDecl.Members.Count - 1 do
-      begin
-      Member := TPasElement(ClassDecl.Members[i]);
-      With Member do
-        if InheritsFrom(TPasProperty) and SHowMember(Member) then
-          List.AddObject(Member.Name,Member)
-      end;
-    If (List.Count>0) then  
-      begin
-      StartSubSection(SDocPropertyOverview);
-      WriteLabel(GetLabel(ClassDecl) + ':Properties');
-      WriteLn('\begin{tabularx}{\textwidth}{lllX}');
-      WriteLnF('%s & %s & %s & %s \\ \hline',
-        [EscapeTex(SDocPage), EscapeTex(SDocProperty), EscapeTex(SDocAccess), EscapeTex(SDocDescription)]);
-      For I:=0 to List.Count-1 do
-        begin  
-        Member:=TPasElement(List.objects[i]);
-        WriteF('\pageref{%s} & %s & ', [StripTex(GetLabel(Member)), EscapeTex(Member.Name)]);
-        setlength(S,0);
-        if Length(TPasProperty(Member).ReadAccessorName) > 0 then
-          s := s + 'r';
-        if Length(TPasProperty(Member).WriteAccessorName) > 0 then
-          s := s + 'w';
-        if Length(TPasProperty(Member).StoredAccessorName) > 0 then
-          s := s + 's';
-        Write(s + ' & ');
-        DocNode := Engine.FindDocNode(Member);
-        if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
-          WriteDescr(Member, DocNode.ShortDescr);
-        WriteLn('\\');
-        end;
-      WriteLn('\hline');
-      WriteLn('\end{tabularx}');
-      end;
-  Finally
-    List.Free;
-  end;      
-end;
-
-
-procedure TLaTeXWriter.WriteClassDecl(ClassDecl: TPasClassType);
-var
-  DocNode: TDocNode;
-  Vis: TPasMemberVisibilities;
-  Member: TPasElement;
-  i: Integer;
-begin
-  StartSection(ClassDecl.Name);
-  WriteLabel(ClassDecl);
-  WriteIndex(ClassDecl);
-  DocNode := Engine.FindDocNode(ClassDecl);
-  if Assigned(DocNode) and ((not IsDescrNodeEmpty(DocNode.Descr)) or
-    (not IsDescrNodeEmpty(DocNode.ShortDescr))) then
-  begin
-    StartSubSection(SDocDescription);
-    WriteDescr(ClassDecl);
-  end;
-
-  // Write method overview
-  WriteClassMethodOverView(ClassDecl);
-  // Write Property Overview;
-  WriteClassPropertyOverView(ClassDecl);
-
-  // Write method & property descriptions
-  
-  // Determine visibilities 
-
-  Vis := AllVisibilities;
-  if Engine.HidePrivate then
-    Exclude(Vis,visPrivate);
-  if Engine.HideProtected then
-    Exclude(Vis,visProtected);
-
-  for i := 0 to ClassDecl.Members.Count - 1 do
-    begin
-    Member := TPasElement(ClassDecl.Members[i]);
-    if ((Member.InheritsFrom(TPasProcedureBase)) and
-        (Member.Visibility in Vis)) then
-      WriteProcedure(TPasProcedureBase(Member));
-    end;
-
-  // properties.
-
-  for i := 0 to ClassDecl.Members.Count - 1 do
-    begin
-    Member := TPasElement(ClassDecl.Members[i]);
-    if ((Member.InheritsFrom(TPasProperty)) and
-        (Member.Visibility in Vis)) then
-      WriteProperty(TPasProperty(Member));
-    end;
-
-end;
-
-procedure TLaTexWriter.WriteProperty(PropDecl : TPasProperty);
-var
-  DocNode: TDocNode;
-  S: String;
-begin
-  With PropDecl do
-    begin
-    StartSubSection(Parent.Name+'.'+Name);
-    WriteLabel(PropDecl);
-    WriteIndex(Parent.Name+'.'+Name);
-    Writeln('\begin{FPCList}');
-    DocNode := Engine.FindDocNode(PropDecl);
-    if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
-      begin
-      Writeln('\Synopsis');
-      WriteDescr(PropDecl, DocNode.ShortDescr);
-      end;
-    Writeln('\Declaration ');  
-    StartListing(False);
-    WriteLn('Property '+GetDeclaration(True));
-    EndListing;
-    If Assigned(Parent) then
-      begin
-      Writeln('\Visibility');
-      Writeln(VisibilityNames[Visibility])
-      end;
-    Writeln('\Access');
-    Setlength(S,0);
-    If Length(ReadAccessorName) > 0 then
-      S:='Read';
-    if Length(WriteAccessorName) > 0 then
-      begin
-      If S<>'' then
-        S:=S+',';
-      S:=S+'Write';
-      end;
-    Writeln(S);  
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
-      begin
-      Writeln('\Description');
-      WriteDescr(PropDecl);
-      end;
-    if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then   
-      begin
-      Writeln('\Errors');
-      WriteDescr(PropDecl, DocNode.ErrorsDoc);
-      end;
-    WriteSeeAlso(DocNode);
-    Writeln('\end{FPCList}');
-    WriteExample(DocNode);
-    end;
-end;
-
-Function CompareElements(P1,P2 : Pointer) : Integer;
-
-begin
-  Result:=CompareText(TPasElement(P1).Name,TPasElement(P2).Name);
-end;
-
-procedure TLaTeXWriter.SortElementList(List : TList);
-
-begin
-  List.Sort(@CompareElements)
-end;
-
-
-procedure TLaTeXWriter.WriteLabel(El: TPasElement);
-begin
-  WriteLabel(GetLabel(El));
-end;
-
 procedure TLaTeXWriter.WriteLabel(const s: String);
 begin
-  WriteLnF('\label{%s}', [LowerCase(StripTex(s))]);
-end;
-
-procedure TLaTeXWriter.WriteIndex(El : TPasElement);
-begin
-  WriteIndex(El.Name);
+  WriteLnF('\label{%s}', [LowerCase(StripText(s))]);
 end;
 
 procedure TLaTeXWriter.WriteIndex(const s : String);
 begin
   Write('\index{');
-  Write(EscapeTex(s));
+  Write(EscapeText(s));
   Writeln('}');
 end;
 
@@ -1382,14 +453,9 @@ begin
     end
   else  
     if Frames then
-      Writelnf('\begin{lstlisting}{%s}',[StripTex(Name)])
+      Writelnf('\begin{lstlisting}{%s}',[StripText(Name)])
     else  
-      Writelnf('\begin{lstlisting}[frame=]{%s}',[StripTex(Name)]);
-end;
-
-procedure TLaTeXWriter.StartListing(Frames : Boolean);
-begin
-  StartListing(Frames,'');
+      Writelnf('\begin{lstlisting}[frame=]{%s}',[StripText(Name)]);
 end;
 
 procedure TLaTeXWriter.EndListing;
@@ -1415,47 +481,30 @@ begin
   Writeln(Comment);
 end;
 
-
-procedure TLatexWriter.StartSection(SectionName : String; SectionLabel : String);
+procedure TLatexWriter.StartChapter(ChapterName : String);
 begin
-  StartSection(SectionName);
-  WriteLabel(SectionLabel);
+  WriteCommentLine;
+  WriteComment(ChapterName);
+  WriteCommentLine;
+  Writeln('\chapter{'+EscapeText(ChapterName)+'}');
 end;
 
 procedure TLatexWriter.StartSection(SectionName : String);
 begin
-  Writeln('');
   WriteCommentLine;
   WriteComment(SectionName);
-  Writeln('\section{'+EscapeTex(SectionName)+'}');
-end;
-
-procedure TLatexWriter.StartSubSection(SubSectionName : String; SubSectionLabel : String);
-begin
-  StartSubSection(SubSectionName);
-  WriteLabel(SubsectionLabel);
+  WriteComment('\section{'+EscapeText(SectionName)+'}');
 end;
 
 procedure TLatexWriter.StartSubSection(SubSectionName : String);
 begin
-  Writeln('');
-  WriteComment(SubsectionName);
-  Writeln('\subsection{'+EscapeTex(SubSectionName)+'}');
+  WriteComment(SubSectionName);
+  Write('\subsection{'+EscapeText(SubSectionName)+'}');
 end;
 
-procedure TLatexWriter.StartChapter(ChapterName : String; ChapterLabel : String);
+procedure TLatexWriter.StartSubSubSection(SubSubSectionName : String);
 begin
-  StartChapter(ChapterName);
-  WriteLabel(ChapterLabel);
-end;
-
-procedure TLatexWriter.StartChapter(ChapterName : String);
-begin
-  Writeln('');
-  WriteCommentLine;
-  WriteComment(ChapterName);
-  WriteCommentLine;
-  Writeln('\chapter{'+EscapeTex(ChapterName)+'}');
+  Write('\subsubsection{'+EscapeText(SubSubSectionName)+'}');
 end;
 
 procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
@@ -1470,13 +519,162 @@ begin
   end;
 end;
 
+Procedure TLatexWriter.StartProcedure;
+
+begin
+  Writeln('\begin{FPCList}');
+  InList:=True;
+end;
+
+Procedure TLatexWriter.StartSynopsis;
+
+begin
+  Writeln('\Synopsis');
+end;
+
+Procedure TLatexWriter.StartDeclaration;
+
+begin
+  Writeln('\Declaration ');
+end;
+
+Procedure TLatexWriter.StartVisibility;
+
+begin
+  Writeln('\Visibility');
+end;
+
+Procedure TLatexWriter.StartDescription;
+
+begin
+  Writeln('\Description');
+end;
+
+Procedure TLatexWriter.StartErrors;
+
+begin
+  Writeln('\Errors');
+end;
+
+Procedure TLatexWriter.StartAccess;
+
+begin
+  Writeln('\Access')
+end;
+
+Procedure TLatexWriter.EndProcedure;
+
+begin
+  InList:=False;
+  Writeln('\end{FPCList}');
+end;
+Procedure TLatexWriter.StartProperty;
+
+begin
+  Writeln('\begin{FPCList}');
+  InList:=True;
+end;
+
+Procedure TLatexWriter.EndProperty;
+
+begin
+  InList:=False;
+  Writeln('\end{FPCList}');
+end;
+
+procedure TLateXWriter.WriteExampleFile(FN : String);
+
+begin
+  If (FN<>'') then
+    WritelnF('\FPCexample{%s}', [ChangeFileExt(FN,'')]);
+end;
+
+procedure TLatexWriter.StartOverview(WithAccess : Boolean);
+
+begin
+  If WithAccess then
+    begin
+    WriteLn('\begin{tabularx}{\textwidth}{lllX}');
+    WriteLnF('%s & %s & %s & %s \\ \hline',[EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocAccess), EscapeText(SDocDescription)])
+    end
+  else
+    begin
+    WriteLn('\begin{tabularx}{\textwidth}{llX}');
+    WriteLnF('%s & %s & %s  \\ \hline',[EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocDescription)])
+    end;
+end;
+
+procedure TLatexWriter.EndOverview;
+
+begin
+  WriteLn('\hline');
+  WriteLn('\end{tabularx}');
+end;
+
+procedure TLatexWriter.WriteOverviewMember(ALabel,AName,Access,ADescr : String);
+
+begin
+  WriteLnF('\pageref{%s} & %s & %s & %s \\',[ALabel,AName,Access,ADescr]);
+end;
+
+procedure TLatexWriter.WriteOverviewMember(ALabel,AName,ADescr : String);
+
+begin
+  WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,AName,ADescr]);
+end;
+
+function TLaTeXWriter.FileNameExtension: String;
+begin
+  Result:=TexExtension;
+end;
+
+Procedure TLatexWriter.StartSeeAlso;
+
+begin
+  If not InList then
+    begin
+    Writeln('');
+    Writeln('\begin{FPCList}');
+    end;
+  Writeln('\SeeAlso');
+end;
+
+procedure TLaTeXWriter.EndSeealso;
+begin
+  If Not InList then
+    Writeln('\end{FPCList}');
+end;
+
+procedure TLatexWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
+
+begin
+  WriteLnF('\begin{FPCltable}{lr}{%s}{%s:0units}',
+    [Format(SDocUsedUnitsByUnitXY, [AModuleName]), AModuleName]);
+  WriteLn('Name & Page \\ \hline');
+end;
+
+procedure TLatexWriter.WriteUnitEntry(UnitRef : TPasType);
+
+begin
+  WriteLnF('%s\index{unit!%s} & \pageref{%s} \\',
+     [UnitRef.Name, UnitRef.Name, StripText(GetLabel(UnitRef))]);
+end;
+
+procedure TLatexWriter.EndUnitOverview;
+
+begin
+  WriteLn('\end{FPCltable}');
+end;
 
 end.
 
 
 {
   $Log$
-  Revision 1.7  2004-11-15 18:01:16  michael
+  Revision 1.8  2005-01-09 15:59:50  michael
+  + Split out latex writer to linear and latex writer
+
+  Revision 1.7  2004/11/15 18:01:16  michael
   + Example fixes, and more escape seqences
 
   Revision 1.6  2004/07/23 23:39:48  michael
@@ -1489,7 +687,7 @@ end.
   + Some changes to output handling, more suitable for tex output
 
   Revision 1.3  2003/03/18 19:12:29  michael
-  + More EscapeTex calls needed
+  + More EscapeText calls needed
 
   Revision 1.2  2003/03/18 01:11:51  michael
   + Some fixes to deal with illegal tex characters

@@ -18,7 +18,7 @@ program FPDoc;
 
 uses
   SysUtils, Classes, Gettext, DOM, XMLWrite,
-  dGlobals, PasTree, PParser, dw_XML, dw_HTML, dw_LaTeX, dw_ipf;
+  dGlobals, PasTree, PParser, dw_LaTeX,dw_XML, dw_HTML,  dw_ipf, dwlinear;
 
 resourcestring
   STitle = 'FPDoc - Free Pascal Documentation Tool';
@@ -172,7 +172,6 @@ end;
 
 var
   i: Integer;
-  XMLDoc: TXMLDocument;
   Allocator: TFileAllocator;
   HTMLWriter: THTMLWriter;
 begin
@@ -307,7 +306,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-08-28 18:03:23  michael
+  Revision 1.6  2005-01-09 15:59:50  michael
+  + Split out latex writer to linear and latex writer
+
+  Revision 1.5  2004/08/28 18:03:23  michael
   + Added warning if docnode not found (option --warn-no-node
 
   Revision 1.4  2003/10/08 11:41:54  yuri

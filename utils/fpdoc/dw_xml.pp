@@ -14,6 +14,8 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$mode objfpc}
+{$H+}
 
 
 unit dw_XML;
@@ -95,7 +97,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2005-01-09 15:59:50  michael
+  + Split out latex writer to linear and latex writer
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.5  2003/03/13 22:02:13  sg

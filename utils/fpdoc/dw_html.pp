@@ -14,7 +14,8 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-
+{$mode objfpc}
+{$H+}
 
 unit dw_HTML;
 
@@ -2822,7 +2823,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-12-20 19:01:11  peter
+  Revision 1.13  2005-01-09 15:59:50  michael
+  + Split out latex writer to linear and latex writer
+
+  Revision 1.12  2004/12/20 19:01:11  peter
     * typo
 
   Revision 1.11  2004/12/20 16:28:56  michael
