@@ -174,7 +174,7 @@ unit cobjects;
            tempclosed : boolean;
            tempmode : byte;
            temppos : longint;
-           
+
            { inits a buffer with the size bufsize which is assigned to }
            { the file  filename                                        }
            constructor init(const filename : string;_bufsize : longint);
@@ -214,12 +214,10 @@ unit cobjects;
            { closes the file and releases the buffer }
            procedure close;
 
-{$ifdef TEST_TEMPCLOSE}
            { temporary closing }
            procedure tempclose;
            procedure tempreopen;
-{$endif TEST_TEMPCLOSE}
-           
+
            { goto the given position }
            procedure seek(l : longint);
 
@@ -1083,52 +1081,54 @@ end;
            end;
       end;
 
-{$ifdef TEST_TEMPCLOSE}
     procedure tbufferedfile.tempclose;
 
       begin
-         if iomode<>0 then
-           begin
-              temppos:=system.filepos(f);
-              tempmode:=iomode;
-              tempclosed:=true;
-              system.close(f);
-              iomode:=0;
-           end
-         else
-           tempclosed:=false;
+        if iomode<>0 then
+         begin
+           temppos:=system.filepos(f);
+           tempmode:=iomode;
+           tempclosed:=true;
+           system.close(f);
+           iomode:=0;
+         end
+        else
+         tempclosed:=false;
       end;
 
     procedure tbufferedfile.tempreopen;
 
       var
          ofm : byte;
-         
+
       begin
          if tempclosed then
            begin
-              if tempmode=1 then
-                begin
-                   ofm:=filemode;
-                   iomode:=1;
-                   filemode:=0;
-                   system.reset(f,1);
-                   filemode:=ofm;
-                end
-              else if tempmode=2 then
-                begin
-                   iomode:=2;
-                   system.rewrite(f,1);
-                end;
+              case tempmode of
+               1 : begin
+                     ofm:=filemode;
+                     iomode:=1;
+                     filemode:=0;
+                     system.reset(f,1);
+                     filemode:=ofm;
+                   end;
+               2 : begin
+                     iomode:=2;
+                     system.rewrite(f,1);
+                   end;
+              end;
               system.seek(f,temppos);
+              tempclosed:=false;
            end;
       end;
-{$endif TEST_TEMPCLOSE}
 
 end.
 {
   $Log$
-  Revision 1.8  1998-05-20 09:42:33  pierre
+  Revision 1.9  1998-06-03 23:40:37  peter
+    + unlimited file support, release tempclose
+
+  Revision 1.8  1998/05/20 09:42:33  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

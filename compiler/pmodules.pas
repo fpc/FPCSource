@@ -192,15 +192,11 @@ unit pmodules;
                    Message1(unit_f_cant_compile_unit,hp^.modulename^)
                   else
                    begin
-{$ifdef TEST_TEMPCLOSE}
                       if assigned(oldhp^.current_inputfile) then
                         oldhp^.current_inputfile^.tempclose;
-{$endif TEST_TEMPCLOSE}
                       compile(hp^.mainsource^,compile_system);
-{$ifdef TEST_TEMPCLOSE}
-                      if not oldhp^.compiled then
+                      if (not oldhp^.compiled) and assigned(oldhp^.current_inputfile) then
                         oldhp^.current_inputfile^.tempreopen;
-{$endif TEST_TEMPCLOSE}
                    end;
                   exit;
                 end;
@@ -274,15 +270,11 @@ unit pmodules;
                     Message1(unit_f_cant_compile_unit,hp^.modulename^)
                    else
                     begin
-{$ifdef TEST_TEMPCLOSE}
                        if assigned(oldhp^.current_inputfile) then
                          oldhp^.current_inputfile^.tempclose;
-{$endif TEST_TEMPCLOSE}
                        compile(hp^.mainsource^,compile_system);
-{$ifdef TEST_TEMPCLOSE}
-                       if not oldhp^.compiled then
+                       if (not oldhp^.compiled) and assigned(oldhp^.current_inputfile) then
                          oldhp^.current_inputfile^.tempreopen;
-{$endif TEST_TEMPCLOSE}
                     end;
                    exit;
                 end;
@@ -335,13 +327,9 @@ unit pmodules;
                     Message1(unit_f_cant_compile_unit,hp^.unitname^)
                    else
                      begin
-{ifdef TEST_TEMPCLOSE}
                         oldhp^.current_inputfile^.tempclose;
-{endif TEST_TEMPCLOSE}
                         compile(hp^.mainsource^,compile_system);
-{ifdef TEST_TEMPCLOSE}
                         oldhp^.current_inputfile^.tempclose;
-{endif TEST_TEMPCLOSE}
                      end;
                    exit;
                 end; *)
@@ -411,15 +399,11 @@ unit pmodules;
                     Message1(unit_f_cant_compile_unit,hp^.modulename^)
                    else
                     begin
-{$ifdef TEST_TEMPCLOSE}
                        if assigned(old_current_module^.current_inputfile) then
                          old_current_module^.current_inputfile^.tempclose;
-{$endif TEST_TEMPCLOSE}
                        compile(hp^.mainsource^,compile_system);
-{$ifdef TEST_TEMPCLOSE}
-                      if not old_current_module^.compiled then
+                      if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
                          old_current_module^.current_inputfile^.tempreopen;
-{$endif TEST_TEMPCLOSE}
                     end;
                 end
               else
@@ -480,16 +464,12 @@ unit pmodules;
                     hp^.sourcefiles.done;
                     hp^.sourcefiles.init;
 {$endif not UseBrowser}
-{$ifdef TEST_TEMPCLOSE}
                    if assigned(old_current_module^.current_inputfile) then
                      old_current_module^.current_inputfile^.tempclose;
-{$endif TEST_TEMPCLOSE}
                    Message1(parser_d_compiling_second_time,hp^.mainsource^);
                    compile(hp^.mainsource^,compile_system);
-{$ifdef TEST_TEMPCLOSE}
-                   if not old_current_module^.compiled then
+                   if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
                      old_current_module^.current_inputfile^.tempreopen;
-{$endif TEST_TEMPCLOSE}
                  end;
                 current_module^.compiled:=true;
              end;
@@ -1001,7 +981,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.18  1998-06-03 22:49:00  peter
+  Revision 1.19  1998-06-03 23:40:38  peter
+    + unlimited file support, release tempclose
+
+  Revision 1.18  1998/06/03 22:49:00  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas
