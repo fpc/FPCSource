@@ -2,7 +2,7 @@ unit x;
 
    { Changes to the original conversion marked MVC - Michael Van Canneyt}
 
-{$LinkLib C}
+{$LinkLib c}
 {$LinkLib X11}
 
   interface

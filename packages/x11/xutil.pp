@@ -6,7 +6,7 @@ interface
 uses
   x,xlib;
 
-{$LinkLib C}
+{$LinkLib c}
 {$LinkLib X11}
 
 {
@@ -887,7 +887,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-02-27 14:39:54  peter
+  Revision 1.5  2000-03-01 09:16:13  sg
+  * Changed all occurences of {$linklib C} into {$linklib c}
+
+  Revision 1.4  2000/02/27 14:39:54  peter
     * added explicit linklib c
 
   Revision 1.3  2000/02/27 13:11:31  peter
