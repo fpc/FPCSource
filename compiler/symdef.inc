@@ -1843,7 +1843,6 @@
          inherited init;
          deftype:=recorddef;
          symtable:=p;
-         savesize:=symtable^.datasize;
          symtable^.defowner := @self;
          symtable^.dataalignment:=packrecordalignment[aktpackrecords];
       end;
@@ -1991,7 +1990,7 @@
         oldsize:=stabrecsize;
         GetMem(stabrecstring,memsizeinc);
         stabrecsize:=memsizeinc;
-        strpcopy(stabRecString,'s'+tostr(savesize));
+        strpcopy(stabRecString,'s'+tostr(size));
         RecOffset := 0;
         symtable^.foreach({$ifndef TP}@{$endif}addname);
         { FPC doesn't want to convert a char to a pchar}
@@ -2946,7 +2945,6 @@ Const local_symtable_index : longint = $8001;
          publicsyms:=new(psymtable,loadas(objectsymtable));
          read_member:=oldread_member;
          publicsyms^.defowner:=@self;
-         { publicsyms^.datasize:=savesize; }
          publicsyms^.name := stringdup(objname^);
 
          { handles the predefined class tobject  }
@@ -3495,7 +3493,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.133  1999-07-23 16:05:28  peter
+  Revision 1.134  1999-07-23 23:07:03  peter
+    * fixed stabs for record which still used savesize
+
+  Revision 1.133  1999/07/23 16:05:28  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
