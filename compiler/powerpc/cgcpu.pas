@@ -150,7 +150,7 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,symconst,symdef,rgobj,tgobj,cpupi;
+       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,tgobj,cpupi;
 
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
@@ -913,6 +913,11 @@ const
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
 
       begin
+        { if you program in assembler, you have to take care of everything }
+        { yourself. Some things just don't work otherwise (e.g. the linux  }
+        { syscall code) (JM)                                               }
+        if (po_assembler in aktprocdef.procoptions) then
+          exit;
         case target_info.system of
           system_powerpc_macos:
             g_stackframe_entry_mac(list,localsize);
@@ -926,6 +931,14 @@ const
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
+        { if you program in assembler, you have to take care of everything }
+        { yourself. Some things just don't work otherwise (e.g. the linux  }
+        { syscall code) (JM)                                               }
+        if (po_assembler in aktprocdef.procoptions) then
+           begin
+             list.concat(taicpu.op_none(A_BLR));
+             exit;
+           end;
         case target_info.system of
           system_powerpc_macos:
             g_return_from_proc_mac(list,parasize);
@@ -2199,7 +2212,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-03-22 18:01:13  jonas
+  Revision 1.77  2003-04-06 16:39:11  jonas
+    * don't generate entry/exit code for assembler procedures
+
+  Revision 1.76  2003/03/22 18:01:13  jonas
     * fixed linux entry/exit code generation
 
   Revision 1.75  2003/03/19 14:26:26  jonas
