@@ -512,6 +512,10 @@ echo *Compiling unit LineInfo ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\LINEINFO.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit DynLibs (doesn't exist in 1.0.x - won't be found then) ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\DYNLIBS.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit KbdCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KBDCALLS.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
@@ -685,7 +689,10 @@ goto End
 
 
   $Log$
-  Revision 1.2  2000-10-07 11:47:54  hajny
+  Revision 1.3  2000-10-08 18:44:36  hajny
+    + DynLibs added
+
+  Revision 1.2  2000/10/07 11:47:54  hajny
     * updates for 1.1, etc.
 
   Revision 1.1  2000/07/14 10:09:29  michael
