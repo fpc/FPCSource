@@ -154,11 +154,16 @@ os209912.zip specific:
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
   asldemx.zip     contains additional GNU utilities which are necessary:
-      AS 2.6 for EMX
+      AS 2.9.1 for EMX
       LD for EMX
       EMXBIND 0.9d
-      AR 2.6 for EMX
-      Strip for EMX
+      AR 2.9.1 for EMX
+      NM 2.9.1 for EMX
+      GASP 1.2 for EMX
+      ObjCopy 2.9.1 for EMX
+      ObjDump 2.9.1 for EMX
+      Strip 2.9.1 for EMX
+      RANLIB 2.9.1 for EMX
   utilemx.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
       Make 3.76.1
@@ -170,7 +175,8 @@ os209912.zip specific:
       Install 3.13
       Date 1.12
       Echo 1.12
-  gdbemx.zip      contains the GNU Debugger 4.16 for EMX
+  gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
+                  PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
 common files in dos09912.zip, w3209912.zip and os209912.zip:
 ------------------------------------------------------------
