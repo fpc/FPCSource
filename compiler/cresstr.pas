@@ -98,6 +98,7 @@ begin
     New(ResourceListCurrent);
     ResourceListRoot:=ResourceListCurrent;
     end;
+  ResourceListCurrent^.Next:=Nil;
   { name is lower case... }
   ResourceListCurrent^.Name:=Name;
   ResourceListCurrent^.Len:=Len;
@@ -301,12 +302,16 @@ begin
     end;
   ResStrCount:=0;
   ResourceListCurrent:=Nil;
+  ResourceListRoot:=Nil;
 end;
 
 end.
 {
   $Log$
-  Revision 1.13  1999-08-26 20:24:39  michael
+  Revision 1.14  1999-08-27 15:55:36  michael
+  * Fixed small bug: next field in resourcelist was not initialized
+
+  Revision 1.13  1999/08/26 20:24:39  michael
   + Hopefuly last fixes for resourcestrings
 
   Revision 1.12  1999/08/25 16:41:07  peter
