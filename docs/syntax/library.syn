@@ -1,0 +1,14 @@
+\begin{diagram}{Libraries}{libraries}
+\begin{mysyntdiag}
+\synt{library}
+\synt{library\ header} 
+\lit* ; 
+\[ \synt{uses\ clause} \]
+\synt{block}
+\lit* .
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{library\ header}
+\lit*{library} \synt{identifier}
+\end{mysyntdiag}
+\end{diagram}

@@ -1,0 +1,18 @@
+\begin{diagram}{Exports clause}{ExportClause}
+\begin{mysyntdiag}
+\synt{exports\ clause}
+\lit*{exports} 
+\synt{exports\ list}
+\lit*{;}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{exports\ list}
+\<[b] \synt{exports\ entry} \\ \lit* , \>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{exports\ entry}
+\synt{identifier} 
+\[ \lit*{index} \synt{integer\ constant} \]
+\[ \lit*{name} \synt{string\ constant} \]
+\end{mysyntdiag}
+\end{diagram}
