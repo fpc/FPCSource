@@ -28,10 +28,12 @@
 \usepackage{xspace}
 \usepackage{a4}
 \usepackage{makeidx}
-\usepackage{html}
-\usepackage{htmllist}
 \usepackage{syntax}
 \usepackage{fancyhdr}
+\ifx\pdfoutput\undefined
+  \usepackage{html}
+  \usepackage{htmllist}
+\fi
 \usepackage{fpc}
 \latex{\usepackage{multicol}}
 \latex{%

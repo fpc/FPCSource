@@ -22,10 +22,12 @@
 %
 % Preamble
 %
-\usepackage{html}
-\usepackage{htmllist}
 \usepackage{epsfig}
 \usepackage{multicol}
+\ifx\pdfoutput\undefined
+  \usepackage{html}
+  \usepackage{htmllist}
+\fi
 \usepackage{fpc}
 \latex{%
   \ifpdf
@@ -112,8 +114,8 @@ counterparts.
 \label{se:LocalSwitch}
 Local directives can occur more than once in a unit or program,
 If they have a command-line counterpart, the command-line artgument is
-restored as the default for each compiled file. The local directives 
-influence the compiler's behaviour from the moment they're encountered 
+restored as the default for each compiled file. The local directives
+influence the compiler's behaviour from the moment they're encountered
 until the moment another switch annihilates their behaviour, or the end
 of the current unit or program is reached.
 
@@ -174,12 +176,12 @@ The \var{AssertErrorProc} is defined as
 \begin{verbatim}
 Type
   TAssertErrorProc=procedure(const msg,fname:string;lineno,erroraddr:longint);
-Var 
+Var
   AssertErrorProc = TAssertErrorProc;
 \end{verbatim}
 This can be used mainly for debugging purposes. The \file{SYSTEM} unit sets the
 \var{AssertErrorProc} to a handler that displays a message on \var{stderr}
-and simply exits. The \file{SYSUTILS} unit catches the run-time error 227 
+and simply exits. The \file{SYSUTILS} unit catches the run-time error 227
 and raises an \var{EAssertionFailed} exception.
 
 \subsection{\var{\$DEFINE} : Define a symbol}
@@ -195,7 +197,7 @@ If \var{name} is already defined, this has no effect. \var{Name} is case
 insensitive.
 
 The symbols that are defined in a unit, are not saved in the unit file,
-so they are also not exported from a unit. 
+so they are also not exported from a unit.
 
 \subsection{\var{\$ELSE} : Switch conditional compilation}
 
@@ -314,7 +316,7 @@ begin
   If ParamCount=0 then
     GoTo TheEnd;
   Writeln ('You specified command-line options');
-TheEnd:  
+TheEnd:
 end.
 \end{verbatim}
 
@@ -333,7 +335,7 @@ will treat the corresponding varible as an ansistring, and will
 generate corresponding code.
 
 By default, the use of ansistrings is off, corresponding to \var{\{\$H-\}}.
-The system unit is compiled without ansistrings, all its functions accept 
+The system unit is compiled without ansistrings, all its functions accept
 shortstrng arguments. The same is true for all RTL units, except the
 \file{sysutils} unit, which is compiled with ansistrings.
 
@@ -371,24 +373,24 @@ conditionals.
 
 \subsection{\var{\$IFDEF Name} : Start conditional compilation}
 
-If the symbol \var{Name} is not defined then the \var{\{\$IFDEF name\}} 
-will skip the compilation of the text that follows it to the first 
+If the symbol \var{Name} is not defined then the \var{\{\$IFDEF name\}}
+will skip the compilation of the text that follows it to the first
 \var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
-If \var{Name} is defined, then compilation continues as if the directive 
+If \var{Name} is defined, then compilation continues as if the directive
 wasn't there.
 
 \subsection{\var{\$IFNDEF} : Start conditional compilation}
 
-If the symbol \var{Name} is defined then the \var{\{\$IFNDEF name\}} 
-will skip the compilation of the text that follows it to the first 
+If the symbol \var{Name} is defined then the \var{\{\$IFNDEF name\}}
+will skip the compilation of the text that follows it to the first
 \var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
-If it is not defined, then compilation continues as if the directive 
+If it is not defined, then compilation continues as if the directive
 wasn't there.
 
 \subsection{\var{\$IFOPT} : Start conditional compilation}
 
 The \var{\{\$IFOPT switch\}} will compile the text that follows it if the
-switch \var{switch} is currently in the specified state. 
+switch \var{switch} is currently in the specified state.
 If it isn't in the specified state, then compilation continues after the
 corresponding \var{\{\$ELSE\}} or \var{\{\$ENDIF\}} directive.
 
@@ -416,16 +418,16 @@ will display an info message when the compiler encounters it.
 This is useful in conjunction with the \var{\{\$IFDEF\}} directive, to show
 information about which part of the code is being compiled.
 
-\subsection{\var{\$INLINE} : Allow inline code.} 
+\subsection{\var{\$INLINE} : Allow inline code.}
 The \var{\{\$INLINE ON\}} directive tells the compiler that the \var{Inline}
 procedure modifier should be allowed. Procedures that are declared inline
 are copied to the places where they are called. This has the effect that
 there is no actual procedure call, the code of the procedure is just copied
 to where the procedure is needed, this results in faster execution speed if
-the function or procedure is used a lot. 
+the function or procedure is used a lot.
 
-By default, \var{Inline} procedures are not allowed. You need to specify 
-this directive if you want to use inlined code. This directive is 
+By default, \var{Inline} procedures are not allowed. You need to specify
+this directive if you want to use inlined code. This directive is
 equivalent to the command-line switch \var{-Si}.
 
 \begin{remark}
@@ -445,9 +447,9 @@ compiler generates this code\footnote{This behaviour changed in the 0.99.13
 release of the compiler. Earlier versions by default did not generate this
 code.}, you must switch it on using the \var{-Ci} command-line switch.
 
-If you compile using the \var{-Ci} compiler switch, the \fpc compiler inserts 
-input/output checking code after every input/output call in your program. 
-If an error occurred during input or output, then a run-time error will 
+If you compile using the \var{-Ci} compiler switch, the \fpc compiler inserts
+input/output checking code after every input/output call in your program.
+If an error occurred during input or output, then a run-time error will
 be generated. Use this switch if you wish to avoid this behavior.
 If you still want to check if something went wrong, you can use the
 \var{IOResult} function to see if everything went without problems.
@@ -470,8 +472,8 @@ if IOResult<>0 then
   end;
 ...
 \end{verbatim}
-See the \var{IOResult} function explanantion in the referece manual for a 
-detailed description of the possible errors that can occur when using 
+See the \var{IOResult} function explanantion in the referece manual for a
+detailed description of the possible errors that can occur when using
 input/output checking.
 
 \subsection{\var{\$I} or \var{\$INCLUDE} : Include file }
@@ -548,7 +550,7 @@ be used instead.
 \subsection{\var{\$L} or \var{\$LINK} : Link object file}
 The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive
 tells the compiler that the file \file{filename} should be linked to
-your program. This cannot be used for libraries, see section 
+your program. This cannot be used for libraries, see section
 \sees{linklib} for that.
 
 The compiler will look for this file in the following way:
@@ -627,7 +629,7 @@ The run-time type information is accessible through the \var{TypInfo} unit,
 which is part of the \fpc Run-Time Library.
 
 \begin{remark}
-that the streaming system implemented by \fpc requires that you make 
+that the streaming system implemented by \fpc requires that you make
 streamable components descendent from \var{TPersistent}.
 \end{remark}
 
@@ -635,7 +637,7 @@ streamable components descendent from \var{TPersistent}.
 
 In the \var{\{\$MACRO ON\}} state, the compiler allows you to use C-style
 (although not as elaborate) macros. Macros provide a means for simple text
-substitution. More information on using macros can be found in the 
+substitution. More information on using macros can be found in the
 \sees{Macros} section. This directive is equivalent to the command-line
 switch \var{-Sm}.
 
@@ -743,7 +745,7 @@ will display a note message when the compiler encounters it.
 
 \var{\{\$NOTES ON\}} switches the generation of notes on.
 \var{\{\$NOTES OFF\}} switches the generation of notes off.
-Contrary to the command-line option \var{-vn} this is a local switch, 
+Contrary to the command-line option \var{-vn} this is a local switch,
 this is useful for checking parts of your code.
 
 By default, \var{\{\$NOTES \}} is off.
@@ -778,7 +780,7 @@ If this switch is on, all function or procedure parameters of type string
 are considered to be open string parameters; this parameter only has effect
 for short strings, not for ansistrings.
 
-When using openstrings, the declared type of the string can be different 
+When using openstrings, the declared type of the string can be different
 from the type of string that is actually passed, even for strings that are
 passed by reference. The declared size of the string passed can be examined
 with the \var{High(P)} call.
@@ -835,7 +837,7 @@ This means that the elements of a record that have size greater than \var{n}
 will be aligned on \var{n} byte boundaries. Elements with size less than or
 equal to \var{n} will be aligned to a natural boundary, i.e. to a power of
 two that is equal to or larger than the element's size. The type \var{C}
-is used to specify alignment as by the GNU CC compiler. It should be used 
+is used to specify alignment as by the GNU CC compiler. It should be used
 only when making import units for C routines.
 
 The default alignment (which can be selected with \var{DEFAULT}) is 2,
@@ -857,8 +859,8 @@ When an overflow occurs, the run-time library will print a message
 
 \begin{remark} Overflow checking behaviour is not the same as in
 Turbo Pascal since all arithmetic operations are done via 32-bit
-values. Furthermore, the \var{Inc()} and \var{Dec} standard system 
-procedures {\em are} checked for overflow in \fpc, while in Turbo 
+values. Furthermore, the \var{Inc()} and \var{Dec} standard system
+procedures {\em are} checked for overflow in \fpc, while in Turbo
 Pascal they are not.
 \end{remark}
 Using the \var{\{\$Q-\}} switch switches off the overflow checking code
@@ -881,7 +883,7 @@ The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range 
 code. This may result in faulty program behaviour, but no run-time errors
 will be generated.
 
-\begin{remark} 
+\begin{remark}
 The standard functions \var{val} and \var{Read} will also check ranges
 when the call is compiled in \var{\{\$R+\}} mode.
 \end{remark}
@@ -896,16 +898,16 @@ on the effect of this directive.
 
 A unit that is compiled in the \var{\{\$SMARTLINK ON\}} state will be
 compiled in such a way that it can be used for smartlinking. This means that
-the unit is chopped in logical pieces: each procedure is put in it's own 
+the unit is chopped in logical pieces: each procedure is put in it's own
 object file, and all object files are put together in a big archive. When
-using such a unit, only the pieces of code that you really need or call, 
+using such a unit, only the pieces of code that you really need or call,
 will be linked in your program, thus reducing the size of your executable
-substantially. 
+substantially.
 
-Beware: using smartlinked units slows down the compilation process, because 
-a separate object file must be created for each procedure. If you have units 
-with many functions and procedures, this can be a time consuming process, 
-even more so if you use an external assembler (the assembler is called to 
+Beware: using smartlinked units slows down the compilation process, because
+a separate object file must be created for each procedure. If you have units
+with many functions and procedures, this can be a time consuming process,
+even more so if you use an external assembler (the assembler is called to
 assemble each procedure or function code block separately).
 
 The smartlinking directive should be specified {\em before} the unit
@@ -1042,7 +1044,7 @@ The \var{\{\$APPTYPE XXX\}} accepts one argument that can have two possible
 values : \var{GUI} or \var{CONSOLE}. It is used to tell the windows
 Operating system if an application is a console application or a graphical
 application. By default, a program compiled by \fpc is a console
-application. Running it will display a console window. Specifying the 
+application. Running it will display a console window. Specifying the
 \var{\{\$APPTYPE GUI\}} directive will mark the application as a graphical
 application; no console window will be opened when the application is run.
 If run from the command-line, the command prompt will be returned immediatly
@@ -1057,7 +1059,7 @@ at runtime. The \var{IsConsole} constant, declared in the Win32 system unit
 as
 \begin{verbatim}
 Const
-  IsConsole : Boolean 
+  IsConsole : Boolean
 \end{verbatim}
 contains \var{True} if the application is a console application, \var{False}
 if the application is a GUI application.
@@ -1067,7 +1069,7 @@ if the application is a GUI application.
 When this switch is on (\var{\{\$DEBUGINFO ON\}}),
 the compiler inserts GNU debugging information in
 the executable. The effect of this switch is the same as the command-line
-switch \var{-g}. 
+switch \var{-g}.
 
 By default, insertion of debugging information is off.
 
@@ -1132,17 +1134,17 @@ for example
 
 Will add the directories \file{../inc} and \file{../i386} to the include
 path of the compiler. The compiler will look for the file \file{strings.inc}
-in both these directories, and will include the first found file. This directive is 
+in both these directories, and will include the first found file. This directive is
 equivalent to the \var{-Fi} command-line switch.
 
-Caution is in order when using this directive: If you distribute files, the 
+Caution is in order when using this directive: If you distribute files, the
 places of the files may not be the same as on your machine; moreover, the
 directory structure may be different. In general it would be fair to say
 that you should avoid using {\em absolute} paths, instead use {\em relative}
 paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
- 
+
 \subsection{\var{\$L} or \var{\$LOCALSYMBOLS}: Local symbol information}
 
 This switch (not to be confused with the \var{\{\$L file\}} file linking
@@ -1152,8 +1154,8 @@ Generation of symbol information is controlled by the \var{\$D} switch.
 \subsection{\var{\$LIBRARYPATH} : Specify library path.}
 
 This option serves to specify the library path, where the linker looks for
-static or dynamic libraries. \var{\{\$LIBRARYPATH XXX\}} will add \var{XXX} 
-to the library path. \var{XXX} can contain one or more paths, separated 
+static or dynamic libraries. \var{\{\$LIBRARYPATH XXX\}} will add \var{XXX}
+to the library path. \var{XXX} can contain one or more paths, separated
 by semi-colons or colons.
 
 for example
@@ -1163,12 +1165,12 @@ for example
 {$LINKLIB X11}
 \end{verbatim}
 
-Will add the directories \file{/usr/X11/lib} and \file{/usr/local/lib} to 
+Will add the directories \file{/usr/X11/lib} and \file{/usr/local/lib} to
 the linker library path. The linker will look for the library \file{libX11.so}
-in both these directories, and use the first found file. This directive is 
+in both these directories, and use the first found file. This directive is
 equivalent to the \var{-Fl} command-line switch.
 
-Caution is in order when using this directive: If you distribute files, the 
+Caution is in order when using this directive: If you distribute files, the
 places of the libraries may not be the same as on your machine; moreover, the
 directory structure may be different. In general it would be fair to say
 that you should avoid using this directive. If you are not sure, it is better
@@ -1198,7 +1200,7 @@ the command-line.
 \item[Delphi] Delphi compatibility mode. All object-pascal extensions are
 enabled. This is the same as the command-line option \var{-Sd}.
 \item[TP] Turbo pascal compatibility mode. Object pascal extensions are
-disabled, except ansistrings, which remain valid. 
+disabled, except ansistrings, which remain valid.
 This is the same as the command-line option \var{-So}.
 \item[FPC] FPC mode. This is the default, if no command-line switch is
 supplied.
@@ -1236,19 +1238,19 @@ for example
 {$L strings.o}
 \end{verbatim}
 
-Will add the directories \file{../inc} and \file{../i386} to the 
+Will add the directories \file{../inc} and \file{../i386} to the
 object path of the compiler. The compiler will look for the file \file{strings.o}
 in both these directories, and will link the first found file in the
 program. This directive is equivalent to the \var{-Fo} command-line switch.
 
-Caution is in order when using this directive: If you distribute files, the 
+Caution is in order when using this directive: If you distribute files, the
 places of the files may not be the same as on your machine; moreover, the
 directory structure may be different. In general it would be fair to say
 that you should avoid using {\em absolute} paths, instead use {\em relative}
 paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
- 
+
 \subsection{\var{\$S} : Stack checking}
 The \var{\{\$S+\}} directive tells the compiler to generate stack checking
 code. This generates code to check if a stack overflow occurred, i.e. to see
@@ -1282,14 +1284,14 @@ path of the compiler. The compiler will look for the file \file{strings.ppu}
 in both these directories, and will link the first found file in the
 program. This directive is equivalent to the \var{-Fu} command-line switch.
 
-Caution is in order when using this directive: If you distribute files, the 
+Caution is in order when using this directive: If you distribute files, the
 places of the files may not be the same as on your machine; moreover, the
 directory structure may be different. In general it would be fair to say
 that you should avoid using {\em absolute} paths, instead use {\em relative}
 paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
- 
+
 \subsection{\var{\$W} or \var{\$STACKFRAMES} : Generate stackframes}
 
 The \var{\{\$W\}} switch directove controls the generation of stackframes.
@@ -1586,7 +1588,7 @@ version isn't suitable for your code.
 
 The compiler treats these messages as if they were generated by the
 compiler. This means that if you haven't turned on warning messages, the
-warning will not be displayed. Errors are always displayed, and the 
+warning will not be displayed. Errors are always displayed, and the
 compiler stops if 50 errors have occurred. After a fatal error, the compiler
 stops at once.
 
@@ -1683,7 +1685,7 @@ sum          { Will be infinitely recursively expanded... }
 On my system, the last example results in a heap error, causing the compiler
 to exit with a run-time error 203.
 
-\begin{remark} 
+\begin{remark}
 Macros defined in the interface part of a unit are not
 available outside that unit ! They can just be used as a notational
 convenience, or in conditional compiles.
@@ -1967,8 +1969,8 @@ The registers are {\em not} saved when calling a function or procedure. If
 you want to call a procedure or function from assembly language, you must
 save any registers you wish to preserve.
 
-When you call an object method from assembler, you must load the \var{ESI} 
-register with the self pointer of the object or class. 
+When you call an object method from assembler, you must load the \var{ESI}
+register with the self pointer of the object or class.
 
 The first thing a procedure does is saving the base pointer, and setting the
 base pointer equal to the stack pointer. References to the pushed parameters
@@ -2152,7 +2154,7 @@ The following sections attempt to explain how to do this.
 The first step in using external code blocks is declaring the function you
 want to use. \fpc supports Delphi syntax, i.e. you must use the
 \var{external} directive. The \var{external} directive replaces, in effect,
-the code block of the function. 
+the code block of the function.
 
 The external directive doesn't specify a calling convention; it just tells
 the compiler that the code for a procedure or function resides in an
@@ -2213,7 +2215,7 @@ Procedure ProcName (Args : TPRocArgs); external 'Name' Index SomeIndex;
 This tells the compiler that the procedure \var{ProcName} resides in a
 dynamic link library, with index {SomeIndex}.
 
-\begin{remark} 
+\begin{remark}
 Note that this is ONLY available under \windows and \ostwo.
 \end{remark}
 \end{enumerate}
@@ -2448,10 +2450,10 @@ program testaocc;
 
 {$mode objfpc}
 
-Const 
-  P : Pchar 
-    = 'example'; 
-  F : Pchar 
+Const
+  P : Pchar
+    = 'example';
+  F : Pchar
     = 'This %s uses printf to print numbers (%d) and strings.'#10;
 
 procedure printf(fm: pchar;args: array of const);cdecl;external 'c';
@@ -3043,7 +3045,7 @@ functionality, you can recompile the run-time library with the
 \var{DoMapping} symbol defined. This will restore the Turbo Pascal
 behaviour.
 \item [memw and mem] These arrays gave access to the \dos memory. \fpc
-supports them on the go32v2 platform, they are mapped into \dos memory 
+supports them on the go32v2 platform, they are mapped into \dos memory
 space. You need the \var{GO32} unit for this. On other platforms, they are
 {\em not} supported
 \end{description}
@@ -3086,7 +3088,7 @@ Offset & What is stored & Optional ? \\ \hline
 +x & parameters & Yes \\
 +12 & function result & Yes \\
 +8 & self & Yes \\
-+4 & Return address & No\\ 
++4 & Return address & No\\
 +0 & Frame pointer of parent procedure & Yes \\ \hline
 \end{FPCltable}
 
@@ -3290,14 +3292,14 @@ ReleaseTempHeap;
 \subsection{Debugging the heap}
 
 \fpc provides a unit that allows you to trace allocation and deallocation
-of heap memory: \file{heaptrc}. 
+of heap memory: \file{heaptrc}.
 
-If you specify the \var{-gh} switch on the command-line, or if you include 
-\var{heaptrc} as the first unit in your uses clause, the memory manager 
+If you specify the \var{-gh} switch on the command-line, or if you include
+\var{heaptrc} as the first unit in your uses clause, the memory manager
 will trace what is allocated and deallocated, and on exit of your program,
 a summary will be sent to standard output.
 
-More information on using the \var{heaptrc} mechanism can be found in the 
+More information on using the \var{heaptrc} mechanism can be found in the
 \userref and \unitsref.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3334,7 +3336,7 @@ As you can see, the elements of this record are procedural variables.
 The system unit does nothing but call these various variables when you
 allocate or deallocate memory.
 
-Each of these functions corresponds to the corresponding call in the system 
+Each of these functions corresponds to the corresponding call in the system
 unit. We'll describe each one of them:
 \begin{description}
 \item[Getmem] This function allocates a new block on the heap. The block
@@ -3350,28 +3352,28 @@ memory.
 \var{P}. The argument \var{Size} is the expected size of the memory block
 pointed to by P. This should be disregarded, but can be used to check the
 behaviour of the program.
-\item[AllocMem] Is the same as getmem, only the allocated memory should 
+\item[AllocMem] Is the same as getmem, only the allocated memory should
 be filled with zeroes before the call returns.
 \item[ReAllocMem] Should allocate a memory block \var{Size} bytes large,
 and should fill it with the contents of the memory block pointed to by
 \var{P}, truncating this to the new size of needed. After that, the memory
-pointed to by P may be deallocated. The return value is a pointer to the 
+pointed to by P may be deallocated. The return value is a pointer to the
 new memory block.
 \item[MemSize] should return the total amount of memory available for
-allocation. This function may return zero if the memory manager does not 
+allocation. This function may return zero if the memory manager does not
 allow to determine this information.
 \item[MaxAvail] should return the size of the largest block of memory that
-is still available for allocation. This function may return zero if the 
+is still available for allocation. This function may return zero if the
 memory manager does not allow to determine this information.
 \item[HeapSize] should return the total size of the heap. This may be zero
 is the memory manager does not allow to determine this information.
 \end{description}
 To implement your own memory manager, it is sufficient to construct such a
-record and to issue a call to \var{SetMemoryManager}. 
+record and to issue a call to \var{SetMemoryManager}.
 
-To avoid conflicts with the system memory manager, setting the memory 
-manager should happen as soon as possible in the initialization of your 
-program, i.e. before any call to \var{getmem} is processed. 
+To avoid conflicts with the system memory manager, setting the memory
+manager should happen as soon as possible in the initialization of your
+program, i.e. before any call to \var{getmem} is processed.
 
 This means in practice that the unit implementing the memory manager should
 be the first in the \var{uses} clause of your program or library, since it
@@ -3379,8 +3381,8 @@ will then be initialized before all other units (except of the system unit)
 
 This also means that it is not possible to use the \file{heaptrc} unit in
 combination with a custom memory manager, since the \file{heaptrc} unit uses
-the system memory manager to do all it's allocation. Putting the 
-\file{heaptrc} unit after the unit implementing the memory manager would 
+the system memory manager to do all it's allocation. Putting the
+\file{heaptrc} unit after the unit implementing the memory manager would
 overwrite the memory manager record installed by the custom memory manager,
 and vice versa.
 
@@ -3394,7 +3396,7 @@ unit cmem;
 
 interface
 
-Function Malloc (Size : Longint) : Pointer;cdecl; 
+Function Malloc (Size : Longint) : Pointer;cdecl;
   external 'c' name 'malloc';
 Procedure Free (P : pointer); cdecl; external 'c' name 'free';
 Procedure FreeMem (P : Pointer); cdecl; external 'c' name 'free';
@@ -3427,7 +3429,7 @@ end;
 Function CAllocMem(Size : Longint) : Pointer;
 
 begin
-  Result:=calloc(Size,1); 
+  Result:=calloc(Size,1);
 end;
 
 Function CReAllocMem (var p:pointer;Size:longint):Pointer;
@@ -3459,7 +3461,7 @@ Function CHeapSize : Longint;
 begin
   Result:=0;
 end;
-                    
+
 
 Const
  CMemoryManager : TMemoryManager =
@@ -3474,14 +3476,14 @@ Const
       MaxAvail : MaxAvail;
       HeapSize : CHeapSize;
     );
-  
-Var 
+
+Var
   OldMemoryManager : TMemoryManager;
 
 Initialization
   GetMemoryManager (OldMemoryManager);
   SetMemoryManager (CmemoryManager);
-  
+
 Finalization
   SetMemoryManager (OldMemoryManager);
 end.
@@ -3552,7 +3554,7 @@ the \file{GO32} unit.
 \label{resourcestrings}
 \section{Introduction}
 Resource strings primarily exist to make internationalization of
-applications easier, by introducing a language construct that provides 
+applications easier, by introducing a language construct that provides
 a uniform way of handling constant strings.
 
 Most applications communicate with the user through some messages on the
@@ -3571,23 +3573,23 @@ the compiler does 2 things:
 \item It generates a table that contains the value of the strings as it
 is declared in the sources.
 \item It generates a {\em resource string file} that contains the names
-of all strings, together with their declared values. 
+of all strings, together with their declared values.
 \end{enumerate}
 This approach has 2 advantages: first of all, the value of the string is
-always present in the program. If the programmer doesn't care to translate 
+always present in the program. If the programmer doesn't care to translate
 the strings, the default values are always present in the binary. This also
 avoids having to provide a file containing the strings. Secondly, having all
-strings together in a compiler generated file ensures that all strings are 
+strings together in a compiler generated file ensures that all strings are
 together (you can have multiple resourcestring sections in 1 unit or program)
 and having this file in a fixed format, allows the programmer to choose his
 way of internationalization.
 
 For each unit that is compiled and that contains a resourcestring section,
 the compiler generates a file that has the name of the unit, and an
-extension \file{.rst}. The format of this file is as follows: 
+extension \file{.rst}. The format of this file is as follows:
 \begin{enumerate}
 \item An empty line.
-\item A line starting with a hash sign (\var{\#}) and the hash value of the 
+\item A line starting with a hash sign (\var{\#}) and the hash value of the
   string, preceded by the text \var{hash value =}.
 \item A third line, containing the name of the resource string in the format
 \var{unitname.constantname}, all lowercase, followed by an equal sign, and
@@ -3638,7 +3640,7 @@ The \file{rstconv} utility that comes with the \fpc compiler allows to
 manipulate these resource string files. At the moment, it can only be used
 to make a \file{.po} file that can be fed to the GNU \file{msgfmt} program.
 If someone wishes to have another format (Win32 resource files spring to
-mind) he/she can enhance the \file{rstconv} program so it can generate 
+mind) he/she can enhance the \file{rstconv} program so it can generate
 other types of files as well. GNU gettext was chosen because it is available
 on all platforms, and is already widely used in the \var{Unix} and free
 software community. Since the \fpc team doesn't want to restrict the use
@@ -3656,11 +3658,11 @@ Having compiled a program with resourcestrings is not enough to
 internationalize your program. At run-time, the program must initialize
 the string tables with the correct values for the anguage that the user
 selected. By default no such initialization is performed. All strings
-are initialized with their declared values. 
+are initialized with their declared values.
 
 The \file{objpas} unit provides the mechanism to correctly initialize
 the string tables. There is no need to include this unit in a \var{uses}
-clause, since it is automatically loaded when a program or unit is 
+clause, since it is automatically loaded when a program or unit is
 compiled in \var{Delphi} or \var{objfpc} mode. Since this is required
 to use resource strings, the unit is always loaded when needed.
 
@@ -3686,8 +3688,8 @@ Function GetResourceStringDefaultValue(TableIndex,
 Function GetResourceStringCurrentValue(TableIndex,
                                        StringIndex : Longint) : AnsiString;
 Function SetResourceStringValue(TableIndex,
-                                StringIndex : longint; 
-                                Value : Ansistring) : Boolean;   
+                                StringIndex : longint;
+                                Value : Ansistring) : Boolean;
 Procedure SetResourceStrings (SetFunction :  TResourceIterator);
 \end{verbatim}
 Two other function exist, for convenience only:
@@ -3703,7 +3705,7 @@ in the program.
 \item[ResourceStringCount] returns the number of resource string entries in
 a given table (tables are denoted by a zero-based index).
 \item[GetResourceStringName] returns the name of a resource string in a
-resource table. This is the name of the unit, a dot (.) and the name of 
+resource table. This is the name of the unit, a dot (.) and the name of
 the string constant, all in lowercase. The strings are denoted by index,
 also zero-based.
 \item[GetResourceStringHash] returns the hash value of a resource string, as
@@ -3734,13 +3736,13 @@ all resource strings:
 \begin{verbatim}
 Var I,J : Longint;
     S : AnsiString;
-    
+
 begin
   For I:=0 to ResourceStringTableCount-1 do
     For J:=0 to ResourceStringCount(i)-1 do
       begin
       S:=Translate(GetResourceStringDefaultValue(I,J));
-      SetResourceStringValue(I,J,S); 
+      SetResourceStringValue(I,J,S);
       end;
 end;
 \end{verbatim}
@@ -3748,7 +3750,7 @@ Other methods are of course possible, and the \var{Translate} function
 can be implemented in a variety of ways.
 \section{GNU gettext}
 The unit \file{gettext} provides a way to internationalize an application
-with the GNU \file{gettext} utilities. This unit is supplied with  the 
+with the GNU \file{gettext} utilities. This unit is supplied with  the
 Free Component Library (FCL). it can be used as follows:
 
 for a given application, the following steps must be followed:
@@ -3769,7 +3771,7 @@ TranslateResourcestrings('intl/restest.%s.mo');
 the \var{\%s} specifier will be replaced by the contents of the \var{LANG}
 environment variable. This call should happen at program startup.
 \end{enumerate}
-An example program exists in the FCL sources, in the \file{fcl/tests} 
+An example program exists in the FCL sources, in the \file{fcl/tests}
 directory.
 \section{Caveat}
 In principle it is possible to translate all resource strings at any time in
@@ -3778,12 +3780,12 @@ strings; its change is noticed only when a constant string is being used.
 
 Consider the following example:
 \begin{verbatim}
-Const 
-  help = 'With a little help of a programmer.';  
+Const
+  help = 'With a little help of a programmer.';
 
-Var 
+Var
   A : AnsiString;
-  
+
 
 begin
 
@@ -3801,7 +3803,7 @@ After the call to \var{TranslateStrings}, the value of \var{A} will remain
 unchanged. This means that the assignment \var{A:=Help} must be executed
 again in order for the change to become visible. This is important,
 especially for GUI programs which have e.g. a menu. In order for the
-change in resource strings to become visible, the new values must be 
+change in resource strings to become visible, the new values must be
 reloaded by program code into the menus...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3965,7 +3967,7 @@ which are used very often will be moved to registers for faster
 access.
 
 \begin{remark}
-Register variable allocation is currently an experimental feature, 
+Register variable allocation is currently an experimental feature,
 and should be used with caution.
 \end{remark}
 
@@ -4176,7 +4178,7 @@ assembler file at the end of the assembly process, so you can study the
 assembler file.
 
 {\em Note:} Code blocks which contain an assembler block, are not processed
-at all by the optimizer at this time. Update: as of version 0.99.11, 
+at all by the optimizer at this time. Update: as of version 0.99.11,
 the Pascal code surrounding the assembler blocks is optimized.
 \end{itemize}
 
@@ -4222,7 +4224,7 @@ The \var{comp} data type is currently not supported.
 The mechanism is the same on both systems, although on \windows library
 indexes can be used, which is not the case on \linux.
 
-In the following sections we discuss how to create a library, and how 
+In the following sections we discuss how to create a library, and how
 to use these libraries in programs.
 
 \section{Creating a library}
@@ -4237,13 +4239,13 @@ demonstrates a simple library:
 
 \FPCexample{subs}
 
-The function \var{SubStr} does not have to be declared in the library file 
+The function \var{SubStr} does not have to be declared in the library file
 itself. It can also be declared in the interface section of a unit that
 is used by the library.
 
 Compilation of this source will result in the creation of a library called
 \file{libsubs.so} on \linux, or \file{subs.dll} on \windows. The compiler
-will take care of any additional linking that is required to create a 
+will take care of any additional linking that is required to create a
 shared library.
 
 The library exports one function: \var{SubStr}. The case is important. The
@@ -4269,50 +4271,50 @@ better to use that one if your library is to be used on \windows systems.
 
 In order to use a function that resides in a library, it is sufficient to
 declare the function as it exists in the library as an \var{external}
-function, with correct arguments and return type. The calling convention 
-used by the function should be declared correctly as well. The compiler 
+function, with correct arguments and return type. The calling convention
+used by the function should be declared correctly as well. The compiler
 will then link the library as specified in the \var{external} statement
 to your program\footnote{If you omit the library name in the \var{external}
 modifier, then you can still tell the compiler to link to that library using
 the \var{\{\$Linklib \}} directive.}.
 
-For example, to use the library as defined above from a pascal program, you can use 
+For example, to use the library as defined above from a pascal program, you can use
 the following pascal program:
 \FPCexample{psubs}
 As is shown in the example, you must declare the function as \var{external}.
 Here also, it is necessary to specify the correct calling convention (it
-should always match the convention as used by the function in the library), 
+should always match the convention as used by the function in the library),
 and to use the correct casing for your declaration.
 
 
 
 This program can be compiled without any additional command-switches,
 and should run just like that, provided the library is placed where
-the system can find it. On \linux, this is \file{/usr/lib} or any 
+the system can find it. On \linux, this is \file{/usr/lib} or any
 directory listed in the \file{/etc/ld.so.conf} file. On \windows, this
 can be the program directory, the Windows system directory, or any directoy
 mentioned in the \var{PATH}.
 
 Using the library in this way links the library to your program at compile
-time. This means that 
+time. This means that
 \begin{enumerate}
 \item The library must be present on the system where the program is
 compiled.
 \item The library must be present on the system where the program is
-executed. 
+executed.
 \item Both libraries must be exactly the same.
 \end{enumerate}
 Or it may simply be that you don't know the name of the function to
 be called, you just know the arguments it expects.
 
-It is therefore also possible to load the library at run-time, store 
+It is therefore also possible to load the library at run-time, store
 the function address in a procedural variable, and use this procedural
 variable to access the function in the library.
 
 The following example demonstrates this technique:
 \FPCexample{plsubs}
-As in the case of compile-time linking, the crucial thing in this 
-listing is the declaration of the \var{TSubStrFunc} type. 
+As in the case of compile-time linking, the crucial thing in this
+listing is the declaration of the \var{TSubStrFunc} type.
 It should match the declaration of the function you're trying to use.
 Failure to specify a correct definition will result in a faulty stack or,
 worse still, may cause your program to crash with an access violation.
@@ -4330,17 +4332,17 @@ To compile this example, the following command can be used:
 \begin{verbatim}
 gcc -o ctest ctest.c -lsubs
 \end{verbatim}
-provided the code is in \file{ctest.c}. 
+provided the code is in \file{ctest.c}.
 
 The library can also be loaded dynamically from C, as shown in the following
-example: 
+example:
 \Cexample{ctest2}
 This can be compiled using the following command:
 \begin{verbatim}
 gcc -o ctest2 ctest2.c -ldl
 \end{verbatim}
 \lstset{language=delphi}
-The \var{-ldl} tells gcc that the program needs the \file{libdl.so} library 
+The \var{-ldl} tells gcc that the program needs the \file{libdl.so} library
 to load dynamical libraries.
 
 
@@ -4363,7 +4365,7 @@ when it creates a library or executable, it looks for all the resource
 files for which it encountered a directive, and tries to link them in.
 
 The default extension for resource files is \file{.res}. When the
-filename has as the first character an asterix (\var{*}), the 
+filename has as the first character an asterix (\var{*}), the
 compiler will replace the asterix with the name of the current unit,
 library or program.
 
@@ -4408,7 +4410,7 @@ windows API calls.
 Some of these will be described below.
 \section{Using string tables.}
 String tables can be used to store and retrieve large collections of
-strings in your application. 
+strings in your application.
 
 A string table looks as follows:
 \begin{verbatim}
@@ -4428,9 +4430,9 @@ program tests;
 {$mode objfpc}
 
 Uses Windows;
- 
+
 {$R *.res}
- 
+
   Function LoadResourceString (Index : longint): Shortstring;
 
   begin
@@ -4517,7 +4519,7 @@ syntax: \file{fprcp}. This preprocessor is shipped with the \fpc
 distribution.
 
 The idea is that the preprocessor reads a pascal unit that has some
-symbolic constants defined in it, and replaces symbolic names in the 
+symbolic constants defined in it, and replaces symbolic names in the
 resource file by the values of the constants in the unit:
 
 As an example: consider the follwoing unit:
@@ -4569,13 +4571,13 @@ names (the constants) instead of using a numeric index.
 % Basics
 \section{Basics}
 
-The best and most updated documentation about the ppu files can be 
+The best and most updated documentation about the ppu files can be
 found in \file{ppu.pas} and \file{ppudump.pp} which can be found in
 \file{rtl/utils/}.
 
 To read or write the ppufile, you can use the ppu unit \file{ppu.pas}
 which has an object called tppufile which holds all routines that deal
-with ppufile handling. While describing the layout of a ppufile, the 
+with ppufile handling. While describing the layout of a ppufile, the
 methods which can be used for it are presented as well.
 
 A unit file consists of basically five or six parts:
@@ -4768,7 +4770,7 @@ A complete list of entries and what their fields contain can be found
 in \file{ppudump.pp}.
 
 \section{Creating ppufiles}
-Creating a new ppufile works almost the same as reading one. 
+Creating a new ppufile works almost the same as reading one.
 First you need to init the object and call create:
 \begin{verbatim}
   ppufile:=new(pppufile,init('output.ppu'));
@@ -4875,7 +4877,7 @@ for a specific processor. The following directories exist:
 \end{itemize}
 \item An OS-independent and Processor independent directory: \file{inc}. This
 contains complete units, and include files containing interface parts of
-units. 
+units.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4998,9 +5000,9 @@ and what targets it defines. After that, some settings in the resulting
 \file{Makefile} are explained.
 
 \section{Usage}
-\file {fpcmake} reads a \file{Makefile.fpc} and converts it to a 
+\file {fpcmake} reads a \file{Makefile.fpc} and converts it to a
 \file{Makefile} suitable for reading by \gnu \file{make}
-to compile your projects. It is similar in functionality to GNU 
+to compile your projects. It is similar in functionality to GNU
 \file{configure} or \file{Imake} for making X projects.
 
 \file{fpcmake} accepts filenames of makefile description files
@@ -5008,17 +5010,17 @@ as it's command-line arguments. For each of these files it will
 create a \file{Makefile} in the same directory where the file is
 located, overwriting any existing file with that name.
 
-If no options are given, it just attempts to read the file 
+If no options are given, it just attempts to read the file
 \file{Makefile.fpc} in the current directory and tries to
 construct a \file{Makefile} from it. any previously existing
-\file{Makefile} will be erased. 
+\file{Makefile} will be erased.
 
 % Makefile.fpc format.
 \section{Format of the configuration file}
 This section describes the rules that can be present in the file
 that is fed to \file{fpcmake}.
 
-The file \file{Makefile.fpc} is a plain ASCII file that contains 
+The file \file{Makefile.fpc} is a plain ASCII file that contains
 a number of pre-defined sections as in a \windows \file{.ini}-file,
 or a Samba configuration file.
 
@@ -5039,7 +5041,7 @@ testdb$(EXEEXT): testdb$(PASEXT) mysql$(PPUEXT)
 The following sections are recognized (in alphabetical order):
 
 \subsection{Clean}
-Specifies rules for cleaning the directory of units and programs. 
+Specifies rules for cleaning the directory of units and programs.
 The following entries are recognized:
 \begin{description}
 \item[units] names of all units that should be removed when cleaning.
@@ -5056,8 +5058,8 @@ are recognized:
 \item[defaultinstalldir]
 \item[defaultzipinstalldir]
 \item[defaultcleandir]
-\item[defaultrule] Specifies the default rule to execute. \file{fpcmake} 
-will make sure that this rule is executed if make is executed without 
+\item[defaultrule] Specifies the default rule to execute. \file{fpcmake}
+will make sure that this rule is executed if make is executed without
 arguments, i.e., without an explicit target.
 \item[defaulttarget]
 Specifies the default operating system target for which the \file{Makefile}
@@ -5070,9 +5072,9 @@ the default compiler processor.
 \end{description}
 
 \subsection{Dirs}
-In this section you can specify the location of several directories 
+In this section you can specify the location of several directories
 which the \file{Makefile} could need for compiling other packages or for finding
-the units. 
+the units.
 
 The following keywords are recognised:
 \begin{description}
@@ -5084,14 +5086,14 @@ directory the \file{Makefile} expects to find the \file{rtl}, \file{fcl} and
 Specifies the directory where all the package source directories are. By
 default this equals \mvar{FPCDIR}\var{/packages}.
 \item[toolkitdir]
-Specifies the directory where toolkit source directories are. 
+Specifies the directory where toolkit source directories are.
 \item[componentdir]
-Specifies the directory where component source directories are. 
+Specifies the directory where component source directories are.
 \item[unitdir]
-A colon-separated list of directories that must be added to the unit 
+A colon-separated list of directories that must be added to the unit
 search path of the compiler.
 \item[libdir]
-A colon-separated list of directories that must be added to the library 
+A colon-separated list of directories that must be added to the library
 search path of the compiler.
 \item[objdir]
 A colon-separated list of directories that must be added to the object file
@@ -5099,7 +5101,7 @@ search path of the compiler.
 \item[targetdir]
 Specifies the directory where the compiled programs should go.
 \item[sourcesdir]
-A space separated list of directories where sources can reside. 
+A space separated list of directories where sources can reside.
 This will be used for the \var{vpath} setting of \gnu \file{make}.
 \item[unittargetdir]
 Specifies the directory where the compiled units should go.
@@ -5109,7 +5111,7 @@ search path of the compiler.
 \end{description}
 
 \subsection{Info}
-This section can be used to customize the information generating 
+This section can be used to customize the information generating
 targets that \file{fpcmake} generates. It is simply a series of boolean
 values that specify whether a certain part of the \var{info} target will be
 generated. The following keywords are recognised:
@@ -5137,7 +5139,7 @@ following keywords are recognized:
 \begin{description}
 \item[dirprefix] is the directory below wchich all installs are done.
 This corresponds to the \var{--prefix} argument to \gnu \file{configure}.
-It is used for the installation of programs and units. By default, this is 
+It is used for the installation of programs and units. By default, this is
 \file{/usr} on \linux, and \file{/pp} on all other platforms.
 \item[dirbase]
 The directory that is used as the base directory for the installation of
@@ -5158,7 +5160,7 @@ one library.
 library is needed. This will make sure that the path to the GCC library
 is inserted in the library search path.
 \item[needotherlib]
-(\linux only) a boolean value that tells the makefile that it should add 
+(\linux only) a boolean value that tells the makefile that it should add
 all library directories from the \file{ld.so.conf} file to the compiler
 command-line.
 \end{description}
@@ -5180,7 +5182,7 @@ recompiled.
 
 \subsection{Postsettings}
 Anything that is in this section will be inserted as-is in the makefile
-\textit{after} the makefile rules that are generated by fpcmake, but 
+\textit{after} the makefile rules that are generated by fpcmake, but
 \textit{before} the general configuration rules.
 In this section, you cannot use variables that are defined by fpcmake rules, but you
 can define additional rules and configuration variables.
@@ -5192,16 +5194,16 @@ This means that you cannot use any variables that are normally defined by
 fpcmake rules.
 
 \subsection{Rules}
-In this section you can insert dependency rules and any other targets 
+In this section you can insert dependency rules and any other targets
 you wish to have. Do not insert 'default rules' here.
 
 \subsection{Sections}
 Here you can specify which 'rule sections' should be included in the
-\file{Makefile}. 
+\file{Makefile}.
 The sections consist of a series of boolean keywords; each keyword decies
 whether a particular section will be written to the makefile. By default,
 all sections are written.
- 
+
 You can have the following boolean keywords in this section.
 \begin{description}
 \item[none]
@@ -5251,7 +5253,7 @@ can be used there:
 A space separated list of directories where make should also be run.
 \item[examples]
 A space separated list of example programs that need to be compiled when
-the user asks to compile the examples. Do not specify an extension, 
+the user asks to compile the examples. Do not specify an extension,
 the extension will be appended.
 \item[loaders]
 A space separated list of names of assembler files that must be assembled.
@@ -5263,7 +5265,7 @@ specify an extension, the extension will be appended.
 files for use with \gnu \file{gettext} and internationalization routines.
 \item[units]
 A space separated list of unit names that need to be compiled. Do not
-specify an extension, just the name of the unit as it would appear un a 
+specify an extension, just the name of the unit as it would appear un a
 \var{uses} clause is sufficient.
 \end{description}
 
@@ -5351,11 +5353,11 @@ All of these can also be found on the \fpc FTP site for \dos and \windowsnt.
 \file{ppdep,ppufiles} and \file{ppumove} are distributed with the \fpc
 compiler.
 
-% 
+%
 \section{Variables that affect the generated makefile}
 The makefile generated by \file{fpcmake} contains a lot of variables.
 Some of them are set in the makefile itself, others can be set and are taken
-into account when set. 
+into account when set.
 
 These variables can be split in several groups:
 \begin{itemize}
@@ -5368,7 +5370,7 @@ Each group will be discussed separately.
 \subsection{Environment variables}
 
 In principle, \var{fpcmake} doesn't expect any environment variable to be set.
-Optionally, you can set the variable \var{FPCMAKEINI} which should contain 
+Optionally, you can set the variable \var{FPCMAKEINI} which should contain
 the name of a file with the basic rules that \file{fpcmake} will generate.
 
 By default, \file{fpcmake} has a compiled-in copy of \file{fpcmake.ini},
@@ -5440,11 +5442,11 @@ it is set to \mvar{PREFIXINSTALLDIR}. You can also set it with the
 \var{basedir} variable in the \var{Install} section.
 
 \item[BININSTALLDIR] is set to \mvar{BASEINSTALLDIR}/\var{bin} on \linux,
-and\\ \mvar{BASEINSTALLDIR}/\var{bin}/\mvar{OS\_TARGET} on other systems. 
+and\\ \mvar{BASEINSTALLDIR}/\var{bin}/\mvar{OS\_TARGET} on other systems.
 This is the place where binaries are installed.
 
 \item[GCCLIBDIR] (\linux only) is set to the directory where \file{libgcc.a}
-is. If \var{needgcclib} is set to \var{True} in the \var{Libs} section, then 
+is. If \var{needgcclib} is set to \var{True} in the \var{Libs} section, then
 this directory is added to the compiler commandline with \var{-Fl}.
 
 \item[LIBINSTALLDIR] is set to \mvar{BASEINSTALLDIR} on \linux,\\
@@ -5471,12 +5473,12 @@ Set by the \var{unitdir} keyword in the \var{Dirs} section.
 
 \item[TARGETDIR] This directory is added as the output directory of
 the compiler, where all units and executables are written, i.e. it gets
-\var{-FE} prepended. It is set by the \var{targtdir} keyword in the 
+\var{-FE} prepended. It is set by the \var{targtdir} keyword in the
 \var{Dirs} section.
 
 \item[TARGETUNITDIR] If set, this directory is added as the output directory of
 the compiler, where all units and executables are written, i.e. it gets
-\var{-FU} prepended.It is set by the \var{targtdir} keyword in the 
+\var{-FU} prepended.It is set by the \var{targtdir} keyword in the
 \var{Dirs} section.
 
 \item[PREFIXINSTALLDIR] is set to \file{/usr} on \linux, \file{/pp} on \dos
@@ -5492,7 +5494,7 @@ on \linux. On other systems, it is set to \\
 \subsection{Target variables}
 
 The second set of variables controls the targets that are constructed
-by the makefile. They are created by \file{fpcmake}, so you can use 
+by the makefile. They are created by \file{fpcmake}, so you can use
 them in your rules, but you shouldn't assign values to them yourself.
 
 \begin{description}
@@ -5510,11 +5512,11 @@ name. The sourcename is formed by adding \mvar{PASEXT}.
 It is set by the \var{units} keyword in the \var{Targets} section.
 
 \item[ZIPNAME] is the name of the archive that will be created by the
-makefile. 
+makefile.
 It is set by the \var{zipname} keyword in the \var{Zip} section.
 
 \item[ZIPTARGET] is the target that is built before the archive is made.
-this target is built first. If successful, the zip archive will be made. 
+this target is built first. If successful, the zip archive will be made.
 It is set by the \var{ziptarget} keyword in the \var{Zip} section.
 
 \end{description}
@@ -5530,8 +5532,8 @@ command line. This is determined by the Makefile itself.
 \item[CPU\_TARGET] the target CPU type is added as a define to the compiler
 command line. This is determined by the Makefile itself.
 
-\item[LIBNAME] if a shared library is requested this is the name of the 
-shared library to produce. Don't add \var{lib} to this, the compiler will 
+\item[LIBNAME] if a shared library is requested this is the name of the
+shared library to produce. Don't add \var{lib} to this, the compiler will
 do that.
 It is set by the \var{libname} keyword in the \var{Libs} section.
 
@@ -5946,7 +5948,7 @@ I386 & Generate a compiler for the Intel i386+ processor family. \\
 M68K & Generate a compiler for the M68000 processor family. \\
 USEOVERLAY & Compiles a TP version which uses overlays. \\
 EXTDEBUG & Some extra debug code is executed. \\
-SUPPORT\_MMX & only i386: enables the compiler switch \var{MMX} which \\ 
+SUPPORT\_MMX & only i386: enables the compiler switch \var{MMX} which \\
  &allows the compiler to generate  MMX instructions.\\
 EXTERN\_MSG & Don't compile the msgfiles in the compiler, always use \\
 & external messagefiles (default for TP).\\
@@ -5954,6 +5956,6 @@ NOAG386INT & no Intel Assembler output.\\
 NOAG386NSM & no NASM output.\\
 NOAG386BIN & leaves out the binary writer.\\ \hline
 \end{FPCltable}
-This list may be subject to change, the source file \file{pp.pas} always 
+This list may be subject to change, the source file \file{pp.pas} always
 contains an up-to-date list.
 \end{document}

@@ -161,9 +161,9 @@ help:
 	@echo ' pdfdist       : pdf, and archive result.'
 
 clean:
-	-rm -rf $(HTML)
+	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
-	-rm -f onechap.dvi onechap.aux onechap.log
+	-rm -f onechap.dvi onechap.aux onechap.log onechap.chk
 
 # Units
 	-$(MAKE) -C crtex clean
@@ -330,6 +330,22 @@ else
 endif
 	touch internal.chk	
 
+onechap: onechap.chk
+
+onechap.chk: onechap.tex date.inc
+ifdef INSTALLDEBUG
+	mkdir onechap
+	cp onechap.tex onechap/index.html
+else
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
+        -t "Free Pascal reference guide" onechap.tex
+	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
+	-mv onechap/footnote.html onechap/footnode.html
+	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
+	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
+endif
+	touch onechap.chk	
+
 html: $(HTML)
 
 #####################################################################
@@ -444,7 +460,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.39  2000-07-09 15:44:15  peter
+# Revision 1.40  2000-07-11 18:07:26  peter
+#   * fixes for latex2html 0.99b2
+#
+# Revision 1.39  2000/07/09 15:44:15  peter
 #   * image_type gif added
 #
 # Revision 1.38  2000/07/04 21:23:04  michael

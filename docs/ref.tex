@@ -22,10 +22,12 @@
 %
 % Preamble
 %
-\usepackage{html}
-\usepackage{htmllist}
 \usepackage{epsfig}
 \usepackage{multicol}
+\ifx\pdfoutput\undefined
+  \usepackage{html}
+  \usepackage{htmllist}
+\fi
 \usepackage{fpc}
 \latex{%
   \ifpdf
@@ -419,8 +421,8 @@ Const
   s = chr(32)
   ls = SizeOf(Longint);
 \end{verbatim}
-Assigning a value to an ordinary constant is not permitted. 
-Thus, given the previous declaration, the following will result 
+Assigning a value to an ordinary constant is not permitted.
+Thus, given the previous declaration, the following will result
 in a compiler error:
 \begin{verbatim}
   s := 'some other string';
@@ -485,8 +487,8 @@ Resourcestring
   FileMenu = '&File...';
   EditMenu = '&Edit...';
 \end{verbatim}
-All string constants defined in the resourcestring section are stored 
-in special tables, allowing to manipulate the values of the strings 
+All string constants defined in the resourcestring section are stored
+in special tables, allowing to manipulate the values of the strings
 at runtime with some special mechanisms.
 
 Semantically, the strings are like constants; you cannot assign values to
@@ -495,7 +497,7 @@ you can use them in assignments or expressions as normal constants.
 The main use of the resourcestring section is to provide an easy means
 of internationalization.
 
-More on the subject of resourcestrings can be found in the \progref, and 
+More on the subject of resourcestrings can be found in the \progref, and
 in the chapter on the \file{objpas} later in this manual.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -605,7 +607,7 @@ be called, which may have strange side-effects.
 Here \var{Func} is a function which returns a \var{Boolean} type.
 \end{remark}
 
-\begin{remark} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types 
+\begin{remark} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types
 were not supported by \fpc until version 0.99.6.
 \end{remark}
 \subsubsection{Enumeration types}
@@ -879,8 +881,8 @@ begin
   P :=Pointer(S);
 \end{verbatim}
 There is a difference between the two typecasts. If you typecast an empty
-ansistring to a pointer, the pointer wil be \var{Nil}. If you typecast an 
-empty ansistring to a \var{PChar}, then the result will be a pointer to a 
+ansistring to a pointer, the pointer wil be \var{Nil}. If you typecast an
+empty ansistring to a \var{PChar}, then the result will be a pointer to a
 zero byte (an empty string).
 
 The result of such a typecast must be used with care. In general, it is best
@@ -890,7 +892,7 @@ passing to a procedure that needs a constant pchar argument.
 It is therefore NOT advisable to typecast one of the following:
 \begin{enumerate}
 \item expressions.
-\item strings that have reference count larger than 0.  
+\item strings that have reference count larger than 0.
 (call uniquestring if you want to ensure a string has reference count 1)
 \end{enumerate}
 \subsection{Constant strings}
@@ -1524,7 +1526,7 @@ In this example, between the \var{begin} and \var{end}, it is as if
 identifiers. More about this in \sees{With}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Constructors and destructors 
+% Constructors and destructors
 \section{Constructors and destructors }
 \label{se:constructdestruct}
 As can be seen in the syntax diagram for an object declaration, \fpc supports
@@ -1572,7 +1574,7 @@ Similarly, the \var{Dispose} procedure accepts the name of a destructor. The
 destructor will then be called, before removing the object from the heap.
 
 In view of the compiler warning remark, the following chapter presents the
-Delphi approach to object-oriented programming, and may be considered a 
+Delphi approach to object-oriented programming, and may be considered a
 more natural way of object-oriented programming.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1772,10 +1774,10 @@ around  the concept of 'Classes'.  A class can be seen as a pointer to an
 object, or a pointer to a record.
 
 \begin{remark}
-In earlier versions of \fpc it was necessary, in order to use classes, 
-to put the \file{objpas} unit in the uses clause of your unit or program. 
-{\em This is no longer needed} as of version 0.99.12. As of version 0.99.12 
-the \file{system} unit contains the basic  definitions of \var{TObject} 
+In earlier versions of \fpc it was necessary, in order to use classes,
+to put the \file{objpas} unit in the uses clause of your unit or program.
+{\em This is no longer needed} as of version 0.99.12. As of version 0.99.12
+the \file{system} unit contains the basic  definitions of \var{TObject}
 and  \var{TClass}, as well as some auxiliary methods for using classes.
 The \file{objpas} unit still exists, and contains some redefinitions of
 basic types, so they coincide with Delphi types. The unit will be loaded
@@ -1863,17 +1865,17 @@ override it. For classes, the situation is different: you {\em must}
 override virtual methods with the \var{override} keyword. Failing to do so,
 will start a {\em new} batch of virtual methods, hiding the previous
 one.  The \var{Inherited} keyword will not jump to the inherited method, if
-virtual was used. 
+virtual was used.
 
 The following code is {\em wrong}:
-\begin{lstlisting}{}
+\begin{verbatim}
 Type ObjParent = Class
         Procedure MyProc; virtual;
      end;
      ObjChild  = Class(ObjPArent)
        Procedure MyProc; virtual;
      end;
-\end{lstlisting}{}     
+\end{verbatim}
 The compiler will produce a warning:
 \begin{verbatim}
 Warning: An inherited method is hidden by OBJCHILD.MYPROC
@@ -1882,18 +1884,18 @@ The compiler will compile it, but using \var{Inherited} can
 produce strange effects.
 
 The correct declaration is as follows:
-\begin{lstlisting}{}
+\begin{verbatim}
 Type ObjParent = Class
         Procedure MyProc; virtual;
      end;
      ObjChild  = Class(ObjPArent)
        Procedure MyProc; override;
      end;
-\end{lstlisting}{}
+\end{verbatim}
 This will compile and run without warnings or errors.
 
 \subsection{Message methods}
-New in classes are \var{message} methods. Pointers to message methods are 
+New in classes are \var{message} methods. Pointers to message methods are
 stored in a special table, together with the integer or string cnstant that
 they were declared with. They are primarily intended to ease programming of
 callback functions in several \var{GUI} toolkits, such as \var{Win32} or
@@ -1902,19 +1904,19 @@ identifiers.
 
 Message methods that are declared with an integer constant can take only one
 var argument (typed or not):
-\begin{lstlisting}{}
+\begin{verbatim}
  Procedure TMyObject.MyHandler(Var Msg); Message 1;
-\end{lstlisting}{}
+\end{verbatim}
 The method implementation of a message function is no different from an
 ordinary method. It is also possible to call a message method directly,
 but you should not do this. Instead use the \var{TObject.Dispatch} method.
 
 The \var{TOBject.Dispatch} method can be used to call a \var{message}
-handler. It is declared in the \file{system} unit and will accept a var 
+handler. It is declared in the \file{system} unit and will accept a var
 parameter  which must have at the first position a cardinal with the
 message ID that should be called. For example:
-\begin{lstlisting}{}
-Type 
+\begin{verbatim}
+Type
   TMsg = Record
     MSGID : Cardinal
     Data : Pointer;
@@ -1922,26 +1924,26 @@ Var
   Msg : TMSg;
 
 MyObject.Dispatch (Msg);
-\end{lstlisting}{}
-In this example, the \var{Dispatch} method will look at the object and all 
-it's ancestors (starting at the object, and searching up the class tree), 
+\end{verbatim}
+In this example, the \var{Dispatch} method will look at the object and all
+it's ancestors (starting at the object, and searching up the class tree),
 to see if a message method with message \var{MSGID} has been
-declared. If such a method is found, it is called, and passed the 
+declared. If such a method is found, it is called, and passed the
 \var{Msg} parameter.
 
 If no such method is found, \var{DefaultHandler} is called.
-\var{DefaultHandler} is a virtual method of \var{TObject} that doesn't do 
+\var{DefaultHandler} is a virtual method of \var{TObject} that doesn't do
 anything, but which can be overridden to provide any processing you might
 need. \var{DefaultHandler} is declared as follows:
-\begin{lstlisting}{}
+\begin{verbatim}
    procedure defaulthandler(var message);virtual;
-\end{lstlisting}{}
+\end{verbatim}
 
 In addition to the message method with a \var{Integer} identifier,
 \fpc also supports a messae method with a string identifier:
-\begin{lstlisting}{}
+\begin{verbatim}
  Procedure TMyObject.MyStrHandler(Var Msg); Message 'OnClick';
-\end{lstlisting}{}
+\end{verbatim}
 
 The working of the string message handler is the same as the ordinary
 integer message handler:
@@ -1950,8 +1952,8 @@ The \var{TOBject.DispatchStr} method can be used to call a \var{message}
 handler. It is declared in the system unit and will accept one parameter
 which must have at the first position a string with the message ID that
 should be called. For example:
-\begin{lstlisting}{}
-Type 
+\begin{verbatim}
+Type
   TMsg = Record
     MsgStr : String[10]; // Arbitrary length up to 255 characters.
     Data : Pointer;
@@ -1959,32 +1961,32 @@ Var
   Msg : TMSg;
 
 MyObject.DispatchStr (Msg);
-\end{lstlisting}{}
-In this example, the \var{DispatchStr} method will look at the object and 
-all it's ancestors (starting at the object, and searching up the class tree), 
+\end{verbatim}
+In this example, the \var{DispatchStr} method will look at the object and
+all it's ancestors (starting at the object, and searching up the class tree),
 to see if a message method with message \var{MsgStr} has been
-declared. If such a method is found, it is called, and passed the 
+declared. If such a method is found, it is called, and passed the
 \var{Msg} parameter.
 
 If no such method is found, \var{DefaultHandlerStr} is called.
-\var{DefaultHandlerStr} is a virtual method of \var{TObject} that doesn't do 
+\var{DefaultHandlerStr} is a virtual method of \var{TObject} that doesn't do
 anything, but which can be overridden to provide any processing you might
 need. \var{DefaultHandlerStr} is declared as follows:
-\begin{lstlisting}{}
+\begin{verbatim}
    procedure DefaultHandlerStr(var message);virtual;
-\end{lstlisting}{}
+\end{verbatim}
 
 In addition to this mechanism, a string message method accepts a \var{self}
 parameter:
-\begin{lstlisting}{}
+\begin{verbatim}
   TMyObject.StrMsgHandler(Data : Pointer; Self : TMyObject);Message 'OnClick';
-\end{lstlisting}{}
+\end{verbatim}
 When encountering such a method, the compiler will generate code that loads
 the \var{Self} parameter into the object instance pointer. The result of
 this is that it is possible to pass \var{Self} as a parameter to such a
-method. 
+method.
 
-\begin{remark} 
+\begin{remark}
 The type of the \var{Self} parameter must be of the same class
 as the class you define the method for.
 \end{remark}
@@ -2004,7 +2006,7 @@ The prototype declaration of a property is as follows:
 A \var{read specifier} is either the name of a field that contains the
 property, or the name of a method function that has the same return type as
 the property type. In the case of a simple type, this
-function must not accept an argument. A \var{read specifier} is optional, 
+function must not accept an argument. A \var{read specifier} is optional,
 making the property write-only.
 A \var{write specifier} is optional: If there is no \var{write specifier}, the
 property is read-only. A write specifier is either the name of a field, or
@@ -2203,7 +2205,7 @@ first. Thus, \var {5*(3+7)} would result in 50.
 % Expression syntax
 \section{Expression syntax}
 An expression applies relational operators to simple expressions. Simple
-expressions are a series of terms (what a term is, is explained below), joined by 
+expressions are a series of terms (what a term is, is explained below), joined by
 adding operators.
 \input{syntax/expsimpl.syn}
 The following are valid expressions:
@@ -2709,9 +2711,9 @@ The \var{If .. then .. else..} prototype syntax is
 \input{syntax/ifthen.syn}
 The expression between the \var{if} and \var{then} keywords must have a
 boolean return type. If the expression evaluates to \var{True} then the
-statement following \var{then} is executed. 
+statement following \var{then} is executed.
 
-If the expression evaluates to \var{False}, then the statement following 
+If the expression evaluates to \var{False}, then the statement following
 \var{else} is executed, if it is present.
 
 Be aware of the fact that the boolean expression will be short-cut evaluated.
@@ -2797,8 +2799,8 @@ For I := 100 downto 1 do
 For I := 1 to 7*dwarfs do KissDwarf(i);
 \end{verbatim}
 
-If the statement is a compound statement, then  the \seep{Break} and 
-\seep{Continue} reserved words can be used to jump to the end or just 
+If the statement is a compound statement, then  the \seep{Break} and
+\seep{Continue} reserved words can be used to jump to the end or just
 after the end of the \var{For} statement.
 
 
@@ -2853,8 +2855,8 @@ while x>=10e-3 do
 \end{verbatim}
 They correspond to the example loops for the \var{repeat} statements.
 
-If the statement is a compound statement, then  the \seep{Break} and 
-\seep{Continue} reserved words can be used to jump to the end or just 
+If the statement is a compound statement, then  the \seep{Break} and
+\seep{Continue} reserved words can be used to jump to the end or just
 after the end of the \var{While} statement.
 
 \subsection{The \var{With} statement}
@@ -2912,7 +2914,7 @@ Type AR = record
       X,Y : Longint;
      end;
      PAR = Record;
-    
+
 Var S,T : Ar;
 begin
   S.X := 1;S.Y := 1;
@@ -2945,7 +2947,7 @@ begin
    X:=0.0;  // Wrong X will be used !!
    end;
 \end{verbatim}
-The reason the pointer cannot be changed is that the address is stored 
+The reason the pointer cannot be changed is that the address is stored
 by the compiler in a temporary register. Changing the pointer won't change
 the temporary address. The same is true for classes.
 \end{remark}
@@ -3143,15 +3145,15 @@ end;
 In Object Pascal or Delphi mode, \fpc supports the \var{Array of Const}
 construction to pass parameters to a subroutine.
 
-This is a special case of the \var{Open array} construction, where you 
+This is a special case of the \var{Open array} construction, where you
 are allowed to pass any expression in an array to a function or procedure.
 
-In the procedure, passed the arguments can be examined using a special 
+In the procedure, passed the arguments can be examined using a special
 record:
 \begin{verbatim}
 Type
    PVarRec = ^TVarRec;
-   TVarRec = record   
+   TVarRec = record
      case VType : Longint of
        vtInteger    : (VInteger: Longint);
        vtBoolean    : (VBoolean: Boolean);
@@ -3161,13 +3163,13 @@ Type
        vtPointer    : (VPointer: Pointer);
        vtPChar      : (VPChar: PChar);
        vtObject     : (VObject: TObject);
-       vtClass      : (VClass: TClass);  
-       vtAnsiString : (VAnsiString: Pointer);   
-       vtWideString : (VWideString: Pointer);  
+       vtClass      : (VClass: TClass);
+       vtAnsiString : (VAnsiString: Pointer);
+       vtWideString : (VWideString: Pointer);
        vtInt64      : (VInt64: PInt64);
    end;
 \end{verbatim}
-Inside the procedure body, the array of const is equivalent to 
+Inside the procedure body, the array of const is equivalent to
 an open array of TVarRec:
 \begin{verbatim}
 Procedure Testit (Args: Array of const);
@@ -3185,25 +3187,25 @@ begin
     begin
     write ('Argument ',i,' has type ');
     case Args[i].vtype of
-      vtinteger    : 
+      vtinteger    :
         Writeln ('Integer, Value :',args[i].vinteger);
-      vtboolean    : 
+      vtboolean    :
         Writeln ('Boolean, Value :',args[i].vboolean);
-      vtchar       : 
+      vtchar       :
         Writeln ('Char, value : ',args[i].vchar);
-      vtextended   : 
+      vtextended   :
         Writeln ('Extended, value : ',args[i].VExtended^);
-      vtString     : 
+      vtString     :
         Writeln ('ShortString, value :',args[i].VString^);
-      vtPointer    : 
+      vtPointer    :
         Writeln ('Pointer, value : ',Longint(Args[i].VPointer));
-      vtPChar      : 
+      vtPChar      :
         Writeln ('PCHar, value : ',Args[i].VPChar);
-      vtObject     : 
+      vtObject     :
         Writeln ('Object, name : ',Args[i].VObject.Classname);
-      vtClass      : 
+      vtClass      :
         Writeln ('Class reference, name :',Args[i].VClass.Classname);
-      vtAnsiString : 
+      vtAnsiString :
         Writeln ('AnsiString, value :',AnsiString(Args[I].VAnsiStr
     else
         Writeln ('(Unknown) : ',args[i].vtype);
@@ -3224,12 +3226,12 @@ to this procedure:
   Testit ([S,T])  ;
   Testit ([P1,P2]);
   Testit ([@testit,Nil]);
-  Testit ([ObjA,ObjB]);  
+  Testit ([ObjA,ObjB]);
   Testit ([1.234,1.234]);
   TestIt ([AClass]);
 \end{verbatim}
 
-If the procedure is declared with the \var{cdecl} modifier, then the 
+If the procedure is declared with the \var{cdecl} modifier, then the
 compiler will pass the array as a C compiler would pass it. This, in effect,
 emulates the C construct of a varable number of arguments, as the following
 example will show:
@@ -3237,19 +3239,19 @@ example will show:
 program testaocc;
 {$mode objfpc}
 
-Const 
+Const
   P : Pchar = 'example';
   Fmt : PChar =
         'This %s uses printf to print numbers (%d) and strings.'#10;
 
-// Declaration of standard C function printf: 
+// Declaration of standard C function printf:
 procedure printf (fm : pchar; args : array of const);cdecl; external 'c';
 
 begin
  printf(Fmt,[P,123]);
 end.
 \end{verbatim}
-Remark that this is not true for Delphi, so code relying on this feature 
+Remark that this is not true for Delphi, so code relying on this feature
 will not be portable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3449,7 +3451,7 @@ When compiling this, and linking to the C-library, you will be able to call
 the \var{strlen} function throughout your program. The \var{external}
 directive tells the compiler that the function resides in an external
 object filebrary (see \ref{se:external}).
-\begin{remark} 
+\begin{remark}
 The parameters in our declaration of the \var{C} function should
 match exactly the ones in the declaration in \var{C}. Since \var{C} is case
 sensitive, this means also that the name of the
@@ -3550,14 +3552,14 @@ Far & \fpc is a 32-bit compiler. \\
 \section{Introduction}
 \fpc supports operator overloading. This means that it is possible to
 define the action of some operators on self-defined types, and thus allow
-the use of these types in mathematical expressions. 
+the use of these types in mathematical expressions.
 
-Defining the action of an operator is much like the definition of a 
+Defining the action of an operator is much like the definition of a
 function or procedure, only there are some restrictions on the possible
 definitions, as will be shown in the subsequent.
 
-Operator overloading is, in essence, a powerful notational tool; 
-but it is also not more than that, since the same results can be 
+Operator overloading is, in essence, a powerful notational tool;
+but it is also not more than that, since the same results can be
 obtained with regular function calls. When using operator overloading,
 It is important to keep in mind that some implicit rules may produce
 some unexpected results. This will be indicated.
@@ -3580,16 +3582,16 @@ In the following, the three types of operator definitions will be examined.
 As an example, throughout this chapter the following type will be used to
 define overloaded operators on :
 \begin{verbatim}
-type 
+type
   complex = record
     re : real;
     im : real;
-  end;        
+  end;
 \end{verbatim}
 this type will be used in all examples.
 
-The sources of the Run-Time Library contain a unit \file{ucomplex}, 
-which contains a complete calculus for complex numbers, based on 
+The sources of the Run-Time Library contain a unit \file{ucomplex},
+which contains a complete calculus for complex numbers, based on
 operator overloading.
 
 \section{Assignment operators}
@@ -3597,20 +3599,20 @@ operator overloading.
 The assignment operator defines the action of a assignent of one type of
 variable to another. The result type must match the type of the variable
 at the left of the assignment statement, the single parameter to the
-assignment operator must have the same type as the expression at the 
+assignment operator must have the same type as the expression at the
 right of the assignment operator.
 
 This system can be used to declare a new type, and define an assignment for
 that type. For instance, to be able to assign a newly defined type 'Complex'
 \begin{verbatim}
-Var 
+Var
   C,Z : Complex; // New type complex
 
 begin
   Z:=C;  // assignments between complex types.
 end;
 \end{verbatim}
-You would have to define the following assignment operator: 
+You would have to define the following assignment operator:
 \begin{verbatim}
 Operator := (C : Complex) z : complex;
 \end{verbatim}
@@ -3618,7 +3620,7 @@ Operator := (C : Complex) z : complex;
 
 To be able to assign a real type to a complex type as follows:
 \begin{verbatim}
-var 
+var
   R : real;
   C : complex;
 
@@ -3626,18 +3628,18 @@ begin
   C:=R;
 end;
 \end{verbatim}
-the following assignment operator must be defined: 
+the following assignment operator must be defined:
 \begin{verbatim}
 Operator := (r : real) z : complex;
 \end{verbatim}
 As can be seen from this statement, it defines the action of the operator
 \var{:=} with at the right a real expression, and at the left a complex
-expression. 
+expression.
 
 an example implementation of this could be as follows:
 \begin{verbatim}
 operator := (r : real) z : complex;
-    
+
 begin
   z.re:=r;
   z.im:=0.0;
@@ -3650,7 +3652,7 @@ allowed, and can be substituted for the \var{z}, so the above would be
 equivalent to
 \begin{verbatim}
 operator := (r : real) z : complex;
-    
+
 begin
   Result.re:=r;
   Result.im:=0.0;
@@ -3668,7 +3670,7 @@ The assignment operator is not commutative; the compiler will never reverse
 the role of the two arguments. in other words, given the above definition of
 the assignment operator, the following is {\em not} possible:
 \begin{verbatim}
-var 
+var
   R : real;
   C : complex;
 
@@ -3689,18 +3691,18 @@ function exp(c : complex) : complex;
 \end{verbatim}
 then the following assignment will give a type mismatch:
 \begin{verbatim}
-Var 
+Var
   r1,r2 : real;
 
 begin
   r1:=exp(r2);
 end;
 \end{verbatim}
-because the compiler will encounter the definition of the \var{exp} function 
+because the compiler will encounter the definition of the \var{exp} function
 with the complex argument. It implicitly converts r2 to a complex, so it can
-use the above \var{exp} function. The result of this function is a complex, 
-which cannot be assigned to r1, so the compiler will give a 'type mismatch' 
-error. The compiler will not look further for another \var{exp} which has 
+use the above \var{exp} function. The result of this function is a complex,
+which cannot be assigned to r1, so the compiler will give a 'type mismatch'
+error. The compiler will not look further for another \var{exp} which has
 the correct arguments.
 
 It is possible to avoid this particular problem by specifying
@@ -3713,7 +3715,7 @@ not enabled by default. Maybe someday it will be.
 
 \section{Arithmetic operators}
 
-Arithmetic operators define the action of a binary operator. Possible 
+Arithmetic operators define the action of a binary operator. Possible
 operations are:
 \begin{description}
 \item[multiplication] to multiply two types, the \var{*} multiplication
@@ -3729,14 +3731,14 @@ operator must be overloaded.
 \end{description}
 
 The definition of an arithmetic operator takes two parameters. The first
-parameter must be of the type that occurs at the left of the operator, 
+parameter must be of the type that occurs at the left of the operator,
 the second parameter must be of the type that is at the right of the
 arithmetic operator. The result type must match the type that results
 after the arithmetic operation.
 
 To compile an expression as
 \begin{verbatim}
-var 
+var
   R : real;
   C,Z : complex;
 
@@ -3747,7 +3749,7 @@ end;
 one needs a definition of the multiplication operator as:
 \begin{verbatim}
 Operator * (r : real; z1 : complex) z : complex;
- 
+
 begin
   z.re := z1.re * r;
   z.im := z1.im * r;
@@ -3756,16 +3758,16 @@ end;
 As can be seen, the first operator is a real, and the second is
 a complex. The result type is complex.
 
-Multiplication and addition of reals and complexes are commutative 
-operations. The compiler, however, has no notion of this fact so even 
-if a multiplication between a real and a complex is defined, the 
-compiler will not use that definition when it encounters a complex 
+Multiplication and addition of reals and complexes are commutative
+operations. The compiler, however, has no notion of this fact so even
+if a multiplication between a real and a complex is defined, the
+compiler will not use that definition when it encounters a complex
 and a real (in that order). It is necessary to define both operations.
 
-So, given the above definition of the multiplication, 
+So, given the above definition of the multiplication,
 the compiler will not accept the following statement:
 \begin{verbatim}
-var 
+var
   R : real;
   C,Z : complex;
 
@@ -3794,11 +3796,11 @@ The comparision operators that can be overloaded are:
 \item[greater than] ($>$) to determine if one variable is greater than another.
 \item[greater than or equal to] ($>=$) to determine if one variable is greater than
 or equal to another.
-\item[less than or equal to] ($<=$) to determine if one variable is greater 
+\item[less than or equal to] ($<=$) to determine if one variable is greater
 than or equal to another.
 \end{description}
 There is no separate operator for {\em unequal to} ($<>$). To evaluate a
-statement that contans the {\em unequal to} operator, the compiler uses the 
+statement that contans the {\em unequal to} operator, the compiler uses the
 {\em equal to} operator (=), and negates the result.
 
 
@@ -3821,7 +3823,7 @@ end;
 The comparision operator definition needs 2 parameters, with the types that
 the operator is meant to compare. Here also, the compiler doesn't apply
 commutativity; if the two types are different, then it necessary to
-define 2 comparision operators. 
+define 2 comparision operators.
 
 In the case of complex numbers, it is, for instance necessary to define
 2 comparsions: one with the complex type first, and one with the real type
@@ -3834,7 +3836,7 @@ operator = (r : real; z1 : complex) b : boolean;
 \end{verbatim}
 the following two comparisions are possible:
 \begin{verbatim}
-Var 
+Var
   R,S : Real;
   C : Complex;
 
@@ -3843,7 +3845,7 @@ begin
    Writeln ('Ok');
 end;
 \end{verbatim}
-Note that the order of the real and complex type in the two comparisions 
+Note that the order of the real and complex type in the two comparisions
 is reversed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3881,7 +3883,7 @@ are converted to all lowercase when looking for a unit.
 
 If a unit name is longer than 8 characters, the compiler will first look for
 a unit name with this length, and then it will truncate the name to 8
-characters and look for it again. For compatibility reasons, this is also 
+characters and look for it again. For compatibility reasons, this is also
 true on platforms that suport long file names.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4307,7 +4309,7 @@ assembler macros.  To have more information on the processor
 specific assembler syntax and its limitations, see the \progref.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Assembler statements 
+% Assembler statements
 \section{Assembler statements }
 The following is an example of assembler inclusion in your code.
 \begin{verbatim}
@@ -4327,7 +4329,7 @@ You can still use conditionals in your assembler, the compiler will
 recognise it, and treat it as any other conditionals.
 
 \begin{remark}
-Before version 0.99.1, \fpc did not support reference to variables by 
+Before version 0.99.1, \fpc did not support reference to variables by
 their names in the assembler parts of your code.
 \end{remark}
 
@@ -4372,10 +4374,10 @@ The system unit contains the standard supported functions of \fpc. It is the
 same for all platforms. Basically it is the same as the system unit provided
 with Borland or Turbo Pascal.
 
-Functions are listed in alphabetical order. Arguments of functions or 
+Functions are listed in alphabetical order. Arguments of functions or
 procedures that are optional are put between square brackets.
 
-The pre-defined constants and variables are listed in the first section. 
+The pre-defined constants and variables are listed in the first section.
 The second section contains an overview of all functions, grouped by
 functionality, and the last section contains the supported functions
 and procedures.
@@ -4400,7 +4402,7 @@ The following types are used for the functions that need compiler magic
 such as \seep{Val} or \seep{Str}:
 \begin{verbatim}
 StrLenInt = LongInt;
-ValSInt = Longint; 
+ValSInt = Longint;
 ValUInt = Cardinal;
 ValReal = Extended;
 \end{verbatim}
@@ -4417,11 +4419,11 @@ And the following pointer types:
   PQWord      = ^QWord;
   PInt64      = ^Int64;
   pshortstring = ^shortstring;
-  plongstring  = ^longstring; 
-  pansistring  = ^ansistring; 
-  pwidestring  = ^widestring; 
-  pextended    = ^extended;   
-  ppointer     = ^pointer;    
+  plongstring  = ^longstring;
+  pansistring  = ^ansistring;
+  pwidestring  = ^widestring;
+  pextended    = ^extended;
+  ppointer     = ^pointer;
 \end{verbatim}
 For the \seef{SetJmp} and \seep{LongJmp} calls, the following jump bufer
 type is defined (for the I386 processor):
@@ -4432,12 +4434,12 @@ type is defined (for the I386 processor):
     end;
   PJmp_buf = ^jmp_buf;
 \end{verbatim}
-The following records and pointers can be used if you want to scan the 
+The following records and pointers can be used if you want to scan the
 entries in the string message handler tables:
 \begin{verbatim}
   tmsgstrtable = record
      name : pshortstring;
-     method : pointer;   
+     method : pointer;
   end;
   pmsgstrtable = ^tmsgstrtable;
 
@@ -4451,7 +4453,7 @@ entries in the string message handler tables:
 The base class for all classes is defined as:
 \begin{verbatim}
 Type
-  TObject = Class 
+  TObject = Class
   Public
     constructor create;
     destructor destroy;virtual;
@@ -4476,7 +4478,7 @@ Type
     procedure dispatchstr(var message);
     class function methodaddress(const name : shortstring) : pointer;
     class function methodname(address : pointer) : shortstring;
-    function fieldaddress(const name : shortstring) : pointer; 
+    function fieldaddress(const name : shortstring) : pointer;
     procedure AfterConstruction;virtual;
     procedure BeforeDestruction;virtual;
     procedure DefaultHandlerStr(var message);virtual;
@@ -4484,13 +4486,13 @@ Type
   TClass = Class Of TObject;
   PClass = ^TClass;
 \end{verbatim}
-Unhandled exceptions can be treated using a constant of the 
+Unhandled exceptions can be treated using a constant of the
 \var{TExceptProc} type:
 \begin{verbatim}
 TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
 \end{verbatim}
 \var{Obj} is the exception object that was used to raise the exception,
-\var{Addr} and \var{Frame} contain the exact address and stack frame 
+\var{Addr} and \var{Frame} contain the exact address and stack frame
 where the exception was raised.
 
 The \var{TVarRec} type is used to access the elements passed in a \var{Array
@@ -4498,7 +4500,7 @@ of Const} argument to a function or procedure:
 \begin{verbatim}
 Type
   PVarRec = ^TVarRec;
-  TVarRec = record   
+  TVarRec = record
     case VType : Longint of
     vtInteger    : (VInteger: Longint);
     vtBoolean    : (VBoolean: Boolean);
@@ -4508,9 +4510,9 @@ Type
     vtPointer    : (VPointer: Pointer);
     vtPChar      : (VPChar: PChar);
     vtObject     : (VObject: TObject);
-    vtClass      : (VClass: TClass);  
-    vtAnsiString : (VAnsiString: Pointer);   
-    vtWideString : (VWideString: Pointer);  
+    vtClass      : (VClass: TClass);
+    vtAnsiString : (VAnsiString: Pointer);
+    vtWideString : (VWideString: Pointer);
     vtInt64      : (VInt64: PInt64);
   end;
 \end{verbatim}
@@ -4553,15 +4555,15 @@ Const
 \end{verbatim}
 Further, the following non processor specific general-purpose constants
 are also defined:
-\begin{lstlisting}{}
+\begin{verbatim}
 const
   erroraddr : pointer = nil;
   errorcode : word = 0;
  { max level in dumping on error }
   max_frame_dump : word = 20;
-\end{lstlisting}{}
+\end{verbatim}
 \begin{remark}
-Processor specific global constants are named Testxxxx where xxxx 
+Processor specific global constants are named Testxxxx where xxxx
 represents the processor number (such as Test8086, Test68000),
 and are used to determine on what generation of processor the program
 is running on.
@@ -4618,15 +4620,15 @@ The following constants will be used for the planned \var{variant} support:
 The following constants are used in the \var{TVarRec} record:
 \begin{verbatim}
 vtInteger    = 0;
-vtBoolean    = 1;          
-vtChar       = 2; 
-vtExtended   = 3; 
-vtString     = 4; 
-vtPointer    = 5; 
-vtPChar      = 6; 
-vtObject     = 7; 
-vtClass      = 8; 
-vtWideChar   = 9; 
+vtBoolean    = 1;
+vtChar       = 2;
+vtExtended   = 3;
+vtString     = 4;
+vtPointer    = 5;
+vtPChar      = 6;
+vtObject     = 7;
+vtClass      = 8;
+vtWideChar   = 9;
 vtPWideChar  = 10;
 vtAnsiString = 11;
 vtCurrency   = 12;
@@ -4677,7 +4679,7 @@ occurred. If so, \var{ExitCode} contains the error code. If \var{ErrorAddr} is
 program terminated normally.
 
 \var{ExitCode} is always passed to the operating system as the exit-code of
-your process. 
+your process.
 
 \begin{remark}
 The maximum error code under \linux is 127.
@@ -5011,9 +5013,9 @@ For the example, see \seep{Blockread}.
 \Declaration
 Procedure Break;
 \Description
-\var{Break} jumps to the statement following the end of the current 
-repetitive statement. The code between the \var{Break} call and 
-the end of the repetitive statement is skipped. 
+\var{Break} jumps to the statement following the end of the current
+repetitive statement. The code between the \var{Break} call and
+the end of the repetitive statement is skipped.
 The condition of the repetitive statement is NOT evaluated.
 
 This can be used with \var{For}, var{repeat} and \var{While} statements.
@@ -5092,8 +5094,8 @@ None.
 \Declaration
 Procedure Continue;
 \Description
-\var{Continue} jumps to the end of the current repetitive statement. 
-The code between the \var{Continue} call and the end of the repetitive 
+\var{Continue} jumps to the end of the current repetitive statement.
+The code between the \var{Continue} call and the end of the repetitive
 statement is skipped. The condition of the repetitive statement is then
 checked again.
 
@@ -5182,7 +5184,7 @@ Procedure Delete (var S : string;Index : Integer;Count : Integer);
 
 \Description
 \var{Delete} removes \var{Count} characters from string \var{S}, starting
-at position \var{Index}. All characters after the delected characters are 
+at position \var{Index}. All characters after the delected characters are
 shifted \var{Count} positions to the left, and the length of the string is adjusted.
 
 \Errors
@@ -5198,13 +5200,13 @@ None.
 Procedure Dispose (P : pointer);\\
 Procedure Dispiose (P : Typed Pointer; Des : Procedure);
 \Description
-The first form \var{Dispose} releases the memory allocated with a call to 
-\seep{New}. The pointer \var{P} must be typed. The released memory is 
+The first form \var{Dispose} releases the memory allocated with a call to
+\seep{New}. The pointer \var{P} must be typed. The released memory is
 returned to the heap.
 
-The second form of \var{Dispose} accepts as a first parameter a pointer 
+The second form of \var{Dispose} accepts as a first parameter a pointer
 to an object type, and as a second parameter the name of a destructor
-of this object. The destructor will be called, and the memory allocated 
+of this object. The destructor will be called, and the memory allocated
 for the object will be freed.
 \Errors
 An error will occur if the pointer doesn't point to a location in the
@@ -5464,7 +5466,7 @@ procedure GetMemoryManager(var MemMgr: TMemoryManager);
 \var{MemMgr}.
 \Errors
 None.
-\SeeAlso 
+\SeeAlso
 \seep{SetMemoryManager}, \seef{IsMemoryManagerSet}.
 \end{procedure}
 
@@ -5553,7 +5555,7 @@ Procedure Inc (Var X : Any ordinal type[; Increment : Longint]);
 \var{Inc} increases the value of \var{X} with \var{Increment}.
 If \var{Increment} isn't specified, then 1 is taken as a default.
 \Errors
-If range checking is on, then A range check can occur, or an overflow 
+If range checking is on, then A range check can occur, or an overflow
 error, if you try to increase \var{X} over its maximum value.
 \SeeAlso
 \seep{Dec}
@@ -5610,7 +5612,7 @@ Function IOresult  : Word;
 
 \Description
 IOresult contains the result of any input/output call, when the
-\var{\{\$i-\}} compiler directive is active, disabling IO checking. 
+\var{\{\$i-\}} compiler directive is active, disabling IO checking.
 When the flag is read, it is reset to zero.
 If \var{IOresult} is zero, the operation completed successfully. If
 non-zero, an error occurred. The following errors can occur:
@@ -5667,7 +5669,7 @@ All I/O functions.
 Function Length (S : String) : Byte;
 
 \Description
-\var{Length} returns the length of the string \var{S}, which is limited 
+\var{Length} returns the length of the string \var{S}, which is limited
 to 255 for shortstrings. If the strings \var{S} is empty, 0 is returned.
 {\em Note:} The length of the string \var{S} is stored in \var{S[0]} for
 shortstrings only. Ansistrings have their length stored elsewhere,
@@ -5744,7 +5746,7 @@ Function Low (Type identifier or variable reference) : Longint;
 \Description
  The return value of \var{Low} depends on it's argument:
 \begin{enumerate}
-\item If the argument is an ordinal type, \var{Low} returns the lowest 
+\item If the argument is an ordinal type, \var{Low} returns the lowest
 value in the range of the given ordinal type.
 \item If the argument is an array type or an array type variable then
 \var{Low} returns the lowest possible value of it's index.
@@ -6018,7 +6020,7 @@ Function Ptr (Sel,Off : Longint) : Pointer;
 \var{Ptr} returns a pointer, pointing to the address specified by
 segment \var{Sel} and offset \var{Off}.
 
- \begin{remark} 
+ \begin{remark}
 \begin{enumerate}
 \item In the 32-bit flat-memory model supported by \fpc, this
 function is obsolete.
@@ -6169,7 +6171,7 @@ truncated to length \var{0}. If it doesn't find such a file, a new file is
 created.
 
 Contrary to \tp, \fpc opens the file with mode \var{fmoutput}. If you want
-to get it in \var{fminout} mode, you'll need to do an extra call to 
+to get it in \var{fminout} mode, you'll need to do an extra call to
 \seep{Reset}.
 
 \Errors
@@ -6309,8 +6311,8 @@ None.
 \Declaration
 procedure SetMemoryManager(const MemMgr: TMemoryManager);
 \Description
-\var{SetMemoryManager} sets the current memory manager record to 
-\var{MemMgr}. 
+\var{SetMemoryManager} sets the current memory manager record to
+\var{MemMgr}.
 \Errors
 None.
 \SeeAlso
@@ -6344,7 +6346,7 @@ None.
 Procedure SetLength(var S : String; Len : Longint);
 \Description
 \var{SetLength} sets the length of the string \var{S} to \var{Len}. \var{S}
-can be an ansistring or a short string. 
+can be an ansistring or a short string.
 For \var{ShortStrings}, \var{Len} can maximally be 255. For \var{AnsiStrings}
 it can have any value. For \var{AnsiString} strings, \var{SetLength} {\em
 must} be used to set the length of the string.
@@ -6399,7 +6401,7 @@ Function Sin (X : Real) : Real;
 
 \Description
 \var{Sin} returns the sine of its argument \var{X}, where \var{X} is an
-angle in radians. 
+angle in radians.
 
 If the absolute value of the argument is larger than \var{2\^{}63}, then the
 result is undefined.
@@ -6417,7 +6419,7 @@ Function SizeOf (X : Any Type) : Longint;
 
 \Description
 \var{SizeOf} returns the size, in bytes, of any variable or type-identifier.
-\begin{remark} 
+\begin{remark}
 This isn't really a RTL function. It's result is calculated at
 compile-time, and hard-coded in your executable.
 \end{remark}
@@ -6565,7 +6567,7 @@ None.
 Function Trunc (X : Real) : Longint;
 
 \Description
-\var{Trunc} returns the integer part of \var{X}, 
+\var{Trunc} returns the integer part of \var{X},
 which is always smaller than (or equal to) \var{X} in absolute value.
 \Errors
 None.
@@ -6716,7 +6718,7 @@ The resource string tables can be managed with a callback function which the
 user must provide: \var{TResourceIterator}.
 \begin{verbatim}
 Type
-   TResourceIterator = 
+   TResourceIterator =
       Function (Name,Value : AnsiString;Hash : Longint):AnsiString;
 \end{verbatim}
 
@@ -6733,8 +6735,8 @@ function: It assigns \var{Name} to a function of any type (\var{FileType}
 can be \var{Text} or a typed or untyped \var{File} variable). \var{Name} can
 be a string, a single character or a \var{PChar}.
 
-It is most likely introduced to avoid confusion between the regular 
-\seep{Assign} function and the \var{Assign} method of \var{TPersistent} 
+It is most likely introduced to avoid confusion between the regular
+\seep{Assign} function and the \var{Assign} method of \var{TPersistent}
 in the Delphi VCL.
 \Errors
 None.
@@ -6748,13 +6750,13 @@ None.
 \Declaration
 Procedure CloseFile(Var F: FileType);
 \Description
-\var{CloseFile} flushes and closes a file \var{F} of any file type. 
-\var{F} can be  \var{Text} or a typed or untyped \var{File} variable. 
+\var{CloseFile} flushes and closes a file \var{F} of any file type.
+\var{F} can be  \var{Text} or a typed or untyped \var{File} variable.
 After a call to \var{CloseFile}, any attempt to write to the file \var{F}
 will result in an error.
 
-It is most likely introduced to avoid confusion between the regular 
-\seep{Close} function and the \var{Close} method of \var{TForm} 
+It is most likely introduced to avoid confusion between the regular
+\seep{Close} function and the \var{Close} method of \var{TForm}
 in the Delphi VCL.
 
 \Errors
@@ -6772,7 +6774,7 @@ Procedure FreeMem(Var p:pointer[;Size:Longint]);
 \var{FreeMem} releases the memory reserved by a call to
 \seepl{GetMem}{objpasgetmem}. The (optional) \var{Size} parameter is
 ignored, since the object pascal version of \var{GetMem} stores the amount
-of memory that was requested. 
+of memory that was requested.
 
 be sure not to release memory that was not obtained with the \var{Getmem}
 call in \file{Objpas}. Normally, this should not happen, since objpas
@@ -6790,7 +6792,7 @@ None.
 Procedure Getmem(Var P:pointer;Size:Longint);
 \Description
 \var{GetMem} reserves \var{Size} bytes of memory on the heap and returns
-a pointer to it in \var{P}. \var{Size} is stored at offset -4 of the 
+a pointer to it in \var{P}. \var{Size} is stored at offset -4 of the
 result, and is used to release the memory again. \var{P} can be a typed or
 untyped pointer.
 
@@ -6809,7 +6811,7 @@ For an example, see \seepl{FreeMem}{objpasfreemem}.
 \Declaration
 Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
 \Description
-\var{GetResourceStringCurrentValue} returns the current value of the 
+\var{GetResourceStringCurrentValue} returns the current value of the
 resourcestring in table \var{TableIndex} with index \var{StringIndex}.
 
 The current value depends on the system of internationalization that was
@@ -6824,7 +6826,7 @@ a empty string is returned.
 \seef{GetResourceStringName},
 \seef{ResourceStringTableCount},
 \seef{ResourceStringCount}
-\end{function}  
+\end{function}
 
 \FPCexample{ex90}
 
@@ -6832,7 +6834,7 @@ a empty string is returned.
 \Declaration
 Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString
 \Description
-\var{GetResourceStringDefaultValue} returns the default value of the 
+\var{GetResourceStringDefaultValue} returns the default value of the
 resourcestring in table \var{TableIndex} with index \var{StringIndex}.
 
 The default value is the value of the string that appears in the source code
@@ -6890,11 +6892,11 @@ If a unit \file{MyUnit} declares a resourcestring \var{MyTitle} then the
 name returned will be \var{myunit.mytitle}. A resourcestring in the program file
 will have the name of the program prepended.
 
-The name returned by this function is also the name that is stored in the 
-resourcestring file generated by the compiler. 
+The name returned by this function is also the name that is stored in the
+resourcestring file generated by the compiler.
 
 Strictly speaking, this information isn't necessary for the functioning
-of the program, it is provided only as a means to easier translation of 
+of the program, it is provided only as a means to easier translation of
 strings.
 \Errors
 If either \var{TableIndex} or \var{StringIndex} is zero, an empty string
@@ -6915,12 +6917,12 @@ is returned.
 \Declaration
 Function Hash(S : AnsiString) : longint;
 \Description
-\var{Hash} calculates the hash value of the string \var{S} in a manner that 
+\var{Hash} calculates the hash value of the string \var{S} in a manner that
 is compatible with the GNU gettext hash value for the string. It is the same
 value that is stored in the Resource string tables, and which can be
 retrieved with the \seef{GetResourceStringHash} function call.
 \Errors
- None. In case the calculated hash value should be 0, the returned result 
+ None. In case the calculated hash value should be 0, the returned result
 will be -1.
 \SeeAlso
 \seef{GetResourceStringHash},
@@ -6932,7 +6934,7 @@ will be -1.
 \Declaration
 Function ParamStr(Param : Integer) : Ansistring;
 \Description
-\var{ParamStr} returns the \var{Param}-th command-line parameter as an 
+\var{ParamStr} returns the \var{Param}-th command-line parameter as an
 AnsiString. The system unit \seef{Paramstr} function limits the result to
 255 characters.
 
@@ -6953,10 +6955,10 @@ Procedure ResetResourceTables;
 \var{ResetResourceTables} resets all resource strings to their default
 (i.e. as in the source code) values.
 
-Normally, this should never be called from a user's program. It is called 
+Normally, this should never be called from a user's program. It is called
 in the initialization code of the \file{objpas} unit. However, if the
-resourcetables get messed up for some reason, this procedure will fix them 
-again. 
+resourcetables get messed up for some reason, this procedure will fix them
+again.
 \Errors
 None.
 \SeeAlso
@@ -7016,10 +7018,10 @@ TResourceIterator =  Function (Name,Value : AnsiString;Hash : Longint):AnsiStrin
 Procedure SetResourceStrings (SetFunction :  TResourceIterator);
 \Description
 \var{SetResourceStrings} calls \var{SetFunction} for all resourcestrings
-in the resourcestring tables and sets the resourcestring's current value 
-to the value returned by \var{SetFunction}. 
+in the resourcestring tables and sets the resourcestring's current value
+to the value returned by \var{SetFunction}.
 
-The \var{Name},\var{Value} and \var{Hash} parameters passed to the iterator 
+The \var{Name},\var{Value} and \var{Hash} parameters passed to the iterator
 function are the values stored in the tables.
 \Errors
 None.
@@ -7037,9 +7039,9 @@ None.
 
 \begin{function}{SetResourceStringValue}
 \Declaration
-Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;   
+Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
 \Description
-\var{SetResourceStringValue} assigns \var{Value} to the resource string in 
+\var{SetResourceStringValue} assigns \var{Value} to the resource string in
 table \var{TableIndex} with index \var{StringIndex}.
 \Errors
 \SeeAlso

@@ -47,6 +47,15 @@
 \newcommand{\seet}[1]{table (\htmlref{#1}{tab:#1}) }
 
 %
+% Function list
+%
+\newenvironment{funclist}{\begin{list}}{\end{list}}
+\newcommand{\funcrefl}[3]{\item[\htmlref{#2}{fu:#2} #3]}
+\newcommand{\funcref}[2]{\item[\htmlref{#1}{fu:#1} #2]}
+\newcommand{\procrefl}[3]{\item[\htmlref{#2}{pro:#2} #3]}
+\newcommand{\procref}[2]{\item[\htmlref{#1}{pro:#1} #2]}
+
+%
 % Function/procedure environments
 %
 \newenvironment{functionl}[2]{\subsection{#1}\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
@@ -113,7 +122,7 @@
 %
 % Some versions
 %
-\newcommand{\fpcversion}{0.99.12}
+\newcommand{\fpcversion}{1.00.0}
 
 %
 % PDF support

@@ -186,15 +186,14 @@
 %
 % PDF support
 %
-\latex{%
-  \newif\ifpdf
-  \ifx\pdfoutput\undefined
-     \pdffalse
-  \else
-     \pdfoutput=1
-     \pdftrue
-  \fi
-}
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+  \pdffalse
+\else
+  \pdfoutput=1
+  \pdftrue
+\fi
+
 %
 % For examples
 %
@@ -215,6 +214,7 @@
 \par
 \raisebox{-1em}{\makebox[\textwidth]{Name\hfill Description \hfill Page}}\\
 \rule{\textwidth}{1pt}
+\html{Name\hfill Description \hfill Page}
 \begin{list}{}{%
 \setlength{\rightmargin}{0pt}\setlength{\topsep}{0cm}\setlength{\partopsep}{0pt}%
 \setlength{\itemsep}{0pt}\setlength{\labelwidth}{3.5cm}%
@@ -260,5 +260,7 @@
 \pdfpagewidth=210mm
 \pdfpageheight=297mm
 \fi
+\usepackage{html}
+\usepackage{htmllist}
 %
 % end of fpc.sty

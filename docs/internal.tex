@@ -26,11 +26,13 @@
 \usepackage{xspace}
 \usepackage{a4dutch}
 \usepackage{makeidx}
-\usepackage{html}
-\usepackage{htmllist}
 \usepackage{fancyheadings}
 \usepackage{epsfig}
 \usepackage{multicol}
+\ifx\pdfoutput\undefined
+  \usepackage{html}
+  \usepackage{htmllist}
+\fi
 \usepackage{fpc}
 \latex{%
   \ifpdf

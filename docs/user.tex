@@ -22,12 +22,15 @@
 %
 % Preamble
 %
-\usepackage{html}
-\usepackage{htmllist}
 \usepackage{epsfig}
 \usepackage{multicol}
+\ifx\pdfoutput\undefined
+  \usepackage{html}
+  \usepackage{htmllist}
+\fi
 \usepackage{fpc}
 \latex{%
+  \usepackage{times}
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
@@ -59,7 +62,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About this document
 \section{About this document}
-This is the user's manual for \fpc . It describes the installation and 
+This is the user's manual for \fpc . It describes the installation and
 use of the \fpc compiler on the different supported platforms.
 It does not attempt to give an exhaustive list of all supported commands,
 nor a definition of the Pascal language. Look at the
@@ -100,7 +103,7 @@ It also differs from them in the sense that you cannot use compiled units
 from one system for the other.
 
 Also, at the time of writing, there is only a early beta version of an
-Integrated Development Environment (IDE) available for \fpc. 
+Integrated Development Environment (IDE) available for \fpc.
 
 \fpc consists of three parts :
 \begin{enumerate}
@@ -357,7 +360,7 @@ line to your \file{.login} file in your home directory.
 (see also the next section)
 
 \section{Optional configuration steps}
-On any platform, after installing the compiler you may wish to set 
+On any platform, after installing the compiler you may wish to set
 some environment variables. The \fpc compiler
 recognizes the following variables :
 \begin{itemize}
@@ -487,9 +490,9 @@ look for compiled versions of these units in the following way:
 (not under \linux)
 \item It will look in all the directories specified in the unit search path.
 \end{enumerate}
-You can add a directory to the unit search path with the \var{-Fu} option 
-(\seeo{Fu}). Every occurrence of one of this options will {\em insert} 
-a directory to the unit search path. i.e. last path on the command line 
+You can add a directory to the unit search path with the \var{-Fu} option
+(\seeo{Fu}). Every occurrence of one of this options will {\em insert}
+a directory to the unit search path. i.e. last path on the command line
 will be searched first.
 
 The compiler adds several paths to the unit search path:
@@ -501,7 +504,7 @@ musrt be replaced with one of the supported targets: \var{GO32V2},
 from the \var{FPCDIR} environment variable. If this variable is not set,
 then it is defaulted to the following:
 \begin{itemize}
-\item On \linux: 
+\item On \linux:
 \begin{verbatim}
   /usr/local/lib/fpc/VERSION
 or
@@ -633,12 +636,12 @@ for a configuration file \file{ppc386.cfg} in the following places:
 
 \subsection{About long filenames}
 \fpc can handle long filenames under \windows; it will use support for
-long filenames if it is available. 
+long filenames if it is available.
 
 If no support for long filenames is present, it will truncate unit names
 to 8 characters.
 
-It is not recommended to put units in directories that contain spaces in 
+It is not recommended to put units in directories that contain spaces in
 their names, since the linker doesn't understand such filenames.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -720,8 +723,8 @@ The \fpc compiler supports smartlinking and the creation of libraries.
 However, the default behaviour is to compile each unit into 1 big object
 file, which will be linked as a whole into your program.
 
-Not only is it possible to compile a shared library under \windows and 
-\linux, but also it is possible to take existing units and put them 
+Not only is it possible to compile a shared library under \windows and
+\linux, but also it is possible to take existing units and put them
 together in 1 static or shared library (using the \file{ppumove} tool)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -994,14 +997,14 @@ differently, so they are understood by RHIDE.
 \subsection{Options concerning files and directories}
 \begin{description}
 \item [-exxx] \file{xxx} specifies the directory where the
-compiler can find the executables \file{as} (the assembler) and \file{ld} 
+compiler can find the executables \file{as} (the assembler) and \file{ld}
 (the linker).
 \olabel{e}
 \item [-FD] same as \var{-e}.
 \item [-Fexxx] This option tells the compiler to write errors, etc. to
 the file named \file{xxx}.
 \olabel{Fe}
-\item [-FExxx] tells the compiler to write the executable and units in 
+\item [-FExxx] tells the compiler to write the executable and units in
 directory \file{xxx} instead of th current directory.
 \olabel{FE}
 \item [-FIxxx] Adds \var{xxx} to the include file search path.
@@ -1013,16 +1016,16 @@ to the linker.
 dynamic linker. Default this is \file{/lib/ld-linux.so.2}, or
 \file{/Hlib/ld-linux.so.1}, depending on which one is found first.
 \olabel{FL}
-\item[-Foxxx] Adds \file{xxx} to the object file search path. 
+\item[-Foxxx] Adds \file{xxx} to the object file search path.
 This path is used when looking for files that need to be linked in.
 \olabel{Fo}
 \item [-Frxxx] \file{xxx} specifies the file which contain the compiler
 messages. Default the compiler has built-in messages. Specifying this option
 will override the default messages.
 \olabel{Fr}
-\item [-Fuxxx] Add \file{xxx} to the unit search path. 
-Units are first searched in the current directory. 
-If they are not found there then the compiler searches them in the unit path. 
+\item [-Fuxxx] Add \file{xxx} to the unit search path.
+Units are first searched in the current directory.
+If they are not found there then the compiler searches them in the unit path.
 You must {\em always} supply the path to the system unit.
 \olabel{Fu}
 \item [-FUxxx] Tells the compiler to write units in directory \var{xxx}
@@ -1042,8 +1045,8 @@ for more information on these options, see also \progref
 it generates (not when using the internal assembler).
 This also counts for the (possibly) generated batch script.
 \item [-al] \olabel{al} Tells the compiler to include the sourcecode lines
-in the assembler file as comments. 
-\item[-ar] \olabel{ar} tells the compiler to list register allocation and 
+in the assembler file as comments.
+\item[-ar] \olabel{ar} tells the compiler to list register allocation and
 release info in the assembler file. This is primarily intended for debugging
 the code generated bythe compiler.
 \item[-at] \olabel{at} tells the compiler to list information about
@@ -1064,7 +1067,7 @@ temporary allocations and deallocations in the assembler file.
 \item[-B] \olabel{B} tells the compiler to re-compile all used units, even
 if the unit sources didn't change since the last compilation.
 \item[-b] \olabel{b} tells the compiler to generate browser info. This information can
-be used by an Integrated Development Environment (IDE) to provide information 
+be used by an Integrated Development Environment (IDE) to provide information
 on classes, objects, procedures, types  and variables in a unit.
 \item[-bl] \olabel{bl} is the same as \var{-b} but also generates
 information about local variables, types and procedures.
@@ -1075,7 +1078,7 @@ be between 1024 and 67107840.
 \item [-Ci] \olabel{Ci} Generate Input/Output checking code. In case some
 input/output code of your program returns an error status, the program will
 exit with a run-time error. Which error is generated depends on the I/O error.
-\item [-Cn] \olabel{Cn} Omit the linking stage. 
+\item [-Cn] \olabel{Cn} Omit the linking stage.
 \item [-Co] \olabel{Co} Generate Integer overflow checking code. In case of
 integer errors, a run-time error will be generated by your program.
 \item [-Cr] \olabel{Cr} Generate Range checking code. In case your program
@@ -1161,11 +1164,11 @@ can be one of the following:
 \subsection{Options concerning the sources (language options)}
 for more information on these options, see also \progref
 \begin{description}
-\item [-Rxxx] \olabel{R} Specifies what kind of assembler you use in 
+\item [-Rxxx] \olabel{R} Specifies what kind of assembler you use in
 your \var{asm} assembler code blocks. Here \var{xxx} is one of the following:
 \begin{description}
-\item [att\ ] \var{asm} blocks contain AT\&T-style  assembler. 
-This is the default style. 
+\item [att\ ] \var{asm} blocks contain AT\&T-style  assembler.
+This is the default style.
 \item [intel] \var{asm} blocks contain Intel-style assembler.
 \item [direct] \var{asm} blocks should be copied as-is in the assembler,
 only replacing certain variables.
@@ -1180,7 +1183,7 @@ than the \var{-S2} option, since some \var{fpc} extensions are switched off.
 \item [-SeN] \olabel{Se} The compiler stops after the N-th error. Normally,
 the compiler tries to continue compiling after an error, until 50 errors are
 reached, or a fatal error is reached, and then it stops. With this switch,
-the compiler will stop after the N-th error (if N is omitted, a default of 1 
+the compiler will stop after the N-th error (if N is omitted, a default of 1
 is assumed).
 \item [-Sg] \olabel{Sg} Support the \var{label} and \var{goto} commands. By
 default these are not supported. You must also specify this option if you
@@ -1417,10 +1420,10 @@ This is equivalent to
 If the compiler version is \var{0.99.12a} and the target os is \var{linux}.
 
 These replacemens are valid on the command-line and also in the
-configuration file. 
+configuration file.
 
 On the linux command-line, you must be careful to escape the \var{\$} since
-otherwise the shell will expand the variable for you, which may have 
+otherwise the shell will expand the variable for you, which may have
 undesired effects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1491,8 +1494,8 @@ exist.
 \item Units are not binary compatible.
 \item Sets are always 4 bytes in Free Pascal; this means that some typecasts
 which were possible in Turbo Pascal are no longer possible in Free Pascal.
-\item A file is opened for output only (using \var{fmOutput}) when it is 
-opened with \var{Rewrite}. In order to be able to read from it, it should 
+\item A file is opened for output only (using \var{fmOutput}) when it is
+opened with \var{Rewrite}. In order to be able to read from it, it should
 be reset with \var{Reset}.
 \end{enumerate}
 
@@ -1669,14 +1672,14 @@ Under \windows 95 and higher, long filenames are supported. Compiling
 for the win32 target ensures that long filenames are supported in all
 functions that do fie or disk access in any way.
 
-Moreover, \fpc supports the use of long filenames in the system unit and 
+Moreover, \fpc supports the use of long filenames in the system unit and
 the dos unit also for go32v2 executables. The system unit contains the
 boolean variable \var{LFNsupport}. If it is set to \var{True} then all
-system unit functions and DOS unit functions will use long file names 
+system unit functions and DOS unit functions will use long file names
 if they are available. This should be so on all versions of Windows,
 with the possible exception of \windows 2000. The system unit will check
 this by calling \dos function \var{71A0h} and checking whether long
-filenames are supported on the \file{C:} drive. 
+filenames are supported on the \file{C:} drive.
 
 It is possible to disable the long filename support by setting the
 \var{LFNSupport} variable to \var{False}.
@@ -2027,14 +2030,14 @@ Its usage is very easy; it accepts the following options:
 option is optional.
 \item[-o file] write output to the specified file. This option is required.
 \item[-f format] Specifies the output format. At the moment, only one output
-format is supported: {\em po} for GNU gettext \file{.po} format. 
+format is supported: {\em po} for GNU gettext \file{.po} format.
 It is the default format.
 \end{description}
 As an example:
 \begin{verbatim}
 rstconv -i resdemo.rst -o resdemo.po
 \end{verbatim}
-will convert the \file{resdemo.rst} file to \file{resdemo.po}. 
+will convert the \file{resdemo.rst} file to \file{resdemo.po}.
 
 More information on the \file{rstconv} utility can be found in the \progref,
 under the chapter about resource strings.
@@ -2043,19 +2046,19 @@ under the chapter about resource strings.
 
 \file{fpcmake} is the \fpc makefile constructor program.
 
-It reads a \file{Makefile.fpc} configuration file and converts it to a 
-\file{Makefile} suitable for reading by GNU \file{make} to compile 
+It reads a \file{Makefile.fpc} configuration file and converts it to a
+\file{Makefile} suitable for reading by GNU \file{make} to compile
 your projects. It is similar in functionality to GNU \file{autoconf}
 or \file{Imake} for making X projects.
 
-\file{fpcmake} accepts filenames of makefile description files as it's 
-command-line arguments. For each of these files it will create a 
-\file{Makefile} in the same directory where the file is located, 
+\file{fpcmake} accepts filenames of makefile description files as it's
+command-line arguments. For each of these files it will create a
+\file{Makefile} in the same directory where the file is located,
 overwriting any other existing file.
 
 If no options are given, it just attempts to read the file \file{Makefile.fpc}
 in the current directory and tries to construct a makefile from it.
-any previously existing \file{Makefile} will be erased. 
+any previously existing \file{Makefile} will be erased.
 
 The format of the \file{fpcmake} configuration file is described in great
 detail in the appendices of the \progref.
@@ -2071,10 +2074,10 @@ separately per system. They are documented in the \unitsref.
 % Common units
 %
 \subsection{Units common to all platforms}
-The following units are common to all platform; i.e. their workings 
+The following units are common to all platform; i.e. their workings
 are guaranteed to be the same on all platforms.
 \begin{itemize}
-\item [getopts] This unit gives you the \gnu \var{getopts} command-line 
+\item [getopts] This unit gives you the \gnu \var{getopts} command-line
 arguments  handling mechanism. It also supports long options.
 \item [mmx] This unit provides support for \var{mmx} extensions in your
 code.
@@ -2082,10 +2085,10 @@ code.
 \item [objpas] is used for Delphi compatibility; you should never load this
 unit explicitly; it is automatically loaded if you request Delphi mode.
 \item [ports] provides access to the PC hardware ports.
-\item [strings] This unit provides basic string handling routines for the 
-\var{pchar} type, comparable to similar routines in standard \var{C} 
+\item [strings] This unit provides basic string handling routines for the
+\var{pchar} type, comparable to similar routines in standard \var{C}
 libraries.
-\item[sysutils] is an alternative implementation of the sysutils unit of 
+\item[sysutils] is an alternative implementation of the sysutils unit of
 Delphi.
 \item[typinfo] Provides functions to acces Run-Time Type Information, just
 like Delphi.
@@ -2096,18 +2099,18 @@ like Delphi.
 %
 \subsection{Under DOS}
 \begin{itemize}
-\item [crt] This unit provides basic screen handling routines. 
+\item [crt] This unit provides basic screen handling routines.
 It provides the same functionality  as the Turbo Pascal \var{CRT} unit.
-\item [dos] This unit provides basic routines for accessing the operating 
-system \dos. It provides almost the same functionality as the Turbo Pascal 
+\item [dos] This unit provides basic routines for accessing the operating
+system \dos. It provides almost the same functionality as the Turbo Pascal
 unit.
 \item [emu387] This unit provides support for the coprocessor emulator.
-\item [graph] This unit provides basic graphics handling, with routines to 
-draw lines on the screen, display texts etc. It provides the same functions 
+\item [graph] This unit provides basic graphics handling, with routines to
+draw lines on the screen, display texts etc. It provides the same functions
 as the Turbo Pascal unit.
 \item [go32] This unit provides access to possibilities of the \var{GO32}
 \dos extender.
-\item [printer]  This unit provides all you need for rudimentary access 
+\item [printer]  This unit provides all you need for rudimentary access
 to the printer.
 \end{itemize}
 
@@ -2119,7 +2122,7 @@ to the printer.
 \item [dos] This unit provides basic routines for
 accessing the operating system \dos. It emulates this functionality
 by issuing calls to the Windows operating system.
-\item [crt and wincrt] These units provides basic screen handling routines. 
+\item [crt and wincrt] These units provides basic screen handling routines.
 They provide the same functionality as the Turbo Pascal \var{CRT} unit.
 \item [graph] This unit provides basic graphics
 handling, with routines to draw lines on the screen, display texts etc. It
@@ -2131,8 +2134,8 @@ unit, so code for Delphi is easily ported to \fpc.
 \item[winmouse] provides access to the mouse in \windows.
 \item[ole2] provides access to the OLE capabilities of \windows.
 \item[winsock] provides acces to the \windows sockets API Winsock.
-\item[sockets] is a wrapper around winsock that is compatible with the 
-\linux sockets layer. Using this unit ensures that your code will run 
+\item[sockets] is a wrapper around winsock that is compatible with the
+\linux sockets layer. Using this unit ensures that your code will run
 both on \windows and \linux.
 \end{itemize}
 
@@ -2141,13 +2144,13 @@ both on \windows and \linux.
 %
 \subsection{Under Linux}
 \begin{itemize}
-\item [crt] This unit provides basic screen handling routines. 
-It provides the same functionality Turbo Pascal \var{CRT} unit. 
+\item [crt] This unit provides basic screen handling routines.
+It provides the same functionality Turbo Pascal \var{CRT} unit.
 It should work on any terminal which supports the \var{vt100} escape
 sequences.
-\item [dos] This unit provides an emulation of the same unit under \dos. 
-It is intended primarily for easy porting of Pascal programs from \dos 
-to \linux. For good performance, however, it is recommended to use the 
+\item [dos] This unit provides an emulation of the same unit under \dos.
+It is intended primarily for easy porting of Pascal programs from \dos
+to \linux. For good performance, however, it is recommended to use the
 \var{linux} unit.
 \item [linux] This unit provides access to the
 \linux operating system. It provides most file and I/O handling routines
@@ -2155,7 +2158,7 @@ that you may need. It implements most of the standard \var{C} library constructs
 that you will find on a Unix system. If you do a lot of disk/file
 operations, the use of this unit is recommended over the one you use under
 Dos.
-\item [printer] This unit provides an interface to the standard Unix 
+\item [printer] This unit provides an interface to the standard Unix
 printing mechanism. It supports printing to file and to any command you
 would like.
 \item [sockets] This unit gives you access to sockets and TCP/IP
@@ -2163,8 +2166,8 @@ programming.
 \item [graph] Is an implementation of Borlands \file{graph} unit, which
 works on the Linux console. It's implementation is as complete as on
 the other platforms (it shares the same code).
-It uses the libvga and libvgagl graphics libraries, so you need these 
-installed for this unit to work. Also, programs using this library need 
+It uses the libvga and libvgagl graphics libraries, so you need these
+installed for this unit to work. Also, programs using this library need
 to be run as root, or setuid root, and hence are a potential security risk.
 \item [ports] This implements the various \var{port[]} constructs. These are
 provided for compatibility only, and it is not recommended to use them
@@ -2190,7 +2193,7 @@ root, and are a serious security risk on your system.
 
 \chapter{Debugging your Programs}
 
-\fpc supports debug information for the \gnu debugger \var{gdb}, or 
+\fpc supports debug information for the \gnu debugger \var{gdb}, or
 it's derivatives \file{Insight} on win32 or \file{ddd} on \linux.
 
 This chapter describes shortly how to use this feature. It doesn't attempt
@@ -2931,7 +2934,7 @@ Processor specific options:
            -WG        Specify graphic type application
            -WN        Do not generate relocation code (necessary for debugging)
            -WR        Generate relocation code
-  
+
   -?     shows this help
   -h     shows this help without waiting
 \end{verbatim}

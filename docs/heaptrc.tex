@@ -89,14 +89,14 @@ has no debug info included.
 The \var{FillExtraInfoType} is a procedural type used in the
 \seep{SetExtraInfo} call.
 
-\begin{lstlisting}{}
+\begin{verbatim}
 type
     FillExtraInfoType = procedure(p : pointer);
-\end{lstlisting}{}
+\end{verbatim}
 The following typed constants allow to fine-tune the standard dump of the
 memory usage by \seep{DumpHeap}:
 
-\begin{lstlisting}{}
+\begin{verbatim}
 const
   tracesize = 8;
   quicktrace : boolean = true;
@@ -104,7 +104,7 @@ const
   keepreleased : boolean = false;
   add_tail : boolean = true;
   usecrc : boolean = true
-\end{lstlisting}{}
+\end{verbatim}
 
 \var{Tracesize} specifies how many levels of calls are displayed of the 
 call stack during the memory dump. If you specify \var{keepreleased:=True}
@@ -206,7 +206,10 @@ trace.
 
 %
 % $Log$
-% Revision 1.5  2000-05-16 21:07:55  michael
+% Revision 1.6  2000-07-11 18:07:26  peter
+%   * fixes for latex2html 0.99b2
+%
+% Revision 1.5  2000/05/16 21:07:55  michael
 % + Implemented large part of TODO list. Too much to denote
 %
 % Revision 1.4  2000/02/07 11:21:06  michael
