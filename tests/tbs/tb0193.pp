@@ -23,7 +23,11 @@ end ['D0'];
        lwz r3, heapsize@l(r3)
 end;
 {$endif cpupowerpc}
-
+{$ifdef cpusparc}
+       sethi   %hi(heapsize),%i0
+       or      %i0,%lo(heapsize),%i0
+end;
+{$endif cpusparc}
 begin
   writeln(getheapsize);
 end.
