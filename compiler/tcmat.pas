@@ -53,17 +53,28 @@ implementation
     procedure firstmoddiv(var p : ptree);
       var
          t : ptree;
+         rv,lv : longint;
       begin
          firstpass(p^.left);
          firstpass(p^.right);
          if codegenerror then
            exit;
 
+         { check for division by zero }
+         rv:=p^.right^.value;
+         lv:=p^.left^.value;
+         if is_constintnode(p^.right) and (rv=0) then
+          begin
+            Message(parser_e_division_by_zero);
+            { recover }
+            rv:=1;
+          end;
+
          if is_constintnode(p^.left) and is_constintnode(p^.right) then
            begin
               case p^.treetype of
-                 modn : t:=genordinalconstnode(p^.left^.value mod p^.right^.value,s32bitdef);
-                 divn : t:=genordinalconstnode(p^.left^.value div p^.right^.value,s32bitdef);
+                modn : t:=genordinalconstnode(lv mod rv,s32bitdef);
+                divn : t:=genordinalconstnode(lv div rv,s32bitdef);
               end;
               disposetree(p);
               firstpass(t);
@@ -311,7 +322,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-10-11 14:31:20  peter
+    + checks for division by zero
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }

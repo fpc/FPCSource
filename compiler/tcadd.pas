@@ -202,7 +202,13 @@ implementation
             unequaln : t:=genordinalconstnode(ord(lv<>rv),booldef);
               slashn : begin
                        { int/int becomes a real }
-                         t:=genrealconstnode(int(lv)/int(rv));
+                         if int(rv)=0 then
+                          begin
+                            Message(parser_e_invalid_float_operation);
+                            t:=genrealconstnode(0);
+                          end
+                         else
+                          t:=genrealconstnode(int(lv)/int(rv));
                          firstpass(t);
                        end;
               else
@@ -224,7 +230,15 @@ implementation
                  subn : t:=genrealconstnode(lvd-rvd);
                  muln : t:=genrealconstnode(lvd*rvd);
                caretn : t:=genrealconstnode(exp(ln(lvd)*rvd));
-               slashn : t:=genrealconstnode(lvd/rvd);
+               slashn : begin
+                          if rvd=0 then
+                           begin
+                             Message(parser_e_invalid_float_operation);
+                             t:=genrealconstnode(0);
+                           end
+                          else
+                           t:=genrealconstnode(lvd/rvd);
+                        end;
                   ltn : t:=genordinalconstnode(ord(lvd<rvd),booldef);
                  lten : t:=genordinalconstnode(ord(lvd<=rvd),booldef);
                   gtn : t:=genordinalconstnode(ord(lvd>rvd),booldef);
@@ -250,8 +264,7 @@ implementation
          new(s2);
 {$endif UseAnsiString}
          if (lt=ordconstn) and (rt=ordconstn) and
-            (ld^.deftype=orddef) and (porddef(ld)^.typ=uchar) and
-            (rd^.deftype=orddef) and (porddef(rd)^.typ=uchar) then
+            is_char(ld) and is_char(rd) then
            begin
 {$ifdef UseAnsiString}
               s1:=strpnew(char(byte(p^.left^.value)));
@@ -264,8 +277,7 @@ implementation
               concatstrings:=true;
            end
          else
-           if (lt=stringconstn) and (rt=ordconstn) and
-              (rd^.deftype=orddef) and (porddef(rd)^.typ=uchar) then
+           if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
            begin
 {$ifdef UseAnsiString}
               { here there is allways the damn #0 problem !! }
@@ -362,8 +374,7 @@ implementation
          if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
            begin
            { 2 booleans ? }
-             if (porddef(ld)^.typ in [bool8bit,bool16bit,bool32bit]) and
-                (porddef(rd)^.typ in [bool8bit,bool16bit,bool32bit]) then
+             if is_boolean(ld) and is_boolean(rd) then
               begin
                 case p^.treetype of
              andn,orn : begin
@@ -894,7 +905,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-10-05 21:33:31  peter
+  Revision 1.3  1998-10-11 14:31:19  peter
+    + checks for division by zero
+
+  Revision 1.2  1998/10/05 21:33:31  peter
     * fixed 161,165,166,167,168
 
   Revision 1.1  1998/09/23 20:42:24  peter

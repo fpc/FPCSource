@@ -169,6 +169,8 @@ type tmsgconst=(
   parser_e_cant_publish_that,
   parser_e_cant_publish_that_property,
   parser_w_empty_import_name,
+  parser_e_division_by_zero,
+  parser_e_invalid_float_operation,
   type_e_mismatch,
   type_e_integer_expr_expected,
   type_e_ordinal_expr_expected,
