@@ -256,51 +256,43 @@ begin
         end;
 end;
 
-procedure getftime(var f;var time:longint);
-
-begin
-    asm
-        pushl %ebx
-        {Load handle}
-        movl f,%ebx
-        movl (%ebx),%ebx
-        {Get date}
-        movw $0x5700,%ax
-        call syscall
-        shll $16,%edx
-        movw %cx,%dx
-        movl time,%ebx
-        movl %edx,(%ebx)
-        xorb %ah,%ah
-        movw %ax,doserror
-        popl %ebx
-    end ['eax', 'ecx', 'edx'];
-end;
+procedure GetFTime (var F; var Time: longint); assembler;
+asm
+    pushl %ebx
+    {Load handle}
+    movl F,%ebx
+    movl (%ebx),%ebx
+    {Get date}
+    movw $0x5700,%ax
+    call syscall
+    shll $16,%edx
+    movw %cx,%dx
+    movl Time,%ebx
+    movl %edx,(%ebx)
+    movw %ax,DosError
+    popl %ebx
+end {['eax', 'ecx', 'edx']};
 
 procedure SetFTime (var F; Time: longint);
 
-var FStat: PFileStatus3;
-    RC: longint;
+var FStat: TFileStatus3;
+    RC: cardinal;
 
 begin
     if os_mode = osOS2 then
-begin
-  New (FStat);
-  RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, FStat,
-                                                    SizeOf (FStat^));
-  if RC = 0 then
-  begin
-    FStat^.DateLastAccess := Hi (Time);
-    FStat^.DateLastWrite := Hi (Time);
-    FStat^.TimeLastAccess := Lo (Time);
-    FStat^.TimeLastWrite := Lo (Time);
-    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard,
-                                       FStat, SizeOf (FStat^));
-
-
-  end;
-  DosError := integer(RC);
-  Dispose (FStat);
+        begin
+            RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
+                                                               SizeOf (FStat));
+            if RC = 0 then
+                begin
+                    FStat.DateLastAccess := Hi (Time);
+                    FStat.DateLastWrite := Hi (Time);
+                    FStat.TimeLastAccess := Lo (Time);
+                    FStat.TimeLastWrite := Lo (Time);
+                    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard,
+                                                       @FStat, SizeOf (FStat));
+                end;
+            DosError := integer (RC);
         end
     else
         asm
@@ -313,7 +305,6 @@ begin
             {Set date}
             movw $0x5701,%ax
             call syscall
-            xorb %ah,%ah
             movw %ax,doserror
             popl %ebx
         end ['eax', 'ecx', 'edx'];
@@ -698,7 +689,7 @@ begin
 function DiskFree (Drive: byte): int64;
 
 var FI: TFSinfo;
-    RC: longint;
+    RC: cardinal;
 
 begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
@@ -739,7 +730,7 @@ end;
 function DiskSize (Drive: byte): int64;
 
 var FI: TFSinfo;
-    RC: longint;
+    RC: cardinal;
 
 begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
@@ -1234,7 +1225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-10-07 21:33:24  hajny
+  Revision 1.7  2003-10-25 22:45:37  hajny
+    * file handling related fixes
+
+  Revision 1.6  2003/10/07 21:33:24  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.5  2003/10/04 17:53:08  hajny

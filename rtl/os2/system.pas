@@ -765,13 +765,15 @@ begin
             popl %ebx
         end ['eax', 'ecx', 'edx'];
       { for systems that have more handles }
-    if FileRec (F).Handle > FileHandleCount then
-        FileHandleCount := FileRec (F).Handle;
-    if ((Flags and $100) <> 0) and
-       (FileRec (F).Handle <> UnusedHandle) then
+    if (FileRec (F).Handle <> UnusedHandle) then
         begin
-            do_seekend (FileRec (F).Handle);
-            FileRec (F).Mode := fmOutput; {fool fmappend}
+            if (FileRec (F).Handle > FileHandleCount) then
+                                         FileHandleCount := FileRec (F).Handle;
+            if ((Flags and $100) <> 0) then
+                begin
+                    do_seekend (FileRec (F).Handle);
+                    FileRec (F).Mode := fmOutput; {fool fmappend}
+                end;
         end;
 end;
 
@@ -1179,7 +1181,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-10-19 12:13:41  hajny
+  Revision 1.52  2003-10-25 22:45:37  hajny
+    * file handling related fixes
+
+  Revision 1.51  2003/10/19 12:13:41  hajny
     * UnusedHandle value made the same as with other targets
 
   Revision 1.50  2003/10/19 09:37:00  hajny

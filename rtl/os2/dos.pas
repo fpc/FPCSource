@@ -202,35 +202,32 @@ end;
 
 procedure getftime(var f;var time:longint);
 var
-  FStat: PFileStatus3;
+  FStat: TFileStatus3;
 begin
-  New (FStat);
-  DosError:=DosQueryFileInfo(FileRec(F).Handle, 1, FStat, SizeOf(FStat^));
+  DosError := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
+                                                               SizeOf (FStat));
   If DosError=0 then
-    Time:=FStat^.timelastwrite+FStat^.DateLastWrite*256
+    Time := FStat.TimeLastWrite + FStat.DateLastWrite * 256
   else
     Time:=0;
-  Dispose (FStat);
 end;
 
 procedure SetFTime (var F; Time: longint);
-var FStat: PFileStatus3;
-    RC: longint;
+var FStat: TFileStatus3;
+    RC: cardinal;
 begin
-  New (FStat);
   RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
-                                                    SizeOf (FStat));
+                                                               SizeOf (FStat));
   if RC = 0 then
   begin
-    FStat^.DateLastAccess := Hi (Time);
-    FStat^.DateLastWrite := Hi (Time);
-    FStat^.TimeLastAccess := Lo (Time);
-    FStat^.TimeLastWrite := Lo (Time);
-    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard,
-                                       FStat, SizeOf (FStat^));
+    FStat.DateLastAccess := Hi (Time);
+    FStat.DateLastWrite := Hi (Time);
+    FStat.TimeLastAccess := Lo (Time);
+    FStat.TimeLastWrite := Lo (Time);
+    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard, FStat,
+                                                               SizeOf (FStat));
   end;
-  DosError := integer(RC);
-  Dispose (FStat);
+  DosError := integer (RC);
 end;
 
 procedure exec(const path:pathstr;const comline:comstr);
@@ -320,7 +317,7 @@ begin
     end ['eax','ebx','ecx','edx','esi','edi'];
 
     //Not clear how to use
-    exec:=DosExecPgm(ObjName, Longint(runflags), Args, Env, Res, Path);
+    exec:=DosExecPgm(ObjName, RunFlags, Args, Env, Res, Path);
 
     freemem(args,ArgsSize);
     FreeMem(env, envc*sizeof(pchar)+16384);
@@ -404,7 +401,7 @@ end;
 
 function DiskFree (Drive: byte): int64;
 var FI: TFSinfo;
-    RC: longint;
+    RC: cardinal;
 begin
   {In OS/2, we use the filesystem information.}
   RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
@@ -417,7 +414,7 @@ end;
 
 function DiskSize (Drive: byte): int64;
 var FI: TFSinfo;
-    RC: longint;
+    RC: cardinal;
 begin
   RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
   if RC = 0 then
@@ -433,10 +430,6 @@ begin
 end;
 
 procedure DosSearchRec2SearchRec (var F: SearchRec);
-const
-  NameSize=255;
-var
-  L, I: longint;
 type
   TRec = record
     T, D: word;
@@ -455,8 +448,7 @@ end;
 procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
 
-var path0: array[0..255] of char;
-    Count: cardinal;
+var Count: cardinal;
 
 begin
   {No error.}
@@ -634,9 +626,6 @@ function FExpand (const Path: PathStr): PathStr;
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
-const
-    LFNSupport = true;
-
 {$I fexpand.inc}
 
 {$UNDEF FPC_FEXPAND_DRIVES}
@@ -678,37 +667,42 @@ begin
     d.year:=time+1980;
 end;
 
-procedure getfattr(var f;var attr : word);
+procedure GetFAttr (var F; var Attr: word);
 var
-  PathInfo: PFileStatus3;
+  PathInfo: TFileStatus3;
+  RC: cardinal;
 begin
-  New (PathInfo);
-  Attr:=0;
-  DosError:=DosQueryPathInfo(FileRec(F).Name, ilStandard, PathInfo, SizeOf(PathInfo^));
-  if DosError=0 then
-    Attr := PathInfo^.attrFile;
-  Dispose (PathInfo);
+  Attr := 0;
+  RC := DosQueryPathInfo (FileRec (F).Name, ilStandard,
+                                                 @PathInfo, SizeOf (PathInfo));
+  DosError := integer (RC);
+  if RC = 0 then
+    Attr := PathInfo.AttrFile;
 end;
 
-procedure setfattr(var f;attr : word);
+procedure SetFAttr (var F; Attr: word);
 var
-  PathInfo: PFileStatus3;
+  PathInfo: TFileStatus3;
+  RC: cardinal;
 begin
-  New (PathInfo);
-  DosError:=DosQueryPathInfo(FileRec(F).Name, ilStandard, PathInfo, SizeOf(PathInfo^));
-  if DosError=0 then
+  RC := DosQueryPathInfo (FileRec (F).Name, ilStandard,
+                                                 @PathInfo, SizeOf (PathInfo));
+  if RC = 0 then
   begin
-    PathInfo^.attrFile:=Attr;
-    DosError:=DosSetPathInfo(FileRec(F).Name, ilStandard, PathInfo, SizeOf(PathInfo^), doWriteThru);
+    PathInfo.AttrFile := Attr;
+    RC := DosSetPathInfo (FileRec (F).Name, ilStandard, @PathInfo,
+                                               SizeOf (PathInfo), doWriteThru);
   end;
-  Dispose (PathInfo);
+  DosError := integer (RC);
 end;
 
-begin
 end.
 {
   $Log$
-  Revision 1.28  2003-10-05 22:06:43  hajny
+  Revision 1.29  2003-10-25 22:45:37  hajny
+    * file handling related fixes
+
+  Revision 1.28  2003/10/05 22:06:43  hajny
     * result buffers must be allocated
 
   Revision 1.27  2003/10/03 21:46:41  peter
