@@ -148,6 +148,7 @@
             fistpq res
             movl res,%eax
             movl res+4,%edx
+	    fclex
             fldcw oldcw
       end;
 
@@ -168,12 +169,14 @@
             fnstcw oldcw
             fwait
             movw $0x1372,newcw
+	    fclex
             fldcw newcw
             fwait
             fldt d
             fistpq res
             movl res,%eax
             movl res+4,%edx
+	    fclex
             fldcw oldcw
       end;
 
@@ -207,7 +210,10 @@
 
 {
   $Log$
-  Revision 1.18  2003-11-29 16:40:12  jonas
+  Revision 1.19  2004-07-09 23:06:11  peter
+    * add fclex for fpu exceptions to round/trunc
+
+  Revision 1.18  2003/11/29 16:40:12  jonas
     * fix power() for negative base
 
   Revision 1.17  2003/11/24 21:57:43  michael
