@@ -291,7 +291,7 @@ implementation
                       begin
                         len:=tstringconstnode(p).len;
                         { For tp7 the maximum lentgh can be 255 }
-                        if (m_tp in aktmodeswitches) and
+                        if (m_tp7 in aktmodeswitches) and
                            (len>255) then
                          len:=255;
                         getmem(ca,len+2);
@@ -624,7 +624,7 @@ implementation
                     begin
                       len:=tstringconstnode(p).len;
                       { For tp7 the maximum lentgh can be 255 }
-                      if (m_tp in aktmodeswitches) and
+                      if (m_tp7 in aktmodeswitches) and
                          (len>255) then
                        len:=255;
                       ca:=tstringconstnode(p).value_str;
@@ -872,7 +872,7 @@ implementation
                 end
               { for objects we allow it only if it doesn't contain a vmt }
               else if (oo_has_vmt in tobjectdef(t.def).objectoptions) and
-                      not(m_tp in aktmodeswitches) then
+                      (m_fpc in aktmodeswitches) then
                  Message(parser_e_type_const_not_possible)
               else
                 begin
@@ -910,7 +910,7 @@ implementation
                                Message(parser_e_invalid_record_const);
 
                              { check in VMT needs to be added for TP mode }
-                             if (m_tp in aktmodeswitches) and
+                             if not(m_fpc in aktmodeswitches) and
                                 (oo_has_vmt in tobjectdef(t.def).objectoptions) and
                                 (tobjectdef(t.def).vmt_offset<tvarsym(srsym).address) then
                                begin
@@ -937,7 +937,7 @@ implementation
                              else break;
                           end;
                      end;
-                   if (m_tp in aktmodeswitches) and
+                   if not(m_fpc in aktmodeswitches) and
                       (oo_has_vmt in tobjectdef(t.def).objectoptions) and
                       (tobjectdef(t.def).vmt_offset>=aktpos) then
                      begin
@@ -970,7 +970,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-01-06 21:47:32  peter
+  Revision 1.41  2002-01-24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.40  2002/01/06 21:47:32  peter
     * removed getprocvar, use only getprocvardef
 
   Revision 1.39  2001/12/06 17:57:38  florian

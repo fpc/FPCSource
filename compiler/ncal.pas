@@ -780,8 +780,11 @@ implementation
 
       var
         i : longint;
+        found,
         is_const : boolean;
         bestord  : torddef;
+        srprocsym  : tprocsym;
+        srsymtable : tsymtable;
       begin
          result:=nil;
 
@@ -878,36 +881,73 @@ implementation
                         pd:=pd^.next;
                      end;
 
-{$ifdef CROSSUNIT}
                    { when the definition has overload directive set, we search for
-                     overloaded definitions in the other used units unitsymtable. The found
-                     entries are only added to the procs list and not the procsym }
+                     overloaded definitions in the symtablestack. The found
+                     entries are only added to the procs list and not the procsym, because
+                     the list can change in every situation }
                    if (po_overload in symtableprocentry.defs^.def.procoptions) and
                       (symtableprocentry.owner.symtabletype<>objectsymtable) then
                      begin
-
-
-                 srpdl:=srsym.defs;
-                 while assigned(srpdl) do
-                  begin
-                    found:=false;
-                    pdl:=aprocsym.defs;
-                    while assigned(pdl) do
-                     begin
-                       if equal_paras(pdl^.def.para,srpdl^.def.para,cp_value_equal_const) then
+                       srsymtable:=symtableprocentry.owner.next;
+                       while assigned(srsymtable) do
                         begin
-                          found:=true;
-                          break;
+                          if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
+                           begin
+                             srprocsym:=tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
+                             { process only visible procsyms }
+                             if assigned(srprocsym) and
+                                (srprocsym.typ=procsym) and
+                                srprocsym.is_visible_for_proc(aktprocdef) then
+                              begin
+                                { if this procedure doesn't have overload we can stop
+                                  searching }
+                                if not(po_overload in srprocsym.defs^.def.procoptions) then
+                                 break;
+                                { process all overloaded definitions }
+                                pd:=srprocsym.defs;
+                                while assigned(pd) do
+                                 begin
+                                   { only when the # of parameter are supported by the
+                                     procedure }
+                                   if (paralength>=pd^.def.minparacount) and
+                                      ((po_varargs in pd^.def.procoptions) or { varargs }
+                                      (paralength<=pd^.def.maxparacount)) then
+                                    begin
+                                      found:=false;
+                                      hp:=procs;
+                                      while assigned(hp) do
+                                       begin
+                                         if equal_paras(hp^.data.para,pd^.def.para,cp_value_equal_const) then
+                                          begin
+                                            found:=true;
+                                            break;
+                                          end;
+                                         hp:=hp^.next;
+                                       end;
+                                      if not found then
+                                       begin
+                                         new(hp);
+                                         hp^.data:=pd^.def;
+                                         hp^.next:=procs;
+                                         hp^.firstpara:=tparaitem(pd^.def.Para.first);
+                                         if not(po_varargs in pd^.def.procoptions) then
+                                          begin
+                                            { if not all parameters are given, then skip the
+                                              default parameters }
+                                            for i:=1 to pd^.def.maxparacount-paralength do
+                                             hp^.firstpara:=tparaitem(hp^.firstPara.next);
+                                          end;
+                                         hp^.nextpara:=hp^.firstpara;
+                                         procs:=hp;
+                                       end;
+                                    end;
+                                   pd:=pd^.next;
+                                 end;
+                              end;
+                           end;
+                          srsymtable:=srsymtable.next;
                         end;
-                       pdl:=pdl^.next;
                      end;
-                    if not found then
-                     aprocsym.addprocdef(srpdl^.def);
-                    srpdl:=srpdl^.next;
-                  end;
-
-                     end;
-{$endif CROSSUNIT}
 
                    { no procedures found? then there is something wrong
                      with the parameter size }
@@ -1796,7 +1836,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2002-01-24 12:33:52  jonas
+  Revision 1.64  2002-01-24 18:25:48  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.63  2002/01/24 12:33:52  jonas
     * adapted ranges of native types to int64 (e.g. high cardinal is no
       longer longint($ffffffff), but just $fffffff in psystem)
     * small additional fix in 64bit rangecheck code generation for 32 bit

@@ -1981,7 +1981,7 @@ implementation
 
              '%' :
                begin
-                 if (m_tp in aktmodeswitches) then
+                 if not(m_fpc in aktmodeswitches) then
                   Illegal_Char(c)
                  else
                   begin
@@ -2656,7 +2656,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.27  2001-10-22 20:25:49  peter
+  Revision 1.28  2002-01-24 18:25:50  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.27  2001/10/22 20:25:49  peter
     * fixed previous commit
 
   Revision 1.26  2001/10/22 19:55:44  peter

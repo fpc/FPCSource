@@ -42,7 +42,7 @@ implementation
        cutils,
        { global }
        globtype,globals,verbose,
-       systems,cpuinfo,
+       systems,cpuinfo,cpuasm,
        { aasm }
        cpubase,aasm,
        { symtable }
@@ -1044,7 +1044,76 @@ implementation
 
     function assembler_block : tnode;
 
+      procedure OptimizeFramePointer(p:tasmnode);
+      var
+        hp : tai;
+        parafixup,
+        i : longint;
       begin
+        { replace framepointer with stackpointer }
+        procinfo^.framepointer:=stack_pointer;
+        { set the right value for parameters }
+        dec(aktprocdef.parast.address_fixup,target_info.size_of_pointer);
+        dec(procinfo^.para_offset,target_info.size_of_pointer);
+        { replace all references to parameters in the instructions,
+          the parameters can be identified by the parafixup option
+          that is set. For normal user coded [ebp+4] this field is not
+          set }
+        parafixup:=aktprocdef.parast.address_fixup;
+        hp:=tai(p.p_asm.first);
+        while assigned(hp) do
+         begin
+           if hp.typ=ait_instruction then
+            begin
+              { fixup the references }
+              for i:=1 to taicpu(hp).ops do
+               begin
+                 with taicpu(hp).oper[i-1] do
+                  if typ=top_ref then
+                   begin
+                     case ref^.options of
+                       ref_parafixup :
+                         begin
+                           ref^.offsetfixup:=parafixup;
+                           ref^.base:=stack_pointer;
+                         end;
+                     end;
+                   end;
+               end;
+            end;
+           hp:=tai(hp.next);
+         end;
+      end;
+
+{$ifdef CHECKFORPUSH}
+      function UsesPush(p:tasmnode):boolean;
+      var
+        hp : tai;
+      begin
+        hp:=tai(p.p_asm.first);
+        while assigned(hp) do
+         begin
+           if (hp.typ=ait_instruction) and
+              (taicpu(hp).opcode=A_PUSH) then
+            begin
+              UsesPush:=true;
+              exit;
+            end;
+           hp:=tai(hp.next);
+         end;
+        UsesPush:=false;
+      end;
+{$endif CHECKFORPUSH}
+
+      var
+        p : tnode;
+        haslocals,hasparas : boolean;
+      begin
+         { retrieve info about locals and paras before a result
+           is inserted in the symtable }
+         haslocals:=(aktprocdef.localst.datasize>0);
+         hasparas:=(aktprocdef.parast.datasize>0);
+
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack.symtabletype=localsymtable then
            procinfo^.firsttemp_offset := -symtablestack.datasize
@@ -1053,75 +1122,74 @@ implementation
 
          { assembler code does not allocate }
          { space for the return value       }
-          if not is_void(aktprocdef.rettype.def) then
+         if not is_void(aktprocdef.rettype.def) then
            begin
               aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
-              if ret_in_acc(aktprocdef.rettype.def) then
-                begin
-                   { in assembler code the result should be directly in %eax
-                   procinfo^.retoffset:=procinfo^.firsttemp-procinfo^.retdef.size;
-                   procinfo^.firsttemp:=procinfo^.retoffset;                 }
-
-{$ifndef newcg}
-{$ifdef i386}
-                   usedinproc:=usedinproc or ($80 shr byte(R_EAX))
-{$else}
-{$ifdef POWERPC}
-                   usedinproc:=0;
-{$else POWERPC}
-                   usedinproc:=usedinproc + [accumulator];
-{$endif POWERPC}
-{$endif i386}
-{$endif newcg}
-                end
-              {
-              else if not is_fpu(procinfo^.retdef) then
-               should we allow assembler functions of big elements ?
-                YES (FK)!!
-               Message(parser_e_asm_incomp_with_function_return);
-              }
-            end;
-           { set the framepointer to esp for assembler functions }
-           { but only if the are no local variables           }
-           { added no parameter also (PM)                       }
-           { disable for methods, because self pointer is expected }
-           { at -8(%ebp) (JM)                                      }
-           { why if se use %esp then self is still at the correct address PM }
-           if {not(assigned(procinfo^._class)) and}
-              (po_assembler in aktprocdef.procoptions) and
-              (aktprocdef.localst.datasize=0) and
-              (aktprocdef.parast.datasize=0) and
-              not(ret_in_param(aktprocdef.rettype.def)) then
-             begin
-               procinfo^.framepointer:=stack_pointer;
-               { set the right value for parameters }
-               dec(aktprocdef.parast.address_fixup,target_info.size_of_pointer);
-               dec(procinfo^.para_offset,target_info.size_of_pointer);
-             end;
-          { only insert now in the symtable, otherwise the              }
-          { "aktprocdef.localst.datasize=0" check above will }
-          { always fail (JM)                                            }
-          if not is_void(aktprocdef.rettype.def) then
-            begin
               { insert in local symtable }
               { but with another name, so that recursive calls are possible }
               symtablestack.insert(aktprocdef.funcretsym);
               symtablestack.rename(aktprocdef.funcretsym.name,'$result');
+              { set the used flag for the return }
+              if ret_in_acc(aktprocdef.rettype.def) then
+                begin
+{$ifdef i386}
+                   usedinproc:=usedinproc or ($80 shr byte(R_EAX))
+{$else}
+  {$ifdef POWERPC}
+                   usedinproc:=0;
+  {$else POWERPC}
+                   usedinproc:=usedinproc + [accumulator];
+  {$endif POWERPC}
+{$endif i386}
+                end;
             end;
-          { force the asm statement }
-            if token<>_ASM then
-             consume(_ASM);
-            procinfo^.Flags := procinfo^.Flags Or pi_is_assembler;
-            assembler_block:=_asm_statement;
-          { becuase the END is already read we need to get the
-            last_endtoken_filepos here (PFV) }
-            last_endtoken_filepos:=akttokenpos;
-          end;
+         { force the asm statement }
+         if token<>_ASM then
+           consume(_ASM);
+         procinfo^.Flags := procinfo^.Flags Or pi_is_assembler;
+         p:=_asm_statement;
+
+
+         { set the framepointer to esp for assembler functions when the
+           following conditions are met:
+           - if the are no local variables
+           - no reference to the result variable (refcount<=1)
+           - result is not stored as parameter }
+         if (po_assembler in aktprocdef.procoptions) and
+            (not haslocals) and
+            (not hasparas) and
+            (aktprocdef.owner.symtabletype<>objectsymtable) and
+            (not assigned(aktprocdef.funcretsym) or
+             (tfuncretsym(aktprocdef.funcretsym).refcount<=1)) and
+            not(ret_in_param(aktprocdef.rettype.def))
+{$ifdef CHECKFORPUSH}
+            and not(UsesPush(tasmnode(p)))
+{$endif CHECKFORPUSH}
+            then
+           OptimizeFramePointer(tasmnode(p));
+
+        { Flag the result as assigned when it is returned in the
+          accumulator or on the fpu stack }
+        if assigned(aktprocdef.funcretsym) and
+           (is_fpu(aktprocdef.rettype.def) or
+           ret_in_acc(aktprocdef.rettype.def)) then
+          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+
+        { because the END is already read we need to get the
+          last_endtoken_filepos here (PFV) }
+        last_endtoken_filepos:=akttokenpos;
+
+        assembler_block:=p;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.44  2001-11-09 10:06:56  jonas
+  Revision 1.45  2002-01-24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.44  2001/11/09 10:06:56  jonas
     * allow recursive calls again in assembler procedure
 
   Revision 1.43  2001/11/02 22:58:05  peter

@@ -728,8 +728,8 @@ Begin
   { replace by correct offset. }
   if (not is_void(aktprocdef.rettype.def)) then
    begin
-     if (procinfo^.return_offset=0) and ((m_tp in aktmodeswitches) or
-        (m_delphi in aktmodeswitches)) then
+     if (m_tp7 in aktmodeswitches) and
+        ret_in_acc(aktprocdef.rettype.def) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
@@ -739,6 +739,9 @@ Begin
      opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
      tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+     { increase reference count, this is also used to check
+       if the result variable is actually used or not }
+     inc(tfuncretsym(aktprocdef.funcretsym).refcount);
      SetupResult:=true;
    end
   else
@@ -806,7 +809,8 @@ Begin
                 register is still free, and loading it first is also
                 not possible, because this could break code }
               { Be TP/Delphi compatible in Delphi or TP modes }
-              if (m_tp in aktmodeswitches) then
+              if (m_tp7 in aktmodeswitches) or
+                 (m_delphi in aktmodeswitches) then
                 begin
                   opr.typ:=OPR_CONSTANT;
                   opr.val:=tvarsym(sym).address;
@@ -1581,7 +1585,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2001-11-02 22:58:06  peter
+  Revision 1.26  2002-01-24 18:25:50  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.25  2001/11/02 22:58:06  peter
     * procsym definition rewrite
 
   Revision 1.24  2001/09/02 21:18:28  peter

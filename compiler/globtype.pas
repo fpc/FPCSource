@@ -125,7 +125,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp,m_tp7,m_gpc,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_gpc,
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }
@@ -143,7 +143,8 @@ interface
          m_default_ansistring,  { ansistring turned on by default }
          m_out,                 { support the calling convention OUT }
          m_default_para,        { support default parameters }
-         m_hintdirective        { support hint directives }
+         m_hintdirective,       { support hint directives }
+         m_duplicate_names      { allow locals/paras to have duplicate names of globals }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -245,7 +246,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-10-25 21:22:32  peter
+  Revision 1.20  2002-01-24 18:25:48  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.19  2001/10/25 21:22:32  peter
     * calling convention rewrite
 
   Revision 1.18  2001/10/24 11:46:06  marco

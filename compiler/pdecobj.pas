@@ -577,7 +577,7 @@ implementation
            include(aktclass.objectoptions,oo_has_destructor);
            consume(_SEMICOLON);
            if not(aktprocdef.Para.empty) then
-             if not (m_tp in aktmodeswitches) then
+             if (m_fpc in aktmodeswitches) then
                Message(parser_e_no_paras_for_destructor);
            { no return value }
            aktprocdef.rettype:=voidtype;
@@ -905,9 +905,8 @@ implementation
            Message(parser_e_no_local_objects);
 
          storetypecanbeforward:=typecanbeforward;
-         { for tp mode don't allow forward types }
-         if (m_tp in aktmodeswitches) and
-            not (m_delphi in aktmodeswitches) then
+         { for tp7 don't allow forward types }
+         if (m_tp7 in aktmodeswitches) then
            typecanbeforward:=false;
 
          if not(readobjecttype) then
@@ -1111,7 +1110,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-01-06 12:08:15  peter
+  Revision 1.37  2002-01-24 18:25:48  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.36  2002/01/06 12:08:15  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 

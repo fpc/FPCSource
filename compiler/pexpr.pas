@@ -301,7 +301,7 @@ implementation
                   do_member_read(false,sym,p2,again)
                 else
                   begin
-                    if (m_tp in aktmodeswitches) then
+                    if not(m_fpc in aktmodeswitches) then
                       do_member_read(false,sym,p2,again)
                     else
                       begin
@@ -357,7 +357,7 @@ implementation
                   if (tpointerdef(p.resulttype.def).pointertype.def.deftype=orddef) and
                      (torddef(tpointerdef(p.resulttype.def).pointertype.def).typ=uvoid) then
                     begin
-                      if (m_tp in aktmodeswitches) or
+                      if (m_tp7 in aktmodeswitches) or
                          (m_delphi in aktmodeswitches) then
                        Message(parser_w_no_new_dispose_on_void_pointers)
                       else
@@ -1189,7 +1189,7 @@ implementation
                     ((tvarsym(sym)=otsym) and ((p^.flags and pi_operator)<>0))) and
                    (not is_void(p^.procdef.rettype.def)) and
                    (token<>_LKLAMMER) and
-                   (not ((m_tp in aktmodeswitches) and (afterassignment or in_args)))
+                   (not (not(m_fpc in aktmodeswitches) and (afterassignment or in_args)))
                   ) then
                  begin
                     if ((tvarsym(sym)=otsym) and
@@ -2483,7 +2483,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-01-06 21:47:32  peter
+  Revision 1.55  2002-01-24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.54  2002/01/06 21:47:32  peter
     * removed getprocvar, use only getprocvardef
 
   Revision 1.53  2001/12/31 16:59:42  peter

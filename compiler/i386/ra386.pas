@@ -39,7 +39,6 @@ Procedure FWaitWarning;
 type
   T386Operand=class(TOperand)
     Procedure SetCorrectSize(opcode:tasmop);override;
-    Function SetupResult : boolean;override;
   end;
 
   T386Instruction=class(TInstruction)
@@ -184,57 +183,6 @@ begin
       end;
     end;
 end;
-
-Function T386Operand.SetupResult:boolean;
-var
-  Res : boolean;
-Begin
-  Res:=inherited setupResult;
-  { replace by ref by register if not place was
-    reserved on stack }
-  if res and (procinfo^.return_offset=0) then
-   begin
-     opr.typ:=OPR_REGISTER;
-     if is_fpu(aktprocdef.rettype.def) then
-       begin
-         opr.reg:=R_ST0;
-         case tfloatdef(aktprocdef.rettype.def).typ of
-           s32real : size:=S_FS;
-           s64real : size:=S_FL;
-           s80real : size:=S_FX;
-           s64comp : size:=S_IQ;
-         else
-           begin
-             Message(asmr_e_cannot_use_RESULT_here);
-             res:=false;
-           end;
-         end;
-       end
-     else if ret_in_acc(aktprocdef.rettype.def) then
-       case aktprocdef.rettype.def.size of
-       1 : begin
-             opr.reg:=R_AL;
-             size:=S_B;
-           end;
-       2 : begin
-             opr.reg:=R_AX;
-             size:=S_W;
-           end;
-       3,4 : begin
-               opr.reg:=R_EAX;
-               size:=S_L;
-             end;
-       else
-         begin
-           Message(asmr_e_cannot_use_RESULT_here);
-           res:=false;
-         end;
-       end;
-     Message1(asmr_h_RESULT_is_reg,reg2str(opr.reg));
-   end;
-  SetupResult:=res;
-end;
-
 
 
 {*****************************************************************************
@@ -683,7 +631,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-11-02 22:58:11  peter
+  Revision 1.14  2002-01-24 18:25:53  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.13  2001/11/02 22:58:11  peter
     * procsym definition rewrite
 
   Revision 1.12  2001/08/26 13:37:01  florian

@@ -554,7 +554,7 @@ implementation
               same name as the function, the function is then hidden for
               the user. (Under delphi it can still be accessed using result),
               but don't allow hiding of RESULT }
-            if (m_tp in aktmodeswitches) and
+            if (m_duplicate_names in aktmodeswitches) and
                (hsym.typ=funcretsym) and
                not((m_result in aktmodeswitches) and
                    (hsym.name='RESULT')) then
@@ -1195,7 +1195,7 @@ implementation
                 begin
                   { a parameter and the function can have the same
                     name in TP and Delphi, but RESULT not }
-                  if (m_tp in aktmodeswitches) and
+                  if (m_duplicate_names in aktmodeswitches) and
                      (sym.typ=funcretsym) and
                      not((m_result in aktmodeswitches) and
                          (sym.name='RESULT')) then
@@ -1577,7 +1577,7 @@ implementation
             { Delphi you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
               <unit>.<id>, so we can hide the symbol }
-            if (m_tp in aktmodeswitches) and
+            if (m_duplicate_names in aktmodeswitches) and
                (hsym.typ=symconst.unitsym) then
              hsym.owner.rename(hsym.name,'hidden'+hsym.name)
             else
@@ -2023,7 +2023,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2001-12-31 16:59:43  peter
+  Revision 1.52  2002-01-24 18:25:50  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.51  2001/12/31 16:59:43  peter
     * protected/private symbols parsing fixed
 
   Revision 1.50  2001/11/18 18:43:17  peter

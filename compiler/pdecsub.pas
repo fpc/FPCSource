@@ -538,7 +538,7 @@ implementation
             begin
               { when the other symbol is a unit symbol then hide the unit
                 symbol. Only in tp mode because it's bad programming }
-              if (m_tp in aktmodeswitches) and
+              if (m_duplicate_names in aktmodeswitches) and
                  (aktprocsym.typ=unitsym) then
                begin
                  aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
@@ -2014,7 +2014,11 @@ const
 end.
 {
   $Log$
-  Revision 1.45  2002-01-09 07:38:03  michael
+  Revision 1.46  2002-01-24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.45  2002/01/09 07:38:03  michael
   + Patch from peter for library imports
 
   Revision 1.44  2002/01/06 21:54:07  peter

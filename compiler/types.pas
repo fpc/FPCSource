@@ -1239,7 +1239,7 @@ implementation
                  end
                else
                 begin
-                  b:=not(m_tp in aktmodeswitches) and
+                  b:=not(m_tp7 in aktmodeswitches) and
                      not(m_delphi in aktmodeswitches) and
                      (tarraydef(def1).lowrange=tarraydef(def2).lowrange) and
                      (tarraydef(def1).highrange=tarraydef(def2).highrange) and
@@ -1953,7 +1953,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-01-24 12:33:53  jonas
+  Revision 1.64  2002-01-24 18:25:53  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.63  2002/01/24 12:33:53  jonas
     * adapted ranges of native types to int64 (e.g. high cardinal is no
       longer longint($ffffffff), but just $fffffff in psystem)
     * small additional fix in 64bit rangecheck code generation for 32 bit

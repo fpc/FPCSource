@@ -2677,50 +2677,55 @@ implementation
          emitcall('FPC_DO_EXIT');
        end;
 
-      { handle return value }
+      { handle return value, this is not done for assembler routines when
+        they didn't reference the result variable }
       uses_eax:=false;
       uses_edx:=false;
       uses_esi:=false;
-      if not(po_assembler in aktprocdef.procoptions) then
+      if not(po_assembler in aktprocdef.procoptions) or
+         (assigned(aktprocdef.funcretsym) and
+          (tfuncretsym(aktprocdef.funcretsym).refcount>1)) then
+        begin
           if (aktprocdef.proctypeoption<>potype_constructor) then
             handle_return_value(inlined,uses_eax,uses_edx)
           else
-              begin
-                  { successful constructor deletes the zero flag }
-                  { and returns self in eax                   }
-                  { eax must be set to zero if the allocation failed !!! }
-                  getlabel(okexitlabel);
-                  emitjmp(C_NONE,okexitlabel);
-                  emitlab(faillabel);
-                  if is_class(procinfo^._class) then
-                    begin
-                      emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,8),R_ESI);
-                      emitcall('FPC_HELP_FAIL_CLASS');
-                    end
-                  else if is_object(procinfo^._class) then
-                    begin
-                      emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
-                       getexplicitregister32(R_EDI);
-                      emit_const_reg(A_MOV,S_L,procinfo^._class.vmt_offset,R_EDI);
-                      emitcall('FPC_HELP_FAIL');
-                      ungetregister32(R_EDI);
-                    end
-                  else
-                    Internalerror(200006161);
+            begin
+              { successful constructor deletes the zero flag }
+              { and returns self in eax                   }
+              { eax must be set to zero if the allocation failed !!! }
+              getlabel(okexitlabel);
+              emitjmp(C_NONE,okexitlabel);
+              emitlab(faillabel);
+              if is_class(procinfo^._class) then
+                begin
+                  emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,8),R_ESI);
+                  emitcall('FPC_HELP_FAIL_CLASS');
+                end
+              else if is_object(procinfo^._class) then
+                begin
+                  emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
+                  getexplicitregister32(R_EDI);
+                  emit_const_reg(A_MOV,S_L,procinfo^._class.vmt_offset,R_EDI);
+                  emitcall('FPC_HELP_FAIL');
+                  ungetregister32(R_EDI);
+                end
+              else
+                Internalerror(200006161);
 
-                  emitlab(okexitlabel);
+              emitlab(okexitlabel);
 
-                  { for classes this is done after the call to }
-                  { AfterConstruction                          }
-                  if is_object(procinfo^._class) then
-                    begin
-                       exprasmList.concat(Tairegalloc.Alloc(R_EAX));
-                       emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
-                       uses_eax:=true;
-                    end;
-                  emit_reg_reg(A_TEST,S_L,R_ESI,R_ESI);
-                  uses_esi:=true;
-              end;
+              { for classes this is done after the call to }
+              { AfterConstruction                          }
+              if is_object(procinfo^._class) then
+                begin
+                  exprasmList.concat(Tairegalloc.Alloc(R_EAX));
+                  emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
+                  uses_eax:=true;
+                end;
+              emit_reg_reg(A_TEST,S_L,R_ESI,R_ESI);
+              uses_esi:=true;
+            end;
+        end;
 
       if aktexit2label.is_used and not aktexit2label.is_set then
         emitlab(aktexit2label);
@@ -2982,7 +2987,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-01-19 14:21:17  peter
+  Revision 1.15  2002-01-24 18:25:53  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.14  2002/01/19 14:21:17  peter
     * fixed init/final for value parameters
 
   Revision 1.13  2001/12/30 17:24:45  jonas

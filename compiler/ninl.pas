@@ -1299,7 +1299,7 @@ implementation
                 begin
                   { give warning for incompatibility with tp and delphi }
                   if (inlinenumber in [in_lo_long,in_hi_long,in_lo_qword,in_hi_qword]) and
-                     ((m_tp in aktmodeswitches) or
+                     ((m_tp7 in aktmodeswitches) or
                       (m_delphi in aktmodeswitches)) then
                     CGMessage(type_w_maybe_wrong_hi_lo);
                   { constant folding }
@@ -2341,7 +2341,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2002-01-19 11:53:56  peter
+  Revision 1.69  2002-01-24 18:25:48  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.68  2002/01/19 11:53:56  peter
     * constant evaluation for assinged added
 
   Revision 1.67  2001/12/28 14:09:21  jonas

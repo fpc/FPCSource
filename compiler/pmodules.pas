@@ -621,7 +621,7 @@ implementation
         if (m_delphi in aktmodeswitches) then
          current_scanner.def_macro('FPC_DELPHI')
         else
-         if (m_tp in aktmodeswitches) then
+         if (m_tp7 in aktmodeswitches) then
           current_scanner.def_macro('FPC_TP')
         else
          if (m_objfpc in aktmodeswitches) then
@@ -1349,7 +1349,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2001-12-09 03:34:58  carl
+  Revision 1.51  2002-01-24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.50  2001/12/09 03:34:58  carl
   + Stack checking for solaris
 
   Revision 1.49  2001/11/02 23:16:51  peter

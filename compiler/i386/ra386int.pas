@@ -1847,10 +1847,6 @@ Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
   firsttoken:=TRUE;
-  if assigned(aktprocdef.funcretsym) and
-     (is_fpu(aktprocdef.rettype.def) or
-     ret_in_acc(aktprocdef.rettype.def)) then
-    tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
  { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1968,7 +1964,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2001-11-02 22:58:11  peter
+  Revision 1.20  2002-01-24 18:25:53  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.19  2001/11/02 22:58:11  peter
     * procsym definition rewrite
 
   Revision 1.18  2001/09/17 21:29:14  peter

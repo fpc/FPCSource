@@ -218,8 +218,8 @@ implementation
          old_object_option:=current_object_option;
          current_object_option:=[sp_public];
          storetypecanbeforward:=typecanbeforward;
-         { for tp mode don't allow forward types }
-         if m_tp in aktmodeswitches then
+         { for tp7 don't allow forward types }
+         if m_tp7 in aktmodeswitches then
            typecanbeforward:=false;
          read_var_decs(true,false,false);
          consume(_END);
@@ -612,7 +612,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-01-15 16:13:34  jonas
+  Revision 1.34  2002-01-24 18:25:49  peter
+   * implicit result variable generation for assembler routines
+   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
+
+  Revision 1.33  2002/01/15 16:13:34  jonas
     * fixed web bugs 1758 and 1760
 
   Revision 1.32  2002/01/06 12:08:15  peter
