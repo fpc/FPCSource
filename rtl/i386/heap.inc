@@ -18,6 +18,8 @@
 {**** 10/06/97 added checkings and corrected some bugs in getmem/freemem ****}
 {**** Pierre Muller *********************************************************}
 
+{$ASMMODE DIRECT}
+
 { three conditionnals here }
 
 { TEMPHEAP to  allow to split the heap in two parts for easier release}
@@ -1051,9 +1053,14 @@ begin
   Freelist := nil;
 end;
 
+{$ASMMODE ATT}
+
 {
   $Log$
-  Revision 1.6  1998-05-25 10:40:48  peter
+  Revision 1.7  1998-05-30 15:01:28  peter
+    * this needs also direct mode :(
+
+  Revision 1.6  1998/05/25 10:40:48  peter
     * remake3 works again on tflily
 
   Revision 1.4  1998/04/21 10:22:48  peter
@@ -1061,47 +1068,4 @@ end;
 
   Revision 1.3  1998/04/09 08:32:14  daniel
   * Optimized some code.
-
-  Revision 1.2  1998/03/31 19:01:41  daniel
-  * Replaced 'mod 8' with 'and 7'. Generates more efficient code.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.7  1998/01/26 11:59:20  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/i386/heap.inc
-  description:
-  ----------------------------
-  revision 1.6
-  date: 1998/01/19 14:02:30;  author: pierre;  state: Exp;  lines: +2 -2
-    * bug in initheap fixed
-  ----------------------------
-  revision 1.5
-  date: 1998/01/05 16:51:21;  author: michael;  state: Exp;  lines: +31 -1
-  + Moved init of heap to heap.inc: INITheap() (From Peter Vreman)
-  ----------------------------
-  revision 1.4
-  date: 1998/01/03 00:46:08;  author: michael;  state: Exp;  lines: +9 -3
-  * put ifdef useblocks around some local vars (From Peter Vreman)
-  ----------------------------
-  revision 1.3
-  date: 1997/12/10 12:21:47;  author: michael;  state: Exp;  lines: +2 -1
-  * Put test for nil pointer in freemem() function.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:34:36;  author: michael;  state: Exp;  lines: +11 -3
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:48;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }
