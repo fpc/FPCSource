@@ -404,11 +404,11 @@ implementation
               inc(push_size,12);
               emit_reg_reg(A_MOV,S_L,R_ESP,R_EDI);
               if (push_size mod 8)=0 then
-                emit_const_reg(A_AND,S_L,$fffffff8,R_ESP)
+                emit_const_reg(A_AND,S_L,longint($fffffff8),R_ESP)
               else
                 begin
                    emit_const_reg(A_SUB,S_L,push_size,R_ESP);
-                   emit_const_reg(A_AND,S_L,$fffffff8,R_ESP);
+                   emit_const_reg(A_AND,S_L,longint($fffffff8),R_ESP);
                    emit_const_reg(A_SUB,S_L,push_size,R_ESP);
                 end;
               emit_reg(A_PUSH,S_L,R_EDI);
@@ -1588,7 +1588,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-12-05 11:44:33  jonas
+  Revision 1.14  2000-12-07 17:19:46  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.13  2000/12/05 11:44:33  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.12  2000/12/03 22:26:54  florian

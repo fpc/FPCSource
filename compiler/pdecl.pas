@@ -78,7 +78,8 @@ implementation
            ordconstn:
              begin
                 if is_constintnode(p) then
-                  hp:=new(pconstsym,init_def(name,constint,tordconstnode(p).value,nil))
+                  hp:=new(pconstsym,init_def(name,constint,tordconstnode(p).value,
+                                               tordconstnode(p).resulttype))
                 else if is_constcharnode(p) then
                   hp:=new(pconstsym,init_def(name,constchar,tordconstnode(p).value,nil))
                 else if is_constboolnode(p) then
@@ -535,7 +536,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2000-11-29 00:30:35  florian
+  Revision 1.23  2000-12-07 17:19:42  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.22  2000/11/29 00:30:35  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

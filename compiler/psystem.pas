@@ -215,8 +215,8 @@ begin
   voiddef:=new(porddef,init(uvoid,0,0));
   u8bitdef:=new(porddef,init(u8bit,0,255));
   u16bitdef:=new(porddef,init(u16bit,0,65535));
-  u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
-  s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
+  u32bitdef:=new(porddef,init(u32bit,0,longint($ffffffff)));
+  s32bitdef:=new(porddef,init(s32bit,longint($80000000),$7fffffff));
   cu64bitdef:=new(porddef,init(u64bit,0,0));
   cs64bitdef:=new(porddef,init(s64bit,0,0));
   booldef:=new(porddef,init(bool8bit,0,1));
@@ -259,7 +259,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-11-29 00:30:38  florian
+  Revision 1.11  2000-12-07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.10  2000/11/29 00:30:38  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

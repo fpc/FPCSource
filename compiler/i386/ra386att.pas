@@ -1938,7 +1938,7 @@ Begin
       AS_DD:
         Begin
           Consume(AS_DD);
-          BuildConstant($ffffffff);
+          BuildConstant(longint($ffffffff));
         end;
 
       AS_DQ:
@@ -2120,7 +2120,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-30 20:27:51  peter
+  Revision 1.5  2000-12-07 17:19:46  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.4  2000/11/30 20:27:51  peter
     * merged fix for bug 1229
 
   Revision 1.3  2000/11/29 00:30:50  florian

@@ -1735,7 +1735,7 @@ implementation
                 begin
                    datasegment^.concat(new(pai_const,init_32bit(low)));
                    datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
-                   datasegment^.concat(new(pai_const,init_32bit($80000000)));
+                   datasegment^.concat(new(pai_const,init_32bit(longint($80000000))));
                    datasegment^.concat(new(pai_const,init_32bit(high)));
                 end;
            end;
@@ -2581,7 +2581,7 @@ implementation
                 begin
                   datasegment^.concat(new(pai_const,init_32bit(lowrange)));
                   datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
-                  datasegment^.concat(new(pai_const,init_32bit($80000000)));
+                  datasegment^.concat(new(pai_const,init_32bit(longint($80000000))));
                   datasegment^.concat(new(pai_const,init_32bit(highrange)));
                 end;
            end;
@@ -5549,7 +5549,19 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.16  2000-11-30 23:12:57  florian
+  Revision 1.17  2000-12-07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.16  2000/11/30 23:12:57  florian
   * if raw interfaces inherit from IUnknown they are ref. counted too
 
   Revision 1.15  2000/11/29 00:30:40  florian

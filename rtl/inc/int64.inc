@@ -31,7 +31,7 @@
          r:=0;
          for i:=0 to 31 do
            begin
-              if (tqwordrec(q).high and ($80000000 shr i))<>0 then
+              if (tqwordrec(q).high and (longint($80000000) shr i))<>0 then
                 begin
                    count_leading_zeros:=r;
                    exit;
@@ -40,7 +40,7 @@
            end;
          for i:=0 to 31 do
            begin
-              if (tqwordrec(q).low and ($80000000 shr i))<>0 then
+              if (tqwordrec(q).low and (longint($80000000) shr i))<>0 then
                 begin
                    count_leading_zeros:=r;
                    exit;
@@ -296,7 +296,7 @@
               ((q1>q3) or (q2>q3) or
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
-                ((tqwordrec(q3).high and $80000000)<>0) and
+                ((tqwordrec(q3).high and longint($80000000))<>0) and
                  ((q3<>(qword(1) shl 63)) or not(sign))
                 ) then
                 HandleErrorFrame(215,get_frame);
@@ -395,13 +395,13 @@
     { high(int64) produces 0 in version 1.0 (JM) }
     with qwordrec(maxint64) do
       begin
-        l1 := $ffffffff;
+        l1 := longint($ffffffff);
         l2 := $7fffffff;
       end;
     with qwordrec(maxqword) do
       begin
-        l1 := $ffffffff;
-        l2 := $ffffffff;
+        l1 := longint($ffffffff);
+        l2 := longint($ffffffff);
       end;
 
     while Code<=Length(s) do
@@ -479,7 +479,19 @@
 
 {
   $Log$
-  Revision 1.4  2000-11-17 17:01:23  jonas
+  Revision 1.5  2000-12-07 17:19:47  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.4  2000/11/17 17:01:23  jonas
     * fixed bug for val when processing -2147483648 and low(int64) (merged)
 
   Revision 1.3  2000/07/28 12:29:49  jonas

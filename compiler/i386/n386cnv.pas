@@ -182,7 +182,7 @@ implementation
                     emit_reg_reg(A_XOR,S_L,
                       hregister2,hregister2)
                   else
-                    emit_const_reg(A_MOV,S_L,$ffffffff,hregister2);
+                    emit_const_reg(A_MOV,S_L,longint($ffffffff),hregister2);
                 end
               else
                 begin
@@ -192,7 +192,7 @@ implementation
                     is_signed(left.resulttype) then
                     begin
                        getlabel(l);
-                       emit_const_reg(A_TEST,S_L,$80000000,makereg32(hregister));
+                       emit_const_reg(A_TEST,S_L,longint($80000000),makereg32(hregister));
                        emitjmp(C_Z,l);
                        emit_reg(A_NOT,S_L,
                          hregister2);
@@ -681,7 +681,7 @@ implementation
                 emit_ref_reg(A_MOV,S_L,r,R_EDI);
                 r:=new_reference(R_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,r);
-                emit_const_reg(A_TEST,S_L,$80000000,R_EDI);
+                emit_const_reg(A_TEST,S_L,longint($80000000),R_EDI);
 {$ifndef noAllocEdi}
                 ungetregister32(R_EDI);
 {$endif noAllocEdi}
@@ -1493,7 +1493,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-05 11:44:33  jonas
+  Revision 1.10  2000-12-07 17:19:46  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.9  2000/12/05 11:44:33  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.8  2000/11/29 00:30:46  florian

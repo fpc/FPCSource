@@ -116,7 +116,7 @@ interface
 
     { some helper routines }
 
-    function get_ordinal_value(p : tnode) : longint;
+    function get_ordinal_value(p : tnode) : TConstExprInt;
     function is_constnode(p : tnode) : boolean;
     function is_constintnode(p : tnode) : boolean;
     function is_constcharnode(p : tnode) : boolean;
@@ -201,7 +201,7 @@ implementation
          genpcharconstnode:=cstringconstnode.createpchar(s,length);
       end;
 
-    function get_ordinal_value(p : tnode) : longint;
+    function get_ordinal_value(p : tnode) : TConstExprInt;
       begin
          if p.nodetype=ordconstn then
            get_ordinal_value:=tordconstnode(p).value
@@ -650,7 +650,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:32  florian
+  Revision 1.12  2000-12-07 17:19:42  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.11  2000/11/29 00:30:32  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

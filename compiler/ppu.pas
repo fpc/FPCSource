@@ -624,8 +624,8 @@ begin
   bufstart:=sizeof(tppuheader);
   bufidx:=0;
 {reset}
-  crc:=$ffffffff;
-  interface_crc:=$ffffffff;
+  crc:=longint($ffffffff);
+  interface_crc:=longint($ffffffff);
   do_interface_crc:=true;
   Error:=false;
   do_crc:=true;
@@ -889,7 +889,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:02:50  peter
+  Revision 1.6  2000-12-07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.5  2000/10/31 22:02:50  peter
     * symtable splitted, no real code changes
 
   Revision 1.4  2000/09/24 15:06:24  peter

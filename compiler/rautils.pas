@@ -334,12 +334,6 @@ begin
   else
    begin
      { Convert String to number and add to stack }
-     if token='-2147483648' then
-      begin
-        temp:=$80000000;
-        localerror:=0;
-      end
-     else
       Val(Token, Temp, LocalError);
      if LocalError = 0 then
       RPNPush(Temp)
@@ -1554,7 +1548,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-11-29 00:30:38  florian
+  Revision 1.13  2000-12-07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.12  2000/11/29 00:30:38  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

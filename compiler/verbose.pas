@@ -61,7 +61,7 @@ Const
   V_Debug        = $100000;
   V_Executable   = $200000;
   V_ShowFile     = $ffff;
-  V_All          = $ffffffff;
+  V_All          = longint($ffffffff);
   V_Default      = V_Fatal + V_Error + V_Normal;
 
 var
@@ -626,7 +626,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-11-29 00:30:43  florian
+  Revision 1.9  2000-12-07 17:19:45  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.8  2000/11/29 00:30:43  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -47,7 +47,8 @@
 Type
   shortint = -128..127;
   SmallInt = -32768..32767;
-  Longint  = $80000000..$7fffffff; { $8000000 creates a longint overfow !! }
+  { can't use -2147483648 because of a bug in 1.0.2's val() procedure (JM) }
+  Longint  = +(-2147483647-1)..$7fffffff;
   byte     = 0..255;
   Word     = 0..65535;
   dword    = cardinal;
@@ -484,7 +485,19 @@ const
 
 {
   $Log$
-  Revision 1.12  2000-11-13 13:40:04  marco
+  Revision 1.13  2000-12-07 17:19:47  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.12  2000/11/13 13:40:04  marco
    * Renamefest
 
   Revision 1.11  2000/11/11 16:12:01  peter

@@ -1299,8 +1299,9 @@ Begin
 {$endif logging}
   inc(x,startXViewPort);
   inc(y,startYViewPort);
-  x1 := ptw(Bitmap)[0]+x; { get width and adjust end coordinate accordingly }
-  y1 := ptw(Bitmap)[1]+y; { get height and adjust end coordinate accordingly }
+  { width/height are 1-based, coordinates are zero based }
+  x1 := ptw(Bitmap)[0]+x-1; { get width and adjust end coordinate accordingly }
+  y1 := ptw(Bitmap)[1]+y-1; { get height and adjust end coordinate accordingly }
 
   deltaX := 0;
   deltaX1 := 0;
@@ -1363,8 +1364,8 @@ Begin
      GetScanLine(x1,x2,j,pt(Bitmap)[k]);
      inc(k,i);
    end;
-   ptw(Bitmap)[0] := X2-X1;   { First longint  is width  }
-   ptw(Bitmap)[1] := Y2-Y1;   { Second longint is height }
+   ptw(Bitmap)[0] := X2-X1+1;   { First longint  is width  }
+   ptw(Bitmap)[1] := Y2-Y1+1;   { Second longint is height }
    ptw(bitmap)[2] := 0;       { Third longint is reserved}
 end;
 
@@ -2440,7 +2441,19 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  2000-08-12 12:27:13  jonas
+  Revision 1.5  2000-12-07 17:19:47  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.4  2000/08/12 12:27:13  jonas
     + setallpalette hook
     + setallpalette implemented for standard vga and VESA 2.0+
 

@@ -970,7 +970,7 @@ implementation
              if from_signed and to_signed then
                begin
                  getlabel(neglabel);
-                 emit_const_reg(A_CMP,S_L,$ffffffff,hreg);
+                 emit_const_reg(A_CMP,S_L,longint($ffffffff),hreg);
                  emitjmp(C_E,neglabel);
                end;
              if hreg = R_EDI then
@@ -981,7 +981,7 @@ implementation
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              emitlab(poslabel);
-             new(hdef,init(u32bit,0,$ffffffff));
+             new(hdef,init(u32bit,0,longint($ffffffff)));
              { the real p.resulttype is already saved in fromdef }
              p.resulttype := hdef;
              emitrangecheck(p,todef);
@@ -1016,16 +1016,16 @@ implementation
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
                  emitlab(neglabel);
-                 new(hdef,init(s32bit,$80000000,-1));
+                 new(hdef,init(s32bit,longint($80000000),-1));
                  p.resulttype := hdef;
                  emitrangecheck(p,todef);
                  dispose(hdef,done);
                  emitlab(endlabel);
                  { restore p's resulttype }
-                 p.resulttype := fromdef;
                end;
              registerdef := oldregisterdef;
            end;
+        p.resulttype := fromdef;
       end;
 
      { produces if necessary rangecheckcode }
@@ -1485,7 +1485,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-12-05 11:44:34  jonas
+  Revision 1.7  2000-12-07 17:19:46  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.6  2000/12/05 11:44:34  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.5  2000/11/29 00:30:49  florian

@@ -55,7 +55,7 @@ implementation
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,cobjects,cpuinfo,
        { global }
        globals,tokens,verbose,
        systems,
@@ -224,7 +224,7 @@ implementation
         aktenumdef : penumdef;
         ap : parraydef;
         s : stringid;
-        l,v : longint;
+        l,v : TConstExprInt;
         oldaktpackrecords : tpackrecords;
         hs : string;
         defpos,storepos : tfileposinfo;
@@ -350,7 +350,7 @@ implementation
                 consume(_LECKKLAMMER);
                 { defaults }
                 arraytype:=generrordef;
-                lowval:=$80000000;
+                lowval:=longint($80000000);
                 highval:=$7fffffff;
                 tt.reset;
                 repeat
@@ -577,7 +577,19 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-11-29 00:30:38  florian
+  Revision 1.17  2000-12-07 17:19:43  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.16  2000/11/29 00:30:38  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

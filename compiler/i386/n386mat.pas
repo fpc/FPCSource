@@ -894,7 +894,7 @@ implementation
              location.loc:=LOC_MMXREGISTER;
              { prepare EDI }
              getexplicitregister32(R_EDI);
-             emit_const_reg(A_MOV,S_L,$ffffffff,R_EDI);
+             emit_const_reg(A_MOV,S_L,longint($ffffffff),R_EDI);
              { load operand }
              case left.location.loc of
                LOC_MMXREGISTER:
@@ -996,7 +996,19 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-12-05 11:44:33  jonas
+  Revision 1.9  2000-12-07 17:19:46  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.8  2000/12/05 11:44:33  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.7  2000/11/29 00:30:48  florian

@@ -28,7 +28,8 @@ interface
 
     uses
       symtype,
-      node;
+      node,
+      cpuinfo;
 
     { reads a whole expression }
     function expr : tnode;
@@ -45,7 +46,7 @@ interface
     procedure do_member_read(getaddr : boolean;const sym : psym;var p1 : tnode;
       var pd : pdef;var again : boolean);
 
-    function get_intconst:longint;
+    function get_intconst:TConstExprInt;
 
     function get_stringconst:string;
 
@@ -56,7 +57,7 @@ implementation
        cutils,cobjects,
        { global }
        globtype,globals,tokens,verbose,
-       systems,cpuinfo,widestr,
+       systems,widestr,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,types,
        { pass 1 }
@@ -1006,6 +1007,7 @@ implementation
     function factor(getaddr : boolean) : tnode;
       var
          l      : longint;
+         card   : cardinal;
          ic     : TConstExprInt;
          oldp1,
          p1,p2,p3 : tnode;
@@ -1979,39 +1981,55 @@ implementation
                  postfixoperators;
                end;
    _INTCONST : begin
-                 valint(pattern,l,code);
+                 { try cardinal first }
+                 val(pattern,card,code);
                  if code<>0 then
-                  begin
-                     { try int64 if available                          }
-                     { if no int64 available longint is tried a second }
-                     { time which doesn't hurt                         }
-                     val(pattern,ic,code);
-                     if code<>0 then
+                   begin
+                     { then longint }
+                     valint(pattern,l,code);
+                     if code <> 0 then
                        begin
-                          val(pattern,d,code);
-                          if code<>0 then
+                         { then int64 }
+                         val(pattern,ic,code);
+                         if code<>0 then
                            begin
-                              Message(cg_e_invalid_integer);
-                              consume(_INTCONST);
-                              l:=1;
-                              p1:=genordinalconstnode(l,s32bitdef);
+                              {finally float }
+                              val(pattern,d,code);
+                              if code<>0 then
+                               begin
+                                  Message(cg_e_invalid_integer);
+                                  consume(_INTCONST);
+                                  l:=1;
+                                  p1:=genordinalconstnode(l,s32bitdef);
+                               end
+                              else
+                               begin
+                                  consume(_INTCONST);
+                                  p1:=genrealconstnode(d,bestrealdef^);
+                               end;
                            end
                          else
                            begin
                               consume(_INTCONST);
-                              p1:=genrealconstnode(d,bestrealdef^);
-                           end;
+                              p1:=genordinalconstnode(ic,cs64bitdef);
+                           end
                        end
                      else
                        begin
-                          consume(_INTCONST);
-                          p1:=genordinalconstnode(ic,cs64bitdef);
-                       end;
-                  end
+                         consume(_INTCONST);
+                         p1:=genordinalconstnode(l,s32bitdef)
+                       end
+                   end
                  else
                   begin
                      consume(_INTCONST);
-                     p1:=genordinalconstnode(l,s32bitdef)
+                     { check whether the value isn't in the longint range as well }
+                     { (longint is easier to perform calculations with) (JM)      }
+                     if card <= $7fffffff then
+                       { no sign extension necessary, so not longint typecast (JM) }
+                       p1:=genordinalconstnode(card,s32bitdef)
+                     else
+                       p1:=genordinalconstnode(card,u32bitdef)
                   end;
                end;
  _REALNUMBER : begin
@@ -2350,7 +2368,7 @@ _LECKKLAMMER : begin
       end;
 
 
-    function get_intconst:longint;
+    function get_intconst:TConstExprInt;
     {Reads an expression, tries to evalute it and check if it is an integer
      constant. Then the constant is returned.}
     var
@@ -2395,7 +2413,19 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.18  2000-11-29 00:30:36  florian
+  Revision 1.19  2000-12-07 17:19:42  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.18  2000/11/29 00:30:36  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

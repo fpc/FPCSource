@@ -89,7 +89,7 @@ const
   OT_SHORT     = $00000080;
 
   OT_SIZE_MASK = $000000FF;  { all the size attributes  }
-  OT_NON_SIZE  = not OT_SIZE_MASK;
+  OT_NON_SIZE  = longint(not OT_SIZE_MASK);
 
   OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
 
@@ -167,8 +167,10 @@ const
   IF_MMX    = $00004000;  { it's an MMX instruction  }
   IF_3DNOW  = $00008000;  { it's a 3DNow! instruction  }
   IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
-  IF_PMASK  = $FF000000;  { the mask for processor types  }
-  IF_PFMASK = $F001FF00;  { the mask for disassembly "prefer"  }
+  IF_PMASK  = 
+     longint($FF000000);  { the mask for processor types  }
+  IF_PFMASK =
+     longint($F001FF00);  { the mask for disassembly "prefer"  }
   IF_8086   = $00000000;  { 8086 instruction  }
   IF_186    = $01000000;  { 186+ instruction  }
   IF_286    = $02000000;  { 286+ instruction  }
@@ -181,7 +183,8 @@ const
   IF_AMD    = $20000000;  { AMD-specific instruction  }
   { added flags }
   IF_PRE    = $40000000;  { it's a prefix instruction }
-  IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
+  IF_PASS2  =
+     longint($80000000);  { if the instruction can change in a second pass }
 
 type
   TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
@@ -916,7 +919,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:39:37  peter
+  Revision 1.2  2000-12-07 17:19:45  jonas
+    * new constant handling: from now on, hex constants >$7fffffff are
+      parsed as unsigned constants (otherwise, $80000000 got sign extended
+      and became $ffffffff80000000), all constants in the longint range
+      become longints, all constants >$7fffffff and <=cardinal($ffffffff)
+      are cardinals and the rest are int64's.
+    * added lots of longint typecast to prevent range check errors in the
+      compiler and rtl
+    * type casts of symbolic ordinal constants are now preserved
+    * fixed bug where the original resulttype wasn't restored correctly
+      after doing a 64bit rangecheck
+
+  Revision 1.1  2000/10/15 09:39:37  peter
     * moved cpu*.pas to i386/
     * renamed n386 to common cpunode
 
