@@ -157,6 +157,9 @@ type
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);                                                                                                                                                                                                                       
+
+
+
       destructor  Done; virtual;
     end;
 
@@ -581,8 +584,8 @@ var
   Count,I: integer;
 begin
   Count:=0;
-  for I:=ord(Low(TokenInfo)) to ord(High(TokenInfo)) do
-   with TokenInfo[TToken(I)] do
+  for I:=ord(Low(tToken)) to ord(High(tToken)) do
+   with TokenInfo^[TToken(I)] do
      if (str<>'') and (str[1] in['A'..'Z']) then
        Inc(Count);
   GetReservedWordCount:=Count;
@@ -595,9 +598,9 @@ var
 begin
   Idx:=-1;
   Count:=-1;
-  I:=ord(Low(TokenInfo));
-  while (I<=ord(High(TokenInfo))) and (Idx=-1) do
-   with TokenInfo[TToken(I)] do
+  I:=ord(Low(tToken));
+  while (I<=ord(High(tToken))) and (Idx=-1) do
+   with TokenInfo^[TToken(I)] do
     begin
       if (str<>'') and (str[1] in['A'..'Z']) then
         begin
@@ -610,7 +613,7 @@ begin
   if Idx=-1 then
     S:=''
   else
-    S:=TokenInfo[TToken(Idx)].str;
+    S:=TokenInfo^[TToken(Idx)].str;
   GetReservedWord:=S;
 end;
 
@@ -2354,7 +2357,10 @@ var D : DirStr;
   function SearchOnDesktop: PSourceWindow;
   var W: PWindow;
       I: integer;
-      Found: boolean;
+      DS : DirStr;
+      NS : NameStr;
+      ES : ExtStr;
+      Found : boolean; 
       SName : string;
   begin
     for I:=1 to 100 do
@@ -2366,12 +2372,13 @@ var D : DirStr;
             SName:=NameAndExtOf(PSourceWindow(W)^.Editor^.FileName)
           else
             SName:=PSourceWindow(W)^.Editor^.FileName;
-          SName:=UpcaseStr(SName);
+          FSplit(SName,DS,NS,ES);
+          SName:=UpcaseStr(NS+ES);
 
           if (E<>'') or (not tryexts) then
             begin
               if D<>'' then
-                Found:=SName=UpcaseStr(D+N+E)
+                Found:=UpCaseStr(DS)+SName=UpcaseStr(D+N+E)
               else
                 Found:=SName=UpcaseStr(N+E);
             end
@@ -2739,7 +2746,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.38  1999-08-31 16:18:33  pierre
+  Revision 1.39  1999-09-03 12:54:07  pierre
+    * adapted to modified tokens unit
+    * TryToOpen works better
+
+  Revision 1.38  1999/08/31 16:18:33  pierre
    + TGDBWindow.Load and Store + Registration
 
   Revision 1.37  1999/08/16 18:25:26  peter
