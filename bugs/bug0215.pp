@@ -4,6 +4,10 @@
 
 Program X;
 
+{$ifdef go32v2}
+  uses dpmiexcp;
+{$endif go32v2}
+
 Type
    PY=^Y;
    Y=Object
@@ -19,6 +23,7 @@ Constructor Y.Init(NewA:LongInt);
       A:=NewA;
       P:=@self;
    End;
+
 Procedure Y.StaticMethod;
    Begin
       Writeln(P^.A);    // Compiler complains about using A.
@@ -31,8 +36,17 @@ Procedure Y.StaticMethod;
                         // new snapshot.
 Procedure Y.VirtualMethod;
    Begin
-      Writeln('VirtualMethod');
+      Writeln('VirtualMethod ',A);
    End;
 
+var T1,T2 :  PY;
+
 Begin
+  New(T1,init(1));
+  New(T2,init(2));
+  T1^.VirtualMethod;
+  T2^.VirtualMethod;
+  Y.StaticMethod;
+  T1^.StaticMethod;
+  T2^.StaticMethod;
 End.

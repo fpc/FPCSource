@@ -209,6 +209,8 @@ Fixed bugs:
   bug0172.pp   with with absolute seg:ofs should not be possible OK 0.99.9 (PM)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
   bug0174.pp   Asm, offsets of fields are not possible yet           OK 0.99.9 (PFV)
+  bug0175.pp   Asm, mov word,%eax should not be allowed without casting
+               emits a warning (or error with range checking enabled)  OK 0.99.11 (PM)
   bug0176.pp   unit.symbol not allowed for implementation vars         OK 0.99.9 (PM)
   bug0177.pp   program.symbol not allowed (almost the same as bug 176) OK 0.99.9 (PM)
   bug0178.pp   problems with undefined labels and fail outside constructor OK 0.99.9 (PM)
@@ -253,6 +255,9 @@ Fixed bugs:
   bug0213.pp   name mangling problem with nested procedures in overloaded
                procedure                                            OK 0.99.11 (PM)
   bug0214.pp   bug for static methods                               OK 0.99.11 (PM)
+  bug0215.pp   more bugs with static methods                        OK 0.99.11 (PM)
+  bug0216.pp   problem with with fields as function args            OK 0.99.11 (PM)
+
 
 Unproducable bugs:
 ------------------
@@ -278,7 +283,6 @@ Unfixed bugs:
 -------------
 bug0123.pp   Asm, problem with intel assembler (shrd)
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
-bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 
 bug0185.pp   missing range checking for Val and subrange types
 bug0198.pp   calling specifications aren't allowed in class declarations,
@@ -288,4 +292,3 @@ bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
 bug0212.pp   problem with properties
-bug0215.pp   more bugs with static methods
