@@ -195,12 +195,22 @@ begin
       begin
         { Adding the column should not confuse RHIDE,
         even if it does not yet use it PM }
-        if status.use_gccoutput then
-          hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)
-              +': '+hs+tostr(status.currentcolumn)+': '
+        if status.currentcolumn>0 then
+         begin
+           if status.use_gccoutput then
+             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)
+                 +':'+tostr(status.currentcolumn)+': '+hs
+           else
+             hs:=status.currentsource+'('+tostr(status.currentline)
+                 +','+tostr(status.currentcolumn)+') '+hs;
+         end
         else
-          hs:=status.currentsource+'('+tostr(status.currentline)
-              +','+tostr(status.currentcolumn)+') '+hs;
+         begin
+           if status.use_gccoutput then
+             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs
+           else
+             hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs;
+         end;
 {$ifdef Debug}
       end
      else
@@ -241,7 +251,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-08-18 15:11:51  peter
+  Revision 1.6  1998-09-01 17:37:59  peter
+    * nicer output when column=0
+
+  Revision 1.5  1998/08/18 15:11:51  peter
     * recompiles again
 
   Revision 1.4  1998/08/18 14:17:08  pierre
