@@ -32,12 +32,25 @@ type
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
    TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
 
+   TFloatRec = Record
+      Exponent: Integer;
+      Negative: Boolean;
+      Digits: Array[0..18] Of Char;
+   End;
+   
 const
   { For floattodatetime }
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
-
-
+                      
+                
+Const
+  LeadBytes: set of Char = [];
+  EmptyStr : string = '';
+  NullStr : PString = @EmptyStr;
+      
+  EmptyWideStr : WideString = '';
+//  NullWideStr : PWideString = @EmptyWideStr;
 
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
@@ -99,7 +112,29 @@ function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean): string;
 function LastDelimiter(const Delimiters, S: string): Integer;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
+Procedure FloatToDecimal(Var Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
+Function FormatFloat(Const Format : String; Value : Extended) : String;
+Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 
+{// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.
+Type
+  TMbcsByteType = (mbSingleByte, mbLeadByte, mbTrailByte);
+  
+Function AnsiCompareFileName(const S1, S2: string): Integer;
+Function SameFileName(const S1, S2: string): Boolean;
+Function AnsiLowerCaseFileName(const S: string): string;
+Function AnsiUpperCaseFileName(const S: string): string;
+Function AnsiPos(const Substr, S: string): Integer;
+Function AnsiStrPos(Str, SubStr: PChar): PChar;
+Function AnsiStrRScan(Str: PChar; Chr: Char): PChar;
+Function AnsiStrScan(Str: PChar; Chr: Char): PChar;
+Function ByteType(const S: string; Index: Integer): TMbcsByteType;
+Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
+Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
+Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
+Function ByteToCharIndex(const S: string; Index: Integer): Integer;
+}
 {==============================================================================}
 {   extra functions                                                            }
 {==============================================================================}
@@ -110,8 +145,16 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.12  2002-09-07 16:01:22  peter
+  Revision 1.13  2002-11-28 20:29:26  michael
+  + made it compile again
+
+  Revision 1.12  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
+  Revision 1.1.2.5  2002/11/28 20:24:12  michael
+  + merged some fixes from mainbranch
+
+  Revision 1.1.2.4  2002/10/29 23:41:06  michael
+  + Added lots of D4 functions
 
   Revision 1.11  2002/01/24 18:33:58  peter
     * overload for lowercase()

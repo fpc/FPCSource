@@ -1803,6 +1803,16 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
    end ;
 end ;
 
+Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+
+begin
+  Result:=False;
+  If Index<=Length(S) then
+    Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
+end;
+        
+        
+
 Function LastDelimiter(const Delimiters, S: string): Integer;
 
 begin
@@ -1912,7 +1922,10 @@ const
 
 {
   $Log$
-  Revision 1.21  2002-11-28 20:15:37  michael
+  Revision 1.22  2002-11-28 20:29:26  michael
+  + made it compile again
+
+  Revision 1.21  2002/11/28 20:15:37  michael
   + Fixed comparestr (merge from fix)
 
   Revision 1.20  2002/09/15 17:50:35  peter
