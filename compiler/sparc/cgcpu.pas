@@ -315,6 +315,7 @@ implementation
             rgint.allocexplicitregisters(list,r);
           R_FPUREGISTER :
             rgfpu.allocexplicitregisters(list,r);
+          R_MMREGISTER :;
           else
             internalerror(200310092);
         end;
@@ -328,6 +329,7 @@ implementation
             rgint.deallocexplicitregisters(list,r);
           R_FPUREGISTER :
             rgfpu.deallocexplicitregisters(list,r);
+          R_MMREGISTER :;
           else
             internalerror(200310093);
         end;
@@ -1214,7 +1216,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-10-24 15:20:37  peter
+  Revision 1.72  2003-10-29 15:18:33  mazen
+  + added fake MM Registers support because of generic code need it.
+
+  Revision 1.71  2003/10/24 15:20:37  peter
     * added more register functions
 
   Revision 1.70  2003/10/24 11:14:46  mazen
