@@ -465,8 +465,6 @@ implementation
 
 
     function nodeppuidxget(i:longint):tnode;
-      var
-        l : longint;
       begin
         if i<0 then
           internalerror(200311072);
@@ -1128,7 +1126,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2005-03-05 16:17:30  jonas
+  Revision 1.98  2005-03-25 23:03:04  jonas
+    - removed unused variables
+
+  Revision 1.97  2005/03/05 16:17:30  jonas
     * fixed printnodelist indentation
 
   Revision 1.96  2005/02/14 17:13:06  peter

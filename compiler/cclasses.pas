@@ -1827,8 +1827,6 @@ end;
 
     function Tdictionary.search(const s:string):TNamedIndexItem;
 
-    var t:string;
-
     begin
       search:=speedsearch(s,getspeedvalue(s));
     end;
@@ -2366,7 +2364,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  2005-03-04 16:49:22  peter
+  Revision 1.44  2005-03-25 23:03:04  jonas
+    - removed unused variables
+
+  Revision 1.43  2005/03/04 16:49:22  peter
     * getheapstatus fixes
 
   Revision 1.42  2005/02/28 15:38:38  marco
