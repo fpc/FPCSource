@@ -749,10 +749,8 @@ begin
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
   if RelocSection then
-   RelocStr:='--base-file base.$$$';
-  {  Using short form to avoid problems with 128 char limitation under Dos.
-     But not all dlltool.exe support this short form
-   RelocStr:='-b base.$$$'; }
+   { Using short form to avoid problems with 128 char limitation under Dos. }
+   RelocStr:='-b base.$$$';
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -831,10 +829,8 @@ begin
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
   if RelocSection then
-   RelocStr:='--base-file base.$$$';
-  {  Using short form to avoid problems with 128 char limitation under Dos.
-     But not all dlltool.exe support this short form
-   RelocStr:='-b base.$$$'; }
+   { Using short form to avoid problems with 128 char limitation under Dos. }
+   RelocStr:='-b base.$$$';
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -1083,7 +1079,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-01-09 00:55:51  pierre
+  Revision 1.17  2000-01-11 09:52:07  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.16  2000/01/09 00:55:51  pierre
     * GROUP of smartlink units put before the C libraries
       to allow for smartlinking code that uses C code.
 

@@ -77,11 +77,12 @@ type
     procedure WriteAsmList;virtual;
   end;
 
+var
+  SmartLinkFilesCnt : longint;
+
 Procedure GenerateAsm(smart:boolean);
 Procedure OnlyAsm;
 
-var
-  SmartLinkFilesCnt : longint;
 
 Implementation
 
@@ -267,6 +268,8 @@ begin
   end;
   AsmFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.asmext);
   ObjFile:=Path+FixFileName(s+tostr(SmartLinkFilesCnt)+target_info.objext);
+  { insert in container so it can be cleared after the linking }
+  SmartLinkOFiles.Insert(Objfile);
 end;
 
 
@@ -435,13 +438,14 @@ begin
   name:=FixFileName(current_module^.modulename^);
   OutCnt:=0;
   SmartLinkFilesCnt:=0;
+  SmartLinkOFiles.Clear;
   place:=cut_normal;
   SmartAsm:=smart;
   SmartHCount:=0;
 { Which path will be used ? }
   if SmartAsm then
    begin
-     path:=current_module^.path^+FixFileName(current_module^.modulename^)+target_info.smartext;
+     path:=current_module^.outputpath^+FixFileName(current_module^.modulename^)+target_info.smartext;
      {$I-}
       mkdir(path);
      {$I+}
@@ -449,7 +453,7 @@ begin
      path:=FixPath(path,false);
    end
   else
-   path:=current_module^.path^;
+   path:=current_module^.outputpath^;
 end;
 
 
@@ -560,11 +564,15 @@ begin
   dispose(a,Done);
 end;
 
-
 end.
 {
   $Log$
-  Revision 1.59  2000-01-07 01:14:19  peter
+  Revision 1.60  2000-01-11 09:52:06  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.59  2000/01/07 01:14:19  peter
     * updated copyright to 2000
 
   Revision 1.58  1999/11/12 11:03:49  peter

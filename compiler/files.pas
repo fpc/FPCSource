@@ -206,6 +206,7 @@ unit files;
           locallibrarysearchpath : TSearchPathList;
 
           path,                     { path where the module is find/created }
+          outputpath,               { path where the .s / .o / exe are created }
           modulename,               { name of the module in uppercase }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
@@ -252,13 +253,15 @@ unit files;
        end;
 
     var
-       main_module    : pmodule;     { Main module of the program }
-       current_module : pmodule;     { Current module which is compiled or loaded }
-       compiled_module : pmodule;     { Current module which is compiled }
-       current_ppu    : pppufile;    { Current ppufile which is read }
+       main_module       : pmodule;     { Main module of the program }
+       current_module    : pmodule;     { Current module which is compiled or loaded }
+       compiled_module   : pmodule;     { Current module which is compiled }
+       current_ppu       : pppufile;    { Current ppufile which is read }
        global_unit_count : word;
-       usedunits      : tlinkedlist; { Used units for this program }
-       loaded_units   : tlinkedlist; { All loaded units }
+       usedunits         : tlinkedlist; { Used units for this program }
+       loaded_units      : tlinkedlist; { All loaded units }
+       SmartLinkOFiles   : TStringContainer; { List of .o files which are generated,
+                                               used to delete them after linking }
 
   function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
@@ -811,6 +814,7 @@ end;
          stringdispose(staticlibfilename);
          stringdispose(sharedlibfilename);
          stringdispose(exefilename);
+         stringdispose(outputpath);
          stringdispose(path);
          { Create names }
          fsplit(fn,p,n,e);
@@ -827,6 +831,7 @@ end;
              if (OutputExeDir<>'') then
               p:=OutputExeDir;
           end;
+         outputpath:=stringdup(p);
          objfilename:=stringdup(p+n+target_info.objext);
          asmfilename:=stringdup(p+n+target_info.asmext);
          ppufilename:=stringdup(p+n+target_info.unitext);
@@ -1186,6 +1191,7 @@ end;
 {$else}
         asmprefix:=stringdup(FixFileName(n));
 {$endif}
+        outputpath:=nil;
         path:=nil;
         setfilename(p+n,true);
         localunitsearchpath.init;
@@ -1273,6 +1279,7 @@ end;
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);
+        stringdispose(outputpath);
         stringdispose(path);
         stringdispose(modulename);
         stringdispose(mainsource);
@@ -1348,7 +1355,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.112  2000-01-07 01:14:27  peter
+  Revision 1.113  2000-01-11 09:52:06  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.112  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.111  1999/12/08 01:01:11  peter

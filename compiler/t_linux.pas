@@ -310,6 +310,7 @@ begin
   s:=librarysearchpath.FindFile('crtn.o',found)+'crtn.o';
   if found then
    LinkRes.AddFileName(s);
+  LinkRes.Add(')');
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -325,29 +326,32 @@ begin
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  While not SharedLibFiles.Empty do
+  if not SharedLibFiles.Empty then
    begin
-     S:=SharedLibFiles.Get;
-     if s<>'c' then
+     LinkRes.Add('INPUT(');
+     While not SharedLibFiles.Empty do
       begin
-        i:=Pos(target_os.sharedlibext,S);
-        if i>0 then
-         Delete(S,i,255);
-        LinkRes.Add('-l'+s);
-      end
-     else
-      begin
-        linklibc:=true;
-        linkdynamic:=false; { libc will include the ld-linux for us }
+        S:=SharedLibFiles.Get;
+        if s<>'c' then
+         begin
+           i:=Pos(target_os.sharedlibext,S);
+           if i>0 then
+            Delete(S,i,255);
+           LinkRes.Add('-l'+s);
+         end
+        else
+         begin
+           linklibc:=true;
+           linkdynamic:=false; { libc will include the ld-linux for us }
+         end;
       end;
+     { be sure that libc is the last lib }
+     if linklibc then
+      LinkRes.Add('-lc');
+     if linkdynamic and (Info.DynamicLinker<>'') then
+      LinkRes.AddFileName(Info.DynamicLinker);
+     LinkRes.Add(')');
    end;
-  { be sure that libc is the last lib }
-  if linklibc then
-   LinkRes.Add('-lc');
-  if linkdynamic and (Info.DynamicLinker<>'') then
-   LinkRes.AddFileName(Info.DynamicLinker);
-  LinkRes.Add(')');
-
 { Write and Close response }
   linkres.writetodisk;
   linkres.done;
@@ -435,7 +439,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-01-09 00:55:51  pierre
+  Revision 1.8  2000-01-11 09:52:07  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.7  2000/01/09 00:55:51  pierre
     * GROUP of smartlink units put before the C libraries
       to allow for smartlinking code that uses C code.
 

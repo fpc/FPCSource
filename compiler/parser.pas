@@ -116,6 +116,9 @@ unit parser;
 
          { open deffile }
          DefFile.Init(outputexedir+inputfile+target_os.defext);
+
+         { list of generated .o files, so the linker can remove them }
+         SmartLinkOFiles.init;
       end;
 
 
@@ -125,9 +128,12 @@ unit parser;
          loaded_units.done;
          usedunits.done;
 
-         { close ppas and deffile }
+         { close ppas,deffile }
          asmres.done;
          deffile.done;
+
+         { free list of .o files }
+         SmartLinkOFiles.done;
       end;
 
 
@@ -581,7 +587,12 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.96  2000-01-07 01:14:28  peter
+  Revision 1.97  2000-01-11 09:52:06  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.96  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.95  2000/01/04 15:15:52  florian

@@ -76,7 +76,7 @@ unit pmodules;
 
            GenerateAsm(true);
            if target_asm.needar then
-             Linker^.MakeStaticLibrary(SmartLinkFilesCnt);
+             Linker^.MakeStaticLibrary;
          end;
 
         { resource files }
@@ -1561,7 +1561,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.178  2000-01-07 01:14:29  peter
+  Revision 1.179  2000-01-11 09:52:07  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.178  2000/01/07 01:14:29  peter
     * updated copyright to 2000
 
   Revision 1.177  1999/12/20 22:29:26  pierre

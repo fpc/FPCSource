@@ -63,7 +63,7 @@ Type
        procedure SetDefaultInfo;virtual;
        Function  MakeExecutable:boolean;virtual;
        Function  MakeSharedLibrary:boolean;virtual;
-       Function  MakeStaticLibrary(filescnt:longint):boolean;virtual;
+       Function  MakeStaticLibrary:boolean;virtual;
      end;
 
 Var
@@ -173,7 +173,16 @@ begin
            if (cs_link_static in aktglobalswitches) then
             begin
               if (flags and uf_static_linked)=0 then
-                Comment(V_Error,'unit '+modulename^+' can''t be static linked')
+               begin
+                 { if smart not avail then try static linking }
+                 if (flags and uf_static_linked)<>0 then
+                  begin
+                    Comment(V_Hint,'unit '+modulename^+' can''t be static linked, switching to smart linking');
+                    mask:=mask or link_smart;
+                  end
+                 else
+                  Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+               end
               else
                 mask:=mask or link_static;
             end;
@@ -185,7 +194,7 @@ begin
                  { if smart not avail then try static linking }
                  if (flags and uf_static_linked)<>0 then
                   begin
-                    Comment(V_Warning,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                    Comment(V_Hint,'unit '+modulename^+' can''t be smart linked, switching to static linking');
                     mask:=mask or link_static;
                   end
                  else
@@ -202,7 +211,7 @@ begin
                  { if shared not avail then try static linking }
                  if (flags and uf_static_linked)<>0 then
                   begin
-                    Comment(V_Warning,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                    Comment(V_Hint,'unit '+modulename^+' can''t be shared linked, switching to static linking');
                     mask:=mask or link_static;
                   end
                  else
@@ -412,11 +421,7 @@ begin
 end;
 
 
-Function TLinker.MakeStaticLibrary(filescnt:longint):boolean;
-{
-  FilesCnt holds the amount of .o files created, if filescnt=0 then
-  no smartlinking is used
-}
+Function TLinker.MakeStaticLibrary:boolean;
 var
   smartpath,
   cmdstr,
@@ -426,38 +431,24 @@ var
 begin
   MakeStaticLibrary:=false;
 
-  smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext,false);
+  smartpath:=current_module^.outputpath^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   Replace(cmdstr,'$LIB',current_module^.staticlibfilename^);
-  if filescnt=0 then
-    Replace(cmdstr,'$FILES',current_module^.objfilename^)
-  else
-    Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
+  Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
   success:=DoExec(FindUtil(binstr),cmdstr,false,true);
 
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
     begin
-      if filescnt=0 then
-       RemoveFile(current_module^.objfilename^)
-      else
-       begin
-         for cnt:=1 to filescnt do
-          if not RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+tostr(cnt)+target_info.objext)) then
-           RemoveFile(FixFileName(smartpath+current_module^.asmprefix^+'e'+tostr(cnt)+target_info.objext));
-         RemoveDir(smartpath);
-       end;
+      while not SmartLinkOFiles.Empty do
+       RemoveFile(SmartLinkOFiles.Get);
+      RemoveDir(smartpath);
     end
    else
     begin
-      if filescnt=0 then
-       AsmRes.AddDeleteCommand(current_module^.objfilename^)
-      else
-       begin
-         AsmRes.AddDeleteCommand(smartpath+current_module^.asmprefix^+'*'+target_info.objext);
-         AsmRes.Add('rmdir '+smartpath);
-       end;
+      AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
+      AsmRes.Add('rmdir '+smartpath);
     end;
   MakeStaticLibrary:=success;
 end;
@@ -530,7 +521,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.79  2000-01-07 01:14:27  peter
+  Revision 1.80  2000-01-11 09:52:06  peter
+    * fixed placing of .sl directories
+    * use -b again for base-file selection
+    * fixed group writing for linux with smartlinking
+
+  Revision 1.79  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.78  1999/11/22 22:22:30  pierre
