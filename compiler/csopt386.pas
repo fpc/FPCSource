@@ -796,7 +796,7 @@ begin
       If RegLoadedWithNewValue(newReg,true,endP) then
          GetLastInstruction(endP,hp)
       else hp := endP;
-      if (p <> endp) or
+      if (p <> endp) or 
          not RegLoadedWithNewValue(newReg,true,endP) then
         RestoreRegContentsTo(newReg, c ,p, hp);
 { In both case a and b, it is possible that the new register was modified   }
@@ -1082,13 +1082,14 @@ Begin
                     top_Reg:
                       { try to replace the new reg with the old reg }
                       if (paicpu(p)^.opcode = A_MOV) and
-                         getLastInstruction(p,hp4) then
+                         getLastInstruction(p,hp4) and
+                         getNextInstruction(p,hp3) then
                         begin
                           Case paicpu(p)^.oper[1].typ of
                             top_Reg:
                               if ReplaceReg(paicpu(p)^.oper[0].reg,
-                                   paicpu(p)^.oper[1].reg,p,
-                                   PPaiProp(hp4^.optInfo)^.Regs[regCounter],false,hp1) then
+                                   paicpu(p)^.oper[1].reg,hp3,
+                                   PPaiProp(hp4^.optInfo)^.Regs[paicpu(p)^.oper[1].reg],false,hp1) then
                                 begin
                                   PPaiProp(p^.optInfo)^.canBeRemoved := true;
                                   allocRegBetween(asmL,paicpu(p)^.oper[0].reg,
@@ -1192,7 +1193,11 @@ End.
 
 {
  $Log$
- Revision 1.47  2000-02-10 16:04:43  jonas
+ Revision 1.48  2000-02-11 23:50:03  jonas
+   * fixed crashing bug under Dos with -dnewoptimizations (found it,
+     John!). Don't understand why it didn't crash under Linux :(
+
+ Revision 1.47  2000/02/10 16:04:43  jonas
    * fixed stupid typo!
 
  Revision 1.46  2000/02/10 15:07:41  jonas
