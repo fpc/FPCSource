@@ -329,19 +329,32 @@ cvstest:
 .PHONY: quickinstall install installsym
 
 MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+override FPCEXEFILE:=$(wildcard $(FPCEXE))
+override PPEXEFILE:=$(wildcard $(EXENAME))
 
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
         $(MKDIR) $(BININSTALLDIR)
+# Install fpc.exe
+ifneq ($(FPCEXEFILE),)
+ifdef UPXPROG
+        -$(UPXPROG) $(FPCEXEFILE)
+endif
+        $(MKDIR) $(BININSTALLDIR)
+        $(INSTALLEXE) $(FPCEXEFILE) $(BININSTALLDIR)
+endif
+# Install ppc386.exe
+ifneq ($(PPEXEFILE),)
 ifdef UPXPROG
         -$(UPXPROG) $(EXENAME)
 endif
-        $(INSTALLEXE) $(FPCEXE) $(BININSTALLDIR)
 ifdef UNIXINSTALLDIR
         $(MKDIR) $(BASEINSTALLDIR)
         $(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
 else
+        $(MKDIR) $(BININSTALLDIR)
         $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
+endif
 endif
 
 install: quickinstall
