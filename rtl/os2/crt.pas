@@ -272,11 +272,11 @@ var row,left,right,bot:longint;
 
 begin
     row:=whereY;
-    left:=lo(windmin)+1;
-    right:=lo(windmax)+1;
+    left:=lo(windmin);
+    right:=lo(windmax);
     bot:=hi(windmax)+1;
     fil:=$20 or (textattr shl 8);
-    scroll_up(row+1,left,bot,right,1,fil);
+    scroll_up(row-1,left,bot,right,1,fil);
 end;
 
 procedure insline;
@@ -386,7 +386,7 @@ begin
   begin
     case s[i] of
       #7: DosBeep (800, 250);
-      #8: if x > Lo (WindMin) then Dec (X);
+      #8: if X > Succ (Lo (WindMin)) then Dec (X);
 {      #9: x:=(x-lo(windmin)) and $fff8+8+lo(windmin);}
       #10: inc(y);
       #13: x:=lo(windmin);
@@ -613,7 +613,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2005-03-30 22:11:55  hajny
+  Revision 1.10  2005-03-30 22:40:25  hajny
+    * fix for 3792
+
+  Revision 1.9  2005/03/30 22:11:55  hajny
     * patch from Sterling Bates for bug 3762 (with additional enhancements for better compatibility)
 
   Revision 1.8  2005/02/14 17:13:31  peter
