@@ -552,6 +552,8 @@ Begin
   FtpDir:=FtpDir(ShortHost, ShortUserId, ShortPasswd, ShortAcct, Local, Pattern);
 End;
 
+Function FtpLs(Host, Userid, Passwd, Acct, Local, Pattern: PChar): Integer; cdecl;
+    external FTPAPIDLL index 7;
 
 Function FtpLs(Host, Userid, Passwd, Acct, Local, Pattern: String): Integer;
 Var
@@ -652,9 +654,6 @@ End;
 
 Procedure FtpLogoff; cdecl;
     external FTPAPIDLL index 6;
-
-Function FtpLs(Host, Userid, Passwd, Acct, Local, Pattern: PChar): Integer; cdecl;
-    external FTPAPIDLL index 7;
 
 Function FtpMkd(Host, Userid, Passwd, Acct, Dir: PChar): Integer; cdecl;
     external FTPAPIDLL index 8;
@@ -1184,7 +1183,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2002-10-25 06:53:51  hajny
+  Revision 1.3  2004-11-28 16:16:25  hajny
+    * workaround for IE200411171
+
+  Revision 1.2  2002/10/25 06:53:51  hajny
     * ftpapi corrections
 
   Revision 1.1  2002/10/21 21:43:08  hajny
