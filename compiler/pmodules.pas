@@ -38,7 +38,7 @@ unit pmodules;
     uses
        cobjects,verbose,comphook,systems,globals,
        symtable,aasm,hcodegen,
-       link,assemble,import
+       link,assemble,import,gendef
 {$ifndef OLDPPU}
        ,ppu
 {$endif OLDPPU}
@@ -50,15 +50,36 @@ unit pmodules;
 {$endif}
        ,scanner,pbase,psystem,pdecl,psub,parser;
 
-
-    procedure setlinkerfile;
+    procedure create_objectfile;
       begin
-      { Add Object File }
-        if (cs_smartlink in aktmoduleswitches) then
-          current_module^.linkstaticlibs.insert(current_module^.libfilename^)
+        { create the .s file and assemble it }
+        GenerateAsm;
+
+        { When creating a library call the linker. And insert the output
+          of the linker files }
+        if (cs_create_staticlib in aktmoduleswitches) then
+         Linker.MakeStaticLibrary(SmartLinkFilesCnt)
+        else
+         if (cs_create_sharedlib in aktmoduleswitches) then
+          Linker.MakeSharedLibrary;
+        { add the files for the linker from current_module }
+        Linker.AddModuleFiles(current_module);
+      end;
+
+
+    procedure insertobjectfile;
+    { Insert the used object file for this unit in the used list for this unit }
+      begin
+        if (cs_create_staticlib in aktmoduleswitches) then
+         current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^)
+        else
+         if (cs_create_sharedlib in aktmoduleswitches) then
+          current_module^.linksharedlibs.insert(current_module^.sharedlibfilename^)
         else
           current_module^.linkofiles.insert(current_module^.objfilename^);
       end;
+
+
 
 
     procedure insertsegment;
@@ -88,6 +109,7 @@ unit pmodules;
         fixseg(bsssegment,sec_bss);
         fixseg(consts,sec_data);
       end;
+
 
     procedure insertheap;
       begin
@@ -265,7 +287,7 @@ unit pmodules;
            begin
            { only reassemble ? }
              if (current_module^.do_assemble) then
-              OnlyAsm(current_module^.asmfilename^);
+              OnlyAsm;
            { add the files for the linker }
              Linker.AddModuleFiles(current_module);
            end;
@@ -814,16 +836,7 @@ unit pmodules;
 
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
-           begin
-              loaded_units.insert(current_module);
-              if cs_createlib in initmoduleswitches then
-                begin
-                current_module^.flags:=current_module^.flags or uf_in_library;
-                if cs_shared_lib in initmoduleswitches then
-                  current_module^.flags:=current_module^.flags or uf_shared_library;
-                end;
-           end;
-
+           loaded_units.insert(current_module);
 
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in aktmoduleswitches) then
@@ -971,9 +984,6 @@ unit pmodules;
 {$endif dummy}
          consume(POINT);
 
-         { add files which need to be linked }
-         setlinkerfile;
-
          { size of the static data }
          datasize:=symtablestack^.datasize;
 
@@ -983,12 +993,12 @@ unit pmodules;
 {$ifdef GDB}
          { add all used definitions even for implementation}
          if (cs_debuginfo in aktmoduleswitches) then
-            begin
-                  { all types }
-                  punitsymtable(symtablestack)^.concattypestabto(debuglist);
-                  { and all local symbols}
-                  symtablestack^.concatstabto(debuglist);
-            end;
+          begin
+            { all types }
+            punitsymtable(symtablestack)^.concattypestabto(debuglist);
+            { and all local symbols}
+            symtablestack^.concatstabto(debuglist);
+          end;
 {$endif GDB}
 
          current_module^.in_implementation:=false;
@@ -1000,6 +1010,10 @@ unit pmodules;
          symtablestack^.check_forwards;
          symtablestack^.symtabletype:=unitsymtable;
          punitsymtable(symtablestack)^.is_stab_written:=false;
+
+         { insert own objectfile }
+         insertobjectfile;
+        
 
          {Write out the unit if the compile was succesfull.}
          if status.errorcount=0 then
@@ -1013,12 +1027,21 @@ unit pmodules;
            end;
          inc(datasize,symtablestack^.datasize);
 
+         { leave when we got an error }
+         if status.errorcount>0 then
+          exit;
+        
+
          { generate imports }
          if current_module^.uses_imports then
           importlib^.generatelib;
 
          { finish asmlist by adding segment starts }
          insertsegment;
+        
+
+         { assemble }
+         create_objectfile;
       end;
 
 
@@ -1122,7 +1145,10 @@ unit pmodules;
 
          consume(POINT);
 
-         setlinkerfile;
+         { leave when we got an error }
+         if status.errorcount>0 then
+          exit;
+        
 
          { insert heap }
          insertheap;
@@ -1137,12 +1163,32 @@ unit pmodules;
 
          { finish asmlist by adding segment starts }
          insertsegment;
+
+         { insert own objectfile }
+         insertobjectfile;
+        
+
+         { assemble and link }
+         create_objectfile;
+                
+
+         { create the executable when we are at level 1 }
+         if (compile_level=1) then
+          begin
+            if (cs_link_deffile in aktglobalswitches) then
+             deffile.writefile;
+            if (not current_module^.is_unit) then
+             Linker.MakeExecutable;
+          end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.39  1998-08-14 21:56:37  peter
+  Revision 1.40  1998-08-17 09:17:50  peter
+    * static/shared linking updates
+
+  Revision 1.39  1998/08/14 21:56:37  peter
     * setting the outputfile using -o works now to create static libs
 
   Revision 1.38  1998/08/10 14:50:13  peter

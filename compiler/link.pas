@@ -46,12 +46,12 @@ Type
        function  FindLibraryFile(s:string;const ext:string) : string;
        Procedure AddObject(const S : String);
        Procedure AddStaticLibrary(const S : String);
-       Procedure AddSharedLibrary(const S : String);
+       Procedure AddSharedLibrary(S : String);
        Function  FindLinker:String;      { Find linker, sets Name }
        Function  DoExec(const command,para:string;info,useshell:boolean):boolean;
        Function  WriteResponseFile:Boolean;
        Function  MakeExecutable:boolean;
-       Procedure MakeStaticLibrary(const path:string;filescnt:longint);
+       Procedure MakeStaticLibrary(filescnt:longint);
        Procedure MakeSharedLibrary;
      end;
      PLinker=^TLinker;
@@ -191,8 +191,17 @@ begin
 end;
 
 
-Procedure TLinker.AddSharedLibrary(const S:String);
+Procedure TLinker.AddSharedLibrary(S:String);
 begin
+{ remove prefix 'lib' }
+  if Copy(s,1,length(target_os.libprefix))=target_os.libprefix then
+   Delete(s,1,length(target_os.libprefix));
+{ remove extension if any }
+
+  if Copy(s,length(s)-length(target_os.sharedlibext)+1,length(target_os.sharedlibext))=target_os.sharedlibext then
+   Delete(s,length(s)-length(target_os.sharedlibext)+1,length(target_os.sharedlibext)+1);
+{ ready to be inserted }
+
   SharedLibFiles.Insert (S);
 end;
 
@@ -232,7 +241,7 @@ begin
   if cs_link_extern in aktglobalswitches then
    begin
      if info then
-      AsmRes.AddLinkCommand(Command,Para,current_module^.libfilename^)
+      AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^)
      else
       AsmRes.AddLinkCommand(Command,Para,'');
    end;
@@ -291,7 +300,7 @@ begin
 { Fix command line options }
   If not SharedLibFiles.Empty then
    LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
-  if Strip then
+  if Strip and not(cs_debuginfo in aktmoduleswitches) then
    LinkOptions:=LinkOptions+target_link.stripopt;
 
 { Open linkresponse and write header }
@@ -376,9 +385,7 @@ function TLinker.MakeExecutable:boolean;
 var
   bindbin    : string[80];
   bindfound  : boolean;
-  i          : longint;
   s          : string;
-  dummy      : file;
   success    : boolean;
 begin
 {$ifdef linux}
@@ -419,26 +426,27 @@ begin
    end;
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
-   begin
-     assign(dummy,LinkResName);
-     {$I-}
-      erase(dummy);
-     {$I+}
-     i:=ioresult;
-   end;
+   RemoveFile(LinkResName);
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
 
-Procedure TLinker.MakeStaticLibrary(const path:string;filescnt:longint);
+Procedure TLinker.MakeStaticLibrary(filescnt:longint);
+{
+  FilesCnt holds the amount of .o files created, if filescnt=0 then
+  no smartlinking is used
+}
 var
+  smartpath,
   s,
   arbin   : string;
   arfound : boolean;
   cnt     : longint;
   i       : word;
-  f       : file;
 begin
+  smartpath:=current_module^.path^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext);
+{ find ar binary }
+
   arbin:=FindExe(target_ar.arbin,arfound);
   if (not arfound) and not(cs_link_extern in aktglobalswitches) then
    begin
@@ -446,38 +454,51 @@ begin
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
   s:=target_ar.arcmd;
-  Replace(s,'$LIB',current_module^.libfilename^);
-  Replace(s,'$FILES',FixPath(path)+current_module^.asmprefix^+'*'+target_info.objext);
+  Replace(s,'$LIB',current_module^.staticlibfilename^);
+  if filescnt=0 then
+   Replace(s,'$FILES',current_module^.objfilename^)
+  else
+
+   Replace(s,'$FILES',smartpath+current_module^.asmprefix^+'*'+target_info.objext);
   DoExec(arbin,s,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) and not(cs_link_extern in aktglobalswitches) then
    begin
-     for cnt:=1to filescnt do
+     if filescnt=0 then
+      RemoveFile(current_module^.objfilename^)
+     else
       begin
-        assign(f,FixPath(path)+current_module^.asmprefix^+tostr(cnt)+target_info.objext);
+
+        for cnt:=1 to filescnt do
+         RemoveFile(smartpath+current_module^.asmprefix^+tostr(cnt)+target_info.objext);
         {$I-}
-         erase(f);
+         rmdir(smartpath);
         {$I+}
         i:=ioresult;
-      end;
-     {$I-}
-      rmdir(path);
-     {$I+}
-     i:=ioresult;
+      end;      
    end;
 end;
 
 
 Procedure TLinker.MakeSharedLibrary;
+var
+  s : string;
 begin
-  DoExec(FindLinker,' -shared -o '+current_module^.libfilename^+' link.res',false,false);
+  s:=' -shared -o $LIB $FILES';
+  Replace(s,'$LIB',current_module^.sharedlibfilename^);
+  Replace(s,'$FILES',current_module^.objfilename^);
+  if DoExec(FindLinker,s,false,false) then
+   RemoveFile(current_module^.objfilename^);
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.18  1998-08-14 21:56:34  peter
+  Revision 1.19  1998-08-17 09:17:47  peter
+    * static/shared linking updates
+
+  Revision 1.18  1998/08/14 21:56:34  peter
     * setting the outputfile using -o works now to create static libs
 
   Revision 1.17  1998/08/14 18:16:08  peter

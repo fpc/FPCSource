@@ -180,12 +180,20 @@
        { create unit flags }
          with Current_Module^ do
           begin
-            if cs_smartlink in aktmoduleswitches then
+            if cs_create_staticlib in aktmoduleswitches then
              begin
-               flags:=flags or uf_smartlink;
-               if SplitName(ppufilename^)<>SplitName(libfilename^) then
+               flags:=flags or uf_static_linked;
+               if SplitName(ppufilename^)<>SplitName(staticlibfilename^) then
                  flags:=flags or uf_in_library;
              end;
+            if cs_create_sharedlib in aktmoduleswitches then
+             begin
+               flags:=flags or uf_shared_linked;
+               if SplitName(ppufilename^)<>SplitName(sharedlibfilename^) then
+                 flags:=flags or uf_in_library;
+             end;
+            if cs_smartlink in aktmoduleswitches then
+             flags:=flags or uf_smartlink;
             if use_dbx then
              flags:=flags or uf_has_dbx;
             if target_os.endian=en_big_endian then
@@ -315,7 +323,7 @@
     procedure readsourcefiles;
       var
         temp,hs       : string;
-        incfile_found : boolean;
+{        incfile_found : boolean; }
         ppufiletime,
         source_time   : longint;
 {$ifdef UseBrowser}
@@ -344,18 +352,23 @@
             begin
               { check the date of the source files }
               Source_Time:=GetNamedFileTime(current_module^.path^+hs);
-              if Source_Time=-1 then
+              { search for include files in the includepathlist, this
+                can't be done, becuase a .inc file with the same name as
+                used by a unit will cause the unit to recompile which is
+                not the intention (PFV) }
+            { if Source_Time=-1 then
                 begin
-                { search for include files in the includepathlist }
                   temp:=search(hs,includesearchpath,incfile_found);
                   if incfile_found then
                    begin
                      hs:=temp+hs;
                      Source_Time:=GetNamedFileTime(hs);
                    end;
+
                 end
-              else
-                hs:=current_module^.path^+hs;
+
+              else }
+              hs:=current_module^.path^+hs;
               if Source_Time=-1 then
                begin
                  current_module^.sources_avail:=false;
@@ -697,7 +710,10 @@
 
 {
   $Log$
-  Revision 1.11  1998-08-16 20:32:49  peter
+  Revision 1.12  1998-08-17 09:17:53  peter
+    * static/shared linking updates
+
+  Revision 1.11  1998/08/16 20:32:49  peter
     * crcs of used units are not important for the current crc, reduces the
       amount of recompiles
 

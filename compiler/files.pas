@@ -126,7 +126,8 @@ unit files;
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
-          libfilename,              { fullname of the libraryfile/exefile }
+          staticlibfilename,        { fullname of the static libraryfile }
+          sharedlibfilename,        { fullname of the shared libraryfile }
           exefilename,              { fullname of the exefile }
           asmprefix,                { prefix for the smartlink asmfiles }
           mainsource    : pstring;  { name of the main sourcefile }
@@ -229,13 +230,13 @@ unit files;
 
        { unit flags }
        uf_init           = $1;
-       uf_has_dbx        = $2;
-       uf_has_browser    = $4;
-       uf_in_library     = $8;
-       uf_shared_library = $10;
-       uf_big_endian     = $20;
-       uf_smartlink      = $40;
-       uf_finalize       = $80;
+       uf_finalize       = $2;
+       uf_big_endian     = $4;
+       uf_has_dbx        = $8;
+       uf_has_browser    = $10;
+       uf_in_library     = $20;
+       uf_static_library = $40;
+       uf_shared_library = $80;
 {$endif}
 
     var
@@ -410,7 +411,8 @@ unit files;
          stringdispose(objfilename);
          stringdispose(asmfilename);
          stringdispose(ppufilename);
-         stringdispose(libfilename);
+         stringdispose(staticlibfilename);
+         stringdispose(sharedlibfilename);
          stringdispose(exefilename);
          stringdispose(path);
          fsplit(fn,p,n,e);
@@ -422,7 +424,8 @@ unit files;
          { lib and exe could be loaded with a file specified with -o }
          if OutputFile<>'' then
           s:=OutputFile;
-         libfilename:=stringdup(s+target_os.staticlibext);
+         staticlibfilename:=stringdup(target_os.libprefix+s+target_os.staticlibext);
+         sharedlibfilename:=stringdup(target_os.libprefix+s+target_os.sharedlibext);
          exefilename:=stringdup(s+target_os.exeext);
       end;
 
@@ -489,12 +492,19 @@ unit files;
         do_compile:=false;
         if (flags and uf_in_library)=0 then
          begin
-           if (flags and uf_smartlink)<>0 then
+           if (flags and uf_static_linked)<>0 then
             begin
-              objfiletime:=getnamedfiletime(libfilename^);
+              objfiletime:=getnamedfiletime(staticlibfilename^);
               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
                 do_compile:=true;
             end
+           else
+            if (flags and uf_shared_linked)<>0 then
+             begin
+               objfiletime:=getnamedfiletime(sharedlibfilename^);
+               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
+                do_compile:=true;
+             end
            else
             begin
             { the objectfile should be newer than the ppu file }
@@ -548,7 +558,7 @@ unit files;
            singlepathstring:=FixPath(copy(unitpath,start,i-start));
            delete(unitpath,start,i-start+1);
          { Check for PPL file }
-           if not (cs_link_static in aktglobalswitches) then
+           if not Found then
             begin
               Found:=UnitExists(target_info.unitlibext);
               if Found then
@@ -558,7 +568,7 @@ unit files;
                End;
              end;
          { Check for PPU file }
-           if not (cs_link_dynamic in aktglobalswitches) and not Found then
+           if not Found then
             begin
               Found:=UnitExists(target_info.unitext);
               if Found then
@@ -869,14 +879,15 @@ unit files;
          ppufilename:=nil;
          objfilename:=nil;
          asmfilename:=nil;
-         libfilename:=nil;
+         staticlibfilename:=nil;
+         sharedlibfilename:=nil;
          exefilename:=nil;
          { go32v2 has the famous 8.3 limit ;) }
 {$ifdef go32v2}
          asmprefix:=stringdup('as');
 {$else}
          asmprefix:=stringdup(Lower(n));
-{$endif}        
+{$endif}
 
          path:=nil;
          setfilename(p+n);
@@ -933,7 +944,8 @@ unit files;
         stringdispose(objfilename);
         stringdispose(asmfilename);
         stringdispose(ppufilename);
-        stringdispose(libfilename);
+        stringdispose(staticlibfilename);
+        stringdispose(sharedlibfilename);
         stringdispose(exefilename);
         stringdispose(path);
         stringdispose(modulename);
@@ -1024,7 +1036,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.34  1998-08-14 21:56:31  peter
+  Revision 1.35  1998-08-17 09:17:44  peter
+    * static/shared linking updates
+
+  Revision 1.34  1998/08/14 21:56:31  peter
     * setting the outputfile using -o works now to create static libs
 
   Revision 1.33  1998/08/11 14:09:08  peter

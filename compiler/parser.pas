@@ -132,9 +132,7 @@ unit parser;
          oldaktoutputformat : tasm;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
-
-      label
-         done;
+        
 
       begin
          inc(compile_level);
@@ -252,45 +250,21 @@ unit parser;
          { reset lexical level }
          lexlevel:=0;
 
-         { parse source }
+         { If the compile level > 1 we get a nice "unit expected" error
+           message if we are trying to use a program as unit.}
          if (token=_UNIT) or (compile_level>1) then
            begin
              current_module^.is_unit:=true;
-           { If the compile level > 1 we get a nice "unit expected" error
-             message if we are trying to use a program as unit.}
              proc_unit;
-             if current_module^.compiled then
-               goto done;
            end
          else
-           begin
-             proc_program(token=_LIBRARY);
-           end;
+           proc_program(token=_LIBRARY);
+        
 
-         if status.errorcount=0 then
-           begin
-             GenerateAsm(filename);
-
-             if (cs_smartlink in aktmoduleswitches) then
-               Linker.MakeStaticLibrary(SmartLinkPath(FileName),SmartLinkFilesCnt);
-
-           { add the files for the linker from current_module, this must be
-             after the makestaticlibrary, because it will add the library
-             name (PFV) }
-             Linker.AddModuleFiles(current_module);
-
-           { Check linking  => we are at first level in compile }
-             if (compile_level=1) then
-              begin
-                if (cs_link_deffile in aktglobalswitches) then
-                 deffile.writefile;
-                if (not current_module^.is_unit) then
-                 Linker.MakeExecutable;
-              end;
-           end
-         else
+         if status.errorcount>0 then
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
-done:
+        
+
          { clear memory }
 {$ifdef Splitheap}
          if testsplit then
@@ -398,7 +372,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.36  1998-08-14 21:56:36  peter
+  Revision 1.37  1998-08-17 09:17:49  peter
+    * static/shared linking updates
+
+  Revision 1.36  1998/08/14 21:56:36  peter
     * setting the outputfile using -o works now to create static libs
 
   Revision 1.35  1998/08/12 19:22:09  peter

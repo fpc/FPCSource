@@ -31,25 +31,24 @@ const
 {$ifdef tp}
   AsmOutSize=1024;
 {$else}
-  AsmOutSize=10000;
+  AsmOutSize=32768;
 {$endif}
 
 type
   PAsmList=^TAsmList;
   TAsmList=object
   {filenames}
-    path     : dirstr;
+    path     : pathstr;
     name     : namestr;
-    asmfile,
+    asmfile,             { current .s and .o file }
     objfile,
-    srcfile,
     as_bin   : string;
   {outfile}
     AsmSize,
     outcnt   : longint;
     outbuf   : array[0..AsmOutSize-1] of char;
     outfile  : file;
-    Constructor Init(const fn:string);
+    Constructor Init;
     Destructor Done;
     Function  FindAssembler:string;
     Function  CallAssembler(const command,para:string):Boolean;
@@ -67,12 +66,11 @@ type
     procedure WriteAsmList;virtual;
   end;
 
-Procedure GenerateAsm(const fn:string);
-Procedure OnlyAsm(const fn:string);
+Procedure GenerateAsm;
+Procedure OnlyAsm;
 
 var
   SmartLinkFilesCnt : longint;
-Function SmartLinkPath(const s:string):string;
 
 Implementation
 
@@ -106,20 +104,6 @@ uses
 {$endif}
   ;
 
-
-{*****************************************************************************
-                               SmartLink Helpers
-*****************************************************************************}
-
-Function SmartLinkPath(const s:string):string;
-var
-    p : dirstr;
-    n : namestr;
-    e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SmartLinkPath:=FixFileName(n+target_info.smartext);
-end;
 
 {*****************************************************************************
                                   TAsmList
@@ -191,10 +175,10 @@ begin
   if cs_asm_leave in aktglobalswitches then
    exit;
   if cs_asm_extern in aktglobalswitches then
-   AsmRes.AddDeleteCommand(asmfile)
+   AsmRes.AddDeleteCommand(AsmFile)
   else
    begin
-     assign(g,asmfile);
+     assign(g,AsmFile);
      {$I-}
       erase(g);
      {$I+}
@@ -364,28 +348,29 @@ begin
 end;
 
 
-Constructor TAsmList.Init(const fn:string);
+Constructor TAsmList.Init;
 var
-  ext : extstr;
-  i   : word;
+  i : word;
 begin
-{Create filenames for easier access}
-  fsplit(fn,path,name,ext);
-  srcfile:=fn;
-  asmfile:=path+name+target_info.asmext;
-  objfile:=path+name+target_info.objext;
+{ load start values }
+
+  asmfile:=current_module^.asmfilename^;
+  objfile:=current_module^.objfilename^;
+  name:=FixFileName(current_module^.modulename^);
   OutCnt:=0;
-{Smartlinking}
   SmartLinkFilesCnt:=0;
+{ Which path will be used ? }
   if (cs_smartlink in aktmoduleswitches) then
    begin
-     path:=SmartLinkPath(name);
+     path:=current_module^.path^+FixFileName(current_module^.modulename^)+target_info.smartext;
      {$I-}
       mkdir(path);
      {$I+}
      i:=ioresult;
-   end;
-  path:=FixPath(path);
+     path:=FixPath(path);
+   end
+  else
+   path:=current_module^.path^;
 end;
 
 
@@ -398,34 +383,34 @@ end;
                      Generate Assembler Files Main Procedure
 *****************************************************************************}
 
-Procedure GenerateAsm(const fn:string);
+Procedure GenerateAsm;
 var
   a : PAsmList;
 begin
   case aktoutputformat of
 {$ifdef i386}
   {$ifndef NoAg386Att}
-        as_o : a:=new(pi386attasmlist,Init(fn));
+        as_o : a:=new(pi386attasmlist,Init);
   {$endif NoAg386Att}
   {$ifndef NoAg386Nsm}
  as_nasmcoff,
   as_nasmelf,
-  as_nasmobj : a:=new(pi386nasmasmlist,Init(fn));
+  as_nasmobj : a:=new(pi386nasmasmlist,Init);
   {$endif NoAg386Nsm}
   {$ifndef NoAg386Int}
-     as_tasm : a:=new(pi386intasmlist,Init(fn));
+     as_tasm : a:=new(pi386intasmlist,Init);
   {$endif NoAg386Int}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoAg68kGas}
      as_o,
-   as_gas : a:=new(pm68kgasasmlist,Init(fn));
+   as_gas : a:=new(pm68kgasasmlist,Init);
   {$endif NoAg86KGas}
   {$ifndef NoAg68kMot}
-   as_mot : a:=new(pm68kmotasmlist,Init(fn));
+   as_mot : a:=new(pm68kmotasmlist,Init);
   {$endif NoAg86kMot}
   {$ifndef NoAg68kMit}
-   as_mit : a:=new(pm68kmitasmlist,Init(fn));
+   as_mit : a:=new(pm68kmitasmlist,Init);
   {$endif NoAg86KMot}
 {$endif}
   else
@@ -439,11 +424,11 @@ begin
 end;
 
 
-Procedure OnlyAsm(const fn:string);
+Procedure OnlyAsm;
 var
   a : PAsmList;
 begin
-  a:=new(pasmlist,Init(fn));
+  a:=new(pasmlist,Init);
   a^.DoAssemble;
   dispose(a,Done);
 end;
@@ -452,7 +437,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-08-14 21:56:30  peter
+  Revision 1.17  1998-08-17 09:17:43  peter
+    * static/shared linking updates
+
+  Revision 1.16  1998/08/14 21:56:30  peter
     * setting the outputfile using -o works now to create static libs
 
   Revision 1.15  1998/08/14 18:16:09  peter

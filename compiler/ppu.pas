@@ -88,14 +88,16 @@ const
   ibwidestringdef = 56;
 
 { unit flags }
-  uf_init           = $1;
-  uf_has_dbx        = $2;
-  uf_has_browser    = $4;
-  uf_big_endian     = $8;
-  uf_in_library     = $10;
-  uf_shared_library = $20;
-  uf_smartlink      = $40;
-  uf_finalize       = $80;
+  uf_init          = $1;
+  uf_finalize      = $2;
+  uf_big_endian    = $4;
+  uf_has_dbx       = $8;
+  uf_has_browser   = $10;
+  uf_smartlink     = $20;
+  uf_in_library    = $40; { is the file in another file than <ppufile>.* ? }
+  uf_static_linked = $80;
+  uf_shared_linked = $100;
+
 
 type
 {$ifdef m68k}
@@ -760,7 +762,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-11 15:31:40  peter
+  Revision 1.9  1998-08-17 09:17:51  peter
+    * static/shared linking updates
+
+  Revision 1.8  1998/08/11 15:31:40  peter
     * write extended to ppu file
     * new version 0.99.7
 

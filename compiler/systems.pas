@@ -99,7 +99,6 @@ unit systems;
        );
 
 
-
        tosinfo = record
           name      : string[30];
           sharedlibext,
@@ -108,6 +107,7 @@ unit systems;
           pasext,
           exeext,
           scriptext : string[4];
+          libprefix : string[3];
           Cprefix   : string[2];
           newline   : string[2];
           endian    : tendian;
@@ -205,6 +205,7 @@ implementation
             pasext       : '.PAS';
             exeext       : '';      { No .exe, the linker only output a.out ! }
             scriptext    : '.BAT';
+            libprefix    : '';
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
@@ -218,6 +219,7 @@ implementation
             pasext       : '.PAS';
             exeext       : '.EXE';
             scriptext    : '.BAT';
+            libprefix    : '';
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
@@ -231,6 +233,7 @@ implementation
             pasext       : '.pas';
             exeext       : '';
             scriptext    : '.sh';
+            libprefix    : 'lib';
             Cprefix      : '';
             newline      : #10;
             endian       : endian_little;
@@ -244,6 +247,7 @@ implementation
             pasext       : '.pp';
             exeext       : '.exe';
             scriptext    : '.cmd';
+            libprefix    : '';
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
@@ -257,6 +261,7 @@ implementation
             pasext       : '.pas';
             exeext       : '.exe';
             scriptext    : '.bat';
+            libprefix    : 'lib';
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
@@ -272,6 +277,7 @@ implementation
             pasext       : '.pas';
             exeext       : '';
             scriptext    : '';
+            libprefix    : '';
             Cprefix      : '';
             newline      : #10;
             endian       : en_big_endian;
@@ -285,6 +291,7 @@ implementation
             pasext       : '.pas';
             exeext       : '.tpp';
             scriptext    : '';
+            libprefix    : '';
             Cprefix      : '';
             newline      : #10;
             endian       : en_big_endian;
@@ -298,6 +305,7 @@ implementation
             pasext       : '.pas';
             exeext       : '.tpp';
             scriptext    : '';
+            libprefix    : '';
             Cprefix      : '';
             newline      : #13;
             endian       : en_big_endian;
@@ -311,6 +319,7 @@ implementation
             pasext       : '.pas';
             exeext       : '';
             scriptext    : '.sh';
+            libprefix    : 'lib';
             Cprefix      : '';
             newline      : #10;
             endian       : en_big_endian;
@@ -866,7 +875,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1998-06-25 08:48:20  florian
+  Revision 1.24  1998-08-17 09:17:54  peter
+    * static/shared linking updates
+
+  Revision 1.23  1998/06/25 08:48:20  florian
     * first version of rtti support
 
   Revision 1.22  1998/06/17 14:10:21  peter
