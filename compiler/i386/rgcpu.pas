@@ -72,8 +72,8 @@ unit rgcpu;
 
     uses
        systems,
-       globals,verbose,node,
-       cgobj,tgobj,cga;
+       globals,verbose,
+       tgobj,cga;
 
 
     function trgcpu.getregisterint(list: taasmoutput): tregister;
@@ -192,7 +192,9 @@ unit rgcpu;
 
       var
         r: tregister;
-        hr: treference;
+{$ifdef SUPPORT_MMX}
+        hr : treference;
+{$endif SUPPORT_MMX}
       begin
         usedinproc:=usedinproc + s;
         for r:=R_EAX to R_EBX do
@@ -328,7 +330,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-04-02 17:11:39  peter
+  Revision 1.3  2002-04-04 19:06:13  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.2  2002/04/02 17:11:39  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

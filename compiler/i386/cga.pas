@@ -76,11 +76,11 @@ interface
     procedure emit_mov_ref_reg64(r : treference;rl,rh : tregister);
     procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
     procedure emit_lea_loc_reg(const t:tlocation;reg:tregister;freetemp:boolean);
-    procedure emit_push_loc(const t:tlocation);
+//    procedure emit_push_loc(const t:tlocation);
     procedure emit_push_mem_size(const t: treference; size: longint);
 
     { pushes qword location to the stack }
-    procedure emit_pushq_loc(const t : tlocation);
+//    procedure emit_pushq_loc(const t : tlocation);
 
     { remove non regvar registers in loc from regs (in the format }
     { pushusedregisters uses)                                     }
@@ -141,17 +141,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 implementation
 
     uses
-{$ifdef delphi}
-       sysutils,
-{$else}
-       strings,
-{$endif}
        cutils,cclasses,
        globtype,systems,globals,verbose,
        fmodule,
        symbase,symsym,symtable,types,
        tainst,cgbase,regvars,cgobj,tgobj,rgobj,rgcpu
 {$ifdef GDB}
+  {$ifdef delphi}
+       ,sysutils
+  {$else}
+       ,strings
+  {$endif}
        ,gdb
 {$endif}
        ;
@@ -469,38 +469,6 @@ implementation
         end;
       end;
 
-      procedure emit_pushq_loc(const t : tlocation);
-
-      var
-         hr : treference;
-
-      begin
-         case t.loc of
-            LOC_REGISTER,
-            LOC_CREGISTER:
-              begin
-                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,
-                   t.registerhigh));
-                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,
-                   t.registerlow));
-              end;
-            LOC_CREFERENCE,
-            LOC_REFERENCE:
-              begin
-                 hr:=t.reference;
-                 inc(hr.offset,4);
-                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
-                   hr));
-                 hr:=t.reference;
-                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
-                   hr));
-                 tg.ungetiftemp(exprasmlist,t.reference);
-              end;
-            else
-         internalerror(200203217);
-         end;
-      end;
-
     procedure remove_non_regvars_from_loc(const t: tlocation; var regs: tregisterset);
     begin
       case t.loc of
@@ -522,28 +490,6 @@ implementation
           end;
       end;
     end;
-
-    procedure emit_push_loc(const t:tlocation);
-      begin
-        case t.loc of
-          LOC_REGISTER,
-         LOC_CREGISTER : begin
-                           exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,makereg32(t.register)));
-                         end;
-           LOC_CONSTANT :
-                         exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,t.value));
-
-         LOC_CREFERENCE,
-         LOC_REFERENCE : begin
-                             exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,t.reference));
-                         end;
-        else
-         internalerror(200203214);
-        end;
-        location_release(exprasmlist,t);
-        location_freetemp(exprasmlist,t);
-      end;
-
 
     procedure emit_pushw_loc(const t:tlocation);
       var
@@ -923,9 +869,9 @@ implementation
 
     procedure concatcopy(source,dest : treference;size : longint;delsource,loadref : boolean);
 
-      const
+      {const
          isizes : array[0..3] of topsize=(S_L,S_B,S_W,S_B);
-         ishr : array[0..3] of byte=(2,0,1,0);
+         ishr : array[0..3] of byte=(2,0,1,0);}
 
       var
          ecxpushed : boolean;
@@ -2626,7 +2572,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-04-04 18:30:22  carl
+  Revision 1.21  2002-04-04 19:06:08  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.20  2002/04/04 18:30:22  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.19  2002/04/02 17:11:33  peter

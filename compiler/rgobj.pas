@@ -192,7 +192,7 @@ unit rgobj;
       end;
 
 
-      punusedstate = ^tsavedstate;
+      punusedstate = ^tunusedstate;
       tunusedstate = record
         unusedregsint : tregisterset;
         unusedregsfpu : tregisterset;
@@ -842,7 +842,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-04-02 17:11:29  peter
+  Revision 1.4  2002-04-04 19:06:04  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.3  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

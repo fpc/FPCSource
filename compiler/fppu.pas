@@ -76,11 +76,6 @@ interface
 implementation
 
 uses
-{$ifdef delphi}
-  dmisc,
-{$else}
-  dos,
-{$endif}
   verbose,systems,version,
   symtable,
   scanner,
@@ -1178,7 +1173,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.12  2002-03-28 20:46:44  carl
+  Revision 1.13  2002-04-04 19:05:56  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.12  2002/03/28 20:46:44  carl
   - remove go32v1 support
 
   Revision 1.11  2002/01/19 14:20:13  peter

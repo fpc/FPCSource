@@ -43,14 +43,12 @@ Implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symbase,symtype,symsym,symtable,types,
+       symconst,symbase,symtype,symsym,symtable,
        { pass 1 }
        nbas,
        { parser }
        scanner,
-       ra386,rautils,
-       { codegen }
-       cgbase
+       ra386,rautils
        ;
 
 type
@@ -74,10 +72,6 @@ const
    { in the different enumerations.                                   }
    firstdirective = AS_DB;
    lastdirective  = AS_END;
-
-   _count_asmprefixes   = 5;
-   _count_asmspecialops = 25;
-   _count_asmoverrides  = 3;
 
   token2str : array[tasmtoken] of tasmkeyword=(
     '','Label','LLabel','string','integer',
@@ -2135,7 +2129,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2002-04-02 17:11:39  peter
+  Revision 1.19  2002-04-04 19:06:13  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.18  2002/04/02 17:11:39  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -269,11 +269,11 @@ implementation
 
     uses
       { global }
-      version,verbose,globals,
+      verbose,globals,
       { target }
       systems,
       { module }
-      finput,fmodule,
+      fmodule,
 {$ifdef GDB}
       gdb,
 {$endif GDB}
@@ -2063,7 +2063,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-03-04 19:10:11  peter
+  Revision 1.57  2002-04-04 19:06:05  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.56  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.55  2002/02/03 09:30:07  peter

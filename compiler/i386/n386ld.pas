@@ -73,7 +73,7 @@ implementation
       begin
          simple_loadn:=true;
          { we don't know the size of all arrays }
-         newsize:=def_cgsize_ref(resulttype.def);
+         newsize:=def_cgsize(resulttype.def);
          location_reset(location,LOC_REFERENCE,newsize);
          case symtableentry.typ of
               { this is only for toasm and toaddr }
@@ -149,7 +149,7 @@ implementation
                            begin
                               if tvarsym(symtableentry).reg in [R_ST0..R_ST7] then
                                 begin
-                                   location_reset(location,LOC_CFPUREGISTER,OS_NO);
+                                   location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
                                    location.register:=tvarsym(symtableentry).reg;
                                 end
                               else
@@ -520,7 +520,7 @@ implementation
                  rg.saveusedregisters(exprasmlist,regspushed,regs_to_push);
 
                  location_release(exprasmlist,right.location);
-                 cg.a_param_loc(exprasmlist,OS_INT,right.location,2);
+                 cg.a_param_loc(exprasmlist,right.location,2);
                  location_release(exprasmlist,left.location);
                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
                  rg.saveregvars(exprasmlist,all_registers);
@@ -580,7 +580,7 @@ implementation
                    tcg64f32(cg).a_load64_const_loc(exprasmlist,
                        right.location.valuelow,right.location.valuehigh,left.location)
                   else
-                   cg.a_load_const_loc(exprasmlist,right.location.size,right.location.value,left.location);
+                   cg.a_load_const_loc(exprasmlist,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
@@ -651,8 +651,7 @@ implementation
                    tcg64f32(cg).a_load64_reg_loc(exprasmlist,
                        right.location.registerlow,right.location.registerhigh,left.location)
                   else
-                   cg.a_load_reg_loc(exprasmlist,cgsize,
-                       right.location.register,left.location);
+                   cg.a_load_reg_loc(exprasmlist,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER :
                 begin
@@ -684,7 +683,7 @@ implementation
                     restore(right,false);
                   if codegenerror then
                     exit;
-                  cg.a_load_const_loc(exprasmlist,cgsize,1,left.location);
+                  cg.a_load_const_loc(exprasmlist,1,left.location);
                   emitjmp(C_None,hlabel);
                   if not(left.location.loc in [LOC_CREGISTER{$ifdef SUPPORT_MMX},LOC_CMMXREGISTER{$endif SUPPORT_MMX}]) then
                    location_release(exprasmlist,left.location);
@@ -696,7 +695,7 @@ implementation
                     restore(right,false);
                   if codegenerror then
                     exit;
-                  cg.a_load_const_loc(exprasmlist,cgsize,0,left.location);
+                  cg.a_load_const_loc(exprasmlist,0,left.location);
                   emitlab(hlabel);
                 end;
               LOC_FLAGS :
@@ -739,7 +738,7 @@ implementation
          hr_valid : boolean;
          i : integer;
       begin
-         location_reset(location,LOC_REFERENCE,OS_INT);
+         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
          hr_valid:=false;
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
@@ -820,7 +819,7 @@ implementation
          elesize:=tarraydef(resulttype.def).elesize;
         if not(nf_cargs in flags) then
          begin
-           location_reset(location,LOC_CREFERENCE,OS_NO);
+           location_reset(location,LOC_REFERENCE,OS_NO);
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
             if tarraydef(resulttype.def).highrange=-1 then
@@ -923,7 +922,7 @@ implementation
                        location_release(exprasmlist,hp.left.location);
                      end
                     else
-                     emit_push_loc(hp.left.location);
+                     cg.a_param_loc(exprasmlist,hp.left.location,-1);
                     inc(pushedparasize,4);
                   end
                  else
@@ -938,7 +937,7 @@ implementation
                     else
                      begin
                        location_release(exprasmlist,left.location);
-                       cg.a_load_loc_ref(exprasmlist,OS_32,hp.left.location,href);
+                       cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
                      end;
                     { update href to the vtype field and write it }
                     dec(href.offset,4);
@@ -954,7 +953,7 @@ implementation
                    1,2,4 :
                      begin
                        location_release(exprasmlist,left.location);
-                       cg.a_load_loc_ref(exprasmlist,int_cgsize(elesize),hp.left.location,href);
+                       cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
                      end;
                    8 :
                      begin
@@ -993,7 +992,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-04-03 10:43:37  jonas
+  Revision 1.33  2002-04-04 19:06:12  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.32  2002/04/03 10:43:37  jonas
     * fixed regvar-related bugs (the load node set the location to
       LOC_REGISTER instead of LOC_CREGISTER and the assignment node didn't
       support loading constants in LOC_CREGISTER's)

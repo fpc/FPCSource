@@ -43,7 +43,7 @@ Implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symbase,symtype,symsym,symtable,types,
+       symconst,symbase,symtype,symsym,symtable,
        { pass 1 }
        nbas,
        { parser }
@@ -74,14 +74,9 @@ const
    lastdirective  = AS_END;
    firstoperator  = AS_BYTE;
    lastoperator   = AS_XOR;
-   firstsreg      = R_CS;
-   lastsreg       = R_SS;
 
    _count_asmdirectives = longint(lastdirective)-longint(firstdirective);
    _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
-   _count_asmprefixes   = 5;
-   _count_asmspecialops = 25;
-   _count_asmoverrides  = 3;
 
    _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
    ('DB','DW','DD','END');
@@ -1964,7 +1959,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2002-04-02 17:11:39  peter
+  Revision 1.22  2002-04-04 19:06:13  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.21  2002/04/02 17:11:39  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

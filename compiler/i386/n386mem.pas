@@ -61,7 +61,7 @@ implementation
       symconst,symtype,symdef,symsym,symtable,aasm,types,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
-      cpubase,cpuasm,
+      cpubase,
       cgobj,cga,tgobj,n386util,rgobj;
 
 {*****************************************************************************
@@ -102,7 +102,7 @@ implementation
 
                    { push pointer we just allocated, we need to initialize the
                      data located at that pointer not the pointer self (PFV) }
-                   emit_push_loc(location);
+                   cg.a_param_loc(exprasmlist,location,1);
                    emitcall('FPC_INITIALIZE');
                 end;
               rg.restoreusedregisters(exprasmlist,pushed);
@@ -141,7 +141,7 @@ implementation
          procedure saveleft;
          begin
            tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,lefttemp);
-           cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,lefttemp);
+           cg.a_load_loc_ref(exprasmlist,left.location,lefttemp);
            location_release(exprasmlist,left.location);
          end;
 
@@ -166,7 +166,7 @@ implementation
                      reference_reset_symbol(href,tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti),0);
                      emitpushreferenceaddr(href);
                      { push pointer adress }
-                     emit_push_loc(left.location);
+                     cg.a_param_loc(exprasmlist,left.location,1);
                      { save left and free its registers }
                      saveleft;
                      emitcall('FPC_FINALIZE');
@@ -176,7 +176,7 @@ implementation
                   end
                 else
                   begin
-                    emit_push_loc(left.location);
+                    cg.a_param_loc(exprasmlist,left.location,1);
                     location_release(exprasmlist,left.location);
                   end;
                 emitcall('FPC_FREEMEM');
@@ -280,7 +280,7 @@ implementation
          otl,ofl : tasmlabel;
          newsize : tcgsize;
       begin
-         newsize:=def_cgsize_ref(resulttype.def);
+         newsize:=def_cgsize(resulttype.def);
          location_reset(location,LOC_REFERENCE,newsize);
 
          secondpass(left);
@@ -554,16 +554,14 @@ implementation
                         is_array_of_const(left.resulttype.def) then
                       begin
                         tarraydef(left.resulttype.def).genrangecheck;
-                        reference_reset(href);
-                        href.symbol:=newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring);
-                        href.offset:=4;
                         srsym:=searchsymonlyin(tloadnode(left).symtable,
                           'high'+tvarsym(tloadnode(left).symtableentry).name);
                         hightree:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
                         firstpass(hightree);
                         secondpass(hightree);
                         location_release(exprasmlist,hightree.location);
-                        cg.a_load_loc_ref(exprasmlist,OS_INT,hightree.location,href);
+                        reference_reset_symbol(href,newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
+                        cg.a_load_loc_ref(exprasmlist,hightree.location,href);
                         hightree.free;
                         hightree:=nil;
                       end;
@@ -665,7 +663,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-04-02 17:11:36  peter
+  Revision 1.24  2002-04-04 19:06:12  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.23  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

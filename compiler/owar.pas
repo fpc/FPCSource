@@ -79,7 +79,6 @@ const
   symstrbufsize = 8192;
   lfnstrbufsize = 4096;
   arbufsize  = 65536;
-  objbufsize = 16384;
 
 {*****************************************************************************
                                    Helpers
@@ -227,8 +226,6 @@ procedure tarobjectwriter.writear;
 
 const
   armagic:array[1..8] of char='!<arch>'#10;
-type
-  plongint=^longint;
 var
   arf      : TCFileStream;
   fixup,l,
@@ -281,7 +278,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-03-05 21:40:39  peter
+  Revision 1.9  2002-04-04 19:06:00  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.8  2001/03/05 21:40:39  peter
     * more things for tcoffobjectinput
 
   Revision 1.7  2000/12/24 12:25:32  peter

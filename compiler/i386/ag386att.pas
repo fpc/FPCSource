@@ -45,15 +45,18 @@ interface
 
     uses
 {$ifdef Delphi}
-      sysutils,
       dmisc,
 {$else Delphi}
-      strings,
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
       fmodule,finput,verbose,cpubase,cpuasm,tainst
 {$ifdef GDB}
+  {$ifdef delphi}
+      ,sysutils
+  {$else}
+      ,strings
+  {$endif}
       ,gdb
 {$endif GDB}
       ;
@@ -963,7 +966,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-04-04 18:26:55  carl
+  Revision 1.15  2002-04-04 19:06:06  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.14  2002/04/04 18:26:55  carl
   + added wdosx patch from Pavel
 
   Revision 1.13  2002/04/02 17:11:33  peter

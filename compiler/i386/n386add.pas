@@ -55,7 +55,7 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,widestr,
+      cutils,verbose,globals,
       symconst,symdef,aasm,types,htypechk,
       cgbase,pass_2,regvars,
       cpuasm,
@@ -224,7 +224,7 @@ interface
               if extra_not then
                 emit_reg(A_NOT,opsize,left.location.register);
               rg.getexplicitregisterint(exprasmlist,R_EDI);
-              cg.a_load_loc_reg(exprasmlist,opsize_2_cgsize[opsize],right.location,R_EDI);
+              cg.a_load_loc_reg(exprasmlist,right.location,R_EDI);
               emit_reg_reg(op,opsize,left.location.register,R_EDI);
               emit_reg_reg(A_MOV,opsize,R_EDI,left.location.register);
               rg.ungetregisterint(exprasmlist,R_EDI);
@@ -268,7 +268,7 @@ interface
                    if extra_not then
                      begin
                         rg.getexplicitregisterint(exprasmlist,R_EDI);
-                        cg.a_load_loc_reg(exprasmlist,opsize_2_cgsize[opsize],right.location,R_EDI);
+                        cg.a_load_loc_reg(exprasmlist,right.location,R_EDI);
                         emit_reg(A_NOT,S_L,R_EDI);
                         emit_reg_reg(A_AND,S_L,R_EDI,left.location.register);
                         rg.ungetregisterint(exprasmlist,R_EDI);
@@ -320,7 +320,7 @@ interface
              is_shortstring(left.resulttype.def))) then
           begin
             if nodetype = addn then
-              location_reset(location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def))
+              location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def))
             else
               location_reset(location,LOC_FLAGS,OS_NO);
             calcregisters(self,0,0,0);
@@ -374,7 +374,7 @@ interface
                              tg.ungetiftemp(exprasmlist,left.location.reference);
 
                              { does not hurt: }
-                             location_reset(left.location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
+                             location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
                              left.location.reference:=href;
                           end;
 
@@ -604,14 +604,13 @@ interface
         if (right.location.loc<>LOC_FPUREGISTER) then
          begin
            cg.a_loadfpu_loc_reg(exprasmlist,
-               def_cgsize(right.resulttype.def),right.location,R_ST);
+               right.location,R_ST);
            if (right.location.loc <> LOC_CFPUREGISTER) and
               pushedfpu then
              location_freetemp(exprasmlist,left.location);
            if (left.location.loc<>LOC_FPUREGISTER) then
             begin
-              cg.a_loadfpu_loc_reg(exprasmlist,
-                  def_cgsize(left.resulttype.def),left.location,R_ST);
+              cg.a_loadfpu_loc_reg(exprasmlist,left.location,R_ST);
               if (left.location.loc <> LOC_CFPUREGISTER) and
                  pushedfpu then
                 location_freetemp(exprasmlist,left.location);
@@ -628,8 +627,7 @@ interface
         { the nominator in st0 }
         else if (left.location.loc<>LOC_FPUREGISTER) then
          begin
-           cg.a_loadfpu_loc_reg(exprasmlist,
-               def_cgsize(left.resulttype.def),left.location,R_ST);
+           cg.a_loadfpu_loc_reg(exprasmlist,left.location,R_ST);
            if (left.location.loc <> LOC_CFPUREGISTER) and
               pushedfpu then
              location_freetemp(exprasmlist,left.location);
@@ -711,8 +709,8 @@ interface
          end
         else
          begin
-           location_reset(location,LOC_FPUREGISTER,OS_NO);
-           location.register := R_ST;
+           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+           location.register:=R_ST;
          end;
       end;
 
@@ -1584,7 +1582,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-04-02 17:11:35  peter
+  Revision 1.32  2002-04-04 19:06:10  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.31  2002/04/02 17:11:35  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -133,7 +133,7 @@ implementation
          l1,l2 : tasmlabel;
 
       begin
-         location_reset(location,LOC_FPUREGISTER,OS_NO);
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
          hregister:=R_EDI;
@@ -468,7 +468,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-04-02 17:11:36  peter
+  Revision 1.33  2002-04-04 19:06:10  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.32  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

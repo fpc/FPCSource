@@ -59,12 +59,10 @@ implementation
        { global }
        globals,tokens,verbose,
        systems,
-       { aasm }
-       aasm,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,types,
        { pass 1 }
-       node,pass_1,
+       node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
@@ -612,7 +610,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-01-24 18:25:49  peter
+  Revision 1.35  2002-04-04 19:06:04  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.34  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

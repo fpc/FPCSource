@@ -159,7 +159,7 @@ implementation
                      begin
                        location_release(exprasmlist,left.location);
                        hregister:=rg.getregisterint(exprasmlist);
-                       cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,hregister);
+                       cg.a_load_loc_reg(exprasmlist,left.location,hregister);
                      end
                     else
                      hregister:=left.location.register;
@@ -253,7 +253,7 @@ implementation
                     tcg64f32(cg).a_op64_const_loc(exprasmlist,addsubop[inlinenumber],
                        addvalue,0,tcallparanode(left).left.location)
                    else
-                    cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],cgsize,
+                    cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
                        addvalue,tcallparanode(left).left.location);
                  end
                 else
@@ -262,7 +262,7 @@ implementation
                     tcg64f32(cg).a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],
                        hregister,hregisterhi,tcallparanode(left).left.location)
                    else
-                    cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],cgsize,
+                    cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],
                        hregister,tcallparanode(left).left.location);
                    location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
                  end;
@@ -288,7 +288,7 @@ implementation
                        push_int(tcallparanode(left).left.resulttype.def.size);
                        if codegenerror then
                         exit;
-                       emit_push_loc(tcallparanode(tcallparanode(left).right).left.location);
+                       cg.a_param_loc(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,1);
                     end;
 
                   { generate a reference }
@@ -350,7 +350,7 @@ implementation
                          begin
                             secondpass(tcallparanode(hp).left);
                             location_release(exprasmlist,tcallparanode(hp).left.location);
-                            cg.a_load_loc_ref(exprasmlist,OS_INT,tcallparanode(hp).left.location,href);
+                            cg.a_load_loc_ref(exprasmlist,tcallparanode(hp).left.location,href);
                             inc(href.offset,4);
                             hp:=tcallparanode(hp).right;
                          end;
@@ -358,7 +358,7 @@ implementation
                   else
                     begin
                        secondpass(tcallparanode(hp).left);
-                       emit_push_loc(tcallparanode(hp).left.location);
+                       cg.a_param_loc(exprasmlist,tcallparanode(hp).left.location,1);
                        hp:=tcallparanode(hp).right;
                     end;
                   { handle shortstrings separately since the hightree must be }
@@ -494,7 +494,7 @@ implementation
               end;
             in_pi:
               begin
-                location_reset(location,LOC_FPUREGISTER,OS_NO);
+                location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                 emit_none(A_FLDPI,S_NO);
                 inc(trgcpu(rg).fpuvaroffset);
                 location.register:=R_ST;
@@ -507,8 +507,8 @@ implementation
             in_ln_extended,
             in_cos_extended:
               begin
-                 location_reset(location,LOC_FPUREGISTER,OS_NO);
-                 location.register := R_ST;
+                 location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                 location.register:=R_ST;
                  secondpass(left);
                  case left.location.loc of
                     LOC_FPUREGISTER:
@@ -600,7 +600,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-04-02 17:11:36  peter
+  Revision 1.35  2002-04-04 19:06:11  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.34  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

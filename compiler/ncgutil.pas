@@ -42,11 +42,11 @@ interface
 implementation
 
   uses
-    globals,globtype,systems,verbose,
+    globals,systems,verbose,
     types,
     aasm,cgbase,regvars,
     ncon,
-    cpubase,cpuinfo,tgobj,cginfo,cgobj,cgcpu,cg64f32,rgobj;
+    cpubase,tgobj,cginfo,cgobj,cgcpu,rgobj;
 
 
 {$ifdef TEMPS_NOT_PUSH}
@@ -213,7 +213,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-04-02 17:11:28  peter
+  Revision 1.5  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.4  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

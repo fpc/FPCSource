@@ -62,14 +62,12 @@ interface
 
     uses
       globtype,systems,
-      cutils,cclasses,verbose,globals,
-      aasm,symconst,symsym,symtable,types,
-      htypechk,
+      cutils,verbose,globals,
+      aasm,symsym,
       cpubase,cpuasm,
       nflw,pass_2,
-      cgbase,
       cga,
-      tgobj,rgobj
+      cgbase,tgobj,rgobj
       ;
 {*****************************************************************************
                                  TNOTHING
@@ -257,7 +255,7 @@ interface
         if not tempinfo^.valid then
           internalerror(200108231);
         { set the temp's location }
-        location.loc := LOC_REFERENCE;
+        location_reset(location,LOC_REFERENCE,int_cgsize(tempinfo^.size));
         location.reference := tempinfo^.ref;
       end;
 
@@ -282,7 +280,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-03-31 20:26:34  jonas
+  Revision 1.12  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.11  2002/03/31 20:26:34  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

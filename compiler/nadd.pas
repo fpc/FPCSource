@@ -57,7 +57,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symtype,symbase,symdef,symsym,symtable,types,
+      symconst,symtype,symdef,symsym,symtable,types,
       cpuinfo,
       cgbase,
       htypechk,pass_1,
@@ -1601,7 +1601,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-04-02 17:11:28  peter
+  Revision 1.45  2002-04-04 19:05:56  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.44  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

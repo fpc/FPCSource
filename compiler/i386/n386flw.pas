@@ -56,10 +56,10 @@ implementation
     uses
       verbose,systems,
       symsym,aasm,
-      cgbase,pass_2,
+      cginfo,cgbase,pass_2,
       cpubase,cpuasm,
       nld,ncon,
-      tainst,cga,tgobj,rgobj;
+      tainst,cga,cgobj,tgobj,rgobj;
 
 {*****************************************************************************
                              SecondRaise
@@ -81,28 +81,28 @@ implementation
                       secondpass(frametree);
                       if codegenerror then
                        exit;
-                      emit_push_loc(frametree.location);
+                      cg.a_param_loc(exprasmlist,frametree.location,2);
                     end
                   else
-                    emit_const(A_PUSH,S_L,0);
+                    cg.a_param_const(exprasmlist,OS_INT,0,2);
                   { push address }
                   secondpass(right);
                   if codegenerror then
                    exit;
-                  emit_push_loc(right.location);
+                  cg.a_param_loc(exprasmlist,right.location,1);
                 end
               else
                 begin
                    getaddrlabel(a);
                    emitlab(a);
-                   emit_reg(A_PUSH,S_L,R_EBP);
+                   cg.a_param_reg(exprasmlist,OS_INT,R_EBP,2);
                    emit_sym(A_PUSH,S_L,a);
                 end;
               { push object }
               secondpass(left);
               if codegenerror then
                 exit;
-              emit_push_loc(left.location);
+              cg.a_param_loc(exprasmlist,left.location,1);
               emitcall('FPC_RAISEEXCEPTION');
            end
          else
@@ -736,7 +736,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-04-02 17:11:36  peter
+  Revision 1.22  2002-04-04 19:06:11  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.21  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

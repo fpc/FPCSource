@@ -147,7 +147,7 @@ implementation
 
     uses
       cutils,verbose,globals,systems,
-      types,cpubase,nld,symtable;
+      types,cpubase,nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -724,7 +724,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-04-02 17:11:29  peter
+  Revision 1.27  2002-04-04 19:05:58  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.26  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

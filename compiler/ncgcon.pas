@@ -88,7 +88,7 @@ implementation
          realait : tait;
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
+        location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resulttype.def).typ];
         { const already used ? }
@@ -150,9 +150,6 @@ implementation
 *****************************************************************************}
 
     procedure tcgordconstnode.pass_2;
-      var
-         l : tasmlabel;
-
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
          location.valuelow:=AWord(value);
@@ -183,7 +180,6 @@ implementation
          lastlabel   : tasmlabel;
          pc       : pchar;
          same_string : boolean;
-         size : tcgsize;
          l,j,
          i,mylength  : longint;
       begin
@@ -196,11 +192,7 @@ implementation
             exit;
           end;
          { return a constant reference in memory }
-         if (st_type in [st_ansistring,st_widestring]) then
-          size:=OS_ADDR
-         else
-          size:=def_cgsize_ref(resulttype.def);
-         location_reset(location,LOC_CREFERENCE,size);
+         location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
          { const already used ? }
          lastlabel:=nil;
          if not assigned(lab_str) then
@@ -496,7 +488,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-04-02 17:11:28  peter
+  Revision 1.7  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.6  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

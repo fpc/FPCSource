@@ -171,7 +171,7 @@ uses
 {$else}
   dos,
 {$endif}
-  globtype,verbose,systems,
+  verbose,systems,
   scanner;
 
 
@@ -584,7 +584,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  2002-03-28 20:46:59  carl
+  Revision 1.21  2002-04-04 19:05:55  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.20  2002/03/28 20:46:59  carl
   - remove go32v1 support
 
   Revision 1.19  2001/11/06 14:53:48  jonas

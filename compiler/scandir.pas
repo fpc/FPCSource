@@ -32,16 +32,11 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      dmisc,
-{$else}
-      dos,
-{$endif}
       cutils,
-      version,globtype,globals,systems,
+      globtype,globals,systems,
       verbose,comphook,
       scanner,switches,
-      finput,fmodule;
+      fmodule;
 
 
 {*****************************************************************************
@@ -930,7 +925,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-11-02 23:16:52  peter
+  Revision 1.11  2002-04-04 19:06:05  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.10  2001/11/02 23:16:52  peter
     * removed obsolete chainprocsym and test_procsym code
 
   Revision 1.9  2001/10/23 21:49:42  peter

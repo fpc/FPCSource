@@ -70,21 +70,24 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$else}
-      strings,
-{$endif}
-{$ifdef GDB}
-      gdb,
-{$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symdef,symsym,aasm,
+      symconst,symdef,symsym,aasm,
       cginfo,cgbase,pass_2,
       nld,ncon,nadd,
       cpubase,cgobj,cgcpu,
-      cga,tgobj,rgobj;
+      tgobj,rgobj
+{$ifdef GDB}
+  {$ifdef delphi}
+      ,sysutils
+  {$else}
+      ,strings
+  {$endif}
+      ,cga
+      ,symbase
+      ,gdb
+{$endif GDB}
+      ;
 
 {*****************************************************************************
                             TCGLOADNODE
@@ -116,7 +119,7 @@ implementation
 
     procedure tcghdisposenode.pass_2;
       begin
-         location_reset(location,LOC_REFERENCE,def_cgsize_ref(resulttype.def));
+         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
 
          secondpass(left);
          if codegenerror then
@@ -141,8 +144,7 @@ implementation
               begin
                  location_release(exprasmlist,left.location);
                  location.reference.index:=rg.getaddressregister(exprasmlist);
-                 cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,
-                   location.reference.index);
+                 cg.a_load_loc_reg(exprasmlist,left.location,location.reference.index);
               end;
             else
               internalerror(2002032217);
@@ -212,7 +214,7 @@ implementation
 
       begin
          secondpass(left);
-         location_reset(location,LOC_REFERENCE,def_cgsize_ref(resulttype.def));
+         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
          case left.location.loc of
             LOC_REGISTER:
               begin
@@ -232,8 +234,7 @@ implementation
               begin
                  location_release(exprasmlist,left.location);
                  location.reference.base:=rg.getaddressregister(exprasmlist);
-                 cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,
-                   location.reference.base);
+                 cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
               end;
          end;
          { still needs generic checkpointer() support! }
@@ -253,7 +254,7 @@ implementation
          { classes and interfaces must be dereferenced implicit }
          if is_class_or_interface(left.resulttype.def) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize_ref(resulttype.def));
+             location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
              case left.location.loc of
                 LOC_REGISTER:
                   begin
@@ -273,23 +274,21 @@ implementation
                   begin
                      location_release(exprasmlist,left.location);
                      location.reference.base:=rg.getaddressregister(exprasmlist);
-                     cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,
-                       location.reference.base);
+                     cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
                   end;
              end;
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
               tg.gettempintfcomreference(exprasmlist,location.reference);
-              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,
-                location.reference);
+              cg.a_load_loc_ref(exprasmlist,left.location,location.reference);
            end
          else
            location_copy(location,left.location);
 
          inc(location.reference.offset,vs.address);
          { also update the size of the location }
-         location.size:=def_cgsize_ref(resulttype.def);
+         location.size:=def_cgsize(resulttype.def);
       end;
 
 {*****************************************************************************
@@ -355,7 +354,7 @@ implementation
                   tmpreg := cg.get_scratch_reg(exprasmlist);
                   usetemp:=true;
                   if is_class_or_interface(left.resulttype.def) then
-                    cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,tmpreg)
+                    cg.a_load_loc_reg(exprasmlist,left.location,tmpreg)
                   else
                     cg.a_loadaddr_ref_reg(exprasmlist,
                       left.location.reference,tmpreg);
@@ -451,7 +450,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-04-02 17:11:28  peter
+  Revision 1.6  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.5  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

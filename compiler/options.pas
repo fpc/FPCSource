@@ -75,7 +75,7 @@ uses
   dos,
 {$endif Delphi}
   version,
-  cutils,cmsgs,symsym
+  cutils,cmsgs
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -1646,7 +1646,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.65  2002-04-04 18:39:45  carl
+  Revision 1.66  2002-04-04 19:05:58  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.65  2002/04/04 18:39:45  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.64  2001/12/03 21:48:42  peter

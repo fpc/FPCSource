@@ -556,8 +556,6 @@ end;
 
 
 function tppufile.getword:word;
-type
-  pword = ^word;
 var
   w : word;
 begin
@@ -577,8 +575,6 @@ end;
 
 
 function tppufile.getlongint:longint;
-type
-  plongint = ^longint;
 var
   l : longint;
 begin
@@ -598,8 +594,6 @@ end;
 
 
 function tppufile.getreal:ppureal;
-type
-  pppureal = ^ppureal;
 var
   d : ppureal;
 begin
@@ -987,7 +981,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-03-31 20:26:36  jonas
+  Revision 1.17  2002-04-04 19:06:03  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.16  2002/03/31 20:26:36  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

@@ -169,8 +169,7 @@ unit cgbase;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
-    function def_cgsize_ref(const p1: tdef): tcgsize;
-    function def_cgsize(const p1: tdef): tcgsize;
+    function def_cgsize(def: tdef): tcgsize;
     function int_cgsize(const l: aword): tcgsize;
 
     { return the inverse condition of opcmp }
@@ -429,36 +428,16 @@ implementation
          ResourceStrings.free;
       end;
 
-    function def_cgsize_ref(const p1: tdef): tcgsize;
-      begin
-        { return always SO_NO for arraydef, becuase for
-          some array types (open array) the size can not be determined }
-        if p1.deftype=arraydef then
-         result:=OS_NO
-        else
-         begin
-           case p1.size of
-             1    : result := OS_8;
-             2    : result := OS_16;
-             3,4  : result := OS_32;
-             5..8 : result := OS_64;
-             else   result := OS_NO;
-           end;
-           if is_signed(p1) then
-             result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
-         end;
-      end;
 
-    function def_cgsize(const p1: tdef): tcgsize;
-
+    function def_cgsize(def: tdef): tcgsize;
       begin
-        case p1.deftype of
+        case def.deftype of
           orddef,
           enumdef,
           setdef:
             begin
-              result := int_cgsize(p1.size);
-              if is_signed(p1) then
+              result := int_cgsize(def.size);
+              if is_signed(def) then
                 result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
@@ -467,34 +446,43 @@ implementation
             result := OS_ADDR;
           stringdef :
             begin
-              if is_ansistring(p1) or is_widestring(p1) then
+              if is_ansistring(def) or is_widestring(def) then
                 result := OS_ADDR
               else
-                internalerror(200203314);
+                result := OS_NO;
             end;
           objectdef :
             begin
-              if is_class_or_interface(p1) then
+              if is_class_or_interface(def) then
                 result := OS_ADDR
               else
-                internalerror(200203313);
+                result := OS_NO;
             end;
           floatdef:
-            result := tfloat2tcgsize[tfloatdef(p1).typ];
+            result := tfloat2tcgsize[tfloatdef(def).typ];
+          recorddef :
+            result:=int_cgsize(def.size);
           else
-            internalerror(200201131);
+            begin
+              { undefined size }
+              result:=OS_NO;
+            end;
         end;
       end;
 
     function int_cgsize(const l: aword): tcgsize;
       begin
         case l of
-          1: result := OS_8;
-          2: result := OS_16;
-          4: result := OS_32;
-          8: result := OS_64;
+          1 :
+            result := OS_8;
+          2 :
+            result := OS_16;
+          4 :
+            result := OS_32;
+          8 :
+            result := OS_64;
           else
-            internalerror(2001092311);
+            result:=OS_NO;
         end;
       end;
 
@@ -542,7 +530,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-04-02 17:11:27  peter
+  Revision 1.9  2002-04-04 19:05:54  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.8  2002/04/02 17:11:27  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -321,7 +321,6 @@ interface
 
     procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
     const
-      allocstr : array[boolean] of string[10]=(' released',' allocated');
       nolinetai =[ait_label,
                   ait_regalloc,ait_tempalloc,
                   ait_stabn,ait_stabs,ait_section,
@@ -822,7 +821,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-04-02 17:11:33  peter
+  Revision 1.16  2002-04-04 19:06:07  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.15  2002/04/02 17:11:33  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -56,7 +56,7 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       ncon,
       cpubase,
-      cga,tgobj,n386util,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      cga,tgobj,n386util,ncgutil,cgobj,rgobj,rgcpu;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -160,7 +160,7 @@ implementation
                   rg.getexplicitregisterint(exprasmlist,R_EDI);
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
-                  cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,R_EDI);
+                  cg.a_load_loc_reg(exprasmlist,right.location,R_EDI);
                   popedx:=false;
                   popeax:=false;
                   if hreg1=R_EDX then
@@ -256,7 +256,7 @@ implementation
                   include(rg.usedinproc,R_EAX);
                   include(rg.usedinproc,R_EDX);
                 End;
-              location_reset(location,LOC_REGISTER,OS_32);
+              location_reset(location,LOC_REGISTER,OS_INT);
               location.register:=hreg1;
            end;
       end;
@@ -351,7 +351,7 @@ implementation
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
                        hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
-                       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hregister2);
+                       cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
                      end
                    else
                      hregister2:=right.location.register;
@@ -487,7 +487,7 @@ implementation
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
                        hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
-                       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hregister2);
+                       cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
                      end
                    else
                      hregister2:=right.location.register;
@@ -663,8 +663,8 @@ implementation
                       reference_release(exprasmlist,left.location.reference);
                       if (left.resulttype.def.deftype=floatdef) then
                         begin
-                           location_reset(location,LOC_FPUREGISTER,OS_NO);
-                           location.register := R_ST;
+                           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                           location.register:=R_ST;
                            cg.a_loadfpu_ref_reg(exprasmlist,
                               def_cgsize(left.resulttype.def),
                               left.location.reference,R_ST);
@@ -690,7 +690,7 @@ implementation
                    begin
                       { "load st,st" is ignored by the code generator }
                       cg.a_loadfpu_reg_reg(exprasmlist,left.location.register,R_ST);
-                      location_reset(location,LOC_FPUREGISTER,OS_NO);
+                      location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                       location.register:=R_ST;
                       emit_none(A_FCHS,S_NO);
                    end;
@@ -831,7 +831,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-04-02 17:11:36  peter
+  Revision 1.26  2002-04-04 19:06:12  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.25  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

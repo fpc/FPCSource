@@ -49,19 +49,19 @@ interface
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$else}
-      strings,
-{$endif}
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,symsym,symtable,aasm,types,
 {$ifdef GDB}
+  {$ifdef delphi}
+      sysutils,
+  {$else}
+      strings,
+  {$endif}
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpubase,cpuasm,
+      cpubase,
       nmem,nld,ncnv,
       tainst,cga,cgobj,tgobj,n386ld,n386util,regvars,rgobj,rgcpu,cg64f32;
 
@@ -156,7 +156,7 @@ implementation
                     begin
                       cgsize:=def_cgsize(left.resulttype.def);
                       tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
-                      cg.a_load_loc_ref(exprasmlist,cgsize,left.location,href);
+                      cg.a_load_loc_ref(exprasmlist,left.location,href);
                       location_reset(left.location,LOC_REFERENCE,cgsize);
                       left.location.reference:=href;
                     end;
@@ -187,7 +187,7 @@ implementation
                begin
                  cgsize:=def_cgsize(left.resulttype.def);
                  tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
-                 cg.a_load_loc_ref(exprasmlist,cgsize,left.location,href);
+                 cg.a_load_loc_ref(exprasmlist,left.location,href);
                  location_reset(left.location,LOC_REFERENCE,cgsize);
                  left.location.reference:=href;
                end;
@@ -244,7 +244,7 @@ implementation
                          (ttypeconvnode(left).left.nodetype=niln) then
                        begin
                          tg.gettempofsizereference(exprasmlist,tcgsize2size[left.location.size],href);
-                         cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,href);
+                         cg.a_load_loc_ref(exprasmlist,left.location,href);
                          location_reset(left.location,LOC_REFERENCE,left.location.size);
                          left.location.reference:=href;
                        end
@@ -338,7 +338,7 @@ implementation
          dont_call;
 
       begin
-         location_reset(location,LOC_REFERENCE,def_cgsize_ref(resulttype.def));
+         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
          extended_new:=false;
          iolabel:=nil;
          inlinecode:=nil;
@@ -1250,7 +1250,7 @@ implementation
                      end
               else if (resulttype.def.deftype=floatdef) then
                 begin
-                  location_reset(location,LOC_FPUREGISTER,OS_NO);
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                   location.register:=R_ST;
                   inc(trgcpu(rg).fpuvaroffset);
                 end
@@ -1535,7 +1535,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-04-02 17:11:35  peter
+  Revision 1.44  2002-04-04 19:06:10  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.43  2002/04/02 17:11:35  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

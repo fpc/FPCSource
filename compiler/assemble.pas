@@ -148,11 +148,12 @@ Implementation
       unix,
   {$endif}
 {$endif}
-      cutils,script,finput,fmodule,verbose,
+      cutils,script,fmodule,verbose,
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}
 {$ifdef GDB}
+      finput,
       gdb,
 {$endif GDB}
       cpubase,cpuasm
@@ -1551,7 +1552,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-04-02 17:11:27  peter
+  Revision 1.31  2002-04-04 19:05:54  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.30  2002/04/02 17:11:27  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

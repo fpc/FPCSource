@@ -39,7 +39,7 @@ implementation
        globals,tokens,verbose,
        systems,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,
+       symconst,symbase,symtype,symsym,
        { pass 1 }
        node,
        ncon,
@@ -173,7 +173,11 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-04-04 18:41:07  carl
+  Revision 1.18  2002-04-04 19:06:03  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.17  2002/04/04 18:41:07  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.16  2001/11/02 22:58:04  peter

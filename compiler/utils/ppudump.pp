@@ -224,6 +224,15 @@ end;
                              Read Routines
 ****************************************************************************}
 
+function getint64:int64;
+var
+  l1,l2 : longint;
+begin
+  l1:=ppufile.getlongint;
+  l2:=ppufile.getlongint;
+  getint64:=(int64(l2) shl 32) or l1;
+end;
+
 Procedure ReadLinkContainer(const prefix:string);
 {
   Read a serie of strings and write to the screen starting every line
@@ -694,7 +703,6 @@ var
   totalsyms,
   symcnt,
   i,j,len : longint;
-  l1,l2 : longint;
 begin
   symcnt:=1;
   with ppufile do
@@ -777,11 +785,7 @@ begin
                  else
                    writeln (space,'      Value: False');
                constint :
-                 begin
-                   l1:=getlongint;
-                   l2:=getlongint;
-                   writeln(space,'       Value: ',int64(l2 shl 32) or l1);
-                 end;
+                 writeln(space,'       Value: ',getint64);
                constchar :
                  writeln(space,'       Value: "'+chr(getlongint)+'"');
                constset :
@@ -1050,7 +1054,7 @@ begin
                uwidechar : writeln('uwidechar');
                else        writeln('!! Warning: Invalid base type ',b);
              end;
-             writeln(space,'            Range : ',getlongint,' to ',getlongint);
+             writeln(space,'            Range : ',getint64,' to ',getint64);
            end;
 
          ibfloatdef :
@@ -1690,7 +1694,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-04-04 18:50:27  carl
+  Revision 1.17  2002-04-04 19:06:14  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.16  2002/04/04 18:50:27  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.15  2002/03/31 20:26:42  jonas

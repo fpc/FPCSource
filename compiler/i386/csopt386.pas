@@ -1326,6 +1326,7 @@ begin
         pTaiprop(startMod.optInfo)^.canBeRemoved := true;
 end;
 
+{$ifdef notused}
 function is_mov_for_div(p: Taicpu): boolean;
 begin
   is_mov_for_div :=
@@ -1338,6 +1339,7 @@ begin
     ((p.opcode = A_DIV) or
      (p.opcode = A_IDIV));
 end;
+{$endif notused}
 
 function memtoreg(const t: Taicpu; const ref: treference; var startp: tai): tregister;
 var
@@ -1981,7 +1983,11 @@ End.
 
 {
   $Log$
-  Revision 1.26  2002-04-02 17:11:34  peter
+  Revision 1.27  2002-04-04 19:06:10  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.26  2002/04/02 17:11:34  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

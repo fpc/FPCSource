@@ -43,7 +43,7 @@ interface
        import,export,link,rgobj;
 
 
-  type 
+  type
      tStr4=array[1..1]of string[4];
      pStr4=^tStr4;
 
@@ -225,10 +225,9 @@ const
            end;
       end;
 
-    //PVO 26.03.02 <
+
     const
      MainAsmFormats=[as_i386_asw,as_i386_aswdosx,as_i386_pecoff,as_i386_pecoffwdosx];
-    //PVO 26.03.02 <
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
@@ -374,8 +373,10 @@ const
          hp1 : timportlist;
          hp2 : timported_item;
          l1,l2,l3,l4 : tasmlabel;
+{$ifdef GDB}
          importname : string;
          suffix : integer;
+{$endif GDB}
          href : treference;
       begin
          if not(aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
@@ -1287,13 +1288,13 @@ end;
 {****************************************************************************
                             TDLLScannerWin32
 ****************************************************************************}
-//PVO 26.03.02 <
+
     procedure tDLLScannerWin32.GetDefExt(var N:longint;var P:pStr4);
      begin
       N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
       pointer(P):=@DefaultDLLExtensions;
      end;
-//PVO 26.03.02 >
+
     function tDLLScannerWin32.DOSstubOK(var x:cardinal):boolean;
       begin
         blockread(f,TheWord,2,loaded);
@@ -1336,6 +1337,17 @@ end;
       end;
 
 //PVO 26.03.02 !
+
+    function tDLLScannerWin32.DllName(Const Name : string) : string;
+      var n : string;
+      begin
+         n:=Upper(SplitExtension(Name));
+         if (n='.DLL') or (n='.DRV') or (n='.EXE') then
+           DllName:=Name
+         else
+           DllName:=Name+target_info.sharedlibext;
+      end;
+
 
 
 function tDLLScannerWin32.isSuitableFileType(x:cardinal):longbool;
@@ -1624,7 +1636,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2002-04-04 18:25:30  carl
+  Revision 1.26  2002-04-04 19:06:14  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.25  2002/04/04 18:25:30  carl
   + added wdosx patch from Pavel
 
   Revision 1.24  2002/04/02 17:11:39  peter

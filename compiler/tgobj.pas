@@ -118,8 +118,7 @@ unit tgobj;
 
     uses
        systems,
-       verbose,cutils,
-       cgobj;
+       verbose,cutils;
 
     constructor ttgobj.create;
 
@@ -642,7 +641,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2002-04-02 17:11:32  peter
+  Revision 1.3  2002-04-04 19:06:06  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.2  2002/04/02 17:11:32  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -56,9 +56,7 @@ implementation
 
 uses
   globtype,globals,systems,verbose,
-  symconst,symdef,symsym,
-  cpuinfo,cgbase,
-  types,cpuasm;
+  cpuinfo,cpuasm;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -631,7 +629,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2002-04-02 17:11:39  peter
+  Revision 1.16  2002-04-04 19:06:13  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.15  2002/04/02 17:11:39  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

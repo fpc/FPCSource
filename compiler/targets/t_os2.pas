@@ -48,7 +48,7 @@ implementation
      cutils,cclasses,
      globtype,comphook,systems,symsym,
      globals,verbose,fmodule,script,
-     import,link,comprsrc;
+     import,link;
 
   type
     timportlibos2=class(timportlib)
@@ -593,7 +593,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-01-29 21:27:34  peter
+  Revision 1.15  2002-04-04 19:06:13  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.14  2002/01/29 21:27:34  peter
     * default alignment changed to 4 bytes for locals and static const,var
 
   Revision 1.12  2002/01/27 12:58:42  hajny

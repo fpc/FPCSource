@@ -79,10 +79,11 @@ interface
        ttempinfo = record
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
-         hookoncopy: ptempinfo;
-         ref: treference;
-         restype: ttype;
-         valid: boolean;
+         hookoncopy : ptempinfo;
+         ref        : treference;
+         size       : longint;
+         restype    : ttype;
+         valid      : boolean;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -455,6 +456,7 @@ implementation
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.restype := _restype;
+        tempinfo^.size := _size;
         persistent := _persistent;
       end;
 
@@ -468,6 +470,7 @@ implementation
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.restype := tempinfo^.restype;
+        n.tempinfo^.size:=size;
 
         { signal the temprefs that the temp they point to has been copied, }
         { so that if the refs get copied as well, they can hook themselves }
@@ -617,7 +620,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-03-31 20:26:33  jonas
+  Revision 1.20  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.19  2002/03/31 20:26:33  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

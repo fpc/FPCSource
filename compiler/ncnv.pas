@@ -136,7 +136,7 @@ implementation
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,
-      cginfo,cgbase,
+      cgbase,
       htypechk,pass_1,cpubase,cpuinfo;
 
 
@@ -1684,7 +1684,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-04-02 17:11:28  peter
+  Revision 1.50  2002-04-04 19:05:58  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.49  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

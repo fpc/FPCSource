@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, cginfo, cgbase, cpubase, cga,
+uses pass_1, types, htypechk, cgbase, cpubase, cga,
      tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj;
 
 
@@ -99,7 +99,7 @@ begin
        { release the registers }
        tg.ungetiftemp(exprasmlist,left.location.reference);
        { does not hurt: }
-       location_reset(left.location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
+       location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -207,7 +207,7 @@ begin
        { release the registers }
        tg.ungetiftemp(exprasmlist,left.location.reference);
        { does not hurt: }
-       location_reset(left.location,LOC_CREFERENCE,def_cgsize_ref(resulttype.def));
+       location_reset(left.location,LOC_CREFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -242,7 +242,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-04-02 17:11:36  peter
+  Revision 1.9  2002-04-04 19:06:12  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.8  2002/04/02 17:11:36  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -38,7 +38,7 @@ implementation
        globtype,version,systems,tokens,
        cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
-       symconst,symbase,symppu,symdef,symsym,symtable,aasm,
+       symconst,symbase,symdef,symsym,symtable,aasm,
        cgbase,
        cga,
        link,assemble,import,export,gendef,ppu,comprsrc,
@@ -46,7 +46,7 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       scanner,pbase,pexpr,psystem,psub,parser;
+       scanner,pbase,pexpr,psystem,psub;
 
     procedure create_objectfile;
       var
@@ -1428,7 +1428,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-04-04 18:42:49  carl
+  Revision 1.58  2002-04-04 19:06:03  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.57  2002/04/04 18:42:49  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.56  2002/04/02 17:11:29  peter

@@ -110,7 +110,6 @@ implementation
 
     const
       symbolresize = 200*18;
-      DataResize   = 8192;
 
     const
       R_386_32 = 1;                    { ordinary absolute relocation }
@@ -185,12 +184,10 @@ implementation
           sh_addralign      : longint;
           sh_entsize        : longint;
         end;
-        pelf32reloc=^telf32reloc;
         telf32reloc=packed record
           address : longint;
           info    : longint; { bit 0-7: type, 8-31: symbol }
         end;
-        pelf32symbol=^telf32symbol;
         telf32symbol=packed record
           st_name  : longint;
           st_value : longint;
@@ -199,7 +196,6 @@ implementation
           st_other : byte;
           st_shndx : word;
         end;
-        pelf32stab=^telf32stab;
         telf32stab=packed record
           strpos  : longint;
           ntype   : byte;
@@ -890,7 +886,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-05-06 17:13:23  jonas
+  Revision 1.11  2002-04-04 19:05:58  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.10  2001/05/06 17:13:23  jonas
     * completed incomplete typed constant records
 
   Revision 1.9  2001/05/04 19:50:58  peter

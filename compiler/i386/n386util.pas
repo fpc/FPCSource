@@ -57,8 +57,8 @@ implementation
     uses
        globtype,globals,systems,verbose,
        cutils,
-       aasm,cpuasm,cpuinfo,
-       symconst,symbase,symdef,symsym,symtable,
+       aasm,cpuasm,
+       symconst,symdef,symsym,symtable,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -106,7 +106,7 @@ implementation
                     cg.a_label(exprasmlist,hl);
                   end;
                 else
-                  cg.a_load_loc_reg(exprasmlist,l.size,l,hregister);
+                  cg.a_load_loc_reg(exprasmlist,l,hregister);
               end;
               { reset hi part, take care of the signed bit of the current value }
               hregisterhi:=rg.getregisterint(exprasmlist);
@@ -227,7 +227,7 @@ implementation
                      end;
                     l.size:=size;
                   end;
-                 cg.a_load_loc_reg(exprasmlist,l.size,l,hregister);
+                 cg.a_load_loc_reg(exprasmlist,l,hregister);
                end;
            end;
            location_reset(l,LOC_REGISTER,size);
@@ -584,10 +584,10 @@ implementation
                   if inlined then
                    begin
                      reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     cg.a_load_loc_ref(exprasmlist,cgsize,p.location,r);
+                     cg.a_load_loc_ref(exprasmlist,p.location,r);
                    end
                   else
-                   cg.a_param_loc(exprasmlist,cgsize,p.location,-1);
+                   cg.a_param_loc(exprasmlist,p.location,-1);
                   { restore old register }
                   p.location.register:=hreg;
                 end;
@@ -627,10 +627,10 @@ implementation
                   if inlined then
                    begin
                      reference_reset_base(r,procinfo^.framepointer,para_offset-pushedparasize);
-                     cg.a_load_loc_ref(exprasmlist,cgsize,p.location,r);
+                     cg.a_load_loc_ref(exprasmlist,p.location,r);
                    end
                   else
-                   cg.a_param_loc(exprasmlist,cgsize,p.location,-1);
+                   cg.a_param_loc(exprasmlist,p.location,-1);
                 end;
                location_release(exprasmlist,p.location);
              end;
@@ -1225,7 +1225,7 @@ implementation
          rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
          location_freetemp(exprasmlist,source.location);
          location_release(exprasmlist,source.location);
-         cg.a_param_loc(exprasmlist,OS_ADDR,source.location,1);
+         cg.a_param_loc(exprasmlist,source.location,1);
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest.location.reference);
          rg.saveregvars(exprasmlist,all_registers);
@@ -1247,7 +1247,7 @@ implementation
          rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
          location_freetemp(exprasmlist,source.location);
          location_release(exprasmlist,source.location);
-         cg.a_param_loc(exprasmlist,OS_ADDR,source.location,1);
+         cg.a_param_loc(exprasmlist,source.location,1);
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest.location.reference);
          rg.saveregvars(exprasmlist,all_registers);
@@ -1308,7 +1308,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-04-04 07:56:15  michael
+  Revision 1.30  2002-04-04 19:06:12  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.29  2002/04/04 07:56:15  michael
   * Patch from peter to fix go32v2 cycle
 
   Revision 1.28  2002/04/02 17:11:37  peter

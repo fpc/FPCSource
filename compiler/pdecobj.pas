@@ -37,7 +37,7 @@ implementation
     uses
       cutils,cclasses,
       globals,verbose,systems,tokens,
-      aasm,symconst,symbase,symsym,symtable,types,
+      symconst,symbase,symsym,symtable,types,
       cgbase,
       node,nld,nmem,ncon,ncnv,ncal,pass_1,
       scanner,
@@ -1110,7 +1110,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-01-25 17:38:19  peter
+  Revision 1.39  2002-04-04 19:06:00  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.38  2002/01/25 17:38:19  peter
     * fixed default value for properties with index values
 
   Revision 1.37  2002/01/24 18:25:48  peter

@@ -41,11 +41,11 @@ implementation
 {$else}
        strings,
 {$endif Delphi}
-       globtype,systems,tokens,cpuinfo,
+       globtype,systems,tokens,
        cutils,globals,widestr,scanner,
        symconst,symbase,symdef,aasm,cpuasm,types,verbose,
        { pass 1 }
-       node,pass_1,
+       node,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser specific stuff }
        pbase,pexpr,
@@ -970,7 +970,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-01-24 18:25:49  peter
+  Revision 1.42  2002-04-04 19:06:03  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.41  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

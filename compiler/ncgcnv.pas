@@ -201,22 +201,21 @@ interface
 
     procedure tcgtypeconvnode.second_real_to_real;
       begin
-         location_reset(location,LOC_FPUREGISTER,OS_NO);
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
               begin
                 location_copy(location,left.location);
+                location.size:=def_cgsize(resulttype.def);
                 exit;
               end;
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.register := rg.getregisterfpu(exprasmlist);
-                 cg.a_loadfpu_ref_reg(exprasmlist,
-                   def_cgsize(left.resulttype.def),
-                   left.location.reference,location.register);
+                 location.register:=rg.getregisterfpu(exprasmlist);
+                 cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
               end;
             else
               internalerror(2002032215);
@@ -428,7 +427,7 @@ interface
         { we reuse the old value }
         location_copy(location,left.location);
         { but use the new size, but we don't know the size of all arrays }
-        location.size:=def_cgsize_ref(resulttype.def)
+        location.size:=def_cgsize(resulttype.def)
       end;
 
 
@@ -438,7 +437,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-04-02 17:11:28  peter
+  Revision 1.7  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.6  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

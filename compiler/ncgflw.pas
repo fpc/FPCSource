@@ -73,7 +73,7 @@ implementation
       nld,ncon,
       cga,tgobj,rgobj,
       ncgutil,
-      tainst,regvars,cgobj,cgcpu,cg64f32;
+      regvars,cgobj,cgcpu,cg64f32;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -407,7 +407,7 @@ implementation
            hop:=OP_SUB
          else
            hop:=OP_ADD;
-         cg.a_op_const_loc(exprasmlist,hop,opsize,1,t2.location);
+         cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
          cg.a_jmp_cond(exprasmlist,OC_None,l3);
 
          if temptovalue then
@@ -495,16 +495,14 @@ implementation
                   begin
                     cg.a_reg_alloc(exprasmlist,accumulator);
                     allocated_acc := true;
-                    cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,accumulator);
+                    cg.a_load_loc_reg(exprasmlist,left.location,accumulator);
                   end;
                 floatdef :
                   begin
 {$ifndef i386}
                     cg.a_reg_alloc(exprasmlist,fpuresultreg);
 {$endif not i386}
-                    cg.a_loadfpu_loc_reg(exprasmlist,
-                        def_cgsize(aktprocdef.rettype.def),
-                        left.location,fpuresultreg);
+                    cg.a_loadfpu_loc_reg(exprasmlist,left.location,fpuresultreg);
                   end;
                 else
                   begin
@@ -533,7 +531,7 @@ implementation
 {$else}
                           hreg:=accumulator;
 {$endif}
-                          cg.a_load_loc_reg(exprasmlist,cgsize,left.location,hreg);
+                          cg.a_load_loc_reg(exprasmlist,left.location,hreg);
                         end;
                     end;
                  end;
@@ -627,7 +625,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-04-02 17:11:28  peter
+  Revision 1.11  2002-04-04 19:05:57  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.10  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -122,9 +122,7 @@ implementation
 
     const
        symbolresize = 200*sizeof(toutputsymbol);
-       coffsymbolresize = 200*18;
        strsresize   = 8192;
-       DataResize   = 8192;
 
     const
        COFF_SYM_EXTERNAL = 2;
@@ -176,7 +174,6 @@ implementation
          typ     : byte;
          aux     : byte;
        end;
-       pcoffstab=^coffstab;
        coffstab=packed record
          strpos  : longint;
          ntype   : byte;
@@ -1188,7 +1185,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-04-04 18:38:30  carl
+  Revision 1.18  2002-04-04 19:05:58  peter
+    * removed unused units
+    * use tlocation.size in cg.a_*loc*() routines
+
+  Revision 1.17  2002/04/04 18:38:30  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.16  2001/09/17 21:29:12  peter
