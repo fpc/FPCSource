@@ -290,7 +290,7 @@ implementation
                          hp^:=p^.location.reference;
                          inc(hp^.offset,4);
                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                           R_EDI,hp)));
+                           hregister,hp)));
 
                          { virtual method ? }
                          if (pprocsym(p^.symtableentry)^.definition^.options and povirtualmethod)<>0 then
@@ -835,7 +835,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-05-31 12:42:43  peter
+  Revision 1.60.2.1  1999-07-01 15:17:14  peter
+    * methoidpointer fixes from florian
+
+  Revision 1.60  1999/05/31 12:42:43  peter
     * fixed crash with empty array constructor
 
   Revision 1.59  1999/05/27 19:44:14  peter

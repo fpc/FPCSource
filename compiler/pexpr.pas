@@ -554,6 +554,13 @@ unit pexpr;
                 (p1^.symtableproc^.defowner^.deftype=objectdef) then
                 begin
                    p1^.methodpointer:=getcopy(pwithsymtable(p1^.symtableproc)^.withrefnode);
+                end
+              else if not(assigned(p1^.methodpointer)) then
+                begin
+                   { we must provide a method pointer, if it isn't given, }
+                   { it is self                                           }
+                   p1^.methodpointer:=genselfnode(procinfo._class);
+                   p1^.methodpointer^.resulttype:=procinfo._class;
                 end;
               { no postfix operators }
               again:=false;
@@ -2035,7 +2042,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.112.2.4  1999-06-26 00:22:30  pierre
+  Revision 1.112.2.5  1999-07-01 15:17:17  peter
+    * methoidpointer fixes from florian
+
+  Revision 1.112.2.4  1999/06/26 00:22:30  pierre
    * wrong warnings in -So mode suppressed
 
   Revision 1.112.2.3  1999/06/17 12:51:44  pierre
