@@ -1783,7 +1783,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              pobjectdef(p^.resulttype)^.is_class) then
                            begin
                               if (p^.resulttype^.size>2) or
-                                 (alignment=4) then
+                                 ((alignment=4) and (p^.resulttype^.size>0)) then
                                 begin
                                   inc(pushedparasize,4);
                                   if inlined then
@@ -3843,7 +3843,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.89  2000-03-21 23:36:46  pierre
+  Revision 1.90  2000-03-28 22:31:46  pierre
+   * fix for problem in tbs0299 for 4 byte stack alignment
+
+  Revision 1.89  2000/03/21 23:36:46  pierre
    fix for bug 312
 
   Revision 1.88  2000/03/19 11:55:08  peter
