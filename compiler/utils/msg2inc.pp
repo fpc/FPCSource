@@ -653,6 +653,9 @@ begin
            if i>0 then
             begin
               inc(i);
+              while s[i] in ['0'..'9'] do
+               inc(i);
+              inc(i);
               s1:='';
               k:=0;
               while (k<5) and (s[i+k]<>'_') do
@@ -787,7 +790,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-07-04 19:05:53  peter
+  Revision 1.10  2000-07-09 16:30:59  peter
+    * fixed tex writign
+
+  Revision 1.9  2000/07/04 19:05:53  peter
     * be optimistic: version 1.00 for some utils
 
   Revision 1.8  2000/06/30 20:23:38  peter
