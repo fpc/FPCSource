@@ -1482,9 +1482,9 @@ end;
           funcretsym :
             if Assigned(OwnerSym) then
             with tfuncretsym(sym) do
-              if assigned(rettype.def) then
-                if assigned(rettype.def.typesym) then
-                   SetVType(OwnerSym,rettype.def.typesym.name);
+              if assigned(returntype.def) then
+                if assigned(returntype.def.typesym) then
+                   SetVType(OwnerSym,returntype.def.typesym.name);
           procsym :
             begin
               with tprocsym(sym) do
@@ -2125,7 +2125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-08-04 11:06:29  peter
+  Revision 1.20  2001-08-07 17:08:49  peter
+    * fixed rettype->returntype renaming
+
+  Revision 1.19  2001/08/04 11:06:29  peter
     * browcol has no depends on ide/fv
 
   Revision 1.18  2001/08/04 10:23:54  peter
