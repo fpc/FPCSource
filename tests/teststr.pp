@@ -1,4 +1,4 @@
-{
+{ $OPT=-Fu../rtl/utils
   $Id$
   
   Program to test string functions and speed of the functions

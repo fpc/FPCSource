@@ -3,6 +3,9 @@
   
   Program to test set functions
 }
+
+{ $define FPC_HAS_SET_INEQUALITIES
+  <,> <= and >= are not implemented yet (PM) }
 program TestSet;
 
 Procedure InitMSTimer;
@@ -57,7 +60,11 @@ begin
       Set2 := Set2 + [Box2 [L]] + [];
    end;
 
+{$ifdef FPC_HAS_SET_INEQUALITIES }
    if (Set1 <> Set2) OR (NOT (Set1 <= Set2)) OR (NOT (Set1 >= Set2)) then begin
+{$else FPC_HAS_SET_INEQUALITIES }
+   if (Set1 <> Set2) then begin
+{$endif FPC_HAS_SET_INEQUALITIES }
       WriteLn ('error in relational operators 1');
       Halt;
       end;
@@ -103,14 +110,20 @@ begin
          Low := Random (256);
          Hi  := Random (256);
          Set2:= Set1 + [Low..Hi];
+{$ifdef FPC_HAS_SET_INEQUALITIES }
          if (Set1 >= Set2) AND (Set1 <> Set2) then begin
+{$else FPC_HAS_SET_INEQUALITIES }
+         if (Set1 <> Set2) then begin
+{$endif FPC_HAS_SET_INEQUALITIES }
             WriteLn ('error in relational operators 2');
             Halt;
             end;
+{$ifdef FPC_HAS_SET_INEQUALITIES }
          if NOT (Set1 <= Set2) then begin
             WriteLn ('error in relational operators 3');
             Halt;
             end;
+{$endif FPC_HAS_SET_INEQUALITIES }
          Set1 := Set2;
 
       end;

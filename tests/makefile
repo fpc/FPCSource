@@ -4,7 +4,7 @@
 # make all test
 # and printout errors
 
-all : clean allts alltf allto
+all : clean allts alltf allto alltest
 	grep -n -i fails log
 
 # returns the error code 
@@ -12,11 +12,18 @@ all : clean allts alltf allto
 # in file retcode
 
 ifdef DJGPP
+
+EXEEXT=.exe
+
 getreturncode : 
 	redir -e $(FILE).log -o $(FILE).log getret $(COMMAND)
+	cp retcode $(FILE).$(RESEXT)
 else
+
+EXEEXT=
 getreturncode : 
 	getret $(COMMAND) !> $(FILE).log !2>$(FILE).log
+	cp retcode $(FILE).$(RESEXT)
 endif
 	
 
@@ -47,6 +54,39 @@ testsuccess:
 	echo Test for $(FILE) fails (does not compile) error $(RETVAL)
 	echo Test for $(FILE) fails (does not compile) error $(RETVAL)>>log
 	echo $(FILE) >> faillist
+endif
+	
+ifdef FILE
+ifneq ($wildcard $(FILE).exc),)
+EXERETVAL:=$(shell cat $(FILE).exc)
+else
+EXERETVAL=-1
+endif
+else
+EXERETVAL=-2
+endif
+
+ifeq ($(EXERETVAL),0)
+testexecsuccess:
+	echo Test for exec $(FILE) success (runs without error)
+	echo Test for $(FILE) success (runs without error) >>log
+else
+testexecsuccess:
+	echo Test for exec $(FILE) fails exec error $(RETVAL)
+	echo Test for exec $(FILE) fails exec error $(RETVAL)>>log
+	echo $(FILE) >> faillist
+endif
+	
+ifneq ($(wildcard $(FILE)$(EXEEXT)),)
+testexec:
+	redir -e $(FILE).elg -o$(FILE).elg getret $(FILE)$(EXEEXT)
+	cp retcode $(FILE).exc
+	make testexecsuccess 'FILE=$(FILE)' 
+else
+testexec:
+	echo No exefile $(FILE)$(EXEEXT)
+	make testexecsuccess 'FILE=$(FILE)' 
+	true
 endif
 	
 ifneq ($(RETVAL),0)
@@ -83,30 +123,44 @@ FILE=ts00001.pp
 endif
 
 testone :
-	make getreturncode 'COMMAND=$(PP) $(OPT) $(FILE).pp'
+	make getreturncode 'COMMAND=$(PP) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)'
 	make printretcode 'FILE=$(FILE)'
 
 %.res : %.pp
-	make testone 'FILE=$*'
-	cat retcode > $*.res
+	make testone 'FILE=$*' 'RESEXT=res'
 	make testsuccess 'FILE=$*' 'RESFILE=$*.res'
 
 %.ref : %.pp
-	make testone 'FILE=$*'
-	cat retcode > $*.ref
+	make testone 'FILE=$*' 'RESEXT=ref'
 	make testfail 'FILE=$*' 'RESFILE=$*.ref'
 
+# exec log files
+# creates two files
+# *.elg log file
+# *.exc exicode of program
+%.elg : %.res
+	make testexec 'FILE=$*'
+	
 allts : $(patsubst %.pp,%.res,$(wildcard ts*.pp))
+
+alltest : $(patsubst %.pp,%.res,$(wildcard test*.pp))
 
 alltf : $(patsubst %.pp,%.ref,$(wildcard tf*.pp))
 
 allto : $(patsubst %.pp,%.res,$(wildcard to*.pp))
 
+allexec: $(patsubst %.pp,%.elg,$(wildcard test*.pp)) $(patsubst %.pp,%.elg,$(wildcard ts*.pp)) 
+
 clean :
 	-rm *.re* *.o *.ppu ts*.exe tf*.exe log faillist
 
 # $Log$
-# Revision 1.5  1998-10-21 16:24:16  pierre
+# Revision 1.6  1998-10-22 14:35:40  pierre
+#   + added allexec tests if executables compiled
+#     don't return with an error code
+#   * some changes in test files for dos
+#
+# Revision 1.5  1998/10/21 16:24:16  pierre
 #  + tests to check if filename exists
 #
 # Revision 1.4  1998/10/21 12:14:30  pierre

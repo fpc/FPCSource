@@ -1,9 +1,10 @@
 {
   $Id$
-  
+
   Program to test DOS unit by Peter Vreman.
   Only main TP functions are tested (nothing with Interrupts/Break/Verify).
 }
+{$V-}
 program testdos;
 uses dos;
 
@@ -11,8 +12,8 @@ procedure TestInfo;
 var
   dt    : DateTime;
   ptime : longint;
-  wday,
-  HSecs : integer;
+  wday  : word;
+  HSecs : word;
 begin
   writeln;
   writeln('Info Functions');
@@ -42,10 +43,11 @@ begin
   writeln('Amount of environment strings : ',EnvCount);
   writeln('GetEnv TERM : ',GetEnv('TERM'));
   writeln('GetEnv HOST : ',GetEnv('HOST'));
+  writeln('GetEnv PATH : ',GetEnv('PATH'));
   writeln('GetEnv SHELL: ',GetEnv('SHELL'));
   write('Press Enter for all Environment Strings using EnvStr()');
   Readln;
-  for i:=1to EnvCount do
+  for i:=1 to EnvCount do
    writeln(EnvStr(i));
   write('Press Enter');
   Readln;
@@ -59,7 +61,13 @@ begin
   writeln('**************');
   write('Press Enter for an Exec of ''ls -la''');
   Readln;
-  Exec('pine','');
+{$ifdef linux }
+  Exec('ls','-la');
+{$else not linux }
+  SwapVectors;
+  Exec('ls','-la');
+  SwapVectors;
+{$endif not linux }
   write('Press Enter');
   Readln;
 end;
@@ -75,7 +83,8 @@ begin
   writeln('**************');
   writeln('DiskFree 0 : ',DiskFree(0));
   writeln('DiskSize 0 : ',DiskSize(0));
-  writeln('DiskSize 1 : ',DiskSize(1));
+  {writeln('DiskSize 1 : ',DiskSize(1)); this is a: on dos  ??! }
+  writeln('DiskSize 1 : ',DiskSize(3)); { this is c: on dos }
 {$IFDEF LINUX}
   AddDisk('/fd0');
   writeln('DiskSize 4 : ',DiskSize(4));
@@ -103,6 +112,7 @@ begin
   writeln;
   writeln('File(name) Functions');
   writeln('********************');
+{$ifdef linux }
   test:='/usr/local/bin/ppc.so';
   writeln('FSplit(',test,')');
   FSplit(test,dir,name,ext);
@@ -121,8 +131,34 @@ begin
   Writeln('Expanded /usr/local/dos.pp      : ',FExpand('/usr/local/dos.pp'));
   Writeln('Expanded ../dos/./../././dos.pp : ',FExpand('../dos/./../././dos.pp'));
 
-  test:='../;/usr/;/usr/bin/;/usr/bin;/bin/';
+  test:='../;/usr/;/usr/bin/;/usr/bin;/bin/;';
+{$else not linux }
+  test:='\usr\local\bin\ppc.so';
+  writeln('FSplit(',test,')');
+  FSplit(test,dir,name,ext);
+  writeln('dir: ',dir,' name: ',name,' ext: ',ext);
+  test:='\usr\bin.1\ppc';
+  writeln('FSplit(',test,')');
+  FSplit(test,dir,name,ext);
+  writeln('dir: ',dir,' name: ',name,' ext: ',ext);
+  test:='mtools.tar.gz';
+  writeln('FSplit(',test,')');
+  FSplit(test,dir,name,ext);
+  writeln('dir: ',dir,' name: ',name,' ext: ',ext);
+
+  Writeln('Expanded dos.pp                 : ',FExpand('dos.pp'));
+  Writeln('Expanded ..\dos.pp              : ',FExpand('..\dos.pp'));
+  Writeln('Expanded \usr\local\dos.pp      : ',FExpand('\usr\local\dos.pp'));
+  Writeln('Expanded ..\dos\.\..\.\.\dos.pp : ',FExpand('..\dos\.\..\.\.\dos.pp'));
+
+  test:='..\;\usr\;\usr\bin\;\usr\bin;\bin\;';
+{$endif not linux}
+  test:=test+getenv('PATH');
+{$ifdef linux}
   Writeln('FSearch ls: ',FSearch('ls',test));
+{$else not linux}
+  Writeln('FSearch ls: ',FSearch('ls.exe',test));
+{$endif not linux}
 
   write('Press Enter');
   Readln;
