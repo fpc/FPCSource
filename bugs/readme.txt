@@ -182,8 +182,6 @@ Fixed bugs:
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
-  bug0160.pp   Incompatibility with BP: Self shouldn't be a
-               reserved word.
   bug0164.pp   crash when using undeclared array index in with statement OK 0.99.8 (PFV)
 
 Unproducable bugs:
@@ -198,6 +196,7 @@ Unfixed not important bugs (mostly incompatibilities):
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0133.pp   object type declaration not 100% compatibile with TP7
 bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
+bug0160.pp   Incompatibility with BP: Self shouldn't be a reserved word.
 
 
 Unfixed bugs:
