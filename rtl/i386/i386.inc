@@ -124,9 +124,9 @@ end;
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : longint;value : word);assembler;
 asm
-        movl    8(%ebp),%edi
-        movl    12(%ebp),%ecx
-        movl    16(%ebp),%eax
+        movl    x,%edi
+        movl    count,%ecx
+        movl    value,%eax
         movl    %eax,%edx
         shll    $16,%eax
         movw    %dx,%ax
@@ -145,9 +145,9 @@ end ['EAX','ECX','EDX','EDI'];
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure filldword(var x;count : longint;value : dword);assembler;
 asm
-        movl    8(%ebp),%edi
-        movl    12(%ebp),%ecx
-        movl    16(%ebp),%eax
+        movl    x,%edi
+        movl    count,%ecx
+        movl    value,%eax
         cld
         rep
         stosl
@@ -728,10 +728,10 @@ begin
         pushl   %eax
         pushl   %ecx
         cld
-        movl    16(%ebp),%edi
-        movl    12(%ebp),%esi
+        movl    dstr,%edi
+        movl    sstr,%esi
         xorl    %eax,%eax
-        movl    8(%ebp),%ecx
+        movl    len,%ecx
         lodsb
         cmpl    %ecx,%eax
         jbe     .LStrCopy1
@@ -766,8 +766,8 @@ procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
 begin
   asm
         xorl    %ecx,%ecx
-        movl    12(%ebp),%edi
-        movl    8(%ebp),%esi
+        movl    s2,%edi
+        movl    s1,%esi
         movl    %edi,%ebx
         movb    (%edi),%cl
         lea     1(%edi,%ecx),%edi
@@ -808,8 +808,8 @@ begin
         cld
         xorl    %ebx,%ebx
         xorl    %eax,%eax
-        movl    12(%ebp),%esi
-        movl    8(%ebp),%edi
+        movl    sstr,%esi
+        movl    dstr,%edi
         movb    (%esi),%al
         movb    (%edi),%bl
         movl    %eax,%edx
@@ -1154,7 +1154,10 @@ end;
 
 {
   $Log$
-  Revision 1.66  2000-01-10 09:54:30  peter
+  Revision 1.67  2000-01-11 21:11:04  marco
+   * Changed some direct asm params to real params
+
+  Revision 1.66  2000/01/10 09:54:30  peter
     * primitives added
 
   Revision 1.65  2000/01/07 16:41:32  daniel
