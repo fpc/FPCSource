@@ -1354,7 +1354,7 @@ end;
 {$ifndef RTLLITE}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
 {$define IN_SYSTEM}
-{$i ndpmi.pp}
+{$i dpmiexcp.pp}
 {$endif  EXCEPTIONS_IN_SYSTEM}
 {$endif RTLLITE}
 
@@ -1403,7 +1403,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.34  2000-03-07 11:05:58  pierre
+  Revision 1.35  2000-03-09 09:15:10  pierre
+    + support for djgpp v2.03 (added some new functions that are in v2.03 ofdpmiexcp.c)
+    + code to integrate exception support inside the system unit
+
+  Revision 1.34  2000/03/07 11:05:58  pierre
     * fix for the problem of backslashes at and of directory
     + some code for exception support (far from working :()
     + debug variable accept_sbrk

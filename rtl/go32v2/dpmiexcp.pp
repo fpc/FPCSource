@@ -13,10 +13,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$ifndef IN_SYSTEM}
 {$GOTO ON}
-
-Unit DPMIExcp;
+{$define IN_DPMIEXCP_UNIT}
+Unit DpmiExcp;
 
 { If linking to C code we must avoid loading of the dpmiexcp.o
   in libc.a from the equivalent C code
@@ -24,17 +24,29 @@ Unit DPMIExcp;
 
   Problem this is only valid for DJGPP v2.01 }
 
+
 interface
 
 uses
   go32;
 
+{$endif ndef IN_SYSTEM}
 { No stack checking ! }
 {$S-}
 
 
+{$ifdef EXCEPTIONS_IN_SYSTEM}
+{$ifdef IN_DPMIEXCP_UNIT}
+{$undef CREATE_C_FUNCTIONS}
+{$else not IN_DPMIEXCP_UNIT}
+{$define CREATE_C_FUNCTIONS}
+{$endif ndef IN_DPMIEXCP_UNIT}
+{$else not EXCEPTIONS_IN_SYSTEM}
+{$define CREATE_C_FUNCTIONS}
+{$endif not EXCEPTIONS_IN_SYSTEM}
 { Error Messages }
-function do_faulting_finish_message : integer;
+function do_faulting_finish_message(fake : boolean) : integer;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { SetJmp/LongJmp }
 type
@@ -48,7 +60,9 @@ type
       exception_ptr : pdpmi_jmp_buf;  { pointer to previous exception if exists }
   end;
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 procedure dpmi_longjmp(var rec : dpmi_jmp_buf;return_value : longint);
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { Signals }
 const
@@ -76,15 +90,20 @@ const
   SIG_UNBLOCK = 3;
 
 function SIG_DFL( x: longint) : longint;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 function SIG_ERR( x: longint) : longint;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 function SIG_IGN( x: longint) : longint;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 type
   SignalHandler  = function (v : longint) : longint;
   PSignalHandler = ^SignalHandler; { to be compatible with linux.pp }
 
 function signal(sig : longint;func : SignalHandler) : SignalHandler;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 function _raise(sig : longint) : longint;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { Exceptions }
 type
@@ -100,22 +119,50 @@ type
   end;
 
 procedure djgpp_exception_toggle;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 procedure djgpp_exception_setup;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 function  djgpp_exception_state : pexception_state;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 function  djgpp_set_ctrl_c(enable : boolean) : boolean;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { Other }
 function dpmi_set_coprocessor_emulation(flag : longint) : longint;
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+function __djgpp_set_sigint_key(new_key : longint) : longint;
+{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+function __djgpp_set_sigquit_key(new_key : longint) : longint;
+{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+function __djgpp__traceback_exit(sig : longint) : longint;
+{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
+{$ifndef IN_SYSTEM}
 implementation
+{$endif IN_SYSTEM}
 
 {$asmmode ATT}
 
+{$ifdef CREATE_C_FUNCTIONS}
 {$L exceptn.o}
+{$endif CREATE_C_FUNCTIONS}
 
+{$ifndef CREATE_C_FUNCTIONS}
+procedure djgpp_exception_toggle;
+external name '___djgpp_exception_toggle';
+procedure djgpp_exception_setup;
+external name '___djgpp_exception_setup';
+function __djgpp_set_sigint_key(new_key : longint) : longint;
+external name '___djgpp_set_sigint_key';
+function __djgpp_set_sigquit_key(new_key : longint) : longint;
+external name '___djgpp_set_sigquit_key';
+{$endif CREATE_C_FUNCTIONS}
 var
-  v2prt0_ds_alias : pointer;external name '___v2prt0_ds_alias';
-  djgpp_ds_alias  : pointer;external name '___djgpp_ds_alias';
+  v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
+  djgpp_ds_alias  : word;external name '___djgpp_ds_alias';
   djgpp_exception_state_ptr : pexception_state;external name '___djgpp_exception_state_ptr';
   endtext        : longint;external name '_etext';
   starttext       : longint;external name 'start';
@@ -125,6 +172,7 @@ var
   djgpp_hwint_flags : longint;external name '___djgpp_hwint_flags';
   djgpp_dos_sel : word;external name '___djgpp_dos_sel';
   djgpp_exception_table : array[0..0] of pointer;external name '___djgpp_exception_table';
+  dosmemselector : word;external name '_core_selector';
 
 procedure djgpp_i24;external name '___djgpp_i24';
 procedure djgpp_iret;external name '___djgpp_iret';
@@ -143,6 +191,226 @@ const
   cbrk_vect : byte = $1b;
   exception_level : longint = 0;
 
+
+{$ifndef IN_DPMIEXCP_UNIT}
+{****************************************************************************
+          DPMI functions copied from go32 unit
+****************************************************************************}
+
+const
+  int31error : word = 0;
+
+    procedure test_int31(flag : longint);
+      begin
+         asm
+            pushl %ebx
+            movw  $0,INT31ERROR
+            movl  flag,%ebx
+            testb $1,%bl
+            jz    .Lti31_1
+            movw  %ax,INT31ERROR
+            xorl  %eax,%eax
+            jmp   .Lti31_2
+            .Lti31_1:
+            movl  $1,%eax
+            .Lti31_2:
+            popl  %ebx
+         end;
+      end;
+
+    function set_pm_exception_handler(e : byte;const intaddr : tseginfo) : boolean;
+
+      begin
+         asm
+            movl intaddr,%eax
+            movl (%eax),%edx
+            movw 4(%eax),%cx
+            movl $0x212,%eax
+            movb e,%bl
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+         end;
+      end;
+
+    function set_exception_handler(e : byte;const intaddr : tseginfo) : boolean;
+
+      begin
+         asm
+            movl intaddr,%eax
+            movl (%eax),%edx
+            movw 4(%eax),%cx
+            movl $0x203,%eax
+            movb e,%bl
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+         end;
+      end;
+
+    function get_pm_exception_handler(e : byte;var intaddr : tseginfo) : boolean;
+
+      begin
+         asm
+            movl $0x210,%eax
+            movb e,%bl
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+            movl intaddr,%eax
+            movl %edx,(%eax)
+            movw %cx,4(%eax)
+         end;
+      end;
+
+    function get_exception_handler(e : byte;var intaddr : tseginfo) : boolean;
+
+      begin
+         asm
+            movl $0x202,%eax
+            movb e,%bl
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+            movl intaddr,%eax
+            movl %edx,(%eax)
+            movw %cx,4(%eax)
+         end;
+      end;
+
+    function get_segment_base_address(d : word) : longint;
+
+      begin
+         asm
+            movw d,%bx
+            movl $6,%eax
+            int $0x31
+            xorl %eax,%eax
+            movw %dx,%ax
+            shll $16,%ecx
+            orl %ecx,%eax
+            movl %eax,__RESULT
+         end;
+      end;
+
+    function get_segment_limit(d : word) : longint;
+
+      begin
+         asm
+            movzwl d,%eax
+            lsl %eax,%eax
+            jz .L_ok2
+            xorl %eax,%eax
+         .L_ok2:
+            movl %eax,__RESULT
+         end;
+      end;
+
+    function set_rm_interrupt(vector : byte;const intaddr : tseginfo) : boolean;
+
+      begin
+         asm
+            movl intaddr,%eax
+            movw (%eax),%dx
+            movw 4(%eax),%cx
+            movl $0x201,%eax
+            movb vector,%bl
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+         end;
+      end;
+
+    function get_rm_interrupt(vector : byte;var intaddr : tseginfo) : boolean;
+
+      begin
+         asm
+            movb vector,%bl
+            movl $0x200,%eax
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+            movl intaddr,%eax
+            movzwl %dx,%edx
+            movl %edx,(%eax)
+            movw %cx,4(%eax)
+         end;
+      end;
+
+
+    function free_rm_callback(var intaddr : tseginfo) : boolean;
+      begin
+         asm
+            movl intaddr,%eax
+            movw (%eax),%dx
+            movw 4(%eax),%cx
+            movl $0x304,%eax
+            int $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+         end;
+      end;
+
+    function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
+      begin
+         asm
+            movl  pm_func,%esi
+            movl  reg,%edi
+            pushw %es
+            movw  v2prt0_ds_alias,%ax
+            movw  %ax,%es
+            pushw %ds
+            movw  %cs,%ax
+            movw  %ax,%ds
+            movl  $0x303,%eax
+            int   $0x31
+            popw  %ds
+            popw  %es
+            pushf
+            call test_int31
+            movb %al,__RESULT
+            movl  rmcb,%eax
+            movzwl %dx,%edx
+            movl  %edx,(%eax)
+            movw  %cx,4(%eax)
+         end;
+      end;
+
+    function lock_linear_region(linearaddr, size : longint) : boolean;
+
+      begin
+          asm
+            movl  $0x600,%eax
+            movl  linearaddr,%ecx
+            movl  %ecx,%ebx
+            shrl  $16,%ebx
+            movl  size,%esi
+            movl  %esi,%edi
+            shrl  $16,%esi
+            int   $0x31
+            pushf
+            call test_int31
+            movb %al,__RESULT
+          end;
+      end;
+
+    function lock_code(functionaddr : pointer;size : longint) : boolean;
+
+      var
+         linearaddr : longint;
+
+      begin
+         linearaddr:=longint(functionaddr)+get_segment_base_address(get_cs);
+         lock_code:=lock_linear_region(linearaddr,size);
+      end;
+{$endif ndef IN_DPMIEXCP_UNIT}
 
 {****************************************************************************
                                   Helpers
@@ -172,7 +440,8 @@ end;
                               SetJmp/LongJmp
 ****************************************************************************}
 
- function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
+{$ifdef CREATE_C_FUNCTIONS}
+function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
   begin
   { here we need to be subtle :
     - we need to return with the arg still on the stack
@@ -194,7 +463,7 @@ end;
         jmp     dpmi_setjmp
      end;
   end;
-
+{$endif CREATE_C_FUNCTIONS}
 
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
 begin
@@ -246,11 +515,13 @@ begin
 end;
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[public, alias : '_longjmp'];
   begin
      dpmi_longjmp(rec,return_value);
      { never gets here !! so pascal stack convention is no problem }
   end;
+{$endif CREATE_C_FUNCTIONS}
 
 procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[alias : 'FPC_longjmp'];
 begin
@@ -309,41 +580,49 @@ end;
 ****************************************************************************}
 
 var
-  signal_list : Array[0..SIGMAX] of SignalHandler;
+  signal_list : Array[0..SIGMAX] of SignalHandler;cvar;
+  {$ifndef CREATE_C_FUNCTIONS}external;{$endif}
 
-function SIG_ERR(x:longint):longint;
+{$ifdef CREATE_C_FUNCTIONS}
+function SIG_ERR(x:longint):longint;[public,alias : '___djgpp_SIG_ERR'];
 begin
   SIG_ERR:=-1;
 end;
 
 
-function SIG_IGN(x:longint):longint;
+function SIG_IGN(x:longint):longint;[public,alias : '___djgpp_SIG_IGN'];
 begin
   SIG_IGN:=-1;
 end;
 
 
-function SIG_DFL(x:longint):longint;
+function SIG_DFL(x:longint):longint;[public,alias : '___djgpp_SIG_DFL'];
 begin
   SIG_DFL:=0;
 end;
 
+{$else CREATE_C_FUNCTIONS}
+function SIG_ERR(x:longint):longint;external name '___djgpp_SIG_ERR';
+function SIG_IGN(x:longint):longint;external name '___djgpp_SIG_IGN';
+function SIG_DFL(x:longint):longint;external name '___djgpp_SIG_DFL';
+{$endif CREATE_C_FUNCTIONS}
 
 function signal(sig : longint;func : SignalHandler) : SignalHandler;
 var
   temp : SignalHandler;
 begin
-  if ((sig <= 0) or (sig > SIGMAX) or (sig = SIGKILL)) then
+  if ((sig < 0) or (sig > SIGMAX) or (sig = SIGKILL)) then
    begin
      signal:=@SIG_ERR;
      runerror(201);
    end;
-  temp := signal_list[sig - 1];
-  signal_list[sig - 1] := func;
+  temp := signal_list[sig];
+  signal_list[sig] := func;
   signal:=temp;
 end;
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 { C counter part }
 function c_signal(sig : longint;func : SignalHandler) : SignalHandler;cdecl;[public,alias : '_signal'];
 var
@@ -352,6 +631,7 @@ begin
   temp:=signal(sig,func);
   c_signal:=temp;
 end;
+{$endif CREATE_C_FUNCTIONS}
 
 
 const
@@ -359,20 +639,8 @@ const
     'ABRT','FPE ','ILL ','SEGV','TERM','ALRM','HUP ',
     'INT ','KILL','PIPE','QUIT','USR1','USR2','NOFP','TRAP');
 
-function _raise(sig : longint) : longint;
-var
-  temp : SignalHandler;
-label
-  traceback_exit;
+procedure print_signal_name(sig : longint);
 begin
-  if(sig <= 0) or (sig > SIGMAX) then
-   exit(-1);
-  temp:=signal_list[sig - 1];
-  if (temp = SignalHandler(@SIG_IGN)) then
-   exit(0);
-  if (temp = SignalHandler(@SIG_DFL)) then
-   begin
-traceback_exit:
      if ((sig >= SIGABRT) and (sig <= SIGTRAP)) then
       begin
         err('Exiting due to signal SIG');
@@ -384,7 +652,21 @@ traceback_exit:
         itox(sig, 4);
       end;
      errln('');
-     do_faulting_finish_message();   { Exits, does not return }
+end;
+
+function _raise(sig : longint) : longint;
+var
+  temp : SignalHandler;
+begin
+  if(sig < 0) or (sig > SIGMAX) then
+   exit(-1);
+  temp:=signal_list[sig];
+  if (temp = SignalHandler(@SIG_IGN)) then
+   exit(0);
+  if (temp = SignalHandler(@SIG_DFL)) then
+   begin
+     print_signal_name(sig);
+     do_faulting_finish_message(djgpp_exception_state<>nil);   { Exits, does not return }
      exit(-1);
    end;
   { this is incompatible with dxegen-dxeload stuff PM }
@@ -392,17 +674,24 @@ traceback_exit:
       (cardinal(temp) > cardinal(@endtext))) then
    begin
      errln('Bad signal handler, ');
-     goto traceback_exit;
+     print_signal_name(sig);
+     do_faulting_finish_message(djgpp_exception_state<>nil);   { Exits, does not return }
+     exit(-1);
    end;
+  { WARNING !!! temp can be a pascal or a C
+    function... thus %esp can be modified here !!!
+    This might be dangerous for some optimizations ?? PM }
   temp(sig);
   exit(0);
 end;
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 function c_raise(sig : longint) : longint;cdecl;[public,alias : '_raise'];
 begin
   c_raise:=_raise(sig);
 end;
+{$endif CREATE_C_FUNCTIONS}
 
 
 {****************************************************************************
@@ -423,6 +712,7 @@ begin
         $78 : exit(SIGTIMR);
         $1b,
         $79 : exit(SIGINT);
+        $7a : exit(SIGQUIT);
       else
         exit(SIGILL);
       end;
@@ -490,16 +780,20 @@ function farpeekb(sel : word;offset : longint) : byte;
 var
   b : byte;
 begin
+{$ifdef IN_DPMIEXCP_UNIT}
   seg_move(sel,offset,get_ds,longint(@b),1);
+{$else not IN_DPMIEXCP_UNIT}
+  sysseg_move(sel,offset,get_ds,longint(@b),1);
+{$endif IN_DPMIEXCP_UNIT}
   farpeekb:=b;
 end;
 
 
 const message_level : byte = 0;
 
-procedure ___exit(c:byte);cdecl;external name '___exit';
+procedure ___exit(c:longint);cdecl;external name '___exit';
 
-function do_faulting_finish_message : integer;
+function do_faulting_finish_message(fake : boolean) : integer;
 var
   en : pchar;
   signum,i : longint;
@@ -541,7 +835,10 @@ begin
 
   if (en = nil) then
     begin
-       err('Exception ');
+       if fake then
+         err('Raised ')
+       else
+         err('Exception ');
        itox(signum, 2);
        err(' at eip=');
        itox(djgpp_exception_state_ptr^.__eip, 8);
@@ -605,7 +902,7 @@ begin
     begin
        errln('First exception occured in another context');
        djgpp_exception_state_ptr:=djgpp_exception_state_ptr^.__exception_ptr;
-       do_faulting_finish_message();
+       do_faulting_finish_message(false);
     end;
 {$endif def DPMIEXCP_DEBUG}
    ;
@@ -613,7 +910,7 @@ begin
 simple_exit:
   if exceptions_on then
     djgpp_exception_toggle;
-  ___exit(1);
+  ___exit(-1);
 end;
 
 
@@ -623,6 +920,7 @@ asm
 end;
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 procedure djgpp_exception_processor;[public,alias : '___djgpp_exception_processor'];
 var
   sig : longint;
@@ -637,7 +935,11 @@ begin
   if (exception_level=1) or (sig=$78) then
     begin
        sig := except_to_sig(sig);
-       _raise(sig);
+       if signal_list[djgpp_exception_state_ptr^.__signum]
+          <>SignalHandler(@SIG_DFL) then
+         _raise(djgpp_exception_state_ptr^.__signum)
+       else
+         _raise(sig);
        if (djgpp_exception_state_ptr^.__signum >= EXCEPTIONCOUNT) then
          {  Not exception so continue OK }
          dpmi_longjmp(pdpmi_jmp_buf(djgpp_exception_state_ptr)^, djgpp_exception_state_ptr^.__eax);
@@ -653,17 +955,15 @@ begin
             errln('FPC triple exception, exiting !!! ');
             if (exceptions_on) then
               djgpp_exception_toggle;
-            asm
-               pushw $1
-               call  ___exit
-            end;
+            ___exit(1);
          end;
        err('FPC double exception, exiting due to signal ');
        itox(sig, 4);
        errln('');
     end;
-  do_faulting_finish_message;
+  do_faulting_finish_message(djgpp_exception_state<>nil);
 end;
+{$endif CREATE_C_FUNCTIONS}
 
 
 type
@@ -678,11 +978,13 @@ var
   npx_ori    : tseginfo;
   cbrk_ori,
   cbrk_rmcb  : trealseginfo;
-  cbrk_regs  : registers;
+  cbrk_regs  : trealregs;
   v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
 
 
-procedure djgpp_exception_toggle;[alias : '___djgpp_exception_toggle'];
+{$ifdef CREATE_C_FUNCTIONS}
+procedure djgpp_exception_toggle;
+[public,alias : '___djgpp_exception_toggle'];
 var
   _except : tseginfo;
   i : longint;
@@ -750,7 +1052,7 @@ begin
      cbrk_hooked := true;
    end;
 end;
-
+{$endif CREATE_C_FUNCTIONS}
 
 function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 var
@@ -774,6 +1076,7 @@ var
   _swap_out : pointer;external name '_swap_out';
   _exception_exit : pointer;external name '_exception_exit';
 
+{$ifdef CREATE_C_FUNCTIONS}
 procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
 { We need to restore hardware interrupt handlers even if somebody calls
   `_exit' directly, or else we crash the machine in nested programs.
@@ -806,12 +1109,127 @@ begin
    djgpp_exception_toggle;
 end;
 
+{$else CREATE_C_FUNCTIONS}
+procedure dpmiexcp_exit;external name 'excep_exit';
+procedure dpmi_swap_in;external name 'swap_in';
+procedure dpmi_swap_out;external name 'swap_out';
+{$endif CREATE_C_FUNCTIONS}
 
 var
   ___djgpp_app_DS : word;external name '___djgpp_app_DS';
   ___djgpp_our_DS : word;external name '___djgpp_our_DS';
 
-procedure djgpp_exception_setup;[alias : '___djgpp_exception_setup'];
+  __djgpp_sigint_mask : word;external name '___djgpp_sigint_mask';
+  __djgpp_sigint_key  : word;external name '___djgpp_sigint_key';
+  __djgpp_sigquit_mask : word;external name '___djgpp_sigquit_mask';
+  __djgpp_sigquit_key  : word;external name '___djgpp_sigquit_key';
+{ to avoid loading of C lib version of dpmiexcp
+  I need to have all exported assembler labels
+  of dpmiexcp.c in this unit.
+  DJGPP v2.03 add to new functions:
+  __djgpp_set_sigint_key
+  __djgpp_set_sigquit_key
+  that I implement here simply translating C code PM }
+Const
+  LSHIFT = 1;
+  RSHIFT = 2;
+  CTRL   = 4;
+  ALT    = 8;
+  DEFAULT_SIGINT  = $042e; { Ctrl-C: scan code 2Eh, kb status 04h }
+  DEFAULT_SIGQUIT = $042b; { Ctrl-\: scan code 2Bh, kb status 04h }
+  DEFAULT_SIGINT_98  = $042b; { Ctrl-C: scan code 2Bh, kb status 04h }
+  DEFAULT_SIGQUIT_98 = $040d; { Ctrl-\: scan code 0Dh, kb status 04h }
+
+{ Make it so the key NEW_KEY will generate the signal SIG.
+   NEW_KEY must include the keyboard status byte in bits 8-15 and the
+   scan code in bits 0-7.  }
+function set_signal_key(sig,new_key : longint) : longint;
+  type
+    pword = ^word;
+  var
+    old_key : longint;
+    mask,key : pword;
+    kb_status : word;
+
+  begin
+    if (sig = SIGINT) then
+      begin
+        mask := @__djgpp_sigint_mask;
+        key  := @__djgpp_sigint_key;
+      end
+    else if (sig = SIGQUIT) then
+      begin
+        mask := @__djgpp_sigquit_mask;
+        key  := @__djgpp_sigquit_key;
+      end
+    else
+      exit(-1);
+
+    old_key := key^;
+    key^ := new_key and $ffff;
+    kb_status := key^ shr 8;
+    mask^ := $f;      { Alt, Ctrl and Shift bits only }
+    {  Mask off the RShift bit unless they explicitly asked for it.
+       Our keyboard handler pretends that LShift is pressed when they
+       press RShift.  }
+    if ((kb_status and RSHIFT) = 0) then
+      mask^ :=mask^ and not RSHIFT;
+    {  Mask off the LShift bit if any of the Ctrl or Alt are set
+       since Shift doesn't matter when Ctrl and/or Alt are pressed.  }
+    if (kb_status and (CTRL or ALT))<>0 then
+      mask^:= mask^ and not LSHIFT;
+
+    exit(old_key);
+  end;
+
+{$ifdef CREATE_C_FUNCTIONS}
+function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
+begin
+  __djgpp_set_sigint_key:=set_signal_key(SIGINT, new_key);
+end;
+
+function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
+begin
+  __djgpp_set_sigquit_key:=set_signal_key(SIGQUIT, new_key);
+end;
+{$endif CREATE_C_FUNCTIONS}
+
+function __djgpp__traceback_exit(sig : longint) : longint;
+{$ifdef CREATE_C_FUNCTIONS}cdecl;{$endif CREATE_C_FUNCTIONS}
+var
+  fake_exception : texception_state;
+begin
+  if (sig >= SIGABRT) and (sig <= SIGTRAP) then
+    begin
+      if djgpp_exception_state_ptr=nil then
+        begin
+        { This is a software signal, like SIGABRT or SIGKILL.
+           Fill the exception structure, so we get the traceback.  }
+          djgpp_exception_state_ptr:=@fake_exception;
+          if (dpmi_setjmp(pdpmi_jmp_buf(djgpp_exception_state_ptr)^)<>0) then
+            begin
+              errln('Bad longjmp to __djgpp_exception_state--aborting');
+              do_faulting_finish_message(true); { does not return }
+            end
+          else
+            { Fake the exception number.  7Ah is the last one hardwired
+              inside exceptn.S, for SIGQUIT.  }
+            djgpp_exception_state_ptr^.__signum:=$7a + 1 + sig - SIGABRT;
+        end;
+    end;
+  print_signal_name(sig);
+  if assigned(djgpp_exception_state_ptr) then
+    { This exits, does not return.  }
+    do_faulting_finish_message(djgpp_exception_state_ptr=@fake_exception);
+  ___exit(-1);
+end;
+
+
+
+
+{$ifdef CREATE_C_FUNCTIONS}
+procedure djgpp_exception_setup;
+[alias : '___djgpp_exception_setup'];
 var
   temp_kbd,
   temp_npx    : pointer;
@@ -822,11 +1240,21 @@ var
 begin
   if assigned(_exception_exit) then
    exit;
+  if (go32_info_block.linear_address_of_primary_screen <> $a0000) then
+    begin
+      __djgpp_set_sigint_key(DEFAULT_SIGINT);
+      __djgpp_set_sigquit_key(DEFAULT_SIGQUIT);
+    end
+  else
+    begin  { for PC98 }
+      __djgpp_set_sigint_key(DEFAULT_SIGINT_98);
+      __djgpp_set_sigquit_key(DEFAULT_SIGQUIT_98);
+    end;
   _exception_exit:=@dpmiexcp_exit;
   _swap_in:=@dpmi_swap_in;
   _swap_out:=@dpmi_swap_out;
 { reset signals }
-  for i := 0 to  SIGMAX-1 do
+  for i := 0 to  SIGMAX do
    signal_list[i] := SignalHandler(@SIG_DFL);
 { app_DS only used when converting HW interrupts to exceptions }
   asm
@@ -862,6 +1290,7 @@ begin
 { get original video mode and save }
   old_video_mode := farpeekb(dosmemselector, $449);
 end;
+{$endif CREATE_C_FUNCTIONS}
 
 
 function djgpp_set_ctrl_c(enable : boolean) : boolean;
@@ -874,27 +1303,114 @@ begin
 end;
 
 
+{$ifdef CREATE_C_FUNCTIONS}
 function c_djgpp_set_ctrl_c(enable : longint) : boolean;cdecl;[public,alias : '___djgpp_set_ctrl_c'];
 begin
   c_djgpp_set_ctrl_c:=djgpp_set_ctrl_c(boolean(enable));
 end;
+{$endif def CREATE_C_FUNCTIONS}
 
 
+{$ifdef IN_DPMIEXCP_UNIT}
+procedure ResetDefaultHandlers;
+begin
+  Signal(SIGSEGV,@SIG_DFL);
+  Signal(SIGFPE,@SIG_DFL);
+  Signal(SIGNOFP,@SIG_DFL);
+  Signal(SIGTRAP,@SIG_DFL);
+  Signal(SIGTIMR,@SIG_DFL);
+  Signal(SIGINT,@SIG_DFL);
+  Signal(SIGQUIT,@SIG_DFL);
+  Signal(SIGILL,@SIG_DFL);
+end;
+{$endif IN_DPMIEXCP_UNIT}
 
 procedure InitDPMIExcp;
 begin
+{$ifdef CREATE_C_FUNCTIONS}
   djgpp_ds_alias:=v2prt0_ds_alias;
   djgpp_exception_setup;
+{$endif CREATE_C_FUNCTIONS}
 end;
 
+{$ifndef IN_SYSTEM}
 
 begin
+{$ifdef CREATE_C_FUNCTIONS}
   InitDPMIExcp;
+{$else not CREATE_C_FUNCTIONS}
+  ResetDefaultHandlers;
+{$endif CREATE_C_FUNCTIONS}
 end.
+{$else IN_SYSTEM}
+
+function HandleException(sig : longint) : longint;
+var
+  truesig : longint;
+  ErrorOfSig : longint;
+begin
+  if assigned(djgpp_exception_state_ptr) then
+    truesig:=djgpp_exception_state_ptr^.__signum
+  else
+    truesig:=sig;
+  ErrorOfSig:=0;
+  case truesig of
+   {exception_names : array[0..EXCEPTIONCOUNT-1] of pchar = (}
+   0 : ErrorOfSig:=200;    {'Division by Zero'}
+   5 : ErrorOfSig:=201;    {'Bounds Check'}
+   12 : ErrorOfSig:=202;   {'Stack Fault'}
+   7,                      {'Coprocessor not available'}
+   9,                      {'Coprocessor overrun'}
+   SIGFPE,SIGNOFP : ErrorOfSig:=207;
+   16 : begin
+         { This needs special handling }
+         { to discriminate between 205,206 and 207 }
+         ErrorOfSig:=207;  {'Coprocessor Error'}
+        end;
+   4 : ErrorOfSig:=215;    {'Overflow'}
+   1,                      {'Debug'}
+   2,                      {'NMI'}
+   3,                      {'Breakpoint'}
+   6,                      {'Invalid Opcode'}
+   8,                      {'Double Fault'}
+   10,                     {'Invalid TSS'}
+   11,                     {'Segment Not Present'}
+   13,                     {'General Protection Fault'}
+   14,                     {'Page fault'}
+   15,                     {' ',}
+   17,                     {'Alignment Check');}
+   SIGSEGV,SIGTRAP,SIGTIMR,SIGINT,SIGQUIT
+    : ErrorOfSig:=216;
+  end;
+  if assigned(djgpp_exception_state_ptr) then
+    Begin
+      HandleErrorAddrFrame(ErrorOfSig,
+        djgpp_exception_state_ptr^.__eip,
+        djgpp_exception_state_ptr^.__ebp);
+    End
+  else
+    { probably higher level is required }
+    HandleErrorFrame(ErrorOfSig,get_caller_frame(get_frame));
+  HandleException:=0;
+end;
+
+procedure InstallDefaultHandlers;
+begin
+  Signal(SIGSEGV,@HandleException);
+  Signal(SIGFPE,@HandleException);
+  Signal(SIGNOFP,@HandleException);
+  Signal(SIGTRAP,@HandleException);
+  Signal(SIGTIMR,@HandleException);
+  Signal(SIGINT,@HandleException);
+  Signal(SIGQUIT,@HandleException);
+  Signal(SIGILL,@HandleException);
+end;
+{$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.11  2000-02-09 16:59:28  peter
-    * truncated log
+  Revision 1.12  2000-03-09 09:15:10  pierre
+    + support for djgpp v2.03 (added some new functions that are in v2.03 ofdpmiexcp.c)
+    + code to integrate exception support inside the system unit
 
   Revision 1.10  2000/01/10 12:14:57  pierre
    * add $goto on to avoid problems
@@ -905,4 +1421,68 @@ end.
   Revision 1.8  2000/01/07 16:32:23  daniel
     * copyright 2000 added
 
+  Revision 1.7  1999/03/01 15:40:49  peter
+    * use external names
+    * removed all direct assembler modes
+
+  Revision 1.6  1999/02/05 12:49:25  pierre
+   <> debug conditionnal renamed DPMIEXCP_DEBUG
+
+  Revision 1.5  1999/01/22 15:46:33  pierre
+   * PsignalHandler is now a pointer as changed in linux.pp
+
+  Revision 1.4  1999/01/22 12:39:19  pierre
+   + added text arg for dump_stack
+
+  Revision 1.3  1999/01/18 09:14:20  pierre
+   * exception_level counting was wrong if dpmi_jmp_buf was copied
+
+  Revision 1.2  1998/12/21 14:23:12  pierre
+  dpmiexcp.pp
+
+  Revision 1.1  1998/12/21 13:07:02  peter
+    * use -FE
+
+  Revision 1.11  1998/11/17 09:42:50  pierre
+   * position check of signal handler was wrong
+
+  Revision 1.10  1998/10/13 21:42:42  peter
+    * cleanup and use of external var
+    * fixed ctrl-break crashes
+
+  Revision 1.9  1998/08/20 08:08:36  pierre
+    * dpmiexcp did not compile with older versions
+      due to the proc to procvar bug
+    * makefile separator problem fixed
+
+  Revision 1.8  1998/08/19 10:56:33  pierre
+    + added some special code for C interface
+      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
+
+  Revision 1.7  1998/08/15 17:01:13  peter
+    * smartlinking the units works now
+    * setjmp/longjmp -> dmpi_setjmp/dpmi_longjmp to solve systemunit
+      conflict
+
+  Revision 1.6  1998/08/04 13:31:32  pierre
+    * changed all FPK into FPC
+
+  Revision 1.5  1998/07/08 12:02:19  carl
+    * make it compiler under fpc v0995
+
+  Revision 1.4  1998/06/26 08:19:08  pierre
+    + all debug in ifdef SYSTEMDEBUG
+    + added local arrays :
+      opennames names of opened files
+      fileopen boolean array to know if still open
+      usefull with gdb if you get problems about too
+      many open files !!
+
+  Revision 1.3  1998/05/31 14:18:23  peter
+    * force att or direct assembling
+    * cleanup of some files
+
+  Revision 1.2  1998/04/21 14:46:33  pierre
+    + debug info better output
+      no normal code changed
 }
