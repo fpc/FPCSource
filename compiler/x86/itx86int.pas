@@ -64,7 +64,7 @@ implementation
         if int_regname_table[int_regname_index[p]]=s then
           findreg_by_intname:=int_regname_index[p]
         else
-          findreg_by_intname:=$ff;
+          findreg_by_intname:=0;
       end;
 
 
@@ -88,7 +88,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-09-03 15:55:02  peter
+  Revision 1.3  2003-09-04 14:42:44  peter
+    * return 0 instead of $ff when no reg is found
+
+  Revision 1.2  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.1.2.5  2003/08/31 15:46:26  peter
