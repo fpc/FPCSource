@@ -92,6 +92,8 @@ end;
 destructor TXMLConfig.Destroy;
 begin
   Flush;
+  if Assigned(doc) then
+    doc.Free;
   inherited Destroy;
 end;
 
@@ -203,7 +205,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-01-07 01:24:34  peter
+  Revision 1.8  2000-01-30 22:20:08  sg
+  * TXMLConfig now frees its XML document (major memory leak...)
+
+  Revision 1.7  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.6  2000/01/06 01:20:37  peter
