@@ -41,7 +41,7 @@ unit cgobj;
        cclasses,aasmbase,aasmtai,aasmcpu,symtable,
        cpubase,cpuinfo,cpupara,
        cginfo,
-       symconst,symbase,symtype,node
+       symconst,symbase,symtype,symdef,node
 {$ifdef delphi}
        ,dmisc
 {$endif}
@@ -304,7 +304,8 @@ unit cgobj;
 
 
           procedure g_maybe_loadself(list : taasmoutput);virtual;
-          procedure g_maybe_testself(list : taasmoutput);virtual;
+          procedure g_maybe_testself(list : taasmoutput;reg:tregister);
+          procedure g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination, if loadref is true, it assumes that it first must load
              the source address from the memory location where
@@ -499,7 +500,7 @@ unit cgobj;
 
     uses
        globals,globtype,options,systems,cgbase,
-       verbose,defutil,tgobj,symdef,paramgr,
+       verbose,defutil,tgobj,paramgr,
        rgobj,cutils;
 
     const
@@ -1464,7 +1465,7 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_maybe_testself(list : taasmoutput);
+    procedure tcg.g_maybe_testself(list : taasmoutput;reg:tregister);
       var
         OKLabel : tasmlabel;
         dummyloc : tparalocation;
@@ -1480,6 +1481,26 @@ unit cgobj;
            a_call_name(list,'FPC_HANDLEERROR');
            a_label(list,oklabel);
          end;
+      end;
+
+
+    procedure tcg.g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
+      var
+        hrefvmt : treference;
+      begin
+        if (cs_check_object in aktlocalswitches) then
+         begin
+           reference_reset_symbol(hrefvmt,objectlibrary.newasmsymbol(objdef.vmt_mangledname),0);
+           a_paramaddr_ref(exprasmlist,hrefvmt,paramanager.getintparaloc(2));
+           a_param_reg(exprasmlist,OS_ADDR,reg,paramanager.getintparaloc(1));
+           a_call_name(exprasmlist,'FPC_CHECK_OBJECT_EXT');
+         end
+        else
+         if (cs_check_range in aktlocalswitches) then
+          begin
+            a_param_reg(exprasmlist,OS_ADDR,reg,paramanager.getintparaloc(1));
+            a_call_name(exprasmlist,'FPC_CHECK_OBJECT');
+          end;
       end;
 
 
@@ -1705,7 +1726,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.74  2003-01-17 12:45:40  daniel
+  Revision 1.75  2003-01-30 21:46:35  peter
+    * maybe_testvmt added
+
+  Revision 1.74  2003/01/17 12:45:40  daniel
     * Fixed internalerror 200301081 problem
 
   Revision 1.73  2003/01/13 14:54:34  daniel
