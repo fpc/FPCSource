@@ -292,7 +292,7 @@ implementation
                  hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,s32inttype);
                  include(hvs.varoptions,vo_is_high_value);
                  tvarsym(currpara.parasym).owner.insert(hvs);
-                 tvarsym(currpara.parasym).highvarsym:=hvs;
+{                 tvarsym(currpara.parasym).highvarsym:=hvs;}
                end
               else
                hvs:=nil;
@@ -2140,7 +2140,10 @@ const
 end.
 {
   $Log$
-  Revision 1.159  2004-02-04 22:15:15  daniel
+  Revision 1.160  2004-02-04 22:54:57  daniel
+    * Tvarsym.highvarsym commented out (unused by compiler, purpose unknown)
+
+  Revision 1.159  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

@@ -154,7 +154,7 @@ interface
        end;
 
        tvarsym = class(tstoredsym)
-          highvarsym    : tvarsym;
+{          highvarsym    : tvarsym;}
           defaultconstsym : tsym;
           varoptions    : tvaroptions;
           varspez       : tvarspez;  { sets the type of access }
@@ -1439,7 +1439,7 @@ implementation
          varspez:=vsp;
          fieldoffset:=0;
          fillchar(localloc,sizeof(localloc),0);
-         highvarsym:=nil;
+{         highvarsym:=nil;}
          defaultconstsym:=nil;
          refs:=0;
          varstate:=vs_declared;
@@ -1475,7 +1475,7 @@ implementation
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
          fieldoffset:=ppufile.getlongint;
-         highvarsym:=nil;
+{         highvarsym:=nil;}
          defaultconstsym:=nil;
          ppufile.gettype(_vartype);
          ppufile.getsmallset(varoptions);
@@ -2374,7 +2374,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2004-02-04 22:15:15  daniel
+  Revision 1.153  2004-02-04 22:54:57  daniel
+    * Tvarsym.highvarsym commented out (unused by compiler, purpose unknown)
+
+  Revision 1.152  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up
