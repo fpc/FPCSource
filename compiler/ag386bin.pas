@@ -864,7 +864,7 @@ unit ag386bin;
         addlist(bsssegment);
         if assigned(importssection) then
           addlist(importssection);
-        if assigned(exportssection) then
+        if assigned(exportssection) and not RelocSection then
           addlist(exportssection);
         if assigned(resourcesection) then
           addlist(resourcesection);
@@ -905,7 +905,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.22  1999-08-04 00:22:35  florian
+  Revision 1.23  1999-08-10 12:26:21  pierre
+   * avoid double .edata section if using DLLTOOL
+
+  Revision 1.22  1999/08/04 00:22:35  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.21  1999/08/01 18:28:09  florian

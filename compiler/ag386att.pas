@@ -816,7 +816,10 @@ unit ag386att;
       Writetree(resourcestringlist);
       WriteTree(bsssegment);
       Writetree(importssection);
-      Writetree(exportssection);
+      { exports are written by DLLTOOL
+        if we use it so don't insert it twice (PM) }
+      if not RelocSection then
+        Writetree(exportssection);
       Writetree(resourcesection);
       countlabelref:=true;
 
@@ -831,7 +834,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-04 00:22:34  florian
+  Revision 1.9  1999-08-10 12:26:20  pierre
+   * avoid double .edata section if using DLLTOOL
+
+  Revision 1.8  1999/08/04 00:22:34  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.7  1999/07/30 12:26:07  peter
