@@ -162,8 +162,13 @@ alltbs : $(patsubst %.pp,%.res,$(wildcard tbs*.pp))
 tbs0to99 : $(patsubst %.pp,%.res,$(wildcard tbs00*.pp))
 tbs100to199 : $(patsubst %.pp,%.res,$(wildcard tbs01*.pp))
 tbs200to299 : $(patsubst %.pp,%.res,$(wildcard tbs02*.pp))
+tbs300to399 : $(patsubst %.pp,%.res,$(wildcard tbs03*.pp))
 
 alltest : $(patsubst %.pp,%.res,$(wildcard test*.pp))
+
+alltbug : $(patsubst %.pp,%.res,$(wildcard tbug*.pp))
+
+alltbuf : $(patsubst %.pp,%.ref,$(wildcard tbuf*.pp))
 
 alltesi : $(patsubst %.pp,%.res,$(wildcard tesi*.pp))
 
@@ -197,10 +202,10 @@ clean_fail :
 again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) $(addsuffix .ref,$(TF_FAIL_LIST)) 
 	grep fails log
 
-all_compilations : allts alltbs alltf alltbf allto alltest alltesi alltis
+all_compilations : allts alltbs alltf alltbf alltbug alltbuf allto alltest alltesi alltis
 	grep fails log
 
-allexec : alltsexec alltbsexec alltestexec
+allexec : alltsexec alltbsexec alltbugexec alltestexec
 	grep "fails exec" log
 
 alltestexec: $(patsubst %.pp,%.elg,$(wildcard test*.pp)) 
@@ -211,11 +216,14 @@ alltesiexec: $(patsubst %.pp,%.eli,$(wildcard test*.pp))
 
 alltsexec: $(patsubst %.pp,%.elg,$(wildcard ts*.pp)) 
 
+alltbugexec : $(patsubst %.pp,%.elg,$(wilcard tbug*.pp))
+
 alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs*.pp)) 
 
 tbsexec0to99 : $(patsubst %.pp,%.elg,$(wildcard tbs00*.pp)) 
 tbsexec100to199 : $(patsubst %.pp,%.elg,$(wildcard tbs01*.pp)) 
 tbsexec200to299 : $(patsubst %.pp,%.elg,$(wildcard tbs02*.pp)) 
+tbsexec300to399 : $(patsubst %.pp,%.elg,$(wildcard tbs03*.pp)) 
 
 alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp)) 
 
@@ -231,6 +239,10 @@ info :
 	@echo compilation of 'ts*.pp' should succeed
 	@echo compilation of 'tf*.pp' should fail
 	@echo compilation of 'test*.pp' should succeed
+	@echo 'tbs*.pp' are files from bugs directory that should compile and run
+	@echo 'tbf*.pp' are files from bugs directory that should not compile
+	@echo 'tbug*.pp' are files from web bug repository that should compile and run
+	@echo 'tbuf*.pp' are files from web bug repository that should not compile 
 	@echo 'to*.pp' files should also compile
 	@echo simply run \'make tests\' to test all compilation
 	@echo run \'make allexec\' to test also if the executables
@@ -240,7 +252,10 @@ info :
 
 #
 # $Log$
-# Revision 1.7  1999-12-02 00:12:31  pierre
+# Revision 1.8  1999-12-02 13:37:37  pierre
+#  + latest bugs converted
+#
+# Revision 1.7  1999/12/02 00:12:31  pierre
 #  + splitted targets for Win95 selector bug
 #
 # Revision 1.6  1999/10/13 12:42:09  pierre
