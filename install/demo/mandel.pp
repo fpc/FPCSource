@@ -22,13 +22,22 @@ program mandel;
 }
 
 uses
+{$ifdef go32v2}
+  dpmiexcp,
+{$endif go32v2}
   Graph;
+
+{$ifdef go32v2}
+  {$ifndef ver0_99_8}
+    {$define has_colors_equal}
+  {$endif ver0_99_8}
+{$endif go32v2}
 
 const
   shift:byte=12;
 
 var
-  SerchPoint,ActualPoint,NextPoint       : PointType;
+  SearchPoint,ActualPoint,NextPoint       : PointType;
   LastColor                              : longint;
   Gd,Gm,
   Max_Color,Max_X_Width,
@@ -43,6 +52,18 @@ const
     SY : array [0..7] OF SHORTINT=(-1,-1,-1, 0, 1, 1, 1, 0);
 type
     arrayType = array[1..50] of integer;
+
+{------------------------------------------------------------------------------}
+{$ifndef has_colors_equal}
+  function ColorsEqual(c1, c2 : longint) : boolean;
+    begin
+       ColorsEqual:=((GetMaxColor=$FF) and ((c1 and $FF)=(c2 and $FF))) or
+         ((GetMaxColor=$7FFF) and ((c1 and $F8F8F8)=(c2 and $F8F8F8))) or
+         ((GetMaxColor=$FFFF) and ((c1 and $F8FCF8)=(c2 and $F8FCF8))) or
+         ((GetMaxColor>$10000) and ((c1 and $FFFFFF)=(c2 and $FFFFFF)));
+    end;
+
+{$endif not has_colors_equal}
 
 {------------------------------------------------------------------------------}
 function CalcMandel(Point:PointType; z:integer) : Longint ;
@@ -61,7 +82,9 @@ begin
     z :=z -1;
   until (Z=0) or (Xq + Yq > 4 );
   if Z=0 Then
-    CalcMandel:=1
+    CalcMandel:=(blue and $FFFFFF)
+  else if getMaxColor>255 then
+    CalcMandel:=(stdcolors[(z mod 254) + 1] and $FFFFFF)
   else
     CalcMandel:=(z mod Max_Color) + 1 ;
 end;
@@ -187,41 +210,41 @@ begin
       Position:=NewPosition(LastOperation);
       repeat
         LastOperation:=(Position+KK) and 7 ;
-        SerchPoint.X:=ActualPoint.X+Sx[LastOperation];
-        SerchPoint.Y:=ActualPoint.Y+Sy[LastOperation];
-        if ((SerchPoint.X < 0) or
-            (SerchPoint.X > Max_X_Width) or
-            (SerchPoint.Y < NextPoint.Y) or
-            (SerchPoint.Y > Y_Width)) then
+        SearchPoint.X:=ActualPoint.X+Sx[LastOperation];
+        SearchPoint.Y:=ActualPoint.Y+Sy[LastOperation];
+        if ((SearchPoint.X < 0) or
+            (SearchPoint.X > Max_X_Width) or
+            (SearchPoint.Y < NextPoint.Y) or
+            (SearchPoint.Y > Y_Width)) then
           goto L;
-        if (SerchPoint.X=NextPoint.X) and (SerchPoint.Y=NextPoint.Y) then
+        if (SearchPoint.X=NextPoint.X) and (SearchPoint.Y=NextPoint.Y) then
           begin
             Start:=true ;
             Found:=true ;
           end
         else
           begin
-            FoundColor:=GetPixel(SerchPoint.X,SerchPoint.Y) ;
+            FoundColor:=GetPixel(SearchPoint.X,SearchPoint.Y) ;
             if FoundColor = 0 then
               begin
-                FoundColor:= CalcMandel (SerchPoint,Zm) ;
-                Putpixel (SerchPoint.X,SerchPoint.Y,FoundColor) ;
+                FoundColor:= CalcMandel (SearchPoint,Zm) ;
+                Putpixel (SearchPoint.X,SearchPoint.Y,FoundColor) ;
                 if Flag then
-                  PutPixel (SerchPoint.X,Max_Y_Width-SerchPoint.Y,FoundColor) ;
+                  PutPixel (SearchPoint.X,Max_Y_Width-SearchPoint.Y,FoundColor) ;
               end ;
-            if FoundColor=LastColor then
+            if ColorsEqual(FoundColor,LastColor) then
               begin
-                if ActualPoint.Y <> SerchPoint.Y then
+                if ActualPoint.Y <> SearchPoint.Y then
                   begin
-                    if SerchPoint.Y = MerkY then
+                    if SearchPoint.Y = MerkY then
                       LineY[ActualPoint.Y]:=LineY[ActualPoint.Y]-1;
                     MerkY:= ActualPoint.Y ;
-                    LineY[SerchPoint.Y]:=LineY[SerchPoint.Y]+1;
+                    LineY[SearchPoint.Y]:=LineY[SearchPoint.Y]+1;
                   end ;
-                LineX[LineY[SerchPoint.Y],SerchPoint.Y]:=SerchPoint.X ;
-                if SerchPoint.Y > Ymax then Ymax:= SerchPoint.Y ;
+                LineX[LineY[SearchPoint.Y],SearchPoint.Y]:=SearchPoint.X ;
+                if SearchPoint.Y > Ymax then Ymax:= SearchPoint.Y ;
                   Found:=true ;
-                ActualPoint:=SerchPoint ;
+                ActualPoint:=SearchPoint ;
               end;
 L:
             KK:=KK+1;
@@ -242,19 +265,39 @@ end ;
 {------------------------------------------------------------------------------
                               MAINROUTINE
 ------------------------------------------------------------------------------}
+{$ifndef Linux}
+  var
+     error : word;
+{$endif not Linux}
 
 begin
+{$ifdef go32v2}
+  {$ifdef debug}
+  {$warning If the compilation fails, you need to recompile}
+  {$warning the graph unit with -dDEBUG option }
+  Write('Use linear ? ');
+  readln(st);
+  if st='y' then UseLinear:=true;
+  {$endif debug}
+{$endif go32v2}
 {$ifdef Linux}
   gm:=0;
   gd:=0;
 {$else}
-  gm:=$103;
+  if paramcount>0 then
+    begin
+       val(paramstr(1),gm,error);
+       if error<>0 then
+         gm:=$103;
+    end
+  else
+    gm:=$103;
   gd:=$ff;
   {$ifDEF TURBO}
     gd:=detect;
   {$endif}
 {$endif}
-  InitGraph(gd,gm,'D:\bp\bgi');
+  InitGraph(gd,gm,'');
   if GraphResult <> grOk then Halt(1);
   Max_X_Width:=GetMaxX;
   Max_y_Width:=GetMaxY;
@@ -270,7 +313,9 @@ begin
   dy:=(y1 - y2) / Max_Y_Width ;
   if abs(y1) = abs(y2) then
    begin
+{$ifndef NOFLAG}
      flag:=true;
+{$endif NOFLAG}
      Y_Width:=Max_Y_Width shr 1
    end
   else
@@ -280,14 +325,16 @@ begin
    end;
   NextPoint.X:=0;
   NextPoint.Y:=0;
-  LastColor:=CalcMandel(SerchPoint,zm);
+  LastColor:=CalcMandel(SearchPoint,zm);
   CalcBounds ;
+{$ifndef fpc_profile}
   readln;
+{$endif fpc_profile}
   CloseGraph;
 end.
 {
   $Log$
-  Revision 1.3  1998-09-11 10:55:25  peter
-    + header+log
+  Revision 1.4  1998-12-20 22:22:10  peter
+    * updates
 
 }

@@ -1,9 +1,8 @@
 #
 #   $Id$
-#   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1998 by the Free Pascal Development Team
 #
-#   Makefile for the Free Pascal Examples
+#   Makefile for demos
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -14,81 +13,47 @@
 #
 
 #####################################################################
-# Include configuration makefile
+# Defaults
 #####################################################################
 
-# Where are the include files ?
-CFG=../cfg
-#INC=../inc
-#PROCINC=../$(CPU)
-#OBJPAS=../objpas
+# Where are the files located
+MAKEFILEFPC=makefile.fpc
 
-# Get some defaults for Programs and OSes.
-# This will set the following variables :
-# inlinux COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
-# It will also set OPT for cross-compilation, and add required options.
-# also checks for config file.
-# it expects CFG INC PROCINC to be set !!
-include $(CFG)/makefile.cfg
+# Where need we to place the executables/ppu/objects
+TARGETDIR=.
+
 
 #####################################################################
-# Objects
+# Real targets
 #####################################################################
 
-EXEOBJECTS=hello lines eratos magic qsort mandel blackbox
 UNITOBJECTS=
+EXEOBJECTS=eratos qsort hello blackbox magic
 
-#####################################################################
-# Main targets
-#####################################################################
-
-# Create Filenames
-EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
-UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
-UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
-
-.PHONY : all clean diffs install diffclean
-
-all : $(EXEFILES) $(UNITFILES)
-
-$(EXEFILES): %$(EXEEXT): %$(PASEXT)
-	$(PP) $(OPT) $* 
-
-$(UNITFILES): %$(PPUEXT): %$(PASEXT)
-	$(PP) $(OPT) $* 
-
-install : all
-ifdef EXEOBJECTS
-	$(MKDIR) $(BININSTALLDIR)
-	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
-endif
-ifdef UNITOBJECTS
-	$(MKDIR) $(UNITINSTALLDIR)
-	$(INSTALL) $(UNITFILES) $(UNITOFILES) $(UNITINSTALLDIR)
-endif
-
-clean:
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
-ifdef EXEOBJECTS
-	-$(DEL) $(EXEFILES)
+ifeq ($(OS_TARGET),win32)
+override EXEOBJECTS+=win32/winhello
+else
+override EXEOBJECTS+=mandel lines
 endif
 
 #####################################################################
-# Files
+# Include default makefile
 #####################################################################
 
+include $(MAKEFILEFPC)
+
+
 #####################################################################
-# Default makefile targets
+# Dependencies
 #####################################################################
 
-include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-11 10:55:20  peter
-#   + header+log
-#
-# Revision 1.1  1998/09/10 13:55:07  peter
+# Revision 1.2  1998-12-20 22:22:09  peter
 #   * updates
+#
+# Revision 1.3  1998/12/12 19:14:42  peter
+#   + DEFAULTUNITS to have a make all only compile the units
 #
 #
