@@ -143,6 +143,7 @@ begin
     hcPrimaryFile   : S:='Define then file that is the focus of Make and Build';
     hcClearPrimary  : S:='Clear the file previously set to Primary';
     hcInformation   : S:='Show compiler messages and program information';
+    hcCompilerMessages:S:='Show compiler messages window';
 
     hcDebugMenu     : S:='Debug Program';
     hcToggleBreakpoint : S:='Toggles Breakpoint';
@@ -382,7 +383,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  1999-06-25 00:39:58  pierre
+  Revision 1.16  1999-06-28 19:32:19  peter
+    * fixes from gabor
+
+  Revision 1.15  1999/06/25 00:39:58  pierre
    help for cmSymbol,cmAddWatch,cmStack and cmBreakpoint list
 
   Revision 1.14  1999/04/07 21:55:46  peter

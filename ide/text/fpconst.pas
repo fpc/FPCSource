@@ -117,7 +117,7 @@ const
      cmCompilerMessages  = 234;
      cmSymbol            = 235;
      cmStack             = 236;
-     cmBreakpointList    = 237;                                                                                                                                                                                                           
+     cmBreakpointList    = 237;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -331,7 +331,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.18  1999-06-25 00:38:59  pierre
+  Revision 1.19  1999-06-28 19:32:18  peter
+    * fixes from gabor
+
+  Revision 1.18  1999/06/25 00:38:59  pierre
    +cmSymbol,cmStack,cmBreakpointList
 
   Revision 1.17  1999/04/07 21:55:44  peter

@@ -104,11 +104,11 @@ implementation
 
 uses
   Dos,Video
-  {$ifdef TP}
+(*  {$ifdef TP}
     {$ifdef DPMI}
     ,WinAPI
     {$endif}
-  {$endif}
+  {$endif}*)
   {$ifdef FPC}
     {$ifdef GO32V2}
     ,Go32
@@ -234,6 +234,7 @@ var
 begin
   GetVideoMode(TM);
   SetVideoMode(VideoInfo);
+
   if VideoInfo.Mode=7 then
     VSeg:=SegB000
   else
@@ -282,7 +283,7 @@ var
 {$ifdef TP}
   P: pointer;
   Sel: longint;
-  {$I realintr.inc}
+(*  {$I realintr.inc} *)
 {$endif}
 begin
   if (MI.StateSize>0) and (MI.StateBuf<>nil) then
@@ -464,7 +465,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-02-02 16:41:42  peter
+  Revision 1.4  1999-06-28 19:32:25  peter
+    * fixes from gabor
+
+  Revision 1.3  1999/02/02 16:41:42  peter
     + automatic .pas/.pp adding by opening of file
     * better debuggerscreen changes
 

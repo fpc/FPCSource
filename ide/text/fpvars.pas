@@ -23,7 +23,7 @@ uses Objects,Views,App,
 
 type
     TRecentFileEntry = record
-      FileName  : string;
+      FileName  : string{$ifdef GABOR}[20]{$endif};
       LastPos   : TPoint;
     end;
 
@@ -35,17 +35,17 @@ const ClipboardWindow  : PClipboardWindow = nil;
       RecentFileCount  : integer = 0;
       OpenExts         : string[80] = '*.pas;*.pp;*.inc';
       HighlightExts    : string[80] = '*.pas;*.pp;*.inc';
-      TabsPattern      : string = 'make*;make*.*';
-      SourceDirs       : string = '';
-      PrimaryFile      : string = '';
-      PrimaryFileMain  : string = '';
-      PrimaryFileSwitches : string = '';
+      TabsPattern      : string{$ifdef GABOR}[30]{$endif} = 'make*;make*.*';
+      SourceDirs       : string{$ifdef GABOR}[30]{$endif} = '';
+      PrimaryFile      : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFileMain  : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFileSwitches : string{$ifdef GABOR}[30]{$endif} = '';
       PrimaryFilePara  : string = '';
-      GDBOutputFile    : string = 'gdb$$$.txt';
+      GDBOutputFile    : string{$ifdef GABOR}[30]{$endif} = 'gdb$$$.txt';
       IsEXECompiled    : boolean = false;
-      LinkAfter        : boolean = true; 
-      MainFile         : string = '';
-      EXEFile          : string = '';
+      LinkAfter        : boolean = true;
+      MainFile         : string{$ifdef GABOR}[80]{$endif} = '';
+      EXEFile          : string{$ifdef GABOR}[80]{$endif} = '';
       CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
@@ -81,7 +81,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.16  1999-06-21 23:37:58  pierre
+  Revision 1.17  1999-06-28 19:32:27  peter
+    * fixes from gabor
+
+  Revision 1.16  1999/06/21 23:37:58  pierre
    + added LinkAfter var for post linking with -s option
 
   Revision 1.15  1999/03/23 15:11:36  peter

@@ -54,7 +54,9 @@ type
     end;
 
     TFPWindow = object(TWindow)
+      AutoNumber: boolean;
       procedure HandleEvent(var Event: TEvent); virtual;
+      procedure SetState(AState: Word; Enable: Boolean); virtual;
     end;
 
     PFPHelpViewer = ^TFPHelpViewer;
@@ -153,8 +155,6 @@ type
     PClipboardWindow = ^TClipboardWindow;
     TClipboardWindow = object(TSourceWindow)
       constructor Init;
-      procedure   Show; virtual;
-      procedure   Hide; virtual;
       procedure   Close; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
@@ -811,6 +811,21 @@ begin
   inherited HandleEvent(Event);
 end;
 
+procedure TFPWindow.SetState(AState: Word; Enable: Boolean);
+begin
+  inherited SetState(AState,Enable);
+  if AutoNumber then
+    if (AState and (sfVisible+sfExposed))<>0 then
+      if GetState(sfVisible+sfExposed) then
+        begin
+          if Number=0 then
+            Number:=SearchFreeWindowNo;
+          ReDraw;
+        end
+      else
+        Number:=0;
+end;
+
 procedure TFPWindow.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
@@ -1084,8 +1099,9 @@ constructor TGDBWindow.Init(var Bounds: TRect);
 var HSB,VSB: PScrollBar;
     R: TRect;
 begin
-  inherited Init(Bounds,'GDB window',SearchFreeWindowNo);
+  inherited Init(Bounds,'GDB window',0);
   Options:=Options or ofTileAble;
+  AutoNumber:=true;
   GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
   GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
@@ -1189,6 +1205,7 @@ begin
   SetTitle('Clipboard');
   HelpCtx:=hcClipboardWindow;
   Number:=wnNoNumber;
+  AutoNumber:=true;
 
   GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
@@ -1206,22 +1223,6 @@ begin
   Hide;
 
   Clipboard:=Editor;
-end;
-
-procedure TClipboardWindow.Show;
-begin
-  inherited Show;
-  if GetState(sfVisible) and (Number=0) then
-    begin
-      Number:=SearchFreeWindowNo;
-      ReDraw;
-    end;
-end;
-
-procedure TClipboardWindow.Hide;
-begin
-  inherited Hide;
-  if GetState(sfVisible)=false then Number:=0;
 end;
 
 procedure TClipboardWindow.Close;
@@ -2607,7 +2608,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.32  1999-06-21 23:37:08  pierre
+  Revision 1.33  1999-06-28 19:32:28  peter
+    * fixes from gabor
+
+  Revision 1.32  1999/06/21 23:37:08  pierre
    * VESASetVideoModeProc return value was not set
 
   Revision 1.31  1999/06/02 11:19:13  pierre

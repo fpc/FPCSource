@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$I globdir.inc}
 unit WViews;
 
 interface
@@ -199,6 +200,7 @@ uses Mouse,
      Commands,App,MsgBox,
      WUtils;
 
+{$ifndef NOOBJREG}
 const
   RAdvancedListBox: TStreamRec = (
      ObjType: 1120;
@@ -224,6 +226,7 @@ const
      Load:    @TDlgWindow.Load;
      Store:   @TDlgWindow.Store
   );
+{$endif}
 
 const
   MessageDialog  : PCenterDialog = nil;
@@ -2059,17 +2062,22 @@ end;
 
 procedure RegistersWViews;
 begin
+{$ifndef NOOBJREG}
   RegisterType(RAdvancedListBox);
   RegisterType(RColorStaticText);
   RegisterType(RHSListBox);
   RegisterType(RDlgWindow);
+{$endif}
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.8  1999-06-28 12:29:56  pierre
+  Revision 1.9  1999-06-28 19:32:37  peter
+    * fixes from gabor
+
+  Revision 1.8  1999/06/28 12:29:56  pierre
    *GetMenuItem fixed
 
   Revision 1.7  1999/06/25 00:30:34  pierre

@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$i globdir.inc}
 unit FPCompile;
 
 interface
@@ -21,11 +22,6 @@ interface
   then be redired (PFV) }
 { this should work now correctly because
   RedirDisableAll and RedirEnableAll function are added in fpredir (PM) }
-{$ifndef debug}
-  {$ifndef linux}
-    {$define redircompiler}
-  {$endif}
-{$endif}
 
 { $define VERBOSETXT}
 
@@ -33,7 +29,7 @@ uses
   Objects,
   Drivers,Views,Dialogs,
   WViews,
-  FPSymbol, 
+  FPSymbol,
   FPViews;
 
 type
@@ -91,6 +87,9 @@ procedure RegisterFPCompile;
 implementation
 
 uses
+{$ifdef linux}
+  Linux,
+{$endif}
   Dos,Video,
   App,Commands,
   CompHook, systems,
@@ -100,6 +99,7 @@ uses
 {$endif}
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
+{$ifndef NOOBJREG}
 const
   RCompilerMessageListBox: TStreamRec = (
      ObjType: 1211;
@@ -113,6 +113,7 @@ const
      Load:    @TCompilerMessageWindow.Load;
      Store:   @TCompilerMessageWindow.Store
   );
+{$endif}
 
 
 {*****************************************************************************
@@ -194,8 +195,10 @@ var R: TRect;
 begin
   Desktop^.GetExtent(R);
   R.A.Y:=R.B.Y-7;
-  inherited Init(R,'Compiler Messages',SearchFreeWindowNo);
+  inherited Init(R,'Compiler Messages',{SearchFreeWindowNo}wnNoNumber);
   HelpCtx:=hcMessagesWindow;
+
+  AutoNumber:=true;
 
   HSB:=StandardScrollBar(sbHorizontal+sbHandleKeyboard);
   HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY;
@@ -551,7 +554,7 @@ begin
   Compile(FileName);
   if LinkAfter then
     begin
-       CompilationPhase:=cpLinking;                                                                                                                                                                                                                            
+       CompilationPhase:=cpLinking;
        CompilerStatusDialog^.Update;
 {$ifdef linux}
        Shell(PpasFile+source_os.scriptext);
@@ -597,15 +600,20 @@ end;
 
 procedure RegisterFPCompile;
 begin
+{$ifndef NOOBJREG}
   RegisterType(RCompilerMessageListBox);
   RegisterType(RCompilerMessageWindow);
+{$endif}
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.30  1999-06-28 15:59:04  pierre
+  Revision 1.31  1999-06-28 19:32:17  peter
+    * fixes from gabor
+
+  Revision 1.30  1999/06/28 15:59:04  pierre
    * View Linking stage if external linking
 
   Revision 1.29  1999/06/28 12:39:14  pierre

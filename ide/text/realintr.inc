@@ -39,6 +39,12 @@ type
     DPMIRegs.EBP := r.bp;
     DPMIRegs.DS := r.ds;
     DPMIRegs.ES := r.es;
+    { --- }
+    DPMIRegs.FS := 0;
+    DPMIRegs.GS := 0;
+    DPMIRegs.SS := 0;
+    DPMIRegs.SP := 0;
+    { --- }
     DPMIRegs.Flags := r.flags;
     Regs.AX := $0300;
     Regs.BL := IntNo;

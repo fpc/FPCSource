@@ -34,7 +34,7 @@ type
       function    SaveAll: boolean;
       procedure   Idle; virtual;
       procedure   Update;
-      procedure   UpdateTarget;                                                                                                                                                                                                                                
+      procedure   UpdateTarget;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
@@ -755,14 +755,17 @@ end;
 destructor TIDEApp.Done;
 begin
   inherited Done;
-  RemoveBrowsersCollection;                                                                                                                                                                                                                             
+  RemoveBrowsersCollection;
   DoneHelpSystem;
 end;
 
 END.
 {
   $Log$
-  Revision 1.29  1999-06-28 12:40:19  pierre
+  Revision 1.30  1999-06-28 19:32:20  peter
+    * fixes from gabor
+
+  Revision 1.29  1999/06/28 12:40:19  pierre
    + RemoveBrowsersCollection in TIDEApp.Done
 
   Revision 1.28  1999/06/25 00:46:33  pierre

@@ -63,6 +63,8 @@ begin
     hcMessagesWindow:S:=PMessagesWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
   end;
+  if PWindow(P)^.Number<>0 then
+    S:=S+'('+IntToStr(PWindow(P)^.Number)+')';
   GetText:=copy(S,1,MaxLen);
 end;
 
@@ -153,11 +155,15 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-03-01 15:42:00  peter
+  Revision 1.8  1999-06-28 19:32:23  peter
+    * fixes from gabor
+
+  Revision 1.7  1999/03/01 15:42:00  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

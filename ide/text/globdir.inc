@@ -26,3 +26,23 @@
   {$endif}
 {$endif}
 
+{$ifdef TP}
+  {$C FIXED PRELOAD PERMANENT}
+  {
+    Without defining this I got almost always SEGMENT NOT PRESENT (exc 11)
+    on exiting the IDE, when run on under NT4.0... Strange a bit, not?
+    (Actually the fault occours in TDOSScreen.GetVideoMode() at the
+     BIOS call, but I just can't figure out why....)
+  }
+{$endif}
+
+{$ifndef debug}
+  {$ifndef linux}
+    {$define redircompiler}
+  {$endif}
+{$endif}
+
+{$ifdef GABOR}
+  {$define NOOBJREG}
+  {$define NODEBUG}
+{$endif}

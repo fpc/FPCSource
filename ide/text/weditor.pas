@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$I globdir.inc}
 unit WEditor;
 
 interface
@@ -25,6 +26,16 @@ const
       cmASCIIChar            = 51235;
       cmClearLineHighlights  = 51236;
       cmSaveCancelled        = 51237;
+      cmBreakLine            = 51238;
+      cmSelStart             = 51239;
+      cmSelEnd               = 51240;
+      cmLastCursorPos        = 51241;
+      cmIndentBlock          = 51242;
+      cmUnIndentBlock        = 51243;
+      cmSelectLine           = 51244;
+      cmWriteBlock           = 51245;
+      cmReadBlock            = 51246;
+      cmPrintBlock           = 51247;
 
 {$ifdef FPC}
       EditorTextBufSize = 32768;
@@ -137,7 +148,7 @@ type
 
     PLineCollection = ^TLineCollection;
     TLineCollection = object(TCollection)
-      function  At(Index: Integer): PLine;
+      function  At(Index: sw_Integer): PLine;
       procedure FreeItem(Item: Pointer); virtual;
     end;
 
@@ -171,6 +182,11 @@ type
       (ssCommentPrefix,ssCommentSingleLinePrefix,ssCommentSuffix,ssStringPrefix,ssStringSuffix,
        ssDirectivePrefix,ssDirectiveSuffix,ssAsmPrefix,ssAsmSuffix);
 
+    TEditorBookMark = record
+      Valid  : boolean;
+      Pos    : TPoint;
+    end;
+
     PCodeEditor = ^TCodeEditor;
     TCodeEditor = object(TScroller)
       Indicator  : PIndicator;
@@ -186,7 +202,7 @@ type
       NoSelect   : Boolean;
       Flags      : longint;
       TabSize    : integer;
-      HighlightRow: integer;
+      HighlightRow: sw_integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
@@ -204,12 +220,12 @@ type
       procedure   LimitsChanged; virtual;
       procedure   SelectionChanged; virtual;
       procedure   HighlightChanged; virtual;
-      procedure   ScrollTo(X, Y: Integer); virtual;
+      procedure   ScrollTo(X, Y: sw_Integer);
       procedure   SetInsertMode(InsertMode: boolean); virtual;
-      procedure   SetCurPtr(X, Y: Integer); virtual;
+      procedure   SetCurPtr(X, Y: sw_Integer); virtual;
       procedure   SetSelection(A, B: TPoint); virtual;
       procedure   SetHighlight(A, B: TPoint); virtual;
-      procedure   SetHighlightRow(Row: integer); virtual;
+      procedure   SetHighlightRow(Row: sw_integer); virtual;
       procedure   SelectAll(Enable: boolean); virtual;
       function    InsertFrom(Editor: PCodeEditor): Boolean; virtual;
       function    InsertText(const S: string): Boolean; virtual;
@@ -220,34 +236,42 @@ type
       destructor  Done; virtual;
     public
       { Text & info storage abstraction }
-      function    GetLineCount: integer; virtual;
-      function    CharIdxToLinePos(Line,CharIdx: integer): integer;
-      function    LinePosToCharIdx(Line,X: integer): integer;
-      function    GetLineText(I: integer): string; virtual;
-      procedure   SetDisplayText(I: integer;const S: string); virtual;
-      function    GetDisplayText(I: integer): string; virtual;
-      procedure   SetLineText(I: integer;const S: string); virtual;
-      procedure   SetLineBreakState(I : integer;b : boolean);
-      procedure   GetDisplayTextFormat(I: integer;var DT,DF:string); virtual;
-      function    GetLineFormat(I: integer): string; virtual;
-      procedure   SetLineFormat(I: integer;const S: string); virtual;
+      function    GetLineCount: sw_integer; virtual;
+      function    CharIdxToLinePos(Line,CharIdx: sw_integer): sw_integer;
+      function    LinePosToCharIdx(Line,X: sw_integer): sw_integer;
+      function    GetLineText(I: sw_integer): string; virtual;
+      procedure   SetDisplayText(I: sw_integer;const S: string); virtual;
+      function    GetDisplayText(I: sw_integer): string; virtual;
+      procedure   SetLineText(I: sw_integer;const S: string); virtual;
+      procedure   SetLineBreakState(I : sw_integer;b : boolean);
+      procedure   GetDisplayTextFormat(I: sw_integer;var DT,DF:string); virtual;
+      function    GetLineFormat(I: sw_integer): string; virtual;
+      procedure   SetLineFormat(I: sw_integer;const S: string); virtual;
       procedure   DeleteAllLines; virtual;
-      procedure   DeleteLine(I: integer); virtual;
+      procedure   DeleteLine(I: sw_integer); virtual;
       procedure   AddLine(const S: string); virtual;
       function    GetErrorMessage: string; virtual;
       procedure   SetErrorMessage(const S: string); virtual;
+      procedure   AdjustSelection(DeltaX, DeltaY: sw_integer);
+      procedure   AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
+      procedure   Lock;
+      procedure   UnLock;
     private
       LastLocalCmd: word;
       KeyState    : Integer;
       ErrorMessage: PString;
       Actions     : PEditorActionCollection;
+      Bookmarks   : array[0..9] of TEditorBookmark;
+      LockFlag    : integer;
+      DrawCalled  : boolean;
       function    Overwrite: boolean;
-      function    GetLine(I: integer): PLine;
+      function    GetLine(I: sw_integer): PLine;
       procedure   CheckSels;
-      function    UpdateAttrs(FromLine: integer; Attrs: byte): integer;
-      procedure   DrawLines(FirstLine: integer);
+      function    UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
+      procedure   DrawLines(FirstLine: sw_integer);
       procedure   HideHighlight;
       procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+      function    ValidBlock: boolean;
     public
      { Syntax highlight support }
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
@@ -269,7 +293,13 @@ type
       procedure PageDown; virtual;
       procedure TextStart; virtual;
       procedure TextEnd; virtual;
+      procedure JumpSelStart; virtual;
+      procedure JumpSelEnd; virtual;
+      procedure JumpMark(MarkIdx: integer); virtual;
+      procedure DefineMark(MarkIdx: integer); virtual;
+      procedure JumpToLastCursorPos; virtual;
       function  InsertLine: Sw_integer; virtual;
+      procedure BreakLine; virtual;
       procedure BackSpace; virtual;
       procedure DelChar; virtual;
       procedure DelWord; virtual;
@@ -283,14 +313,20 @@ type
       procedure HideSelect; virtual;
       procedure CopyBlock; virtual;
       procedure MoveBlock; virtual;
-      procedure IdentBlock; virtual;
-      procedure UnidentBlock; virtual;
+      procedure IndentBlock; virtual;
+      procedure UnindentBlock; virtual;
+      procedure SelectWord; virtual;
+      procedure SelectLine; virtual;
+      procedure WriteBlock; virtual;
+      procedure ReadBlock; virtual;
+      procedure PrintBlock; virtual;
       procedure AddChar(C: char); virtual;
       function  ClipCopy: Boolean; virtual;
       procedure ClipCut; virtual;
       procedure ClipPaste; virtual;
       function  GetCurrentWord : string;
       procedure Undo; virtual;
+      procedure Redo; virtual;
       procedure Find; virtual;
       procedure Replace; virtual;
       procedure DoSearchReplace; virtual;
@@ -328,7 +364,7 @@ const
      { used for ShiftDel and ShiftIns to avoid
        GetShiftState to be considered for extending
        selection (PM) }
-        
+
      DontConsiderShiftState: boolean  = false;
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
@@ -348,7 +384,7 @@ const
      HashChars          : set of char = ['#'];
      AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
      NumberChars        : set of char = ['0'..'9'];
-     RealNumberChars    : set of char = ['E','e','.','+','-'];
+     RealNumberChars    : set of char = ['E','e','.'{,'+','-'}];
      DefaultSaveExt     : string[12] = '.pas';
      FileDir            : DirStr = '';
 
@@ -363,6 +399,7 @@ uses
   MsgBox,Dialogs,App,StdDlg,HistList,Validate,
   WUtils,WViews;
 
+{$ifndef NOOBJREG}
 const
   RIndicator: TStreamRec = (
      ObjType: 1100;
@@ -382,6 +419,7 @@ const
      Load:    @TFileEditor.Load;
      Store:   @TFileEditor.Store
   );
+{$endif}
 
 type
      TFindDialogRec = packed record
@@ -407,21 +445,21 @@ type
 
      TGotoLineDialogRec = packed record
        LineNo  : string[5];
-       Lines   : integer;
+       Lines   : sw_integer;
      end;
 
 const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 38;
+  FirstKeyCount = 39;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
     Ord(^A), cmWordLeft, Ord(^B), cmASCIIChar, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
     Ord(^F), cmWordRight, Ord(^G), cmDelChar,
     Ord(^H), cmBackSpace, Ord(^J), cmJumpLine,
     Ord(^K), $FF02, Ord(^L), cmSearchAgain,
-    Ord(^M), cmNewLine, Ord(^Q), $FF01,
+    Ord(^M), cmNewLine, Ord(^N), cmBreakLine, Ord(^Q), $FF01,
     Ord(^R), cmPageUp, Ord(^S), cmCharLeft,
     Ord(^T), cmDelWord, Ord(^U), cmUndo,
     Ord(^V), cmInsMode, Ord(^X), cmLineDown,
@@ -435,19 +473,32 @@ const
     kbDel, cmDelChar, kbShiftIns, cmPaste,
     kbShiftDel, cmCut, kbCtrlIns, cmCopy,
     kbCtrlDel, cmClear);
-  QuickKeyCount = 10;
+  QuickKeyCount = 23;
   QuickKeys: array[0..QuickKeyCount * 2] of Word = (QuickKeyCount,
     Ord('A'), cmReplace, Ord('C'), cmTextEnd,
     Ord('D'), cmLineEnd, Ord('F'), cmFind,
     Ord('H'), cmDelStart, Ord('R'), cmTextStart,
     Ord('S'), cmLineStart, Ord('Y'), cmDelEnd,
-    Ord('G'), cmJumpLine, Ord('P'), cmReplace );
-  BlockKeyCount = 8;
+    Ord('G'), cmJumpLine, Ord('A'), cmReplace,
+    Ord('B'), cmSelStart, Ord('K'), cmSelEnd,
+    Ord('P'), cmLastCursorPos,
+    Ord('0'), cmJumpMark0, Ord('1'), cmJumpMark1, Ord('2'), cmJumpMark2,
+    Ord('3'), cmJumpMark3, Ord('4'), cmJumpMark4, Ord('5'), cmJumpMark5,
+    Ord('6'), cmJumpMark6, Ord('7'), cmJumpMark7, Ord('8'), cmJumpMark8,
+    Ord('9'), cmJumpMark9);
+  BlockKeyCount = 23;
   BlockKeys: array[0..BlockKeyCount * 2] of Word = (BlockKeyCount,
     Ord('B'), cmStartSelect, Ord('C'), cmCopyBlock,
     Ord('H'), cmHideSelect, Ord('K'), cmEndSelect,
     Ord('Y'), cmDelSelect, Ord('V'), cmMoveBlock,
-    Ord('I'), cmIdentBlock, Ord('U'), cmUnidentBlock);
+    Ord('I'), cmIndentBlock, Ord('U'), cmUnindentBlock,
+    Ord('T'), cmSelectWord, Ord('L'), cmSelectLine,
+    Ord('W'), cmWriteBlock, Ord('R'), cmReadBlock,
+    Ord('P'), cmPrintBlock,
+    Ord('0'), cmSetMark0, Ord('1'), cmSetMark1, Ord('2'), cmSetMark2,
+    Ord('3'), cmSetMark3, Ord('4'), cmSetMark4, Ord('5'), cmSetMark5,
+    Ord('6'), cmSetMark6, Ord('7'), cmSetMark7, Ord('8'), cmSetMark8,
+    Ord('9'), cmSetMark9);
   KeyMap: array[0..2] of Pointer = (@FirstKeys, @QuickKeys, @BlockKeys);
 
 function ScanKeyMap(KeyMap: Pointer; KeyCode: Word): Word;
@@ -463,11 +514,11 @@ begin
   while (count>0) do
    begin
      if (lo(p^)=lo(keycode)) and
-   ((hi(p^)=0) or (hi(p^)=hi(keycode))) then
+        ((hi(p^)=0) or (hi(p^)=hi(keycode))) then
       begin
-   inc(p);
-   scankeymap:=p^;
-   exit;
+        inc(p);
+        scankeymap:=p^;
+        Exit;
       end;
      inc(p,2);
      dec(count);
@@ -571,9 +622,24 @@ begin
   DirAndNameOf:=D+N;
 end;
 
-function PointOfs(P: TPoint): longint;
+type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}comp{$endif};
+
+function PosToOfs(const X,Y: sw_integer): TPosOfs;
+type TPosRec = record LoI, HiI: sw_integer; end;
+var C: TPosRec;
 begin
-  PointOfs:=longint(P.Y)*MaxLineLength+P.X;
+  C.LoI:=X; C.HiI:=Y;
+  PosToOfs:=TPosOfs(C);
+end;
+
+function PosToOfsP(const P: TPoint): TPosOfs;
+begin
+  PosToOfsP:=PosToOfs(P.X,P.Y);
+end;
+
+function PointOfs(P: TPoint): TPosOfs;
+begin
+  PointOfs:={longint(P.Y)*MaxLineLength+P.X}PosToOfsP(P);
 end;
 
 function NewEditorAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string): PEditorAction;
@@ -886,7 +952,7 @@ begin
   end;
 end;
 
-function TLineCollection.At(Index: Integer): PLine;
+function TLineCollection.At(Index: sw_Integer): PLine;
 begin
   At:=inherited At(Index);
 end;
@@ -1003,7 +1069,7 @@ begin
 end;
 
 procedure TCodeEditor.SetFlags(AFlags: longint);
-var I: integer;
+var I: sw_integer;
 begin
   Flags:=AFlags;
   SetInsertMode((Flags and efInsertMode)<>0);
@@ -1029,6 +1095,68 @@ begin
   DrawView;
 end;
 
+procedure TCodeEditor.Lock;
+begin
+  Inc(LockFlag);
+end;
+
+procedure TCodeEditor.UnLock;
+begin
+  Dec(LockFlag);
+  if (LockFlag=0) and DrawCalled then
+    DrawView;
+end;
+
+procedure TCodeEditor.AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
+var CP: TPoint;
+begin
+  if ValidBlock=false then Exit;
+
+  CP.X:=CurPosX; CP.Y:=CurPosY;
+  if (PosToOfsP(SelStart)<=PosToOfsP(CP)) and (PosToOfsP(CP)<PosToOfsP(SelEnd)) then
+    begin
+      { CurPos is IN selection }
+      Inc(SelEnd.Y,DeltaY);
+      if (CP.Y=SelEnd.Y) and
+         ((SelStart.Y<>SelEnd.Y) or (SelStart.X<=CP.X)) and
+         (CP.X<=SelEnd.X) then
+       Inc(SelEnd.X,DeltaX);
+      SelectionChanged;
+    end
+  else
+  if (PosToOfsP(CP)<=PosToOfsP(SelStart)) then
+    begin
+      { CurPos is BEFORE selection }
+      if (CP.Y=SelStart.Y) and (CP.Y=SelEnd.Y) and (DeltaY<0) then
+        begin
+          SelStart:=CurPos; SelEnd:=CurPos;
+        end
+      else
+      if (CP.Y=SelStart.Y) then
+        begin
+          if CP.X<SelStart.X then
+            Inc(SelStart.X,DeltaX);
+        end;
+{      else}
+        begin
+          Inc(SelStart.Y,DeltaY);
+          Inc(SelEnd.Y,DeltaY);
+        end;
+      if SelEnd.Y=CurPos.Y then Inc(SelEnd.X,DeltaX);
+      SelectionChanged;
+    end
+  else
+    begin
+      { CurPos is AFTER selection }
+      { actually we don't have to do anything here }
+    end;
+end;
+
+procedure TCodeEditor.AdjustSelection(DeltaX, DeltaY: sw_integer);
+begin
+  AdjustSelectionPos(CurPos.X,CurPos.Y,DeltaX,DeltaY);
+end;
+
 procedure TCodeEditor.TrackCursor(Center: boolean);
 var D: TPoint;
 begin
@@ -1049,7 +1177,7 @@ begin
   UpdateIndicator;
 end;
 
-procedure TCodeEditor.ScrollTo(X, Y: Integer);
+procedure TCodeEditor.ScrollTo(X, Y: sw_Integer);
 begin
   inherited ScrollTo(X,Y);
   if (HScrollBar=nil) or (VScrollBar=nil) then
@@ -1088,17 +1216,20 @@ begin
       if (Lo(Key) >= $61) and (Lo(Key) <= $7A) then Dec(Key, $20);
     end;
     Key := ScanKeyMap(KeyMap[KeyState], Key);
+    if (KeyState<>0) and (Key=0) then
+      ClearEvent(Event); { eat second key if unrecognized after ^Q or ^K }
     KeyState := 0;
     if Key <> 0 then
       if Hi(Key) = $FF then
-      begin
-   KeyState := Lo(Key);
-   ClearEvent(Event);
-      end else
-      begin
-   Event.What := evCommand;
-   Event.Command := Key;
-      end;
+        begin
+          KeyState := Lo(Key);
+          ClearEvent(Event);
+        end
+      else
+        begin
+          Event.What := evCommand;
+          Event.Command := Key;
+        end;
   end;
 end;
 
@@ -1193,6 +1324,7 @@ begin
           cmTextStart   : TextStart;
           cmTextEnd     : TextEnd;
           cmNewLine     : InsertLine;
+          cmBreakLine   : BreakLine;
           cmBackSpace   : BackSpace;
           cmDelChar     : DelChar;
           cmDelWord     : DelWord;
@@ -1207,8 +1339,18 @@ begin
           cmDelSelect   : DelSelect;
           cmCopyBlock   : CopyBlock;
           cmMoveBlock   : MoveBlock;
-          cmIdentBlock   : IdentBlock;
-          cmUnidentBlock : UnidentBlock;
+          cmIndentBlock   : IndentBlock;
+          cmUnindentBlock : UnindentBlock;
+          cmSelStart    : JumpSelStart;
+          cmSelEnd      : JumpSelEnd;
+          cmLastCursorPos : JumpToLastCursorPos;
+          cmJumpMark0..cmJumpMark9 : JumpMark(Event.Command-cmJumpMark0);
+          cmSetMark0..cmSetMark9 : DefineMark(Event.Command-cmSetMark0);
+          cmSelectWord  : SelectWord;
+          cmSelectLine  : SelectLine;
+          cmWriteBlock  : WriteBlock;
+          cmReadBlock   : ReadBlock;
+          cmPrintBlock  : PrintBlock;
         { ------ }
           cmFind        : Find;
           cmReplace     : Replace;
@@ -1219,6 +1361,7 @@ begin
           cmCopy        : ClipCopy;
           cmPaste       : ClipPaste;
           cmUndo        : Undo;
+          cmRedo        : Redo;
           cmClear       : DelSelect;
           cmLocalMenu :
             begin
@@ -1290,9 +1433,9 @@ var SelectColor,
     HighlightRowColor,
     ErrorMessageColor  : word;
     B: TDrawBuffer;
-    X,Y,AX,AY,MaxX: integer;
+    X,Y,AX,AY,MaxX: sw_integer;
     PX: TPoint;
-    LineCount: integer;
+    LineCount: sw_integer;
     Line: PLine;
     LineText,Format: string;
     isBreak : boolean;
@@ -1317,6 +1460,14 @@ begin
 end;
 const NulLine : TLine = (Text: nil; Format: nil);
 begin
+
+  if LockFlag>0 then
+    begin
+      DrawCalled:=true;
+      Exit;
+    end;
+  DrawCalled:=false;
+
   ErrorMsg:=copy(GetErrorMessage,1,MaxViewWidth);
   if ErrorMsg='' then ErrorLine:=-1 else
   if (CurPos.Y-Delta.Y)<(Size.Y div 2) then ErrorLine:=Size.Y-1
@@ -1440,19 +1591,19 @@ begin
   Overwrite:=(Flags and efInsertMode)=0;
 end;
 
-function TCodeEditor.GetLineCount: integer;
+function TCodeEditor.GetLineCount: sw_integer;
 begin
   GetLineCount:=Lines^.Count;
 end;
 
-function TCodeEditor.GetLine(I: integer): PLine;
+function TCodeEditor.GetLine(I: sw_integer): PLine;
 begin
   GetLine:=Lines^.At(I);
 end;
 
-function TCodeEditor.CharIdxToLinePos(Line,CharIdx: integer): integer;
+function TCodeEditor.CharIdxToLinePos(Line,CharIdx: sw_integer): sw_integer;
 var S: string;
-    CP,RX: integer;
+    CP,RX: sw_integer;
 begin
   S:=GetLineText(Line);
   CP:=1; RX:=0;
@@ -1467,9 +1618,9 @@ begin
   CharIdxToLinePos:=RX;
 end;
 
-function TCodeEditor.LinePosToCharIdx(Line,X: integer): integer;
+function TCodeEditor.LinePosToCharIdx(Line,X: sw_integer): sw_integer;
 var S: string;
-    CP,RX: integer;
+    CP,RX: sw_integer;
 begin
   S:=GetLineText(Line);
   if S='' then
@@ -1532,7 +1683,7 @@ begin
   GetDisplayTextPos:=rx;
 end;}
 
-function TCodeEditor.GetLineText(I: integer): string;
+function TCodeEditor.GetLineText(I: sw_integer): string;
 var
   L : PLine;
 begin
@@ -1545,7 +1696,7 @@ begin
    end;
 end;
 
-procedure TCodeEditor.SetLineText(I: integer;const S: string);
+procedure TCodeEditor.SetLineText(I: sw_integer;const S: string);
 var
   L : PLine;
   AddCount : Sw_Integer;
@@ -1564,7 +1715,7 @@ begin
   L^.Text:=NewStr(S);
 end;
 
-procedure TCodeEditor.SetLineBreakState(I : integer;b : boolean);
+procedure TCodeEditor.SetLineBreakState(I : sw_integer;b : boolean);
 var PL : PLine;
 begin
    if (i>0) and (i<=Lines^.Count) then
@@ -1576,12 +1727,12 @@ begin
    DrawView;
 end;
 
-function TCodeEditor.GetDisplayText(I: integer): string;
+function TCodeEditor.GetDisplayText(I: sw_integer): string;
 begin
   GetDisplayText:=ExtractTabs(GetLineText(I),TabSize);
 end;
 
-procedure TCodeEditor.SetDisplayText(I: integer;const S: string);
+procedure TCodeEditor.SetDisplayText(I: sw_integer;const S: string);
 begin
   if ((Flags and efUseTabCharacters)<>0) and (TabSize>0) then
    SetLineText(I,CompressUsingTabs(S,TabSize))
@@ -1589,7 +1740,7 @@ begin
    SetLineText(I,S);
 end;
 
-procedure TCodeEditor.GetDisplayTextFormat(I: integer;var DT,DF:string);
+procedure TCodeEditor.GetDisplayTextFormat(I: sw_integer;var DT,DF:string);
 var
   L : PLine;
   P,PAdd : SW_Integer;
@@ -1621,7 +1772,7 @@ begin
    end;
 end;
 
-function TCodeEditor.GetLineFormat(I: integer): string;
+function TCodeEditor.GetLineFormat(I: sw_integer): string;
 var P: PLine;
     S: string;
 begin
@@ -1631,7 +1782,7 @@ begin
   GetLineFormat:=S;
 end;
 
-procedure TCodeEditor.SetLineFormat(I: integer;const S: string);
+procedure TCodeEditor.SetLineFormat(I: sw_integer;const S: string);
 var P: PLine;
 begin
   if I<GetLineCount then
@@ -1648,7 +1799,7 @@ begin
     Lines^.FreeAll;
 end;
 
-procedure TCodeEditor.DeleteLine(I: integer);
+procedure TCodeEditor.DeleteLine(I: sw_integer);
 begin
   if I<Lines^.Count then
     Lines^.AtFree(I);
@@ -1715,7 +1866,7 @@ begin
 end;
 
 procedure TCodeEditor.WordLeft;
-var X, Y: integer;
+var X, Y: sw_integer;
     Line: string;
     GotIt,FoundNonSeparator: boolean;
 begin
@@ -1777,7 +1928,7 @@ begin
 end;
 
 procedure TCodeEditor.WordRight;
-var X, Y: integer;
+var X, Y: sw_integer;
     Line: string;
     GotIt: boolean;
 begin
@@ -1872,6 +2023,46 @@ begin
   SetCurPtr(length(GetDisplayText(GetLineCount-1)),GetLineCount-1);
 end;
 
+procedure TCodeEditor.JumpSelStart;
+begin
+  if ValidBlock then
+    SetCurPtr(SelStart.X,SelEnd.X);
+end;
+
+procedure TCodeEditor.JumpSelEnd;
+begin
+  if ValidBlock then
+  SetCurPtr(SelEnd.X,SelEnd.Y);
+end;
+
+procedure TCodeEditor.JumpMark(MarkIdx: integer);
+begin
+  if (MarkIdx<Low(Bookmarks)) or (MarkIdx>High(Bookmarks)) then
+    begin ErrorBox('Invalid mark index ('+IntToStr(MarkIdx)+')',nil); Exit; end;
+
+  with Bookmarks[MarkIdx] do
+  if Valid=false then
+    InformationBox('Mark '+IntToStr(MarkIdx)+' not set.',nil)
+  else
+    SetCurPtr(Pos.X,Pos.Y);
+end;
+
+procedure TCodeEditor.DefineMark(MarkIdx: integer);
+begin
+  if (MarkIdx<Low(Bookmarks)) or (MarkIdx>High(Bookmarks)) then
+    begin ErrorBox('Invalid mark index ('+IntToStr(MarkIdx)+')',nil); Exit; end;
+
+  with Bookmarks[MarkIdx] do
+   begin
+     Pos:=CurPos;
+     Valid:=true;
+   end;
+end;
+
+procedure TCodeEditor.JumpToLastCursorPos;
+begin
+end;
+
 function TCodeEditor.InsertLine: Sw_integer;
 var Ind: Sw_integer;
     S,IndentStr: string;
@@ -1886,9 +2077,11 @@ begin
   end;
   IndentStr:=CharStr(' ',Ind);
 end;
-var SelBack: integer;
+var SelBack: sw_integer;
+    SCP: TPoint;
 begin
   if IsReadOnly then begin InsertLine:=-1; Exit; end;
+  SCP:=CurPos;
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
   if Overwrite=false then
   begin
@@ -1899,32 +2092,43 @@ begin
       SelBack:=length(S)-SelEnd.X;
       SetDisplayText(CurPos.Y,RTrim(S));
     end;
+    SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     CalcIndent(CurPos.Y);
     Lines^.AtInsert(CurPos.Y+1,NewLine(IndentStr+copy(S,CurPos.X+1,255)));
     LimitsChanged;
-    SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
-    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
-      begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;
-    SetCurPtr(Ind,CurPos.Y+1);
+(*    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
+      begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;*)
     UpdateAttrs(CurPos.Y,attrAll);
+    SetCurPtr(Ind,CurPos.Y+1);
+    AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   end else
   begin
     if CurPos.Y=GetLineCount-1 then
     CalcIndent(CurPos.Y);
     begin
       Lines^.Insert(NewLine(IndentStr));
+      AdjustSelection(0,1);
       LimitsChanged;
     end;
+    UpdateAttrs(CurPos.Y,attrAll);
     SetCurPtr(Ind,CurPos.Y+1);
   end;
   DrawLines(CurPos.Y);
+  Modified:=true; UpdateIndicator;
+end;
+
+procedure TCodeEditor.BreakLine;
+begin
+  NotImplemented; Exit;
 end;
 
 procedure TCodeEditor.BackSpace;
 var S,PreS: string;
     OI,CI,CP,Y: Sw_integer;
+    SCP: TPoint;
 begin
   if IsReadOnly then Exit;
+  SCP:=CurPos;
   if CurPos.X=0 then
    begin
      if CurPos.Y>0 then
@@ -1963,6 +2167,7 @@ begin
      SetCurPtr(CP,CurPos.Y);
    end;
   UpdateAttrs(CurPos.Y,attrAll);
+  AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
@@ -1970,6 +2175,7 @@ end;
 
 procedure TCodeEditor.DelChar;
 var S: string;
+    SDX,SDY: integer;
 begin
   if IsReadOnly then Exit;
   S:=GetLineText(CurPos.Y);
@@ -1977,18 +2183,21 @@ begin
    begin
      if CurPos.Y<GetLineCount-1 then
       begin
-   SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
-   DeleteLine(CurPos.Y+1);
-   LimitsChanged;
+        SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
+        DeleteLine(CurPos.Y+1);
+        LimitsChanged;
+        SDX:=0; SDY:=-1;
       end;
    end
   else
    begin
      Delete(S,CurPos.X+1,1);
      SetLineText(CurPos.Y,S);
+     SDX:=-1; SDY:=0;
    end;
   SetCurPtr(CurPos.X,CurPos.Y);
   UpdateAttrs(CurPos.Y,attrAll);
+  AdjustSelection(SDX,SDY);
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
@@ -1997,6 +2206,9 @@ end;
 procedure TCodeEditor.DelWord;
 begin
   if IsReadOnly then Exit;
+
+  NotImplemented; Exit;
+
   Modified:=true;
   UpdateIndicator;
 end;
@@ -2004,6 +2216,9 @@ end;
 procedure TCodeEditor.DelStart;
 begin
   if IsReadOnly then Exit;
+
+  NotImplemented; Exit;
+
   Modified:=true;
   UpdateIndicator;
 end;
@@ -2031,6 +2246,7 @@ begin
   begin
     DeleteLine(CurPos.Y);
     LimitsChanged;
+    AdjustSelection(0,-1);
     SetCurPtr(0,CurPos.Y);
     UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
     DrawLines(CurPos.Y);
@@ -2042,17 +2258,6 @@ end;
 procedure TCodeEditor.InsMode;
 begin
   SetInsertMode(Overwrite);
-end;
-
-procedure TCodeEditor.StartSelect;
-begin
-  if (PointOfs(SelStart)=PointOfs(SelEnd)) then
-     SetSelection(SelStart,Limit);
-  SetSelection(CurPos,SelEnd);
-  if PointOfs(SelEnd)<PointOfs(SelStart) then
-     SetSelection(SelStart,SelStart);
-  CheckSels;
-  DrawView;
 end;
 
 function  TCodeEditor.GetCurrentWord : string;
@@ -2077,10 +2282,32 @@ begin
     end;
 end;
 
+procedure TCodeEditor.StartSelect;
+var P1,P2: TPoint;
+begin
+  if ValidBlock=false then
+    begin
+{      SetSelection(SelStart,Limit);}
+      P1:=CurPos; P1.X:=0; P2:=CurPos; {P2.X:=length(GetLineText(P2.Y))+1;}
+      SetSelection(P1,P2);
+    end
+  else
+    SetSelection(CurPos,SelEnd);
+  if PointOfs(SelEnd)<PointOfs(SelStart) then
+     SetSelection(SelStart,SelStart);
+  CheckSels;
+  DrawView;
+end;
+
 procedure TCodeEditor.EndSelect;
 var P: TPoint;
+    LS: sw_integer;
 begin
-  P:=CurPos; P.X:=Min(SelEnd.X,length(GetLineText(SelEnd.Y))); CheckSels;
+  P:=CurPos;
+{  P.X:=Min(SelEnd.X,length(GetLineText(SelEnd.Y)));}
+  LS:=length(GetLineText(SelEnd.Y));
+  if LS<P.X then P.X:=LS;
+  CheckSels;
   SetSelection(SelStart,P);
   DrawView;
 end;
@@ -2140,12 +2367,14 @@ var Temp: PCodeEditor;
     R: TRect;
 begin
   if IsReadOnly then Exit;
+  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,0));
   Temp^.InsertFrom(@Self);
   InsertFrom(Temp);
   Dispose(Temp, Done);
+  UnLock;
 end;
 
 procedure TCodeEditor.MoveBlock;
@@ -2154,23 +2383,28 @@ var Temp: PCodeEditor;
     OldPos: TPoint;
 begin
   if IsReadOnly then Exit;
+  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,0));
   Temp^.InsertFrom(@Self);
-  OldPos:=CurPos; Dec(OldPos.Y,Temp^.GetLineCount-1);
+  OldPos:=CurPos;
+  if CurPos.Y>SelStart.Y then
+    Dec(OldPos.Y,Temp^.GetLineCount-1);
   DelSelect;
   SetCurPtr(OldPos.X,OldPos.Y);
   InsertFrom(Temp);
   Dispose(Temp, Done);
+  UnLock;
 end;
 
-procedure TCodeEditor.IdentBlock;
+procedure TCodeEditor.IndentBlock;
 var
   ey,i : Sw_integer;
   S : String;
 begin
   if IsReadOnly then Exit;
+  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   ey:=selend.y;
   if selend.x=0 then
@@ -2185,14 +2419,16 @@ begin
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
+  UnLock;
 end;
 
-procedure TCodeEditor.UnidentBlock;
+procedure TCodeEditor.UnindentBlock;
 var
   ey,i : Sw_integer;
   S : String;
 begin
   if IsReadOnly then Exit;
+  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   ey:=selend.y;
   if selend.x=0 then
@@ -2209,6 +2445,32 @@ begin
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
+  UnLock;
+end;
+
+procedure TCodeEditor.SelectWord;
+begin
+  NotImplemented; Exit;
+end;
+
+procedure TCodeEditor.SelectLine;
+begin
+  NotImplemented; Exit;
+end;
+
+procedure TCodeEditor.WriteBlock;
+begin
+  NotImplemented; Exit;
+end;
+
+procedure TCodeEditor.ReadBlock;
+begin
+  NotImplemented; Exit;
+end;
+
+procedure TCodeEditor.PrintBlock;
+begin
+  NotImplemented; Exit;
 end;
 
 procedure TCodeEditor.AddChar(C: char);
@@ -2217,8 +2479,11 @@ const OpenBrackets  : string[10] = '[({';
 var S,SC,TabS: string;
     BI: byte;
     CI,TabStart : Sw_integer;
+    SP: TPoint;
 begin
   if IsReadOnly then Exit;
+  Lock;
+  SP:=CurPos;
   if (C<>TAB) or ((Flags and efUseTabCharacters)<>0) then
     SC:=C
   else
@@ -2226,7 +2491,7 @@ begin
   S:=GetLineText(CurPos.Y);
   if CharIdxToLinePos(CurPos.Y,length(S))<CurPos.X then
     begin
-      S:=S+CharStr(' ',CurPos.X-CharIdxToLinePos(CurPos.Y,length(S)));
+      S:=S+CharStr(' ',CurPos.X-CharIdxToLinePos(CurPos.Y,length(S))-1);
       SetLineText(CurPos.Y,S);
     end;
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
@@ -2257,31 +2522,37 @@ begin
      SetCurPtr(CurPos.X-1,CurPos.Y);
    end;
   UpdateAttrs(CurPos.Y,attrAll);
+  AdjustSelection(CurPos.X-SP.X,CurPos.Y-SP.Y);
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
+  UnLock;
 end;
 
 function TCodeEditor.ClipCopy: Boolean;
 var OK: boolean;
 begin
+  Lock;
   OK:=Clipboard<>nil;
   if OK then OK:=Clipboard^.InsertFrom(@Self);
   ClipCopy:=OK;
+  UnLock;
 end;
 
 procedure TCodeEditor.ClipCut;
 begin
   if IsReadOnly then Exit;
+  Lock;
   DontConsiderShiftState:=true;
   if Clipboard<>nil then
-     if Clipboard^.InsertFrom(@Self) then
-     begin
-       if not IsClipBoard then
-        DelSelect;
-       Modified:=true;
-       UpdateIndicator;
-     end;
+   if Clipboard^.InsertFrom(@Self) then
+    begin
+      if not IsClipBoard then
+       DelSelect;
+      Modified:=true;
+      UpdateIndicator;
+    end;
+  UnLock;
   DontConsiderShiftState:=false;
 end;
 
@@ -2289,17 +2560,25 @@ procedure TCodeEditor.ClipPaste;
 begin
   if IsReadOnly then Exit;
   DontConsiderShiftState:=true;
+  Lock;
   if Clipboard<>nil then
-     begin
-       InsertFrom(Clipboard);
-       Modified:=true;
-       UpdateIndicator;
-     end;
+   begin
+     InsertFrom(Clipboard);
+     Modified:=true;
+     UpdateIndicator;
+   end;
+  UnLock;
   DontConsiderShiftState:=false;
 end;
 
 procedure TCodeEditor.Undo;
 begin
+  NotImplemented; Exit;
+end;
+
+procedure TCodeEditor.Redo;
+begin
+  NotImplemented; Exit;
 end;
 
 procedure TCodeEditor.GotoLine;
@@ -2381,12 +2660,12 @@ end;
 
 procedure TCodeEditor.DoSearchReplace;
 var S: string;
-    DX,DY,P,Y,X: integer;
-    Count: integer;
+    DX,DY,P,Y,X: sw_integer;
+    Count: sw_integer;
     Found,CanExit: boolean;
     SForward,DoReplace,DoReplaceAll: boolean;
     LeftOK,RightOK: boolean;
-    FoundCount: integer;
+    FoundCount: sw_integer;
     A,B: TPoint;
     AreaStart,AreaEnd: TPoint;
     CanReplace,Confirm: boolean;
@@ -2426,7 +2705,7 @@ var S: string;
     ContainsText:=P;
   end;
 
-  function InArea(X,Y: integer): boolean;
+  function InArea(X,Y: sw_integer): boolean;
   begin
     InArea:=((AreaStart.Y=Y) and (AreaStart.X<=X)) or
        ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
@@ -2522,14 +2801,14 @@ begin
 
     if Found then
       begin
-        if Owner<>nil then Owner^.Lock;
+        Lock;
         if SForward then
          SetCurPtr(B.X,B.Y)
         else
          SetCurPtr(A.X,A.Y);
         TrackCursor(true);
         SetHighlight(A,B);
-        if Owner<>nil then Owner^.UnLock;
+        UnLock;
         if (DoReplace=false) then CanExit:=true else
           begin
             if Confirm=false then CanReplace:=true else
@@ -2549,13 +2828,11 @@ begin
               end;
             if CanReplace then
               begin
-                if Owner<>nil then
-                  Owner^.Lock;
+                Lock;
                 SetSelection(A,B);
                 DelSelect;
                 InsertText(ReplaceStr);
-                if Owner<>nil then
-                  Owner^.UnLock;
+                UnLock;
               end;
             if (DoReplaceAll=false) then
               CanExit:=true;
@@ -2576,8 +2853,8 @@ begin
   until CanExit;
   if (FoundCount=0) or (DoReplace) then
     SetHighlight(CurPos,CurPos);
-  if (DoReplace=false) or ((Confirm=false) and (Owner<>nil)) then
-    Owner^.UnLock;
+  if (DoReplace=false) or (Confirm=false) then
+    UnLock;
   if (FoundCount=0) then
     EditorDialog(edSearchFailed,nil);
 end;
@@ -2599,10 +2876,11 @@ begin
     not DontConsiderShiftState;
 end;
 
-procedure TCodeEditor.SetCurPtr(X,Y: integer);
+procedure TCodeEditor.SetCurPtr(X,Y: sw_integer);
 var OldPos,OldSEnd,OldSStart: TPoint;
     Extended: boolean;
 begin
+  Lock;
   X:=Max(0,Min(MaxLineLength+1,X));
   Y:=Max(0,Min(GetLineCount-1,Y));
   OldPos:=CurPos;
@@ -2630,8 +2908,8 @@ begin
   end else
    if (Flags and efPersistentBlocks)=0 then
       begin HideSelect; DrawView; end;
-  if PointOfs(SelStart)=PointOfs(SelEnd) then
-     SetSelection(CurPos,CurPos);
+{  if PointOfs(SelStart)=PointOfs(SelEnd) then
+     SetSelection(CurPos,CurPos);}
   if (Flags and (efHighlightColumn+efHighlightRow))<>0 then
      DrawView;
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and
@@ -2645,6 +2923,7 @@ begin
     SetHighlightRow(-1);
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
     AddAction(eaMoveCursor,OldPos,CurPos,'');
+  UnLock;
 end;
 
 procedure TCodeEditor.CheckSels;
@@ -2654,7 +2933,7 @@ begin
        SetSelection(SelEnd,SelStart);
 end;
 
-function TCodeEditor.UpdateAttrs(FromLine: integer; Attrs: byte): integer;
+function TCodeEditor.UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
 type
     TCharClass = (ccWhiteSpace,ccTab,ccAlpha,ccNumber,ccRealNumber,ccHash,ccSymbol);
 var
@@ -2876,6 +3155,7 @@ begin
   if CurLine>0 then PrevLine:=Lines^.At(CurLine-1) else PrevLine:=nil;
   repeat
     Line:=Lines^.At(CurLine);
+    InSingleLineComment:=false;
     if PrevLine<>nil then
      begin
        InAsm:=PrevLine^.EndsWithAsm;
@@ -2934,20 +3214,22 @@ begin
   UpdateAttrs:=CurLine;
 end;
 
-procedure TCodeEditor.DrawLines(FirstLine: integer);
+procedure TCodeEditor.DrawLines(FirstLine: sw_integer);
 begin
   DrawView;
 end;
 
 function TCodeEditor.InsertText(const S: string): Boolean;
-var I: integer;
+var I: sw_integer;
     OldPos: TPoint;
 begin
+  Lock;
   OldPos:=CurPos;
   for I:=1 to length(S) do
     AddChar(S[I]);
   AddAction(eaInsertText,OldPos,CurPos,S);
   InsertText:=true;
+  UnLock;
 end;
 
 function TCodeEditor.InsertFrom(Editor: PCodeEditor): Boolean;
@@ -2959,6 +3241,7 @@ var OK: boolean;
     VerticalBlock: boolean;
     SEnd: TPoint;
 begin
+  Lock;
   OK:=(Editor^.SelStart.X<>Editor^.SelEnd.X) or (Editor^.SelStart.Y<>Editor^.SelEnd.Y);
   if OK then
   begin
@@ -3022,6 +3305,7 @@ begin
      end;
     DrawView;
   end;
+  UnLock;
   InsertFrom:=OK;
 end;
 
@@ -3041,6 +3325,11 @@ begin
   Actions^.Insert(NewEditorAction(AAction,AStartPos,AEndPos,AText));
 end;
 
+function TCodeEditor.ValidBlock: boolean;
+begin
+  ValidBlock:=(SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y);
+end;
+
 procedure TCodeEditor.SetSelection(A, B: TPoint);
 begin
   SelStart:=A; SelEnd:=B;
@@ -3053,7 +3342,7 @@ begin
   HighlightChanged;
 end;
 
-procedure TCodeEditor.SetHighlightRow(Row: integer);
+procedure TCodeEditor.SetHighlightRow(Row: sw_integer);
 begin
   HighlightRow:=Row;
   DrawView;
@@ -3513,7 +3802,7 @@ var
   T: TPoint;
   Re: word;
   Name: string;
-  DriveNumber : byte; 
+  DriveNumber : byte;
   StoreDir,StoreDir2 : DirStr;
 begin
   case Dialog of
@@ -3562,9 +3851,9 @@ begin
           end;
         if DriveNumber<>0 then
           ChDir(StoreDir2);
-        if (Length(StoreDir)>1) and (StoreDir[2]=':') then                                                                                                                                                                                                     
-          ChDir(Copy(StoreDir,1,2));                                                                                                                                                                                                                           
-        ChDir(StoreDir);                                                                                                                                                                                                                                       
+        if (Length(StoreDir)>1) and (StoreDir[2]=':') then
+          ChDir(Copy(StoreDir,1,2));
+        ChDir(StoreDir);
 
         if Re<>cmCancel then
           PString(Info)^:=Name;
@@ -3613,15 +3902,20 @@ end;
 
 procedure RegisterCodeEditors;
 begin
+{$ifndef NOOBJREG}
   RegisterType(RIndicator);
   RegisterType(RCodeEditor);
   RegisterType(RFileEditor);
+{$endif}
 end;
 
 END.
 {
   $Log$
-  Revision 1.34  1999-06-28 15:58:07  pierre
+  Revision 1.35  1999-06-28 19:32:32  peter
+    * fixes from gabor
+
+  Revision 1.34  1999/06/28 15:58:07  pierre
    * ShiftDel problem solved
 
   Revision 1.33  1999/06/25 00:31:51  pierre

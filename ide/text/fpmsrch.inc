@@ -131,10 +131,13 @@ begin
   if ExecuteDialog(SymbolDialog,@S)<>cmCancel then
     OpenOneSymbolBrowser(S);
 end;
-                                                                                                                                                                                                                                                               
+
 {
   $Log$
-  Revision 1.8  1999-06-28 12:38:19  pierre
+  Revision 1.9  1999-06-28 19:32:22  peter
+    * fixes from gabor
+
+  Revision 1.8  1999/06/28 12:38:19  pierre
    * Globals(Modules)Collection tracing
 
   Revision 1.7  1999/06/25 00:34:50  pierre

@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$I globdir.inc}
 unit FPTools;
 
 interface
@@ -150,6 +151,7 @@ uses Dos,
      WINI,WEditor,
      FPConst,FPVars,FPUtils;
 
+{$ifndef NOOBJREG}
 const
   RToolMessageListBox: TStreamRec = (
      ObjType: 1600;
@@ -163,6 +165,7 @@ const
      Load:    @TMessagesWindow.Load;
      Store:   @TMessagesWindow.Store
   );
+{$endif}
 
 type
     THotKeyDef = record
@@ -1487,14 +1490,19 @@ end;
 
 procedure RegisterFPTools;
 begin
+{$ifndef NOOBJREG}
   RegisterType(RToolMessageListBox);
   RegisterType(RMessagesWindow);
+{$endif}
 end;
 
 END.
 {
   $Log$
-  Revision 1.9  1999-05-22 13:44:32  peter
+  Revision 1.10  1999-06-28 19:32:24  peter
+    * fixes from gabor
+
+  Revision 1.9  1999/05/22 13:44:32  peter
     * fixed couple of bugs
 
   Revision 1.8  1999/04/07 21:55:54  peter

@@ -92,8 +92,8 @@ type
         ColorAreas: PColorAreaCollection;
         constructor Init(ATopic: PTopic);
         procedure   SetParams(AMargin, AWidth: integer); virtual;
-        function    GetLineCount: integer; virtual;
-        function    GetLineText(Line: integer): string; virtual;
+        function    GetLineCount: sw_integer; virtual;
+        function    GetLineText(Line: sw_integer): string; virtual;
         function    GetLinkCount: integer; virtual;
         procedure   GetLinkBounds(Index: integer; var R: TRect); virtual;
         function    GetLinkFileID(Index: integer): word; virtual;
@@ -126,8 +126,8 @@ type
         procedure   Draw; virtual;
         procedure   HandleEvent(var Event: TEvent); virtual;
         procedure   SetCurPtr(X,Y: integer); virtual;
-        function    GetLineCount: integer; virtual;
-        function    GetLineText(Line: integer): string; virtual;
+        function    GetLineCount: sw_integer; virtual;
+        function    GetLineText(Line: sw_integer): string; virtual;
         function    GetLinkCount: integer; virtual;
         procedure   GetLinkBounds(Index: integer; var R: TRect); virtual;
         function    GetLinkFileID(Index: integer): word; virtual;
@@ -475,12 +475,12 @@ begin
   end;
 end;
 
-function THelpTopic.GetLineCount: integer;
+function THelpTopic.GetLineCount: sw_integer;
 begin
   GetLineCount:=Lines^.Count;
 end;
 
-function THelpTopic.GetLineText(Line: integer): string;
+function THelpTopic.GetLineText(Line: sw_integer): string;
 var S: string;
 begin
   if Line<GetLineCount then S:=PString(Lines^.At(Line))^ else S:='';
@@ -599,14 +599,14 @@ begin
      Lookup('');
 end;
 
-function THelpViewer.GetLineCount: integer;
+function THelpViewer.GetLineCount: sw_integer;
 var Count: integer;
 begin
   if HelpTopic=nil then Count:=0 else Count:=HelpTopic^.GetLineCount;
   GetLineCount:=Count;
 end;
 
-function THelpViewer.GetLineText(Line: integer): string;
+function THelpViewer.GetLineText(Line: sw_integer): string;
 var S: string;
 begin
   if HelpTopic=nil then S:='' else S:=HelpTopic^.GetLineText(Line);
@@ -1138,7 +1138,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-04-07 21:56:02  peter
+  Revision 1.9  1999-06-28 19:32:35  peter
+    * fixes from gabor
+
+  Revision 1.8  1999/04/07 21:56:02  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
