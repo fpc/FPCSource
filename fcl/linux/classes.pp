@@ -42,12 +42,10 @@ ClassAliasList : TStringList;
 
 
 initialization
-  ClassList := TThreadList.Create;
-  ClassAliasList := TStringList.Create;
+  CommonInit;
 
 finalization
-  ClassList.Free;
-  ClassAliasList.Free;
+  CommonCleanup;
 
   if ThreadsInited then
      DoneThreads;
@@ -55,7 +53,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2000-06-27 17:17:34  lazarus
+  Revision 1.18  2000-06-29 16:32:06  sg
+  * Changes in initialisation/finalisation for streaming support
+
+  Revision 1.17  2000/06/27 17:17:34  lazarus
   Added code for registerclass, GetClass and RegisterClasses
   Shane
 
