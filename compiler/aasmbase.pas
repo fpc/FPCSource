@@ -707,6 +707,13 @@ implementation
         hp:=tasmsymbol(symbolsearch.search(s));
         if assigned(hp) then
          begin
+           {$IFDEF EXTDEBUG}
+           if (_typ <> AT_NONE) and (hp.typ <> _typ) then
+             begin
+               //Writeln('Error symbol '+hp.name+' type is ',Ord(_typ),', should be ',Ord(hp.typ));
+               InternalError(2004031501);
+             end;
+           {$ENDIF}
            if (_bind<>AB_EXTERNAL) then
              hp.defbind:=_bind
          end
@@ -873,7 +880,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2004-03-02 00:36:32  olle
+  Revision 1.17  2004-03-18 11:45:39  olle
+    + added type similarity check in newasmsymbol
+
+  Revision 1.16  2004/03/02 00:36:32  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.15  2003/05/23 14:27:35  peter
