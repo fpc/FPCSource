@@ -72,13 +72,16 @@ unit temp_gen;
           persistant : boolean; { used for inlined procedures }
           istempansistring : boolean;
 {$ifdef EXTDEBUG}
-          line : longint;
+          posinfo,releaseposinfo : tfileposinfo;
 {$endif}
        end;
 
     var
        tmpfreelist : pfreerecord;
        templist : pfreerecord;
+{$ifdef EXTDEBUG}
+       tempfreedlist : pfreerecord;
+{$endif}
        lastoccupied : longint;
        firsttemp, maxtemp : longint;
 
@@ -98,7 +101,8 @@ unit temp_gen;
            begin
 {$ifdef EXTDEBUG}
               Comment(V_Warning,'temporary assignment of size '
-                       +tostr(templist^.size)+' from line '+tostr(templist^.line)+
+                       +tostr(templist^.size)+' from pos '+tostr(templist^.posinfo.line)
+                       +':'+tostr(templist^.posinfo.column)
                        +' at pos '+tostr(templist^.pos)+
                        ' not freed at the end of the procedure');
 {$endif}
@@ -106,8 +110,14 @@ unit temp_gen;
               templist:=hp^.next;
               dispose(hp);
            end;
-         templist:=nil;
-         tmpfreelist:=nil;
+{$ifdef EXTDEBUG}
+         while assigned(tempfreedlist) do
+           begin
+              hp:=tempfreedlist;
+              tempfreedlist:=hp^.next;
+              dispose(hp);
+           end;
+{$endif}
          firsttemp:=0;
          maxtemp:=0;
          lastoccupied:=0;
@@ -191,7 +201,7 @@ unit temp_gen;
          tl^.istempansistring:=false;
          templist:=tl;
 {$ifdef EXTDEBUG}
-         tl^.line:=aktfilepos.line;
+         tl^.posinfo:=aktfilepos;
 {$endif}
          gettempofsize:=ofs;
       end;
@@ -305,8 +315,12 @@ unit temp_gen;
 {$ifdef EXTDEBUG}
                    Comment(V_Debug,'temp managment  : ungetpersistanttemp()'+
                      ' at pos '+tostr(pos)+ ' found !');
-{$endif}
+                   hp^.next:=tempfreedlist;
+                   tempfreedlist:=hp;
+                   hp^.releaseposinfo:=aktfilepos;
+{$else}
                    dispose(hp);
+{$endif}
                    exit;
                 end;
               prev:=hp;
@@ -449,7 +463,13 @@ unit temp_gen;
                           prev^.next:=tl^.next
                         else
                           templist:=tl^.next;
+{$ifdef EXTDEBUG}
+                        tl^.next:=tempfreedlist;
+                        tempfreedlist:=tl;
+                        tl^.releaseposinfo:=aktfilepos;
+{$else}
                         dispose(tl);
+{$endif}
                         exit;
                      end
                    else
@@ -461,6 +481,23 @@ unit temp_gen;
 {$ifdef EXTDEBUG}
               Comment(V_Warning,'Internal: temp managment problem : '+
                 'temp not found for release at offset '+tostr(ref.offset));
+              tl:=tempfreedlist;
+              while assigned(tl) do
+                begin
+                   if (ref.offset=tl^.pos) then
+                     begin
+                        Comment(V_Warning,'Last temporary assignment of size '
+                          +tostr(tl^.size)+' from pos '+tostr(tl^.posinfo.line)
+                          +':'+tostr(tl^.posinfo.column)
+                          +' at pos '+tostr(tl^.pos)+
+                          ' has been already freed at '
+                          +tostr(tl^.releaseposinfo.line)
+                          +':'+tostr(tl^.releaseposinfo.column)
+                          );
+                        Exit;
+                     end;
+                end;
+
 {$endIf}
            end;
       end;
@@ -471,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-11-30 09:43:24  pierre
+  Revision 1.6  1999-01-15 11:34:23  pierre
+   + better info for temp allocation debugging
+
+  Revision 1.5  1998/11/30 09:43:24  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
