@@ -3411,11 +3411,6 @@ This means a fractional part of a millisecond is dropped.
 <!-- function Visibility: default -->
 <element name="YearSpan">
 <short>Calculate the approximate number of years between two DateTime values.</short>
-</element>
-
-<!-- function result Visibility: default -->
-<element name="YearSpan.Result">
-<short>Number (fractions included) of years between <var>ANow</var> and <var>AThen</var></short>
 <descr>
 <var>YearSpan</var> returns the number of years between <var>ANow</var> and
 <var>AThen</var>, including any fractional parts of a year. This number is an approximation,
@@ -3433,6 +3428,11 @@ years).
 <link id="YearsBetween"/>
 </seealso>
 <example file="datutex/ex63"/>
+</element>
+
+<!-- function result Visibility: default -->
+<element name="YearSpan.Result">
+<short>Number (fractions included) of years between <var>ANow</var> and <var>AThen</var></short>
 </element>
 
 <!-- argument Visibility: default -->
