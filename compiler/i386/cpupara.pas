@@ -157,7 +157,7 @@ unit cpupara;
            internalerror(200305251);
          getselflocation.loc:=LOC_REFERENCE;
          getselflocation.reference.index.enum:=R_INTREGISTER;
-         getselflocation.reference.index.number:=NR_FRAME_POINTER_REG;
+         getselflocation.reference.index.number:=NR_STACK_POINTER_REG;
          getselflocation.reference.offset:=hsym.adjusted_address;
       end;
 
@@ -166,7 +166,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-06-06 07:34:11  michael
+  Revision 1.15  2003-06-06 07:35:14  michael
+  + Patch to Patch from peter
+
+  Revision 1.14  2003/06/06 07:34:11  michael
   + Patch from peter
 
   Revision 1.13  2003/06/05 20:58:05  peter
