@@ -636,12 +636,19 @@ begin
   Result:=ShortHostToNet(FPort);
 end;
 
-
+Initialization
+  InitResolve;
+  
+Finalization
+  FinalResolve;
 
 end.
 {
    $Log$
-   Revision 1.1  2003-02-01 16:50:38  michael
+   Revision 1.2  2003-02-03 10:14:12  michael
+   + Added init/final routines to initialize winsock library
+
+   Revision 1.1  2003/02/01 16:50:38  michael
    + Added resolve unit for WIndows/unix
 
 }

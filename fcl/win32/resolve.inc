@@ -34,3 +34,18 @@ begin
   else
     GetDNSError:=0; // Must get win32 error ?  
 end;
+
+Function InitResolve : Boolean;
+
+var 
+   wsaData : TWsaData;
+
+begin
+  Result:=WSAStartup(1,wsaData)=0;
+end;
+
+Function FinalResolve : Boolean;
+
+begin
+  Result:=True;
+end;
