@@ -1,4 +1,4 @@
-{ %skiptarget=go32v2 }
+{ %skiptarget=go32v2,macos Crashes on MacOS when assembling, linking or running }
 { %opt=-Sc }
 VAR s : ansistring;
 BEGIN

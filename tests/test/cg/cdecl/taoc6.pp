@@ -1,3 +1,4 @@
+{ %SKIPTARGET=macos Crashes when assembling, linking or running}
 
 { sixth simple array of const test
   for int64 values }

@@ -1,3 +1,4 @@
+{ %SKIPTARGET=macos Crashes when assembling, linking or running}
 type
   de10_eqn_vector = array [1..10] of double;
   de10_func = function : double;

@@ -1,4 +1,5 @@
 { %OPT=-al }
+{ %SKIPTARGET=macos Crashes when assembling, linking or running}
 { this forces use of GNU as }
 { Old file: tbs0282.pp }
 { long mangledname problem with -Aas                   OK 0.99.13 (PFV) }
