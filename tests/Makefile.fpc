@@ -10,6 +10,7 @@ fpcdir=..
 rule=allexectests
 
 [rules]
+unexport FPC_VERSION
 
 ################################
 # Test environment setup
@@ -146,7 +147,7 @@ copyfiles:
 #
 
 testprep: testprep-stamp.$(TEST_OS_TARGET)
-testprep-stamp.$(TEST_OS_TARGET): utils units copyfiles FORCE
+testprep-stamp.$(TEST_OS_TARGET): utils units copyfiles
         $(ECHO) $(DATE) > testprep-stamp.$(TEST_OS_TARGET)
 
 
