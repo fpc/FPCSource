@@ -3629,8 +3629,9 @@ unit pass_1;
          if must_be_valid and
             (@procinfo=pprocinfo(p^.funcretprocinfo)) and
             not procinfo.funcret_is_valid then
-           note(uninitialized_function_return);
-         if count_ref then pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
+           Message(sym_w_function_result_not_set);
+         if count_ref then
+           pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
 {$else TEST_FUNCRET}
          p^.resulttype:=procinfo.retdef;
          p^.location.loc:=LOC_REFERENCE;
@@ -5258,7 +5259,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.58  1998-08-19 16:07:51  jonas
+  Revision 1.59  1998-08-20 09:26:39  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.58  1998/08/19 16:07:51  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.57  1998/08/19 00:42:39  peter

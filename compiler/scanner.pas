@@ -570,10 +570,17 @@ implementation
 
 
     procedure tscannerfile.inc_comment_level;
+      var
+         oldaktfilepos : tfileposinfo;
       begin
          inc(comment_level);
          if (comment_level>1) then
-          Message1(scan_w_comment_level,tostr(comment_level));
+          begin
+             oldaktfilepos:=aktfilepos;
+             gettokenpos; { update for warning }
+             Message1(scan_w_comment_level,tostr(comment_level));
+             aktfilepos:=oldaktfilepos;
+          end;
       end;
 
 
@@ -1552,7 +1559,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.42  1998-08-19 14:57:51  peter
+  Revision 1.43  1998-08-20 09:26:45  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.42  1998/08/19 14:57:51  peter
     * small fix for aktfilepos
 
   Revision 1.41  1998/08/18 14:17:10  pierre

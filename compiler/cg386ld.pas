@@ -532,22 +532,22 @@ implementation
               hr:=getregister32;
               hr_valid:=false;
               hp:=new_reference(procinfo.framepointer,
-                pprocinfo(procinfo.framepointer_offset);
+                procinfo.framepointer_offset);
               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hr)));
               pp:=procinfo.parent;
+              { walk up the stack frame }
               while pp<>pprocinfo(p^.funcretprocinfo) do
                 begin
                    hp:=new_reference(hr,
-                     pprocinfo(pp^.framepointer_offset);
+                     pp^.framepointer_offset);
                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hr)));
+                   pp:=pp^.parent;
                 end;
               p^.location.reference.base:=hr;
-              { walk up the stack frame }
-              { not done yet !! }
            end
          else
            p^.location.reference.base:=procinfo.framepointer;
-         p^.location.reference.offset:=pprocinfo(p^.funcretprocinfo)^.retoffset;
+         p^.location.reference.offset:=procinfo.retoffset;
          if ret_in_param(p^.retdef) then
 {$endif TEST_FUNCRET}
            begin
@@ -565,7 +565,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-08-10 14:49:48  peter
+  Revision 1.9  1998-08-20 09:26:37  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.8  1998/08/10 14:49:48  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.7  1998/07/30 13:30:33  florian

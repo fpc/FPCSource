@@ -600,12 +600,21 @@
 
       begin
          tsym.init(n);
+         typ:=funcretsym;
          funcretprocinfo:=approcinfo;
          funcretdef:=pprocinfo(approcinfo)^.retdef;
          { address valid for ret in param only }
          { otherwise set by insert             }
          address:=pprocinfo(approcinfo)^.retoffset;
       end;
+
+{$ifdef GDB}
+    procedure tfuncretsym.concatstabto(asmlist : paasmoutput);
+      begin
+        { Nothing to do here, it is done in genexitcode  }
+      end;
+{$endif GDB}
+
 {$endif TEST_FUNCRET}
 
 {****************************************************************************
@@ -1544,7 +1553,11 @@
 
 {
   $Log$
-  Revision 1.31  1998-08-17 10:10:12  peter
+  Revision 1.32  1998-08-20 09:26:46  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.31  1998/08/17 10:10:12  peter
     - removed OLDPPU
 
   Revision 1.30  1998/08/13 10:57:29  peter

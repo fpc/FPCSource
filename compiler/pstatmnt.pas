@@ -39,7 +39,7 @@ unit pstatmnt;
   implementation
 
     uses
-       cobjects,globals,files,verbose,systems,
+       strings,cobjects,globals,files,verbose,systems,
        symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
@@ -1092,10 +1092,12 @@ unit pstatmnt;
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
-              funcretsym:=new(pfuncretsym,init(aktprocsym^.name),@procinfo);
-              procinfo.retoffset:=-funcretsym^.address;
+              funcretsym:=new(pfuncretsym,init(aktprocsym^.name,@procinfo));
               { insert in local symtable }
               symtablestack^.insert(funcretsym);
+              if ret_in_acc(procinfo.retdef) or (procinfo.retdef^.deftype=floatdef) then
+                procinfo.retoffset:=-funcretsym^.address;
+              procinfo.funcretsym:=funcretsym;
            end;
 {$endif TEST_FUNCRET }
          read_declarations(islibrary);
@@ -1125,10 +1127,6 @@ unit pstatmnt;
 {$ifdef TEST_FUNCRET }
                    { the space has been set in the local symtable }
                    procinfo.retoffset:=-funcretsym^.address;
-                   strdispose(funcretsym^._name);
-                   { lowercase name unreachable }
-                   { as it is handled differently }
-                   funcretsym^._name:=strpnew('func_result');
 {$else  TEST_FUNCRET }
                    { align func result at 4 byte }
                    procinfo.retoffset:=
@@ -1238,7 +1236,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.34  1998-08-17 10:10:09  peter
+  Revision 1.35  1998-08-20 09:26:42  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.34  1998/08/17 10:10:09  peter
     - removed OLDPPU
 
   Revision 1.33  1998/08/12 19:39:30  peter

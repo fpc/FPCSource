@@ -54,6 +54,10 @@ unit hcodegen;
           retdef : pdef;
           { return type }
           sym : pprocsym;
+{$ifdef TEST_FUNCRET }
+          { symbol of the function }
+          funcretsym : pfuncretsym;
+{$endif TEST_FUNCRET }
           { the definition of the proc itself }
           { why was this a pdef only ?? PM    }
           def : pprocdef;
@@ -405,7 +409,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-08-10 14:50:01  peter
+  Revision 1.13  1998-08-20 09:26:38  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.12  1998/08/10 14:50:01  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.11  1998/07/28 21:52:51  florian

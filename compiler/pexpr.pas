@@ -1066,16 +1066,20 @@ unit pexpr;
         function is_func_ret(sym : psym) : boolean;
         var
            p : pprocinfo;
+           storesymtablestack : psymtable;
+           
         begin
-          p:=@procinfo;
           is_func_ret:=false;
+          if (sym^.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0) then
+            exit;
+          p:=@procinfo;
           while assigned(p) do
             begin
                { is this an access to a function result ? }
-               if assigned(aktprocsym) and
-                  ((sym^.name=aktprocsym^.name){ or
-                  ((pvarsym(srsym)=opsym) and
-                  ((p^.flags and pi_operator)<>0))}) and
+               if assigned(p^.funcretsym) and
+                  ((sym=p^.funcretsym) or
+                  ((pvarsym(sym)=opsym) and
+                  ((p^.flags and pi_operator)<>0))) and
                   (p^.retdef<>pdef(voiddef)) and
                   (token<>LKLAMMER) and
                   (not ((cs_tp_compatible in aktmoduleswitches) and
@@ -1089,6 +1093,16 @@ unit pexpr;
                     exit;
                  end;
                p:=p^.parent;
+            end;
+          { we must use the function call }
+          if(sym^.typ=funcretsym) then
+            begin
+               storesymtablestack:=symtablestack;
+               symtablestack:=srsymtable^.next;
+               getsym(sym^.name,true);
+               if srsym^.typ<>procsym then
+                 Message(cg_e_illegal_expression);
+               symtablestack:=storesymtablestack;
             end;
         end;
 {$endif TEST_FUNCRET}
@@ -1841,7 +1855,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.39  1998-08-18 16:48:48  pierre
+  Revision 1.40  1998-08-20 09:26:41  pierre
+    + funcret setting in underproc testing
+      compile with _dTEST_FUNCRET
+
+  Revision 1.39  1998/08/18 16:48:48  pierre
     * bug for -So proc assignment to p^rocvar fixed
 
   Revision 1.38  1998/08/18 14:17:09  pierre
