@@ -74,8 +74,13 @@ const
 
 Type
   in_addr = packed record
-             s_addr  : cuint32;         // inaddr_t=cuint32
+             case boolean of   		
+             true: (s_addr  : cuint32);         // inaddr_t=cuint32
+	     false: (s_bytes : packed array[1..4] of byte);
             end;
+
+  TIn_addr = in_addr;
+  pin_addr = ^in_addr;
 
   in_addrbytes = packed array [1..4] of byte;
 
@@ -218,9 +223,18 @@ function StrToHostAddr6(IP   : String) : Tin6_addr;     // not implemented?!?
 function NetAddrToStr6 (Entry: Tin6_addr) : AnsiString;
 function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 
+CONST 
+	NoAddress : in_addr  = (s_addr:0);
+	NoNet     : in_addr  = (s_addr:0);
+ 	NoAddress6: Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
+  	NoNet6    : Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
+
 {
   $Log$
-  Revision 1.25  2005-02-14 17:13:26  peter
+  Revision 1.26  2005-02-18 13:10:10  marco
+   * noadress and friend, ipv4 changed to an enum.
+
+  Revision 1.25  2005/02/14 17:13:26  peter
     * truncate log
 
   Revision 1.24  2005/02/13 21:10:31  marco
