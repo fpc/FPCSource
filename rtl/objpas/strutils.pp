@@ -169,6 +169,8 @@ function Numb2Dec(S: string; Base: Byte): Longint;
 function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
 function IntToRoman(Value: Longint): string;
 function RomanToInt(const S: string): Longint;
+procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
+function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
 
 const
   DigitChars = ['0'..'9'];
@@ -810,7 +812,7 @@ end;
 Function DecodeSoundexWord(AValue: Word): string;
 
 begin
-  Result := Chr(Ord0+ (AValue mod 7)) + Result;
+  Result := Chr(Ord0+ (AValue mod 7));
   AValue := AValue div 7;
   Result := Chr(Ord0+ (AValue mod 7)) + Result;
   AValue := AValue div 7;
@@ -1028,7 +1030,7 @@ end;
 function AnsiProperCase(const S: string; const WordDelims: TSysCharSet): string;
 
 var
-  l :  Integer;
+//  l :  Integer;
   P,PE : PChar;
 
 begin
@@ -1567,7 +1569,7 @@ End;
 
 Function RPos (Const Substr : AnsiString; Const Source : AnsiString) : Integer; overload;
 var
-  i,MaxLen,llen : Integer;
+  MaxLen,llen : Integer;
   c : char;
   pc,pc2 : pchar;
 begin
@@ -1576,7 +1578,7 @@ begin
   maxlen:=length(source);
   if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
    begin 
-     i:=maxlen;
+ //    i:=maxlen;
      pc:=@source[maxlen];
      pc2:=@source[llen-1];
      c:=substr[llen];
@@ -1595,7 +1597,7 @@ end;
 
 Function RPosex (Const Substr : AnsiString; Const Source : AnsiString;offs:cardinal) : Integer; overload;
 var
-  i,MaxLen,llen : Integer;
+  MaxLen,llen : Integer;
   c : char;
   pc,pc2 : pchar;
 begin
@@ -1605,7 +1607,7 @@ begin
   if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin 
-     i:=maxlen;
+//     i:=maxlen;
      pc:=@source[maxlen];
      pc2:=@source[llen-1];
      c:=substr[llen];
@@ -1622,12 +1624,65 @@ begin
    end;
 end;
 
+// def from delphi.about.com:
+procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
+
+Const HexDigits='0123456789ABCDEF';
+var i :integer;
+begin
+  for i:=0 to binbufsize-1 do
+    begin  
+      HexValue[0]:=hexdigits[(ord(binvalue^) and 15)];
+      HexValue[1]:=hexdigits[(ord(binvalue^) shr 4)];
+      inc(hexvalue,2);
+      inc(binvalue);		
+    end;
+end;
+
+
+function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
+// more complex, have to accept more than bintohex
+// A..F    1000001
+// a..f    1100001
+// 0..9     110000
+
+var i,j : integer;
+
+begin
+ i:=binbufsize; 
+ while (i>0) do
+   begin 
+     if hexvalue^ IN ['A'..'F','a'..'f'] then
+       j:=(ord(hexvalue^)+9) and 15
+     else
+       if hexvalue^ IN ['0'..'9'] then
+         j:=(ord(hexvalue^)) and 15
+     else
+       break;   
+     inc(hexvalue);
+     if hexvalue^ IN ['A'..'F','a'..'f'] then
+       j:=((ord(hexvalue^)+9) and 15)+ (j shl 4)
+     else
+       if hexvalue^ IN ['0'..'9'] then
+         j:=((ord(hexvalue^)) and 15) + (j shl 4)
+     else
+        break;
+     inc(hexvalue);
+     binvalue^:=chr(j);
+     inc(binvalue);
+     dec(i);
+   end;     
+  result:=binbufsize-i;
+end;
 
 end.
 
 {
   $Log$
-  Revision 1.12  2005-01-26 11:05:09  marco
+  Revision 1.13  2005-02-03 21:38:17  marco
+   * committed bintohex and hextobin
+
+  Revision 1.12  2005/01/26 11:05:09  marco
    * fix
 
   Revision 1.11  2005/01/01 18:45:25  marco
