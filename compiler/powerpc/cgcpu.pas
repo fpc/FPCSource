@@ -51,6 +51,7 @@ unit cgcpu;
         procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        function  uses_registers(rt:Tregistertype):boolean;override;
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -291,6 +292,21 @@ const
       end;
 
 
+    function  tcgppc.uses_registers(rt:Tregistertype):boolean;
+      begin
+        case rt of
+          R_INTREGISTER :
+            result:=rgint.uses_registers;
+          R_MMREGISTER  :
+            result:=rgmm.uses_registers;
+          R_FPUREGISTER :
+            result:=rgfpu.uses_registers;
+          else
+            internalerror(200310094);
+        end;
+      end;
+
+
     procedure tcgppc.add_move_instruction(instr:Taicpu);
       begin
         rgint.add_move_instruction(instr);
@@ -523,7 +539,7 @@ const
           freereg := fixref(list,ref2);
           { the caller is expected to have adjusted the reference already }
           { in this case                                                  }
-          if (TCGSize2Size[fromsize] > TCGSize2Size[tosize]) then
+          if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
             fromsize := tosize;
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
@@ -2451,7 +2467,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2003-12-05 22:53:28  jonas
+  Revision 1.142  2003-12-06 22:13:53  jonas
+    * another fix to a_load_ref_reg()
+    + implemented uses_registers() method
+
+  Revision 1.141  2003/12/05 22:53:28  jonas
     * fixed load_ref_reg for source > dest size
 
   Revision 1.140  2003/12/04 20:37:02  jonas
