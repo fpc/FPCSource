@@ -93,23 +93,9 @@ implementation
                 begin
                    if pconstsym(symtableentry)^.consttyp=constresourcestring then
                      begin
-                         pushusedregisters(pushed,$ff);
-                         emit_const(A_PUSH,S_L,
-                           pconstsym(symtableentry)^.resstrindex);
-                         emit_sym(A_PUSH,S_L,newasmsymbol(pconstsym(symtableentry)^.owner^.name^+'_RESOURCESTRINGLIST'));
-                         emitcall('FPC_GETRESOURCESTRING');
-
-                         hregister:=getexplicitregister32(R_EAX);
-                         emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                         gettempansistringreference(hr);
-                         decrstringref(resulttype,hr);
-                         emit_reg_ref(A_MOV,S_L,hregister,
-                           newreference(hr));
-                        ungetregister32(hregister);
-                        popusedregisters(pushed);
-
                         location.loc:=LOC_MEM;
-                        location.reference:=hr;
+                        location.reference.symbol:=newasmsymbol(pconstsym(symtableentry)^.owner^.name^+'_RESOURCESTRINGLIST');
+                        location.reference.offset:=(pconstsym(symtableentry)^.resstrindex+1)*4;
                      end
                    else
                      internalerror(22798);
@@ -1064,7 +1050,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-06 23:15:02  peter
+  Revision 1.5  2000-11-09 18:52:06  florian
+    * resourcestrings doesn't need the helper anymore they
+      access the table now direct
+
+  Revision 1.4  2000/11/06 23:15:02  peter
     * added copyvaluepara call again
 
   Revision 1.3  2000/11/04 14:25:23  florian
