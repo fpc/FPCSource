@@ -17,12 +17,6 @@ interface
 
 {$smartlink off}
 
-{.define GDB_HAS_SYSROOT}      {versions of gdb >5.3 may need this}
-                               {main.c exports a string that is empty (not null) for}
-                               {targets that do not support sysroot}
-                               {for now GDB_HAS_SYSROOT is not set here, it has to be done}
-                               {manually (set it if you have the unresolved symbol gdb_sysroot) }
-
 {.$define Verbose}
 {.$define DebugCommand}
 {$define NotImplemented}
@@ -31,6 +25,7 @@ interface
 {$ifdef GDB_V602}
   {$define GDB_V6}
   {$define GDB_HAS_SYSROOT}
+  {$define GDB_SYMTAB_HAS_MACROS}
 {$endif def GDB_V602}
 
 { GDB has a simulator for powerpc CPU
@@ -2473,7 +2468,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2004-11-04 17:56:36  peter
+  Revision 1.20  2004-11-04 23:58:08  peter
+  6.2.1 has extra field in symtab
+
+  Revision 1.19  2004/11/04 17:56:36  peter
   drop 4.x support, fixed 6.2.x support
 
   Revision 1.18  2004/10/04 17:59:19  armin
