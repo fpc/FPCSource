@@ -18,55 +18,131 @@ type
   treal_type = (rt_s32real,rt_s64real,rt_s80real,rt_c64bit,rt_f16bit,rt_f32bit);
   { corresponding to single   double   extended   fixed      comp for i386 }
 
-const
-   { do not use real constants else you get rouding errors }
-   i10 : longint = 10;
-   i2  : longint = 2;
-   i1  : longint = 1;
-(*
-   { we can use this conditional if the Inf const is defined
-     in processor specific code PM }
-{$ifdef FPC_HAS_INFINITY_CONST}
-   {$define FPC_INFINITY_FOR_REAL2STR}
-{$else not  FPC_HAS_INFINITY_CONST}
-   { To avoid problems with infinity just
-     issue it in byte representation to be endianness independant PM }
-{$ifndef FPC_INFINITY_FOR_REAL2STR}
-{$ifdef SUPPORT_EXTENDED}
-   { extended is not IEEE so its processor specific
-     so I only allow it for i386 PM }
-{$ifdef i386}
-   {$define FPC_INFINITY_FOR_REAL2STR}
-   InfArray : {extended} array[0..9] of byte = ($0,$0,$0,$0,$0,$0,$0,$80,$ff,$7f);
-{$endif i386}
-{$endif SUPPORT_EXTENDED}
-{$endif not FPC_INFINITY_FOR_REAL2STR}
-
-{$ifndef FPC_INFINITY_FOR_REAL2STR}
-{$ifdef SUPPORT_DOUBLE}
-   {$define FPC_INFINITY_FOR_REAL2STR}
-   InfArray : {double} array[0..9] of byte = ($0,$0,$0,$0,$0,$0,$f0,$7f);
-{$endif SUPPORT_DOUBLE}
-{$endif not FPC_INFINITY_FOR_REAL2STR}
-
-{$ifndef FPC_INFINITY_FOR_REAL2STR}
-{$ifdef SUPPORT_SINGLE}
-   {$define FPC_INFINITY_FOR_REAL2STR}
-   InfArray : {single} array[0..3] of byte = ($0,$0,$80,$7f);
-{$endif SUPPORT_SINGLE}
-{$endif not FPC_INFINITY_FOR_REAL2STR}
-
-{$ifndef FPC_INFINITY_FOR_REAL2STR}
-    {$warning don't know Infinity values }
-{$endif not FPC_INFINITY_FOR_REAL2STR}
-{$endif not FPC_HAS_INFINITY_CONST}
-*)
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
-{
-  These numbers are for the double type...
-  At the moment these are mapped onto a double but this may change
-  in the future !
-}
+{$ifdef SUPPORT_EXTENDED}
+type
+  TSplitExtended = packed record
+    case byte of
+      0: (bytes: Array[0..9] of byte);
+      1: (words: Array[0..4] of word);
+      2: (cards: Array[0..1] of cardinal; w: word);
+  end;
+const
+  maxPrec = 17;
+{$else}
+{$ifdef SUPPORT_DOUBLE}
+type
+  TSplitDouble = packed record
+    case byte of
+      0: (bytes: Array[0..7] of byte);
+      1: (words: Array[0..3] of word);
+      2: (cards: Array[0..1] of cardinal);
+  end;
+const
+  maxPrec = 14;
+{$else}
+{$ifdef SUPPORT_SINGLE}
+type
+  TSplitSingle = packed record
+    case byte of
+      0: (bytes: Array[0..3] of byte);
+      1: (words: Array[0..1] of word);
+      2: (cards: Array[0..0] of cardinal);
+  end;
+const
+  maxPrec = 9;
+{$endif SUPPORT_SINGLE}
+{$endif SUPPORT_DOUBLE}
+{$endif SUPPORT_EXTENDED}
+
+type
+  { the value in the last position is used for rounding }
+  TIntPartStack = array[1..maxPrec+1] of valReal;
+
+var
+  roundCorr, corrVal: valReal;
+  intPart, spos, endpos, fracCount: longint;
+  correct, currprec: longint;
+  temp : string;
+  power : string[10];
+  sign : boolean;
+  dot : byte;
+  mantZero, expMaximal: boolean;
+
+  procedure RoundStr(var s: string; lastPos: byte);
+  var carry: longint;
+  begin
+    carry := 1;
+    repeat
+      s[lastPos] := chr(ord(s[lastPos])+carry);
+      carry := 0;
+      if s[lastPos] > '9' then
+        begin
+          s[lastPos] := '0';
+          carry := 1;
+        end;
+      dec(lastPos);
+    until carry = 0;
+  end;
+
+
+  procedure getIntPart(d: extended);
+  var
+    intPartStack: TIntPartStack;
+    count, stackPtr, endStackPtr, digits: longint;
+    overflow: boolean;
+  begin
+    { position in the stack (gets increased before first write) }
+    stackPtr := 0;
+    { number of digits processed }
+    digits := 0;
+    { did we wrap around in the stack? Necessary to know whether we should round }
+    overflow :=false;
+    { generate a list consisting of d, d/10, d/100, ... until d < 1.0 }
+    while d > 1.0-roundCorr do
+      begin
+        inc(stackPtr);
+        inc(digits);
+        if stackPtr > maxPrec+1 then
+          begin
+            stackPtr := 1;
+            overflow := true;
+          end;
+        intPartStack[stackPtr] := d;
+        d := d / 10.0;
+      end;
+    { if no integer part, exit }
+    if digits = 0 then
+      exit;
+    endStackPtr := stackPtr+1;
+    if endStackPtr > maxPrec + 1 then
+      endStackPtr := 1;
+ { now, all digits are calculated using trunc(d*10^(-n)-int(d*10^(-n-1))*10) }
+    corrVal := 0.0;
+ { the power of 10 with which the resulting string has to be "multiplied" }
+ { if the decimal point is placed after the first significant digit       }
+    correct := digits-1;
+    repeat
+      if (currprec > 0) then
+        begin
+          intPart:= trunc(intPartStack[stackPtr]-corrVal);
+          dec(currPrec);
+          inc(spos);
+          temp[spos] := chr(intPart+ord('0'));
+        end;
+      corrVal := int(intPartStack[stackPtr]) * 10.0;
+      dec(stackPtr);
+      if stackPtr = 0 then
+        stackPtr := maxPrec+1;
+    until (overflow and (stackPtr = endStackPtr)) or
+          (not overflow and (stackPtr = maxPrec+1)) or (currPrec = 0);
+    { round if we didn't use all available digits yet and if the }
+    { remainder is > 5                                           }
+    if overflow  and
+       (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
+      roundStr(temp,spos);
+  end;
+
 var  maxlen : longint;   { Maximal length of string for float }
      minlen : longint;   { Minimal length of string for float }
      explen : longint;   { Length of exponent, including E and sign.
@@ -76,44 +152,6 @@ const
       minexp = 1e-35;   { Minimum value for decimal expressions }
       zero   = '0000000000000000000000000000000000000000';
 
-type
-{$ifdef SUPPORT_EXTENDED}
-  TSplitExtended = packed record
-    case byte of
-      0: (bytes: Array[0..9] of byte);
-      1: (words: Array[0..4] of word);
-      2: (cards: Array[0..1] of cardinal; w: word);
-  end;
-{$else}
-{$ifdef SUPPORT_DOUBLE}
-  TSplitDouble = packed record
-    case byte of
-      0: (bytes: Array[0..7] of byte);
-      1: (words: Array[0..3] of word);
-      2: (cards: Array[0..1] of cardinal);
-  end;
-{$else}
-{$ifdef SUPPORT_SINGLE}
-  TSplitSingle = packed record
-    case byte of
-      0: (bytes: Array[0..3] of byte);
-      1: (words: Array[0..1] of word);
-      2: (cards: Array[0..0] of cardinal);
-  end;
-{$endif SUPPORT_SINGLE}
-{$endif SUPPORT_DOUBLE}
-{$endif SUPPORT_EXTENDED}
-
-var correct : longint;  { Power correction }
-    currprec : longint;
-    il,il2,roundcorr : Valreal;
-    temp : string;
-    power : string[10];
-    sign : boolean;
-    i : integer;
-    dot : byte;
-    currp : pchar;
-    mantZero, expMaximal: boolean;
 begin
   case real_type of
     rt_s32real :
@@ -124,7 +162,16 @@ begin
       end;
     rt_s64real :
       begin
+{ if the maximum suppported type is double, we can print out one digit }
+{ less, because otherwise we can't round properly and 1e-400 becomes   }
+{ 0.99999999999e-400 (JM)                                              }
+{$ifdef support_extended}
          maxlen:=23;
+{$else support_extended}
+{$ifdef support_double}
+         maxlen := 22;
+{$endif support_double}
+{$endif support_extended}
          minlen:=9;
          explen:=5;
       end;
@@ -159,7 +206,6 @@ begin
   if len=-32767 then
     len:=maxlen;
   { determine sign. before precision, needs 2 less calls to abs() }
-{  sign:=d<0;}
 {$ifndef big_endian}
 {$ifdef SUPPORT_EXTENDED}
   { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
@@ -181,12 +227,12 @@ begin
   expMaximal := ((TSplitSingle(d).words[1] shr 7) and $ff) = 255;
   mantZero := (TSplitSingle(d).cards[0] and $7fffff = 0);
 {$else SUPPORT_SINGLE}
-  {$error No floating type supported for real2str}
+  {$error No big endian floating type supported yet in real2str}
 {$endif SUPPORT_SINGLE}
 {$endif SUPPORT_DOUBLE}
 {$endif SUPPORT_EXTENDED}
 {$else big_endian}
-  {$error NaN/Inf not yet supported for big endian machines in str_real}
+  {$error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$endif big_endian}
   if expMaximal then
     if mantZero then
@@ -196,120 +242,102 @@ begin
     else temp := 'NaN'
   else
     begin
-      { the creates a cannot determine which overloaded function to call
-      if d is extended !!!
-      we should prefer real_to_real on real_to_longint !!
-      corrected in compiler }
-
       {  d:=abs(d); this converts d to double so we loose precision }
       { for the same reason I converted d:=frac(d) to d:=d-int(d); (PM) }
       if sign then
         d:=-d;
-(*
-    {$ifdef FPC_INFINITY_FOR_REAL2STR}
-    {$ifndef FPC_HAS_INFINITY_CONST}
-        if d=ValReal(InfArray) then
-    {$else FPC_HAS_INFINITY_CONST}
-        if d=Inf then
-    {$endif FPC_HAS_INFINITY_CONST}
-          begin
-            if sign then
-              s:='-Inf'
-            else
-              s:='Inf';
-            exit;
-          end;
-    {$endif FPC_INFINITY_FOR_REAL2STR}
-*)      
       { determine precision : maximal precision is : }
-      currprec:=maxlen-explen-3;
+      currprec := maxlen-explen-2;
       { this is also the maximal number of decimals !!}
       if f>currprec then
         f:=currprec;
       { when doing a fixed-point, we need less characters.}
-      if (f<0) or ( (d<>0) and ((d>maxexp) or (d<minexp))) then
+      if (f<0) {or ((d<>0) and ((d>maxexp) and (d>minexp)))} then
         begin
         { determine maximal number of decimals }
           if (len>=0) and (len<minlen) then
             len:=minlen;
           if (len>0) and (len<maxlen) then
-            currprec:=len-explen-3;
+            currprec:=len-explen-2;
         end;
-      { convert to standard form. }
-      correct:=0;
-      if d>=i10 then
-       begin
-         il:=i1;
-         il2:=i10;
-         repeat
-           il:=il2;
-           il2:=il*i10;
-           inc(correct);
-         until (d<il2);
-         d:=d/il;
-       end
-      else
-       if (d<1) and (d<>0) then
+
+      { leading zero, may be necessary for things like str(9.999:0:2) to }
+      { be able to insert an extra character at the start of the string  }
+      temp := ' 0';
+      { correction used with comparing to avoid rounding/precision errors }
+      roundCorr := (1/exp(maxPrec*ln(10)));
+      { position in the temporary output string }
+      spos := 2;
+      { get the integer part }
+      correct := 0;
+      GetIntPart(d);
+      { now process the fractional part }
+      d := frac(d);
+      { if integer part was zero, go to the first significant digit of the }
+      { fractional part                                                    }
+      { make sure we don't get an endless loop if d = 0                    }
+      if (spos = 2) and (d <> 0.0) then
         begin
-          while d<1 do
-           begin
-             d:=d*i10;
-             dec(correct);
-           end;
+         { take rounding errors into account }
+          while d < 1.0-roundCorr do
+            begin
+              d := d * 10.0;
+              dec(correct);
+            end;
+          { adjust the precision depending on how many digits we already }
+          { "processed" by multiplying by 10                             }
+          if currPrec >= abs(Correct) then
+            currPrec := currPrec - abs(correct)+1;
         end;
-      { RoundOff }
-      roundcorr:=extended(i1)/extended(i2);
-      if f<0 then
-        for i:=1 to currprec do roundcorr:=roundcorr/i10
-      else
+      { current length of the output string in endPos }
+      endPos := spos;
+      { if we have to round earlier than the amount of available precision, }
+      { only calculate digits up to that point                              }
+      if (f >= 0) and (currPrec > f) then
+        currPrec := f;
+      { always calculate at least 1 fractional digit for rounding }
+      if (currPrec >= 0) then
         begin
-          if correct+f<0 then
-           begin
-             for i:=1 to abs(correct+f) do
-              roundcorr:=roundcorr*i10;
-           end
-          else
-           begin
-             for i:=1 to correct+f do
-              roundcorr:=roundcorr/i10;
-           end;
+          if (currPrec > 0) then
+            { do some preliminary rounding (necessary, just like the }
+            { rounding afterwards)                                   }
+            begin
+              corrVal := 0.5;
+              for fracCount := 1 to currPrec do
+                corrVal := corrVal / 10.0;
+              d := d + corrVal;
+            end;
+          { 0.0 < d < 1.0 if we didn't round of earlier, otherwise 1 < d < 10 }
+          if d < 1.0-roundCorr then
+            corrVal := frac(d) * 10
+          else corrVal := d;
+          { calculate the necessary fractional digits }
+          for fracCount := 1 to currPrec do
+            begin
+              inc(spos);
+              temp[spos] := chr(trunc(corrVal)+ord('0'));
+              corrVal := frac(corrVal)*10.0;
+            end;
+          { round off. We left a zero at the start, so we can't underflow  }
+          { to the length byte                                             }
+          if (corrVal-5.0 > roundCorr) then
+            roundStr(temp,spos);
+          { new length of string }
+          endPos := spos;
         end;
-      d:=d+roundcorr;
-      { 0.99 + 0.05 > 1.0 ! Fix this by dividing the results >=10 first (PV) }
-      while (d>=10.0) do
-       begin
-         d:=d/i10;
-         inc(correct);
-       end;
-      { Now we have a standard expression : sign d *10^correct
-        where  1<d<10 or d=0 ... }
-      { get first character }
-      currp:=pchar(@temp[1]);
+      setLength(temp,endPos);
+      { delete leading zero if we didn't need it while rounding at the }
+      { string level                                                   }
+      if temp[2] = '0' then
+        delete(temp,2,1);
       if sign then
-        currp^:='-'
-      else
-        currp^:=' ';
-      inc(currp);
-      currp^:=chr(ord('0')+trunc(d));
-      inc(currp);
-      d:=d-int(d);
-      { Start making the string }
-      for i:=1 to currprec do
-       begin
-         d:=d*i10;
-         currp^:=chr(ord('0')+trunc(d));
-         inc(currp);
-         d:=d-int(d);
-       end;
-      temp[0]:=chr(currp-pchar(@temp[1]));
-      { Now we need two different schemes for the different
-        representations. }
-      if (f<0) or (correct>maxexp) then
+        temp[1] := '-';
+      if (f<0) or (correct>(round(ln(maxexp)/ln(10)))) then
         begin
           insert ('.',temp,3);
           str(abs(correct),power);
           if length(power)<explen-2 then
-           power:=copy(zero,1,explen-2-length(power))+power;
+            power:=copy(zero,1,explen-2-length(power))+power;
           if correct<0 then
             power:='-'+power
           else
@@ -318,42 +346,40 @@ begin
         end
       else
         begin
-          if not sign then
-           begin
-             delete (temp,1,1);
-             dot:=2;
-           end
-          else
-           dot:=3;
+          delete(temp,1,1);
+          dot := 2;
           { set zeroes and dot }
           if correct>=0 then
-           begin
-             if length(temp)<correct+dot+f then
-              temp:=temp+copy(zero,1,correct+dot+f-length(temp));
-             insert ('.',temp,correct+dot);
-           end
+            begin
+              if length(temp)<correct+dot+f-1 then
+                temp:=temp+copy(zero,1,correct+dot+f-length(temp));
+              insert ('.',temp,correct+dot);
+            end
           else
-           begin
-             correct:=abs(correct);
-             insert(copy(zero,1,correct),temp,dot-1);
-             insert ('.',temp,dot);
-           end;
+            begin
+              correct:=abs(correct);
+              insert(copy(zero,1,correct),temp,dot-1);
+              insert ('.',temp,dot);
+            end;
           { correct length to fit precision }
           if f>0 then
-           temp[0]:=chr(pos('.',temp)+f)
+            setlength(temp,pos('.',temp)+f)
           else
-           temp[0]:=chr(pos('.',temp)-1);
+            setLength(temp,pos('.',temp)-1);
         end;
     end;
-  if length(temp)<len then
-    s:=space(len-length(temp))+temp
-  else
-    s:=temp;
+    if length(temp)<len then
+      s:=space(len-length(temp))+temp
+    else s:=temp;
 end;
 
 {
   $Log$
-  Revision 1.22  2000-02-09 16:59:31  peter
+  Revision 1.23  2000-02-26 15:49:40  jonas
+    + new str_real which is completely TP compatible regarding output
+      format and which should have no rounding errors anymore
+
+  Revision 1.22  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.21  2000/02/09 12:17:51  peter

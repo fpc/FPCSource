@@ -113,27 +113,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
 
 {****************************************************************************
-                  Subroutines for String handling
-****************************************************************************}
-
-{ Needs to be before RTTI handling }
-
-{$i sstrings.inc}
-
-{$i astrings.inc}
-
-{$ifdef haswidechar}
-{$i wstrings.inc}
-{$endif haswidechar}
-
-{****************************************************************************
-                         Run-Time Type Information (RTTI)
-****************************************************************************}
-
-{$i rtti.inc}
-
-
-{****************************************************************************
                                Math Routines
 ****************************************************************************}
 
@@ -182,6 +161,35 @@ End;
 {$endif}
 
 {$endif RTLLITE}
+
+{ Include processor specific routines }
+{$I math.inc}
+
+{****************************************************************************
+                  Subroutines for String handling
+****************************************************************************}
+
+{ Needs to be before RTTI handling }
+
+{$i sstrings.inc}
+
+{$i astrings.inc}
+
+{$ifdef haswidechar}
+{$i wstrings.inc}
+{$endif haswidechar}
+
+{****************************************************************************
+                         Run-Time Type Information (RTTI)
+****************************************************************************}
+
+{$i rtti.inc}
+
+{ requires sstrings.inc for initval }
+{$ifdef INT64}
+{$I int64.inc}
+{$endif INT64}
+
 
 {****************************************************************************
                           Random function routines
@@ -265,13 +273,6 @@ begin
     Seed2 := (internRandom(65000) * internRandom(65000)) mod 600011;
     Seed3 := (internRandom(65000) * internRandom(65000)) mod 765241;
 end;
-
-{ Include processor specific routines }
-{$I math.inc}
-
-{$ifdef INT64}
-{$I int64.inc}
-{$endif INT64}
 
 {****************************************************************************
                             Memory Management
@@ -612,7 +613,11 @@ end;
 
 {
   $Log$
-  Revision 1.83  2000-02-09 16:59:31  peter
+  Revision 1.84  2000-02-26 15:49:40  jonas
+    + new str_real which is completely TP compatible regarding output
+      format and which should have no rounding errors anymore
+
+  Revision 1.83  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.82  2000/02/09 12:17:51  peter
