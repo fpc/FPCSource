@@ -44,6 +44,8 @@ override NEEDUNITDIR+=../fake/gdb
 endif
 
 
+INSTALLEXTRA=$(wildcard *.pt) $(wildcard *.tdf)
+
 
 #####################################################################
 # Real targets
@@ -102,11 +104,14 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.11  1999-03-01 15:41:47  peter
+# Revision 1.12  1999-03-08 14:59:25  peter
+#   * installextra pt,tdf files
+#
+# Revision 1.11  1999/03/01 15:41:47  peter
 #   + Added dummy entries for functions not yet implemented
 #   * MenuBar didn't update itself automatically on command-set changes
 #   * Fixed Debugging/Profiling options dialog
-#   * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+#   * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
 #   * efBackSpaceUnindents works correctly
 #   + 'Messages' window implemented
 #   + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
