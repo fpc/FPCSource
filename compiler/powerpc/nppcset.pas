@@ -44,6 +44,7 @@ implementation
       verbose,globals,
       symconst,symdef,defbase,
       paramgr,
+      cpuinfo,
       pass_2,cgcpu,
       ncon,
       cga,tgobj,ncgutil,regvars,rgobj,aasmcpu;
@@ -76,7 +77,7 @@ implementation
             else
               begin
                 tmpreg := cg.get_scratch_reg_int(exprasmlist);
-                cg.a_load_const_reg(exprasmlist,OS_INT,value,tmpreg);
+                cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
                 cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -90,7 +91,7 @@ implementation
            if first and (t^._low>get_min_value(left.resulttype.def)) then
              begin
                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,
-                 longint(t^._low),hregister,elselabel);
+                 aword(t^._low),hregister,elselabel);
              end;
            if t^._low=t^._high then
              begin
@@ -155,7 +156,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-09 13:57:45  jonas
+  Revision 1.4  2002-10-21 18:08:05  jonas
+    * some range errors fixed
+
+  Revision 1.3  2002/09/09 13:57:45  jonas
     * small optimization to case genlist() case statements
 
   Revision 1.2  2002/09/08 20:14:33  jonas

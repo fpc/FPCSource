@@ -793,8 +793,8 @@ interface
            case nodetype of
               ltn,gtn,lten,gten:
                 begin
-                   { the comparisaion of the low dword have to be }
-                   {  always unsigned!                            }
+                   { the comparison of the low dword always has }
+                   { to be always unsigned!                     }
                    cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
                    cg.a_jmp_always(exprasmlist,falselabel);
                 end;
@@ -1420,7 +1420,7 @@ interface
                        begin
                          exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                            location.register,right.location.register,
-                           left.location.value));
+                           longint(left.location.value)));
                        end
                      else
                        begin
@@ -1464,7 +1464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-09-08 14:14:49  jonas
+  Revision 1.19  2002-10-21 18:08:05  jonas
+    * some range errors fixed
+
+  Revision 1.18  2002/09/08 14:14:49  jonas
     * more optimizations for 64bit compares
 
   Revision 1.17  2002/09/07 22:15:48  jonas
