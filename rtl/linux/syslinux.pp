@@ -617,12 +617,6 @@ var
   d            : pdirent;
   mountpoint   : boolean;
   predot       : string[255];
-
-  procedure dodispose (p : pdir);
-  begin
-    dispose (p^.buf);
-    dispose (p)
-  end;
 {$endif}
 begin
   drivenr:=0;
@@ -665,18 +659,13 @@ begin
            d:=nil;
         end;
      until (d=nil) or ((thisdir.dev=thisdev) and (thisdir.ino=thisino) );
-     if (closedir (dirstream)<0) or (d=nil) then
-      begin
-        dodispose (dirstream);
-        exit;
-      end;
+     if (closedir(dirstream)<0) or (d=nil) then
+      exit;
    { At this point, d.name contains the name of the current dir}
      thedir:='/'+strpas(@(d^.name[0]))+thedir;
      thisdev:=dotdotdev;
      thisino:=dotdotino;
      predot:=predot+'../';
-   { We don't want to clutter op the heap with DIR records... }
-     dodispose (dirstream);
    end;
 { Now rootino=thisino and rootdev=thisdev so we've reached / }
   dir:=thedir
@@ -735,7 +724,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  1999-05-17 21:52:42  florian
+  Revision 1.25  1999-07-28 23:18:36  peter
+    * closedir fixes, which now disposes the pdir itself
+
+  Revision 1.24  1999/05/17 21:52:42  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.23  1999/04/08 12:23:04  peter

@@ -541,11 +541,11 @@ Begin
          begin
          {$IFDEF CRTLIB}
            _rtl_closeDir(f.dirptr);
+           Dispose(pdir(f.dirptr)^.buf);
+           Dispose(pdir(f.dirptr));
          {$ELSE}
            closedir(pdir(f.dirptr));
          {$ENDIF}
-         Dispose(pdir(f.dirptr)^.buf);
-         Dispose(pdir(f.dirptr));
          end;
       End;
    end;
@@ -1046,7 +1046,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  1999-07-24 11:18:11  peter
+  Revision 1.12  1999-07-28 23:18:35  peter
+    * closedir fixes, which now disposes the pdir itself
+
+  Revision 1.11  1999/07/24 11:18:11  peter
     * fixed getfattr which didn't reset doserror
 
   Revision 1.10  1999/03/05 13:09:57  peter
