@@ -637,7 +637,7 @@ initialization
     LoadGlut('glut32.dll');
     {$ELSE}
     {$ifdef darwin}
-    LoadGlut('/System/Library/Frameworks/GLUT.framework/Versions/Current/GLUT');
+    LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
     {$else}
     LoadGlut('libglut.so.3');
     {$endif}

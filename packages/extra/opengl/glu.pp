@@ -503,13 +503,13 @@ initialization
     LoadGLu('glu32.dll');
     {$ELSE}
     {$ifdef darwin}
-    LoadGLu('/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGLU.dylib');
+    LoadGLu('/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib');
     {$else}
     LoadGLu('libGLU.so.1');
     {$ENDIF}
     {$endif}
   except
-    writeln('error opening libGLU: ',getlastdlerror);
+    writeln('error opening libGLU');
     halt(1);
   end;
 
@@ -522,7 +522,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-24 20:04:09  jonas
+  Revision 1.4  2004-11-25 11:42:50  jonas
+    - removed call to getlastdlerror
+    * changed some Mac OS X paths to be more generic
+
+  Revision 1.3  2004/11/24 20:04:09  jonas
     + basic Mac OS X support, only bounce works for now though
 
   Revision 1.2  2002/10/13 14:36:47  sg
