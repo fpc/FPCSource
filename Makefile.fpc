@@ -9,6 +9,9 @@ version=1.0.5
 [target]
 dirs=compiler rtl utils fcl fv packages ide
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=.
 rule=help
