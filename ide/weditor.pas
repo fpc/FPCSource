@@ -4750,7 +4750,10 @@ begin
           EI^.Fold^.Collapse(false);
     end;
      SetStoreUndo(HoldUndo);
-     Addaction(eaInsertLine,SCP,CurPos,IndentStr);
+     if not overwrite then
+       Addaction(eaInsertLine,SCP,CurPos,IndentStr)
+     else
+       AddAction(eaMoveCursor,SCP,CurPos,'');
      SetStoreUndo(false);
     AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   end else
@@ -7093,7 +7096,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  2001-11-07 00:18:00  pierre
+  Revision 1.17  2002-01-25 14:15:35  pierre
+   * fix bug 1774
+
+  Revision 1.16  2001/11/07 00:18:00  pierre
    * avoid problem to compile ide with debug for linux
 
   Revision 1.15  2001/10/02 22:43:22  pierre

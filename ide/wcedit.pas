@@ -692,7 +692,10 @@ begin
          ((AAction=eaMoveCursor) or
           (AAction=eaInsertText) or
           (AAction=eaOverwriteText) or
-          (AAction=eaDeleteText))
+          (AAction=eaDeleteText)) and
+         { do not group if a new grouped_action started }
+          (not assigned(UndoList^.CurrentGroupedAction) or
+           (UndoList^.CurrentGroupedAction^.ActionCount>0))
          then
         begin
           pa^.EndPos:=AEndPos;
@@ -1367,8 +1370,11 @@ begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 SetMinMax(EndPos.Y);
                 Had_efNoIndent:=(GetFlags and efNoIndent)<>0;
+                WasInserting:=GetInsertMode;
+                SetInsertMode(true);
                 SetFlags(GetFlags or efNoIndent);
                 InsertNewLine;
+                SetInsertMode(WasInserting);
                 if not Had_efNoIndent then
                   SetFlags(GetFlags and not efNoIndent);
                 {DelEnd; wrong for eaCut at least }
@@ -1421,9 +1427,23 @@ var
   Temp,Idx,Last,Count : Longint;
   WasInserting,Is_grouped,Had_efNoIndent : boolean;
   Line : String;
+  MaxY,MinY : sw_integer;
+  procedure SetMinMax(y : sw_integer);
+    begin
+      if MinY=-1 then
+        MinY:=Y;
+      if Y<MinY then
+        MinY:=Y;
+      if MaxY=-1 then
+        MaxY:=Y;
+      if Y>MaxY then
+        MaxY:=Y;
+    end;
 begin
   Core^.SetStoreUndo(False);
   Lock;
+  MinY:=-1;
+  MaxY:=-1;
   if Core^.RedoList^.count <> 0 then
    begin
     Last:=Core^.RedoList^.count-1;
@@ -1451,42 +1471,49 @@ begin
           begin
             SetCurPtr(startpos.x,startpos.y);
             InsertText(GetStr(Text));
+            SetMinMax(StartPos.Y);
           end;
         eaDeleteText :
           begin
             SetCurPtr(EndPos.X,EndPos.Y);
             for Temp := 1 to length(GetStr(Text)) do
               DelChar;
+            SetMinMax(EndPos.Y);
           end;
-            eaOverwriteText :
-              begin
-                SetCurPtr(StartPos.X,StartPos.Y);
-                Line:=GetDisplayText(StartPos.Y);
-                WasInserting:=GetInsertMode;
-                SetInsertMode(false);
-                if assigned(text) then
-                  for Temp := 1 to length(Text^) do
-                    begin
-                      AddChar(Text^[Temp]);
-                      if StartPos.X+Temp>Length(Line) then
-                        Text^[Temp]:=' '
-                      else
-                        Text^[Temp]:=Line[StartPos.X+Temp];
-                    end;
-                SetInsertMode(WasInserting);
-                SetCurPtr(EndPos.X,EndPos.Y);
-              end;
+        eaOverwriteText :
+          begin
+            SetCurPtr(StartPos.X,StartPos.Y);
+            Line:=GetDisplayText(StartPos.Y);
+            WasInserting:=GetInsertMode;
+            SetInsertMode(false);
+            if assigned(text) then
+              for Temp := 1 to length(Text^) do
+                begin
+                  AddChar(Text^[Temp]);
+                  if StartPos.X+Temp>Length(Line) then
+                    Text^[Temp]:=' '
+                  else
+                    Text^[Temp]:=Line[StartPos.X+Temp];
+                end;
+            SetInsertMode(WasInserting);
+            SetCurPtr(EndPos.X,EndPos.Y);
+            SetMinMax(StartPos.Y);
+          end;
         eaInsertLine :
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
             Had_efNoIndent:=(GetFlags and efNoIndent)<>0;
             SetFlags(GetFlags or efNoIndent);
+            WasInserting:=GetInsertMode;
+            SetInsertMode(false);
             InsertNewLine;
+            SetInsertMode(WasInserting);
             SetCurPtr(StartPos.X,StartPos.Y);
             InsertText(GetStr(Text));
             if not Had_efNoIndent then
               SetFlags(GetFlags and not efNoIndent);
             SetCurPtr(EndPos.X,EndPos.Y);
+            SetMinMax(StartPos.Y);
           end;
         eaDeleteLine :
           begin
@@ -1498,6 +1525,8 @@ begin
               copy(GetDisplayText(EndPos.Y),1,EndPos.X),EndPos.X)
               +GetStr(Text));
             SetCurPtr(EndPos.X,EndPos.Y);
+            SetMinMax(StartPos.Y);
+            SetMinMax(EndPos.Y);
           end;
         eaSelectionChanged :
           begin
@@ -1530,8 +1559,10 @@ begin
       if Core^.RedoList^.count=0 then
         SetCmdState(RedoCmd,false);
       SetCmdState(UndoCmd,true);
-      DrawView;
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
+      if MinY<>-1 then
+        UpdateAttrsRange(MinY,MaxY,attrAll);
+      DrawView;
     end;
   Core^.SetStoreUndo(True);
   Unlock;
@@ -2006,7 +2037,10 @@ end;
 END.
 {
  $Log$
- Revision 1.6  2001-10-10 23:34:54  pierre
+ Revision 1.7  2002-01-25 14:15:35  pierre
+  * fix bug 1774
+
+ Revision 1.6  2001/10/10 23:34:54  pierre
   * fix bug 1632
 
  Revision 1.5  2001/09/27 22:32:24  pierre
