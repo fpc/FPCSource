@@ -14,10 +14,9 @@ Description: Free Pascal Compiler
  The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
  Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
  Some extensions are added to the language, like function overloading. Shared
- libraries can be linked and created. Basic Delphi support is already
- implemented (classes,exceptions,ansistrings). This package contains
- the commandline compiler. You need at least the RTL package before you
- can start compiling anything.
+ libraries can be linked. Basic Delphi support is already implemented (classes,
+ exceptions,ansistrings,RTTI). This package contains the commandline compiler.
+ You need at least the RTL package before you can start compiling anything.
 
 Package: fp-utils
 Architecture: i386

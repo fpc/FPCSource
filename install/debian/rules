@@ -75,10 +75,10 @@ build-arch-stamp: debian-files-stamp
 
 # First make a new Compiler and RTL using a make cycle
 	$(MAKE) compiler_cycle
-	$(MAKE) rtl_clean rtl_smart rtl_shared $(BUILDOPTS)
-	$(MAKE) fcl_smart fcl_shared $(BUILDOPTS)
-	$(MAKE) api_smart api_shared $(BUILDOPTS)
-	$(MAKE) packages_smart packages_shared $(BUILDOPTS)
+	$(MAKE) rtl_clean rtl_smart $(BUILDOPTS)
+	$(MAKE) fcl_smart $(BUILDOPTS)
+	$(MAKE) api_smart $(BUILDOPTS)
+	$(MAKE) packages_smart $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
 
 	touch build-arch-stamp

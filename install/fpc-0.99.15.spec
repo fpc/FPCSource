@@ -17,11 +17,10 @@ URL: http://www.freepascal.org/
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
 Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
 Some extensions are added to the language, like function overloading. Shared
-libraries can be linked and created. Basic Delphi support is already
-implemented (classes,exceptions,ansistrings).
-This package contains commandline compiler and utils. Provided units are
-the runtime library (RTL), free component library (FCL), gtk,ncurses,zlib,
-mysql,postgres,ibase bindings.
+libraries can be linked. Basic Delphi support is already implemented (classes,
+exceptions,ansistrings,RTTI). This package contains commandline compiler and
+utils. Provided units are the runtime library (RTL), free component library
+(FCL), gtk,ncurses,zlib, mysql,postgres,ibase bindings.
 
 %prep
 %setup -c
@@ -29,10 +28,10 @@ mysql,postgres,ibase bindings.
 %build
 NEWPP=`pwd`/compiler/ppc386
 	make compiler_cycle
-	make rtl_clean rtl_smart rtl_shared PP=${NEWPP}
-	make fcl_smart fcl_shared PP=${NEWPP}
-	make api_smart api_shared PP=${NEWPP}
-	make packages_smart packages_shared PP=${NEWPP}
+	make rtl_clean rtl_smart PP=${NEWPP}
+	make fcl_smart PP=${NEWPP}
+	make api_smart PP=${NEWPP}
+	make packages_smart PP=${NEWPP}
 	make utils_all PP=${NEWPP}
 
 %install
