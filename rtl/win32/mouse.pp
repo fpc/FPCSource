@@ -84,6 +84,7 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
                // this should be done in PutMouseEvent, now it is PM
                // inc(PendingMouseEvents);
             end;
+          LastMouseEvent:=e;
           LeaveCriticalSection(ChangeMouseEvents);
   end;
 
@@ -242,7 +243,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:32  peter
+  Revision 1.11  2005-03-31 14:43:03  marco
+   * fix to lastmouseevent update
+
+  Revision 1.10  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.9  2005/01/12 10:25:48  armin
