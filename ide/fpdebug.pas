@@ -3411,7 +3411,7 @@ begin
 {$endif}
 
   NeedRecompileExe:=false;
-  if TargetSwitches^.GetCurrSelParam<>GetGDBTargetShortName then
+  if UpCaseStr(TargetSwitches^.GetCurrSelParam)<>UpCaseStr(GetGDBTargetShortName) then
     begin
      ClearFormatParams;
      AddFormatParamStr(TargetSwitches^.GetCurrSelParam);
@@ -3596,7 +3596,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2003-01-14 16:25:23  pierre
+  Revision 1.45  2003-03-27 14:10:55  pierre
+   * fix problem with mixed case target names as suggested by Armin Diehl
+
+  Revision 1.44  2003/01/14 16:25:23  pierre
    + small palmos specific additions
 
   Revision 1.43  2002/12/18 01:20:12  pierre
