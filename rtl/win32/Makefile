@@ -136,9 +136,7 @@ vpath %$(PASEXT) $(INC) $(PROCINC)
 # Loaders
 #
 
-ifneq ($(OS_SOURCE),win32)
 override AS=asw
-endif
 
 wprt0$(OEXT) : wprt0.as
 	$(AS) -o wprt0$(OEXT) wprt0.as
@@ -330,7 +328,10 @@ endif
 
 #
 # $Log$
-# Revision 1.20  1999-03-09 01:35:56  peter
+# Revision 1.21  1999-03-10 23:45:21  peter
+#   * AS is now always asw
+#
+# Revision 1.20  1999/03/09 01:35:56  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #
