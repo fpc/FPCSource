@@ -659,48 +659,15 @@ begin
 end;
 
 
-Function ReadSign(var f:TextRec;var s:string):Boolean;
-{
-  Read + and - sign, return true if buffer is empty
-}
-begin
-  ReadSign:=(not (f.Bufptr^[f.BufPos] in ['-','+'])) or NextChar(f,s);
-end;
-
-
-Function ReadBase(var f:TextRec;var s:string;var Base:longint):boolean;
-{
-  Read the base $ For 16 and % For 2, if buffer is empty return true
-}
-begin
-  case f.BufPtr^[f.BufPos] of
-   '$' : Base:=16;
-   '%' : Base:=2;
-  else
-   Base:=10;
-  end;
-  ReadBase:=(Base=10) or NextChar(f,s);
-end;
-
-
-Function ReadNumeric(var f:TextRec;var s:string;base:longint):Boolean;
+procedure ReadNumeric(var f:TextRec;var s:string);
 {
   Read numeric input, if buffer is empty then return True
 }
-var
-  c : char;
 begin
-  ReadNumeric:=false;
-  c:=f.BufPtr^[f.BufPos];
-  while ((base>=10) and (c in ['0'..'9'])) or
-        ((base=16) and (c in ['A'..'F','a'..'f'])) or
-        ((base=2) and (c in ['0'..'1'])) do
-   begin
-     if not NextChar(f,s) then
+  repeat
+    if not NextChar(f,s) then
       exit;
-     c:=f.BufPtr^[f.BufPos];
-   end;
-  ReadNumeric:=true;
+  until f.BufPtr^[f.BufPos] in [#9,#10,#13,' '];
 end;
 
 
@@ -879,7 +846,6 @@ Function Read_SInt(var f : TextRec):ValSInt;[Public,Alias:'FPC_READ_TEXT_SINT'];
 var
   hs   : String;
   code : Longint;
-  base : longint;
 Begin
   Read_SInt:=0;
 { Leave if error or not open file, else check for empty buf }
@@ -896,8 +862,8 @@ Begin
   If f.BufPos>=f.BufEnd Then
    FileFunc(f.InOutFunc)(f);
   hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
-   ReadNumeric(f,hs,Base);
+  if IgnoreSpaces(f) then
+   ReadNumeric(f,hs);
   Val(hs,Read_SInt,code);
   If code<>0 Then
    InOutRes:=106;
@@ -908,7 +874,6 @@ Function Read_UInt(var f : TextRec):ValUInt;[Public,Alias:'FPC_READ_TEXT_UINT'];
 var
   hs   : String;
   code : longint;
-  base : longint;
 Begin
   Read_UInt:=0;
 { Leave if error or not open file, else check for empty buf }
@@ -925,8 +890,8 @@ Begin
   If f.BufPos>=f.BufEnd Then
    FileFunc(f.InOutFunc)(f);
   hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
-   ReadNumeric(f,hs,Base);
+  if IgnoreSpaces(f) then
+   ReadNumeric(f,hs);
   val(hs,Read_UInt,code);
   If code<>0 Then
    InOutRes:=106;
@@ -953,28 +918,8 @@ begin
   If f.BufPos>=f.BufEnd Then
    FileFunc(f.InOutFunc)(f);
   hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
-   begin
-   { First check for a . }
-     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'.';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        ReadNumeric(f,hs,10);
-      end;
-   { Also when a point is found check for a E }
-     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'E';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        if ReadSign(f,hs) then
-         ReadNumeric(f,hs,10);
-      end;
-   end;
+  if IgnoreSpaces(f) then
+    ReadNumeric(f,hs);
   val(hs,Read_Float,code);
   If code<>0 Then
    InOutRes:=106;
@@ -986,7 +931,6 @@ function Read_QWord(var f : textrec) : qword;[public,alias:'FPC_READ_TEXT_QWORD'
 var
   hs   : String;
   code : longint;
-  base : longint;
 Begin
   Read_QWord:=0;
   { Leave if error or not open file, else check for empty buf }
@@ -1003,8 +947,8 @@ Begin
   If f.BufPos>=f.BufEnd Then
    FileFunc(f.InOutFunc)(f);
   hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
-   ReadNumeric(f,hs,Base);
+  if IgnoreSpaces(f) then
+   ReadNumeric(f,hs);
   val(hs,Read_QWord,code);
   If code<>0 Then
    InOutRes:=106;
@@ -1014,7 +958,6 @@ function Read_Int64(var f : textrec) : int64;[public,alias:'FPC_READ_TEXT_INT64'
 var
   hs   : String;
   code : Longint;
-  base : longint;
 Begin
   Read_Int64:=0;
 { Leave if error or not open file, else check for empty buf }
@@ -1031,8 +974,8 @@ Begin
   If f.BufPos>=f.BufEnd Then
    FileFunc(f.InOutFunc)(f);
   hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
-   ReadNumeric(f,hs,Base);
+  if IgnoreSpaces(f) then
+   ReadNumeric(f,hs);
   Val(hs,Read_Int64,code);
   If code<>0 Then
    InOutRes:=106;
@@ -1066,7 +1009,14 @@ end;
 
 {
   $Log$
-  Revision 1.69  2000-02-09 16:59:31  peter
+  Revision 1.70  2000-03-17 21:27:56  jonas
+    * fixed declaration of val_int64 (removed destsize parameter)
+    * fixed val_int64 and val_qword so they reject invalid input
+      (u >= base)
+    * when reading a number, invalid input is removed from the input
+      buffer (+ it should be faster as well)
+
+  Revision 1.69  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.68  2000/01/31 12:11:53  jonas

@@ -159,7 +159,7 @@
          signed : boolean;
          r,nq,zq : qword;
 
-      begin    
+      begin
          if n=0 then
            HandleErrorFrame(200,get_frame);
          if n<0 then
@@ -373,7 +373,7 @@
        s:=ss;
     end;
 
-  Function ValInt64(DestSize: longint; Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR'];
+  Function ValInt64(Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR'];
 
     var
        u, temp, prev : Int64;
@@ -404,7 +404,7 @@
        end;
        Prev:=Temp;
        Temp:=Temp*Int64(base);
-       if (Temp<prev) Then
+       if (Temp<prev) or (u >= base) Then
          Begin
            ValInt64:=0;
            Exit
@@ -446,7 +446,7 @@
        end;
        prev := ValQWord;
        ValQWord:=ValQWord*QWord(base);
-       If (prev>ValQWord) or (u>base) Then
+       If (prev>ValQWord) or (u>=base) Then
          Begin
            ValQWord := 0;
            Exit
@@ -466,7 +466,14 @@
 
 {
   $Log$
-  Revision 1.19  2000-02-09 22:19:24  florian
+  Revision 1.20  2000-03-17 21:27:56  jonas
+    * fixed declaration of val_int64 (removed destsize parameter)
+    * fixed val_int64 and val_qword so they reject invalid input
+      (u >= base)
+    * when reading a number, invalid input is removed from the input
+      buffer (+ it should be faster as well)
+
+  Revision 1.19  2000/02/09 22:19:24  florian
     + helper routine for <int64> mod <in64> added
 
   Revision 1.18  2000/02/09 16:59:30  peter
