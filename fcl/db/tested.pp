@@ -155,13 +155,51 @@ begin
     Prior;
     For I:=0 to FieldCount-1 do
       DumpFieldData(Fields[i]);
+    Writeln ('Doing Insert at position 5');
+    writeln ('--------------------------');
+    first;
+    for I:=1 to 4 do 
+      Next;
+    Insert;
+    FieldByName('Name').AsString:='Insertname';
+    FieldByName('Height').AsFloat:=8.99E8;
+    FieldByName('LongField').AsLongInt:=888;
+    FieldByName('ShoeSize').AsLongInt:=888;
+    FieldByName('WordField').AsLongInt:=888;
+    FieldByName('BooleanField').AsBoolean:=True;
+    FieldByName('DateTimeField').AsDateTime:=Now;
+    FieldByName('DateField').AsDateTime:=Date;
+    FieldByName('TimeField').AsDateTime:=Time;
+    Post;
+    Writeln ('Doing field dump');
+    writeln ('----------------');
+    For I:=0 to FieldCount-1 do
+      DumpFieldData(Fields[i]);
+    Writeln ('Doing Prior');
+    Writeln ('-----------');
+    Prior;
+    For I:=0 to FieldCount-1 do
+      DumpFieldData(Fields[i]);
+    Writeln ('Doing Next');
+    Writeln ('----------');
+    Next;
+    For I:=0 to FieldCount-1 do
+      DumpFieldData(Fields[i]);
+    Writeln ('Doing Next');
+    Writeln ('----------');
+    Next;
+    For I:=0 to FieldCount-1 do
+      DumpFieldData(Fields[i]);
     Writeln ('Closing.');   
     Close;
     end;
 end.
 {
   $Log$
-  Revision 1.1  1999-11-14 19:26:17  michael
+  Revision 1.2  1999-12-01 10:11:58  michael
+  + test of insert works now
+
+  Revision 1.1  1999/11/14 19:26:17  michael
   + Initial implementation
 
   Revision 1.3  1999/11/11 17:31:09  michael
