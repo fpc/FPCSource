@@ -1,4 +1,4 @@
- {
+{
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
@@ -114,6 +114,12 @@ unit cgcpu;
                         c: tasmcondflag; crval: longint; l: tasmlabel);
 
      end;
+
+     tcg64fppc = class(tcg64f32)
+       procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
+       procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
+     end;
+
 
 const
 {
@@ -248,16 +254,18 @@ const
      procedure tcgppc.a_load_const_reg(list : taasmoutput; size: TCGSize; a : aword; reg : TRegister);
 
        begin
-          if (a and $ffff) <> 0 Then
+          if (longint(a) >= low(smallint)) and
+             (longint(a) <= high(smallint)) then
+            list.concat(taicpu.op_reg_const(A_LI,reg,longint(a)))
+          else if ((a and $ffff) <> 0) then
             begin
-              list.concat(taicpu.op_reg_const(A_LI,reg,a and $ffff));
-              if (longint(a) < low(smallint)) or
-                 (longint(a) > high(smallint))  then
+              list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a and $ffff)));
+              if ((a shr 16) <> 0) then
                 list.concat(taicpu.op_reg_const(A_ADDIS,reg,
                   (a shr 16)+ord(smallint(a and $ffff) < 0)))
             end
           else
-            list.concat(taicpu.op_reg_const(A_LIS,reg,a shr 16));
+            list.concat(taicpu.op_reg_const(A_LIS,reg,smallint(a shr 16)));
        end;
 
 
@@ -427,7 +435,20 @@ const
         { high(smallint), it's easy                                       }
         if (op in [OP_ADD,OP_SUB,OP_AND,OP_OR,OP_XOR]) then
           begin
-            if (longint(a) >= low(smallint)) and
+            if (a = 0) then
+              begin
+                if op = OP_AND then
+                  list.concat(taicpu.op_reg_const(A_LI,dst,0));
+                exit;
+              end
+            else if (a = high(aword)) and
+                    (op in [OP_AND,OP_OR]) then
+              begin
+                if op = OP_OR then
+                  list.concat(taicpu.op_reg_const(A_LI,dst,-1));
+                exit;
+              end
+            else if (longint(a) >= low(smallint)) and
                (longint(a) <= high(smallint)) then
               begin
                 list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
@@ -534,24 +555,29 @@ const
 
         begin
           signed := cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE];
+          { in the following case, we generate more efficient code when }
+          { signed is true                                              }
+          if (cmp_op in [OC_EQ,OC_NE]) and
+             (a > $ffff) then
+            signed := true;
           if signed then
             if (longint(a) >= low(smallint)) and (longint(a) <= high(smallint)) Then
-              list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,reg,a))
+              list.concat(taicpu.op_reg_reg_const(A_CMPWI,R_CR0,reg,longint(a)))
             else
               begin
                 scratch_register := get_scratch_reg_int(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
-                list.concat(taicpu.op_reg_reg_reg(A_CMP,R_CR0,reg,scratch_register));
+                list.concat(taicpu.op_reg_reg_reg(A_CMPW,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
               end
           else
             if (a <= $ffff) then
-              list.concat(taicpu.op_reg_reg_const(A_CMPLI,R_CR0,reg,a))
+              list.concat(taicpu.op_reg_reg_const(A_CMPLWI,R_CR0,reg,a))
             else
               begin
                 scratch_register := get_scratch_reg_int(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
-                list.concat(taicpu.op_reg_reg_reg(A_CMPL,R_CR0,reg,scratch_register));
+                list.concat(taicpu.op_reg_reg_reg(A_CMPLW,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
               end;
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
@@ -567,8 +593,8 @@ const
 
         begin
           if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE] then
-            op := A_CMP
-          else op := A_CMPL;
+            op := A_CMPW
+          else op := A_CMPLW;
           list.concat(taicpu.op_reg_reg_reg(op,R_CR0,reg1,reg2));
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
@@ -945,7 +971,7 @@ const
             getlabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_ref(A_LWZU,tempreg,src));
-            list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,countreg,0));
+            list.concat(taicpu.op_reg_reg_const(A_CMPWI,R_CR0,countreg,0));
             list.concat(taicpu.op_reg_ref(A_STWU,tempreg,dst));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
             a_jmp(list,A_BC,C_NE,0,lab);
@@ -1196,12 +1222,98 @@ const
         list.concat(p)
       end;
 
+
+    procedure tcg64fppc.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+
+      begin
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,op,OS_32,regsrc.reghi,regdst.reghi);
+            end;
+          OP_ADD:
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_ADDC,regdst.reglo,regsrc.reglo,regdst.reglo));
+              list.concat(taicpu.op_reg_reg_reg(A_ADDE,regdst.reghi,regsrc.reghi,regdst.reghi));
+            end;
+          OP_SUB:
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_SUBC,regdst.reglo,regdst.reglo,regsrc.reglo));
+              list.concat(taicpu.op_reg_reg_reg(A_SUBFE,regdst.reghi,regsrc.reghi,regdst.reghi));
+            end;
+        end;
+      end;
+
+    procedure tcg64fppc.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+
+      const
+        ops: array[boolean,1..3] of tasmop = ((A_ADDIC,A_ADDC,A_ADDZE),
+                                              (A_SUBIC,A_SUBC,A_ADDME));
+
+      var
+        tmpreg: tregister;
+        tmpreg64: tregister64;
+        isadd: boolean;
+      begin
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_const_reg(list,op,cardinal(value),reg.reglo);
+              cg.a_op_const_reg(list,op,value shr 32,reg.reghi);
+            end;
+          OP_ADD, OP_SUB:
+            begin
+              if (longint(value) <> 0) then
+                begin
+                  isadd := op = OP_ADD;
+                  if (longint(value) >= -32768) and
+                     (longint(value) <= 32767) then
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(ops[isadd,1],
+                        reg.reglo,reg.reglo,aword(value)));
+                    end
+                  else if ((value shr 32) = 0) then
+                    begin
+                      tmpreg := cg.get_scratch_reg_int(list);
+                      cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
+                      list.concat(taicpu.op_reg_reg_reg(ops[isadd,2],
+                        reg.reglo,reg.reglo,tmpreg));
+                      list.concat(taicpu.op_reg_reg(ops[isadd,3],
+                        reg.reghi,reg.reghi));
+                      cg.free_scratch_reg(list,tmpreg);
+                    end
+                  else
+                    begin
+                      tmpreg64.reglo := cg.get_scratch_reg_int(list);
+                      tmpreg64.reghi := cg.get_scratch_reg_int(list);
+                      a_load64_const_reg(list,value,tmpreg64);
+                      a_op64_reg_reg(list,op,tmpreg64,reg);
+                      cg.free_scratch_reg(list,tmpreg64.reghi);
+                      cg.free_scratch_reg(list,tmpreg64.reglo);
+                    end
+                end
+              else
+                cg.a_op_const_reg(list,op,value shr 32,reg.reghi);
+            end;
+        end;
+      end;
+
+
 begin
   cg := tcgppc.create;
+  cg64 :=tcg64fppc.create;
 end.
 {
   $Log$
-  Revision 1.21  2002-07-09 19:45:01  jonas
+  Revision 1.22  2002-07-11 07:38:28  jonas
+    + tcg64fpc implementation (only a_op64_reg_reg and a_op64_const_reg for
+      now)
+    * fixed and improved tcgppc.a_load_const_reg
+    * improved tcgppc.a_op_const_reg, tcgppc.a_cmp_const_reg_label
+    * A_CMP* -> A_CMPW* (this means that 32bit compares should be done)
+
+  Revision 1.21  2002/07/09 19:45:01  jonas
     * unarynminus and shlshr node fixed for 32bit and smaller ordinals
     * small fixes in the assembler writer
     * changed scratch registers, because they were used by the linker (r11
