@@ -2,13 +2,13 @@ Program Example49;
 
 { Program to demonstrate the Glob and GlobFree functions. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 Var G1,G2 : PGlob;
 
 begin
   G1:=Glob ('*');
-  if LinuxError=0 then
+  if fpgeterrno=0 then
     begin
     G2:=G1;
     Writeln ('Files in this directory : ');

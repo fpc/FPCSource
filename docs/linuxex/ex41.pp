@@ -2,8 +2,8 @@ Program Example41;
 
 { Program to demonstrate the GetEnv function. }
 
-Uses linux;
+Uses BaseUnix;
 
 begin
-  Writeln ('Path is : ',Getenv('PATH'));
+  Writeln ('Path is : ',fpGetenv('PATH'));
 end.

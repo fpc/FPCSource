@@ -2,8 +2,8 @@ Program Example46;
 
 { Program to demonstrate the FSearch function. }
 
-Uses linux,strings;
+Uses BaseUnix, Unix, Strings;
 
 begin
-  Writeln ('ls is in : ',FSearch ('ls',strpas(Getenv('PATH'))));
+  Writeln ('ls is in : ',FSearch ('ls',strpas(fpGetenv('PATH'))));
 end.
