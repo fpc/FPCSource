@@ -2266,7 +2266,7 @@
 
     procedure trecorddef.write_init_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(14)));
+         rttilist^.concat(new(pai_const,init_8bit(tkrecord)));
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
@@ -3943,7 +3943,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.197  2000-03-01 12:35:45  pierre
+  Revision 1.198  2000-04-01 11:44:56  peter
+    * fixed rtti info for record
+
+  Revision 1.197  2000/03/01 12:35:45  pierre
    * fix for bug 855
 
   Revision 1.196  2000/02/14 20:58:43  marco
