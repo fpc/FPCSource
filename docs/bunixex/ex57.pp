@@ -22,7 +22,7 @@ end;
 begin
    new(na);
    new(oa);
-   na^.sa_Handler:=TSigaction(@DoSig);
+   na^.sa_Handler:=SigActionHandler(@DoSig);
    fillchar(na^.Sa_Mask,sizeof(na^.sa_mask),#0);
    na^.Sa_Flags:=0;
    {$ifdef Linux}               // Linux specific
