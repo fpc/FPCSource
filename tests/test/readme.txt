@@ -17,3 +17,5 @@ via out ............... testout.pp
 
 str/write(real_type) .. strreal.pp     test correct rounding
                         strreal2.pp    test correct writing of 10 till 1e-24
+input/output .......... inoutres.pp    tests inoutres values of invalid
+                                       operations
