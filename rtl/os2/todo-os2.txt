@@ -1,0 +1,39 @@
+Please indent tasks which are done with 8 spaces.
+
+Item                                          Priority        Implemented by
+-----------------------------------------------------------------------------
+Free Vision                                   high
+  - FPC API
+    - FileCtrl
+    - Keyboard
+    - Video
+            - Mouse.................................................TH
+
+finish PM support                             high
+          - PMWin...................................................RB
+          - PMGPI...................................................RB
+          - PMBitmap................................................RB
+    - PMStdDlg
+
+? enhance ld linker                           high
+
+libgdb                                        medium
+
+OS/2 only rtl                                 medium
+  - SysOS2
+  - DOS
+  - ObjInc.INC
+  - autothunking for 16-bit calls
+  - ? linker (ALINK)
+
+other OS/2 APIs                               low
+  - TCP/IP
+    - Sockets
+    - FTP API
+  - NetAPI (NetBIOS)
+  - DIVE
+  - DART
+  - Unicode
+  - OpenGL
+  - MMOS2
+  - SOM
