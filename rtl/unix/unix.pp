@@ -160,7 +160,7 @@ Type
 
 {$ifdef bsd}
 function Do_SysCall(sysnr:longint):longint;
-function Do_Syscall(sysnr,param1:integer):longint;
+//function Do_Syscall(sysnr,param1:integer):longint;
 function Do_SysCall(sysnr,param1:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
@@ -3059,7 +3059,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  2003-05-24 20:39:54  jonas
+  Revision 1.28  2003-05-29 19:16:16  marco
+   * fixed a small *BSD gotcha
+
+  Revision 1.27  2003/05/24 20:39:54  jonas
     * fixed ExitCode translation in WaitProcess for Linux and Darwin (and
       probably other BSD's as well)
 
