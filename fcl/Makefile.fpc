@@ -9,6 +9,7 @@ version=1.0.5
 [require]
 packages=paszlib
 packages_linux=inet
+packages_freebsd=inet
 
 [target]
 dirs=xml db shedit
