@@ -788,6 +788,7 @@ implementation
            internalerror(10060);
          end;
          case porddef(p^.resulttype)^.typ of
+         bool8bit,
             u8bit,
             s8bit : p^.location.register:=hregister;
            s16bit : begin
@@ -896,7 +897,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-06-01 16:50:18  peter
+  Revision 1.2  1998-06-02 10:52:10  peter
+    * fixed second_bool_to_int with bool8bit return
+
+  Revision 1.1  1998/06/01 16:50:18  peter
     + boolean -> ord conversion
     * fixed ord -> boolean conversion
 
