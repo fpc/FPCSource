@@ -665,7 +665,7 @@ var
   c : char;
   function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
   begin
-    CheckItem:=(P^.Typ=ot_string) and (P^.Param='u');
+    CheckItem:=(P^.Typ=ot_string) and (P^.Param=c);
   end;
 begin
   GetSourceDirectories:='';
@@ -905,7 +905,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-01-10 15:52:53  pierre
+  Revision 1.16  2000-02-04 00:05:20  pierre
+   * -Fi must also be used for GetSourceDirectories
+
+  Revision 1.15  2000/01/10 15:52:53  pierre
     * use default command line switches only if fp.cfg not found
 
   Revision 1.14  1999/10/14 14:22:23  florian
