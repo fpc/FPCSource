@@ -1,6 +1,37 @@
 
                             Free Pascal Compiler
 
+                        Version 1.9.8 aka 2.0.0-Rc2
+
+******************************************************************************
+                      Whats New in 1.9.8 aka 2.0.0-Rc2
+******************************************************************************
+
+
+Compiler:
+  + SysV style syscalls added for MorphOS
+  + Exportable macros for mode MacPas
+  + Support procvar declaration in parameters for mode MacPas
+  + Give warning if code is never executed in while/if statements
+  + Directive {$COPERATORS ON} added, synomym for -Sc
+  + Check for uninitialzed from and to values in for-loop statement
+  + -Fa<unit> option added to load units in a program before the uses statement
+    is parsed
+  + -vz for output to stderr
+  * Better support for unique types
+  * AfterConstruction/BeforeDestruction behaviour is now compatible with Delphi
+  * Better support for Widestring
+  * Removed {$THREADING ON} directive, threading support is always available
+  * Lot of small bugs and compatibility fixes
+
+RTL
+
+FCL
+
+
+Packages:
+
+
                         Version 1.9.6 aka 2.0.0-Rc1
 
 ******************************************************************************
