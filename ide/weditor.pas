@@ -2152,13 +2152,21 @@ var
   end;
 
   function IsAsmPrefix(const WordS: string): boolean;
+  var
+    StoredMatchedSymbol : boolean;
   begin
+    StoredMatchedSymbol:=MatchedSymbol;
     IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,pmNone,true);
+    MatchedSymbol:=StoredMatchedSymbol;
   end;
 
   function IsAsmSuffix(const WordS: string): boolean;
+  var
+    StoredMatchedSymbol : boolean;
   begin
+    StoredMatchedSymbol:=MatchedSymbol;
     IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,pmNone,true);
+    MatchedSymbol:=StoredMatchedSymbol;
   end;
 
   function GetCharClass(C: char): TCharClass;
@@ -2296,6 +2304,9 @@ var
                   InSingleLineComment:=IsSingleLineCommentPrefix;
                   {InString:=false; }
                   Dec(ClassStart,length(MatchingSymbol)-1);
+                  { Remove (* from SymbolConcat to avoid problem with (*) PM }
+                  { fixes part of bug 1617 }
+                  Delete(SymbolConcat,1,length(MatchingSymbol));
                 end
               else
              if IsCommentSuffix and (InComment) then
@@ -7068,7 +7079,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2001-09-17 22:54:09  pierre
+  Revision 1.10  2001-09-25 11:59:20  pierre
+   * fix comment highlight bugs from bug 1617
+
+  Revision 1.9  2001/09/17 22:54:09  pierre
    + Line completion for Find/Replace dialogs
 
   Revision 1.8  2001/09/17 21:30:26  pierre
