@@ -203,13 +203,13 @@ unit agppcgas;
                        s:=s+'0';
                   end;
                 if base.enum=R_INTREGISTER then
-                  s:=s+'(reg'+gas_regname(base.number)+')'
+                  s:=s+'('+gas_regname(base.number)+')'
                 else
                   s:=s+'('+gas_reg2str[base.enum]+')';
              end
            else if (not i) and (not b) and (offset=0) then
              if base.enum=R_INTREGISTER then
-               s:=s+'r'+gas_regname(base.number)+',r'+gas_regname(index.number)
+               s:=s+gas_regname(base.number)+','+gas_regname(index.number)
              else
                s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
            else if (not i) or (not b) then
@@ -226,8 +226,6 @@ unit agppcgas;
       case o.typ of
         top_reg :
           begin
-            if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
-              internalerror(200303121);
             if o.reg.enum=R_INTREGISTER then
               getopstr_jmp:=gas_regname(o.reg.number)
             else
@@ -261,7 +259,7 @@ unit agppcgas;
         top_reg:
           begin
             if  o.reg.enum=R_INTREGISTER then
-              getopstr:='reg'+tostr(byte(o.reg.number shr 8))
+              getopstr:=gas_regname(o.reg.number)
             else
               getopstr:=gas_reg2str[o.reg.enum];
           end;
@@ -391,7 +389,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-08-19 11:53:03  daniel
+  Revision 1.29  2003-08-20 14:28:52  daniel
+    * Fixed PowerPC compilation
+
+  Revision 1.28  2003/08/19 11:53:03  daniel
     * Fixed PowerPC compilation
 
   Revision 1.27  2003/08/18 11:58:14  daniel
