@@ -588,7 +588,8 @@ begin
             PropInfo:=TempList^[i];
             If PropInfo^.PropType^.Kind in TypeKinds then
               begin
-                InsertProp(PropList,PropInfo,Result);
+                If (PropList<>Nil) then
+                  InsertProp(PropList,PropInfo,Result);
                 Inc(Result);
               end;
           end;
@@ -1436,7 +1437,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2004-06-02 14:33:18  michael
+  Revision 1.27  2004-06-24 23:43:14  michael
+  + Fix GetPropList when Proplist is nil
+
+  Revision 1.26  2004/06/02 14:33:18  michael
   + Patch from matthias gaertner to fix GetMethodProp with procedural spec
 
   Revision 1.25  2004/05/24 21:05:19  florian
