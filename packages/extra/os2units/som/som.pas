@@ -1403,6 +1403,21 @@ Function somResolveTerminal(x : SOMClassPtr; mdata: somMToken): somMethodProcPtr
   external 'som' name 'somResolveTerminal'; {index 133}
 Function somPCallResolve(obj: SOMObjectPtr; callingCls: SOMClassPtr; method: somMToken): somMethodProcPtr; cdecl;
   external 'som' name 'somPCallResolve'; {index 362}
+Function va_SOMObject_somDispatchA(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const): Pointer; cdecl;
+  external 'som' name 'va_SOMObject_somDispatchA'; {index 64}
+Function va_SOMObject_somDispatchL(somSelf: PSOMObject;
+                methodId: somId;
+                descriptor: somId;
+                args: array of const): Longint; cdecl;
+  external 'som' name 'va_SOMObject_somDispatchL'; {index 66}
+Function va_SOMObject_somDispatch(somSelf: PSOMObject;
+                retValue: PsomTokenl
+                methodId: somIdl
+                args: array of const): Boolean; cdecl;
+  external 'som' name 'va_SOMObject_somDispatch'; {index 68}
 
 Implementation
 
@@ -1445,65 +1460,51 @@ end;
 
 End.
 
-(* Don't know how to port ... thing
-
-Function va_SOMObject_somDispatchA(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                ...): Pointer; cdecl;
-³ 00064 ³ va_SOMObject_somDispatchA
+(* Not finished yet
 
 double   va_SOMObject_somDispatchD(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                args: array of const)
 ³ 00065 ³ va_SOMObject_somDispatchD
-long   va_SOMObject_somDispatchL(SOMObject *somSelf,
-                somId methodId,
-                somId descriptor,
-                ...)
-³ 00066 ³ va_SOMObject_somDispatchL
+
+
 void   va_SOMObject_somDispatchV(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                args: array of const)
 ³ 00067 ³ va_SOMObject_somDispatchV
-boolean   va_SOMObject_somDispatch(SOMObject *somSelf,
-                somToken* retValue,
-                somId methodId,
-                ...)
-³ 00068 ³ va_SOMObject_somDispatch
 
 void*  SOMLINK somva_SOMObject_somDispatchA(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                args: array of const)
 ³ 00096 ³ somva_SOMObject_somDispatchA
 double  SOMLINK somva_SOMObject_somDispatchD(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                args: array of const)
 ³ 00097 ³ somva_SOMObject_somDispatchD
 long  SOMLINK somva_SOMObject_somDispatchL(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                args: array of const)
 ³ 00098 ³ somva_SOMObject_somDispatchL
 void  SOMLINK somva_SOMObject_somDispatchV(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                args: array of const)
 ³ 00099 ³ somva_SOMObject_somDispatchV
 boolean  SOMLINK somva_SOMObject_somDispatch(SOMObject *somSelf,
                 somToken* retValue,
                 somId methodId,
-                ...)
+                args: array of const)
 ³ 00100 ³ somva_SOMObject_somDispatch
 boolean  SOMLINK somva_SOMObject_somClassDispatch(SOMObject *somSelf,
                 SOMClass* clsObj,
                 somToken* retValue,
                 somId methodId,
-                ...)
+                args: array of const)
 ³ 00101 ³ somva_SOMObject_somClassDispatch
 
 *)
@@ -1525,7 +1526,10 @@ boolean  SOMLINK somva_SOMObject_somClassDispatch(SOMObject *somSelf,
 
 {
 $Log$
-Revision 1.2  2003-11-30 08:13:14  yuri
+Revision 1.3  2004-05-26 16:38:58  yuri
+* Some functions updated.
+
+Revision 1.2  2003/11/30 08:13:14  yuri
 * more ported functions
 
 Revision 1.1  2003/09/22 13:52:59  yuri
