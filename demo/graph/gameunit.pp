@@ -35,6 +35,7 @@ INTERFACE
 {$endif}
 {$ifdef win32}
   {$define MouseAPI}
+  {$define UseGraphics} {Mandatory}
 {$endif}
 {$IFDEF Ver70}
   {$define MouseAPI}
@@ -298,7 +299,10 @@ BEGIN
    FOR I:=0 TO 9 DO
     BEGIN
      HighScore[I].Name:=InitNames[I];
-     HighScore[I].Score:=(I+1)*750;
+     If Negative Then
+      HighScore[I].Score:=-100*(10-I)
+     Else
+      HighScore[I].Score:=(I+1)*750;
     END;
    ScorePath:=FileName;
   END
@@ -336,6 +340,7 @@ BEGIN
   INC(I);
  IF I<>0 THEN
   BEGIN
+
    IF I>1 THEN
     FOR J:=0 TO I-2 DO
      HighScore[J]:=HighScore[J+1];
@@ -359,7 +364,7 @@ BEGIN
   BEGIN
    OutTextXY(HighX,HighY+(9-I)*LineDistY,HighScore[I].Name);
    IF Negative THEN
-    Str(-HighScore[I].Score:5,S)
+    Str((-HighScore[I].Score):5,S)
    ELSE
     Str(HighScore[I].Score:5,S);
    OutTextXY(HighX+150,HighY+(9-I)*LineDistY,S);
@@ -910,7 +915,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2002-02-22 21:40:09  carl
+  Revision 1.5  2002-02-25 12:23:05  marco
+   * Fixes for Quad Win32 GUI mode
+
+  Revision 1.4  2002/02/22 21:40:09  carl
   * fix compilation problem
 
   Revision 1.3  2001/12/11 11:10:27  marco
@@ -924,5 +932,5 @@ END.
 
   Revision 1.2  2000/07/13 11:33:08  michael
   + removed logs
- 
+
 }

@@ -22,8 +22,25 @@ Inspired by: Jos Dickman''s triple memory!
 Old version requires egavga.bgi. FPC doesn't require BGI's (VGA and VESA
 support are built in the Graph, others are ignored).}
 
-Uses Crt,Dos,Graph,
-      GameUnit;         {Supplied with FPC demoes package. Wrapper for
+{$ifdef Linux}
+ {$define Unix}
+{$endif}
+{$Define UseGraphics}
+
+{$ifdef UseGraphics}
+ {$ifdef Win32}
+   {$define Win32Graph}         // Needed for GameUnit.
+   {$APPTYPE GUI}
+ {$endif}
+{$endif}
+
+Uses
+ {$ifdef Win32}
+  WinCrt,Windows,
+ {$else}
+  Crt,
+ {$endif}
+  Dos,Graph,GameUnit;         {Supplied with FPC demoes package. Wrapper for
                           mousesupport (via msmouse or api), and contains
                           highscore routines}
 
@@ -34,6 +51,13 @@ Const nox             = 10;
       ComprBufferSize = 20000;  {Buffer for diskread- RLE'ed data}
       PicsFilename    = 'quaddata.dat';  {Name of picturesfile}
       ScoreFileName   = 'quad.scr';
+      {$IFDEF UseGraphics}
+       DisplGrX=110;
+       DisplGrY=90;
+       DisplGrScale=16;
+       HelpY=130;
+      {$ENDIF}
+
 
 Type
     pByte           = ^Byte;                  {BufferTypes}
@@ -79,6 +103,7 @@ Var b           : array[1..nox,1..noy] Of card;
     bgidirec    : string;
     time        : time_record;
 
+
 {
 Procedure fatal(fcall:String);
 Begin
@@ -97,12 +122,37 @@ Procedure ginit640x480x16(direc:String);
 
 Var grd,grmode: integer;
 Begin
+  {$ifdef Win32}
+   {$ifndef Debug}
+     ShowWindow(GetActiveWindow,0);
+   {$endif}
+  grmode:=vgaHI;
+  grd:=vga;
+  Direc:='';
+  {$else}
   closegraph;
   grd := 9;{ detect;}
   grmode := 2;{ m800x600x16;}
+  {$endif}
   initgraph(grd,grmode,direc);
+  {$ifndef Win32}
   setgraphmode(2);
+  {$endif}
 End;
+
+procedure WaitForMouse;
+
+var    ms_mx,ms_my,ms_but : LONGINT;
+
+begin
+  Repeat
+    GetMouseState(ms_mx,ms_my,ms_but);
+   Until ms_but=0;
+  Repeat
+    GetMouseState(ms_mx,ms_my,ms_but);
+   Until ms_but<>0;
+end;
+
 
 Procedure clean_board;
 
@@ -349,7 +399,9 @@ Begin
   Until c>nof;
 
   delay(75);
-  gotoxy(1,1);
+  {$ifndef Win32}
+   gotoxy(1,1);
+  {$endif}
 
   c := 1;
   Repeat
@@ -402,31 +454,59 @@ Begin
   Until keypressed;
 End;
 
+{$ifdef Win32Graph}
+Procedure ClearTextCoord(x1,y1,x2,y2:Longint);
+
+Begin
+ SetFillStyle(SolidFill,0);            {Clear part of playfield}
+ Bar ((x1+1) * DisplGrScale, (Y1+1)*DisplGrScale,(x2+1) * DisplGrScale, (Y2+1)*DisplGrScale);
+End;
+{$endif}
+
 Procedure win;
 
 Var m,s: string;
     I,J   : LONGINT;
 
+Const GameOver='Game Over, turns needed = ';
+
 Begin
   hidemouse;
-  fire_works;
+  // fire_works;
   cleardevice;
+
+  {$ifndef Win32}
   closegraph;
   textmode(co80+font8x8);
   clrscr;
+  {$endif}
   I:=SlipInScore(Turns);
+  {$ifndef Win32}
   GotoXY(1,23);
-  Writeln('Game Over, turns needed = ',Turns);
+  Writeln(GameOver,Turns);
   FOR J:=9 TO 22 DO
    BEGIN
     GotoXY(20,J);
     Write(' ':38);
    END;
+  {$else}
+   SetColor(White);
+   ClearTextCoord(20,9,58,22);
+   Str(Turns,S);
+   S:=GameOver+S;
+   OutTextXY(5,40+9*LineDistY,S);
+   OutTextXY(5,40+23*LineDistY,'Press mouse to continue');
+   WaitForMouse;
+  {$endif}
  IF I<>0 THEN
   BEGIN
    ShowHighScore;
 {$IFDEF USEGRAPHICS}
-   GrInputStr(S,20,21-I,16,12,10,FALSE,AlfaBeta);
+   SetColor(Black);
+   Bar(5,40+23*LineDisty,5+8*26,40+23*LineDisty+8);
+   SetColor(White);
+   OutTextXY(5,40+23*LineDistY,'Please enter your name');
+   GrInputStr(S,300,HelpY+20+(17-I+1)*LineDistY,16,12,10,FALSE,AlfaBeta);
 {$ELSE}
    InputStr(S,20,21-I,10,FALSE,AlfaBeta);
 {$ENDIF}
@@ -440,7 +520,13 @@ Begin
    HighScore[I-1].Name:=S;
   END;
   ShowHighScore;
+  {$ifdef Win32}
+   Bar(5,40+23*LineDisty,5+8*26,40+23*LineDisty+8);
+   OutTextXY(5,40+23*LineDistY,'Press mouse to continue');
+   WaitForMouse;
+  {$else}
   ginit640x480x16(bgidirec);
+  {$endif}
   off := false;
   clean_board;
   set_board;
@@ -482,13 +568,15 @@ Begin
       Begin
         setcolor(white);
         outtextxy(4,7+(c*21),HighScore[c].name);
-        turns := HighScore[c].Score;
+        turns:= HighScore[c].Score;
         showturn(211,3+(c*21));
       End;
     inc(c);
   Until c>9;
   turns := 0;
+  {$ifndef Win32}
   gotoxy(1,1);
+  {$endif}
   readln;
 
   off := false;
@@ -590,8 +678,12 @@ Begin
   {$I+}
   If ioresult<>0 Then
    BEGIN
-    TextMode(CO80);
-    Writeln('Fatal error, couldn''t find graphics data file quaddata.dat');
+    {$ifdef Win32}
+     MessageBox(GetActiveWindow,'Error','Fatal error, couldn''t find graphics data file quaddata.dat',WM_QUIT);
+    {$else}
+     TextMode(CO80);
+     Writeln('Fatal error, couldn''t find graphics data file quaddata.dat');
+    {$endif}
     HALT;
    END;
 
@@ -628,16 +720,28 @@ VAR I : LONGINT;
 Begin
   Randomize;                                    {Initialize random generator}
   Negative:=TRUE;                               {Higher highscore is worse}
-  HighX:=20;   HighY:=9;                        {coordinates for highscores}
+  {$ifdef Win32}
+   HighX     :=300;   {Coordinates of highscores}
+   HighY     :=130+20+8*LineDistY;  {y coordinate relative to other options}
+  {$else}
+   HighX:=20;   HighY:=9;                        {coordinates for highscores}
+  {$endif}
 
   GetMem(PicData,PicBufferSize);                {Allocate room for pictures}
   load_pics(PicData);                           {Load picture data from file}
   FOR I:=0 TO 9 DO                              {Create default scores}
+  begin
    HighScore[I].Score:=-100*I;                  {Negative, because then the
                                                   "highest" score is best}
+   If HighScore[I].Score>0 Then
+    Writeln('ohoh');
+   End;
+
   LoadHighScore(ScoreFileName);                 {Try to load highscore file}
-  closegraph;
+//  closegraph;
+  {$ifNdef FPC}
   bgidirec := 'd:\prog\bp\bgi';
+  {$ENDIF}
   ginit640x480x16(bgidirec);
   setcolor(card_border);
   ok := true;
@@ -660,31 +764,63 @@ Begin
   showmouse;
 End;
 
-Begin
 
+Begin
+ Negative:=True;
   clean;
   Repeat
     interpret;
-  Until exit1=true;
+  Until (exit1=true) {$ifdef Debug} or (turns=1) {$endif};
+  {$ifndef Win32}
   closegraph;
-  textmode(co80);
+  {$endif}
+
   Freemem(PicData,PicBufferSize);
-  clrscr;
   SaveHighScore;
-  Writeln('Thanks for playing Quadruple Memory');
-  Writeln('Feel free to distribute this software.');
-  Writeln;
-  Writeln('Programmed by: Justin Pierce');
-  Writeln('Graphics by: Whitney Pierce');
-  Writeln('Inspired by: Jos Dickman''s triple memory!');
-  Writeln('FPC conversion and cleanup by Marco van de Voort');
-  Writeln;
+  {$ifndef Win32}
+   Textmode(co80);
+   clrscr;
+   HideMouse;
+   Writeln('Thanks for playing Quadruple Memory');
+   Writeln('Feel free to distribute this software.');
+   Writeln;
+   Writeln('Programmed by: Justin Pierce');
+   Writeln('Graphics by: Whitney Pierce');
+   Writeln('Inspired by: Jos Dickman''s triple memory!');
+   Writeln('FPC conversion and cleanup by Marco van de Voort');
+   Writeln;
+   ShowMouse;
+  {$else}
+   SetbkColor(black);
+   SetColor(White);
+   SetViewPort(0,0,getmaxx,getmaxy,clipoff);
+   ClearViewPort;
+   SetTextStyle(0,Horizdir,2);
+   SetTextStyle(0,Horizdir,1);
+   OutTextXY(220,10,'QUAD');
+   OutTextXY(5,40+1*LineDistY,'Thanks for playing Quadruple Memory');
+   OutTextXY(5,40+2*LineDistY,'Feel free to distribute this software.');
+   OutTextXY(5,40+4*LineDistY,'Programmed by: Justin Pierce');
+   OutTextXY(5,40+5*LineDistY,'Graphics by: Whitney Pierce');
+   OutTextXY(5,40+6*LineDistY,'Inspired by: Jos Dickman''s triple memory!');
+   OutTextXY(5,40+7*LineDistY,'FPC conversion and cleanup by Marco van de Voort');
+   OutTextXY(5,40+9*LineDistY,'Press mouse to continue');
+   WaitForMouse;
+  {$endif}
+  {$ifdef Win32}
+   CloseGraph;
+  {$endif}
+
+
 End.
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2002-02-25 12:23:05  marco
+   * Fixes for Quad Win32 GUI mode
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:08  michael
   + removed logs
- 
+
 }

@@ -260,8 +260,9 @@ You have to remove all the cards to win, and the highscore record
 the time. QUAD loads some pictures from quaddata.dat.
 
 TODO:
-- Use graphical versions of highscore.
+- Use graphical versions of highscore. (done in win32 GUI mode)
 
 HISTORY
+ v0.02 : Win32 GUI mode.
  v0.01 :
        - Initial FPC port.
