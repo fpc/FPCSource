@@ -108,13 +108,20 @@ Function fpgetenv(name:string):Pchar; [public, alias : 'FPC_SYSC_FPGETENV'];
 }
 
 Begin
+{$ifndef FPC_USE_LIBC}
   name:=name+'=';            {Else HOST will also find HOSTNAME, etc}
+{$else}
+  name:=name+#0;
+{$endif}
   fpgetenv:=fpgetenv(@name[1]);
 end;
 
 {
   $Log$
-  Revision 1.3  2003-12-30 12:24:01  marco
+  Revision 1.4  2004-01-01 14:07:55  marco
+   * FPC_USE_LIBC fixes to fpgetenv. No more appending of '=', and making a proper nullterminated string)
+
+  Revision 1.3  2003/12/30 12:24:01  marco
    * FPC_USE_LIBC
 
   Revision 1.2  2003/09/14 20:15:01  marco
