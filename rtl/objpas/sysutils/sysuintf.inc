@@ -151,7 +151,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.1  2004-02-06 08:32:40  michael
+  + Renamed to avoid conflicts
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.1  2002/01/25 17:42:03  peter
