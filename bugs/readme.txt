@@ -351,6 +351,7 @@ Fixed bugs:
   bug0292.pp   objects not finalized when disposed                  OK 0.99.13 (FK)
   bug0295.pp   forward type definition is resolved wrong            OK 0.99.13 (PFV)
   bug0296.pp   exit(string) does not work (web form bug 613)        OK 0.99.13 (PM)
+  bug0297.pp   calling of interrupt procedure allowed but wrong code generated OK 0.99.13 (PM)
   bug0298.pp   l1+l2:=l1+l2 gives no error                          OK 0.99.13 (PFV)
   bug0300.pp   crash if method on non existing object is parsed (form bug 651) OK 0.99.13 (PFV)
   bug0301.pp   crash if destructor without object name is parsed    OK 0.99.13 (PFV)
@@ -373,6 +374,7 @@ bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
              but only BP respects this convention Delphi and GPC also
              use right to left pushing !!
+bug0281.pp   dup id checking with property is wrong
 bug0290.pp   problem with storing hex numbers in integers
 bug0294.pp   parameter with the same name as function is allowed in tp7/delphi
 
@@ -387,7 +389,5 @@ Unfixed bugs:
 -------------
 bug0262.pp   problems with virtual and overloaded methods
 bug0265.pp   nested proc with for-counter in other lex level
-bug0281.pp   dup id checking with property is wrong
 bug0293.pp   no error with variable name = type name
-bug0297.pp   calling of interrupt procedure allowed but wrong code generated
 bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
