@@ -647,8 +647,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2000-02-07 11:55:27  pierre
-   + Code Complete and Template saving
+  Revision 1.22  2000-02-07 12:03:48  pierre
+   Last commit is from Gabor's changes!
+
+  Revision 1.21  2000/02/07 11:55:27  pierre
+   + Code Complete and Template saving from Gabor
 
   Revision 1.20  2000/02/04 00:12:57  pierre
    * Breakpoint are marked in source at desktop loading
