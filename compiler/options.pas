@@ -1,3 +1,4 @@
+
 {
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
@@ -771,7 +772,8 @@ begin
                         's' : initmoduleswitches:=initmoduleswitches+[cs_compilesystem];
                         '-' : begin
                                 initmoduleswitches:=initmoduleswitches
-                                  - [cs_compilesystem]
+                                  - [cs_compilesystem];
+                                initglobalswitches:=initglobalswitches
                                   + [cs_check_unit_name];
                               end;
                        else
@@ -1562,7 +1564,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2001-02-26 08:08:39  michael
+  Revision 1.31  2001-02-26 12:47:46  jonas
+    * fixed bug in type checking for compatibility of set elements (merged)
+    * released fix in options.pas from Carl also for FPC (merged)
+
+  Revision 1.30  2001/02/26 08:08:39  michael
   * option_help_pages:
      allow to omit an option (use one space char insteed an option)
      but to indent a continuation line as if option is present. For lines:

@@ -1062,14 +1062,15 @@ implementation
                  ( (pfiledef(def1)^.typedfiletype.def=pdef(voiddef)) or
                    (pfiledef(def2)^.typedfiletype.def=pdef(voiddef))
                  )))
-         { sets with the same element type are equal }
+         { sets with the same element base type are equal }
          else
            if (def1^.deftype=setdef) and (def2^.deftype=setdef) then
              begin
                 if assigned(psetdef(def1)^.elementtype.def) and
                    assigned(psetdef(def2)^.elementtype.def) then
-                  b:=(psetdef(def1)^.elementtype.def^.deftype=psetdef(def2)^.elementtype.def^.deftype)
+                  b:=is_subequal(psetdef(def1)^.elementtype.def,psetdef(def2)^.elementtype.def)
                 else
+                  { empty set is compatible with everything }
                   b:=true;
              end
          else
@@ -1740,7 +1741,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-02-20 21:44:25  peter
+  Revision 1.33  2001-02-26 12:47:46  jonas
+    * fixed bug in type checking for compatibility of set elements (merged)
+    * released fix in options.pas from Carl also for FPC (merged)
+
+  Revision 1.32  2001/02/20 21:44:25  peter
     * tvarrec -> array of const fixed
 
   Revision 1.31  2001/01/22 11:20:15  jonas
