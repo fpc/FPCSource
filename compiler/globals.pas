@@ -1240,7 +1240,7 @@ implementation
        repeat
          i:=pos(';',path);
          if i=0 then
-           i:=255;
+           i:=256;
          singlepathstring:=FixPath(copy(path,1,i-1),false);
          delete(path,1,i);
          If FileExists (singlepathstring+f) then
@@ -1267,6 +1267,7 @@ implementation
 {$ifdef win32}
       var
         hs,hs2 : string;
+        i : longint;
 {$endif}
 {$ifdef go32v2}
       var
@@ -1276,9 +1277,12 @@ implementation
         GetShortName:=n;
 {$ifdef win32}
         hs:=n+#0;
-        Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
-        hs2[0]:=chr(strlen(@hs2[1]));
-        GetShortName:=hs2;
+        i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
+        if (i>0) and (i<=high(hs2)) then
+          begin
+            hs2[0]:=chr(strlen(@hs2[1]));
+            GetShortName:=hs2;
+          end;
 {$endif}
 {$ifdef go32v2}
         hs:=n;
@@ -1472,7 +1476,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2000-01-07 01:14:27  peter
+  Revision 1.47  2000-01-20 00:23:03  pierre
+   * fix for GetShortName, now checks results from Win32
+
+  Revision 1.46  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.45  2000/01/07 00:08:09  peter
@@ -1625,4 +1632,3 @@ end.
   + Merged patches from florian
 
 }
-
