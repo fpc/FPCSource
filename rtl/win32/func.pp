@@ -902,15 +902,18 @@ unit func;
 {$endif}
   { UNICODE and ASCII defines  }  *)
 
+{ WARNING: function not found !!
   function AbnormalTermination:WINBOOL;
-
+}
   function AbortDoc(_para1:HDC):longint;
 
   function AbortPath(_para1:HDC):WINBOOL;
 
   function AbortPrinter(_para1:HANDLE):WINBOOL;
 
+{ WARNING: function not found !!
   function AbortProc(_para1:HDC; _para2:longint):WINBOOL;
+}
 
 {$ifndef windows_include_files}
   function AbortSystemShutdown(_para1:LPTSTR):WINBOOL;
@@ -935,7 +938,9 @@ unit func;
 
   function LockResource(hResData:HGLOBAL):LPVOID;
 
+{ WARNING: function not found !!
   function WinMain(hInstance:HINSTANCE; hPrevInstance:HINSTANCE; lpCmdLine:LPSTR; nShowCmd:longint):longint;
+}
 
   function FreeLibrary(hLibModule:HINSTANCE):WINBOOL;
 
@@ -1290,6 +1295,7 @@ ExitProcess(
 
   function Beep(dwFreq:DWORD; dwDuration:DWORD):WINBOOL;
 
+{ WARNING: functions not found !!
   procedure OpenSound;
 
   procedure CloseSound;
@@ -1321,7 +1327,7 @@ ExitProcess(
   function SetVoiceSound(nVoice:DWORD; Frequency:DWORD; nDuration:DWORD):DWORD;
 
   function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD;
-
+}
   function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint;
 
   procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME);
@@ -1628,13 +1634,16 @@ ExitProcess(
   function QueryPerformanceFrequency(var lpFrequency:LARGE_INTEGER):WINBOOL;
 
 (* Const before type ignored *)
-{  procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+  procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+
+  { from Delphi interface }
+  procedure CopyMemory(Destination:PVOID; Source:pointer; Length:DWORD);
 
   procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
 
   procedure ZeroMemory(Destination:PVOID; Length:DWORD);
 
-   The memory functions don't seem to be defined in the libraries, so
+(*  { The memory functions don't seem to be defined in the libraries, so
      define macro versions as well.   }
   { was #define dname(params) def_expr }
   procedure MoveMemory(var t,s; c : longint);
@@ -1643,7 +1652,7 @@ ExitProcess(
   procedure FillMemory(var p;c,v : longint);
 
   { was #define dname(params) def_expr }
-  procedure ZeroMemory(var p;c : longint);
+  procedure ZeroMemory(var p;c : longint); *)
 
 {$ifdef WIN95}
 
@@ -3676,7 +3685,9 @@ in define line 6852 *)
 
 {$ifdef read_implementation}
 
+{ WARNING: function not found !!
   function AbnormalTermination:WINBOOL; external External_library name 'AbnormalTermination';
+}
 
 (*  function AbortDoc(_para1:HDC):longint; external 'gdi32.dll' name 'AbortDoc';
 *)
@@ -3685,7 +3696,9 @@ in define line 6852 *)
 
   function AbortPrinter(_para1:HANDLE):WINBOOL; external 'spoolss.dll' name 'AbortPrinter';
 
+{ WARNING: function not found !!
   function AbortProc(_para1:HDC; _para2:longint):WINBOOL; external External_library name 'AbortProc';
+}
 
 {$ifndef windows_include_files}
   function AbortSystemShutdown(_para1:LPTSTR):WINBOOL; external 'advapi32.dll' name 'AbortSystemShutdownA';
@@ -3710,7 +3723,9 @@ in define line 6852 *)
 
   function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32.dll' name 'LockResource';
 
+{ WARNING: function not found !!
   function WinMain(hInstance:HINSTANCE; hPrevInstance:HINSTANCE; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
+}
 
   function FreeLibrary(hLibModule:HINSTANCE):WINBOOL; external 'kernel32.dll' name 'FreeLibrary';
 
@@ -3724,7 +3739,11 @@ in define line 6852 *)
 
   function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32.dll' name 'GlobalAlloc';
 
-  function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;CDECL; external External_library name 'GlobalDiscard';
+  function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
+    {CDECL; so it is internal !!}
+    begin
+       GlobalDiscard:=GlobalReAlloc(hglbMem,0,GMEM_MOVEABLE);
+    end;
 
   function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external 'kernel32.dll' name 'GlobalReAlloc';
 
@@ -3754,7 +3773,11 @@ in define line 6852 *)
 
   function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external 'kernel32.dll' name 'LocalAlloc';
 
-  function LocalDiscard(hlocMem:HLOCAL):HLOCAL;CDECL; external External_library name 'LocalDiscard';
+  function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
+    {CDECL; so it is internal }
+    begin
+       LocalDiscard := LocalReAlloc(hlocMem,0,LMEM_MOVEABLE);
+    end;
 
   function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external 'kernel32.dll' name 'LocalReAlloc';
 
@@ -4044,6 +4067,7 @@ in define line 6852 *)
 
   function Beep(dwFreq:DWORD; dwDuration:DWORD):WINBOOL; external 'kernel32.dll' name 'Beep';
 
+{ WARNING: functions not found !!
   procedure OpenSound; external External_library name 'OpenSound';
 
   procedure CloseSound; external External_library name 'CloseSound';
@@ -4075,6 +4099,7 @@ in define line 6852 *)
   function SetVoiceSound(nVoice:DWORD; Frequency:DWORD; nDuration:DWORD):DWORD; external External_library name 'SetVoiceSound';
 
   function SetVoiceThreshold(nVoice:DWORD; nNotes:DWORD):DWORD; external External_library name 'SetVoiceThreshold';
+}
 
   function MulDiv(nNumber:longint; nNumerator:longint; nDenominator:longint):longint; external 'kernel32.dll' name 'MulDiv';
 
@@ -4370,15 +4395,29 @@ in define line 6852 *)
 
   function QueryPerformanceFrequency(var lpFrequency:LARGE_INTEGER):WINBOOL; external 'kernel32.dll' name 'QueryPerformanceFrequency';
 
-{  procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD); external External_library name 'MoveMemory';
+  procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+    begin
+       Move(Source^,Destination^,Length);
+    end;
 
-  procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE); external External_library name 'FillMemory';
+  procedure CopyMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+    begin
+       Move(Source^, Destination^, Length);
+    end;
 
-  procedure ZeroMemory(Destination:PVOID; Length:DWORD); external External_library name 'ZeroMemory';
-  }
+  procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
+    begin
+       FillChar(Destination^,Length,Char(Fill));
+    end;
+
+  procedure ZeroMemory(Destination:PVOID; Length:DWORD);
+    begin
+       FillChar(Destination^,Length,#0);
+    end;
 
 
-  { was #define dname(params) def_expr }
+
+(*  { was #define dname(params) def_expr }
   procedure MoveMemory(var t,s; c : longint);
     begin
        move(s,t,c);
@@ -4397,7 +4436,7 @@ in define line 6852 *)
     { return type might be wrong }   
     begin
        fillchar(p,c,#0);
-    end;
+    end; *)
 
 {$ifdef WIN95}
 
@@ -4411,7 +4450,7 @@ in define line 6852 *)
 
 
   function ToUnicodeEx(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint; 
-             wFlags:UINT; dwhkl:HKL):longint; external External_library name 'ToUnicodeEx';
+             wFlags:UINT; dwhkl:HKL):longint; external 'user32.dll' name 'ToUnicodeEx';
 
   function UnloadKeyboardLayout(hkl:HKL):WINBOOL; external 'user32.dll' name 'UnloadKeyboardLayout';
 
@@ -6602,7 +6641,8 @@ in define line 6826 *)
 
     function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint; external 'gdi32.dll' name 'DescribePixelFormat';
 
-    function GetEnhMetaFilePixelFormat(_para1:HENHMETAFILE; _para2:DWORD; var _para3:PIXELFORMATDESCRIPTOR):UINT; external External_library name 'GetEnhMetaFilePixelFormat';
+{ WARNING: function is not in my gdi32.dll !! PM }
+    function GetEnhMetaFilePixelFormat(_para1:HENHMETAFILE; _para2:DWORD; var _para3:PIXELFORMATDESCRIPTOR):UINT; external 'gdi32.dll' name 'GetEnhMetaFilePixelFormat';
 
 {    function GetPixelFormat(_para1:HDC):longint; external 'gdi32.dll' name 'GetPixelFormat'; }
 
@@ -6670,19 +6710,19 @@ in define line 6826 *)
                _para6:UINT; _para7:UINT):HDDEDATA; external 'user32.dll' name 'DdeCreateDataHandle';
 
     function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD; 
-               _para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external External_library name 'NetUserEnum';
+               _para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external 'netapi32.dll' name 'NetUserEnum';
 
-    function NetApiBufferFree(_para1:LPVOID):DWORD; external External_library name 'NetApiBufferFree';
+    function NetApiBufferFree(_para1:LPVOID):DWORD; external 'netapi32.dll' name 'NetApiBufferFree';
 
-    function NetUserGetInfo(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:LPBYTE):DWORD; external External_library name 'NetUserGetInfo';
+    function NetUserGetInfo(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:LPBYTE):DWORD; external 'netapi32.dll' name 'NetUserGetInfo';
 
-    function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; var _para3:LPBYTE):DWORD; external External_library name 'NetGetDCName';
+    function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; var _para3:LPBYTE):DWORD; external 'netapi32.dll' name 'NetGetDCName';
 
     function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
-               _para6:LPDWORD; _para7:LPDWORD):DWORD; external External_library name 'NetGroupEnum';
+               _para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32.dll' name 'NetGroupEnum';
 
     function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
-               _para6:LPDWORD; _para7:LPDWORD):DWORD; external External_library name 'NetLocalGroupEnum';
+               _para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32.dll' name 'NetLocalGroupEnum';
 
     procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external 'shell32.dll' name 'SHAddToRecentDocs';
 
@@ -6707,7 +6747,12 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.3  1998-09-03 18:17:33  pierre
+  Revision 1.4  1998-09-04 12:33:11  pierre
+    + added SED testing for ascdef.pp and unidef.pp
+    * func.pp ready
+      still some functions missing (commented out for now)
+
+  Revision 1.3  1998/09/03 18:17:33  pierre
     * small improvements in number of found functions
       all remaining are in func.pp
 

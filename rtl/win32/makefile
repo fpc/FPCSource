@@ -253,12 +253,12 @@ WINDOWS_DIR:=c:/windows
 %.exp : $(WINDOWS_DIR)/system/%.dll
 	pedump $< > $*.tmp
 	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exp
-	-rm $*.tmp
+#	-rm $*.tmp
 
 %.exd : $(WINDOWS_DIR)/system/%.drv
 	pedump $< > $*.tmp
 	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exd
-	-rm $*.tmp
+#	-rm $*.tmp
 
 # list of usefull dll's for windows.pp
 dllexps : gdi32.exp kernel32.exp advapi32.exp user32.exp mapi32.exp  \
@@ -326,17 +326,46 @@ else
 	name $* 
 endif
 
+GNUWIN32LIBDIR=./
+
+%.find2 :
+	@echo s/In archive \(.*\)/\1/p >find.sed
+	@echo s/\(.*\)___imp_$*@\(.*\)/found: $*/p >>find.sed
+ifdef subfile
+	sed -n -f find.sed alllibs.sym >> $(subfile)
+else
+	sed -n -f find.sed alllibs.sym > $*.res
+endif
+	
+missing : $(GNUWIN32LIBDIR)alllibs.sym $(addsuffix .lst,$(WINDOWS_FILES))
+	-rm missing
+	$(MAKE) subfile=missing $(addsuffix .find2,$(shell cat *.lst))
+
+substmissing : missing
+	dtou missing
+	@echo N > test.sed
+	@echo s/lib\(.*\)\.a:\nfound: \(.*\)/\1.dll : \2/p >> test.sed
+	@echo D >> test.sed
+	sed -n -f test.sed missing > missing.tmp
+	sed -e "s#\(.*\) : \(.*\)#s/external External_library name \'\2\'/external \'\1\' name \'\2\'/#" missing.tmp > missing.sub
+
 dllnames:
 	$(MAKE) $(addsuffix .lst,$(WINDOWS_FILES))
 
 test:
 	@echo namelist of $(filename) is "$(namelist)"
 
+# automatic conversion from ascfun.pp to ascdef.pp
+# and unifun.pp to unidef.pp
+# only if sed is present 
+ifdef SED
 ascdef.pp : ascfun.pp ascdef.sed
-	sed -f ascdef.sed ascfun.pp > ascdef.pp
+	$(SED) -f ascdef.sed ascfun.pp > ascdef.pp
 
 unidef.pp : unifun.pp unidef.sed
-	sed -f unidef.sed unifun.pp > unidef.pp
+	$(SED) -f unidef.sed unifun.pp > unidef.pp
+endif
+
 
 #####################################################################
 # Default targets
@@ -346,7 +375,12 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.10  1998-09-03 18:17:35  pierre
+# Revision 1.11  1998-09-04 12:33:12  pierre
+#   + added SED testing for ascdef.pp and unidef.pp
+#   * func.pp ready
+#     still some functions missing (commented out for now)
+#
+# Revision 1.10  1998/09/03 18:17:35  pierre
 #   * small improvements in number of found functions
 #     all remaining are in func.pp
 #
