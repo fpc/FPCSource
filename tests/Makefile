@@ -1597,7 +1597,7 @@ endif
 	-rm -f $(addsuffix /*_ppas,$(DIRS))
 	$(MAKE) -C units clean
 distclean: clean
-	$(MAKE) -C utils clean
+	-rm -f dotest$(EXEEXT) digest$(EXEEXT) dbdigest$(EXEEXT)
 .PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 rundigest : $(DIGESTDEP)
 	-$(DIGEST)

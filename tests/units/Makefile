@@ -213,6 +213,7 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
+override TARGET_UNITS+=erroru
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1216,9 +1217,116 @@ ifeq ($(FULL_SOURCE),$(FULL_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_units
+ifdef TARGET_UNITS
+override ALLTARGET+=fpc_units
+override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
+override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
+override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
+override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
+endif
+fpc_units: $(UNITPPUFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
+endif
+.PHONY: fpc_all fpc_smart fpc_debug fpc_release
+$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
+	@$(ECHOREDIR) Compiled > $(FPCMADE)
+fpc_all: $(FPCMADE)
+fpc_smart:
+	$(MAKE) all LINKSMART=1 CREATESMART=1
+fpc_debug:
+	$(MAKE) all DEBUG=1
+fpc_release:
+	$(MAKE) all RELEASE=1
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .dpr .pp .rc .res
+%$(PPUEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(PPUEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.dpr
+	$(COMPILER) $<
+	$(EXECPPAS)
+%.res: %.rc
+	windres -i $< -o $@
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
+.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
+ifdef INSTALL_UNITS
+override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
+endif
+ifdef INSTALL_BUILDUNIT
+override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
+endif
+ifdef INSTALLPPUFILES
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPUFILES))
+override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPULINKFILES)))
+override INSTALL_CREATEPACKAGEFPC=1
+endif
+ifdef INSTALLEXEFILES
+override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(INSTALLEXEFILES))
+endif
+fpc_install: all $(INSTALLTARGET)
+ifdef INSTALLEXEFILES
+	$(MKDIR) $(INSTALL_BINDIR)
+ifdef UPXPROG
+	-$(UPXPROG) $(INSTALLEXEFILES)
+endif
+	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
+endif
+ifdef INSTALL_CREATEPACKAGEFPC
+ifdef FPCMAKE
+ifdef PACKAGE_VERSION
+ifneq ($(wildcard Makefile.fpc),)
+	$(FPCMAKE) -p -T$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
+endif
+endif
+endif
+ifdef INSTALLPPUFILES
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
+ifneq ($(INSTALLPPULINKFILES),)
+	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
+endif
+ifneq ($(wildcard $(LIB_FULLNAME)),)
+	$(MKDIR) $(INSTALL_LIBDIR)
+	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
+ifdef inUnix
+	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
+endif
+endif
+endif
+ifdef INSTALL_FILES
+	$(MKDIR) $(INSTALL_DATADIR)
+	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
+endif
+fpc_sourceinstall: distclean
+	$(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
+fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
+ifdef HASEXAMPLES
+	$(MKDIR) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef EXAMPLESOURCEFILES
+	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef TARGET_EXAMPLEDIRS
+	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
@@ -1376,24 +1484,25 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-debug:
-smart:
-release:
+all: fpc_all
+debug: fpc_debug
+smart: fpc_smart
+release: fpc_release
 examples:
 shared:
-install:
-sourceinstall:
-exampleinstall:
+install: fpc_install
+sourceinstall: fpc_sourceinstall
+exampleinstall: fpc_exampleinstall
 distinstall:
 zipinstall:
 zipsourceinstall:
 zipexampleinstall:
 zipdistinstall:
-distclean:
-cleanall:
+distclean: fpc_distclean
+cleanall: fpc_cleanall
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall distclean cleanall info makefiles
+.PHONY: all debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -1402,7 +1511,7 @@ FCL=fcl
 endif
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)
-.PHONY: rtl clean cleanrtl $(FCL)
+.PHONY: rtl clean $(FCL)
 ifndef USEUNITDIR
 rtl:
 	$(MAKE) -C ../../rtl all "OPT=$(OPT) -n"
@@ -1413,44 +1522,19 @@ fcl:
 	$(MAKE) -C ../../fcl all "OPT=$(OPT) -n"
 	$(MAKE) -C ../../fcl install $(INSTALLOPT)
 endif
-cleanrtl : cleanall
+clean : cleanall
 	$(DELTREE) $(DUMMYINSTALLDIR)
 else
 rtl:
 	-$(COPY) $(USEUNITDIR)/*$(PPUEXT) .
 	-$(COPY) $(USEUNITDIR)/*$(OEXT) .
 	-$(COPY) $(USEUNITDIR)/*$(ASMEXT) .
-	-$(COPY) $(USEUNITDIR)/*_ppas$(BATCHEXT) .
+	-$(COPY) $(USEUNITDIR)/*_ppas .
 	$(ECHO) Copied > $(FPCMADE)
 ifdef FCL
 fcl: rtl
 endif
-cleanrtl : 
-	-$(DEL) *$(PPUEXT)
-	-$(DEL) *$(OEXT)
-	-$(DEL) *$(ASMEXT)
-	-$(DEL) *_ppas$(BATCHEXT)
-	-$(DEL) fpcmade.* #TODO was: $(FPCMADE)  -- shall we have it like this ?
+clean : cleanall
+	$(DELTREE) $(DUMMYINSTALLDIR)
 endif
-$(FPCMADE) : 
-	make rtl
-ifdef FCL
-	make $(FCL)
-endif
-ifdef CCOMPILER
-../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o : ../test/cg/obj/ctest.c
-	$(CCOMPILER) -c -o ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o ../test/cg/obj/ctest.c
-endif
-extra : ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o FORCE
-	$(FPC) -n -Fu. -T$(OS_TARGET) $(OPT) -FE..  ../test/cg/ptest.pp # TODO move to units
-ifeq ($(OS_TARGET),win32)
-	$(FPC) -n -Fu. -T$(OS_TARGET) $(OPT) -FE. ../utils/win32err.pp # TODO move to units
-endif
-	$(FPC) -n -Fu. -T$(OS_TARGET) $(OPT) -FE. erroru.pp # TODO Is actually dependant on : rtl $(FCL)
-.PHONY : extra
-all : $(FPCMADE) extra
-clean : cleanrtl
-	-$(DEL) -f ../ptest.* #Works, because ptest.pp is not located there
-ifdef CCOMPILER
-	-$(DEL) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o
-endif
+erroru$(PPUEXT): erroru.pp rtl $(FCL)
