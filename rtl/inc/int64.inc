@@ -17,12 +17,18 @@
 {$R- no range checking }
 
     type
-       qwordrec = packed record
+       tqwordrec = packed record
          low : dword;
          high : dword;
        end;
 
-    function count_leading_zero(q : qword) : longint;
+    procedure int_overflow;
+
+      begin
+         runerror(201);
+      end;
+
+    function count_leading_zeros(q : qword) : longint;
 
       var
          r,i : longint;
@@ -31,26 +37,26 @@
          r:=0;
          for i:=0 to 31 do
            begin
-              if (qwordrec(q).high and ($80000000 shr i))<>0 then
+              if (tqwordrec(q).high and ($80000000 shr i))<>0 then
                 begin
-                   count_leading_zero:=r;
+                   count_leading_zeros:=r;
                    exit;
                 end;
               inc(r);
            end;
          for i:=0 to 31 do
            begin
-              if (qwordrec(q).low and ($80000000 shr i))<>0 then
+              if (tqwordrec(q).low and ($80000000 shr i))<>0 then
                 begin
-                   count_leading_zero:=r;
+                   count_leading_zeros:=r;
                    exit;
                 end;
               inc(r);
            end;
-         count_leading_zero:=r;
+         count_leading_zeros:=r;
       end;
 
-    function divqword(z,n : qword) : qword;safecall;
+    function divqword(z,n : qword) : qword;[public,alias: 'FPC_DIV_QWORD'];
 
       var
          shift,lzz,lzn : longint;          
@@ -77,7 +83,7 @@
          until shift<=0;
       end;
 
-    function modqword(z,n : qword) : qword;safecall;
+    function modqword(z,n : qword) : qword;[public,alias: 'FPC_MOD_QWORD'];
 
       var
          shift,lzz,lzn : longint;
@@ -101,11 +107,11 @@
          modqword:=z;
       end;
 
-    function divint64(z,n : int64) : int64;safecall;
+    function divint64(z,n : int64) : int64;[public,alias: 'FPC_DIV_INT64'];
 
       var
          sign : boolean;
-         q1,q2,q3 : qword;
+         q1,q2 : qword;
 
       begin
          sign:=false;
@@ -116,52 +122,49 @@
            end
          else
            q1:=z;
-         if q<0 then
+         if n<0 then
            begin
               sign:=not(sign);
-              q2:=qword(-q);
+              q2:=qword(-n);
            end
          else
-           q2:=q;
+           q2:=n;
 
-          { is coded by the compiler as call to divqword }
-          q3:=q1 div q2;
-
+         { the div is coded by the compiler as call to divqword }
          if sign then
-           divint64:=-q3
+           divint64:=-q1 div q2
          else
-           divint64:=q3;
+           divint64:=q1 div q2;
       end;
 
     { multiplies two qwords }
-    function mulqword(f1,f2 : qword;checkoverflow : boolean) : qword;safecall;
+    function mulqword(f1,f2 : qword;checkoverflow : boolean) : qword;[public,alias: 'FPC_MUL_QWORD'];
 
       var
-         res,bitpos : qword;
+         bitpos64 : qword;
          l : longint;
 
       begin
-         res:=0;
-         bitpos:=1;
-
+         mulqword:=0;
          { we can't write currently qword constants directly :( }
-         bitpos64:=1 shl 63;
+         tqwordrec(bitpos64).high:=$80000000;
+         tqwordrec(bitpos64).low:=0;
 
          for l:=0 to 63 do
            begin
-              if (f2 and bitpos)<>0 then
+              if (f2 and bitpos64)<>0 then
               if checkoverflow then
 {$Q+}                
-                res:=res+f1
+                mulqword:=mulqword+f1
 {$Q-}
               else
-                res:=res+f1;
+                mulqword:=mulqword+f1;
 
               if ((f1 and bitpos64)<>0) and checkoverflow then
                 int_overflow;
 
               f1:=f1 shl 1;
-              bitpos:=bitpos shl 1;
+              bitpos64:=bitpos64 shl 1;
            end;
       end;
 
@@ -171,7 +174,7 @@
        fpuint64 = true:
          ... using the comp multiplication
      }
-    function mulint64(f1,f2 : int64;checkoverflow : boolean) : int64;safecall;
+    function mulint64(f1,f2 : int64;checkoverflow : boolean) : int64;[public,alias: 'FPC_MUL_INT64'];
 
       var
          sign : boolean;
@@ -199,7 +202,7 @@
            q3:=q1*q2 
          else
 {$Q-}
-           q3:=q1*q2
+           q3:=q1*q2;
 
          if sign then
            mulint64:=-q3
@@ -240,7 +243,10 @@
 
 {
   $Log$
-  Revision 1.3  1999-05-23 20:27:27  florian
+  Revision 1.4  1999-05-24 08:43:46  florian
+    * fixed a couple of syntax errors
+
+  Revision 1.3  1999/05/23 20:27:27  florian
     + routines for qword div and mod
 
   Revision 1.2  1999/01/06 12:25:03  florian
@@ -249,5 +255,4 @@
 
   Revision 1.1  1998/12/12 12:15:41  florian
     + first implementation
-
 }
