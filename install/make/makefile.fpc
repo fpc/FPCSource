@@ -255,12 +255,6 @@ endif
 # specify where units are.
 ifndef UNITDIR
 UNITDIR=$(RTLDIR)/$(OS_TARGET)
-ifeq ($(OS_TARGET),go32v1)
-UNITDIR=$(RTLDIR)/dos/go32v1
-endif
-ifeq ($(OS_TARGET),go32v2)
-UNITDIR=$(RTLDIR)/dos/go32v2
-endif
 endif
 
 # set the prefix directory where to install everything
