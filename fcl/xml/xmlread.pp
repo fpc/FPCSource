@@ -21,22 +21,31 @@ unit xmlread;
 
 interface
 
-uses classes, DOM;
+uses sysutils, classes, DOM;
 
-function ReadXMLFile(const AFileName: String): TXMLDocument;
-function ReadXMLFile(var f: File): TXMLDocument;
-function ReadXMLFile(var f: TStream): TXMLDocument;
+type
 
-function ReadDTDFile(const AFileName: String): TXMLDocument;
-function ReadDTDFile(var f: File): TXMLDocument;
-function ReadDTDFile(var f: TStream): TXMLDocument;
+  EXMLReadError = class(Exception);
+
+
+procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
+  const AFilename: String);
+
+procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File);
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream);
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
+  const AFilename: String);
 
 
 // =======================================================
 
 implementation
 
-uses sysutils;
+{$I filerec.inc}
 
 const
 
@@ -54,8 +63,8 @@ type
 
   TXMLReader = class
   protected
-    doc: TXMLDocument;
     buf, BufStart: PChar;
+    Filename: String;
 
     procedure RaiseExc(descr: String);
     function  SkipWhitespace: Boolean;
@@ -84,8 +93,9 @@ type
     procedure ExpectExternalID;
     function  ParseEncodingDecl: String;    				// [80]
   public
-    function ProcessXML(ABuf: PChar): TXMLDocument;    			// [1]
-    function ProcessDTD(ABuf: PChar): TXMLDocument;			// ([29])
+    doc: TXMLDocument;
+    procedure ProcessXML(ABuf: PChar; AFilename: String);  // [1]
+    procedure ProcessDTD(ABuf: PChar; AFilename: String);  // ([29])
   end;
 
 
@@ -108,7 +118,7 @@ begin
     Inc(apos);
   end;
 
-  raise Exception.Create('In XML reader (line ' + IntToStr(y) + ' pos ' +
+  raise EXMLReadError.Create('In ' + Filename + ' (line ' + IntToStr(y) + ' pos ' +
     IntToStr(x) + '): ' + descr);
 end;
 
@@ -166,12 +176,13 @@ begin
   end;
 end;
 
-function TXMLReader.ProcessXML(ABuf: PChar): TXMLDocument;    // [1]
+procedure TXMLReader.ProcessXML(ABuf: PChar; AFilename: String);    // [1]
 var
   LastNodeBeforeDoc: TDOMNode;
 begin
   buf := ABuf;
   BufStart := ABuf;
+  Filename := AFilename;
 
   doc := TXMLDocument.Create;
   ExpectProlog;
@@ -186,8 +197,6 @@ begin
     WriteLn(StrLen(buf), ' chars');
   end;
   }
-
-  Result := doc;
 end;
 
 
@@ -622,10 +631,11 @@ begin
     Result := True;
 end;
 
-function TXMLReader.ProcessDTD(ABuf: PChar): TXMLDocument;
+procedure TXMLReader.ProcessDTD(ABuf: PChar; AFilename: String);
 begin
   buf := ABuf;
   BufStart := ABuf;
+  Filename := AFilename;
 
   doc := TXMLDocument.Create;
   ParseMarkupDecl;
@@ -637,8 +647,6 @@ begin
     WriteLn(StrLen(buf), ' chars');
   end;
   }
-
-  Result := doc;
 end;
 
 function TXMLReader.ParseElement(AOwner: TDOMNode): Boolean;    // [39] [40] [44]
@@ -850,102 +858,119 @@ begin
 end;
 
 
-function ReadXMLFile(var f: File): TXMLDocument;
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
 var
   reader: TXMLReader;
   buf: PChar;
   BufSize: LongInt;
 begin
+  ADoc := nil;
   BufSize := FileSize(f) + 1;
-  if BufSize <= 1 then begin
-    Result := nil;
-    exit;
-  end;
+  if BufSize <= 1 then exit;
 
   GetMem(buf, BufSize);
   BlockRead(f, buf^, BufSize - 1);
   buf[BufSize - 1] := #0;
   reader := TXMLReader.Create;
-  Result := reader.ProcessXML(buf);
+  reader.ProcessXML(buf, Filerec(f).name);
   FreeMem(buf, BufSize);
+  ADoc := reader.doc;
   reader.Free;
 end;
 
-function ReadXMLFile(var f: TStream): TXMLDocument;
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
+  const AFilename: String);
 var
   reader: TXMLReader;
   buf: PChar;
 begin
-  if f.Size = 0 then begin
-    Result := nil;
-    exit;
-  end;
+  ADoc := nil;
+  if f.Size = 0 then exit;
 
   GetMem(buf, f.Size + 1);
   f.Read(buf^, f.Size);
   buf[f.Size] := #0;
   reader := TXMLReader.Create;
-  Result := reader.ProcessXML(buf);
+  reader.ProcessXML(buf, AFilename);
   FreeMem(buf, f.Size + 1);
+  ADoc := reader.doc;
   reader.Free;
 end;
 
-function ReadXMLFile(const AFileName: String): TXMLDocument;
+procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
+begin
+  ReadXMLFile(ADoc, f, '<Stream>');
+end;
+
+procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
 var
   stream: TFileStream;
 begin
-  stream := TFileStream.Create(AFileName, fmOpenRead);
-  Result := ReadXMLFile(stream);
-  stream.Free;
+  ADoc := nil;
+  stream := TFileStream.Create(AFilename, fmOpenRead);
+  try
+    ReadXMLFile(ADoc, stream, AFilename);
+  finally
+    stream.Free;
+  end;
 end;
 
 
-function ReadDTDFile(var f: File): TXMLDocument;
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File);
 var
   reader: TXMLReader;
   buf: PChar;
   BufSize: LongInt;
 begin
+  ADoc := nil;
   BufSize := FileSize(f) + 1;
-  if BufSize <= 1 then begin
-    Result := nil;
-  end;
+  if BufSize <= 1 then exit;
 
   GetMem(buf, BufSize + 1);
   BlockRead(f, buf^, BufSize - 1);
   buf[BufSize - 1] := #0;
   reader := TXMLReader.Create;
-  Result := reader.ProcessDTD(buf);
+  reader.ProcessDTD(buf, Filerec(f).name);
   FreeMem(buf, BufSize);
+  ADoc := reader.doc;
   reader.Free;
 end;
 
-function ReadDTDFile(var f: TStream): TXMLDocument;
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
+  const AFilename: String);
 var
   reader: TXMLReader;
   buf: PChar;
 begin
-  if f.Size = 0 then begin
-    Result := nil;
-    exit;
-  end;
+  ADoc := nil;
+  if f.Size = 0 then exit;
 
   GetMem(buf, f.Size + 1);
   f.Read(buf^, f.Size);
   buf[f.Size] := #0;
   reader := TXMLReader.Create;
-  Result := reader.ProcessDTD(buf);
+  reader.ProcessDTD(buf, AFilename);
   FreeMem(buf, f.Size + 1);
+  ADoc := reader.doc;
   reader.Free;
 end;
 
-function ReadDTDFile(const AFileName: String): TXMLDocument;
+procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream);
+begin
+  ReadDTDFile(ADoc, f, '<Stream>');
+end;
+
+procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
 var
   stream: TFileStream;
 begin
-  stream := TFileStream.Create(AFileName, fmOpenRead);
-  Result := ReadDTDFile(stream);
-  stream.Free;
+  ADoc := nil;
+  stream := TFileStream.Create(AFilename, fmOpenRead);
+  try
+    ReadDTDFile(ADoc, stream, AFilename);
+  finally
+    stream.Free;
+  end;
 end;
 
 
@@ -954,7 +979,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-07-11 20:20:12  michael
+  Revision 1.5  1999-07-25 16:24:14  michael
+  + Fixes from Sebastiam Guenther - more error-proof
+
+  Revision 1.4  1999/07/11 20:20:12  michael
   + Fixes from Sebastian Guenther
 
   Revision 1.3  1999/07/09 21:05:51  michael
@@ -967,3 +995,5 @@ end.
   + Initial implementation by Sebastian Guenther
 
 }
+
+--------------ECFEA19D0E6E5FF5CDAF6681--)

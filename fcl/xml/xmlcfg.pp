@@ -68,15 +68,24 @@ begin
   Reset(f, 1);
   {$I+}
   if IOResult = 0 then begin
-    doc := ReadXMLFile(f);
+    try
+      ReadXMLFile(doc, f);
+    except
+      on e: EXMLReadError do
+        WriteLn(StdErr, 'Warning: XML config parsing error: ', e.Message);
+    end;
     Close(f);
-    doc.SetDocumentElement(TDOMElement(doc.FindNode('CONFIG')));
-  end else begin
+  end;
+
+  if doc = nil then
     doc := TXMLDocument.Create;
+
+  cfg :=TDOMElement(doc.FindNode('CONFIG'));
+  if cfg = nil then begin
     cfg := doc.CreateElement('CONFIG');
     doc.AppendChild(cfg);
-    doc.SetDocumentElement(cfg);
   end;
+  doc.SetDocumentElement(cfg);
 end;
 
 destructor TXMLConfig.Destroy;
@@ -182,7 +191,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-07-09 21:05:50  michael
+  Revision 1.3  1999-07-25 16:24:13  michael
+  + Fixes from Sebastiam Guenther - more error-proof
+
+  Revision 1.2  1999/07/09 21:05:50  michael
   + fixes from Guenther Sebastian
 
   Revision 1.1  1999/07/09 08:35:09  michael
