@@ -27,10 +27,18 @@ function WideCompareText(const s1, s2 : WideString) : PtrInt;
 function WideSameText(const s1, s2 : WideString) : Boolean;
 
 Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
+Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
+                     Const Fmt; fmtLen : Cardinal;
+                     Const Args : Array of const) : Cardinal;
+Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const);
+
 
 {
   $Log$
-  Revision 1.4  2005-02-26 15:00:14  florian
+  Revision 1.5  2005-03-06 18:28:23  florian
+    + WideFormatBuf and WideFmtStr implemented
+
+  Revision 1.4  2005/02/26 15:00:14  florian
     + WideSameStr
 
   Revision 1.3  2005/02/26 10:21:17  florian

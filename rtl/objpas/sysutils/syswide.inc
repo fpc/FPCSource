@@ -70,9 +70,37 @@ Function WideFormat (Const Fmt : WideString; const Args : Array of const) : Wide
 {$undef INWIDEFORMAT}
 {$macro off}
 
+
+Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
+                     Const Fmt; fmtLen : Cardinal;
+                     Const Args : Array of const) : Cardinal;
+  Var 
+    S,F : WideString;
+  begin
+    Setlength(F,fmtlen);
+    if fmtlen > 0 then
+      Move(fmt,F[1],fmtlen*sizeof(Widechar));
+    S:=WideFormat (F,Args);
+    If Cardinal(Length(S))<Buflen then
+      Result:=Length(S)
+    else
+      Result:=Buflen;
+    Move(S[1],Buffer,Result);
+  end;
+
+
+Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const);
+  begin
+    Res:=WideFormat(fmt,Args);
+  end;
+
+
 {
   $Log$
-  Revision 1.5  2005-02-26 15:00:14  florian
+  Revision 1.6  2005-03-06 18:28:23  florian
+    + WideFormatBuf and WideFmtStr implemented
+
+  Revision 1.5  2005/02/26 15:00:14  florian
     + WideSameStr
 
   Revision 1.4  2005/02/26 10:21:17  florian
