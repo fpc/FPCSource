@@ -63,6 +63,11 @@ unit objpas;
 {$endif}
 
 
+    Procedure Getmem(Var p:pointer;Size:Longint);
+    Procedure Freemem(Var p:pointer;Size:Longint);
+    Procedure Freemem(Var p:pointer);
+
+
   implementation
 
 {****************************************************************************
@@ -159,6 +164,56 @@ begin
       paramstr:='';
   end;
 
+{ ---------------------------------------------------------------------
+    Delphi-Style memory management
+  ---------------------------------------------------------------------}
+  
+  Type PLongint = ^Longint;
+
+
+    Procedure Getmem(Var p:pointer;Size:Longint);
+    
+    begin
+      SysGetmem(P,Size+SizeOf(Longint));
+      PLongint(P)^:=Size;
+      Inc(P,SizeOf(Longint));
+    end;
+
+    Procedure DummyFreemem(Var p:pointer;Size:Longint);
+    begin
+      FreeMem(P);
+    end;
+    
+    Procedure Freemem(Var p:pointer;Size:Longint);
+
+    begin
+      Freemem(P);
+    end;
+
+    Procedure Freemem(Var p:pointer);
+
+    begin
+      Dec(P,SizeOf(Longint));      
+      SysFreemem(P,Plongint(P)^);
+    end;
+
+
+Var OldMM,NEWMM : TmemoryManager;
+
+    Procedure InitMemoryManager;
+    
+    begin
+      GetMemoryManager(OldMM);
+      NewMM.FreeMem:=@DummyFreeMem;
+      NewMM.GetMem:=@GetMem;
+      SetMemoryManager(NewMM);
+    end;
+
+    Procedure ResetMemoryManager;
+    begin
+      SetMemoryManager(OldMM);
+    end;
+    
 {$IFDEF HasResourceStrings}
 
 { ---------------------------------------------------------------------
@@ -228,16 +283,24 @@ begin
       With ResRec[i] do
         CurrentValue:=DefaultValue;
 end;
-
-Initialization
-  ResetResourceTables;
 {$endif}
 
+
+Initialization
+{$IFDEF HasResourceStrings}
+  ResetResourceTables;
+{$endif}
+  InitMemoryManager;
+finalization
+  ResetMemoryManager;
 end.
 
 {
   $Log$
-  Revision 1.29  1999-07-23 23:13:54  peter
+  Revision 1.30  1999-08-15 18:56:13  michael
+  + Delphi-style getmem and freemem
+
+  Revision 1.29  1999/07/23 23:13:54  peter
     * array[cardinal] is buggy, use array[word]
     * small fix in getresourcestring
 
