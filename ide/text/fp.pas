@@ -29,7 +29,7 @@ uses
   Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
   {$ifdef EDITORS}Editors{$else}WEditor{$endif},
   ASCIITab,Calc,
-  WViews,
+  WUtils,WViews,
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
@@ -107,6 +107,8 @@ begin
   RegisterApp;
   RegisterAsciiTab;
   RegisterCalc;
+  RegisterCodeComplete;
+  RegisterCodeTemplates;
   RegisterColorSel;
   RegisterDialogs;
 {$ifdef EDITORS}
@@ -127,6 +129,8 @@ begin
   RegisterObjects;
   RegisterValidate;
   RegisterViews;
+
+  RegisterWUtils;
   RegisterWViews;
 end;
 
@@ -213,7 +217,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.37  2000-01-25 00:26:35  pierre
+  Revision 1.38  2000-02-07 11:54:17  pierre
+   + RegisterWUtils by Gabor
+
+  Revision 1.37  2000/01/25 00:26:35  pierre
    + Browser info saving
 
   Revision 1.36  2000/01/10 15:53:37  pierre
