@@ -227,6 +227,7 @@ type tmsgconst=(
   type_e_no_method_and_procedure_not_compatible,
   type_e_wrong_math_argument,
   type_e_no_addr_of_constant,
+  type_e_argument_must_be_lvalue,
   sym_e_id_not_found,
   sym_f_internal_error_in_symtablestack,
   sym_e_duplicate_id,

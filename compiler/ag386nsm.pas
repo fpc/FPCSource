@@ -559,7 +559,11 @@ ait_stab_function_name : ;
     procedure ti386nasmasmlist.WriteExternals;
       begin
         currentasmlist:=@self;
+{$ifdef Delphi}
+        AsmSymbolList^.foreach(@writeexternal);
+{$else}
         AsmSymbolList^.foreach({$ifndef TP}@{$endif}writeexternal);
+{$endif Delphi}
       end;
 
 
@@ -597,7 +601,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.44  1999-07-18 10:19:41  florian
+  Revision 1.45  1999-07-18 14:47:20  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.44  1999/07/18 10:19:41  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

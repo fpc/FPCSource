@@ -2660,6 +2660,7 @@ Const local_symtable_index : longint = $8001;
          b : byte;
 {$endif tp}
       begin
+{$ifndef Delphi}
 {$ifdef tp}
          if use_big then
            begin
@@ -2671,6 +2672,7 @@ Const local_symtable_index : longint = $8001;
            end
          else
 {$endif}
+{$endif Delphi}
           mangledname:=strpas(_mangledname);
          if count then
            is_used:=true;
@@ -3465,7 +3467,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.131  1999-07-06 21:48:27  florian
+  Revision 1.132  1999-07-18 14:47:32  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.131  1999/07/06 21:48:27  florian
     * a lot bug fixes:
        - po_external isn't any longer necessary for procedure compatibility
        - m_tp_procvar is in -Sd now available

@@ -544,8 +544,8 @@ implementation
                       if codegenerror then
                        exit;
                       { first param must be var }
-                      if is_constnode(p^.left^.left) then
-                        CGMessage(type_e_variable_id_expected);
+                      if p^.left^.left^.location.loc<>LOC_REFERENCE then
+                        CGMessage(type_e_argument_must_be_lvalue);
                       { check type }
                       if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
                          is_ordinal(p^.left^.resulttype) then
@@ -1123,7 +1123,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-07-05 20:25:40  peter
+  Revision 1.42  1999-07-18 14:47:35  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.41  1999/07/05 20:25:40  peter
     * merged
 
   Revision 1.40  1999/07/05 20:13:18  peter

@@ -172,10 +172,10 @@ Type
 
   PPaiProp = ^TPaiProp;
 
-{$IfNDef TP}
+{$IfNDef VER70}
   TPaiPropBlock = Array[1..250000] Of TPaiProp;
   PPaiPropBlock = ^TPaiPropBlock;
-{$EndIf TP}
+{$EndIf VER70}
 
   TInstrSinceLastMod = Array[R_EAX..R_EDI] Of Byte;
 
@@ -187,11 +187,11 @@ Type
                       JmpsProcessed: Word
 {$EndIf JumpAnal}
                     End;
-{$IfDef tp}
+{$IfDef VER70}
   TLabelTable = Array[0..10000] Of TLabelTableItem;
-{$Else tp}
+{$Else VER70}
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
-{$Endif tp}
+{$Endif VER70}
   PLabelTable = ^TLabelTable;
 
 {******************************* Variables *******************************}
@@ -200,7 +200,7 @@ Var
 {the amount of PaiObjects in the current assembler list}
   NrOfPaiObjs: Longint;
 
-{$IfNDef TP}
+{$IfNDef VER70}
 {Array which holds all TPaiProps}
   PaiPropBlock: PPaiPropBlock;
 {$EndIf TP}
@@ -658,9 +658,11 @@ Begin
   If (LabelDif <> 0) Then
     Begin
 {$IfDef TP}
+{$ifndef Delphi}
       If (MaxAvail >= LabelDif*SizeOf(Pai))
         Then
           Begin
+{$endif Delphi}
 {$EndIf TP}
             GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
             FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
@@ -716,8 +718,10 @@ Begin
                   P := Pai(P^.Next);
               End;
 {$IfDef TP}
+{$ifndef Delphi}
           End
         Else LabelDif := 0;
+{$endif Delphi}
 {$EndIf TP}
     End;
 End;
@@ -2043,7 +2047,7 @@ Begin
       Inc(NrOfPaiObjs);
       GetNextInstruction(p, p);
     End;
-{$IfDef TP}
+{$IfDef VER70}
   If (MemAvail < (SizeOf(TPaiProp)*NrOfPaiObjs))
      Or (NrOfPaiObjs = 0)
     {this doesn't have to be one contiguous block}
@@ -2097,7 +2101,11 @@ End.
 
 {
  $Log$
- Revision 1.48  1999-07-01 18:21:21  jonas
+ Revision 1.49  1999-07-18 14:47:23  florian
+   * bug 487 fixed, (inc(<property>) isn't allowed)
+   * more fixes to compile with Delphi
+
+ Revision 1.48  1999/07/01 18:21:21  jonas
    * removed unused AsmL parameter from FindLoHiLabels
 
  Revision 1.47  1999/05/27 19:44:24  peter

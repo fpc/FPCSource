@@ -223,7 +223,9 @@ begin
   Message1(general_t_librarypath,Linker.librarysearchpath);
   Message1(general_t_objectpath,objectsearchpath);
 {$ifdef TP}
+{$ifndef Delphi}
   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
+{$endif Delphi}  
 {$endif}
 
 {$ifdef USEEXCEPT}
@@ -273,7 +275,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-07-18 10:19:48  florian
+  Revision 1.25  1999-07-18 14:47:22  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.24  1999/07/18 10:19:48  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

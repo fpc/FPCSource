@@ -700,7 +700,7 @@ parser_e_register_calling_not_supported=E_Register calling (fastcall) not suppor
 parser_e_property_cant_have_a_default_value=E_Property can't have a default value
 % Set properties or indexed properties cannot have a default value.
 parser_e_property_default_value_must_const=E_The default value of a property must be constant
-% The value of a \var{default} declared property must be knwon at compile
+% The value of a \var{default} declared property must be known at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
 parser_e_cant_publish_that=E_Symbol can't be published, can be only a class
@@ -871,6 +871,11 @@ type_e_wrong_math_argument=E_Illegal constant passed to internal math function
 type_e_no_addr_of_constant=E_Can't get the address of constants
 % It's not possible to get the address of a constant, because they
 % aren't stored in memory, you can try making it a typed constant.
+type_e_argument_must_be_lvalue=E_Argument must be l-value
+% Only expressions which can be on the left side of an
+% assignment can be passed as call by reference argument
+% Remark: Properties can be only
+% used on the left side of an assignment, but they can't be used as l-values
 % \end{description}
 #
 # Symtable

@@ -345,7 +345,7 @@ uses
         if closed then
          exit;
         inc(bufstart,bufsize);
-      {$ifdef TP}
+      {$ifdef VER70}
         blockread(f,buf^,maxbufsize-1,w);
         bufsize:=w;
       {$else}
@@ -1314,7 +1314,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.98  1999-07-18 10:19:51  florian
+  Revision 1.99  1999-07-18 14:47:26  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.98  1999/07/18 10:19:51  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

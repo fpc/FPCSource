@@ -26,7 +26,9 @@ interface
 {$ifndef LINUX}
   {$S-}
 {$endif}
-
+{$ifdef Delphi}
+{$undef TP}
+{$endif Delphi}
 
 type
    jmp_buf = record
@@ -350,7 +352,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-05-04 21:45:08  florian
+  Revision 1.7  1999-07-18 14:47:36  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.6  1999/05/04 21:45:08  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.5  1998/10/28 18:26:23  pierre

@@ -28,7 +28,9 @@ unit symtable;
 
     uses
 {$ifdef TP}
+{$ifndef Delphi}
        objects,
+{$endif Delphi}
 {$endif}
        strings,cobjects,
        globtype,globals,tokens,systems,verbose,
@@ -449,11 +451,13 @@ implementation
      asmoutput : paasmoutput;
 {$endif GDB}
 {$ifdef TP}
+{$ifndef Delphi}
    {$ifndef dpmi}
        symbolstream : temsstream;  { stream which is used to store some info }
    {$else}
        symbolstream : tmemorystream;
    {$endif}
+{$endif Delphi}
 {$endif}
 
    {to dispose the global symtable of a unit }
@@ -525,7 +529,9 @@ implementation
 
    procedure setstring(var p : pchar;const s : string);
      begin
+{$ifndef Delphi}
 {$ifdef TP}
+
        if use_big then
         begin
           p:=pchar(symbolstream.getsize);
@@ -534,6 +540,7 @@ implementation
         end
        else
 {$endif TP}
+{$endif Delphi}
         p:=strpnew(s);
      end;
 
@@ -2242,6 +2249,7 @@ implementation
                            Init/Done Symtable
 ****************************************************************************}
 
+{$ifndef Delphi}
 {$ifdef tp}
    procedure do_streamerror;
      begin
@@ -2252,9 +2260,11 @@ implementation
        halt(1);
      end;
 {$endif TP}
+{$endif Delphi}
 
    procedure InitSymtable;
      begin
+{$ifndef Delphi}
 {$ifdef TP}
      { Allocate stream }
         if use_big then
@@ -2272,6 +2282,7 @@ implementation
            symbolstream.writestr(@inputfile);
          end;
 {$endif tp}
+{$endif Delphi}
       { Reset symbolstack }
         registerdef:=false;
         read_member:=false;
@@ -2300,17 +2311,23 @@ implementation
         dispose_global:=true;
         while assigned(symtablestack) do
           dellexlevel;  }
+{$ifndef Delphi}
 {$ifdef TP}
       { close the stream }
         if use_big then
          symbolstream.done;
 {$endif}
+{$endif Delphi}
      end;
 
 end.
 {
   $Log$
-  Revision 1.24  1999-07-03 00:30:01  peter
+  Revision 1.25  1999-07-18 14:47:34  florian
+    * bug 487 fixed, (inc(<property>) isn't allowed)
+    * more fixes to compile with Delphi
+
+  Revision 1.24  1999/07/03 00:30:01  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 
