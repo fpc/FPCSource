@@ -720,7 +720,7 @@ implementation
              location.reference.base:=procinfo.framepointer;
              location.reference.offset:=procinfo.return_offset;
            end;
-         if paramanager.ret_in_param(resulttype.def) then
+         if paramanager.ret_in_param(aktprocdef.rettype.def) then
            begin
               { the parameter is actual a pointer to the value }
               if not hr_valid then
@@ -959,7 +959,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-09-30 07:00:46  florian
+  Revision 1.33  2002-10-03 21:32:02  carl
+    * bugfix for 2110 (without -Or), wrong checking was done in returntype
+
+  Revision 1.32  2002/09/30 07:00:46  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.31  2002/09/26 15:02:05  florian
