@@ -126,17 +126,6 @@
       end;
 {$endif HASINTF}
 
-
-    function aligntoptr(p : pointer) : pointer;
-      begin
-    {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-        if (ptrint(p) mod sizeof(ptrint))<>0 then
-          inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
-    {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-        result:=p;
-      end;
-
-
 {****************************************************************************
                                TOBJECT
 ****************************************************************************}
@@ -758,8 +747,8 @@
 
 {
   $Log$
-  Revision 1.43  2004-11-03 10:22:19  florian
-    * info record about class fields must be packed else it will be aligned wrongly on 64 bit platforms
+  Revision 1.44  2004-11-03 11:33:50  florian
+    * fixed dyn. array handling for 32 bit architectures requiering proper alignment
 
   Revision 1.42  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
