@@ -139,7 +139,10 @@ implementation
                 begin
                    if token=_INITIALIZATION then
                      begin
-                        current_module.flags:=current_module.flags or uf_init;
+                        { The library init code is already called and does not
+                          need to be in the initfinal table (PFV) }
+                        if not islibrary then
+                          current_module.flags:=current_module.flags or uf_init;
                         block:=statement_block(_INITIALIZATION);
                      end
                    else if (token=_FINALIZATION) then
@@ -156,7 +159,10 @@ implementation
                      end
                    else
                      begin
-                        current_module.flags:=current_module.flags or uf_init;
+                        { The library init code is already called and does not
+                          need to be in the initfinal table (PFV) }
+                        if not islibrary then
+                          current_module.flags:=current_module.flags or uf_init;
                         block:=statement_block(_BEGIN);
                      end;
                 end;
@@ -804,7 +810,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-12-07 14:27:09  carl
+  Revision 1.81  2002-12-15 13:37:15  peter
+    * don't include uf_init for library. The code is already called and
+      does not need to be in the initfinal table
+
+  Revision 1.80  2002/12/07 14:27:09  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for
