@@ -714,6 +714,7 @@ implementation
         symtablestack:=stt;
         { set procdef options }
         pd.proctypeoption:=potype;
+        pd.proccalloption:=pocall_default;
         pd.forwarddef:=false;
         pd.setmangledname(target_info.cprefix+name);
         pd.aliasnames.insert(pd.mangledname);
@@ -1470,7 +1471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2003-09-07 22:09:35  peter
+  Revision 1.123  2003-09-09 15:55:44  peter
+    * use register with least interferences in spillregister
+
+  Revision 1.122  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

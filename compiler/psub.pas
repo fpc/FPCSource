@@ -685,20 +685,21 @@ implementation
             {Do register allocation.}
             spillingcounter:=0;
             repeat
-{$ifdef EXTDEBUG}
-//              if aktfilepos.line=1207 then
-//                rg.writegraph(spillingcounter);
-{$endif EXTDEBUG}
+{$ifdef ra_debug}
+              if aktfilepos.line=2502 then
+                rg.writegraph(spillingcounter);
+{$endif ra_debug}
               rg.prepare_colouring;
               rg.colour_registers;
               rg.epilogue_colouring;
-              if rg.spillednodes='' then
-                break;
-              rg.spill_registers(aktproccode,rg.spillednodes);
-              inc(spillingcounter);
-              if spillingcounter>maxspillingcounter then
-                internalerror(200309041);
-            until false;
+              if rg.spillednodes<>'' then
+                begin
+                  inc(spillingcounter);
+                  if spillingcounter>maxspillingcounter then
+                    internalerror(200309041);
+                  rg.spill_registers(aktproccode,rg.spillednodes);
+                end;
+            until rg.spillednodes='';
             aktproccode.translate_registers(rg.colour);
 (*
 {$ifndef NoOpt}
@@ -1314,7 +1315,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2003-09-07 22:09:35  peter
+  Revision 1.143  2003-09-09 15:55:44  peter
+    * use register with least interferences in spillregister
+
+  Revision 1.142  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

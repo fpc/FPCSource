@@ -462,7 +462,6 @@ unit rgobj;
        cgobj,tgobj,regvars;
 
     constructor Trgobj.create;
-
      begin
        used_in_proc_int := [];
        used_in_proc_other:=[];
@@ -609,11 +608,10 @@ unit rgobj;
 
     begin
       subreg:=cgsize2subreg(size);
-      { Leave 2 imaginary registers free for spilling (PFV) }
       result:=getregistergenint(list,
                                 subreg,
                                 first_int_imreg,
-                                last_int_imreg-2,
+                                last_int_imreg,
                                 used_in_proc_int,
                                 unusedregsint);
       add_constraints(getregisterint);
@@ -1404,7 +1402,8 @@ unit rgobj;
     var p:byte;
 
     begin
-      if not(u in [first_int_supreg..last_int_supreg]) and not move_related(u) and
+      if not(u in [first_int_supreg..last_int_supreg]) and
+         not move_related(u) and
          (degree[u]<cpu_registers) then
         begin
           p:=pos(char(u),freezeworklist);
@@ -1413,7 +1412,6 @@ unit rgobj;
           if length(freezeworklist)>1 then
             freezeworklist[p]:=freezeworklist[length(freezeworklist)];
           dec(freezeworklist[0]);
-{          delete(freezeworklist,pos(char(u),freezeworklist),1);}
           simplifyworklist:=simplifyworklist+char(u);
         end;
     end;
@@ -1505,19 +1503,22 @@ unit rgobj;
 
       {Combine both movelists. Since the movelists are sets, only add
        elements that are not already present.}
-      for n:=0 to movelist[v]^.count-1 do
+      if assigned(movelist[v]) then
         begin
-          add:=true;
-          for o:=0 to movelist[u]^.count-1 do
-            if movelist[u]^.data[o]=movelist[v]^.data[n] then
-              begin
-                add:=false;
-                break;
-              end;
-          if add then
-            add_to_movelist(u,movelist[v]^.data[n]);
+          for n:=0 to movelist[v]^.count-1 do
+            begin
+              add:=true;
+              for o:=0 to movelist[u]^.count-1 do
+                if movelist[u]^.data[o]=movelist[v]^.data[n] then
+                  begin
+                    add:=false;
+                    break;
+                  end;
+              if add then
+                add_to_movelist(u,movelist[v]^.data[n]);
+            end;
+          enable_moves(v);
         end;
-      enable_moves(v);
 
       adj:=igraph.adjlist[v];
       if adj<>nil then
@@ -1623,7 +1624,9 @@ unit rgobj;
                 Tmoveins(m).moveset:=ms_frozen_moves;
                 frozen_moves.insert(m);
 
-                if not(move_related(v)) and (degree[v]<cpu_registers) then
+                if not(v in [first_int_supreg..last_int_supreg]) and
+                   not(move_related(v)) and
+                   (degree[v]<cpu_registers) then
                   begin
                     delete(freezeworklist,pos(char(v),freezeworklist),1);
                     simplifyworklist:=simplifyworklist+char(v);
@@ -1671,10 +1674,11 @@ unit rgobj;
 
     begin
       spillednodes:='';
+      {Reset colours}
+      for i:=0 to maxintreg do
+        colour[i]:=i;
       {Colour the cpu registers...}
       colourednodes:=[first_int_supreg..last_int_supreg];
-      for i:=first_int_supreg to last_int_supreg do
-        colour[i]:=i;
       {Now colour the imaginary registers on the select-stack.}
       for i:=length(selectstack) downto 1 do
         begin
@@ -1714,13 +1718,13 @@ unit rgobj;
           if n in used_in_proc_int then
             include(used_in_proc_int,colour[k]);
         end;
-      { registers which aren't available to the register allocator must }
-      { retain their value                                              }
-{      for i := 1 to first_int_supreg-1 do
-        colour[i] := i;}
 {$ifdef ra_debug}
-      for i:=first_int_imreg to maxintreg do
-        writeln(i:4,'   ',colour[i]:4)
+      if aktfilepos.line=2502 then
+        begin
+          writeln('colourlist ',length(freezeworklist));
+          for i:=0 to maxintreg do
+            writeln(i:4,'   ',colour[i]:4)
+        end;
 {$endif ra_debug}
     end;
 
@@ -1884,42 +1888,57 @@ unit rgobj;
 
     procedure Trgobj.getregisterintinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
 
-    var i:Tsuperregister;
+    var min,p,i:Tsuperregister;
         r:Tregister;
-
+        adj:Pstring;
     begin
-      if not (lastintreg in [first_int_imreg..last_int_imreg]) then
-        lastintreg:=first_int_imreg;
-      i:=lastintreg;
-      repeat
-        if i=last_int_imreg then
-          i:=first_int_imreg
-        else
-          inc(i);
-        if (i in unusedregsint) and
-           (pos(char(i),abtlist)=0) and
-           (pos(char(i),spillednodes)=0) and
-            ((rg.colour[i] in unusedregsint) or
-            (rg.colour[i]=RS_INVALID)) then
-          begin
-            exclude(unusedregsint,i);
-            include(used_in_proc_int,i);
-            r:=newreg(R_INTREGISTER,i,subreg);
-            if position=nil then
-              list.insert(Tai_regalloc.alloc(r))
-            else
-              list.insertafter(Tai_regalloc.alloc(r),position);
-            lastintreg:=i;
-            if i>maxintreg then
-              maxintreg:=i;
-            add_edges_used(i);
-            add_constraints(r);
-            result:=r;
-            exit;
-          end;
-      until i=lastintreg;
-      internalerror(10);
+      if maxintreg<last_int_imreg then
+        begin
+          inc(maxintreg);
+          p:=maxintreg;
+          min:=0;
+        end
+      else
+        begin
+          min:=$ff;
+          p:=1;
+          for i:=first_int_imreg to lastintreg do
+           if (i in unusedregsint) and
+              (pos(char(i),abtlist)=0) and
+              (pos(char(i),spillednodes)=0) then
+            begin
+              adj:=igraph.adjlist[Tsuperregister(i)];
+              if adj=nil then
+                begin
+                  min:=0;
+                  break;  {We won't find smaller ones.}
+                end
+              else
+                if length(adj^)<min then
+                  begin
+                    min:=length(adj^);
+                    if min=0 then
+                      break;  {We won't find smaller ones.}
+                    p:=i;
+                  end;
+            end;
+        end;
+
+       if min=$ff then
+         internalerror(10);
+
+       exclude(unusedregsint,p);
+       include(used_in_proc_int,p);
+       r:=newreg(R_INTREGISTER,p,subreg);
+       if position=nil then
+         list.insert(Tai_regalloc.alloc(r))
+       else
+         list.insertafter(Tai_regalloc.alloc(r),position);
+       add_edges_used(p);
+       add_constraints(r);
+       result:=r;
     end;
+
 
     {In some cases we can get in big trouble. See this example:
 
@@ -2203,7 +2222,10 @@ end.
 
 {
   $Log$
-  Revision 1.71  2003-09-07 22:09:35  peter
+  Revision 1.72  2003-09-09 15:55:44  peter
+    * use register with least interferences in spillregister
+
+  Revision 1.71  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 
