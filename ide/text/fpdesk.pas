@@ -290,8 +290,9 @@ begin
     OK:=WriteBreakpoints(F);
   if OK and ((DesktopFileFlags and dfOpenWindows)<>0) then
     OK:=WriteOpenWindows(F);
+  { no errors if no browser info available PM }  
   if OK and ((DesktopFileFlags and dfSymbolInformation)<>0) then
-    OK:=WriteSymbols(F);
+    OK:=WriteSymbols(F) or not Assigned(Modules);
   Dispose(F, Done);
   PopStatus;
   SaveDesktop:=OK;
@@ -300,7 +301,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-08-16 18:25:16  peter
+  Revision 1.9  1999-09-07 09:23:00  pierre
+   * no errors if no browser info available
+
+  Revision 1.8  1999/08/16 18:25:16  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
@@ -368,4 +372,3 @@ END.
     * preferences dialog
 
 }
-
