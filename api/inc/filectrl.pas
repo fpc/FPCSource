@@ -20,11 +20,6 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************
-
-  Todo:
-   OS/2 versions of TruncateFile, FlushFile
-
  ****************************************************************************}
 unit FileCtrl;
 
@@ -38,8 +33,7 @@ uses
     OS/2 either 1.x, or 2.x
     Linux
     DOS  16 bit, DPMI, Windows 3.1
-  Not supported:
-    Win32 (yet)
+    Win32
 }
 
 const
@@ -159,7 +153,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:38  michael
+  Revision 1.2  2000-12-17 20:40:25  hajny
+    * OS/2 implementation corrected and finished
+
+  Revision 1.1  2000/07/13 06:29:38  michael
   + Initial import
 
   Revision 1.2  2000/02/29 11:43:16  pierre

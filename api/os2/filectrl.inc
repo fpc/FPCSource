@@ -47,30 +47,43 @@ function DosWrite(Handle: Word; var BufferArea;
 
 function DosSetFilePtr (Handle: Word; ulOffset: LongInt;
   MoveType: Word; var NewPointer: LongInt): LongInt; far;
-  external 'DOSCALLS' index 58;                    { Dos write procedure }
+  external 'DOSCALLS' index 58;                    { Dos seek procedure }
+
+function DosGetFilePtr (Handle: Word; var CurPos: longint): longint;
+begin
+  DosGetFilePtr := DosSetFilePtr (Handle, 0, skCur, CurPos);
+end;
+
+function DosResetBuffer (Handle: Word): longint; far;
+  external 'DOSCALLS' index 56;                    { Dos flush procedure }
+
+function DosSetFileSize (Handle: Word; Size: longint): longint; far;
+  external 'DOSCALLS' index 68;                    { Dos write procedure }
 
 {$ENDIF}
 
-function OpenFile(FName: PChar; Flags: Longint): TFileHandle;
+function OpenFileStr(FName: PChar; Flags: Longint): TFileHandle;
 var
   Handle, ActionTaken: CPUWord;
 begin
-  ErrorCode := DosOpen(FName, Handle, ActionTaken, 0, $20, 1, Flags);
+  ErrorCode := DosOpen(FName, Handle, ActionTaken, 0, $20, 1, Flags, nil);
   if ErrorCode <> 0 then
-    OpenFile := -1
+    OpenFileStr := -1
    else begin
-    OpenFile := Handle;
+    OpenFileStr := Handle;
     ErrorCode := 0;
   end;
 end;
 
-function CreateFile(FName: PChar): TFileHandle;
+function CreateFileStr(FName: PChar): TFileHandle;
+var
+  Handle, ActionTaken: CPUWord;
 begin
-  ErrorCode := DosOpen(FName, Handle, ActionTaken, 0, $20, $12, 1);
+  ErrorCode := DosOpen(FName, Handle, ActionTaken, 0, $20, $12, 1, nil);
   if ErrorCode <> 0 then
-    OpenFile := -1
+    CreateFileStr := -1
    else begin
-    OpenFile := Handle;
+    CreateFileStr := Handle;
     ErrorCode := 0;
   end;
 end;
@@ -80,9 +93,9 @@ begin
   ErrorCode := DosClose(Handle);
 end;
 
-procedure DeleteFile(FName: PChar);
+procedure DeleteFileStr(FName: PChar);
 begin
-  ErrorCode := DosDelete(FName, 0);
+  ErrorCode := DosDelete(FName);
 end;
 
 function ReadFile(Handle: TFileHandle; var Buff; Count: CPUWord): CPUWord;
@@ -97,15 +110,15 @@ begin
   end;
 end;
 
-function WriteFile(Handle: TFileHandle; var Buff; Count: Word): Word;
+function WriteFile(Handle: TFileHandle; var Buff; Count: CPUWord): CPUWord;
 var
-  BuffWritten: Word;
+  BuffWritten: CPUWord;
 begin
   ErrorCode := DosWrite(Handle, Buff, Count, BuffWritten);
   if ErrorCode <> 0 then
     WriteFile := 0
    else begin
-    WriteFile := BuffRead;
+    WriteFile := BuffWritten;
   end;
 end;
 
@@ -123,12 +136,15 @@ end;
 
 procedure FlushFile(Handle: TFileHandle);
 begin
-  { not implemented yet }
+  ErrorCode := DosResetBuffer (Handle);
 end;
 
 procedure TruncateFile(Handle: TFileHandle);
+var
+  CurPos: longint;
 begin
-  { not implemented yet }
+  ErrorCode := DosGetFilePtr(Handle, CurPos);
+  if ErrorCode = 0 then ErrorCode := DosSetFileSize (Handle, CurPos);
 end;
 
 function EndOfFile(Handle: TFileHandle): Boolean;
@@ -150,11 +166,13 @@ begin
   SeekFile(Handle, L, skBeg);
 end;
 
-{$ENDIF}
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:25  michael
+  Revision 1.3  2000-12-17 20:39:46  hajny
+    * OS/2 implementation corrected and finished
+
+  Revision 1.2  2000/07/13 11:32:25  michael
   + removed logs
  
 }
