@@ -1103,7 +1103,7 @@ implementation
                        if (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
-                          if gotderef or (Valid_Const in opts) then
+                          if gotderef or gotdynarray or (Valid_Const in opts) then
                            result:=true
                           else
                            CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
@@ -2035,7 +2035,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2005-02-14 17:13:06  peter
+  Revision 1.118  2005-02-20 13:12:22  peter
+    * allow assignment to elements of constant dyn array in delphi mode
+
+  Revision 1.117  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.116  2005/02/14 16:45:00  peter
