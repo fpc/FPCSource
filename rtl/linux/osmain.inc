@@ -497,7 +497,8 @@ end;
 *****************************************************************************}
 
 
-procedure SignalToRunerror(signo: cint); cdecl;
+procedure SignalToRunerror(Signo: longint; SigContext: SigContextRec);cdecl;
+//procedure SignalToRunerror(signo: cint); cdecl;
 var
   res : word;
 begin
@@ -514,7 +515,11 @@ begin
   { give runtime error at the position where the signal was raised }
   if res<>0 then
    begin
-     HandleError(res);
+     {$ifdef cpui386}
+       HandleErrorAddrFrame(res,pointer(SigContext.eip),pointer(SigContext.ebp));
+     {$else}
+       HandleErrorAddrFrame(res);
+     {$endif}
    end;
 end;
 
@@ -530,7 +535,7 @@ begin
   { all flags and information set to zero }
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler := @SignalToRunError;
+  act.sa_handler := signalhandler(@SignalToRunError);
   FpSigAction(SIGFPE,@act,@oldact);
   FpSigAction(SIGSEGV,@act,@oldact);
   FpSigAction(SIGBUS,@act,@oldact);
@@ -616,7 +621,11 @@ End.
 *)
 {
  $Log$
- Revision 1.6  2003-09-27 12:51:33  peter
+ Revision 1.7  2003-10-31 20:36:01  marco
+  * i386 specific fixes that hopefully fix texception4.
+ 	Only the "generic" signal handler was ported to the unix rtl.
+
+ Revision 1.6  2003/09/27 12:51:33  peter
    * fpISxxx macros renamed to C compliant fpS_ISxxx
 
  Revision 1.5  2003/05/01 08:05:23  florian
