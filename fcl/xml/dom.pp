@@ -1064,8 +1064,10 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then
-      exit(FAttributes.Item[i].NodeValue);
+    if FAttributes.Item[i].NodeName = name then begin
+      Result := FAttributes.Item[i].NodeValue;
+      exit;
+    end;
   Result := '';
 end;
 
@@ -1252,7 +1254,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-07-12 12:19:49  michael
+  Revision 1.6  1999-12-05 22:00:10  sg
+  * Bug workaround for problem with "exit(<some string type>)"
+
+  Revision 1.5  1999/07/12 12:19:49  michael
   + More fixes from Sebastian Guenther
 
   Revision 1.4  1999/07/11 20:20:11  michael
