@@ -602,15 +602,9 @@
          index:=readlong;
          default:=readlong;
          { it's hack ... }
-{$ifdef oldpropppu}
-         readaccesssym:=psym(stringdup(readstring));
-         writeaccesssym:=psym(stringdup(readstring));
-         storedsym:=psym(stringdup(readstring));
-{$else oldpropppu}
          readaccesssym:=readsymref;
          writeaccesssym:=readsymref;
          storedsym:=readsymref;
-{$endif oldpropppu}
          { now the defs: }
          readaccessdef:=readdefref;
          writeaccessdef:=readdefref;
@@ -624,46 +618,9 @@
          resolvedef(readaccessdef);
          resolvedef(writeaccessdef);
          resolvedef(storeddef);
-{$ifdef oldpropppu}
-
-         { solve the hack we did in load: }
-         if pstring(readaccesssym)^<>'' then
-           begin
-              srsym:=search_class_member(pobjectdef(owner^.defowner),pstring(readaccesssym)^);
-              if not(assigned(srsym)) then
-                srsym:=generrorsym;
-           end
-         else
-           srsym:=nil;
-         stringdispose(pstring(readaccesssym));
-         readaccesssym:=srsym;
-
-         if pstring(writeaccesssym)^<>'' then
-           begin
-              srsym:=search_class_member(pobjectdef(owner^.defowner),pstring(writeaccesssym)^);
-              if not(assigned(srsym)) then
-                srsym:=generrorsym;
-           end
-         else
-           srsym:=nil;
-         stringdispose(pstring(writeaccesssym));
-         writeaccesssym:=srsym;
-
-         if pstring(storedsym)^<>'' then
-           begin
-              srsym:=search_class_member(pobjectdef(owner^.defowner),pstring(storedsym)^);
-              if not(assigned(srsym)) then
-                srsym:=generrorsym;
-           end
-         else
-           srsym:=nil;
-         stringdispose(pstring(storedsym));
-         storedsym:=srsym;
-{$else oldpropppu}
          resolvesym(readaccesssym);
          resolvesym(writeaccesssym);
          resolvesym(storedsym);
-{$endif oldpropppu}
       end;
 
     function tpropertysym.getsize : longint;
@@ -680,24 +637,9 @@
          writelong(options);
          writelong(index);
          writelong(default);
-{$ifdef oldpropppu}
-         if assigned(readaccesssym) then
-           writestring(readaccesssym^.name)
-         else
-           writestring('');
-         if assigned(writeaccesssym) then
-           writestring(writeaccesssym^.name)
-         else
-           writestring('');
-         if assigned(storedsym) then
-           writestring(storedsym^.name)
-         else
-           writestring('');
-{$else oldpropppu}
          writesymref(readaccesssym);
          writesymref(writeaccesssym);
          writesymref(storedsym);
-{$endif oldpropppu}
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
          writedefref(storeddef);
@@ -2040,7 +1982,10 @@
 
 {
   $Log$
-  Revision 1.98  1999-07-22 09:37:55  florian
+  Revision 1.99  1999-07-23 11:33:23  peter
+    * removed oldppu from propertysym
+
+  Revision 1.98  1999/07/22 09:37:55  florian
     + resourcestring implemented
     + start of longstring support
 
