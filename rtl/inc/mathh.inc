@@ -65,7 +65,7 @@
     function cos(d : extended) : extended;[internproc:fpc_in_cos_extended];
     function exp(d : extended) : extended;[internconst:fpc_in_const_exp];
 
-    function round(d : extended) : int64;[internconst:fpc_in_const_exp];external name 'FPC_ROUND';
+    function round(d : extended) : int64;[internconst:fpc_in_const_round];external name 'FPC_ROUND';
     function frac(d : extended) : extended;[internconst:fpc_in_const_frac];
     function int(d : extended) : extended;[internconst:fpc_in_const_int];
     function trunc(d : extended) : int64;[internconst:fpc_in_const_trunc];
@@ -124,7 +124,10 @@
 
 {
   $Log$
-  Revision 1.17  2004-11-17 22:19:04  peter
+  Revision 1.18  2004-11-18 10:03:36  michael
+  + Patch from peter to fix pasjpeg compile
+
+  Revision 1.17  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.16  2004/10/09 21:00:46  jonas
