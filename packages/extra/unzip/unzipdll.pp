@@ -213,11 +213,15 @@ begin
   ExitProc := @NewExit;
  end else
  begin
-  WriteLn (#13#10'Dynamic library UNZIP32.DLL from InfoZip is needed to install.');
+  WriteLn (#13#10'Dynamic library UNZIP32.DLL from InfoZip is needed to unpack archives.');
   WriteLn ('This library could not be found on your system, however.');
   WriteLn ('Please, download the library, either from the location where you found');
-  WriteLn ('this installer, or from any FTP archive carrying InfoZip programs.');
-  WriteLn ('If you have this DLL on your disk, please, check your configuration (' + LIBPATH + ').');
+  WriteLn ('this package, or from any FTP archive carrying InfoZip programs.');
+{$IFDEF OS2}
+  WriteLn ('If you already have this DLL, please, check your configuration (' + LIBPATH + ').');
+{$ELSE}
+  WriteLn ('If you already have this DLL, please, check your configuration (' + PATH + ').');
+{$ENDIF}
   WriteLn (#13#10'If you want to try unpacking the files with internal unpacking routine,');
   WriteLn ('answer the following question with Y. However, this might not work correctly');
   WriteLn ('under some conditions (e.g. for long names and drives not supporting them).');
@@ -228,7 +232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:23  peter
+  Revision 1.2  2002-07-07 08:22:17  hajny
+    * warning message modified to be more general
+
+  Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
 
   Revision 1.1  2001/01/30 19:26:18  peter
