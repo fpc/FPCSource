@@ -995,7 +995,7 @@ fake:
 	$(MAKE) all FAKE=1
 full: all
 fullgdb: gdb
-clean: fpc_cleanall
+clean: cleanall
 ifndef UNIXINSTALLDIR
 override DATAINSTALLDIR=$(BININSTALLDIR)
 endif

@@ -150,7 +150,7 @@ fullgdb: gdb
 
 # This is necessary because we don't have all units separate in the
 # units targets
-clean: fpc_cleanall
+clean: cleanall
 
 #
 # Installation
