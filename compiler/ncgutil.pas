@@ -1265,12 +1265,13 @@ implementation
            not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { non-win32 can call mcout even in main }
-            if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
-              cg.g_profilecode(list)
-            else
-            { wdosx, and win32 should not call mcount before monstartup has been called }
-            if not (current_procinfo.procdef.proctypeoption=potype_proginit) then
-              cg.g_profilecode(list);
+            if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
+               not (current_procinfo.procdef.proctypeoption=potype_proginit) then
+              begin
+                cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+                cg.g_profilecode(list);
+                cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+              end;
           end;
 
         { call startup helpers from main program }
@@ -2133,7 +2134,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.202  2004-05-23 15:23:30  peter
+  Revision 1.203  2004-05-28 21:14:13  peter
+    * first load para's to temps before calling entry code (profile
+
+  Revision 1.202  2004/05/23 15:23:30  peter
     * fixed qword(longint) that removed sign from the number
     * removed code in the compiler that relied on wrong qword(longint)
       code generation

@@ -570,8 +570,8 @@ implementation
             addstatement(codestatement,bodyexitcode);
             addstatement(codestatement,final_asmnode);
             { Initialize before try...finally...end frame }
-            addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,loadpara_asmnode);
+            addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
             aktfilepos:=entrypos;
@@ -585,8 +585,8 @@ implementation
           end
         else
           begin
-            addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,loadpara_asmnode);
+            addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
             addstatement(newstatement,code);
@@ -1001,7 +1001,6 @@ implementation
 
          { parse the code ... }
          code:=block(current_module.islibrary);
-
          { save exit info }
          exitswitches:=aktlocalswitches;
          exitpos:=last_endtoken_filepos;
@@ -1009,8 +1008,18 @@ implementation
          { the procedure is now defined }
          procdef.forwarddef:=false;
 
+         if assigned(code) then
+           begin
+             { get a better entry point }
+             entrypos:=code.fileinfo;
+
+             { Finish type checking pass }
+             do_resulttypepass(code);
+           end;
+
          { Check for unused labels, forwards, symbols for procedures. Static
-           symtable is checked in pmodules }
+           symtable is checked in pmodules.
+           The check must be done after the resulttypepass }
          if (Errorcount=0) and
             (tstoredsymtable(procdef.localst).symtabletype<>staticsymtable) then
            begin
@@ -1026,15 +1035,6 @@ implementation
                  tstoredsymtable(procdef.localst).allsymbolsused;
                  tstoredsymtable(procdef.parast).allsymbolsused;
                end;
-           end;
-
-         if assigned(code) then
-           begin
-             { get a better entry point }
-             entrypos:=code.fileinfo;
-
-             { Finish type checking pass }
-             do_resulttypepass(code);
            end;
 
          { store a copy of the original tree for inline, for
@@ -1389,7 +1389,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.193  2004-05-24 17:31:12  peter
+  Revision 1.194  2004-05-28 21:14:13  peter
+    * first load para's to temps before calling entry code (profile
+
+  Revision 1.193  2004/05/24 17:31:12  peter
     * also check local typed const
 
   Revision 1.192  2004/05/23 18:28:41  peter
