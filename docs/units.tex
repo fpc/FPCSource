@@ -18,9 +18,12 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA.
 %
-% This is just a main file. All units are described in separate files.
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble. 
+% Uncomment the one you need here. The book version is for the published
+% book version.
 \documentclass{report}
+%\documentclass{book}
 %
 % Preamble
 %
@@ -31,6 +34,17 @@
 \else
   \usepackage{fpc}
 \fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Uncomment the fpc or fpcbook version, depending on the output format 
+% you want.
+\usepackage{fpc}
+%\usepackage{fpcbook}
+\latex{\usepackage{multicol}}
+\latex{%
+  \ifpdf
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
 %
 \html{\input{fpc-html.tex}}
 %
@@ -47,6 +61,8 @@
 \makeindex
 %
 % Syntax style
+%
+% This is just a main file. All units are described in separate files.
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
