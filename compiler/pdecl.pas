@@ -230,6 +230,13 @@ unit pdecl;
       begin
          s:=pattern;
          consume(ID);
+         { classes can be used also in classes }
+         if (curobjectname=pattern) and aktobjectdef^.isclass then
+           begin
+              id_type:=aktobjectdef;
+              exit;
+           end;
+         { objects can be parameters }
          if (testcurobject=2) and (curobjectname=pattern) then
            begin
               id_type:=aktobjectdef;
@@ -930,36 +937,41 @@ unit pdecl;
          procinfo._class:=aktclass;
          testcurobject:=1;
          curobjectname:=n;
-         while token<>_END do
+
+         { short class declaration ? }
+         if token<>SEMICOLON then
            begin
-              if (token=ID) and (pattern='PRIVATE') then
+              while token<>_END do
                 begin
-                   consume(ID);
-                   actmembertype:=sp_private;
-                   current_object_option:=sp_private;
+                   if (token=ID) and (pattern='PRIVATE') then
+                     begin
+                        consume(ID);
+                        actmembertype:=sp_private;
+                        current_object_option:=sp_private;
+                     end;
+                   if (token=ID) and (pattern='PROTECTED') then
+                     begin
+                        consume(ID);
+                        current_object_option:=sp_protected;
+                        actmembertype:=sp_protected;
+                     end;
+                   if (token=ID) and (pattern='PUBLIC') then
+                     begin
+                        consume(ID);
+                        current_object_option:=sp_public;
+                        actmembertype:=sp_public;
+                     end;
+                   if (token=ID) and (pattern='PUBLISHED') then
+                     begin
+                        consume(ID);
+                        current_object_option:=sp_public;
+                        actmembertype:=sp_public;
+                     end;
+                   object_komponenten;
                 end;
-              if (token=ID) and (pattern='PROTECTED') then
-                begin
-                   consume(ID);
-                   current_object_option:=sp_protected;
-                   actmembertype:=sp_protected;
-                end;
-              if (token=ID) and (pattern='PUBLIC') then
-                begin
-                   consume(ID);
-                   current_object_option:=sp_public;
-                   actmembertype:=sp_public;
-                end;
-              if (token=ID) and (pattern='PUBLISHED') then
-                begin
-                   consume(ID);
-                   current_object_option:=sp_public;
-                   actmembertype:=sp_public;
-                end;
-              object_komponenten;
+              current_object_option:=sp_public;
+              consume(_END);
            end;
-         current_object_option:=sp_public;
-         consume(_END);
          testcurobject:=0;
          curobjectname:='';
 
@@ -1096,12 +1108,6 @@ unit pdecl;
             until false;
             dec(testcurobject);
             consume(RKLAMMER);
-            if token=_OF then
-              begin
-                 consume(_OF);
-                 consume(_OBJECT);
-                 procvardef^.options:=procvardef^.options or pomethodpointer;
-              end;
          end;
        handle_procvar:=procvardef;
     end;
@@ -1387,6 +1393,12 @@ unit pdecl;
               begin
                  consume(_PROCEDURE);
                  p:=handle_procvar;
+                 if token=_OF then
+                   begin
+                      consume(_OF);
+                      consume(_OBJECT);
+                      pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
+                   end;
               end;
             _FUNCTION:
               begin
@@ -1394,6 +1406,12 @@ unit pdecl;
                  p:=handle_procvar;
                  consume(COLON);
                  pprocvardef(p)^.retdef:=single_type(hs);
+                 if token=_OF then
+                   begin
+                      consume(_OF);
+                      consume(_OBJECT);
+                      pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
+                   end;
               end;
             else
               expr_type;
@@ -1735,7 +1753,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.10  1998-04-27 23:10:28  peter
+  Revision 1.11  1998-04-28 11:45:52  florian
+    * make it compilable with TP
+    + small COM problems solved to compile classes.pp
+
+  Revision 1.10  1998/04/27 23:10:28  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

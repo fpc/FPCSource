@@ -118,14 +118,14 @@ begin
                     end
                    else
                     Message(scan_w_switch_is_global);
-                   if assigned(proc) then
-                    begin
+
                     {$ifdef FPC}
+                    if assigned(proc) then
                       proc();
                     {$else}
+                    if @proc<>nil then
                       proc;
                     {$endif}
-                    end;
                  end;
       end;
    end;
@@ -158,7 +158,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-04-27 23:13:53  peter
+  Revision 1.2  1998-04-28 11:45:53  florian
+    * make it compilable with TP
+    + small COM problems solved to compile classes.pp
+
+  Revision 1.1  1998/04/27 23:13:53  peter
     + the new files for the scanner
 
 }

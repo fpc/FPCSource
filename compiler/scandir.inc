@@ -784,7 +784,11 @@ const
             if t<>_DIR_NONE then
              begin
                p:=directiveproc[t];
+{$ifdef FPC}
                if assigned(p) then
+{$else}
+               if @p<>nil then
+{$endif}
                 p(t);
              end
             else
@@ -797,7 +801,11 @@ const
 
 {
   $Log$
-  Revision 1.2  1998-04-28 10:09:54  pierre
+  Revision 1.3  1998-04-28 11:45:53  florian
+    * make it compilable with TP
+    + small COM problems solved to compile classes.pp
+
+  Revision 1.2  1998/04/28 10:09:54  pierre
     * typo error in asm style reading corrected
 
   Revision 1.1  1998/04/27 23:13:53  peter
