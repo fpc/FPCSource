@@ -27,7 +27,7 @@ unit ncgutil;
 interface
 
     uses
-      node,
+      node,cpuinfo,
       cpubase,cpupara,
       aasmbase,aasmtai,aasmcpu,
       cginfo,
@@ -64,6 +64,27 @@ interface
    procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe,inlined:boolean);
    procedure genimplicitunitinit(list : TAAsmoutput);
    procedure genimplicitunitfinal(list : TAAsmoutput);
+   
+          {#
+              Allocate the buffers for exception management and setjmp environment.
+              Return a pointer to these buffers, send them to the utility routine
+              so they are registered, and then call setjmp.
+  
+              Then compare the result of setjmp with 0, and if not equal
+              to zero, then jump to exceptlabel.
+       
+              Also store the result of setjmp to a temporary space by calling g_save_exception_reason
+              
+              It is to note that this routine may be called *after* the stackframe of a
+              routine has been called, therefore on machines where the stack cannot
+              be modified, all temps should be allocated on the heap instead of the
+              stack.
+          }
+          procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
+              a : aword; exceptlabel : tasmlabel);
+          procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
+           a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+   
 
 
 implementation
@@ -82,7 +103,7 @@ implementation
     gdb,
 {$endif GDB}
     ncon,
-    tgobj,cpuinfo,cgobj,cgcpu,cg64f32;
+    tgobj,cgobj,cgcpu,cg64f32;
 
 
 {*****************************************************************************
@@ -206,6 +227,39 @@ implementation
             end;
         end;
       end;
+
+{*****************************************************************************
+                            EXCEPTION MANAGEMENT
+*****************************************************************************}
+
+    procedure new_exception(list : taasmoutput;const jmpbuf,envbuf, href : treference;
+      a : aword; exceptlabel : tasmlabel);
+     begin
+       cg.a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(3));
+       cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(2));
+       { push type of exceptionframe }
+       cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(1));
+       cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+
+       cg.a_param_reg(list,OS_ADDR,accumulator,paramanager.getintparaloc(1));
+       cg.a_call_name(list,'FPC_SETJMP');
+         
+       cg.g_exception_reason_save(list, href);
+       cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,accumulator,exceptlabel);
+     end;
+     
+     
+    procedure free_exception(list : taasmoutput;const jmpbuf, envbuf, href : treference;
+     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+     begin
+         cg.a_call_name(list,'FPC_POPADDRSTACK');
+         
+         if not onlyfree then
+          begin
+            cg.g_exception_reason_load(list, href);
+            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,accumulator,endexceptlabel);
+          end;
+     end;
 
 
 {*****************************************************************************
@@ -1082,83 +1136,18 @@ implementation
         href : treference;
         p : tsymtable;
         tmpreg : tregister;
+        stackalloclist : taasmoutput;
       begin
-        { Insert alignment and assembler names }
-        if not inlined then
-         begin
-           { Align, gprof uses 16 byte granularity }
-           if (cs_profile in aktmoduleswitches) then
-            list.concat(Tai_align.Create_op(16,$90))
-           else
-            list.concat(Tai_align.Create(aktalignment.procalign));
-
-           if (cs_profile in aktmoduleswitches) or
-              (aktprocdef.owner.symtabletype=globalsymtable) or
-              (assigned(procinfo^._class) and (procinfo^._class.owner.symtabletype=globalsymtable)) then
-            make_global:=true;
-
-           if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
-            aktprocsym.is_global := True;
-
-{$ifdef GDB}
-           if (cs_debuginfo in aktmoduleswitches) then
-            begin
-              aktprocdef.concatstabto(list);
-              aktprocsym.isstabwritten:=true;
-            end;
-{$endif GDB}
-
-           repeat
-             hs:=aktprocdef.aliasnames.getfirst;
-             if hs='' then
-              break;
-{$ifdef GDB}
-             if (cs_debuginfo in aktmoduleswitches) and
-                target_info.use_function_relative_addresses then
-              list.concat(Tai_stab_function_name.Create(strpnew(hs)));
-{$endif GDB}
-             if make_global then
-              list.concat(Tai_symbol.Createname_global(hs,0))
-             else
-              list.concat(Tai_symbol.Createname(hs,0));
-           until false;
-
-{$ifdef i386}
-           { at least for the ppc this applies always, so this code isn't usable (FK) }
-           { omit stack frame ? }
-           if (procinfo^.framepointer=STACK_POINTER_REG) then
-            begin
-              CGMessage(cg_d_stackframe_omited);
-              nostackframe:=true;
-              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
-                parasize:=0
-              else
-                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-4;
-              if stackframe<>0 then
-                cg.a_op_const_reg(list,OP_SUB,stackframe,procinfo^.framepointer);
-            end
-           else
-{$endif i386}
-            begin
-              nostackframe:=false;
-              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
-                parasize:=0
-              else
-                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-target_info.first_parm_offset;
-
-              if (po_interrupt in aktprocdef.procoptions) then
-                cg.g_interrupt_stackframe_entry(list);
-
-              cg.g_stackframe_entry(list,stackframe);
-
-              if (cs_check_stack in aktlocalswitches) then
-                cg.g_stackcheck(list,stackframe);
-            end;
-
-           if (cs_profile in aktmoduleswitches) and
-              not(po_assembler in aktprocdef.procoptions) then
+        stackalloclist:=taasmoutput.Create;
+        
+        { the actual stack allocation code, symbol entry point and
+          gdb stabs information is generated AFTER the rest of this
+          code, since temp. allocation might occur before - carl
+        }  
+        
+        if (cs_profile in aktmoduleswitches) and
+              not(po_assembler in aktprocdef.procoptions) and not(inlined) then
             cg.g_profilecode(list);
-         end;
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
@@ -1258,7 +1247,10 @@ implementation
               not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
             begin
               include(rg.usedinproc,accumulator);
-              cg.g_new_exception(list,procinfo^.exception_jmp_ref,
+              tg.gettempofsizereferencepersistant(list,24,procinfo^.exception_jmp_ref);
+              tg.gettempofsizereferencepersistant(list,12,procinfo^.exception_env_ref);
+              tg.gettempofsizereferencepersistant(list,sizeof(aword),procinfo^.exception_result_ref);
+              new_exception(list,procinfo^.exception_jmp_ref,
                   procinfo^.exception_env_ref,
                   procinfo^.exception_result_ref,1,aktexitlabel);
               { probably we've to reload self here }
@@ -1273,6 +1265,86 @@ implementation
 
         if inlined then
          load_regvars(list,nil);
+         
+        {************************* Stack allocation **************************}
+        { and symbol entry point as well as debug information                 }
+        { will be inserted in front of the rest of this list.                 }
+        { Insert alignment and assembler names }
+        if not inlined then
+         begin
+           { Align, gprof uses 16 byte granularity }
+           if (cs_profile in aktmoduleswitches) then
+            stackalloclist.concat(Tai_align.Create_op(16,$90))
+           else
+            stackalloclist.concat(Tai_align.Create(aktalignment.procalign));
+
+           if (cs_profile in aktmoduleswitches) or
+              (aktprocdef.owner.symtabletype=globalsymtable) or
+              (assigned(procinfo^._class) and (procinfo^._class.owner.symtabletype=globalsymtable)) then
+            make_global:=true;
+
+           if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
+            aktprocsym.is_global := True;
+
+{$ifdef GDB}
+           if (cs_debuginfo in aktmoduleswitches) then
+            begin
+              aktprocdef.concatstabto(stackalloclist);
+              aktprocsym.isstabwritten:=true;
+            end;
+{$endif GDB}
+
+           repeat
+             hs:=aktprocdef.aliasnames.getfirst;
+             if hs='' then
+              break;
+{$ifdef GDB}
+             if (cs_debuginfo in aktmoduleswitches) and
+                target_info.use_function_relative_addresses then
+              stackalloclist.concat(Tai_stab_function_name.Create(strpnew(hs)));
+{$endif GDB}
+             if make_global then
+              stackalloclist.concat(Tai_symbol.Createname_global(hs,0))
+             else
+              stackalloclist.concat(Tai_symbol.Createname(hs,0));
+           until false;
+        
+        stackframe:=stackframe+tg.gettempsize;
+{$ifndef powerpc}
+           { at least for the ppc this applies always, so this code isn't usable (FK) }
+           { omit stack frame ? }
+           if (procinfo^.framepointer=STACK_POINTER_REG) then
+            begin
+              CGMessage(cg_d_stackframe_omited);
+              nostackframe:=true;
+              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+                parasize:=0
+              else
+                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-4;
+              if stackframe<>0 then
+                cg.a_op_const_reg(stackalloclist,OP_SUB,stackframe,procinfo^.framepointer);
+            end
+           else
+{$endif powerpc}
+            begin
+              nostackframe:=false;
+              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+                parasize:=0
+              else
+                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-target_info.first_parm_offset;
+
+              if (po_interrupt in aktprocdef.procoptions) then
+                cg.g_interrupt_stackframe_entry(stackalloclist);
+
+              cg.g_stackframe_entry(stackalloclist,stackframe);
+
+              if (cs_check_stack in aktlocalswitches) then
+                cg.g_stackcheck(stackalloclist,stackframe);
+            end;
+            list.insertlist(stackalloclist);
+{            stackalloclist.free;}
+         end;
+        {************************* End Stack allocation **************************}
       end;
 
 
@@ -1342,7 +1414,7 @@ implementation
              { the exception helper routines modify all registers }
              aktprocdef.usedregisters:=all_registers;
              getlabel(noreraiselabel);
-             cg.g_free_exception(list,
+             free_exception(list,
                   procinfo^.exception_jmp_ref,
                   procinfo^.exception_env_ref,
                   procinfo^.exception_result_ref,0
@@ -1629,7 +1701,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-08-06 20:55:21  florian
+  Revision 1.31  2002-08-09 19:16:57  carl
+    * stack allocation is now done separately (at the end) of genentrycode
+      so temps. can be allocated before.
+    * fix generic exception handling
+
+  Revision 1.30  2002/08/06 20:55:21  florian
     * first part of ppc calling conventions fix
 
   Revision 1.29  2002/08/04 19:09:22  carl
