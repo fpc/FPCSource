@@ -40,7 +40,7 @@ var
         writeln('to2.destroy');
         if i<>4000 then
           halt(1);
-        i:=1000;
+        i:=2000;
         inherited destroy;
         i:=5000;
      end;
