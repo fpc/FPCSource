@@ -362,3 +362,4 @@ bug0270.pp   unexpected eof in tp mode with (* and directives
 bug0271.pp   abstract methods can't be assigned to methodpointers
 bug0272.pp   No error issued if wrong parameter in function inside a second function
 bug0273.pp   small array pushing to array of char procedure is wrong
+bug0274.pp   @(proc) is not allowed
