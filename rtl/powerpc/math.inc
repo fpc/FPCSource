@@ -138,7 +138,8 @@
                        Longint data type routines
  ****************************************************************************}
 
-   function power(bas,expo : longint) : longint;
+   {$define FPC_SYSTEM_HAS_POWER_INT64}
+   function power(bas,expo : int64) : int64;
      begin
         if bas=0 then
           begin
@@ -284,7 +285,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.14  2002-11-28 11:04:16  olle
+  Revision 1.15  2003-01-15 01:09:04  florian
+    * changed power(...) prototype to int64
+
+  Revision 1.14  2002/11/28 11:04:16  olle
     * macos: refs to globals in asm adapted to macos
 
   Revision 1.13  2002/10/21 18:08:28  jonas
