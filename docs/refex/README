@@ -81,3 +81,4 @@ ex75.pp contains an example of the Write(ln) function.
 ex76.pp contains an example of the FillWord function.
 ex77.pp contains an example of the Rename function.
 ex78.pp contains an example of the Power function.
+ex79.pp contains an example of the SetJmp/LongJmp functions.
