@@ -202,7 +202,7 @@ var
         1: (d: double);
     end;
 asm
-           li     r0,$43300000
+           lis    r0,$4330
            stw    r0,temp.l1
            xoris  r3,r3,$8000
            stw    r3,temp.l2
@@ -210,13 +210,13 @@ asm
            lfd    fr1,longint_to_real_helper@l(r3)
            lfd    fr0,temp.d
            stw    r4,temp.l2
-           fsub   fr0,fr1,fr0
+           fsub   fr0,fr0,fr1
            lis    r4,cardinal_to_real_helper@ha
            lfd    fr1,cardinal_to_real_helper@l(r4)
            lis    r3,int_to_real_factor@ha
            lfd    fr3,temp
            lfd    fr2,int_to_real_factor@l(r3)
-           fsub   fr3,fr1,fr3
+           fsub   fr3,fr3,fr1
            fmadd  fr0,fr0,fr2,fr3
 end ['r0','r3','r4','fr0','fr1','fr2','fr3'];
 
@@ -233,18 +233,18 @@ var
         1: (d: double);
     end;
 asm
-           li     r0,$43300000
+           lis    r0,$4330
            stw    r0,temp.l1
            stw    r3,temp.l2
            lfd    fr0,temp.d
            lis    r3,cardinal_to_real_helper@ha
            lfd    fr1,cardinal_to_real_helper@l(r3)
            stw    r4,temp.l2
-           fsub   fr0,fr1,fr0
+           fsub   fr0,fr0,fr1
            lfd    fr3,temp
            lis    r3,int_to_real_factor@ha
            lfd    fr2,int_to_real_factor@l(r3)
-           fsub   fr3,fr1,fr3
+           fsub   fr3,fr3,fr1
            fmadd  fr0,fr0,fr2,fr3
 end ['r0','r3','fr0','fr1','fr2','fr3'];
 
@@ -252,7 +252,12 @@ end ['r0','r3','fr0','fr1','fr2','fr3'];
 
 {
   $Log$
-  Revision 1.1  2001-10-28 14:09:13  jonas
+  Revision 1.2  2001-10-30 17:18:14  jonas
+    * fixed fpc_int64_to_double and fpc_int64_to_double (fpc_int64_to_double
+      is now mostly tested and should work fine, fpc_qword_to_double should
+      work too since it's almost the same)
+
+  Revision 1.1  2001/10/28 14:09:13  jonas
     + initial implementation, lots of things still missing
 
 
