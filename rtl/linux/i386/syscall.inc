@@ -19,7 +19,7 @@
 
 {$ASMMODE ATT}
 
-function Do_SysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
 
 asm
 { load the registers... }
@@ -33,7 +33,7 @@ asm
 .LSysc:
 end;     
 
-function Do_SysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
 
 asm
 { load the registers... }
@@ -48,7 +48,7 @@ asm
 .LSysc:
 end;
 
-function Do_SysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
 
 asm
 { load the registers... }
@@ -65,7 +65,7 @@ asm
 
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
 
 asm
 { load the registers... }
@@ -82,7 +82,7 @@ asm
 .LSysc:
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
 
 asm
 { load the registers... }
@@ -100,7 +100,7 @@ asm
 .LSysc:
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
 
 asm
 { load the registers... }
@@ -119,7 +119,7 @@ asm
 .LSysc:
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
 
 asm
 { load the registers... }
@@ -147,7 +147,7 @@ end;
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
+Procedure FpSysCall( callnr:TSysParam;var regs : SysCallregs );assembler;
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -187,7 +187,7 @@ Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
   SysCall result in errno. Otherwise, it returns the SysCall return value
 }
 begin
-  do_SysCall(callnr,regs);
+  FpSysCall(callnr,regs);
   if regs.reg1<0 then
    begin
 {$IFDEF SYSCALL_DEBUG}
@@ -227,7 +227,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-11-16 15:37:47  marco
+  Revision 1.3  2002-12-18 16:46:37  marco
+   * Some mods.
+
+  Revision 1.2  2002/11/16 15:37:47  marco
    * TSysParam + result moved to -h
 
   Revision 1.1  2002/11/12 13:31:32  marco

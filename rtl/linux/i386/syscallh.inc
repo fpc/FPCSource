@@ -34,16 +34,20 @@ Type
 
   TSysParam  = Longint;
 
-function Do_SysCall(sysnr:LONGINT):longint;  external name 'FPC_DOSYS0';
-function Do_SysCall(sysnr,param1:longint):longint; external name 'FPC_DOSYS1';
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint;  external name 'FPC_DOSYS2';
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; external name 'FPC_DOSYS3';
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; external name 'FPC_DOSYS4';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  external name 'FPC_DOSYS5';
+function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_SYSCALL0';
+function Do_SysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_SYSCALL1';
+function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_SYSCALL2';
+function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_SYSCALL3';
+function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
 
 {
   $Log$
-  Revision 1.1  2002-11-16 15:37:47  marco
+  Revision 1.2  2002-12-18 16:46:37  marco
+   * Some mods.
+
+  Revision 1.1  2002/11/16 15:37:47  marco
    * TSysParam + result moved to -h
 
   Revision 1.4  2002/10/16 18:44:00  marco
