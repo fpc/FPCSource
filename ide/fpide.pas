@@ -169,7 +169,7 @@ uses
   ColorSel,
 {$endif FVISION}
   Systems,
-  WUtils,WHlpView,WViews,WHTMLHlp,
+  WUtils,WHlpView,WViews,WHTMLHlp,WHelp,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
@@ -1164,7 +1164,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-08-05 12:23:00  peter
+  Revision 1.4  2001-10-01 00:24:09  pierre
+   * fix several help problems
+
+  Revision 1.3  2001/08/05 12:23:00  peter
     * Automatically support for fvision or old fv
 
   Revision 1.2  2001/08/05 02:01:47  peter

@@ -15,8 +15,16 @@
  **********************************************************************}
 
 procedure TIDEApp.HelpContents;
+var FileID: word;
+    Ctx   : THelpCtx;
+var Found: boolean;
 begin
-  HelpTopic('Help_Contents'{0,hcContents,false});
+  CheckHelpSystem;
+  Found:=HelpFacility^.TopicSearch('Help_Contents',FileID,Ctx);
+  if Found then
+     Help(FileID,Ctx,false)
+  else
+     Help(0,hcContents,false);
 end;
 
 procedure TIDEApp.HelpHelpIndex;
@@ -258,7 +266,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-10-01 00:24:09  pierre
+   * fix several help problems
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.2  2001/03/20 00:20:42  pierre

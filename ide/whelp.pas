@@ -187,6 +187,7 @@ uses
 {$IFDEF OS2}
   DosCalls,
 {$ENDIF OS2}
+  Strings,
   WConsts;
 
 type
@@ -537,13 +538,40 @@ var K1: PIndexEntry absolute Key1;
     K2: PIndexEntry absolute Key2;
     R: Sw_integer;
     S1,S2: string;
+    T1,T2 : PTopic;
 begin
   S1:=UpcaseStr(K1^.Tag^); S2:=UpcaseStr(K2^.Tag^);
-  if S1<S2 then R:=-1 else
-  if S1>S2 then R:=1 else
-  if K1^.FileID<K2^.FileID then R:=-1 else
-  if K1^.FileID>K2^.FileID then R:= 1 else
-  R:=0;
+  if S1<S2 then
+    begin
+      Compare:=-1;
+      exit;
+    end;
+  if S1>S2 then
+    begin
+      Compare:=1;
+      exit;
+    end;
+  if assigned(HelpFacility) then
+    begin
+      { Try to read the title of the topic }
+      T1:=HelpFacility^.LoadTopic(K1^.FileID,K1^.HelpCtx);
+      T2:=HelpFacility^.LoadTopic(K2^.FileID,K2^.HelpCtx);
+      r:=strcomp(pchar(T1^.Text),pchar(T2^.Text));
+      if r>0 then
+        begin
+          Compare:=1;
+          exit;
+        end;
+      if r<0 then
+        begin
+          Compare:=-1;
+          exit;
+        end;
+    end;
+  if K1^.FileID<K2^.FileID then R:=-1
+  else if K1^.FileID>K2^.FileID then R:= 1
+  else
+    R:=0;
   Compare:=R;
 end;
 
@@ -794,7 +822,9 @@ begin
   Inc(NLFlag);
 end;
 var KW: PIndexEntry;
-    I: sw_integer;
+    I,p : sw_integer;
+    IsMultiple : boolean;
+    St,LastTag : String;
 begin
   New(Keywords, Init(5000,5000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
@@ -810,11 +840,28 @@ begin
     KWCount:=0; Line:='';
     T^.LinkCount:=Min(Keywords^.Count,MaxBytes div sizeof(T^.Links^[0])-1);
     GetMem(T^.Links,T^.LinkSize);
-
+    LastTag:='';
     for I:=0 to T^.LinkCount-1 do
     begin
       KW:=Keywords^.At(I);
-      AddKeyword(KW^.Tag^);
+      IsMultiple:=(LastTag=KW^.Tag^) or
+        ((I<T^.LinkCount-1) and (KW^.Tag^=Keywords^.At(I+1)^.Tag^));
+      if IsMultiple then
+        Begin
+          St:=Trim(strpas(pchar(HelpFacility^.LoadTopic(KW^.FileID,KW^.HelpCtx)^.Text)));
+          { Remove all special chars }
+          for p:=1 to Length(st) do
+            if ord(st[p])<=16 then
+              st[p]:=' ';
+          p:=pos(KW^.Tag^,St);
+          if (p=1) then
+            AddKeyword(St)
+          else
+            AddKeyword(KW^.Tag^+' '+St);
+        End
+      else
+        AddKeyword(KW^.Tag^);
+      LastTag:=KW^.Tag^;
       T^.Links^[I].Context:=longint(KW^.HelpCtx);
       T^.Links^[I].FileID:=KW^.FileID;
     end;
@@ -853,7 +900,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-09-18 11:33:53  pierre
+  Revision 1.3  2001-10-01 00:24:09  pierre
+   * fix several help problems
+
+  Revision 1.2  2001/09/18 11:33:53  pierre
    * fix Previous Help Topic
 
   Revision 1.1  2001/08/04 11:30:25  peter

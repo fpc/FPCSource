@@ -54,6 +54,7 @@ procedure DoneHelpSystem;
 
 procedure InitHelpFiles;
 procedure DoneHelpFiles;
+procedure CheckHelpSystem;
 
 procedure PushStatus(S: string);
 procedure SetStatus(S: string);
@@ -504,7 +505,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-09-10 10:52:59  pierre
+  Revision 1.4  2001-10-01 00:24:09  pierre
+   * fix several help problems
+
+  Revision 1.3  2001/09/10 10:52:59  pierre
    * fix web bug 1368
 
   Revision 1.2  2001/08/05 02:01:47  peter
