@@ -498,18 +498,19 @@ begin
   if FileExists('fpcmake.ini') then
    fn:='fpcmake.ini'
   else
-   if (FileExists(GetEnv(envvar))) then
-    fn:=GetEnv(envvar)
-  else
+   begin
+    fn:=GetEnv(envvar);
+    if (Length (FN) = 0) or not (FileExists(fn)) then
 {$ifdef linux}
-   if FileExists('/usr/lib/fpc/fpcmake.ini') then
-    fn:='/usr/lib/fpc/fpcmake.ini'
+     if FileExists('/usr/lib/fpc/fpcmake.ini') then
+      fn:='/usr/lib/fpc/fpcmake.ini'
 {$else}
-   if FileExists(ChangeFileExt(paramstr(0),'.ini')) then
-    fn:=ChangeFileExt(paramstr(0),'.ini')
+     if FileExists(ChangeFileExt(paramstr(0),'.ini')) then
+      fn:=ChangeFileExt(paramstr(0),'.ini')
 {$endif}
-  else
-   fn:='';
+     else
+      fn:='';
+   end;
   if fn='' then
    begin
      Verbose('Opening internal ini');
@@ -1349,7 +1350,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-26 22:39:34  peter
+  Revision 1.4  2001-01-13 17:27:19  hajny
+    * fixed to really work without the ini file (buggy before)
+
+  Revision 1.3  2000/10/26 22:39:34  peter
     * freebsd updates
 
   Revision 1.2  2000/09/01 21:37:30  peter
