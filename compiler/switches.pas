@@ -35,7 +35,7 @@ uses globals,verbose,files,systems;
 ****************************************************************************}
 
 type
-  TSwitchType=(localsw,modulesw,globalsw,illegalsw,unsupportedsw);
+  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw);
   SwitchRec=record
     typesw : TSwitchType;
     setsw  : byte;
@@ -47,8 +47,8 @@ const
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
    {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
    {E} (typesw:globalsw; setsw:ord(cs_fp_emulation)),
-   {F} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {G} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+   {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {H} (typesw:localsw; setsw:ord(cs_ansistrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:illegalsw; setsw:ord(cs_localnone)),
@@ -66,7 +66,7 @@ const
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
    {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
-   {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {Y} (typesw:modulesw; setsw:ord(cs_browser)),
    {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
     );
 
@@ -83,8 +83,9 @@ begin
   with SwitchTable[switch] do
    begin
      case typesw of
-       illegalsw : Message1(scan_w_illegal_switch,'$'+switch);
-   unsupportedsw : Message1(scan_w_unsupported_switch,'$'+switch);
+     ignoredsw : Message1(scan_n_ignored_switch,'$'+switch);
+     illegalsw : Message1(scan_w_illegal_switch,'$'+switch);
+ unsupportedsw : Message1(scan_w_unsupported_switch,'$'+switch);
        localsw : begin
                    if state='+' then
                     aktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
@@ -153,7 +154,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-08-18 20:52:21  peter
+  Revision 1.12  1998-09-01 12:52:05  peter
+    + a lot of delphi switches
+
+  Revision 1.11  1998/08/18 20:52:21  peter
     * renamed in_main to in_global which is more logical
 
   Revision 1.10  1998/08/14 18:14:57  peter

@@ -26,40 +26,52 @@ type
    directivestr=string[directivelen];
    tdirectivetoken=(
      _DIR_NONE,
-     _DIR_ALIGN,_DIR_ASMMODE,
-     _DIR_D,_DIR_DEFINE,_DIR_DESCRIPTION,
-     _DIR_ELSE,_DIR_ENDIF,_DIR_ERROR,
+     _DIR_ALIGN,_DIR_ASMMODE,_DIR_ASSERTIONS,
+     _DIR_BOOLEVAL,
+     _DIR_D,_DIR_DEBUGINFO,_DIR_DEFINE,_DIR_DESCRIPTION,
+     _DIR_ELSE,_DIR_ENDIF,_DIR_ERROR,_DIR_EXTENDEDSYNTAX,
      _DIR_FATAL,
+     _DIR_HINT,_DIR_HINTS,
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
-       _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INFO,
-     _DIR_L,_DIR_LINKLIB,
-     _DIR_MESSAGE,_DIR_MMX,
-     _DIR_NOTE,
-     _DIR_OUTPUT_FORMAT,
-     _DIR_PACKRECORDS,
-     _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STOP,
+       _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INCLUDE,_DIR_INFO,
+     _DIR_L,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,_DIR_LONGSTRINGS,
+     _DIR_M,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,
+     _DIR_NOTE,_DIR_NOTES,
+     _DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
+     _DIR_PACKENUM,_DIR_PACKRECORDS,
+     _DIR_RANGECHECKS,_DIR_REFERENCEINFO,
+     _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STOP,
+     _DIR_TYPEDADDRESS,_DIR_TYPEINFO,
      _DIR_UNDEF,
-     _DIR_WAIT,_DIR_WARNING
+     _DIR_VARSTRINGCHECKS,
+     _DIR_WAIT,_DIR_WARNING,_DIR_WARNINGS,
+     _DIR_Z1,_DIR_Z2,_DIR_Z4
      );
 const
    firstdirective=_DIR_NONE;
-   lastdirective=_DIR_WARNING;
+   lastdirective=_DIR_Z4;
    directive:array[tdirectivetoken] of directivestr=(
      '',
-     'ALIGN','ASMMODE',
-     'D','DEFINE','DESCRIPTION',
-     'ELSE','ENDIF','ERROR',
+     'ALIGN','ASMMODE','ASSERTIONS',
+     'BOOLEVAL',
+     'D','DEBUGINFO','DEFINE','DESCRIPTION',
+     'ELSE','ENDIF','ERROR','EXTENDEDSYNTAX',
      'FATAL',
+     'HINT','HINTS',
      'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
-       'IF','IFDEF','IFNDEF','IFOPT','INFO',
-     'L','LINKLIB',
-     'MESSAGE','MMX',
-     'NOTE',
-     'OUTPUT_FORMAT',
-     'PACKRECORDS',
-     'SATURATION','SMARTLINK','STOP',
+       'IF','IFDEF','IFNDEF','IFOPT','INCLUDE','INFO',
+     'L','LINK','LINKLIB','LOCALSYMBOLS','LONGSTRINGS',
+     'M','MEMORY','MESSAGE','MINENUMSIZE','MMX',
+     'NOTE','NOTES',
+     'OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
+     'PACKENUM','PACKRECORDS',
+     'RANGECHECKS','REFERENCEINFO',
+     'SATURATION','SMARTLINK','STACKFRAMES','STOP',
+     'TYPEDADDRESS','TYPEINFO',
      'UNDEF',
-     'WAIT','WARNING'
+     'VARSTRINGCHECKS',
+     'WAIT','WARNING','WARNINGS',
+     'Z1','Z2','Z4'
      );
 
 
@@ -445,6 +457,7 @@ const
       _DIR_FATAL : w:=scan_f_user_defined;
       _DIR_ERROR : w:=scan_e_user_defined;
     _DIR_WARNING : w:=scan_w_user_defined;
+       _DIR_HINT : w:=scan_h_user_defined;
        _DIR_NOTE : w:=scan_n_user_defined;
     _DIR_MESSAGE,
        _DIR_INFO : w:=scan_i_user_defined;
@@ -596,7 +609,7 @@ const
         hs : string;
       begin
         current_scanner^.skipspace;
-        if upcase(c)='N' then
+        if not(c in ['0'..'9']) then
          begin
            hs:=current_scanner^.readid;
            if (hs='NORMAL') or (hs='DEFAULT') then
@@ -617,11 +630,43 @@ const
          end;
       end;
 
+
+    procedure dir_packenum(t:tdirectivetoken);
+      var
+        hs : string;
+      begin
+        if t in [_DIR_Z1,_DIR_Z2,_DIR_Z4] then
+         begin
+           aktpackenum:=ord(pattern[2])-ord('0');
+           exit;
+         end;
+        current_scanner^.skipspace;
+        if not(c in ['0'..'9']) then
+         begin
+           hs:=current_scanner^.readid;
+           if (hs='NORMAL') or (hs='DEFAULT') then
+            aktpackenum:=4
+           else
+            Message(scan_w_only_pack_enum);
+         end
+        else
+         begin
+           case current_scanner^.readval of
+            1 : aktpackenum:=1;
+            2 : aktpackenum:=2;
+            4 : aktpackenum:=4;
+           else
+            Message(scan_w_only_pack_enum);
+           end;
+         end;
+      end;
+
     procedure dir_wait(t:tdirectivetoken);
       begin
         Message(scan_i_press_enter);
         readln;
       end;
+
 
     procedure dir_asmmode(t:tdirectivetoken);
       var
@@ -635,6 +680,7 @@ const
          if not set_string_asmmode(s,aktasmmode) then
           Message1(scan_w_unsupported_asmmode_specifier,s);
       end;
+
 
     procedure dir_oldasmmode(t:tdirectivetoken);
       begin
@@ -650,16 +696,91 @@ const
 
     procedure dir_delphiswitch(t:tdirectivetoken);
       var
-        sw : char;
+        sw,state : char;
       begin
         case t of
-         _DIR_ALIGN : sw:='A';
-      _DIR_IOCHECKS : sw:='I';
+           _DIR_ALIGN : sw:='A';
+      _DIR_ASSERTIONS : sw:='C';
+        _DIR_BOOLEVAL : sw:='B';
+       _DIR_DEBUGINFO : sw:='D';
+        _DIR_IOCHECKS : sw:='I';
+    _DIR_LOCALSYMBOLS : sw:='L';
+     _DIR_LONGSTRINGS : sw:='H';
+     _DIR_OPENSTRINGS : sw:='P';
+  _DIR_OVERFLOWCHECKS : sw:='Q';
+     _DIR_RANGECHECKS : sw:='R';
+   _DIR_REFERENCEINFO : sw:='Y';
+     _DIR_STACKFRAMES : sw:='W';
+    _DIR_TYPEDADDRESS : sw:='T';
+        _DIR_TYPEINFO : sw:='M';
+ _DIR_VARSTRINGCHECKS : sw:='V';
         else
          exit;
         end;
+      { support ON/OFF }
+        if c=' ' then
+         begin
+           current_scanner^.skipspace;
+           current_scanner^.readid;
+           if pattern='ON' then
+            state:='+'
+           else
+            if pattern='OFF' then
+             state:='-';
+         end
+        else
+         state:=c;
       { c contains the next char, a + or - would be fine }
-        HandleSwitch(sw,c);
+        HandleSwitch(sw,state);
+      end;
+
+
+    procedure dir_memory(t:tdirectivetoken);
+      var
+        l : longint;
+      begin
+        current_scanner^.skipspace;
+        l:=current_scanner^.readval;
+        if l>1024 then
+         stacksize:=l;
+        current_scanner^.skipspace;
+        if c=',' then
+         begin
+           current_scanner^.readchar;
+           current_scanner^.skipspace;
+           l:=current_scanner^.readval;
+           if l>1024 then
+            heapsize:=l;
+         end;
+      end;
+
+
+    procedure dir_setverbose(t:tdirectivetoken);
+      var
+        flag,
+        state : char;
+      begin
+        case t of
+         _DIR_HINTS : flag:='H';
+      _DIR_WARNINGS : flag:='W';
+         _DIR_NOTES : flag:='N';
+        else
+         exit;
+        end;
+      { support ON/OFF }
+        if c=' ' then
+         begin
+           current_scanner^.skipspace;
+           current_scanner^.readid;
+           if pattern='ON' then
+            state:='+'
+           else
+            if pattern='OFF' then
+             state:='-';
+         end
+        else
+         state:=c;
+        SetVerbosity(flag+state);
       end;
 
 
@@ -670,13 +791,19 @@ const
          {_DIR_NONE} nil,
          {_DIR_ALIGN} dir_delphiswitch,
          {_DIR_ASMMODE} dir_asmmode,
+         {_DIR_ASSERTION} dir_delphiswitch,
+         {_DIR_BOOLEVAL} dir_delphiswitch,
          {_DIR_D} dir_description,
+         {_DIR_DEBUGINFO} dir_delphiswitch,
          {_DIR_DEFINE} dir_define,
          {_DIR_DESCRIPTION} dir_description,
          {_DIR_ELSE} dir_conditional,
          {_DIR_ENDIF} dir_conditional,
          {_DIR_ERROR} dir_message,
+         {_DIR_EXTENDEDSYNTAX} dir_delphiswitch,
          {_DIR_FATAL} dir_message,
+         {_DIR_HINT} dir_message,
+         {_DIR_HINTS} dir_setverbose,
          {_DIR_I} dir_include,
          {_DIR_I386_ATT} dir_oldasmmode,
          {_DIR_I386_DIRECT} dir_oldasmmode,
@@ -686,20 +813,41 @@ const
          {_DIR_IFDEF} dir_conditional,
          {_DIR_IFNDEF} dir_conditional,
          {_DIR_IFOPT} dir_conditional,
+         {_DIR_INCLUDE} dir_include,
          {_DIR_INFO} dir_message,
          {_DIR_L} dir_linkobject,
+         {_DIR_LINK} dir_linkobject,
          {_DIR_LINKLIB} dir_linklib,
+         {_DIR_LOCALSYMBOLS} dir_delphiswitch,
+         {_DIR_LONGSTRINGS} dir_delphiswitch,
+         {_DIR_M} dir_memory,
+         {_DIR_MEMORY} dir_memory,
          {_DIR_MESSAGE} dir_message,
+         {_DIR_MINENUMSIZE} dir_packenum,
          {_DIR_MMX} dir_localswitch,
          {_DIR_NOTE} dir_message,
+         {_DIR_NOTES} dir_setverbose,
+         {_DIR_OPENSTRINGS} dir_delphiswitch,
          {_DIR_OUTPUT_FORMAT} dir_outputformat,
+         {_DIR_OVERFLOWCHECKS} dir_delphiswitch,
+         {_DIR_PACKENUM} dir_packenum,
          {_DIR_PACKRECORDS} dir_packrecords,
+         {_DIR_RANGECHECKS} dir_delphiswitch,
+         {_DIR_REFERENCEINFO} dir_delphiswitch,
          {_DIR_SATURATION} dir_localswitch,
          {_DIR_SMARTLINK} dir_moduleswitch,
+         {_DIR_STACKFRAMES} dir_delphiswitch,
          {_DIR_STOP} dir_message,
          {_DIR_UNDEF} dir_undef,
+         {_DIR_TYPEDADDRESS} dir_delphiswitch,
+         {_DIR_TYPEINFO} dir_delphiswitch,
+         {_DIR_VARSTRINGCHECKS} dir_delphiswitch,
          {_DIR_WAIT} dir_wait,
-         {_DIR_WARNING} dir_message
+         {_DIR_WARNING} dir_message,
+         {_DIR_WARNINGS} dir_setverbose,
+         {_DIR_Z1} dir_packenum,
+         {_DIR_Z2} dir_packenum,
+         {_DIR_Z4} dir_packenum
          );
 
   {-------------------------------------------
@@ -751,11 +899,11 @@ const
             if t<>_DIR_NONE then
              begin
                p:=directiveproc[t];
-{$ifdef FPC}
+             {$ifdef FPC}
                if assigned(p) then
-{$else}
+             {$else}
                if @p<>nil then
-{$endif}
+             {$endif}
                 p(t);
              end
             else
@@ -768,7 +916,10 @@ const
 
 {
   $Log$
-  Revision 1.23  1998-08-26 15:35:34  peter
+  Revision 1.24  1998-09-01 12:52:06  peter
+    + a lot of delphi switches
+
+  Revision 1.23  1998/08/26 15:35:34  peter
     * fixed scannerfiles for macros
     + $I %<environment>%
 
