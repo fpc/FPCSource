@@ -25,14 +25,14 @@ const
 
 
 
-  function LineClipped(var x1, y1,x2,y2: longint; xmin, ymin,
-      xmax, ymax:longint): boolean;
+  function LineClipped(var x1, y1,x2,y2: integer; xmin, ymin,
+      xmax, ymax:integer): boolean;
   {********************************************************}
   { Function LineClipped()                                 }
   {--------------------------------------------------------}
   { This routine clips the line coordinates to the         }
   { min. and max. values of the window. Returns TRUE if    }
-  { there was clipping performed on the line. Updated      }
+  { the ENTIRE line was clipped.  Updated                  }
   { clipped line endpoints are also returned.              }
   { This algorithm is the classic Cohen-Sutherland line    }
   { clipping algorithm.                                    }
@@ -41,10 +41,10 @@ const
    code1, code2: longint;
    done:boolean;
    code: longint;
-   newx,newy: longint;
+   newx,newy: integer;
 
 
-    function outcode(x,y:longint): longint;
+    function outcode(x,y:integer): longint;
     {********************************************************}
     { Function OutCode()                                     }
     {--------------------------------------------------------}
@@ -137,7 +137,7 @@ const
             end
          end;
       end;
-  LineClipped:=TRUE;
+  LineClipped:=FALSE;
 end;
 
 
