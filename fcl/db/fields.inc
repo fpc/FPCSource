@@ -38,7 +38,7 @@ begin
   Inherited Create(AOwner);
 {$ifdef dsdebug }
   Writeln('TFieldDef.Create : ',Aname,'(',AFieldNo,')');
-{$endif}  
+{$endif}
   FName:=Aname;
   FDatatype:=ADatatype;
   FSize:=ASize;
@@ -51,7 +51,7 @@ begin
     end
   else If FDataType in [ftWord,ftsmallint,ftinteger] Then
     If Not (FSize in [1,2,4]) then FSize:=4;
-  
+
   FFieldNo:=AFieldNo;
   AOwner.FItems.Add(Self);
 end;
@@ -69,7 +69,9 @@ Function TFieldDef.CreateField(AOwner: TComponent): TField;
 Var TheField : TFieldClass;
 
 begin
-  Writeln ('Creating field'+FNAME);
+{$ifdef dsdebug}
+  Writeln ('Creating field '+FNAME);
+{$endif dsdebug}
   TheField:=GetFieldClass;
   if TheField=Nil then
     DatabaseErrorFmt(SUnknownFieldType,[FName]);
@@ -82,10 +84,10 @@ begin
     Result.SetFieldType(DataType);
 {$ifdef dsdebug}
     Writeln ('TFieldDef.CReateField : Trying to set dataset');
-{$endif dsdebug}    
+{$endif dsdebug}
 {$ifdef dsdebug}
     Writeln ('TFieldDef.CReateField : Result Fieldno : ',Result.FieldNo,' Self : ',FieldNo);
-{$endif dsdebug}    
+{$endif dsdebug}
     Result.Dataset:=TFieldDefs(Owner).FDataset;
     If Result is TFloatField then
       TFloatField(Result).Precision:=FPrecision;
@@ -93,7 +95,7 @@ begin
     Result.Free;
     Raise;
   end;
-  
+
 end;
 
 Function TFieldDef.GetFieldClass : TFieldClass;
@@ -123,7 +125,7 @@ procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word
   ARequired: Boolean);
 
 begin
-  If Length(AName)=0 Then 
+  If Length(AName)=0 Then
     DatabaseError(SNeedFieldName);
   // the fielddef will register itself here as a owned component.
   // fieldno is 1 based !
@@ -168,6 +170,7 @@ Var I : longint;
 begin
   For I:=FItems.Count-1 downto 0 do
     TFieldDef(Fitems[i]).Free;
+  FItems.Clear;
 end;
 
 function TFieldDefs.Find(const AName: string): TFieldDef;
@@ -465,7 +468,7 @@ Procedure TField.SetDataset (Value : TDataset);
 begin
 {$ifdef dsdebug}
   Writeln ('Setting dataset');
-{$endif}  
+{$endif}
   If Value=FDataset then exit;
   If Assigned(FDataset) Then FDataset.CheckInactive;
   If Assigned(Value) then
@@ -476,9 +479,9 @@ begin
     end;
   If Assigned(FDataset) then
     FDataset.FFieldList.Remove(Self);
-  If Assigned(Value) then 
+  If Assigned(Value) then
     Value.FFieldList.Add(Self);
-  FDataset:=Value;    
+  FDataset:=Value;
 end;
 
 procedure TField.SetDataType(AValue: TFieldType);
@@ -1773,7 +1776,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-01-18 22:10:07  michael
+  Revision 1.6  2001-04-10 23:28:23  peter
+    * merged fixes
+
+  Revision 1.5  2001/01/18 22:10:07  michael
   + Fixes to make dbase working merged from fixbranch
 
   Revision 1.4  2000/12/24 12:45:19  peter

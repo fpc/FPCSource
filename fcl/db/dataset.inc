@@ -34,6 +34,9 @@ end;
 
 destructor TDataSet.Destroy;
 
+var
+  i: Integer;
+
 begin
   Active:=False;
   FFieldDefs.Free;
@@ -44,6 +47,12 @@ begin
       TDatasource(Items[Count - 1]).DataSet:=Nil;
     Free;
     end;
+  if Assigned(FBuffers) then
+  begin
+    for i := 0 to FBufferCount do
+      FreeRecordBuffer(FBuffers[i]);
+    FreeMem(FBuffers);
+  end;
   Inherited Destroy;
 end;
 
@@ -75,7 +84,7 @@ begin
      // ATM Set by CreateField ...
   For I:=0 to FFieldList.Count-1 do
     FFieldList[i].FFieldNo:=I;
-  }  
+  }
 end;
 
 Function TDataset.BookmarkAvailable: Boolean;
@@ -150,7 +159,9 @@ begin
     With Fielddefs.Items[I] do
       If DataType<>ftUnknown then
         begin
+        {$ifdef DSDebug}
         Writeln('About to create field',FieldDefs.Items[i].Name);
+        {$endif}
         CreateField(self);
         end;
 end;
@@ -788,6 +799,7 @@ Procedure TDataset.SetName(const Value: TComponentName);
 
 begin
   //!! To be implemented
+  inherited SetName(Value);
 end;
 
 Procedure TDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
@@ -1593,7 +1605,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-01-18 22:10:07  michael
+  Revision 1.5  2001-04-10 23:28:23  peter
+    * merged fixes
+
+  Revision 1.4  2001/01/18 22:10:07  michael
   + Fixes to make dbase working merged from fixbranch
 
   Revision 1.3  2000/12/24 12:45:19  peter

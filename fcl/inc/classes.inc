@@ -934,7 +934,7 @@ var
           else
           begin
             Output.WriteByte(Ord(vaIdent));
-            WriteString(parser.TokenString);
+            WriteString(parser.TokenComponentIdent);
           end;
           Parser.NextToken;
         end;
@@ -1182,7 +1182,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-03-08 19:39:25  michael
+  Revision 1.7  2001-04-10 23:24:51  peter
+    * merged fixes
+
+  Revision 1.6  2001/03/08 19:39:25  michael
   + Merged fixes
 
   Revision 1.5  2000/10/15 09:27:48  peter
