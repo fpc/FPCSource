@@ -331,6 +331,7 @@ unit temp_gen;
               tempansilist:=tl;
            end;
          gettempansioffset:=ofs;
+         exprasmlist^.concat(new(paitempalloc,alloc(tl^.pos,tl^.size)));
       end;
 
     procedure gettempansistringreference(var ref : treference);
@@ -355,6 +356,7 @@ unit temp_gen;
                   begin
                      tl^.is_freeansistring:=true;
                      ungetiftempansi:=true;
+                     exprasmlist^.concat(new(paitempalloc,dealloc(tl^.pos,tl^.size)));
                      exit;
 {$ifdef EXTDEBUG}
                   end
@@ -636,7 +638,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1999-04-16 11:49:45  peter
+  Revision 1.18  1999-04-16 14:03:39  pierre
+   * added paitempalloc for tempansi
+
+  Revision 1.17  1999/04/16 11:49:45  peter
     + tempalloc
     + -at to show temp alloc info in .s file
 
