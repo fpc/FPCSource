@@ -5,3 +5,4 @@ Ansistrings .................. testansi.pp
 Classes ...................... testdom.pp
 Exceptions ................... testexc.pp
                                testexc2.pp
+                               testexc3.pp

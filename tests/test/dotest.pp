@@ -3,7 +3,7 @@ unit dotest;
   interface
 {$ifdef go32v2}
     uses
-       dpmiexcp;
+       dpmiexcp,lineinfo;
 {$endif go32v2}
 
     procedure do_error(l : longint);
