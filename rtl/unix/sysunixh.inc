@@ -19,18 +19,11 @@
 
 {$I systemh.inc}
 
-{$I heaph.inc}
-
 {$ifdef cpum68k}
 { used for single computations }
 const
   BIAS4 = $7f-1;
 {$endif cpum68k}
-
-{Platform specific information}
-type
-  { fd are int in C also for 64bit targets (x86_64) }
-  THandle = Longint;
 
 const
  LineEnding = #10;
@@ -60,7 +53,11 @@ var argc:longint;external name 'operatingsystem_parameter_argc';
 
 {
   $Log$
-  Revision 1.22  2004-09-03 19:27:10  olle
+  Revision 1.23  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.22  2004/09/03 19:27:10  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 

@@ -26,13 +26,6 @@ Uses BaseUnix,UnixType;
 {$define POSIXWORKAROUND}
 { Get Types and Constants }
 {$i sysconst.inc}
-{$ifdef FreeBSD}
-{$i systypes.inc}
-{$else}
-{$ifndef FPC_USE_LIBC}
-{$i systypes.inc}
-{$endif FPC_USE_LIBC}
-{$endif}
 
 {Get error numbers, some more signal definitions and other OS dependant
  types (that are not POSIX) }
@@ -1251,7 +1244,11 @@ End.
 
 {
   $Log$
-  Revision 1.80  2005-01-30 18:01:15  peter
+  Revision 1.81  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.80  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir

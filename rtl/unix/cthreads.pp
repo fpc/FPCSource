@@ -35,7 +35,6 @@ Procedure SetCThreadManager;
 implementation
 
 Uses
-  systhrds,
   BaseUnix,
   unix,
   unixtype,
@@ -682,7 +681,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2004-12-28 14:20:03  marco
+  Revision 1.20  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.19  2004/12/28 14:20:03  marco
    * tthread patch from neli
 
   Revision 1.18  2004/12/27 15:28:40  marco

@@ -38,101 +38,7 @@ Interface
 Implementation
 
 
-{$ifdef FPC_USE_LIBC}
-
-const clib = 'c';
-
-type libcint=longint;
-     plibcint=^libcint;
-
-function geterrnolocation: Plibcint; cdecl;external clib name'__errno_location';
-
-function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
-
-begin
- geterrno:=geterrnolocation^;
-end;
-
-procedure seterrno(err:libcint); [public, alias: 'FPC_SYS_SETERRNO'];
-begin
-  geterrnolocation^:=err;
-end;
-
-{$else}
-
-{$ifdef ver1_0}
-Var
-{$else}
-ThreadVar
-{$endif}
-  Errno : longint;
-
-function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];
-
-begin
- GetErrno:=Errno;
-end;
-
-procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
-
-begin
- Errno:=err;
-end;
-{$endif}
-
 {$I system.inc}
-
-{ OS dependant parts  }
-
-{$I errno.inc}                          // error numbers
-{$I bunxtype.inc}                       // c-types, unix base types, unix
-                                        //    base structures
-
-{*****************************************************************************
-                 Extra cdecl declarations for FPC_USE_LIBC for this os
-*****************************************************************************}
-
-{$ifdef FPC_USE_LIBC}
-Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
-function fpgetcwd(buf:pchar;_size:size_t):pchar; cdecl; external name 'getcwd';
-{$endif}
-
-
-{$I ossysc.inc}                         // base syscalls
-{$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
-
-{*****************************************************************************
-      OS Memory allocation / deallocation
- ****************************************************************************}
-
-function SysOSAlloc(size: ptrint): pointer;
-begin
-  result := sbrk(size);
-end;
-
-{$define HAS_SYSOSFREE}
-
-procedure SysOSFree(p: pointer; size: ptrint);
-begin
-  fpmunmap(p, size);
-end;
-
-{ more OS independant parts}
-
-{$I text.inc}
-{$I heap.inc}
-
-{*****************************************************************************
-                 UnTyped File Handling
-*****************************************************************************}
-
-{$i file.inc}
-
-{*****************************************************************************
-                 Typed File Handling
-*****************************************************************************}
-
-{$i typefile.inc}
 
 
 procedure SysInitStdIO;
@@ -168,21 +74,20 @@ Begin
   IsLibrary := FALSE;
   StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
-{ Set up signals handlers }
+  { Set up signals handlers }
   InstallSignals;
-{ Setup heap }
+  { Setup heap }
   InitHeap;
   SysInitExceptions;
-{ Arguments }
+  { Arguments }
   SetupCmdLine;
   SysInitExecPath;
-{ Setup stdin, stdout and stderr }
+  { Setup stdin, stdout and stderr }
   SysInitStdIO;
-{ Reset IO Error }
+  { Reset IO Error }
   InOutRes:=0;
-(* This should be changed to a real value during *)
-(* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
+  { threading }
+  InitSystemThreads;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
@@ -193,7 +98,11 @@ End.
 
 {
   $Log$
-  Revision 1.21  2005-02-01 20:22:49  florian
+  Revision 1.22  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.21  2005/02/01 20:22:49  florian
     * improved widestring infrastructure manager
 
   Revision 1.20  2004/12/05 14:36:37  hajny

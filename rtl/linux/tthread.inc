@@ -320,7 +320,7 @@ begin
   if SynchronizeMethodProc = nil then
     { raise some error? }
     exit;
-  rtleventsync(systhrds.trtlmethod(method),synchronizemethodproc);
+  rtleventsync(trtlmethod(method),synchronizemethodproc);
 end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
@@ -330,7 +330,11 @@ end;
 
 {
   $Log$
-  Revision 1.10  2004-12-23 15:08:58  marco
+  Revision 1.11  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.10  2004/12/23 15:08:58  marco
    * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
      only showed on make install should be fixed now.
 

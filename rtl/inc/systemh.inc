@@ -302,6 +302,10 @@ Type
 { procedure type }
   TProcedure  = Procedure;
 
+{ platform dependent types }
+{$i sysosh.inc}
+
+
 const
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
@@ -744,6 +748,20 @@ const
 {$i compproc.inc}
 
 {*****************************************************************************
+                               Heap
+*****************************************************************************}
+
+{$i heaph.inc}
+
+{*****************************************************************************
+                          Thread support
+*****************************************************************************}
+
+{ Generic threadmanager }
+{$i threadh.inc}
+
+
+{*****************************************************************************
                    FPDoc phony declarations.
 *****************************************************************************}
 
@@ -753,7 +771,11 @@ const
 
 {
   $Log$
-  Revision 1.115  2005-02-05 10:47:38  florian
+  Revision 1.116  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.115  2005/02/05 10:47:38  florian
     * fixed previous commit
 
   Revision 1.114  2005/02/05 10:07:21  florian

@@ -23,7 +23,7 @@ type
   PEventState = pointer;
   PRTLEvent   = pointer;   // Windows=thandle, other=pointer to record.
   TThreadFunc = function(parameter : pointer) : ptrint;
-  trtlmethod     = procedure of object;
+  trtlmethod  = procedure of object;
 
   // Function prototypes for TThreadManager Record.
   TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : THandle) : DWord;
@@ -33,7 +33,7 @@ type
   TThreadSwitchHandler = Procedure;
   TWaitForThreadTerminateHandler = Function (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
   TThreadSetPriorityHandler = Function (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
-  TThreadGetPriorityHandler = Function (threadHandle : dword): Integer;
+  TThreadGetPriorityHandler = Function (threadHandle : dword): longint;
   TGetCurrentThreadIdHandler = Function : dword;
   TCriticalSectionHandler = Procedure (var cs);
   TInitThreadVarHandler = Procedure(var offset : dword;size : dword);
@@ -108,20 +108,12 @@ procedure InitThread(stklen:cardinal);
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : THandle) : DWord;
-{$ifndef CPU64}
-{$ifndef unix}
-{$endif unix}
-{$endif CPU64}
 
 { add some simplfied forms which make lifer easier and porting }
 { to other OSes too ...                                        }
 function BeginThread(ThreadFunction : tthreadfunc) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : THandle) : DWord;
-{$ifndef CPU64}
-{$ifndef unix}
-{$endif unix}
-{$endif CPU64}
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
@@ -133,7 +125,7 @@ procedure ThreadSwitch;                                                         
 function  KillThread (threadHandle : dword) : dword;
 function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
 function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
-function  ThreadGetPriority (threadHandle : dword): Integer;
+function  ThreadGetPriority (threadHandle : dword): longint;
 function  GetCurrentThreadId : dword;
 
 
@@ -161,7 +153,11 @@ procedure RTLchecksynchronize;
 
 {
   $Log$
-  Revision 1.25  2005-01-21 21:43:12  armin
+  Revision 1.26  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.25  2005/01/21 21:43:12  armin
   * applied patch to compile go32v2 from Tomas (tested by John)
 
   Revision 1.24  2004/12/28 14:20:03  marco

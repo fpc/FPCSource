@@ -125,7 +125,7 @@ begin
   Result:=CurrentTM.ThreadSetPriority(ThreadHandle,Prio);
 end;
 
-function  ThreadGetPriority (threadHandle : dword): Integer;
+function  ThreadGetPriority (threadHandle : dword): longint;
 
 begin
   Result:=CurrentTM.ThreadGetPriority(ThreadHandle);
@@ -316,7 +316,7 @@ begin
   NoThreadError;
 end;
 
-function  NoThreadGetPriority (threadHandle : dword): Integer;
+function  NoThreadGetPriority (threadHandle : dword): longint;
 begin
   NoThreadError;
 end;
@@ -481,7 +481,11 @@ end;
 
 {
   $Log$
-  Revision 1.19  2005-01-21 21:45:57  armin
+  Revision 1.20  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.19  2005/01/21 21:45:57  armin
   * applied patch to compile go32v2 from Tomas (tested by John)
 
   Revision 1.18  2005/01/16 14:46:57  florian

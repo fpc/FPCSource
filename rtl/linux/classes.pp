@@ -16,11 +16,6 @@
 
 {$mode objfpc}
 
-{ Require threading }
-{$ifndef ver1_0}
-  {$threading on}
-{$endif ver1_0}
-
 { determine the type of the resource/form file }
 {$define Win16Res}
 
@@ -58,7 +53,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2004-12-23 15:08:58  marco
+  Revision 1.8  2005-02-06 11:20:52  peter
+    * threading in system unit
+    * removed systhrds unit
+
+  Revision 1.7  2004/12/23 15:08:58  marco
    * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
      only showed on make install should be fixed now.
 
