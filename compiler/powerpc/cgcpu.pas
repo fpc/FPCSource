@@ -1087,6 +1087,8 @@ const
 
         { no GOT pointer loaded yet }
         gotgot:=false;
+        r.enum := R_INTREGISTER;
+        r.NUMBER := NR_R12;
         if usesfpr then
           begin
              { save floating-point registers
@@ -1098,18 +1100,16 @@ const
              else
                a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14));
              }
+             reference_reset_base(href,r,-8);
              for regcounter.enum:=firstregfpu.enum to R_F31 do
                if regcounter.enum in rg.usedbyproc then
                  begin
-                    { reference_reset_base(href,R_1,-localsize);
-                    a_load_store(list,A_STWU,R_1,href);
-                    }
+                    a_loadfpu_reg_ref(list,OS_F64,regcounter,href);
+                    dec(href.offset,8);
                  end;
 
              { compute end of gpr save area }
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R12;
-             list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,-(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
+             a_op_const_reg(list,OP_ADD,href.offset+8,r);
           end;
 
         { save gprs and fetch GOT pointer }
@@ -1124,10 +1124,24 @@ const
              else
                a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14))
              }
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_R12;
-             reference_reset_base(href,r,-((NR_R31-firstreggpr.number) shr 8+1)*4);
-             list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
+            reference_reset_base(href,r,-4);
+            for regcounter2:=firstsaveintreg to RS_R31 do
+              begin
+                if regcounter2 in rg.usedintbyproc then
+                  begin
+                     usesgpr:=true;
+                     r.enum := R_INTREGISTER;
+                     r.number := regcounter2 shl 8;
+                     a_load_reg_ref(list,OS_INT,r,href);
+                     dec(href.offset,4);
+                  end;
+              end;
+{
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_R12;
+            reference_reset_base(href,r,-((NR_R31-firstreggpr.number) shr 8+1)*4);
+            list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
+}
           end;
 
         if assigned(current_procdef.parast) then
@@ -1241,27 +1255,47 @@ const
 
         { no return (blr) generated yet }
         genret:=true;
-        if usesgpr then
+        if usesgpr or usesfpr then
           begin
              { address of gpr save area to r11 }
              r.enum:=R_INTREGISTER;
              r.number:=NR_STACK_POINTER_REG;
              r2.enum:=R_INTREGISTER;
              r2.number:=NR_R12;
+             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r,r2);
              if usesfpr then
-               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize-(ord(R_F31)-ord(firstregfpu.enum)+1)*8,r,r2)
+               begin
+                 reference_reset_base(href,r2,-8);
+                 for regcounter.enum := firstregfpu.enum to R_F31 do
+                   if (regcounter.enum in rg.usedbyproc) then
+                     begin
+                       a_loadfpu_ref_reg(list,OS_F64,href,regcounter);
+                       dec(href.offset,8);
+                     end;
+                   inc(href.offset,4);
+               end
              else
-               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r,r2);
+               reference_reset_base(href,r2,-4);
+             
+            for regcounter2:=firstsaveintreg to RS_R31 do
+              begin
+                if regcounter2 in rg.usedintbyproc then
+                  begin
+                     usesgpr:=true;
+                     r.enum := R_INTREGISTER;
+                     r.number := regcounter2 shl 8;
+                     a_load_ref_reg(list,OS_INT,href,r);
+                     dec(href.offset,4);
+                  end;
+              end;
 
-             { restore gprs }
-             { at least for now we use LMW }
-             {
-             a_call_name(objectlibrary.newasmsymbol('_restgpr_14');
-             }
+(*
              reference_reset_base(href,r2,-((NR_R31-ord(firstreggpr.number)) shr 8+1)*4);
              list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
+*)
           end;
 
+(*
         { restore fprs and return }
         if usesfpr then
           begin
@@ -1280,6 +1314,8 @@ const
              genret:=false;
              }
           end;
+*)
+
         { if we didn't generate the return code, we've to do it now }
         if genret then
           begin
@@ -2440,7 +2476,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-05-28 23:18:31  florian
+  Revision 1.98  2003-05-28 23:58:18  jonas
+    * added missing initialization of rg.usedint{in,by}proc
+    * ppc now also saves/restores used fpu registers
+    * ncgcal doesn't add used registers to usedby/inproc anymore, except for
+      i386
+
+  Revision 1.97  2003/05/28 23:18:31  florian
     * started to fix and clean up the sparc port
 
   Revision 1.96  2003/05/24 11:59:42  jonas

@@ -639,9 +639,13 @@ implementation
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 
+              { on the ppc, ever procedure saves the non-volatile registers it uses itself }
+              { and must make sure it saves its volatile registers before doing a call     }
+{$ifdef i386}
               { give used registers through }
               rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
               rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
+{$endif i386}
            end
          else
            begin
@@ -649,7 +653,9 @@ implementation
               regs_to_push_other := all_registers;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
+{$ifdef i386}
               rg.usedinproc:=all_registers;
+{$endif i386}
               { no IO check for methods and procedure variables }
               iolabel:=nil;
            end;
@@ -1022,9 +1028,11 @@ implementation
          rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
          rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 
+{$ifdef i386}
          { give used registers through }
          rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
          rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
+{$endif i386}
 
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
@@ -1214,7 +1222,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-05-26 21:17:17  peter
+  Revision 1.76  2003-05-28 23:58:18  jonas
+    * added missing initialization of rg.usedint{in,by}proc
+    * ppc now also saves/restores used fpu registers
+    * ncgcal doesn't add used registers to usedby/inproc anymore, except for
+      i386
+
+  Revision 1.75  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

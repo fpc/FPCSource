@@ -582,7 +582,9 @@ implementation
         { reset the temporary memory }
         rg.cleartempgen;
         rg.usedinproc:=[];
+        rg.usedintinproc:=[];
         rg.usedbyproc:=[];
+        rg.usedintbyproc:=[];
 
         { set the start offset to the start of the temp area in the stack }
         tg.setfirsttemp(current_procinfo.firsttemp_offset);
@@ -1208,7 +1210,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2003-05-26 21:17:18  peter
+  Revision 1.119  2003-05-28 23:58:18  jonas
+    * added missing initialization of rg.usedint{in,by}proc
+    * ppc now also saves/restores used fpu registers
+    * ncgcal doesn't add used registers to usedby/inproc anymore, except for
+      i386
+
+  Revision 1.118  2003/05/26 21:17:18  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
