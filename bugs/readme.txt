@@ -66,7 +66,7 @@ Fixed bugs:
   bug0047.pp    compiling with -So crashes the compiler             OK 0.99.1 (CEC)
   bug0053.pp    shows a problem with open arrays                     OK 0.99.1 (FK)
                 (crashes a win95-DOS box :) )
-  bug0054.pp   wordbool and longbool types are missed                OK 0.99.6 (PFV)
+  bug0054.pp    wordbool and longbool types are missed               OK 0.99.6 (PFV)
   bug0055.pp    internal error 10 (means too few registers           OK 0.99.1 (FK)
                 - i386 ONLY)
   bug0056.pp    shows a _very_ simple expression which generates     OK 0.99.1 (FK)
@@ -86,6 +86,7 @@ Fixed bugs:
       More info can be found in file bug0067b.pp.
   bug0068.pp   Shows incorrect type of ofs()                         OK 0.99.1 (PFV and FK)
   bug0069.pp    Shows problem with far qualifier in units            OK 0.99.1 (CEC)
+  bug0070.pp   shows missing include and exclude from rtl            OK 0.99.6 (MVC)
   bug0071.pp    shows that an unterminated constant string in a      OK 0.99.1 (PFV)
                 writeln() statement crashes the compiler.
   bug0072.pp    causes an internal error 10  ( i386 ONLY )           OK 0.99.1 (FK)
@@ -99,6 +100,7 @@ Fixed bugs:
   bug0078.pp   Shows problems with longint constant in intel asm     OK 0.99.1 (CEC)
                parsers
   bug0079.pp   Shows problems with stackframe with assembler keyword OK 0.99.1 (CEC)
+  bug0080.pp   Shows Missing High() (internal) function.             OK 0.99.6 (MVC)
   bug0081.pp   Shows incompatibility with borland's 'array of char'. OK 0.99.1 (FK)
   bug0082.pp   Shows incompatibility with BP : Multiple destructors. OK 0.99.1 (FK)
   bug0084.pp   no more pascal type checking                          OK 0.99.1 (FK)
@@ -138,6 +140,7 @@ Fixed bugs:
                conversion?)
   bug0118.pp   Procedural vars cannot be assigned nil ?              OK 0.99.6 (FK)
   bug0119.pp   problem with methods                                  OK 0.99.6 (FK)
+  bug0120.pp   inc/dec(enumeration) doesn't work                     OK 0.99.6 (MVC)
   bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK)
   bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (FK)
   bug0125.pp   wrong colors with DOS CRT unit                        OK 0.99.6 (PFV)
@@ -145,10 +148,15 @@ Fixed bugs:
   bug0128.pp   problem with ^[                                       OK 0.99.6 (PFV)
   bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
   bug0130.pp   in [..#255] problem                                   OK 0.99.6 (PFV)
+  bug0131.pp   internal error 10 with highdimension arrays           OK 0.99.6 (MVC)
   bug0134.pp   'continue' keyword is buggy.                          OK 0.99.6 (FK)
+  bug0135.pp   Unsupported subrange type construction.               OK 0.99.6
   bug0136.pp   No types necessary in the procedure header            OK 0.99.6 (PFV)
+  bug0137.pp   Cannot assign child object variable to parent objcet type variable OK 0.99.6
   bug0138.pp   with problem, %esi can be crushed and is not restored OK 0.99.6 (PM)
+  bug0139.pp   Cannot access protected method of ancestor class from other unit. OK 0.99.6
   bug0140.pp   Shows that interdependent units still are not OK.     OK 0.99.6 (PFV)
+  bug0141.pp   Wrong Class sizes when using forwardly defined classes. OK 0.99.6
 
 Unproducable bugs:
 ------------------
@@ -169,27 +177,19 @@ Unfixed bugs:
 -------------
 bug0042.pp   shows assembler double operator expression problem
 bug0043.pp   shows assembler nasm output with fpu opcodes problem
-bug0049.pp   shows an error while defining subrange types
+bug0049.pp    shows an error while defining subrange types
 bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
 bug0052.pp   collects missing graph unit routines
 bug0057.pp   shows a crash with switch graph/text/graph
 bug0063.pp   shows problem with ranges in sets for variables
-bug0070.pp   shows missing include and exclude from rtl
-bug0080.pp   Shows Missing High() (internal) function.
 bug0083.pp   shows missing "dynamic" set constructor
 bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
-bug0120.pp   inc/dec(enumeration) doesn't work
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
-bug0127.pp   problem with cdecl in implementation part
-bug0131.pp   internal error 10 with highdimension arrays
+bug0127.pp   problem with cdecl in implementation part             OK 0.99.6 (MVC)
 bug0132.pp   segmentation fault with type loop
-bug0135.pp   Unsupported subrange type construction.
-bug0137.pp   Cannot assign child object variable to parent objcet type variable
-bug0139.pp   Cannot access protected method of ancestor class from other unit.
-bug0141.pp   Wrong Class sizes when using forwardly defined classes.
 bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 bug0143.pp   cannot concat string and array of char in $X+ mode
 bug0144.pp   problem with 'with object do'
