@@ -1023,11 +1023,19 @@ const
       error_programexitedwithsignal = #3'Program generated a signal %d.'#13+
                                       #3'Save your sources and restart the IDE.';
 
+      continue_despite_error = #3'The IDE generated an internal error'#13+
+                            #3'Do you really want to continue?'#13+
+                            #3'The IDE could be in an unstable state.';
 
+      leaving_after_error = #3'The IDE generated an internal error'#13+
+                            #3'and will now be closed.';
 
 {
   $Log$
-  Revision 1.8  2002-03-27 11:23:18  pierre
+  Revision 1.9  2002-04-12 08:59:42  pierre
+   + two new dialogs in case of internal errors
+
+  Revision 1.8  2002/03/27 11:23:18  pierre
    + add a title to the Breakpoint dialog type checkbox
 
   Revision 1.7  2002/03/20 14:52:44  pierre
