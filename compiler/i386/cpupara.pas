@@ -156,6 +156,7 @@ unit cpupara;
          if not assigned(hsym) then
            internalerror(200305251);
          getselflocation.loc:=LOC_REFERENCE;
+         getselflocation.sp_fixup:=POINTER_SIZE;
          getselflocation.reference.index.enum:=R_INTREGISTER;
          getselflocation.reference.index.number:=NR_STACK_POINTER_REG;
          getselflocation.reference.offset:=hsym.adjusted_address;
@@ -166,7 +167,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-06-06 07:35:14  michael
+  Revision 1.16  2003-06-06 07:36:06  michael
+  + Forgot a line in patch from peter
+
+  Revision 1.15  2003/06/06 07:35:14  michael
   + Patch to Patch from peter
 
   Revision 1.14  2003/06/06 07:34:11  michael
