@@ -13,6 +13,8 @@
 
  **********************************************************************}
 
+{$ifndef FPC_USE_LIBC} // kernel record
+
   Stat = Packed Record  // No unix typing because of differences
                               // kernel <->libc
     case byte of   
@@ -20,10 +22,10 @@
           pad1       : word;
           st_ino     : longint;
           st_mode,
-          nlink,
-          uid,
-          gid        : word;
-          rdev       : word;
+          st_nlink,
+          st_uid,
+          st_gid        : word;
+          st_rdev       : word;
           pad2       : word;
           st_size,
           st_blksze,
@@ -41,10 +43,10 @@
           pad1_dummy    : word;
           ino     : longint;
           mode,
-          nlink_dummy,
-          uid_dummy,
-          gid_dummy     : word;
-          rdev_dummy    : word;
+          nlink,
+          uid,
+          gid           : word;
+          rdev          : word;
           pad2_dummy    : word;
           size,
           blksze,
@@ -59,10 +61,66 @@
           unused5_dummy : longint;
          );
   end;
+{$else}
+
+{$packrecords C}
+  Stat =  Record  // No unix typing because of differences
+                              // kernel <->libc
+    case byte of   
+      0: (st_dev     : int64;
+          pad1       : word;
+          st_ino     : longint;
+          st_mode,
+          st_nlink,
+          st_uid,
+          st_gid        : longint;
+          st_rdev       : int64;
+          pad2          : word;
+          st_size,
+          st_blksze,
+          st_blocks,
+          st_atime,
+          unused1,
+          st_mtime,
+          unused2,
+          st_ctime,
+          unused3,
+          unused4,
+          unused5   : longint;);
+      1: (
+          dev        : int64;
+          pad1_dummy : word;
+          ino        : longint;
+          mode,
+          nlink,
+          uid,
+          gid        : longint;
+          rdev       : int64;
+          pad2_dummy : word;
+          size,
+          blksze,
+          blocks,
+          atime,
+          unused1_dummy,
+          mtime,
+          unused2_dummy,
+          ctime,
+          unused3_dummy,
+          unused4_dummy,
+          unused5_dummy   : longint;
+
+         );
+  end;
+
+
+{$endif}
 
 {
   $Log$
-  Revision 1.1  2003-05-15 22:50:50  jonas
+  Revision 1.2  2004-01-01 14:20:20  marco
+   * libc stat record under ifdef added
+
+  Revision 1.1  2003/05/15 22:50:50  jonas
     * the stat type is processor-dependent
     * the dev_t tpye is processor dependent. Don't use it in the stat type
       however, as that one is also used at a time where dev_t is already
