@@ -22,6 +22,8 @@
 Const
   { For sending a signal }
   SA_NOCLDSTOP = 1;
+  SA_NOCLDWAIT = 2;
+  SA_SIGINFO   = 4;
   SA_SHIRQ     = $04000000;
   SA_STACK     = $08000000;
   SA_RESTART   = $10000000;
@@ -45,7 +47,7 @@ Const
   SIGTRAP    = 5;
   SIGABRT    = 6;
   SIGIOT     = 6;
-  SIGEMT     = 7;  
+  SIGEMT     = 7;
   SIGFPE     = 8;
   SIGKILL    = 9;
   SIGBUS     = 10;
@@ -457,7 +459,10 @@ type
 
 {
   $Log$
-  Revision 1.20  2004-05-27 23:15:43  peter
+  Revision 1.21  2004-05-31 09:08:14  peter
+    * added siginfo const
+
+  Revision 1.20  2004/05/27 23:15:43  peter
     * sparc signals added between $ifdef cpusparc
 
   Revision 1.19  2004/05/01 15:59:17  florian
