@@ -1,12 +1,15 @@
-s/</&lt;/g
-s/>/&gt;/g
+s/</\&lt;/g
+s/>/\&gt;/g
+s/\\_/_/g
+s/\\#/#/g
 s/^%\(.*\)$/<!-- \1 -->/
 s/\([^\\]\)%\(.*\)$/<!-- \2 -->/
 /\\Declaration/,/\\Description/c\
+<short></short>\
 <descr>
-s%\\subsection{\([^{]*\)}%<topic><shortdescr>\1</shortdescr>%g
-s%\\section{\([^{]*\)}%<topic><shortdescr>\1</shortdescr>%g
-s%\\chapter{\([^{]*\)}%<topic><shortdescr>\1</shortdescr>%g
+s%\\subsection{\([^{]*\)}%<topic><short>\1</short>%g
+s%\\section{\([^{]*\)}%<topic><short>\1</short>%g
+s%\\chapter{\([^{]*\)}%<topic><short>\1</short>%g
 s%\\begin{verbatim}%</p>\n<code>%g
 s%\\end{verbatim}%</code>\n<p>%g
 s%\\var{\([^{]*\)}%<var>\1</var>%g
@@ -52,10 +55,10 @@ s%\\end{remark}%</remark>\n<p>%g
 s%\\\\%<br/>%g
 s%\\begin{funclist}%<table>\n<th><td>Name</td><td>Description</td></th>%g
 s%\\end{funclist}%</table>%g
-s%\\funcref{\([^{]*\)}{\([^{]*\)}%<tr><link id="\1"/><td>\2</td></tr>%g
-s%\\funcrefl{\([^{]*\)}{\([^{]*\)}{\([^{]*\)}%<tr><link id="\2">\1</link><td>\3</td></tr>%g
-s%\\procref{\([^{]*\)}{\([^{]*\)}%<tr><link id="\1"/><td>\2</td></tr>%g
-s%\\procrefl{\([^{]*\)}{\([^{]*\)}{\([^{]*\)}%<tr><link id="\2">\1</link><td>\3</td></tr>%g
+s%\\funcref{\([^{]*\)}{\([^{]*\)}%<tr><td><link id="\1"/></td><td>\2</td></tr>%g
+s%\\funcrefl{\([^{]*\)}{\([^{]*\)}{\([^{]*\)}%<tr><td><link id="\2">\1</link></td><td>\3</td></tr>%g
+s%\\procref{\([^{]*\)}{\([^{]*\)}%<tr><td><link id="\1"/></td><td>\2</td></tr>%g
+s%\\procrefl{\([^{]*\)}{\([^{]*\)}{\([^{]*\)}%<tr><td><link id="\2">\1</link></td><td>\3</td></tr>%g
 s%>,[[:space:]]*<link%>\n<link%g
 /\\begin{description}/,/\\end{description}/{
 s%\\begin{description}%<dl>%g
