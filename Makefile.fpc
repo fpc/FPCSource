@@ -478,17 +478,17 @@ renametoshort:
         -mv utils$(ZIPSUFFIX).zip util$(ZIPSUFFIXSHORT).zip
         -mv installer$(ZIPSUFFIX).zip inst$(ZIPSUFFIXSHORT).zip
 # Packages
-        -mv units-fcl$(ZIPSUFFIX).zip ufcl$(ZIPSUFFIXSHORT).zip
-        -mv units-gdbint$(ZIPSUFFIX).zip ugdb$(ZIPSUFFIXSHORT).zip
-        -mv units-regexpr$(ZIPSUFFIX).zip ureg$(ZIPSUFFIXSHORT).zip
-        -mv units-paszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIXSHORT).zip
-        -mv units-unzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIXSHORT).zip
-        -mv units-netdb$(ZIPSUFFIX).zip undb$(ZIPSUFFIXSHORT).zip
-        -mv units-ftpapi$(ZIPSUFFIX).zip uftp$(ZIPSUFFIXSHORT).zip
-        -mv units-hwvideo$(ZIPSUFFIX).zip uhwv$(ZIPSUFFIXSHORT).zip
-        -mv units-clkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIXSHORT).zip
-        -mv units-pasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIXSHORT).zip
-        -mv units-fv$(ZIPSUFFIX).zip ufv$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)fcl$(ZIPSUFFIX).zip ufcl$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)gdbint$(ZIPSUFFIX).zip ugdb$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)regexpr$(ZIPSUFFIX).zip ureg$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)paszlib$(ZIPSUFFIX).zip upzl$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)unzip$(ZIPSUFFIX).zip uzip$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)netdb$(ZIPSUFFIX).zip undb$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)ftpapi$(ZIPSUFFIX).zip uftp$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)hwvideo$(ZIPSUFFIX).zip uhwv$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)clkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)pasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIXSHORT).zip
+        -mv $(PKGUNITSPRE)fv$(ZIPSUFFIX).zip ufv$(ZIPSUFFIXSHORT).zip
 
 shortsrc:
         $(MAKE) renametoshort ZIPSUFFIX=$(ZIPSOURCESUFFIX) ZIPSUFFIXSHORT=src
