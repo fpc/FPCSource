@@ -176,7 +176,7 @@ const
 {$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
-     PortW[$3ce] := Pixel shl 8; { Index 00 : Enable correct plane and write color }
+     PortW[$3ce] := (Pixel and $ff) shl 8; { Index 00 : Enable correct plane and write color }
 
      Port[$3ce] := 8;
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
@@ -2497,7 +2497,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.4  1999-11-29 07:32:53  jonas
+Revision 1.5  1999-12-10 12:49:24  pierre
+ * avoid overflow on ProtW in PutPixel16
+
+Revision 1.4  1999/11/29 07:32:53  jonas
   * fixed setvgargbpalette (it's 6bit lsb, not msb values, so no shifts!)
 
 Revision 1.3  1999/11/27 21:48:00  jonas
