@@ -67,7 +67,6 @@ interface
           defined : boolean;
           code : pointer; { should be tnode }
           constructor create(const n : string; l : tasmlabel);
-          destructor destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure generate_mangledname;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -475,13 +474,6 @@ implementation
          used:=false;
          defined:=true;
       end;
-
-    destructor tlabelsym.destroy;
-
-      begin
-         inherited destroy;
-      end;
-
 
     procedure tlabelsym.generate_mangledname;
 
@@ -2374,7 +2366,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2004-02-04 22:54:57  daniel
+  Revision 1.154  2004-02-04 23:01:36  daniel
+    * Empty destructor Tlabelsym.destroy removed
+
+  Revision 1.153  2004/02/04 22:54:57  daniel
     * Tvarsym.highvarsym commented out (unused by compiler, purpose unknown)
 
   Revision 1.152  2004/02/04 22:15:15  daniel
