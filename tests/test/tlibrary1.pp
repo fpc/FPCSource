@@ -1,4 +1,5 @@
 { %NORUN }
+{ %SKIPTARGET=macos }
 
 { The .so of the library needs to be in the current dir when
   testing the loading at runtime }

@@ -1,4 +1,6 @@
-{ %SKIPTARGET=macos Crashes when assembling, linking or running}
+{ %SKIPTARGET=macos }
+{ On macos, PPCAsm chokes on this and crashes}
+
 type
   de10_eqn_vector = array [1..10] of double;
   de10_func = function : double;
