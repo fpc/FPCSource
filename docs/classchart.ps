@@ -307,6 +307,16 @@ setfont
 } def
 
 %%%%%%%%%%%%%%%%%%%%%%%%
+% onelevelbackempty
+% goes one level back in the class hierarchy
+/onelevelbackempty
+{
+   /oldy exch def
+   nextx -11 mm add
+   /nextx exch def
+} def
+
+%%%%%%%%%%%%%%%%%%%%%%%%
 % onelevelback
 % goes one level back in the class hierarchy
 /onelevelback
@@ -450,7 +460,8 @@ setfont
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
 (TInterface) Missing newclass % 40 mm newclassxmoved
-(TIAddInNotifier) Missing newchildclass
+  (TIAddInNotifier) Missing newchildclass
+  onelevelback
 
 %restoreoldxy
 (TInterfacedObject) Missing newclass
@@ -463,12 +474,27 @@ newcolumn
   (TFontProperty) Missing newchildclass
   onelevelback
 (TComponentProperty) Missing newclass
+onelevelback
 % remove a childy coordinate
 %restoreoldxy
 (TRegistry) Missing newclass
   (TRegIniFile) Missing newchildclass
   onelevelback
 (TSessionList) Missing newclass
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Syncronization classes
+(TSyncroObject) Untested newclass
+  (TCriticalSection) Untested newchildclass Win32only
+  (THandleObject) Untested newclass Win32only
+    (TEvent) Incomplete newchildclass Win32only
+      (TSimpleEvent) Incomplete newchildclass Win32only
+      onelevelbackempty
+    onelevelbackempty
+  onelevelback
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Thread classes
+(TThread) Missing newclass
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % TPersistent classes
@@ -489,7 +515,11 @@ showpage
 
 %
 %   $Log$
-%   Revision 1.8  1998-10-02 22:42:10  michael
+%   Revision 1.9  1998-10-03 13:53:43  florian
+%     * small errors corrected
+%     + status of syncro objects addded
+%
+%   Revision 1.8  1998/10/02 22:42:10  michael
 %   + Added title
 %
 %   Revision 1.7  1998/10/02 15:45:00  michael
