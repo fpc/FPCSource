@@ -157,9 +157,6 @@ interface
     { returns the mmx type }
     function mmx_type(p : pdef) : tmmxtype;
 
-    { should we try to unget a temp of this type
-      or is it done by temptoremove list (PM) }
-    function ungettempoftype(p : pdef) : boolean;
 
 implementation
 
@@ -541,16 +538,6 @@ implementation
         end;
       end;
 
-    { should we try to unget a temp of this type
-      or is it done by temptoremove list (PM) }
-    function ungettempoftype(p : pdef) : boolean;
-
-      begin
-         ungettempoftype:=true;
-         if assigned(p) and (p^.deftype=stringdef) and
-            (pstringdef(p)^.string_typ in [st_ansistring,st_widestring]) then
-           ungettempoftype:=false;
-      end;
 
     function mmx_type(p : pdef) : tmmxtype;
       begin
@@ -885,7 +872,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-05-23 18:42:23  florian
+  Revision 1.66  1999-05-28 11:00:51  peter
+    * removed ungettempoftype
+
+  Revision 1.65  1999/05/23 18:42:23  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

@@ -1038,8 +1038,7 @@ implementation
            begin
               if assigned(pp^.left) then
                 begin
-                  if (pp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) and
-                     ungettempoftype(pp^.left^.resulttype) then
+                  if (pp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) then
                     ungetiftemp(pp^.left^.location.reference);
                 { process also all nodes of an array of const }
                   if pp^.left^.treetype=arrayconstructn then
@@ -1049,8 +1048,7 @@ implementation
                          hp:=pp^.left;
                          while assigned(hp) do
                           begin
-                            if (hp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) and
-                               ungettempoftype(hp^.left^.resulttype) then
+                            if (hp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) then
                               ungetiftemp(hp^.left^.location.reference);
                             hp:=hp^.right;
                           end;
@@ -1165,7 +1163,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  1999-05-27 19:44:07  peter
+  Revision 1.88  1999-05-28 11:00:49  peter
+    * removed ungettempoftype
+
+  Revision 1.87  1999/05/27 19:44:07  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
