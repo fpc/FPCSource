@@ -115,8 +115,6 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
-  { this pointer is not valid anymore, so set it to zero }
-  S:=nil;
 end;
 
 {$ifdef hascompilerproc}
@@ -835,7 +833,11 @@ end;
 
 {
   $Log$
-  Revision 1.39  2003-06-17 19:24:08  jonas
+  Revision 1.40  2004-01-21 22:02:18  peter
+    * decrref does not reset always to nil, only when string is disposed.
+      the reset to nil for temps is done by the compiler
+
+  Revision 1.39  2003/06/17 19:24:08  jonas
     * fixed conversion of fpc_*str_unique to compilerproc
 
   Revision 1.38  2003/06/17 16:38:53  jonas
