@@ -119,7 +119,7 @@ var INIFile: PINIFile;
     OK: boolean;
 begin
   OK:=ExistsFile(INIPath);
-  if OK=false then
+  if OK then
  begin
   New(INIFile, Init(INIPath));
   RecentFileCount:=High(RecentFiles);
@@ -223,7 +223,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:45  peter
+  Revision 1.2  1998-12-30 10:25:01  peter
+    * fixed readinifile
+
+  Revision 1.1  1998/12/28 15:47:45  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file
