@@ -26,7 +26,7 @@ begin
    end
   else
    Debugger^.TraceNext;
-  While (Debugger^.invalid_line and
+  While (Debugger^.InvalidSourceLine and
     Debugger^.Debugger_started and
     not Debugger^.error) do
    Debugger^.TraceNext;
@@ -47,10 +47,10 @@ begin
    Debugger^.TraceStep;
   { I think we should not try to go deeper !
     if the source is not found PM }
-  While (Debugger^.invalid_line and
+  While (Debugger^.InvalidSourceLine and
         Debugger^.Debugger_started and
         not Debugger^.error) do
-   Debugger^.TraceNext;
+   Debugger^.TraceStep;
   Debugger^.AnnotateError;
 end;
 
@@ -149,7 +149,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-02-04 17:56:17  pierre
+  Revision 1.9  1999-02-05 17:21:53  pierre
+    Invalid_line renamed InvalidSourceLine
+
+  Revision 1.8  1999/02/04 17:56:17  pierre
    * Set breakpoint only possible if source window
 
   Revision 1.7  1999/02/04 13:32:07  pierre

@@ -22,7 +22,7 @@ uses
 type
   PDebugController=^TDebugController;
   TDebugController=object(TGDBController)
-     Invalid_line : boolean;
+     InvalidSourceLine : boolean;
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
     constructor Init(const exefn:string);
@@ -157,10 +157,10 @@ begin
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetHighlightRow(Line);
           W^.Select;
-          Invalid_line:=false;
+          InvalidSourceLine:=false;
         end
       else
-        Invalid_line:=true;
+        InvalidSourceLine:=true;
     end
   else
     begin
@@ -171,7 +171,7 @@ begin
           W^.Editor^.TrackCursor(true);
           W^.Select;
           LastSource:=W;
-          Invalid_line:=false;
+          InvalidSourceLine:=false;
         end
         { only search a file once }
       else
@@ -181,7 +181,7 @@ begin
          Desktop^.Lock;
          if not Found then
            begin
-             Invalid_line:=true;
+             InvalidSourceLine:=true;
              LastSource:=Nil;
            end
          else
@@ -192,7 +192,7 @@ begin
               W^.Editor^.TrackCursor(true);
               W^.Select;
               LastSource:=W;
-              Invalid_line:=false;
+              InvalidSourceLine:=false;
            end;
        end;
     end;
@@ -417,7 +417,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-02-05 13:08:41  pierre
+  Revision 1.8  1999-02-05 17:21:52  pierre
+    Invalid_line renamed InvalidSourceLine
+
+  Revision 1.7  1999/02/05 13:08:41  pierre
    + new breakpoint types added
 
   Revision 1.6  1999/02/05 12:11:53  pierre
