@@ -250,6 +250,7 @@ Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
+Function StringOfChar(c : char;l : longint) : AnsiString;
 
 
 {****************************************************************************
@@ -397,7 +398,10 @@ const
 
 {
   $Log$
-  Revision 1.63  1999-10-26 12:31:00  peter
+  Revision 1.64  1999-10-27 14:19:10  florian
+    + StringOfChar
+
+  Revision 1.63  1999/10/26 12:31:00  peter
     * *errorproc are not procvars instead of pointers which allows better
       error checking for the parameters (shortstring<->ansistring)
 

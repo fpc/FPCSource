@@ -623,10 +623,19 @@ begin
   S:=Temp;
 end;
 
+Function StringOfChar(c : char;l : longint) : AnsiString;
+
+  begin
+     SetLength(StringOfChar,l);
+     FillChar(StringOfChar,Length(StringOfChar),c);
+  end;
 
 {
   $Log$
-  Revision 1.31  1999-10-04 20:48:18  peter
+  Revision 1.32  1999-10-27 14:17:20  florian
+    + StringOfChar
+
+  Revision 1.31  1999/10/04 20:48:18  peter
     * pos function speed up by a factor 40 :)
 
   Revision 1.30  1999/07/05 20:04:21  peter
