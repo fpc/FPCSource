@@ -1,7 +1,7 @@
 {*****************************************************************************
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
-    
+
     * This code was inspired by the NASM sources
       The Netwide Assembler is copyright (C) 1996 Simon Tatham and
       Julian Hall. All rights reserved.
@@ -10,7 +10,7 @@
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -50,6 +50,7 @@ type
     constructor op_ref_reg(Op:TAsmOp;const Ref:TReference;Reg:TRegister);
     constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
     constructor op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
+    constructor op_reg_ref_reg(op:tasmop;_op1:TRegister;_op2:TReference;_op3:tregister);
     constructor op_reg_const_reg(Op:TAsmOp;SrcReg:TRegister;value:aWord;DstReg:TRegister);
     constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
     constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
@@ -60,11 +61,7 @@ type
     constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
     constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
     constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
-    constructor op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
-    constructor op_raddr_reg(op:TAsmOp;rg1,rg2:TRegister;reg:TRegister);
     procedure changeopsize(siz:topsize);
-    procedure loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
-    procedure loadraddr(opidx:longint;rg1,rg2:TRegister);
   private
     procedure init(_size:topsize);{this need to be called by all constructor}
   public
@@ -195,6 +192,15 @@ constructor taicpu.op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
      loadreg(1,_op2);
      loadreg(2,_op3);
   end;
+constructor taicpu.op_reg_ref_reg(op:tasmop;_op1:TRegister;_op2:TReference;_op3:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=3;
+     loadreg(0,_op1);
+     loadref(1,_op2);
+     loadreg(2,_op3);
+  end;
 constructor taicpu.op_reg_const_reg(op:TAsmOp;SrcReg:TRegister;Value:aWord;DstReg:TRegister);
   begin
     inherited Create(Op);
@@ -263,22 +269,6 @@ constructor taicpu.op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1of
      loadref(1,_op2);
   end;
 
-constructor taicpu.op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
-  begin
-    inherited create(op);
-    init(S_SW);
-    ops:=2;
-    loadcaddr(0,rgb,cnst);
-    loadreg(1,reg);
-  end;
-constructor taicpu.op_raddr_reg(op:TAsmOp;rg1,rg2,reg:TRegister);
-  begin
-    inherited create(op);
-    init(S_SW);
-    ops:=2;
-    loadraddr(0,rg1,rg2);
-    loadreg(1,reg);
-  end;
 procedure taicpu.Swatoperands;
   var
     p:TOper;
@@ -322,30 +312,6 @@ A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_BNE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_N
       {$ENDIF EXTDEBUG}
       end;
   end;
-procedure taicpu.loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
-  begin
-    if opidx>=ops
-    then
-      ops:=opidx+1;
-    with oper[opidx] do
-      begin
-        typ:=top_caddr;
-        regb:=aReg;
-        const13:=cnst;
-      end;
-  end;
-procedure taicpu.loadraddr(opidx:longint;rg1,rg2:TRegister);
-  begin
-    if opidx>=ops
-    then
-      ops:=opidx+1;
-    with oper[opidx] do
-      begin
-        typ:=top_caddr;
-        reg1:=rg1;
-        reg2:=rg2;
-      end;
-  end;
 procedure DoneAsm;
   begin
   end;
@@ -355,7 +321,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.25  2003-05-07 11:45:02  mazen
+    Revision 1.26  2003-05-28 23:18:31  florian
+      * started to fix and clean up the sparc port
+
+    Revision 1.25  2003/05/07 11:45:02  mazen
     - removed unused code
 
     Revision 1.24  2003/05/07 11:28:26  mazen

@@ -154,14 +154,12 @@ const
     uses
        globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,tgobj,cpupi;
 
-{ parameter passing... Still needs extra support from the processor }
-{ independent code generator                                        }
+    { parameter passing... Still needs extra support from the processor }
+    { independent code generator                                        }
 
     procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
-
       var
         ref: treference;
-
       begin
         case locpara.loc of
           LOC_REGISTER,LOC_CREGISTER:
@@ -249,9 +247,9 @@ const
       var
         href : treference;
       begin
-         {MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
-         if it is a cross-TOC call. If so, it also replaces the NOP
-         with some restore code.}
+         { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
+           if it is a cross-TOC call. If so, it also replaces the NOP
+           with some restore code.}
          list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
          if target_info.system=system_powerpc_macos then
            list.concat(taicpu.op_none(A_NOP));
@@ -2442,7 +2440,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2003-05-24 11:59:42  jonas
+  Revision 1.97  2003-05-28 23:18:31  florian
+    * started to fix and clean up the sparc port
+
+  Revision 1.96  2003/05/24 11:59:42  jonas
     * fixed integer typeconversion problems
 
   Revision 1.95  2003/05/23 18:51:26  jonas

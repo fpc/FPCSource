@@ -111,8 +111,8 @@ interface
              system_x86_64_linux,       { 26 }
              system_powerpc_darwin,     { 27 }
              system_i386_EMX,           { 28 }
-	     system_powerpc_netbsd,	{ 29 } 
-	     system_powerpc_openbsd	{ 30 } 
+	         system_powerpc_netbsd,	    { 29 }
+    	     system_powerpc_openbsd	    { 30 }
        );
 
        tasm = (as_none
@@ -685,7 +685,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.63  2003-05-25 23:15:04  marco
+  Revision 1.64  2003-05-28 23:18:31  florian
+    * started to fix and clean up the sparc port
+
+  Revision 1.63  2003/05/25 23:15:04  marco
    * NetBSD target support. OpenBSD reserved in the enum, for future use.
 
   Revision 1.62  2003/05/20 23:54:00  florian

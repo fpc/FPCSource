@@ -19,9 +19,14 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************}
 unit cpuBase;
-{$INCLUDE fpcdefs.inc}
+
+{$i fpcdefs.inc}
+
 interface
-uses globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+
+  uses
+    globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+
 const
   {Size of the instruction table converted by nasmconv.pas}
   maxinfolen=8;
@@ -481,31 +486,36 @@ type
 type
   TRefOptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
+  { since we have no full 32 bit offsets, we need to be able to specify the high
+    and low bits of the address of a symbol                                      }
+  trefsymaddr = (refs_full,refs_hi,refs_lo);
+
   { immediate/reference record }
   poperreference = ^treference;
   Preference=^Treference;
   treference = packed record
-     segment,
      base,
      index       : tregister;
-     scalefactor : byte;
      offset      : LongInt;
      symbol      : tasmsymbol;
+     symaddr     : trefsymaddr;
      offsetfixup : LongInt;
      options     : trefoptions;
      alignment   : byte;
   end;
-      { reference record }
+
+  { reference record }
   PParaReference=^TParaReference;
-  TParaReference=PACKED RECORD
-    Index:TRegister;
-    Offset:longint;
+  TParaReference = packed record
+    Index : TRegister;
+    Offset : longint;
   end;
+
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
   { Types of operand }
-  toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_raddr,top_caddr);
+  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
   toper=record
     ot:LongInt;
     case typ:toptype of
@@ -514,8 +524,6 @@ type
       top_ref:(ref:poperreference);
       top_const:(val:aword);
       top_symbol:(sym:tasmsymbol;symofs:LongInt);
-      top_raddr:(reg1,reg2:TRegister);
-      top_caddr:(regb:TRegister;const13:Integer);
   end;
 {*****************************************************************************
                              Argument Classification
@@ -536,10 +544,10 @@ type
                                Generic Location
 *****************************************************************************}
 type
-{tparamlocation describes where a parameter for a procedure is stored.
-References are given from the caller's point of view. The usual TLocation isn't
-used, because contains a lot of unnessary fields.}
-  TParaLocation=PACKED RECORD
+  { tparamlocation describes where a parameter for a procedure is stored.
+    References are given from the caller's point of view. The usual TLocation isn't
+    used, because contains a lot of unnessary fields. }
+  TParaLocation=packed record
     Size:TCGSize;
     Loc:TCGLoc;
     sp_fixup:LongInt;
@@ -555,10 +563,11 @@ used, because contains a lot of unnessary fields.}
           3 : (reg64 : tregister64);
           4 : (register64 : tregister64);
         );
-            { it's only for better handling }
+      { it's only for better handling }
       LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
     end;
-    TLocation=PACKED RECORD
+
+    TLocation=packed record
          loc  : TCGLoc;
          size : TCGSize;
          case TCGLoc of
@@ -669,35 +678,40 @@ const
   accumulatorhigh = R_O1;
   NR_ACCUMULATORHIGH = NR_O1;
   RS_ACCUMULATORHIGH = RS_O1;
-  fpu_result_reg  =R_F0;
-  mmresultreg     =R_G0;
+  fpu_result_reg  = R_F0;
+  mmresultreg     = R_G0;
+
 {*****************************************************************************}
 {                        GCC /ABI linking information                         }
 {*****************************************************************************}
-{# Registers which must be saved when calling a routine declared as cppdecl,
-cdecl, stdcall, safecall, palmossyscall. The registers saved should be the ones
-as defined in the target ABI and / or GCC.
+  { Registers which must be saved when calling a routine declared as cppdecl,
+    cdecl, stdcall, safecall, palmossyscall. The registers saved should be the ones
+    as defined in the target ABI and / or GCC.
 
-This value can be deduced from the CALLED_USED_REGISTERS array in the GCC
-source.}
-  std_saved_registers=[RS_O6];
-{# Required parameter alignment when calling a routine declared as stdcall and
-cdecl. The alignment value should be the one defined by GCC or the target ABI.
+    This value can be deduced from the CALLED_USED_REGISTERS array in the GCC
+    source.
+  }
+  std_saved_registers=[];
 
-The value of this constant is equal to the constant
-PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.}
+  {  Required parameter alignment when calling a routine declared as stdcall and
+     cdecl. The alignment value should be the one defined by GCC or the target ABI.
+
+     The value of this constant is equal to the constant
+     PARM_BOUNDARY / BITS_PER_UNIT in the GCC source. }
   std_param_align=4;
-{# Registers which are defined as scratch and no need to save across routine
-calls or in assembler blocks.}
-  ScratchRegsCount=8;
-  scratch_regs:array[1..ScratchRegsCount] OF Tsuperregister=(RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7);
-{ low and high of the available maximum width integer general purpose }
-{ registers                                                           }
+
+  { Registers which are defined as scratch and no need to save across routine
+    calls or in assembler blocks.}
+  ScratchRegsCount=2;
+  scratch_regs:array[1..ScratchRegsCount] OF Tsuperregister=(RS_O7,RS_G2);
+
+  { low and high of the available maximum width integer general purpose
+    registers                                                           }
   LoGPReg = R_G0;
   HiGPReg = R_I7;
 
-{ low and high of every possible width general purpose register (same as }
-{ above on most architctures apart from the 80x86)                       }
+  { low and high of every possible width general purpose register (same as
+    above on most architctures apart from the 80x86)                       }
   LoReg = R_G0;
   HiReg = R_I7;
 
@@ -705,7 +719,7 @@ calls or in assembler blocks.}
 
   { sizes }
   pointersize   = 4;
-  extended_size = 8;{SPARC architecture uses IEEE floating point numbers}
+  extended_size = 8;  { SPARC architecture uses IEEE floating point numbers}
   mmreg_size = 8;
   SizePostfix_pointer = S_SW;
 
@@ -734,12 +748,9 @@ VAR
                                   Helpers
 *****************************************************************************}
 const
-  maxvarregs=30;
+  maxvarregs=8;
   VarRegs:array[1..maxvarregs] of tnewregister = (
-             RS_G0,RS_G1,RS_G2,RS_G3,RS_G4,RS_G5,RS_G6,RS_G7,
-             RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,{RS_R14=RS_SP}RS_O7,
-             RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7,
-             RS_I0,RS_I1,RS_I2,RS_I3,RS_I4,RS_I5,{RS_R30=RS_FP}RS_I7
+             RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7
         );
   maxfpuvarregs = 8;
   max_operands = 3;
@@ -752,19 +763,23 @@ function is_calljmp(o:tasmop):boolean;
 function flags_to_cond(CONST f:TResFlags):TAsmCond;
 procedure convert_register_to_enum(var Reg:Tregister);
 function cgsize2subreg(s:Tcgsize):Tsubregister;
+
 implementation
-uses
-  verbose;
-const
-  CallJmpOp=[A_JMPL..A_CBccc];
-function is_calljmp(o:tasmop):boolean;
-  begin
-    if o in CallJmpOp
-    then
-      is_calljmp:=true
-    else
-      is_calljmp:=false;
-  end;
+
+  uses
+    verbose;
+  const
+    CallJmpOp=[A_JMPL..A_CBccc];
+
+  function is_calljmp(o:tasmop):boolean;
+    begin
+      if o in CallJmpOp
+      then
+        is_calljmp:=true
+      else
+        is_calljmp:=false;
+    end;
+
 function flags_to_cond(const f:TResFlags):TAsmCond;
   CONST
     flags_2_cond:array[TResFlags]OF TAsmCond=
@@ -772,6 +787,7 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
   BEGIN
     result:=flags_2_cond[f];
   end;
+
 procedure convert_register_to_enum(var Reg:Tregister);
   begin
     with Reg do
@@ -788,6 +804,7 @@ procedure convert_register_to_enum(var Reg:Tregister);
         else
           internalerror(200301082);
   end;
+
 function cgsize2subreg(s:Tcgsize):Tsubregister;
 begin
   cgsize2subreg:=R_SUBWHOLE;
@@ -795,7 +812,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2003-05-26 22:08:42  mazen
+  Revision 1.34  2003-05-28 23:18:31  florian
+    * started to fix and clean up the sparc port
+
+  Revision 1.33  2003/05/26 22:08:42  mazen
   + RegEnum2Number to ease handling register pairs
   * changed convert_register_to_enum to use above
     array

@@ -377,12 +377,14 @@ initialization
   {$ifdef NetBSD}
      set_source_info(system_powerpc_netbsd_info);
   {$endif}
-  
 {$endif cpu68}
 end.
 {
   $Log$
-  Revision 1.2  2003-05-25 23:15:04  marco
+  Revision 1.3  2003-05-28 23:18:31  florian
+    * started to fix and clean up the sparc port
+
+  Revision 1.2  2003/05/25 23:15:04  marco
    * NetBSD target support. OpenBSD reserved in the enum, for future use.
 
   Revision 1.1  2003/05/20 23:54:00  florian

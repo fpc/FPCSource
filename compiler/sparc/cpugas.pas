@@ -17,182 +17,192 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-unit CpuGas;
-{This unit implements an asmoutput class for SPARC AT&T syntax}
-{$MACRO ON}{$INCLUDE fpcdefs.inc}
-interface
-uses
-  cpubase,
-  aasmtai,aasmcpu,assemble,aggas;
-type
-  TGasSPARC=class(TGnuAssembler)
-    procedure WriteInstruction(hp:Tai);override;
-  end;
-implementation
-uses
-  cutils,systems,
-  verbose;
-{$DEFINE gas_reg2str:=std_reg2str}
-function GetReferenceString(var ref:TReference):string;
-  begin
-    GetReferenceString:='+';
-    with ref do
-      if assigned(symbol)
-      then
-        GetReferenceString:=symbol.name
-      else
-        begin
-          inc(offset,offsetfixup);
-          if base.enum<>R_NONE
-          then
-            GetReferenceString:=gas_reg2str[base.enum]+'+';
-          if index.enum<>R_NONE
-          then
-            begin
-              if ScaleFactor<>0
-              then
-                GetReferenceString:=GetReferenceString+ToStr(ScaleFactor)+'*';
-              GetReferenceString:=GetReferenceString+gas_reg2str[index.enum]+'+';
-            end;
-          if Offset=0
-          then
-            SetLength(GetReferenceString,Length(GetReferenceString)-1)
-          else if offset<0
-          then
-            begin
-              SetLength(GetReferenceString,Length(GetReferenceString)-1);
-              GetReferenceString:=GetReferenceString+tostr(offset);
-            end
-          else if offset>0
-          then
-            GetReferenceString:=GetReferenceString+tostr(offset);
-        end;
-  end;
-function getopstr(const Oper:TOper):string;
-  var
-    hs:string;
-  begin
-    with Oper do
-      case typ of
-        top_reg:
-          getopstr:=gas_reg2str[reg.enum];
-        top_ref:
-          getopstr:='['+getreferencestring(ref^)+']';
-        top_const:
-          getopstr:={'$'+}tostr(longint(val));
-        top_symbol:
-          begin
-            if assigned(sym) then
-              hs:={'$'+}sym.name
-            else
-              hs:='$';
-            if symofs>0 then
-             hs:=hs+'+'+tostr(symofs)
-            else
-             if symofs<0 then
-              hs:=hs+tostr(symofs)
-            else
-             if not(assigned(sym)) then
-               hs:=hs+'0';
-            getopstr:=hs;
-          end;
-        top_raddr:
-          getopstr:=std_reg2str[reg1.enum]+'+'+std_reg2str[reg2.enum];
-        top_caddr:
-          getopstr:=std_reg2str[regb.enum]+'+'+ToStr(const13);
-        else
-          internalerror(10001);
+{
+  This unit implements an asmoutput class for SPARC AT&T syntax
+}
+unit cpugas;
+
+{$i fpcdefs.inc}
+
+  interface
+
+    uses
+      cpubase,
+      aasmtai,aasmcpu,assemble,aggas;
+
+    type
+      TGasSPARC=class(TGnuAssembler)
+        procedure WriteInstruction(hp:Tai);override;
       end;
-    end;
-(*
-function getopstr_jmp(const Oper:TOper):string;
-  var
-    hs:string;
-  begin
-    with Oper do
-      case typ of
-        top_reg:
-          getopstr_jmp:=gas_reg2str[reg]+'+';
-        top_ref:
-          getopstr_jmp:=GetReferenceString(ref^);
-        top_const:
-          getopstr_jmp:=tostr(longint(val));
-        top_symbol:
-          begin
-            hs:=sym.name;
-            if symofs>0 then
-             hs:=hs+'+'+tostr(symofs)
-            else
-             if symofs<0 then
-              hs:=hs+tostr(symofs);
-            getopstr_jmp:=hs;
-          end;
-        else
-          internalerror(10001);
-      end;
-    end;*)
-{****************************************************************************
-                            TSPARCATTASMOUTPUT
- ****************************************************************************}
-procedure TGasSPARC.WriteInstruction(hp:Tai);
-	var
-		Op:TAsmOp;
-		s:String;
-		i:Integer;
-	begin
-		if hp.typ<>ait_instruction
-		then
-			Exit;
-		op:=taicpu(hp).opcode;
-	 {call maybe not translated to call}
-		s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
-   {process operands}
-    s:=#9+std_op2str[op];
-    if taicpu(hp).ops>0
-    then
+
+  implementation
+
+    uses
+      cutils,systems,
+      verbose;
+
+    function GetReferenceString(var ref:TReference):string;
       begin
-        s:=s+#9+getopstr(taicpu(hp).oper[0]);
-        for i:=1 to taicpu(hp).ops-1 do
-          s:=s+','+getopstr(taicpu(hp).oper[i]);
+        GetReferenceString:='';
+        with ref do
+          begin
+            inc(offset,offsetfixup);
+            offsetfixup:=0;
+            if base.enum>lastreg then
+              internalerror(200301081);
+            if index.enum>lastreg then
+              internalerror(200301081);
+
+            if assigned(symbol) then
+              begin
+                 GetReferenceString:=symbol.name;
+                 if offset>0 then
+                   GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
+                 else if offset<0 then
+                   GetReferenceString:=GetReferenceString+ToStr(offset);
+                 if (base.enum<>R_NONE) or (index.enum<>R_NONE) then
+                   internalerror(2003052601);
+                 if symaddr=refs_hi then
+                   GetReferenceString:='%hi('+GetReferenceString+')'
+                 else if symaddr=refs_lo then
+                   GetReferenceString:='%lo('+GetReferenceString+')'
+                 else
+                   internalerror(2003052602);
+              end
+            else
+              begin
+                if base.enum<>R_NONE then
+                  GetReferenceString:=std_reg2str[base.enum]+'+';
+                if index.enum<>R_NONE then
+                  GetReferenceString:=GetReferenceString+std_reg2str[index.enum]+'+';
+                if Offset<>0 then
+                   internalerror(2003052603);
+              end;
+          end;
       end;
-    AsmWriteLn(s);
-  end;
-{*****************************************************************************
-                                  Initialize
-*****************************************************************************}
-const
-  as_SPARC_as_info:TAsmInfo=(
-    id:as_gas;
-    idtxt:'AS';
-    asmbin:'as';
-    asmcmd:'-o $OBJ $ASM';
-    supported_target:system_any;
-    outputbinary:false;
-    allowdirect:true;
-    needar:true;
-    labelprefix_only_inside_procedure:false;
-    labelprefix:'.L';
-    comment:';#';
-    secnames:({sec_none}'',           {no section}
-              {sec_code}'.text',      {executable code}
-              {sec_data}'.data',      {initialized R/W data}
-              {sec_bss}'.section ".bss"',        {uninitialized R/W data}
-              {sec_idata2}'.comment', {comments}
-              {sec_idata4}'.debug',   {debugging information}
-              {sec_idata5}'.rodata',  {RO data}
-              {sec_idata6}'.line',    {line numbers info for symbolic debug}
-              {sec_idata7}'.init',    {runtime intialization code}
-              {sec_edata}'.fini',     {runtime finalization code}
-              {sec_stab}'.stab',
-              {sec_stabstr} '.stabstr',
-              {sec_common}'.note')    {note info}
-  );
-initialization
+
+
+    function getopstr(const Oper:TOper):string;
+      var
+        hs:string;
+      begin
+        with Oper do
+          case typ of
+            top_reg:
+              getopstr:=std_reg2str[reg.enum];
+            top_ref:
+              getopstr:=getreferencestring(ref^);
+            top_const:
+              getopstr:=tostr(longint(val));
+            top_symbol:
+              begin
+                if assigned(sym) then
+                  hs:={'$'+}sym.name
+                else
+                  hs:='$';
+                if symofs>0 then
+                 hs:=hs+'+'+tostr(symofs)
+                else
+                 if symofs<0 then
+                  hs:=hs+tostr(symofs)
+                else
+                 if not(assigned(sym)) then
+                   hs:=hs+'0';
+                getopstr:=hs;
+              end;
+            else
+              internalerror(10001);
+          end;
+        end;
+    (*
+    function getopstr_jmp(const Oper:TOper):string;
+      var
+        hs:string;
+      begin
+        with Oper do
+          case typ of
+            top_reg:
+              getopstr_jmp:=gas_reg2str[reg]+'+';
+            top_ref:
+              getopstr_jmp:=GetReferenceString(ref^);
+            top_const:
+              getopstr_jmp:=tostr(longint(val));
+            top_symbol:
+              begin
+                hs:=sym.name;
+                if symofs>0 then
+                 hs:=hs+'+'+tostr(symofs)
+                else
+                 if symofs<0 then
+                  hs:=hs+tostr(symofs);
+                getopstr_jmp:=hs;
+              end;
+            else
+              internalerror(10001);
+          end;
+        end;*)
+
+    procedure TGasSPARC.WriteInstruction(hp:Tai);
+    	var
+    		Op:TAsmOp;
+    		s:String;
+    		i:Integer;
+      begin
+        if hp.typ<>ait_instruction then
+          exit;
+        op:=taicpu(hp).opcode;
+        { call maybe not translated to call }
+        s:=#9+std_op2str[op]+cond2str[taicpu(hp).condition];
+        { process operands }
+        s:=#9+std_op2str[op];
+        if taicpu(hp).ops>0
+        then
+          begin
+            s:=s+#9+getopstr(taicpu(hp).oper[0]);
+            for i:=1 to taicpu(hp).ops-1 do
+              s:=s+','+getopstr(taicpu(hp).oper[i]);
+          end;
+        AsmWriteLn(s);
+      end;
+
+
+    const
+      as_SPARC_as_info:TAsmInfo=(
+        id:as_gas;
+        idtxt:'AS';
+        asmbin:'as';
+        asmcmd:'-o $OBJ $ASM';
+        supported_target:system_any;
+        outputbinary:false;
+        allowdirect:true;
+        needar:true;
+        labelprefix_only_inside_procedure:false;
+        labelprefix:'.L';
+        comment:';#';
+        secnames:({sec_none}'',           {no section}
+                  {sec_code}'.text',      {executable code}
+                  {sec_data}'.data',      {initialized R/W data}
+                  {sec_bss}'.section ".bss"',        {uninitialized R/W data}
+                  {sec_idata2}'.comment', {comments}
+                  {sec_idata4}'.debug',   {debugging information}
+                  {sec_idata5}'.rodata',  {RO data}
+                  {sec_idata6}'.line',    {line numbers info for symbolic debug}
+                  {sec_idata7}'.init',    {runtime intialization code}
+                  {sec_edata}'.fini',     {runtime finalization code}
+                  {sec_stab}'.stab',
+                  {sec_stabstr} '.stabstr',
+                  {sec_common}'.note')    {note info}
+      );
+
+begin
   RegisterAssembler(as_SPARC_as_info,TGasSPARC);
 end.
 {
     $Log$
-    Revision 1.14  2003-05-07 11:55:34  mazen
+    Revision 1.15  2003-05-28 23:18:31  florian
+      * started to fix and clean up the sparc port
+
+    Revision 1.14  2003/05/07 11:55:34  mazen
     - unused units removed from uses clause
     - unused variables removed from implemntation declarations
 

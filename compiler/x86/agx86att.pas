@@ -63,16 +63,17 @@ interface
          begin
            inc(offset,offsetfixup);
            offsetfixup:=0;
-         { have we a segment prefix ? }
-         { These are probably not correctly handled under GAS }
-         { should be replaced by coding the segment override  }
-         { directly! - DJGPP FAQ                              }
            if segment.enum>lastreg then
              internalerror(200301081);
            if base.enum>lastreg then
              internalerror(200301081);
            if index.enum>lastreg then
              internalerror(200301081);
+
+           { have we a segment prefix ? }
+           { These are probably not correctly handled under GAS }
+           { should be replaced by coding the segment override  }
+           { directly! - DJGPP FAQ                              }
            if segment.enum<>R_NO then
             AsmWrite(gas_reg2str[segment.enum]+':');
            if assigned(symbol) then
@@ -347,7 +348,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-05-22 21:33:31  peter
+  Revision 1.3  2003-05-28 23:18:31  florian
+    * started to fix and clean up the sparc port
+
+  Revision 1.2  2003/05/22 21:33:31  peter
     * removed some unit dependencies
 
   Revision 1.1  2003/04/25 12:04:31  florian
