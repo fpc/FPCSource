@@ -235,7 +235,7 @@ distclean: clean
 rundigest : $(DIGESTDEP)
         -$(DIGEST)
 ifeq ($(USESQL),YES)
-        -$(DBDIGEST) -v $(DIGESTVER)
+        -$(DBDIGEST) -v $(DIGESTVER) -o $(OS_TARGET) -c $(CPU_TARGET)
 endif
 
 all : allexectests

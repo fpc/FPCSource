@@ -24,10 +24,13 @@ FAIL..............Compilation must fail
 RECOMPILE.........????
 NORUN.............Do not execute test, only compile it
 KNOWN.............Known bug, will not be logged as bug
-INTERACTIVE.......Do not execute test, as it requires user 
+INTERACTIVE.......Do not execute test, as it requires user
 			intervention
 NOTE..............Output note when compiling/executing test
 
 To actually start the testsuite:
-do a simple make full
-This should create a log of all failed tests.
+do a simple
+make full This should create a log of all failed tests.
+
+make rundigest scans the created log file and outputs some statistics
+make rundigest USESQL=YES sends the results to an SQL database
