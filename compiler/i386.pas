@@ -487,7 +487,7 @@ unit i386;
          (i : A_IN;ops : 2;oc : $ec;eb : ao_none;m : af_w or NoModrm;o1 : ao_inoutportreg;o2 : ao_acc;o3 : 0 ),
          (i : A_OUT;ops : 2;oc : $e6;eb : ao_none;m : af_w or NoModrm;o1 : ao_acc;o2 : ao_imm8;o3 : 0 ),
          (i : A_OUT;ops : 2;oc : $ee;eb : ao_none;m : af_w or NoModrm;o1 : ao_acc;o2 : ao_inoutportreg;o3 : 0 ),
-         (i : A_LEA;ops : 2;oc : $8d;eb : ao_none;m : Modrm;o1 : ao_wordmem;o2 : ao_wordreg;o3 : 0 ),
+         (i : A_LEA;ops : 2;oc : $8d;eb : ao_none;m : Modrm;o1 : ao_wordmem or ao_jumpabsolute;o2 : ao_wordreg;o3 : 0 ),
          (i : A_LDS;ops : 2;oc : $c5;eb : ao_none;m : Modrm;o1 : ao_mem;o2 : ao_reg32;o3 : 0),
          (i : A_LES;ops : 2;oc : $c4;eb : ao_none;m : Modrm;o1 : ao_mem;o2 : ao_reg32;o3 : 0),
          (i : A_LFS;ops : 2;oc : $0fb4;eb : ao_none;m : Modrm;o1 : ao_mem;o2 : ao_reg32;o3 : 0),
@@ -1078,7 +1078,7 @@ unit i386;
          dispose(r);
          r:=nil;
       end;
-      
+
     function newreference(const r : treference) : preference;
       var
          p : preference;
@@ -1724,7 +1724,12 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.13  1998-10-14 08:47:17  pierre
+  Revision 1.14  1998-10-28 00:08:47  peter
+    + leal procsym,eax is now allowed
+    + constants are now handled also when starting an expression
+    + call *pointer is now allowed
+
+  Revision 1.13  1998/10/14 08:47:17  pierre
     * bugs in secondfuncret for result in subprocedures removed
 
   Revision 1.12  1998/10/08 17:17:20  pierre

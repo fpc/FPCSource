@@ -964,50 +964,50 @@ end;
     SearchIConstant := FALSE;
     { check for TRUE or FALSE reserved words first }
     if s = 'TRUE' then
-    Begin
+     Begin
        SearchIConstant := TRUE;
        l := 1;
-    end
+     end
     else
-    if s = 'FALSE' then
-    Begin
-       SearchIConstant := TRUE;
-       l := 0;
-    end
-    else
-    if assigned(aktprocsym) then
-    Begin
-      if assigned(aktprocsym^.definition) then
+     if s = 'FALSE' then
       Begin
-   { Check the local constants }
-    if assigned(aktprocsym^.definition^.localst) then
-       sym := aktprocsym^.definition^.localst^.search(s)
+        SearchIConstant := TRUE;
+        l := 0;
+      end
     else
-       sym := nil;
-    if assigned(sym) then
-    Begin
-       if (sym^.typ = constsym) and (pconstsym(sym)^.consttype in
-         [constord,constint,constchar,constbool]) then
-       Begin
-          l:=pconstsym(sym)^.value;
-          SearchIConstant := TRUE;
-          exit;
-       end;
-    end;
+     if assigned(aktprocsym) then
+      Begin
+        if assigned(aktprocsym^.definition) then
+         Begin
+         { Check the local constants }
+           if assigned(aktprocsym^.definition^.localst) then
+            sym := aktprocsym^.definition^.localst^.search(s)
+           else
+            sym := nil;
+           if assigned(sym) then
+            Begin
+              if (sym^.typ = constsym) and
+                 (pconstsym(sym)^.consttype in [constord,constint,constchar,constbool]) then
+               Begin
+                 l:=pconstsym(sym)^.value;
+                 SearchIConstant := TRUE;
+                 exit;
+               end;
+            end;
+         end;
       end;
-    end;
     { Check the global constants }
     getsym(s,false);
     if srsym <> nil then
-    Begin
-      if (srsym^.typ=constsym) and (pconstsym(srsym)^.consttype in
-       [constord,constint,constchar,constbool]) then
-      Begin
-        l:=pconstsym(srsym)^.value;
-        SearchIConstant := TRUE;
-        exit;
-      end;
-    end;
+     Begin
+       if (srsym^.typ=constsym) and
+          (pconstsym(srsym)^.consttype in [constord,constint,constchar,constbool]) then
+        Begin
+          l:=pconstsym(srsym)^.value;
+          SearchIConstant := TRUE;
+          exit;
+        end;
+     end;
   end;
 
 
@@ -1521,9 +1521,18 @@ end;
                         instr.operands[operandnum].size := S_NO;
                       end; { end case }
                     end;
-                    { ok, finished for thir variable. }
+                    { ok, finished for this var }
                     CreateVarInstr := TRUE;
                     Exit;
+                  end;
+       constsym : begin
+                    if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
+                     begin
+                       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
+                       instr.operands[operandnum].val:=pconstsym(sym)^.value;
+                       CreateVarInstr := TRUE;
+                       Exit;
+                     end;
                   end;
         procsym : begin
                     { free the memory before changing the symbol name. }
@@ -1596,8 +1605,7 @@ end;
    typedconstsym : Begin
                    { free the memory before changing the symbol name. }
                      if assigned(instr.operands[operandnum].ref.symbol) then
-                      FreeMem(instr.operands[operandnum].ref.symbol,
-                     length(instr.operands[operandnum].ref.symbol^)+1);
+                      FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
                      instr.operands[operandnum].ref.symbol:=newpasstr(sym^.mangledname);
                    { the current size is NOT overriden if it already }
                    { exists, such as in the case of a byte ptr, in   }
@@ -1636,6 +1644,15 @@ end;
                     CreateVarInstr := TRUE;
                     Exit;
                   end;
+       constsym : begin
+                    if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
+                     begin
+                       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
+                       instr.operands[operandnum].val:=pconstsym(sym)^.value;
+                       CreateVarInstr := TRUE;
+                       Exit;
+                     end;
+                  end;
         procsym : begin
                     if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
                      Message(assem_w_calling_overload_func);
@@ -1643,6 +1660,7 @@ end;
                     if assigned(instr.operands[operandnum].ref.symbol) then
                       FreeMem(instr.operands[operandnum].ref.symbol,length(instr.operands[operandnum].ref.symbol^)+1);
                     instr.operands[operandnum].operandtype:=OPR_SYMBOL;
+                    instr.operands[operandnum].size:=S_L;
                     instr.operands[operandnum].symbol:=newpasstr(pprocsym(sym)^.definition^.mangledname);
                     CreateVarInstr := TRUE;
                     Exit;
@@ -1884,7 +1902,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-10-14 11:28:13  florian
+  Revision 1.13  1998-10-28 00:08:45  peter
+    + leal procsym,eax is now allowed
+    + constants are now handled also when starting an expression
+    + call *pointer is now allowed
+
+  Revision 1.12  1998/10/14 11:28:13  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 

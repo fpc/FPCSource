@@ -3135,6 +3135,13 @@ const
                       instr.operands[operandnum].ref.offset:=BuildRefExpression;
                       BuildReference(instr);
                    end;
+   { // Call from memory address // }
+     AS_STAR:      Begin
+                      Consume(AS_STAR);
+                      InitAsmRef(instr);
+                      if not CreateVarInstr(instr,actasmpattern,operandnum) then
+                       Message(assem_e_syn_opcode_operand);
+                   end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  Begin
               { // Local label.                      // }
@@ -3245,9 +3252,14 @@ const
                          else
                           Message1(assem_e_unknown_id,actasmpattern);
                       end;
-                     expr := actasmpattern;
-                     Consume(AS_ID);
-                       case actasmtoken of
+                     { constant expression? }
+                     if instr.operands[operandnum].operandtype=OPR_CONSTANT then
+                      instr.operands[operandnum].val := BuildExpression
+                     else
+                      begin
+                        expr := actasmpattern;
+                        Consume(AS_ID);
+                        case actasmtoken of
                            AS_LPAREN: Begin
                                       { indexing }
                                        previous_was_id:=FALSE;
@@ -3257,9 +3269,10 @@ const
                                       BuildRecordOffset(expr,instr);
                                      end;
                            AS_SEPARATOR,AS_COMMA: ;
-                       else
+                        else
                            Message(assem_e_syntax_error);
-                       end; { end case }
+                        end; { end case }
+                     end;
                      { restore normal context }
                      previous_was_id := FALSE;
                    end; { end if }
@@ -3844,7 +3857,12 @@ end.
 
 {
   $Log$
-  Revision 1.15  1998-10-13 16:50:16  pierre
+  Revision 1.16  1998-10-28 00:08:48  peter
+    + leal procsym,eax is now allowed
+    + constants are now handled also when starting an expression
+    + call *pointer is now allowed
+
+  Revision 1.15  1998/10/13 16:50:16  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k
