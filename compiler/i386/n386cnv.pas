@@ -374,7 +374,11 @@ implementation
          regstopush: byte;
       begin
          with parraydef(resulttype)^ do
-           arrsize := highrange-lowrange+1;
+          begin
+            if highrange<lowrange then
+             internalerror(75432653);
+            arrsize := highrange-lowrange+1;
+          end;
 
          if (left.nodetype = stringconstn) and
             { left.length+1 since there's always a terminating #0 character (JM) }
@@ -1493,7 +1497,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-12-25 00:07:32  peter
+  Revision 1.12  2001-01-08 21:45:11  peter
+    * internalerror for string to chararray
+
+  Revision 1.11  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
