@@ -79,6 +79,8 @@ clean:
 	$(MAKE) rtl_distclean
 	$(MAKE) packages_distclean
 	$(MAKE) fcl_distclean
+	$(MAKE) fv_distclean
+	$(MAKE) ide_distclean
 	$(MAKE) utils_distclean
 
 	$(MAKE) -C docs clean
@@ -117,7 +119,9 @@ build-arch-stamp: debian-files-stamp
 	$(MAKE) rtl_clean rtl_smart $(BUILDOPTS)
 	$(MAKE) packages_base_smart $(BUILDOPTS)
 	$(MAKE) fcl_smart $(BUILDOPTS)
+	$(MAKE) fv_smart $(BUILDOPTS)
 	$(MAKE) packages_extra_smart $(BUILDOPTS)
+	$(MAKE) ide_all $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
 
 	touch build-arch-stamp
@@ -134,19 +138,12 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) compiler_distinstall $(INSTALLOPTS)
 	$(MAKE) rtl_distinstall $(INSTALLOPTS)
 	$(MAKE) fcl_distinstall $(INSTALLOPTS)
+	$(MAKE) fv_distinstall $(INSTALLOPTS)
 	$(MAKE) packages_distinstall $(INSTALLOPTS)
+	$(MAKE) ide_distinstall $(INSTALLOPTS) INSTALL_DOCDIR=$(DOC_DIR)/fp-ide
 	$(MAKE) utils_distinstall $(INSTALLOPTS)
 
 # Copy examples to the correct doc dir
-	install -d -m755 $(DOC_DIR)/fp-units-fcl/examples
-	install -d -m755 $(DOC_DIR)/fp-units-gtk/examples
-	install -d -m755 $(DOC_DIR)/fp-units-gnome1/examples
-	install -d -m755 $(DOC_DIR)/fp-units-gfx/examples
-	install -d -m755 $(DOC_DIR)/fp-units-db/examples
-	install -d -m755 $(DOC_DIR)/fp-units-net/examples
-	install -d -m755 $(DOC_DIR)/fp-units-misc/examples
-	install -d -m755 $(DOC_DIR)/fp-units-base/examples
-
 	bash debian/moveexamples $(EXAMPLE_TEMP) $(DOC_DIR)
 
 # Install man pages and RTL demos and whatsnew and readme

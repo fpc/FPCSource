@@ -7,6 +7,9 @@ DOC_DIR=$2
 
 move_examples()
 {
+    # Make examples dir
+    install -d -m 755 $DOC_DIR/fp-units-$1/examples/
+    
     for package in $2; do
         if [ -d $EXAMPLE_TEMP/$package/examples ]; then
             echo "Moving examples of $package"
@@ -21,6 +24,7 @@ move_examples()
 
 
 FCL_PACKAGES="fcl"
+FV_PACKAGES="fv"
 GTK_PACKAGES="gtk"
 GNOME1_PACKAGES="imlib zvt gnome gconf"
 BASE_PACKAGES="paszlib pasjpeg regexpr ncurses md5"
@@ -30,6 +34,7 @@ MISC_PACKAGES="gdbint utmp syslog cdrom tcl"
 NET_PACKAGES="netdb"
 
 move_examples fcl "$FCL_PACKAGES"
+move_examples fv "$FV_PACKAGES"
 move_examples gtk "$GTK_PACKAGES"
 move_examples gnome1 "$GNOME1_PACKAGES"
 move_examples base "$BASE_PACKAGES"

@@ -18,6 +18,19 @@ Description: Free Pascal -- Compiler
  command line compiler. You need at least the RTL package before you can start
  compiling anything.
 
+Package: fp-ide
+Architecture: i386 powerpc sparc amd64
+Depends: fp-units-rtl (= %{packageversion})
+Suggests: fp-utils, fp-docs (>= %{fpcversion})
+Description: Free Pascal -- IDE
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ Some extensions are added to the language, like function overloading. Shared
+ libraries can be linked and created. Basic Delphi support is already
+ implemented (classes, exceptions, ansistrings). This package contains the
+ Integrated Development Environment (IDE). The IDE has an internal compiler.
+ You need at least the RTL package before you can start  compiling anything.
+
 Package: fp-utils
 Architecture: i386 powerpc sparc amd64
 Recommends: fp-compiler (= %{packageversion})
@@ -125,8 +138,8 @@ Description: Free Pascal -- networking units
  The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32-bit
  Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
  This package contains Free Pascal units for creating network tools:
-  - Inet unit for easier TCP/IP handling
-  - UnCGI unit for easy CGI handling
+  - NetDB unit for TCP/IP handling
+  - LibAsync unit for easy Asynchronous IO
 
 Package: fp-units-misc
 Architecture: i386 powerpc sparc amd64
