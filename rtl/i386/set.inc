@@ -16,7 +16,25 @@
 
 {$ASMMODE ATT}
 
-procedure do_set(p : pointer;b : byte); [public,alias: 'SET_SET_BYTE'];
+procedure do_load_small(p : pointer;l:longint);[public,alias: 'SET_LOAD_SMALL'];
+{
+  load a set from an
+}
+begin
+  asm
+        movl    p,%edi
+        movl    l,%eax
+        movl    %eax,(%edi)
+        addl    $4,%edi
+        movl    $7,%ecx
+        xorl    %eax,%eax
+        rep
+        stosl
+  end;
+end;
+
+
+procedure do_set_byte(p : pointer;b : byte); [public,alias: 'SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
 }
@@ -39,32 +57,36 @@ begin
 end;
 
 
-{$ASMMODE DIRECT}
-procedure do_set(p : pointer;l,h : byte);[public,alias: 'SET_SET_RANGE'];
+procedure do_set_range(p : pointer;l,h : byte);[public,alias: 'SET_SET_RANGE'];
 {
   bad implementation, but it's very seldom used
 }
 begin
-     asm
-        pushl %eax
-        xorl %eax,%eax
-        movb h,%al
-     .LSET_SET_RANGE_LOOP:
-        cmpb %al,l
-        jb .LSET_SET_RANGE_EXIT
-        pushw %ax
-        pushl p
-        call SET_SET_BYTE
-        dec %al
-        jmp .LSET_SET_RANGE_LOOP
-     .LSET_SET_RANGE_EXIT:
+  asm
+        pushl   %eax
+        movl    p,%edi
+        xorl    %eax,%eax
+        xorl    %ecx,%ecx
+        movb    h,%al
+        movb    l,%cl
+.LSET_SET_RANGE_LOOP:
+        cmpl    %ecx,%eax
+        jl      .LSET_SET_RANGE_EXIT
+        movl    %eax,%ebx
+        movl    %eax,%edx
+        andl    $0xf8,%ebx
+        andl    $7,%edx
+        shrl    $3,%ebx
+        btsl    %edx,(%edi,%ebx)
+        dec     %eax
+        jmp     .LSET_SET_RANGE_LOOP
+.LSET_SET_RANGE_EXIT:
         popl %eax
-     end;
+  end;
 end;
-{$ASMMODE ATT}
 
 
-procedure do_in(p : pointer;b : byte);[public,alias: 'SET_IN_BYTE'];
+procedure do_in_byte(p : pointer;b : byte);[public,alias: 'SET_IN_BYTE'];
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
@@ -88,7 +110,7 @@ end;
 
 
 
-procedure add_sets(set1,set2,dest : pointer);[public,alias: 'SET_ADD_SETS'];
+procedure do_add_sets(set1,set2,dest : pointer);[public,alias: 'SET_ADD_SETS'];
 {
   adds set1 and set2 into set dest
 }
@@ -112,7 +134,7 @@ end;
 { multiplies (i.E. takes common elements of) set1 and set2 }
 { result put in dest                                       }
 
-procedure mul_sets(set1,set2,dest : pointer);[public,alias: 'SET_MUL_SETS'];
+procedure do_mul_sets(set1,set2,dest : pointer);[public,alias: 'SET_MUL_SETS'];
 begin
    asm
       movl 8(%ebp),%esi
@@ -130,7 +152,7 @@ begin
 end;
 
 
-procedure sub_sets(set1,set2,dest : pointer);[public,alias: 'SET_SUB_SETS'];
+procedure do_sub_sets(set1,set2,dest : pointer);[public,alias: 'SET_SUB_SETS'];
 {
   computes the diff from set1 to set2 result in dest
 }
@@ -153,7 +175,7 @@ begin
 end;
 
 
-procedure sym_sub_sets(set1,set2,dest : pointer);[public,alias: 'SET_SYMDIF_SETS'];
+procedure do_symdif_sets(set1,set2,dest : pointer);[public,alias: 'SET_SYMDIF_SETS'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -174,7 +196,7 @@ begin
      end;
 end;
 
-procedure comp_sets(set1,set2 : pointer);[public,alias: 'SET_COMP_SETS'];
+procedure do_comp_sets(set1,set2 : pointer);[public,alias: 'SET_COMP_SETS'];
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
@@ -354,7 +376,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-05-31 14:15:51  peter
+  Revision 1.3  1998-08-14 18:13:44  peter
+    + set_load_small
+    * fixed set_set_range
+
+  Revision 1.2  1998/05/31 14:15:51  peter
     * force to use ATT or direct parsing
 
 }
