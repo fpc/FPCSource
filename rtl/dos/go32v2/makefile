@@ -186,8 +186,9 @@ LOADERS=prt0 exceptn fpu
 
 # OS Independent Depends
 SYSTEMDEPS=system.inc systemh.inc mathh.inc real2str.inc \
-	heaph.inc innr.inc sstrings.inc file.inc \
-	text.inc typefile.inc version.inc filerec.inc \
+	heaph.inc innr.inc sstrings.inc file.inc 
+
+SYSTEMDEPS2=text.inc typefile.inc version.inc filerec.inc \
 	textrec.inc
 
 # Processor Dependent Depends
@@ -197,6 +198,7 @@ SYSPROCDEPS=math.inc set.inc heap.inc $(CPU).inc
 OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 DSYSTEMDEPS=$(addprefix $(INC)/, $(SYSTEMDEPS))
+DSYSTEMDEPS2=$(addprefix $(INC)/, $(SYSTEMDEPS2))
 DSYSPROCDEPS=$(addprefix $(PROCINC)/, $(SYSPROCDEPS))
 
 
@@ -236,9 +238,11 @@ fpu$(OEXT) : fpu.as
 
 $(SYSTEMPPU) : system.pp $(DSYSTEMDEPS) $(DSYSPROCDEPS)
 	$(COPY) $(DSYSTEMDEPS) .
+	$(COPY) $(DSYSTEMDEPS2) .
 	$(COPY) $(DSYSPROCDEPS) .
 	$(PP) $(OPT) -Us -Sg system.pp $(REDIR)
 	$(DEL) $(SYSTEMDEPS)
+	$(DEL) $(SYSTEMDEPS2)
 	$(DEL) $(SYSPROCDEPS)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
@@ -257,7 +261,7 @@ go32$(PPUEXT) : ../go32.pp $(SYSTEMPPU)
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas.pp $(REDIR)
+	-$(PP) $(OPT) objpas.pp $(REDIR)
 	$(DEL) objpas.pp
 
 #
