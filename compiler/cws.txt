@@ -1,17 +1,51 @@
-Compiler Writer's Guide
------------------------
-Here are a few tips for changing things in the compiler:
+******************************************************************************
+>>>  Tips for adding things to the compiler
+******************************************************************************
 
   - Assigned should be used instead of checking for nil directly, as
-
     it can help solving pointer problems when in real mode.
+
+
   - All compiler files should be saved in UNIX format
 
+  - Try to omit Tabs, or else use a tabsize of 8
 
 
 
-Location of the codegenerator functions
----------------------------------------
+******************************************************************************
+>>>  Compiler Defines
+******************************************************************************
+
+Include compiler Parts
+-------------------------
+$define GDB                     include GDB stab debugging (-g) support
+$define UseBrowser              include Browser (-b) support
+
+
+Leave Out specific Parts
+-------------------------
+$define NoOpt                   will leave out the optimizer
+
+** i386 only **
+ $define NoAg386Int             No intel (masm/tasm) writer
+ $define NoAg386Nsm             No nasm writer
+ $define NoAg386Att             No att (gas) writer
+
+ $define NoRA386Int             No intel asm parser
+ $define NoRA386Att             No att asm parser
+ $define NoRA386Dir             No direct asm parser
+
+** m68k only: **
+ $define NoAg68kGas             No gas asm writer
+ $define NoAg68kMit             No mit asm writer
+ $define NoAg68kMot             No mot asm writer
+
+ $define NoRA68kMot             No Motorola parser
+
+
+******************************************************************************
+>>> Location of the codegenerator functions
+******************************************************************************
 
 The names are given for the i386, for the m68k rename the 386 to 68k
 
