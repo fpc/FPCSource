@@ -5,13 +5,14 @@ Program GetModeRange_Example;
 uses graph;
 
 const
-  { Currently, only 4, 8, 15 and 16 bit modes are supported 
+  { Currently, only 4, 8, 15 and 16 bit modes are supported
     but this may  change in the future }
   gdnames: array[D4bit..D16bit] of string[6] =
     ('4 bit','6 bit','8 bit','12 bit','15 bit','16 bit');
 
 var
   t: text;
+  line : string;
   gd, c, low, high, res: integer;
 begin
   assign(t,'modes.txt');
@@ -25,7 +26,7 @@ begin
     write(t,gdnames[gd]);
     Writeln(t,': low modenr = ',low,', high modenr = ',high);
     close(t);
-    { If high is -1, 
+    { If high is -1,
        no resolutions are supported for this bitdepth }
     if high = -1 then
       begin
@@ -35,7 +36,7 @@ begin
       close(t);
       end
     else
-      { Enter all supported resolutions for this bitdepth 
+      { Enter all supported resolutions for this bitdepth
         and write their characteristics to the file }
       for c := low to high do
         begin
@@ -61,4 +62,5 @@ begin
     writeln(t);
     close(t);
     end;
+  Writeln('All supported modes are listed in modes.txt files');
 end.
