@@ -582,11 +582,30 @@ end;
 
 
 procedure readcommondef(const s:string);
+type
+  tdefoption=(df_none,
+    df_has_inittable,           { init data has been generated }
+    df_has_rttitable            { rtti data has been generated }
+  );
+  tdefoptions=set of tdefoption;
+var
+  defopts : tdefoptions;
 begin
   writeln(space,'** Definition Nr. ',ppufile.getword,' **');
   writeln(space,s);
   write  (space,'      Type symbol : ');
   readsymref;
+  ppufile.getsmallset(defopts);
+  if df_has_rttitable in defopts then
+   begin
+     write  (space,'      RTTI symbol : ');
+     readsymref;
+   end;
+  if df_has_inittable in defopts then
+   begin
+     write  (space,'      Init symbol : ');
+     readsymref;
+   end;
 end;
 
 
@@ -746,6 +765,12 @@ begin
            begin
              readcommonsym('Internal system symbol ');
              writeln(space,' Internal Nr: ',getlongint);
+           end;
+
+         ibrttisym :
+           begin
+             readcommonsym('RTTI symbol ');
+             writeln(space,'   RTTI Type: ',getbyte);
            end;
 
          ibtypedconstsym :
@@ -1036,7 +1061,6 @@ begin
              write(space,  '   Ancestor Class : ');
              readdefref;
              writeln(space,'          Options : ',getlongint);
-             writeln(space,'         Has RTTI : ',(getbyte<>0));
 
              if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba] then
                begin
@@ -1560,7 +1584,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-08-19 09:39:29  peter
+  Revision 1.7  2001-08-30 20:55:02  peter
+    * rttisym support
+
+  Revision 1.6  2001/08/19 09:39:29  peter
     * local browser support fixed
 
   Revision 1.5  2001/06/29 19:42:18  peter
