@@ -686,6 +686,9 @@ implementation
                                  if ((not dowrite) and is_shortstring(hpp^.left^.resulttype)) or
                                     (is_chararray(hpp^.left^.resulttype)) then
                                    gen_high_tree(hpp,true);
+                                 { read(ln) is call by reference (JM) }
+                                 if not dowrite then
+                                   make_not_regable(hpp^.left);
                                  hpp:=hpp^.right;
                                end;
                             end;
@@ -1303,7 +1306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2000-03-21 09:12:40  florian
+  Revision 1.71  2000-03-22 17:34:53  jonas
+    * fix for webbug 886
+
+  Revision 1.70  2000/03/21 09:12:40  florian
     * fixed bug 879: high and low take now any kind of expression
 
   Revision 1.69  2000/02/18 13:52:38  jonas
