@@ -10,14 +10,14 @@ const
    S_IFSOCK = __S_IFSOCK;
     
 
-function __S_ISTYPE(mode,mask : longint) : boolean;
-function S_ISDIR(mode : longint) : boolean;
-function S_ISCHR(mode : longint) : boolean;
-function S_ISBLK(mode : longint) : boolean;
-function S_ISREG(mode : longint) : boolean;
-function S_ISFIFO(mode : longint) : boolean;
-function S_ISLNK(mode : longint) : boolean;
-function S_ISSOCK(mode : longint) : boolean;
+function __S_ISTYPE(mode,mask : __mode_t) : boolean;
+function S_ISDIR(mode : __mode_t) : boolean;
+function S_ISCHR(mode : __mode_t) : boolean;
+function S_ISBLK(mode : __mode_t) : boolean;
+function S_ISREG(mode : __mode_t) : boolean;
+function S_ISFIFO(mode : __mode_t) : boolean;
+function S_ISLNK(mode : __mode_t) : boolean;
+function S_ISSOCK(mode : __mode_t) : boolean;
 
 const
   S_ISUID = __S_ISUID;
