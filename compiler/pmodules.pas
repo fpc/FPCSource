@@ -54,11 +54,13 @@ unit pmodules;
 
         { When creating a library call the linker. And insert the output
           of the linker files }
-        if (cs_create_staticlib in aktmoduleswitches) then
-         Linker.MakeStaticLibrary(SmartLinkFilesCnt)
+        if (cs_create_sharedlib in aktmoduleswitches) then
+          Linker.MakeSharedLibrary
         else
-         if (cs_create_sharedlib in aktmoduleswitches) then
-          Linker.MakeSharedLibrary;
+          if (cs_create_staticlib in aktmoduleswitches) or
+             (cs_smartlink in aktmoduleswitches) then
+            Linker.MakeStaticLibrary(SmartLinkFilesCnt);
+
         { add the files for the linker from current_module }
         Linker.AddModuleFiles(current_module);
       end;
@@ -67,13 +69,16 @@ unit pmodules;
     procedure insertobjectfile;
     { Insert the used object file for this unit in the used list for this unit }
       begin
-        if (cs_create_staticlib in aktmoduleswitches) then
-         current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^)
-        else
-         if (cs_create_sharedlib in aktmoduleswitches) then
+        if (cs_create_sharedlib in aktmoduleswitches) then
           current_module^.linksharedlibs.insert(current_module^.sharedlibfilename^)
         else
-          current_module^.linkofiles.insert(current_module^.objfilename^);
+         begin
+           if (cs_create_staticlib in aktmoduleswitches) or
+              (cs_smartlink in aktmoduleswitches) then
+             current_module^.linkstaticlibs.insert(current_module^.staticlibfilename^)
+           else
+             current_module^.linkofiles.insert(current_module^.objfilename^);
+         end;
       end;
 
 
@@ -896,7 +901,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.42  1998-08-19 18:04:54  peter
+  Revision 1.43  1998-08-26 10:08:47  peter
+    * fixed problem with libprefix at the wrong place
+    * fixed lib generation with smartlinking and no -CS used
+
+  Revision 1.42  1998/08/19 18:04:54  peter
     * fixed current_module^.in_implementation flag
 
   Revision 1.41  1998/08/17 10:10:08  peter

@@ -311,7 +311,6 @@ unit files;
         p : dirstr;
         n : NameStr;
         e : ExtStr;
-        s : string;
       begin
          stringdispose(objfilename);
          stringdispose(asmfilename);
@@ -320,18 +319,21 @@ unit files;
          stringdispose(sharedlibfilename);
          stringdispose(exefilename);
          stringdispose(path);
+         { Create names }
          fsplit(fn,p,n,e);
-         path:=stringdup(FixPath(p));
-         s:=FixFileName(FixPath(p)+n);
-         objfilename:=stringdup(s+target_info.objext);
-         asmfilename:=stringdup(s+target_info.asmext);
-         ppufilename:=stringdup(s+target_info.unitext);
+         p:=FixPath(p);
+         n:=FixFileName(n);
+         { set path and obj,asm,ppu names }
+         path:=stringdup(p);
+         objfilename:=stringdup(p+n+target_info.objext);
+         asmfilename:=stringdup(p+n+target_info.asmext);
+         ppufilename:=stringdup(p+n+target_info.unitext);
          { lib and exe could be loaded with a file specified with -o }
          if OutputFile<>'' then
-          s:=OutputFile;
-         staticlibfilename:=stringdup(target_os.libprefix+s+target_os.staticlibext);
-         sharedlibfilename:=stringdup(target_os.libprefix+s+target_os.sharedlibext);
-         exefilename:=stringdup(s+target_os.exeext);
+          n:=OutputFile;
+         staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
+         sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
+         exefilename:=stringdup(p+n+target_os.exeext);
       end;
 
 
@@ -396,7 +398,8 @@ unit files;
         do_compile:=false;
         if (flags and uf_in_library)=0 then
          begin
-           if (flags and uf_static_linked)<>0 then
+           if ((flags and uf_static_linked)<>0) or
+              ((flags and uf_smartlink)<>0) then
             begin
               objfiletime:=getnamedfiletime(staticlibfilename^);
               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
@@ -644,7 +647,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.39  1998-08-25 16:44:16  pierre
+  Revision 1.40  1998-08-26 10:08:48  peter
+    * fixed problem with libprefix at the wrong place
+    * fixed lib generation with smartlinking and no -CS used
+
+  Revision 1.39  1998/08/25 16:44:16  pierre
     * openppu was true even if the object file is missing
       this lead to trying to open a filename without extension
       and prevented the 'make cycle' to work for win32
