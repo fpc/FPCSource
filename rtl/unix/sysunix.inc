@@ -162,10 +162,11 @@ end;
 
 
 Function sbrk(size : longint) : pointer;
+var address:longint;
 begin
-  sbrk:=pointer(Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
-  if sbrk<>nil then
-   errno:=0;
+  address:=Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  if addres=-1 then inc(address) else errno := 0;
+  sbrk:=pointer(address);
 end;
 
 
@@ -803,7 +804,10 @@ End.
 
 {
   $Log$
-  Revision 1.34  2003-09-27 11:52:36  peter
+  Revision 1.35  2003-10-13 21:24:04  hajny
+    * sbrk error handling corrected
+
+  Revision 1.34  2003/09/27 11:52:36  peter
     * sbrk returns pointer
 
   Revision 1.33  2003/09/03 14:09:37  florian
