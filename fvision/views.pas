@@ -1314,11 +1314,33 @@ begin
         G:=p^.owner;
         if G=Nil then { top view }
          begin
-           Video.SetCursorPos(cur.x,cur.y);
-           if (state and sfCursorIns)<>0 then
-            Video.SetCursorType(crBlock)
+           if TextModeGFV then
+             Video.SetCursorPos(cur.x,cur.y)
+{$IFDEF GRAPH_API}
            else
-            Video.SetCursorType(crUnderline);
+             GFVGraph.SetCursorPos(cur.x,cur.y)
+{$ENDIF GRAPH_API}
+             ;
+           if (state and sfCursorIns)<>0 then
+             begin
+               if TextModeGFV then
+                 Video.SetCursorType(crBlock)
+{$IFDEF GRAPH_API}
+               else
+                 GFVGraph.SetCursorType(crBlock)
+{$ENDIF GRAPH_API}
+                 ;
+             end
+           else
+             begin
+               if TextModeGFV then
+                 Video.SetCursorType(crUnderline)
+{$IFDEF GRAPH_API}
+               else
+                 GFVGraph.SetCursorType(crUnderline)
+{$ENDIF GRAPH_API}
+                 ;
+             end;
            exit;
          end;
         if (G^.state and sfVisible)=0 then
@@ -1328,7 +1350,13 @@ begin
          break;
       end; { while }
    end; { if }
-  Video.SetCursorType(crHidden);
+  if TextModeGFV then
+    Video.SetCursorType(crHidden)
+{$IFDEF GRAPH_API}
+  else
+    GFVGraph.SetCursorType(crHidden)
+{$ENDIF GRAPH_API}
+    ;
 {$endif USE_VIDEO_API}
 end;
 
@@ -1481,7 +1509,7 @@ END;
 PROCEDURE TView.DrawCursor;
 BEGIN                                                 { Abstract method }
   if State and sfFocused <> 0 then
-   ResetCursor;
+    ResetCursor;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1766,7 +1794,7 @@ BEGIN
    Cursor.Y := Y;                                     { New y position }
    If ((DrawMask and vdInSetCursor)=0) and (State AND sfCursorVis <> 0) Then
      Begin         { Cursor visible }
-       if TextModeGFV then
+       if TextModeGFV or UseFixedFont then
         ResetCursor
        else
         begin
@@ -1938,7 +1966,7 @@ BEGIN
    If (AState AND (sfCursorVis + sfCursorIns) <> 0) and  { Change cursor state }
       (OldState<>State)
    Then Begin
-     if TextModeGFV then
+     if TextModeGFV or UseFixedFont then
       ResetCursor
      else
       begin
@@ -4640,6 +4668,20 @@ BEGIN
      Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
        ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
        RawOrigin.Y+Y2-ViewPort.Y1);                   { Clear the area }
+     { Force redraw if something new is written after }
+     if UseFixedFont and assigned(OldVideoBuf) then
+       begin
+         X1 := (RawOrigin.X+X1) DIV SysFontWidth;
+         Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
+         X2 := (RawOrigin.X+X2-1) DIV SysFontWidth;
+         Y2 := (RawOrigin.Y+Y2-1) DIV SysFontHeight;
+         For Y := Y1 To Y2 Do
+           For X := X1 To X2 Do
+             begin
+               VideoBuf^[Y*TextScreenWidth+X]:=0;
+               OldVideoBuf^[Y*TextScreenWidth+X]:=0;
+             end;
+       end;
    End Else Begin                                     { TEXT MODE GFV }
      X1 := (RawOrigin.X+X1) DIV SysFontWidth;
      Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
@@ -5061,7 +5103,7 @@ BEGIN
            X-ViewPort.X1+I*FontWidth,
            Y-ViewPort.Y1+FontHeight-1);
          SetColor(Fc);
-         OutTextXY(X-ViewPort.X1, Y-ViewPort.Y1, S);  { Write text char }
+         OutTextXY(X-ViewPort.X1, Y-ViewPort.Y1+2, S);  { Write text char }
        End Else Begin                                 { TEXT MODE GFV }
          Tix := X DIV SysFontWidth;
          Tiy := Y DIV SysFontHeight;
@@ -5146,7 +5188,13 @@ BEGIN
       End;
 
       If Not Skip and Assigned(P^.Buffer) then Begin
-        P^.Buffer^[(Y-P^.Origin.Y)*P^.size.X+(XI-P^.Origin.X)]:=TDrawBuffer(Buf)[I];
+        begin
+          P^.Buffer^[(Y-P^.Origin.Y)*P^.size.X+(XI-P^.Origin.X)]:=TDrawBuffer(Buf)[I];
+{$IFDEF GRAPH_API}
+          If (pointer(P^.Buffer)=pointer(VideoBuf)) and (SpVideoBuf^[Y*TextScreenWidth+XI]=EmptyVideoBufCell) then
+            OldVideoBuf^[Y*TextScreenWidth+XI]:=0;
+{$ENDIF GRAPH_API}
+        end;
       End;
       PrevP:=P;
       If Skip then
@@ -5719,7 +5767,10 @@ END.
 
 {
  $Log$
- Revision 1.30  2002-05-31 13:36:42  pierre
+ Revision 1.31  2002-06-06 06:42:21  pierre
+  + use gfvgraph cursor functions for UseFixedFont
+
+ Revision 1.30  2002/05/31 13:36:42  pierre
   * avoid SIGSEGV in owner^.close code by removing virtual attribute to ForEach method
 
  Revision 1.29  2002/05/31 12:40:48  pierre
