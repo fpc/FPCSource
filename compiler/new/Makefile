@@ -133,10 +133,10 @@ endif
 
 # for i386 also insert MMX support
 ifneq ($(findstring -di386,$(COMPILER)),)
-override COMPILER+=-dSUPPORT_MMX -Fui386
+override COMPILER+=-dSUPPORT_MMX
 endif
 
-override COMPILER+=$(LOCALOPT)
+override COMPILER+=$(LOCALOPT) -Fu$(CPU)
 
 ifneq (,$(findstring -s ,$(LOCALOPT)))
 override EXECPPAS=@$(PPAS)
@@ -394,7 +394,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.1  1999-08-01 23:19:58  florian
+# Revision 1.2  1999-08-02 17:16:41  michael
+# + Changes for alpha
+#
+# Revision 1.1  1999/08/01 23:19:58  florian
 #   + make a new makefile using the old compiler makefile
 #
 #

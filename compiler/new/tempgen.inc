@@ -24,10 +24,6 @@
 ,temp_gen
 {$ifdef i386}
 ,tgeni386
+{$else}
+,tgencpu
 {$endif i386}
-{$ifdef m68k}
-,tgenm68k
-{$endif m68k}
-{$ifdef alpha}
-,tgalpha
-{$endif alpha}

@@ -78,9 +78,9 @@ type
  TReference = record
    offset : aword;
    symbol : pasmsymbol;
-   reg : tregister;
+   base : tregister;
    { the boundary to which the reference is surely aligned }
-   alignement : byte;
+   alignment : byte;
    end;
  PReference = ^TReference;
 
@@ -92,7 +92,7 @@ type
      LOC_REFERENCE,LOC_MEM : (reference : treference);
    end;
 
- const
+Const
   { offsets for the integer and floating point registers }
   INT_REG = 0;
   FLOAT_REG = 32;
@@ -106,13 +106,44 @@ type
   OQ_FLOATING_UNDERFLOW_ENABLE   = $20;  { /U }
   OQ_INTEGER_OVERFLOW_ENABLE     = $40;  { /V }
 
+  stack_pointer = R_30;
+  frame_pointer = R_15;
+  self_pointer  = R_16;
+
+{ resets all values of ref to defaults }
+procedure reset_reference(var ref : treference);
+    
+{ set mostly used values of a new reference }
+function new_reference(base : tregister;offset : longint) : preference;
+
+
 implementation
+
+procedure reset_reference(var ref : treference);
+begin
+  FillChar(ref,sizeof(treference),0);
+end;
+
+
+function new_reference(base : tregister;offset : longint) : preference;
+var
+  r : preference;
+begin
+  new(r);
+  FillChar(r^,sizeof(treference),0);
+  r^.offset:=offset;
+  r^.alignment:=8;
+  new_reference:=r;
+end;
 
 
 end.
 {
   $Log$
-  Revision 1.1  1999-08-01 23:18:36  michael
+  Revision 1.2  1999-08-02 17:16:44  michael
+  + Changes for alpha
+
+  Revision 1.1  1999/08/01 23:18:36  michael
   + Fixes for new code generator
 
   Revision 1.2  1998/09/09 20:14:00  peter
