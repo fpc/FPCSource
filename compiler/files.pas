@@ -287,7 +287,7 @@ uses
         blockread(f,buf^,maxbufsize-1,bufsize);
       {$endif}
         buf[bufsize]:=#0;
-        endoffile:=not(bufsize=maxbufsize-1);
+        endoffile:=eof(f);
       end;
 
 
@@ -1077,7 +1077,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.82  1999-01-12 14:25:26  peter
+  Revision 1.83  1999-01-13 15:02:00  daniel
+  * Tinputfile.readbuf eof bugfix
+
+  Revision 1.82  1999/01/12 14:25:26  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
