@@ -240,12 +240,11 @@ unit cobjects;
         count : longint;
         constructor init(Agrowsize:longint);
         destructor  done;
-        procedure clear;
+        procedure clear1;
         procedure foreach(proc2call : tindexcallback);
+        procedure deleteindex(p:pindexobject);
         procedure delete(p:pindexobject);
-        procedure deletenr(p:pindexobject);
         procedure insert(p:pindexobject);
-        procedure insertnr(p:pindexobject);
         function  search(nr:longint):pindexobject;
       private
         growsize,
@@ -1252,7 +1251,7 @@ end;
 
     destructor tindexarray.done;
       begin
-        clear;
+{        clear1; }
         if assigned(data) then
          freemem(data,size*4);
       end;
@@ -1394,7 +1393,7 @@ end;
       end;
 
 
-    procedure tindexarray.clear;
+    procedure tindexarray.clear1;
       var
         i : longint;
       begin
@@ -1436,7 +1435,7 @@ end;
       end;
 
 
-    procedure tindexarray.deletenr(p:pindexobject);
+    procedure tindexarray.deleteindex(p:pindexobject);
       var
         i : longint;
       begin
@@ -1461,15 +1460,20 @@ end;
 
     procedure tindexarray.delete(p:pindexobject);
       begin
-        deletenr(p);
+        deleteindex(p);
         dispose(p,done);
       end;
 
 
-    procedure tindexarray.insertnr(p:pindexobject);
+    procedure tindexarray.insert(p:pindexobject);
       var
         i  : longint;
       begin
+        if p^.indexnr=-1 then
+         begin
+           inc(count);
+           p^.indexnr:=count;
+         end;
         if p^.indexnr>count then
          count:=p^.indexnr;
         if count>size then
@@ -1501,14 +1505,6 @@ end;
          end;
         if i>count then
          p^.next:=nil;
-      end;
-
-
-    procedure tindexarray.insert(p:pindexobject);
-      begin
-        inc(count);
-        p^.indexnr:=count;
-        insertnr(p);
       end;
 
 
@@ -1900,7 +1896,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-04-14 09:14:47  peter
+  Revision 1.25  1999-04-15 10:01:44  peter
+    * small update for storenumber
+
+  Revision 1.24  1999/04/14 09:14:47  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.23  1999/04/08 20:59:39  florian
