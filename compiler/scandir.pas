@@ -110,8 +110,35 @@ implementation
 *****************************************************************************}
 
     procedure dir_align;
+      var
+        hs : string;
       begin
-        do_delphiswitch('A');
+        current_scanner.skipspace;
+        if not(c in ['0'..'9']) then
+         begin
+           { Support also the ON and OFF as switch }
+           hs:=current_scanner.readid;
+           if (hs='ON') then
+            aktpackrecords:=packrecord_4
+           else
+            if (hs='OFF') then
+             aktpackrecords:=packrecord_1
+           else
+            Message(scan_w_only_pack_records);
+         end
+        else
+         begin
+           case current_scanner.readval of
+             1 : aktpackrecords:=packrecord_1;
+             2 : aktpackrecords:=packrecord_2;
+             4 : aktpackrecords:=packrecord_4;
+             8 : aktpackrecords:=packrecord_8;
+            16 : aktpackrecords:=packrecord_16;
+            32 : aktpackrecords:=packrecord_32;
+           else
+            Message(scan_w_only_pack_records);
+           end;
+         end;
       end;
 
     procedure dir_asmmode;
@@ -843,7 +870,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2001-05-30 21:35:49  peter
+  Revision 1.4  2001-06-03 20:20:27  peter
+    * Align directive supports also values to be Kylix compatible. It's
+      strange because the help of kylix still shows only On and Off as
+      possible values, so still support those. On means 4 bytes and Off
+      means 1 byte alignment.
+
+  Revision 1.3  2001/05/30 21:35:49  peter
     * netware patches for copyright, screenname, threadname directives
 
   Revision 1.2  2001/04/18 22:01:58  peter
