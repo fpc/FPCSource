@@ -326,7 +326,7 @@ no_exception:
         movw    %cs, %bx
 /* Call exit procedure with BX=32-bit CS; SI+DI=32-bit handle; DL=exit status */
         .byte 0x2e
-        ljmp    *(sbrk16_api_ofs)
+        ljmp    sbrk16_api_ofs
 
 /*-----------------------------------------------------------------------------*/
 
@@ -400,7 +400,7 @@ brk_common:
         movw    $0x0900, %ax                                /* disable interrupts */
         int     $0x31
         movl    %eax,___sbrk_interrupt_state
-        lcall   *(sbrk16_api_ofs)
+        lcall   sbrk16_api_ofs
         setc    %dl                                          /* Save carry */
 
         /* popl    %eax                                restore interrupts
@@ -918,9 +918,8 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.2  2001-08-19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
+  Revision 1.3  2001-08-21 13:12:22  florian
+    * reverted to previous version
 
   Revision 1.1  2000/07/13 06:30:40  michael
   + Initial import
