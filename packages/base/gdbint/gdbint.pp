@@ -17,6 +17,12 @@ interface
 
 {$smartlink off}
 
+{.define GDB_HAS_SYSROOT}      {versions of gdb >5.3 may need this}
+                               {main.c exports a string that is empty (not null) for}
+			       {targets that do not support sysroot}
+			       {for now GDB_HAS_SYSROOT is not set here, it has to be done}
+			       {manually (set it if you have the unresolved symbol gdb_sysroot) }
+
 { this is not needed (PM) $output_format as}
 
 {.$define Verbose}
@@ -2650,13 +2656,24 @@ begin
   WatchDog:=0;
 end;
 
-
+{$ifdef GDB_HAS_SYSROOT}
+var gdb_sysroot  : pchar; export name 'gdb_sysroot';
+    gdb_sysrootc : char;
+{$endif}
+    
 begin
+{$ifdef GDB_HAS_SYSROOT}
+  gdb_sysrootc := #0;
+  gdb_sysroot := @gdb_sysrootc;
+{$endif}
   InitLibGDB;
 end.
 {
   $Log$
-  Revision 1.13  2003-02-09 23:08:38  marco
+  Revision 1.14  2003-03-25 22:50:29  armin
+  * added GDB_HAS_SYSROOT, needed for gdb-Versions >= 20030324
+
+  Revision 1.13  2003/02/09 23:08:38  marco
    * ncurses to curses for openbsd rename
 
   Revision 1.12  2002/12/02 13:59:56  pierre
