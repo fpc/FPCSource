@@ -582,6 +582,7 @@ implementation
     procedure tcgvecnode.pass_2;
 
       var
+         offsetdec,
          extraoffset : longint;
          t : tnode;
          href : treference;
@@ -638,9 +639,10 @@ implementation
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
               if is_ansistring(left.resulttype.def) then
-                dec(location.reference.offset)
+                offsetdec:=1
               else
-                dec(location.reference.offset,2);
+                offsetdec:=2;
+              dec(location.reference.offset,offsetdec);
            end
          else if is_dynamic_array(left.resulttype.def) then
            begin
@@ -715,7 +717,7 @@ implementation
                               paramanager.allocparaloc(exprasmlist,paraloc2);
                               cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paraloc2);
                               href:=location.reference;
-                              dec(href.offset,7);
+                              dec(href.offset,sizeof(aint)-offsetdec);
                               paramanager.allocparaloc(exprasmlist,paraloc1);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
@@ -894,7 +896,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2004-06-20 08:55:29  florian
+  Revision 1.94  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.93  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.92  2004/06/16 20:07:08  florian

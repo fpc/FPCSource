@@ -330,11 +330,11 @@ implementation
          end
         else
          begin
-           { length in ansi strings is at offset sizeof(aint)*2 }
+           { length in ansi/wide strings is at offset -sizeof(aint) }
            location_force_reg(exprasmlist,left.location,OS_ADDR,false);
            objectlibrary.getlabel(lengthlab);
            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
-           reference_reset_base(href,left.location.register,-sizeof(aint)*2);
+           reference_reset_base(href,left.location.register,-sizeof(aint));
            hregister:=cg.makeregsize(exprasmlist,left.location.register,OS_INT);
            cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
            cg.a_label(exprasmlist,lengthlab);
@@ -686,7 +686,10 @@ end.
 
 {
   $Log$
-  Revision 1.60  2004-06-20 08:55:29  florian
+  Revision 1.61  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.60  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.59  2004/06/16 20:07:08  florian

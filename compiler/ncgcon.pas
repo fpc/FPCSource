@@ -343,9 +343,8 @@ implementation
                                        { before the string the following sequence must be found:
                                          <label>
                                            constsymbol <datalabel>
-                                           constint <len>
-                                           constint <len>
                                            constint -1
+                                           constint <len>
                                          we must then return <label> to reuse
                                        }
                                        hp2:=tai(lastlabelhp.previous);
@@ -356,14 +355,11 @@ implementation
                                           (tai(hp2.previous).typ=ait_const_aint) and
                                           (tai_const(hp2.previous).value=len) and
                                           assigned(hp2.previous.previous) and
-                                          (tai(hp2.previous.previous).typ=ait_const_aint) and
-                                          (tai_const(hp2.previous.previous).value=len) and
+                                          (tai(hp2.previous.previous).typ=ait_const_ptr) and
                                           assigned(hp2.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous).typ=ait_const_ptr) and
-                                          assigned(hp2.previous.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous.previous).typ=ait_label) then
+                                          (tai(hp2.previous.previous.previous).typ=ait_label) then
                                          begin
-                                           lastlabel:=tai_label(hp2.previous.previous.previous.previous).l;
+                                           lastlabel:=tai_label(hp2.previous.previous.previous).l;
                                            same_string:=true;
                                            j:=0;
                                            if len>0 then
@@ -459,9 +455,8 @@ implementation
                                 objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
                                 Consts.concat(Tai_const_symbol.Create(l1));
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(-1));
+                                Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -485,9 +480,8 @@ implementation
                                 objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
                                 Consts.concat(Tai_const.Create_sym(l1));
-                                Consts.concat(Tai_const.Create_aint(len));
-                                Consts.concat(Tai_const.Create_aint(len));
                                 Consts.concat(Tai_const.Create_aint(-1));
+                                Consts.concat(Tai_const.Create_aint(len));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -511,9 +505,8 @@ implementation
                                 objectlibrary.getdatalabel(l2);
                                 Consts.concat(Tai_label.Create(l2));
                                 Consts.concat(Tai_const_symbol.Create(l1));
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(-1));
+                                Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -541,9 +534,8 @@ implementation
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                Consts.concat(Tai_const.Create_aint(len));
-                                Consts.concat(Tai_const.Create_aint(len));
                                 Consts.concat(Tai_const.Create_aint(-1));
+                                Consts.concat(Tai_const.Create_aint(len));
                                 Consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
@@ -729,7 +721,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-06-20 08:55:29  florian
+  Revision 1.44  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.43  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.42  2004/06/18 15:16:46  peter

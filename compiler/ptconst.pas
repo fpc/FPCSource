@@ -632,15 +632,9 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const.Create_sym(ll));
-                            { the actual structure starts at -12 from start label - CEC }
                             Consts.concat(tai_align.create(const_align(sizeof(aint))));
-                            { first write the maximum size }
-                            Consts.concat(Tai_const.Create_aint(strlength));
-                            { second write the real length }
-                            Consts.concat(Tai_const.Create_aint(strlength));
-                            { redondent with maxlength but who knows ... (PM) }
-                            { third write use count (set to -1 for safety ) }
                             Consts.concat(Tai_const.Create_aint(-1));
+                            Consts.concat(Tai_const.Create_aint(strlength));
                             Consts.concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
@@ -692,11 +686,9 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const.Create_sym(ll));
-                            { the actual structure starts at -12 from start label - CEC }
                             Consts.concat(tai_align.create(const_align(sizeof(aint))));
-                            Consts.concat(Tai_const.Create_aint(strlength));
-                            Consts.concat(Tai_const.Create_aint(strlength));
                             Consts.concat(Tai_const.Create_aint(-1));
+                            Consts.concat(Tai_const.Create_aint(strlength));
                             Consts.concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
@@ -1099,7 +1091,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2004-07-03 14:06:35  daniel
+  Revision 1.91  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.90  2004/07/03 14:06:35  daniel
     * Compile fix
 
   Revision 1.89  2004/06/20 20:41:47  florian

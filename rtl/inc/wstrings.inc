@@ -21,9 +21,8 @@
   WideString is defined as a 'silent' pwidechar :
   a pwidechar that points to :
 
-  @-12 : SizeInt for maximum size;
-  @-8  : SizeInt for size;
-  @-4  : SizeInt for reference count;
+  @-8  : SizeInt for reference count;
+  @-4  : SizeInt for size;
   @    : String + Terminating #0;
   Pwidechar(Widestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
@@ -35,9 +34,8 @@
 Type
   PWideRec = ^TWideRec;
   TWideRec = Packed Record
-    Maxlen,
-    len,
-    ref   : SizeInt;
+    Ref,
+    Len   : SizeInt;
     First : WideChar;
   end;
 
@@ -151,14 +149,10 @@ Function NewWideString(Len : SizeInt) : Pointer;
 }
 Var
   P : Pointer;
-  l : SizeInt;
 begin
-  { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  L := (Len*sizeof(WideChar)+WideRecLen+15) and (not 15);
-  GetMem(P,l);
+  GetMem(P,Len*sizeof(WideChar)+WideRecLen);
   If P<>Nil then
    begin
-     PWideRec(P)^.Maxlen:=(l-WideRecLen) div sizeof(WideChar);    { Maximal length }
      PWideRec(P)^.Len:=0;         { Initial length }
      PWideRec(P)^.Ref:=1;         { Set reference count }
      PWideRec(P)^.First:=#0;      { Terminating #0 }
@@ -598,16 +592,10 @@ begin
        end
       else if (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
         begin
-          if (PWideRec(Pointer(S)-WideFirstOff)^.Maxlen < L) then
-            begin
-              Dec(Pointer(S),WideFirstOff);
-              NewLen := (L*sizeof(WideChar)+WideRecLen+15) and (not 15);
-              reallocmem(pointer(S), NewLen);
-              PAnsiRec(S)^.MaxLen := (NewLen - WideRecLen) div sizeof(WideChar);
-              Inc(Pointer(S), WideFirstOff);
-            end;
-          PWideRec(Pointer(S)-WideFirstOff)^.Len := L;
-          PWord(Pointer(S)+L*sizeof(WideChar))^:=0;
+          Dec(Pointer(S),WideFirstOff);
+          if L*sizeof(WideChar)+WideRecLen>MemSize(Pointer(S)) then
+            reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
+          Inc(Pointer(S), WideFirstOff);
         end
       else
         begin
@@ -1044,7 +1032,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  2004-07-02 21:21:09  peter
+  Revision 1.41  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.40  2004/07/02 21:21:09  peter
     * decr ref doesn't reset pointer
     * finalize resets pointer for astring,wstring
 

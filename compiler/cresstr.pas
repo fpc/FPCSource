@@ -155,9 +155,8 @@ procedure TResourceStrings.CreateResourceStringList;
             objectlibrary.getdatalabel(l1);
             resourcestringlist.concat(tai_const.create_sym(l1));
             consts.concat(tai_align.Create(const_align(sizeof(aint))));
-            consts.concat(tai_const.create_32bit(len));
-            consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_const.create_32bit(-1));
+            consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_label.create(l1));
             getmem(s,len+1);
             move(Value^,s^,len);
@@ -173,9 +172,8 @@ procedure TResourceStrings.CreateResourceStringList;
        L:=Length(Name);
        resourcestringlist.concat(tai_const.create_sym(l1));
        consts.concat(tai_align.Create(const_align(sizeof(aint))));
-       consts.concat(tai_const.create_32bit(l));
-       consts.concat(tai_const.create_32bit(l));
        consts.concat(tai_const.create_32bit(-1));
+       consts.concat(tai_const.create_32bit(l));
        consts.concat(tai_label.create(l1));
        getmem(s,l+1);
        move(Name[1],s^,l);
@@ -295,7 +293,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2004-06-20 08:55:29  florian
+  Revision 1.26  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.25  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.24  2004/06/16 20:07:07  florian

@@ -24,9 +24,8 @@
   AnsiString is defined as a 'silent' pchar :
   a pchar that points to :
 
-  @-12 : SizeInt for maximum size;
-  @-8  : SizeInt for size;
-  @-4  : SizeInt for reference count;
+  @-8  : SizeInt for reference count;
+  @-4  : SizeInt for size;
   @    : String + Terminating #0;
   Pchar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.
@@ -38,9 +37,8 @@
 Type
   PAnsiRec = ^TAnsiRec;
   TAnsiRec = Packed Record
-    Maxlen,
-    len,
-    ref   : SizeInt;
+    Ref,
+    Len   : SizeInt;
     First : Char;
   end;
 
@@ -62,21 +60,15 @@ Function NewAnsiString(Len : SizeInt) : Pointer;
 }
 Var
   P : Pointer;
-  l : SizeInt;
 begin
-  l:=Len+AnsiRecLen;
-
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  if (l mod 16)<>0 then
-    inc(l,16-(l mod 16));
-  GetMem(P,l);
+  GetMem(P,Len+AnsiRecLen);
   If P<>Nil then
    begin
-     PAnsiRec(P)^.Maxlen:=l-AnsiRecLen;    { Maximal length }
-     PAnsiRec(P)^.Len:=0;         { Initial length }
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
+     PAnsiRec(P)^.Len:=0;         { Initial length }
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
-     P:=P+FirstOff;               { Points to string now }
+     inc(p,firstoff);             { Points to string now }
    end;
   NewAnsiString:=P;
 end;
@@ -414,7 +406,7 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias 
 }
 Var
   Temp : Pointer;
-  movelen, NewLen: SizeInt;
+  movelen : SizeInt;
 begin
   if (l>0) then
     begin
@@ -425,16 +417,10 @@ begin
        end
       else if (PAnsiRec(Pointer(S)-FirstOff)^.Ref = 1) then
         begin
-          if (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) then
-            begin
-              Dec(Pointer(S),FirstOff);
-              NewLen := (L+AnsiRecLen+15) and not(15) - AnsiRecLen;
-              reallocmem(pointer(S),AnsiRecLen+NewLen);
-              PAnsiRec(S)^.MaxLen := NewLen;
-              Inc(Pointer(S),FirstOff);
-            end;
-          PAnsiRec(Pointer(S)-FirstOff)^.Len := L;
-          PByte(Pointer(S)+L)^:=0;
+          Dec(Pointer(S),FirstOff);
+          if AnsiRecLen+L>MemSize(Pointer(s)) then
+            reallocmem(pointer(S),AnsiRecLen+L);
+          Inc(Pointer(S),FirstOff);
         end
       else
         begin
@@ -878,7 +864,10 @@ end;
 
 {
   $Log$
-  Revision 1.46  2004-07-02 21:21:09  peter
+  Revision 1.47  2004-07-12 17:58:19  peter
+    * remove maxlen field from ansistring/widestrings
+
+  Revision 1.46  2004/07/02 21:21:09  peter
     * decr ref doesn't reset pointer
     * finalize resets pointer for astring,wstring
 
