@@ -2027,8 +2027,8 @@ Begin
                                        A_DEC: Taicpu(hp1).opcode := A_SUB;
                                        A_INC: Taicpu(hp1).opcode := A_ADD;
                                      End;
-                                     Taicpu(hp1).Loadoper(0,Taicpu(hp1).oper[0]);
-                                     Taicpu(hp1).LoadConst(1,1);
+                                     Taicpu(hp1).Loadoper(1,Taicpu(hp1).oper[0]);
+                                     Taicpu(hp1).LoadConst(0,1);
                                      Taicpu(hp1).ops:=2;
                                    End
                                  End;
@@ -2054,7 +2054,10 @@ End.
 
 {
   $Log$
-  Revision 1.39  2003-02-24 21:27:01  daniel
+  Revision 1.40  2003-02-25 07:41:54  daniel
+    * Properly fixed reversed operands bug
+
+  Revision 1.39  2003/02/24 21:27:01  daniel
     * Reversed operand order in an optimization in postpeepholeopt
 
   Revision 1.38  2003/02/19 22:39:56  daniel

@@ -397,6 +397,7 @@ implementation
     constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
       begin
          inherited create(op);
+         init(_size);
          ops:=1;
          loadreg(0,_op1);
       end;
@@ -1948,7 +1949,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2003-02-19 22:00:15  daniel
+  Revision 1.13  2003-02-25 07:41:54  daniel
+    * Properly fixed reversed operands bug
+
+  Revision 1.12  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
