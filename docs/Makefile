@@ -91,7 +91,7 @@ LOT = $(addsuffix .lot, $(HTML))
 CHK = $(addsuffix .chk, $(HTML) unitex refex)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
-              strings objects heaptrc sysutex ipc mouse)
+              strings objects heaptrc sysutils ipc mouse)
 
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
@@ -123,12 +123,11 @@ endif
 	$(DVITXT) -o $*.txt  $*.dvi
 
 .tex.pdf:
-	$(PDFLATEX) $*pdf
-	-$(MAKEINDEX) $*pdf
-	$(PDFLATEX) $*pdf
-	-$(MAKEINDEX) $*pdf
-	$(PDFLATEX) $*pdf
-	mv $*pdf.pdf $*.pdf
+	$(PDFLATEX) $*
+	-$(MAKEINDEX) $*
+	$(PDFLATEX) $*
+	-$(MAKEINDEX) $*
+	$(PDFLATEX) $*
 
 
 #####################################################################
@@ -342,7 +341,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.20  1999-04-10 14:57:43  michael
+# Revision 1.21  1999-05-28 19:59:37  michael
+# Additional changes
+#
+# Revision 1.20  1999/04/10 14:57:43  michael
 # + Added sysutils
 #
 # Revision 1.19  1999/02/12 14:15:00  michael
