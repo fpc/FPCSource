@@ -818,10 +818,8 @@ Begin
                 begin
                   opr.typ:=OPR_LOCAL;
                   if assigned(current_procinfo.parent) and
-                     (
-                      (tvarsym(sym).owner<>current_procinfo.procdef.localst) or
-                      (tvarsym(sym).owner<>current_procinfo.procdef.parast)
-                     ) and
+                     (tvarsym(sym).owner<>current_procinfo.procdef.localst) and
+                     (tvarsym(sym).owner<>current_procinfo.procdef.parast) and
                      (current_procinfo.procdef.localst.symtablelevel>normal_function_level) then
                     message1(asmr_e_local_para_unreachable,s);
                   opr.localsym:=tvarsym(sym);
@@ -1504,7 +1502,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.67  2003-09-23 17:56:06  peter
+  Revision 1.68  2003-09-25 14:57:36  peter
+    * fix check for unreachable locals
+
+  Revision 1.67  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
