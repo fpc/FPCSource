@@ -673,7 +673,8 @@ begin
       Result := Engine.FindAbsoluteLink(ThisPackage.Name + '.' + Name);
       if Length(Result) = 0 then
       begin
-        Result := Engine.FindAbsoluteLink(Module.PathName + '.' + Name);
+        if Assigned(Module) then
+          Result := Engine.FindAbsoluteLink(Module.PathName + '.' + Name);
 	// WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
         if Length(Result) = 0 then
           for i := Length(Name) downto 1 do
@@ -1877,6 +1878,8 @@ var
   TableEl, TREl: TDOMElement;
   i: Integer;
   ThisModule: TPasModule;
+  L : TStringList;
+  
 begin
   AppendMenuBar(0);
   AppendTitle(Format(SDocPackageTitle, [Copy(Package.Name, 2, 256)]));
@@ -1884,12 +1887,22 @@ begin
 
   AppendText(CreateH2(BodyElement), SDocUnits);
   TableEl := CreateTable(BodyElement);
-  for i := 0 to Package.Modules.Count - 1 do
-  begin
-    ThisModule := TPasModule(Package.Modules[i]);
-    TREl := CreateTR(TableEl);
-    AppendHyperlink(CreateCode(CreatePara(CreateTD_vtop(TREl))), ThisModule);
-    AppendShortDescrCell(TREl, ThisModule);
+  L:=TStringList.Create;
+  Try
+    L.Sorted:=True;
+    // Sort modules.
+    For I:=0 to Package.Modules.Count-1 do 
+      L.AddObject(TPasModule(Package.Modules[i]).Name,TPasModule(Package.Modules[i]));
+    // Now create table.
+    for i:=0 to L.Count - 1 do
+      begin
+      ThisModule := TPasModule(L.Objects[i]);
+      TREl := CreateTR(TableEl);
+      AppendHyperlink(CreateCode(CreatePara(CreateTD_vtop(TREl))), ThisModule);
+      AppendShortDescrCell(TREl, ThisModule);
+      end;
+  Finally
+    L.Free;
   end;
 
   DocNode := Engine.FindDocNode(Package);
@@ -2804,7 +2817,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-08-31 09:40:05  michael
+  Revision 1.10  2004-10-22 19:58:35  michael
+  + Sort list of modules in package page
+
+  Revision 1.9  2004/08/31 09:40:05  michael
   + Lookup using string, not widestring
 
   Revision 1.8  2004/08/28 18:04:49  michael
