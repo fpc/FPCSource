@@ -1895,7 +1895,7 @@ implementation
                   begin
                     s1:=def1.typename;
                     s2:=def2.typename;
-                    Message2(type_e_not_equal_types,def1^.typename,def2^.typename);
+                    Message2(type_e_not_equal_types,def1.typename,def2.typename);
                   end
                 else
                   CheckTypes := true;
@@ -1908,7 +1908,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-09-06 19:58:31  carl
+  Revision 1.8  2002-09-07 09:16:55  carl
+    * fix my stupid copy and paste bug
+
+  Revision 1.7  2002/09/06 19:58:31  carl
    * start bugfix 1996
    * 64-bit typed constant now work correctly and fully (bugfix 2001)
 
