@@ -426,21 +426,25 @@ ifeq ($(LIBTYPE),shared)
 override SMARTLINK=NO
 else
 override PPOPT+=-Cx
+ifneq ($(LIBNAME),)
+override PPOPT+=-o$(LIBNAME)
+endif
 endif
 endif
 
 # Add library type, for static libraries smartlinking is automatic used
 ifeq ($(LIBTYPE),shared)
 override PPOPT+=-CD
+ifneq ($(LIBNAME),)
+override PPOPT+=-o$(LIBNAME)
+endif
 else
 ifeq ($(LIBTYPE),static)
 override PPOPT+=-CS
-endif
-endif
-
-# Add library name
 ifneq ($(LIBNAME),)
-override PPOPT:=$(PPOPT) -o$(LIBNAME)
+override PPOPT+=-o$(LIBNAME)
+endif
+endif
 endif
 
 # Add defines from PPOPTDEF to PPOPT
