@@ -75,7 +75,7 @@ type
                StartMod: tai;
                MemWrite: taicpu;
       {how many instructions starting with StarMod does the block consist of}
-               NrOfMods: Byte;
+               NrOfMods: Word;
       {the type of the content of the register: unknown, memory, constant}
                Typ: Byte;
                case byte of
@@ -1624,7 +1624,7 @@ function RefInSequence(const ref: TReference; Content: TContent;
 {checks the whole sequence of Content (so StartMod and and the next NrOfMods
  tai objects) to see whether ref is used somewhere}
 var p: tai;
-    Counter: Byte;
+    Counter: Word;
     TmpResult: Boolean;
 begin
   p := Content.StartMod;
@@ -2713,7 +2713,10 @@ end.
 
 {
   $Log$
-  Revision 1.62  2003-12-20 22:53:33  jonas
+  Revision 1.63  2003-12-22 23:11:41  peter
+    * overflow for instruction counters
+
+  Revision 1.62  2003/12/20 22:53:33  jonas
     * fixed some more optimizer bugs, make cycle now works with -O2p3,
       -O2p3u, -O3p3 and -O3p3u
 
