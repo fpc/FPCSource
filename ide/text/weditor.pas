@@ -1102,7 +1102,12 @@ end;
 
 procedure TCodeEditor.UnLock;
 begin
-  Dec(LockFlag);
+{$ifdef DEBUG}
+  if lockflag=0 then
+    messagebox('Error: negative lockflag',nil,mferror+mfcancelbutton)
+  else
+{$endif DEBUG}
+    Dec(LockFlag);
   if (LockFlag=0) and DrawCalled then
     DrawView;
 end;
@@ -2367,8 +2372,10 @@ var Temp: PCodeEditor;
     R: TRect;
 begin
   if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then
+    Exit;
+  { There must be no exit inside a lock .. UnLock block !! }
   Lock;
-  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,0));
   Temp^.InsertFrom(@Self);
@@ -2383,8 +2390,8 @@ var Temp: PCodeEditor;
     OldPos: TPoint;
 begin
   if IsReadOnly then Exit;
-  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  Lock;
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,0));
   Temp^.InsertFrom(@Self);
@@ -2404,8 +2411,8 @@ var
   S : String;
 begin
   if IsReadOnly then Exit;
-  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  Lock;
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
@@ -2428,8 +2435,8 @@ var
   S : String;
 begin
   if IsReadOnly then Exit;
-  Lock;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  Lock;
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
@@ -2853,8 +2860,10 @@ begin
   until CanExit;
   if (FoundCount=0) or (DoReplace) then
     SetHighlight(CurPos,CurPos);
-  if (DoReplace=false) or (Confirm=false) then
-    UnLock;
+  if (DoReplace=false) or ((Confirm=false) and (Owner<>nil)) then
+    Owner^.UnLock;
+  {if (DoReplace=false) or (Confirm=false) then
+    UnLock;}
   if (FoundCount=0) then
     EditorDialog(edSearchFailed,nil);
 end;
@@ -3912,7 +3921,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.35  1999-06-28 19:32:32  peter
+  Revision 1.36  1999-06-29 08:51:34  pierre
+   * lockflag problems fixed
+
+  Revision 1.35  1999/06/28 19:32:32  peter
     * fixes from gabor
 
   Revision 1.34  1999/06/28 15:58:07  pierre
