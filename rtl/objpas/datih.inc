@@ -28,9 +28,12 @@ type
 
 const
    HoursPerDay = 24;
-   MinsPerDay  = HoursPerDay * 60;
-   SecsPerDay  = MinsPerDay * 60;
-   MSecsPerDay = SecsPerDay * 1000;
+   MinsPerHour = 60;
+   SecsPerMin  = 60;
+   MSecsPerSec = 1000;
+   MinsPerDay  = HoursPerDay * MinsPerHour;
+   SecsPerDay  = MinsPerDay * SecsPerMin;
+   MSecsPerDay = SecsPerDay * MSecsPerSec;
 
    DateDelta = 693594;        // Days between 1/1/0001 and 12/31/1899
    UnixDateDelta = 25569;
@@ -125,7 +128,10 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.7  2002-12-25 01:03:48  peter
+  Revision 1.8  2003-01-18 23:45:37  michael
+  + Fixed EncodeDate/Time so they use TryEncodeDate/Time
+
+  Revision 1.7  2002/12/25 01:03:48  peter
     * some date constants added
 
   Revision 1.6  2002/10/02 21:04:06  peter

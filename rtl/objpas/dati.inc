@@ -30,38 +30,29 @@ const
       ((0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
        (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335));
 
-function DoEncodeDate(Year, Month, Day: Word): longint;
-var
-  c, ya: cardinal;
+Function DoEncodeDate(Year, Month, Day: Word): longint;
+
+Var 
+  D : TDateTime;
+
 begin
-  if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then
-   begin
-     if month > 2 then
-      Dec(Month,3)
-     else
-      begin
-        Inc(Month,9);
-        Dec(Year);
-      end;
-     c:= Year DIV 100;
-     ya:= Year - 100*c;
-     result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day) - 693900;
-   end
-  else
-   result:=0;
+  If TryEncodeDate(Year,Month,Day,D) then
+    Result:=Trunc(D)
+  else 
+    Result:=0;   
 end;
 
 function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
-begin
-  If ((hour>=0) and (Hour<24)) and
-     ((Minute>=0) and (Minute<60)) and
-     ((Second>=0) and (Second<60)) and
-     ((MilliSecond>=0) and (Millisecond<1000)) then
-    Result := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond)
-  else
-    Result:=0;
-end;
 
+Var
+  T : TDateTime;
+
+begin
+  If TryEncodeTime(Hour,Minute,Second,MilliSecond,T) then
+    Result:=trunc(T*MSecsPerDay)
+  else
+    Result:=0;  
+end;
 
 {==============================================================================}
 {   Public functions                                                           }
@@ -98,35 +89,59 @@ begin
   result := TimeStamp.Time + timestamp.date*msecsperday;
 end ;
 
+Function TryEncodeDate(Year,Month,Day : Word; Var Date : TDateTime) : Boolean;
 
-function TryEncodeDate(Year, Month, Day: Word; var Date: TDateTime): Boolean;
+var
+  c, ya: cardinal;
 begin
-  Date := DoEncodeDate(Year, Month, Day);
-  Result:=(Date<>0);
+  Result:=(Year>0) and (Year<10000) and
+          (Month in [1..12]) and
+          (Day>0) and (Day<=MonthDays[IsleapYear(Year),Month]);
+ If Result then
+   begin
+     if month > 2 then
+      Dec(Month,3)
+     else
+      begin
+        Inc(Month,9);
+        Dec(Year);
+      end;
+     c:= Year DIV 100;
+     ya:= Year - 100*c;
+     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day) - 693900;
+   end
 end;
 
+function TryEncodeTime(Hour, Min, Sec, MSec:word; Var Time : TDateTime) : boolean;
 
-function TryEncodeTime(Hour, Min, Sec, MSec: Word; var Time: TDateTime): Boolean;
 begin
-  Time := DoEncodeTime(hour, Min, Sec, MSec) / MSecsPerDay;
-  Result:=(Time<>0);
+  Result:=(Hour<24) and (Min<60) and (Sec<60) and (MSec<1000);
+  If Result then
+    Time:=(Hour*3600000+Min*60000+Sec*1000+MSec)/MSecsPerDay;
 end;
 
 {   EncodeDate packs three variables Year, Month and Day into a
     TDateTime value the result is the number of days since 12/30/1899   }
 
 function EncodeDate(Year, Month, Day: word): TDateTime;
+
 begin
-  result := DoEncodeDate(Year, Month, Day);
-end ;
+  If Not TryEncodeDate(Year,Month,Day,Result) then
+    Raise Exception.CreateFmt('%d-%d-%d is not a valid date specification',
+                              [Year,Month,Day]);
+end;
 
 {   EncodeTime packs four variables Hour, Minute, Second and MilliSecond into
     a TDateTime value     }
 
 function EncodeTime(Hour, Minute, Second, MilliSecond:word):TDateTime;
+
 begin
-  Result := DoEncodeTime(hour, minute, second, millisecond) / MSecsPerDay;
-end ;
+  If not TryEncodeTime(Hour,Minute,Second,MilliSecond,Result) then
+    Raise Exception.CreateFmt('%d:%d:%d.%d is not a valid time specification',
+                              [Hour,Minute,Second,MilliSecond]);
+end;
+
 
 {   DecodeDate unpacks the value Date into three values:
     Year, Month and Day   }
@@ -700,7 +715,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-12-25 01:03:48  peter
+  Revision 1.9  2003-01-18 23:45:37  michael
+  + Fixed EncodeDate/Time so they use TryEncodeDate/Time
+
+  Revision 1.8  2002/12/25 01:03:48  peter
     * some date constants added
 
   Revision 1.7  2002/09/07 21:06:51  carl
