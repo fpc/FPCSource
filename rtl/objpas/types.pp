@@ -54,7 +54,7 @@ type
   TPoint = Windows.TPoint;
 {$else}
   TPoint =
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
@@ -69,7 +69,7 @@ type
   TRect = Windows.TRect;
 {$else}
   TRect =
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
@@ -81,7 +81,7 @@ type
   PRect = ^TRect;
 
   TSize =
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
@@ -93,7 +93,7 @@ type
   SIZE = TSize;
 
   TSmallPoint =
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
@@ -192,7 +192,7 @@ type
   Region = Pointer;
 
   _FILETIME =
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
@@ -204,7 +204,7 @@ type
   PFileTime = ^TFileTime;
 
   tagSTATSTG =
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
@@ -399,8 +399,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-10-21 22:24:01  florian
-    * targets requiring proper alignment doesn't pack tpoint and friends anymore
+  Revision 1.8  2004-10-22 05:51:15  florian
+    * corrected last commit
 
   Revision 1.6  2004/01/10 19:00:20  michael
   + Compatibility checks and code reformatting
