@@ -1,0 +1,63 @@
+.TH ppdep 1 "9 June 1999" FreePascal "Free Pascal unit dependency tracking"
+.SH NAME
+ppdep \- The FPC Pascal unit dependency tracking program.
+
+.SH SYNOPSIS
+
+\fBppdep\fP [-DDefine] [-oFile] [-eext] [-V] [-h] [A[call]] file
+
+.SH Description
+
+\fBppdep\fP dumps the dependencies of a unit in a format that can be
+understood by GNU \fBmake\fP. It writes these dependencies to standard 
+output. It takes care of dependencies both in the interface and 
+implemntation section of the unit, and it can handle conditional defines.
+
+.SH Usage
+
+You can invoke \fBppdep\fP with as the only required argument the name of the
+file (program or unit) whose dependecies you wish to list. You don't need 
+to specify an extension, by default \fB.pp\fP is assumed.
+
+.SH Options
+
+\fBppdep\fP has several options, which are case insensitive:
+
+.IP \fI\-a[call]\fP 
+This option tells \fBppdep\fP to generate a compiler call for the 
+makefile. The compiler call will be generated for each file that 
+is found in the current directory. If you do no specify an explicit 
+compiler call, \fBppc386\fP is used.
+.IP \fI\-dKeyword\fP
+This option defines \fBkeyword\fP that can be used to verify conditional
+defines. \fBppdep\fP understands conditional defines, you should use this
+switch if the \fIuses\fP clause of the programs or units can contain conditional
+defines.
+.IP \fI\-eext\fP
+This allows you to specify a different extension for the unit files.
+By default, \fB.ppu\fP is assumed. This extension is written to the
+makefile.
+.IP \fI-f[call]\fP
+This option tells \fBppdep\fP to generate a compiler call for the 
+makefile. The compiler call will be generated only for the file that
+was specified on the \fBppdep\fP command line. If you want to generate a
+compiler call for each file found, use the \fI\-a\fP option.
+If you do no specify an explicit compiler call, \fBppc386\fP is used.
+.IP \fI\-h\fP 
+Shows a short help screen.
+.IP \fI\-ofile\fP 
+This option allows you to specify a file to which the dependencies should be
+written. By default the dependencies are written to standard output.
+If you specify this option, the dependencies are written to \fBfile\fP
+instead.
+.IP \fI\-v\fP 
+Writes some diagnostic messages. If you use this option, be sure to use
+\fI\-o\fP as well, since the diagnostic messages will also be written to 
+standard output.
+.RE
+
+.SH SEE ALSO
+.IP 
+.BR  ppc386 (1)
+.BR  ppumove (1)
+.BR  make (1)
