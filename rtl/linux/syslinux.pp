@@ -755,16 +755,19 @@ begin
 {$endif SYSTEMDEBUG}
           if (FpuState and $7f) <> 0 then
             begin
-              if (FpuState and FPU_Invalid)<>0 then
-                res:=216
-              else if (FpuState and FPU_Denormal)<>0 then
-                res:=216
-              else if (FpuState and FPU_DivisionByZero)<>0 then
+              { first check te more precise options }
+              if (FpuState and FPU_DivisionByZero)<>0 then
                 res:=200
               else if (FpuState and FPU_Overflow)<>0 then
                 res:=205
               else if (FpuState and FPU_Underflow)<>0 then
                 res:=206
+              else if (FpuState and FPU_Denormal)<>0 then
+                res:=216
+              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow))<>0 then
+                res:=207
+              else if (FpuState and FPU_Invalid)<>0 then
+                res:=216
               else
                 res:=207;  {'Coprocessor Error'}
             end;
@@ -876,7 +879,11 @@ End.
 
 {
   $Log$
-  Revision 1.46  2000-05-08 14:27:36  peter
+  Revision 1.47  2000-05-11 17:55:13  peter
+    * changed order of fpustate checking to first check the more
+      specific states
+
+  Revision 1.46  2000/05/08 14:27:36  peter
     * released newsignal
     * newsignal gives now better backtraces using the sigcontext eip/ebp
       fields
