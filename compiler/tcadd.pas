@@ -441,6 +441,32 @@ implementation
                  else
                   calcregisters(p,1,0,0);
                  convdone:=true;
+               end
+             else
+              { is there a cardinal? }
+              if (porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit) then
+               begin
+                 { convert constants to u32bit }
+                 if (porddef(ld)^.typ<>u32bit) then
+                  begin
+                    { s32bit will be used for when the other is also s32bit }
+                    if (porddef(rd)^.typ=s32bit) and (lt<>ordconstn) then
+                     p^.left:=gentypeconvnode(p^.left,s32bitdef)
+                    else
+                     p^.left:=gentypeconvnode(p^.left,u32bitdef);
+                    firstpass(p^.left);
+                  end;
+                 if (porddef(rd)^.typ<>u32bit) then
+                  begin
+                    { s32bit will be used for when the other is also s32bit }
+                    if (porddef(ld)^.typ=s32bit) and (rt<>ordconstn) then
+                     p^.right:=gentypeconvnode(p^.right,s32bitdef)
+                    else
+                     p^.right:=gentypeconvnode(p^.right,u32bitdef);
+                    firstpass(p^.right);
+                  end;
+                 calcregisters(p,1,0,0);
+                 convdone:=true;
                end;
            end
          else
@@ -640,9 +666,9 @@ implementation
               if ((rd^.deftype=floatdef) and (pfloatdef(rd)^.typ=f32bit)) or
                  ((ld^.deftype=floatdef) and (pfloatdef(ld)^.typ=f32bit)) then
                begin
-                 if not(porddef(rd)^.typ in [u8bit,s8bit,u16bit,s16bit,s32bit,u32bit]) or (p^.treetype<>muln) then
+                 if not is_integer(rd) or (p^.treetype<>muln) then
                    p^.right:=gentypeconvnode(p^.right,s32fixeddef);
-                 if not(porddef(rd)^.typ in [u8bit,s8bit,u16bit,s16bit,s32bit,u32bit]) or (p^.treetype<>muln) then
+                 if not is_integer(ld) or (p^.treetype<>muln) then
                    p^.left:=gentypeconvnode(p^.left,s32fixeddef);
                  firstpass(p^.left);
                  firstpass(p^.right);
@@ -945,7 +971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-22 12:12:28  pierre
+  Revision 1.9  1998-10-25 23:32:04  peter
+    * fixed u32bit - s32bit conversion problems
+
+  Revision 1.8  1998/10/22 12:12:28  pierre
    + better error info on unimplemented set operators
 
   Revision 1.7  1998/10/21 15:12:57  pierre
