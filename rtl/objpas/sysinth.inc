@@ -71,10 +71,10 @@ Const
      ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
   
    { Format used for short time notation }
-   ShortTimeFormat: string = 'hh:nn';
+   ShortTimeFormat: string[128] = 'hh:nn';
    
    { Format used for long time notation }
-   LongTimeFormat: string = 'hh:nn:ss';
+   LongTimeFormat: string[128] = 'hh:nn:ss';
    
    { Character to be put between hours and minutes }
    TimeSeparator: char = ':';
@@ -130,7 +130,10 @@ Const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-10-02 07:34:41  michael
+  + Merged memory leak fix from fixbranch
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }
