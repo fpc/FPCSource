@@ -308,9 +308,10 @@ begin
 { show comment }
   if do_comment(l,s) or dostop then
    stop;
-  if (status.errorcount>=status.maxerrorcount) then
+  if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
    begin
      Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+     status.skip_error:=true;
      stop;
    end;
 end;
@@ -370,9 +371,10 @@ begin
 { show comment }
   if do_comment(v,s) or dostop then
    stop;
-  if (status.errorcount>=status.maxerrorcount) then
+  if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
    begin
      Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+     status.skip_error:=true;
      stop;
    end;
 end;
@@ -425,7 +427,12 @@ end.
 
 {
   $Log$
-  Revision 1.25  1998-10-22 15:18:49  florian
+  Revision 1.26  1998-10-27 13:45:38  pierre
+    * classes get a vmt allways
+    * better error info (tried to remove
+      several error strings introduced by the tpexcept handling)
+
+  Revision 1.25  1998/10/22 15:18:49  florian
     + switch -vx for win32 added
 
   Revision 1.24  1998/10/08 17:17:39  pierre

@@ -71,7 +71,7 @@ const msgtxt : array[0..00094,1..240] of char=(
   'W_Destructor should be public'#000+
   'N_Class should have one destructor only'#000+
   'E_Local class definitions ar','e not allowed'#000+
-  'E_Anonym class definitions are not allowed'#000+
+  'F_Anonym class definitions are not allowed'#000+
   'E_Illegal parameter list'#000+
   'E_Wrong parameter type specified'#000+
   'E_Wrong amount of parameters specified'#000+

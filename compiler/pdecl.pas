@@ -1114,7 +1114,9 @@ unit pdecl;
                 begin
                    { also anonym objects aren't allow (o : object a : longint; end;) }
                    if n='' then
-                    Message(parser_e_no_anonym_objects);
+                    begin
+                       Message(parser_f_no_anonym_objects)
+                    end;
                    if n='TOBJECT' then
                      begin
                         aktclass:=new(pobjectdef,init(n,nil));
@@ -1123,6 +1125,10 @@ unit pdecl;
                    else
                      aktclass:=new(pobjectdef,init(n,nil));
                    aktclass^.options:=aktclass^.options or oo_is_class or oo_isforward;
+                   { all classes must have a vmt !!  at offset zero }
+                   if (aktclass^.options and oo_hasvmt)=0 then
+                     aktclass^.insertvmt;
+                   
                    object_dec:=aktclass;
                    exit;
                 end;
@@ -1130,7 +1136,7 @@ unit pdecl;
 
          { also anonym objects aren't allow (o : object a : longint; end;) }
          if n='' then
-           Message(parser_e_no_anonym_objects);
+           Message(parser_f_no_anonym_objects);
 
          { read the parent class }
          if token=LKLAMMER then
@@ -2082,7 +2088,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.77  1998-10-26 22:58:20  florian
+  Revision 1.78  1998-10-27 13:45:33  pierre
+    * classes get a vmt allways
+    * better error info (tried to remove
+      several error strings introduced by the tpexcept handling)
+
+  Revision 1.77  1998/10/26 22:58:20  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 

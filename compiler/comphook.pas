@@ -58,6 +58,7 @@ type
   { Settings for the output }
     verbosity     : longint;
     maxerrorcount : longint;
+    skip_error,
     use_stderr,
     use_redir,
     use_gccoutput : boolean;
@@ -253,7 +254,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-10-26 17:15:16  pierre
+  Revision 1.10  1998-10-27 13:45:25  pierre
+    * classes get a vmt allways
+    * better error info (tried to remove
+      several error strings introduced by the tpexcept handling)
+
+  Revision 1.9  1998/10/26 17:15:16  pierre
     + added two level of longjump to
       allow clean freeing of used memory on errors
 

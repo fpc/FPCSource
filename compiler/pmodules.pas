@@ -616,7 +616,8 @@ unit pmodules;
 
       function is_assembler_generated:boolean;
       begin
-        is_assembler_generated:=not(
+        is_assembler_generated:=(status.errorcount=0) and
+          not(
           codesegment^.empty and
           datasegment^.empty and
           bsssegment^.empty and
@@ -763,9 +764,10 @@ unit pmodules;
 {$endif GDB}
 
          { leave when we got an error }
-         if status.errorcount>0 then
+         if (status.errorcount>0) and not status.skip_error then
           begin
             Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            status.skip_error:=true;
             exit;
           end;
 
@@ -876,7 +878,8 @@ unit pmodules;
          { absence does not matter here !! }
          aktprocsym^.definition^.forwarddef:=false;
          { test static symtable }
-         st^.allsymbolsused;
+         if (status.errorcount=0) then
+           st^.allsymbolsused;
 
          { size of the static data }
          datasize:=st^.datasize;
@@ -893,7 +896,8 @@ unit pmodules;
 {$endif GDB}
 
          { tests, if all (interface) forwards are resolved }
-         symtablestack^.check_forwards;
+         if (status.errorcount=0) then
+           symtablestack^.check_forwards;
 
          { now we have a correct unit, change the symtable type }
          current_module^.in_implementation:=false;
@@ -903,9 +907,10 @@ unit pmodules;
 {$endif GDB}
 
          { leave when we got an error }
-         if status.errorcount>0 then
+         if (status.errorcount>0) and not status.skip_error then
           begin
             Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            status.skip_error:=true;
             exit;
           end;
 
@@ -921,7 +926,8 @@ unit pmodules;
            current_module^.flags:=current_module^.flags or uf_in_library;
 
          { Write out the ppufile }
-         writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
+         if (status.errorcount=0) then
+           writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
 
          { write local browser }
 {$ifdef UseBrowser}
@@ -1052,9 +1058,10 @@ unit pmodules;
          consume(POINT);
 
          { leave when we got an error }
-         if status.errorcount>0 then
+         if (status.errorcount>0) and not status.skip_error then
           begin
             Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            status.skip_error:=true;
             exit;
           end;
 
@@ -1091,7 +1098,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.74  1998-10-26 09:34:50  peter
+  Revision 1.75  1998-10-27 13:45:35  pierre
+    * classes get a vmt allways
+    * better error info (tried to remove
+      several error strings introduced by the tpexcept handling)
+
+  Revision 1.74  1998/10/26 09:34:50  peter
     * unit check name works now for all units, not only systemunit
 
   Revision 1.73  1998/10/22 23:53:27  peter
