@@ -49,6 +49,11 @@
 
     function power(bas,expo : longint) : longint;
 
+    type
+       real48 = array[0..5] of byte;
+
+    function Real2Double(r : real48) : double;
+
 {$ifdef HASFIXED}
     function sqrt(d : fixed) : fixed;
     function Round(x: fixed): longint;
@@ -61,7 +66,13 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
  
 }

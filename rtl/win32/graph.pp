@@ -28,7 +28,16 @@ uses
     { this procedure allows to hook mouse messages }
     mousemessagehandler : function(Window: hwnd; AMessage, WParam,
                                    LParam: Longint): Longint;
-    mainwindow : HWnd;
+    { this procedure allows to wm_command messages }
+    commandmessagehandler : function(Window: hwnd; AMessage, WParam,
+                                   LParam: Longint): Longint;
+
+    NotifyMessageHandler : function(Window: hwnd; AMessage, WParam,
+                                   LParam: Longint): Longint;
+
+    OnGraphWindowCreation : procedure;
+
+    GraphWindow,ParentWindow : HWnd;
     // this allows direct drawing to the window
     bitmapdc : hdc;
     windc : hdc;
@@ -41,8 +50,15 @@ uses
     graphwindowstyle : DWord = cs_hRedraw or cs_vRedraw;
 
     windowtitle : pchar = 'Graph window application';
+    menu : hmenu = 0;
+    icon : hicon = 0;
     drawtoscreen : boolean = true;
     drawtobitmap : boolean = true;
+    // the graph window can be a child window, this allows to add toolbars
+    // to the main window
+    UseChildWindow : boolean = false;
+    // this allows to specify an offset for the child child window
+    ChildOffset : rect = (left:0;top:0;right:0;bottom:0);
 
 CONST
 
@@ -227,7 +243,7 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
          case currentwritemode of
            XorPut:
              Begin
-                c2:=Windows.GetPixel(bitmapdc,x,y);
+                c2:=Windows.GetPixel(windc,x,y);
                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue) xor c2;
                 if drawtobitmap then
                   SetPixelV(bitmapdc,x,y,c);
@@ -236,7 +252,7 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
              End;
            AndPut:
              Begin
-                c2:=Windows.GetPixel(bitmapdc,x,y);
+                c2:=Windows.GetPixel(windc,x,y);
                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue) and c2;
                 if drawtobitmap then
                   SetPixelV(bitmapdc,x,y,c);
@@ -245,7 +261,7 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
              End;
            OrPut:
              Begin
-                c2:=Windows.GetPixel(bitmapdc,x,y);
+                c2:=Windows.GetPixel(windc,x,y);
                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue) or c2;
                 if drawtobitmap then
                   SetPixelV(bitmapdc,x,y,c);
@@ -740,13 +756,13 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                   col:=CurrentColor;
                   for i:=x to x2 do
                     begin
-                       c2:=Windows.GetPixel(bitmapdc,i,y);
+                       c2:=Windows.GetPixel(windc,i,y);
                        c:=RGB(pal[col].red,pal[col].green,pal[col].blue) and c2;
                        if drawtobitmap then
-                         SetPixel(bitmapdc,i,y,c);
+                         SetPixelV(bitmapdc,i,y,c);
 
                        if drawtoscreen then
-                         SetPixel(windc,i,y,c);
+                         SetPixelV(windc,i,y,c);
                     end;
                   LeaveCriticalSection(graphdrawing);
                End;
@@ -756,14 +772,14 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                   col:=CurrentColor;
                   for i:=x to x2 do
                     begin
-                       c2:=Windows.GetPixel(bitmapdc,i,y);
+                       c2:=Windows.GetPixel(windc,i,y);
                        c:=RGB(pal[col].red,pal[col].green,pal[col].blue) xor c2;
 
                        if drawtobitmap then
-                         SetPixel(bitmapdc,i,y,c);
+                         SetPixelV(bitmapdc,i,y,c);
 
                        if drawtoscreen then
-                         SetPixel(windc,i,y,c);
+                         SetPixelV(windc,i,y,c);
                     end;
                   LeaveCriticalSection(graphdrawing);
                End;
@@ -773,14 +789,14 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                   col:=CurrentColor;
                   for i:=x to x2 do
                     begin
-                       c2:=Windows.GetPixel(bitmapdc,i,y);
+                       c2:=Windows.GetPixel(windc,i,y);
                        c:=RGB(pal[col].red,pal[col].green,pal[col].blue) or c2;
 
                        if drawtobitmap then
-                         SetPixel(bitmapdc,i,y,c);
+                         SetPixelV(bitmapdc,i,y,c);
 
                        if drawtoscreen then
-                         SetPixel(windc,i,y,c);
+                         SetPixelV(windc,i,y,c);
                     end;
                   LeaveCriticalSection(graphdrawing);
                End
@@ -1144,7 +1160,7 @@ procedure restorestate;
   begin
   end;
 
-function WindowProc(Window: HWnd; AMessage, WParam,
+function WindowProcGraph(Window: HWnd; AMessage, WParam,
                     LParam: Longint): Longint; stdcall; export;
 
   var
@@ -1156,7 +1172,7 @@ function WindowProc(Window: HWnd; AMessage, WParam,
      i : longint;
 
 begin
-  WindowProc := 0;
+  WindowProcGraph := 0;
 
   case AMessage of
     wm_lbuttondown,
@@ -1180,18 +1196,33 @@ begin
     wm_ncrbuttondblclk,
     wm_ncmbuttondblclk:
     }
-      if assigned(mousemessagehandler) then
-        WindowProc:=mousemessagehandler(window,amessage,wparam,lparam);
+      begin
+         if assigned(mousemessagehandler) then
+           WindowProcGraph:=mousemessagehandler(window,amessage,wparam,lparam);
+      end;
+    wm_notify:
+      begin
+         if assigned(notifymessagehandler) then
+           WindowProcGraph:=notifymessagehandler(window,amessage,wparam,lparam);
+      end;
+    wm_command:
+      if assigned(commandmessagehandler) then
+        WindowProcGraph:=commandmessagehandler(window,amessage,wparam,lparam);
     wm_keydown,
     wm_keyup,
     wm_char:
-      if assigned(charmessagehandler) then
-        WindowProc:=charmessagehandler(window,amessage,wparam,lparam);
+      begin
+         if assigned(charmessagehandler) then
+           WindowProcGraph:=charmessagehandler(window,amessage,wparam,lparam);
+      end;
     wm_paint:
       begin
 {$ifdef DEBUG_WM_PAINT}
          inc(wm_paint_count);
 {$endif DEBUG_WM_PAINT}
+{$ifdef DEBUGCHILDS}
+         writeln('Start child painting');
+{$endif DEBUGCHILDS}
          if not GetUpdateRect(Window,@r,false) then
            exit;
          EnterCriticalSection(graphdrawing);
@@ -1214,8 +1245,15 @@ begin
          assign(graphdebug,'wingraph.log');
          rewrite(graphdebug);
 {$endif DEBUG_WM_PAINT}
+{$ifdef DEBUGCHILDS}
+         writeln('Creating window (HWND: ',window,')... ');
+{$endif DEBUGCHILDS}
+         GraphWindow:=window;
          EnterCriticalSection(graphdrawing);
          dc:=GetDC(window);
+{$ifdef DEBUGCHILDS}
+         writeln('Window DC: ',dc);
+{$endif DEBUGCHILDS}
          bitmapdc:=CreateCompatibleDC(dc);
          savedscreen:=CreateCompatibleBitmap(dc,maxx+1,maxy+1);
          ReleaseDC(window,dc);
@@ -1239,14 +1277,20 @@ begin
 
          // clear predefined pens
          fillchar(pens,sizeof(pens),0);
-
+         if assigned(OnGraphWindowCreation) then
+           OnGraphWindowCreation;
          LeaveCriticalSection(graphdrawing);
+{$ifdef DEBUGCHILDS}
+         writeln('done');
+         GetClientRect(window,@r);
+         writeln('Window size: ',r.right,',',r.bottom);
+{$endif DEBUGCHILDS}
       end;
     wm_Destroy:
       begin
          EnterCriticalSection(graphdrawing);
          graphrunning:=false;
-         ReleaseDC(mainwindow,windc);
+         ReleaseDC(GraphWindow,windc);
          SelectObject(bitmapdc,oldbitmap);
          DeleteObject(savedscreen);
          DeleteDC(bitmapdc);
@@ -1270,7 +1314,33 @@ begin
          Exit;
       end
     else
-      WindowProc := DefWindowProc(Window, AMessage, WParam, LParam);
+      WindowProcGraph := DefWindowProc(Window, AMessage, WParam, LParam);
+  end;
+end;
+
+function WindowProcParent(Window: HWnd; AMessage, WParam,
+                    LParam: Longint): Longint; stdcall; export;
+
+begin
+  WindowProcParent := 0;
+  case AMessage of
+    wm_keydown,
+    wm_keyup,
+    wm_char:
+      begin
+         if assigned(charmessagehandler) then
+           WindowProcParent:=charmessagehandler(window,amessage,wparam,lparam);
+      end;
+    wm_notify:
+      begin
+         if assigned(notifymessagehandler) then
+           WindowProcParent:=notifymessagehandler(window,amessage,wparam,lparam);
+      end;
+    wm_command:
+      if assigned(commandmessagehandler) then
+        WindowProcParent:=commandmessagehandler(window,amessage,wparam,lparam);
+    else
+      WindowProcParent := DefWindowProc(Window, AMessage, WParam, LParam);
   end;
 end;
 
@@ -1279,17 +1349,67 @@ var
   WindowClass: WndClass;
 begin
   WindowClass.Style := graphwindowstyle;
-  WindowClass.lpfnWndProc := WndProc(@WindowProc);
+  WindowClass.lpfnWndProc := WndProc(@WindowProcGraph);
   WindowClass.cbClsExtra := 0;
   WindowClass.cbWndExtra := 0;
   WindowClass.hInstance := system.MainInstance;
-  WindowClass.hIcon := LoadIcon(0, idi_Application);
+  if icon<>0 then
+    WindowClass.hIcon := icon
+  else
+    WindowClass.hIcon := LoadIcon(0, idi_Application);
   WindowClass.hCursor := LoadCursor(0, idc_Arrow);
   WindowClass.hbrBackground := GetStockObject(BLACK_BRUSH);
-  WindowClass.lpszMenuName := nil;
+  if menu<>0 then
+    WindowClass.lpszMenuName := MAKEINTRESOURCE(menu)
+  else
+    WindowClass.lpszMenuName := nil;
   WindowClass.lpszClassName := 'FPCGraphWindow';
 
   winregister:=RegisterClass(WindowClass) <> 0;
+end;
+
+function WinRegisterWithChild: Boolean;
+var
+  WindowClass: WndClass;
+begin
+  WindowClass.Style := graphwindowstyle;
+  WindowClass.lpfnWndProc := WndProc(@WindowProcParent);
+  WindowClass.cbClsExtra := 0;
+  WindowClass.cbWndExtra := 0;
+  WindowClass.hInstance := system.MainInstance;
+  if icon<>0 then
+    WindowClass.hIcon := icon
+  else
+    WindowClass.hIcon := LoadIcon(0, idi_Application);
+  WindowClass.hCursor := LoadCursor(0, idc_Arrow);
+  WindowClass.hbrBackground := GetStockObject(BLACK_BRUSH);
+  if menu<>0 then
+    WindowClass.lpszMenuName := MAKEINTRESOURCE(menu)
+  else
+    WindowClass.lpszMenuName := nil;
+  WindowClass.lpszClassName := 'FPCGraphWindowMain';
+
+  WinRegisterWithChild:=RegisterClass(WindowClass) <> 0;
+{$ifdef DEBUGCHILDS}
+  writeln('Main window successfully registered: WinRegisterWithChild is ',WinRegisterWithChild);
+{$endif DEBUGCHILDS}
+  if WinRegisterWithChild then
+    begin
+       WindowClass.Style := CS_HREDRAW or CS_VREDRAW;
+       WindowClass.lpfnWndProc := WndProc(@WindowProcGraph);
+       WindowClass.cbClsExtra := 0;
+       WindowClass.cbWndExtra := 0;
+       WindowClass.hInstance := system.MainInstance;
+       WindowClass.hIcon := 0;
+       WindowClass.hCursor := LoadCursor(0, idc_Arrow);
+       WindowClass.hbrBackground := GetStockObject(BLACK_BRUSH);
+       WindowClass.lpszMenuName := nil;
+       WindowClass.lpszClassName := 'FPCGraphWindowChild';
+       WinRegisterWithChild:=RegisterClass(WindowClass)<>0;
+{$ifdef DEBUGCHILDS}
+       writeln('Child window registered: WinRegisterWithChild is ',WinRegisterWithChild);
+{$endif DEBUGCHILDS}
+    end;
 end;
 
 var
@@ -1301,20 +1421,52 @@ function WinCreate : HWnd;
 var
   hWindow: HWnd;
 begin
-
-  hWindow := CreateWindow('FPCGraphWindow', windowtitle,
-              ws_OverlappedWindow or extrastyle, CW_USEDEFAULT, 0,
-              maxx+1+2*GetSystemMetrics(SM_CXFRAME),
-              maxy+1+2*GetSystemMetrics(SM_CYFRAME)+
-                GetSystemMetrics(SM_CYCAPTION),
-              0, 0, system.MainInstance, nil);
-
-  if hWindow <> 0 then begin
-    ShowWindow(hWindow, SW_SHOW);
-    UpdateWindow(hWindow);
-  end;
-
-  wincreate:=hWindow;
+  WinCreate:=0;
+  if UseChildWindow then
+    begin
+       ParentWindow:=CreateWindow('FPCGraphWindowMain', windowtitle,
+                  WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or extrastyle, CW_USEDEFAULT, 0,
+                  maxx+ChildOffset.Left+ChildOffset.Right+1+
+                    2*GetSystemMetrics(SM_CXFRAME),
+                  maxy+ChildOffset.Top+ChildOffset.Bottom+1+
+                    2*GetSystemMetrics(SM_CYFRAME)+
+                  GetSystemMetrics(SM_CYCAPTION),
+                  0, 0, system.MainInstance, nil);
+       if ParentWindow<>0 then
+         begin
+            ShowWindow(ParentWindow, SW_SHOW);
+            UpdateWindow(ParentWindow);
+         end
+       else
+         exit;
+       hWindow:=CreateWindow('FPCGraphWindowChild',nil,
+                  WS_CHILD, ChildOffset.Left,ChildOffset.Top,
+                  maxx+1,maxy+1,
+                  ParentWindow, 0, system.MainInstance, nil);
+       if hwindow<>0 then
+         begin
+            ShowWindow(hwindow, SW_SHOW);
+            UpdateWindow(hwindow);
+         end
+       else
+         exit;
+       WinCreate:=hWindow;
+    end
+  else
+    begin
+       hWindow:=CreateWindow('FPCGraphWindow', windowtitle,
+                  ws_OverlappedWindow or extrastyle, CW_USEDEFAULT, 0,
+                  maxx+1+2*GetSystemMetrics(SM_CXFRAME),
+                  maxy+1+2*GetSystemMetrics(SM_CYFRAME)+
+                  GetSystemMetrics(SM_CYCAPTION),
+                  0, 0, system.MainInstance, nil);
+       if hWindow <> 0 then
+         begin
+            ShowWindow(hWindow, SW_SHOW);
+            UpdateWindow(hWindow);
+            WinCreate:=hWindow;
+         end;
+    end;
 end;
 
 const
@@ -1328,15 +1480,26 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
   begin
      if not(winregistered) then
        begin
-          if not WinRegister then
+          if UseChildWindow then
             begin
-               MessageBox(0, 'Window registration failed', nil, mb_Ok);
-               ExitThread(1);
+               if not(WinRegisterWithChild) then
+                 begin
+                    MessageBox(0, 'Window registration failed', nil, mb_Ok);
+                    ExitThread(1);
+                 end;
+            end
+          else
+            begin
+               if not(WinRegister) then
+                 begin
+                    MessageBox(0, 'Window registration failed', nil, mb_Ok);
+                    ExitThread(1);
+                 end;
             end;
+          GraphWindow:=WinCreate;
           winregistered:=true;
        end;
-     MainWindow := WinCreate;
-     if longint(mainwindow) = 0 then begin
+     if longint(GraphWindow) = 0 then begin
        MessageBox(0, 'Window creation failed', nil, mb_Ok);
        ExitThread(1);
      end;
@@ -1383,7 +1546,10 @@ procedure CloseGraph;
          _graphresult := grnoinitgraph;
          exit
        end;
-     PostMessage(MainWindow,wm_destroy,0,0);
+     if UseChildWindow then
+       PostMessage(ParentWindow,wm_destroy,0,0)
+     else
+       PostMessage(GraphWindow,wm_destroy,0,0);
      PostThreadMessage(MessageThreadHandle,wm_quit,0,0);
      WaitForSingleObject(MessageThreadHandle,Infinite);
      CloseHandle(MessageThreadHandle);
@@ -2041,10 +2207,21 @@ function queryadapterinfo : pmodeinfo;
 
 begin
   InitializeGraph;
+  charmessagehandler:=nil;
+  mousemessagehandler:=nil;
+  commandmessagehandler:=nil;
+  notifymessagehandler:=nil;
+  OnGraphWindowCreation:=nil;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:57  michael
+  Revision 1.3  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.2  2000/07/13 11:33:57  michael
   + removed logs
- 
+
 }

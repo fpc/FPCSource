@@ -14,6 +14,8 @@
  **********************************************************************}
 
 { Run-Time type information routines - processor dependent part }
+{ I think we should use the pascal version, this code isn't     }
+{ much faster                                                   }
 
 Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE'];assembler;
 asm
@@ -30,17 +32,37 @@ asm
         jz      .LDoAnsiStringInit
         decb    %al
         jz      .LDoAnsiStringInit
-        subb    $2,%al
+        decb    %al
+        jz      .LDoVariantInit
+        decb    %al
         jz      .LDoArrayInit
         decb    %al
         jz      .LDoRecordInit
-        subb    $2,%al
+        decb    %al
+        jz      .LDoInterfaceInit
+        decb    %al
         jz      .LDoClassInit
         decb    %al
         jz      .LDoObjectInit
         decb    %al
+        // what is called here ??? FK
         jz      .LDoClassInit
+        subb    $4,%al
+        jz      .LDoDynArrayInit
         jmp     .LExitInitialize
+        // Interfaces
+.LDoInterfaceInit:
+        movl Data, %eax
+        movl $0,(%eax)
+        jmp     .LExitInitialize
+        // Variants
+.LDoVariantInit:
+        jmp     .LExitInitialize
+        // dynamic Array
+.LDoDynArrayInit:
+        movl Data, %eax
+        movl $0,(%eax)
+        jmp    .LExitInitialize
 .LDoObjectInit:
 .LDoClassInit:
 .LDoRecordInit:
@@ -122,17 +144,46 @@ asm
         jz      .LDoAnsiStringFinal
         decb    %al
         jz      .LDoAnsiStringFinal
-        subb    $2,%al
+        decb    %al
+        jz      .LDoVariantFinal
+        decb    %al
         jz      .LDoArrayFinal
         decb    %al
         jz      .LDoRecordFinal
-        subb    $2,%al
+        decb    %al
+        jz      .LDoInterfaceFinal
+        decb    %al
         jz      .LDoClassFinal
         decb    %al
         jz      .LDoObjectFinal
         decb    %al
+        // what is called here ??? FK
         jz      .LDoClassFinal
+        subb    $4,%al
+        jz      .LDoDynArrayFinal
         jmp     .LExitFinalize
+        // Interfaces
+.LDoInterfaceFinal:
+        jmp     .LExitFinalize
+        // Variants
+.LDoVariantFinal:
+        jmp     .LExitFinalize
+        // dynamic Array
+.LDoDynArrayFinal:
+// load count
+        movl    Data,%edx
+        orl     %edx,%edx
+        jz      .LExitFinalize
+        movl    -4(%edx),%edx
+        incl    %ebx
+        movzbl  (%ebx),%eax
+        incl    %eax
+        addl    %eax,%ebx
+// %ebx points to size. Put size in ecx
+        movl    (%ebx),%ecx
+// %ebx points to type. Put into ebx.
+        addl    $4, %ebx
+        jmp     .LMyArrayFinalLoop
 .LDoClassFinal:
 .LDoObjectFinal:
 .LDoRecordFinal:
@@ -215,16 +266,37 @@ asm
         jz      .LDoAnsiStringAddRef
         decb    %al
         jz      .LDoAnsiStringAddRef
-        subb    $2,%al
+        decb    %al
+        jz      .LDoVariantAddRef
+        decb    %al
         jz      .LDoArrayAddRef
         decb    %al
         jz      .LDoRecordAddRef
-        subb    $2,%al
+        decb    %al
+        jz      .LDoInterfaceAddRef
+        decb    %al
         jz      .LDoClassAddRef
         decb    %al
         jz      .LDoObjectAddRef
         decb    %al
+        // what is called here ??? FK
         jz      .LDoClassAddRef
+        subb    $4,%al
+        jz      .LDoDynArrayAddRef
+        jmp     .LExitAddRef
+        // Interfaces
+.LDoInterfaceAddRef:
+        jmp     .LExitAddRef
+        // Variants
+.LDoVariantAddRef:
+        jmp     .LExitAddRef
+        // Dynamic Arrays
+.LDoDynArrayAddRef:
+        movl    Data,%eax
+        testl   %eax,%eax
+        je      .LExitAddRef
+        lock
+        incl    -4(%eax)
         jmp     .LExitAddRef
 .LDoClassAddRef:
 .LDoObjectAddRef:
@@ -306,16 +378,32 @@ asm
         jz      .LDoAnsiStringDecRef
         decb    %al
         jz      .LDoAnsiStringDecRef
-        subb    $2,%al
+        decb    %al
+        jz      .LDoVariantDecRef
+        decb    %al
         jz      .LDoArrayDecRef
         decb    %al
         jz      .LDoRecordDecRef
-        subb    $2,%al
+        decb    %al
+        jz      .LDoInterfaceDecRef
+        decb    %al
         jz      .LDoClassDecRef
         decb    %al
         jz      .LDoObjectDecRef
         decb    %al
+        // what is called here ??? FK
         jz      .LDoClassDecRef
+        subb    $4,%al
+        jz      .LDoDynArrayDecRef
+        jmp     .LExitDecRef
+        // Interfaces
+.LDoInterfaceDecRef:
+        jmp     .LExitDecRef
+        // Variants
+.LDoVariantDecRef:
+        jmp     .LExitDecRef
+        // Dynamic Arrays
+.LDoDynArrayDecRef:
         jmp     .LExitDecRef
 .LDoClassDecRef:
 .LDoObjectDecRef:
@@ -385,7 +473,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:41  michael
+  Revision 1.3  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
- 
 }

@@ -40,6 +40,7 @@ Const
        tkBool          = 18;
        tkInt64         = 19;
        tkQWord         = 20;
+       tkDynArray = 21;
 
 { A record is designed as follows :
     1    : tkrecord
@@ -88,7 +89,13 @@ TArrayRec = record
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
- 
+
 }

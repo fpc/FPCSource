@@ -39,7 +39,7 @@ unit charset;
 
        punicodemap = ^tunicodemap;
        tunicodemap = record
-          cpname : shortstring;
+          cpname : string[20];
           map : punicodecharmapping;
           lastchar : longint;
           next : punicodemap;
@@ -51,6 +51,10 @@ unit charset;
 
     function loadunicodemapping(const cpname,f : string) : punicodemap;
     procedure registermapping(p : punicodemap);
+    function getmap(const s : string) : punicodemap;
+    function mappingavailable(const s : string) : boolean;
+    function getunicode(c : char;p : punicodemap) : tunicodechar;
+    function getascii(c : tunicodechar;p : punicodemap) : string;
 
   implementation
 
@@ -84,9 +88,9 @@ unit charset;
               freemem(data,sizeof(tunicodecharmapping)*datasize);
               exit;
            end;
-         readln(t,s);
          while not(eof(t)) do
            begin
+              readln(t,s);
               if (s[1]='0') and (s[2]='x') then
                 begin
                    flag:=umf_unused;
@@ -147,7 +151,6 @@ unit charset;
                    if charpos>lastchar then
                      lastchar:=charpos;
                 end;
-              readln(t,s);
            end;
          close(t);
          new(p);
@@ -164,6 +167,70 @@ unit charset;
       begin
          p^.next:=mappings;
          mappings:=p;
+      end;
+
+    function getmap(const s : string) : punicodemap;
+
+      var
+         hp : punicodemap;
+
+      const
+         mapcache : string = '';
+         mapcachep : punicodemap = nil;
+
+      begin
+         if (mapcache=s) and (mapcachep^.cpname=s) then
+           begin
+              getmap:=mapcachep;
+              exit;
+           end;
+         hp:=mappings;
+         while assigned(hp) do
+           begin
+              if hp^.cpname=s then
+                begin
+                   getmap:=hp;
+                   mapcache:=s;
+                   mapcachep:=hp;
+                   exit;
+                end;
+              hp:=hp^.next;
+           end;
+         getmap:=nil;
+      end;
+
+    function mappingavailable(const s : string) : boolean;
+
+      begin
+         mappingavailable:=getmap(s)<>nil;
+      end;
+
+    function getunicode(c : char;p : punicodemap) : tunicodechar;
+
+      begin
+         if ord(c)<=p^.lastchar then
+           getunicode:=p^.map[ord(c)].unicode
+         else
+           getunicode:=0;
+      end;
+
+    function getascii(c : tunicodechar;p : punicodemap) : string;
+
+      var
+         i : longint;
+
+      begin
+         { at least map to space }
+         getascii:=#32;
+         for i:=0 to p^.lastchar do
+           if p^.map[i].unicode=c then
+             begin
+                if i<256 then
+                  getascii:=chr(i)
+                else
+                  getascii:=chr(i div 256)+chr(i mod 256);
+                exit;
+             end;
       end;
 
   var
@@ -185,7 +252,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2000-08-17 07:29:39  florian
-    + initial revision
+  Revision 1.2  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
 
+  Revision 1.1  2000/08/17 07:29:39  florian
+    + initial revision
 }

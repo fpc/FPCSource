@@ -179,7 +179,7 @@ unit winmouse;
       begin
          buttons:=mousebuttonstate;
          GetCursorPos(@pos);
-         ScreenToClient(mainwindow,@pos);
+         ScreenToClient(GraphWindow,@pos);
          x:=pos.x;
          y:=pos.y;
       end;
@@ -200,7 +200,13 @@ unit winmouse;
   end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
- 
+
 }

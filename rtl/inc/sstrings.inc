@@ -17,6 +17,16 @@
 ****************************************************************************}
 
 {$I real2str.inc}
+{$ifdef ver1_0}
+procedure SetLength(var s:shortstring;len:StrLenInt);
+{$else ver1_0}
+procedure Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH'];
+{$endif ver1_0}
+begin
+  if Len>255 then
+   Len:=255;
+  s[0]:=chr(len);
+end;
 
 function copy(const s : shortstring;index : StrLenInt;count : StrLenInt): shortstring;
 begin
@@ -132,15 +142,6 @@ begin
     end;
   pos:=0;
 end;
-
-
-procedure SetLength(var s:shortstring;len:StrLenInt);
-begin
-  if Len>255 then
-   Len:=255;
-  s[0]:=chr(len);
-end;
-
 
 function copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 begin
@@ -558,12 +559,18 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-07-28 12:29:49  jonas
+  Revision 1.4  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.3  2000/07/28 12:29:49  jonas
     * fixed web bug1069
     * fixed similar (and other) problems in val() for int64 and qword
       (both merged from fixes branch)
 
   Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
- 
+
 }

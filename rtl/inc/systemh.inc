@@ -93,15 +93,15 @@ Type
   PInt64      = ^Int64;
 
   currency            = int64;
-  HRESULT             = Longint; 
+  HRESULT             = Longint;
   TDateTime           = Double;
-  Error               = Longint;  
+  Error               = Longint;
 
   PSmallInt           = ^Smallint;
   PInteger            = ^Longint;
-  PSingle             = ^Single;  
+  PSingle             = ^Single;
   PDouble             = ^Double;
-  PCurrency           = ^Currency; 
+  PCurrency           = ^Currency;
   PDate               = ^TDateTime;
   PPWideChar          = ^PWideChar;
   PError              = ^Error;
@@ -267,13 +267,15 @@ function strpas(p:pchar):shortstring;
 function strlen(p:pchar):longint;
 
 { Shortstring functions }
+{$ifdef ver1_0}
+Procedure SetLength (Var S : ShortString; l : Longint);
+{$endif ver1_0}
 Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
 Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
 Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
 Procedure Insert(source:Char;Var s:shortstring;index:StrLenInt);
 Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
-Procedure SetLength(var s:shortstring;len:StrLenInt);
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
 Function  Length(s:string):byte;
@@ -302,7 +304,9 @@ function  length(c:char):byte;
                              AnsiString Handling
 ****************************************************************************}
 
+{$ifdef ver1_0}
 Procedure SetLength (Var S : AnsiString; l : Longint);
+{$endif ver1_0}
 Procedure UniqueString (Var S : AnsiString);
 Function  Length (Const S : AnsiString) : Longint;
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
@@ -316,13 +320,17 @@ Function StringOfChar(c : char;l : longint) : AnsiString;
                              WideString Handling
 ****************************************************************************}
 
+{$ifdef haswidechar}
+{$ifdef ver1_0}
 Procedure SetLength (Var S : WideString; l : Longint);
+{$endif ver1_0}
 Procedure UniqueString (Var S : WideString);
 Function  Length (Const S : WideString) : Longint;
 Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
 Function  Pos (Const Substr : WideString; Const Source : WideString) : Longint;
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : Longint);
 Procedure Delete (Var S : WideString; Index,Size: Longint);
+{$endif haswidechar}
 
 
 {****************************************************************************
@@ -476,7 +484,13 @@ const
 
 {
   $Log$
-  Revision 1.5  2000-08-13 17:55:15  michael
+  Revision 1.6  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.5  2000/08/13 17:55:15  michael
   + Added some delphi compatibility types
 
   Revision 1.4  2000/08/08 22:11:45  sg
@@ -487,5 +501,5 @@ const
 
   Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
- 
+
 }

@@ -344,52 +344,11 @@ begin
     HandleErrorFrame(201,get_frame);
 end;
 
-
-{$ifdef EXTRAANSISHORT}
-Function AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): Longint;
-{
-  Compares a AnsiString with a ShortString;
-  The result is
-   <0 if S1<S2
-   0 if S1=S2
-   >0 if S1>S2
-}
-Var
-  i,MaxI,Temp : Longint;
-begin
-  Temp:=0;
-  i:=0;
-  MaxI:=Length(AnsiString(S1));
-  if MaxI>byte(S2[0]) then
-    MaxI:=Byte(S2[0]);
-  While (i<MaxI) and (Temp=0) do
-   begin
-     Temp:= PByte(S1+I)^ - Byte(S2[i+1]);
-     inc(i);
-   end;
-  AnsiStr_ShortStr_Compare:=Temp;
-end;
-{$endif EXTRAANSISHORT}
-
-
-{*****************************************************************************
-                     Public functions, In interface.
-*****************************************************************************}
-
-Function Length (Const S : AnsiString) : Longint;
-{
-  Returns the length of an AnsiString.
-  Takes in acount that zero strings are NIL;
-}
-begin
-  If Pointer(S)=Nil then
-    Length:=0
-  else
-    Length:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
-end;
-
-
+{$ifdef ver1_0}
 Procedure SetLength (Var S : AnsiString; l : Longint);
+{$else ver1_0}
+Procedure AnsiStr_SetLength (Var S : AnsiString; l : Longint);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];
+{$endif ver1_0}
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -433,6 +392,49 @@ begin
        ansistr_decr_ref (Pointer(S));
       Pointer(S):=Nil;
     end;
+end;
+
+{$ifdef EXTRAANSISHORT}
+Function AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): Longint;
+{
+  Compares a AnsiString with a ShortString;
+  The result is
+   <0 if S1<S2
+   0 if S1=S2
+   >0 if S1>S2
+}
+Var
+  i,MaxI,Temp : Longint;
+begin
+  Temp:=0;
+  i:=0;
+  MaxI:=Length(AnsiString(S1));
+  if MaxI>byte(S2[0]) then
+    MaxI:=Byte(S2[0]);
+  While (i<MaxI) and (Temp=0) do
+   begin
+     Temp:= PByte(S1+I)^ - Byte(S2[i+1]);
+     inc(i);
+   end;
+  AnsiStr_ShortStr_Compare:=Temp;
+end;
+{$endif EXTRAANSISHORT}
+
+
+{*****************************************************************************
+                     Public functions, In interface.
+*****************************************************************************}
+
+Function Length (Const S : AnsiString) : Longint;
+{
+  Returns the length of an AnsiString.
+  Takes in acount that zero strings are NIL;
+}
+begin
+  If Pointer(S)=Nil then
+    Length:=0
+  else
+    Length:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
 end;
 
 
@@ -666,7 +668,13 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-08-29 18:39:42  peter
+  Revision 1.6  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.5  2000/08/29 18:39:42  peter
     * fixed chararray to ansistring (merged)
 
   Revision 1.4  2000/08/24 07:37:21  jonas

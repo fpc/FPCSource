@@ -294,25 +294,11 @@ begin
     HandleErrorFrame(201,get_frame);
 end;
 
-
-{*****************************************************************************
-                     Public functions, In interface.
-*****************************************************************************}
-
-Function Length (Const S : WideString) : Longint;
-{
-  Returns the length of an WideString.
-  Takes in acount that zero strings are NIL;
-}
-begin
-  If Pointer(S)=Nil then
-    Length:=0
-  else
-    Length:=PWideRec(Pointer(S)-WideFirstOff)^.Len;
-end;
-
-
+{$ifdef ver1_0}
 Procedure SetLength (Var S : WideString; l : Longint);
+{$else ver1_0}
+Procedure WideStr_SetLength (Var S : WideString; l : Longint);[Public,Alias : 'FPC_WIDESTR_SETLENGTH'];
+{$endif ver1_0}
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
@@ -349,6 +335,25 @@ begin
        ansistr_decr_ref (Pointer(S));
       Pointer(S):=Nil;
     end;
+end;
+
+
+
+
+{*****************************************************************************
+                     Public functions, In interface.
+*****************************************************************************}
+
+Function Length (Const S : WideString) : Longint;
+{
+  Returns the length of an WideString.
+  Takes in acount that zero strings are NIL;
+}
+begin
+  If Pointer(S)=Nil then
+    Length:=0
+  else
+    Length:=PWideRec(Pointer(S)-WideFirstOff)^.Len;
 end;
 
 
@@ -495,11 +500,17 @@ end;}
 
 {
   $Log$
-  Revision 1.3  2000-08-08 22:12:36  sg
+  Revision 1.4  2000-10-21 18:20:17  florian
+    * a lot of small changes:
+       - setlength is internal
+       - win32 graph unit extended
+       ....
+
+  Revision 1.3  2000/08/08 22:12:36  sg
   * Implemented WideString helper functions (but they are not tested yet
     due to the lack of full compiler support for WideString/WideChar!)
 
   Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
- 
+
 }
