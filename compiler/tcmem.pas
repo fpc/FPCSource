@@ -180,13 +180,29 @@ implementation
          make_not_regable(p^.left);
          if not(assigned(p^.resulttype)) then
            begin
+              { proc/procvar 2 procvar ? }
               if p^.left^.treetype=calln then
                 begin
                      { it could also be a procvar, not only pprocsym ! }
                      if p^.left^.symtableprocentry^.typ=varsym then
                         hp:=genloadnode(pvarsym(p^.left^.symtableprocentry),p^.left^.symtableproc)
                      else
-                        hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
+                        begin
+                          if assigned(p^.left^.methodpointer) and
+                             (p^.left^.methodpointer^.resulttype^.deftype=objectdef) and
+                             (pobjectdef(p^.left^.methodpointer^.resulttype)^.isclass) then
+                           begin
+                             hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
+                               getcopy(p^.left^.methodpointer));
+                             disposetree(p);
+                             firstpass(hp);
+                             p:=hp;
+                             exit;
+                           end
+                          else
+                           hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
+                        end;
+
                    { result is a procedure variable }
                    { No, to be TP compatible, you must return a pointer to
                      the procedure that is stored in the procvar.}
@@ -553,7 +569,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-05-17 23:51:46  peter
+  Revision 1.16  1999-05-18 09:52:21  peter
+    * procedure of object and addrn fixes
+
+  Revision 1.15  1999/05/17 23:51:46  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

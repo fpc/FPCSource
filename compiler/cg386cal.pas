@@ -490,10 +490,10 @@ implementation
                                         end;
 
                                     if not(is_con_or_destructor and
-                                      pobjectdef(p^.methodpointer^.resulttype)^.isclass and
-                                        assigned(aktprocsym) and
-                                        ((aktprocsym^.definition^.options and
-                                        (poconstructor or podestructor))<>0)) then
+                                           pobjectdef(p^.methodpointer^.resulttype)^.isclass and
+                                           assigned(aktprocsym) and
+                                           ((aktprocsym^.definition^.options and (poconstructor or podestructor))<>0)
+                                          ) then
                                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     { if an inherited con- or destructor should be  }
                                     { called in a con- or destructor then a warning }
@@ -808,7 +808,7 @@ implementation
                    { which is a class member                     }
                    { else ESI is overwritten !                   }
                    if (p^.right^.location.reference.base=R_ESI) or
-                     (p^.right^.location.reference.index=R_ESI) then
+                      (p^.right^.location.reference.index=R_ESI) then
                      begin
                         del_reference(p^.right^.location.reference);
                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
@@ -823,6 +823,7 @@ implementation
                      newreference(p^.right^.location.reference),R_ESI)));
                    { push self pointer }
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
+
                    dec(p^.right^.location.reference.offset,4);
 
                    if hregister=R_NO then
@@ -1187,7 +1188,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  1999-05-17 23:51:37  peter
+  Revision 1.81  1999-05-18 09:52:17  peter
+    * procedure of object and addrn fixes
+
+  Revision 1.80  1999/05/17 23:51:37  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

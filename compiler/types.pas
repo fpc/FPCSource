@@ -486,7 +486,7 @@ implementation
             (pstringdef(p)^.string_typ in [st_ansistring,st_widestring]) then
            ungettempoftype:=false;
       end;
-      
+
     function mmx_type(p : pdef) : tmmxtype;
       begin
          mmx_type:=mmxno;
@@ -611,6 +611,9 @@ implementation
 
 
     function is_equal(def1,def2 : pdef) : boolean;
+      const
+         procvarmask = not(poassembler or pomethodpointer or povirtualmethod or pooverridingmethod or
+                           pocontainsself or pomsgstr or pomsgint);
       var
          b : boolean;
          hd : pdef;
@@ -711,12 +714,8 @@ implementation
                 { poassembler isn't important for compatibility }
                 { if a method is assigned to a methodpointer    }
                 { is checked before                             }
-                b:=((pprocvardef(def1)^.options and not(poassembler or pomethodpointer or
-                      povirtualmethod or pooverridingmethod))=
-                    (pprocvardef(def2)^.options and not(poassembler or pomethodpointer or
-                      povirtualmethod or pooverridingmethod))
-                   ) and
-                  is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
+                b:=((pprocvardef(def1)^.options and procvarmask)=(pprocvardef(def2)^.options and procvarmask)) and
+                   is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
                 { now evalute the parameters }
                 if b then
                   begin
@@ -794,7 +793,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-04-19 09:29:51  pierre
+  Revision 1.59  1999-05-18 09:52:24  peter
+    * procedure of object and addrn fixes
+
+  Revision 1.58  1999/04/19 09:29:51  pierre
     + ungettempoftype(pdef) boolean function
       returns true (can call ungetiftemp )
       unless the temp should be "unget" with temptoremove

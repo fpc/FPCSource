@@ -544,7 +544,8 @@ unit pexpr;
       begin
          if ((procvar^.options and pomethodpointer)<>0) then
            begin
-              if (t^.methodpointer^.resulttype^.deftype=objectdef) and
+              if assigned(t^.methodpointer) and
+                 (t^.methodpointer^.resulttype^.deftype=objectdef) and
                  (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
                  (proc_to_procvar_equal(procvar,pprocsym(t^.symtableentry)^.definition)) then
                 begin
@@ -1371,7 +1372,7 @@ unit pexpr;
                                 classh:=classh^.childof;
                               end;
                              consume(ID);
-                             do_member_read(false,sym,p1,pd,again);
+                             do_member_read(getaddr,sym,p1,pd,again);
                            end;
 
                          objectdef:
@@ -1390,8 +1391,9 @@ unit pexpr;
                               end;
                              allow_only_static:=store_static;
                              consume(ID);
-                             do_member_read(false,sym,p1,pd,again);
+                             do_member_read(getaddr,sym,p1,pd,again);
                            end;
+
                          pointerdef:
                            begin
                              Message(cg_e_invalid_qualifier);
@@ -1988,7 +1990,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.106  1999-05-16 17:06:31  peter
+  Revision 1.107  1999-05-18 09:52:18  peter
+    * procedure of object and addrn fixes
+
+  Revision 1.106  1999/05/16 17:06:31  peter
     * remove firstcallparan which looks obsolete
 
   Revision 1.105  1999/05/12 22:36:09  florian

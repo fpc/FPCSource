@@ -249,6 +249,7 @@ unit tree;
     function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
     function genloadnode(v : pvarsym;st : psymtable) : ptree;
     function genloadcallnode(v: pprocsym;st: psymtable): ptree;
+    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp:ptree): ptree;
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
     function gensubscriptnode(varsym : pvarsym;l : ptree) : ptree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
@@ -963,6 +964,30 @@ unit tree;
          p^.is_first := False;
          p^.disposetyp:=dt_nothing;
          genloadcallnode:=p;
+      end;
+
+    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp:ptree): ptree;
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.registers32:=0;
+{         p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.treetype:=loadn;
+         p^.left:=nil;
+         p^.resulttype:=v^.definition;
+         p^.symtableentry:=v;
+         p^.symtable:=st;
+         p^.is_first := False;
+         p^.disposetyp:=dt_left;
+         p^.left:=mp;
+         genloadmethodcallnode:=p;
       end;
 
 
@@ -1708,7 +1733,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.80  1999-05-17 23:51:48  peter
+  Revision 1.81  1999-05-18 09:52:22  peter
+    * procedure of object and addrn fixes
+
+  Revision 1.80  1999/05/17 23:51:48  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 
