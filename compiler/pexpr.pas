@@ -695,7 +695,9 @@ unit pexpr;
                         Message(parser_e_only_class_methods_via_class_ref);
                       if (sym^.properties and sp_static)<>0 then
                         begin
-                           static_name:=lower(srsymtable^.name^)+'_'+sym^.name;
+                           { static_name:=lower(srsymtable^.name^)+'_'+sym^.name;
+                             this is wrong for static field in with symtable (PM) }
+                           static_name:=lower(srsym^.owner^.name^)+'_'+sym^.name;
                            getsym(static_name,true);
                            disposetree(p1);
                            p1:=genloadnode(pvarsym(srsym),srsymtable);
@@ -863,7 +865,7 @@ unit pexpr;
                                 Message(parser_e_only_class_methods);
                               if (srsym^.properties and sp_static)<>0 then
                                begin
-                                 static_name:=lower(srsymtable^.name^)+'_'+srsym^.name;
+                                 static_name:=lower(srsym^.owner^.name^)+'_'+srsym^.name;
                                  getsym(static_name,true);
                                end;
                               p1:=genloadnode(pvarsym(srsym),srsymtable);
@@ -1928,7 +1930,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.79  1998-12-30 22:15:48  peter
+  Revision 1.80  1999-01-21 16:41:01  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.79  1998/12/30 22:15:48  peter
     + farpointer type
     * absolutesym now also stores if its far
 

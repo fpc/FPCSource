@@ -54,7 +54,23 @@ implementation
 *****************************************************************************}
 
     procedure firstload(var p : ptree);
+      var
+         p1 : ptree;
+         
       begin
+{$ifndef NODIRECTWITH}
+         if (p^.symtable^.symtabletype=withsymtable) and
+            (pwithsymtable(p^.symtable)^.direct_with) then
+           begin
+              p1:=getcopy(ptree(pwithsymtable(p^.symtable)^.withnode)^.left);
+              p1:=gensubscriptnode(pvarsym(p^.symtableentry),p1);
+              putnode(p);
+              p:=p1;
+              firstpass(p1);
+              exit;
+           end;
+{$endif ndef NODIRECTWITH}
+           
          p^.location.loc:=LOC_REFERENCE;
          p^.registers32:=0;
          p^.registersfpu:=0;
@@ -421,7 +437,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-12-30 13:41:19  peter
+  Revision 1.13  1999-01-21 16:41:07  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.12  1998/12/30 13:41:19  peter
     * released valuepara
 
   Revision 1.11  1998/11/18 17:45:28  peter

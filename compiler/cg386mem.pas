@@ -706,32 +706,45 @@ implementation
         ref : treference;
         symtable : psymtable;
         i : longint;
+        load : boolean;
       begin
          if assigned(p^.left) then
             begin
                secondpass(p^.left);
+               load:=true;
                if p^.left^.location.reference.segment<>R_DEFAULT_SEG then
                  message(parser_e_no_with_for_variable_in_other_segments);
                ref.symbol:=nil;
                gettempofsizereference(4,ref);
-               if (p^.left^.resulttype^.deftype=objectdef) and
-                 pobjectdef(p^.left^.resulttype)^.isclass then
-                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                   newreference(p^.left^.location.reference),R_EDI)))
+               if (p^.left^.treetype=loadn) and
+                  (p^.left^.symtable=aktprocsym^.definition^.localst) then
+                 begin
+                    { for local class just use the local storage }
+                    ungetiftemp(ref);
+                    new(p^.pref);
+                    p^.pref^:=p^.left^.location.reference;
+                    { don't discard symbol if in main procedure }
+                    p^.left^.location.reference.symbol:=nil;
+                    load:=false;
+                 end
+               else if (p^.left^.resulttype^.deftype=objectdef) and
+                  pobjectdef(p^.left^.resulttype)^.isclass then
+                 begin
+                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                      newreference(p^.left^.location.reference),R_EDI)))
+                 end
                else
                  exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
                    newreference(p^.left^.location.reference),R_EDI)));
-               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+               if load then
+                 exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
                  R_EDI,newreference(ref))));
                del_reference(p^.left^.location.reference);
                { the offset relative to (%ebp) is only needed here! }
                symtable:=p^.withsymtable;
                for i:=1 to p^.tablecount do
                  begin
-{$ifdef WITHTEST}
-{$else WITHTEST}
                     symtable^.datasize:=ref.offset;
-{$endif WITHTEST}
                     symtable:=symtable^.next;
                  end;
 
@@ -739,7 +752,10 @@ implementation
                if p^.right<>nil then
                  secondpass(p^.right);
                { clear some stuff }
-               ungetiftemp(ref);
+               if assigned(p^.pref) then
+                 dispose(p^.pref);
+               if load then
+                 ungetiftemp(ref);
             end;
        end;
 
@@ -747,7 +763,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-01-19 12:05:27  pierre
+  Revision 1.25  1999-01-21 16:40:52  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.24  1999/01/19 12:05:27  pierre
    * bug with @procvar=procvar fiwed
 
   Revision 1.23  1998/12/30 22:15:45  peter

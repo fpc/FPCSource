@@ -268,6 +268,7 @@ type tmsgconst=(
   cg_e_no_code_for_inline_stored,
   cg_e_can_access_element_zero,
   cg_e_include_not_implemented,
+  cg_e_cannot_call_cons_dest_inside_with,
   assem_f_ev_zero_divide,
   assem_f_ev_stack_overflow,
   assem_f_ev_stack_underflow,

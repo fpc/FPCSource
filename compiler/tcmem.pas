@@ -510,13 +510,28 @@ implementation
 *****************************************************************************}
 
     procedure firstwith(var p : ptree);
+      var
+         symtable : pwithsymtable;
+         i : longint;
       begin
          if assigned(p^.left) and assigned(p^.right) then
             begin
                firstpass(p^.left);
                if codegenerror then
                  exit;
-
+{$ifndef NODIRECTWITH}
+               if (p^.left^.treetype=loadn) and
+                  (p^.left^.symtable=aktprocsym^.definition^.localst) then
+                  begin
+                     symtable:=p^.withsymtable;
+                     for i:=1 to p^.tablecount do
+                       begin
+                         symtable^.direct_with:=true;
+                         symtable^.withnode:=p;
+                         symtable:=pwithsymtable(symtable^.next);
+                       end;
+                  end;
+{$endif ndef NODIRECTWITH}
                firstpass(p^.right);
                if codegenerror then
                  exit;
@@ -536,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-12-30 22:15:59  peter
+  Revision 1.8  1999-01-21 16:41:08  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.7  1998/12/30 22:15:59  peter
     + farpointer type
     * absolutesym now also stores if its far
 

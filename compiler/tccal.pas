@@ -924,11 +924,16 @@ implementation
                 typen,hnewn : ;
                 else
                   begin
-                     { if ((p^.procdefinition^.options and (poconstructor or podestructor)) <> 0) and
-                        (assigned(p^.symtable) and (p^.symtable^.symtabletype=withsymtable) then
+{$ifndef NODIRECTWITH}
+                     if ((p^.procdefinition^.options and (poconstructor or podestructor)) <> 0) and
+                        assigned(p^.symtable) and (p^.symtable^.symtabletype=withsymtable) and
+                        not pwithsymtable(p^.symtable)^.direct_with then
                        begin
                           CGmessage(cg_e_cannot_call_cons_dest_inside_with);
-                       end; Is accpeted by Delphi !! }
+                       end; { Is accepted by Delphi !! }
+                     { this is not a good reason to accept it in FPC if we produce
+                       wrong code for it !!! (PM) }
+{$endif ndef NODIRECTWITH}
 
                      { R.Assign is not a constructor !!! }
                      { but for R^.Assign, R must be valid !! }
@@ -994,7 +999,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-01-19 14:20:16  peter
+  Revision 1.20  1999-01-21 16:41:06  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.19  1999/01/19 14:20:16  peter
     * fixed [char] crash
 
   Revision 1.18  1999/01/12 14:25:40  peter

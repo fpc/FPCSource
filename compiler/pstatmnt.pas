@@ -374,19 +374,7 @@ unit pstatmnt;
             case p^.resulttype^.deftype of
              objectdef : begin
                            obj:=pobjectdef(p^.resulttype);
-                          { this creates the stack in the wrong order !!
-                            levelcount:=0;
-                            while assigned(obj) do
-                             begin
-                               symtab:=obj^.publicsyms;
-                               withsymtable:=new(psymtable,init(symtable.withsymtable));
-                               withsymtable^.root:=symtab^.root;
-                               withsymtable^.next:=symtablestack;
-                               symtablestack:=withsymtable;
-                               obj:=obj^.childof;
-                               inc(levelcount);
-                             end; }
-                           withsymtable:=new(psymtable,init(symtable.withsymtable));
+                           withsymtable:=new(pwithsymtable,init);
                            withsymtable^.root:=obj^.publicsyms^.root;
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
@@ -394,7 +382,7 @@ unit pstatmnt;
                            obj:=obj^.childof;
                            while assigned(obj) do
                             begin
-                              symtab^.next:=new(psymtable,init(symtable.withsymtable));
+                              symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
                               symtab^.root:=obj^.publicsyms^.root;
                               symtab^.defowner:=obj;
@@ -407,7 +395,7 @@ unit pstatmnt;
              recorddef : begin
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
-                           withsymtable:=new(psymtable,init(symtable.withsymtable));
+                           withsymtable:=new(pwithsymtable,init);
                            withsymtable^.root:=symtab^.root;
                            withsymtable^.next:=symtablestack;
                            withsymtable^.defowner:=obj;
@@ -433,7 +421,7 @@ unit pstatmnt;
              end;
             for i:=1 to levelcount do
              symtablestack:=symtablestack^.next;
-            _with_statement:=genwithnode(withsymtable,p,right,levelcount);
+            _with_statement:=genwithnode(pwithsymtable(withsymtable),p,right,levelcount);
           end
          else
           begin
@@ -1259,7 +1247,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.58  1999-01-05 08:20:07  florian
+  Revision 1.59  1999-01-21 16:41:02  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.58  1999/01/05 08:20:07  florian
     * mainly problem with invalid case ranges fixed (reported by Jonas)
 
   Revision 1.57  1998/12/29 18:48:15  jonas

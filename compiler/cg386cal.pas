@@ -859,15 +859,44 @@ implementation
                    p^.methodpointer:=genzeronode(callparan);
                    p^.methodpointer^.location.loc:=LOC_REGISTER;
                    p^.methodpointer^.location.register:=R_ESI;
+                   { ARGHHH this is wrong !!!
+                     if we can init from base class for a child
+                     class that the wrong VMT will be
+                     transfered to constructor !! }
+{$ifdef NODIRECTWITH}
                    p^.methodpointer^.resulttype:=p^.symtable^.defowner;
+{$else NODIRECTWITH}
+                   p^.methodpointer^.resulttype:=
+                     ptree(pwithsymtable(p^.symtable)^.withnode)^.left^.resulttype;
+{$endif def NODIRECTWITH}
                    { change dispose type !! }
                    p^.disposetyp:=dt_mbleft_and_method;
                    { make a reference }
                    new(r);
                    reset_reference(r^);
-                   r^.offset:=p^.symtable^.datasize;
-                   r^.base:=procinfo.framepointer;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)));
+{$ifndef NODIRECTWITH}
+                   if assigned(ptree(pwithsymtable(p^.symtable)^.withnode)^.pref) then
+                     begin
+                        r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.pref^;
+                        if assigned(r^.symbol) then
+                          r^.symbol:=stringdup(r^.symbol^);
+                     end
+                   else
+{$endif def NODIRECTWITH}
+                     begin
+                        r^.offset:=p^.symtable^.datasize;
+                        r^.base:=procinfo.framepointer;
+                     end;
+{$ifndef NODIRECTWITH}
+                   if (not pwithsymtable(p^.symtable)^.direct_with) or
+                      pobjectdef(p^.methodpointer^.resulttype)^.isclass then
+{$endif def NODIRECTWITH}
+                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_ESI)))
+{$ifndef NODIRECTWITH}
+                   else
+                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_ESI)))
+{$endif def NODIRECTWITH}
+                     ;
                 end;
 
               { push self }
@@ -1585,7 +1614,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1998-12-30 13:41:05  peter
+  Revision 1.57  1999-01-21 16:40:51  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.56  1998/12/30 13:41:05  peter
     * released valuepara
 
   Revision 1.55  1998/12/22 13:10:58  florian

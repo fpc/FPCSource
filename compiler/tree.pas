@@ -260,7 +260,8 @@ unit tree;
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
              labeln,goton : (labelnr : plabel);
-             withn : (withsymtable : psymtable;tablecount : longint);
+             withn : (withsymtable : pwithsymtable;tablecount : longint;
+                     pref : preference);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap: boolean);
            end;
@@ -297,7 +298,7 @@ unit tree;
     function genloopnode(t : ttreetyp;l,r,n1: ptree;back : boolean) : ptree;
     function genasmnode(p_asm : paasmoutput) : ptree;
     function gencasenode(l,r : ptree;nodes : pcaserecord) : ptree;
-    function genwithnode(symtable : psymtable;l,r : ptree;count : longint) : ptree;
+    function genwithnode(symtable : pwithsymtable;l,r : ptree;count : longint) : ptree;
 
     function getcopy(p : ptree) : ptree;
 
@@ -477,7 +478,7 @@ unit tree;
     procedure disposetree(p : ptree);
 
       var
-         symt : psymtable;
+         symt : pwithsymtable;
          i : longint;
 
       begin
@@ -549,7 +550,7 @@ unit tree;
                    begin
                       if assigned(symt) then
                         begin
-                           p^.withsymtable:=symt^.next;
+                           p^.withsymtable:=pwithsymtable(symt^.next);
                            dispose(symt,done);
                         end;
                       symt:=p^.withsymtable;
@@ -572,7 +573,7 @@ unit tree;
         p^.fileinfo:=filepos;
      end;
 
-   function genwithnode(symtable : psymtable;l,r : ptree;count : longint) : ptree;
+   function genwithnode(symtable : pwithsymtable;l,r : ptree;count : longint) : ptree;
 
       var
          p : ptree;
@@ -593,6 +594,7 @@ unit tree;
          p^.resulttype:=nil;
          p^.withsymtable:=symtable;
          p^.tablecount:=count;
+         p^.pref:=nil;
          set_file_line(l,p);
          genwithnode:=p;
       end;
@@ -1661,7 +1663,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.60  1998-12-15 11:52:19  peter
+  Revision 1.61  1999-01-21 16:41:09  pierre
+   * fix for constructor inside with statements
+
+  Revision 1.60  1998/12/15 11:52:19  peter
     * fixed dup release of statement label in case
 
   Revision 1.59  1998/12/15 10:23:32  peter
