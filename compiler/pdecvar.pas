@@ -43,7 +43,7 @@ implementation
        fmodule,
        { pass 1 }
        node,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,
        { codegen }
        ncgutil,
        { parser }
@@ -130,7 +130,7 @@ implementation
          maxsize, startvarrecsize : longint;
          usedalign,
          minalignment,maxalignment,startvarrecalign : byte;
-         pt : tnode;
+         hp,pt : tnode;
          vs,vs2    : tvarsym;
          srsym : tsym;
          oldsymtablestack,
@@ -241,29 +241,6 @@ implementation
                    symtablestack.replace(vs,abssym);
                    vs.free;
                  end
-                { variable }
-                else if (pt.nodetype=loadn) then
-                 begin
-                   { we should check the result type of srsym }
-                   if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym]) then
-                     Message(parser_e_absolute_only_to_var_or_const);
-                   abssym:=tabsolutesym.create(vs.realname,tt);
-                   abssym.fileinfo:=vs.fileinfo;
-                   abssym.abstyp:=tovar;
-                   abssym.ref:=tstoredsym(tloadnode(pt).symtableentry);
-                   symtablestack.replace(vs,abssym);
-                   vs.free;
-                   { the variable cannot be put into a register
-                     if the size definition is not the same.
-                   }
-                   if tloadnode(pt).symtableentry.typ = varsym then
-                     begin
-                       if abssym.vartype.def <>
-                          tvarsym(tloadnode(pt).symtableentry).vartype.def then
-                          tvarsym(tloadnode(pt).symtableentry).varoptions:=
-                          tvarsym(tloadnode(pt).symtableentry).varoptions-[vo_regable,vo_fpuregable]
-                     end;
-                 end
                 { address }
                 else if is_constintnode(pt) and
                         ((target_info.system in [system_i386_go32v2,system_i386_watcom,
@@ -292,8 +269,28 @@ implementation
                    symtablestack.replace(vs,abssym);
                    vs.free;
                  end
+                { variable }
                 else
-                 Message(parser_e_absolute_only_to_var_or_const);
+                  begin
+                    { remove subscriptn before checking for loadn }
+                    hp:=pt;
+                    while (hp.nodetype in [subscriptn,typeconvn,vecn]) do
+                      hp:=tsubscriptnode(hp).left;
+                    if (hp.nodetype=loadn) then
+                     begin
+                       { we should check the result type of loadn }
+                       if not (tloadnode(hp).symtableentry.typ in [varsym,typedconstsym]) then
+                         Message(parser_e_absolute_only_to_var_or_const);
+                       abssym:=tabsolutesym.create(vs.realname,tt);
+                       abssym.fileinfo:=vs.fileinfo;
+                       abssym.abstyp:=tovar;
+                       abssym.ref:=node_to_symlist(pt);
+                       symtablestack.replace(vs,abssym);
+                       vs.free;
+                     end
+                    else
+                     Message(parser_e_absolute_only_to_var_or_const);
+                  end;
                 if assigned(abssym) then
                  begin
                    { try to consume the hint directives with absolute symbols }
@@ -649,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-10-05 12:55:37  peter
+  Revision 1.57  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.56  2003/10/05 12:55:37  peter
     * allow absolute with value for win32,wdos
 
   Revision 1.55  2003/10/03 14:45:09  peter

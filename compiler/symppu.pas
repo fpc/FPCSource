@@ -173,6 +173,7 @@ implementation
     function tcompilerppufile.getsymlist:tsymlist;
       var
         symderef : tderef;
+        tt  : ttype;
         slt : tsltype;
         idx : longint;
         p   : tsymlist;
@@ -190,6 +191,11 @@ implementation
               begin
                 getderef(symderef);
                 p.addsymderef(slt,symderef);
+              end;
+            sl_typeconv :
+              begin
+                gettype(tt);
+                p.addtype(slt,tt);
               end;
             sl_vec :
               begin
@@ -356,6 +362,8 @@ implementation
              sl_load,
              sl_subscript :
                putderef(hp^.symderef);
+             sl_typeconv :
+               puttype(hp^.tt);
              sl_vec :
                putlongint(hp^.value);
              else
@@ -392,7 +400,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-10-23 14:44:07  peter
+  Revision 1.23  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.22  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

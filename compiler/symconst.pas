@@ -140,7 +140,8 @@ type
     sl_load,
     sl_call,
     sl_subscript,
-    sl_vec
+    sl_vec,
+    sl_typeconv
   );
 
   { base types for orddef }
@@ -376,7 +377,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-10-08 19:19:45  peter
+  Revision 1.69  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.68  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.67  2003/10/07 15:17:07  peter

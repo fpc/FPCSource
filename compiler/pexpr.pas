@@ -27,7 +27,7 @@ unit pexpr;
 interface
 
     uses
-      symtype,symdef,
+      symtype,symdef,symbase,
       node,
       globals,
       cpuinfo;
@@ -42,6 +42,10 @@ interface
     function factor(getaddr : boolean) : tnode;
 
     procedure string_dec(var t: ttype);
+
+    procedure symlist_to_node(var p1:tnode;st:tsymtable;pl:tsymlist);
+
+    function node_to_symlist(p1:tnode):tsymlist;
 
     function parse_paras(__colon,in_prop_paras : boolean) : tnode;
 
@@ -68,7 +72,7 @@ implementation
        globtype,tokens,verbose,
        systems,widestr,
        { symtable }
-       symconst,symbase,symsym,symtable,defutil,defcmp,
+       symconst,symtable,symsym,defutil,defcmp,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -145,6 +149,92 @@ implementation
             end;
        end;
 
+
+
+    procedure symlist_to_node(var p1:tnode;st:tsymtable;pl:tsymlist);
+      var
+        plist : psymlistitem;
+      begin
+        plist:=pl.firstsym;
+        while assigned(plist) do
+         begin
+           case plist^.sltype of
+             sl_load :
+               begin
+                 if not assigned(st) then
+                   st:=plist^.sym.owner;
+                 { p1 can already contain the loadnode of
+                   the class variable. When there is no tree yet we
+                   may need to load it for with or objects }
+                 if not assigned(p1) then
+                  begin
+                    case st.symtabletype of
+                      withsymtable :
+                        p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+                      objectsymtable :
+                        p1:=load_self_node;
+                    end;
+                  end;
+                 if assigned(p1) then
+                  p1:=csubscriptnode.create(plist^.sym,p1)
+                 else
+                  p1:=cloadnode.create(plist^.sym,st);
+               end;
+             sl_subscript :
+               p1:=csubscriptnode.create(plist^.sym,p1);
+             sl_typeconv :
+               p1:=ctypeconvnode.create_explicit(p1,plist^.tt);
+             sl_vec :
+               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype,true));
+             else
+               internalerror(200110205);
+           end;
+           plist:=plist^.next;
+         end;
+      end;
+
+
+    function node_to_symlist(p1:tnode):tsymlist;
+      var
+        sl : tsymlist;
+
+        procedure addnode(p:tnode);
+        begin
+          case p.nodetype of
+            subscriptn :
+              begin
+                addnode(tsubscriptnode(p).left);
+                sl.addsym(sl_subscript,tsubscriptnode(p).vs);
+              end;
+            typeconvn :
+              begin
+                addnode(ttypeconvnode(p).left);
+                sl.addtype(sl_typeconv,ttypeconvnode(p).totype);
+              end;
+            vecn :
+              begin
+                addnode(tsubscriptnode(p).left);
+                if tvecnode(p).right.nodetype=ordconstn then
+                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value)
+                else
+                  begin
+                    Message(cg_e_illegal_expression);
+                    { recovery }
+                    sl.addconst(sl_vec,0);
+                  end;
+             end;
+            loadn :
+              sl.addsym(sl_load,tloadnode(p).symtableentry);
+            else
+              internalerror(200310282);
+          end;
+        end;
+
+      begin
+        sl:=tsymlist.create;
+        addnode(p1);
+        result:=sl;
+      end;
 
 
     function parse_paras(__colon,in_prop_paras : boolean) : tnode;
@@ -806,46 +896,6 @@ implementation
 
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode);
-
-        procedure symlist_to_node(var p1:tnode;pl:tsymlist);
-        var
-          plist : psymlistitem;
-        begin
-          plist:=pl.firstsym;
-          while assigned(plist) do
-           begin
-             case plist^.sltype of
-               sl_load :
-                 begin
-                   { p1 can already contain the loadnode of
-                     the class variable. When there is no tree yet we
-                     may need to load it for with or objects }
-                   if not assigned(p1) then
-                    begin
-                      case st.symtabletype of
-                        withsymtable :
-                          p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                        objectsymtable :
-                          p1:=load_self_node;
-                      end;
-                    end;
-                   if assigned(p1) then
-                    p1:=csubscriptnode.create(plist^.sym,p1)
-                   else
-                    p1:=cloadnode.create(plist^.sym,st);
-                 end;
-               sl_subscript :
-                 p1:=csubscriptnode.create(plist^.sym,p1);
-               sl_vec :
-                 p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype,true));
-               else
-                 internalerror(200110205);
-             end;
-             plist:=plist^.next;
-           end;
-          include(p1.flags,nf_isproperty);
-        end;
-
       var
          paras : tnode;
          p2    : tnode;
@@ -900,7 +950,8 @@ implementation
                      varsym :
                        begin
                          { generate access code }
-                         symlist_to_node(p1,tpropertysym(sym).writeaccess);
+                         symlist_to_node(p1,st,tpropertysym(sym).writeaccess);
+                         include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
                          { read the expression }
                          p2:=comp_expr(true);
@@ -928,7 +979,8 @@ implementation
                      varsym :
                        begin
                           { generate access code }
-                          symlist_to_node(p1,tpropertysym(sym).readaccess);
+                          symlist_to_node(p1,st,tpropertysym(sym).readaccess);
+                          include(p1.flags,nf_isproperty);
                        end;
                      procsym :
                        begin
@@ -1162,7 +1214,15 @@ implementation
               case srsym.typ of
                 absolutesym :
                   begin
-                    p1:=cloadnode.create(srsym,srsymtable);
+                    if (tabsolutesym(srsym).abstyp=tovar) then
+                      begin
+                        p1:=nil;
+                        symlist_to_node(p1,nil,tabsolutesym(srsym).ref);
+                        p1:=ctypeconvnode.create(p1,tabsolutesym(srsym).vartype);
+                        include(p1.flags,nf_absolute);
+                      end
+                    else
+                      p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
                 varsym :
@@ -2412,7 +2472,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.135  2003-10-09 15:20:56  peter
+  Revision 1.136  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.135  2003/10/09 15:20:56  peter
     * self is not a token anymore. It is handled special when found
       in a code block and when parsing an method
 

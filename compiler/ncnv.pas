@@ -1079,6 +1079,13 @@ implementation
         if codegenerror then
          exit;
 
+        { When absolute force tc_equal }
+        if (nf_absolute in flags) then
+          begin
+            convtype:=tc_equal;
+            exit;
+          end;
+
         eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,
                              nf_explicit in flags,true,convtype,aprocdef);
         case eq of
@@ -1826,7 +1833,8 @@ implementation
 {$endif}
         expectloc:=left.expectloc;
 
-        if nf_explicit in flags then
+        if (nf_explicit in flags) or
+           (nf_absolute in flags) then
          begin
            { check if the result could be in a register }
            if not(tstoreddef(resulttype.def).is_intregable) and
@@ -2111,7 +2119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2003-10-23 14:44:07  peter
+  Revision 1.127  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.126  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

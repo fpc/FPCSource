@@ -239,10 +239,10 @@ interface
        tabsolutesym = class(tvarsym)
           abstyp  : absolutetyp;
           absseg  : boolean;
-          ref     : tstoredsym;
           asmname : pstring;
+          ref     : tsymlist;
           constructor create(const n : string;const tt : ttype);
-          constructor create_ref(const n : string;const tt : ttype;sym:tstoredsym);
+          constructor create_ref(const n : string;const tt : ttype;_ref:tsymlist);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure buildderef;override;
           procedure deref;override;
@@ -1486,11 +1486,11 @@ implementation
       end;
 
 
-    constructor tabsolutesym.create_ref(const n : string;const tt : ttype;sym:tstoredsym);
+    constructor tabsolutesym.create_ref(const n : string;const tt : ttype;_ref:tsymlist);
       begin
         inherited create(n,vs_value,tt);
         typ:=absolutesym;
-        ref:=sym;
+        ref:=_ref;
       end;
 
 
@@ -1507,7 +1507,7 @@ implementation
          absseg:=false;
          case abstyp of
            tovar :
-             asmname:=stringdup(ppufile.getstring);
+             ref:=ppufile.getsymlist;
            toasm :
              asmname:=stringdup(ppufile.getstring);
            toaddr :
@@ -1534,7 +1534,7 @@ implementation
          ppufile.putbyte(byte(abstyp));
          case abstyp of
            tovar :
-             ppufile.putstring(ref.name);
+             ppufile.putsymlist(ref);
            toasm :
              ppufile.putstring(asmname^);
            toaddr :
@@ -1551,6 +1551,8 @@ implementation
       begin
         { inheritance of varsym.deref ! }
         vartype.buildderef;
+        if (abstyp=tovar) then
+          ref.buildderef;
       end;
 
 
@@ -1562,32 +1564,14 @@ implementation
          { inheritance of varsym.deref ! }
          vartype.resolve;
          { own absolute deref }
-         if (abstyp=tovar) and (asmname<>nil) then
-           begin
-              { search previous loaded symtables }
-              searchsym(asmname^,srsym,srsymtable);
-              if not assigned(srsym) then
-               srsym:=searchsymonlyin(owner,asmname^);
-              if not assigned(srsym) then
-               srsym:=generrorsym;
-              ref:=tstoredsym(srsym);
-              stringdispose(asmname);
-           end;
+         if (abstyp=tovar) then
+           ref.resolve;
       end;
 
 
     function tabsolutesym.mangledname : string;
       begin
          case abstyp of
-           tovar :
-             begin
-               case ref.typ of
-                 varsym :
-                   mangledname:=tvarsym(ref).mangledname;
-                 else
-                   internalerror(200111011);
-               end;
-             end;
            toasm :
              mangledname:=asmname^;
            toaddr :
@@ -2689,7 +2673,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2003-10-22 20:40:00  peter
+  Revision 1.131  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.130  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.129  2003/10/22 15:22:33  peter

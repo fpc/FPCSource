@@ -136,10 +136,11 @@ interface
       psymlistitem = ^tsymlistitem;
       tsymlistitem = record
         sltype : tsltype;
-        sym    : tsym;
-        symderef : tderef;
-        value  : longint;
         next   : psymlistitem;
+        case byte of
+          0 : (sym : tsym; symderef : tderef);
+          1 : (value  : longint);
+          2 : (tt : ttype);
       end;
 
       tsymlist = class
@@ -153,6 +154,7 @@ interface
         procedure addsym(slt:tsltype;p:tsym);
         procedure addsymderef(slt:tsltype;const d:tderef);
         procedure addconst(slt:tsltype;v:longint);
+        procedure addtype(slt:tsltype;const tt:ttype);
         procedure clear;
         function  getcopy:tsymlist;
         procedure resolve;
@@ -425,11 +427,10 @@ implementation
         if not assigned(p) then
          internalerror(200110203);
         new(hp);
+        fillchar(hp^,sizeof(tsymlistitem),0);
         hp^.sltype:=slt;
         hp^.sym:=p;
         hp^.symderef.reset;
-        hp^.value:=0;
-        hp^.next:=nil;
         if assigned(lastsym) then
          lastsym^.next:=hp
         else
@@ -443,11 +444,9 @@ implementation
         hp : psymlistitem;
       begin
         new(hp);
+        fillchar(hp^,sizeof(tsymlistitem),0);
         hp^.sltype:=slt;
-        hp^.sym:=nil;
         hp^.symderef:=d;
-        hp^.value:=0;
-        hp^.next:=nil;
         if assigned(lastsym) then
          lastsym^.next:=hp
         else
@@ -461,11 +460,25 @@ implementation
         hp : psymlistitem;
       begin
         new(hp);
+        fillchar(hp^,sizeof(tsymlistitem),0);
         hp^.sltype:=slt;
-        hp^.sym:=nil;
-        hp^.symderef.reset;
         hp^.value:=v;
-        hp^.next:=nil;
+        if assigned(lastsym) then
+         lastsym^.next:=hp
+        else
+         firstsym:=hp;
+        lastsym:=hp;
+      end;
+
+
+    procedure tsymlist.addtype(slt:tsltype;const tt:ttype);
+      var
+        hp : psymlistitem;
+      begin
+        new(hp);
+        fillchar(hp^,sizeof(tsymlistitem),0);
+        hp^.sltype:=slt;
+        hp^.tt:=tt;
         if assigned(lastsym) then
          lastsym^.next:=hp
         else
@@ -507,7 +520,18 @@ implementation
         hp:=firstsym;
         while assigned(hp) do
          begin
-           hp^.sym:=tsym(hp^.symderef.resolve);
+           case hp^.sltype of
+             sl_call,
+             sl_load,
+             sl_subscript :
+               hp^.sym:=tsym(hp^.symderef.resolve);
+             sl_typeconv :
+               hp^.tt.resolve;
+             sl_vec :
+               ;
+             else
+              internalerror(200110205);
+           end;
            hp:=hp^.next;
          end;
       end;
@@ -526,6 +550,8 @@ implementation
              sl_load,
              sl_subscript :
                hp^.symderef.build(hp^.sym);
+             sl_typeconv :
+               hp^.tt.buildderef;
              sl_vec :
                ;
              else
@@ -915,7 +941,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2003-10-23 14:44:07  peter
+  Revision 1.33  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.32  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

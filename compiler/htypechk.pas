@@ -736,13 +736,15 @@ implementation
              typeconvn :
                begin
                  { typecast sizes must match, exceptions:
+                   - implicit typecast made by absolute
                    - from formaldef
                    - from void
                    - from open array
                    - typecast from pointer to array }
                  fromdef:=ttypeconvnode(hp).left.resulttype.def;
                  todef:=hp.resulttype.def;
-                 if not((fromdef.deftype=formaldef) or
+                 if not((nf_absolute in ttypeconvnode(hp).flags) or
+                        (fromdef.deftype=formaldef) or
                         is_void(fromdef) or
                         is_open_array(fromdef) or
                         ((fromdef.deftype=pointerdef) and (todef.deftype=arraydef)) or
@@ -941,7 +943,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-10-21 18:16:13  peter
+  Revision 1.72  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.71  2003/10/21 18:16:13  peter
     * IncompatibleTypes() added that will include unit names when
       the typenames are the same
 

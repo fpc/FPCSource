@@ -368,89 +368,68 @@ implementation
     function tloadnode.det_resulttype:tnode;
       begin
          result:=nil;
-         { handle first absolute as it will replace the symtableentry }
-         if symtableentry.typ=absolutesym then
-           begin
-             { force the resulttype to the type of the absolute }
-             resulttype:=tabsolutesym(symtableentry).vartype;
-             { replace the symtableentry when it points to a var, else
-               we are finished }
-             if (tabsolutesym(symtableentry).abstyp=tovar) then
-              begin
-                symtableentry:=tabsolutesym(symtableentry).ref;
-                symtable:=symtableentry.owner;
-                include(flags,nf_absolute);
-              end
-             else
-              exit;
-           end;
          case symtableentry.typ of
-            constsym:
-              begin
-                 if tconstsym(symtableentry).consttyp=constresourcestring then
-                   resulttype:=cansistringtype
-                 else
-                   internalerror(22799);
-              end;
-            varsym :
-              begin
-                inc(tvarsym(symtableentry).refs);
-                { Nested variable? The we need to load the framepointer of
-                  the parent procedure }
-                if (symtable.symtabletype in [localsymtable,parasymtable]) and
-                   (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
-                  begin
-                    if assigned(left) then
-                      internalerror(200309289);
-                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
-                  end;
-                { if it's refered by absolute then it's used }
-                if nf_absolute in flags then
-                  tvarsym(symtableentry).varstate:=vs_used
-                else
-                  begin
-                    { fix self type which is declared as voidpointer in the
-                      definition }
-                    if vo_is_self in tvarsym(symtableentry).varoptions then
-                      begin
-                        resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
-                        if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
-                           (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                          resulttype.setdef(tclassrefdef.create(resulttype))
-                        else if is_object(resulttype.def) and
-                                (nf_load_self_pointer in flags) then
-                          resulttype.setdef(tpointerdef.create(resulttype));
-                      end
-                    else if vo_is_vmt in tvarsym(symtableentry).varoptions then
-                      begin
-                        resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
-                        resulttype.setdef(tclassrefdef.create(resulttype));
-                      end
-                    else
-                      resulttype:=tvarsym(symtableentry).vartype;
-                  end;
-              end;
-            typedconstsym :
-                if not(nf_absolute in flags) then
-                  resulttype:=ttypedconstsym(symtableentry).typedconsttype;
-            procsym :
-                begin
-                   if not assigned(procdef) then
-                    begin
-                      if Tprocsym(symtableentry).procdef_count>1 then
-                       CGMessage(parser_e_no_overloaded_procvars);
-                      procdef:=tprocsym(symtableentry).first_procdef;
-                    end;
-
-                   { the result is a procdef, addrn and proc_to_procvar
-                     typeconvn need this as resulttype so they know
-                     that the address needs to be returned }
-                   resulttype.setdef(procdef);
-
-                   { process methodpointer }
+           absolutesym :
+             resulttype:=tabsolutesym(symtableentry).vartype;
+           constsym:
+             begin
+               if tconstsym(symtableentry).consttyp=constresourcestring then
+                 resulttype:=cansistringtype
+               else
+                 internalerror(22799);
+             end;
+           varsym :
+             begin
+               inc(tvarsym(symtableentry).refs);
+               { Nested variable? The we need to load the framepointer of
+                 the parent procedure }
+               if (symtable.symtabletype in [localsymtable,parasymtable]) and
+                  (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
+                 begin
                    if assigned(left) then
-                     resulttypepass(left);
+                     internalerror(200309289);
+                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                 end;
+               { fix self type which is declared as voidpointer in the
+                 definition }
+               if vo_is_self in tvarsym(symtableentry).varoptions then
+                 begin
+                   resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                   if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
+                      (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                     resulttype.setdef(tclassrefdef.create(resulttype))
+                   else if is_object(resulttype.def) and
+                           (nf_load_self_pointer in flags) then
+                     resulttype.setdef(tpointerdef.create(resulttype));
+                 end
+               else if vo_is_vmt in tvarsym(symtableentry).varoptions then
+                 begin
+                   resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                   resulttype.setdef(tclassrefdef.create(resulttype));
+                 end
+               else
+                 resulttype:=tvarsym(symtableentry).vartype;
+             end;
+           typedconstsym :
+             resulttype:=ttypedconstsym(symtableentry).typedconsttype;
+           procsym :
+             begin
+               if not assigned(procdef) then
+                begin
+                  if Tprocsym(symtableentry).procdef_count>1 then
+                   CGMessage(parser_e_no_overloaded_procvars);
+                  procdef:=tprocsym(symtableentry).first_procdef;
                 end;
+
+               { the result is a procdef, addrn and proc_to_procvar
+                 typeconvn need this as resulttype so they know
+                 that the address needs to be returned }
+               resulttype.setdef(procdef);
+
+               { process methodpointer }
+               if assigned(left) then
+                 resulttypepass(left);
+             end;
            else
              internalerror(200104141);
          end;
@@ -1272,7 +1251,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2003-10-23 14:44:07  peter
+  Revision 1.116  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.115  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

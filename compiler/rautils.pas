@@ -795,6 +795,7 @@ var
   srsymtable : tsymtable;
   harrdef : tarraydef;
   l : longint;
+  plist : psymlistitem;
 Begin
   SetupVar:=false;
   asmsearchsym(s,sym,srsymtable);
@@ -803,7 +804,15 @@ Begin
   if sym.typ=absolutesym then
     begin
       if (tabsolutesym(sym).abstyp=tovar) then
-        sym:=tabsolutesym(sym).ref
+        begin
+          { Only support simple loads }
+          plist:=tabsolutesym(sym).ref.firstsym;
+          if assigned(plist) and
+             (plist^.sltype=sl_load) then
+            sym:=plist^.sym
+          else
+            Message(asmr_e_unsupported_symbol_type);
+        end
       else
         Message(asmr_e_unsupported_symbol_type);
     end;
@@ -1543,7 +1552,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.72  2003-10-24 17:39:03  peter
+  Revision 1.73  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.72  2003/10/24 17:39:03  peter
     * more intel parser updates
 
   Revision 1.71  2003/10/23 17:19:11  peter

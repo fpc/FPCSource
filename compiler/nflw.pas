@@ -219,7 +219,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtable,paramgr,defutil,htypechk,pass_1,
+      symconst,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,
     {$ifdef state_tracking}
       nstate,
@@ -732,7 +732,9 @@ implementation
          hp:=t2;
          while (hp.nodetype=subscriptn) or
                ((hp.nodetype=vecn) and
-                is_constintnode(tvecnode(hp).right)) do
+                is_constintnode(tvecnode(hp).right)) or
+               ((hp.nodetype=typeconvn) and
+                (ttypeconvnode(hp).convtype=tc_equal))  do
            hp:=tunarynode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same level as the para of the current proc }
@@ -1467,7 +1469,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-10-23 14:44:07  peter
+  Revision 1.86  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.85  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

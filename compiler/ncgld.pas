@@ -80,16 +80,20 @@ implementation
             absolutesym :
                begin
                   { this is only for toasm and toaddr }
-                  if (tabsolutesym(symtableentry).abstyp=toaddr) then
-                   begin
+                  case tabsolutesym(symtableentry).abstyp of
+                    toaddr :
+                      begin
 {$ifdef i386}
-                     if tabsolutesym(symtableentry).absseg then
-                      location.reference.segment:=NR_FS;
+                        if tabsolutesym(symtableentry).absseg then
+                          location.reference.segment:=NR_FS;
 {$endif i386}
-                     location.reference.offset:=tabsolutesym(symtableentry).fieldoffset;
-                   end
-                  else
-                   location.reference.symbol:=objectlibrary.newasmsymboldata(tabsolutesym(symtableentry).mangledname);
+                        location.reference.offset:=tabsolutesym(symtableentry).fieldoffset;
+                      end;
+                    toasm :
+                      location.reference.symbol:=objectlibrary.newasmsymboldata(tabsolutesym(symtableentry).mangledname);
+                    else
+                      internalerror(200310283);
+                  end;
                end;
             constsym:
               begin
@@ -888,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2003-10-17 14:38:32  peter
+  Revision 1.97  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.96  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

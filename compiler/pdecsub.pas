@@ -217,6 +217,7 @@ implementation
       var
         storepos : tfileposinfo;
         vs       : tvarsym;
+        sl       : tsymlist;
       begin
         if not is_void(pd.rettype.def) then
          begin
@@ -246,14 +247,18 @@ implementation
              as the name is lowercase and unreachable from the code }
            if pd.resultname='' then
             pd.resultname:=pd.procsym.name;
-           vs:=tabsolutesym.create_ref(pd.resultname,pd.rettype,tstoredsym(pd.funcretsym));
+           sl:=tsymlist.create;
+           sl.addsym(sl_load,pd.funcretsym);
+           vs:=tabsolutesym.create_ref(pd.resultname,pd.rettype,sl);
            include(vs.varoptions,vo_is_funcret);
            pd.localst.insert(vs);
 
            { insert result also if support is on }
            if (m_result in aktmodeswitches) then
             begin
-              vs:=tabsolutesym.create_ref('RESULT',pd.rettype,tstoredsym(pd.funcretsym));
+              sl:=tsymlist.create;
+              sl.addsym(sl_load,pd.funcretsym);
+              vs:=tabsolutesym.create_ref('RESULT',pd.rettype,sl);
               include(vs.varoptions,vo_is_funcret);
               include(vs.varoptions,vo_is_result);
               pd.localst.insert(vs);
@@ -2127,7 +2132,10 @@ const
 end.
 {
   $Log$
-  Revision 1.148  2003-10-07 21:14:33  peter
+  Revision 1.149  2003-10-28 15:36:01  peter
+    * absolute to object field supported, fixes tb0458
+
+  Revision 1.148  2003/10/07 21:14:33  peter
     * compare_paras() has a parameter to ignore hidden parameters
     * cross unit overload searching ignores hidden parameters when
       comparing parameter lists. Now function(string):string is
