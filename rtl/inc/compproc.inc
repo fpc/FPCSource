@@ -217,17 +217,17 @@ function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
+
+function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;compilerproc;
+procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);compilerproc;
+
 {$ifdef dummy}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
-procedure fpc_help_constructor; compilerproc;
 procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);compilerproc;
-procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);compilerproc;
-function fpc_new_class(_vmt:pointer;_self:pointer):pointer;compilerproc;
-procedure fpc_dispose_class(_self: tobject; flag : longint);compilerproc;
-function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;compilerproc;
 procedure fpc_check_object(obj:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
 {$endif dummy}
+
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
@@ -290,7 +290,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.39  2003-04-25 21:15:20  peter
+  Revision 1.40  2003-05-11 21:39:14  peter
+    * constructor helper added
+
+  Revision 1.39  2003/04/25 21:15:20  peter
     * fpc_big_array changed to 1k only. using maxlongint will crash gdb
 
   Revision 1.38  2003/04/23 21:28:21  peter
