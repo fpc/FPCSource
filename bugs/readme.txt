@@ -378,3 +378,4 @@ bug0275.pp   too many warnings
 bug0277.pp   typecasting with const not possible
 bug0281.pp   dup id checking with property is wrong
 bug0289.pp   no hint/note for unused types
+bug0290.pp   problem with storing hex numbers in integers
