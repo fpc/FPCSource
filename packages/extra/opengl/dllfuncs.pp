@@ -11,9 +11,9 @@ interface
 
 uses SysUtils;
 
-function LoadLibrary(Name: PChar): THandle;
-function GetProcAddress(Lib: THandle; ProcName: PChar): Pointer;
-function FreeLibrary(Lib: THandle): Boolean;
+function LoadLibrary(Name: PChar): PtrInt;
+function GetProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
+function FreeLibrary(Lib: PtrInt): Boolean;
 function getlastdlerror: pchar;
 
 
@@ -41,17 +41,17 @@ begin
   getlastdlerror := dlerror;
 end;
 
-function LoadLibrary(Name: PChar): THandle;
+function LoadLibrary(Name: PChar): PtrInt;
 begin
-  Result := THandle(dlopen(Name, RTLD_LAZY));
+  Result := PtrInt(dlopen(Name, RTLD_LAZY));
 end;
 
-function GetProcAddress(Lib: THandle; ProcName: PChar): Pointer;
+function GetProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
 begin
   Result := dlsym(Pointer(Lib), ProcName);
 end;
 
-function FreeLibrary(Lib: THandle): Boolean;
+function FreeLibrary(Lib: PtrInt): Boolean;
 begin
   if Lib = 0 then
     Result := False
@@ -64,7 +64,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-24 20:04:09  jonas
+  Revision 1.4  2004-12-15 21:17:46  peter
+    * thandle -> ptrint
+
+  Revision 1.3  2004/11/24 20:04:09  jonas
     + basic Mac OS X support, only bounce works for now though
 
   Revision 1.2  2003/08/25 18:16:38  marco
