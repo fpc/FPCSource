@@ -885,6 +885,13 @@ begin
                  end;
              end;
 
+           'M' :
+             begin
+               more:=Upper(more);
+               if not SetCompileMode(more, true) then
+                 IllegalPara(opt);
+             end;
+
            'S' :
              begin
                if more[1]='I' then
@@ -902,13 +909,13 @@ begin
                   while j<=length(more) do
                    begin
                      case more[j] of
-                       '2' :
+                       '2' : //an alternative to -Mobjfpc
                          SetCompileMode('OBJFPC',true);
                        'a' :
                          include(initlocalswitches,cs_do_assertion);
                        'c' :
                          include(initmoduleswitches,cs_support_c_operators);
-                       'd' :
+                       'd' : //an alternative to -Mdelphi
                          SetCompileMode('DELPHI',true);
                        'e' :
                          begin
@@ -923,9 +930,9 @@ begin
                          include(initmoduleswitches,cs_support_inline);
                        'm' :
                          include(initmoduleswitches,cs_support_macro);
-                       'o' :
+                       'o' : //an alternative to -Mtp
                          SetCompileMode('TP',true);
-                       'p' :
+                       'p' : //an alternative to -Mgpc
                          SetCompileMode('GPC',true);
                        's' :
                          include(initglobalswitches,cs_constructor_name);
@@ -1967,7 +1974,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.105  2003-09-14 21:33:11  peter
+  Revision 1.106  2003-09-17 21:37:07  olle
+    + added command line option for language mode -M<x>
+
+  Revision 1.105  2003/09/14 21:33:11  peter
     * don't check exepath when linking on target
 
   Revision 1.104  2003/09/06 10:41:54  olle
