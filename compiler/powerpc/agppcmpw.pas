@@ -141,32 +141,36 @@ interface
          'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
          'mtctr', 'mfctr');
 
-     symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
-    function getreferencestring(var ref : treference) : string;
+function getreferencestring(var ref : treference) : string;
     var
       s : string;
     begin
        with ref do
         begin
           inc(offset,offsetfixup);
-          if ((offset < -32768) or (offset > 32767)) and
-             (symaddr = refs_full) then
-            internalerror(19991);
-          if (symaddr = refs_full) then
-            s := ''
-          else if not assigned(symbol) then
-            s := '('
-          else
+
+          if (symaddr <> refs_full) then
+            InternalError(2002110301)
+          else if ((offset < -32768) or (offset > 32767)) then
+            InternalError(19991);
+
+
+          if assigned(symbol) then
             begin
-              {s:='('+symbol.name; CHANGED from this to: }
               s:= symbol.name;
               ReplaceForbiddenChars(s);
-              s:='('+s;
-            end;
+              {if symbol.typ = AT_FUNCTION then
+                  ;}
+
+              s:= s+'[TC]' {ref to TOC entry }
+            end
+          else
+            s:= '';
+
 
           if offset<0 then
-           s:=s+tostr(offset)
+            s:=s+tostr(offset)
           else
            if (offset>0) then
             begin
@@ -176,23 +180,16 @@ interface
                s:=s+tostr(offset);
             end;
 
-           if (symaddr <> refs_full) then
-             s := s+')'+symaddr2str[symaddr];
-
-           if (index=R_NO) and (base<>R_NO) then
-             begin
-                if offset=0 then
-                  begin
-                     if assigned(symbol) then
-                       s:=s+'+0'
-                     else
-                       s:=s+'0';
-                  end;
-                s:=s+'('+mpw_reg2str[base]+')'
-             end
-           else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
-             s:=s+mpw_reg2str[base]+','+mpw_reg2str[index]
-           else if ((index<>R_NO) or (base<>R_NO)) then
+          if (index=R_NO) and (base<>R_NO) then
+            begin
+              if offset=0 then
+                if not assigned(symbol) then
+                  s:=s+'0';
+              s:=s+'('+mpw_reg2str[base]+')'
+            end
+          else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
+            s:=s+mpw_reg2str[base]+','+mpw_reg2str[index]
+          else if ((index<>R_NO) or (base<>R_NO)) then
             internalerror(19992);
         end;
       getreferencestring:=s;
@@ -492,8 +489,6 @@ interface
 {$endif GDB}
                   ait_cut,ait_marker,ait_align,ait_section];
 
-        {TODO: Perhaps replace internalerror(10000) with something else}
-
     var
       s,
       prefix,
@@ -596,7 +591,7 @@ interface
                    1:AsmWriteLn(#9'align 0');
                    2:AsmWriteLn(#9'align 1');
                    4:AsmWriteLn(#9'align 2');
-                   otherwise internalerror(10000);
+                   otherwise internalerror(2002110302);
                  end;
               end;
             ait_datablock:
@@ -608,7 +603,10 @@ interface
                      AsmWriteLn(#9'export'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
                    else
                      AsmWriteLn(#9'export'#9+s);
-                 AsmWriteLn(PadTabs(s,#0)+'DS.B '+tostr(tai_datablock(hp).size));
+
+                 AsmWriteLn(#9'csect'#9+s+'[TC]');
+
+                 AsmWriteLn(PadTabs(s+':',#0)+'ds.b '+tostr(tai_datablock(hp).size));
                  {TODO: ? PadTabs(s,#0) }
               end;
             ait_const_32bit,
@@ -632,13 +630,38 @@ interface
                end;
             ait_const_symbol:
               begin
+                (*
                  AsmWriteLn(#9#9'dd'#9'offset '+tai_const_symbol(hp).sym.name);
                  if tai_const_symbol(hp).offset>0 then
                    AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
                  else if tai_const_symbol(hp).offset<0 then
                    AsmWrite(tostr(tai_const_symbol(hp).offset));
                  AsmLn;
-               end;
+                *)
+
+                s:= tai_const_symbol(hp).sym.name;
+                ReplaceForbiddenChars(s);
+
+
+                if tai_const_symbol(hp).sym.typ = AT_FUNCTION then
+                  AsmWriteLn(#9'dc.l'#9'.'+ s +'[PR]')
+                else
+                  AsmWriteLn(#9'dc.l'#9+ s);
+
+                (* TODO: the following might need to be included. Temporaily we
+                generate an error
+
+                if tai_const_symbol(hp).offset>0 then
+                  AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
+                else if tai_const_symbol(hp).offset<0 then
+                  AsmWrite(tostr(tai_const_symbol(hp).offset));
+                *)
+
+                if tai_const_symbol(hp).offset <> 0 then
+                  InternalError(2002110101);
+
+                AsmLn;
+              end;
             ait_real_32bit:
               AsmWriteLn(#9'dc.l'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
             ait_real_64bit:
@@ -727,6 +750,9 @@ interface
                   begin
                     s:= tai_label(hp).l.name;
                     ReplaceForbiddenChars(s);
+                    if s[1] <> '@' then
+                      AsmWriteLn(#9'csect'#9+s+'[TC]');
+
                     AsmWrite(s);
                     {if assigned(hp.next) and not(tai(hp.next).typ in
                        [ait_const_32bit,ait_const_16bit,ait_const_8bit,
@@ -745,6 +771,14 @@ interface
                end;
              ait_symbol:
                begin
+                  {Two adjacent symbols, which only differ in case, is to be treated as
+                  a single symbol, due to the case insensitivity of PPCAsm.}
+                  if (not (tai(hp.next)=nil)) and (tai(hp.next).typ=ait_stab_function_name) then
+                    if (not (tai(hp.next.next)=nil)) and (tai(hp.next.next).typ=ait_symbol) then
+                      if CompareText(tai_label(hp).l.name,tai_label(hp.next.next).l.name) = 0  then
+                        hp:=tai(hp.next.next);
+
+
                   s:= tai_label(hp).l.name;
                   replaced:= ReplaceForbiddenChars(s);
                   if tai_label(hp).l.typ=AT_FUNCTION then
@@ -779,6 +813,7 @@ interface
                            AsmWriteLn(#9'export'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
                          else
                            AsmWriteLn(#9'export'#9+s);
+                       AsmWriteLn(#9'csect'#9+s+'[TC]');
                        AsmWrite(s);
                        AsmWriteLn(':');
                     end;
@@ -836,7 +871,7 @@ ait_stab_function_name : ;
                  dec(InlineLevel);
              end;
          else
-          internalerror(10000);
+          internalerror(2002110303);
          end;
          hp:=tai(hp.next);
        end;
@@ -980,7 +1015,7 @@ ait_stab_function_name : ;
             labelprefix : '@';
             comment : '; ';
             secnames : ('',
-              'csect','csect','csect',  {TODO: Perhaps use other section types.}
+              'csect','csect [TC]','csect [TC]',  {TODO: Perhaps use other section types.}
               '','','','','','',
               '','','')
           );
@@ -990,7 +1025,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2002-10-23 15:31:01  olle
+  Revision 1.13  2002-11-04 18:24:53  olle
+    * globals are located in TOC and relative r2, instead of absolute
+    * symbols which only differs in case are treated as a single symbol
+    + tai_const_symbol supported
+    * only refs_full accepted
+
+  Revision 1.12  2002/10/23 15:31:01  olle
     * branch b does not jump to dotted symbol now
 
   Revision 1.11  2002/10/19 23:52:40  olle
