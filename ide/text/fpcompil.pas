@@ -92,7 +92,7 @@ uses
   Linux,
 {$endif}
   Dos,Video,
-  App,Commands,
+  App,Commands,tokens,
   CompHook, systems, browcol,
   WUtils,WEditor,
   FPRedir,
@@ -583,7 +583,11 @@ begin
 {$endif TEMPHEAP}
   if mode=cBuild then
     FileName:='-B '+FileName;
+  { tokens are created and distroed by compiler.compile !! PM }
+  DoneTokens;
   Compile(FileName);
+  { tokens are created and distroed by compiler.compile !! PM }
+  InitTokens;
   if LinkAfter and
      (CompilationPhase<>cpAborted) and
      (status.errorCount=0) then
@@ -738,7 +742,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  1999-09-16 14:34:57  pierre
+  Revision 1.40  1999-09-20 15:36:38  pierre
+   * adapted to new tokens unit
+
+  Revision 1.39  1999/09/16 14:34:57  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
