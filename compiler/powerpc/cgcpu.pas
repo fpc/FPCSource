@@ -1889,7 +1889,7 @@ const
 
     procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
       var
-        sizereg,sourcereg : tregister;
+        sizereg,sourcereg,destreg : tregister;
         paraloc1,paraloc2,paraloc3 : tparalocation;
       begin
         { because ppc abi doesn't support dynamic stack allocation properly
@@ -1897,26 +1897,27 @@ const
         }
         { allocate two registers for len and source }
         sizereg:=getintregister(list,OS_INT);
-        sourcereg:=getintregister(list,OS_INT);
+        sourcereg:=getintregister(list,OS_ADDR);
+        destreg:=getintregister(list,OS_ADDR);
+        
         { calculate necessary memory }
         a_load_ref_reg(list,OS_INT,OS_INT,lenref,sizereg);
+        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,sizereg,sizereg);
         a_op_const_reg_reg(list,OP_MUL,OS_INT,elesize,sizereg,sizereg);
         { load source }
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg);
 
         { do getmem call }
         paraloc1:=paramanager.getintparaloc(pocall_default,1);
-        paraloc2:=paramanager.getintparaloc(pocall_default,2);
-        paramanager.allocparaloc(list,paraloc2);
-        a_param_reg(list,OS_INT,sizereg,paraloc2);
         paramanager.allocparaloc(list,paraloc1);
-        a_paramaddr_ref(list,ref,paraloc1);
-        paramanager.freeparaloc(list,paraloc2);
+        a_param_reg(list,OS_INT,sizereg,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name(list,'FPC_GETMEM');
         deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-
+	a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R3,destreg);
+	a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R3,ref);
+	
         { do move call }
         paraloc1:=paramanager.getintparaloc(pocall_default,1);
         paraloc2:=paramanager.getintparaloc(pocall_default,2);
@@ -1926,7 +1927,7 @@ const
         a_param_reg(list,OS_INT,sizereg,paraloc3);
         { load destination }
         paramanager.allocparaloc(list,paraloc2);
-        a_param_ref(list,OS_ADDR,ref,paraloc2);
+        a_param_reg(list,OS_ADDR,destreg,paraloc2);
         { load source }
         paramanager.allocparaloc(list,paraloc1);
         a_param_reg(list,OS_ADDR,sourcereg,paraloc1);
@@ -1940,6 +1941,7 @@ const
         { release used registers }
         ungetregister(list,sizereg);
         ungetregister(list,sourcereg);
+        ungetregister(list,destreg);
       end;
 
 
@@ -2316,7 +2318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.150  2003-12-26 14:02:30  peter
+  Revision 1.151  2003-12-28 19:22:27  florian
+    * handling of open array value parameters fixed
+
+  Revision 1.150  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 
