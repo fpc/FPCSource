@@ -24,6 +24,7 @@ end;
 function  TWriter.GetPosition: Longint;
 
 begin
+  GetPosition:=0;
 end;
 
 
@@ -39,7 +40,7 @@ begin
 end;
 
 
-Procedure TWriter.WriteData(Instance: TComponent); 
+Procedure TWriter.WriteData(Instance: TComponent);
 
 begin
 end;
@@ -81,7 +82,7 @@ begin
 end;
 
 
-Destructor TWriter.Destroy; 
+Destructor TWriter.Destroy;
 
 begin
 end;
@@ -89,7 +90,7 @@ end;
 
 Procedure TWriter.DefineProperty(const Name: string;
   rd : TReaderProc; wd : TWriterProc;
-  HasData: Boolean); 
+  HasData: Boolean);
 
 begin
 end;
@@ -97,13 +98,13 @@ end;
 
 Procedure TWriter.DefineBinaryProperty(const Name: string;
   rd, wd: TStreamProc;
-  HasData: Boolean); 
+  HasData: Boolean);
 
 begin
 end;
 
 
-Procedure TWriter.FlushBuffer; 
+Procedure TWriter.FlushBuffer;
 
 begin
 end;
@@ -199,7 +200,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.2  1999-04-08 10:18:58  peter
+    * makefile updates
 
 }

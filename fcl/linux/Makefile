@@ -1,105 +1,129 @@
-#######################################################################
-#   Makefile for Free Pascal
-#   (C) 1998 Michael van Canneyt
-#######################################################################
 #
-#  Configurable section
+#   $Id$
+#   Copyright (c) 1999 by the Free Pascal Development Team
+#
+#   Makefile for Free Component Library for Linux
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
-# What Compiler should we use ?
-# PP=/home/michael/fpk/compiler/ppc386
-PP=ppc386
 
-# Where are the Free Pascal units ? (Optional)
-UNITDIR = /home/michael/fpk/rtl/linux
+#####################################################################
+# Defaults
+#####################################################################
+
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=../..
+
+# Include files
+INC=../inc
+PROCINC=../$(CPU)
+
+# Where to place the files
+TARGETDIR=.
+
+# We need always -S2
+NEEDOPT=-S2
+
+# As default make only the units
+DEFAULTUNITS=1
 
 
-# Processor you are using
-CPU=i386
-#CPU=m68k
+#####################################################################
+# Real targets
+#####################################################################
 
-# Any options you wish to pass to the compiler
-OPT=
+UNITOBJECTS=classes
+EXEOBJECTS=
 
-# Where to install the units ?
-UNITINSTALLDIR=/usr/lib/fpc/0.99.11/fcl
 
-# Where to install the programs ?
-BININSTALLDIR=/usr/local/bin
+#####################################################################
+# Common targets
+#####################################################################
 
-# Install program ?
-INSTALL=install -m 644
+.PHONY: all clean install info \
+        staticlib sharedlib libsclean \
+        staticinstall sharedinstall libinstall \
+        
+all: testfpcmake fpc_all
 
-# Mkdir program ?
-MKDIR=install -m 755
+clean: testfpcmake fpc_clean
 
-#######################################################################
-# End of configurable section. Do not edit below this line.
-#######################################################################
+install: testfpcmake fpc_install
 
-.SUFFIXES: .pp .ppu .pas
-.PHONY: all install clean units progs
+info: testfpcmake fpc_info
 
-INCDIR=../inc
-CPUDIR=../$(CPU)
+staticlib: testfpcmake fpc_staticlib
 
-include $(INCDIR)/Makefile.inc
+sharedlib: testfpcmake fpc_sharedlib
 
-# Set inc
-INCFILENAMES=$(addprefix $(INCDIR)/,$(INCNAMES))
+libsclean: testfpcmake fpc_libsclean
 
-# If nothing special needs doing, then just fill in the names here.
-# The rest should be automatic.
-UNITNAMES=classes
-PROGNAMES=
-UNITOBJECTS=$(addsuffix .o, $(UNITNAMES))
-UNITFILES=$(addsuffix .ppu, $(UNITNAMES))
-PROGSOURCES=$(addsiffix .pp, $(PROGNAMES))
-PROGOBJECTS=$(addsuffix .o, $(PROGNAMES))
+staticinstall: testfpcmake fpc_staticinstall
 
-# Adapt options. Add unit path if needed.
-override OPT:=$(OPT) -S2 -I$(INCDIR) -I$(CPUDIR)
+sharedinstall: testfpcmake fpc_sharedinstall
 
-ifdef UNITDIR
-override OPT:=$(OPT) -Up$(UNITDIR) 
+libinstall: testfpcmake fpc_libinstall
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit
+else
+include $(FPCMAKE)
+testfpcmake:
 endif
 
 
-# Default rule for units
-.pp.ppu:
-	$(PP) $(OPT) $<
 
-# Default target.
-all: $(UNITFILES) $(PROGNAMES)
+#####################################################################
+# Dependencies
+#####################################################################
 
-units: $(UNITFILES)
+vpath %$(PASEXT) $(INC)
 
-progs: $(PROGNAMES)
+include $(INC)/Makefile.inc
+INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
-# Default rule for programs
-$(PROGNAMES): %:%.pp
-	$(PP) $(OPT) $<
+classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
-classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES)
-	$(PP) $(OPT) $<
-
-classes.pp:
-	cp $(INCDIR)/classes.pp .
-	
 #
-# Generic install and clean targets
+# $Log$
+# Revision 1.7  1999-04-08 10:18:59  peter
+#   * makefile updates
 #
-
-install: all
-	$(MKDIR) $(UNITINSTALLDIR)
-ifdef UNITNAMES
-	$(INSTALL) $(UNITNAMES) $(UNITINSTALLDIR)
-endif
-ifdef PROGNAMES
-	$(INSTALL) $(PROGNAMES) $(BININSTALLDIR)
-endif
-
-clean:
-	rm -f $(UNITOBJECTS) $(UNITFILES) $(PROGNAMES) $(PROGOBJECTS)
-
-# End of makefile.
+#

@@ -102,6 +102,7 @@
 
     begin
        {!!!!!}
+       ReadComponentRes:=nil;
     end;
 
   procedure TStream.WriteComponent(Instance: TComponent);
@@ -130,7 +131,7 @@
        { Application defined data }
        WriteWord($0a);
        { write the name as asciiz }
-      // WriteBuffer(ResName[1],length(ResName));
+//       WriteBuffer(ResName[1],length(ResName));
        WriteByte(0);
        { Movable, Pure and Discardable }
        WriteWord($1030);
@@ -223,7 +224,7 @@
 
     Var TheSize : Longint;
         P : PByte ;
-  
+
 
   begin
     ReadBuffer (TheSize,SizeOf(TheSize));
@@ -235,7 +236,7 @@
     end;
 
   Procedure TStream.WriteAnsiString (S : String);
-  
+
   Var L : Longint;
 
   begin
@@ -304,7 +305,7 @@ begin
   else
     FHAndle:=FileOpen(FileName,Mode);
   If FHandle<0 then
-    If Mode=fmcreate then    
+    If Mode=fmcreate then
       raise EFCreateError.createfmt(SFCreateError,[FileName])
     else
       raise EFOpenError.Createfmt(SFOpenError,[Filename]);
@@ -466,7 +467,7 @@ begin
   Try
     S:=TFileStream.Create (FileName,fmOpenRead);
     LoadFromStream(S);
-  finally 
+  finally
     S.free;
   end;
 end;
@@ -481,7 +482,7 @@ begin
 end;
 
 
-function TMemoryStream.Write(const Buffer; Count: Longint): Longint; 
+function TMemoryStream.Write(const Buffer; Count: Longint): Longint;
 
 Var NewPos : Longint;
 
@@ -505,7 +506,7 @@ end;
 {*                             TStringStream                                *}
 {****************************************************************************}
 
-procedure TStringStream.SetSize(NewSize: Longint); 
+procedure TStringStream.SetSize(NewSize: Longint);
 
 begin
  //!! Setlength(FDataString,NewSize);
@@ -521,7 +522,7 @@ begin
 end;
 
 
-function TStringStream.Read(var Buffer; Count: Longint): Longint; 
+function TStringStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
   Result:=Length(FDataString)-FPosition;
@@ -541,10 +542,11 @@ begin
   If NewLen>Count then NewLen:=Count;
   //!! SetLength(Result,NewLen);
   //!! Read (Pointer(Result)^,NewLen);
+  ReadString:='';
 end;
 
 
-function TStringStream.Seek(Offset: Longint; Origin: Word): Longint; 
+function TStringStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   Case Origin of
@@ -558,7 +560,7 @@ begin
 end;
 
 
-function TStringStream.Write(const Buffer; Count: Longint): Longint; 
+function TStringStream.Write(const Buffer; Count: Longint): Longint;
 
 begin
   Result:=Count;
@@ -599,54 +601,22 @@ begin
 end;
 
 
-destructor TResourceStream.Destroy; 
+destructor TResourceStream.Destroy;
 
 begin
 end;
 
 
-function TResourceStream.Write(const Buffer; Count: Longint): Longint; 
+function TResourceStream.Write(const Buffer; Count: Longint): Longint;
 
 begin
+  Write:=0;
 end;
 
 
 {
   $Log$
-  Revision 1.12  1999-02-10 14:12:26  michael
-  + Some strange bug in writecoponentres
-
-  Revision 1.11  1999/02/06 07:16:48  michael
-  + Fixed Stream.ReadAnsiString
-
-  Revision 1.10  1999/02/02 21:23:19  michael
-  + only sysutils is used now
-
-  Revision 1.9  1999/01/28 23:55:42  florian
-    * made it compilable
-
-  Revision 1.8  1998/10/02 22:41:30  michael
-  + Added exceptions for error handling
-
-  Revision 1.7  1998/08/24 12:38:24  michael
-  small fixes
-
-  Revision 1.6  1998/06/11 21:15:28  michael
-  + Implemented (Custom)Memory and StringStream
-
-  Revision 1.5  1998/06/11 13:46:33  michael
-  + Fixed some functions. TFileStream OK.
-
-  Revision 1.4  1998/06/10 21:53:07  michael
-  + Implemented Handle/FileStreams
-
-  Revision 1.3  1998/05/06 12:58:35  michael
-  + Added WriteAnsiString method to TStream
-
-  Revision 1.2  1998/05/05 15:25:04  michael
-  + Fix to be able to compile from florian
-
-  Revision 1.1  1998/05/04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.13  1999-04-08 10:18:55  peter
+    * makefile updates
 
 }

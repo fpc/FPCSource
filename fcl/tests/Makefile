@@ -1,78 +1,118 @@
-#######################################################################
-#   Makefile for Free Pascal
-#   (C) 1998 Michael van Canneyt
-#######################################################################
 #
-#  Configurable section
+#   $Id$
+#   Copyright (c) 1999 by the Free Pascal Development Team
+#
+#   Makefile for Free Component Library for Linux
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
-# What Compiler should we use ?
-PP=../../compiler/ppc386
 
-# Where are the Free Pascal units ? (Optional)
-UNITDIR = ../linux\;../../rtl/linux
+#####################################################################
+# Defaults
+#####################################################################
+
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=../..
+
+# Where need we to place the executables/ppu/objects
+TARGETDIR=.
+
+# Needed units
+NEEDUNITDIR=../$(OS_TARGET)
+
+# We need always -S2
+NEEDOPT=-S2
 
 
-# Any options you wish to pass to the compiler
-OPT=
+#####################################################################
+# Real targets
+#####################################################################
 
-# Where to install the units ?
-UNITINSTALLDIR=/usr/lib/fpc/0.99.5/linuxunits
+UNITOBJECTS=
+EXEOBJECTS=stringl dparser fstream mstream list
 
-# Where to install the programs ?
-BININSTALLDIR=/usr/local/bin
 
-#######################################################################
-# End of configurable section. Do not edit below this line.
-#######################################################################
+#####################################################################
+# Common targets
+#####################################################################
 
-.SUFFIXES: .pp .ppu .pas
-.PHONY: all install clean units progs
+.PHONY: all clean install info \
+        staticlib sharedlib libsclean \
+        staticinstall sharedinstall libinstall \
+        
+all: testfpcmake fpc_all
 
-# If nothing special needs doing, then just fill in the names here.
-# The rest should be automatic.
-#UNITNAMES=
-PROGNAMES=fstream mstream list dparser stringl
-UNITOBJECTS=$(addsuffix .o, $(UNITNAMES))
-UNITFILES=$(addsuffix .ppu, $(UNITNAMES))
-PROGSOURCES=$(addsiffix .pp, $(PROGNAMES))
-PROGOBJECTS=$(addsuffix .o, $(PROGNAMES))
+clean: testfpcmake fpc_clean
 
-# Adapt options. Add unit path if needed.
-ifdef UNITDIR
-override OPT:=$(OPT) -S2 -Up$(UNITDIR)
+install: testfpcmake fpc_install
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit 1
+else
+include $(FPCMAKE)
+testfpcmake:
 endif
 
 
-# Default rule for units
-.pp.ppu:
-	$(PP) $(OPT) $<
 
-# Default target.
-all: $(UNITFILES) $(PROGNAMES)
-
-units: $(UNITFILES)
-
-progs: $(PROGNAMES)
-
-# Default rule for programs
-$(PROGNAMES): %:%.pp
-	$(PP) $(OPT) $<
+#####################################################################
+# Dependencies
+#####################################################################
 
 #
-# Generic install and clean targets
+# $Log$
+# Revision 1.4  1999-04-08 10:19:04  peter
+#   * makefile updates
 #
-
-install: all
-	install -m 755 $(UNITINSTALLDIR)
-ifdef UNITNAMES
-	install -m 666 $(UNITNAMES) $(UNITINSTALLDIR)
-endif
-ifdef PROGNAMES
-	install -m 755 $(PROGNAMES) $(BININSTALLDIR)
-endif
-
-clean:
-	rm -f $(UNITOBJECTS) $(UNITFILES) $(PROGNAMES) $(PROGOBJECTS)
-
-# End of makefile.
+#

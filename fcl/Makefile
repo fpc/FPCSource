@@ -1,105 +1,125 @@
-#****************************************************************************
-#                     Makefile for Free Component Library
-#            Copyright (c) 1998 by the Free Pascal Development Team
-#****************************************************************************
+#
+#   $Id$
+#   Copyright (c) 1999 by the Free Pascal Development Team
+#
+#   Makefile for Free Component Library
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+
 
 #####################################################################
-# Start of configurable section
+# Defaults
 #####################################################################
 
-# What compiler do you want to use :
-# !! If you specify a path, specify an absolute path !!
-#PP=/pas/fpk/curver/ppc386
-PP=ppc386
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=..
 
-# What is your OS ?
-# Possible choices : linux win32 go32v2 go32v1 os2
-#OS_SRC=linux
-#OS_SRC=win32
-#OS_SRC=go32v1
-OS_SRC=go32v2
-#OS_SRC=os2
 
-# Where do you want to install the units ?
-UNITINSTALLDIR=/usr/lib/ppc/0.99.6/fcl
-# UNITINSTALLDIR=\pp\units\fcl
+#####################################################################
+# Common targets
+#####################################################################
 
-# set target processor type
-CPU=i386
-# CPU=m68k
+.PHONY: all clean install info \
+        staticlib sharedlib libsclean \
+        staticinstall sharedinstall libinstall \
 
-# Where is the ppumove program ? (set only if you want to make libs)
-# Don't specify a relative path.
-PPUMOVE=ppumove
+all: testfpcmake
+	$(MAKE) -C $(OS_TARGET) all
+        
+clean: testfpcmake
+	$(MAKE) -C go32v2 clean
+	$(MAKE) -C linux clean
+	$(MAKE) -C win32 clean
+	$(MAKE) -C os2 clean
+	$(MAKE) -C tests clean
 
-# Set any options you wish to give to the compiler
-OPT=
+install: testfpcmake
+	$(MAKE) -C $(OS_TARGET) install
 
-#######################################################################
-# End of configurable section.
-# Do not edit after this line.
-#######################################################################
+info: testfpcmake fpc_info
 
-# Where are we ?
-BASEDIR=$(shell pwd)
-ifeq ($(findstring :,$(BASEDIR)),)
-inlinux=1
+staticlib: testfpcmake
+	$(MAKE) -C $(OS_TARGET) staticlib
+
+sharedlib: testfpcmake
+	$(MAKE) -C $(OS_TARGET) sharedlib
+
+libsclean: testfpcmake
+	$(MAKE) -C $(OS_TARGET) libsclean
+
+staticinstall: testfpcmake
+	$(MAKE) -C $(OS_TARGET) staticinstall
+
+sharedinstall: testfpcmake
+	$(MAKE) -C $(OS_TARGET) sharedinstall
+
+libinstall: testfpcmake
+	$(MAKE) -C $(OS_TARGET) libinstall
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
 endif
-ifeq ($(strip $(BASEDIR)),'')
-inlinux=
-BASEDIR:=.
 endif
 
-# Check operating system.
-ifeq ($(OS_SRC),linux)
-DOS=NO
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
 else
-DOS=YES
-# also redirect the standard error to the redir file
-ifdef REDIR
-PP:=redir -eo $(PP)
-# set the verbosity to max
-OPT:=$(OPT) -va
+FPCMAKE=makefile.fpc
 endif
 endif
 
-# Check copy delete commands.
-# You need cp from GNU to handle / as directory separator
-COPY=cp -p
-DEL=rm
-
-# To install programs
-ifndef INSTALL
-ifeq ($(DOS),YES)
-INSTALL=cp
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit 1
 else
-INSTALL=install
-endif
-endif
-
-# To make a directory.
-ifndef MKDIR
-ifeq ($(DOS),YES)
-MKDIR=mkdir
-else
-MKDIR=install -m 755 -d
-endif
+include $(FPCMAKE)
+testfpcmake:
 endif
 
-# add target processor define to command line options
-OPT:=$(OPT) -d$(CPU)
-
-# Variables to export
-export OS_SRC DOS SEP PP OPT REDIR COPY DEL LIBINSTALLDIR INSTALL MKDIR \
-       REFPATH CPU PPUMOVE UNITINSTALLDIR
-
-.PHONY: native all linux win32 os2 go32v2 clean install
-
-native: $(OS_SRC)
-
-all: linux go32v2 win32 os2
 
 
+#####################################################################
+# Dependencies
+#####################################################################
+
+.PHONY: tests examples go32v2 linux os win32
+
+#
+# Examples
+#
+examples: tests
+
+tests: all
+	$(MAKE) -C tests all
+
+
+#
+# Specific OS
+#
 go32v2:
 	$(MAKE) -C go32v2
 
@@ -112,13 +132,9 @@ os2:
 win32:
 	$(MAKE) -C win32
 
-clean:
-	$(MAKE) -C inc clean
-	$(MAKE) -C i386 clean
-	$(MAKE) -C go32v2 clean
-	$(MAKE) -C linux clean
-	$(MAKE) -C os2 clean
-	$(MAKE) -C win32 clean
-
-install:
-	$(MAKE) -C $(OS_SRC) install
+#
+# $Log$
+# Revision 1.3  1999-04-08 10:18:47  peter
+#   * makefile updates
+#
+#

@@ -11,11 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {****************************************************************************}
 {*                             TParser                                      *}
 {****************************************************************************}
-
-{!!!TSE 21.09.1998 Changed by Thomas Seban (TSE) }
 
 const
   ParseBufSize     = 4096;
@@ -26,6 +25,7 @@ end;
 
 function HexToBin(Text, Buffer: PChar; BufSize: Integer) : Integer;
 begin
+  HexToBin:=0;
 end;
 
 procedure TParser.ReadBuffer;
@@ -36,20 +36,20 @@ begin
 
   FSourceEnd[0] := FSaveChar;
   Count         := FBufPtr - FSourcePtr;
-  if Count <> 0 then 
+  if Count <> 0 then
   begin
     Move(FSourcePtr[0], FBuffer[0], Count);
   end;
-  
+
   FBufPtr := FBuffer + Count;
   Inc(FBufPtr, FStream.Read(FBufPtr[0], FBufEnd - FBufPtr));
-  
+
   FSourcePtr := FBuffer;
   FSourceEnd := FBufPtr;
   if (FSourceEnd = FBufEnd) then
   begin
     FSourceEnd := LineStart(FBuffer, FSourceEnd - 1);
-    if FSourceEnd = FBuffer then 
+    if FSourceEnd = FBuffer then
     begin
       Error(SLineTooLong);
     end;
@@ -83,10 +83,10 @@ end;
 constructor TParser.Create(Stream: TStream);
 begin
   inherited Create;
-  
+
   FStream := Stream;
   GetMem(FBuffer, ParseBufSize);
-  
+
   FBuffer[0]  := #0;
   FBufPtr     := FBuffer;
   FBufEnd     := FBuffer + ParseBufSize;
@@ -94,7 +94,7 @@ begin
   FSourceEnd  := FBuffer;
   FTokenPtr   := FBuffer;
   FSourceLine := 1;
-  
+
   NextToken;
 end;
 
@@ -106,13 +106,13 @@ begin
     FStream.Seek(Longint(FTokenPtr) - Longint(FBufPtr), 1);
     FreeMem(FBuffer, ParseBufSize);
   end;
-  
+
   inherited Destroy;
 end;
 
 procedure TParser.CheckToken(T : Char);
 begin
-  if Token <> T then 
+  if Token <> T then
   begin
     case T of
       toSymbol:
@@ -129,7 +129,7 @@ end;
 
 procedure TParser.CheckTokenSymbol(const S: string);
 begin
-  if not TokenSymbolIs(S) then 
+  if not TokenSymbolIs(S) then
     ErrorFmt(SSymbolExpected, [S]);
 end;
 
@@ -205,7 +205,7 @@ begin
                 while True do
                 begin
                   case P^ of
-                    #0, #10, #13: 
+                    #0, #10, #13:
                       Error(SInvalidString);
                     '''':
                       begin
@@ -281,13 +281,7 @@ var
   Back             : Real;
 begin
   Result   := 0;
-
-  // doesn't work, overload function not found
-  // systemh.inc compiled without -S2 switch => SizeOf(Integer) = 2
-  // classes.pp compiled with -S2 switch => SizeOf(Integer) = 4
-  // Val(TokenString, Back, FloatError); 
-  
-  Val(TokenString, Back); // this works fine
+  Val(TokenString, Back, FloatError);
   Result := Back;
 end;
 
@@ -302,11 +296,11 @@ var
   StrBuf           : array[0..1023] of Char;
 begin
   if FToken = toString then begin
-    L := FStringPtr - FTokenPtr 
+    L := FStringPtr - FTokenPtr
   end else begin
     L := FSourcePtr - FTokenPtr;
   end;
-  
+
   StrLCopy(StrBuf, FTokenPtr, L);
   Result := StrPas(StrBuf);
 end;
@@ -317,21 +311,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  1999-01-28 23:55:41  florian
-    * made it compilable
-
-  Revision 1.4  1998/10/30 14:52:51  michael
-  + Added format in interface
-  + Some errors in parser fixed, it uses exceptions now
-  + Strings now has no more syntax errors.
-
-  Revision 1.3  1998/10/02 22:41:28  michael
-  + Added exceptions for error handling
-
-  Revision 1.2  1998/09/23 07:48:11  michael
-  + Implemented by TSE
-
-  Revision 1.1  1998/05/04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.6  1999-04-08 10:18:53  peter
+    * makefile updates
 
 }

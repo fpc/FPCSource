@@ -25,6 +25,7 @@ end;
 function TThread.GetPriority: TThreadPriority;
 
 begin
+  GetPriority:=tpNormal;
 end;
 
 
@@ -40,7 +41,7 @@ begin
 end;
 
 
-procedure TThread.DoTerminate; 
+procedure TThread.DoTerminate;
 
 begin
 end;
@@ -85,12 +86,13 @@ end;
 function TThread.WaitFor: Integer;
 
 begin
+  WaitFor:=0;
 end;
 
 
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.2  1999-04-08 10:18:57  peter
+    * makefile updates
 
 }

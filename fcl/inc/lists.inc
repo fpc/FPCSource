@@ -22,14 +22,14 @@
     FCount: Integer;
     FCapacity: Integer;
 }
-Const 
+Const
   // Ratio of Pointer and Word Size.
   WordRatio = SizeOf(Pointer) Div SizeOf(Word);
 
 function TList.Get(Index: Integer): Pointer;
 
 begin
-  If (Index<0) or (Index>FCount) then 
+  If (Index<0) or (Index>FCount) then
     Error(SListIndexError,Index);
   Result:=FList^[Index];
 end;
@@ -47,7 +47,7 @@ end;
 procedure TList.Put(Index: Integer; Item: Pointer);
 
 begin
-  if (Index<0) or (Index>=FCount) then 
+  if (Index<0) or (Index>=FCount) then
     Error(SListIndexError,Index);
   Flist^[Index]:=Item;
 end;
@@ -57,10 +57,10 @@ end;
 procedure TList.SetCapacity(NewCapacity: Integer);
 
 Var NewList,ToFree : PPointerList;
-    
+
 begin
-  If (NewCapacity<0) or (NewCapacity>MaxListSize) then 
-     Error (SListCapacityError,NewCapacity); 
+  If (NewCapacity<0) or (NewCapacity>MaxListSize) then
+     Error (SListCapacityError,NewCapacity);
   If NewCapacity>FCapacity then
     begin
     GetMem (NewList,NewCapacity*SizeOf(Pointer));
@@ -95,14 +95,14 @@ begin
     Error(SListCountError,NewCount);
   If NewCount<FCount then
     FCount:=NewCount
-  else If NewCount>FCount then 
+  else If NewCount>FCount then
     begin
-    If NewCount>FCapacity then 
+    If NewCount>FCapacity then
       SetCapacity (NewCount);
-    If FCount<NewCount then 
+    If FCount<NewCount then
       FillWord (Flist^[FCount],(NewCount-FCount)* WordRatio ,0);
     FCount:=Newcount;
-    end;   
+    end;
 end;
 
 
@@ -132,7 +132,7 @@ begin
     FreeMem (Flist,FCapacity*SizeOf(Pointer));
     FList:=Nil;
     FCapacity:=0;
-    FCount:=0;    
+    FCount:=0;
     end;
 end;
 
@@ -177,7 +177,7 @@ Var IncSize : Longint;
 
 begin
   if FCount<FCapacity then exit;
-  IncSize:=4;   
+  IncSize:=4;
   if FCapacity>3 then IncSize:=IncSize+4;
   if FCapacity>8 then IncSize:=IncSize+8;
   SetCapacity(FCapacity+IncSize);
@@ -210,7 +210,7 @@ begin
   If (Index<0) or (Index>FCount )then
     Error(SlistIndexError,Index);
   IF FCount=FCapacity Then Self.Expand;
-  If Index<FCount then 
+  If Index<FCount then
     System.Move (Flist^[Index],Flist^[Index+1],(FCount-Index)*SizeOf(Pointer));
   FList^[Index]:=Item;
   FCount:=FCount+1;
@@ -220,10 +220,8 @@ end;
 
 function TList.Last: Pointer;
 
-Var I : longint;
-
 begin
-  // Wouldn't it be better to return nil if the count is zero ? 
+  // Wouldn't it be better to return nil if the count is zero ?
   Result:=Items[FCount-1];
 end;
 
@@ -235,7 +233,7 @@ Var Temp : Pointer;
 begin
   If ((CurIndex<0) or (CurIndex>Count-1)) then
     Error(SListIndexError,CurIndex);
-  If (NewINdex<0) then 
+  If (NewINdex<0) then
     Error(SlistIndexError,NewIndex);
   Temp:=FList^[CurIndex];
   Self.Delete(CurIndex);
@@ -258,10 +256,10 @@ end;
 Procedure TList.Pack;
 
 Var  {Last,I,J,}Runner : Longint;
-            
+
 begin
   // Not the fastest; but surely correct
-  For Runner:=Fcount-1 downto 0 do 
+  For Runner:=Fcount-1 downto 0 do
     if Items[Runner]=Nil then Self.Delete(Runner);
 { The following may be faster in case of large and defragmented lists
   If count=0 then exit;
@@ -285,8 +283,8 @@ begin
       // Update Runner and Last to point behind last block
       TheLast:=Runner+(J-I);
       If J=Count then
-         begin 
-         // Shortcut, when J=Count we checked all pointers 
+         begin
+         // Shortcut, when J=Count we checked all pointers
          Runner:=Count
       else
          begin
@@ -314,7 +312,7 @@ begin
    repeat
      While Compare(P,FList^[i])>0 Do I:=I+1;
      While Compare(P,FList^[J])<0 Do J:=J-1;
-     If I<=J then 
+     If I<=J then
        begin
        Q:=Flist^[I];
        Flist^[I]:=FList^[J];
@@ -325,7 +323,7 @@ begin
    Until I>J;
    If L<J then QuickSort (FList,L,J,Compare);
    L:=I;
- Until I>=R; 
+ Until I>=R;
 end;
 
 procedure TList.Sort(Compare: TListSortCompare);
@@ -346,8 +344,8 @@ begin
 end;
 
 
-    
-destructor TThreadList.Destroy; 
+
+destructor TThreadList.Destroy;
 
 begin
 end;
@@ -369,7 +367,9 @@ end;
 
 function TThreadList.LockList: TList;
 
+
 begin
+  LockList:=nil;
 end;
 
 
@@ -390,19 +390,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-10-02 22:41:27  michael
-  + Added exceptions for error handling
-
-  Revision 1.4  1998/05/06 07:27:22  michael
-  + Fixec index check in exchange method.
-
-  Revision 1.3  1998/05/05 15:54:31  michael
-  TList completely implemented
-
-  Revision 1.2  1998/05/04 15:54:07  michael
-  + Partial implementation of TList
-
-  Revision 1.1  1998/05/04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.6  1999-04-08 10:18:52  peter
+    * makefile updates
 
 }

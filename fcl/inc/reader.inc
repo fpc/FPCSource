@@ -39,6 +39,7 @@ end;
 Function TReader.GetPosition: Longint;
 
 begin
+  GetPosition:=0;
 end;
 
 
@@ -88,6 +89,7 @@ end;
 Function TReader.ReadSet(SetType: Pointer): Integer;
 
 begin
+  ReadSet:=0;
 end;
 
 
@@ -127,28 +129,30 @@ end;
 
 
 
-Function TReader.Error(const Message: string): Boolean; 
+Function TReader.Error(const Message: string): Boolean;
+
+begin
+  Error:=false;
+end;
+
+
+
+Function TReader.FindMethod(Root: TComponent; const MethodName: string): Pointer;
+
+begin
+  FindMethod:=nil;
+end;
+
+
+
+Procedure TReader.SetName(Component: TComponent; var Name: string);
 
 begin
 end;
 
 
 
-Function TReader.FindMethod(Root: TComponent; const MethodName: string): Pointer; 
-
-begin
-end;
-
-
-
-Procedure TReader.SetName(Component: TComponent; var Name: string); 
-
-begin
-end;
-
-
-
-Procedure TReader.ReferenceName(var Name: string); 
+Procedure TReader.ReferenceName(var Name: string);
 
 begin
 end;
@@ -156,14 +160,15 @@ end;
 
 
 Function TReader.FindAncestorComponent(const Name: string;
-  ComponentClass: TPersistentClass): TComponent; 
+  ComponentClass: TPersistentClass): TComponent;
 
 begin
+  FindAncestorComponent:=nil;
 end;
 
 
 
-destructor TReader.Destroy; 
+destructor TReader.Destroy;
 
 begin
 end;
@@ -179,7 +184,7 @@ end;
 
 Procedure TReader.DefineProperty(const Name: string;
   rd : TReaderProc; wd : TWriterProc;
-  HasData: Boolean); 
+  HasData: Boolean);
 
 begin
 end;
@@ -188,7 +193,7 @@ end;
 
 Procedure TReader.DefineBinaryProperty(const Name: string;
   rd, wd: TStreamProc;
-  HasData: Boolean); 
+  HasData: Boolean);
 
 begin
 end;
@@ -198,6 +203,7 @@ end;
 Function TReader.EndOfList: Boolean;
 
 begin
+  EndOfList:=false;
 end;
 
 
@@ -216,7 +222,7 @@ end;
 
 
 
-Procedure TReader.FlushBuffer; 
+Procedure TReader.FlushBuffer;
 
 begin
 end;
@@ -226,6 +232,7 @@ end;
 Function TReader.NextValue: TValueType;
 
 begin
+  NextValue:=vaNull;
 end;
 
 
@@ -240,6 +247,7 @@ end;
 Function TReader.ReadBoolean: Boolean;
 
 begin
+  ReadBoolean:=false;
 end;
 
 
@@ -247,6 +255,7 @@ end;
 Function TReader.ReadChar: Char;
 
 begin
+  ReadChar:=#0;
 end;
 
 
@@ -261,6 +270,7 @@ end;
 Function TReader.ReadComponent(Component: TComponent): TComponent;
 
 begin
+  ReadComponent:=nil;
 end;
 
 
@@ -276,6 +286,7 @@ end;
 Function TReader.ReadFloat: Extended;
 
 begin
+  ReadFloat:=0.0;
 end;
 
 
@@ -283,6 +294,7 @@ end;
 Function TReader.ReadIdent: string;
 
 begin
+  ReadIdent:='';
 end;
 
 
@@ -290,6 +302,7 @@ end;
 Function TReader.ReadInteger: Longint;
 
 begin
+  ReadInteger:=0;
 end;
 
 
@@ -318,6 +331,7 @@ end;
 Function TReader.ReadRootComponent(Root: TComponent): TComponent;
 
 begin
+  ReadRootComponent:=nil;
 end;
 
 
@@ -332,6 +346,7 @@ end;
 Function TReader.ReadStr: string;
 
 begin
+  ReadStr:='';
 end;
 
 
@@ -339,6 +354,7 @@ end;
 Function TReader.ReadString: string;
 
 begin
+  ReadString:='';
 end;
 
 
@@ -346,6 +362,7 @@ end;
 Function TReader.ReadValue: TValueType;
 
 begin
+  ReadValue:=vaNull;
 end;
 
 
@@ -356,7 +373,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:12  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.2  1999-04-08 10:18:54  peter
+    * makefile updates
 
 }

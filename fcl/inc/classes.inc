@@ -170,12 +170,14 @@ end;
 function FindClass(const ClassName: string): TPersistentClass;
 
 begin
+  FindClass:=nil;
 end;
 
 
 function GetClass(const ClassName: string): TPersistentClass;
 
 begin
+  GetClass:=nil;
 end;
 
 
@@ -216,42 +218,49 @@ end;
 function IdentToInt(const Ident: string; var Int: Longint; const Map: array of TIdentMapEntry): Boolean;
 
 begin
+  IdentToInt:=false;
 end;
 
 
 function IntToIdent(Int: Longint; var Ident: string; const Map: array of TIdentMapEntry): Boolean;
 
 begin
+  IntToIdent:=false;
 end;
 
 
 function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boolean;
 
 begin
+  InitInheritedComponent:=false;
 end;
 
 
 function InitComponentRes(const ResName: string; Instance: TComponent): Boolean;
 
 begin
+  InitComponentRes:=false;
 end;
 
 
 function ReadComponentRes(const ResName: string; Instance: TComponent): TComponent;
 
 begin
+  ReadComponentRes:=nil;
 end;
 
 
 function ReadComponentResEx(HInstance: THandle; const ResName: string): TComponent;
 
 begin
+  ReadComponentResEx:=nil;
 end;
 
 
 function ReadComponentResFile(const FileName: string; Instance: TComponent): TComponent;
 
 begin
+  ReadComponentResFile:=nil;
 end;
 
 
@@ -323,6 +332,7 @@ end;
 function CollectionsEqual(C1, C2: TCollection): Boolean;
 
 begin
+  CollectionsEqual:=false;
 end;
 
 
@@ -359,6 +369,7 @@ end;
 function LineStart(Buffer, BufPos: PChar): PChar;
 
 begin
+  LineStart:=nil;
 end;
 
 
@@ -366,83 +377,7 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-02-10 13:45:19  michael
-  + Added spanish language
-
-  Revision 1.7  1998/10/30 14:52:48  michael
-  + Added format in interface
-  + Some errors in parser fixed, it uses exceptions now
-  + Strings now has no more syntax errors.
-
-  Revision 1.6  1998/10/29 12:47:14  michael
-  + Implementation of tpoint by WYB
-
-  Revision 1.5  1998/09/23 08:41:55  michael
-  Added switch to select language
-
-  Revision 1.4  1998/09/23 07:47:40  michael
-  + Some changes by TSE
-
-  Revision 1.3  1998/06/03 15:10:20  michael
-  + added include of util.inc
-
-  Revision 1.2  1998/05/04 14:30:11  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
-
-  Revision 1.9  1998/05/04 12:16:01  florian
-    + Initial revisions after making a new directory structure
-
-  Revision 1.8  1998/05/04 11:20:13  florian
-    + Write* and Read* methods to TStream added
-    * small problems solved
-
-  Revision 1.7  1998/05/04 09:39:51  michael
-  + Started implementation of TList
-
-  Revision 1.6  1998/05/01 22:17:19  florian
-    + TBits implemented
-    + TStream partial implemented
-
-  Revision 1.5  1998/05/01 17:53:12  florian
-    * now it compiles with FPC
-
-  Revision 1.4  1998/04/28 11:47:00  florian
-    * more adaptions to FPC
-
-  Revision 1.3  1998/04/27 12:55:57  florian
-    + uses objpas added
-
-  Revision 1.2  1998/04/27 09:09:49  michael
-  + Added log at the end
-
-}
-
-{
-  $Log$
-  Revision 1.8  1999-02-10 13:45:19  michael
-  + Added spanish language
-
-  Revision 1.7  1998/10/30 14:52:48  michael
-  + Added format in interface
-  + Some errors in parser fixed, it uses exceptions now
-  + Strings now has no more syntax errors.
-
-  Revision 1.6  1998/10/29 12:47:14  michael
-  + Implementation of tpoint by WYB
-
-  Revision 1.5  1998/09/23 08:41:55  michael
-  Added switch to select language
-
-  Revision 1.4  1998/09/23 07:47:40  michael
-  + Some changes by TSE
-
-  Revision 1.3  1998/06/03 15:10:20  michael
-  + added include of util.inc
-
-  Revision 1.2  1998/05/04 14:30:11  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
-
-  Revision 1.1  1998/05/04 12:16:01  florian
-    + Initial revisions after making a new directory structure
+  Revision 1.9  1999-04-08 10:18:50  peter
+    * makefile updates
 
 }

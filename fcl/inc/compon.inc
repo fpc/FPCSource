@@ -16,7 +16,7 @@
 {*                             TComponent                                   *}
 {****************************************************************************}
 
-Type 
+Type
   Longrec = Record
     Hi,lo : word;
     end;
@@ -24,7 +24,7 @@ Type
 Function  TComponent.GetComponent(AIndex: Integer): TComponent;
 
 begin
-  If not assigned(FComponents) then 
+  If not assigned(FComponents) then
     Result:=Nil
   else
     Result:=TComponent(FComponents.Items[Aindex]);
@@ -34,8 +34,8 @@ end;
 Function  TComponent.GetComponentCount: Integer;
 
 begin
-  If not assigned(FComponents) then 
-    result:=0 
+  If not assigned(FComponents) then
+    result:=0
   else
     Result:=FComponents.Count;
 end;
@@ -47,7 +47,7 @@ begin
   If Assigned(FOwner) and Assigned(FOwner.FComponents) then
     Result:=FOWner.FComponents.IndexOf(Self)
   else
-    Result:=-1;   
+    Result:=-1;
 end;
 
 
@@ -79,10 +79,10 @@ Procedure TComponent.Remove(AComponent: TComponent);
 
 begin
   AComponent.FOwner:=Nil;
-  If assigned(FCOmponents) then 
+  If assigned(FCOmponents) then
     begin
     FComponents.Remove(AComponent);
-    IF FComponents.Count=0 then 
+    IF FComponents.Count=0 then
       begin
       FComponents.Free;
       FComponents:=Nil;
@@ -138,11 +138,11 @@ begin
 end;
 
 
-Procedure TComponent.DefineProperties(Filer: TFiler); 
+Procedure TComponent.DefineProperties(Filer: TFiler);
 
 Var Ancestor : TComponent;
     Temp : longint;
-    
+
 begin
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
@@ -152,7 +152,7 @@ begin
                        (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
   Filer.Defineproperty('top',readtop,writetop,
                        (longrec(FDesignInfo).Hi<>Longrec(temp).Hi));
-}                      
+}
 end;
 
 
@@ -170,28 +170,28 @@ begin
 end;
 
 
-Function  TComponent.GetChildParent: TComponent; 
+Function  TComponent.GetChildParent: TComponent;
 
 begin
   Result:=Self;
 end;
 
 
-Function  TComponent.GetNamePath: string; 
+Function  TComponent.GetNamePath: string;
 
 begin
   Result:=FName;
 end;
 
 
-Function  TComponent.GetOwner: TPersistent; 
+Function  TComponent.GetOwner: TPersistent;
 
 begin
   Result:=FOwner;
 end;
 
 
-Procedure TComponent.Loaded; 
+Procedure TComponent.Loaded;
 
 begin
   Exclude(FComponentState,csLoading);
@@ -204,7 +204,7 @@ Procedure TComponent.Notification(AComponent: TComponent;
 Var Runner : Longint;
 
 begin
-  If (Operation=opRemove) and Assigned(FFreeNotifies) then 
+  If (Operation=opRemove) and Assigned(FFreeNotifies) then
     begin
     FFreeNotifies.Remove(AComponent);
     If FFreeNotifies.Count=0 then
@@ -219,7 +219,7 @@ begin
 end;
 
 
-Procedure TComponent.ReadState(Reader: TReader); 
+Procedure TComponent.ReadState(Reader: TReader);
 
 begin
   Reader.ReadData(Self);
@@ -231,7 +231,7 @@ Procedure TComponent.SetAncestor(Value: Boolean);
 Var Runner : Longint;
 
 begin
-  If Value then 
+  If Value then
     Include(FComponentState,csAncestor)
   else
     Include(FCOmponentState,csAncestor);
@@ -256,7 +256,7 @@ begin
 end;
 
 
-Procedure TComponent.SetName(const NewName: TComponentName); 
+Procedure TComponent.SetName(const NewName: TComponentName);
 
 begin
   If FName=NewName then exit;
@@ -286,21 +286,21 @@ begin
 end;
 
 
-Procedure TComponent.Updating; 
+Procedure TComponent.Updating;
 
 begin
   Include (FComponentState,csUpdating);
 end;
 
 
-Procedure TComponent.Updated; 
+Procedure TComponent.Updated;
 
 begin
   Exclude(FComponentState,csUpdating);
 end;
 
 
-class Procedure TComponent.UpdateRegistry(Register: Boolean; const ClassID, ProgID: string); 
+class Procedure TComponent.UpdateRegistry(Register: Boolean; const ClassID, ProgID: string);
 
 begin
   // For compatibility only.
@@ -308,11 +308,11 @@ end;
 
 
 Procedure TComponent.ValidateRename(AComponent: TComponent;
-  const CurName, NewName: string); 
+  const CurName, NewName: string);
 
 begin
 //!! This contradicts the Delphi manual.
-  If (AComponent<>Nil) and (CurName=NewName) and 
+  If (AComponent<>Nil) and (CurName=NewName) and
      (FindComponent(NewName)<>Nil) then
       raise EComponentError.Createfmt(SDuplicateName,[newname]);
   If (csDesigning in FComponentState) and (FOwner<>Nil) then
@@ -320,27 +320,27 @@ begin
 end;
 
 
-Procedure TComponent.ValidateContainer(AComponent: TComponent); 
+Procedure TComponent.ValidateContainer(AComponent: TComponent);
 
 begin
 end;
 
 
-Procedure TComponent.ValidateInsert(AComponent: TComponent); 
+Procedure TComponent.ValidateInsert(AComponent: TComponent);
 
 begin
   // Does nothing.
 end;
 
 
-Procedure TComponent.WriteState(Writer: TWriter); 
+Procedure TComponent.WriteState(Writer: TWriter);
 
 begin
   Writer.WriteData(self);
 end;
 
 
-Constructor TComponent.Create(AOwner: TComponent); 
+Constructor TComponent.Create(AOwner: TComponent);
 
 begin
   FComponentStyle:=[csInheritable];
@@ -348,7 +348,7 @@ begin
 end;
 
 
-Destructor TComponent.Destroy; 
+Destructor TComponent.Destroy;
 
 Var Runner : Longint;
 
@@ -372,7 +372,7 @@ Procedure TComponent.DestroyComponents;
 Var acomponent: TComponent;
 
 begin
-  While assigned(FComponents) do 
+  While assigned(FComponents) do
     begin
     aComponent:=TComponent(FComponents.Last);
     Remove(aComponent);
@@ -414,7 +414,7 @@ Procedure TComponent.FreeNotification(AComponent: TComponent);
 
 begin
   If (Owner<>Nil) and (AComponent=Owner) then exit;
-  If not (Assigned(FFreeNotifies)) then 
+  If not (Assigned(FFreeNotifies)) then
     FFreeNotifies:=TList.Create;
   If FFreeNotifies.IndexOf(AComponent)=-1 then
     begin
@@ -431,14 +431,14 @@ begin
 end;
 
 
-Function  TComponent.GetParentComponent: TComponent; 
+Function  TComponent.GetParentComponent: TComponent;
 
 begin
   Result:=Nil;
 end;
 
 
-Function  TComponent.HasParent: Boolean; 
+Function  TComponent.HasParent: Boolean;
 
 begin
   Result:=False;
@@ -470,26 +470,15 @@ end;
 
 
 Function  TComponent.SafeCallException(ExceptObject: TObject;
-  ExceptAddr: Pointer): Integer; 
+  ExceptAddr: Pointer): Integer;
 
 begin
+  SafeCallException:=0;
 end;
 
 {
   $Log$
-  Revision 1.5  1998-10-02 22:41:25  michael
-  + Added exceptions for error handling
-
-  Revision 1.4  1998/08/24 12:37:44  michael
-  small fixes
-
-  Revision 1.3  1998/08/23 21:11:03  michael
-  + Fixed some small errors
-
-  Revision 1.2  1998/08/22 10:41:35  michael
-  + Initial implementation
-
-  Revision 1.1  1998/05/04 14:30:11  michael
-  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+  Revision 1.6  1999-04-08 10:18:51  peter
+    * makefile updates
 
 }
