@@ -34,7 +34,7 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=FileOpen (FileName,Open_RdWr or Open_Creat);
+  FileCreate:=fdOpen(FileName,Open_RdWr or Open_Creat);
 end;
 
 
@@ -65,6 +65,11 @@ begin
   fdclose(Handle);
 end;
 
+Function FileTruncate (Handle,Size: Longint) : boolean;
+
+begin
+  FileTruncate:=fdtruncate(Handle,Size);
+end;
 
 Function FileAge (Const FileName : String): Longint;
 
@@ -231,7 +236,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-12-15 22:43:07  peter
+  Revision 1.5  1999-02-02 21:20:34  michael
+  + Added filetruncate, corrected FileCreate
+
+  Revision 1.4  1998/12/15 22:43:07  peter
     * removed temp symbols
 
   Revision 1.3  1998/11/10 14:57:55  peter
