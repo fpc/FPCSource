@@ -22,28 +22,114 @@ function strcopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4 }
 { out: result (dest) in r3     }
 asm
-        subi    r4,r4,1
+{  in: dest in r3, source in r4  }
+{  out: result (dest) in r3      }
+        {  get # of misaligned bytes  }
+        rlwinm. r30,r4,0,31-2,31
+        subfic  r30,r30,4
+        mtctr   r30
+        {  since we have to return dest intact, use another register for  }
+        {  dest in the copy loop                                          }
         subi    r29,r3,1
-LStrCopyLoop:
-        lbzu    r30,1(r4)
-        cmpli   r30,0
-        stbu    r30,1(r29)
-        bne     LStrCopyLoop
-end ['r4','r29','r30','cr0'];
+        subi    r4,r4,1
+        beq     LStrCopyAligned
+LStrCopyAlignLoop:
+        {  load next byte  }
+        lbzu    r28,1(r4)
+        {  end of string?  }
+        cmpli   cr0,r28,0
+        {  store byte  }
+        stbu    r28,1(r29)
+        {  loop if misaligned bytes left and not end of string found }
+        bdnzf   eq,LStrCopyAlignLoop
+        beq     LStrCopyDone
+LStrCopyAligned:
+        subi    r4,r4,3
+        subi    r29,r29,3
+        { setup magic constants }
+        li      r27,0x0feff
+        addis   r27,r27,0x0feff
+        li      r26,0x08080
+        addis    r26,r26,0x08081
+LStrCopyAlignedLoop:
+
+        {  load next 4 bytes  }
+        lwzu    r28,4(r4)
+
+        { test for zero byte }
+        add     r30,r28,r27
+        andc    r30,r30,r28
+        and.    r30,r30,r26
+        bne     LStrCopyEndFound
+        stwu    r28,4(r29)
+        b       LStrCopyAlignedLoop
+LStrCopyEndFound:
+        { result is either 0, 8, 16 or 24 depending on which byte is zero }
+        cntlzw  r30,r30
+        addi    r29,r29,3
+LStrCopyWrapUpLoop:
+        subic.  r30,r30,8
+        rlwinm  r28,r28,8,0,31
+        stbu    r28,1(r29)
+        bge     LStrCopyWrapUpLoop
+LStrCopyDone:
+        {  r3 still contains dest here  }
+end ['r4','r26','r27','r28','r29','r30','cr0','ctr'];
 
 
 function strecopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4        }
 { out: result (end of new dest) in r3 }
 asm
-        subi    r4,r4,1
+        {  get # of misaligned bytes  }
+        rlwinm. r30,r4,0,31-2,31
+        subfic  r30,r30,4
+        mtctr   r30
         subi    r3,r3,1
-LStreCopyLoop:
-        lbzu    r30,1(r4)
-        cmpli   r30,0
-        stbu    r30,1(r3)
-        bne     LStreCopyLoop
-end ['r3','r4','r30','cr0'];
+        subi    r4,r4,1
+        beq     LStrCopyAligned
+LStrCopyAlignLoop:
+        {  load next byte  }
+        lbzu    r28,1(r4)
+        {  end of string?  }
+        cmpli   cr0,r28,0
+        {  store byte  }
+        stbu    r28,1(r3)
+        {  loop if misaligned bytes left and not end of string found }
+        bdnzf   eq,LStrCopyAlignLoop
+        beq     LStrCopyDone
+LStrCopyAligned:
+        subi    r4,r4,3
+        subi    r3,r3,3
+        { setup magic constants }
+        li      r27,0x0feff
+        addis   r27,r27,0x0feff
+        li      r29,0x08080
+        addis    r29,r29,0x08081
+LStrCopyAlignedLoop:
+
+        {  load next 4 bytes  }
+        lwzu    r28,4(r4)
+
+        { test for zero byte }
+        add     r30,r28,r27
+        andc    r30,r30,r28
+        and.    r30,r30,r29
+        bne     LStrCopyEndFound
+        stwu    r28,4(r3)
+        b       LStrCopyAlignedLoop
+LStrCopyEndFound:
+        { result is either 0, 8, 16 or 24 depending on which byte is zero }
+        cntlzw  r30,r30
+        addi    r3,r3,3
+LStrCopyWrapUpLoop:
+        subic.  r30,r30,8
+        rlwinm  r28,r28,8,0,31
+        stbu    r28,1(r3)
+        bge     LStrCopyWrapUpLoop
+LStrCopyDone:
+        {  r3 contains new dest here  }
+end ['r3','r4','r27','r28','r3','r30','cr0','ctr'];
 
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
@@ -367,7 +453,10 @@ end ['r28','r29','r30','cr0','cr1'];
 
 {
   $Log$
-  Revision 1.5  2001-02-11 17:59:14  jonas
+  Revision 1.6  2001-02-23 14:05:33  jonas
+    * optimized strcopy/strecopy
+
+  Revision 1.5  2001/02/11 17:59:14  jonas
     * fixed bug in strscan
 
   Revision 1.4  2001/02/11 12:15:03  jonas
