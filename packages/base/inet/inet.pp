@@ -500,19 +500,27 @@ end;
 Function HostToNet (Host : Longint) : Longint;
 
 begin
-  HostToNet:=THostAddr(host)[1];
-  HostToNEt:=HostTONet or ( (THostAddr(host)[2]) shl 8);
-  HostToNEt:=HostToNet or ( (THostAddr(host)[3]) shl 16);
-  HostToNEt:=HostToNet or ( (THostAddr(host)[4]) shl 24);
+{$ifdef FPC_BIG_ENDIAN}
+  hosttonet:=host;
+{$else}
+  HostToNet:=THostAddr(host)[4];
+  HostToNEt:=HostTONet or ( (THostAddr(host)[3]) shl 8);
+  HostToNEt:=HostToNet or ( (THostAddr(host)[2]) shl 16);
+  HostToNEt:=HostToNet or ( (THostAddr(host)[1]) shl 24);
+{$endif}
 end;
 
 Function NetToHost (Net : Longint) : Longint;
 
 begin
-  NetToHost:=THostAddr(Net)[1];
-  NetToHost:=NetToHost or ( (THostAddr(Net)[2]) shl 8);
-  NetToHost:=NetToHost or ( (THostAddr(Net)[3]) shl 16);
-  NetToHost:=NetToHost or ( (THostAddr(Net)[4]) shl 24);
+{$ifdef FPC_BIG_ENDIAN}
+  nettohost:=host;
+{$else}
+  NetToHost:=THostAddr(Net)[4];
+  NetToHost:=NetToHost or ( (THostAddr(Net)[3]) shl 8);
+  NetToHost:=NetToHost or ( (THostAddr(Net)[2]) shl 16);
+  NetToHost:=NetToHost or ( (THostAddr(Net)[1]) shl 24);
+{$endif}
 end;
 
 Function ShortHostToNet (Host : Word) : Word;
@@ -531,7 +539,10 @@ end.
 
 
    $Log$
-   Revision 1.3  2003-12-10 12:16:14  marco
+   Revision 1.4  2004-04-10 15:37:57  marco
+    * bug/endianfix to hosttonet nettohost
+
+   Revision 1.3  2003/12/10 12:16:14  marco
     * now uses initc
 
    Revision 1.2  2002/09/07 15:42:52  peter
