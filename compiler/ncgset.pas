@@ -27,7 +27,7 @@ unit ncgset;
 interface
 
     uses
-       node,nset,cpubase,cginfo,cgbase,cgobj,aasm;
+       node,nset,cpubase,cginfo,cgbase,cgobj,aasmbase,aasmtai;
 
     type
        tcgsetelementnode = class(tsetelementnode)
@@ -586,7 +586,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-01 16:23:53  peter
+  Revision 1.3  2002-07-06 20:19:25  carl
+  + generic set handling
+
+  Revision 1.2  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -269,11 +269,15 @@ implementation
       end;
 
 
+    { Warning : This is the first pass for the generic version }
+    { the only difference is mainly the result location which  }
+    { is changed, compared to the i386 version.                }
+    { ALSO REGISTER ALLOC IS WRONG?                            }
     function tinnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_FLAGS;
-
+         location.loc:=LOC_REGISTER;
+         
          firstpass(right);
          firstpass(left);
          if codegenerror then
@@ -574,7 +578,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-07-01 18:46:24  peter
+  Revision 1.26  2002-07-06 20:19:25  carl
+  + generic set handling
+
+  Revision 1.25  2002/07/01 18:46:24  peter
     * internal linker
     * reorganized aasm layer
 
