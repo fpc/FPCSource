@@ -121,18 +121,18 @@ const
   uf_big_endian    = $4;
   uf_has_dbx       = $8;
   uf_has_browser   = $10;
-  uf_in_library    = $20;  { is the file in another file than <ppufile>.* ? }
-  uf_smart_linked  = $40;  { the ppu can be smartlinked }
-  uf_static_linked = $80;  { the ppu can be linked static }
-  uf_shared_linked = $100; { the ppu can be linked shared }
+  uf_in_library    = $20;     { is the file in another file than <ppufile>.* ? }
+  uf_smart_linked  = $40;     { the ppu can be smartlinked }
+  uf_static_linked = $80;     { the ppu can be linked static }
+  uf_shared_linked = $100;    { the ppu can be linked shared }
   uf_local_browser = $200;
-  uf_no_link       = $400; { unit has no .o generated, but can still have
-                             external linking! }
-  uf_has_resources = $800; { unit has resource section }
+  uf_no_link       = $400;    { unit has no .o generated, but can still have
+                                external linking! }
+  uf_has_resources = $800;    { unit has resource section }
   uf_little_endian = $1000;
-  uf_release       = $2000;{ unit was compiled with -Ur option }
-  uf_local_threadvars = $4000;  { unit has local threadvars }
-  uf_fpu_emulation = $8000; { this unit was compiled with fpu emulation on }
+  uf_release       = $2000;   { unit was compiled with -Ur option }
+  uf_threadvars    = $4000;   { unit has threadvars }
+  uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
 
 type
   ppureal=extended;
@@ -985,7 +985,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2002-08-18 20:06:25  peter
+  Revision 1.27  2002-10-14 19:42:33  peter
+    * only use init tables for threadvars
+
+  Revision 1.26  2002/08/18 20:06:25  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

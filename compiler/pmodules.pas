@@ -176,6 +176,83 @@ implementation
       end;
 
 
+    procedure InsertThreadvarTablesTable;
+      var
+        hp : tused_unit;
+        ltvTables : taasmoutput;
+        count : longint;
+      begin
+        ltvTables:=TAAsmOutput.Create;
+        count:=0;
+        hp:=tused_unit(usedunits.first);
+        while assigned(hp) do
+         begin
+           If (hp.u.flags and uf_threadvars)=uf_threadvars then
+            begin
+              ltvTables.concat(Tai_const_symbol.Createname(hp.u.modulename^+'_$THREADVARLIST'));
+              inc(count);
+            end;
+           hp:=tused_unit(hp.next);
+         end;
+        { Add program threadvars, if any }
+        If (current_module.flags and uf_threadvars)=uf_threadvars then
+         begin
+           ltvTables.concat(Tai_const_symbol.Createname(current_module.modulename^+'_$THREADVARLIST'));
+           inc(count);
+         end;
+        { TableCount }
+        ltvTables.insert(Tai_const.Create_32bit(count));
+        ltvTables.insert(Tai_symbol.Createdataname_global('FPC_THREADVARTABLES',0));
+        ltvTables.concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
+        { insert in data segment }
+        if (cs_create_smart in aktmoduleswitches) then
+          dataSegment.concat(Tai_cut.Create);
+        dataSegment.concatlist(ltvTables);
+        ltvTables.free;
+        if count > 0 then
+          have_local_threadvars := true;
+      end;
+
+
+    procedure AddToThreadvarList(p:tnamedindexitem;arg:pointer);
+      var
+        ltvTable : taasmoutput;
+      begin
+        ltvTable:=taasmoutput(arg);
+        if (tsym(p).typ=varsym) and
+           (vo_is_thread_var in tvarsym(p).varoptions) then
+         begin
+           { address of threadvar }
+           ltvTable.concat(tai_const_symbol.createname(tvarsym(p).mangledname));
+           { size of threadvar }
+           ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
+         end;
+      end;
+
+
+    procedure InsertThreadvars;
+      var
+        ltvTable : TAAsmoutput;
+      begin
+         ltvTable:=TAAsmoutput.create;
+         if assigned(current_module.globalsymtable) then
+           current_module.globalsymtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}AddToThreadvarList,ltvTable);
+         current_module.localsymtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}AddToThreadvarList,ltvTable);
+         if ltvTable.first<>nil then
+          begin
+            { add begin and end of the list }
+            ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$THREADVARLIST',0));
+            ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
+            ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$THREADVARLIST'));
+            if (cs_create_smart in aktmoduleswitches) then
+             dataSegment.concat(Tai_cut.Create);
+            dataSegment.concatlist(ltvTable);
+            current_module.flags:=current_module.flags or uf_threadvars;
+          end;
+         ltvTable.Free;
+      end;
+
+
     Procedure InsertResourceTablesTable;
       var
         hp : tused_unit;
@@ -356,6 +433,18 @@ implementation
         make_ref:=false;
         readconstdefs;
         make_ref:=true;
+      { Thread support unit? }
+        if (cs_threading in aktmoduleswitches) then
+         begin
+           hp:=loadunit('Threads','');
+           tsymtable(hp.globalsymtable).next:=symtablestack;
+           symtablestack:=hp.globalsymtable;
+           { add to the used units }
+           current_module.used_units.concat(tused_unit.create(hp,true));
+           unitsym:=tunitsym.create('Threads',hp.globalsymtable);
+           inc(unitsym.refs);
+           refsymtable.insert(unitsym);
+         end;
       { Objpas unit? }
         if m_objpas in aktmodeswitches then
          begin
@@ -653,54 +742,6 @@ implementation
          end;
       end;
 
-    procedure insertLocalThreadvarsTablesTable;
-      var
-        hp : tused_unit;
-        ltvTables : taasmoutput;
-        count : longint;
-      begin
-        ltvTables:=TAAsmOutput.Create;
-        count:=0;
-        hp:=tused_unit(usedunits.first);
-        while assigned(hp) do
-         begin
-           If (hp.u.flags and uf_local_threadvars)=uf_local_threadvars then
-            begin
-              ltvTables.concat(Tai_const_symbol.Createname(hp.u.modulename^+'_$LOCALTHREADVARLIST'));
-              inc(count);
-            end;
-           hp:=tused_unit(hp.next);
-         end;
-        { TableCount }
-        ltvTables.insert(Tai_const.Create_32bit(count));
-        ltvTables.insert(Tai_symbol.Createdataname_global('FPC_LOCALTHREADVARTABLES',0));
-        ltvTables.concat(Tai_symbol_end.Createname('FPC_LOCALTHREADVARTABLES'));
-        { insert in data segment }
-        if (cs_create_smart in aktmoduleswitches) then
-          dataSegment.concat(Tai_cut.Create);
-        dataSegment.concatlist(ltvTables);
-        ltvTables.free;
-        if count > 0 then
-          have_local_threadvars := true;
-      end;
-
-
-    procedure addToLocalThreadvarTab(p:tnamedindexitem;arg:pointer);
-      var
-        ltvTable : taasmoutput;
-      begin
-        ltvTable:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           (vo_is_thread_var in tvarsym(p).varoptions) then
-         begin
-           { address of threadvar }
-           ltvTable.concat(tai_const_symbol.createname(tvarsym(p).mangledname));
-           { size of threadvar }
-           ltvTable.concat(tai_const.create_32bit(tvarsym(p).getsize));
-         end;
-      end;
-
-
 
     procedure proc_unit;
 
@@ -727,7 +768,6 @@ implementation
          store_crc,store_interface_crc : cardinal;
          s2  : ^string; {Saves stack space}
          force_init_final : boolean;
-         ltvTable : taasmoutput;
       begin
          consume(_UNIT);
          if compile_level=1 then
@@ -971,25 +1011,13 @@ implementation
               genimplicitunitfinal(codesegment);
            end;
 
-         { generate a list of local threadvars }
-         ltvTable:=TAAsmoutput.create;
-         st.foreach_static({$ifdef FPCPROCVAR}@{$endif}addToLocalThreadvarTab,ltvTable);
-         if ltvTable.first<>nil then
-          begin
-            { add begin and end of the list }
-            ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$LOCALTHREADVARLIST',0));
-            ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
-            ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$LOCALTHREADVARLIST'));
-            if (cs_create_smart in aktmoduleswitches) then
-             dataSegment.concat(Tai_cut.Create);
-            dataSegment.concatlist(ltvTable);
-            current_module.flags:=current_module.flags or uf_local_threadvars;
-          end;
-         ltvTable.Free;
-
          { the last char should always be a point }
          consume(_POINT);
 
+         { generate a list of threadvars }
+         InsertThreadvars;
+
+         { Generate resoucestrings }
          If ResourceStrings.ResStrCount>0 then
           begin
             ResourceStrings.CreateResourceStringList;
@@ -1261,7 +1289,6 @@ implementation
             aktprocdef.aliasnames.insert('PASCALMAIN');
             aktprocdef.aliasnames.insert(target_info.cprefix+'main');
           end;
-         insertLocalThreadvarsTablesTable;
          compile_proc_body(true,false);
 
          { should we force unit initialization? }
@@ -1341,19 +1368,21 @@ implementation
              tstoredsymtable(st).allprivatesused;
            end;
 
+         { generate a list of threadvars }
+         InsertThreadvars;
+
          { generate imports }
          if current_module.uses_imports then
-          importlib.generatelib;
+           importlib.generatelib;
 
          if islibrary or
             (target_info.system in [system_i386_WIN32,system_i386_wdosx]) or
             (target_info.system=system_i386_NETWARE) then
            exportlib.generatelib;
 
-
-         { insert heap }
+         { insert Tables and Heap }
+         insertThreadVarTablesTable;
          insertResourceTablesTable;
-
          insertinitfinaltable;
          insertheap;
          insertstacklength;
@@ -1404,7 +1433,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-10-06 19:41:30  peter
+  Revision 1.81  2002-10-14 19:42:34  peter
+    * only use init tables for threadvars
+
+  Revision 1.80  2002/10/06 19:41:30  peter
     * Add finalization of typed consts
     * Finalization of globals in the main program
 

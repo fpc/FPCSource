@@ -922,24 +922,6 @@ implementation
       end;
 
 
-    procedure initialize_threadvar(p : tnamedindexitem;arg:pointer);
-      var
-        href : treference;
-        list : taasmoutput;
-      begin
-        list:=taasmoutput(arg);
-        if (tsym(p).typ=varsym) and
-           (vo_is_thread_var in tvarsym(p).varoptions) then
-         begin
-           cg.a_param_const(list,OS_INT,tvarsym(p).getsize,paramanager.getintparaloc(2));
-           reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname),0);
-           cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
-           rg.saveregvars(list,all_registers);
-           cg.a_call_name(list,'FPC_INIT_THREADVAR');
-         end;
-     end;
-
-
     { generates the code for initialisation of local data }
     procedure initialize_data(p : tnamedindexitem;arg:pointer);
       var
@@ -1377,19 +1359,6 @@ implementation
               if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
                  (cs_profile in aktmoduleswitches) then
                 cg.a_call_name(list,'__monstartup');
-
-              { add local threadvars in units (only if needed because not all platforms
-                have threadvar support) }
-              if have_local_threadvars then
-                cg.a_call_name(list,'FPC_INITIALIZELOCALTHREADVARS');
-
-              { add global threadvars }
-              p:=symtablestack;
-              while assigned(p) do
-               begin
-                 p.foreach_static({$ifndef TP}@{$endif}initialize_threadvar,list);
-                 p:=p.next;
-               end;
 
               { initialize units }
               cg.a_call_name(list,'FPC_INITIALIZEUNITS');
@@ -1873,7 +1842,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-10-06 19:41:30  peter
+  Revision 1.55  2002-10-14 19:42:33  peter
+    * only use init tables for threadvars
+
+  Revision 1.54  2002/10/06 19:41:30  peter
     * Add finalization of typed consts
     * Finalization of globals in the main program
 
