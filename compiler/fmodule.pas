@@ -465,6 +465,7 @@ implementation
 {$ifdef MEMDEBUG}
         d:=tmemdebug.create(modulename^+' - symtable');
 {$endif}
+        derefdata.free;
         if assigned(globalsymtable) then
           globalsymtable.free;
         if assigned(localsymtable) then
@@ -690,7 +691,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-10-23 14:44:07  peter
+  Revision 1.42  2003-11-23 17:23:49  peter
+    * fixed memleak with derefdata
+
+  Revision 1.41  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
