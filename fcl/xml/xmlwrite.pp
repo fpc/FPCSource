@@ -90,12 +90,13 @@ end;
 
 procedure Stream_Write(s: String);
 begin
-  stream.WriteAnsiString(s);
+  stream.Write(s[1], Length(s));
 end;
 
 procedure Stream_WriteLn(s: String);
 begin
-  stream.WriteAnsiString(s + #10);
+  stream.Write(s[1], Length(s));
+  stream.WriteByte(10);
 end;
 
 
@@ -261,7 +262,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-07-09 21:05:53  michael
+  Revision 1.3  1999-07-22 15:06:35  michael
+  * Fix for stream_write from Sebastian Guenther
+
+  Revision 1.2  1999/07/09 21:05:53  michael
   + fixes from Guenther Sebastian
 
   Revision 1.1  1999/07/09 08:35:09  michael
