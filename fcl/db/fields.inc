@@ -69,7 +69,9 @@ Function TFieldDef.CreateField(AOwner: TComponent): TField;
 Var TheField : TFieldClass;
 
 begin
-  Writeln ('Creating field'+FNAME);
+{$ifdef dsdebug}
+  Writeln ('Creating field '+FNAME);
+{$endif dsdebug}    
   TheField:=GetFieldClass;
   if TheField=Nil then
     DatabaseErrorFmt(SUnknownFieldType,[FName]);
@@ -168,6 +170,7 @@ Var I : longint;
 begin
   For I:=FItems.Count-1 downto 0 do
     TFieldDef(Fitems[i]).Free;
+  FItems.Clear;
 end;
 
 function TFieldDefs.Find(const AName: string): TFieldDef;
@@ -1773,7 +1776,12 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.3  2001-01-16 23:00:00  michael
+  Revision 1.1.2.4  2001-04-08 11:06:58  sg
+  * TFieldDefs.Clear now calls FItems.Clear, or else successive calls to
+    TFieldDefs.Clear would fail
+  * Wrapped _all_ debug output with {$ifdef DSDebug} blocks
+
+  Revision 1.1.2.3  2001/01/16 23:00:00  michael
   + Fixes to get dbf to work
 
   Revision 1.1.2.2  2000/12/23 23:27:25  sg
