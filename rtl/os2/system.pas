@@ -213,9 +213,9 @@ procedure emx_init; external 'EMX' index 1;
 
 {$IFDEF OS2EXCEPTIONS}
 (*
-The operating system defines a class of error conditions called exceptions, and specifies the default actions that are taken when these exceptions occur. The system default action in most cases is to terminate the thread that caused the exception. 
+The operating system defines a class of error conditions called exceptions, and specifies the default actions that are taken when these exceptions occur. The system default action in most cases is to terminate the thread that caused the exception.
 
-Exception values have the following 32-bit format: 
+Exception values have the following 32-bit format:
 
  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
  1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
@@ -224,30 +224,30 @@ Exception values have the following 32-bit format:
 ÀÄÄÄÁÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 
 
-Sev Severity code. Possible values are described in the following list: 
+Sev Severity code. Possible values are described in the following list:
 
-00 Success 
-01 Informational 
-10 Warning 
-11 Error 
+00 Success
+01 Informational
+10 Warning
+11 Error
 
-C Customer code flag. 
+C Customer code flag.
 
-Facility Facility code. 
+Facility Facility code.
 
-Code Facility's status code. 
+Code Facility's status code.
 
-Exceptions that are specific to OS/2 Version 2.X (for example, XCPT_SIGNAL) have a facility code of 1. 
+Exceptions that are specific to OS/2 Version 2.X (for example, XCPT_SIGNAL) have a facility code of 1.
 
-System exceptions include both synchronous and asynchronous exceptions. Synchronous exceptions are caused by events that are internal to a thread's execution. For example, synchronous exceptions could be caused by invalid parameters, or by a thread's request to end its own execution. 
+System exceptions include both synchronous and asynchronous exceptions. Synchronous exceptions are caused by events that are internal to a thread's execution. For example, synchronous exceptions could be caused by invalid parameters, or by a thread's request to end its own execution.
 
-Asynchronous exceptions are caused by events that are external to a thread's execution. For example, an asynchronous exception can be caused by a user's entering a Ctrl+C or Ctrl+Break key sequence, or by a process' issuing DosKillProcess to end the execution of another process. 
+Asynchronous exceptions are caused by events that are external to a thread's execution. For example, an asynchronous exception can be caused by a user's entering a Ctrl+C or Ctrl+Break key sequence, or by a process' issuing DosKillProcess to end the execution of another process.
 
-The Ctrl+Break and Ctrl+C exceptions are also known as signals, or as signal exceptions. 
+The Ctrl+Break and Ctrl+C exceptions are also known as signals, or as signal exceptions.
 
-The following tables show the symbolic names of system exceptions, their numerical values, and related information fields. 
+The following tables show the symbolic names of system exceptions, their numerical values, and related information fields.
 
-Portable, Non-Fatal, Software-Generated Exceptions 
+Portable, Non-Fatal, Software-Generated Exceptions
 
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
 ³Exception Name                       ³Value     ³
@@ -260,7 +260,7 @@ Portable, Non-Fatal, Software-Generated Exceptions
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
 
 
-Portable, Fatal, Hardware-Generated Exceptions 
+Portable, Fatal, Hardware-Generated Exceptions
 
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³Exception Name                       ³Value     ³Related Trap ³
@@ -308,7 +308,7 @@ Portable, Fatal, Hardware-Generated Exceptions
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 
 
-Portable, Fatal, Software-Generated Exceptions 
+Portable, Fatal, Software-Generated Exceptions
 
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³Exception Name                       ³Value     ³Related Trap ³
@@ -328,7 +328,7 @@ Portable, Fatal, Software-Generated Exceptions
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 
 
-Non-Portable, Fatal Exceptions 
+Non-Portable, Fatal Exceptions
 
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 ³Exception Name                       ³Value     ³Related Trap ³
@@ -339,7 +339,7 @@ Non-Portable, Fatal Exceptions
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 
 
-Unwind Operation Exceptions 
+Unwind Operation Exceptions
 
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
 ³Exception Name                       ³Value     ³
@@ -352,7 +352,7 @@ Unwind Operation Exceptions
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
 
 
-Fatal Signal Exceptions 
+Fatal Signal Exceptions
 
 ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄ¿
 ³Exception Name                       ³Value     ³
@@ -361,7 +361,7 @@ Fatal Signal Exceptions
 ³  ExceptionInfo[ 0 ] - Signal        ³          ³
 ³      Number                         ³          ³
 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÙ
-}
+*)
 {$ENDIF OS2EXCEPTIONS}
 
 
@@ -1403,7 +1403,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-09-29 18:39:59  hajny
+  Revision 1.35  2003-10-01 18:42:49  yuri
+  * Unclosed comment
+
+  Revision 1.34  2003/09/29 18:39:59  hajny
     * append fix applied to GO32v2, OS/2 and EMX
 
   Revision 1.33  2003/09/27 11:52:36  peter
