@@ -795,7 +795,8 @@ Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
 
 begin
   SetLength(S,Len);
-  Move (Buf[0],S[1],Len);
+  If Buf<>Nil then
+    Move (Buf[0],S[1],Len);
 end;
 
 
@@ -821,7 +822,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2002-10-17 12:43:00  florian
+  Revision 1.31  2002-10-19 17:06:50  michael
+  + Added check for nil buffer to setstring
+
+  Revision 1.30  2002/10/17 12:43:00  florian
     + ansistring_append* implemented
 
   Revision 1.29  2002/10/02 18:21:51  peter

@@ -672,13 +672,17 @@ end;
 
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 begin
-  Move (Buf[0],S[1],Len);
+  If Buf<>Nil then
+    Move (Buf[0],S[1],Len);
   S[0]:=chr(len);
 end;
 
 {
   $Log$
-  Revision 1.24  2002-10-02 18:21:51  peter
+  Revision 1.25  2002-10-19 17:06:50  michael
+  + Added check for nil buffer to setstring
+
+  Revision 1.24  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions
