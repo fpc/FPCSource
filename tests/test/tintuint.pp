@@ -1,12 +1,15 @@
-
+{ %KNOWNRUNERROR=2 v1.0 computes binary nodes with longint and cardinals as cardinals }
 { Testing longint and cardinal addtions }
 { The current 1.0 compiler does handle these operations
   differently depending on range check state,
   which is rather bad thing PM }
 const
   has_errors : boolean = false;
+  has_severe_errors : boolean = false;
 
 procedure fail(a,b,c,d : int64;range_check_on : boolean);
+var
+  r1,r2 : longint;
 begin
   Write('Error: ',a,'+',b,' does not give ',c,' but ',d,'($',hexstr(d,16),') with $R');
   if range_check_on then
@@ -14,6 +17,11 @@ begin
   else
     Writeln('-');
   has_errors:=true;
+{$R-}
+  r1:=c;
+  r2:=d;
+  if r1<>r2 then
+    has_severe_errors:=true;
 end;
 
 var
@@ -224,6 +232,11 @@ begin
   if (res+5<>f) or ((res and $ffff) <>$fff9) or (res<>res2) then
     fail(f,c,res2,res,false);
 
-  if has_errors then
+  if {$R-} a+e <> {$R+} a+e then
+    has_severe_errors:=true;
+  if has_severe_errors then
     halt(1);
+
+  if has_errors then
+    halt(2);
 end.

@@ -1,4 +1,4 @@
-{ %KNOWN }
+{ %KNOWNRUNERROR=1 Known array of char problems }
 {$P-}
 
 type

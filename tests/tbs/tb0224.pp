@@ -1,4 +1,4 @@
-{ %KNOWN }
+{ %KNOWNCOMPILEERROR= Problem with virtual and overloaded methods }
 { Old file: tbs0262.pp }
 { problems with virtual and overloaded methods }
 
