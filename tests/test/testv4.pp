@@ -1,3 +1,4 @@
+{ %VERSION=1.1 }
 program testv3;
 
 uses variants,varutils;
