@@ -861,6 +861,12 @@ type_e_wrong_parameter_type=E_Incompatibel type voor arg #$1: kreeg $2, verwacht
 type_e_no_method_and_procedure_not_compatible=E_Method (variable) and Procedure (variable) are not compatible
 % You can't assign a method to a procedure variable or a procedure to a
 % method pointer.
+type_e_wrong_math_argument=E_Illegal constant passed to internal math function
+% The constant argument passed to a ln or sqrt function is out of
+% the definition range of these functions.
+type_e_no_addr_of_constant=E_Can't get the address of constants
+% It's not possible to get the address of a constant, because they
+% aren't stored in memory, you can try making it a typed constant.
 % \end{description}
 #
 # Symtable
@@ -1086,10 +1092,6 @@ cg_e_include_not_implemented=E_Include en exclude niet ondersteund in dit geval
 % \var{include} and \var{exclude} are only partially
 % implemented for \var{i386} processors
 % and not at all for \var{m68k} processors.
-cg_w_may_wrong_math_argument=W_Waarschijnlijk ongeldige constante doorgegeven aan interne routine
-% The constant argument passed to a ln or sqrt function is out of
-% the definition range of these functions, you may get unexpected
-% results when running the program
 cg_e_cannot_call_cons_dest_inside_with=E_Constructors of destructors kunnen niet aangeroepen worden binnen een 'with' clausule
 % Inside a \var{With} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.

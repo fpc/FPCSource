@@ -863,7 +863,12 @@ type_e_wrong_parameter_type=E_Tipo incompatible para el arg. num. $1: Cogi¢ $2, 
 type_e_no_method_and_procedure_not_compatible=E_M‚todo (variable) y Procedure (variable) no son compatibles
 % You can't assign a method to a procedure variable or a procedure to a
 % method pointer.
-
+type_e_wrong_math_argument=E_Illegal constant passed to internal math function
+% The constant argument passed to a ln or sqrt function is out of
+% the definition range of these functions.
+type_e_no_addr_of_constant=E_Can't get the address of constants
+% It's not possible to get the address of a constant, because they
+% aren't stored in memory, you can try making it a typed constant.
 #
 # Symtable
 #
@@ -1088,10 +1093,6 @@ cg_e_include_not_implemented=E_Include or exclude not implemented in this case
 % \var{include} and \var{exclude} are only partially
 % implemented for \var{i386} processors
 % and not at all for \var{m68k} processors.
-cg_w_may_wrong_math_argument=W_Probable constante ilegal pasada a funci¢n matem tica interna
-% The constant argument passed to a ln or sqrt function is out of
-% the definition range of these functions, you may get unexpected
-% results when running the program
 cg_e_cannot_call_cons_dest_inside_with=E_Constructores o destructores no pueden ser llamados aqu¡ dentro
 cg_e_cannot_call_message_direct=E_No se puede llamar al m‚todo manejador de mensaje directamente
 % A message method handler method can't be called directly if it contains an
