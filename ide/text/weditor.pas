@@ -1380,8 +1380,8 @@ begin
      if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
         begin Color:=SelectColor; FreeFormat[X]:=false; end;
       end;
-      if FreeFormat[X] then
-    if X<=length(Format) then
+    if FreeFormat[X] then
+     if X<=length(Format) then
        Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
 
     if ( ((Flags and efHighlightRow)   <>0) and
@@ -3306,7 +3306,17 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  1999-02-09 09:29:59  pierre
+  Revision 1.16  1999-02-11 19:07:26  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.15  1999/02/09 09:29:59  pierre
    * avoid invisible characters in CombineColors
 
   Revision 1.14  1999/02/05 13:51:45  peter

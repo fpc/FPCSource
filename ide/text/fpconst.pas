@@ -77,6 +77,7 @@ const
      cmStepOver          = 227;
      cmResetDebugger     = 228;
      cmContToCursor      = 229;
+     cmOpenGDBWindow     = 230;
      
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -200,6 +201,7 @@ const
      hcParameters        = hcShift+cmParameters;
      hcResetDebugger     = hcShift+cmResetDebugger;
      hcContToCursor      = hcShift+cmContToCursor;
+     hcOpenGDBWindow     = hcShift+cmOpenGDBWindow;
      hcCompile           = hcShift+cmCompile;
      hcMake              = hcShift+cmMake;
      hcBuild             = hcShift+cmBuild;
@@ -251,6 +253,8 @@ const
      CBrowserTab =
         #6#12;
 
+     CGDBInputLine     = #9#9#10#11#12;
+     
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -269,7 +273,17 @@ implementation
 END.
 {
   $Log$
-  Revision 1.9  1999-02-08 17:40:00  pierre
+  Revision 1.10  1999-02-11 19:07:19  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.9  1999/02/08 17:40:00  pierre
    + cmContToCursor added
 
   Revision 1.8  1999/02/04 12:23:43  pierre

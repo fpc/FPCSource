@@ -149,6 +149,13 @@ begin
     end;
 end;
 
+procedure TIDEApp.DoOpenGDBWindow;
+begin
+  InitGDBWindow;
+  If assigned(GDBWindow) then
+    GDBWindow^.MakeFirst;
+end;
+
 procedure TIDEApp.DoToggleBreak;
 var
   W : PSourceWindow;
@@ -175,7 +182,17 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-02-10 09:51:59  pierre
+  Revision 1.12  1999-02-11 19:07:24  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.11  1999/02/10 09:51:59  pierre
    small cleanup
 
   Revision 1.10  1999/02/08 17:43:45  pierre

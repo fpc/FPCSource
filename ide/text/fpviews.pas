@@ -85,12 +85,18 @@ type
     PGDBInputLine = ^TGDBInputLine;
     TGDBInputLine = object(TInputLine)
       procedure HandleEvent(var Event: TEvent); virtual;
+      function GetPalette : PPalette;virtual;
       end;
-
+      
+    PGDBSourceEditor = ^TGDBSourceEditor;
+    TGDBSourceEditor = object(TSourceEditor)
+      function InsertLine : Sw_integer;virtual;
+      end;
+      
     PGDBWindow = ^TGDBWindow;
     TGDBWindow = object(TFPWindow)
-      Editor    : PSourceEditor;
-      Input     : PGDBInputLine;
+      Editor    : PGDBSourceEditor;
+      {Input     : PGDBInputLine;}
       constructor Init(var Bounds: TRect);
       procedure   WriteText(Buf : pchar);
       procedure   WriteString(Const S : string);
@@ -941,8 +947,6 @@ begin
       (Event.KeyCode=kbEnter) then
      begin
         S:=Data^;
-        if assigned(GDBWindow) and (S<>'') then
-          GDBWindow^.Editor^.AddLine(S);
         if assigned(Debugger) and (S<>'') then
           Debugger^.Command(S);
         S:='';
@@ -952,12 +956,31 @@ begin
      TInputLine.HandleEvent(Event);
 end;
 
+function TGDBInputLine.GetPalette: PPalette;
+const
+  P: String[Length(CGDBInputLine)] = CGDBInputLine;
+begin
+  GetPalette := PPalette(@P);
+end;
+
+function TGDBSourceEditor.InsertLine: Sw_integer;
+Var
+  S : string;
+  
+begin
+  if IsReadOnly then begin InsertLine:=-1; Exit; end;
+  if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
+  s:=Copy(S,1,CurPos.X);
+  if assigned(Debugger) and (S<>'') then
+    Debugger^.Command(S);
+  InsertLine:=inherited InsertLine;
+end;
       
 constructor TGDBWindow.Init(var Bounds: TRect);
 var HSB,VSB: PScrollBar;
     R: TRect;
 begin
-  inherited Init(Bounds,'GDB',SearchFreeWindowNo);
+  inherited Init(Bounds,'GDB window',SearchFreeWindowNo);
   Options:=Options or ofTileAble;
   GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
@@ -965,7 +988,7 @@ begin
   New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
   GetExtent(R); R.A.X:=3; R.B.X:=14; R.A.Y:=R.B.Y-1;
   GetExtent(R); R.Grow(-1,-1);
-  Dec(R.B.Y);
+  {Dec(R.B.Y);}
   New(Editor, Init(R, HSB, VSB, nil, GDBOutputFile));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   if ExistsFile(GDBOutputFile) then
@@ -977,11 +1000,12 @@ begin
   { Empty files are buggy !! }
     Editor^.AddLine('');
   Insert(Editor);
-  GetExtent(R); R.Grow(-1,-1);
+  {GetExtent(R); R.Grow(-1,-1);
   R.A.Y:=R.B.Y-1;
   New(Input, Init(R, 255));
   Input^.GrowMode:=gfGrowHiX;
-  Insert(Input);
+  
+  Insert(Input);              }
 end;
 
 destructor TGDBWindow.Done;
@@ -3224,7 +3248,17 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-02-11 13:08:39  pierre
+  Revision 1.12  1999-02-11 19:07:25  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.11  1999/02/11 13:08:39  pierre
    + TGDBWindow : direct gdb input/output
 
   Revision 1.10  1999/02/10 09:42:52  pierre

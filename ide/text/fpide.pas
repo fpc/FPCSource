@@ -57,6 +57,7 @@ type
       procedure ClearPrimary;
       procedure DoUserScreenWindow;
       procedure DoUserScreen;
+      procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
       procedure Information;
       procedure Calculator;
@@ -206,7 +207,8 @@ begin
       NewItem('~O~utput','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
       NewItem('~B~reakpoint','Ctrl+F8', kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
-      nil)))),
+      NewItem('~G~DB window','', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
+      nil))))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', '', kbNoKey, cmToolsMessages, hcToolsMessages,
       NewLine(
@@ -353,7 +355,8 @@ begin
              cmInformation   : Information;
            { -- Debug menu -- }
              cmUserScreen    : DoUserScreen;
-             cmToggleBreakpoint   : DoToggleBreak;
+        cmToggleBreakpoint   : DoToggleBreak;
+             cmOpenGDBWindow : DoOpenGDBWindow;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : DoCompilerSwitch;
@@ -654,7 +657,17 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-02-10 09:54:11  pierre
+  Revision 1.14  1999-02-11 19:07:22  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.13  1999/02/10 09:54:11  pierre
     * cmSourceWindowClosing resets Debugger LastSource field to avoid problems
 
   Revision 1.12  1999/02/08 17:43:44  pierre

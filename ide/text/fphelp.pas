@@ -141,9 +141,9 @@ begin
     hcClearPrimary  : S:='Clear the file previously set to Primary';
     hcInformation   : S:='Show compiler messages and program information';
 
-    hcDebugMenu     : S:='';
+    hcDebugMenu     : S:='Debug Program';
     hcToggleBreakpoint : S:='Toggles Breakpoint';
-
+    hcOpenGDBWindow : S:='Open direct window to GDB';
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
     hcGrep          : S:='Run grep';
@@ -356,7 +356,17 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-02-08 17:40:01  pierre
+  Revision 1.8  1999-02-11 19:07:21  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.7  1999/02/08 17:40:01  pierre
    + cmContToCursor added
 
   Revision 1.6  1999/02/08 10:37:43  peter

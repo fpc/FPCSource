@@ -98,6 +98,8 @@ var
   
 procedure InitDebugger;
 procedure DoneDebugger;
+procedure InitGDBWindow;
+procedure DoneGDBWindow;
 procedure InitBreakpoints;
 procedure DoneBreakpoints;
 
@@ -197,6 +199,7 @@ begin
       If StrLen(GetError)>0 then
         GDBWindow^.WriteErrorText(GetError);
       GDBWindow^.WriteOutputText(GetOutput);
+      GDBWindow^.Editor^.TextEnd;
     end;
 end;
 
@@ -243,7 +246,8 @@ begin
           W^.Editor^.SetCurPtr(0,Line);
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetHighlightRow(Line);
-          W^.Select;
+          if Not assigned(GDBWindow) or not GDBWindow^.Focus then
+            W^.Select;
           InvalidSourceLine:=false;
         end
       else
@@ -256,7 +260,8 @@ begin
         begin
           W^.Editor^.SetHighlightRow(Line);
           W^.Editor^.TrackCursor(true);
-          W^.Select;
+          if Not assigned(GDBWindow) or not GDBWindow^.Focus then
+            W^.Select;
           LastSource:=W;
           InvalidSourceLine:=false;
         end
@@ -277,7 +282,8 @@ begin
               W:=TryToOpenFile(nil,fn,0,Line);
               W^.Editor^.SetHighlightRow(Line);
               W^.Editor^.TrackCursor(true);
-              W^.Select;
+              if Not assigned(GDBWindow) or not GDBWindow^.Focus then
+                W^.Select;
               LastSource:=W;
               InvalidSourceLine:=false;
            end;
@@ -289,7 +295,8 @@ begin
     begin
       PB:=BreakpointCollection^.GetGDB(stop_breakpoint_number);
       { For watch we should get old and new value !! }
-      If PB^.typ<>bt_file_line then
+      if (Not assigned(GDBWindow) or not GDBWindow^.Focus) and
+         (PB^.typ<>bt_file_line) then
         begin
            Command('p '+GetStr(PB^.Name));
            S:=StrPas(GetOutput);
@@ -595,10 +602,6 @@ end;
 ****************************************************************************}
 
 procedure InitDebugger;
-
-var
-  R : TRect;
-
 begin
   Assign(gdb_file,'gdb$$$.out');
   Rewrite(gdb_file);
@@ -617,12 +620,7 @@ begin
    dispose(Debugger,Done);
   new(Debugger,Init(ExeFile));
 {$ifdef GDBWINDOW}
-  if GDBWindow=nil then
-    begin
-      DeskTop^.GetExtent(R);
-      new(GDBWindow,init(R));
-      DeskTop^.Insert(GDBWindow);
-    end;
+  InitGDBWindow;
 {$endif def GDBWINDOW}
 end;
 
@@ -635,6 +633,23 @@ begin
   If Use_gdb_file then
     Close(GDB_file);
   Use_gdb_file:=false;
+  {DoneGDBWindow;}
+end;
+
+procedure InitGDBWindow;
+var
+  R : TRect;
+begin
+  if GDBWindow=nil then
+    begin
+      DeskTop^.GetExtent(R);
+      new(GDBWindow,init(R));
+      DeskTop^.Insert(GDBWindow);
+    end;
+end;
+
+procedure DoneGDBWindow;
+begin
   if assigned(GDBWindow) then
     begin
       DeskTop^.Delete(GDBWindow);
@@ -657,7 +672,17 @@ end.
 
 {
   $Log$
-  Revision 1.11  1999-02-11 13:10:03  pierre
+  Revision 1.12  1999-02-11 19:07:20  pierre
+    * GDBWindow redesigned :
+      normal editor apart from
+      that any kbEnter will send the line (for begin to cursor)
+      to GDB command !
+      GDBWindow opened in Debugger Menu
+       still buggy :
+       -echo should not be present if at end of text
+       -GDBWindow becomes First after each step (I don't know why !)
+
+  Revision 1.11  1999/02/11 13:10:03  pierre
    + GDBWindow only with -dGDBWindow for now : still buggy !!
 
   Revision 1.10  1999/02/10 09:55:07  pierre
