@@ -60,6 +60,7 @@ Uses BaseUnix,unix;
                        System dependent memory allocation
 *****************************************************************************}
 
+{
 {$ifndef BSD}
 
 Const
@@ -79,7 +80,7 @@ CONST
  {$ENTER ME}
 {$ENDIF}
 {$ENDIF}
-
+}
 {*****************************************************************************
                              Threadvar support
 *****************************************************************************}
@@ -380,7 +381,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2003-11-18 22:36:12  marco
+  Revision 1.20  2003-11-19 10:54:32  marco
+   * some simple restructures
+
+  Revision 1.19  2003/11/18 22:36:12  marco
    * Last patch was ok, problem was somewhere else. Moved *BSD part of pthreads to freebsd/pthreads.inc
 
   Revision 1.18  2003/11/18 22:35:09  marco

@@ -80,7 +80,7 @@ end;
 
 procedure SerFlush(Handle: TSerialHandle);
 begin
-  fdFlush(Handle);
+  fsync(Handle);
 end;
 
 function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
@@ -215,7 +215,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-09-14 20:15:01  marco
+  Revision 1.9  2003-11-19 10:54:32  marco
+   * some simple restructures
+
+  Revision 1.8  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.7  2002/09/07 16:01:27  peter

@@ -18,45 +18,26 @@ Interface
 
 Uses UnixUtil,BaseUnix;
 
-{// i ostypes.inc}
 { Get Types and Constants }
 {$i sysconst.inc}
 {$i systypes.inc}
 
-{ Get System call numbers and error-numbers}
-{$i sysnr.inc}
+{Get error numbers, some more signal definitions and other OS dependant
+ types (that are not POSIX) }
 {$i errno.inc}
 {$I signal.inc}
 {$i ostypes.inc}
-
-{********************
-      Process
-********************}
-const
-  { For getting/setting priority }
-  Prio_Process = 0;
-  Prio_PGrp    = 1;
-  Prio_User    = 2;
-
-{$ifdef Solaris}
-  WNOHANG   = $100;
-  WUNTRACED = $4;
-{$ELSE}
-  WNOHANG   = $1;
-  WUNTRACED = $2;
-  __WCLONE  = $80000000;
-{$ENDIF}
 
 {********************
       File
 ********************}
 
 Const
-  P_IN  = 1;
+  P_IN  = 1;			// pipes (?)
   P_OUT = 2;
 
 Const
-  LOCK_SH = 1;
+  LOCK_SH = 1;			// flock constants ?
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
@@ -69,30 +50,6 @@ Type
     name : pchar;
     next : pglob;
   end;
-
-const
-
-  { For File control mechanism }
-  F_GetFd  = 1;
-  F_SetFd  = 2;
-  F_GetFl  = 3;
-  F_SetFl  = 4;
-{$ifdef Solaris}
-  F_DupFd  = 0;
-  F_Dup2Fd = 9;
-  F_GetOwn = 23;
-  F_SetOwn = 24;
-  F_GetLk  = 14;
-  F_SetLk  = 6;
-  F_SetLkW = 7;
-  F_FreeSp = 11;
-{$else}
-  F_GetLk  = 5;
-  F_SetLk  = 6;
-  F_SetLkW = 7;
-  F_SetOwn = 8;
-  F_GetOwn = 9;
-{$endif}
 
 {********************
    IOCtl(TermIOS)
@@ -121,58 +78,57 @@ procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 
 Function  GetEpochTime: cint;
-procedure GetTime(var hour,min,sec,msec,usec:word);
-procedure GetTime(var hour,min,sec,sec100:word);
-procedure GetTime(var hour,min,sec:word);
-Procedure GetDate(Var Year,Month,Day:Word);
-Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
-function  SetTime(Hour,Min,Sec:word) : Boolean;
-function  SetDate(Year,Month,Day:Word) : Boolean;
-function  SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
+procedure GetTime     (var hour,min,sec,msec,usec:word);
+procedure GetTime     (var hour,min,sec,sec100:word);
+procedure GetTime     (var hour,min,sec:word);
+Procedure GetDate     (Var Year,Month,Day:Word);
+Procedure GetDateTime (Var Year,Month,Day,hour,minute,second:Word);
+function  SetTime     (Hour,Min,Sec:word) : Boolean;
+function  SetDate     (Year,Month,Day:Word) : Boolean;
+function  SetDateTime (Year,Month,Day,hour,minute,second:Word) : Boolean;
 
 {**************************
      Process Handling
 ***************************}
 
-function  CreateShellArgV(const prog:string):ppchar;
-function  CreateShellArgV(const prog:Ansistring):ppchar;
-Function Execv(const path:pathstr;args:ppchar):cint;
-Function Execv(const path: AnsiString;args:ppchar):cint;
-Function Execvp(Path: Pathstr;Args:ppchar;Ep:ppchar):cint;
-Function Execvp(Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
-Function Execl (const Todo: String):cint;
-Function Execl (const Todo: Ansistring):cint;
-Function Execle(Todo: String;Ep:ppchar):cint;
-Function Execle(Todo: AnsiString;Ep:ppchar):cint;
-Function Execlp(Todo: string;Ep:ppchar):cint;
-Function Execlp(Todo: Ansistring;Ep:ppchar):cint;
+function CreateShellArgV (const prog:string):ppchar;
+function CreateShellArgV (const prog:Ansistring):ppchar;
 
-Function Shell (const Command:String):cint;
-Function Shell (const Command:AnsiString):cint;
+Function Execv   (const path:pathstr;args:ppchar):cint;
+Function Execv   (const path: AnsiString;args:ppchar):cint;
+Function Execvp  (Path: Pathstr;Args:ppchar;Ep:ppchar):cint;
+Function Execvp  (Path: AnsiString; Args:ppchar;Ep:ppchar):cint;
+Function Execl   (const Todo: String):cint;
+Function Execl   (const Todo: Ansistring):cint;
+Function Execle  (Todo: String;Ep:ppchar):cint;
+Function Execle  (Todo: AnsiString;Ep:ppchar):cint;
+Function Execlp  (Todo: string;Ep:ppchar):cint;
+Function Execlp  (Todo: Ansistring;Ep:ppchar):cint;
 
-{Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
-//function  Clone(func:TCloneFunc;sp:pointer;flags:cint;args:pointer):cint;
-Function  WaitProcess(Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+Function Shell   (const Command:String):cint;
+Function Shell   (const Command:AnsiString):cint;
 
-Function WIFSTOPPED(Status: Integer): Boolean;
-Function W_EXITCODE(ReturnCode, Signal: Integer): Integer;
-Function W_STOPCODE(Signal: Integer): Integer;
+Function WaitProcess (Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+
+Function WIFSTOPPED (Status: Integer): Boolean;
+Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
+Function W_STOPCODE (Signal: Integer): Integer;
 
 {**************************
      File Handling
 ***************************}
 
-Function  fdFlush (fd : cint) : cint;
+Function  fsync (fd : cint) : cint;
 
-Function  Flock (fd,mode : cint)   : cint ;
-Function  Flock (var T : text;mode : cint) : cint;
-Function  Flock (var F : File;mode : cint) : cint;
+Function  Flock   (fd,mode : cint)   : cint ;
+Function  Flock   (var T : text;mode : cint) : cint;
+Function  Flock   (var F : File;mode : cint) : cint;
 
-Function  StatFS(Path:Pathstr;Var Info:tstatfs):cint;
-Function  fStatFS(Fd: cint;Var Info:tstatfs):cint;
+Function  StatFS  (Path:Pathstr;Var Info:tstatfs):cint;
+Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
 
-Function  SelectText(var T:Text;TimeOut :PTimeVal):cint;
-Function  SelectText(var T:Text;TimeOut :cint):cint;
+Function  SelectText (var T:Text;TimeOut :PTimeVal):cint;
+Function  SelectText (var T:Text;TimeOut :cint):cint;
 
 {**************************
    Directory Handling
@@ -185,14 +141,13 @@ function  TellDir(p:pdir):clong;
     Pipe/Fifo/Stream
 ***************************}
 
-Function  AssignPipe(var pipe_in,pipe_out:cint):cint;
-Function  AssignPipe(var pipe_in,pipe_out:text):cint;
-Function  AssignPipe(var pipe_in,pipe_out:file):cint;
-Function  PClose(Var F:text) : cint;
-Function  PClose(Var F:file) : cint;
-Function  POpen(var F:text;const Prog:String;rw:char):cint;
-Function  POpen(var F:file;const Prog:String;rw:char):cint;
-
+Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
+Function AssignPipe  (var pipe_in,pipe_out:text):cint;
+Function AssignPipe  (var pipe_in,pipe_out:file):cint;
+Function PClose      (Var F:text) : cint;
+Function PClose      (Var F:file) : cint;
+Function POpen       (var F:text;const Prog:String;rw:char):cint;
+Function POpen	     (var F:file;const Prog:String;rw:char):cint;
 function AssignStream(Var StreamIn,Streamout:text;Const Prog:String) : cint;
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): cint;
 
@@ -247,22 +202,22 @@ const
     Utility functions
 ***************************}
 
-Function  FExpand(Const Path: PathStr):PathStr;
-Function  FSearch(const path:pathstr;dirlist:string):pathstr;
-Function  Glob(Const path:pathstr):pglob;
-Procedure Globfree(var p:pglob);
-{Filedescriptorsets}
-{Stat.Mode Types}
-procedure SigRaise(sig:integer);
+Function  FExpand  (Const Path: PathStr):PathStr;
+Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
+Function  Glob	   (Const path:pathstr):pglob;
+Procedure Globfree (var p:pglob);
+
+procedure SigRaise (sig:integer);
+
+{$i unxsysch.inc} //  calls used in system and not reexported from baseunix
+
 {******************************************************************************
                             Implementation
 ******************************************************************************}
 
-{$i unxsysch.inc}
-
 Implementation
 
-Uses Strings;
+Uses Strings,Syscall;
 
 {$i syscallh.inc}
 {$i ossysch.inc}
@@ -283,7 +238,6 @@ Uses Strings;
 {$i unixsysc.inc}   {Syscalls only used in unit Unix/Linux}
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
-
 
 {******************************************************************************
                           Process related calls
@@ -1673,29 +1627,6 @@ begin
   glob:=root;
 end;
 
-Function GetFS (var T:Text):cint;
-{
-  Get File Descriptor of a text file.
-}
-begin
-  if textrec(t).mode=fmclosed then
-   exit(-1)
-  else
-   GETFS:=textrec(t).Handle
-end;
-
-
-Function GetFS(Var F:File):cint;
-{
-  Get File Descriptor of an unTyped file.
-}
-begin
-  { Handle and mode are on the same place in textrec and filerec. }
-  if filerec(f).mode=fmclosed then
-   exit(-1)
-  else
-   GETFS:=filerec(f).Handle
-end;
 
 {--------------------------------
       Stat.Mode Macro's
@@ -1710,7 +1641,10 @@ End.
 
 {
   $Log$
-  Revision 1.49  2003-11-17 11:28:08  marco
+  Revision 1.50  2003-11-19 10:54:32  marco
+   * some simple restructures
+
+  Revision 1.49  2003/11/17 11:28:08  marco
    * Clone moved to linux, + few small unit unix changes
 
   Revision 1.48  2003/11/17 10:05:51  marco
