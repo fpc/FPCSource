@@ -1142,10 +1142,8 @@ the following:
 \item \textbf{OS2} : OS/2 (2.x) using the \var{EMX} extender.
 \item \textbf{WIN32} : \windows 32 bit.
 \end{itemize}
-\item [-uxxx] \olabel{u} undefine the symbol \var{xxx}. This is the opposite
+\item [-uxxx] \olabel{u} Undefine the symbol \var{xxx}. This is the opposite
 of the \var{-d} option.
-\item [-uxxx] \olabel{U} Undefine symbol \var{xxx}.
-
 \item [-Xx] \olabel{X} executable options. This tells the compiler what
 kind of executable should be generated. the parameter \var{x}
 can be one of the following:
@@ -1282,7 +1280,7 @@ Syntax:
 \begin{verbatim}
 #IFNDEF name
 \end{verbatim}
-Lines following \var{\#IFDEF} are skipped read if the keyword \var{name}
+Lines following \var{\#IFNDEF} are skipped read if the keyword \var{name}
 following it is defined.
 
 They are read until the keywords \var{\#ELSE} or \var{\#ENDIF} are
@@ -1305,7 +1303,7 @@ Syntax:
 \var{\#ELSE} can be specified after a \var{\#IFDEF} or \var{\#IFNDEF}
 directive as an alternative.
 Lines following \var{\#ELSE} are skipped read if the preceding \var{\#IFDEF}
-\var{\#IFNDEF} was accepted.
+or \var{\#IFNDEF} was accepted.
 
 They are skipped until the keyword \var{\#ENDIF} is
 encountered, after which normal processing is resumed.
@@ -1313,9 +1311,9 @@ encountered, after which normal processing is resumed.
 Example :
 \begin{verbatim}
 #IFDEF VER0_99_5
--Fu/usr/lib/fpc/0.99.6/linuxunits
-#ELSE
 -Fu/usr/lib/fpc/0.99.5/linuxunits
+#ELSE
+-Fu/usr/lib/fpc/0.99.6/linuxunits
 #ENDIF
 \end{verbatim}
 In the above example, \file{/usr/lib/fpc/0.99.5/linuxunits} will be added to
