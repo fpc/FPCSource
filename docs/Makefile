@@ -173,6 +173,7 @@ clean:
 	-rm -f *.htex
 	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
+	-rm -f onechap.dvi onechap.pdf onechap.ps onechap.out onechap.log onechap.aux
 
 # Units
 	-$(MAKE) -C crtex clean
@@ -213,6 +214,7 @@ ifndef INSTALLDEBUG
 	$(MAKE) -C ipcex tex
 	$(MAKE) -C linuxex tex
 	$(MAKE) -C mouseex tex
+	$(MAKE) -C mmouseex tex
 	$(MAKE) -C objectex tex
 	$(MAKE) -C optex tex
 	$(MAKE) -C printex tex
@@ -224,6 +226,7 @@ ifndef INSTALLDEBUG
 	$(MAKE) -C gpmex tex
 	$(MAKE) -C kbdex tex
 	$(MAKE) -C typinfex tex
+	$(MAKE) -C videoex tex
 endif
 	touch unitex.chk
 
@@ -291,6 +294,11 @@ ref.pdf: ref.tex includes
 user.pdf: user.tex includes
 
 prog.pdf: prog.tex includes
+
+onechap.pdf: onechap.tex includes
+
+onechap.dvi: onechap.tex includes
+
 
 dvi : $(DVI)
 
@@ -535,7 +543,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.10  2001-10-18 21:41:26  peter
+# Revision 1.11  2001-11-05 20:10:05  michael
+# + Added onechap target
+#
+# Revision 1.10  2001/10/18 21:41:26  peter
 #   * fixed latex2html settings
 #
 # Revision 1.9  2001/10/11 23:36:54  carl
