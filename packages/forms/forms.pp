@@ -42,7 +42,8 @@ Type PWord   = ^Word;
      PDouble = ^Double;
      PFloat  = ^Real;
      PLongint = ^Longint;
-
+     PCardinal = ^Cardinal;
+     
 type TFL_Coord = Longint ;
      PFL_Coord = ^TFL_Coord;
 { #define FL_CoordIsFloat 0      define this if FL_Coord is of type float }
@@ -2909,7 +2910,19 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:11  michael
+  Revision 1.3  2001-01-09 21:06:27  michael
+  + merged Adding of PCardinal type
+
+  Revision 1.2  2000/07/13 11:33:11  michael
   + removed logs
- 
+
+  Revision 1.1.2.1  2001/01/09 21:04:41  michael
+  + Added PCardinal type
+
+  Revision 1.1  2000/07/13 06:33:54  michael
+  + Initial import
+
+  Revision 1.2  2000/02/27 14:40:40  peter
+    * removed warnings/notes
+
 }
