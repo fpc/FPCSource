@@ -546,6 +546,7 @@ interface
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           function  is_visible_for_proc(currprocdef:tprocdef):boolean;
+          function  is_visible_for_object(currobjdef:tobjectdef):boolean;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -3672,6 +3673,36 @@ implementation
       end;
 
 
+    function tprocdef.is_visible_for_object(currobjdef:tobjectdef):boolean;
+      begin
+        is_visible_for_object:=false;
+
+        { private symbols are allowed when we are in the same
+          module as they are defined }
+        if (sp_private in symoptions) and
+           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+           (owner.defowner.owner.unitid<>0) then
+          exit;
+
+        { protected symbols are vissible in the module that defines them and
+          also visible to related objects }
+        if (sp_protected in symoptions) and
+           (
+            (
+             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+             (owner.defowner.owner.unitid<>0)
+            ) and
+            not(
+                assigned(currobjdef) and
+                currobjdef.is_related(tobjectdef(owner.defowner))
+               )
+           ) then
+          exit;
+
+        is_visible_for_object:=true;
+      end;
+
+
     function tprocdef.getsymtable(t:tgetsymtable):tsymtable;
       begin
         case t of
@@ -5693,7 +5724,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2003-03-17 15:54:22  peter
+  Revision 1.131  2003-03-17 16:54:41  peter
+    * support DefaultHandler and anonymous inheritance fixed
+      for message methods
+
+  Revision 1.130  2003/03/17 15:54:22  peter
     * store symoptions also for procdef
     * check symoptions (private,public) when calculating possible
       overload candidates

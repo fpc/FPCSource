@@ -91,7 +91,7 @@ implementation
 
     const
       got_addrn  : boolean = false;
-      auto_inherited : boolean = false;
+      anon_inherited : boolean = false;
 
 
 
@@ -671,7 +671,7 @@ implementation
          if not(getaddr) then
            begin
              para:=nil;
-             if auto_inherited then
+             if anon_inherited then
               begin
                 hst:=symtablestack;
                 while assigned(hst) and (hst.symtabletype<>parasymtable) do
@@ -1780,24 +1780,33 @@ implementation
                consume(_INHERITED);
                if assigned(procinfo._class) then
                 begin
+                  classh:=procinfo._class.childof;
                   { if inherited; only then we need the method with
                     the same name }
                   if token=_SEMICOLON then
                    begin
                      hs:=aktprocsym.name;
-                     auto_inherited:=true
+                     anon_inherited:=true;
+                     { For message methods we need to search using the message
+                       number or string }
+                     if (po_msgint in aktprocsym.first_procdef.procoptions) then
+                      sym:=searchsym_in_class_by_msgint(classh,aktprocsym.first_procdef.messageinf.i)
+                     else
+                      if (po_msgstr in aktprocsym.first_procdef.procoptions) then
+                       sym:=searchsym_in_class_by_msgstr(classh,aktprocsym.first_procdef.messageinf.str)
+                     else
+                      sym:=searchsym_in_class(classh,hs);
                    end
                   else
                    begin
                      hs:=pattern;
                      consume(_ID);
-                     auto_inherited:=false;
+                     anon_inherited:=false;
+                     sym:=searchsym_in_class(classh,hs);
                    end;
-                  classh:=procinfo._class.childof;
-                  sym:=searchsym_in_class(classh,hs);
-                  check_hints(sym);
                   if assigned(sym) then
                    begin
+                     check_hints(sym);
                      if sym.typ=procsym then
                       begin
                         htype.setdef(classh);
@@ -1806,15 +1815,20 @@ implementation
                      do_member_read(false,sym,p1,again);
                      { Add flag to indicate that inherited is used }
                      if p1.nodetype=calln then
-                       include(p1.flags,nf_auto_inherited);
+                       include(p1.flags,nf_anon_inherited);
                    end
                   else
                    begin
-                     if auto_inherited then
+                     if anon_inherited then
                       begin
-                        { we didn't find a member in the parents so
-                          we do nothing. This is compatible with delphi (PFV) }
-                        p1:=cnothingnode.create;
+                        { we didn't find a member in the parents call the
+                          DefaultHandler }
+                        sym:=searchsym_in_class(classh,'DEFAULTHANDLER');
+                        if not assigned(sym) or
+                           (sym.typ<>procsym) then
+                          internalerror(200303171);
+                        p1:=nil;
+                        do_proc_call(sym,sym.owner,false,again,p1);
                       end
                      else
                       begin
@@ -1824,7 +1838,7 @@ implementation
                      again:=false;
                    end;
                   { turn auto inheriting off }
-                  auto_inherited:=false;
+                  anon_inherited:=false;
                 end
                else
                  begin
@@ -2326,7 +2340,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-01-30 21:46:57  peter
+  Revision 1.103  2003-03-17 16:54:41  peter
+    * support DefaultHandler and anonymous inheritance fixed
+      for message methods
+
+  Revision 1.102  2003/01/30 21:46:57  peter
     * self fixes for static methods (merged)
 
   Revision 1.101  2003/01/16 22:12:22  peter

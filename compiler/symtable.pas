@@ -221,6 +221,8 @@ interface
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
     function  searchsym_in_class(classh:tobjectdef;const s : stringid):tsym;
+    function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
+    function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string):tsym;
     function  searchsystype(const s: stringid; var srsym: ttypesym): boolean;
     function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
@@ -2076,6 +2078,104 @@ implementation
       end;
 
 
+    function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint):tsym;
+      var
+        topclassh  : tobjectdef;
+        def        : tdef;
+        sym        : tsym;
+      begin
+         { when the class passed is defined in this unit we
+           need to use the scope of that class. This is a trick
+           that can be used to access protected members in other
+           units. At least kylix supports it this way (PFV) }
+         if assigned(classh) and
+            (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
+            (classh.owner.unitid=0) then
+           topclassh:=classh
+         else
+           topclassh:=nil;
+         sym:=nil;
+         def:=nil;
+         while assigned(classh) do
+          begin
+            def:=tdef(classh.symtable.defindex.first);
+            while assigned(def) do
+             begin
+               if (def.deftype=procdef) and
+                  (po_msgint in tprocdef(def).procoptions) and
+                  (tprocdef(def).messageinf.i=i) then
+                begin
+                  sym:=tprocdef(def).procsym;
+                  if assigned(topclassh) then
+                   begin
+                     if tprocdef(def).is_visible_for_object(topclassh) then
+                      break;
+                   end
+                  else
+                   begin
+                     if tprocdef(def).is_visible_for_proc(aktprocdef) then
+                      break;
+                   end;
+                end;
+               def:=tdef(def.indexnext);
+             end;
+            if assigned(sym) then
+             break;
+            classh:=classh.childof;
+          end;
+         searchsym_in_class_by_msgint:=sym;
+      end;
+
+
+    function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string):tsym;
+      var
+        topclassh  : tobjectdef;
+        def        : tdef;
+        sym        : tsym;
+      begin
+         { when the class passed is defined in this unit we
+           need to use the scope of that class. This is a trick
+           that can be used to access protected members in other
+           units. At least kylix supports it this way (PFV) }
+         if assigned(classh) and
+            (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
+            (classh.owner.unitid=0) then
+           topclassh:=classh
+         else
+           topclassh:=nil;
+         sym:=nil;
+         def:=nil;
+         while assigned(classh) do
+          begin
+            def:=tdef(classh.symtable.defindex.first);
+            while assigned(def) do
+             begin
+               if (def.deftype=procdef) and
+                  (po_msgstr in tprocdef(def).procoptions) and
+                  (tprocdef(def).messageinf.str=s) then
+                begin
+                  sym:=tprocdef(def).procsym;
+                  if assigned(topclassh) then
+                   begin
+                     if tprocdef(def).is_visible_for_object(topclassh) then
+                      break;
+                   end
+                  else
+                   begin
+                     if tprocdef(def).is_visible_for_proc(aktprocdef) then
+                      break;
+                   end;
+                end;
+               def:=tdef(def.indexnext);
+             end;
+            if assigned(sym) then
+             break;
+            classh:=classh.childof;
+          end;
+         searchsym_in_class_by_msgstr:=sym;
+      end;
+
+
     function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
       var
         symowner: tsymtable;
@@ -2350,7 +2450,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2002-12-29 14:57:50  peter
+  Revision 1.90  2003-03-17 16:54:41  peter
+    * support DefaultHandler and anonymous inheritance fixed
+      for message methods
+
+  Revision 1.89  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

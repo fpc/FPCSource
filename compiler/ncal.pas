@@ -1742,7 +1742,7 @@ type
                         do this ugly hack in Delphi mode as it looks more
                         like a bug. It's also not documented }
                       if (m_delphi in aktmodeswitches) and
-                         (nf_auto_inherited in flags) and
+                         (nf_anon_inherited in flags) and
                          (symtableprocentry.owner.symtabletype=objectsymtable) and
                          (po_overload in symtableprocentry.first_procdef.procoptions) and
                          (symtableprocentry.procdef_count>=2) then
@@ -2395,7 +2395,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2003-03-17 15:54:22  peter
+  Revision 1.130  2003-03-17 16:54:41  peter
+    * support DefaultHandler and anonymous inheritance fixed
+      for message methods
+
+  Revision 1.129  2003/03/17 15:54:22  peter
     * store symoptions also for procdef
     * check symoptions (private,public) when calculating possible
       overload candidates

@@ -222,7 +222,7 @@ interface
          { flags used by tcallnode }
          nf_return_value_used,
          nf_static_call,
-         nf_auto_inherited,
+         nf_anon_inherited,
 
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
@@ -976,7 +976,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-01-04 15:54:03  daniel
+  Revision 1.50  2003-03-17 16:54:41  peter
+    * support DefaultHandler and anonymous inheritance fixed
+      for message methods
+
+  Revision 1.49  2003/01/04 15:54:03  daniel
     * Fixed mark_write for @ operator
       (can happen when compiling @procvar:=nil (Delphi mode construction))
 
