@@ -155,13 +155,29 @@ implementation
                case p^.inlinenumber of
          in_const_trunc : begin
                             if isreal then
-                             hp:=genordinalconstnode(trunc(vr),s32bitdef)
+                              begin
+                                 if (vr>=2147483648.0) or (vr<=-2147483649.0) then
+                                   begin
+                                      CGMessage(parser_e_range_check_error);
+                                      hp:=genordinalconstnode(1,s32bitdef)
+                                   end
+                                 else
+                                   hp:=genordinalconstnode(trunc(vr),s32bitdef)
+                              end
                             else
                              hp:=genordinalconstnode(trunc(vl),s32bitdef);
                           end;
          in_const_round : begin
                             if isreal then
-                             hp:=genordinalconstnode(round(vr),s32bitdef)
+                              begin
+                                 if (vr>=2147483647.5) or (vr<=-2147483648.5) then
+                                   begin
+                                      CGMessage(parser_e_range_check_error);
+                                      hp:=genordinalconstnode(1,s32bitdef)
+                                   end
+                                 else
+                                   hp:=genordinalconstnode(round(vr),s32bitdef)
+                              end
                             else
                              hp:=genordinalconstnode(round(vl),s32bitdef);
                           end;
@@ -951,7 +967,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-01-28 19:43:43  peter
+  Revision 1.17  1999-02-01 00:00:50  florian
+    * compiler crash fixed when constant arguments passed to round/trunc
+      exceeds the longint range
+
+  Revision 1.16  1999/01/28 19:43:43  peter
     * fixed high generation for ansistrings with str,writeln
 
   Revision 1.15  1999/01/27 16:28:22  pierre
