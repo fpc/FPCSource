@@ -72,11 +72,14 @@ Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 Function OpsEqual(const o1,o2:toper): Boolean;
 
 Function DFAPass1(AsmL: PAasmOutput; BlockStart: Pai): Pai;
-Function DFAPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai): Boolean;
+Function DFAPass2(
+{$ifdef statedebug}
+                   AsmL: PAasmOutPut;
+{$endif statedebug}
+                                      BlockStart, BlockEnd: Pai): Boolean;
 Procedure ShutDownDFA;
 
 Function FindLabel(L: PLabel; Var hp: Pai): Boolean;
-{Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LoLab, HiLab, LabDif: Longint);}
 
 {******************************* Constants *******************************}
 
@@ -155,12 +158,10 @@ Type
   TRegFPUContent = Array[R_ST..R_ST7] Of TContent;
 
 {information record with the contents of every register. Every Pai object
- gets one of these assigned: a pointer to it is stored in the Line field and
- the original line number is stored in LineSave}
+ gets one of these assigned: a pointer to it is stored in the OptInfo field}
   TPaiProp = Record
                Regs: TRegContent;
 {               FPURegs: TRegFPUContent;} {currently not yet used}
-               LineSave: Longint;
     {allocated Registers}
                UsedRegs: TRegSet;
     {status of the direction flag}
@@ -222,14 +223,14 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_REP} (Ch: (C_RWECX, C_RFlags, C_None)),
   {A_REPE} (Ch: (C_RWECX, C_RFlags, C_None)),
   {A_REPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_REPNZ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_REPZ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SEGCS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SEGES} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SEGDS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SEGFS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SEGGS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SEGSS} (Ch: (C_All, C_None, C_None)), { new }
+  {A_REPNZ} (Ch: (C_WECX, C_RWFLAGS, C_None)), { new }
+  {A_REPZ} (Ch: (C_WECX, C_RWFLAGS, C_None)), { new }
+  {A_SEGCS} (Ch: (C_None, C_None, C_None)), { new }
+  {A_SEGES} (Ch: (C_None, C_None, C_None)), { new }
+  {A_SEGDS} (Ch: (C_None, C_None, C_None)), { new }
+  {A_SEGFS} (Ch: (C_None, C_None, C_None)), { new }
+  {A_SEGGS} (Ch: (C_None, C_None, C_None)), { new }
+  {A_SEGSS} (Ch: (C_None, C_None, C_None)), { new }
   {A_AAA} (Ch: (C_RWEAX, C_WFlags, C_None)),
   {A_AAD} (Ch: (C_RWEAX, C_WFlags, C_None)),
   {A_AAM} (Ch: (C_RWEAX, C_WFlags, C_None)),
@@ -241,7 +242,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_BOUND} (Ch: (C_Rop1, C_None, C_None)),
   {A_BSF} (Ch: (C_Wop2, C_WFlags, C_Rop1)),
   {A_BSR} (Ch: (C_Wop2, C_WFlags, C_Rop1)),
-  {A_BSWAP} (Ch: (C_All, C_None, C_None)), { new }
+  {A_BSWAP} (Ch: (C_RWOp1, C_None, C_None)), { new }
   {A_BT} (Ch: (C_WFlags, C_Rop1, C_None)),
   {A_BTC} (Ch: (C_RWop2, C_Rop1, C_WFlags)),
   {A_BTR} (Ch: (C_RWop2, C_Rop1, C_WFlags)),
@@ -268,9 +269,9 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_DAS} (Ch: (C_RWEAX, C_None, C_None)),
   {A_DEC} (Ch: (C_RWop1, C_WFlags, C_None)),
   {A_DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
-  {A_EMMS} (Ch: (C_All, C_None, C_None)), { new }
+  {A_EMMS} (Ch: (C_FPU, C_None, C_None)), { new }
   {A_ENTER} (Ch: (C_RWESP, C_None, C_None)),
-  {A_EQU} (Ch: (C_All, C_None, C_None)), { new }
+  {A_EQU} (Ch: (C_None, C_None, C_None)), { new }
   {A_F2XM1} (Ch: (C_FPU, C_None, C_None)),
   {A_FABS} (Ch: (C_FPU, C_None, C_None)),
   {A_FADD} (Ch: (C_FPU, C_None, C_None)),
@@ -279,17 +280,17 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_FBSTP} (Ch: (C_Wop1, C_FPU, C_None)),
   {A_FCHS} (Ch: (C_FPU, C_None, C_None)),
   {A_FCLEX} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCMOVB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVBE} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVE} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVNB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVNBE} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVNE} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVNU} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCMOVU} (Ch: (C_All, C_None, C_None)), { new }
+  {A_FCMOVB} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVBE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVNB} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVNBE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVNE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVNU} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
+  {A_FCMOVU} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
   {A_FCOM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCOMI} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FCOMIP} (Ch: (C_All, C_None, C_None)), { new }
+  {A_FCOMI} (Ch: (C_WFLAGS, C_None, C_None)), { new }
+  {A_FCOMIP} (Ch: (C_FPU, C_WFLAGS, C_None)), { new }
   {A_FCOMP} (Ch: (C_FPU, C_None, C_None)),
   {A_FCOMPP} (Ch: (C_FPU, C_None, C_None)),
   {A_FCOS} (Ch: (C_FPU, C_None, C_None)),
@@ -314,7 +315,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_FIST} (Ch: (C_Wop1, C_None, C_None)),
   {A_FISTP} (Ch: (C_Wop1, C_None, C_None)),
   {A_FISUB} (Ch: (C_FPU, C_None, C_None)),
-  {A_FISUBR} (Ch: (C_All, C_None, C_None)), { new }
+  {A_FISUBR} (Ch: (C_FPU, C_None, C_None)), { new }
   {A_FLD} (Ch: (C_Rop1, C_FPU, C_None)),
   {A_FLD1} (Ch: (C_FPU, C_None, C_None)),
   {A_FLDCW} (Ch: (C_FPU, C_None, C_None)),
@@ -358,9 +359,9 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_FSUBR} (Ch: (C_FPU, C_None, C_None)),
   {A_FSUBRP} (Ch: (C_FPU, C_None, C_None)),
   {A_FTST} (Ch: (C_FPU, C_None, C_None)),
-  {A_FUCOM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FUCOMI} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FUCOMIP} (Ch: (C_All, C_None, C_None)), { new }
+  {A_FUCOM} (Ch: (C_None, C_None, C_None)), {changes fpu status word}
+  {A_FUCOMI} (Ch: (C_WFLAGS, C_None, C_None)), { new }
+  {A_FUCOMIP} (Ch: (C_FPU, C_WFLAGS, C_None)), { new }
   {A_FUCOMP} (Ch: (C_FPU, C_None, C_None)),
   {A_FUCOMPP} (Ch: (C_FPU, C_None, C_None)),
   {A_FWAIT} (Ch: (C_FPU, C_None, C_None)),
@@ -376,9 +377,9 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_IMUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because several forms exist}
   {A_IN} (Ch: (C_Wop2, C_Rop1, C_None)),
   {A_INC} (Ch: (C_RWop1, C_WFlags, C_None)),
-  {A_INSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_INSD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_INSW} (Ch: (C_All, C_None, C_None)), { new }
+  {A_INSB} (Ch: (C_WMemEDI, C_RWEDI, C_None)), { new }
+  {A_INSD} (Ch: (C_WMemEDI, C_RWEDI, C_None)), { new }
+  {A_INSW} (Ch: (C_WMemEDI, C_RWEDI, C_None)), { new }
   {A_INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {A_INT01} (Ch: (C_All, C_None, C_None)), { new }
   {A_INT1} (Ch: (C_All, C_None, C_None)), { new }
@@ -406,9 +407,9 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_LMSW} (Ch: (C_None, C_None, C_None)),
   {A_LOADALL} (Ch: (C_All, C_None, C_None)), { new }
   {A_LOADALL286} (Ch: (C_All, C_None, C_None)), { new }
-  {A_LODSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_LODSD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_LODSW} (Ch: (C_All, C_None, C_None)), { new }
+  {A_LODSB} (Ch: (C_WEAX, C_RWESI, C_None)), { new }
+  {A_LODSD} (Ch: (C_WEAX, C_RWESI, C_None)), { new }
+  {A_LODSW} (Ch: (C_WEAX, C_RWESI, C_None)), { new }
   {A_LOOP} (Ch: (C_RWECX, C_None, C_None)),
   {A_LOOPE} (Ch: (C_RWECX, C_RFlags, C_None)),
   {A_LOOPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
@@ -420,7 +421,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_MOV} (Ch: (C_Wop2, C_Rop1, C_None)),
   {A_MOVD} (Ch: (C_All, C_None, C_None)), { new }
   {A_MOVQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_MOVSB} (Ch: (C_Wop2, C_Rop1, C_None)),
+  {A_MOVSB} (Ch: (C_All, C_Rop1, C_None)),
   {A_MOVSD} (Ch: (C_All, C_None, C_None)), { new }
   {A_MOVSW} (Ch: (C_All, C_None, C_None)), { new }
   {A_MOVSX} (Ch: (C_Wop2, C_Rop1, C_None)),
@@ -491,7 +492,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_POPAW} (Ch: (C_All, C_None, C_None)), { new }
   {A_POPF} (Ch: (C_RWESP, C_WFlags, C_None)),
   {A_POPFD} (Ch: (C_RWESP, C_WFlags, C_None)),
-  {A_POPFW} (Ch: (C_All, C_None, C_None)), { new }
+  {A_POPFW} (Ch: (C_RWESP, C_WFLAGS, C_None)), { new }
   {A_POR} (Ch: (C_All, C_None, C_None)), { new }
   {A_PREFETCH} (Ch: (C_All, C_None, C_None)), { new }
   {A_PREFETCHW} (Ch: (C_All, C_None, C_None)), { new }
@@ -518,20 +519,20 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_PUNPCKLDQ} (Ch: (C_All, C_None, C_None)), { new }
   {A_PUNPCKLWD} (Ch: (C_All, C_None, C_None)), { new }
   {A_PUSH} (Ch: (C_RWESP, C_None, C_None)),
-  {A_PUSHA} (Ch: (C_ALL, C_None, C_None)),
-  {A_PUSHAD} (Ch: (C_RWESP, C_None, C_None)),
+  {A_PUSHA} (Ch: (C_All, C_None, C_None)),
+  {A_PUSHAD} (Ch: (C_All, C_None, C_None)),
   {A_PUSHAW} (Ch: (C_All, C_None, C_None)), { new }
   {A_PUSHF} (Ch: (C_RWESP, C_RFlags, C_None)),
   {A_PUSHFD} (Ch: (C_RWESP, C_RFlags, C_None)),
-  {A_PUSHFW} (Ch: (C_All, C_None, C_None)), { new }
+  {A_PUSHFW} (Ch: (C_RWESP, C_RFLAGS, C_None)), { new }
   {A_PXOR} (Ch: (C_All, C_None, C_None)), { new }
   {A_RCL} (Ch: (C_RWop2, C_Rop1, C_RWFlags)),
   {A_RCR} (Ch: (C_RWop2, C_Rop1, C_RWFlags)),
-  {A_RDMSR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RDPMC} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RDTSC} (Ch: (C_All, C_None, C_None)), { new }
+  {A_RDMSR} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
+  {A_RDPMC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
+  {A_RDTSC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
   {A_RESB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RET} (Ch: (C_ALL, C_None, C_None)),
+  {A_RET} (Ch: (C_All, C_None, C_None)),
   {A_RETF} (Ch: (C_All, C_None, C_None)), { new }
   {A_RETN} (Ch: (C_All, C_None, C_None)), { new }
   {A_ROL} (Ch: (C_RWop2, C_Rop1, C_RWFlags)),
@@ -539,7 +540,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_RSM} (Ch: (C_All, C_None, C_None)), { new }
   {A_SAHF} (Ch: (C_WFlags, C_REAX, C_None)),
   {A_SAL} (Ch: (C_RWop2, C_Rop1, C_RWFlags)),
-  {A_SALC} (Ch: (C_All, C_None, C_None)), { new }
+  {A_SALC} (Ch: (C_WEAX, C_RFLAGS, C_None)), { new }
   {A_SAR} (Ch: (C_RWop2, C_Rop1, C_WFlags)),
   {A_SBB} (Ch: (C_RWop2, C_Rop1, C_RWFlags)),
   {A_SCASB} (Ch: (C_All, C_None, C_None)), { new }
@@ -557,9 +558,9 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_STC} (Ch: (C_WFlags, C_None, C_None)),
   {A_STD} (Ch: (C_SDirFlag, C_None, C_None)),
   {A_STI} (Ch: (C_WFlags, C_None, C_None)),
-  {A_STOSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_STOSD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_STOSW} (Ch: (C_All, C_None, C_None)), { new }
+  {A_STOSB} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
+  {A_STOSD} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
+  {A_STOSW} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
   {A_STR}  (Ch: (C_Wop1, C_None, C_None)),
   {A_SUB} (Ch: (C_RWop2, C_Rop1, C_WFlags)),
   {A_TEST} (Ch: (C_WFlags, C_Rop1, C_Rop2)),
@@ -567,7 +568,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_VERR} (Ch: (C_WFlags, C_None, C_None)),
   {A_VERW} (Ch: (C_WFlags, C_None, C_None)),
   {A_WAIT} (Ch: (C_None, C_None, C_None)),
-  {A_WBINVD} (Ch: (C_All, C_None, C_None)), { new }
+  {A_WBINVD} (Ch: (C_None, C_None, C_None)), { new }
   {A_WRMSR} (Ch: (C_All, C_None, C_None)), { new }
   {A_XADD} (Ch: (C_All, C_None, C_None)), { new }
   {A_XBTS} (Ch: (C_All, C_None, C_None)), { new }
@@ -575,9 +576,9 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_XLAT} (Ch: (C_WEAX, C_REBX, C_None)),
   {A_XLATB} (Ch: (C_WEAX, C_REBX, C_None)),
   {A_XOR} (Ch: (C_RWop2, C_Rop1, C_WFlags)),
-  {A_CMOV} (Ch: (C_All, C_None, C_None)), { new }
-  {A_J} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SET} (Ch: (C_All, C_None, C_None))  { new }
+  {A_CMOV} (Ch: (C_ROp1, C_WOp2, C_RFLAGS)), { new }
+  {A_J} (Ch: (C_None, C_None, C_None)), { new }
+  {A_SET} (Ch: (C_WEAX, C_RFLAGS, C_None))  { new }
   );
 
 Var
@@ -589,8 +590,7 @@ Var
 {************************ Create the Label table ************************}
 
 Function FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: Longint; BlockStart: Pai): Pai;
-{Walks through the paasmlist to find the lowest and highest label number;
- Since 0.9.3: also removes unused labels}
+{Walks through the paasmlist to find the lowest and highest label number}
 Var LabelFound: Boolean;
     P: Pai;
 Begin
@@ -974,9 +974,7 @@ Begin
       If Not(TmpResult) Then
         Case Pai386(p1)^.oper[2].typ Of
           Top_Reg: TmpResult := (Reg = Pai386(p1)^.oper[2].reg);
-          Top_none:;
-        else
-          internalerror($Da);
+          Top_Ref: TmpResult := RegInRef(Reg, Pai386(p1)^.oper[2].ref^)
         End
     End;
   RegInInstruction := TmpResult
@@ -1000,8 +998,8 @@ Begin
   If GetLastInstruction(p1, hp)
     Then
       RegModifiedByInstruction :=
-        PPAiProp(p1^.fileinfo.line)^.Regs[Reg].WState <>
-          PPAiProp(hp^.fileinfo.line)^.Regs[Reg].WState
+        PPAiProp(p1^.OptInfo)^.Regs[Reg].WState <>
+          PPAiProp(hp^.OptInfo)^.Regs[Reg].WState
     Else RegModifiedByInstruction := True;
 End;
 
@@ -1049,9 +1047,11 @@ Begin
   Repeat
     Current := Pai(Current^.previous);
     While Assigned(Current) And
-          ((Pai(Current)^.typ In SkipInstr) or
-           ((Pai(Current)^.typ = ait_label) And
-            Not(Pai_Label(Current)^.l^.is_used))) Do
+          (((Current^.typ = ait_Marker) And
+            Not(Pai_Marker(Current)^.Kind in [AsmBlockEnd,NoPropInfoEnd])) or
+           (Current^.typ In SkipInstr) or
+           ((Current^.typ = ait_label) And
+             Not(Pai_Label(Current)^.l^.is_used))) Do
       Current := Pai(Current^.previous);
     If Assigned(Current) And
        (Current^.typ = ait_Marker) And
@@ -1065,16 +1065,21 @@ Begin
   Until Not(Assigned(Current)) Or
         (Current^.typ <> ait_Marker) Or
         (Pai_Marker(Current)^.Kind <> NoPropInfoStart);
- Last := Current;
-  If Assigned(Current) And
-     Not((Current^.typ In SkipInstr) or
-         ((Current^.typ = ait_label) And
-          Not(Pai_Label(Current)^.l^.is_used)))
-    Then GetLastInstruction := True
-    Else
+  If Not(Assigned(Current)) or
+     (Current^.typ In SkipInstr) or
+     ((Current^.typ = ait_label) And
+      Not(Pai_Label(Current)^.l^.is_used)) or
+     ((Current^.typ = ait_Marker) And
+      (Pai_Marker(Current)^.Kind = AsmBlockEnd))
+    Then
       Begin
         Last := Nil;
         GetLastInstruction := False
+      End
+    Else
+      Begin
+        Last := Current;
+        GetLastInstruction := True;
       End;
 End;
 
@@ -1089,7 +1094,7 @@ Begin
       GetNextInstruction(P, P)
     Else If ((P^.Typ = Ait_Marker) And
         (Pai_Marker(P)^.Kind = NoPropInfoStart)) Then
-   {a marker of the NoPropInfoStart can4t be the first instruction of a
+   {a marker of the NoPropInfoStart can't be the first instruction of a
     paasmoutput list}
       GetNextInstruction(Pai(P^.Previous),P);
     If (P^.Typ = Ait_Marker) And
@@ -1136,11 +1141,11 @@ Begin
   Counter := R_EAX;
   FindZeroReg := True;
   While (Counter <= R_EDI) And
-        ((PPaiProp(p^.fileinfo.line)^.Regs[Counter].Typ <> Con_Const) or
-         (PPaiProp(p^.fileinfo.line)^.Regs[Counter].StartMod <> Pointer(0))) Do
+        ((PPaiProp(p^.OptInfo)^.Regs[Counter].Typ <> Con_Const) or
+         (PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod <> Pointer(0))) Do
     Inc(Byte(Counter));
-  If (PPaiProp(p^.fileinfo.line)^.Regs[Counter].Typ = Con_Const) And
-     (PPaiProp(p^.fileinfo.line)^.Regs[Counter].StartMod = Pointer(0))
+  If (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) And
+     (PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod = Pointer(0))
     Then Result := Counter
     Else FindZeroReg := False;
 End;*)
@@ -1481,13 +1486,13 @@ Begin
     * with uncertain optimizations off:
        - also destroy registers that contain any pointer}
       For Counter := R_EAX to R_EDI Do
-        With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
+        With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
           Begin
             If (typ = Con_Ref) And
                (Not(cs_UncertainOpts in aktglobalswitches) And
                 (NrOfMods <> 1)
                ) Or
-               (RefInSequence(Ref,PPaiProp(p^.fileinfo.line)^.Regs[Counter]) And
+               (RefInSequence(Ref,PPaiProp(p^.OptInfo)^.Regs[Counter]) And
                 ((Counter <> WhichReg) Or
                  ((NrOfMods = 1) And
  {StarMod is always of the type ait_instruction}
@@ -1496,7 +1501,7 @@ Begin
                  )
                 )
                )
-              Then DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
+              Then DestroyReg(PPaiProp(p^.OptInfo), Counter)
           End
     Else
 {write something to a pointer location, so
@@ -1507,7 +1512,7 @@ Begin
       - destroy every register which contains a memory location
       }
       For Counter := R_EAX to R_EDI Do
-        With PPaiProp(p^.fileinfo.line)^.Regs[Counter] Do
+        With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
         If (typ = Con_Ref) And
            (Not(cs_UncertainOpts in aktglobalswitches) Or
         {for movsl}
@@ -1520,7 +1525,7 @@ Begin
                 )
                )
            )
-          Then DestroyReg(PPaiProp(p^.FileInfo.Line), Counter)
+          Then DestroyReg(PPaiProp(p^.OptInfo), Counter)
 End;
 
 Procedure DestroyAllRegs(p: PPaiProp);
@@ -1534,7 +1539,7 @@ End;
 Procedure DestroyOp(PaiObj: Pai; const o:Toper);
 Begin
   Case o.typ Of
-    top_reg: DestroyReg(PPaiProp(PaiObj^.fileinfo.line), o.reg);
+    top_reg: DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg);
     top_ref: DestroyRefs(PaiObj, o.ref^, R_NO);
     top_symbol:;
   End;
@@ -1616,8 +1621,8 @@ Begin
 {$endif JumpAnal}
               Begin
                 GetLastInstruction(p, hp);
-                CurProp^.Regs := PPaiProp(hp^.fileinfo.line)^.Regs;
-                CurProp^.DirFlag := PPaiProp(hp^.fileinfo.line)^.DirFlag;
+                CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
+                CurProp^.DirFlag := PPaiProp(hp^.OptInfo)^.DirFlag;
               End
           End
         Else
@@ -1630,8 +1635,7 @@ Begin
       CurProp^.CanBeRemoved := False;
       UpdateUsedRegs(UsedRegs, Pai(p^.Next));
 {$ifdef TP}
-      CurProp^.linesave := p^.fileinfo.line;
-      PPaiProp(p^.fileinfo.line) := CurProp;
+      PPaiProp(p^.OptInfo) := CurProp;
 {$Endif TP}
       For TmpReg := R_EAX To R_EDI Do
         Inc(NrOfInstrSinceLastMod[TmpReg]);
@@ -1667,7 +1671,7 @@ Begin
                             For TmpReg := R_EAX to R_EDI Do
                               Begin
                                 If (CurProp^.Regs[TmpReg].WState <>
-                                    PPaiProp(hp^.FileInfo.Line)^.Regs[TmpReg].WState)
+                                    PPaiProp(hp^.OptInfo)^.Regs[TmpReg].WState)
                                   Then DestroyReg(CurProp, TmpReg)
                               End
                       End
@@ -1682,8 +1686,8 @@ Begin
   {previous instruction not a jmp, so keep all the registers' contents from the
    previous instruction}
                           Begin
-                            CurProp^.Regs := PPaiProp(hp^.FileInfo.Line)^.Regs;
-                            CurProp^.DirFlag := PPaiProp(hp^.FileInfo.Line)^.DirFlag;
+                            CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
+                            CurProp^.DirFlag := PPaiProp(hp^.OptInfo)^.DirFlag;
                           End
                         Else
   {previous instruction a jmp and no jump to this label processed yet}
@@ -1712,9 +1716,9 @@ Begin
     processed yet}
                                 Begin
                                   GetLastInstruction(p, hp);
-                                  CurProp^.Regs := PPaiProp(hp^.FileInfo.Line)^.Regs;
-                                  CurProp^.DirFlag := PPaiProp(hp^.FileInfo.Line)^.DirFlag;
-                                  DestroyAllRegs(PPaiProp(hp^.FileInfo.Line))
+                                  CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
+                                  CurProp^.DirFlag := PPaiProp(hp^.OptInfo)^.DirFlag;
+                                  DestroyAllRegs(PPaiProp(hp^.OptInfo))
                                 End
                           End
 {$EndIf AnalyzeLoops}
@@ -1722,8 +1726,8 @@ Begin
 {not all references to this label have been found, so destroy all registers}
                   Begin
                     GetLastInstruction(p, hp);
-                    CurProp^.Regs := PPaiProp(hp^.FileInfo.Line)^.Regs;
-                    CurProp^.DirFlag := PPaiProp(hp^.FileInfo.Line)^.DirFlag;
+                    CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
+                    CurProp^.DirFlag := PPaiProp(hp^.OptInfo)^.DirFlag;
                     DestroyAllRegs(CurProp)
                   End;
           End;
@@ -1859,7 +1863,7 @@ Begin
   instructions PPaiProp, so it can be easily accessed from within
   CheckSequence}
                                   Inc(NrOfMods, NrOfInstrSinceLastMod[TmpReg]);
-                                  PPaiProp(Pai(StartMod)^.fileinfo.line)^.Regs[TmpReg].NrOfMods := NrOfMods;
+                                  PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[TmpReg].NrOfMods := NrOfMods;
                                   NrOfInstrSinceLastMod[TmpReg] := 0;
                                 End;
                             End
@@ -1906,7 +1910,6 @@ Begin
                 Begin
                   ReadOp(CurProp, Pai386(p)^.oper[0]);
                   ReadOp(CurProp, Pai386(p)^.oper[1]);
-                  ReadOp(CurProp, Pai386(p)^.oper[2]);
                   If (Pai386(p)^.oper[2].typ = top_none) Then
                      If (Pai386(p)^.oper[1].typ = top_none) Then
                          Begin
@@ -1999,7 +2002,7 @@ Begin
     End;
 End;
 
-Function InitDFAPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai): Boolean;
+Function InitDFAPass2(BlockStart, BlockEnd: Pai): Boolean;
 {reserves memory for the PPaiProps in one big memory block when not using
  TP, returns False if not enough memory is available for the optimizer in all
  cases}
@@ -2056,8 +2059,7 @@ Begin
       SkipHead(p);
       For Count := 1 To NrOfPaiObjs Do
         Begin
-          PaiPropBlock^[Count].LineSave := p^.fileinfo.line;
-          PPaiProp(p^.fileinfo.line) := @PaiPropBlock^[Count];
+          PPaiProp(p^.OptInfo) := @PaiPropBlock^[Count];
           GetNextInstruction(p, p);
         End;
     End
@@ -2065,9 +2067,13 @@ Begin
  {$EndIf TP}
 End;
 
-Function DFAPass2(AsmL: PAasmOutPut; BlockStart, BlockEnd: Pai): Boolean;
+Function DFAPass2(
+{$ifdef statedebug}
+                   AsmL: PAasmOutPut;
+{$endif statedebug}
+                                      BlockStart, BlockEnd: Pai): Boolean;
 Begin
-  If InitDFAPass2(AsmL, BlockStart, BlockEnd) Then
+  If InitDFAPass2(BlockStart, BlockEnd) Then
     Begin
       DoDFAPass2(
 {$ifdef statedebug}
@@ -2089,7 +2095,11 @@ End.
 
 {
  $Log$
- Revision 1.45  1999-05-01 13:48:37  peter
+ Revision 1.46  1999-05-08 20:40:02  jonas
+   * seperate OPTimizer INFO pointer field in tai object
+   * fix to GetLastInstruction that sometimes caused a crash
+
+ Revision 1.45  1999/05/01 13:48:37  peter
    * merged nasm compiler
 
  Revision 1.6  1999/04/18 17:57:21  jonas
