@@ -181,6 +181,7 @@ BEGIN
   DoneSwitches;
   DoneHelpFiles;
   DoneReservedWords;
+  ClearToolMessages;
   DoneBrowserCol;
 {$ifndef NODEBUG}
   DoneDebugger;
@@ -191,7 +192,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.23  1999-06-25 00:48:05  pierre
+  Revision 1.24  1999-06-28 12:40:56  pierre
+   + clear tool messages at exit
+
+  Revision 1.23  1999/06/25 00:48:05  pierre
    + adds current target in menu at startup
 
   Revision 1.22  1999/05/22 13:44:28  peter
