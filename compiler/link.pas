@@ -109,13 +109,14 @@ begin
   if FileExists(DynamicLinker) then
    begin
      Glibc2:=true;
-     { also glibc 2.1  ?}
-     if FileExists('/lib/ld-2.1.1.so') then
+     { also glibc 2.1 / 2.1.1 ? }
+     if FileExists('/lib/ld-2.1.so') or
+        FileExists('/lib/ld-2.1.1.so') then
       Glibc21:=true;
    end
   else
    DynamicLinker:='/lib/ld-linux.so.1';
-  LibrarySearchPath:='/lib;/usr/lib;/usr/lib/X11';
+  LibrarySearchPath:='/lib;/usr/lib;/usr/X11R6/lib';
 {$else}
   DynamicLinker:='';
   LibrarySearchPath:='';
@@ -644,7 +645,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  1999-06-02 13:25:35  hajny
+  Revision 1.54.2.1  1999-06-15 13:51:56  peter
+    * also check ld-2.1.so for glibc 2.1, previous was only for 2.1.1
+
+  Revision 1.54  1999/06/02 13:25:35  hajny
     * fixed stripping symbols for OS/2
 
   Revision 1.53  1999/05/04 21:44:44  florian
