@@ -163,8 +163,9 @@ Const
   { allow EXEC to inherited handles from calling process,
     needed for FPREDIR in ide/text
     now set to true by default because
-    other OS also pass open handles to childs PM }
-  ExecInheritedHandles : BOOL = true;
+    other OS also pass open handles to childs
+    finally reset to false after Florian's response PM }
+  ExecInheritsHandles : BOOL = false;
 
 implementation
 uses strings;
@@ -372,7 +373,7 @@ begin
   Move(ComLine[1],AppParam[2],length(Comline));
   AppParam[Length(ComLine)+2]:=#0;
   if not CreateProcess(PChar(@AppPath), PChar(@AppParam),
-           Nil, Nil, ExecInheritedHandles,$20, Nil, Nil, SI, PI) then
+           Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
    begin
      DosError:=Last2DosError(GetLastError);
      exit;
@@ -894,7 +895,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.22  1999-09-21 13:24:32  pierre
+  Revision 1.23  1999-09-22 12:34:05  pierre
+   ExecInheritsHandles  reset to false by default
+
+  Revision 1.22  1999/09/21 13:24:32  pierre
    * typo error
 
   Revision 1.21  1999/09/21 12:37:09  pierre
