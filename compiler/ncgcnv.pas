@@ -500,10 +500,18 @@ interface
         location_copy(location,left.location);
 
         { Floats should never be returned as LOC_CONSTANT, do the
-          moving to memory before the new size is set }
-        if (resulttype.def.deftype=floatdef) and
-           (location.loc=LOC_CONSTANT) then
-         location_force_mem(exprasmlist,location);
+          moving to memory before the new size is set.
+          Also when converting from a float to a non-float move
+          to memory first to prevent invalid LOC_FPUREGISTER locations }
+        if (
+            (resulttype.def.deftype=floatdef) and
+            (location.loc=LOC_CONSTANT)
+           ) or
+           (
+            (left.resulttype.def.deftype=floatdef) and
+            (resulttype.def.deftype<>floatdef)
+           ) then
+          location_force_mem(exprasmlist,location);
 
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resulttype.def);
@@ -559,7 +567,10 @@ end.
 
 {
   $Log$
-  Revision 1.70  2004-12-25 12:29:08  florian
+  Revision 1.71  2004-12-26 20:09:35  peter
+    * typecast float to non-float needs a move to memory
+
+  Revision 1.70  2004/12/25 12:29:08  florian
     * fixed extended->double/single conversion when using sse
 
   Revision 1.69  2004/12/25 10:48:17  florian
