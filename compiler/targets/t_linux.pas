@@ -233,6 +233,8 @@ Var
   prtobj       : string[80];
   HPath        : TStringListItem;
   s,s1,s2      : string;
+  found1,
+  found2,
   linkdynamic,
   linklibc     : boolean;
 begin
@@ -356,12 +358,15 @@ begin
   { objects which must be at the end }
   if linklibc then
    begin
-     if librarysearchpath.FindFile('crtend.o',s1) or
-        librarysearchpath.FindFile('crtn.o',s2) then
+     found1:=librarysearchpath.FindFile('crtend.o',s1);
+     found2:=librarysearchpath.FindFile('crtn.o',s2);
+     if found1 or found2 then
       begin
         LinkRes.Add('INPUT(');
-        LinkRes.AddFileName(s1);
-        LinkRes.AddFileName(s2);
+        if found1 then
+         LinkRes.AddFileName(s1);
+        if found2 then
+         LinkRes.AddFileName(s2);
         LinkRes.Add(')');
       end;
    end;
@@ -692,7 +697,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-06-03 15:15:31  peter
+  Revision 1.8  2001-06-04 11:51:06  peter
+    * C linking fixed
+
+  Revision 1.7  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix
