@@ -61,7 +61,7 @@ onetex : tex
 
 clean : 
 	rm -f *.o *.s $(OBJECTS) $(TEXOBJECTS) mysortc.ppu myobject.ppu mysortc.tex myobject.tex test.dat
-	rm -f *.ow *.sw *.exe *.dll *.ppw
+	rm -f *.ow *.sw *.exe *.dll *.ppw *.log *.tmp 
  
 $(OBJECTS): %: %.pp
 	$(PP) $(PPOPTS) $*
