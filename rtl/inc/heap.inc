@@ -532,8 +532,7 @@ var
   proc     : heaperrorproc;
   last,hp  : pfreerecord;
   again    : boolean;
-  s,sizeleft,hpsize : longint;
-  pp : pointer;
+  s,hpsize : longint;
 {$IfDef CHECKHEAP}
   i,bp,orsize : longint;
 label
@@ -589,33 +588,6 @@ begin
 {$else CHECKHEAP}
            exit;
 {$endif CHECKHEAP}
-         end
-        else
-         begin
-            inc(s);
-            while s<=maxblock do
-              begin
-                 p:=blocks^[s];
-                 if assigned(p) then
-                   begin
-                      blocks^[s]:=pointer(p^);
-                      dec(nblocks^[s]);
-                      sizeleft:=s-(size shr 3);
-
-                      // reinsert the rest of the block
-                      pp:=p+size;
-                      ppointer(pp)^:=blocks^[sizeleft];
-                      blocks^[sizeleft]:=pp;
-                      inc(nblocks^[sizeleft]);
-{$ifdef CHECKHEAP}
-                      goto check_new;
-{$else CHECKHEAP}
-                      exit;
-{$endif CHECKHEAP}
-                       
-                   end;
-                 inc(s);
-              end;
          end;
       end;
    end;
@@ -1126,8 +1098,8 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-08-20 10:31:17  michael
-  + Patch for heap allocation from Florian
+  Revision 1.13  1999-08-20 13:26:20  michael
+  + reverted to previous heap
 
   Revision 1.11  1999/05/31 20:36:34  peter
     * growing is now 256k or 1mb
