@@ -23,7 +23,7 @@ asm
         push    %ecx
         push    %edx
 // decide what type it is
-        movl    12(%ebp),%ebx
+        movl    TypeInfo,%ebx
         movb    (%ebx),%al
 // This is MANIFESTLY wrong
         subb    $9,%al
@@ -62,7 +62,7 @@ asm
         addl     $4,%ebx
 // %ebx points to offset in record.
 // Us it to calculate data
-        movl    8(%ebp),%eax
+        movl    Data,%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
 // push data
@@ -92,14 +92,14 @@ asm
 // calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
-        addl    8(%ebp),%eax
+        addl    Data,%eax
 // push data
         pushl   %eax
         call    INITIALIZE
         jmp     .LMyArrayInitLoop
 // AnsiString handling :
 .LDoAnsiStringInit:
-        movl 8(%ebp), %eax
+        movl Data, %eax
         movl $0,(%eax)
 .LExitInitialize:
         pop     %edx
@@ -116,7 +116,7 @@ asm
         push    %ecx
         push    %edx
 // decide what type it is
-        movl    12(%ebp),%ebx
+        movl    TypeInfo,%ebx
         movb    (%ebx),%al
         subb    $9,%al
         jz      .LDoAnsiStringFinal
@@ -154,7 +154,7 @@ asm
         addl     $4,%ebx
 // %ebx points to offset.
 // Use to calculate data
-        movl    8(%ebp),%eax
+        movl    Data,%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
 // push data
@@ -184,14 +184,14 @@ asm
 // calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
-        addl    8(%ebp),%eax
+        addl    Data,%eax
 // push data
         pushl   %eax
         call    FINALIZE
         jmp     .LMyArrayFinalLoop
 // AnsiString handling :
 .LDoAnsiStringFinal:
-        pushl   8(%ebp)
+        pushl   Data
         call    ANSISTR_DECR_REF
 .LExitFinalize:
         pop     %edx
@@ -209,7 +209,7 @@ asm
         push    %ecx
         push    %edx
 // decide what type it is
-        movl    12(%ebp),%ebx
+        movl    TypeInfo,%ebx
         movb    (%ebx),%al
         subb    $9,%al
         jz      .LDoAnsiStringAddRef
@@ -242,7 +242,7 @@ asm
         decl    %edx
         jl      .LExitAddRef
 // Calculate data
-        movl    8(%ebp),%eax
+        movl    Data,%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
 // Push type
@@ -270,14 +270,14 @@ asm
 // calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
-        addl    8(%ebp),%eax
+        addl    Data,%eax
 // push data
         pushl   %eax
         call    ADDREF
         jmp     .LMyArrayAddRefLoop
 // AnsiString handling :
 .LDoAnsiStringAddRef:
-        pushl   8(%ebp)
+        pushl   Data
         call    ANSISTR_INCR_REF
 .LExitAddRef:
         pop     %edx
@@ -295,7 +295,7 @@ asm
         push    %ecx
         push    %edx
 // decide what type it is
-        movl    12(%ebp),%ebx
+        movl    TypeInfo,%ebx
         movb    (%ebx),%al
         subb    $9,%al
         jz      .LDoAnsiStringDecRef
@@ -328,7 +328,7 @@ asm
         decl    %edx
         jl      .LExitDecRef
 // Calculate data
-        movl    8(%ebp),%eax
+        movl    Data,%eax
         addl    (%ebx),%eax
         addl     $4,%ebx
 // Push type
@@ -356,14 +356,14 @@ asm
 // calculate data
         movl    %ecx,%eax
         imull    %edx,%eax
-        addl    8(%ebp),%eax
+        addl    Data,%eax
 // push data
         pushl   %eax
         call    DECREF
         jmp     .LMyArrayDecRefLoop
 // AnsiString handling :
 .LDoAnsiStringDecRef:
-        movl    8(%ebp),%eax
+        movl    Data,%eax
         pushl   %eax
         call    ANSISTR_DECR_REF
 .LExitDecRef:
@@ -375,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2000-01-07 16:41:33  daniel
+  Revision 1.19  2000-01-11 21:11:34  marco
+   * Direct params to internal assembler
+
+  Revision 1.18  2000/01/07 16:41:33  daniel
     * copyright 2000
 
   Revision 1.17  1999/07/31 22:27:28  michael
