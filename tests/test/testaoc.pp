@@ -1,6 +1,5 @@
-Program TestAOC;
-
 {$mode objfpc}
+Program TestAOC;
 
 { Program to test array of const }
 
@@ -27,7 +26,8 @@ Program TestAOC;
            // vtVariant    : (VVariant: PVariant);
            // vtInterface  : (VInterface: Pointer);
            // vtWideString : (VWideString: Pointer);
-           // vtInt64      : (VInt64: PInt64);
+           vtInt64      : (VInt64: PInt64);
+           vtQWord      : (VQWord: PQWord);
        end;
 }
 
@@ -68,8 +68,9 @@ begin
       vtVariant    : (VVariant: PVariant);
       vtInterface  : (VInterface: Pointer);
       vtWideString : (VWideString: Pointer);
-      vtInt64      : (VInt64: PInt64);
 }
+      vtInt64      : Writeln ('Int64, value : ',args[i].VInt64^);
+      vtQWord      : Writeln ('QWord, value : ',args[i].VQWord^);
     else
       Writeln ('(Unknown) : ',args[i].vtype);
     end;
@@ -101,7 +102,10 @@ begin
   Testit ([ObjA,ObjB]);
   Testit ([1.234,1.234]);
   TestIt ([AClass]);
-
+  TestIt ([QWord(1234)]);
+  TestIt ([Int64(1234)]);
+  TestIt ([Int64(12341234)*1000000000+Int64(12341234)]);
+ 
   TestIt2 ([]);
   TestIt2 ([1,2]);
 end.
