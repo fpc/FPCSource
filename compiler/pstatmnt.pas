@@ -991,7 +991,7 @@ implementation
              { blockn support because a read/write is changed into a blocknode }
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
-             if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln,blockn,
+             if not(p.nodetype in [nothingn,calln,assignn,breakn,inlinen,continuen,labeln,blockn,
                                    simplenewn,simpledisposen]) then
                Message(cg_e_illegal_expression);
 
@@ -1202,7 +1202,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-04-15 19:01:28  carl
+  Revision 1.52  2002-04-16 16:11:17  peter
+    * using inherited; without a parent having the same function
+      will do nothing like delphi
+
+  Revision 1.51  2002/04/15 19:01:28  carl
   + target_info.size_of_pointer -> pointer_Size
 
   Revision 1.50  2002/04/14 16:53:54  carl

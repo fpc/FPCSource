@@ -1961,9 +1961,10 @@ implementation
                    end
                   else
                    begin
-                     Message1(sym_e_id_no_member,hs);
+                     { we didn't find a member in the parents so
+                       we do nothing. This is compatible with delphi (PFV) }
                      again:=false;
-                     p1:=cerrornode.create;
+                     p1:=cnothingnode.create;
                    end;
                   { turn auto inheriting off }
                   auto_inherited:=false;
@@ -2457,7 +2458,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-04-07 13:31:36  carl
+  Revision 1.62  2002-04-16 16:11:17  peter
+    * using inherited; without a parent having the same function
+      will do nothing like delphi
+
+  Revision 1.61  2002/04/07 13:31:36  carl
   + change unit use
 
   Revision 1.60  2002/04/01 20:57:13  jonas
