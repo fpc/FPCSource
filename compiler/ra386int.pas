@@ -1496,6 +1496,9 @@ Begin
       end
     else
      break;
+    { allow for newline after prefix or override }
+    while actasmtoken=AS_SEPARATOR do
+      Consume(AS_SEPARATOR);
   until (actasmtoken<>AS_OPCODE);
   { opcode }
   if (actasmtoken <> AS_OPCODE) then
@@ -1802,7 +1805,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2000-03-15 23:10:01  pierre
+  Revision 1.62  2000-03-27 21:18:55  pierre
+    * "segss" prefix in Intel is converted into "ss" in ATT
+      and vice-versa. Fixes web bug 892.
+
+  Revision 1.61  2000/03/15 23:10:01  pierre
     * fix for bug 848 (that still genrated wrong code)
     + better testing for variables used in assembler
       (gives an error if variable is not directly reachable !)

@@ -1296,13 +1296,6 @@
     flags   : if_pent
   ),
   (
-    opcode  : A_CS;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #1#46;
-    flags   : if_8086 or if_pre
-  ),
-  (
     opcode  : A_CWD;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
@@ -1387,13 +1380,6 @@
     flags   : if_386
   ),
   (
-    opcode  : A_DS;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #1#62;
-    flags   : if_8086 or if_pre
-  ),
-  (
     opcode  : A_EMMS;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
@@ -1406,13 +1392,6 @@
     optypes : (ot_immediate,ot_immediate,ot_none);
     code    : #1#200#24#21;
     flags   : if_186
-  ),
-  (
-    opcode  : A_ES;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #1#38;
-    flags   : if_8086 or if_pre
   ),
   (
     opcode  : A_F2XM1;
@@ -2465,13 +2444,6 @@
     flags   : if_8086 or if_fpu
   ),
   (
-    opcode  : A_FS;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #1#100;
-    flags   : if_386 or if_pre
-  ),
-  (
     opcode  : A_FSAVE;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
@@ -2897,13 +2869,6 @@
     optypes : (ot_none,ot_none,ot_none);
     code    : #2#217#249;
     flags   : if_8086 or if_fpu
-  ),
-  (
-    opcode  : A_GS;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #1#101;
-    flags   : if_386 or if_pre
   ),
   (
     opcode  : A_HLT;
@@ -6964,13 +6929,6 @@
     optypes : (ot_reg16,ot_none,ot_none);
     code    : #192#2#15#1#132;
     flags   : if_286
-  ),
-  (
-    opcode  : A_SS;
-    ops     : 0;
-    optypes : (ot_none,ot_none,ot_none);
-    code    : #1#54;
-    flags   : if_8086 or if_pre
   ),
   (
     opcode  : A_STC;

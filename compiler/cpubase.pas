@@ -43,7 +43,7 @@ uses
 
 const
 { Size of the instruction table converted by nasmconv.pas }
-  instabentries = 1309;
+  instabentries = 1303;
   maxinfolen    = 8;
 
 { By default we want everything }
@@ -207,7 +207,7 @@ const
 
   AsmOverrides = 6;
   AsmOverride : array[0..AsmOverrides-1] of TasmOP =(
-    A_CS,A_ES,A_DS,A_FS,A_GS,A_SS
+    A_SEGCS,A_SEGES,A_SEGDS,A_SEGFS,A_SEGGS,A_SEGSS
   );
 
 
@@ -904,7 +904,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2000-03-01 15:36:11  florian
+  Revision 1.24  2000-03-27 21:18:54  pierre
+    * "segss" prefix in Intel is converted into "ss" in ATT
+      and vice-versa. Fixes web bug 892.
+
+  Revision 1.23  2000/03/01 15:36:11  florian
     * some new stuff for the new cg
 
   Revision 1.22  2000/02/09 13:22:51  peter

@@ -297,10 +297,6 @@ mem                   \300\2\x0F\xC7\201              PENT
 (Ch_All, Ch_None, Ch_none)
 void                  \2\x0F\xA2                      PENT
 
-[CS]
-(Ch_All, Ch_None, Ch_None)
-void                  \1\x2E                          8086,PRE
-
 [CWD]
 (Ch_MEAX, Ch_WEDX, Ch_None)
 void                  \320\1\x99                      8086
@@ -331,10 +327,6 @@ rm8                   \300\1\xF6\206                  8086
 rm16                  \320\300\1\xF7\206              8086
 rm32                  \321\300\1\xF7\206              386
 
-[DS]
-(Ch_All, Ch_None, Ch_None)
-void                  \1\x3E                          8086,PRE
-
 [EMMS]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\x0F\x77                      PENT,MMX
@@ -342,10 +334,6 @@ void                  \2\x0F\x77                      PENT,MMX
 [ENTER,enterX]
 (Ch_RWESP, Ch_None, Ch_None)
 imm,imm               \1\xC8\30\25                    186
-
-[ES]
-(Ch_All, Ch_None, Ch_None)
-void                  \1\x26                          8086,PRE
 
 [F2XM1]
 (Ch_FPU, Ch_None, Ch_None)
@@ -710,10 +698,6 @@ void                  \2\xD9\xFC                      8086,FPU
 (Ch_FPU, Ch_None, Ch_None)
 mem                   \300\1\xDD\204                  8086,FPU
 
-[FS]
-(Ch_All, Ch_None, Ch_None)
-void                  \1\x64                          386,PRE
-
 [FSAVE,fsaveX]
 (Ch_Wop1, Ch_None, Ch_None)
 mem                   \300\2\x9B\xDD\206              8086,FPU
@@ -855,10 +839,6 @@ void                  \2\xD9\xF1                      8086,FPU
 [FYL2XP1]
 (Ch_FPU, Ch_None, Ch_None)
 void                  \2\xD9\xF9                      8086,FPU
-
-[GS]
-(Ch_All, Ch_None, Ch_None)
-void                  \1\x65                          386,PRE
 
 [HLT]
 (Ch_None, Ch_None, Ch_None)
@@ -1944,27 +1924,27 @@ void                  \332\321\1\xAF                  386
 (Ch_All, Ch_None, Ch_None)
 void                  \332\320\1\xAF                  8086
 
-[SEGCS]
+[SEGCS,cs]
 (Ch_None, Ch_None, Ch_None)
 void                  \1\x2E                          8086,PRE
 
-[SEGDS]
+[SEGDS,ds]
 (Ch_None, Ch_None, Ch_None)
 void                  \1\x3E                          8086,PRE
 
-[SEGES]
+[SEGES,es]
 (Ch_None, Ch_None, Ch_None)
 void                  \1\x26                          8086,PRE
 
-[SEGFS]
+[SEGFS,fs]
 (Ch_None, Ch_None, Ch_None)
 void                  \1\x64                          8086,PRE
 
-[SEGGS]
+[SEGGS,gs]
 (Ch_None, Ch_None, Ch_None)
 void                  \1\x65                          8086,PRE
 
-[SEGSS]
+[SEGSS,ss]
 (Ch_None, Ch_None, Ch_None)
 void                  \1\x36                          8086,PRE
 
@@ -2045,10 +2025,6 @@ void                  \2\x0F\x7E                      486,CYRIX,ND
 mem                   \300\2\x0F\x01\204              286
 mem16                 \300\2\x0F\x01\204              286
 reg16                 \300\2\x0F\x01\204              286
-
-[SS]
-(Ch_All, Ch_None, Ch_None)
-void                  \1\x36                          8086,PRE
 
 [STC]
 (Ch_WFlags, Ch_None, Ch_None)
@@ -2759,4 +2735,3 @@ mmxreg,mmxreg         \2\x0F\x0F\110\01\xBB           PENT,3DNOW,SM
 [FFREEP]
 (Ch_All, Ch_None, Ch_None)
 fpureg                \1\xDF\10\xC0                   PENT,3DNOW,FPU
-
