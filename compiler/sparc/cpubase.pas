@@ -108,7 +108,7 @@ type
   TRegister64=PACKED RECORD
   {A type to store register locations for 64 Bit values.}
      RegLo,RegHi:TRegister;
-  END;
+  end;
   treg64=tregister64;{alias for compact code}
   TRegisterSet=SET OF TCpuRegister;
   Tsupregset=set of Tsuperregister;
@@ -261,7 +261,150 @@ const
   NR_TBR=$5000;
   NR_WIM=$5000;
   NR_Y=$5000;
-
+{Conversion between TCpuRegister and NewRegisters}
+  RegEnum2Number:array[TCpuRegister]of cardinal=(
+    NR_NO,
+    NR_G0,
+    NR_G1,
+    NR_G2,
+    NR_G3,
+    NR_G4,
+    NR_G5,
+    NR_G6,
+    NR_G7,
+    NR_O0,
+    NR_O1,
+    NR_O2,
+    NR_O3,
+    NR_O4,
+    NR_O5,
+    NR_O6,
+    NR_O7,
+    NR_L0,
+    NR_L1,
+    NR_L2,
+    NR_L3,
+    NR_L4,
+    NR_L5,
+    NR_L6,
+    NR_L7,
+    NR_I0,
+    NR_I1,
+    NR_I2,
+    NR_I3,
+    NR_I4,
+    NR_I5,
+    NR_I6,
+    NR_I7,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO,
+    NR_NO
+  );
 {Superregisters.}
 
 const
@@ -336,7 +479,7 @@ type
                                 Reference
 *****************************************************************************}
 type
-  trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
+  TRefOptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
   { immediate/reference record }
   poperreference = ^treference;
@@ -351,13 +494,13 @@ type
      offsetfixup : LongInt;
      options     : trefoptions;
      alignment   : byte;
-  END;
+  end;
       { reference record }
   PParaReference=^TParaReference;
   TParaReference=PACKED RECORD
     Index:TRegister;
     Offset:longint;
-  END;
+  end;
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
@@ -414,7 +557,7 @@ used, because contains a lot of unnessary fields.}
         );
             { it's only for better handling }
       LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
-    END;
+    end;
     TLocation=PACKED RECORD
          loc  : TCGLoc;
          size : TCGSize;
@@ -562,7 +705,7 @@ calls or in assembler blocks.}
 
   { sizes }
   pointersize   = 4;
-  extENDed_size = 8;{SPARC architecture uses IEEE floating point numbers}
+  extended_size = 8;{SPARC architecture uses IEEE floating point numbers}
   mmreg_size = 8;
   SizePostfix_pointer = S_SW;
 
@@ -579,14 +722,14 @@ type
     optypes : array[0..2] of LongInt;
     code    : array[0..maxinfolen] of char;
     flags   : LongInt;
-  END;
+  end;
   pinsentry=^tinsentry;
 
   TInsTabCache=array[TasmOp] of LongInt;
   PInsTabCache=^TInsTabCache;
 VAR
   InsTabCache : PInsTabCache;
-{$ENDif NOAG386BIN}
+{$endif NOAG386BIN}
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
@@ -607,7 +750,7 @@ const
 
 function is_calljmp(o:tasmop):boolean;
 function flags_to_cond(CONST f:TResFlags):TAsmCond;
-procedure convert_register_to_enum(var r:Tregister);
+procedure convert_register_to_enum(var Reg:Tregister);
 function cgsize2subreg(s:Tcgsize):Tsubregister;
 implementation
 uses
@@ -628,49 +771,23 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
     (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
   BEGIN
     result:=flags_2_cond[f];
-  END;
-procedure convert_register_to_enum(var r:Tregister);
-begin
-  if r.enum=R_INTREGISTER
-  then
-    case r.number of
-      NR_NO: r.enum:= R_NO;
-      NR_G0: r.enum:= R_G0;
-      NR_G1: r.enum:= R_G1;
-      NR_G2: r.enum:= R_G2;
-      NR_G3: r.enum:= R_G3;
-      NR_G4: r.enum:= R_G4;
-      NR_G5: r.enum:= R_G5;
-      NR_G6: r.enum:= R_G6;
-      NR_G7: r.enum:= R_G7;
-      NR_O0: r.enum:= R_O0;
-      NR_O1: r.enum:= R_O1;
-      NR_O2: r.enum:= R_O2;
-      NR_O3: r.enum:= R_O3;
-      NR_O4: r.enum:= R_O4;
-      NR_O5: r.enum:= R_O5;
-      NR_O6: r.enum:= R_O6;
-      NR_O7: r.enum:= R_O7;
-      NR_L0: r.enum:= R_L0;
-      NR_L1: r.enum:= R_L1;
-      NR_L2: r.enum:= R_L2;
-      NR_L3: r.enum:= R_L3;
-      NR_L4: r.enum:= R_L4;
-      NR_L5: r.enum:= R_L5;
-      NR_L6: r.enum:= R_L6;
-      NR_L7: r.enum:= R_L7;
-      NR_I0: r.enum:= R_I0;
-      NR_I1: r.enum:= R_I1;
-      NR_I2: r.enum:= R_I2;
-      NR_I3: r.enum:= R_I3;
-      NR_I4: r.enum:= R_I4;
-      NR_I5: r.enum:= R_I5;
-      NR_I6: r.enum:= R_I6;
-      NR_I7: r.enum:= R_I7;
-      else
-        internalerror(200301082);
-    end;
-end;
+  end;
+procedure convert_register_to_enum(var Reg:Tregister);
+  begin
+    with Reg do
+      if(enum=R_INTREGISTER)
+      then
+        if(number<=RegEnum2Number[R_I7])
+        then
+          begin
+            enum:=Low(enum);
+            repeat
+              Inc(enum);
+            until(number=RegEnum2Number[enum])or(enum=High(enum));
+          end
+        else
+          internalerror(200301082);
+  end;
 function cgsize2subreg(s:Tcgsize):Tsubregister;
 begin
   cgsize2subreg:=R_SUBWHOLE;
@@ -678,7 +795,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2003-05-23 21:10:50  florian
+  Revision 1.33  2003-05-26 22:08:42  mazen
+  + RegEnum2Number to ease handling register pairs
+  * changed convert_register_to_enum to use above
+    array
+
+  Revision 1.32  2003/05/23 21:10:50  florian
     * fixed sparc compiler compilation
 
   Revision 1.31  2003/05/22 16:11:22  florian
