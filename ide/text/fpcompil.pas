@@ -205,7 +205,10 @@ begin
     end;
   WriteSwitches(SwitchesPath);
   MainFile:=FixFileName(FExpand(FileName));
-  EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt);
+  If GetEXEPath<>'' then
+    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
+  else
+    EXEFile:=DirOf(MainFile)+NameOf(MainFile)+ExeExt;
 { Reset }
   CtrlBreakHit:=false;
 { Show Program Info }
@@ -276,7 +279,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-03-01 15:41:50  peter
+  Revision 1.16  1999-03-07 23:00:47  pierre
+   * Fix for path of executable
+
+  Revision 1.15  1999/03/01 15:41:50  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
