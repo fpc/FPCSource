@@ -690,6 +690,10 @@ const
             path:=current_module^.localincludesearchpath.FindFile(name+ext,found);
            if (not found) then
             path:=includesearchpath.FindFile(name+ext,found);
+         { save old postion and decrease linebreak }
+           if c=newline then
+            dec(current_scanner^.line_no);
+           dec(longint(current_scanner^.inputpointer));
          { shutdown current file }
            current_scanner^.tempcloseinputfile;
          { load new file }
@@ -1455,7 +1459,10 @@ const
 
 {
   $Log$
-  Revision 1.12  2000-11-12 22:17:47  peter
+  Revision 1.13  2000-12-12 19:48:52  peter
+    * fixed lost char after $I directive (merged)
+
+  Revision 1.12  2000/11/12 22:17:47  peter
     * some realname updates for messages
 
   Revision 1.11  2000/11/04 14:25:21  florian
