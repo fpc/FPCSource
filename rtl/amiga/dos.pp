@@ -81,9 +81,11 @@ Type
 Type
 
   SearchRec = Packed Record
+    { watch out this is correctly aligned for all processors }
+    { don't modify.                                          }
     { Replacement for Fill }
-    AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
-    Fill: Array[1..14] of Byte; {future use}
+{0} AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
+{4} Fill: Array[1..15] of Byte; {future use}
     {End of replacement for fill}
     Attr : BYTE;        {attribute of found file}
     Time : LongInt;     {last modify date of found file}
@@ -1667,7 +1669,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  1998-08-17 12:30:42  carl
+  Revision 1.8  1998-08-19 14:52:52  carl
+    * SearchRec was not aligned!! so BOUM!...
+
+  Revision 1.7  1998/08/17 12:30:42  carl
     * FExpand removes dot characters
     * Findfirst single/double dot expansion
     + SetFtime implemented
