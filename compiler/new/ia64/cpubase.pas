@@ -288,7 +288,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-03-09 20:28:00  florian
+  Revision 1.1  2000-07-09 10:40:12  peter
+    * renamed to lowercase
+
+  Revision 1.1  2000/03/09 20:28:00  florian
     * initial release derieved from the ALPHA cpubase.pas, the
       file still contains some ALPHA stuff
 
