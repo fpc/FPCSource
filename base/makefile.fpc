@@ -355,7 +355,7 @@ ifndef GCCLIBDIR
 GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
 endif
 ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell cat /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
+OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
 endif
 endif
 
@@ -1019,7 +1019,10 @@ endif
 
 #
 # $Log$
-# Revision 1.25  1999-05-12 16:17:07  peter
+# Revision 1.26  1999-05-14 22:46:21  peter
+#   * patch for comments in ld.so.conf
+#
+# Revision 1.25  1999/05/12 16:17:07  peter
 #   + utils_X targets
 #   * missing export of prefixinstalldir
 #
