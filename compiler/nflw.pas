@@ -368,13 +368,24 @@ implementation
 	done:boolean;
 	value:boolean;
 	change:boolean;
+	firsttest:boolean;
 	factval:Tnode;
     
     begin
 	track_state_pass:=false;
 	done:=false;
+	firsttest:=true;
+	{For repeat until statements, first do a pass through the code.}
+	if not testatbegin then
+	    begin
+		code:=right.getcopy;
+		if code.track_state_pass(exec_known) then
+		    track_state_pass:=true;
+		code.destroy;
+	    end;
 	repeat
 	    condition:=left.getcopy;
+	    code:=right.getcopy;
 	    change:=condition.track_state_pass(exec_known);
 	    factval:=aktstate.find_fact(left);
 	    if factval<>nil then
@@ -390,9 +401,14 @@ implementation
 		    condition.resulttype.def:=nil;
 		    do_resulttypepass(condition);
 		end;
-	    code:=right.getcopy;
 	    if is_constboolnode(condition) then
 		begin
+		    {Try to turn a while loop into a repeat loop.}
+		    if firsttest then
+			begin
+			testatbegin:=false;
+			    writeln('while->repeat');
+			end;
 		    value:=(Tordconstnode(condition).value<>0) xor checknegate;
 		    if value then
 			begin
@@ -410,6 +426,7 @@ implementation
 		end;
 	    code.destroy;
 	    condition.destroy;
+	    firsttest:=false;
 	until done;
 	{The loop condition is also known, for example:
 	 while i<10 do
@@ -427,7 +444,11 @@ implementation
     		condition.resulttype.def:=nil;
 		do_resulttypepass(condition);
 	    end;
-	aktstate.store_fact(condition,cordconstnode.create(byte(checknegate),booltype));
+	if not is_constboolnode(condition) then
+	    aktstate.store_fact(condition,
+	     cordconstnode.create(byte(checknegate),booltype))
+	else
+	    condition.destroy;
     end;
 {$endif}
 
@@ -1213,7 +1234,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-07-19 12:55:27  daniel
+  Revision 1.40  2002-07-20 08:19:31  daniel
+  * State tracker automatically changes while loops into repeat loops
+
+  Revision 1.39  2002/07/19 12:55:27  daniel
   * Further developed state tracking in whilerepeatn
 
   Revision 1.38  2002/07/19 11:41:35  daniel
