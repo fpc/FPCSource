@@ -96,10 +96,9 @@ unit cgx86;
         procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
 
         { vector register move instructions }
-        procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
-        procedure a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister); override;
-        procedure a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference); override;
-        procedure a_parammm_reg(list: taasmoutput; reg: tregister); override;
+        procedure a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
+        procedure a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
+        procedure a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
@@ -757,34 +756,21 @@ unit cgx86;
        end;
 
 
-    procedure tcgx86.a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister);
-
+    procedure tcgx86.a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle);
        begin
          list.concat(taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2));
        end;
 
 
-    procedure tcgx86.a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister);
-
+    procedure tcgx86.a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
        begin
          list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,ref,reg));
        end;
 
 
-    procedure tcgx86.a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference);
-
+    procedure tcgx86.a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle);
        begin
          list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,ref));
-       end;
-
-
-    procedure tcgx86.a_parammm_reg(list: taasmoutput; reg: tregister);
-       var
-         href : treference;
-       begin
-         list.concat(taicpu.op_const_reg(A_SUB,S_L,8,NR_ESP));
-         reference_reset_base(href,NR_ESP,0);
-         list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,href));
        end;
 
 
@@ -1735,7 +1721,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.77  2003-10-11 16:06:42  florian
+  Revision 1.78  2003-10-13 01:23:13  florian
+    * some ideas for mm support implemented
+
+  Revision 1.77  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly

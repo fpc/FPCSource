@@ -220,10 +220,14 @@ unit cgobj;
           procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);virtual;
 
           { vector register move instructions }
-          procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
-          procedure a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister); virtual; abstract;
-          procedure a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference); virtual; abstract;
-          procedure a_parammm_reg(list: taasmoutput; reg: tregister); virtual; abstract;
+          procedure a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
+          procedure a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
+          procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_ref(list: taasmoutput; size: tcgsize; ref: treference;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_loc(list: taasmoutput; loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle); virtual;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -1116,10 +1120,8 @@ implementation
 
     procedure tcg.a_cmp_ref_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
       l : tasmlabel);
-
       var
         tmpreg: tregister;
-
       begin
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
@@ -1133,6 +1135,86 @@ implementation
             end
           else
             internalerror(200109061);
+        end;
+      end;
+
+
+    procedure tcg.a_loadmm_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
+      begin
+        case loc.loc of
+          LOC_MMREGISTER,LOC_CMMREGISTER:
+            a_loadmm_reg_reg(list,loc.size,size,loc.register,reg,shuffle);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_loadmm_ref_reg(list,loc.size,size,loc.reference,reg,shuffle);
+          else
+            internalerror(200310121);
+        end;
+      end;
+
+
+    procedure tcg.a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
+      var
+        tmpreg: tregister;
+      begin
+        case loc.loc of
+          LOC_MMREGISTER,LOC_CMMREGISTER:
+            a_loadmm_reg_reg(list,size,loc.size,reg,loc.register,shuffle);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_loadmm_reg_ref(list,size,loc.size,reg,loc.reference,shuffle);
+          else
+            internalerror(200310122);
+        end;
+      end;
+
+
+    procedure tcg.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle);
+      var
+        ref : treference;
+      begin
+        case locpara.loc of
+          LOC_MMREGISTER,LOC_CMMREGISTER:
+            a_loadmm_reg_reg(list,size,locpara.size,reg,locpara.register,shuffle);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              reference_reset(ref);
+              ref.base:=locpara.reference.index;
+              ref.offset:=locpara.reference.offset;
+              a_loadmm_reg_ref(list,size,locpara.size,reg,ref,shuffle);
+            end
+          else
+            internalerror(200310123);
+        end;
+      end;
+
+
+    procedure tcg.a_parammm_ref(list: taasmoutput; size: tcgsize; ref: treference;const locpara : tparalocation;shuffle : pmmshuffle);
+      var
+         hr : tregister;
+         hs : tmmshuffle;
+      begin
+         hr:=getmmregister(list,locpara.size);
+         a_loadmm_ref_reg(list,size,locpara.size,ref,hr,shuffle);
+         if realshuffle(shuffle) then
+           begin
+             hs:=shuffle^;
+             removeshuffles(hs);
+             a_parammm_reg(list,locpara.size,hr,locpara,@hs);
+           end
+         else
+           a_parammm_reg(list,locpara.size,hr,locpara,shuffle);
+         ungetregister(list,hr);
+      end;
+
+
+    procedure tcg.a_parammm_loc(list: taasmoutput; loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle);
+      begin
+        case loc.loc of
+          LOC_MMREGISTER,LOC_CMMREGISTER:
+            a_parammm_reg(list,loc.size,loc.register,locpara,shuffle);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_parammm_ref(list,loc.size,loc.reference,locpara,shuffle);
+          else
+            internalerror(200310123);
         end;
       end;
 
@@ -1692,7 +1774,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.129  2003-10-11 16:06:42  florian
+  Revision 1.130  2003-10-13 01:23:13  florian
+    * some ideas for mm support implemented
+
+  Revision 1.129  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly
