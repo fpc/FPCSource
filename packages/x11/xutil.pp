@@ -96,7 +96,8 @@ Const
   IconPixmapHint         = 1 shl 2;
   IconWindowHint         = 1 shl 3;
   IconPositionHint       = 1 shl 4;
-  IconMaskHint           = 1 shl 6;
+  IconMaskHint           = 1 shl 5;
+  WindowGroupHint	 = 1 shl 6;
   AllHints = InputHint or StateHint or IconPixmapHint or IconWindowHint or
              IconPositionHint or IconMaskHint or WindowGroupHint;
   XUrgencyHint           = 1 shl 8;
@@ -688,7 +689,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-12-23 22:47:09  sg
+  Revision 1.1.2.2  2000-12-26 10:17:06  sg
+  * added WindowGroupHint
+
+  Revision 1.1.2.1  2000/12/23 22:47:09  sg
   * Converted declaration of XSetWMProperties
 
   Revision 1.1  2000/07/13 06:34:24  michael
