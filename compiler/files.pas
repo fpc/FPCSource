@@ -131,12 +131,14 @@ unit files;
           mainsource    : pstring;  { name of the main sourcefile }
 
           constructor init(const s:string;_is_unit:boolean);
+{$ifdef NEWPPU}
+          destructor done;virtual;
+{$else}
           destructor special_done;virtual; { this is to be called only when compiling again }
-
+{$endif NEWPPU}
           procedure setfilename(const _path,name:string);
 {$ifdef NEWPPU}
           function  openppu:boolean;
-          destructor done;virtual;
 {$else}
           function  load_ppu(const unit_path,n,ext:string):boolean;
 {$endif}
@@ -859,6 +861,7 @@ unit files;
       end;
 
 
+{$ifdef NEWPPU}
     destructor tmodule.done;
       begin
         if assigned(map) then
@@ -882,6 +885,7 @@ unit files;
         inherited done;
       end;
 
+{$else}
 
     destructor tmodule.special_done;
       begin
@@ -900,6 +904,8 @@ unit files;
           dispose(imports,done);
          inherited done;
       end;
+
+{$endif NEWPPU}
 
 {****************************************************************************
                               TUSED_UNIT
@@ -961,7 +967,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.25  1998-06-17 14:10:11  peter
+  Revision 1.26  1998-06-17 14:36:19  peter
+    * forgot an $ifdef NEWPPU :(
+
+  Revision 1.25  1998/06/17 14:10:11  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 
