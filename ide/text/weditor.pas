@@ -316,7 +316,7 @@ implementation
 uses Dos,MsgBox,Dialogs,App,StdDlg,HistList,Validate;
 
 type
-     TFindDialogRec = record
+     TFindDialogRec = packed record
        Find: String[80];
        Options: Word;
        Direction: word;
@@ -324,7 +324,7 @@ type
        Origin: word;
      end;
 
-     TReplaceDialogRec = record
+     TReplaceDialogRec = packed record
        Find: String[80];
        Replace: String[80];
        Options: Word;
@@ -333,7 +333,7 @@ type
        Origin: word;
      end;
 
-     TGotoLineDialogRec = record
+     TGotoLineDialogRec = packed record
        LineNo  : string[5];
        Lines   : integer;
      end;
@@ -3217,7 +3217,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  1999-02-18 13:44:36  peter
+  Revision 1.20  1999-02-18 17:27:57  pierre
+   * find/replace dialogs need packed records !!
+
+  Revision 1.19  1999/02/18 13:44:36  peter
     * search fixed
     + backward search
     * help fixes
