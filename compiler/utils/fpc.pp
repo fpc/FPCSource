@@ -113,6 +113,22 @@ program fpc;
      ppcbin:='ppcppc';
      processorname:='powerpc';
 {$endif powerpc}
+{$ifdef arm}
+     ppcbin:='ppcarm';
+     processorname:='arm';
+{$endif arm}
+{$ifdef sparc}
+     ppcbin:='ppcsparc';
+     processorname:='sparc';
+{$endif sparc}
+{$ifdef x86_64}
+     ppcbin:='ppcx86_64';
+     processorname:='x86_64';
+{$endif x86_64}
+{$ifdef ia64}
+     ppcbin:='ppcia64';
+     processorname:='ia64';
+{$endif ia64}
      versionstr:='';			  { Default is just the name }
      for i:=1 to paramcount do
        begin
@@ -151,6 +167,14 @@ program fpc;
                        ppcbin:='ppcapx'
                      else if processorstr='powerpc' then
                        ppcbin:='ppcppc'
+                     else if processorstr='arm' then
+                       ppcbin:='ppcarm'
+                     else if processorstr='sparc' then
+                       ppcbin:='ppcsparc'
+                     else if processorstr='ia64' then
+                       ppcbin:='ppcia64'
+                     else if processorstr='x86_64' then
+                       ppcbin:='ppcx64_64'
                      else error('Illegal processor type "'+processorstr+'"');
                      end
                    else
@@ -176,7 +200,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.12  2004-01-26 20:34:24  florian
+  Revision 1.13  2004-03-20 22:29:37  florian
+    + arm, ia64, x86_64 and sparc supported added
+
+  Revision 1.12  2004/01/26 20:34:24  florian
     * improved error message
 
   Revision 1.11  2004/01/05 22:41:20  florian
