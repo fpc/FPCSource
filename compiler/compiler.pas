@@ -86,6 +86,9 @@ uses
 {$ifdef USEEXCEPT}
   tpexcept,
 {$endif USEEXCEPT}
+{$ifdef UseBrowser}
+  browser,
+{$endif UseBrowser}
   dos,verbose,comphook,systems,
   globals,options,parser,symtable,link,import;
 
@@ -125,11 +128,17 @@ begin
   CompilerInited:=false;
   doneparser;
   DoneImport;
+{$ifdef UseBrowser}
+  DoneBrowser;
+{$endif UseBrowser}
 end;
 
 
 procedure InitCompiler(const cmd:string);
 begin
+{$ifdef UseBrowser}
+   InitBrowser;
+{$endif UseBrowser}
   if CompilerInited then
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
@@ -230,7 +239,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-10-08 23:28:51  peter
+  Revision 1.12  1998-10-09 16:36:02  pierre
+    * some memory leaks specific to usebrowser define fixed
+    * removed tmodule.implsymtable (was like tmodule.localsymtable)
+
+  Revision 1.11  1998/10/08 23:28:51  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.10  1998/10/08 17:17:18  pierre

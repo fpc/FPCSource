@@ -273,10 +273,10 @@ unit pmodules;
         if ((current_module^.flags and uf_has_browser)<>0) and
            (cs_local_browser in aktmoduleswitches) then
          begin
-           current_module^.implsymtable:=new(psymtable,load);
-           psymtable(current_module^.implsymtable)^.name:=
+           current_module^.localsymtable:=new(psymtable,load);
+           psymtable(current_module^.localsymtable)^.name:=
               stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
-           psymtable(current_module^.implsymtable)^.load_browser;
+           psymtable(current_module^.localsymtable)^.load_browser;
          end;
 {$endif UseBrowser}
         { remove the map, it's not needed anymore }
@@ -905,7 +905,7 @@ unit pmodules;
 {$ifdef UseBrowser}
          if cs_local_browser in aktmoduleswitches then
           begin
-            current_module^.implsymtable:=refsymtable;
+            current_module^.localsymtable:=refsymtable;
             refsymtable^.write;
             refsymtable^.write_browser;
           end;
@@ -923,8 +923,8 @@ unit pmodules;
          { remove static symtable (=refsymtable) here to save some mem }
 {$ifndef UseBrowser}
          dispose(st,done);
-{$endif UseBrowser}
          current_module^.localsymtable:=nil;
+{$endif UseBrowser}
 
          { generate imports }
          if current_module^.uses_imports then
@@ -1071,7 +1071,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.65  1998-10-09 14:38:55  pierre
+  Revision 1.66  1998-10-09 16:36:05  pierre
+    * some memory leaks specific to usebrowser define fixed
+    * removed tmodule.implsymtable (was like tmodule.localsymtable)
+
+  Revision 1.65  1998/10/09 14:38:55  pierre
    * add a second load for PPU file
 
   Revision 1.64  1998/10/09 08:56:28  pierre

@@ -693,6 +693,8 @@ implementation
                    if make_ref then
                      begin
                         procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@p^.fileinfo));
+                        if procs^.data^.defref=nil then
+                          procs^.data^.defref:=procs^.data^.lastref;
                      end;
      {$endif UseBrowser}
 
@@ -921,7 +923,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-06 20:49:09  peter
+  Revision 1.8  1998-10-09 16:36:09  pierre
+    * some memory leaks specific to usebrowser define fixed
+    * removed tmodule.implsymtable (was like tmodule.localsymtable)
+
+  Revision 1.7  1998/10/06 20:49:09  peter
     * m68k compiler compiles again
 
   Revision 1.6  1998/10/02 09:24:22  peter

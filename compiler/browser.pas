@@ -75,6 +75,8 @@ type
 var
   browse : tbrowser;
 
+  procedure InitBrowser;
+  procedure DoneBrowser;
   function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
 implementation
@@ -103,14 +105,12 @@ implementation
     destructor tref.done;
       var
          inputfile : pinputfile;
-         ref : pref;
       begin
          inputfile:=get_source_file(moduleindex,posinfo.fileindex);
          if inputfile<>nil then
            dec(inputfile^.ref_count);
-         ref:=@self;
-         if assigned(ref^.nextref) then
-          dispose(ref^.nextref,done);
+         if assigned(nextref) then
+          dispose(nextref,done);
          nextref:=nil;
       end;
 
@@ -471,12 +471,24 @@ implementation
            end;
       end;
 
-begin
-  browse.init
+  procedure InitBrowser;
+    begin
+       browse.init;
+    end;
+    
+  procedure DoneBrowser;
+    begin
+       browse.done;
+    end;
+    
 end.
 {
   $Log$
-  Revision 1.11  1998-10-08 17:17:09  pierre
+  Revision 1.12  1998-10-09 16:36:01  pierre
+    * some memory leaks specific to usebrowser define fixed
+    * removed tmodule.implsymtable (was like tmodule.localsymtable)
+
+  Revision 1.11  1998/10/08 17:17:09  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

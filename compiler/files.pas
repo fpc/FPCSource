@@ -134,9 +134,6 @@ unit files;
           unit_index    : word;     { global counter for browser }
           globalsymtable,           { pointer to the local/static symtable of this unit }
           localsymtable : pointer;  { pointer to the psymtable of this unit }
-{$ifdef UseBrowser}
-          implsymtable  : pointer;
-{$endif UseBrowser}
           scanner       : pointer;  { scanner object used }
           loaded_from   : pmodule;
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
@@ -902,9 +899,6 @@ unit files;
          map:=nil;
          globalsymtable:=nil;
          localsymtable:=nil;
-{$ifdef UseBrowser}
-         implsymtable:=nil;
-{$endif UseBrowser}
          loaded_from:=nil;
          flags:=0;
          crc:=0;
@@ -1007,7 +1001,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.56  1998-10-09 08:56:26  pierre
+  Revision 1.57  1998-10-09 16:36:03  pierre
+    * some memory leaks specific to usebrowser define fixed
+    * removed tmodule.implsymtable (was like tmodule.localsymtable)
+
+  Revision 1.56  1998/10/09 08:56:26  pierre
     * several memory leaks fixed
 
   Revision 1.55  1998/10/08 23:28:54  peter
