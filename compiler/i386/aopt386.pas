@@ -73,7 +73,7 @@ Begin
            PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
         { Data flow analyzer }
          If (cs_fastoptimize in aktglobalswitches) Then
-           Begin
+           begin
              If DFAPass2(
 {$ifdef statedebug}
                          AsmL,
@@ -81,7 +81,7 @@ Begin
                                BlockStart, BlockEnd) Then
               { common subexpression elimination }
                changed := CSE(asmL, blockStart, blockEnd, pass) or changed;
-           End;
+           end;
         { More peephole optimizations }
          PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
          if lastLoop then
@@ -118,7 +118,10 @@ End;
 End.
 {
   $Log$
-  Revision 1.7  2002-07-01 18:46:29  peter
+  Revision 1.8  2003-02-26 21:15:43  daniel
+    * Fixed the optimizer
+
+  Revision 1.7  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

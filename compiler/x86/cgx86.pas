@@ -491,11 +491,6 @@ unit cgx86;
             sizes2load(fromsize,subreg2opsize[reg2.number and $ff],op,s);
             eq:=(reg1.number shr 8)=(reg2.number shr 8);
           end
-        else if (reg1.enum<lastreg) and (reg2.enum<lastreg) then
-          begin
-            sizes2load(fromsize,reg2opsize[reg2.enum],op,s);
-            eq:=(rg.makeregsize(reg1,OS_INT).enum = rg.makeregsize(reg2,OS_INT).enum);
-          end
         else
           internalerror(200301081);
         if eq then
@@ -509,12 +504,12 @@ unit cgx86;
               case fromsize of
                 OS_8:
                   begin
-                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize[reg2.enum],255,reg2));
+                    list.concat(taicpu.op_const_reg(A_AND,subreg2opsize[reg2.number and $ff],255,reg2));
                     exit;
                   end;
                 OS_16:
                   begin
-                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize[reg2.enum],65535,reg2));
+                    list.concat(taicpu.op_const_reg(A_AND,subreg2opsize[reg2.number and $ff],65535,reg2));
                     exit;
                   end;
               end;
@@ -1930,7 +1925,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.32  2003-02-19 22:00:17  daniel
+  Revision 1.33  2003-02-26 21:15:43  daniel
+    * Fixed the optimizer
+
+  Revision 1.32  2003/02/19 22:00:17  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -1776,14 +1776,17 @@ function returns in a register and the caller receives it in an other one}
                 { AfterConstruction                          }
                 if is_object(procinfo._class) then
                   begin
-                    r.enum:=self_pointer_reg;
-                    r2.enum:=accumulator;
+                    r.enum:=R_INTREGISTER;
+                    r.number:=NR_SELF_POINTER_REG;
+                    r2.enum:=R_INTREGISTER;
+                    r2.number:=NR_ACCUMULATOR;
                     cg.a_reg_alloc(list,r2);
                     cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,r,r2);
                     usesacc:=true;
                   end;
 {$ifdef i386}
-                r.enum:=R_ESI;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_SELF_POINTER_REG;
                 list.concat(taicpu.op_reg_reg(A_TEST,S_L,r,r));
 {$else}
 {$warning constructor returns in flags for i386}
@@ -1991,7 +1994,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.77  2003-02-19 22:00:14  daniel
+  Revision 1.78  2003-02-26 21:15:43  daniel
+    * Fixed the optimizer
+
+  Revision 1.77  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -452,7 +452,8 @@ begin
     exit;
   getNoDeallocRegs(funcResRegs);
 {  funcResRegs := funcResRegs - rg.usableregsint;}
-  funcResRegs := funcResRegs - [R_ESI,R_EDI];
+{  funcResRegs := funcResRegs - [R_ESI,R_EDI];}
+  funcResRegs := funcResRegs - [R_EAX,R_EBX,R_ECX,R_EDX];
   funcResReg := reg.enum in funcResRegs;
   hp1 := p;
   while not(funcResReg and
@@ -1203,7 +1204,7 @@ Begin
     internalerror(200301081);
 { If not(reg.enum in rg.usableregsint+[R_EDI,R_ESI]) or
      not(assigned(p1)) then}
- If not(reg.enum in [R_EDI,R_ESI]) or
+ If not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI,R_ESI]) or
      not(assigned(p1)) then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
@@ -2670,7 +2671,10 @@ End.
 
 {
   $Log$
-  Revision 1.46  2003-02-19 22:00:15  daniel
+  Revision 1.47  2003-02-26 21:15:43  daniel
+    * Fixed the optimizer
+
+  Revision 1.46  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

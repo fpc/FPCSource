@@ -193,7 +193,7 @@ begin
     not(ref.base.enum in (rg.usableregsint+[R_EDI]));}
   isSimpleMemLoc :=
     (ref.index.enum = R_NO) and
-    not(ref.base.enum in [R_ESI,R_EDI]);
+    not(ref.base.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI]);
 end;
 
 {checks whether the current instruction sequence (starting with p) and the
@@ -277,7 +277,7 @@ var
 {    if (passedJump and not(reg.enum in (rg.usableregsint+[R_EDI]))) or
        not getLastInstruction(currentPrev,hp) then
       exit;}
-    if (passedJump and not(reg.enum in [R_ESI,R_EDI])) or
+    if (passedJump and not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI])) or
        not getLastInstruction(currentPrev,hp) then
       exit;
 
@@ -305,7 +305,7 @@ var
            { jump with a new value, since if the jump is taken, the old value }
            { is (probably) still necessary                                    }
 {           (passedJump and not(reg.enum in (rg.usableregsint+[R_EDI]))) or}
-           (passedJump and not(reg.enum in [R_ESI,R_EDI])) or
+           (passedJump and not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI])) or
            not getLastInstruction(hp,hp) then
           break;
       end;
@@ -1328,7 +1328,7 @@ begin
          (rState = pTaiprop(startmod.optInfo)^.regs[reg.enum].rState) and
          (not(check) or
           (not(regInInstruction(reg.enum,p)) and
-           (not(reg.enum in [R_ESI,R_EDI]) and
+           (not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX]) and
 {           (not(reg.enum in rg.usableregsint) and}
             (startmod.typ = ait_instruction) and
             ((Taicpu(startmod).opcode = A_MOV) or
@@ -1589,7 +1589,7 @@ Begin
                                              getLastInstruction(p,hp3);
                                              If (hp4 <> prevSeq) or
                                                 {not(regCounter.enum in rg.usableregsint + [R_EDI,R_ESI]) or}
-                                                not(regCounter.enum in [R_EDI,R_ESI]) or
+                                                not(regCounter.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI,R_ESI]) or
                                                 not ReplaceReg(asmL,RegInfo.New2OldReg[RegCounter.enum],
                                                       regCounter,hp3,
                                                       PTaiProp(PrevSeq.optInfo)^.Regs[regCounter.enum],true,hp5) then
@@ -1695,7 +1695,7 @@ Begin
                         if (Taicpu(p).oper[0].typ = top_reg) and
                            (Taicpu(p).oper[1].typ = top_reg) and
                            { only remove if we're not storing something in a regvar }
-                           (Taicpu(p).oper[1].reg.enum in [R_ESI,R_EDI]) and
+                           (Taicpu(p).oper[1].reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI]) and
 {                           (Taicpu(p).oper[1].reg.enum in (rg.usableregsint+[R_EDI])) and}
                            (Taicpu(p).opcode = A_MOV) and
                            getLastInstruction(p,hp4) and
@@ -1999,7 +1999,10 @@ End.
 
 {
   $Log$
-  Revision 1.40  2003-02-19 22:00:15  daniel
+  Revision 1.41  2003-02-26 21:15:43  daniel
+    * Fixed the optimizer
+
+  Revision 1.40  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
