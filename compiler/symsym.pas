@@ -2199,7 +2199,8 @@ implementation
            constint:
              ppufile.putexprint(value.valueord);
            constbool,
-           constchar :
+           constchar,
+           constwchar :
              ppufile.putlongint(value.valueord);
            constord :
              begin
@@ -2246,6 +2247,7 @@ implementation
             constbool,
             constint,
             constord,
+            constwchar,
             constchar : st := 'i'+int64tostr(value.valueord);
             constpointer :
               st := 'i'+int64tostr(value.valueordptr);
@@ -2643,7 +2645,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2003-10-17 14:38:32  peter
+  Revision 1.128  2003-10-21 18:14:30  peter
+    * fix writing of widechar to ppu
+
+  Revision 1.127  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 
