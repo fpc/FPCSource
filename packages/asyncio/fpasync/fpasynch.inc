@@ -48,6 +48,21 @@ type
       ASender: TObject): Pointer;
     procedure ClearIONotify(AHandle: Pointer);
 
+    procedure SetDataAvailableCallback(AHandle: Integer;
+      ACallback: TAsyncCallback; AUserData: Pointer);
+    procedure ClearDataAvailableCallback(AHandle: Integer);
+    function SetDataAvailableNotify(AHandle: Integer; ANotify: TNotifyEvent;
+      ASender: TObject): Pointer;
+    procedure ClearDataAvailableNotify(AHandle: Pointer);
+
+    procedure SetCanWriteCallback(AHandle: Integer; ACallback: TAsyncCallback;
+      AUserData: Pointer);
+    procedure ClearCanWriteCallback(AHandle: Integer);
+    function SetCanWriteNotify(AHandle: Integer; ANotify: TNotifyEvent;
+      ASender: TObject): Pointer;
+    procedure ClearCanWriteNotify(AHandle: Pointer);
+
+
     class function TimerTicks: Int64;
 
     // Properties
@@ -55,9 +70,68 @@ type
   end;
 
 
+// -------------------------------------------------------------------
+//   Asynchronous write buffers
+// -------------------------------------------------------------------
+
+  TWriteBuffer = class(TStream)
+  protected
+    FBuffer: PChar;
+    FBytesInBuffer: Integer;
+    FOnBufferEmpty: TNotifyEvent;
+
+    function  Seek(Offset: LongInt; Origin: Word): LongInt; override;
+    function  Write(const ABuffer; Count: LongInt): LongInt; override;
+    function  DoRealWrite(const ABuffer; Count: Integer): Integer; virtual; abstract;
+    procedure WritingFailed; virtual; abstract;
+    procedure WantWrite; virtual; abstract;
+    procedure BufferEmpty; virtual;
+  public
+    EndOfLineMarker: String;
+
+    constructor Create;
+    destructor Destroy; override;
+    procedure WriteLine(const line: String);
+    procedure Run;		// Write as many data as possible
+
+    property BytesInBuffer: Integer read FBytesInBuffer;
+    property OnBufferEmpty: TNotifyEvent read FOnBufferEmpty write FOnBufferEmpty;
+  end;
+
+
+  TAsyncWriteStream = class(TWriteBuffer)
+  protected
+    FManager: TEventLoop;
+    FDataStream: TStream;
+    FBlockingStream: THandleStream;
+    FNotifyHandle: Pointer;
+
+    function  DoRealWrite(const ABuffer; Count: Integer): Integer; override;
+    procedure WritingFailed; override;
+    procedure WantWrite; override;
+    procedure BufferEmpty; override;
+    procedure CanWrite(UserData: TObject);
+  public
+    constructor Create(AManager: TEventLoop; AStream: THandleStream);
+    constructor Create(AManager: TEventLoop;
+      ADataStream: TStream; ABlockingStream: THandleStream);
+    destructor Destroy; override;
+
+    property DataStream: TStream read FDataStream;
+    property BlockingStream: THandleStream read FBlockingStream;
+  end;
+
+
 {
   $Log$
-  Revision 1.1.2.1  2001-09-08 15:43:24  sg
+  Revision 1.1.2.2  2001-11-16 12:51:41  sg
+  * Now different handlers for available data and space in write buffer can
+    be set
+  * LOTS of bugfixes in the implementation
+  * fpAsync now has a write buffer class (a read buffer class for reading
+    line by line will be included in the next release)
+
+  Revision 1.1.2.1  2001/09/08 15:43:24  sg
   * First public version
 
 }

@@ -81,10 +81,37 @@ procedure asyncClearIOCallback(
   Handle: TAsyncHandle;
   IOHandle: LongInt); cdecl;
 
+procedure asyncSetDataAvailableCallback(
+  Handle: TAsyncHandle;
+  IOHandle: LongInt;
+  Callback: TAsyncCallback;
+  UserData: Pointer); cdecl;
+
+procedure asyncClearDataAvailableCallback(
+  Handle: TAsyncHandle;
+  IOHandle: LongInt); cdecl;
+
+procedure asyncSetCanWriteCallback(
+  Handle: TAsyncHandle;
+  IOHandle: LongInt;
+  Callback: TAsyncCallback;
+  UserData: Pointer); cdecl;
+
+procedure asyncClearCanWriteCallback(
+  Handle: TAsyncHandle;
+  IOHandle: LongInt); cdecl;
+
 
 {
   $Log$
-  Revision 1.1.2.1  2001-09-08 15:43:24  sg
+  Revision 1.1.2.2  2001-11-16 12:51:41  sg
+  * Now different handlers for available data and space in write buffer can
+    be set
+  * LOTS of bugfixes in the implementation
+  * fpAsync now has a write buffer class (a read buffer class for reading
+    line by line will be included in the next release)
+
+  Revision 1.1.2.1  2001/09/08 15:43:24  sg
   * First public version
 
 }

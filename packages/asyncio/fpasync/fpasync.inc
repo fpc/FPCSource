@@ -165,6 +165,72 @@ begin
   FreeNotifyData(Self, Data);
 end;
 
+procedure TEventLoop.SetDataAvailableCallback(AHandle: Integer; ACallback: TAsyncCallback;
+  AUserData: Pointer);
+begin
+  asyncSetDataAvailableCallback(Handle, AHandle, ACallback, AUserData);
+end;
+
+procedure TEventLoop.ClearDataAvailableCallback(AHandle: Integer);
+begin
+  asyncClearDataAvailableCallback(Handle, AHandle);
+end;
+
+function TEventLoop.SetDataAvailableNotify(AHandle: Integer; ANotify: TNotifyEvent;
+  ASender: TObject): Pointer;
+var
+  UserData: PNotifyData;
+begin
+  UserData := AddNotifyData(Self);
+  UserData^.Notify := ANotify;
+  UserData^.Sender := ASender;
+  UserData^.FileHandle := AHandle;
+  asyncSetDataAvailableCallback(Handle, AHandle, @EventHandler, UserData);
+  Result := UserData;
+end;
+
+procedure TEventLoop.ClearDataAvailableNotify(AHandle: Pointer);
+var
+  Data: PNotifyData;
+begin
+  Data := PNotifyData(AHandle);
+  asyncClearDataAvailableCallback(Handle, Data^.FileHandle);
+  FreeNotifyData(Self, Data);
+end;
+
+procedure TEventLoop.SetCanWriteCallback(AHandle: Integer; ACallback: TAsyncCallback;
+  AUserData: Pointer);
+begin
+  asyncSetCanWriteCallback(Handle, AHandle, ACallback, AUserData);
+end;
+
+procedure TEventLoop.ClearCanWriteCallback(AHandle: Integer);
+begin
+  asyncClearCanWriteCallback(Handle, AHandle);
+end;
+
+function TEventLoop.SetCanWriteNotify(AHandle: Integer; ANotify: TNotifyEvent;
+  ASender: TObject): Pointer;
+var
+  UserData: PNotifyData;
+begin
+  UserData := AddNotifyData(Self);
+  UserData^.Notify := ANotify;
+  UserData^.Sender := ASender;
+  UserData^.FileHandle := AHandle;
+  asyncSetCanWriteCallback(Handle, AHandle, @EventHandler, UserData);
+  Result := UserData;
+end;
+
+procedure TEventLoop.ClearCanWriteNotify(AHandle: Pointer);
+var
+  Data: PNotifyData;
+begin
+  Data := PNotifyData(AHandle);
+  asyncClearCanWriteCallback(Handle, Data^.FileHandle);
+  FreeNotifyData(Self, Data);
+end;
+
 function TEventLoop.TimerTicks: Int64;
 begin
   Result := asyncGetTicks;
@@ -187,9 +253,164 @@ begin
 end;
 
 
+// -------------------------------------------------------------------
+//   TWriteBuffer
+// -------------------------------------------------------------------
+
+procedure TWriteBuffer.BufferEmpty;
+begin
+  if Assigned(FOnBufferEmpty) then
+    FOnBufferEmpty(Self);
+end;
+
+constructor TWriteBuffer.Create;
+begin
+  inherited Create;
+
+  FBuffer := nil;
+  FBytesInBuffer := 0;
+  EndOfLineMarker := #10;
+end;
+
+destructor TWriteBuffer.Destroy;
+begin
+  if Assigned(FBuffer) then
+    FreeMem(FBuffer);
+  inherited Destroy;
+end;
+
+function TWriteBuffer.Seek(Offset: LongInt; Origin: Word): LongInt;
+begin
+  if ((Offset = 0) and ((Origin = soFromCurrent) or (Origin = soFromEnd))) or
+     ((Offset = FBytesInBuffer) and (Origin = soFromBeginning)) then
+    Result := FBytesInBuffer
+  else
+    // !!!: No i18n for this string - solve this problem in the FCL?!?
+    raise EStreamError.Create('Invalid stream operation');
+end;
+
+function TWriteBuffer.Write(const ABuffer; Count: LongInt): LongInt;
+begin
+  ReallocMem(FBuffer, FBytesInBuffer + Count);
+  Move(ABuffer, FBuffer[FBytesInBuffer], Count);
+  Inc(FBytesInBuffer, Count);
+  WantWrite;
+  Result := Count;
+end;
+
+procedure TWriteBuffer.WriteLine(const line: String);
+var
+  s: String;
+begin
+  s := line + EndOfLineMarker;
+  WriteBuffer(s[1], Length(s));
+end;
+
+procedure TWriteBuffer.Run;
+var
+  CurStart, Written: Integer;
+  NewBuf: PChar;
+  Failed: Boolean;
+begin
+  CurStart := 0;
+  Failed := True;
+  repeat
+    if FBytesInBuffer = 0 then
+    begin
+      BufferEmpty;
+      exit;
+    end;
+
+    Written := DoRealWrite(FBuffer[CurStart], FBytesInBuffer - CurStart);
+    if Written > 0 then
+    begin
+      Inc(CurStart, Written);
+      Failed := False;
+      GetMem(NewBuf, FBytesInBuffer - CurStart);
+      Move(FBuffer[CurStart], NewBuf[0], FBytesInBuffer - CurStart);
+      FreeMem(FBuffer);
+      FBuffer := NewBuf;
+      Dec(FBytesInBuffer, CurStart);
+    end;
+  until Written <= 0;
+
+  if Failed then
+    WritingFailed;
+end;
+
+
+// -------------------------------------------------------------------
+//   TAsyncWriteStream
+// -------------------------------------------------------------------
+
+function TAsyncWriteStream.DoRealWrite(const ABuffer; Count: Integer): Integer;
+begin
+  Result := FDataStream.Write(ABuffer, count);
+end;
+
+procedure TAsyncWriteStream.WritingFailed;
+begin
+  if (FDataStream <> FBlockingStream) and Assigned(FNotifyHandle) then
+  begin
+    FManager.ClearCanWriteNotify(FNotifyHandle);
+    FNotifyHandle := nil;
+  end;
+end;
+
+procedure TAsyncWriteStream.WantWrite;
+begin
+  FNotifyHandle := FManager.SetCanWriteNotify(FBlockingStream.Handle, @CanWrite, nil);
+end;
+
+procedure TAsyncWriteStream.BufferEmpty;
+begin
+  if Assigned(FNotifyHandle) then
+  begin
+    FManager.ClearCanWriteNotify(FNotifyHandle);
+    FNotifyHandle := nil;
+  end;
+  inherited BufferEmpty;
+end;
+
+procedure TAsyncWriteStream.CanWrite(UserData: TObject);
+begin
+  Run;
+end;
+
+constructor TAsyncWriteStream.Create(AManager: TEventLoop; AStream: THandleStream);
+begin
+  Self.Create(AManager, AStream, AStream);
+end;
+
+constructor TAsyncWriteStream.Create(AManager: TEventLoop;
+  ADataStream: TStream; ABlockingStream: THandleStream);
+begin
+  ASSERT(Assigned(ADataStream) and Assigned(ABlockingStream));
+
+  inherited Create;
+  FManager := AManager;
+  FDataStream := ADataStream;
+  FBlockingStream := ABlockingStream;
+end;
+
+destructor TAsyncWriteStream.Destroy;
+begin
+  if Assigned(FNotifyHandle) then
+    FManager.ClearCanWriteNotify(FNotifyHandle);
+  inherited Destroy;
+end;
+
+
 {
   $Log$
-  Revision 1.1.2.1  2001-09-08 15:43:24  sg
+  Revision 1.1.2.2  2001-11-16 12:51:41  sg
+  * Now different handlers for available data and space in write buffer can
+    be set
+  * LOTS of bugfixes in the implementation
+  * fpAsync now has a write buffer class (a read buffer class for reading
+    line by line will be included in the next release)
+
+  Revision 1.1.2.1  2001/09/08 15:43:24  sg
   * First public version
 
 }
