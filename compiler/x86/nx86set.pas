@@ -454,7 +454,7 @@ implementation
                 end
                else
                 begin
-                  if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                  if (left.location.loc=LOC_REGISTER) then
                     pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_32)
                   else
                     pleftreg:=cg.getintregister(exprasmlist,OS_32);
@@ -475,7 +475,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-09-25 14:23:55  peter
+  Revision 1.6  2004-10-01 17:32:16  peter
+    * fix resizing of LOC_CREGISTER
+
+  Revision 1.5  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
