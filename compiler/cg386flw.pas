@@ -604,7 +604,13 @@ do_jmp:
          emitl(A_LABEL,lastonlabel);
          { default handling }
          if assigned(p^.t1) then
-           secondpass(p^.t1)
+           begin
+           // FPC_CATCHES must be called with 
+           // 'default handler' flag (=-1)
+           push_int (-1);
+           emitcall('FPC_CATCHES',true);
+           secondpass(p^.t1);
+           end
          else
            emitcall('FPC_RERAISE',true);
          emitl(A_LABEL,endexceptlabel);
@@ -730,7 +736,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.8  1998-07-30 13:30:32  florian
+  Revision 1.9  1998-07-31 11:36:34  michael
+  Default exception handler also needs to call FPC_CATCHES
+
+  Revision 1.8  1998/07/30 13:30:32  florian
     * final implemenation of exception support, maybe it needs
       some fixes :)
 
