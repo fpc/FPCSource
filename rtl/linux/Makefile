@@ -203,7 +203,7 @@ endif
 # Targets
 
 override LOADEROBJECTS+=prt0 cprt0 gprt0 cprt21 gprt21
-override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings unix ports initc dos crt objects printer graph ggigraph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard
+override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings unix ports initc dos crt objects printer graph ggigraph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard callspec
 override RSTOBJECTS+=math varutils
 
 # Clean
@@ -1409,3 +1409,5 @@ errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
+
+callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)

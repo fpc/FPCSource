@@ -10,7 +10,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard
+      video mouse keyboard callspec
 
 rst=math varutils
 
@@ -219,3 +219,4 @@ ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
+callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
