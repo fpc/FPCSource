@@ -480,6 +480,7 @@ implementation
      begin
        tg.gettemp(list,paraitem.paratype.def.size,tt_persistent,href);
        locpara.loc:=LOC_REFERENCE;
+       locpara.lochigh:=LOC_INVALID;
        locpara.reference.index:=href.base;
        locpara.reference.offset:=href.offset;
      end;
@@ -531,7 +532,10 @@ end.
 
 {
    $Log$
-   Revision 1.70  2004-02-09 22:48:45  florian
+   Revision 1.71  2004-02-17 19:14:09  florian
+     * temp. fix for lochigh para
+
+   Revision 1.70  2004/02/09 22:48:45  florian
      * several fixes to parameter handling on arm
 
    Revision 1.69  2004/02/09 22:14:17  peter
