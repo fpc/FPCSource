@@ -70,6 +70,7 @@ interface
          srsym,sym : tsym;
          srsymtable : tsymtable;
          code : TAAsmoutput;
+         framereg : tregister;
          i,l : longint;
 
        procedure writeasmline;
@@ -95,232 +96,238 @@ interface
        if assigned(current_procdef.funcretsym) and
           is_fpu(current_procdef.rettype.def) then
          tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+       framereg:=current_procinfo.framepointer;
+       convert_register_to_enum(framereg);
        if (not is_void(current_procdef.rettype.def)) then
-         retstr:=upper(tostr(current_procinfo.return_offset)+'('+std_reg2str[current_procinfo.framepointer.enum]+')')
+         retstr:=upper(tostr(current_procinfo.return_offset)+'('+std_reg2str[framereg.enum]+')')
        else
          retstr:='';
-         c:=current_scanner.asmgetchar;
-         code:=TAAsmoutput.Create;
-         while not(ende) do
-           begin
-              { wrong placement
-              current_scanner.gettokenpos; }
-              case c of
-                 'A'..'Z','a'..'z','_' : begin
-                      current_scanner.gettokenpos;
-                      i:=0;
-                      hs:='';
-                      while ((ord(c)>=ord('A')) and (ord(c)<=ord('Z')))
-                         or ((ord(c)>=ord('a')) and (ord(c)<=ord('z')))
-                         or ((ord(c)>=ord('0')) and (ord(c)<=ord('9')))
-                         or (c='_') do
-                        begin
-                           inc(i);
-                           hs[i]:=c;
-                           c:=current_scanner.asmgetchar;
-                        end;
-                      hs[0]:=chr(i);
-                      if upper(hs)='END' then
-                         ende:=true
-                      else
-                         begin
-                            if c=':' then
-                              begin
-                                searchsym(upper(hs),srsym,srsymtable);
-                                if srsym<>nil then
-                                  if (srsym.typ = labelsym) then
-                                    Begin
-                                       hs:=tlabelsym(srsym).lab.name;
-                                       tlabelsym(srsym).lab.is_set:=true;
-                                    end
-                                  else
-                                    Message(asmr_w_using_defined_as_local);
-                              end
-                            else
-                            { access to local variables }
-                            if assigned(current_procdef) then
-                              begin
-                                 { is the last written character an special }
-                                 { char ?                                   }
-                                 if (s[length(s)]='%') and
-                                    (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) and
-                                    ((pos('AX',upper(hs))>0) or
-                                    (pos('AL',upper(hs))>0)) then
-                                   tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
-                                 if (s[length(s)]<>'%') and
-                                   (s[length(s)]<>'$') and
-                                   ((s[length(s)]<>'0') or (hs[1]<>'x')) then
-                                   begin
-                                      if assigned(current_procdef.localst) and
-                                         (current_procdef.localst.symtablelevel >= normal_function_level) then
-                                        sym:=tsym(current_procdef.localst.search(upper(hs)))
-                                      else
-                                        sym:=nil;
-                                      if assigned(sym) then
+
+
+       c:=current_scanner.asmgetchar;
+       code:=TAAsmoutput.Create;
+       while not(ende) do
+         begin
+            { wrong placement
+            current_scanner.gettokenpos; }
+            case c of
+               'A'..'Z','a'..'z','_':
+                 begin
+                    current_scanner.gettokenpos;
+                    i:=0;
+                    hs:='';
+                    while ((ord(c)>=ord('A')) and (ord(c)<=ord('Z')))
+                       or ((ord(c)>=ord('a')) and (ord(c)<=ord('z')))
+                       or ((ord(c)>=ord('0')) and (ord(c)<=ord('9')))
+                       or (c='_') do
+                      begin
+                         inc(i);
+                         hs[i]:=c;
+                         c:=current_scanner.asmgetchar;
+                      end;
+                    hs[0]:=chr(i);
+                    if upper(hs)='END' then
+                      ende:=true
+                    else
+                      begin
+                         if c=':' then
+                           begin
+                             searchsym(upper(hs),srsym,srsymtable);
+                             if srsym<>nil then
+                               if (srsym.typ = labelsym) then
+                                 begin
+                                    hs:=tlabelsym(srsym).lab.name;
+                                    tlabelsym(srsym).lab.is_set:=true;
+                                 end
+                               else
+                                 Message(asmr_w_using_defined_as_local);
+                           end
+                         else
+                         { access to local variables }
+                         if assigned(current_procdef) then
+                           begin
+                              { is the last written character an special }
+                              { char ?                                   }
+                              if (s[length(s)]='%') and
+                                 (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) and
+                                 ((pos('AX',upper(hs))>0) or
+                                 (pos('AL',upper(hs))>0)) then
+                                tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+                              if (s[length(s)]<>'%') and
+                                (s[length(s)]<>'$') and
+                                ((s[length(s)]<>'0') or (hs[1]<>'x')) then
+                                begin
+                                   if assigned(current_procdef.localst) and
+                                      (current_procdef.localst.symtablelevel >= normal_function_level) then
+                                     sym:=tsym(current_procdef.localst.search(upper(hs)))
+                                   else
+                                     sym:=nil;
+                                   if assigned(sym) then
+                                     begin
+                                        if (sym.typ = labelsym) then
+                                          Begin
+                                             hs:=tlabelsym(sym).lab.name;
+                                          end
+                                        else if sym.typ=varsym then
+                                          begin
+                                          {variables set are after a comma }
+                                          {like in movl %eax,I }
+                                          if pos(',',s) > 0 then
+                                            tvarsym(sym).varstate:=vs_used
+                                          else
+                                          if (pos('MOV',upper(s)) > 0) and (tvarsym(sym).varstate=vs_declared) then
+                                           Message1(sym_n_uninitialized_local_variable,hs);
+                                          if (vo_is_external in tvarsym(sym).varoptions) then
+                                            hs:=tvarsym(sym).mangledname
+                                          else
+                                            hs:='-'+tostr(tvarsym(sym).address)+
+                                                '('+std_reg2str[current_procinfo.framepointer.enum]+')';
+                                          end
+                                        else
+                                        { call to local function }
+                                        if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
+                                           (pos('LEA',upper(s))>0)) then
+                                          begin
+                                             hs:=tprocsym(sym).first_procdef.mangledname;
+                                          end;
+                                     end
+                                   else
+                                     begin
+                                        if assigned(current_procdef.parast) then
+                                          sym:=tsym(current_procdef.parast.search(upper(hs)))
+                                        else
+                                          sym:=nil;
+                                        if assigned(sym) then
+                                          begin
+                                             if sym.typ=varsym then
+                                               begin
+                                                  l:=tvarsym(sym).address;
+                                                  { set offset }
+                                                  inc(l,current_procdef.parast.address_fixup);
+                                                  hs:=tostr(l)+'('+std_reg2str[current_procinfo.framepointer.enum]+')';
+                                                  if pos(',',s) > 0 then
+                                                    tvarsym(sym).varstate:=vs_used;
+                                               end;
+                                          end
+                                     end
+                                end
+                              else
+                                begin
+                                   uhs:=upper(hs);
+                                   if (uhs='__SELF') then
+                                     begin
+                                       if assigned(current_procdef._class) then
+                                        uhs:='self'
+                                       else
                                         begin
-                                           if (sym.typ = labelsym) then
-                                             Begin
-                                                hs:=tlabelsym(sym).lab.name;
-                                             end
-                                           else if sym.typ=varsym then
-                                             begin
-                                             {variables set are after a comma }
-                                             {like in movl %eax,I }
-                                             if pos(',',s) > 0 then
-                                               tvarsym(sym).varstate:=vs_used
-                                             else
-                                             if (pos('MOV',upper(s)) > 0) and (tvarsym(sym).varstate=vs_declared) then
-                                              Message1(sym_n_uninitialized_local_variable,hs);
-                                             if (vo_is_external in tvarsym(sym).varoptions) then
-                                               hs:=tvarsym(sym).mangledname
-                                             else
-                                               hs:='-'+tostr(tvarsym(sym).address)+
-                                                   '('+std_reg2str[current_procinfo.framepointer.enum]+')';
-                                             end
-                                           else
-                                           { call to local function }
-                                           if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
-                                              (pos('LEA',upper(s))>0)) then
-                                             begin
-                                                hs:=tprocsym(sym).first_procdef.mangledname;
-                                             end;
-                                        end
-                                      else
+                                          Message(asmr_e_cannot_use_SELF_outside_a_method);
+                                          uhs:='';
+                                        end;
+                                     end
+                                   else
+                                    if (uhs='__OLDEBP') then
+                                      begin
+                                        if current_procdef.parast.symtablelevel>normal_function_level then
+                                         uhs:='parentframe'
+                                        else
+                                         begin
+                                           Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
+                                           uhs:='';
+                                         end;
+                                      end
+                                    else
+                                      if uhs='__RESULT' then
                                         begin
-                                           if assigned(current_procdef.parast) then
-                                             sym:=tsym(current_procdef.parast.search(upper(hs)))
-                                           else
-                                             sym:=nil;
-                                           if assigned(sym) then
-                                             begin
-                                                if sym.typ=varsym then
-                                                  begin
-                                                     l:=tvarsym(sym).address;
-                                                     { set offset }
-                                                     inc(l,current_procdef.parast.address_fixup);
-                                                     hs:=tostr(l)+'('+std_reg2str[current_procinfo.framepointer.enum]+')';
-                                                     if pos(',',s) > 0 then
-                                                       tvarsym(sym).varstate:=vs_used;
-                                                  end;
-                                             end
-                                        end
-                                   end
-                                 else
-                                   begin
-                                      uhs:=upper(hs);
-                                      if (uhs='__SELF') then
-                                        begin
-                                          if assigned(current_procdef._class) then
-                                           uhs:='self'
+                                          if (not is_void(current_procdef.rettype.def)) then
+                                           uhs:='result'
                                           else
                                            begin
-                                             Message(asmr_e_cannot_use_SELF_outside_a_method);
+                                             Message(asmr_e_void_function);
                                              uhs:='';
                                            end;
-                                        end
-                                      else
-                                       if (uhs='__OLDEBP') then
-                                         begin
-                                           if current_procdef.parast.symtablelevel>normal_function_level then
-                                            uhs:='parentframe'
-                                           else
+                                        end;
+
+                                    if uhs<>'' then
+                                      searchsym(upper(hs),sym,srsymtable)
+                                    else
+                                      sym:=nil;
+
+                                    if assigned(sym) then
+                                      begin
+                                        case sym.owner.symtabletype of
+                                          globalsymtable,
+                                          staticsymtable :
                                             begin
-                                              Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
-                                              uhs:='';
+                                              case sym.typ of
+                                                varsym :
+                                                  begin
+                                                    Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
+                                                    hs:=tvarsym(sym).mangledname;
+                                                    inc(tvarsym(sym).refs);
+                                                  end;
+                                                typedconstsym :
+                                                  begin
+                                                    Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
+                                                    hs:=ttypedconstsym(sym).mangledname;
+                                                  end;
+                                                procsym :
+                                                  begin
+                                                    { procs can be called or the address can be loaded }
+                                                    if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
+                                                     begin
+                                                       if tprocsym(sym).procdef_count>1 then
+                                                         Message1(asmr_w_direct_global_is_overloaded_func,hs);
+                                                       Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
+                                                       hs:=tprocsym(sym).first_procdef.mangledname;
+                                                     end;
+                                                  end;
+                                                else
+                                                  Message(asmr_e_wrong_sym_type);
+                                              end;
                                             end;
-                                         end
-                                       else
-                                         if uhs='__RESULT' then
-                                           begin
-                                             if (not is_void(current_procdef.rettype.def)) then
-                                              uhs:='result'
-                                             else
-                                              begin
-                                                Message(asmr_e_void_function);
-                                                uhs:='';
+                                          parasymtable,
+                                          localsymtable :
+                                            begin
+                                              case sym.typ of
+                                                varsym :
+                                                  begin
+                                                    hs:=tostr(tvarsym(sym).adjusted_address)+
+                                                        '('+std_reg2str[framereg.enum]+')';
+                                                    inc(tvarsym(sym).refs);
+                                                  end;
+                                                typedconstsym :
+                                                  begin
+                                                    Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
+                                                    hs:=ttypedconstsym(sym).mangledname;
+                                                  end;
+                                                else
+                                                  Message(asmr_e_wrong_sym_type);
                                               end;
-                                           end;
-
-                                       if uhs<>'' then
-                                         searchsym(upper(hs),sym,srsymtable)
-                                       else
-                                         sym:=nil;
-
-                                         if assigned(sym) then
-                                           begin
-                                             case sym.owner.symtabletype of
-                                               globalsymtable,
-                                               staticsymtable :
-                                                 begin
-                                                   case sym.typ of
-                                                     varsym :
-                                                       begin
-                                                         Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
-                                                         hs:=tvarsym(sym).mangledname;
-                                                         inc(tvarsym(sym).refs);
-                                                       end;
-                                                     typedconstsym :
-                                                       begin
-                                                         Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
-                                                         hs:=ttypedconstsym(sym).mangledname;
-                                                       end;
-                                                     procsym :
-                                                       begin
-                                                         { procs can be called or the address can be loaded }
-                                                         if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
-                                                          begin
-                                                            if tprocsym(sym).procdef_count>1 then
-                                                              Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                            Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
-                                                            hs:=tprocsym(sym).first_procdef.mangledname;
-                                                          end;
-                                                       end;
-                                                     else
-                                                       Message(asmr_e_wrong_sym_type);
-                                                   end;
-                                                 end;
-                                               parasymtable,
-                                               localsymtable :
-                                                 begin
-                                                   case sym.typ of
-                                                     varsym :
-                                                       begin
-                                                         hs:=tostr(tvarsym(sym).adjusted_address)+
-                                                             '('+std_reg2str[framereg.enum]+')';
-                                                         inc(tvarsym(sym).refs);
-                                                       end;
-                                                     typedconstsym :
-                                                       begin
-                                                         Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
-                                                         hs:=ttypedconstsym(sym).mangledname;
-                                                       end;
-                                                     else
-                                                       Message(asmr_e_wrong_sym_type);
-                                                   end;
-                                                 end;
-                                              end;
-                                           end;
+                                            end;
+                                        end;
                                       end;
-                                   end;
-                              end;
-                            s:=s+hs;
-                         end;
-                   end;
- '{',';',#10,#13 : begin
-                      if pos(retstr,s) > 0 then
-                        tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
-                     writeasmline;
-                     c:=current_scanner.asmgetchar;
-                   end;
-             #26 : Message(scan_f_end_of_file);
-             else
-               begin
-                 current_scanner.gettokenpos;
-                 inc(byte(s[0]));
-                 s[length(s)]:=c;
-                 c:=current_scanner.asmgetchar;
-               end;
-           end;
+                                end;
+                           end;
+                         s:=s+hs;
+                      end;
+                 end;
+               '{',';',#10,#13:
+                 begin
+                    if pos(retstr,s) > 0 then
+                      tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+                    writeasmline;
+                    c:=current_scanner.asmgetchar;
+                 end;
+               #26:
+                 Message(scan_f_end_of_file);
+               else
+                 begin
+                   current_scanner.gettokenpos;
+                   inc(byte(s[0]));
+                   s[length(s)]:=c;
+                   c:=current_scanner.asmgetchar;
+                 end;
+             end;
          end;
        writeasmline;
        assemble:=casmnode.create(code);
@@ -343,7 +350,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-05-22 16:11:22  florian
+  Revision 1.9  2003-05-23 21:10:50  florian
+    * fixed sparc compiler compilation
+
+  Revision 1.8  2003/05/22 16:11:22  florian
     * fixed sparc compilation partially
 
   Revision 1.7  2003/04/27 11:21:36  peter

@@ -254,7 +254,7 @@ const
   NR_ASR31=$4000;
 {Floating point status/"front of queue" registers}
   NR_FSR=$5000;
-  NR_FQ=$50001;
+  NR_FQ=$5001; { was $50001, probably typo (FK) }
   NR_CSR=$5000;
   NR_CQ=$5000;
   NR_PSR=$5000;
@@ -678,7 +678,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2003-05-22 16:11:22  florian
+  Revision 1.32  2003-05-23 21:10:50  florian
+    * fixed sparc compiler compilation
+
+  Revision 1.31  2003/05/22 16:11:22  florian
     * fixed sparc compilation partially
 
   Revision 1.30  2003/05/06 14:58:46  mazen

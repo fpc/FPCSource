@@ -39,14 +39,8 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
-    {$ifndef NOTARGETFREEBSD}
-      ,t_fbsd
-    {$endif}
     {$ifndef NOTARGETSUNOS}
       ,t_sunos
-    {$endif}
-    {$ifndef NOTARGETBEOS}
-      ,t_beos
     {$endif}
 
 {**************************************
@@ -61,7 +55,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:25:14  peter
+  Revision 1.3  2003-05-23 21:10:50  florian
+    * fixed sparc compiler compilation
+
+  Revision 1.2  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/22 08:30:50  mazen

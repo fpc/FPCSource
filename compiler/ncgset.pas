@@ -77,8 +77,6 @@ interface
           procedure genlinearlist(hp : pcaserecord); virtual;
           procedure genlinearcmplist(hp : pcaserecord); virtual;
           procedure gentreejmp(p : pcaserecord);
-
-
        end;
 
 
@@ -1116,8 +1114,6 @@ implementation
       end;
 
 
-
-
 begin
    csetelementnode:=tcgsetelementnode;
    cinnode:=tcginnode;
@@ -1125,7 +1121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-05-23 19:52:28  jonas
+  Revision 1.35  2003-05-23 21:10:50  florian
+    * fixed sparc compiler compilation
+
+  Revision 1.34  2003/05/23 19:52:28  jonas
     * corrected fix for endian differences in tcginnode
 
   Revision 1.33  2003/05/17 19:17:35  jonas
@@ -1268,5 +1267,4 @@ end.
   + generic sets
 
 }
-
 

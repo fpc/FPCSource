@@ -1,10 +1,10 @@
 {******************************************************************************
   $Id$
-  Author                 : Mazen NEIFER                                       
-  Project                : Free Pascal Compiler (FPC)                         
-  Creation date          : 2003\04\29                                         
-  Licence                : GPL                                                
-  Bug report             : mazen.neifer.01@supaero.org                        
+  Author                 : Mazen NEIFER
+  Project                : Free Pascal Compiler (FPC)
+  Creation date          : 2003\04\29
+  Licence                : GPL
+  Bug report             : mazen.neifer.01@supaero.org
 ******************************************************************************}
 (enum:R_NONE;number:NR_NONE)
 {General purpose global registers}
@@ -49,11 +49,14 @@ implementation according to the Assembler Refernce Manual.(MN)}
 ,(enum:R_ASR24;number:NR_ASR24),(enum:R_ASR25;number:NR_ASR25),(enum:R_ASR26;number:NR_ASR26),(enum:R_ASR27;number:NR_ASR27),(enum:R_ASR28;number:NR_ASR28),(enum:R_ASR29;number:NR_ASR29),(enum:R_ASR30;number:NR_ASR30),(enum:R_ASR31;number:NR_ASR31)
 {The following registers are just used with the new register allocator}
 ,(enum:R_INTREGISTER;number:NR_NONE),(enum:R_FLOATREGISTER;number:NR_NONE),(enum:R_MMXREGISTER;number:NR_NONE),(enum:R_KNIREGISTER;number:NR_NONE)
+
 {
   $Log$
-  Revision 1.4  2003-04-29 11:52:52  mazen
+  Revision 1.5  2003-05-23 21:10:50  florian
+    * fixed sparc compiler compilation
+
+  Revision 1.4  2003/04/29 11:52:52  mazen
   * signification of ths faile has changed.
   * It was used to declare the cpu registers physically available
   * Now, it is used to define the register allocators paris (enum,number)
-
 }
