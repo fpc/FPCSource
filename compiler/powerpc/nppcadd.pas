@@ -38,8 +38,8 @@ interface
           procedure clear_left_right(cmpop: boolean);
           function  getresflags : tresflags;
           procedure emit_compare(unsigned : boolean);
-          procedure second_addboolean;
           procedure second_addfloat;
+          procedure second_addboolean;
           procedure second_addsmallset;
 {$ifdef SUPPORT_MMX}
           procedure second_addmmx;
@@ -54,10 +54,11 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defbase,htypechk,
-      cgbase,cpuinfo,pass_2,regvars,
+      cgbase,cpuinfo,pass_1,pass_2,regvars,
       cpupara,
       ncon,nset,
       cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+
 
 {*****************************************************************************
                                   Helpers
@@ -756,9 +757,7 @@ interface
                 end;
               unequaln:
                 begin
-                  nodetype := equaln;
                   cg.a_jmp_flags(exprasmlist,getresflags,truelabel);
-                  nodetype := unequaln;
                 end;
            end;
         end;
@@ -831,13 +830,6 @@ interface
           else
             internalerror(2002072705);
         end;
-
-        { set result location }
-        if not cmpop then
-          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
-         else
-          location_reset(location,LOC_JUMP,OS_NO);
-
 
         load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn]));
@@ -920,6 +912,14 @@ interface
               right.location.registerhigh,left.location.registerhigh));
             cg.g_overflowcheck(exprasmlist,self);
           end;
+
+        { set result location }
+        { (emit_compare sets it to LOC_FLAGS for compares, so set the }
+        {  real location only now) (JM)                               }
+        if not cmpop then
+          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+         else
+          location_reset(location,LOC_JUMP,OS_NO);
 
         clear_left_right(cmpop);
 
@@ -1303,7 +1303,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-08-17 22:09:47  florian
+  Revision 1.14  2002-08-31 19:26:20  jonas
+    * fixed 64bit comparisons
+
+  Revision 1.13  2002/08/17 22:09:47  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed
