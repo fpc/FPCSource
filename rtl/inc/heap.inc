@@ -63,6 +63,7 @@ procedure SysHeapMutexUnlock;forward;
 { Memory manager }
 const
   MemoryManager: TMemoryManager = (
+    NeedLock: true;
     GetMem: @SysGetMem;
     FreeMem: @SysFreeMem;
     FreeMemSize: @SysFreeMemSize;
@@ -133,7 +134,7 @@ end;
 
 procedure GetMemoryManager(var MemMgr:TMemoryManager);
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -151,7 +152,7 @@ end;
 
 procedure SetMemoryManager(const MemMgr:TMemoryManager);
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -169,7 +170,7 @@ end;
 
 function IsMemoryManagerSet:Boolean;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -189,7 +190,7 @@ end;
 
 procedure GetMem(Var p:pointer;Size:Longint);
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -207,7 +208,7 @@ end;
 
 procedure FreeMem(p:pointer;Size:Longint);
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -225,7 +226,7 @@ end;
 
 function MaxAvail:Longint;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -243,7 +244,7 @@ end;
 
 function MemAvail:Longint;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -262,7 +263,7 @@ end;
 { FPC Additions }
 function HeapSize:Longint;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -280,7 +281,7 @@ end;
 
 function MemSize(p:pointer):Longint;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -299,7 +300,7 @@ end;
 { Delphi style }
 function FreeMem(p:pointer):Longint;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -317,7 +318,7 @@ end;
 
 function GetMem(size:longint):pointer;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -335,7 +336,7 @@ end;
 
 function AllocMem(Size:Longint):pointer;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -353,7 +354,7 @@ end;
 
 function ReAllocMem(var p:pointer;Size:Longint):pointer;
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -374,7 +375,7 @@ end;
 { Needed for calls from Assembler }
 function fpc_getmem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -403,7 +404,7 @@ end;
 
 procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
-  if IsMultiThread then
+  if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
@@ -1264,7 +1265,11 @@ end;
 
 {
   $Log$
-  Revision 1.17  2002-10-30 19:54:19  peter
+  Revision 1.18  2002-10-30 20:39:13  peter
+    * MemoryManager record has a field NeedLock if the wrapper functions
+      need to provide locking for multithreaded programs
+
+  Revision 1.17  2002/10/30 19:54:19  peter
     * remove wrong lock from SysMemSize, MemSize() does the locking
       already.
 

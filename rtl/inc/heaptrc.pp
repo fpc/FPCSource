@@ -984,6 +984,7 @@ end;
 
 const
   TraceManager:TMemoryManager=(
+    NeedLock : true;
     Getmem  : @TraceGetMem;
     Freemem : @TraceFreeMem;
     FreememSize : @TraceFreeMemSize;
@@ -1149,7 +1150,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2002-10-05 15:19:46  carl
+  Revision 1.20  2002-10-30 20:39:13  peter
+    * MemoryManager record has a field NeedLock if the wrapper functions
+      need to provide locking for multithreaded programs
+
+  Revision 1.19  2002/10/05 15:19:46  carl
      * bugfix of assigning to external filename output
 
   Revision 1.18  2002/09/09 15:45:49  jonas

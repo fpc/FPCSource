@@ -18,6 +18,7 @@
 type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
+    NeedLock    : boolean;
     Getmem      : Function(Size:Longint):Pointer;
     Freemem     : Function(p:pointer):Longint;
     FreememSize : Function(p:pointer;Size:Longint):Longint;
@@ -89,7 +90,11 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.5  2002-10-14 19:39:17  peter
+  Revision 1.6  2002-10-30 20:39:13  peter
+    * MemoryManager record has a field NeedLock if the wrapper functions
+      need to provide locking for multithreaded programs
+
+  Revision 1.5  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.4  2002/09/07 15:07:45  peter
