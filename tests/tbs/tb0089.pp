@@ -7,6 +7,9 @@
 {$ifdef linux}
 {$define OK}
 {$endif}
+{$ifdef freebsd}
+{$define OK}
+{$endif}
 
 { Win32 signal support is still missing ! }
 
@@ -15,11 +18,15 @@
 {$ifdef go32v2}
  uses dpmiexcp;
 {$endif go32v2}
-{$ifdef linux}
+{$ifdef unix}
+ {$ifdef ver1_0}
  uses linux;
-{$endif linux}
+ {$else}
+ uses unix;
+ {$endif}
+{$endif unix}
 
-  function our_sig(l : longint) : longint;{$ifdef linux}cdecl;{$endif}
+  function our_sig(l : longint) : longint;{$ifdef unix}cdecl;{$endif}
     begin
        { If we land here the program works correctly !! }
        Writeln('Sigsegv signal recieved');
