@@ -4318,12 +4318,6 @@ implementation
 
          inherited buildderefimpl;
 
-         { Enable has_inlininginfo when the inlininginfo
-           structure is available. The has_inlininginfo was disabled
-           after the load, since the data was invalid }
-         if assigned(inlininginfo) then
-             include(procoptions,po_has_inlininginfo);
-
          { Locals }
          if assigned(localst) and
             ((po_has_inlininginfo in procoptions) or
@@ -4383,6 +4377,12 @@ implementation
          oldlocalsymtable:=aktlocalsymtable;
          aktparasymtable:=parast;
          aktlocalsymtable:=localst;
+
+         { Enable has_inlininginfo when the inlininginfo
+           structure is available. The has_inlininginfo was disabled
+           after the load, since the data was invalid }
+         if assigned(inlininginfo) then
+           include(procoptions,po_has_inlininginfo);
 
          { Locals }
          if assigned(localst) then
@@ -6396,7 +6396,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.301  2005-03-25 21:55:43  jonas
+  Revision 1.302  2005-03-28 15:04:13  peter
+  fix loading of inline info
+
+  Revision 1.301  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.300  2005/03/13 08:35:09  florian
