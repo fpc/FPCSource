@@ -15,6 +15,30 @@
 {*                               TBits                                      *}
 {****************************************************************************}
 
+ResourceString
+  SErrInvalidBitIndex = 'Invalid bit index : %d';
+  SErrindexTooLarge   = 'Bit index exceeds array limit: %d';
+    
+Procedure BitsError (Msg : string);
+
+begin
+  Raise EBitsError.Create(Msg); 
+end;
+Procedure BitsErrorFmt (Msg : string; Args : array of const);
+
+begin
+  Raise EBitsError.CreateFmt(Msg,args); 
+end;
+
+procedure CheckBitIndex (Bit : longint);
+
+begin
+ if (bit<0) then
+   BitsErrorFmt(SErrInvalidBitIndex,[bit]);
+ if (bit>=MaxBitFlags) then
+   BitsErrorFmt(SErrIndexTooLarge,[bit])
+end;
+
 { ************* functions to match TBits class ************* }
 
 function TBits.getSize : longint;
@@ -89,10 +113,8 @@ var
    newSize : longint;
    loop : longint;
 begin
-
-   if nbit >= MaxBitFlags then
-      Raise EBitsError.Create('Bit index exceeds array limit');
-
+   CheckBitindex(nbit);
+   
    newSize :=  (nbit shr BITSHIFT) + 1;
 
    if newSize > FSize then
@@ -119,9 +141,7 @@ var
    n : longint;
 begin
    n := bit shr BITSHIFT;
-
    grow(bit);
-
    FBits^[n] := FBits^[n] or (longint(1) shl (bit and MASK));
 end;
 
@@ -129,10 +149,9 @@ procedure TBits.clear(bit : longint);
 var
    n : longint;
 begin
+   CheckBitIndex(bit);
    n := bit shr BITSHIFT;
-
    grow(bit);
-
    FBits^[n] := FBits^[n] and not(longint(1) shl (bit and MASK));
 end;
 
@@ -148,13 +167,9 @@ function TBits.get(bit : longint) : Boolean;
 var
    n : longint;
 begin
+   CheckBitIndex(bit);
    result := False;
-
-   if bit >= MaxBitFlags then
-      Raise EBitsError.Create('Bit index exceeds array limit');
-
    n := bit shr BITSHIFT;
-
    if (n < FSize) then
       result := (FBits^[n] and (longint(1) shl (bit and MASK))) <> 0;
 end;
@@ -353,7 +368,34 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:58  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-10-14 23:14:42  michael
+  + Added some index checking. Centralized error handling
+
+  Revision 1.1  2000/07/13 06:31:29  michael
+  + Initial import
+
+  Revision 1.8  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.7  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:06  peter
+    * moved to packages dir
+
+  Revision 1.5  1999/11/01 13:56:58  peter
+    * adapted for new reallocmem
+
+  Revision 1.4  1999/04/09 12:13:31  michael
+  + Changed TBits to TbitsPlus from Michael A. Hess (renamed to Tbits)
+
+  Revision 1.3  1998/11/04 14:36:29  michael
+  Error handling always with exceptions
+
+  Revision 1.2  1998/11/04 10:46:42  peter
+    * exceptions work
+
+  Revision 1.1  1998/05/04 14:30:11  michael
+  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+
 }
