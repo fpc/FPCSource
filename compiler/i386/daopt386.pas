@@ -226,7 +226,8 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, tainst, cginfo, rgobj;
+  globals, systems, verbose, cgbase, symconst, symsym, tainst, cginfo, cgobj, 
+   rgobj;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -586,10 +587,10 @@ Begin
   If (Reg >= R_AX)
     Then
       If (Reg <= R_DI)
-        Then Reg32 := ChangeRegsize(Reg,S_L)
+        Then Reg32 := rg.makeregsize(Reg,OS_INT)
         Else
           If (Reg <= R_BL)
-            Then Reg32 := ChangeRegsize(Reg,S_L);
+            Then Reg32 := rg.makeregsize(Reg,OS_INT);
 End;
 
 { inserts new_one between prev and foll }
@@ -641,37 +642,37 @@ Begin
       Case OldReg Of
         R_EAX..R_EDI:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [ChangeRegsize(NewReg,S_W)];
-            OldRegsEncountered := OldRegsEncountered + [ChangeRegsize(OldReg,S_W)];
-            New2OldReg[Changeregsize(NewReg,S_W)] := Changeregsize(OldReg,S_W);
+            NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_16)];
+            OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_16)];
+            New2OldReg[rg.makeregsize(NewReg,OS_16)] := rg.makeregsize(OldReg,OS_16);
             If (NewReg in [R_EAX..R_EBX]) And
                (OldReg in [R_EAX..R_EBX]) Then
               Begin
-                NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_B)];
-                OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_B)];
-                New2OldReg[Changeregsize(NewReg,S_B)] := Changeregsize(OldReg,S_B);
+                NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_8)];
+                OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_8)];
+                New2OldReg[rg.makeregsize(NewReg,OS_8)] := rg.makeregsize(OldReg,OS_8);
               End;
           End;
         R_AX..R_DI:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_L)];
-            OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_L)];
-            New2OldReg[Changeregsize(NewReg,S_L)] := Changeregsize(OldReg,S_L);
+            NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_32)];
+            OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_32)];
+            New2OldReg[rg.makeregsize(NewReg,OS_32)] := rg.makeregsize(OldReg,OS_32);
             If (NewReg in [R_AX..R_BX]) And
                (OldReg in [R_AX..R_BX]) Then
               Begin
-                NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_B)];
-                OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_B)];
-                New2OldReg[Changeregsize(NewReg,S_B)] := Changeregsize(OldReg,S_B);
+                NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_8)];
+                OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_8)];
+                New2OldReg[rg.makeregsize(NewReg,OS_8)] := rg.makeregsize(OldReg,OS_8);
               End;
           End;
         R_AL..R_BL:
           Begin
-            NewRegsEncountered := NewRegsEncountered + [Changeregsize(NewReg,S_L)]
-                               + [Changeregsize(NewReg,S_W)];
-            OldRegsEncountered := OldRegsEncountered + [Changeregsize(OldReg,S_L)]
-                               + [Changeregsize(OldReg,S_B)];
-            New2OldReg[Changeregsize(NewReg,S_L)] := Changeregsize(OldReg,S_L);
+            NewRegsEncountered := NewRegsEncountered + [rg.makeregsize(NewReg,OS_32)]
+                               + [rg.makeregsize(NewReg,OS_16)];
+            OldRegsEncountered := OldRegsEncountered + [rg.makeregsize(OldReg,OS_32)]
+                               + [rg.makeregsize(OldReg,OS_8)];
+            New2OldReg[rg.makeregsize(NewReg,OS_32)] := rg.makeregsize(OldReg,OS_32);
           End;
       End;
     End;
@@ -2586,7 +2587,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  2002-04-20 21:37:07  carl
+  Revision 1.33  2002-04-21 15:32:59  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.32  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

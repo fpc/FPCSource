@@ -319,9 +319,9 @@ implementation
              LOC_CREGISTER :
                begin
                  if aktalignment.paraalign=4 then
-                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,changeregsize(p.location.register,S_W)))
+                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,rg.makeregsize(p.location.register,OS_16)))
                  else
-                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,changeregsize(p.location.register,S_L)));
+                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,rg.makeregsize(p.location.register,OS_32)));
                  rg.ungetregisterint(exprasmlist,p.location.register);
                end;
            else
@@ -382,9 +382,7 @@ implementation
                          cgsize:=OS_32;
                       end;
                   end;
-{$ifdef i386}
-                  p.location.register:=changeregsize(p.location.register,TCGSize2Opsize[cgsize]);
-{$endif i386}
+                  p.location.register:=rg.makeregsize(p.location.register,cgsize);
                   inc(pushedparasize,alignment);
                   if inlined then
                    begin
@@ -936,7 +934,7 @@ implementation
                            href := dest.location.reference;
                            emit_const_ref(A_MOV,S_B,1,href);
                            inc(href.offset,1);
-                           emit_reg_ref(A_MOV,S_B,changeregsize(source.location.register,S_B),href);
+                           emit_reg_ref(A_MOV,S_B,rg.makeregsize(source.location.register,OS_8),href);
                         end
                       else
                       { not so elegant (goes better with extra register    }
@@ -1112,7 +1110,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-04-20 21:37:07  carl
+  Revision 1.34  2002-04-21 15:39:41  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.33  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

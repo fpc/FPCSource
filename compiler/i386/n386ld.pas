@@ -149,13 +149,13 @@ implementation
                                    location.register:=tvarsym(symtableentry).reg;
                                 end
                               else
-                                if not(changeregsize(tvarsym(symtableentry).reg,S_L) in [R_EAX..R_EBX]) or
-                                   rg.regvar_loaded[changeregsize(tvarsym(symtableentry).reg,S_L)] then
+                                if not(rg.makeregsize(tvarsym(symtableentry).reg,OS_INT) in [R_EAX..R_EBX]) or
+                                   rg.regvar_loaded[rg.makeregsize(tvarsym(symtableentry).reg,OS_INT)] then
                                 begin
                                    location_reset(location,LOC_CREGISTER,
                                        cg.reg_cgsize(tvarsym(symtableentry).reg));
                                    location.register:=tvarsym(symtableentry).reg;
-                                   exclude(rg.unusedregsint,changeregsize(tvarsym(symtableentry).reg,S_L));
+                                   exclude(rg.unusedregsint,rg.makeregsize(tvarsym(symtableentry).reg,OS_INT));
                                 end
                               else
                                 begin
@@ -163,7 +163,7 @@ implementation
                                   location_reset(location,LOC_CREGISTER,
                                       cg.reg_cgsize(tvarsym(symtableentry).reg));
                                   location.register:=tvarsym(symtableentry).reg;
-                                  exclude(rg.unusedregsint,changeregsize(tvarsym(symtableentry).reg,S_L));
+                                  exclude(rg.unusedregsint,rg.makeregsize(tvarsym(symtableentry).reg,OS_INT));
                                 end
                            end
                          else
@@ -777,7 +777,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-04-19 15:39:35  peter
+  Revision 1.37  2002-04-21 15:36:13  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.36  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

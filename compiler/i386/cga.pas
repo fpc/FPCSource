@@ -207,7 +207,7 @@ implementation
 
     function def_getreg(p1:tdef):tregister;
       begin
-        def_getreg:=changeregsize(rg.getregisterint(exprasmlist),def_opsize(p1));
+        def_getreg:=rg.makeregsize(rg.getregisterint(exprasmlist),int_cgsize(p1.size));
       end;
 
 
@@ -357,9 +357,9 @@ implementation
           LOC_REGISTER,
          LOC_CREGISTER : begin
                            if aktalignment.paraalign=4 then
-                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,changeregsize(t.register,S_L)))
+                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,rg.makeregsize(t.register,OS_32)))
                            else
-                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,changeregsize(t.register,S_W)));
+                             exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,rg.makeregsize(t.register,OS_16)));
                          end;
          LOC_CONSTANT : begin
                            if aktalignment.paraalign=4 then
@@ -655,10 +655,10 @@ implementation
                 begin
                    { and now look for an 8 bit register }
                    swap:=false;
-                   if R_EAX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_EAX),S_B)
-                   else if R_EDX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_EDX),S_B)
-                   else if R_EBX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_EBX),S_B)
-                   else if R_ECX in rg.unusedregsint then reg8:=changeregsize(rg.getexplicitregisterint(exprasmlist,R_ECX),S_B)
+                   if R_EAX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(exprasmlist,R_EAX),OS_8)
+                   else if R_EDX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(exprasmlist,R_EDX),OS_8)
+                   else if R_EBX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(exprasmlist,R_EBX),OS_8)
+                   else if R_ECX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(exprasmlist,R_ECX),OS_8)
                    else
                       begin
                          swap:=true;
@@ -2301,7 +2301,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-04-20 21:37:07  carl
+  Revision 1.26  2002-04-21 15:29:53  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.25  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

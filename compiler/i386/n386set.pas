@@ -220,7 +220,7 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=changeregsize(left.location.register,S_L);
+                   pleftreg:=rg.makeregsize(left.location.register,OS_INT);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,pleftreg);
                    if opsize <> S_L then
                      emit_const_reg(A_AND,S_L,255,pleftreg);
@@ -230,7 +230,7 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=changeregsize(left.location.register,S_B);
+                   pleftreg:=rg.makeregsize(left.location.register,OS_8);
                    opsize := S_B;
                  end;
              end
@@ -382,7 +382,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=changeregsize(left.location.register,S_L);
+                          hr:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
                        end;
                   else
@@ -451,7 +451,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=changeregsize(left.location.register,S_L);
+                          hr:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr);
                           emit_const_reg(A_CMP,S_L,31,hr);
                           emitjmp(C_NA,l);
@@ -523,7 +523,7 @@ implementation
                     end
                   else
                     begin
-                      pleftreg := changeregsize(left.location.register,S_L);
+                      pleftreg := rg.makeregsize(left.location.register,OS_INT);
                       opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
                       if opsize <> S_L then
                        begin
@@ -817,21 +817,21 @@ implementation
              begin
                 if with_sign then
                   emit_reg_reg(A_MOVSX,S_WL,hregister,
-                    changeregsize(hregister,S_L))
+                    rg.makeregsize(hregister,OS_INT))
                 else
                   emit_reg_reg(A_MOVZX,S_WL,hregister,
-                    changeregsize(hregister,S_L));
-                hregister:=changeregsize(hregister,S_L);
+                    rg.makeregsize(hregister,OS_INT));
+                hregister:=rg.makeregsize(hregister,OS_INT);
              end
            else if opsize=S_B then
              begin
                 if with_sign then
                   emit_reg_reg(A_MOVSX,S_BL,hregister,
-                    changeregsize(hregister,S_L))
+                    rg.makeregsize(hregister,OS_INT))
                 else
                   emit_reg_reg(A_MOVZX,S_BL,hregister,
-                    changeregsize(hregister,S_L));
-                hregister:=changeregsize(hregister,S_L);
+                    rg.makeregsize(hregister,OS_INT));
+                hregister:=rg.makeregsize(hregister,OS_INT);
              end;
            reference_reset_symbol(href,table,0);
            href.offset:=(-longint(min_))*4;
@@ -1030,7 +1030,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-04-19 15:39:35  peter
+  Revision 1.24  2002-04-21 15:37:26  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.23  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

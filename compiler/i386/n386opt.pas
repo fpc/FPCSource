@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, cgbase, cpubase, cga,
+uses pass_1, types, htypechk, cginfo, cgbase, cpubase, cga,
      tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj;
 
 
@@ -117,7 +117,7 @@ begin
         { free the registers of right }
         reference_release(exprasmlist,right.location.reference);
         { get register for the char }
-        hreg := changeregsize(rg.getregisterint(exprasmlist),S_B);
+        hreg := rg.makeregsize(rg.getregisterint(exprasmlist),OS_8);
         emit_ref_reg(A_MOV,S_B,right.location.reference,hreg);
        { I don't think a temp char exists, but it won't hurt (JM) }
        tg.ungetiftemp(exprasmlist,right.location.reference);
@@ -181,8 +181,8 @@ begin
   else
     emit_const_ref(A_MOV,S_B,tordconstnode(right).value,href2);
   { increase the string length }
-  emit_reg(A_INC,S_B,changeregsize(lengthreg,S_B));
-  emit_reg_ref(A_MOV,S_B,changeregsize(lengthreg,S_B),left.location.reference);
+  emit_reg(A_INC,S_B,rg.makeregsize(lengthreg,OS_8));
+  emit_reg_ref(A_MOV,S_B,rg.makeregsize(lengthreg,OS_8),left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
     emitlab(l);
@@ -242,7 +242,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-04-15 19:44:21  peter
+  Revision 1.11  2002-04-21 15:36:40  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.10  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

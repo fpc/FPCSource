@@ -1204,8 +1204,8 @@ implementation
                          else
                           begin
                             location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                            hregister:=changeregsize(accumulator,TCGSize2Opsize[cgsize]);
-                            location.register:=changeregsize(location.register,TCGSize2Opsize[cgsize]);
+                            hregister:=rg.makeregsize(accumulator,cgsize);
+                            location.register:=rg.makeregsize(location.register,cgsize);
                             cg.a_load_reg_reg(exprasmlist,cgsize,hregister,location.register);
                           end;
                        end;
@@ -1343,7 +1343,7 @@ implementation
                   for i := 1 to maxvarregs do
                     if assigned(regvars[i]) then
                       begin
-                        tmpreg:=changeregsize(regvars[i].reg,S_L);
+                        tmpreg:=rg.makeregsize(regvars[i].reg,OS_INT);
                         rg.makeregvar(tmpreg);
                       end;
             end;
@@ -1477,7 +1477,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-04-15 19:44:21  peter
+  Revision 1.46  2002-04-21 15:34:25  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.45  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

@@ -81,17 +81,17 @@ begin
     reg := reg1
   else if (reg in regset8bit) then
     begin
-      if (reg = Changeregsize(reg1,S_B)) then
-        reg := Changeregsize(reg2,S_B)
-      else if reg = Changeregsize(reg2,S_B) then
-        reg := Changeregsize(reg1,S_B);
+      if (reg = rg.makeregsize(reg1,OS_8)) then
+        reg := rg.makeregsize(reg2,OS_8)
+      else if reg = rg.makeregsize(reg2,OS_8) then
+        reg := rg.makeregsize(reg1,OS_8);
     end
   else if (reg in regset16bit) then
     begin
-      if reg = Changeregsize(reg1,S_W) then
-        reg := Changeregsize(reg2,S_W)
-      else if reg = Changeregsize(reg2,S_W) then
-        reg := Changeregsize(reg1,S_W);
+      if reg = rg.makeregsize(reg1,OS_16) then
+        reg := rg.makeregsize(reg2,OS_16)
+      else if reg = rg.makeregsize(reg2,OS_16) then
+        reg := rg.makeregsize(reg1,OS_16);
     end;
 end;
 
@@ -350,7 +350,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2002-04-20 21:37:08  carl
+  Revision 1.13  2002-04-21 15:42:17  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.12  2002/04/20 21:37:08  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants

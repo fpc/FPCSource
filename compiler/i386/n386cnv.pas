@@ -257,7 +257,7 @@ implementation
                 getlabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
-                cg.a_jmp_cond(exprasmlist,OC_NONE,hlabel);
+                cg.a_jmp_always(exprasmlist,hlabel);
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
@@ -364,7 +364,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-04-19 15:39:35  peter
+  Revision 1.36  2002-04-21 15:35:23  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.35  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

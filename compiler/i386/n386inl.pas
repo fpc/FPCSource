@@ -467,7 +467,7 @@ implementation
                         { need a cmp and jmp, but this should be done by the         }
                         { type cast code which does range checking if necessary (FK) }
                         begin
-                          hregister := changeregsize(tcallparanode(tcallparanode(left).right).left.location.register,S_L);
+                          hregister := rg.makeregsize(tcallparanode(tcallparanode(left).right).left.location.register,OS_INT);
                         end
                       else
                         begin
@@ -591,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-04-19 15:39:35  peter
+  Revision 1.38  2002-04-21 15:35:54  carl
+  * changeregsize -> rg.makeregsize
+
+  Revision 1.37  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld
