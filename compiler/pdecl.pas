@@ -936,7 +936,7 @@ unit pdecl;
                     if assigned(srsym) and
                        (srsym^.typ=typesym) then
                      begin
-                       ppointerdef(pd)^.pointertype:=ptypesym(srsym)^.restype;
+                       ppointerdef(pd)^.pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(srsym^.refs);
 {$ifdef GDB}
@@ -1210,7 +1210,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.180  2000-02-09 13:22:56  peter
+  Revision 1.181  2000-04-17 18:44:22  peter
+    * fixed forward resolving with redefined types
+
+  Revision 1.180  2000/02/09 13:22:56  peter
     * log truncated
 
   Revision 1.179  2000/01/20 12:29:02  pierre
