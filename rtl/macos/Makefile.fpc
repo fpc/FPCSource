@@ -7,10 +7,9 @@ main=rtl
 
 [target]
 loaders=
-units=system strings objpas heaptrc getopts 
-# objects \  #(depends on dos)
-# exec  \
-#      dos crt printer \
+units=system strings objpas heaptrc getopts macostp macutils unixutil dos objects
+#      exec  \
+#      crt printer \
 #      lineinfo  graph \
 #      sysutils math typinfo
 # rsts=math
@@ -117,7 +116,7 @@ sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sys
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : $(DOSDEPS) system$(PPUEXT)
+dos$(PPUEXT) : $(DOSDEPS) unixutil$(PPUEXT) system$(PPUEXT)
         $(COMPILER) dos $(REDIR)
 
 #crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
@@ -138,3 +137,6 @@ getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp $(REDIR)
+				
+unixutil$(PPUEXT) : ../unix/unixutil.pp
+        $(COMPILER) ../unix/unixutil.pp $(REDIR)				
