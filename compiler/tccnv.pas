@@ -496,6 +496,9 @@ implementation
          { Hmmm, I think we need only one reg to return the result of      }
          { this node => so }
          p^.left:=gentypeconvnode(p^.left,s32bitdef);
+         { need if bool to bool !!
+           not very nice !! }
+         p^.left^.explizit:=true;
          firstpass(p^.left);
          if p^.registers32<1 then
            p^.registers32:=1;
@@ -972,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-01-27 13:02:21  pierre
+  Revision 1.17  1999-01-27 14:15:25  pierre
+   * bug0209 corrected (introduce while solving other bool to int related bugs)
+
+  Revision 1.16  1999/01/27 13:02:21  pierre
    boolean to int conversion problems bug0205 bug0208
 
   Revision 1.15  1999/01/27 00:13:57  florian
