@@ -312,7 +312,7 @@ Procedure TComponent.ValidateRename(AComponent: TComponent;
 
 begin
 //!! This contradicts the Delphi manual.
-  If (AComponent<>Nil) and (CurName=NewName) and
+  If (AComponent<>Nil) and (CurName<>NewName) and
      (FindComponent(NewName)<>Nil) then
       raise EComponentError.Createfmt(SDuplicateName,[newname]);
   If (csDesigning in FComponentState) and (FOwner<>Nil) then
@@ -478,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-04-08 10:18:51  peter
+  Revision 1.7  1999-04-12 08:02:48  michael
+  + Fixed bug in ValidateRename
+
+  Revision 1.6  1999/04/08 10:18:51  peter
     * makefile updates
 
 }
