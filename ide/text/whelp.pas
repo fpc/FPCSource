@@ -133,14 +133,14 @@ type
       TTopic = object
         HelpCtx       : THelpCtx;
         FileOfs       : longint;
-        TextSize      : word;
+        TextSize      : sw_word;
         Text          : PByteArray;
-        LinkCount     : word;
+        LinkCount     : sw_word;
         Links         : PKeywordDescriptors;
         LastAccess    : longint;
         FileID        : word;
         Param         : PString;
-        function LinkSize: word;
+        function LinkSize: sw_word;
       end;
 
       PTopicCollection = ^TTopicCollection;
@@ -224,7 +224,7 @@ type
 const TopicCacheSize    : sw_integer = 10;
       HelpStreamBufSize : sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
-      MaxHelpTopicSize  : sw_word = 65520;
+      MaxHelpTopicSize  : sw_word = MaxBytes;
 
 function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
 procedure DisposeTopic(P: PTopic);
@@ -242,7 +242,7 @@ uses
 {$ifdef Win32}
   windows,
 {$endif Win32}
-  WUtils,WHTMLHlp;
+  WUtils,WViews,WHTMLHlp;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
@@ -332,7 +332,7 @@ begin
   end;
 end;
 
-function TTopic.LinkSize: word;
+function TTopic.LinkSize: sw_word;
 begin
   LinkSize:=LinkCount*SizeOf(Links^[0]);
 end;
@@ -407,10 +407,11 @@ var T: PTopic;
 begin
   T:=SearchTopic(HelpCtx);
   if (T<>nil) then
-     if T^.Text=nil then
+   if T^.Text=nil then
      begin
        MaintainTopicCache;
-       if ReadTopic(T)=false then T:=nil;
+       if ReadTopic(T)=false then
+           T:=nil;
        if (T<>nil) and (T^.Text=nil) then T:=nil;
      end;
   if T<>nil then
@@ -562,8 +563,10 @@ var OK: boolean;
     R: TRecord;
     I: longint;
     LastTag,S: string;
-    CurPtr,HelpCtx: word;
+    CurPtr: sw_word;
+    HelpCtx: THelpCtx;
     LenCode,CopyCnt,AddLen: byte;
+type pword = ^word;
 begin
   if IndexTableRead then OK:=true else
  begin
@@ -579,7 +582,7 @@ begin
     AddLen:=LenCode and $1f; CopyCnt:=LenCode shr 5;
     S[0]:=chr(AddLen); Move(PByteArray(@Entries)^[CurPtr+1],S[1],AddLen);
     LastTag:=copy(LastTag,1,CopyCnt)+S;
-    Move(PByteArray(@Entries)^[CurPtr+1+AddLen],HelpCtx,2);
+    HelpCtx:=PWord(@PByteArray(@Entries)^[CurPtr+1+AddLen])^;
     IndexEntries^.Insert(NewIndexEntry(LastTag,ID,HelpCtx));
     Inc(CurPtr,1+AddLen+2);
   end;
@@ -631,7 +634,7 @@ begin
 end;
 
 function TOAHelpFile.ReadTopic(T: PTopic): boolean;
-var SrcPtr,DestPtr: word;
+var SrcPtr,DestPtr,TopicSize: sw_word;
     NewR: TRecord;
 function ExtractTextRec(var R: TRecord): boolean;
 function GetNextNibble: byte;
@@ -644,7 +647,8 @@ begin
 end;
 procedure AddChar(C: char);
 begin
-  PByteArray(NewR.Data)^[DestPtr]:=ord(C);
+  if Assigned(NewR.Data) then
+    PByteArray(NewR.Data)^[DestPtr]:=ord(C);
   Inc(DestPtr);
 end;
 var OK: boolean;
@@ -677,8 +681,19 @@ begin
        ctNone   : ;
        ctNibble :
          begin
+           NewR.SClass:=0;
+           NewR.Size:=0;
+           NewR.Data:=nil;
+           SrcPtr:=0; DestPtr:=0;
+           while SrcPtr<(R.Size*2) do
+           begin
+             C:=GetNextChar;
+             AddChar(C);
+           end;
+           TopicSize:=DestPtr;
+
            NewR.SClass:=R.SClass;
-           NewR.Size:=MaxHelpTopicSize; { R.Size*2 <- bug fixed, i didn't care of RLL codings }
+           NewR.Size:=Min(MaxHelpTopicSize,TopicSize);
            GetMem(NewR.Data, NewR.Size);
            SrcPtr:=0; DestPtr:=0;
            while SrcPtr<(R.Size*2) do
@@ -699,7 +714,7 @@ begin
 end;
 var OK: boolean;
     TextR,KeyWR: TRecord;
-    I: word;
+    I: sw_word;
 begin
   OK:=T<>nil;
   if OK and (T^.Text=nil) then
@@ -848,9 +863,10 @@ begin
   Lines^.Insert(NewStr(S));
 end;
 procedure RenderTopic;
-var Size,CurPtr,I: word;
+var Size,CurPtr,I: sw_word;
     S: string;
-function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif} begin Inc(Size, length(P^)+1); CountSize:=Size>65200; end;
+function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif}
+begin Inc(Size, length(P^)+1); CountSize:=Size>MaxHelpTopicSize-300; end;
 begin
   Size:=0; Lines^.FirstThat(@CountSize);
   T^.TextSize:=Size; GetMem(T^.Text,T^.TextSize);
@@ -917,7 +933,7 @@ begin
     begin
       KW:=Keywords^.At(I);
       AddKeyword(KW^.Tag^);
-      T^.Links^[I].Context:=KW^.HelpCtx; T^.Links^[I].FileID:=KW^.FileID;
+      T^.Links^[I].Context:=longint(KW^.HelpCtx); T^.Links^[I].FileID:=KW^.FileID;
     end;
     FlushLine;
     AddLine('');
@@ -954,7 +970,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  2000-01-03 14:59:03  marco
+  Revision 1.17  2000-02-07 11:47:25  pierre
+   * Remove 64Kb limitation for FPC by Gabor
+
+  Revision 1.16  2000/01/03 14:59:03  marco
    * Fixed Linux code that got time of day. Removed Timezone parameter
 
   Revision 1.15  1999/08/16 18:25:29  peter
