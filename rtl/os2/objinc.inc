@@ -124,49 +124,20 @@ BEGIN
 end;
 
 
-function SetFileSize (Handle: THandle; FileSize: LongInt): Word;
-var Actual, Buf: LongInt;
-begin
-    SetFileSize := 0;
-    if FileSize > Position then
-        begin
-            SetFilePos (Handle, FileSize, 0, Actual);
-            if (Actual = FileSize) then
-                begin
-{ Extend the file }
-	            Actual := FileWrite (Handle, Buf, 0, Actual);
-                    if Actual = -1 then
-                        SetFileSize := 103;
-                end
-            else
-                SetFileSize := 103;
-        end
-    else
-        begin
-            asm
-                movl $0x7F25,%eax
-                movl Handle,%ebx
-                movl FileSize,%edx
-                call syscall
-                inc %eax
-                movl %ecx, %eax
-                jnz .LSetFSize1
-                movl $0x4202,%eax
-                movl Handle,%ebx
-                movl $0,%edx
-                call syscall
-                jnc .LSetFSize2
-.LSetFSize1:
-                movw %ax,DosStreamError
-.LSetFSize2:
-            end;
-            if DosStreamError <> 0 then SetFileSize := 103;
-        end;
-END;
+function SetFileSize (Handle: THandle; FileSize: longint): word; assembler;
+asm
+    movl $0x7F18, %eax
+    movl Handle, %ebx
+    movl FileSize,%edx
+    call syscall
+end;
 
 {
   $Log$
-  Revision 1.5  2000-06-04 14:17:28  hajny
+  Revision 1.6  2000-06-05 18:55:54  hajny
+    * another SetFileSize correction
+
+  Revision 1.5  2000/06/04 14:17:28  hajny
     * SetFileSize fixed
 
   Revision 1.4  2000/02/09 16:59:33  peter
