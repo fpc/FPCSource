@@ -250,7 +250,8 @@ begin
             (endp.typ <> ait_label) and
             ((not isInstruction) or
              (NoHardCodedRegs(Taicpu(endP),reg1,reg2) and
-               RegSizesOk(reg1,reg2,Taicpu(endP))));
+              RegSizesOk(reg1,reg2,Taicpu(endP)) and
+              (Taicpu(endp).opcode <> A_JMP)));
         end;
     end;
 
@@ -334,7 +335,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:34  peter
+  Revision 1.6  2001-01-06 23:35:06  jonas
+    * fixed webbug 1323
+
+  Revision 1.5  2000/12/25 00:07:34  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -1052,7 +1052,8 @@ begin
     begin
       tmpResult :=
         getNextInstruction(endP,endP) and
-        (endp.typ = ait_instruction);
+        (endp.typ = ait_instruction) and
+        not(Taicpu(endp).is_jmp);
       if tmpresult and not assigned(endp.optInfo) then
         begin
 {          hp := Tai_asm_comment.Create(strpnew('next no optinfo'));
@@ -1111,8 +1112,8 @@ begin
             not(removeLast) and
             not(newRegModified and orgRegRead) and
 (*            (orgRegCanBeModified or not(newRegModified)) and *)
-            (endp.typ = ait_instruction) and
-            not(Taicpu(endp).is_jmp) and
+(*          already check at the top
+            (endp.typ = ait_instruction) and  *)
             NoHardCodedRegs(Taicpu(endP),orgReg,newReg) and
             RegSizesOk(orgReg,newReg,Taicpu(endP)) and
             not RegModifiedByInstruction(orgReg,endP);
@@ -1456,25 +1457,24 @@ Begin
                                                       regCounter,hp3,
                                                       PTaiProp(PrevSeq.optInfo)^.Regs[regCounter],true,hp5) then
                                                begin
-                                                 hp3 := Tai_Marker.Create(NoPropInfoEnd);
-                                                 InsertLLItem(AsmL, prevSeq, Tai(prevSeq.next), hp3);
+                                                 hp3 := Tai_Marker.Create(NoPropInfoStart);
+                                                 InsertLLItem(AsmL, prevSeq_next.previous,Tai(prevSeq_next), hp3);
                                                  hp5 := Taicpu.Op_Reg_Reg(A_MOV, S_L,
                                                                          {old reg          new reg}
                                                        RegInfo.New2OldReg[RegCounter], RegCounter);
                                                  new(pTaiprop(hp5.optinfo));
                                                  pTaiprop(hp5.optinfo)^ := pTaiprop(prevSeq_next.optinfo)^;
                                                  pTaiprop(hp5.optinfo)^.canBeRemoved := false;
-                                                 InsertLLItem(AsmL, prevSeq, Tai(prevSeq.next), hp5);
-                                                 hp3 := Tai_Marker.Create(NoPropInfoStart);
-                                                 InsertLLItem(AsmL, prevSeq, Tai(prevSeq.next), hp3);
+                                                 InsertLLItem(AsmL, prevSeq_next.previous, Tai(prevSeq_next), hp5);
+                                                 hp3 := Tai_Marker.Create(NoPropInfoEnd);
+                                                 InsertLLItem(AsmL, prevSeq_next.previous, Tai(prevSeq_next), hp3);
                                                  { adjusts states in previous instruction so that it will  }
                                                  { definitely be different from the previous or next state }
                                                  incstate(pTaiprop(hp5.optinfo)^.
                                                    regs[RegInfo.New2OldReg[RegCounter]].rstate,20);
                                                  incstate(pTaiprop(hp5.optinfo)^.
                                                    regs[regCounter].wstate,20);
-                                                 updateState(RegInfo.New2OldReg[RegCounter],
-                                                   hp5);
+                                                 updateState(RegInfo.New2OldReg[RegCounter],hp5);
                                                end
                                            End
                                          Else
@@ -1702,7 +1702,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2000-12-25 00:07:31  peter
+  Revision 1.11  2001-01-06 23:35:05  jonas
+    * fixed webbug 1323
+
+  Revision 1.10  2000/12/25 00:07:31  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -445,12 +445,30 @@ implementation
 *****************************************************************************}
 
     procedure ti386exitnode.pass_2;
+
       var
-         is_mem : boolean;
          {op : tasmop;
          s : topsize;}
          otlabel,oflabel : pasmlabel;
          r : preference;
+         is_mem,
+         allocated_eax,
+         allocated_edx: boolean;
+
+      procedure cleanleft;
+        begin
+          if is_mem then
+            begin
+              del_reference(left.location.reference);
+              ungetiftemp(left.location.reference);
+            end
+          else
+            begin
+              ungetregister(left.location.register);
+              if left.location.registerhigh <> R_NO then
+                ungetregister(left.location.registerhigh);
+            end;
+        end;
 
       label
          do_jmp;
@@ -466,6 +484,8 @@ implementation
            end
          else
            begin
+              allocated_eax := false;
+              allocated_edx := false;
               otlabel:=truelabel;
               oflabel:=falselabel;
               getlabel(truelabel);
@@ -478,10 +498,14 @@ implementation
            LOC_CREGISTER,
             LOC_REGISTER : is_mem:=false;
                LOC_FLAGS : begin
+                             exprasmlist.concat(tairegalloc.alloc(R_EAX));
+                             allocated_eax := true;
                              emit_flag2reg(left.location.resflags,R_AL);
                              goto do_jmp;
                            end;
                 LOC_JUMP : begin
+                             exprasmlist.concat(tairegalloc.alloc(R_EAX));
+                             allocated_eax := true;
                              emitlab(truelabel);
                              emit_const_reg(A_MOV,S_B,1,R_AL);
                              emitjmp(C_None,aktexit2label);
@@ -495,6 +519,9 @@ implementation
               case procinfo^.returntype.def^.deftype of
            pointerdef,
            procvardef : begin
+                          cleanleft;
+                          exprasmlist.concat(tairegalloc.alloc(R_EAX));
+                          allocated_eax := true;
                           if is_mem then
                             emit_ref_reg(A_MOV,S_L,
                               newreference(left.location.reference),R_EAX)
@@ -503,8 +530,11 @@ implementation
                               left.location.register,R_EAX);
                         end;
              floatdef : begin
+                          cleanleft;
                           if pfloatdef(procinfo^.returntype.def)^.typ=f32bit then
                            begin
+                             exprasmlist.concat(tairegalloc.alloc(R_EAX));
+                             allocated_eax := true;
                              if is_mem then
                                emit_ref_reg(A_MOV,S_L,
                                  newreference(left.location.reference),R_EAX)
@@ -521,6 +551,9 @@ implementation
               { it can be anything shorter than 4 bytes PM
               this caused form bug 711 }
                        begin
+                          cleanleft;
+                          exprasmlist.concat(tairegalloc.alloc(R_EAX));
+                          allocated_eax := true;
                           case procinfo^.returntype.def^.size of
                            { it can be a qword/int64 too ... }
                            8 : if is_mem then
@@ -529,11 +562,15 @@ implementation
                                       newreference(left.location.reference),R_EAX);
                                     r:=newreference(left.location.reference);
                                     inc(r^.offset,4);
+                                    exprasmlist.concat(tairegalloc.alloc(R_EDX));
+                                    allocated_edx := true;
                                     emit_ref_reg(A_MOV,S_L,r,R_EDX);
                                  end
                                else
                                  begin
                                     emit_reg_reg(A_MOV,S_L,left.location.registerlow,R_EAX);
+                                    exprasmlist.concat(tairegalloc.alloc(R_EDX));
+                                    allocated_edx := true;
                                     emit_reg_reg(A_MOV,S_L,left.location.registerhigh,R_EDX);
                                  end;
                           { if its 3 bytes only we can still
@@ -561,6 +598,10 @@ do_jmp:
               truelabel:=otlabel;
               falselabel:=oflabel;
               emitjmp(C_None,aktexit2label);
+              if allocated_eax then
+                exprasmlist.concat(tairegalloc.dealloc(R_EAX));
+              if allocated_edx then
+                exprasmlist.concat(tairegalloc.dealloc(R_EDX));
            end
          else
             emitjmp(C_None,aktexitlabel);
@@ -1340,7 +1381,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-01-05 17:36:58  florian
+  Revision 1.7  2001-01-06 23:35:05  jonas
+    * fixed webbug 1323
+
+  Revision 1.6  2001/01/05 17:36:58  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 
