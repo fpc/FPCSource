@@ -21,6 +21,10 @@
     System Utilities For Free Pascal
 }
 
+{$IFDEF VIRTUALPASCAL}
+ {$J+}
+{$ENDIF}
+
 function ChangeFileExt(const FileName, Extension: string): string;
 var i: longint;
 begin
@@ -94,7 +98,9 @@ Var S : String;
 
 Begin
  S:=FileName;
+ {$IFNDEF VIRTUALPASCAL}
  DoDirSeparators(S);
+ {$ENDIF}
 {$ifdef HasUnix}
   Result:=Unix.fexpand(S);
 {$else}
@@ -119,7 +125,7 @@ Var Source, Dest : String;
 Const OneLevelBack = '..'+PathDelim;
 
 begin
-  If Upcase(ExtractFileDrive(BaseName))<>Upcase(ExtractFileDrive(DestName)) Then
+  If Uppercase(ExtractFileDrive(BaseName))<>Uppercase(ExtractFileDrive(DestName)) Then
     begin
     Result:=DestName;
     exit;
@@ -232,7 +238,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-01-10 21:02:13  marco
+  Revision 1.10  2003-09-06 21:52:24  marco
+   * commited.
+
+  Revision 1.9  2003/01/10 21:02:13  marco
    * hasunix fix for beos
 
   Revision 1.8  2002/10/22 21:57:54  michael

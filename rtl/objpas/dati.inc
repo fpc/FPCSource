@@ -78,7 +78,11 @@ end ;
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
   result.Date := Round(msecs / msecsperday);
+{$IFDEF VIRTUALPASCAL}
+  msecs:= msecs-result.date*msecsperday;
+{$ELSE}
   msecs:= comp(msecs-result.date*msecsperday);
+{$ENDIF}
   result.Time := Round(MSecs);
 end ;
 
@@ -311,7 +315,11 @@ var
    df:string;
    d,m,y:word;
    n,i:longint;
-   c:word;
+{$IFDEF VIRTUALPASCAL}
+   c:longint;
+{$ELSE}
+   c:word; 
+{$ENDIF}
    dp,mp,yp,which : Byte;
    s1:string[4];
    values:array[1..3] of longint;
@@ -414,7 +422,12 @@ var
 
    function GetElement: integer;
    var
-     j: integer; c: word;
+     j: integer; 
+     {$IFDEF VIRTUALPASCAL}	
+     c: longint;
+     {$ELSE}
+     c: word;
+     {$ENDIF}
    begin
    result := -1;
    Inc(Current);
@@ -715,7 +728,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-01-18 23:45:37  michael
+  Revision 1.10  2003-09-06 21:52:24  marco
+   * commited.
+
+  Revision 1.9  2003/01/18 23:45:37  michael
   + Fixed EncodeDate/Time so they use TryEncodeDate/Time
 
   Revision 1.8  2002/12/25 01:03:48  peter

@@ -28,7 +28,9 @@ type
    CharArray = array[0..0] of char;
 
 { Processor dependent part, shared withs strings unit }
+{$IFNDEF VIRTUALPASCAL}  // in system there
 {$i strings.inc }
+{$ENDIF}
 
 { Read generic string functions that are not implemented for the processor }
 {$i genstr.inc}
@@ -63,13 +65,13 @@ function strnew(p : pchar) : pchar;
 var
   len : longint;
 begin
-  strnew:=nil;
+  Result:=nil;
   if (p=nil) or (p^=#0) then
    exit;
   len:=strlen(p)+1;
-  StrNew:=StrAlloc(Len);
-  if strnew<>nil then
-   strmove(strnew,p,len);
+  Result:=StrAlloc(Len);
+  if Result<>nil then
+   strmove(Result,p,len);
 end;
 
 
@@ -120,7 +122,10 @@ end ;
 
 {
   $Log$
-  Revision 1.7  2003-09-01 20:46:59  peter
+  Revision 1.8  2003-09-06 21:52:24  marco
+   * commited.
+
+  Revision 1.7  2003/09/01 20:46:59  peter
     * small fixes for sparc
 
   Revision 1.6  2002/09/07 16:01:22  peter
