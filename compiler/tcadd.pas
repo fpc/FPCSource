@@ -415,7 +415,7 @@ implementation
                       make_bool_equal_size(p);
                       p^.location.loc:=LOC_JUMP;
                     end;
-                  xorn,ltn,lten,gtn,gten :
+                  xorn,ltn,lten,gtn,gten:
                     begin
                       make_bool_equal_size(p);
                       if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
@@ -1258,7 +1258,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2000-02-13 14:21:51  jonas
+  Revision 1.67  2000-02-13 22:46:28  florian
+    * fixed an internalerror with writeln
+    * fixed arrayconstructor_to_set to force the generation of better code
+      and added a more strict type checking
+
+  Revision 1.66  2000/02/13 14:21:51  jonas
     * modifications to make the compiler functional when compiled with
       -Or
 

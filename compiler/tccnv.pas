@@ -66,6 +66,8 @@ implementation
 
         procedure update_constsethi(p:pdef);
         begin
+          if pd=nil then
+            pd:=p;
           if ((p^.deftype=orddef) and
               (porddef(p)^.high>constsethi)) then
             constsethi:=porddef(p)^.high
@@ -134,76 +136,105 @@ implementation
                  orddef:
                    begin
                       getrange(p2^.resulttype,lr,hr);
+                      if assigned(p3) then
+                       begin
+                         { this isn't good, you'll get problems with
+                           type t010 = 0..10;
+                                ts = set of t010;
+                           var  s : ts;b : t010
+                           begin  s:=[1,2,b]; end.
+                         if is_integer(p3^.resulttype) then
+                          begin
+                            p3:=gentypeconvnode(p3,u8bitdef);
+                            firstpass(p3);
+                          end;
+                         }
 
-                      if is_integer(p2^.resulttype) and
-                        ((lr<0) or (hr>255)) then
-                       begin
-                          p2:=gentypeconvnode(p2,u8bitdef);
-                          firstpass(p2);
-                       end;
-                      { set settype result }
-                      if pd=nil then
-                        pd:=p2^.resulttype;
-                      if not(is_equal(pd,p2^.resulttype)) then
-                       begin
-                         aktfilepos:=p2^.fileinfo;
-                         CGMessage(type_e_typeconflict_in_set);
-                         disposetree(p2);
+                         if assigned(pd) and not(is_equal(pd,p3^.resulttype)) then
+                           begin
+                              aktfilepos:=p3^.fileinfo;
+                              CGMessage(type_e_typeconflict_in_set);
+                           end
+                         else
+                           begin
+                             if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
+                              begin
+                                 if not(is_integer(p3^.resulttype)) then
+                                   pd:=p3^.resulttype
+                                 else
+                                   begin
+                                      p3:=gentypeconvnode(p3,u8bitdef);
+                                      p2:=gentypeconvnode(p2,u8bitdef);
+                                      firstpass(p2);
+                                      firstpass(p3);
+                                   end;
+
+                                for l:=p2^.value to p3^.value do
+                                  do_set(l);
+                                disposetree(p3);
+                                disposetree(p2);
+                              end
+                             else
+                              begin
+                                update_constsethi(p2^.resulttype);
+                                p2:=gentypeconvnode(p2,pd);
+                                firstpass(p2);
+
+                                update_constsethi(p3^.resulttype);
+                                p3:=gentypeconvnode(p3,pd);
+                                firstpass(p3);
+
+
+                                if assigned(pd) then
+                                  p3:=gentypeconvnode(p3,pd)
+                                else
+                                  p3:=gentypeconvnode(p3,u8bitdef);
+                                firstpass(p3);
+                                p4:=gennode(setelementn,p2,p3);
+                              end;
+                           end;
                        end
                       else
                        begin
-                         if assigned(p3) then
+                      { Single value }
+                         if p2^.treetype=ordconstn then
                           begin
-                            if is_integer(p3^.resulttype) then
-                             begin
-                               p3:=gentypeconvnode(p3,u8bitdef);
-                               firstpass(p3);
-                             end;
-                            if not(is_equal(pd,p3^.resulttype)) then
-                              begin
-                                 aktfilepos:=p3^.fileinfo;
-                                 CGMessage(type_e_typeconflict_in_set);
-                              end
+                            if not(is_integer(p2^.resulttype)) then
+                              update_constsethi(p2^.resulttype)
                             else
                               begin
-                                if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
-                                 begin
-                                   for l:=p2^.value to p3^.value do
-                                    do_set(l);
-                                   disposetree(p3);
-                                   disposetree(p2);
-                                 end
-                                else
-                                 begin
-                                   update_constsethi(p3^.resulttype);
-                                   p4:=gennode(setelementn,p2,p3);
-                                 end;
+                                 p2:=gentypeconvnode(p2,u8bitdef);
+                                 firstpass(p2);
                               end;
+
+                            do_set(p2^.value);
+                            disposetree(p2);
                           end
                          else
                           begin
-                         { Single value }
-                            if p2^.treetype=ordconstn then
-                             begin
-                               do_set(p2^.value);
-                               disposetree(p2);
-                             end
+                            update_constsethi(p2^.resulttype);
+
+                            if assigned(pd) then
+                              p2:=gentypeconvnode(p2,pd)
                             else
-                             begin
-                               update_constsethi(p2^.resulttype);
-                               p4:=gennode(setelementn,p2,nil);
-                             end;
+                              p2:=gentypeconvnode(p2,u8bitdef);
+                            firstpass(p2);
+
+                            p4:=gennode(setelementn,p2,nil);
                           end;
                        end;
                     end;
           stringdef : begin
-                        if pd=nil then
-                         pd:=cchardef;
-                        if not(is_equal(pd,cchardef)) then
-                         CGMessage(type_e_typeconflict_in_set)
+                        { if we've already set elements which are constants }
+                        { throw an error                                    }
+                        if ((pd=nil) and assigned(buildp)) or
+                          not(is_equal(pd,cchardef)) then
+                          CGMessage(type_e_typeconflict_in_set)
                         else
                          for l:=1 to length(pstring(p2^.value_str)^) do
                           do_set(ord(pstring(p2^.value_str)^[l]));
+                        if pd=nil then
+                         pd:=cchardef;
                         disposetree(p2);
                       end;
               else
@@ -216,6 +247,11 @@ implementation
               p2:=p;
               p:=p^.right;
               putnode(p2);
+            end;
+          if (pd=nil) then
+            begin
+               pd:=u8bitdef;
+               constsethi:=255;
             end;
          end
         else
@@ -975,7 +1011,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2000-02-09 13:23:07  peter
+  Revision 1.60  2000-02-13 22:46:28  florian
+    * fixed an internalerror with writeln
+    * fixed arrayconstructor_to_set to force the generation of better code
+      and added a more strict type checking
+
+  Revision 1.59  2000/02/09 13:23:07  peter
     * log truncated
 
   Revision 1.58  2000/01/09 23:16:07  peter

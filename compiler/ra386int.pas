@@ -1536,8 +1536,17 @@ Begin
             AS_WORD  : size:=S_W;
             AS_BYTE  : size:=S_B;
             AS_QWORD : begin
-                          if opcode in [A_FCOM,A_FCOMP,A_FDIV,
-                           A_FDIVR,A_FMUL,A_FSUB,A_FSUBR,A_FLD,A_FST,A_FSTP,A_FADD] then
+                          if (opcode=A_FCOM) or
+                            (opcode=A_FCOMP) or
+                            (opcode=A_FDIV) or
+                            (opcode=A_FDIVR) or
+                            (opcode=A_FMUL) or
+                            (opcode=A_FSUB) or
+                            (opcode=A_FSUBR) or
+                            (opcode=A_FLD) or
+                            (opcode=A_FST) or
+                            (opcode=A_FSTP) or
+                            (opcode=A_FADD) then
                             size:=S_FL
                           else
                             size:=S_IQ;
@@ -1774,7 +1783,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2000-02-09 13:23:02  peter
+  Revision 1.59  2000-02-13 22:46:28  florian
+    * fixed an internalerror with writeln
+    * fixed arrayconstructor_to_set to force the generation of better code
+      and added a more strict type checking
+
+  Revision 1.58  2000/02/09 13:23:02  peter
     * log truncated
 
   Revision 1.57  2000/01/07 01:14:36  peter

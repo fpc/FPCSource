@@ -269,7 +269,7 @@ implementation
 {$endif noAllocEdi}
 
                      emit_ref_reg(A_LEA,S_L,newreference(node^.left^.location.reference),R_EDI);
-
+                     del_reference(node^.left^.location.reference);
                      { skip to the next parameter }
                      node:=node^.right;
                   end
@@ -1507,7 +1507,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2000-02-09 13:22:47  peter
+  Revision 1.94  2000-02-13 22:46:27  florian
+    * fixed an internalerror with writeln
+    * fixed arrayconstructor_to_set to force the generation of better code
+      and added a more strict type checking
+
+  Revision 1.93  2000/02/09 13:22:47  peter
     * log truncated
 
   Revision 1.92  2000/01/26 12:02:29  peter
