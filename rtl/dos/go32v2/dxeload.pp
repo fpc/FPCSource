@@ -56,7 +56,12 @@ begin
    dxe_load:=nil;
 { open the file }
    assign(f,filename);
+{$I-}
    reset(f,1);
+{$I+}
+   { quit if no file !! }
+   if ioresult<>0 then
+     exit;
 { load the header }
    blockread(f,@dh,sizeof(dxe_header),i);
    if (i<>sizeof(dxe_header)) or (dh.magic<>DXE_MAGIC) then
@@ -91,7 +96,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-10-21 17:05:46  pierre
+  Revision 1.5  1998-10-23 16:45:41  pierre
+   * check if file can be opened, returns nil if not
+
+  Revision 1.4  1998/10/21 17:05:46  pierre
    * wmemu387.dxe was not closed !!
 
   Revision 1.3  1998/10/21 16:51:08  pierre
