@@ -317,3 +317,6 @@ bug0231.pp   Problem with comments
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0233.pp   Problem with enum sets in args
+bug0234.pp   New with void pointer
+bug0235.pp   Val(cardinal) bug
+
