@@ -209,8 +209,15 @@
            vmt:=ClassType;
            while assigned(vmt) do
              begin
-                msgtable:=pmsgtable((pdword(vmt)+vmtDynamicTable)^+4);
-                count:=pdword((pdword(vmt)+vmtDynamicTable)^)^;
+                // See if we have messages at all in this class.
+                p:=pdword(vmt)+vmtDynamicTable;
+                If Assigned(p) and (Pdword(p)^<>0) then
+                  begin
+                  msgtable:=pmsgtable(pdword(P)^+4);
+                  count:=pdword(pdword(P)^)^;
+                  end
+                else
+                  Count:=0;
                 { later, we can implement a binary search here }
                 for i:=0 to count-1 do
                   begin
@@ -252,8 +259,14 @@
            vmt:=ClassType;
            while assigned(vmt) do
              begin
-                count:=pdword((pdword(vmt)+vmtMsgStrPtr)^)^;
-                msgstrtable:=pmsgstrtable((pdword(vmt)+vmtMsgStrPtr)^+4);
+                p:=(pdword(vmt)+vmtMsgStrPtr);
+                If (P<>Nil) and (PDWord(P)^<>0) then
+                  begin
+                  count:=pdword(pdword(p)^)^;
+                  msgstrtable:=pmsgstrtable(pdword(P)^+4);
+                  end
+                else
+                  Count:=0;
                 { later, we can implement a binary search here }
                 for i:=0 to count-1 do
                   begin
@@ -325,7 +338,10 @@
 
 {
   $Log$
-  Revision 1.4.2.1  1999-07-10 10:09:59  peter
+  Revision 1.4.2.2  1999-07-11 20:04:51  peter
+    * dispatch patch from main branch
+
+  Revision 1.4.2.1  1999/07/10 10:09:59  peter
     * fixed dispatchstr()
 
   Revision 1.4  1999/05/19 13:20:09  peter
