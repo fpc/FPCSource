@@ -31,6 +31,9 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
+{$ifdef debug}
+  lineinfo,
+{$endif debug}
   Dos,Objects,
   BrowCol,
   Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
@@ -183,9 +186,11 @@ BEGIN
   ReadINIFile;
   InitDesktopFile;
   LoadDesktop;
+  ParseUserScreen;
 
   { Update IDE }
   IDEApp.Update;
+  IDEApp.UpdateMode;
   IDEApp.UpdateTarget;
 
   ProcessParams(false);
@@ -225,7 +230,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.39  2000-02-12 23:58:26  carl
+  Revision 1.40  2000-03-07 21:58:58  pierre
+   + uses ParseUserScreen and UpdateMode
+
+  Revision 1.39  2000/02/12 23:58:26  carl
     + Conditional define explanaations
 
   Revision 1.38  2000/02/07 11:54:17  pierre
