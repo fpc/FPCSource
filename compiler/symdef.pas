@@ -77,6 +77,7 @@ interface
           procedure ppuwritedef(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
           procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure deref;override;
           procedure derefimpl;override;
           function  size:longint;override;
@@ -544,6 +545,7 @@ interface
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure deref;override;
           procedure derefimpl;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
@@ -998,6 +1000,11 @@ implementation
         typesymderef.build(typesym);
         rttitablesymderef.build(rttitablesym);
         inittablesymderef.build(inittablesym);
+      end;
+
+
+    procedure tstoreddef.buildderefimpl;
+      begin
       end;
 
 
@@ -3297,6 +3304,9 @@ implementation
       var
          hp : TParaItem;
       begin
+         { released procdef? }
+         if not assigned(parast) then
+           exit;
          inherited buildderef;
          rettype.buildderef;
          { parast }
@@ -3526,6 +3536,9 @@ implementation
 
     procedure tabstractprocdef.concatstabto(asmlist : taasmoutput);
       begin
+         { released procdef? }
+         if not assigned(parast) then
+           exit;
          if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
             and (is_def_stab_written = not_written)  then
            begin
@@ -4063,6 +4076,9 @@ implementation
 
     procedure tprocdef.concatstabto(asmlist : taasmoutput);
     begin
+      { released procdef? }
+      if not assigned(parast) then
+        exit;
       if (proccalloption=pocall_internproc) then
         exit;
       if not isstabwritten then
@@ -4098,16 +4114,37 @@ implementation
            same symtable }
          procsymderef.build(procsym);
 
+         aktparasymtable:=oldparasymtable;
+         aktlocalsymtable:=oldlocalsymtable;
+      end;
+
+
+    procedure tprocdef.buildderefimpl;
+      var
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
+      begin
+         { released procdef? }
+         if not assigned(parast) then
+           exit;
+
+         oldparasymtable:=aktparasymtable;
+         oldlocalsymtable:=aktlocalsymtable;
+         aktparasymtable:=parast;
+         aktlocalsymtable:=localst;
+
+         inherited buildderefimpl;
+
          { locals }
          if assigned(localst) then
           begin
-            tlocalsymtable(localst).buildderef;
+            tlocalsymtable(localst).buildderefimpl;
             funcretsymderef.build(funcretsym);
           end;
 
          { inline tree }
          if (proccalloption=pocall_inline) then
-           code.buildderef;
+           code.buildderefimpl;
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
@@ -4119,6 +4156,10 @@ implementation
         oldparasymtable,
         oldlocalsymtable : tsymtable;
       begin
+         { released procdef? }
+         if not assigned(parast) then
+           exit;
+
          oldparasymtable:=aktparasymtable;
          oldlocalsymtable:=aktlocalsymtable;
          aktparasymtable:=parast;
@@ -6050,7 +6091,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.183  2003-10-22 20:40:00  peter
+  Revision 1.184  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.183  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.182  2003/10/21 18:14:49  peter

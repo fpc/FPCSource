@@ -60,7 +60,7 @@ interface
           function getcopy : tnode;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
           procedure printnodetree(var t:text);override;
@@ -125,7 +125,7 @@ interface
 {          constructor createintern(g:tinterngotolabel);}
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
@@ -143,7 +143,7 @@ interface
           constructor create(p : tlabelsym;l:tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
@@ -157,7 +157,7 @@ interface
           constructor create(l,taddr,tframe:tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -287,13 +287,13 @@ implementation
       end;
 
 
-    procedure tloopnode.buildderef;
+    procedure tloopnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         if assigned(t1) then
-          t1.buildderef;
+          t1.buildderefimpl;
         if assigned(t2) then
-          t2.buildderef;
+          t2.buildderefimpl;
       end;
 
 
@@ -979,9 +979,9 @@ implementation
       end;
 
 
-    procedure tgotonode.buildderef;
+    procedure tgotonode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         labsymderef.build(labsym);
       end;
 
@@ -1076,9 +1076,9 @@ implementation
       end;
 
 
-    procedure tlabelnode.buildderef;
+    procedure tlabelnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         labsymderef.build(labsym);
       end;
 
@@ -1160,11 +1160,11 @@ implementation
       end;
 
 
-    procedure traisenode.buildderef;
+    procedure traisenode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         if assigned(frametree) then
-          frametree.buildderef;
+          frametree.buildderefimpl;
       end;
 
 
@@ -1467,7 +1467,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-10-22 20:40:00  peter
+  Revision 1.85  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.84  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.83  2003/10/09 21:31:37  daniel

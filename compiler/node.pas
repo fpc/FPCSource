@@ -296,7 +296,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure buildderef;virtual;
+          procedure buildderefimpl;virtual;
           procedure derefimpl;virtual;
 
           { toggles the flag }
@@ -357,7 +357,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
@@ -375,7 +375,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
@@ -559,7 +559,7 @@ implementation
       end;
 
 
-    procedure tnode.buildderef;
+    procedure tnode.buildderefimpl;
       begin
         resulttype.buildderef;
       end;
@@ -744,11 +744,11 @@ implementation
       end;
 
 
-    procedure tunarynode.buildderef;
+    procedure tunarynode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         if assigned(left) then
-          left.buildderef;
+          left.buildderefimpl;
       end;
 
 
@@ -849,11 +849,11 @@ implementation
       end;
 
 
-    procedure tbinarynode.buildderef;
+    procedure tbinarynode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         if assigned(right) then
-          right.buildderef;
+          right.buildderefimpl;
       end;
 
 
@@ -994,7 +994,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2003-10-22 20:40:00  peter
+  Revision 1.73  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.72  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.71  2003/10/18 15:41:26  peter

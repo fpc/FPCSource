@@ -40,7 +40,7 @@ interface
           constructor create(v : bestreal;const t:ttype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -61,7 +61,7 @@ interface
           constructor create(v : tconstexprint;const t:ttype; _rangecheck : boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -77,7 +77,7 @@ interface
           constructor create(v : TConstPtrUInt;const t:ttype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -96,7 +96,7 @@ interface
           constructor createwstr(w : pcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -115,7 +115,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -370,9 +370,9 @@ implementation
       end;
 
 
-    procedure trealconstnode.buildderef;
+    procedure trealconstnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         restype.buildderef;
       end;
 
@@ -463,9 +463,9 @@ implementation
       end;
 
 
-    procedure tordconstnode.buildderef;
+    procedure tordconstnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         restype.buildderef;
       end;
 
@@ -548,9 +548,9 @@ implementation
       end;
 
 
-    procedure tpointerconstnode.buildderef;
+    procedure tpointerconstnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         restype.buildderef;
       end;
 
@@ -681,9 +681,9 @@ implementation
       end;
 
 
-    procedure tstringconstnode.buildderef;
+    procedure tstringconstnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
       end;
 
 
@@ -805,9 +805,9 @@ implementation
       end;
 
 
-    procedure tsetconstnode.buildderef;
+    procedure tsetconstnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         restype.buildderef;
       end;
 
@@ -950,7 +950,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-10-22 20:40:00  peter
+  Revision 1.56  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.55  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.54  2003/10/07 18:17:44  peter

@@ -210,7 +210,7 @@ interface
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
-         procedure ppubuildderefoper(var o:toper);override;
+         procedure ppubuildderefimploper(var o:toper);override;
          procedure ppuderefoper(var o:toper);override;
       private
          { next fields are filled in pass1, so pass2 is faster }
@@ -807,7 +807,7 @@ implementation
       end;
 
 
-    procedure taicpu.ppubuildderefoper(var o:toper);
+    procedure taicpu.ppubuildderefimploper(var o:toper);
       begin
         case o.typ of
           top_local :
@@ -2328,7 +2328,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-10-22 20:40:00  peter
+  Revision 1.35  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.34  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.33  2003/10/21 15:15:36  peter

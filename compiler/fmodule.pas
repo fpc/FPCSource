@@ -97,6 +97,7 @@ interface
         islibrary     : boolean;  { if it is a library (win32 dll) }
         map           : punitmap; { mapping of all used units }
         mapsize       : longint;  { number of units in the map }
+        derefdataintflen : longint;
         derefdata     : tdynamicarray;
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
@@ -383,6 +384,7 @@ implementation
         map:=nil;
         mapsize:=0;
         derefdata:=TDynamicArray.Create(1024);
+        derefdataintflen:=0;
         globalsymtable:=nil;
         localsymtable:=nil;
         loaded_from:=LoadedFrom;
@@ -524,6 +526,7 @@ implementation
             freemem(map);
             map:=nil;
           end;
+        derefdataintflen:=0;
         mapsize:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
@@ -687,7 +690,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-10-22 20:40:00  peter
+  Revision 1.41  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.40  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.39  2003/10/22 15:22:33  peter

@@ -71,6 +71,7 @@ interface
          defoptions : tdefoptions;
          constructor create;
          procedure buildderef;virtual;abstract;
+         procedure buildderefimpl;virtual;abstract;
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
          function  typename:string;
@@ -914,7 +915,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2003-10-22 20:40:00  peter
+  Revision 1.32  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.31  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.30  2003/10/22 15:22:33  peter

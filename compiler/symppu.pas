@@ -332,8 +332,13 @@ implementation
 
 
     procedure tcompilerppufile.putderef(const d:tderef);
+      var
+        oldcrc : boolean;
       begin
+        oldcrc:=do_crc;
+        do_crc:=false;
         putlongint(d.dataidx);
+        do_crc:=oldcrc;
       end;
 
 
@@ -387,7 +392,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2003-10-22 20:40:00  peter
+  Revision 1.22  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.21  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.20  2003/10/07 16:06:30  peter

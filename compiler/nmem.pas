@@ -55,7 +55,7 @@ interface
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure mark_write;override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -77,7 +77,7 @@ interface
           constructor create(varsym : tsym;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -239,9 +239,9 @@ implementation
       left.mark_write;
     end;
 
-    procedure taddrnode.buildderef;
+    procedure taddrnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         getprocvardefderef.build(getprocvardef);
       end;
 
@@ -530,9 +530,9 @@ implementation
       end;
 
 
-    procedure tsubscriptnode.buildderef;
+    procedure tsubscriptnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         vsderef.build(vs);
       end;
 
@@ -920,7 +920,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-10-22 20:40:00  peter
+  Revision 1.68  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.67  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.66  2003/10/21 18:16:13  peter

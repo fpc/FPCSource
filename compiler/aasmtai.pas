@@ -209,7 +209,7 @@ interface
           constructor Create;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure buildderef;virtual;
+          procedure buildderefimpl;virtual;
           procedure derefimpl;virtual;
        end;
 
@@ -435,7 +435,7 @@ interface
        protected
           procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;abstract;
           procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;abstract;
-          procedure ppubuildderefoper(var o:toper);virtual;abstract;
+          procedure ppubuildderefimploper(var o:toper);virtual;abstract;
           procedure ppuderefoper(var o:toper);virtual;abstract;
        public
           { Condition flags for instruction }
@@ -458,7 +458,7 @@ interface
           function getcopy:TLinkedListItem;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure SetCondition(const c:TAsmCond);
           procedure allocate_oper(opers:longint);
@@ -616,7 +616,7 @@ implementation
       end;
 
 
-    procedure tai.buildderef;
+    procedure tai.buildderefimpl;
       begin
       end;
 
@@ -2014,12 +2014,12 @@ implementation
       end;
 
 
-    procedure taicpu_abstract.buildderef;
+    procedure taicpu_abstract.buildderefimpl;
       var
         i : integer;
       begin
         for i:=0 to ops-1 do
-          ppubuildderefoper(oper[i]^);
+          ppubuildderefimploper(oper[i]^);
       end;
 
 
@@ -2139,7 +2139,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-10-22 20:39:59  peter
+  Revision 1.47  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.46  2003/10/22 20:39:59  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.45  2003/10/21 15:15:35  peter

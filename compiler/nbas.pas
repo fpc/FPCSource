@@ -60,7 +60,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -544,15 +544,15 @@ implementation
       end;
 
 
-    procedure tasmnode.buildderef;
+    procedure tasmnode.buildderefimpl;
       var
         hp : tai;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         hp:=tai(p_asm.first);
         while assigned(hp) do
          begin
-           hp.buildderef;
+           hp.buildderefimpl;
            hp:=tai(hp.next);
          end;
       end;
@@ -845,7 +845,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-10-22 20:40:00  peter
+  Revision 1.69  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.68  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.67  2003/10/21 18:15:16  peter

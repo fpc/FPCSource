@@ -483,11 +483,15 @@ uses
 
     procedure tppumodule.writederefdata;
       var
+        oldcrc : boolean;
         len,hlen : longint;
         buf : array[0..1023] of byte;
       begin
-        len:=derefdata.size;
+        if derefdataintflen>derefdata.size then
+          internalerror(200310223);
         derefdata.seek(0);
+        { Write interface data }
+        len:=derefdataintflen;
         while (len>0) do
           begin
             if len>1024 then
@@ -498,6 +502,23 @@ uses
             ppufile.putdata(buf,hlen);
             dec(len,hlen);
           end;
+        { Write implementation data, this does not influence crc }
+        oldcrc:=ppufile.do_crc;
+        ppufile.do_crc:=false;
+        len:=derefdata.size-derefdataintflen;
+        while (len>0) do
+          begin
+            if len>1024 then
+              hlen:=1024
+            else
+              hlen:=len;
+            derefdata.read(buf,hlen);
+            ppufile.putdata(buf,hlen);
+            dec(len,hlen);
+          end;
+        if derefdata.pos<>derefdata.size then
+          internalerror(200310224);
+        ppufile.do_crc:=oldcrc;
         ppufile.writeentry(ibderefdata);
       end;
 
@@ -870,9 +891,13 @@ uses
          { we can now derefence all pointers to the implementation parts }
          oldobjectlibrary:=objectlibrary;
          objectlibrary:=librarydata;
+         aktglobalsymtable:=tstoredsymtable(globalsymtable);
          tstoredsymtable(globalsymtable).derefimpl;
          if assigned(localsymtable) then
-           tstoredsymtable(localsymtable).derefimpl;
+           begin
+             aktstaticsymtable:=tstoredsymtable(localsymtable);
+             tstoredsymtable(localsymtable).derefimpl;
+           end;
          objectlibrary:=oldobjectlibrary;
       end;
 
@@ -958,11 +983,23 @@ uses
          writelinkcontainer(linkothersharedlibs,iblinkothersharedlibs,true);
          ppufile.do_crc:=true;
 
-         { generate and write deref data }
-         tstoredsymtable(globalsymtable).buildderef;
+         { generate implementation deref data, the interface deref data is
+           already generated when calculating the interface crc }
+         if (cs_compilesystem in aktmoduleswitches) then
+           begin
+             aktglobalsymtable:=tstoredsymtable(globalsymtable);
+             tstoredsymtable(globalsymtable).buildderef;
+             derefdataintflen:=derefdata.size;
+           end;
+         tstoredsymtable(globalsymtable).buildderefimpl;
          if ((flags and uf_local_browser)<>0) and
             assigned(localsymtable) then
-           tstoredsymtable(localsymtable).buildderef;
+           begin
+             aktglobalsymtable:=tstoredsymtable(globalsymtable);
+             aktstaticsymtable:=tstoredsymtable(localsymtable);
+             tstoredsymtable(localsymtable).buildderef;
+             tstoredsymtable(localsymtable).buildderefimpl;
+           end;
          writederefdata;
 
          ppufile.writeentry(ibendinterface);
@@ -1051,6 +1088,13 @@ uses
 
          { the interface units affect the crc }
          writeusedunit(true);
+
+         { deref data of interface that affect the crc }
+         derefdata.reset;
+         aktglobalsymtable:=tstoredsymtable(globalsymtable);
+         tstoredsymtable(globalsymtable).buildderef;
+         derefdataintflen:=derefdata.size;
+         writederefdata;
 
          ppufile.writeentry(ibendinterface);
 
@@ -1466,7 +1510,11 @@ if modulename^='SYMSYM' then
 end.
 {
   $Log$
-  Revision 1.42  2003-10-22 20:40:00  peter
+  Revision 1.43  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.42  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.41  2003/10/22 17:38:25  peter

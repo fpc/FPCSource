@@ -114,7 +114,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function  getcopy : tnode;override;
           { Goes through all symbols in a class and subclasses and calls
@@ -974,17 +974,17 @@ type
       end;
 
 
-    procedure tcallnode.buildderef;
+    procedure tcallnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         symtableprocentryderef.build(symtableprocentry);
         procdefinitionderef.build(procdefinition);
         if assigned(methodpointer) then
-          methodpointer.buildderef;
+          methodpointer.buildderefimpl;
         if assigned(_funcretnode) then
-          _funcretnode.buildderef;
+          _funcretnode.buildderefimpl;
         if assigned(inlinecode) then
-          inlinecode.buildderef;
+          inlinecode.buildderefimpl;
       end;
 
 
@@ -2584,7 +2584,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.199  2003-10-22 20:40:00  peter
+  Revision 1.200  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.199  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.198  2003/10/21 18:17:02  peter

@@ -44,7 +44,7 @@ interface
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure set_mp(p:tnode);
           function  getcopy : tnode;override;
@@ -98,7 +98,7 @@ interface
           constructor create(t : ttype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -114,7 +114,7 @@ interface
           constructor create(def:tstoreddef;rt:trttitype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           function  getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -327,9 +327,9 @@ implementation
       end;
 
 
-    procedure tloadnode.buildderef;
+    procedure tloadnode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         symtableentryderef.build(symtableentry);
         procdefderef.build(procdef);
       end;
@@ -1133,9 +1133,9 @@ implementation
       end;
 
 
-    procedure ttypenode.buildderef;
+    procedure ttypenode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         restype.buildderef;
       end;
 
@@ -1206,9 +1206,9 @@ implementation
       end;
 
 
-    procedure trttinode.buildderef;
+    procedure trttinode.buildderefimpl;
       begin
-        inherited buildderef;
+        inherited buildderefimpl;
         rttidefderef.build(rttidef);
       end;
 
@@ -1272,7 +1272,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2003-10-22 20:40:00  peter
+  Revision 1.115  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.114  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.113  2003/10/17 14:38:32  peter

@@ -71,6 +71,7 @@ interface
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure buildderef;virtual;
+          procedure buildderefimpl;virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
           procedure insert(sym : tsymentry);override;
@@ -490,6 +491,20 @@ implementation
          begin
            hs.buildderef;
            hs:=tsym(hs.indexnext);
+         end;
+      end;
+
+
+    procedure tstoredsymtable.buildderefimpl;
+      var
+        hp : tdef;
+      begin
+        { deref the implementation part of definitions }
+        hp:=tdef(defindex.first);
+        while assigned(hp) do
+         begin
+           hp.buildderefimpl;
+           hp:=tdef(hp.indexnext);
          end;
       end;
 
@@ -2282,7 +2297,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2003-10-22 20:40:00  peter
+  Revision 1.120  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.119  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.118  2003/10/22 15:22:33  peter

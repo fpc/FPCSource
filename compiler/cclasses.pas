@@ -281,6 +281,7 @@ interface
        public
          constructor Create(Ablocksize:integer);
          destructor  Destroy;override;
+         procedure reset;
          function  size:integer;
          procedure align(i:integer);
          procedure seek(i:integer);
@@ -291,6 +292,7 @@ interface
          procedure writestream(f:TCStream);
          property  BlockSize : integer read FBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
+         property  Pos : integer read FPosn;
        end;
 
 
@@ -1672,7 +1674,7 @@ end;
          begin
            hp:=FFirstblock;
            FFirstblock:=FFirstblock^.Next;
-           freemem(hp,blocksize+dynamicblockbasesize);
+           Freemem(hp);
          end;
       end;
 
@@ -1683,6 +1685,24 @@ end;
          size:=FLastblock^.pos+FLastblock^.used
         else
          size:=0;
+      end;
+
+
+    procedure tdynamicarray.reset;
+      var
+        hp : pdynamicblock;
+      begin
+        while assigned(FFirstblock) do
+         begin
+           hp:=FFirstblock;
+           FFirstblock:=FFirstblock^.Next;
+           Freemem(hp);
+         end;
+        FPosn:=0;
+        FPosnblock:=nil;
+        FFirstblock:=nil;
+        FLastblock:=nil;
+        grow;
       end;
 
 
@@ -1885,7 +1905,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2003-10-22 20:40:00  peter
+  Revision 1.28  2003-10-23 14:44:07  peter
+    * splitted buildderef and buildderefimpl to fix interface crc
+      calculation
+
+  Revision 1.27  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.26  2003/10/11 16:06:42  florian
