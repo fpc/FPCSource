@@ -215,8 +215,8 @@ Begin
 
    int64res:=1;
    int64res := int64res shl 65;
-   Write('(SHL) Value should be 0...');
-   test(int64res, 0);
+   Write('(SHL) Value should be 2...');
+   test(int64res, 2);
 
    int64res:=$8000;
    int64res := int64res shr 15;
@@ -225,8 +225,8 @@ Begin
 
    int64res:=$FFFF;
    int64res := int64res shr 65;
-   Write('(SHR) Value should be 0...');
-   test(int64res, 0);
+   Write('(SHR) Value should be 32767...');
+   test(int64res, 32767);
 
    { left : LOC_REFERENCE }
    { right : LOC_REFERENCE }
@@ -335,7 +335,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-05-02 12:11:44  peter
+  Revision 1.9  2004-05-03 16:03:21  peter
+    * fixed test results
+
+  Revision 1.8  2004/05/02 12:11:44  peter
     * fixed linefeeds
 
   Revision 1.7  2003/12/07 11:59:44  jonas
