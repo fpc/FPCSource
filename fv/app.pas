@@ -1014,6 +1014,7 @@ DESTRUCTOR TApplication.Done;
 BEGIN
    Inherited Done;                                    { Call ancestor }
    DoneHistory;                                       { Close history }
+   DoneResource;
    Drivers.DoneSysError;                                      { Close system error }
    Drivers.DoneEvents;                                        { Close event drive }
    Drivers.DoneVideo;                                         { Close video }
@@ -1183,7 +1184,10 @@ END;
 END.
 {
  $Log$
- Revision 1.15  2002-05-23 07:30:33  pierre
+ Revision 1.16  2002-05-25 23:24:29  pierre
+  * add DoneResource to fix memory leak
+
+ Revision 1.15  2002/05/23 07:30:33  pierre
   * fix problem in InitScreen
 
  Revision 1.14  2001/10/02 16:35:50  pierre
