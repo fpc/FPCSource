@@ -548,6 +548,7 @@ do_jmp:
                    secondpass(p^.right);
                    if codegenerror then
                      exit;
+                   emit_push_loc(p^.right^.location);
                 end
               else
                 begin
@@ -769,7 +770,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.56  1999-11-06 14:34:17  peter
+  Revision 1.57  1999-11-15 21:49:09  peter
+    * push address also for raise at
+
+  Revision 1.56  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.55  1999/10/30 17:35:26  peter
