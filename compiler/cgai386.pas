@@ -27,6 +27,9 @@ unit cgai386;
     uses
        cobjects,tree,
        i386base,i386asm,
+{$ifdef dummy}
+       end { to get correct syntax highlighting }
+{$endif dummy}
        aasm,symtable;
 
 {$define TESTGETTEMP to store const that
@@ -77,18 +80,18 @@ unit cgai386;
     procedure copyshortstringtoansistring(const dref,sref : treference);
 {$endif}
 
-    function maybe_push(needed : byte;p : ptree) : boolean;
+    function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
     procedure push_int(l : longint);
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
     procedure pushsetelement(p : ptree);
-    procedure restore(p : ptree);
+    procedure restore(p : ptree;isint64 : boolean);
     procedure push_value_para(p:ptree;inlined:boolean;para_offset:longint;alignment : longint);
 
 {$ifdef TEMPS_NOT_PUSH}
     { does the same as restore/maybe_push, but uses temp. space instead of pushing }
-    function maybe_push(needed : byte;p : ptree) : boolean;
-    procedure restorefromtemp(p : ptree);
+    function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
+    procedure restorefromtemp(p : ptree;isint64 : boolean);
 {$endif TEMPS_NOT_PUSH}
 
     procedure floatload(t : tfloattype;const ref : treference);
@@ -784,7 +787,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            Emit Push Functions
 *****************************************************************************}
 
-    function maybe_push(needed : byte;p : ptree) : boolean;
+    function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
 
       var
          pushed : boolean;
@@ -799,7 +802,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
 {$ifdef INT64}
-                   if is_64bitint(p^.resulttype) then
+                   if isint64 then
                      begin
 {$ifdef TEMPS_NOT_PUSH}
                         gettempofsizereference(href,8);
@@ -853,7 +856,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 {$ifdef TEMPS_NOT_PUSH}
-    function maybe_savetotemp(needed : byte;p : ptree) : boolean;
+    function maybe_savetotemp(needed : byte;p : ptree;isint64 : boolean) : boolean;
 
       var
          pushed : boolean;
@@ -865,7 +868,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
 {$ifdef INT64}
-                   if is_64bitint(p^.resulttype) then
+                   if isint64(p^.resulttype) then
                      begin
                         gettempofsizereference(href,8);
                         p^.temp_offset:=href.offset;
@@ -1036,7 +1039,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure restore(p : ptree);
+    procedure restore(p : ptree;isint64 : boolean);
       var
          hregister :  tregister;
 {$ifdef TEMPS_NOT_PUSH}
@@ -1056,7 +1059,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               p^.location.register:=hregister;
 {$ifdef INT64}
-              if is_64bitint(p^.resulttype) then
+              if isint64 then
                 begin
                    p^.location.registerhigh:=getregister32;
 {$ifdef TEMPS_NOT_PUSH}
@@ -1082,7 +1085,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 {$ifdef TEMPS_NOT_PUSH}
-    procedure restorefromtemp(p : ptree);
+    procedure restorefromtemp(p : ptree;isint64 : boolean);
       var
          hregister :  tregister;
          href : treference;
@@ -1097,7 +1100,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               p^.location.register:=hregister;
 {$ifdef INT64}
-              if is_64bitint(p^.resulttype) then
+              if isint64 then
                 begin
                    p^.location.registerhigh:=getregister32;
                    href.offset:=p^.temp_offset+4;
@@ -3083,7 +3086,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.1  1999-06-01 19:33:18  peter
+  Revision 1.2  1999-06-02 10:11:49  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.1  1999/06/01 19:33:18  peter
     * reinserted
 
   Revision 1.158  1999/06/01 14:45:46  peter

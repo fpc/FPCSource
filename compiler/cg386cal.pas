@@ -45,6 +45,10 @@ implementation
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
+{$ifdef dummy}
+      end  { this overcomes the annoying highlighting problem in my TP IDE,
+             the IDE assumes i386asm start a asm block (FK) }
+{$endif}
       cgai386,tgeni386,cg386ld;
 
 {*****************************************************************************
@@ -1163,7 +1167,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  1999-05-28 15:59:46  pierre
+  Revision 1.90  1999-06-02 10:11:40  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.89  1999/05/28 15:59:46  pierre
    * forgotten emitcall change in conditionnal
 
   Revision 1.88  1999/05/28 11:00:49  peter

@@ -157,9 +157,9 @@ implementation
 
                         { to avoid problem with maybe_push and restore }
                         set_location(p^.location,p^.left^.location);
-                        pushed:=maybe_push(p^.right^.registers32,p);
+                        pushed:=maybe_push(p^.right^.registers32,p,false);
                         secondpass(p^.right);
-                        if pushed then restore(p);
+                        if pushed then restore(p,false);
                         { release used registers }
                         case p^.right^.location.loc of
                           LOC_REFERENCE,LOC_MEM:
@@ -195,9 +195,9 @@ implementation
                      begin
                         cmpop:=true;
                         secondpass(p^.left);
-                        pushed:=maybe_push(p^.right^.registers32,p);
+                        pushed:=maybe_push(p^.right^.registers32,p,false);
                         secondpass(p^.right);
-                        if pushed then restore(p);
+                        if pushed then restore(p,false);
                         { release used registers }
                         case p^.right^.location.loc of
                           LOC_REFERENCE,LOC_MEM:
@@ -301,9 +301,9 @@ implementation
                           begin
                              secondpass(p^.left);
                              { are too few registers free? }
-                             pushed:=maybe_push(p^.right^.registers32,p);
+                             pushed:=maybe_push(p^.right^.registers32,p,false);
                              secondpass(p^.right);
-                             if pushed then restore(p);
+                             if pushed then restore(p,false);
                              { only one node can be stringconstn }
                              { else pass 1 would have evaluted   }
                              { this node                         }
@@ -372,12 +372,12 @@ implementation
          end;
 
         { are too few registers free? }
-        pushed:=maybe_push(p^.right^.registers32,p);
+        pushed:=maybe_push(p^.right^.registers32,p,false);
         secondpass(p^.right);
         if codegenerror then
           exit;
         if pushed then
-          restore(p);
+          restore(p,false);
 
         set_location(p^.location,p^.left^.location);
 
@@ -761,7 +761,7 @@ implementation
                             end;
                        end;
                        set_location(p^.location,p^.left^.location);
-                       pushed:=maybe_push(p^.right^.registers32,p);
+                       pushed:=maybe_push(p^.right^.registers32,p,false);
                        if p^.right^.location.loc=LOC_JUMP then
                          begin
                             otl:=truelabel;
@@ -770,7 +770,7 @@ implementation
                             getlabel(falselabel);
                          end;
                        secondpass(p^.right);
-                       if pushed then restore(p);
+                       if pushed then restore(p,false);
                        case p^.right^.location.loc of
                           LOC_FLAGS:
                             locflags2reg(p^.right^.location,opsize);
@@ -825,10 +825,10 @@ implementation
                 set_location(p^.location,p^.left^.location);
 
               { are too few registers free? }
-              pushed:=maybe_push(p^.right^.registers32,p);
+              pushed:=maybe_push(p^.right^.registers32,p,is_64bitint(p^.left^.resulttype));
               secondpass(p^.right);
               if pushed then
-                restore(p);
+                restore(p,is_64bitint(p^.left^.resulttype));
 
               if (p^.left^.resulttype^.deftype=pointerdef) or
 
@@ -2111,7 +2111,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-05-31 20:35:45  peter
+  Revision 1.64  1999-06-02 10:11:39  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.63  1999/05/31 20:35:45  peter
     * ansistring fixes, decr_ansistr called after all temp ansi reuses
 
   Revision 1.62  1999/05/27 19:44:04  peter

@@ -40,6 +40,10 @@ implementation
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386base,i386asm,
+{$ifdef dummy}
+      end  { this overcomes the annoying highlighting problem in my TP IDE,
+             the IDE assumes i386asm start a asm block (FK) }
+{$endif}
       cgai386,tgeni386;
 
 {*****************************************************************************
@@ -53,179 +57,223 @@ implementation
 
          power : longint;
          hl : pasmlabel;
+         hloc : tlocation;
+         pushedreg : tpushed;
+         typename,opname : string[6];
 
       begin
          shrdiv := false;
          andmod := false;
          secondpass(p^.left);
          set_location(p^.location,p^.left^.location);
-         pushed:=maybe_push(p^.right^.registers32,p);
+         pushed:=maybe_push(p^.right^.registers32,p,is_64bitint(p^.left^.resulttype));
          secondpass(p^.right);
-         if pushed then restore(p);
+         if pushed then restore(p,is_64bitint(p^.left^.resulttype));
 
-         { put numerator in register }
-         if p^.left^.location.loc<>LOC_REGISTER then
+         if is_64bitint(p^.resulttype) then
            begin
-              if p^.left^.location.loc=LOC_CREGISTER then
-                begin
-                  hreg1:=getregister32;
-                  emit_reg_reg(A_MOV,S_L,p^.left^.location.register,hreg1);
-                end
+              { save p^.lcoation, because we change it now }
+              set_location(hloc,p^.location);
+              release_qword_loc(p^.location);
+              release_qword_loc(p^.right^.location);
+              p^.location.registerlow:=getexplicitregister32(R_EAX);
+              p^.location.registerhigh:=getexplicitregister32(R_EDX);
+              pushusedregisters(pushedreg,$ff
+                and not($80 shr byte(p^.location.registerlow))
+                and not($80 shr byte(p^.location.registerhigh)));
+              if cs_check_overflow in aktlocalswitches then
+                push_int(1)
               else
-                begin
-                  del_reference(p^.left^.location.reference);
-                  hreg1:=getregister32;
-                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
-                    hreg1)));
-                end;
-              clear_location(p^.left^.location);
-              p^.left^.location.loc:=LOC_REGISTER;
-              p^.left^.location.register:=hreg1;
-           end
-         else hreg1:=p^.left^.location.register;
+                push_int(0);
+              { the left operand is in hloc, because the
+                location of left is p^.location but p^.location
+                is already destroyed
+              }
+              emit_pushq_loc(hloc);
+              clear_location(hloc);
+              emit_pushq_loc(p^.right^.location);
 
-           if (p^.treetype=divn) and (p^.right^.treetype=ordconstn) and
-               ispowerof2(p^.right^.value,power) then
-             Begin
-               shrdiv := true;
-               {for signed numbers, the numerator must be adjusted before the
-                shift instruction, but not wih unsigned numbers! Otherwise,
-                "Cardinal($ffffffff) div 16" overflows! (JM)}
-               If is_signed(p^.left^.resulttype) Then
-                 Begin
-                   exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hreg1,hreg1)));
-                   getlabel(hl);
-                   emitjmp(C_NS,hl);
-                   if power=1 then
-                     exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,hreg1)))
+              if porddef(p^.resulttype)^.typ=u64bit then
+                typename:='QWORD'
+              else
+                typename:='INT64';
+              if p^.treetype=divn then
+                opname:='DIV_'
+              else
+                opname:='MOD_';
+              emitcall('FPC_'+opname+typename);
+
+              emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.registerlow);
+              emit_reg_reg(A_MOV,S_L,R_EDX,p^.location.registerhigh);
+              popusedregisters(pushedreg);
+              p^.location.loc:=LOC_REGISTER;
+           end
+         else
+           begin
+              { put numerator in register }
+              if p^.left^.location.loc<>LOC_REGISTER then
+                begin
+                   if p^.left^.location.loc=LOC_CREGISTER then
+                     begin
+                       hreg1:=getregister32;
+                       emit_reg_reg(A_MOV,S_L,p^.left^.location.register,hreg1);
+                     end
                    else
-                     exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1)));
-                   emitlab(hl);
-                   exprasmlist^.concat(new(pai386,op_const_reg(A_SAR,S_L,power,hreg1)));
-                 End
-               Else
-                 exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,power,hreg1)));
-             End
-           else
-             if (p^.treetype=modn) and (p^.right^.treetype=ordconstn) and
-               ispowerof2(p^.right^.value,power) and Not(is_signed(p^.left^.resulttype)) Then
-              {is there a similar trick for MOD'ing signed numbers? (JM)}
-              Begin
-                exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,p^.right^.value-1,hreg1)));
-                andmod := true;
-              End
-           else
-             begin
-                 { bring denominator to EDI }
-                 { EDI is always free, it's }
-                 { only used for temporary  }
-                 { purposes              }
-              if (p^.right^.location.loc<>LOC_REGISTER) and
-                 (p^.right^.location.loc<>LOC_CREGISTER) then
-                begin
-                  del_reference(p^.right^.location.reference);
-                  p^.left^.location.loc:=LOC_REGISTER;
-                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI)));
-                end
-              else
-                begin
-                   emit_reg_reg(A_MOV,S_L,p^.right^.location.register,R_EDI);
-                   ungetregister32(p^.right^.location.register);
-                end;
-              popedx:=false;
-              popeax:=false;
-              if hreg1=R_EDX then
-                begin
-                  if not(R_EAX in unused) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
-                        popeax:=true;
+                       del_reference(p^.left^.location.reference);
+                       hreg1:=getregister32;
+                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
+                         hreg1)));
                      end;
-                  emit_reg_reg(A_MOV,S_L,R_EDX,R_EAX);
+                   clear_location(p^.left^.location);
+                   p^.left^.location.loc:=LOC_REGISTER;
+                   p^.left^.location.register:=hreg1;
                 end
-              else
-                begin
-                   if not(R_EDX in unused) then
+              else hreg1:=p^.left^.location.register;
+
+                if (p^.treetype=divn) and (p^.right^.treetype=ordconstn) and
+                    ispowerof2(p^.right^.value,power) then
+                  Begin
+                    shrdiv := true;
+                    {for signed numbers, the numerator must be adjusted before the
+                     shift instruction, but not wih unsigned numbers! Otherwise,
+                     "Cardinal($ffffffff) div 16" overflows! (JM)}
+                    If is_signed(p^.left^.resulttype) Then
+                      Begin
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hreg1,hreg1)));
+                        getlabel(hl);
+                        emitjmp(C_NS,hl);
+                        if power=1 then
+                          exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,hreg1)))
+                        else
+                          exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1)));
+                        emitlab(hl);
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_SAR,S_L,power,hreg1)));
+                      End
+                    Else
+                      exprasmlist^.concat(new(pai386,op_const_reg(A_SHR,S_L,power,hreg1)));
+                  End
+                else
+                  if (p^.treetype=modn) and (p^.right^.treetype=ordconstn) and
+                    ispowerof2(p^.right^.value,power) and Not(is_signed(p^.left^.resulttype)) Then
+                   {is there a similar trick for MOD'ing signed numbers? (JM)}
+                   Begin
+                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,p^.right^.value-1,hreg1)));
+                     andmod := true;
+                   End
+                else
+                  begin
+                      { bring denominator to EDI }
+                      { EDI is always free, it's }
+                      { only used for temporary  }
+                      { purposes              }
+                   if (p^.right^.location.loc<>LOC_REGISTER) and
+                      (p^.right^.location.loc<>LOC_CREGISTER) then
                      begin
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
-                        popedx:=true;
+                       del_reference(p^.right^.location.reference);
+                       p^.left^.location.loc:=LOC_REGISTER;
+                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),R_EDI)));
+                     end
+                   else
+                     begin
+                        emit_reg_reg(A_MOV,S_L,p^.right^.location.register,R_EDI);
+                        ungetregister32(p^.right^.location.register);
                      end;
-                   if hreg1<>R_EAX then
+                   popedx:=false;
+                   popeax:=false;
+                   if hreg1=R_EDX then
                      begin
-                        if not(R_EAX in unused) then
+                       if not(R_EAX in unused) then
                           begin
                              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
                              popeax:=true;
                           end;
-                        emit_reg_reg(A_MOV,S_L,hreg1,R_EAX);
-                     end;
-                end;
-              { sign extension depends on the left type }
-              if porddef(p^.left^.resulttype)^.typ=u32bit then
-                 exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EDX,R_EDX)))
-              else
-                 exprasmlist^.concat(new(pai386,op_none(A_CDQ,S_NO)));
-
-              { division depends on the right type }
-              if porddef(p^.right^.resulttype)^.typ=u32bit then
-                exprasmlist^.concat(new(pai386,op_reg(A_DIV,S_L,R_EDI)))
-              else
-                exprasmlist^.concat(new(pai386,op_reg(A_IDIV,S_L,R_EDI)));
-              if p^.treetype=divn then
-                begin
-                   { if result register is busy then copy }
-                   if popeax then
-                     begin
-                        if hreg1=R_EAX then
-                          internalerror(112);
-                        emit_reg_reg(A_MOV,S_L,R_EAX,hreg1)
+                       emit_reg_reg(A_MOV,S_L,R_EDX,R_EAX);
                      end
                    else
-                     if hreg1<>R_EAX then
-                       Begin
-                         ungetregister32(hreg1);
-                         hreg1 := getexplicitregister32(R_EAX);
-                         { I don't think it's possible that now hreg1 <> R_EAX
-                           since popeax is false, but for all certainty I do
-                           support that situation (JM)}
-                         if hreg1 <> R_EAX then
-                           emit_reg_reg(A_MOV,S_L,R_EAX,hreg1);
-                       end;
-                end
-              else
-                {if we did the mod by an "and", the result is in hreg1 and
-                 EDX certainly hasn't been pushed (JM)}
-                if not(andmod) Then
-                  if popedx then
-                   {the mod was done by an (i)div (so the result is now in
-                    edx), but edx was occupied prior to the division, so
-                    move the result into a safe place (JM)}
-                    emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
-                  else
-                    Begin
-                  {Get rid of the unnecessary hreg1 if possible (same as with
-                   EAX in divn) (JM)}
-                      ungetregister32(hreg1);
-                      hreg1 := getexplicitregister32(R_EDX);
-                      if hreg1 <> R_EDX then
-                        emit_reg_reg(A_MOV,S_L,R_EDX,hreg1);;
-                    End;
-              if popeax then
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
-              if popedx then
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
-             end;
-         If not(andmod or shrdiv) then
-          {andmod and shrdiv only use hreg1 (which is already in usedinproc,
-           since it was acquired with getregister), the others also use both
-           EAX and EDX (JM)}
-           Begin
-             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-             usedinproc:=usedinproc or ($80 shr byte(R_EDX));
-           End;
-         clear_location(p^.location);
-         p^.location.loc:=LOC_REGISTER;
-         p^.location.register:=hreg1;
+                     begin
+                        if not(R_EDX in unused) then
+                          begin
+                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
+                             popedx:=true;
+                          end;
+                        if hreg1<>R_EAX then
+                          begin
+                             if not(R_EAX in unused) then
+                               begin
+                                  exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                                  popeax:=true;
+                               end;
+                             emit_reg_reg(A_MOV,S_L,hreg1,R_EAX);
+                          end;
+                     end;
+                   { sign extension depends on the left type }
+                   if porddef(p^.left^.resulttype)^.typ=u32bit then
+                      exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EDX,R_EDX)))
+                   else
+                      exprasmlist^.concat(new(pai386,op_none(A_CDQ,S_NO)));
+
+                   { division depends on the right type }
+                   if porddef(p^.right^.resulttype)^.typ=u32bit then
+                     exprasmlist^.concat(new(pai386,op_reg(A_DIV,S_L,R_EDI)))
+                   else
+                     exprasmlist^.concat(new(pai386,op_reg(A_IDIV,S_L,R_EDI)));
+                   if p^.treetype=divn then
+                     begin
+                        { if result register is busy then copy }
+                        if popeax then
+                          begin
+                             if hreg1=R_EAX then
+                               internalerror(112);
+                             emit_reg_reg(A_MOV,S_L,R_EAX,hreg1)
+                          end
+                        else
+                          if hreg1<>R_EAX then
+                            Begin
+                              ungetregister32(hreg1);
+                              hreg1 := getexplicitregister32(R_EAX);
+                              { I don't think it's possible that now hreg1 <> R_EAX
+                                since popeax is false, but for all certainty I do
+                                support that situation (JM)}
+                              if hreg1 <> R_EAX then
+                                emit_reg_reg(A_MOV,S_L,R_EAX,hreg1);
+                            end;
+                     end
+                   else
+                     {if we did the mod by an "and", the result is in hreg1 and
+                      EDX certainly hasn't been pushed (JM)}
+                     if not(andmod) Then
+                       if popedx then
+                        {the mod was done by an (i)div (so the result is now in
+                         edx), but edx was occupied prior to the division, so
+                         move the result into a safe place (JM)}
+                         emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
+                       else
+                         Begin
+                       {Get rid of the unnecessary hreg1 if possible (same as with
+                        EAX in divn) (JM)}
+                           ungetregister32(hreg1);
+                           hreg1 := getexplicitregister32(R_EDX);
+                           if hreg1 <> R_EDX then
+                             emit_reg_reg(A_MOV,S_L,R_EDX,hreg1);;
+                         End;
+                   if popeax then
+                     exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+                   if popedx then
+                     exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
+                  end;
+              If not(andmod or shrdiv) then
+               {andmod and shrdiv only use hreg1 (which is already in usedinproc,
+                since it was acquired with getregister), the others also use both
+                EAX and EDX (JM)}
+                Begin
+                  usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+                  usedinproc:=usedinproc or ($80 shr byte(R_EDX));
+                End;
+              clear_location(p^.location);
+              p^.location.loc:=LOC_REGISTER;
+              p^.location.register:=hreg1;
+           end;
       end;
 
 
@@ -246,10 +294,10 @@ implementation
          popecx:=false;
 
          secondpass(p^.left);
-         pushed:=maybe_push(p^.right^.registers32,p);
+         pushed:=maybe_push(p^.right^.registers32,p,is_64bitint(p^.left^.resulttype));
          secondpass(p^.right);
          if pushed then
-           restore(p);
+           restore(p,is_64bitint(p^.left^.resulttype));
 
          if is_64bitint(p^.left^.resulttype) then
            begin
@@ -886,7 +934,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-05-27 19:44:16  peter
+  Revision 1.26  1999-06-02 10:11:44  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.25  1999/05/27 19:44:16  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

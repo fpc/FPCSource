@@ -55,6 +55,8 @@ implementation
       var
          t : ptree;
          rv,lv : longint;
+         rd,ld : pdef;
+
       begin
          firstpass(p^.left);
          firstpass(p^.right);
@@ -82,27 +84,65 @@ implementation
               p:=t;
               exit;
            end;
-         if not(p^.right^.resulttype^.deftype=orddef) or
-           not(porddef(p^.right^.resulttype)^.typ in [s32bit,u32bit]) then
-           p^.right:=gentypeconvnode(p^.right,s32bitdef);
+         if (p^.left^.resulttype^.deftype=orddef) and (p^.right^.resulttype^.deftype=orddef) and
+            (is_64bitint(p^.left^.resulttype) or is_64bitint(p^.right^.resulttype)) then
+           begin
+              rd:=p^.right^.resulttype;
+              ld:=p^.left^.resulttype;
+              if (porddef(rd)^.typ=s64bitint) or (porddef(ld)^.typ=s64bitint) then
+                begin
+                   if (porddef(ld)^.typ<>s64bitint) then
+                     begin
+                       p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
+                       firstpass(p^.left);
+                     end;
+                   if (porddef(rd)^.typ<>s64bitint) then
+                     begin
+                        p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
+                        firstpass(p^.right);
+                     end;
+                   calcregisters(p,2,0,0);
+                end
+              else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
+                begin
+                   if (porddef(ld)^.typ<>u64bit) then
+                     begin
+                       p^.left:=gentypeconvnode(p^.left,cu64bitdef);
+                       firstpass(p^.left);
+                     end;
+                   if (porddef(rd)^.typ<>u64bit) then
+                     begin
+                        p^.right:=gentypeconvnode(p^.right,cu64bitdef);
+                        firstpass(p^.right);
+                     end;
+                   calcregisters(p,2,0,0);
+                end;
+              p^.resulttype:=p^.left^.resulttype;
+           end
+         else
+           begin
+              if not(p^.right^.resulttype^.deftype=orddef) or
+                not(porddef(p^.right^.resulttype)^.typ in [s32bit,u32bit]) then
+                p^.right:=gentypeconvnode(p^.right,s32bitdef);
 
-         if not(p^.left^.resulttype^.deftype=orddef) or
-           not(porddef(p^.left^.resulttype)^.typ in [s32bit,u32bit]) then
-           p^.left:=gentypeconvnode(p^.left,s32bitdef);
+              if not(p^.left^.resulttype^.deftype=orddef) or
+                not(porddef(p^.left^.resulttype)^.typ in [s32bit,u32bit]) then
+                p^.left:=gentypeconvnode(p^.left,s32bitdef);
 
-         firstpass(p^.left);
-         firstpass(p^.right);
+              firstpass(p^.left);
+              firstpass(p^.right);
 
-         { the resulttype depends on the right side, because the left becomes }
-         { always 64 bit                                                      }
-         p^.resulttype:=p^.right^.resulttype;
+              { the resulttype depends on the right side, because the left becomes }
+              { always 64 bit                                                      }
+              p^.resulttype:=p^.right^.resulttype;
 
-         if codegenerror then
-           exit;
+              if codegenerror then
+                exit;
 
-         left_right_max(p);
-         if p^.left^.registers32<=p^.right^.registers32 then
-           inc(p^.registers32);
+              left_right_max(p);
+              if p^.left^.registers32<=p^.right^.registers32 then
+                inc(p^.registers32);
+           end;
          p^.location.loc:=LOC_REGISTER;
       end;
 
@@ -373,7 +413,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-05-27 19:45:22  peter
+  Revision 1.16  1999-06-02 10:11:54  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.15  1999/05/27 19:45:22  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

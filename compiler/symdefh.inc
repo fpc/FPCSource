@@ -104,6 +104,7 @@
           paratyp : tvarspez;
           argconvtyp : targconvtyp;
           convertlevel : byte;
+          register : tregister;
        end;
 
        tfiletype = (ft_text,ft_typed,ft_untyped);
@@ -519,7 +520,12 @@
 
 {
   $Log$
-  Revision 1.31  1999-05-31 16:42:35  peter
+  Revision 1.32  1999-06-02 10:11:51  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.31  1999/05/31 16:42:35  peter
     * interfacedef flag for procdef if it's defined in the interface, to
       make a difference with 'forward;' directive forwarddef. Fixes 253
 

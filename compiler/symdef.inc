@@ -2122,6 +2122,7 @@
          hp^.paratyp:=vsp;
          hp^.data:=p;
          hp^.next:=para1;
+         hp^.register:=R_NO;
          para1:=hp;
       end;
 
@@ -2166,6 +2167,8 @@
            begin
               new(hp);
               hp^.paratyp:=tvarspez(readbyte);
+              { hp^.register:=tregister(readbyte); }
+              hp^.register:=R_NO;
               hp^.data:=readdefref;
               hp^.next:=nil;
               if para1=nil then
@@ -2222,6 +2225,7 @@
          while assigned(hp) do
            begin
               writebyte(byte(hp^.paratyp));
+              { writebyte(byte(hp^.register)); }
               writedefref(hp^.data);
               hp:=hp^.next;
            end;
@@ -2303,7 +2307,7 @@
             inc(refcount);
           end;
          lastref:=defref;
-       { first, we assume, that all registers are used }
+       { first, we assume that all registers are used }
 {$ifdef i386}
          usedregisters:=$ff;
 {$endif i386}
@@ -3485,7 +3489,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.125  1999-06-01 14:45:56  peter
+  Revision 1.126  1999-06-02 10:11:50  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.125  1999/06/01 14:45:56  peter
     * @procvar is now always needed for FPC
 
   Revision 1.124  1999/05/31 16:42:33  peter

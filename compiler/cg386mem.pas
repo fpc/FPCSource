@@ -609,10 +609,10 @@ implementation
               if (p^.location.loc<>LOC_REFERENCE) and
                  (p^.location.loc<>LOC_MEM) then
                 CGMessage(cg_e_illegal_expression);
-              is_pushed:=maybe_push(p^.right^.registers32,p);
+              is_pushed:=maybe_push(p^.right^.registers32,p,false);
               secondpass(p^.right);
               if is_pushed then
-                restore(p);
+                restore(p,false);
               { here we change the location of p^.right
                 and the update was forgotten so it
                 led to wrong code in emitrangecheck later PM
@@ -849,7 +849,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-05-27 19:44:17  peter
+  Revision 1.47  1999-06-02 10:11:45  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.46  1999/05/27 19:44:17  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

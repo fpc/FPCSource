@@ -447,6 +447,37 @@ implementation
                    calcregisters(p,1,0,0);
                  convdone:=true;
                end
+              { is there a 64 bit type ? }
+             else if (porddef(rd)^.typ=s64bitint) or (porddef(ld)^.typ=s64bitint) then
+               begin
+                  if (porddef(ld)^.typ<>s64bitint) then
+                    begin
+                      p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
+                      firstpass(p^.left);
+                    end;
+                  if (porddef(rd)^.typ<>s64bitint) then
+                    begin
+                       p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
+                       firstpass(p^.right);
+                    end;
+                  calcregisters(p,2,0,0);
+                  convdone:=true;
+               end
+             else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
+               begin
+                  if (porddef(ld)^.typ<>u64bit) then
+                    begin
+                      p^.left:=gentypeconvnode(p^.left,cu64bitdef);
+                      firstpass(p^.left);
+                    end;
+                  if (porddef(rd)^.typ<>u64bit) then
+                    begin
+                       p^.right:=gentypeconvnode(p^.right,cu64bitdef);
+                       firstpass(p^.right);
+                    end;
+                  calcregisters(p,2,0,0);
+                  convdone:=true;
+               end
              else
               { is there a cardinal? }
               if (porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit) then
@@ -472,37 +503,7 @@ implementation
                   end;
                  calcregisters(p,1,0,0);
                  convdone:=true;
-               end
-              else if (porddef(rd)^.typ=s64bitint) or (porddef(ld)^.typ=s64bitint) then
-                begin
-                   if (porddef(ld)^.typ<>s64bitint) then
-                     begin
-                       p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
-                       firstpass(p^.left);
-                     end;
-                   if (porddef(rd)^.typ<>s64bitint) then
-                     begin
-                        p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
-                        firstpass(p^.right);
-                     end;
-                   calcregisters(p,2,0,0);
-                   convdone:=true;
-                end
-              else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
-                begin
-                   if (porddef(ld)^.typ<>u64bit) then
-                     begin
-                       p^.left:=gentypeconvnode(p^.left,cu64bitdef);
-                       firstpass(p^.left);
-                     end;
-                   if (porddef(rd)^.typ<>u64bit) then
-                     begin
-                        p^.right:=gentypeconvnode(p^.right,cu64bitdef);
-                        firstpass(p^.right);
-                     end;
-                   calcregisters(p,2,0,0);
-                   convdone:=true;
-                end;
+               end;
            end
          else
 
@@ -1093,7 +1094,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-05-27 19:45:12  peter
+  Revision 1.34  1999-06-02 10:11:52  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.33  1999/05/27 19:45:12  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

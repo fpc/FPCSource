@@ -204,6 +204,8 @@ implementation
            iolabel    : pasmlabel;
            npara      : longint;
         begin
+           { here we don't use register calling conventions }
+           dummycoll.register:=R_NO;
            { I/O check }
            if (cs_check_io in aktlocalswitches) and
               ((aktprocsym^.definition^.options and poiocheck)=0) then
@@ -499,6 +501,7 @@ implementation
            procedureprefix : string;
 
           begin
+           dummycoll.register:=R_NO;
            pushusedregisters(pushed,$ff);
            node:=p^.left;
            is_real:=false;
@@ -630,6 +633,7 @@ implementation
            has_code, has_32bit_code, oldregisterdef: boolean;
 
           begin
+           dummycoll.register:=R_NO;
            node:=p^.left;
            hp:=node;
            node:=node^.right;
@@ -1193,10 +1197,10 @@ implementation
                  else
                    begin
                       { generate code for the element to set }
-                      ispushed:=maybe_push(p^.left^.right^.left^.registers32,p^.left^.left);
+                      ispushed:=maybe_push(p^.left^.right^.left^.registers32,p^.left^.left,false);
                       secondpass(p^.left^.right^.left);
                       if ispushed then
-                        restore(p^.left^.left);
+                        restore(p^.left^.left,false);
                       { determine asm operator }
                       if p^.inlinenumber=in_include_x_y then
                         asmop:=A_BTS
@@ -1246,7 +1250,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-05-31 12:43:32  peter
+  Revision 1.57  1999-06-02 10:11:43  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.56  1999/05/31 12:43:32  peter
     * fixed register allocation for storefuncresult
 
   Revision 1.55  1999/05/27 19:44:13  peter

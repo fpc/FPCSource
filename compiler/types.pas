@@ -211,7 +211,8 @@ implementation
          { check for method pointer }
          ismethod:=(def1^.owner^.symtabletype=objectsymtable) and
                    (pobjectdef(def1^.owner^.defowner)^.isclass);
-         if ismethod<>((def2^.options and pomethodpointer)<>0) then
+         if (ismethod and not ((def2^.options and pomethodpointer)<>0)) or
+            (not(ismethod) and ((def2^.options and pomethodpointer)<>0)) then
           begin
             Message(type_e_no_method_and_procedure_not_compatible);
             exit;
@@ -886,7 +887,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-06-01 19:27:58  peter
+  Revision 1.69  1999-06-02 10:11:55  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.68  1999/06/01 19:27:58  peter
     * better checks for procvar and methodpointer
 
   Revision 1.67  1999/05/31 22:54:19  peter

@@ -172,10 +172,10 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
           begin
-            pushed:=maybe_push(p^.right^.registers32,p^.left);
+            pushed:=maybe_push(p^.right^.registers32,p^.left,false);
             secondpass(p^.right);
             if pushed then
-             restore(p^.left);
+             restore(p^.left,false);
           end;
          if codegenerror then
           exit;
@@ -816,7 +816,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-05-27 19:44:19  peter
+  Revision 1.33  1999-06-02 10:11:48  florian
+    * make cycle fixed i.e. compilation with 0.99.10
+    * some fixes for qword
+    * start of register calling conventions
+
+  Revision 1.32  1999/05/27 19:44:19  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
