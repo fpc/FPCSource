@@ -101,7 +101,7 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+Function FileCreate (Const FileName : String; Mode:longint) : SizeInt;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -729,7 +729,7 @@ end;
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
 
-Var 
+Var
   CommandLine : AnsiString;
   i : Integer;
 
@@ -813,7 +813,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.33  2004-02-13 10:50:23  marco
+  Revision 1.34  2004-06-13 10:49:50  florian
+    * fixed some bootstrapping problems as well as some 64 bit stuff
+
+  Revision 1.33  2004/02/13 10:50:23  marco
    * Hopefully last large changes to fpexec and friends.
   	- naming conventions changes from Michael.
   	- shell functions get alternative under ifdef.

@@ -44,9 +44,15 @@ const
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
 
-  MinCurrency: Currency = -922337203685477.5807;  
-  MaxCurrency: Currency =  922337203685477.5807; 
-    
+{$ifndef VER1_0}
+{$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT)}
+  MinCurrency: Currency = -922337203685477.5807;
+  MaxCurrency: Currency =  922337203685477.5807;
+{$else}
+  MinCurrency: Currency = -922337203685477.0000;
+  MaxCurrency: Currency =  922337203685477.0000;
+{$endif}
+{$endif VER1_0}
 
 Type
   TTextLineBreakStyle = (tlbsLF, tlbsCRLF);   // Must move to system unit, and add Mac tlbsCR too ?
@@ -54,7 +60,7 @@ Type
 Const
   DefaultTextLineBreakStyle: TTextLineBreakStyle = {$ifdef unix} tlbsLF {$else} tlbsCRLF {$endif};
 
-               
+
 Const
   LeadBytes: set of Char = [];
   EmptyStr : string = '';
@@ -160,7 +166,7 @@ Function ByteToCharIndex(const S: string; Index: Integer): Integer;
 
 const
 {$ifndef unix}
-  SwitchChars = ['/','-']; 
+  SwitchChars = ['/','-'];
 {$else}
   SwitchChars = ['-'];
 {$endif}
@@ -171,8 +177,8 @@ Type
 Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
 Function FindCmdLineSwitch(const Switch: string; IgnoreCase: Boolean): Boolean;
 Function FindCmdLineSwitch(const Switch: string): Boolean;
-                          
-                          
+
+
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -184,7 +190,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.5  2004-06-12 13:23:17  michael
+  Revision 1.6  2004-06-13 10:49:50  florian
+    * fixed some bootstrapping problems as well as some 64 bit stuff
+
+  Revision 1.5  2004/06/12 13:23:17  michael
   + Fixed currency<->string conversion support
 
   Revision 1.4  2004/02/26 08:46:21  michael

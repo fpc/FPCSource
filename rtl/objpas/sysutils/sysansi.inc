@@ -19,12 +19,12 @@
     *********************************************************************
 }
 
-Function AnsiCompareFileName(const S1, S2: string): Integer;
+Function AnsiCompareFileName(const S1, S2: string): SizeInt;
 
 begin
   If FileNameCaseSensitive then
     Result:=AnsiCompareStr(S1,S2) // Compare case sensitive
-  else  
+  else
     Result:=AnsiCompareText(S1,S2); // Compare case insensitive. No MBCS yet.
 end;
 
@@ -72,7 +72,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-11-26 22:17:42  michael
+  Revision 1.3  2004-06-13 10:49:50  florian
+    * fixed some bootstrapping problems as well as some 64 bit stuff
+
+  Revision 1.2  2003/11/26 22:17:42  michael
   + Merged fixbranch fixes, missing in main branch
 
   Revision 1.1  2003/10/06 21:01:06  peter

@@ -132,7 +132,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
-function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
+function strlcopy(dest,source : pchar;maxlen : sizeint) : pchar;assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -235,7 +235,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
-function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
+function strlcomp(str1,str2 : pchar;l : sizeint) : longint;assembler;
 var
   saveeax,saveedx,saveecx,saveesi,saveedi : longint;
 asm
@@ -336,7 +336,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
-function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
+function strlicomp(str1,str2 : pchar;l : sizeint) : longint;assembler;
 var
   saveeax,saveedx,saveecx,saveesi,saveedi : longint;
 asm
@@ -633,7 +633,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-05-01 15:26:33  jonas
+  Revision 1.15  2004-06-13 10:49:50  florian
+    * fixed some bootstrapping problems as well as some 64 bit stuff
+
+  Revision 1.14  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.13  2003/12/19 09:28:00  michael

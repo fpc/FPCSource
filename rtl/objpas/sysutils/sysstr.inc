@@ -147,7 +147,7 @@ begin
   I:=0;
   If (P1)<>(P2) then
     While Result and (i<Length) do
-      begin 
+      begin
       Result:=PByte(P1)^=PByte(P2)^;
       Inc(I);
       Inc(pchar(P1));
@@ -566,7 +566,7 @@ begin
              Dest[j]:=#10;
              Inc(J);
              Inc(I);
-             if Source[I]=#10 then 
+             if Source[I]=#10 then
                Inc(I);
              end;
       else
@@ -659,7 +659,7 @@ end ;
     if S does not represent a valid integer value EConvertError is raised  }
 
 function StrToInt(const S: string): integer;
-{$IFDEF VIRTUALPASCAL} 
+{$IFDEF VIRTUALPASCAL}
 var Error: longint;
 {$ELSE}
 var Error: word;
@@ -671,7 +671,7 @@ end ;
 
 
 function StrToInt64(const S: string): int64;
-{$IFDEF VIRTUALPASCAL} 
+{$IFDEF VIRTUALPASCAL}
 var Error: longint;
 {$ELSE}
 var Error: word;
@@ -687,7 +687,7 @@ end ;
     Default is returned in case S does not represent a valid integer value  }
 
 function StrToIntDef(const S: string; Default: integer): integer;
-{$IFDEF VIRTUALPASCAL} 
+{$IFDEF VIRTUALPASCAL}
 var Error: longint;
 {$ELSE}
 var Error: word;
@@ -701,7 +701,7 @@ end ;
     Default is returned in case S does not represent a valid integer value  }
 
 function StrToInt64Def(const S: string; Default: int64): int64;
-{$IFDEF VIRTUALPASCAL} 
+{$IFDEF VIRTUALPASCAL}
 var Error: longint;
 {$ELSE}
 var Error: word;
@@ -775,7 +775,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
 
     Procedure ReadInteger;
 
-{$IFDEF VIRTUALPASCAL} 
+{$IFDEF VIRTUALPASCAL}
 var Code: longint;
 {$ELSE}
 var Code: word;
@@ -956,7 +956,7 @@ begin
         'D' : begin
               if Checkarg(vtinteger,false) then
                 Str(Args[Doarg].VInteger,ToAdd)
-  	      {$IFNDEF VIRTUALPASCAL} 
+  	      {$IFNDEF VIRTUALPASCAL}
               else if CheckArg(vtInt64,true) then
                 Str(Args[DoArg].VInt64^,toadd)
 	      {$ENDIF}
@@ -1325,18 +1325,22 @@ end;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 
 begin
+{$ifndef VER1_0}
   Result:=(Value>=MinCurrency) and (Value<=MaxCurrency);
   if Result then
     AResult := Value;
+{$else VER1_0}
+  Result:=false;
+{$endif VER1_0}
 end;
-        
+
 function FloatToCurr(const Value: Extended): Currency;
 
 begin
   if not TryFloatToCurr(Value, Result) then
     Raise EConvertError.CreateFmt(SInvalidCurrency, [FloatToStr(Value)]);
 end;
-              
+
 
 Function CurrToStr(Value: Currency): string;
 
@@ -1361,7 +1365,7 @@ function StrToBool(const S: string): Boolean;
 Var
   Temp : String;
   D : Double;
-{$IFDEF VIRTUALPASCAL} 
+{$IFDEF VIRTUALPASCAL}
   Code: longint;
 {$ELSE}
   Code: word;
@@ -2075,10 +2079,10 @@ end;
 
 Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
 
-Var 
+Var
   I,L : Integer;
   S,T : String;
-  
+
 begin
   Result:=False;
   S:=Switch;
@@ -2095,7 +2099,7 @@ begin
         T:=UpperCase(T);
       Result:=S=T;
       end;
-    Dec(i);  
+    Dec(i);
     end;
 end;
 
@@ -2171,7 +2175,10 @@ const
 
 {
   $Log$
-  Revision 1.12  2004-06-12 13:57:18  michael
+  Revision 1.13  2004-06-13 10:49:50  florian
+    * fixed some bootstrapping problems as well as some 64 bit stuff
+
+  Revision 1.12  2004/06/12 13:57:18  michael
   + Enhanced FloatToStrF to 18 digits (Delphi compatibility, bug 3106
 
   Revision 1.11  2004/06/12 13:23:17  michael
