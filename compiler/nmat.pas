@@ -476,10 +476,13 @@ implementation
              end
          else if is_integer(left.resulttype) then
            begin
-              left:=gentypeconvnode(left,s32bitdef);
-              firstpass(left);
-              if codegenerror then
-                exit;
+              if (porddef(left.resulttype)^.typ <> u32bit) then
+                begin
+                  left:=gentypeconvnode(left,s32bitdef);
+                  firstpass(left);
+                  if codegenerror then
+                    exit;
+                end;
 
               resulttype:=left.resulttype;
               registers32:=left.registers32;
@@ -527,7 +530,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-03-04 10:38:55  jonas
+  Revision 1.16  2001-03-20 18:11:03  jonas
+    * not (cardinal) now has cardinal instead of longint result (bug reported
+      in mailinglist) ("merged")
+
+  Revision 1.15  2001/03/04 10:38:55  jonas
     * fixed 'qword mod/div pos_const' to have qword result
 
   Revision 1.14  2001/02/20 21:48:17  peter
