@@ -558,7 +558,7 @@ implementation
                                 { need we an additional register ? }
                                 if not(is_constintnode(p^.left^.right^.left)) and
                                   (p^.left^.right^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
-                                  (p^.left^.right^.left^.registers32<1) then
+                                  (p^.left^.right^.left^.registers32<=1) then
                                   inc(p^.registers32);
 
                                 if assigned(p^.left^.right^.right) then
@@ -1121,7 +1121,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-08-06 12:43:13  jonas
+  Revision 1.48  1999-08-23 23:41:04  pierre
+   * in_inc_x register allocation corrected
+
+  Revision 1.47  1999/08/06 12:43:13  jonas
     * fix for regvars with the val code
 
   Revision 1.46  1999/08/05 16:53:23  peter
