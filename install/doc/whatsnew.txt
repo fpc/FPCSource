@@ -16,7 +16,7 @@ Compiler:
   + initialization/finalization support
   + methodpointer support
   + message support
-  * better intel,at&t parsers with mmx,kni support
+  * better intel,at&t parsers with mmx,3dnow support
   * better unit dependency handling and recompiling
   * static var fixes
   * better addr() support
