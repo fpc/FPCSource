@@ -393,8 +393,8 @@ type
      value : record
        case integer of
       (* The fact that this is a long not a LONGEST mainly limits the
-	 range of a LOC_CONST.  Since LOC_CONST_BYTES exists, I'm not
-	 sure that is a big deal.  *)
+         range of a LOC_CONST.  Since LOC_CONST_BYTES exists, I'm not
+         sure that is a big deal.  *)
        0 : (ivalue : longint;);
 
        1 : (block  : pblock;);
@@ -414,14 +414,14 @@ type
    (* union
     {
       struct cplus_specific      /* For C++ */
-				/*  and Java */
-	{
-	  char *demangled_name;
-	} cplus_specific;
+                                /*  and Java */
+        {
+          char *demangled_name;
+        } cplus_specific;
       struct chill_specific      /* For Chill */
-	{
-	  char *demangled_name;
-	} chill_specific;
+        {
+          char *demangled_name;
+        } chill_specific;
     } language_specific; *)
      demangled_name : pchar;
 
@@ -447,25 +447,25 @@ type
 
   tminimal_symbol_type =
     (
-      mst_unknown := 0,	        (* Unknown type, the default *)
-      mst_text,		        (* Generally executable instructions *)
-      mst_data,		        (* Generally initialized data *)
-      mst_bss,		        (* Generally uninitialized data *)
-      mst_abs,		        (* Generally absolute (nonrelocatable) *)
+      mst_unknown := 0,         (* Unknown type, the default *)
+      mst_text,                 (* Generally executable instructions *)
+      mst_data,                 (* Generally initialized data *)
+      mst_bss,                  (* Generally uninitialized data *)
+      mst_abs,                  (* Generally absolute (nonrelocatable) *)
       (* GDB uses mst_solib_trampoline for the start address of a shared
-	 library trampoline entry.  Breakpoints for shared library functions
-	 are put there if the shared library is not yet loaded.
-	 After the shared library is loaded, lookup_minimal_symbol will
-	 prefer the minimal symbol from the shared library (usually
-	 a mst_text symbol) over the mst_solib_trampoline symbol, and the
-	 breakpoints will be moved to their true address in the shared
-	 library via breakpoint_re_set.  *)
+         library trampoline entry.  Breakpoints for shared library functions
+         are put there if the shared library is not yet loaded.
+         After the shared library is loaded, lookup_minimal_symbol will
+         prefer the minimal symbol from the shared library (usually
+         a mst_text symbol) over the mst_solib_trampoline symbol, and the
+         breakpoints will be moved to their true address in the shared
+         library via breakpoint_re_set.  *)
       mst_solib_trampoline,     (* Shared library trampoline code *)
       (* For the mst_file* types, the names are only guaranteed to be unique
-	 within a given .o file.  *)
+         within a given .o file.  *)
       mst_file_text,            (* Static version of mst_text *)
-      mst_file_data,	        (* Static version of mst_data *)
-      mst_file_bss	        (* Static version of mst_bss *)
+      mst_file_data,            (* Static version of mst_data *)
+      mst_file_bss              (* Static version of mst_bss *)
     );
 
   namespace_enum = (
@@ -1906,39 +1906,14 @@ begin
   if assigned(sym.symtab) then
    si.fname:=sym.symtab^.filename
   else
-    si.fname:=nil;
+   si.fname:=nil;
   si.line:=sym.line;
   symbol:=find_pc_function(addr);
-  si.funcname:=symbol^.ginfo._name;
-end;
-
-
-{$ifdef kl}
-char *SourceForMain(int *line)
-  struct symbol *sym;
-  struct symtab *symtab;
-  *line = 0;
-  sym = lookup_symbol(_GetMainFunction(), NULL, VAR_NAMESPACE, NULL, &symtab);
-  if (!sym)
-    struct minimal_symbol *msymbol =
-      lookup_minimal_symbol (_GetMainFunction(), NULL, NULL);
-    if (msymbol)
-      *line = SYMBOL_VALUE_ADDRESS(msymbol);
-    return NULL;
-  if (!symtab || !symtab->filename)
-    *line = BLOCK_START(SYMBOL_BLOCK_VALUE(sym));
-    return NULL;
-  if (symtab->linetable)
-    int i;
-    for (i=0;i<symtab->linetable->nitems;i++)
-      if (symtab->linetable->item[i].pc
-          == BLOCK_START(SYMBOL_BLOCK_VALUE(sym)))
-        *line = symtab->linetable->item[i].line;
-        break;
+  if assigned(symbol) then
+   si.funcname:=symbol^.ginfo._name
   else
-    *line = 0;
-  return symtab->filename;
-{$endif}
+   si.funcname:=nil;
+end;
 
 
 procedure tgdbinterface.SelectSourceLine(fn:pchar;line:longint);
@@ -2152,7 +2127,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-11-26 14:50:40  pierre
+  Revision 1.3  2000-01-10 11:14:42  peter
+    * fixed crash in getaddrsyminfo with symfync=nil
+
+  Revision 1.2  1999/11/26 14:50:40  pierre
    * shell32 lib is not needed in gdbint unit
 
   Revision 1.1  1999/11/24 23:36:32  peter
