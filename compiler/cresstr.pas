@@ -61,6 +61,7 @@ implementation
 
 uses
    cutils,globals,
+   symdef,
    verbose,fmodule,
    aasmbase,aasmtai,
    aasmcpu,cpuinfo;
@@ -194,7 +195,7 @@ begin
   if not(assigned(resourcestringlist)) then
     resourcestringlist:=taasmoutput.create;
   resourcestringlist.insert(tai_const.create_32bit(resstrcount));
-  resourcestringlist.insert(tai_symbol.createdataname_global(current_module.modulename^+'_'+'RESOURCESTRINGLIST',0));
+  resourcestringlist.insert(tai_symbol.createdataname_global(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),0));
   resourcestringlist.insert(tai_align.Create(const_align(pointer_size)));
   R:=TResourceStringItem(List.First);
   While assigned(R) do
@@ -298,7 +299,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2002-11-09 15:39:03  carl
+  Revision 1.18  2003-10-29 19:48:50  peter
+    * renamed mangeldname_prefix to make_mangledname and made it more
+      generic
+    * make_mangledname is now also used for internal threadvar/resstring
+      lists
+    * Add P$ in front of program modulename to prevent duplicated symbols
+      at assembler level, because the main program can have the same name
+      as a unit, see webtbs/tw1251b
+
+  Revision 1.17  2002/11/09 15:39:03  carl
     + resource string tables are now aligned
 
   Revision 1.16  2002/08/11 14:32:26  peter

@@ -39,11 +39,11 @@ implementation
        cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
-       aasmbase,aasmtai,aasmcpu,
+       aasmtai,aasmcpu,
        cgbase,cpuinfo,cgobj,
-       nbas,ncgutil,
+       nbas,
        link,assemble,import,export,gendef,ppu,comprsrc,
-       cresstr,cpubase,procinfo,
+       cresstr,procinfo,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -188,7 +188,7 @@ implementation
          begin
            If (hp.u.flags and uf_threadvars)=uf_threadvars then
             begin
-              ltvTables.concat(Tai_const_symbol.Createdataname(hp.u.modulename^+'_$THREADVARLIST'));
+              ltvTables.concat(Tai_const_symbol.Createdataname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,'')));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -196,7 +196,7 @@ implementation
         { Add program threadvars, if any }
         If (current_module.flags and uf_threadvars)=uf_threadvars then
          begin
-           ltvTables.concat(Tai_const_symbol.Createdataname(current_module.modulename^+'_$THREADVARLIST'));
+           ltvTables.concat(Tai_const_symbol.Createdataname(make_mangledname('THREADVARLIST',current_module.localsymtable,'')));
            inc(count);
          end;
         { TableCount }
@@ -230,6 +230,7 @@ implementation
 
     procedure InsertThreadvars;
       var
+        s : string;
         ltvTable : TAAsmoutput;
       begin
          ltvTable:=TAAsmoutput.create;
@@ -238,10 +239,11 @@ implementation
          current_module.localsymtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}AddToThreadvarList,ltvTable);
          if ltvTable.first<>nil then
           begin
+            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
             { add begin and end of the list }
-            ltvTable.insert(tai_symbol.createdataname_global(current_module.modulename^+'_$THREADVARLIST',0));
+            ltvTable.insert(tai_symbol.createdataname_global(s,0));
             ltvTable.concat(tai_const.create_32bit(0));  { end of list marker }
-            ltvTable.concat(tai_symbol_end.createname(current_module.modulename^+'_$THREADVARLIST'));
+            ltvTable.concat(tai_symbol_end.createname(s));
             if (cs_create_smart in aktmoduleswitches) then
              dataSegment.concat(Tai_cut.Create);
             dataSegment.concatlist(ltvTable);
@@ -264,7 +266,7 @@ implementation
          begin
            If (hp.u.flags and uf_has_resources)=uf_has_resources then
             begin
-              ResourceStringTables.concat(Tai_const_symbol.Createdataname(hp.u.modulename^+'_RESOURCESTRINGLIST'));
+              ResourceStringTables.concat(Tai_const_symbol.Createdataname(make_mangledname('RESOURCESTRINGLIST',hp.u.globalsymtable,'')));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -272,7 +274,7 @@ implementation
         { Add program resources, if any }
         If ResourceStringList<>Nil then
          begin
-           ResourceStringTables.concat(Tai_const_symbol.Createdataname(current_module.modulename^+'_RESOURCESTRINGLIST'));
+           ResourceStringTables.concat(Tai_const_symbol.Createdataname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,'')));
            Inc(Count);
          end;
         { TableCount }
@@ -303,11 +305,11 @@ implementation
            if (hp.u.flags and (uf_init or uf_finalize))<>0 then
             begin
               if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const_symbol.Createname('INIT$$'+hp.u.modulename^))
+               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',hp.u.globalsymtable,'')))
               else
                unitinits.concat(Tai_const.Create_32bit(0));
               if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const_symbol.Createname('FINALIZE$$'+hp.u.modulename^))
+               unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,'')))
               else
                unitinits.concat(Tai_const.Create_32bit(0));
               inc(count);
@@ -318,11 +320,11 @@ implementation
         if (current_module.flags and (uf_init or uf_finalize))<>0 then
          begin
            if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const_symbol.Createname('INIT$$'+current_module.modulename^))
+            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('INIT$',current_module.localsymtable,'')))
            else
             unitinits.concat(Tai_const.Create_32bit(0));
            if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const_symbol.Createname('FINALIZE$$'+current_module.modulename^))
+            unitinits.concat(Tai_const_symbol.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,'')))
            else
             unitinits.concat(Tai_const.Create_32bit(0));
            inc(count);
@@ -763,13 +765,13 @@ implementation
         case flag of
           uf_init :
             begin
-              pd:=create_main_proc(current_module.modulename^+'_init_implicit',potype_unitinit,st);
-              pd.aliasnames.insert('INIT$$'+current_module.modulename^);
+              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit'),potype_unitinit,st);
+              pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
             end;
           uf_finalize :
             begin
-              pd:=create_main_proc(current_module.modulename^+'_finalize_implicit',potype_unitfinalize,st);
-              pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit'),potype_unitfinalize,st);
+              pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
             end;
           else
             internalerror(200304253);
@@ -994,8 +996,8 @@ implementation
            internalerror(200212285);
 
          { Compile the unit }
-         pd:=create_main_proc(current_module.modulename^+'_init',potype_unitinit,st);
-         pd.aliasnames.insert('INIT$$'+current_module.modulename^);
+         pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,st);
+         pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
          tcgprocinfo(current_procinfo).resetprocdef;
@@ -1017,8 +1019,8 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
-              pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,st);
+              pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               tcgprocinfo(current_procinfo).parse_body;
               tcgprocinfo(current_procinfo).generate_code;
               tcgprocinfo(current_procinfo).resetprocdef;
@@ -1277,7 +1279,7 @@ implementation
            from the bootstrap code.}
          if islibrary then
           begin
-            pd:=create_main_proc(current_module.modulename^+'_main',potype_proginit,st);
+            pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'main'),potype_proginit,st);
             { Win32 startup code needs a single name }
 //            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             pd.aliasnames.insert('PASCALMAIN');
@@ -1323,8 +1325,8 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
-              pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
+              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,st);
+              pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               tcgprocinfo(current_procinfo).parse_body;
               tcgprocinfo(current_procinfo).generate_code;
               tcgprocinfo(current_procinfo).resetprocdef;
@@ -1418,7 +1420,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2003-10-24 17:40:23  peter
+  Revision 1.132  2003-10-29 19:48:51  peter
+    * renamed mangeldname_prefix to make_mangledname and made it more
+      generic
+    * make_mangledname is now also used for internal threadvar/resstring
+      lists
+    * Add P$ in front of program modulename to prevent duplicated symbols
+      at assembler level, because the main program can have the same name
+      as a unit, see webtbs/tw1251b
+
+  Revision 1.131  2003/10/24 17:40:23  peter
     * cleanup of the entry and exit code insertion
 
   Revision 1.130  2003/10/22 15:22:33  peter

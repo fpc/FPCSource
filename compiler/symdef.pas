@@ -759,7 +759,7 @@ interface
 {$endif ARM}
 
     function reverseparaitems(p: tparaitem): tparaitem;
-    function mangledname_prefix(typeprefix:string;st:tsymtable):string;
+    function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
 
 {$ifdef GDB}
     { GDB Helpers }
@@ -824,7 +824,7 @@ implementation
       end;
 
 
-    function mangledname_prefix(typeprefix:string;st:tsymtable):string;
+    function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
       var
         s,
         prefix : string;
@@ -854,7 +854,20 @@ implementation
         { symtable must now be static or global }
         if not(st.symtabletype in [staticsymtable,globalsymtable]) then
          internalerror(200204175);
-        mangledname_prefix:=typeprefix+'_'+st.name^+'_'+prefix;
+        result:='';
+        if typeprefix<>'' then
+          result:=result+typeprefix+'_';
+        { Add P$ for program, which can have the same name as
+          a unit }
+        if (tsymtable(main_module.localsymtable)=st) and
+           (not main_module.is_unit) then
+          result:=result+'P$'+st.name^
+        else
+          result:=result+st.name^;
+        if prefix<>'' then
+          result:=result+'_'+prefix;
+        if suffix<>'' then
+          result:=result+'_'+suffix;
       end;
 
 
@@ -4229,7 +4242,7 @@ implementation
          end;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
-        s:=mangledname_prefix('',procsym.owner)+procsym.name;
+        s:=make_mangledname('',procsym.owner,procsym.name);
         if overloadnumber>0 then
          s:=s+'$'+tostr(overloadnumber);
         { add parameter types }
@@ -4973,13 +4986,13 @@ implementation
     begin
       if not(oo_has_vmt in objectoptions) then
         Message1(parser_n_object_has_no_vmt,objrealname^);
-      vmt_mangledname:=mangledname_prefix('VMT',owner)+objname^;
+      vmt_mangledname:=make_mangledname('VMT',owner,objname^);
     end;
 
 
     function tobjectdef.rtti_name : string;
     begin
-      rtti_name:=mangledname_prefix('RTTI',owner)+objname^;
+      rtti_name:=make_mangledname('RTTI',owner,objname^);
     end;
 
 
@@ -6091,7 +6104,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.184  2003-10-23 14:44:07  peter
+  Revision 1.185  2003-10-29 19:48:51  peter
+    * renamed mangeldname_prefix to make_mangledname and made it more
+      generic
+    * make_mangledname is now also used for internal threadvar/resstring
+      lists
+    * Add P$ in front of program modulename to prevent duplicated symbols
+      at assembler level, because the main program can have the same name
+      as a unit, see webtbs/tw1251b
+
+  Revision 1.184  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

@@ -100,7 +100,7 @@ implementation
                  if tconstsym(symtableentry).consttyp=constresourcestring then
                    begin
                       location_reset(location,LOC_CREFERENCE,OS_ADDR);
-                      location.reference.symbol:=objectlibrary.newasmsymboldata(tconstsym(symtableentry).owner.name^+'_RESOURCESTRINGLIST');
+                      location.reference.symbol:=objectlibrary.newasmsymboldata(make_mangledname('RESOURCESTRINGLIST',tconstsym(symtableentry).owner,''));
                       location.reference.offset:=tconstsym(symtableentry).resstrindex*16+8;
                    end
                  else
@@ -892,7 +892,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-10-28 15:36:01  peter
+  Revision 1.98  2003-10-29 19:48:50  peter
+    * renamed mangeldname_prefix to make_mangledname and made it more
+      generic
+    * make_mangledname is now also used for internal threadvar/resstring
+      lists
+    * Add P$ in front of program modulename to prevent duplicated symbols
+      at assembler level, because the main program can have the same name
+      as a unit, see webtbs/tw1251b
+
+  Revision 1.97  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.96  2003/10/17 14:38:32  peter

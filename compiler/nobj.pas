@@ -826,8 +826,8 @@ implementation
 
     function  tclassheader.gintfgetvtbllabelname(intfindex: integer): string;
       begin
-        gintfgetvtbllabelname:=mangledname_prefix('VTBL',_class.owner)+_class.objname^+
-                               '_$_'+_class.implementedinterfaces.interfaces(intfindex).objname^;
+        gintfgetvtbllabelname:=make_mangledname('VTBL',_class.owner,_class.objname^+
+                               '_$_'+_class.implementedinterfaces.interfaces(intfindex).objname^);
       end;
 
 
@@ -848,9 +848,9 @@ implementation
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
-            tmps:=mangledname_prefix('WRPR',_class.owner)+_class.objname^+'_$_'+curintf.objname^+'_$_'+
+            tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+curintf.objname^+'_$_'+
               tostr(i)+'_$_'+
-              implintf.implprocs(intfindex,i).mangledname;
+              implintf.implprocs(intfindex,i).mangledname);
             { create wrapper code }
             cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
             { create reference }
@@ -1146,7 +1146,7 @@ implementation
         begin
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
-          dataSegment.concat(Tai_symbol.Createname_global(mangledname_prefix('IID',_class.owner)+_class.objname^,0));
+          dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),0));
           dataSegment.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
@@ -1155,7 +1155,7 @@ implementation
         end;
       if (cs_create_smart in aktmoduleswitches) then
         dataSegment.concat(Tai_cut.Create);
-      dataSegment.concat(Tai_symbol.Createname_global(mangledname_prefix('IIDSTR',_class.owner)+_class.objname^,0));
+      dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IIDSTR',_class.owner,_class.objname^),0));
       dataSegment.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       dataSegment.concat(Tai_string.Create(_class.iidstr^));
     end;
@@ -1368,7 +1368,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.53  2003-10-13 14:05:12  peter
+  Revision 1.54  2003-10-29 19:48:50  peter
+    * renamed mangeldname_prefix to make_mangledname and made it more
+      generic
+    * make_mangledname is now also used for internal threadvar/resstring
+      lists
+    * Add P$ in front of program modulename to prevent duplicated symbols
+      at assembler level, because the main program can have the same name
+      as a unit, see webtbs/tw1251b
+
+  Revision 1.53  2003/10/13 14:05:12  peter
     * removed is_visible_for_proc
     * search also for class overloads when finding interface
       implementations
