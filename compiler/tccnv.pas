@@ -234,7 +234,7 @@ implementation
     type
        tfirstconvproc = procedure(var p : ptree);
 
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
 
     procedure first_int_to_int(var p : ptree);
       begin
@@ -449,7 +449,7 @@ implementation
       end;
 
 
-{$ifndef NEWCNV}
+{$ifdef OLDCNV}
     procedure first_locmem(var p : ptree);
       begin
          p^.location.loc:=LOC_MEM;
@@ -546,7 +546,7 @@ implementation
       proctype : tdeftype;
     const
        firstconvert : array[tconverttype] of tfirstconvproc = (
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
          first_nothing, {equal}
          first_nothing, {not_possible}
          first_string_to_string,
@@ -955,7 +955,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-11-26 13:10:43  peter
+  Revision 1.10  1998-11-29 12:40:24  peter
+    * newcnv -> not oldcnv
+
+  Revision 1.9  1998/11/26 13:10:43  peter
     * new int - int conversion -dNEWCNV
     * some function renamings
 

@@ -49,7 +49,7 @@ implementation
     type
       tsecondconvproc = procedure(pto,pfrom : ptree;convtyp : tconverttype);
 
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
 
     procedure second_int_to_int(pto,pfrom : ptree;convtyp : tconverttype);
       var
@@ -478,7 +478,7 @@ implementation
            maybe_rangechecking(pto,pfrom^.resulttype,pto^.resulttype);
        end;
 
-{$endif NEWCNV}
+{$endif}
 
     procedure second_string_to_string(pto,pfrom : ptree;convtyp : tconverttype);
       var
@@ -1267,7 +1267,7 @@ implementation
     procedure secondtypeconv(var p : ptree);
       const
          secondconvert : array[tconverttype] of tsecondconvproc = (
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
            second_nothing, {equal}
            second_nothing, {not_possible}
            second_string_to_string,
@@ -1449,7 +1449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1998-11-26 21:33:06  peter
+  Revision 1.38  1998-11-29 12:40:19  peter
+    * newcnv -> not oldcnv
+
+  Revision 1.37  1998/11/26 21:33:06  peter
     * rangecheck updates
 
   Revision 1.36  1998/11/26 14:39:11  peter

@@ -64,7 +64,7 @@ implementation
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : boolean;
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
       { Tbasetype:  uauto,uvoid,uchar,
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32,
@@ -167,7 +167,7 @@ implementation
                case def_from^.deftype of
                  orddef :
                    begin
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
                      doconv:=basedefconverts[basedeftbl[porddef(def_from)^.typ],basedeftbl[porddef(def_to)^.typ]];
                      b:=true;
                      if (doconv=tc_not_possible) or
@@ -185,7 +185,7 @@ implementation
                        b:=false;
 {$endif}
                    end;
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
                  enumdef :
                    begin
                      doconv:=tc_int_2_int;
@@ -710,7 +710,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-11-26 13:10:42  peter
+  Revision 1.10  1998-11-29 12:40:23  peter
+    * newcnv -> not oldcnv
+
+  Revision 1.9  1998/11/26 13:10:42  peter
     * new int - int conversion -dNEWCNV
     * some function renamings
 

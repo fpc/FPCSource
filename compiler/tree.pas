@@ -129,7 +129,7 @@ unit tree;
           loadvmtn
        );
 
-{$ifdef NEWCNV}
+{$ifndef OLDCNV}
        tconverttype = (
           tc_equal,
           tc_not_possible,
@@ -1652,7 +1652,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.54  1998-11-26 13:10:44  peter
+  Revision 1.55  1998-11-29 12:40:20  peter
+    * newcnv -> not oldcnv
+
+  Revision 1.54  1998/11/26 13:10:44  peter
     * new int - int conversion -dNEWCNV
     * some function renamings
 
