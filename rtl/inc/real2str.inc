@@ -41,14 +41,14 @@ const
 
 var correct : longint;  { Power correction }
     currprec : longint;
-    roundcorr : Valreal;
+    il,roundcorr : Valreal;
     temp : string;
     power : string[10];
     sign : boolean;
     i : integer;
     dot : byte;
     currp : pchar;
-    il : longint;
+    { il : longint; caused overflows !! PM }
 begin
   case real_type of
     rt_s32real :
@@ -234,7 +234,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-11-02 15:05:53  peter
+  Revision 1.16  1999-11-03 00:55:09  pierre
+   * problem of last commit for large d values corrected
+
+  Revision 1.15  1999/11/02 15:05:53  peter
     * better precisio by dividing only once with a calculated longint
       instead of multiple times by 10
 
