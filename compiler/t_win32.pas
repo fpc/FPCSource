@@ -682,6 +682,18 @@ begin
       LinkRes.AddFileName(GetShortName(s));
    end;
 
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+     LinkRes.Add('GROUP(');
+     While not StaticLibFiles.Empty do
+      begin
+        S:=StaticLibFiles.Get;
+        LinkRes.AddFileName(GetShortName(s));
+      end;
+     LinkRes.Add(')');
+   end;
+
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
   linklibc:=false;
@@ -705,18 +717,6 @@ begin
   if linklibc then
    LinkRes.Add('-lc');
   LinkRes.Add(')');
-
-  { Write staticlibraries }
-  if not StaticLibFiles.Empty then
-   begin
-     LinkRes.Add('GROUP(');
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.Get;
-        LinkRes.AddFileName(GetShortName(s));
-      end;
-     LinkRes.Add(')');
-   end;
 
 { Write and Close response }
   linkres.writetodisk;
@@ -1083,7 +1083,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-01-07 01:14:43  peter
+  Revision 1.16  2000-01-09 00:55:51  pierre
+    * GROUP of smartlink units put before the C libraries
+      to allow for smartlinking code that uses C code.
+
+  Revision 1.15  2000/01/07 01:14:43  peter
     * updated copyright to 2000
 
   Revision 1.14  2000/01/07 00:10:26  peter
