@@ -417,9 +417,19 @@ var
 
            ait_align :
              begin
-               AsmWrite(#9'.balign '+tostr(tai_align(hp).aligntype));
-               if tai_align(hp).use_op then
-                AsmWrite(','+tostr(tai_align(hp).fillop));
+               if target_info.system <> system_powerpc_darwin then
+                 begin
+                   AsmWrite(#9'.balign '+tostr(tai_align(hp).aligntype));
+                   if tai_align(hp).use_op then
+                    AsmWrite(','+tostr(tai_align(hp).fillop))
+                 end
+               else
+                 begin
+                   { darwin as only supports .align }
+                   if not ispowerof2(tai_align(hp).aligntype,i) then
+                     internalerror(2003010305);
+                   AsmWrite(#9'.align '+tostr(i));
+                 end;
                AsmLn;
              end;
 
@@ -835,7 +845,10 @@ var
 end.
 {
   $Log$
-  Revision 1.40  2004-01-03 13:51:05  jonas
+  Revision 1.41  2004-01-04 21:08:59  jonas
+    * darwin only supports .align, no .balign
+
+  Revision 1.40  2004/01/03 13:51:05  jonas
     + support exported procedures for linuxppc
     * refuse to compile systems/t_linux.pas if processor-specific  support
       for exported procedures is absent
