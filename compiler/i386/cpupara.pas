@@ -54,6 +54,7 @@ unit cpupara;
     uses
        systems,verbose,
        symconst,symsym,
+       cpuinfo,
        cgbase;
 
 
@@ -167,7 +168,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-06-06 07:36:06  michael
+  Revision 1.17  2003-06-06 14:41:22  peter
+    * needs cpuinfo
+
+  Revision 1.16  2003/06/06 07:36:06  michael
   + Forgot a line in patch from peter
 
   Revision 1.15  2003/06/06 07:35:14  michael
