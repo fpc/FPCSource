@@ -69,8 +69,8 @@ asm
   movl sysnr,%eax
   movl param1,%ebx
   int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
+  cmpl  $-4095,%eax
+  jb   .LSyscOK
   negl  %eax
 {$ifdef VER1_0}
   movl  %eax,Errno
@@ -351,7 +351,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-03-03 22:10:48  peter
+  Revision 1.14  2004-03-10 21:41:53  jonas
+    * fixed syscall return value checking
+
+  Revision 1.13  2004/03/03 22:10:48  peter
     * fixed previous commit
 
   Revision 1.12  2004/03/03 22:03:10  peter
