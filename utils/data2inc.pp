@@ -490,6 +490,8 @@ var
   PROCEDURE FixDec;
   { Reads decimal value starting at S1[1].
        Value in I3, number of digits found in I1}
+       var I1,I2,i3 : longint;
+       
   BEGIN
    I1:=1;
    WHILE ((S1[I1]>#47) AND (S1[I1]<#58)) AND (I1<=Length(S1)) DO
@@ -890,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-11-23 09:42:18  peter
+  Revision 1.3  1999-12-03 10:49:31  michael
+  Counters must be global or completely local
+
+  Revision 1.2  1999/11/23 09:42:18  peter
     + -s for string writing
     * some small cleanups
 
