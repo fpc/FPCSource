@@ -182,7 +182,7 @@ interface
 
        { Default calling convention }
 {$ifdef x86}
-       pocall_default = pocall_stdcall;
+       pocall_default = pocall_register;
 {$else}
        pocall_default = pocall_stdcall;
 {$endif}
@@ -234,7 +234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-12-14 20:51:17  daniel
+  Revision 1.48  2003-12-23 23:22:35  peter
+    * register calling is now default for i386
+
+  Revision 1.47  2003/12/14 20:51:17  daniel
     * Register calling disabled again
 
   Revision 1.46  2003/12/14 20:24:28  daniel
