@@ -632,8 +632,13 @@ begin
    begin
      ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      DllCmd[1]:='ldw $OPT --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC -d $DEF';
-     DllCmd[3]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     if RelocSection then
+       begin
+          ExeCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+          ExeCmd[3]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+          DllCmd[2]:='dlltool --as asw.exe --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+          DllCmd[3]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+       end;
    end;
 end;
 
@@ -755,7 +760,7 @@ begin
 
 { Call linker }
   success:=false;
-  for i:=1to 1 do
+  for i:=1 to 3 do
    begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
@@ -767,6 +772,10 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
+        if not DefFile.Empty then
+          Replace(cmdstr,'$DEF','-d '+deffile.fname)
+        else
+          Replace(cmdstr,'$DEF','');
         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
         if not success then
          break;
@@ -835,7 +844,10 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
-        Replace(cmdstr,'$DEF',deffile.fname);
+        if not DefFile.Empty then
+          Replace(cmdstr,'$DEF','-d '+deffile.fname)
+        else
+          Replace(cmdstr,'$DEF','');
         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
         if not success then
          break;
@@ -1044,7 +1056,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-11-12 11:03:50  peter
+  Revision 1.7  1999-11-15 15:01:56  pierre
+   + Pavel's changes to support reloc section in exes
+
+  Revision 1.6  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.5  1999/11/04 10:55:31  peter
