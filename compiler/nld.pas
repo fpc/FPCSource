@@ -141,30 +141,10 @@ implementation
 
 
     function tloadnode.det_resulttype:tnode;
-      begin
-         result:=nil;
-         case symtableentry.typ of
-           absolutesym,
-           varsym :
-             resulttype:=tvarsym(symtableentry).vartype;
-           constsym :
-             resulttype:=tconstsym(symtableentry).consttype;
-           typedconstsym :
-             resulttype:=ttypedconstsym(symtableentry).typedconsttype;
-           procsym :
-             resulttype.setdef(tprocsym(symtableentry).definition);
-           else
-             internalerror(534785349);
-         end;
-      end;
-
-
-    function tloadnode.pass_1 : tnode;
       var
-         p1 : tnode;
+        p1 : tnode;
       begin
          result:=nil;
-
          { optimize simple with loadings }
          if (symtable.symtabletype=withsymtable) and
             (twithsymtable(symtable).direct_with) and
@@ -173,20 +153,15 @@ implementation
               p1:=tnode(twithsymtable(symtable).withrefnode).getcopy;
               p1:=csubscriptnode.create(tvarsym(symtableentry),p1);
               left:=nil;
-              firstpass(p1);
+              resulttypepass(p1);
               result:=p1;
               exit;
            end;
-
-         location.loc:=LOC_REFERENCE;
-         registers32:=0;
-         registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=0;
-{$endif SUPPORT_MMX}
          { handle first absolute as it will replace the symtableentry }
          if symtableentry.typ=absolutesym then
            begin
+             { force the resulttype to the type of the absolute }
+             resulttype:=tabsolutesym(symtableentry).vartype;
              { replace the symtableentry when it points to a var, else
                we are finished }
              if tabsolutesym(symtableentry).abstyp=tovar then
@@ -202,7 +177,7 @@ implementation
             funcretsym :
               begin
                 p1:=cfuncretnode.create(tfuncretsym(symtableentry).funcretprocinfo);
-                firstpass(p1);
+                resulttypepass(p1);
                 { if it's refered as absolute then we need to have the
                   type of the absolute instead of the function return,
                   the function return is then also assigned }
@@ -217,13 +192,7 @@ implementation
             constsym:
               begin
                  if tconstsym(symtableentry).consttyp=constresourcestring then
-                   begin
-                      resulttype:=cansistringtype;
-                      { we use ansistrings so no fast exit here }
-                      if assigned(procinfo) then
-                        procinfo^.no_fast_exit:=true;
-                      location.loc:=LOC_MEM;
-                   end
+                   resulttype:=cansistringtype
                  else
                    internalerror(22799);
               end;
@@ -231,7 +200,64 @@ implementation
                 begin
                   { if it's refered by absolute then it's used }
                   if nf_absolute in flags then
-                   tvarsym(symtableentry).varstate:=vs_used;
+                   tvarsym(symtableentry).varstate:=vs_used
+                  else
+                   resulttype:=tvarsym(symtableentry).vartype;
+                end;
+            typedconstsym :
+                if not(nf_absolute in flags) then
+                  resulttype:=ttypedconstsym(symtableentry).typedconsttype;
+            procsym :
+                begin
+                   if assigned(tprocsym(symtableentry).definition.nextoverloaded) then
+                     CGMessage(parser_e_no_overloaded_procvars);
+                   resulttype.setdef(tprocsym(symtableentry).definition);
+                   { if the owner of the procsym is a object,  }
+                   { left must be set, if left isn't set       }
+                   { it can be only self                       }
+                   { this code is only used in TP procvar mode }
+                   if (m_tp_procvar in aktmodeswitches) and
+                      not(assigned(left)) and
+                      (tprocsym(symtableentry).owner.symtabletype=objectsymtable) then
+                    begin
+                      left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
+                    end;
+                   { method pointer ? }
+                   if assigned(left) then
+                     resulttypepass(left);
+                end;
+           else
+             internalerror(200104141);
+         end;
+      end;
+
+
+    function tloadnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         location.loc:=LOC_REFERENCE;
+         registers32:=0;
+         registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         registersmmx:=0;
+{$endif SUPPORT_MMX}
+         case symtableentry.typ of
+            absolutesym :
+              ;
+            funcretsym :
+              internalerror(200104142);
+            constsym:
+              begin
+                 if tconstsym(symtableentry).consttyp=constresourcestring then
+                   begin
+                      { we use ansistrings so no fast exit here }
+                      if assigned(procinfo) then
+                        procinfo^.no_fast_exit:=true;
+                      location.loc:=LOC_MEM;
+                   end;
+              end;
+            varsym :
+                begin
                   if (symtable.symtabletype in [parasymtable,localsymtable]) and
                       (lexlevel>symtable.symtablelevel) then
                      begin
@@ -272,23 +298,9 @@ implementation
                      inc(tvarsym(symtableentry).refs,t_times);
                 end;
             typedconstsym :
-                if not(nf_absolute in flags) then
-                  resulttype:=ttypedconstsym(symtableentry).typedconsttype;
+                ;
             procsym :
                 begin
-                   if assigned(tprocsym(symtableentry).definition.nextoverloaded) then
-                     CGMessage(parser_e_no_overloaded_procvars);
-                   resulttype.setdef(tprocsym(symtableentry).definition);
-                   { if the owner of the procsym is a object,  }
-                   { left must be set, if left isn't set       }
-                   { it can be only self                       }
-                   { this code is only used in TP procvar mode }
-                   if (m_tp_procvar in aktmodeswitches) and
-                      not(assigned(left)) and
-                      (tprocsym(symtableentry).owner.symtabletype=objectsymtable) then
-                    begin
-                      left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
-                    end;
                    { method pointer ? }
                    if assigned(left) then
                      begin
@@ -301,7 +313,7 @@ implementation
                      end;
                 end;
            else
-             internalerror(3);
+             internalerror(200104143);
          end;
       end;
 
@@ -737,7 +749,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:10  peter
+  Revision 1.15  2001-04-14 14:06:31  peter
+    * move more code from loadnode.pass_1 to det_resulttype
+
+  Revision 1.14  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
