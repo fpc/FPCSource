@@ -239,8 +239,7 @@ implementation
          tempconst.free;
 
          location.register := cg.getfpuregister(exprasmlist,OS_F64);
-         exprasmlist.concat(taicpu.op_reg_ref(A_LFD,location.register,
-           ref));
+         cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,ref,location.register);
 
          tg.ungetiftemp(exprasmlist,ref);
 
@@ -371,7 +370,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-03-17 20:06:56  jonas
+  Revision 1.52  2004-05-19 22:26:46  jonas
+    * fixed web bug 3103: the fpu conversion code couldn't deal with offsets
+      outside the smallint range
+
+  Revision 1.51  2004/03/17 20:06:56  jonas
     * fixed missing restoring of true/falselabels in case of explicit
       integer to same-sized boolean conversions
 
