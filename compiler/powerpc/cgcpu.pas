@@ -2128,10 +2128,9 @@ const
                  { a register here, we must first reallocate the index register, since }
                  { otherwise it may be overwritten (and it's still used afterwards)    }
                  freeindex := false;
-                 if (getsupreg(ref.index) < first_int_imreg) and
+                 if (ref.index >= first_int_imreg) and
                     (supregset_in(rgint.unusedregs,getsupreg(ref.index))) then
                    begin
-                     internalerror(200310191);
                      rgint.getexplicitregister(list,ref.index);
                      orgindex := ref.index;
                      freeindex := true;
@@ -2448,7 +2447,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2003-11-30 10:16:05  jonas
+  Revision 1.139  2003-11-30 11:32:12  jonas
+    * fixded fixref() regarding the reallocation of already freed registers
+      used in references
+
+  Revision 1.138  2003/11/30 10:16:05  jonas
     * fixed fpu regallocator initialisation
 
   Revision 1.137  2003/11/21 16:29:26  florian
