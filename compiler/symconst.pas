@@ -252,6 +252,12 @@ type
     constresourcestring
   );
 
+{$ifdef GDB}
+  tdefstabstatus = (
+    not_written,
+    being_written,
+    written);
+{$endif GDB}
 
 const
   { relevant options for assigning a proc or a procvar to a procvar }
@@ -277,7 +283,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-06 19:39:28  peter
+  Revision 1.6  2000-08-21 11:27:44  pierre
+   * fix the stabs problems
+
+  Revision 1.5  2000/08/06 19:39:28  peter
     * default parameters working !
 
   Revision 1.4  2000/08/05 13:25:06  peter

@@ -1225,7 +1225,7 @@ implementation
 
     procedure forcestabto(asmlist : paasmoutput; pd : pdef);
       begin
-        if not pd^.is_def_stab_written then
+        if pd^.is_def_stab_written = not_written then
          begin
            if assigned(pd^.typesym) then
             pd^.typesym^.isusedinstab := true;
@@ -2034,7 +2034,7 @@ implementation
                (symtabletype in [globalsymtable,staticsymtable]) then
               begin
                 ptypesym(sym)^.isusedinstab := true;
-                sym^.concatstabto(debuglist);
+                {sym^.concatstabto(debuglist);}
               end;
 {$endif GDB}
           end;
@@ -2679,7 +2679,7 @@ implementation
 {$ifdef GDB}
             if assigned(def^.typesym) then
               def^.typesym^.isusedinstab:=false;
-            def^.is_def_stab_written:=false;
+            def^.is_def_stab_written:=not_written;
 {$endif GDB}
             {if not current_module^.in_implementation then}
               begin
@@ -2993,7 +2993,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-20 14:58:41  peter
+  Revision 1.6  2000-08-21 11:27:45  pierre
+   * fix the stabs problems
+
+  Revision 1.5  2000/08/20 14:58:41  peter
     * give fatal if objfpc/delphi mode things are found (merged)
 
   Revision 1.4  2000/08/16 18:33:54  peter

@@ -49,7 +49,7 @@
          has_rtti:=false;
          has_inittable:=false;
 {$ifdef GDB}
-         is_def_stab_written := false;
+         is_def_stab_written := not_written;
          globalnb := 0;
 {$endif GDB}
          if assigned(lastglobaldef) then
@@ -79,7 +79,7 @@
          has_rtti:=false;
          has_inittable:=false;
 {$ifdef GDB}
-         is_def_stab_written := false;
+         is_def_stab_written := not_written;
          globalnb := 0;
 {$endif GDB}
          if assigned(lastglobaldef) then
@@ -253,7 +253,7 @@
            {set even if debuglist is not defined}
            if assigned(typesym) then
              typesym^.isusedinstab := true;
-           if assigned(debuglist) and not is_def_stab_written then
+           if assigned(debuglist) and (is_def_stab_written = not_written) then
              concatstabto(debuglist);
         end;
       if not (cs_gdb_dbx in aktglobalswitches) then
@@ -321,7 +321,7 @@
      var stab_str : pchar;
     begin
     if ((typesym = nil) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-      and not is_def_stab_written then
+      and (is_def_stab_written = not_written) then
       begin
       If cs_gdb_dbx in aktglobalswitches then
         begin
@@ -335,15 +335,16 @@
                  punitsymtable(typesym^.owner)^.dbx_count_ok)  then
                 begin
                    {with DBX we get the definition from the other objects }
-                   is_def_stab_written := true;
+                   is_def_stab_written := written;
                    exit;
                 end;
              end;
         end;
       { to avoid infinite loops }
-      is_def_stab_written := true;
+      is_def_stab_written := being_written;
       stab_str := allstabstring;
       asmlist^.concat(new(pai_stabs,init(stab_str)));
+      is_def_stab_written := written;
       end;
     end;
 {$endif GDB}
@@ -1390,7 +1391,7 @@
       begin
       { most file defs are unnamed !!! }
       if ((typesym = nil) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-         not is_def_stab_written then
+         (is_def_stab_written  = not_written) then
         begin
         if assigned(typedfiletype.def) then forcestabto(asmlist,typedfiletype.def);
         inherited concatstabto(asmlist);
@@ -1510,43 +1511,47 @@
         exit;
 
       if ( (typesym=nil) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-         not is_def_stab_written then
+         (is_def_stab_written = not_written) then
         begin
-        if assigned(pointertype.def) then
-          if pointertype.def^.deftype in [recorddef,objectdef] then
-            begin
-            is_def_stab_written := true;
+          is_def_stab_written := being_written;
+        if assigned(pointertype.def) and
+           (pointertype.def^.deftype in [recorddef,objectdef]) then
+          begin
             nb:=pointertype.def^.numberstring;
             {to avoid infinite recursion in record with next-like fields }
-            is_def_stab_written := false;
-            if not pointertype.def^.is_def_stab_written then
+            if pointertype.def^.is_def_stab_written = being_written then
               begin
-              if assigned(pointertype.def^.typesym) then
-                begin
-                if assigned(typesym) then
+                if assigned(pointertype.def^.typesym) then
                   begin
-                     st := typesym^.name;
-                     sym_line_no:=typesym^.fileinfo.line;
-                  end
-                else
-                  begin
-                     st := ' ';
-                     sym_line_no:=0;
-                  end;
-                st := '"'+st+':t'+numberstring+'=*'+nb
-                      +'=xs'+pointertype.def^.typesym^.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
-                asmlist^.concat(new(pai_stabs,init(strpnew(st))));
-                end;
-              end else inherited concatstabto(asmlist);
-            is_def_stab_written := true;
-            end else
-            begin
-            { p =^p1; p1=^p problem }
-            is_def_stab_written := true;
-            forcestabto(asmlist,pointertype.def);
-            is_def_stab_written := false;
+                    if assigned(typesym) then
+                      begin
+                         st := typesym^.name;
+                         sym_line_no:=typesym^.fileinfo.line;
+                      end
+                    else
+                      begin
+                         st := ' ';
+                         sym_line_no:=0;
+                      end;
+                    st := '"'+st+':t'+numberstring+'=*'+nb
+                          +'=xs'+pointertype.def^.typesym^.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
+                    asmlist^.concat(new(pai_stabs,init(strpnew(st))));
+                    end;
+              end
+            else
+              begin
+                is_def_stab_written := not_written;
+                inherited concatstabto(asmlist);
+              end;
+            is_def_stab_written := written;
+          end
+        else
+          begin
+            if assigned(pointertype.def) then
+              forcestabto(asmlist,pointertype.def);
+            is_def_stab_written := not_written;
             inherited concatstabto(asmlist);
-            end;
+          end;
         end;
       end;
 {$endif GDB}
@@ -1707,7 +1712,7 @@
     procedure tsetdef.concatstabto(asmlist : paasmoutput);
       begin
       if ( not assigned(typesym) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-          not is_def_stab_written then
+          (is_def_stab_written = not_written) then
         begin
           if assigned(elementtype.def) then
             forcestabto(asmlist,elementtype.def);
@@ -1913,7 +1918,7 @@
     procedure tarraydef.concatstabto(asmlist : paasmoutput);
       begin
       if (not assigned(typesym) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-        and not is_def_stab_written then
+        and (is_def_stab_written = not_written) then
         begin
         {when array are inserted they have no definition yet !!}
         if assigned(elementtype.def) then
@@ -2220,7 +2225,7 @@
     procedure trecorddef.concatstabto(asmlist : paasmoutput);
       begin
         if (not assigned(typesym) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
-           (not is_def_stab_written) then
+           (is_def_stab_written = not_written)  then
           inherited concatstabto(asmlist);
       end;
 
@@ -2586,7 +2591,7 @@
     procedure tabstractprocdef.concatstabto(asmlist : paasmoutput);
       begin
          if (not assigned(typesym) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-            and not is_def_stab_written then
+            and (is_def_stab_written = not_written)  then
            begin
               if assigned(rettype.def) then forcestabto(asmlist,rettype.def);
               inherited concatstabto(asmlist);
@@ -3274,9 +3279,9 @@ Const local_symtable_index : longint = $8001;
     procedure tprocvardef.concatstabto(asmlist : paasmoutput);
       begin
          if ( not assigned(typesym) or typesym^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
-           and not is_def_stab_written then
+           and (is_def_stab_written = not_written)  then
            inherited concatstabto(asmlist);
-         is_def_stab_written:=true;
+         is_def_stab_written:=written;
       end;
 {$endif GDB}
 
@@ -3745,7 +3750,7 @@ Const local_symtable_index : longint = $8001;
                      end;
                    para := pparaitem(para^.next);
                    end;
-                ipd^.is_def_stab_written := true;
+                ipd^.is_def_stab_written := written;
                 { here 2A must be changed for private and protected }
                 { 0 is private 1 protected and 2 public }
                 if (sp_private in psym(p)^.symoptions) then sp:='0'
@@ -4252,7 +4257,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.11  2000-08-16 18:33:54  peter
+  Revision 1.12  2000-08-21 11:27:44  pierre
+   * fix the stabs problems
+
+  Revision 1.11  2000/08/16 18:33:54  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)

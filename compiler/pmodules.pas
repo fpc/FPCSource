@@ -845,27 +845,22 @@ unit pmodules;
                 end;
               hp:=pused_unit(hp^.next);
            end;
-         if current_module^.in_implementation then
+         if current_module^.in_implementation and
+            assigned(current_module^.localsymtable) then
            begin
-              if assigned(current_module^.localsymtable) then
-                begin
-                   { all types }
-                   punitsymtable(current_module^.localsymtable)^.concattypestabto(debuglist);
-                   { and all local symbols}
-                   punitsymtable(current_module^.localsymtable)^.concatstabto(debuglist);
-                end;
+              { all types }
+              punitsymtable(current_module^.localsymtable)^.concattypestabto(debuglist);
+              { and all local symbols}
+              punitsymtable(current_module^.localsymtable)^.concatstabto(debuglist);
            end
-         else
+         else if assigned(current_module^.globalsymtable) then
            begin
-              if assigned(current_module^.globalsymtable) then
-                begin
-                   { all types }
-                   punitsymtable(current_module^.globalsymtable)^.concattypestabto(debuglist);
-                   { and all local symbols}
-                   punitsymtable(current_module^.globalsymtable)^.concatstabto(debuglist);
-                end;
+              { all types }
+              punitsymtable(current_module^.globalsymtable)^.concattypestabto(debuglist);
+              { and all local symbols}
+              punitsymtable(current_module^.globalsymtable)^.concatstabto(debuglist);
            end;
-        end;
+       end;
 {$Else GDB}
        begin
        end;
@@ -1707,10 +1702,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-08-21 11:27:44  pierre
+   * fix the stabs problems
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
-
 }

@@ -395,7 +395,7 @@
            end;
       end;
 
-      
+
     procedure tprocsym.check_forward;
       var
          pd : pprocdef;
@@ -613,9 +613,12 @@
       isstabwritten := true;
       if assigned(definition^.parast) then
         definition^.parast^.concatstabto(asmlist);
-      if assigned(definition^.localst) then
+      { local type defs and vars should not be written
+        inside the main proc stab }
+      if assigned(definition^.localst) and
+         (lexlevel>main_program_level) then
         definition^.localst^.concatstabto(asmlist);
-      definition^.is_def_stab_written := true;
+      definition^.is_def_stab_written := written;
     end;
 {$endif GDB}
 
@@ -1692,7 +1695,15 @@
                begin
                   l1:=readlong;
                   l2:=readlong;
-                  value:=int64(l1)+(int64(l2) shl 32);
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+                  value:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
                end
              else
                value:=readlong;
@@ -1707,7 +1718,15 @@
                  begin
                     l1:=readlong;
                     l2:=readlong;
-                    value:=int64(l1)+(int64(l2) shl 32);
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+                    value:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
                  end
                else
                  value:=readlong;
@@ -2189,7 +2208,10 @@
 
 {
   $Log$
-  Revision 1.5  2000-08-16 13:06:07  florian
+  Revision 1.6  2000-08-21 11:27:44  pierre
+   * fix the stabs problems
+
+  Revision 1.5  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.4  2000/08/13 12:54:56  peter

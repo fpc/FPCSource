@@ -40,7 +40,7 @@
           previousglobal : pdef;
 {$ifdef GDB}
           globalnb       : word;
-          is_def_stab_written : boolean;
+          is_def_stab_written : tdefstabstatus;
 {$endif GDB}
           constructor init;
           constructor load;
@@ -548,7 +548,10 @@
 
 {
   $Log$
-  Revision 1.7  2000-08-06 19:39:28  peter
+  Revision 1.8  2000-08-21 11:27:44  pierre
+   * fix the stabs problems
+
+  Revision 1.7  2000/08/06 19:39:28  peter
     * default parameters working !
 
   Revision 1.6  2000/08/06 14:17:15  peter
