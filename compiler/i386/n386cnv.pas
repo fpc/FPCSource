@@ -96,7 +96,9 @@ implementation
          if (torddef(left.resulttype.def).typ=u32bit) then
            begin
              tg.GetTemp(exprasmlist,8,tt_normal,href);
-             cg.g_concatcopy(exprasmlist,left.location.reference,href,4,true,false);
+             location_release(exprasmlist,left.location);
+             location_freetemp(exprasmlist,left.location);
+             cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
              inc(href.offset,4);
              cg.a_load_const_ref(exprasmlist,OS_32,0,href);
              dec(href.offset,4);
@@ -136,7 +138,16 @@ implementation
                 cg.a_label(exprasmlist,l2);
              end
            else
-             exprasmlist.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
+             begin
+               if left.resulttype.def.size<4 then
+                 begin
+                   tg.GetTemp(exprasmlist,4,tt_normal,href);
+                   location_freetemp(exprasmlist,left.location);
+                   cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
+                   left.location.reference:=href;
+                 end;
+              exprasmlist.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
+             end;
          end;
          location_freetemp(exprasmlist,left.location);
          tcgx86(cg).inc_fpu_stack;
@@ -184,7 +195,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-12-03 23:13:20  peter
+  Revision 1.70  2003-12-08 15:35:00  peter
+    * fix loading of word/byte to real
+
+  Revision 1.69  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading
