@@ -729,9 +729,12 @@ unit types;
                                                  exit;
                                               end
                                             else
-                                              begin
-                                                 Message1(parser_e_overloaded_are_not_both_virtual,_c^.name^+'.'+_name);
-                                              end;
+                                              if _c=hp^._class then
+                                                begin
+                                                   Message1(parser_w_overloaded_are_not_both_virtual,_c^.name^+'.'+_name);
+                                                   newentry;
+                                                   exit;
+                                                end;
                                          end;
 
                                        { check, if the overridden directive is set }
@@ -899,7 +902,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.25  1998-09-04 09:06:36  florian
+  Revision 1.26  1998-09-04 12:24:31  florian
+    * bug0159 fixed
+
+  Revision 1.25  1998/09/04 09:06:36  florian
    * bug0132 fixed
 
   Revision 1.24  1998/09/04 08:36:49  peter

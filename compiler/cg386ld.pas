@@ -49,7 +49,6 @@ implementation
       symtable,aasm,types,
       cgi386,cgai386,temp_gen,tgeni386,hcodegen;
 
-
 {*****************************************************************************
                              SecondLoad
 *****************************************************************************}
@@ -180,19 +179,6 @@ implementation
                                           pvarsym(p^.symtableentry)^.address;
                                      end;
                                 end;
-                              {
-                              if (pvarsym(p^.symtableentry)^.definition^.deftype=objectdef) and
-                                ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oois_class)<>0) then
-                                begin
-                                   simple_loadn:=false;
-                                   if hregister=R_NO then
-                                     hregister:=getregister32;
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
-                                     hregister)));
-                                   clear_reference(p^.location.reference);
-                                   p^.location.reference.base:=hregister;
-                                end;
-                              }
                            end;
                          { in case call by reference, then calculate: }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
@@ -518,7 +504,7 @@ implementation
 
 
 {*****************************************************************************
-                             SecondFuncRetN
+                             SecondFuncRet
 *****************************************************************************}
 
     procedure secondfuncret(var p : ptree);
@@ -565,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-09-04 11:55:17  florian
+  Revision 1.13  1998-09-04 12:24:24  florian
+    * bug0159 fixed
+
+  Revision 1.12  1998/09/04 11:55:17  florian
     * problem with -Or fixed
 
   Revision 1.11  1998/09/03 16:03:14  florian
