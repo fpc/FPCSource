@@ -292,9 +292,12 @@ implementation
                           never_copy_const_param:=true;
                         { reset data type }
                         dummycoll.data:=nil;
-                        { support openstring calling for readln(shortstring) }
+                        { create temporary defs for high tree generation }
                         if doread and (is_shortstring(hp^.resulttype)) then
-                          dummycoll.data:=openshortstringdef;
+                          dummycoll.data:=openshortstringdef
+                        else
+                          if (is_chararray(hp^.resulttype)) then
+                            dummycoll.data:=openchararraydef;
                         secondcallparan(hp,@dummycoll,false,false,false,0);
                         if ft=ft_typed then
                           never_copy_const_param:=false;
@@ -1287,7 +1290,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-04-19 09:45:48  pierre
+  Revision 1.44  1999-04-26 18:28:13  peter
+    * better read/write array
+
+  Revision 1.43  1999/04/19 09:45:48  pierre
     +  cdecl or stdcall push all args with longint size
     *  tempansi stuff cleaned up
 

@@ -107,6 +107,7 @@ begin
   p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
   p^.insert(new(ptypesym,init('char_pointer',charpointerdef)));
   p^.insert(new(ptypesym,init('void_farpointer',voidfarpointerdef)));
+  p^.insert(new(ptypesym,init('openchararray',openchararraydef)));
   p^.insert(new(ptypesym,init('file',cfiledef)));
 {$ifdef i386}
   p^.insert(new(ptypesym,init('REAL',c64floatdef)));
@@ -182,12 +183,13 @@ begin
   cu64bitdef:=porddef(globaldef('qword'));
   cs64bitintdef:=porddef(globaldef('int64'));
 {$endif INT64}
+  cchardef:=porddef(globaldef('char'));
   cshortstringdef:=pstringdef(globaldef('shortstring'));
   clongstringdef:=pstringdef(globaldef('longstring'));
   cansistringdef:=pstringdef(globaldef('ansistring'));
   cwidestringdef:=pstringdef(globaldef('widestring'));
   openshortstringdef:=pstringdef(globaldef('openshortstring'));
-  cchardef:=porddef(globaldef('char'));
+  openchararraydef:=parraydef(globaldef('openchararray'));
 {$ifdef i386}
   c64floatdef:=pfloatdef(globaldef('s64real'));
 {$endif}
@@ -202,7 +204,7 @@ begin
   booldef:=porddef(globaldef('boolean'));
   voidpointerdef:=ppointerdef(globaldef('void_pointer'));
   charpointerdef:=ppointerdef(globaldef('char_pointer'));
-  voidfarpointerdef:=pfarpointerdef(globaldef('void_farpointer'));
+  voidfarpointerdef:=ppointerdef(globaldef('void_farpointer'));
   cfiledef:=pfiledef(globaldef('file'));
 end;
 
@@ -236,6 +238,8 @@ begin
   cwidestringdef:=new(pstringdef,wideinit(-1));
   { length=0 for shortstring is open string (needed for readln(string) }
   openshortstringdef:=new(pstringdef,shortinit(0));
+  openchararraydef:=new(parraydef,init(0,-1,s32bitdef));
+  parraydef(openchararraydef)^.definition:=cchardef;
 {$ifdef i386}
   c64floatdef:=new(pfloatdef,init(s64real));
   s80floatdef:=new(pfloatdef,init(s80real));
@@ -251,7 +255,7 @@ begin
   { some other definitions }
   voidpointerdef:=new(ppointerdef,init(voiddef));
   charpointerdef:=new(ppointerdef,init(cchardef));
-  voidfarpointerdef:=new(pfarpointerdef,init(voiddef));
+  voidfarpointerdef:=new(ppointerdef,initfar(voiddef));
   cfiledef:=new(pfiledef,init(ft_untyped,nil));
   registerdef:=oldregisterdef;
 end;
@@ -260,7 +264,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-04-17 13:12:20  peter
+  Revision 1.21  1999-04-26 18:28:15  peter
+    * better read/write array
+
+  Revision 1.20  1999/04/17 13:12:20  peter
     * addr() internal
 
   Revision 1.19  1999/04/07 15:31:12  pierre

@@ -580,11 +580,10 @@ implementation
                                    CGMessage(type_e_cant_read_write_type);
                                  if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
                                    CGMessage(type_e_mismatch);
-                                 if hpp^.resulttype^.deftype=stringdef then
                                  { generate the high() value for the shortstring }
-                                   if (not dowrite) and
-                                      is_shortstring(hpp^.left^.resulttype) then
-                                     gen_high_tree(hpp,true);
+                                 if ((not dowrite) and is_shortstring(hpp^.left^.resulttype)) or
+                                    (is_chararray(hpp^.left^.resulttype)) then
+                                   gen_high_tree(hpp,true);
                                  hpp:=hpp^.right;
                                end;
                             end;
@@ -657,7 +656,9 @@ implementation
                                         end;
                                       arraydef :
                                         begin
-                                          if not is_chararray(hp^.left^.resulttype) then
+                                          if is_chararray(hp^.left^.resulttype) then
+                                            gen_high_tree(hp,true)
+                                          else
                                             CGMessage(type_e_cant_read_write_type);
                                         end;
                                       else
@@ -1083,7 +1084,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-04-26 09:32:22  peter
+  Revision 1.28  1999-04-26 18:28:12  peter
+    * better read/write array
+
+  Revision 1.27  1999/04/26 09:32:22  peter
     * try to convert to string for val()
 
   Revision 1.26  1999/04/15 14:10:51  pierre
