@@ -112,123 +112,224 @@ MouseWhereY  : Word;  { Mouse position }
 \Declaration
 Function DetectMouse:byte;
 \Description
- { Detect if a mouse is present, returns the amount of buttons or 0  if no mouse is found }
+\var{DetectMouse} detects whether a mouse is attached to the system or not.
+If there is no mouse, then zero is returned. If a mouse is attached, then
+the number of mouse buttons is returned.
+
+This function should be called after the mouse driver was initialized.
 \Errors
+None.
 \SeeAlso
+\seep{InitMouse}
 \end{function}
+
+\FPCexample{ex1}
 
 \begin{procedure}{DoneMouse}
 \Declaration
 Procedure DoneMouse;
 \Description
- { Deinitialize the mouse interface }
+\var{DoneMouse} De-initializes the mouse driver. It cleans up any memory
+allocated when the mouse was initialized, or removes possible mouse hooks
+from memory. The mouse functions will not work after \var{DoneMouse} was
+called. If \var{DoneMouse} is called a second time, it will exit at once.
+\var{InitMouse} should be called before \var{DoneMouse} can be called again.
 \Errors
+None.
 \SeeAlso
+\seef{DetectMouse}, \seep{InitMouse}
 \end{procedure}
+
+For an example, see most other mouse functions.
 
 \begin{function}{GetMouseButtons}
 \Declaration
 Function GetMouseButtons:word;
 \Description
- { Return the current button state of the mouse }
+\var{GetMouseButtons} returns the current button state of the mouse, i.e.
+it returns a or-ed combination of the following constants:
+\begin{description}
+\item[MouseLeftButton] When the left mouse button is held down.
+\item[MouseRightButton] When the right mouse button is held down.
+\item[MouseMiddleButton] When the middle mouse button is held down.
+\end{description}
 \Errors
+None.
 \SeeAlso
+\seep{GetMouseEvent}, \seef{GetMouseX}, \seef{GetMouseY}
 \end{function}
+
+\FPCexample{ex2}
 
 \begin{procedure}{GetMouseDriver}
 \Declaration
 Procedure GetMouseDriver(Var Driver : TMouseDriver);
 \Description
+\var{GetMouseDriver} returns the currently set mouse driver. It can be used
+to retrieve the current mouse driver, and override certain callbacks.
+
+A more detailed explanation about getting and setting mouse drivers can be found in
+\sees{mousedrv}.
+
 \Errors
+None.
 \SeeAlso
+\seep{SetMouseDriver}
 \end{procedure}
+
+For an example, see the section on writing a custom mouse driver,
+\sees{mousedrv}
 
 \begin{procedure}{GetMouseEvent}
 \Declaration
 Procedure GetMouseEvent(var MouseEvent:TMouseEvent);
 \Description
- { Returns the last Mouseevent, and waits for one if not available }
+\var{GetMouseEvent} returns the last mouse event (a movement, button press or
+button release), and waits for one if none is available in the queue.
 \Errors
+None.
 \SeeAlso
+\seef{GetMouseButtons}, \seef{GetMouseX}, \seef{GetMouseY}
 \end{procedure}
 
 \begin{function}{GetMouseX}
 \Declaration
 Function GetMouseX:word;
 \Description
- { Return the current X position of the mouse }
+\var{GetMouseX} returns the current \var{X} position of the mouse. \var{X} is
+measured in characters, starting at 0 for the left side of the screen.
 \Errors
+None.
 \SeeAlso
+\seef{GetMouseButtons},\seep{GetMouseEvent}, \seef{GetMouseY}
 \end{function}
+
+\FPCexample{ex4}
 
 \begin{function}{GetMouseY}
 \Declaration
 Function GetMouseY:word; 
 \Description
-{ Return the current Y position of the mouse }
+\var{GetMouseY} returns the current \var{Y} position of the mouse. \var{Y} is
+measured in characters, starting at 0 for the top of the screen.
 \Errors
+None.
 \SeeAlso
+\seef{GetMouseButtons},\seep{GetMouseEvent}, \seef{GetMouseX}
 \end{function}
+
+For an example, see \seef{GetMouseX}
 
 \begin{procedure}{HideMouse}
 \Declaration
 Procedure HideMouse;
 \Description
- { Hide the mouse cursor }
+\var{HideMouse} hides the mouse cursor. This may or may not be implemented
+on all systems, and depends on the driver.
 \Errors
 \SeeAlso
 \end{procedure}
+
+\FPCexample{ex5}
 
 \begin{procedure}{InitMouse}
 \Declaration
 Procedure InitMouse;
 \Description
- { Initialize the mouse interface }
+\var{InitMouse} Initializes the mouse driver. This will allocate any data
+structures needed for the mouse to function. All mouse functions can be
+used after a call to \var{InitMouse}.
+
+A call to \var{InitMouse} must always be followed by a call to \seep{DoneMouse}
+at program exit. Failing to do so may leave the mouse in an unusable state,
+or may result in memory leaks.
 \Errors
+None.
 \SeeAlso
+\seep{DoneMouse}, \seef{DetectMouse}
 \end{procedure}
+
+For an example, see most other functions.
 
 \begin{function}{PollMouseEvent}
 \Declaration
 Function PollMouseEvent(var MouseEvent: TMouseEvent):boolean; 
 \Description
-{ Checks if a Mouseevent is available, and returns it if one is found. If no   event is pending, it returns 0 }
+\var{PoolMouseEvent} checks whether a mouse event is available, and 
+returns it in \var{MouseEvent} if one is found. The function result is
+\var{True} in that case. If no mouse event is pending, the function result
+is \var{False}, and the contents of \var{MouseEvent} is undefined.
+
+Note that after a call to \var{PollMouseEvent}, the event should still 
+be removed from the mouse event queue with a call to \var{GetMouseEvent}.
 \Errors
+None.
 \SeeAlso
+\seep{GetMouseEvent}, \seep{PutMouseEvent}
 \end{function}
 
 \begin{procedure}{PutMouseEvent}
 \Declaration
 Procedure PutMouseEvent(const MouseEvent: TMouseEvent);
 \Description
- { Adds the given MouseEvent to the input queue. Please note that depending on  the implementation this can hold only one value (NO FIFOs etc) }
+\var{PutMouseEvent} adds \var{MouseEvent} to the input queue. The next
+call to \seep{GetMouseEvent} or \var{PollMouseEvent} will then return
+\var{MouseEvent}. 
+
+Please note that depending on the implementation the mouse event queue
+can hold only one value.
 \Errors
+None.
 \SeeAlso
+\seep{GetMouseEvent}, \seef{PollMouseEvent}
 \end{procedure}
 
 \begin{procedure}{SetMouseDriver}
 \Declaration
 Procedure SetMouseDriver(Const Driver : TMouseDriver);
 \Description
- { Sets the mouse driver. }
+\var{SetMouseDriver} sets the mouse driver to \var{Driver}. This function
+should be called before \seep{InitMouse} is called, or after \var{DoneMouse}
+is called. If it is called after the mouse has been initialized, it does
+nothing.
+
+For more information on setting the mouse driver, \sees{mousedrv}.
 \Errors
+
 \SeeAlso
+\seep{InitMouse}, \seep{DoneMouse}, \seep{GetMouseDriver}
 \end{procedure}
+
+For an example, see \sees{mousedrv}
 
 \begin{procedure}{SetMouseXY}
 \Declaration
 Procedure SetMouseXY(x,y:word); 
 \Description
-{ Place the mouse cursor on x,y }
+\var{SetMouseXY} places the mouse cursor on \var{X,Y}. X and Y are zero
+based character coordinates: \var{0,0} is the top-left corner of the screen,
+and the position is in character cells (i.e. not in pixels).
 \Errors
+None.
 \SeeAlso
+\seef{GetMouseX}, \seef{GetMouseY}
 \end{procedure}
+
+\FPCexample{ex7}
 
 \begin{procedure}{ShowMouse}
 \Declaration
 Procedure ShowMouse; 
 \Description
-{ Show the mouse cursor }
+\var{ShowMouse} shows the mouse cursor if it was previously hidden. The
+capability to hide or show the mouse cursor depends on the driver.
 \Errors
+None.
 \SeeAlso
+\seep{HideMouse}
 \end{procedure}
+
+For an example, see \seep{HideMouse}
+
+\section{Writing a custom mouse driver}
+\label{se:mousedrv}
