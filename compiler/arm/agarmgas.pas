@@ -203,7 +203,17 @@ unit agarmgas;
                // debug code
                // writeln(s);
                // writeln(taicpu(hp).fileinfo.line);
-               s:=s+sep+getopstr(taicpu(hp).oper[i]);
+
+               { LDM and STM use references as first operand but they are written like a register }
+               if (i=0) and (op in [A_LDM,A_STM]) then
+                 begin
+                   s:=s+sep+gas_regname(taicpu(hp).oper[0].ref^.index);
+                   if taicpu(hp).oper[0].ref^.addressmode=AM_PREINDEXED then
+                     s:=s+'!';
+                 end
+               else
+                  s:=s+sep+getopstr(taicpu(hp).oper[i]);
+
                sep:=',';
             end;
         end;
@@ -216,7 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-09-05 23:57:01  florian
+  Revision 1.11  2003-09-06 11:21:49  florian
+    * fixed stm and ldm to be usable with preindex operand
+
+  Revision 1.10  2003/09/05 23:57:01  florian
     * arm is working again as before the new register naming scheme was implemented
 
   Revision 1.9  2003/09/04 00:15:29  florian

@@ -694,6 +694,8 @@ unit cgcpu;
 
 
     procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
+      var
+         ref : treference;
       begin
         LocalSize:=align(LocalSize,4);
 
@@ -702,8 +704,11 @@ unit cgcpu;
         a_reg_alloc(list,NR_R12);
 
         list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
-        { restore int registers and return }
-        list.concat(setoppostfix(taicpu.op_reg_regset(A_STM,NR_STACK_POINTER_REG,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
+        { save int registers }
+        reference_reset(ref);
+        ref.index:=NR_STACK_POINTER_REG;
+        ref.addressmode:=AM_PREINDEXED;
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
         a_reg_alloc(list,NR_R12);
@@ -714,12 +719,19 @@ unit cgcpu;
 
 
     procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
+      var
+         ref : treference;
       begin
         if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
         else
-          { restore int registers and return }
-          list.concat(setoppostfix(taicpu.op_reg_regset(A_LDM,NR_R11,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+          begin
+            { restore int registers and return }
+            reference_reset(ref);
+            ref.index:=NR_FRAME_POINTER_REG;
+            ref.addressmode:=AM_PREINDEXED;
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+          end;
       end;
 
 
@@ -1082,7 +1094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-09-05 23:57:01  florian
+  Revision 1.16  2003-09-06 11:21:50  florian
+    * fixed stm and ldm to be usable with preindex operand
+
+  Revision 1.15  2003/09/05 23:57:01  florian
     * arm is working again as before the new register naming scheme was implemented
 
   Revision 1.14  2003/09/04 21:07:03  florian

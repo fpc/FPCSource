@@ -51,7 +51,8 @@ uses
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
-         constructor op_reg_regset(op:tasmop; _op1: tregister; _op2: tsuperregisterset);
+
+         constructor op_ref_regset(op:tasmop; _op1: treference; _op2: tsuperregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
@@ -170,11 +171,11 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_regset(op:tasmop; _op1: tregister; _op2: tsuperregisterset);
+    constructor taicpu.op_ref_regset(op:tasmop; _op1: treference; _op2: tsuperregisterset);
       begin
          inherited create(op);
          ops:=2;
-         loadreg(0,_op1);
+         loadref(0,_op1);
          loadregset(1,_op2);
       end;
 
@@ -365,7 +366,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-09-04 21:07:03  florian
+  Revision 1.11  2003-09-06 11:21:49  florian
+    * fixed stm and ldm to be usable with preindex operand
+
+  Revision 1.10  2003/09/04 21:07:03  florian
     * ARM compiler compiles again
 
   Revision 1.9  2003/09/04 00:15:29  florian
