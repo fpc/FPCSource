@@ -430,7 +430,9 @@ function ceil(x : float) : longint;
 
   begin
     Ceil:=Trunc(x);
-    If Frac(x)>0 then Ceil:=Ceil+1;
+    If Frac(x)>0 then
+      if x > 0 then Ceil:=Ceil+1
+      else Ceil := Ceil - 1;
   end;
 
 function floor(x : float) : longint;
@@ -663,7 +665,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.9  1999-06-03 13:37:30  jonas
+    Revision 1.10  1999-06-03 16:22:57  jonas
+      * fixed ceil function
+
+    Revision 1.9  1999/06/03 13:37:30  jonas
       * fixed floor function
 
     Revision 1.8  1999/01/15 11:44:56  peter
