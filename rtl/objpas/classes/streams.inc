@@ -513,11 +513,13 @@ begin
   FSize:=ASize;
 end;
 
+{$ifdef seek64bit}
 function TCustomMemoryStream.GetSize: Int64;
 
 begin
   Result:=FSize;
 end;
+{$endif seek64bit}
 
 
 
@@ -809,7 +811,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-01-19 19:57:57  michael
+  Revision 1.7  2005-01-20 16:37:57  peter
+    * 1.0.x fix
+
+  Revision 1.6  2005/01/19 19:57:57  michael
   + CustomMemoryStream.getsize overridden
 
   Revision 1.5  2005/01/19 09:09:50  michael
