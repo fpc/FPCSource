@@ -496,6 +496,19 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+procedure SysInitStdIO;
+begin
+  { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
+    displayed in and messagebox }
+  StdInputHandle:=0;
+  StdOutputHandle:=1;
+  StdErrorHandle:=2;
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
 begin
 { Setup heap }
   zero:=0;
@@ -506,26 +519,23 @@ begin
   if heap_handle>0 then begin
     InitHeap;
   end else system_exit;
+  SysInitExceptions;
 
 { Setup IO }
-  StdInputHandle:=0;
-  StdOutputHandle:=1;
-  StdErrorHandle:=2;
-
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  SysInitStdIO;
 
 { Reset IO Error }
   InOutRes:=0;
 {$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}  
+{$endif HASVARIANT}
 end.
 {
   $Log$
-  Revision 1.5  2002-10-13 09:25:31  florian
+  Revision 1.6  2003-01-05 20:06:30  florian
+    + fixed missing SysInitStdIO
+
+  Revision 1.5  2002/10/13 09:25:31  florian
     + call to initvariantmanager inserted
 
   Revision 1.4  2002/09/07 16:01:17  peter
