@@ -1807,17 +1807,33 @@ end;
 
 function TCustomCodeEditorCore.CharIdxToLinePos(Line,CharIdx: sw_integer): sw_integer;
 var S: string;
-    TabSize,CP,RX: sw_integer;
+    TabSize,CP,RX,NextInc: sw_integer;
 begin
   S:=GetLineText(Line);
+  (* this would fasten the code
+    but UseTabCharacters is set for Editor not for EditorCore
+    objects,which is dangerous anyway and should be changed ... PM
+  if not IsFlagSet(efUseTabCharacters) then
+    begin
+     if CharIdx<=Length(S) then
+       CharIdxToLinePos:=CharIdx-1
+     else
+       CharIdxToLinePos:=Length(S)-1;
+     exit;
+    end; *)
+
   TabSize:=GetTabSize;
   CP:=1; RX:=0;
+  NextInc:=0;
   while {(CP<=length(S)) and }(CP<=CharIdx) do
    begin
+     if NextInc>0 then
+       Inc(RX,NextInc);
      if (CP<=length(S)) and (S[CP]=TAB) then
-       Inc(RX,TabSize-(RX mod TabSize))
+       NextInc:=TabSize-(RX mod TabSize) -1
      else
-       Inc(RX);
+       NextInc:=0;
+     Inc(RX);
      Inc(CP);
    end;
   CharIdxToLinePos:=RX-1;
@@ -1829,6 +1845,17 @@ var S: string;
 begin
   TabSize:=GetTabSize;
   S:=GetLineText(Line);
+  (*
+  if not IsFlagSet(efUseTabCharacters) then
+    begin
+      if S='' then
+        CP:=0
+      else if (Line<Length(S)) then
+        LinePosToCharIdx:=Line+1
+      else
+        LinePosToCharIdx:=Length(S);
+      exit;
+    end; *)
   if S='' then
     CP:=0
   else
@@ -2775,10 +2802,11 @@ end;
 
 function TCustomCodeEditor.InsertFrom(Editor: PCustomCodeEditor): Boolean;
 var OK: boolean;
-    LineDelta,LineCount: Sw_integer;
+    CP,RX,RSX,LineDelta,LineCount: Sw_integer;
     StartPos,DestPos,BPos,EPos: TPoint;
     LineStartX,LineEndX: Sw_integer;
-    S,OrigS,AfterS: string;
+    TabSize,CharIdxStart,CharIdxEnd: Sw_integer;
+    S,DS,BeforeS,OrigS,AfterS: string;
     VerticalBlock: boolean;
     SEnd: TPoint;
 begin
@@ -2801,8 +2829,22 @@ begin
     VerticalBlock:=Editor^.IsFlagSet(efVerticalBlocks);
     LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
     OK:=GetLineCount<MaxLineCount;
-    OrigS:=GetDisplayText(DestPos.Y);
-    AfterS:=Copy(OrigS,DestPos.X+1,High(OrigS));
+    OrigS:=GetLineText(DestPos.Y);
+    BeforeS:=Copy(OrigS,1,LinePosToCharIdx(DestPos.Y,DestPos.X-1));
+    { we might need to add some spaces here,
+      but how many ? }
+    TabSize:=GetTabSize;
+    CP:=1; RX:=0;
+    while (CP<=length(BeforeS)) do
+      begin
+        if (BeforeS[CP]=TAB) then
+          Inc(RX,TabSize-(RX mod TabSize))
+        else
+          Inc(RX);
+        Inc(CP);
+      end;
+    BeforeS:=BeforeS+CharStr(' ',DestPos.X-RX);
+    AfterS:=Copy(OrigS,LinePosToCharIdx(DestPos.Y,DestPos.X),High(OrigS));
     BPos:=CurPos;
     while OK and (LineDelta<LineCount) do
     begin
@@ -2814,6 +2856,8 @@ begin
           LimitsChanged;
         end;
 
+      If LineDelta>0 then
+        BeforeS:='';
       if (LineDelta=0) or VerticalBlock then
         LineStartX:=Editor^.SelStart.X
       else
@@ -2824,36 +2868,50 @@ begin
       else
         LineEndX:=High(S);
 
+      CharIdxStart:=Editor^.LinePosToCharIdx(Editor^.SelStart.Y+LineDelta,LineStartX);
+      CharIdxEnd:=Editor^.LinePosToCharIdx(Editor^.SelStart.Y+LineDelta,LineEndX);
       if LineEndX<LineStartX then
         S:=''
       else if VerticalBlock then
-        S:=RExpand(copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
-                   Min(LineEndX-LineStartX+1,High(S)))
+        S:=RExpand(copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),CharIdxStart,CharIdxEnd-CharIdxStart+1),
+                   Min(CharIdxEnd-CharIdxStart+1,High(S)))
       else
-        S:=copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1);
+        S:=copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),CharIdxStart,CharIdxEnd-CharIdxStart+1);
       if VerticalBlock=false then
         begin
-          If LineDelta>0 then
-            OrigS:='';
+          DS:=BeforeS+S;
+          CP:=1; RX:=0;
+          RSX :=0;
+          while (CP<=length(DS)) do
+            begin
+              if (DS[CP]=TAB) then
+                Inc(RX,TabSize-(RX mod TabSize))
+              else
+                Inc(RX);
+              if CP=length(BeforeS) then
+                RSX:=RX;
+              Inc(CP);
+            end;
+
           if LineDelta=LineCount-1 then
             begin
-              SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+AfterS);
+              SetLineText(DestPos.Y,DS+AfterS);
               BPos.X:=DestPos.X;BPos.Y:=DestPos.Y;
-              EPOS.X:=DestPos.X+Length(S);EPos.Y:=DestPos.Y;
+              EPOS.X:=DestPos.X+RX-RSX;EPos.Y:=DestPos.Y;
               AddAction(eaInsertText,BPos,EPos,S);
             end
           else
             begin
-              SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S);
+              SetLineText(DestPos.Y,DS);
               BPos.X:=DestPos.X;BPos.Y:=DestPos.Y;
-              EPOS.X:=DestPos.X+Length(S);EPos.Y:=DestPos.Y;
+              EPOS.X:=DestPos.X+RX-RSX;EPos.Y:=DestPos.Y;
               AddAction(eaInsertText,BPos,EPos,S);
             end;
           BPos.X:=EPos.X;
           if LineDelta=LineCount-1 then
             begin
               SEnd.Y:=DestPos.Y;
-              SEnd.X:=DestPos.X+length(S);
+              SEnd.X:=DestPos.X+RX-RSX;
             end
           else
            begin
@@ -4775,8 +4833,12 @@ begin
      CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
      if S[CI]=TAB then
        begin
-         if CharIdxToLinePos(Curpos.y,ci)=cursor.x then
-          Delete(S,Ci,1)
+         { we want to remove the tab if we are at the first place
+           of the tab, but the following test was true for the last position
+           in tab
+         if CharIdxToLinePos(Curpos.y,ci)=Curpos.x then }
+         if CharIdxToLinePos(Curpos.y,ci-1)=Curpos.x-1 then
+            Delete(S,Ci,1)
          else
           S:=Copy(S,1,CI-1)+CharStr(' ',GetTabSize-1)+Copy(S,CI+1,High(S));
          SetStoreUndo(HoldUndo);
@@ -5485,7 +5547,7 @@ begin
       SetLineText(CurPos.Y,S);
     end;
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
-  if (CI>0) and (S[CI]=TAB) then
+  if (CI>0) and (S[CI]=TAB) and not IsFlagSet(efUseTabCharacters) then
     begin
       if CI=1 then
         TabStart:=0
@@ -6868,7 +6930,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
+  Revision 1.3  2001-08-12 00:06:49  pierre
+   * better clipboard handling for files with tabs
+
+  Revision 1.2  2001/08/05 02:01:48  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:25  peter
