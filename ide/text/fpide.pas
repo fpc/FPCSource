@@ -731,7 +731,7 @@ begin
      AppendMenuItem(FileMenu^.SubMenu,NewLine(nil));
   for I:=1 to RecentFileCount do
   begin
-    P:=NewItem('~'+IntToStr(I)+'~. '+SmartPath(RecentFiles[I].FileName),' ',
+    P:=NewItem('~'+IntToStr(I)+'~. '+ShrinkPath(SmartPath(RecentFiles[I].FileName),27),' ',
         kbNoKey,cmRecentFileBase+I,hcRecentFileBase+I,nil);
     AppendMenuItem(FileMenu^.SubMenu,P);
   end;
@@ -847,7 +847,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.40  1999-09-22 13:04:31  pierre
+  Revision 1.41  1999-09-22 16:21:41  pierre
+   * Use ShrinkPas for RecentFiles
+
+  Revision 1.40  1999/09/22 13:04:31  pierre
    + Close UserScreen to avoid store crash
 
   Revision 1.39  1999/09/21 17:09:00  pierre
