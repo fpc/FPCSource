@@ -4056,8 +4056,6 @@ Const local_symtable_index : longint = $8001;
      begin
         inherited init;
         objecttype:=ot;
-        writeln(byte(ot));
-        writeln(byte(objecttype));
         deftype:=objectdef;
         objectoptions:=[];
         childof:=nil;
@@ -5523,7 +5521,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.6  2000-11-06 23:05:52  florian
+  Revision 1.7  2000-11-06 23:11:38  florian
+    * writeln debugger uninstalled ;)
+
+  Revision 1.6  2000/11/06 23:05:52  florian
     * more fixes
 
   Revision 1.5  2000/11/06 20:30:55  peter
