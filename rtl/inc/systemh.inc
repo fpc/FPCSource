@@ -239,7 +239,7 @@ Type
 
 { procedure type }
   TProcedure  = Procedure;
-
+  
 const
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
@@ -249,10 +249,21 @@ const
   maxLongint  = $7fffffff;
   maxSmallint = 32767;
 
-const
   maxint   = maxsmallint;
+  
+type  
+  IntegerArray  = array[0..$effffff] of Integer;
+  PIntegerArray = ^IntegerArray;
+  PointerArray = array [0..512*1024*1024 - 2] of Pointer;
+  PPointerArray = ^PointerArray;
+  
+{$ifndef VER1_0}
+  TBoundArray = array of Integer;
+{$endif VER1_0}
 
-{ Compatibility With  TP }
+  TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
+  PPCharArray = ^TPCharArray;
+
 const
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
@@ -656,7 +667,10 @@ const
 
 {
   $Log$
-  Revision 1.61  2002-12-15 22:33:12  peter
+  Revision 1.62  2002-12-21 17:20:27  florian
+    + some types for D6 compatibility added
+
+  Revision 1.61  2002/12/15 22:33:12  peter
     * SetString(WideString,[PChar|PWideChar],Len) added
 
   Revision 1.60  2002/11/16 20:12:22  florian
