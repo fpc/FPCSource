@@ -576,8 +576,8 @@ begin
       ExecuteRemote(rcpprog,RemotePara+' '+TestExe+' '+RemoteAddr+':'+TestRemoteExe);
       { rsh doesn't pass the exitcode, use a second command to print the exitcode
         on the remoteshell to stdout }
-      execres:=ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+' ; '+
-        TestRemoteExe+' ; echo "TestExitCode: $?"'+rquote);
+      execres:=ExecuteRemote(rshprog,RemotePara+' '+RemoteAddr+' '+rquote+'chmod 755 '+TestRemoteExe+
+        ' ; cd '+RemotePath+' ; '+TestRemoteExe+' ; echo "TestExitCode: $?"'+rquote);
       { Check for TestExitCode error in output, sets ExecuteResult }
       CheckTestExitCode(OutName);
     end
@@ -973,7 +973,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2004-07-03 18:28:21  florian
+  Revision 1.38  2004-09-30 15:38:59  peter
+    * chdir to remote path before executing test
+
+  Revision 1.37  2004/07/03 18:28:21  florian
     + added support of putty utils to dotest
     + remote testing executes a chmod 755 before running a test
 
