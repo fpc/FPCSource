@@ -6647,18 +6647,22 @@ begin
         SelEnd.X:=length(GetDisplayText(SelEnd.Y));
       end;
 
-  Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
-  SetCmdState(ToClipCmds,Enable and (Clipboard<>@Self));
-  SetCmdState(NulClipCmds,Enable);
-  CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
-       (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
-  SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
+  { we change the CurCommandSet, but only if we are top view }
+  if ((State and sfFocused)<>0) then
+    begin
+      Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
+      SetCmdState(ToClipCmds,Enable and (Clipboard<>@Self));
+      SetCmdState(NulClipCmds,Enable);
+      CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
+           (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+      SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
 {$ifdef WinClipSupported}
-  SetCmdState(FromWinClipCmds,GetTextWinClipboardSize>0);
+      SetCmdState(FromWinClipCmds,GetTextWinClipboardSize>0);
 {$endif WinClipSupported}
-  SetCmdState(UndoCmd,(GetUndoActionCount>0));
-  SetCmdState(RedoCmd,(GetRedoActionCount>0));
-  Message(Application,evBroadcast,cmCommandSetChanged,nil);
+      SetCmdState(UndoCmd,(GetUndoActionCount>0));
+      SetCmdState(RedoCmd,(GetRedoActionCount>0));
+      Message(Application,evBroadcast,cmCommandSetChanged,nil);
+    end;
   DrawView;
 end;
 
@@ -7250,7 +7254,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.39  2002-12-18 01:18:10  pierre
+  Revision 1.40  2003-01-21 11:03:56  pierre
+   * fix problem with Paste from Menu web bug 2173
+
+  Revision 1.39  2002/12/18 01:18:10  pierre
    + Cut/Copy/Paste added to TEditorInputLine
 
   Revision 1.38  2002/12/17 13:48:28  pierre
