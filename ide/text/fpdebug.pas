@@ -877,9 +877,8 @@ begin
   { d:test.pas:12 does not work !! }
   { I do not know how to solve this if
   if (Length(AFile)>1) and (AFile[2]=':') then
-    AFile:=Copy(AFile,3,255);
-    Only use base name for now !! PM }
-  FileName:=NewStr(GDBFileName(NameAndExtOf(AFile)));
+    AFile:=Copy(AFile,3,255);        }
+  FileName:=NewStr(GDBFileName(AFile));
   Name:=nil;
   Line:=ALine;
   IgnoreCount:=0;
@@ -1091,7 +1090,8 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
 
   procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
-    If assigned(P^.FileName) and (P^.FileName^=NameAndExtOf(W^.Editor^.FileName)) then
+    If assigned(P^.FileName) and
+      (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(W^.Editor^.FileName))) then
       W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
   end;
 
@@ -1844,23 +1844,74 @@ procedure TWatch.rename(s : string);
   end;
 
 procedure TWatch.Get_new_value;
-  var p,q : pchar;
-      i : longint;
-      last_removed : boolean;
+  var p, q : pchar;
+      i, j, curframe, startframe : longint;
+      error : integer;
+      c : char;
+      s,s2 : string;
+      loop_higher, found, last_removed : boolean;
+
+    function GetValue(var s : string) : boolean;
+      begin
+        Debugger^.command('p '+s);
+        if not Debugger^.Error then
+          begin
+            s:=StrPas(Debugger^.GetOutput);
+            GetValue:=true;
+          end
+        else
+          begin
+            s:=StrPas(Debugger^.GetError);
+            GetValue:=false;
+            { do not open a messagebox for such errors }
+            Debugger^.got_error:=false;
+          end;
+      end;
+
   begin
     If not assigned(Debugger) then
       exit;
     if assigned(last_value) then
       strdispose(last_value);
     last_value:=current_value;
-    Debugger^.Command('p '+GetStr(expr));
-    if Debugger^.Error then
-      p:=StrNew(Debugger^.GetError)
-    else
-      p:=StrNew(Debugger^.GetOutput);
-    { do not open a messagebox for such errors }
+    s:=GetStr(expr);
+    found:=GetValue(s);
     Debugger^.got_error:=false;
-
+    loop_higher:=not found;
+    curframe:=Debugger^.get_current_frame;
+    startframe:=curframe;
+    while loop_higher do
+      begin
+         s:='parent_ebp';
+         if GetValue(s) then
+           begin
+             repeat
+               inc(curframe);
+               if not Debugger^.set_current_frame(curframe) then
+                 loop_higher:=false;
+               s2:='/x $ebp';
+               getValue(s2);
+               j:=pos('=',s2);
+               if j>0 then
+                 s2:=copy(s2,j+1,length(s2));
+               while s2[1] in [' ',TAB] do
+                 delete(s2,1,1);
+               if pos(s2,s)>0 then
+                 loop_higher :=false;
+             until not loop_higher;
+             { try again at that level }
+             s:=GetStr(expr);
+             loop_higher:=not GetValue(s);
+           end
+         else
+           loop_higher:=false;
+      end;
+    s:=GetStr(expr);
+    if GetValue(s) then
+      p:=StrNew(Debugger^.GetOutput)
+    else
+      p:=StrNew(Debugger^.GetError);
+    Debugger^.got_error:=false;
     { We should try here to find the expr in parent
       procedure if there are
       I will implement this as I added a
@@ -1868,6 +1919,8 @@ procedure TWatch.Get_new_value;
       in stabs debug info PM }
     { But there are some pitfalls like
       locals redefined in other sublocals that call the function }
+
+    Debugger^.set_current_frame(startframe);
 
     q:=nil;
     if assigned(p) and (p[0]='$') then
@@ -3145,7 +3198,12 @@ end.
 
 {
   $Log$
-  Revision 1.49  2000-02-04 23:18:05  pierre
+  Revision 1.50  2000-02-05 01:27:58  pierre
+    * bug with Toggle Break fixed, hopefully
+    + search for local vars in parent procs avoiding
+      wrong results (see test.pas source)
+
+  Revision 1.49  2000/02/04 23:18:05  pierre
    * no pushstatus in DoneDebugger because its called after App.done
 
   Revision 1.48  2000/02/04 14:34:46  pierre
