@@ -163,11 +163,9 @@ begin
   if LastLDBin='' then
    begin
      if utilsdirectory<>'' then
-       begin
-          LastLDBin:=Search(target_link.linkbin+source_os.exeext,
-            utilsdirectory,ldfound)+target_link.linkbin+source_os.exeext;
-       end
-     else
+       LastLDBin:=Search(target_link.linkbin+source_os.exeext,utilsdirectory,ldfound)+
+         target_link.linkbin+source_os.exeext;
+     if LastLDBin='' then
        LastLDBin:=FindExe(target_link.linkbin,ldfound);
      if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
       begin
@@ -654,11 +652,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  1999-06-18 09:55:30  peter
+  Revision 1.57  1999-06-28 16:02:31  peter
     * merged
 
-  Revision 1.55  1999/06/15 13:57:31  peter
-    * merged
+  Revision 1.54.2.3  1999/06/28 15:55:40  peter
+    * also search path if not found in utilsdirectory
 
   Revision 1.54.2.2  1999/06/18 09:51:55  peter
     * always use shell() for go32v2 to support LFN
