@@ -106,6 +106,7 @@ Function  DiskFree(drive: byte) : longint;
 Function  DiskSize(drive: byte) : longint;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
+Procedure FindClose(Var f: SearchRec);
 
 {File}
 Procedure GetFAttr(var f; var attr: word);
@@ -144,8 +145,8 @@ uses
                            --- Dos Interrupt ---
 ******************************************************************************}
 
-var dosregs:registers;
-    oldexitproc:pointer;
+var
+  dosregs : registers;
 
 procedure LoadDosError;
 begin
@@ -467,9 +468,7 @@ type
     shortname : array[0..13] of byte;
   end;
 
-const   LFNfindhandle:word=$ffff;
-
-procedure LFNSearchRec2Dos(const w:LFNSearchRec;var d:Searchrec);
+procedure LFNSearchRec2Dos(const w:LFNSearchRec;hdl:longint;var d:Searchrec);
 var
   Len : longint;
 begin
@@ -485,61 +484,62 @@ begin
      d.Time:=lmTime;
      d.Size:=Size;
      d.Attr:=Attr and $FF;
+     Move(hdl,d.Fill,4);
    end;
 end;
 
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
-
-var i:longint;
-    w:LFNSearchRec;
-
+var
+  i : longint;
+  w : LFNSearchRec;
 begin
-    if LFNfindhandle<>$ffff then
-        begin
-            dosregs.bx:=LFNfindhandle;
-            dosregs.ax:=$71a1;
-            msdos(dosregs);
-            LoadDosError;
-        end;
-    if doserror=0 then
-        begin
-            { allow slash as backslash }
-            for i:=0 to strlen(path) do
-            if path[i]='/' then
-                path[i]:='\';
-            dosregs.si:=1; { use ms-dos time }
-            dosregs.ecx:=attr;
-            dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
-            dosmemput(tb_segment,tb_offset+Sizeof(LFNSearchrec)+1,path^,
-             strlen(path)+1);
-            dosregs.ds:=tb_segment;
-            dosregs.edi:=tb_offset;
-            dosregs.es:=tb_segment;
-            dosregs.ax:=$714e;
-            msdos(dosregs);
-            LoadDosError;
-            copyfromdos(w,sizeof(LFNSearchRec));
-            LFNSearchRec2Dos(w,s);
-            LFNfindhandle:=dosregs.ax
-        end;
+  { allow slash as backslash }
+  for i:=0 to strlen(path) do
+    if path[i]='/' then path[i]:='\';
+  dosregs.si:=1; { use ms-dos time }
+  dosregs.ecx:=attr;
+  dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
+  dosmemput(tb_segment,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=tb_segment;
+  dosregs.edi:=tb_offset;
+  dosregs.es:=tb_segment;
+  dosregs.ax:=$714e;
+  msdos(dosregs);
+  LoadDosError;
+  copyfromdos(w,sizeof(LFNSearchRec));
+  LFNSearchRec2Dos(w,dosregs.ax,s);
 end;
+
 
 procedure LFNFindNext(var s:searchrec);
 var
+  hdl : longint;
   w   : LFNSearchRec;
 begin
+  Move(s.Fill,hdl,4);
   dosregs.si:=1; { use ms-dos time }
   dosregs.edi:=tb_offset;
   dosregs.es:=tb_segment;
-  dosregs.bx:=LFNfindhandle;
+  dosregs.ebx:=hdl;
   dosregs.ax:=$714f;
   msdos(dosregs);
   LoadDosError;
   copyfromdos(w,sizeof(LFNSearchRec));
-  LFNSearchRec2Dos(w,s);
+  LFNSearchRec2Dos(w,hdl,s);
 end;
 
+
+procedure LFNFindClose(var s:searchrec);
+var
+  hdl : longint;
+begin
+  Move(s.Fill,hdl,4);
+  dosregs.ebx:=hdl;
+  dosregs.ax:=$71a1;
+  msdos(dosregs);
+  LoadDosError;
+end;
 
 
 {******************************************************************************
@@ -619,6 +619,14 @@ begin
    LFNFindnext(f)
   else
    Dosfindnext(f);
+end;
+
+
+Procedure FindClose(Var f: SearchRec);
+begin
+  DosError:=0;
+  if LFNSupport then
+   LFNFindClose(f);
 end;
 
 
@@ -974,25 +982,14 @@ Procedure setintvec(intno : byte;vector : pointer);
 Begin
 End;
 
-procedure exithandler;
 
-begin
-    exitproc:=oldexitproc;
-    if LFNfindhandle<>$ffff then
-        begin
-            dosregs.bx:=LFNfindhandle;
-            dosregs.ax:=$71a1;
-            msdos(dosregs);
-        end;
-end;
-
-begin
-    oldexitproc:=exitproc;
-    exitproc:=@exithandler;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-22 10:07:03  daniel
+  Revision 1.3  1999-01-22 15:44:59  pierre
+   Daniel change removed : broke make cycle !!
+
+  Revision 1.2  1999/01/22 10:07:03  daniel
   - Findclose removed: This is TP incompatible!!
 
   Revision 1.1  1998/12/21 13:07:02  peter
@@ -1068,4 +1065,6 @@ end.
     * fixed read_text_as_array
     + read_text_as_pchar which was not yet in the rtl
 }
+
+
 
