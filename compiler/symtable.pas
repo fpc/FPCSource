@@ -1286,8 +1286,19 @@ implementation
             hsym:=tsym(next.search(sym.name));
             if assigned(hsym) then
               begin
-                DuplicateSym(hsym);
-                exit;
+                { a local and the function can have the same
+                  name in TP and Delphi, but RESULT not }
+                if (m_duplicate_names in aktmodeswitches) and
+                   (sym.typ in [absolutesym,varsym]) and
+                   (vo_is_funcret in tvarsym(sym).varoptions) and
+                   not((m_result in aktmodeswitches) and
+                       (vo_is_result in tvarsym(sym).varoptions)) then
+                  sym.name:='hidden'+sym.name
+                else
+                  begin
+                    DuplicateSym(hsym);
+                    exit;
+                  end;
               end;
             { check for duplicate id in local symtable of methods }
             if assigned(next.next) and
@@ -2459,7 +2470,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-06-08 11:40:00  peter
+  Revision 1.106  2003-06-09 18:26:27  peter
+    * para can be the same as function name in delphi
+
+  Revision 1.105  2003/06/08 11:40:00  peter
     * check parast when inserting in localst
 
   Revision 1.104  2003/06/07 20:26:32  peter
