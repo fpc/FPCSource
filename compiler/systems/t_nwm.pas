@@ -375,12 +375,12 @@ begin
   {$else}
   NLMConvLinkFile.Add ('OUTPUT ' + FExpand(NlmNam));
   {$endif}
-  
+
   { start and stop-procedures }
   NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
   NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
   NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
-  
+
   if not (cs_link_strip in aktglobalswitches) then
   begin
     NLMConvLinkFile.Add ('DEBUG');
@@ -402,7 +402,7 @@ begin
          if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
          begin
            S2 := FindObjectFile(s,'',false);
-	   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
+           {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
            Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
@@ -411,10 +411,10 @@ begin
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,S2);
-	   {$ifdef netware} 
-	   Comment(V_Debug,'IMPORT @'+s2);
-	   s2 := FExpand (S2); 
-	   {$endif}
+           {$ifdef netware}
+           Comment(V_Debug,'IMPORT @'+s2);
+           s2 := FExpand (S2);
+           {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S2);
            Comment(V_Debug,'IMPORT @'+s2);
          end;
@@ -442,10 +442,10 @@ begin
              Delete(S,i,255);
            S := S + '.imp';
            librarysearchpath.FindFile(S,S3);
-	   {$ifdef netware} 
-	   Comment(V_Debug,'IMPORT @'+S3);
-	   S3 := FExpand (S3); 
-	   {$endif}
+           {$ifdef netware}
+           Comment(V_Debug,'IMPORT @'+S3);
+           S3 := FExpand (S3);
+           {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S3);
            NLMConvLinkFile.Add('MODULE '+s2);
            Comment(V_Debug,'MODULE '+S2);
@@ -571,7 +571,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2004-10-14 18:16:17  mazen
+  Revision 1.19  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.18  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

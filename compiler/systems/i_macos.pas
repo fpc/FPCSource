@@ -84,7 +84,6 @@ unit i_macos;
                 maxCrecordalign : 16
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -102,7 +101,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-09-12 20:33:21  olle
+  Revision 1.18  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.17  2004/09/12 20:33:21  olle
     * Updated compiler status
 
   Revision 1.16  2004/07/05 21:26:35  olle

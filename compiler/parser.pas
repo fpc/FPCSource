@@ -98,10 +98,8 @@ implementation
          registertais;
 
          { memory sizes }
-         if heapsize=0 then
-          heapsize:=target_info.heapsize;
          if stacksize=0 then
-          stacksize:=target_info.stacksize;
+           stacksize:=target_info.stacksize;
 
          { open assembler response }
          if cs_link_on_target in aktglobalswitches then
@@ -123,8 +121,8 @@ implementation
          case target_info.system of
            system_powerpc_morphos:
              include(supported_calling_conventions,pocall_syscall);
-	   system_m68k_amiga:
-	     include(supported_calling_conventions,pocall_syscall);
+           system_m68k_amiga:
+             include(supported_calling_conventions,pocall_syscall);
          end;
       end;
 
@@ -542,18 +540,7 @@ implementation
           end;
 {$endif USEEXCEPT}
 
-       { clear memory }
-{$ifdef Splitheap}
-         if testsplit then
-           begin
-           { temp heap should be empty after that !!!}
-             codegen_donemodule;
-             Releasetempheap;
-           end;
-{$endif Splitheap}
-
-         { restore old state, close trees, > 0.99.5 has heapblocks, so
-           it's the default to release the trees }
+         { restore old state }
          done_module;
 
          if assigned(current_module) then
@@ -711,7 +698,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-10-15 09:14:17  mazen
+  Revision 1.68  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.67  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -85,7 +85,6 @@ unit i_nwm;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 16384;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -102,7 +101,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-09-26 19:51:02  armin
+  Revision 1.8  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.7  2004/09/26 19:51:02  armin
   * added define netware and netware_libc for target netwlibc, netware_clib for netware
 
   Revision 1.6  2004/07/31 22:52:58  armin

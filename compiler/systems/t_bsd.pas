@@ -330,11 +330,11 @@ begin
       if (target_info.system =system_i386_freebsd) and linkpthread Then
         Begin
           if not (cs_link_pthread in aktglobalswitches) Then
-	    begin
-	      {delete pthreads from list, in this case it is in libc_r}
-	      SharedLibFiles.Remove(SharedLibFiles.Find('pthread').str);
-	      LibrarySuffix:='r';
-	    end;
+            begin
+              {delete pthreads from list, in this case it is in libc_r}
+              SharedLibFiles.Remove(SharedLibFiles.Find('pthread').str);
+              LibrarySuffix:='r';
+            end;
         End;
       prtobj:='prt0';
       cprtobj:='cprt0';
@@ -627,7 +627,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2004-10-14 18:16:17  mazen
+  Revision 1.23  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.22  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

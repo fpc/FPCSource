@@ -1039,8 +1039,9 @@ type
                   if (po_abstractmethod in hp.procoptions) then
                      AbstractMethodsList.Insert(hp.procsym.realname)
                   else
-                    { If this symbol is an overriding method, then remove it from the list }
-                    if po_overridingmethod in hp.procoptions then
+                    { If this symbol is a virtual (includes override) method,
+                      then remove it from the list }
+                    if po_virtualmethod in hp.procoptions then
                       AbstractMethodsList.Remove(hp.procsym.realname);
                end;
            end;
@@ -1405,7 +1406,6 @@ type
         i : longint;
         method_must_be_valid,
         is_const : boolean;
-        hp : tnode;
       label
         errorexit;
       begin
@@ -2070,7 +2070,7 @@ type
         errorexit;
       begin
          result:=nil;
-{!!!!!!!!
+(*
          if (procdefinition.proccalloption=pocall_inline) and
             { can we inline this procedure at the node level? }
             (tprocdef(procdefinition).inlininginfo^.inlinenode) then
@@ -2117,7 +2117,8 @@ type
                   exit;
                 end;
            end;
-}
+*)
+
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
            begin
@@ -2415,7 +2416,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.252  2004-10-15 09:14:16  mazen
+  Revision 1.253  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.252  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

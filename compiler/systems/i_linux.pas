@@ -85,7 +85,6 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -149,7 +148,6 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 128*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -213,7 +211,6 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -277,7 +274,6 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -341,7 +337,6 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 16;
-            heapsize     : 256*1024;
             stacksize    : 256*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -405,7 +400,6 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 92;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -469,7 +463,6 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -520,7 +513,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2004-10-24 13:36:26  peter
+  Revision 1.31  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.30  2004/10/24 13:36:26  peter
     * gc-sections added when section smartlinking is used
 
   Revision 1.29  2004/08/15 13:30:18  florian

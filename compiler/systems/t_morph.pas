@@ -199,7 +199,7 @@ begin
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
-  { Under MorphOS a separate strip command is needed, to avoid stripping } 
+  { Under MorphOS a separate strip command is needed, to avoid stripping }
   { __abox__ symbol, which is required to be present in current MorphOS }
   { executables. }
   if success and (cs_link_strip in aktglobalswitches) then
@@ -228,7 +228,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-06-20 08:55:32  florian
+  Revision 1.8  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.7  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.6  2004/06/08 15:04:23  karoly

@@ -93,7 +93,6 @@ unit i_win32;
                 maxCrecordalign : 16
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:true;
             use_function_relative_addresses : true
@@ -112,7 +111,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-08-28 20:01:46  peter
+  Revision 1.10  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.9  2004/08/28 20:01:46  peter
     * enable case sensitive to support mixed case unit/filenames
 
   Revision 1.8  2004/06/20 08:55:32  florian

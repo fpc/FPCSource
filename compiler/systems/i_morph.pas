@@ -85,7 +85,6 @@ unit i_morph;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -103,7 +102,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2004-04-08 00:03:51  karoly
+  Revision 1.4  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.3  2004/04/08 00:03:51  karoly
    * mos uses sysv abi, not aix
 
   Revision 1.2  2004/03/15 07:26:44  karoly

@@ -352,52 +352,6 @@ implementation
       end;
 
 
-    procedure insertheap;
-      begin
-        maybe_new_object_file(bssSegment);
-        maybe_new_object_file(dataSegment);
-        { On the Macintosh Classic M68k Architecture
-          The Heap variable is simply a POINTER to the
-          real HEAP. The HEAP must be set up by the RTL
-          and must store the pointer in this value.
-          On OS/2 the heap is also intialized by the RTL. We do
-          not output a pointer }
-         case target_info.system of
-            system_i386_OS2:
-                bssSegment.concat(Tai_datablock.Create_global('HEAP',4));
-            system_i386_EMX:
-              ;
-            system_powerpc_macos:
-              ;
-            system_i386_watcom:
-              ;
-            system_alpha_linux:
-              ;
-            system_m68k_Mac:
-              bssSegment.concat(Tai_datablock.Create_global('HEAP',4));
-            system_m68k_PalmOS:
-              ;
-         else
-            begin
-              bssSegment.concat(Tai_align.Create(var_align(heapsize)));
-              bssSegment.concat(Tai_datablock.Create_global('HEAP',heapsize));
-            end;
-         end;
-{$ifdef m68k}
-         if target_info.system<>system_m68k_PalmOS then
-           begin
-              dataSegment.concat(Tai_align.Create(const_align(4)));
-              dataSegment.concat(Tai_symbol.Createname_global('HEAPSIZE',AT_DATA,4));
-              dataSegment.concat(Tai_const.Create_32bit(heapsize));
-           end;
-{$else m68k}
-         dataSegment.concat(Tai_align.Create(const_align(4)));
-         dataSegment.concat(Tai_symbol.Createname_global('HEAPSIZE',AT_DATA,4));
-         dataSegment.concat(Tai_const.Create_32bit(heapsize));
-{$endif m68k}
-      end;
-
-
     procedure insertstacklength;
       begin
         { stacksize can be specified and is now simulated }
@@ -1111,17 +1065,6 @@ implementation
 {$endif DEBUG}
          constsymtable:=symtablestack;
 
-{$ifdef Splitheap}
-         if testsplit then
-           begin
-              Split_Heap;
-              allow_special:=true;
-              Switch_to_temp_heap;
-           end;
-         { it will report all crossings }
-         allow_special:=false;
-{$endif Splitheap}
-
          if has_impl then
            begin
              Message1(parser_u_parsing_implementation,current_module.modulename^);
@@ -1496,11 +1439,10 @@ implementation
             (target_info.system=system_i386_NETWARE) then
            exportlib.generatelib;
 
-         { insert Tables and Heap }
+         { insert Tables and StackLength }
          insertThreadVarTablesTable;
          insertResourceTablesTable;
          insertinitfinaltable;
-         insertheap;
          insertstacklength;
 
          { create dwarf debuginfo }
@@ -1564,7 +1506,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2004-10-15 09:14:17  mazen
+  Revision 1.167  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.166  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

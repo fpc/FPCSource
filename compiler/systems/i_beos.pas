@@ -85,7 +85,6 @@ unit i_beos;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 8192;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -102,7 +101,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:32  florian
+  Revision 1.6  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.5  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.4  2004/02/22 16:51:50  peter

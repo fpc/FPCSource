@@ -47,10 +47,10 @@
     to be in unix-format for exe2nlm)
     By default, the most import files are included in freepascal.
 
-    e.g. function getgrnam(name:Pchar):Pgroup;cdecl;external 'libc' 'getgrnam';   
+    e.g. function getgrnam(name:Pchar):Pgroup;cdecl;external 'libc' 'getgrnam';
     sets IMPORT @libc.imp and MODULE libc.
     To avoid setting the autoload, use ! in the name, e.g.
-    procedure EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';   
+    procedure EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';
 
     Function simply defined as external work without generating autoload and
     IMPORT but you will get a warning from nlmconv.
@@ -75,10 +75,10 @@
 
     compile with:
     ppc386 -Tnetwlibc hello
-    
+
     Libraries are supported but this needs at least netware 5.1 sp6,
     6.0 sp3 or netware 6.5
-    
+
     In case there is a xdc file with the same name as the nlm name,
     this file will be used for nlmconv. Otherwise a temp xdc will
     be created and used.
@@ -368,7 +368,7 @@ begin
 
   if isDll then  {needed to provide main}
     s2 := FindObjectFile('nwl_dlle','',false)
-  else    
+  else
     s2 := FindObjectFile('nwl_main','',false);
   Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
@@ -420,7 +420,7 @@ begin
          if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
          begin
            S2 := FindObjectFile(s,'',false);
-	   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
+           {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
            Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
@@ -429,10 +429,10 @@ begin
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,S2);
-	   {$ifdef netware}
-	   Comment(V_Debug,'IMPORT @'+s2);
-	   s2 := FExpand (S2);
-	   {$endif}
+           {$ifdef netware}
+           Comment(V_Debug,'IMPORT @'+s2);
+           s2 := FExpand (S2);
+           {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S2);
            Comment(V_Debug,'IMPORT @'+s2);
          end;
@@ -450,7 +450,7 @@ begin
          Here we are setting the import-files for nlmconv. I.e. for
          the module libc or libc.nlm we add IMPORT @libc.imp and also
          the module libc.nlm (autoload)
-	 If a lib name begins with !, only the IMPORT will be generated
+         If a lib name begins with !, only the IMPORT will be generated
          ? may it be better to set autoload's via StaticLibFiles ? }
         S:=lower (SharedLibFiles.GetFirst);
         if s<>'' then
@@ -459,30 +459,30 @@ begin
            i:=Pos(target_info.sharedlibext,S);
            if i>0 then
              Delete(S,i,255);
-	   if s[1] = '!' then
-	   begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp inlcuded in libc ndk
-	     delete (s,1,1);
-	     S := S + '.imp';
-             librarysearchpath.FindFile(S,S3);
-	     {$ifdef netware}
-	     Comment(V_Debug,'IMPORT @'+S3);
-	     S3 := FExpand (S3);
-	     {$endif}
-             NLMConvLinkFile.Add('IMPORT @'+S3);
-             Comment(V_Debug,'IMPORT @'+S3);
-	   end else
-	   begin
+           if s[1] = '!' then
+           begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp inlcuded in libc ndk
+             delete (s,1,1);
              S := S + '.imp';
              librarysearchpath.FindFile(S,S3);
-	     {$ifdef netware}
-	     Comment(V_Debug,'IMPORT @'+S3);
-	     S3 := FExpand (S3);
-	     {$endif}
+             {$ifdef netware}
+             Comment(V_Debug,'IMPORT @'+S3);
+             S3 := FExpand (S3);
+             {$endif}
+             NLMConvLinkFile.Add('IMPORT @'+S3);
+             Comment(V_Debug,'IMPORT @'+S3);
+           end else
+           begin
+             S := S + '.imp';
+             librarysearchpath.FindFile(S,S3);
+             {$ifdef netware}
+             Comment(V_Debug,'IMPORT @'+S3);
+             S3 := FExpand (S3);
+             {$endif}
              NLMConvLinkFile.Add('IMPORT @'+S3);
              NLMConvLinkFile.Add('MODULE '+s2);
              Comment(V_Debug,'MODULE '+S2);
              Comment(V_Debug,'IMPORT @'+S3);
-	   end;
+           end;
          end
       end;
    end;
@@ -653,7 +653,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-10-14 18:16:17  mazen
+  Revision 1.8  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.7  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

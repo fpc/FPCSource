@@ -36,7 +36,6 @@ implementation
 
   type
     timportlibwdosx=class(timportlibwin32)
-      procedure GetDefExt(var N:longint;var P:pStr4);override;
     end;
 
     texportlibwdosx=texportlibwin32;
@@ -47,22 +46,12 @@ implementation
     end;
 
     tDLLScannerWdosx=class(tDLLScannerWin32)
-    public
-      procedure GetDefExt(var N:longint;var P:pStr4);override;
     end;
-
-const
- DefaultDLLExtensions:array[1..2]of string[4]=('.WDL','.DLL');
 
 
 {*****************************************************************************
                              TIMPORTLIBWDOSX
 *****************************************************************************}
-    procedure timportlibwdosx.GetDefExt(var N:longint;var P:pStr4);
-     begin
-      N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
-      pointer(P):=@DefaultDLLExtensions;
-     end;
 
 {*****************************************************************************
                              TLINKERWDOSX
@@ -80,11 +69,6 @@ end;
 {****************************************************************************
                             TDLLScannerWdosx
 ****************************************************************************}
-    procedure tDLLScannerWdosx.GetDefExt(var N:longint;var P:pStr4);
-     begin
-      N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
-      pointer(P):=@DefaultDLLExtensions;
-     end;
 
 {*****************************************************************************
                                      Initialize
@@ -102,7 +86,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:32  florian
+  Revision 1.5  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.4  2004/06/20 08:55:32  florian
     * logs truncated
 
 }

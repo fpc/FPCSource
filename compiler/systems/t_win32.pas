@@ -55,7 +55,6 @@ interface
       procedure importvariable_str(const s:string;const name,module:string);
       procedure importprocedure_str(const func,module:string;index:longint;const name:string);
     public
-      procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
@@ -94,7 +93,6 @@ interface
       function FindDLL(const s:string;var founddll:string):boolean;
       function ExtractDllName(Const Name : string) : string;
     public
-      procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       function isSuitableFileType(x:cardinal):longbool;override;
       function GetEdata(HeaderEntry:cardinal):longbool;override;
       function Scan(const binname:string):longbool;override;
@@ -105,33 +103,10 @@ implementation
   uses
     cpuinfo,cgutils;
 
-    function DllName(Const Name : string;NdefExt:longint;DefExt:pStr4) : string;
-      var n : string;
-          i:longint;
-      begin
-         n:=Upper(SplitExtension(Name));
-         for i:=1 to NdefExt do
-          if n=DefExt^[i]then
-           begin
-            DllName:=Name;
-            exit;
-           end
-         else
-           DllName:=Name+target_info.sharedlibext;
-      end;
-
-const
- DefaultDLLExtensions:array[1..MAX_DEFAULT_EXTENSIONS]of string[4]=('.DLL','.DRV','.EXE');
-
 
 {*****************************************************************************
                              TIMPORTLIBWIN32
 *****************************************************************************}
-    procedure timportlibwin32.GetDefExt(var N:longint;var P:pStr4);
-     begin
-      N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
-      pointer(P):=@DefaultDLLExtensions;
-     end;
 
     procedure timportlibwin32.preparelib(const s : string);
       begin
@@ -145,15 +120,12 @@ const
          hp1 : timportlist;
          hp2 : twin32imported_item;
          hs  : string;
-         PP  : pStr4;
-         NN  : longint;
       begin
          { force the current mangledname }
          if assigned(aprocdef) then
            aprocdef.has_mangledname:=true;
          { append extension if required }
-         GetDefExt(NN,PP);
-         hs:=DllName(module,NN,PP);
+         hs:=AddExtension(module,target_info.sharedlibext);
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
@@ -208,11 +180,8 @@ const
          hp1 : timportlist;
          hp2 : twin32imported_item;
          hs  : string;
-         NN  : longint;
-         PP  : pStr4;
       begin
-         GetDefExt(NN,PP);
-         hs:=DllName(module,NN,PP);
+         hs:=AddExtension(module,target_info.sharedlibext);
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
@@ -1383,12 +1352,6 @@ end;
                             TDLLScannerWin32
 ****************************************************************************}
 
-    procedure tDLLScannerWin32.GetDefExt(var N:longint;var P:pStr4);
-     begin
-      N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
-      pointer(P):=@DefaultDLLExtensions;
-     end;
-
     function tDLLScannerWin32.DOSstubOK(var x:cardinal):boolean;
       begin
         blockread(f,TheWord,2,loaded);
@@ -1611,16 +1574,16 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
 function tDLLScannerWin32.scan(const binname:string):longbool;
  var
   OldFileMode:longint;
+  hs,
   foundimp : string;
-  NN:longint;PP:pStr4;
  begin
    Scan:=false;
   { is there already an import library the we will use that one }
   if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,foundimp) then
    exit;
   { check if we can find the dll }
-  GetDefExt(NN,PP);
-  if not FindDll(DLLName(binname,NN,PP),impname) then
+  hs:=AddExtension(binname,target_info.sharedlibext);
+  if not FindDll(hs,impname) then
    exit;
   { read the dll file }
   assign(f,impname);
@@ -1654,7 +1617,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2004-10-15 09:24:38  mazen
+  Revision 1.40  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.39  2004/10/15 09:24:38  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

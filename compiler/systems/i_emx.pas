@@ -93,7 +93,6 @@ unit i_emx;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 256*1024;
             DllScanSupported: false;
             use_function_relative_addresses : false
@@ -116,7 +115,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:32  florian
+  Revision 1.5  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.4  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.3  2004/05/16 20:41:19  hajny

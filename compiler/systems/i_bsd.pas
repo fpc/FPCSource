@@ -88,7 +88,6 @@ unit i_bsd;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -152,7 +151,6 @@ unit i_bsd;
                 maxCrecordalign : 8
               );
             first_parm_offset : 16;
-            heapsize     : 256*1024;
             stacksize    : 256*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -216,7 +214,6 @@ unit i_bsd;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -279,7 +276,6 @@ unit i_bsd;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -342,7 +338,6 @@ unit i_bsd;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -402,10 +397,9 @@ unit i_bsd;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
-                maxCrecordalign : 4	// should be 8 probably
+                maxCrecordalign : 4     // should be 8 probably
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
@@ -471,7 +465,6 @@ unit i_bsd;
                 maxCrecordalign : 4
               );
             first_parm_offset : 24;
-            heapsize    : 256*1024;
             stacksize   : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : false;
@@ -513,7 +506,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-09-12 20:33:21  olle
+  Revision 1.14  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.13  2004/09/12 20:33:21  olle
     * Updated compiler status
 
   Revision 1.12  2004/06/20 08:55:32  florian

@@ -79,6 +79,7 @@ than 255 characters. That's why using Ansi Strings}
          { codegen }
          cs_check_overflow,cs_check_range,cs_check_object,
          cs_check_io,cs_check_stack,
+         cs_checkpointer,
          cs_omitstackframe,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,
          { mmx }
@@ -120,7 +121,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_browser_log,
          { debugger }
          cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_gdb_lineinfo,
-         cs_checkpointer,cs_gdb_valgrind,cs_gdb_dwarf,
+         cs_gdb_valgrind,cs_gdb_dwarf,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
@@ -306,7 +307,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-10-15 09:14:16  mazen
+  Revision 1.63  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.62  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

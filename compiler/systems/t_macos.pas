@@ -70,7 +70,7 @@ begin
   if name<>'' then
    begin
      aprocdef.setmangledname(name);
-   end  
+   end
   else
     message(parser_e_empty_import_name);
 end;
@@ -149,15 +149,15 @@ begin
           if s<>'' then
             Add(s+' '#182);
         end;
-    
+
       {Add last lines of the link command}
       if apptype = app_tool then
         Add('-t "MPST" -c "MPS " '#182);
 
       if apptype = app_cui then {If SIOW, to avoid some warnings.}
-        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182); 
+        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182);
 
-      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^)); 
+      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^));
 
       Add('Exit If "{Status}" != 0');
 
@@ -252,7 +252,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-09-13 16:13:04  olle
+  Revision 1.13  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.12  2004/09/13 16:13:04  olle
     + When link on target, the script sets file type on link.res
 
   Revision 1.11  2004/08/20 10:30:00  olle

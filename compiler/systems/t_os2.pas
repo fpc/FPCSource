@@ -470,12 +470,12 @@ begin
      if binstr<>'' then
       begin
         { Is this really required? Not anymore according to my EMX docs }
-        Replace(cmdstr,'$HEAPMB',tostr((heapsize+1048575) shr 20));
+        Replace(cmdstr,'$HEAPMB',tostr((1048575) shr 20));
         {Size of the stack when an EMX program runs in OS/2.}
         Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
-        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+heapsize+1023) shr 10));
+        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
@@ -513,7 +513,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-10-15 09:24:38  mazen
+  Revision 1.14  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.13  2004/10/15 09:24:38  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

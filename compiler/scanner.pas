@@ -148,6 +148,7 @@ interface
           function  readcomment:string;
           function  readquotedstring:string;
           function  readstate:char;
+          function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
           procedure skipcomment;
@@ -2061,6 +2062,32 @@ implementation
       end;
 
 
+    function tscannerfile.readstatedefault:char;
+      var
+        state : char;
+      begin
+        state:=' ';
+        if c=' ' then
+         begin
+           current_scanner.skipspace;
+           current_scanner.readid;
+           if pattern='ON' then
+            state:='+'
+           else
+            if pattern='OFF' then
+             state:='-'
+            else
+             if pattern='DEFAULT' then
+              state:='*';
+         end
+        else
+         state:=c;
+        if not (state in ['+','-','*']) then
+         Message(scan_e_wrong_switch_toggle_default);
+        readstatedefault:=state;
+      end;
+
+
     procedure tscannerfile.skipspace;
       begin
         repeat
@@ -3263,7 +3290,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.92  2004-10-15 09:14:17  mazen
+  Revision 1.93  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.92  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

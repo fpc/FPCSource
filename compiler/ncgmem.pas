@@ -267,9 +267,12 @@ implementation
               end;
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
-            (cs_checkpointer in aktglobalswitches) and
+           (cs_checkpointer in aktlocalswitches) and
             not(cs_compilesystem in aktmoduleswitches) and
-            (not tpointerdef(left.resulttype.def).is_far) then
+            not(
+                tpointerdef(left.resulttype.def).is_far or
+                is_dynamic_array(left.resulttype.def)
+               ) then
           begin
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -324,7 +327,7 @@ implementation
              end;
              { implicit deferencing }
              if (cs_gdb_heaptrc in aktglobalswitches) and
-                (cs_checkpointer in aktglobalswitches) and
+                (cs_checkpointer in aktlocalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -342,7 +345,7 @@ implementation
              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
              if (cs_gdb_heaptrc in aktglobalswitches) and
-                (cs_checkpointer in aktglobalswitches) and
+                (cs_checkpointer in aktlocalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -494,7 +497,6 @@ implementation
 
      procedure tcgvecnode.rangecheck_array;
        var
-         freereg : boolean;
          hightree : tnode;
          poslabel,
          neglabel : tasmlabel;
@@ -517,13 +519,11 @@ implementation
                firstpass(hightree);
                secondpass(hightree);
                { generate compares }
-               freereg:=false;
                if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                  hreg:=cg.makeregsize(exprasmlist,right.location.register,OS_INT)
                else
                  begin
                    hreg:=cg.getintregister(exprasmlist,OS_INT);
-                   freereg:=true;
                    cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hreg);
                  end;
                objectlibrary.getlabel(neglabel);
@@ -879,7 +879,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2004-09-25 14:23:54  peter
+  Revision 1.98  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.97  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

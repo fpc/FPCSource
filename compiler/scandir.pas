@@ -103,6 +103,31 @@ implementation
          end;
       end;
 
+    procedure do_localswitchdefault(sw:tlocalswitch);
+      var
+        state : char;
+      begin
+        state:=current_scanner.readstatedefault;
+        if (sw<>cs_localnone) and (state in ['-','+','*']) then
+         begin
+           if not localswitcheschanged then
+             nextaktlocalswitches:=aktlocalswitches;
+           if state='-' then
+            exclude(nextaktlocalswitches,sw)
+           else
+            if state='+' then
+             include(nextaktlocalswitches,sw)
+            else
+             begin
+              if sw in initlocalswitches then
+               include(nextaktlocalswitches,sw)
+              else
+               exclude(nextaktlocalswitches,sw);
+             end;
+           localswitcheschanged:=true;
+         end;
+      end;
+
 
     procedure do_message(w:integer);
       begin
@@ -228,6 +253,12 @@ implementation
         hs:=current_scanner.readid;
         if not SetAktProcCall(hs,false) then
           Message1(parser_w_unknown_proc_directive_ignored,hs);
+      end;
+
+
+    procedure dir_checkpointer;
+      begin
+        do_localswitchdefault(cs_checkpointer);
       end;
 
 
@@ -517,24 +548,7 @@ implementation
         current_scanner.skipspace;
         l:=current_scanner.readval;
         if l>1024 then
-         stacksize:=l;
-        current_scanner.skipspace;
-        if c=',' then
-         begin
-           current_scanner.readchar;
-           current_scanner.skipspace;
-           l:=current_scanner.readval;
-           if l>1024 then
-            heapsize:=l;
-         end;
-        if c=',' then
-         begin
-           current_scanner.readchar;
-           current_scanner.skipspace;
-           l:=current_scanner.readval;
-           { Ignore this value, because the limit is set by the OS
-             info and shouldn't be changed by the user (PFV) }
-         end;
+          stacksize:=l;
       end;
 
 
@@ -892,7 +906,7 @@ implementation
       begin
         if not (target_info.system in [system_i386_os2,system_i386_emx,
                  system_i386_win32,system_i386_netware,system_i386_wdosx,
-		 system_i386_netwlibc]) then
+                 system_i386_netwlibc]) then
           begin
             Message(scan_n_version_not_support);
             exit;
@@ -1034,6 +1048,7 @@ implementation
         AddDirective('ASSERTIONS',directive_all, @dir_assertions);
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEPAGE',directive_all, @dir_codepage);
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
@@ -1115,7 +1130,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2004-10-15 09:14:17  mazen
+  Revision 1.45  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.44  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

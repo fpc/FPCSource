@@ -247,17 +247,23 @@ begin
 {$ifdef i386}
       '3',
 {$endif}
+{$ifdef x86_64}
+      '4',
+{$endif}
+{$ifdef m68k}
+      '6',
+{$endif}
+{$ifdef arm}
+      'S',
+{$endif}
 {$ifdef powerpc}
       'P',
-{$endif}
-{$ifdef vis}
-      'V',
 {$endif}
 {$ifdef sparc}
       'S',
 {$endif}
-{$ifdef m68k}
-      '6',
+{$ifdef vis}
+      'V',
 {$endif}
       '*' : show:=true;
      end;
@@ -506,16 +512,6 @@ begin
                      end;
                     'g' :
                       include(initmoduleswitches,cs_create_pic);
-                    'h' :
-                       begin
-                         val(copy(more,j+1,length(more)-j),heapsize,code);
-                         if (code<>0) or
-{$WARNING Is the upper limit for heapsize needed / useful?}
-{                                      (heapsize>=67107840) or   }
-                                                           (heapsize<1024) then
-                          IllegalPara(opt);
-                         break;
-                       end;
                     'i' :
                       If UnsetBool(More, j) then
                         exclude(initlocalswitches,cs_check_io)
@@ -725,7 +721,7 @@ begin
                   exclude(initglobalswitches,cs_gdb_gsym);
                   exclude(initglobalswitches,cs_gdb_heaptrc);
                   exclude(initglobalswitches,cs_gdb_lineinfo);
-                  exclude(initglobalswitches,cs_checkpointer);
+                  exclude(initlocalswitches,cs_checkpointer);
                 end
                else
                 begin
@@ -774,9 +770,9 @@ begin
                      'c' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_checkpointer)
-                        else
-                            include(initglobalswitches,cs_checkpointer);
+                           exclude(initlocalswitches,cs_checkpointer)
+                         else
+                           include(initlocalswitches,cs_checkpointer);
                        end;
                      'v' :
                        begin
@@ -836,6 +832,13 @@ begin
            'm' :
              parapreprocess:=not UnSetBool(more,0);
 
+           'M' :
+             begin
+               more:=Upper(more);
+               if not SetCompileMode(more, true) then
+                 IllegalPara(opt);
+             end;
+
            'n' :
              begin
                if More='' then
@@ -886,9 +889,7 @@ begin
                  end;
              end;
 
-{$ifdef Unix}
            'P' : ; { Ignore used by fpc.pp }
-{$endif Unix}
 
            's' :
              begin
@@ -910,13 +911,6 @@ begin
                    else if more<>'' then
                      IllegalPara(opt);
                  end;
-             end;
-
-           'M' :
-             begin
-               more:=Upper(more);
-               if not SetCompileMode(more, true) then
-                 IllegalPara(opt);
              end;
 
            'S' :
@@ -2113,7 +2107,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.148  2004-10-24 20:01:08  peter
+  Revision 1.149  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.148  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.147  2004/10/15 09:14:17  mazen

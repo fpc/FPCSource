@@ -111,7 +111,7 @@ interface
              system_arm_linux,          { 31 }
              system_i386_watcom,        { 32 }
              system_powerpc_MorphOS,    { 33 }
-	     system_x86_64_freebsd,     { 34 }
+             system_x86_64_freebsd,     { 34 }
              system_i386_netwlibc       { 35 }
        );
 
@@ -281,7 +281,6 @@ interface
             (see also FIRST_PARM_OFFSET in GCC source)
           }
           first_parm_offset : longint;
-          heapsize,
           stacksize       : longint;
           DllScanSupported : boolean;
           use_function_relative_addresses : boolean;
@@ -342,7 +341,7 @@ interface
     procedure InitSystems;
 
     {$ifdef FreeBSD}
-	function GetOSRelDate:Longint;
+        function GetOSRelDate:Longint;
     {$endif}
 
 implementation
@@ -703,7 +702,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.92  2004-09-04 21:18:47  armin
+  Revision 1.93  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.92  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
 
   Revision 1.91  2004/06/29 21:00:08  peter

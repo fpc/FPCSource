@@ -68,7 +68,6 @@ unit i_palmos;
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 4;
-            heapsize     : 128*1024;
             stacksize    : 8192;
             DllScanSupported:false;
             use_function_relative_addresses : false
@@ -92,7 +91,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2004-06-20 08:55:32  florian
+  Revision 1.4  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.3  2004/06/20 08:55:32  florian
     * logs truncated
 
 }

@@ -85,7 +85,6 @@ unit i_sunos;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -148,7 +147,6 @@ unit i_sunos;
                 maxCrecordalign : 8
               );
             first_parm_offset : 92;
-            heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
             use_function_relative_addresses : true
@@ -171,7 +169,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-10-01 17:41:21  marco
+  Revision 1.5  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.4  2004/10/01 17:41:21  marco
    * small updates to make playing with sparc/sunos easier
 
   Revision 1.3  2004/06/20 08:55:32  florian

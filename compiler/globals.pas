@@ -50,10 +50,6 @@ interface
       globtype,version,systems,cpuinfo;
 
     const
-{$ifdef Splitheap}
-       testsplit : boolean = false;
-{$endif Splitheap}
-
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
@@ -235,7 +231,6 @@ interface
        aktsourcecodepage : tcodepagestring;
 
      { Memory sizes }
-       heapsize,
        stacksize    : longint;
 
 {$Ifdef EXTDEBUG}
@@ -2126,7 +2121,6 @@ implementation
       { memory sizes, will be overriden by parameter or default for target
         in options or init_parser }
         stacksize:=0;
-        heapsize:=0;
 
         apptype:=app_cui;
      end;
@@ -2134,7 +2128,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2004-10-16 22:46:14  olle
+  Revision 1.148  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.147  2004/10/16 22:46:14  olle
    * Fixed printing of filedates
 
   Revision 1.146  2004/10/16 13:03:13  olle

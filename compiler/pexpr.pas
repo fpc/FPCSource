@@ -316,13 +316,13 @@ implementation
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create(p1)));
              addstatement(newstatement,cassignmentnode.create(
                  cderefnode.create(ctemprefnode.create(temp)),
-                 caddnode.create(addn,
+                 caddnode.create(ntyp,
                      cderefnode.create(ctemprefnode.create(temp)),
                      p2)));
              addstatement(newstatement,ctempdeletenode.create(temp));
            end
          else
-           result:=cassignmentnode.create(p1,caddnode.create(addn,p1.getcopy,p2));
+           result:=cassignmentnode.create(p1,caddnode.create(ntyp,p1.getcopy,p2));
        end;
 
 
@@ -2478,7 +2478,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.166  2004-10-15 09:14:17  mazen
+  Revision 1.167  2004-10-25 15:38:41  peter
+    * heap and heapsize removed
+    * checkpointer fixes
+
+  Revision 1.166  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
