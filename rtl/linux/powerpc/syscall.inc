@@ -168,7 +168,7 @@ asm
   lwz  r7, 20(r4)
   mr   r0, r3
   lwz  r3, 4(r4)
-  stw  r4, regs
+  mr   r8, r4
   lwz  r4, 8(r4)
 { Go ! }
   sc
@@ -176,7 +176,6 @@ asm
   neg  r3,r3
 .Lsyscall_ok:
 { Put back the registers... }
-  lwz    r8, regs
   stw    r3, 0(r8)
 end;
 
@@ -236,7 +235,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-11-15 19:01:27  florian
+  Revision 1.9  2003-11-29 18:18:11  jonas
+    * fixed syscacll for new assembler reader
+
+  Revision 1.8  2003/11/15 19:01:27  florian
     * fixed rtl to work with the integrated fpc ppc assembler reader
 
   Revision 1.7  2003/06/17 16:39:58  jonas
