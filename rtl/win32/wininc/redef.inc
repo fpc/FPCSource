@@ -112,6 +112,7 @@ function FileTimeToLocalFileTime(const lpFileTime:TFILETIME; var LocalFileTime :
 function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYSTEMTIME):WINBOOL;
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL;
 function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME; var FileTime:TFILETIME):WINBOOL;
+function GetStringTypeExA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR;cchSrc:longint;var CharType:WORD):WINBOOL;
 
 {MvdV: Lazarus mwedit templates}
 function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:pRECT;
@@ -122,7 +123,10 @@ function SetScrollInfo(_para1:HWND; _para2:longint;const _para3:TSCROLLINFO; _pa
 
 {
   $Log$
-  Revision 1.7  2000-05-08 13:25:34  peter
+  Revision 1.8  2000-05-17 11:01:55  marco
+   * JCL alias for getstringsexa
+
+  Revision 1.7  2000/05/08 13:25:34  peter
     * defined filemode constants in windows unit
 
   Revision 1.6  2000/04/22 19:51:08  marco
