@@ -72,6 +72,48 @@ begin
   end
 end;
 
+procedure TFPCustomImage.SaveToFile (const filename:String);
+
+var e,s : string;
+    r : integer;
+    f : TFileStream;
+    h : TFPCustomImageWriterClass;
+    Writer : TFPCustomImageWriter;
+    d : TIHData;
+    Msg : string;
+
+begin
+  e := lowercase (ExtractFileExt(filename));
+  if (e <> '') and (e[1] = '.') then
+    delete (e,1,1);
+  with ImageHandlers do
+    begin
+    r := count-1;
+    s := e + ';';
+    while (r >= 0) do
+      begin
+      d := GetData(r);
+      if (pos(s,d.Fextention+';') <> 0) then
+        try
+          h := d.FWriter;
+          if assigned (h) then
+            begin
+            Writer := h.Create;
+            SaveTofile (filename, Writer);
+            break;
+            end;
+        except
+          on e : exception do
+            Msg := e.message;
+        end;
+      dec (r);
+      end
+    end;
+  if (Msg<>'') then
+    FPImgError (StrWriteWithError, [Msg]);
+end;
+
+
 procedure TFPCustomImage.LoadFromStream (Str:TStream);
 var r : integer;
     h : TFPCustomImageReaderClass;

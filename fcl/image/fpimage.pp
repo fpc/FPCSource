@@ -130,6 +130,7 @@ type
       procedure LoadFromFile (const filename:String);
       procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
       procedure SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
+      procedure SaveToFile (const filename:String);
       // Size and data
       procedure SetSize (AWidth, AHeight : integer); virtual;
       property  Height : integer read FHeight write SetHeight;
@@ -291,6 +292,7 @@ type
     StrCantDetermineType,
     StrNoCorrectReaderFound,
     StrReadWithError,
+    StrWriteWithError,
     StrNoPaletteAvailable
     );
 
@@ -311,6 +313,7 @@ const
      'Error while determining image type of stream: %s',
      'Can''t determine image type of stream',
      'Error while reading stream: %s',
+     'Error while writing stream: %s',
      'No palette available'
      );
 
