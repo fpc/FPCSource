@@ -542,6 +542,12 @@ begin
                   fillchar(dirstab,sizeof(tstab),0);
                 filestab:=stabs[i];
                 fillchar(linestab,sizeof(tstab),0);
+                { if new file then func is not valid anymore PM }
+                if stabs[i].ntype=N_SourceFile then
+                  begin
+                    fillchar(funcstab,sizeof(tstab),0);
+                    fillchar(lastfunc,sizeof(tstab),0);
+                  end;
               end;
            end;
        end;
@@ -616,7 +622,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2000-03-23 22:00:08  pierre
+  Revision 1.8  2000-04-12 11:15:06  pierre
+   * reset funcstab when changing object
+
+  Revision 1.7  2000/03/23 22:00:08  pierre
    * fix for OS/2 hopefully
 
   Revision 1.6  2000/03/19 18:10:41  hajny
