@@ -79,7 +79,6 @@ interface
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
 {$ifdef GDB}
-          procedure numberstring;
           procedure concatstabto(asmlist : taasmoutput);virtual;
           function  getnewtypecount : word; override;
 {$endif GDB}
@@ -837,24 +836,6 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tstoredsymtable.numberstring;
-      var
-        p : tsym;
-      begin
-        p:=tsym(symindex.first);
-        while assigned(p) do
-          begin
-            case tsym(p).typ of
-              varsym :
-                tstoreddef(tvarsym(p).vartype.def).numberstring;
-              procsym :
-                tprocsym(p).first_procdef.numberstring;
-            end;
-            p:=tsym(p.indexnext);
-          end;
-      end;
-
-
     procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
       var
         stabstr : Pchar;
@@ -1330,6 +1311,7 @@ implementation
 {$ifdef GDB}
       procedure tabstractunitsymtable.concattypestabto(asmlist : taasmoutput);
         var
+          old_writing_def_stabs : boolean;
           prev_dbx_count : plongint;
           p : tstoreddef;
         begin
@@ -1359,9 +1341,8 @@ implementation
                   end;
              end;
 
-{$ifdef EXTDEBUG}
+           old_writing_def_stabs:=writing_def_stabs;
            writing_def_stabs:=true;
-{$endif EXTDEBUG}
            p:=tstoreddef(defindex.first);
            while assigned(p) do
              begin
@@ -1369,9 +1350,7 @@ implementation
                  p.concatstabto(asmlist);
                p:=tstoreddef(p.indexnext);
              end;
-{$ifdef EXTDEBUG}
-           writing_def_stabs:=false;
-{$endif EXTDEBUG}
+           writing_def_stabs:=old_writing_def_stabs;
 
            if cs_gdb_dbx in aktglobalswitches then
              begin
@@ -2317,7 +2296,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2004-03-08 22:07:47  peter
+  Revision 1.143  2004-03-09 20:45:04  peter
+    * more stabs updates
+
+  Revision 1.142  2004/03/08 22:07:47  peter
     * stabs updates to write stabs for def for all implictly used
       units
 

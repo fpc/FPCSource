@@ -347,9 +347,6 @@ implementation
 
 
     constructor tstoredsym.loadsym(ppufile:tcompilerppufile);
-      var
-        s  : string;
-        nr : word;
       begin
          inherited loadsym(ppufile);
          _mangledname:=nil;
@@ -1014,6 +1011,7 @@ implementation
     function tprocsym.stabstring : pchar;
       begin
         internalerror(200111171);
+        result:=nil;
       end;
 {$endif GDB}
 
@@ -2241,7 +2239,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2004-03-08 22:07:47  peter
+  Revision 1.166  2004-03-09 20:45:04  peter
+    * more stabs updates
+
+  Revision 1.165  2004/03/08 22:07:47  peter
     * stabs updates to write stabs for def for all implictly used
       units
 

@@ -621,14 +621,12 @@ implementation
                begin
                  { prevent infinte loop for circular dependencies }
                  pu.u.is_stab_written:=true;
+                 { write type info from used units, use a depth first
+                   strategy to reduce the recursion in writing all
+                   dependent stabs }
+                 write_used_unit_type_info(pu.u);
                  if assigned(pu.u.globalsymtable) then
-                   begin
-                     { first write the info for this unit, that will flag also all
-                       needed typesyms from used units }
-                     tglobalsymtable(pu.u.globalsymtable).concattypestabto(debuglist);
-                     { write type info from used units }
-                     write_used_unit_type_info(pu.u);
-                   end;
+                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(debuglist);
                end;
              pu:=tused_unit(pu.next);
            end;
@@ -637,8 +635,10 @@ implementation
        begin
          if not (cs_debuginfo in aktmoduleswitches) then
           exit;
-         { write type info for dependent units }
+         { reset unit type info flag }
          reset_unit_type_info;
+         { write used types from the used units }
+         write_used_unit_type_info(current_module);
          { first write the types from this unit }
          if assigned(current_module.globalsymtable) then
            begin
@@ -654,9 +654,6 @@ implementation
               { and all local symbols}
               tstaticsymtable(current_module.localsymtable).concatstabto(debuglist);
            end;
-         { The debuginfo for this unit has flagged the required types, now we
-           write used types from the used units }
-         write_used_unit_type_info(current_module);
          if (cs_gdb_dbx in aktglobalswitches) then
            begin
              debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
@@ -677,7 +674,6 @@ implementation
 
        procedure reset_used_unit_defs(hp:tmodule);
          var
-           hp2 : tmodule;
            pu : tused_unit;
          begin
            pu:=tused_unit(hp.used_units.first);
@@ -1448,7 +1444,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2004-03-08 22:07:47  peter
+  Revision 1.144  2004-03-09 20:45:04  peter
+    * more stabs updates
+
+  Revision 1.143  2004/03/08 22:07:47  peter
     * stabs updates to write stabs for def for all implictly used
       units
 
