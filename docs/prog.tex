@@ -290,6 +290,27 @@ and the compiler will immediatly stop the compilation process.
 This is mainly useful inc conjunction wih \var{\{\$IFDEF\}} or
 \var{\{\$IFOPT\}} statements.
 
+\subsection{\var{\protect\$FPUTYPE} : Select coprocessor type}
+
+This directive selects the type of coprocessor used to do floating point
+calculations. The directive must be followed by the type of floating point
+unit. The allowed values depend on the target CPU:
+
+\begin{description}
+\item[all] \var{SOFT}: FPC emulates the coprocessor (not yet implemented).
+\item[i386] \var{X87}, \var{SSE}, \var{SSE2}: code compiled with \var{SSE} 
+uses the sse to do calculations involving a float of type \var{Single}.
+This code runs only on Pentium III and above, or AthlonXP and above.
+Code compiled with \var{SSE2} uses the \file{sse} unit to do calculations 
+with the single and double data type. This code runs only on PentiumIV 
+and above or Athlon64 and above 
+\item[x86-64] \var{SSE64} 
+\item[powerpc] \var{STANDARD} 
+\item[arm] \var{LIBGCC}, \var{FPA}, \var{FPA10}, \var{FPA11},\var{VFP}.
+\end{description} 
+
+This directive corresponds to the \var{-Cf} command-line option.
+
 \subsection{\var{\protect\$GOTO} : Support \var{Goto} and \var{Label}}
 
 If \var{\{\$GOTO ON\}} is specified, the compiler will support \var{Goto}
