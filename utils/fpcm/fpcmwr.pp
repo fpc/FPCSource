@@ -794,12 +794,13 @@ implementation
            { Install }
            AddTargetVariable('install_units');
            AddTargetVariable('install_files');
-           AddVariable('install_prefixdir');
+           AddVariable('install_prefix');
            AddVariable('install_basedir');
            AddVariable('install_datadir');
            AddVariable('install_fpcpackage');
            AddVariable('install_createpackagefpc');
            { Dist }
+           AddVariable('dist_destdir');
            AddVariable('dist_zipname');
            AddVariable('dist_ziptarget');
            { Compiler }
@@ -874,7 +875,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-08-02 20:50:29  peter
+  Revision 1.16  2001-08-22 20:45:19  peter
+    * firstword added
+    * pathexist fix to include sysfile
+
+  Revision 1.15  2001/08/02 20:50:29  peter
     * -T<target> support
     * better error reporting for not found dirs
     * some cleanups and nicer strings

@@ -174,7 +174,7 @@ implementation
       s_wrong_package_version='Package version "%s" expected, but version "%s" found';
       s_directory_not_found='Directory "%s" not found';
       s_makefilefpc_not_found='No Makefile.fpc found in directory "%s"';
-      s_package_not_found='Package "%s" not found';
+      s_package_not_found='Target "%s", package "%s" not found';
       s_fpcmake_version_required='FPCMake version "%s" is required';
       s_no_targets_set='No targets set';
       s_targets_info='Targets: "%s"';
@@ -191,7 +191,7 @@ implementation
       begin
         if F[Length(f)] in ['/','\'] then
          Delete(f,length(f),1);
-        PathExists:=(findfirst(F,fareadonly+faarchive+fahidden+fadirectory,info)=0) and
+        PathExists:=(findfirst(F,faAnyFile,info)=0) and
                     ((info.attr and fadirectory)=fadirectory);
         findclose(Info);
       end;
@@ -741,14 +741,18 @@ implementation
         { Force the current target }
         SetVariable('TARGET',TargetStr[t],false);
         { Check for Makefile.fpc }
-        s:=SubstVariables('$(wildcard $(addsuffix /'+ReqName+'/Makefile.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(REQUIRE_PACKAGESDIR)))');
+        s:=SubstVariables('$(addsuffix /'+ReqName+'/Makefile.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(REQUIRE_PACKAGESDIR))');
+        Verbose(FPCMakeDebug,'Looking for Makefile.fpc: "'+s+'"');
+        s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
         { Check for Package.fpc }
-        s:=SubstVariables('$(wildcard $(addsuffix /'+ReqName+'/Package.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(UNITSDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(REQUIRE_UNITSDIR)))');
+        s:=SubstVariables('$(addsuffix /'+ReqName+'/Package.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(UNITSDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(REQUIRE_UNITSDIR))');
+        Verbose(FPCMakeDebug,'Looking for Package.fpc: "'+s+'"');
+        s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
-        Raise Exception.Create(Format(s_package_not_found,[Reqname]));
+        Raise Exception.Create(Format(s_package_not_found,[TargetStr[t],Reqname]));
       end;
 
 
@@ -1096,7 +1100,7 @@ implementation
              { It's a function }
              Func:=Copy(s,1,i-1);
 //writeln('func: ',func);
-             { $(wildcard(<list>) }
+             { $(wildcard <list>) }
              if Func='wildcard' then
               begin
                 Delete(s,1,9);
@@ -1117,7 +1121,7 @@ implementation
                    end;
                 until false;
               end
-             { $(addprefix(<suffix>,<list>) }
+             { $(addprefix <suffix>,<list>) }
              else if Func='addprefix' then
               begin
                 Delete(s,1,10);
@@ -1139,7 +1143,7 @@ implementation
                   Result:=Result+s1+tok;
                 until false;
               end
-             { $(addsuffix(<suffix>,<list>) }
+             { $(addsuffix <suffix>,<list>) }
              else if Func='addsuffix' then
               begin
                 Delete(s,1,10);
@@ -1160,7 +1164,15 @@ implementation
                    first:=false;
                   Result:=Result+tok+s1;
                 until false;
-              end;
+              end
+             { $(firstword <list>) }
+             else if Func='firstword' then
+              begin
+                Delete(s,1,10);
+                s1:=GetVar(s,')');
+                Expect(s,')');
+                Result:=GetToken(s1,' ');
+              end
            end
           else
            begin
@@ -1314,7 +1326,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-08-10 10:28:55  pierre
+  Revision 1.13  2001-08-22 20:45:19  peter
+    * firstword added
+    * pathexist fix to include sysfile
+
+  Revision 1.12  2001/08/10 10:28:55  pierre
    + netbsd target added
 
   Revision 1.11  2001/08/02 20:50:29  peter
