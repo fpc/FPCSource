@@ -26,70 +26,7 @@ var
 { ---------------------------------------------------------------------
    GGI bindings  [(c) 1999 Sebastian Guenther]
   ---------------------------------------------------------------------}
-
-Const
-  { Supported modes }
-  {(sg) GTEXT deactivated because we need mode #0 as default mode}
-  {GTEXT             = 0;                 Compatible with VGAlib v1.2 }
-  G320x200x16       = 1;
-  G640x200x16       = 2;
-  G640x350x16       = 3;
-  G640x480x16       = 4;
-  G320x200x256      = 5;
-  G320x240x256      = 6;
-  G320x400x256      = 7;
-  G360x480x256      = 8;
-  G640x480x2        = 9;
-
-  G640x480x256      = 10;
-  G800x600x256      = 11;
-  G1024x768x256     = 12;
-
-  G1280x1024x256    = 13;   { Additional modes. }
-
-  G320x200x32K      = 14;
-  G320x200x64K      = 15;
-  G320x200x16M      = 16;
-  G640x480x32K      = 17;
-  G640x480x64K      = 18;
-  G640x480x16M      = 19;
-  G800x600x32K      = 20;
-  G800x600x64K      = 21;
-  G800x600x16M      = 22;
-  G1024x768x32K     = 23;
-  G1024x768x64K     = 24;
-  G1024x768x16M     = 25;
-  G1280x1024x32K    = 26;
-  G1280x1024x64K    = 27;
-  G1280x1024x16M    = 28;
-
-  G800x600x16       = 29;
-  G1024x768x16      = 30;
-  G1280x1024x16     = 31;
-
-  G720x348x2        = 32;               { Hercules emulation mode }
-
-  G320x200x16M32    = 33;       { 32-bit per pixel modes. }
-  G640x480x16M32    = 34;
-  G800x600x16M32    = 35;
-  G1024x768x16M32   = 36;
-  G1280x1024x16M32  = 37;
-
-  { additional resolutions }
-  G1152x864x16      = 38;
-  G1152x864x256     = 39;
-  G1152x864x32K     = 40;
-  G1152x864x64K     = 41;
-  G1152x864x16M     = 42;
-  G1152x864x16M32   = 43;
-
-  G1600x1200x16     = 44;
-  G1600x1200x256    = 45;
-  G1600x1200x32K    = 46;
-  G1600x1200x64K    = 47;
-  G1600x1200x16M    = 48;
-  G1600x1200x16M32  = 49;
-
+const
   GLASTMODE         = 49;
   ModeNames: array[0..GLastMode] of PChar =
    ('[]',                       {Let GGI choose a default mode}
@@ -172,25 +109,25 @@ type
 
 const
   libggi = 'ggi';
-function  ggiInit: Integer; cdecl; external libggi;
+function  ggiInit: Longint; cdecl; external libggi;
 procedure ggiExit; cdecl; external libggi;
 function  ggiOpen(display: PChar; args: Array of const): TGGIVisual; cdecl; external libggi;
-function  ggiClose(vis: TGGIVisual): Integer; cdecl; external libggi;
-function  ggiParseMode(s: PChar; var m: TGGIMode): Integer; cdecl; external libggi;
-function  ggiSetMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
-function  ggiGetMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
-function  ggiCheckMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
+function  ggiClose(vis: TGGIVisual): Longint; cdecl; external libggi;
+function  ggiParseMode(s: PChar; var m: TGGIMode): Longint; cdecl; external libggi;
+function  ggiSetMode(visual: TGGIVisual; var tm: TGGIMode): Longint; cdecl; external libggi;
+function  ggiGetMode(visual: TGGIVisual; var tm: TGGIMode): Longint; cdecl; external libggi;
+function  ggiCheckMode(visual: TGGIVisual; var tm: TGGIMode): Longint; cdecl; external libggi;
 
 function  ggiMapColor(vis: TGGIVisual; Color: TGGIColor): TGGIPixel; cdecl; external libggi;
 
-function  ggiPutPixel(vis: TGGIVisual; x, y: Integer; pixel: TGGIPixel): Integer; cdecl; external libggi;
-function  ggiGetPixel(vis: TGGIVisual; x, y: Integer; var pixel: TGGIPixel): Integer; cdecl; external libggi;
-function  ggiDrawBox(vis: TGGIVisual; x, y, w, h: Integer): Integer; cdecl; external libggi;
-function  ggiPutBox(vis: TGGIVisual; x, y, w, h: Integer; var buffer): Integer; cdecl; external libggi;
-function  ggiGetBox(vis: TGGIVisual; x, y, w, h: Integer; var buffer): Integer; cdecl; external libggi;
+function  ggiPutPixel(vis: TGGIVisual; x, y: Longint; pixel: TGGIPixel): Longint; cdecl; external libggi;
+function  ggiGetPixel(vis: TGGIVisual; x, y: Longint; var pixel: TGGIPixel): Longint; cdecl; external libggi;
+function  ggiDrawBox(vis: TGGIVisual; x, y, w, h: Longint): Longint; cdecl; external libggi;
+function  ggiPutBox(vis: TGGIVisual; x, y, w, h: Longint; var buffer): Longint; cdecl; external libggi;
+function  ggiGetBox(vis: TGGIVisual; x, y, w, h: Longint; var buffer): Longint; cdecl; external libggi;
 
-function  ggiGetPalette(vis: TGGIVisual; s, len: Integer; var cmap: TGGIColor): Integer; cdecl; external libggi;
-function  ggiSetPalette(vis: TGGIVisual; s, len: Integer; var cmap: TGGIColor): Integer; cdecl; external libggi;
+function  ggiGetPalette(vis: TGGIVisual; s, len: Longint; var cmap: TGGIColor): Longint; cdecl; external libggi;
+function  ggiSetPalette(vis: TGGIVisual; s, len: Longint; var cmap: TGGIColor): Longint; cdecl; external libggi;
 
 
 var
@@ -233,7 +170,7 @@ begin
   ggiSetMode(Visual, CurrentMode);
 end;
 
-function ClipCoords(var x, y: Integer): Boolean;
+function ClipCoords(var x, y: SmallInt): Boolean;
 { Adapt to viewport, return TRUE if still in viewport,
   false if outside viewport}
 begin
@@ -249,7 +186,7 @@ begin
 end;
 
 
-procedure ggi_directpixelproc(X, Y: Integer);
+procedure ggi_directpixelproc(X, Y: smallint);
 var
   Color, CurCol: TGGIPixel;
 begin
@@ -278,13 +215,13 @@ begin
   ggiPutPixel(Visual, x, y, Color);
 end;
 
-procedure ggi_putpixelproc(X,Y: Integer; Color: Word);
+procedure ggi_putpixelproc(X,Y: smallint; Color: Word);
 begin
   If Not ClipCoords(X,Y) Then exit;
   ggiputpixel(Visual,x, y, Color);
 end;
 
-function ggi_getpixelproc (X,Y: Integer): word;
+function ggi_getpixelproc (X,Y: smallint): word;
 
 Var i : TGGIPixel;
 
@@ -308,13 +245,13 @@ type
             Data: record end;
             end;
 
-procedure ggi_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
+procedure ggi_putimageproc (X,Y: smallint; var Bitmap; BitBlt: Word);
 begin
   With TBitMap(BitMap) do
     ggiputbox(Visual,x, y, width, height, @Data);
 end;
 
-procedure ggi_getimageproc (X1,Y1,X2,Y2: Integer; Var Bitmap);
+procedure ggi_getimageproc (X1,Y1,X2,Y2: smallint; Var Bitmap);
 begin
   with TBitmap(Bitmap) do
     begin
@@ -324,34 +261,34 @@ begin
     end;
 end;
 
-function  ggi_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
+function  ggi_imagesizeproc (X1,Y1,X2,Y2: smallint): longint;
 begin
  // 32 bits per pixel -- change ASAP !!
  ggi_imagesizeproc := SizeOf(TBitmap) + (x2 - x1 + 1) * (y2 - y1 + 1) * SizeOF(longint);
 end;
 
-procedure ggi_hlineproc (x, x2,y : integer);
+procedure ggi_hlineproc (x, x2,y : smallint);
 begin
 end;
 
-procedure ggi_vlineproc (x,y,y2: integer);
+procedure ggi_vlineproc (x,y,y2: smallint);
 begin
 end;
 
-procedure ggi_patternlineproc (x1,x2,y: integer);
+procedure ggi_patternlineproc (x1,x2,y: smallint);
 begin
 end;
 
-procedure ggi_ellipseproc  (X,Y: Integer;XRadius: word;
+procedure ggi_ellipseproc  (X,Y: smallint;XRadius: word;
   YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
 begin
 end;
 
-procedure ggi_lineproc (X1, Y1, X2, Y2 : Integer);
+procedure ggi_lineproc (X1, Y1, X2, Y2 : smallint);
 begin
 end;
 
-procedure ggi_getscanlineproc (X1, X2, Y : integer; var data);
+procedure ggi_getscanlineproc (X1, X2, Y : smallint; var data);
 begin
 end;
 
@@ -372,7 +309,7 @@ procedure ggi_restorestateproc;
 begin
 end;
 
-procedure ggi_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+procedure ggi_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: smallint);
 
 Var Col : TGGIcolor;
 
@@ -383,8 +320,8 @@ begin
   ggisetpalette(Visual,ColorNum,1,col);
 end;
 
-procedure ggi_getrgbpaletteproc (ColorNum: integer;
-                                    var RedValue, GreenValue, BlueValue: Integer);
+procedure ggi_getrgbpaletteproc (ColorNum: smallint;
+                                    var RedValue, GreenValue, BlueValue: smallint);
 
 Var Col : TGGIColor;
 
@@ -419,7 +356,7 @@ function QueryAdapterInfo:PModeInfo;
 var
   ModeInfo: TGGIMode;
 
-  procedure AddGGIMode(i: Integer);     // i is the mode number
+  procedure AddGGIMode(i: smallint);     // i is the mode number
   var
     mode: TModeInfo;
   begin
@@ -461,7 +398,7 @@ var
   end;
 
 var
-  i: Integer;
+  i: longint;
   OldMode: TGGIMode;
 begin
   QueryAdapterInfo := ModeList;
@@ -500,9 +437,13 @@ end;
 
 {
 $Log$
-Revision 1.6  1999-12-11 23:41:39  jonas
+Revision 1.7  1999-12-20 11:22:38  peter
+  * modes moved to interface
+  * integer -> smallint
+
+Revision 1.6  1999/12/11 23:41:39  jonas
   * changed definition of getscanlineproc to "getscanline(x1,x2,y:
-    integer; var data);" so it can be used by getimage too
+    smallint; var data);" so it can be used by getimage too
   * changed getimage so it uses getscanline
   * changed floodfill, getscanline16 and definitions in Linux
     include files so they use this new format

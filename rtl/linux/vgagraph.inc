@@ -84,68 +84,8 @@ Const
                        ClipY2: LongInt;
                        ff: pointer;
                      end;
+
 Const
-  { VGA modes }
-  GTEXT             = 0;                { Compatible with VGAlib v1.2 }
-  G320x200x16       = 1;
-  G640x200x16       = 2;
-  G640x350x16       = 3;
-  G640x480x16       = 4;
-  G320x200x256      = 5;
-  G320x240x256      = 6;
-  G320x400x256      = 7;
-  G360x480x256      = 8;
-  G640x480x2        = 9;
-
-  G640x480x256      = 10;
-  G800x600x256      = 11;
-  G1024x768x256     = 12;
-
-  G1280x1024x256    = 13;   { Additional modes. }
-
-  G320x200x32K      = 14;
-  G320x200x64K      = 15;
-  G320x200x16M      = 16;
-  G640x480x32K      = 17;
-  G640x480x64K      = 18;
-  G640x480x16M      = 19;
-  G800x600x32K      = 20;
-  G800x600x64K      = 21;
-  G800x600x16M      = 22;
-  G1024x768x32K     = 23;
-  G1024x768x64K     = 24;
-  G1024x768x16M     = 25;
-  G1280x1024x32K    = 26;
-  G1280x1024x64K    = 27;
-  G1280x1024x16M    = 28;
-
-  G800x600x16       = 29;
-  G1024x768x16      = 30;
-  G1280x1024x16     = 31;
-
-  G720x348x2        = 32;               { Hercules emulation mode }
-
-  G320x200x16M32    = 33;       { 32-bit per pixel modes. }
-  G640x480x16M32    = 34;
-  G800x600x16M32    = 35;
-  G1024x768x16M32   = 36;
-  G1280x1024x16M32  = 37;
-
-  { additional resolutions }
-  G1152x864x16      = 38;
-  G1152x864x256     = 39;
-  G1152x864x32K     = 40;
-  G1152x864x64K     = 41;
-  G1152x864x16M     = 42;
-  G1152x864x16M32   = 43;
-
-  G1600x1200x16     = 44;
-  G1600x1200x256    = 45;
-  G1600x1200x32K    = 46;
-  G1600x1200x64K    = 47;
-  G1600x1200x16M    = 48;
-  G1600x1200x16M32  = 49;
-
   GLASTMODE         = 49;
   ModeNames : Array[0..GLastMode] of string [18] =
    ('Text',
@@ -231,7 +171,7 @@ end;
 procedure libvga_restorevideostate;
 
 begin
-  vga_setmode(Gtext);
+  vga_setmode(0);
 end;
 
 const
@@ -500,7 +440,11 @@ end;
 
 {
 $Log$
-Revision 1.3  1999-12-11 23:41:39  jonas
+Revision 1.4  1999-12-20 11:22:38  peter
+  * modes moved to interface
+  * integer -> smallint
+
+Revision 1.3  1999/12/11 23:41:39  jonas
   * changed definition of getscanlineproc to "getscanline(x1,x2,y:
     integer; var data);" so it can be used by getimage too
   * changed getimage so it uses getscanline
