@@ -8,8 +8,8 @@
 uses Objects,WUtils,WHelp,WTPHWriter;
 
 const
-     SrcExt          = '.TXT';
-     HelpExt         = '.FPH';
+     SrcExt          = '.txt';
+     HelpExt         = '.fph';
      TokenPrefix     = '.';
      CommentPrefix   = ';';
      TokenIndex      = 'INDEX';
