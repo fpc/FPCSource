@@ -25,12 +25,6 @@ unit link;
 
 {$i fpcdefs.inc}
 
-{ Needed for LFN support in path to the executable }
-{$ifdef GO32V2}
-  { define ALWAYSSHELL, obsolete as go32v2 Dos.Exec
-    now handles LFN names and converts them to SFN PM }
-{$endif}
-
 interface
 uses
   cclasses,
@@ -465,14 +459,10 @@ begin
   if not(cs_link_extern in aktglobalswitches) then
    begin
      swapvectors;
-{$ifdef ALWAYSSHELL}
-     shell(command+' '+para);
-{$else}
      if useshell then
       shell(command+' '+para)
      else
       exec(command,para);
-{$endif}
      swapvectors;
      if (doserror<>0) then
       begin
@@ -660,7 +650,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2002-09-07 15:25:02  peter
+  Revision 1.32  2002-11-09 15:37:21  carl
+    - removed no longer used defines
+
+  Revision 1.31  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.30  2002/08/12 15:08:39  carl
