@@ -436,12 +436,13 @@
 
 
     procedure tprocsym.load_references;
-      (* var
+      (*var
         prdef,prdef2 : pprocdef;
         b : byte; *)
       begin
          inherited load_references;
-         (* prdef:=definition;
+         (*prdef:=definition;
+           done in tsymtable.load_browser (PM)
          { take care about operators !!  }
          if (current_module^.flags and uf_has_browser) <>0 then
            while assigned(prdef) and (prdef^.owner=definition^.owner) do
@@ -2014,7 +2015,10 @@
 
 {
   $Log$
-  Revision 1.94  1999-06-03 16:25:05  pierre
+  Revision 1.94.2.1  1999-06-22 16:26:45  pierre
+   * local browser stuff corrected
+
+  Revision 1.94  1999/06/03 16:25:05  pierre
    * local Cvar stabs corrected
 
   Revision 1.93  1999/05/27 19:45:06  peter

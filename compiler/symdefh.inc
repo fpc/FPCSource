@@ -395,6 +395,7 @@
           { browser info }
           lastref,
           defref,
+          crossref,
           lastwritten : pref;
           refcount : longint;
           _class : pobjectdef;
@@ -520,7 +521,10 @@
 
 {
   $Log$
-  Revision 1.32  1999-06-02 10:11:51  florian
+  Revision 1.32.2.1  1999-06-22 16:26:43  pierre
+   * local browser stuff corrected
+
+  Revision 1.32  1999/06/02 10:11:51  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
