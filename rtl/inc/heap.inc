@@ -996,7 +996,6 @@ begin
        if (hp=heapptr) then
         begin
           inc(foundsize,heapend-heapptr);
-          wasbeforeheapend:=true;
           break;
         end;
        if (hp^.size and usedmask)<>0 then
@@ -1017,6 +1016,8 @@ begin
            begin
              inc(heapptr,size-foundsize);
              foundsize:=size;
+             if (heapend-heapptr)<sizeof(tfreerecord) then
+              wasbeforeheapend:=true;
              break;
            end;
           s:=hp^.size and sizemask;
@@ -1153,7 +1154,7 @@ var
   pcurr     : pfreerecord;
 begin
 {$ifdef DUMPGROW}
-  writeln('grow ',size);
+  writeln('growheap(',size,')  allocating ',(size+$ffff) and $ffff0000);
   DumpBlocks;
 {$endif}
   { Allocate by 64K size }
@@ -1255,8 +1256,8 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-12-31 11:41:06  jonas
-    * fix for web bug 1727 from Peter
+  Revision 1.11  2002-01-02 13:43:09  jonas
+    * fix for web bug 1727 from Peter (corrected)
 
   Revision 1.9  2001/12/03 21:39:20  peter
     * freemem(var) -> freemem(value)
