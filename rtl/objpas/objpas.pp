@@ -56,10 +56,11 @@ unit objpas;
 
 
 {$ifdef HasResourceStrings}
-     { Resourcestring support }
-     Function GetResourceString(Hash : Longint;Const Name : ShortString) : AnsiString;
-     Procedure ResetResourceTables;
-     Function SetResourceString(Hash : Longint;Const Name : Shortstring; Const Value : AnsiString) : Boolean;
+Type
+   TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
+
+   Procedure ResetResourceTables;
+   Procedure SetResourceStrings (SetFunction :  TResourceIterator);
 {$endif}
 
 
@@ -230,16 +231,24 @@ Type
      DefaultValue,
      CurrentValue : AnsiString;
      HashValue : longint;
-     Name : ShortString;
+     Name : AnsiString;
    end;
 
    TResourceStringTable = Packed Record
      Count : longint;
      Resrec : Array[Word] of TResourceStringRecord;
    end;
+   PResourceStringTable = ^TResourceStringTable;
+   
+   TResourceTableList = Packed Record
+     Count : longint;
+     Tables : Array[Word] of PResourceStringTable;
+     end;
 
+                     
+    
 Var
-  ResourceStringTable : TResourceStringTable; External Name 'FPC_RESOURCESTRINGTABLES';
+  ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
 
 function CalcStringHashValue(Const N : ShortString) : longint;
 
@@ -264,45 +273,16 @@ begin
      CalcStringHashValue:=Hash;
 end;
 
-Function FindIndex (Hash : longint;Const Value : Shortstring) : Longint;
-
-Var
-  I : longint;
-  
-begin
-  // Linear search, later we can implement binary search.
-  Result:=-1;
-  With ResourceStringTable do
-    For I:=0 to Count-1 do
-      If Hash=Resrec[I].HashValue then
-        begin
-        Result:=I;
-        Break;
-        end;
-  If Result<>-1 then
-    begin
-    With ResourceStringTable do
-      While (Result<=Count) do
-        If Value=ResRec[Result].Name then 
-          exit
-        else 
-          Inc(Result);
-    Result:=-1;
-    end;       
-end;
-
-
-Function GetResourceString(Hash : longint;Const Name : ShortString) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
+Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
 
 begin
-  Hash:=FindIndex(Hash,Name);
-  If Hash<>-1 then
-     Result:=ResourceStringTable.ResRec[Hash].CurrentValue
+  If (Index>0) and (Index<TheTAble.Count) then
+     Result:=TheTable.ResRec[Index].CurrentValue
   else
      Result:='';
 end;
 
-
+(*
 Function SetResourceString(Hash : Longint;Const Name : ShortString; Const Value : AnsiString) : Boolean;
 
 begin
@@ -311,24 +291,40 @@ begin
   If Result then
     ResourceStringTable.ResRec[Hash].CurrentValue:=Value;
 end;
+*)
 
+Procedure SetResourceStrings (SetFunction :  TResourceIterator);
 
-Procedure ResetResourceTables;
-
-Var I : longint;
+Var I,J : longint;
 
 begin
   With ResourceStringTable do
     For I:=0 to Count-1 do
-      With ResRec[i] do
-        CurrentValue:=DefaultValue;
+      With Tables[I]^ do 
+         For J:=0 to Count-1 do 
+           With ResRec[J] do
+             CurrentValue:=SetFunction(Name,DefaultValue,HashValue);
+end;
+
+
+Procedure ResetResourceTables;
+
+Var I,J : longint;
+
+begin
+  With ResourceStringTable do
+  For I:=0 to Count-1 do
+    With Tables[I]^ do 
+        For J:=0 to Count-1 do 
+          With ResRec[J] do
+            CurrentValue:=DefaultValue;
 end;
 {$endif}
 
 
 Initialization
 {$IFDEF HasResourceStrings}
-//  ResetResourceTables;
+  ResetResourceTables;
 {$endif}
   InitMemoryManager;
 finalization
@@ -337,7 +333,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-08-24 12:02:29  michael
+  Revision 1.36  1999-08-24 22:42:56  michael
+  * changed resourcestrings to new mechanism
+
+  Revision 1.35  1999/08/24 12:02:29  michael
   + Changed external var for resourcestrings
 
   Revision 1.34  1999/08/20 10:50:55  michael
