@@ -1,0 +1,12 @@
+#
+#   Makefile.fpc for MMTK sample programs
+#
+
+[target]
+programs=lvmtest
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../..
