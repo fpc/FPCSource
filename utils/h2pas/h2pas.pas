@@ -7857,7 +7857,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-04-10 21:22:37  peter
+  Revision 1.4  2001-08-17 22:47:30  florian
+    * C contant size specifiers can be lower cased as well:
+      0x12341234u is allowed
+
+  Revision 1.3  2001/04/10 21:22:38  peter
     * more fixes that were still laying around
 
   Revision 1.2  2000/12/27 21:59:59  peter

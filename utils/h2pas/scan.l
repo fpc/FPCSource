@@ -443,12 +443,12 @@ D [0-9]
                           return(CSTRING)
                         else
                           return(256);
-{D}*[U]?[L]?            begin
-                           if yytext[length(yytext)] in ['L','U'] then
+{D}*[Uu]?[Ll]?          begin
+                           while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
                            return(NUMBER);
                         end;
-"0x"[0-9A-Fa-f]*[U]?[L]?
+"0x"[0-9A-Fa-f]*[Uu]?[Ll]?
                         begin
                            (* handle pre- and postfixes *)
                            if copy(yytext,1,2)='0x' then
@@ -456,7 +456,7 @@ D [0-9]
                                 delete(yytext,1,2);
                                 yytext:='$'+yytext;
                              end;
-                           if yytext[length(yytext)] in ['L','U'] then
+                           while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
                            return(NUMBER);
                         end;
