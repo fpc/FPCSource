@@ -504,50 +504,81 @@ implementation
 
     procedure second_string_to_chararray(var pto,pfrom : ptree;convtyp : tconverttype);
       var
+         pushedregs: tpushed;
          l1 : pasmlabel;
          hr : preference;
+         arrsize, strtype: longint;
+         regstopush: byte;
       begin
+         with parraydef(pto^.resulttype)^ do
+           arrsize := highrange-lowrange+1;
+
+         if (pfrom^.treetype = stringconstn) and
+            { pfrom^.length+1 since there's always a terminating #0 character (JM) }
+            (pfrom^.length+1 >= arrsize) then
+           begin
+             inc(pto^.location.reference.offset);
+             exit;
+           end;
+         clear_location(pto^.location);
+         pto^.location.loc := LOC_REFERENCE;
+         gettempofsizereference(arrsize,pto^.location.reference);
+
+         regstopush := $ff;
+         remove_non_regvars_from_loc(pfrom^.location,regstopush);
+         pushusedregisters(pushedregs,regstopush);
+         
+         emit_push_lea_loc(pto^.location,false);
+         
          case pstringdef(pfrom^.resulttype)^.string_typ of
            st_shortstring :
              begin
-               inc(pto^.location.reference.offset);
+               { 0 means shortstring }
+               strtype := 0;
+               del_reference(pfrom^.location.reference);
+               emit_push_lea_loc(pfrom^.location,true);
+               ungetiftemp(pfrom^.location.reference);
              end;
            st_ansistring :
              begin
-               clear_location(pto^.location);
-               pto^.location.loc:=LOC_REFERENCE;
-               reset_reference(pto^.location.reference);
-               getlabel(l1);
+               { 1 means ansistring }
+               strtype := 1;
                case pfrom^.location.loc of
                   LOC_CREGISTER,LOC_REGISTER:
-                    pto^.location.reference.base:=pfrom^.location.register;
+                    begin
+                      ungetregister(pfrom^.location.register);
+                      emit_push_loc(pfrom^.location);
+                    end;
                   LOC_MEM,LOC_REFERENCE:
                     begin
-                      pto^.location.reference.base:=getregister32;
-                      emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
-                        pto^.location.reference.base);
                       del_reference(pfrom^.location.reference);
+                      emit_push_loc(pfrom^.location);
+                      ungetiftemp(pfrom^.location.reference);
                     end;
                end;
-               emit_const_reg(A_CMP,S_L,0,pto^.location.reference.base);
-               emitjmp(C_NZ,l1);
-               new(hr);
-               reset_reference(hr^);
-               hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-               emit_ref_reg(A_LEA,S_L,hr,pto^.location.reference.base);
-               emitlab(l1);
              end;
            st_longstring:
              begin
                {!!!!!!!}
+               { 2 means longstring, but still needs support in FPC_STR_TO_CHARARRAY,
+                 which is in i386.inc and/or generic.inc (JM) }
+               strtype := 2;
+
                internalerror(8888);
              end;
            st_widestring:
              begin
                {!!!!!!!}
+               { 3 means widestring, but still needs support in FPC_STR_TO_CHARARRAY,
+                 which is in i386.inc and/or generic.inc (JM) }
+               strtype := 3;
                internalerror(8888);
              end;
          end;
+         push_int(arrsize);
+         push_int(strtype);
+         emitcall('FPC_STR_TO_CHARARRAY');
+         popusedregisters(pushedregs);
       end;
 
 
@@ -1536,7 +1567,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-02 07:05:32  jonas
+  Revision 1.5  2000-08-09 11:30:21  jonas
+    * fixed bug1093 and other string -> chararray conversion bugs
+      (merged from fixes branch)
+
+  Revision 1.4  2000/08/02 07:05:32  jonas
     * fixed ie(10) when using -Or and shortstring -> ansistring conversions
       (or when using a lot of ss -> as conversions in one statement, the
       source was freed only *after* pushusedregisters($ff), which means its
