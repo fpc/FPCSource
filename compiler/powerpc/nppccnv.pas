@@ -52,7 +52,6 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override; }
          { procedure second_char_to_char;override; }
-          procedure pass_2;override;
        end;
 
 implementation
@@ -291,8 +290,6 @@ implementation
               exit;
            end;
 
-         if codegenerror then
-           exit;
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
          opsize := def_cgsize(left.resulttype.def);
          case left.location.loc of
@@ -363,33 +360,15 @@ implementation
       end;
 
 
-    procedure tppctypeconvnode.pass_2;
-{$ifdef TESTOBJEXT2}
-      var
-         r : preference;
-         nillabel : plabel;
-{$endif TESTOBJEXT2}
-      begin
-         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-         { type conversion (FK)                                 }
-
-         if not(convtype in [tc_bool_2_int,tc_bool_2_bool]) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-              if codegenerror then
-               exit;
-           end;
-         second_call_helper(convtype);
-      end;
-
-
 begin
    ctypeconvnode:=tppctypeconvnode;
 end.
 {
   $Log$
-  Revision 1.47  2003-12-04 20:37:02  jonas
+  Revision 1.48  2003-12-07 11:21:05  jonas
+    * finally fixed int->bool conversion properly
+
+  Revision 1.47  2003/12/04 20:37:02  jonas
     * fixed some int<->boolean type conversion issues
 
   Revision 1.46  2003/11/29 16:27:19  jonas
