@@ -448,7 +448,7 @@ implementation
 
          { error CGMessage, if more than 8 floating point }
          { registers are needed                         }
-         if p.registersfpu>8 then
+         if p.registersfpu>maxfpuregs then
           CGMessage(cg_e_too_complex_expr);
       end;
 
@@ -920,7 +920,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-05-08 08:52:05  jonas
+  Revision 1.27  2001-05-18 22:57:08  peter
+    * replace constant by cpu dependent value (merged)
+
+  Revision 1.26  2001/05/08 08:52:05  jonas
     * fix from Peter to avoid excessive number of warnings
 
   Revision 1.25  2001/04/22 22:46:49  florian
