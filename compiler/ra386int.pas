@@ -1024,7 +1024,7 @@ Begin
                Message(asmr_e_only_add_relocatable_symbol);
              oldbase:=opr.ref.base;
              opr.ref.base:=R_NO;
-             if not SetupVar(actasmpattern) then
+             if not SetupVar(actasmpattern,GotOffset) then
                Message1(sym_e_unknown_id,actasmpattern);
              if GotOffset then
               if hasvar and (opr.ref.base=procinfo^.framepointer) then
@@ -1353,7 +1353,7 @@ Begin
             { is it a normal variable ? }
              Begin
                InitRef;
-               if SetupVar(actasmpattern) then
+               if SetupVar(actasmpattern,false) then
                 begin
                   expr:=actasmpattern;
                   Consume(AS_ID);
@@ -1802,7 +1802,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2000-03-02 11:48:31  pierre
+  Revision 1.61  2000-03-15 23:10:01  pierre
+    * fix for bug 848 (that still genrated wrong code)
+    + better testing for variables used in assembler
+      (gives an error if variable is not directly reachable !)
+
+  Revision 1.60  2000/03/02 11:48:31  pierre
    * fix for bug 848
 
   Revision 1.59  2000/02/13 22:46:28  florian

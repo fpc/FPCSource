@@ -1255,7 +1255,7 @@ var
         BuildReference;
       AS_ID: { only a variable is allowed ... }
         Begin
-          if not SetupVar(actasmpattern) then
+          if not SetupVar(actasmpattern,false) then
             Message(asmr_e_invalid_reference_syntax);
           Consume(AS_ID);
           case actasmtoken of
@@ -1359,7 +1359,7 @@ Begin
            else
             begin
               InitRef;
-              if SetupVar(actasmpattern) then
+              if SetupVar(actasmpattern,false) then
                begin
                  expr:=actasmpattern;
                  Consume(AS_ID);
@@ -1985,7 +1985,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2000-02-09 13:23:01  peter
+  Revision 1.72  2000-03-15 23:10:01  pierre
+    * fix for bug 848 (that still genrated wrong code)
+    + better testing for variables used in assembler
+      (gives an error if variable is not directly reachable !)
+
+  Revision 1.71  2000/02/09 13:23:01  peter
     * log truncated
 
   Revision 1.70  2000/01/28 09:41:39  peter
@@ -2050,4 +2055,3 @@ end.
       constant expressions
 
 }
-

@@ -97,7 +97,7 @@ type
     Function  SetupResult:boolean;
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
-    Function  SetupVar(const hs:string): Boolean;
+    Function  SetupVar(const hs:string;GetOffset : boolean): Boolean;
     Function  SetupDirectVar(const hs:string): Boolean;
     Procedure InitRef;
   end;
@@ -722,7 +722,7 @@ Begin
 end;
 
 
-Function TOperand.SetupVar(const hs:string): Boolean;
+Function TOperand.SetupVar(const hs:string;GetOffset : boolean): Boolean;
 { search and sets up the correct fields in the Instr record }
 { for the NON-constant identifier passed to the routine.    }
 { if not found returns FALSE.                               }
@@ -761,7 +761,27 @@ Begin
             opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
           parasymtable :
             begin
-              opr.ref.base:=procinfo^.framepointer;
+              { if we only want the offset we don't have to care
+                the base will be zeroed after ! }
+              if (lexlevel=pvarsym(sym)^.owner^.symtablelevel) or
+              { this below is wrong because there are two parast
+                for global functions one of interface the second of
+                implementation
+              if (pvarsym(sym)^.owner=procinfo^.def^.parast) or }
+                GetOffset then
+                opr.ref.base:=procinfo^.framepointer
+              else
+                begin
+                  if (procinfo^.framepointer=R_ESP) and
+                     assigned(procinfo^.parent) and
+                     (lexlevel=pvarsym(sym)^.owner^.symtablelevel+1) and
+                     { same problem as above !!
+                     (procinfo^.parent^.sym^.definition^.parast=pvarsym(sym)^.owner) and }
+                     (lexlevel>normal_function_level) then
+                    opr.ref.base:=procinfo^.parent^.framepointer
+                  else
+                    message1(asmr_e_local_para_unreachable,hs);
+                end;
               opr.ref.offset:=pvarsym(sym)^.address;
               opr.ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
               opr.ref.options:=ref_parafixup;
@@ -772,7 +792,23 @@ Begin
                 opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
               else
                 begin
-                  opr.ref.base:=procinfo^.framepointer;
+                  { if we only want the offset we don't have to care
+                    the base will be zeroed after ! }
+                  if (lexlevel=pvarsym(sym)^.owner^.symtablelevel) or
+                  {if (pvarsym(sym)^.owner=procinfo^.def^.localst) or}
+                    GetOffset then
+                    opr.ref.base:=procinfo^.framepointer
+                  else
+                    begin
+                      if (procinfo^.framepointer=R_ESP) and
+                         assigned(procinfo^.parent) and
+                         (lexlevel=pvarsym(sym)^.owner^.symtablelevel+1) and
+                         {(procinfo^.parent^.sym^.definition^.localst=pvarsym(sym)^.owner) and}
+                         (lexlevel>normal_function_level) then
+                        opr.ref.base:=procinfo^.parent^.framepointer
+                      else
+                        message1(asmr_e_local_para_unreachable,hs);
+                    end;
                   opr.ref.offset:=-(pvarsym(sym)^.address);
                   opr.ref.options:=ref_localfixup;
                   opr.ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
@@ -1443,7 +1479,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2000-02-09 13:23:03  peter
+  Revision 1.36  2000-03-15 23:10:01  pierre
+    * fix for bug 848 (that still genrated wrong code)
+    + better testing for variables used in assembler
+      (gives an error if variable is not directly reachable !)
+
+  Revision 1.35  2000/02/09 13:23:03  peter
     * log truncated
 
   Revision 1.34  2000/01/07 01:14:37  peter

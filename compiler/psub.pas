@@ -1866,6 +1866,9 @@ begin
 
    parse_proc_dec;
 
+   procinfo^.sym:=aktprocsym;
+   procinfo^.def:=aktprocsym^.definition;
+
 { set the default function options }
    if parse_only then
     begin
@@ -1989,7 +1992,12 @@ end.
 
 {
   $Log$
-  Revision 1.51  2000-02-27 14:44:39  peter
+  Revision 1.52  2000-03-15 23:10:00  pierre
+    * fix for bug 848 (that still genrated wrong code)
+    + better testing for variables used in assembler
+      (gives an error if variable is not directly reachable !)
+
+  Revision 1.51  2000/02/27 14:44:39  peter
     * if calling convention doesn't match don't print note about
       different manglednames
 

@@ -1291,6 +1291,10 @@ asmr_e_relocatable_symbol_not_allowed=E_Relocatable symbol is not allowed
 % You can't use a relocatable symbol (variable/typed constant) here.
 asmr_e_invalid_reference_syntax=E_Invalid reference syntax
 % There is an error in the reference.
+asmr_e_local_para_unreachable=E_You can not reach $1 from that code
+% You can not read directly the value of local or para
+% of a higher level in assembler code (except for
+% local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=E_Local symbols/labels aren't allowed as references
 % You can't use local symbols/labels as references
 asmr_e_wrong_base_index=E_Invalid base and index register usage
