@@ -1004,6 +1004,7 @@ var s,pa:string;
 
 begin
     getdir(0,s);
+    i:=ioresult;
     if FileNameCaseSensitive then
         pa := path
     else
@@ -1012,19 +1013,35 @@ begin
     for i:=1 to length(pa) do
         if pa[i]='/' then
             pa[i]:='\';
-    if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
+    if (length(pa)>1) and (pa[1] in ['A'..'Z','a'..'z']) and (pa[2]=':') then
         begin
+            { Always uppercase driveletter }
+            if (pa[1] in ['a'..'z']) then
+                pa[1]:=Chr(Ord(Pa[1])-32);
             {We must get the right directory}
             getdir(byte(pa[1])-byte('A')+1,s);
-            if (byte(pa[0])>2) and (pa[3]<>'\') then
-                if pa[1]=s[1] then
-                    pa:=s+'\'+copy (pa,3,length(pa))
-                else
-                    pa:=pa[1]+':\'+copy (pa,3,length(pa))
+            i:=ioresult;
+            if pa[0] = #2 then
+                pa := s
+            else
+                if (byte(pa[0])>2) and (pa[3]<>'\') then
+                    if pa[1]=s[1] then
+                        begin
+                            { remove ending slash if it already exists }
+                            if s[length(s)]='\' then
+                                dec(s[0]);
+                            pa:=s+'\'+copy (pa,3,length(pa))
+                        end
+                    else
+                        pa:=pa[1]+':\'+copy (pa,3,length(pa))
         end
     else
         if pa[1]='\' then
-            pa:=s[1]+':'+pa
+            begin
+                { Do not touch Network drive names }
+                if not ((Length(pa)>1) and (pa[2]='\')) then
+                    pa:=s[1]+':'+pa
+            end
         else if s[0]=#3 then
             pa:=s+pa
         else
@@ -1044,15 +1061,12 @@ begin
                 j:=i-1;
                 while (j>1) and (pa[j]<>'\') do
                     dec(j);
+                if pa[j+1] = ':' then
+                    j := 3;
                 delete (pa,j,i-j+3);
             end;
     until i=0;
 
-    {Remove End . and \}
-    if (length(pa)>0) and (pa[length(pa)]='.') then
-        dec(byte(pa[0]));
-    if (length(pa)>0) and (pa[length(pa)]='\') then
-        dec(byte(pa[0]));
     fexpand:=pa;
 end;
 
@@ -1122,7 +1136,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-29 21:49:41  jonas
+  Revision 1.4  2000-10-28 16:58:34  hajny
+    * many FExpand fixes
+
+  Revision 1.3  2000/09/29 21:49:41  jonas
     * removed warnings
 
   Revision 1.2  2000/07/14 10:33:10  michael
