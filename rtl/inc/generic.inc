@@ -745,30 +745,40 @@ end;
 
 procedure int_str(l : longint;var s : string);
 var
-   sign : boolean;
-begin
-  { Workaround: }
-  if l=$80000000 then
-   begin
-     s:='-2147483648';
-     exit;
-   end;
-  if l<0 then
-    begin
-       sign:=true;
-       l:=-l;
-    end
-  else
-    sign:=false;
-  s:='';
-  while l>0 do
-    begin
-       s:=char(ord('0')+(l mod 10))+s;
-       l:=l div 10;
-    end;
-  if sign then
-    s:='-'+s;
-end;
+  value: longint;
+  negative: boolean;
+
+  begin
+     negative := false;
+     s:='';
+     { Workaround: }
+     if l=$80000000 then
+       begin
+         s:='-2147483648';
+         exit;
+       end;
+     { handle case where l = 0 }
+     if l = 0 then
+       begin
+         s:='0';
+         exit;
+       end;
+     If l < 0 then
+       begin
+         negative := true;
+         value:=abs(l);
+       end
+     else
+         value:=l;
+     { handle non-zero case }
+     while value>0 do
+       begin
+         s:=char((value mod 10)+ord('0'))+s;
+         value := value div 10;
+       end;
+     if negative then
+       s := '-' + s;
+  end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
@@ -777,6 +787,11 @@ end;
 procedure int_str(l : cardinal;var s : string);
 begin
   s:='';
+  if l = 0 then
+  begin
+    s := '0';
+    exit;
+  end;
   while l>0 do
     begin
        s:=char(ord('0')+(l mod 10))+s;
@@ -811,7 +826,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2001-05-16 17:44:25  jonas
+  Revision 1.12  2001-05-18 22:59:59  peter
+    * merged fixes branch fixes
+
+  Revision 1.11  2001/05/16 17:44:25  jonas
     + odd() for cardinal, int64 and qword (merged)
 
   Revision 1.10  2001/05/09 19:57:07  peter

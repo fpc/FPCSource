@@ -95,7 +95,11 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
- function do_in_byte(p : pointer;b : byte):boolean;[public,alias:'FPC_SET_IN_BYTE'];
+
+{ saveregisters is a bit of overkill, but this routine should save all registers }
+{ and it should be overriden for each platform and be written in assembler       }
+{ by saving all required registers.                                              }
+ function do_in_byte(p : pointer;b : byte):boolean;[public,alias:'FPC_SET_IN_BYTE'];saveregisters;
  {
    tests if the element b is in the set p the carryflag is set if it present
  }
@@ -167,7 +171,10 @@
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
- function do_comp_sets(set1,set2 : pointer):boolean;[public,alias:'FPC_SET_COMP_SETS'];
+{ saveregisters is a bit of overkill, but this routine should save all registers }
+{ and it should be overriden for each platform and be written in assembler       }
+{ by saving all required registers.                                              }
+ function do_comp_sets(set1,set2 : pointer):boolean;[public,alias:'FPC_SET_COMP_SETS'];saveregisters;
  {
   compares set1 and set2 zeroflag is set if they are equal
  }
@@ -185,7 +192,10 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
- function do_contains_sets(set1,set2 : pointer):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];
+{ saveregisters is a bit of overkill, but this routine should save all registers }
+{ and it should be overriden for each platform and be written in assembler       }
+{ by saving all required registers.                                              }
+ function do_contains_sets(set1,set2 : pointer):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];saveregisters;
  {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
  }
@@ -202,7 +212,10 @@
 
 {
   $Log$
-  Revision 1.2  2001-05-09 19:57:07  peter
+  Revision 1.3  2001-05-18 22:59:59  peter
+    * merged fixes branch fixes
+
+  Revision 1.2  2001/05/09 19:57:07  peter
   *** empty log message ***
 
 }
