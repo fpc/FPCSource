@@ -126,20 +126,10 @@ const
 const
   FAULT_MAX = 82;
 
-{$WARNING FIX ME!!!}
-{
-typedef long BPTR;
-typedef long BSTR;
 
-
-#ifdef OBSOLETE_LIBRARIES_DOS_H
-# define BADDR(bptr)  (((ULONG)bptr) << 2)
-#else
-# define BADDR(x)     ((APTR)((ULONG)(x) << 2))
-#endif
-
-  MKBADDR(x)    (((LONG)(x)) >> 2)
-}
+type 
+  BPTR = LongInt;
+  BSTR = LongInt;
 
 type
   PInfoData = ^TInfoData;
@@ -154,6 +144,7 @@ type
     id_VolumeNode   : LongInt; {BPTR}
     id_InUse        : LongInt;
   end;
+
 
 const
   ID_WRITE_PROTECTED = 80;
@@ -363,7 +354,6 @@ const
 
 
 type
-  {$WARNING FIX ME!!!}
   PFileHandle = ^TFileHandle;
   TFileHandle = packed record
     fh_Flags      : DWord;
@@ -549,18 +539,18 @@ type
 type
   PDOSInfo = ^TDOSInfo;
   TDOSInfo = packed record
-    case smallint of
-      0 : ( di_ResList: DWord; { BPTR }
-          );
-      1 : ( di_McName    : DWord; { BPTR }
-            di_DevInfo   : DWord; { BPTR }          
-            di_Devices   : DWord; { BPTR }          
-            di_Handlers  : DWord; { BPTR }          
-            di_NetHand   : Pointer;       
-            di_DevLock   : TSignalSemaphore;                      
-            di_EntryLock : TSignalSemaphore;
-            di_DeleteLock: TSignalSemaphore;
-          );
+    case Byte of
+    0 : ( di_ResList: DWord; { BPTR }
+        );
+    1 : ( di_McName    : DWord; { BPTR }
+          di_DevInfo   : DWord; { BPTR }          
+          di_Devices   : DWord; { BPTR }          
+          di_Handlers  : DWord; { BPTR }          
+          di_NetHand   : Pointer;       
+          di_DevLock   : TSignalSemaphore;                      
+          di_EntryLock : TSignalSemaphore;
+          di_DeleteLock: TSignalSemaphore;
+        );
   end;
 
 type
@@ -647,27 +637,27 @@ type
     dol_Task: PMsgPort;
     dol_Lock: DWord;    { BPTR }      
     case Byte of
-      0: ( dol_handler : record
-             dol_Handler  : DWord;    { BSTR }
-             dol_StackSize: LongInt;
-             dol_Priority : LongInt;
-             dol_Startup  : DWord;
-             dol_SegList  : DWord;    { BPTR }
-             dol_GlobVec  : DWord;    { BPTR }
-           end;
-         );
-      1: ( dol_volume : record
-             dol_VolumeDate: TDateStamp;
-             dol_LockList  : DWord;   { BPTR } 
-             dol_DiskType  : LongInt;
-           end;
-         );
-      2: ( dol_assign : record
-             dol_AssignName: PChar;
-             dol_List      : PAssignList;    
-           end;
-           dol_Name: DWord;    { BPTR }
-         );
+    0: ( dol_handler : record
+           dol_Handler  : DWord;    { BSTR }
+           dol_StackSize: LongInt;
+           dol_Priority : LongInt;
+           dol_Startup  : DWord;
+           dol_SegList  : DWord;    { BPTR }
+           dol_GlobVec  : DWord;    { BPTR }
+         end;
+       );
+    1: ( dol_volume : record
+           dol_VolumeDate: TDateStamp;
+           dol_LockList  : DWord;   { BPTR } 
+           dol_DiskType  : LongInt;
+         end;
+       );
+    2: ( dol_assign : record
+           dol_AssignName: PChar;
+           dol_List      : PAssignList;    
+         end;
+         dol_Name: DWord;    { BPTR }
+       );
   end;
 
 
@@ -781,20 +771,20 @@ type
   PAnchorPath = ^TAnchorPath;
   TAnchorPath = packed record
     case Byte of
-      0 : ( ap_First: PAChain;
-            ap_Last : PAChain;
-          );
-      1 : ( ap_Base      : PAChain;
-            ap_Current   : PAChain;   
-            ap_BreakBits : LongInt;
-            ap_FoundBreak: LongInt;  
-            ap_Flags     : ShortInt;
-            ap_Reserved  : ShortInt;
-            ap_Strlen    : Integer;
-            ap_Info      : TFileInfoBlock;
-            ap_Buf       : Array[0..0] of Char;
-            { * an_Buf continues * }
-          );
+    0 : ( ap_First: PAChain;
+          ap_Last : PAChain;
+        );
+    1 : ( ap_Base      : PAChain;
+          ap_Current   : PAChain;   
+          ap_BreakBits : LongInt;
+          ap_FoundBreak: LongInt;  
+          ap_Flags     : ShortInt;
+          ap_Reserved  : ShortInt;
+          ap_Strlen    : Integer;
+          ap_Info      : TFileInfoBlock;
+          ap_Buf       : Array[0..0] of Char;
+          { * an_Buf continues * }
+        );
   end;
 
 
@@ -956,9 +946,443 @@ const
 
 
 
+{ * dos ExAll definitions
+  *********************************************************************
+  * }
+
+
+const
+  ED_NAME       = 1;
+  ED_TYPE       = 2;
+  ED_SIZE       = 3;
+  ED_PROTECTION = 4;
+  ED_DATE       = 5;
+  ED_COMMENT    = 6;
+  ED_OWNER      = 7;
+
+
+type
+  PExAllData = ^TExAllData;
+  TExAllData = packed record
+    ed_Next    : PExAllData;
+    ed_Name    : PChar;
+    ed_Type    : LongInt;
+    ed_Size    : Cardinal;
+    ed_Prot    : Cardinal;
+    ed_Days    : Cardinal;
+    ed_Mins    : Cardinal;
+    ed_Ticks   : Cardinal;
+    ed_Comment : PChar;
+    ed_OwnerUID: Word;
+    ed_OwnerGID: Word;   
+  end;
+
+type
+  PExAllControl = ^TExAllControl;
+  TexAllControl = packed record
+    eac_Entries    : Cardinal;
+    eac_LastKey    : Cardinal;
+    eac_MatchString: PChar;
+    eac_MatchFunc  : PHook;
+
+  end;
+
+
+
+{ * dos record definitions
+  *********************************************************************
+  * }
+
+
+const
+  REC_EXCLUSIVE       = 0;
+  REC_EXCLUSIVE_IMMED = 1;
+  REC_SHARED          = 2;
+  REC_SHARED_IMMED    = 3;
+
+
+type
+  PRecordLock = ^TRecordLock;
+  TRecordLock = packed record
+    rec_FH    : LongInt;
+    rec_Offset: Cardinal;
+    rec_Length: Cardinal;
+    rec_Mode  : Cardinal; 
+  end;
+
+
+
+{ * dos tag definitions (V50)
+  *********************************************************************
+  * }
+
+
+const
+  SYS_Dummy       = (TAG_USER + 32);
+  SYS_Input       = (SYS_Dummy + 1);
+  SYS_Output      = (SYS_Dummy + 2);
+  SYS_Asynch      = (SYS_Dummy + 3);
+  SYS_UserShell   = (SYS_Dummy + 4);
+  SYS_CustomShell = (SYS_Dummy + 5);
+
+  { *** V50 *** }
+  SYS_FilterTags  = (SYS_Dummy + 6);   { * filters the tags passed down to CreateNewProc(), default: TRUE * }
+
+const
+  NP_Dummy         = (TAG_USER + 1000);
+  NP_Seglist       = (NP_Dummy + 1);
+  NP_FreeSeglist   = (NP_Dummy + 2);
+  NP_Entry         = (NP_Dummy + 3);
+  NP_Input         = (NP_Dummy + 4);
+  NP_Output        = (NP_Dummy + 5);
+  NP_CloseInput    = (NP_Dummy + 6);
+  NP_CloseOutput   = (NP_Dummy + 7);
+  NP_Error         = (NP_Dummy + 8);
+  NP_CloseError    = (NP_Dummy + 9);
+  NP_CurrentDir    = (NP_Dummy + 10);
+  NP_StackSize     = (NP_Dummy + 11);
+  NP_Name          = (NP_Dummy + 12);
+  NP_Priority      = (NP_Dummy + 13);
+  NP_ConsoleTask   = (NP_Dummy + 14);
+  NP_WindowPtr     = (NP_Dummy + 15);
+  NP_HomeDir       = (NP_Dummy + 16);
+  NP_CopyVars      = (NP_Dummy + 17);
+  NP_Cli           = (NP_Dummy + 18);
+  NP_Path          = (NP_Dummy + 19);
+  NP_CommandName   = (NP_Dummy + 20);
+  NP_Arguments     = (NP_Dummy + 21);
+
+  NP_NotifyOnDeath = (NP_Dummy + 22);
+  NP_Synchronous   = (NP_Dummy + 23);
+  NP_ExitCode      = (NP_Dummy + 24);
+  NP_ExitData      = (NP_Dummy + 25);
+
+  { *** V50 *** }
+  NP_SeglistArray  = (NP_Dummy + 26);
+  NP_UserData      = (NP_Dummy + 27);
+  NP_StartupMsg    = (NP_Dummy + 28);  { * PMessage, ReplyMsg'd at exit * }
+  NP_TaskMsgPort   = (NP_Dummy + 29);  { * ^PMsgPort, create MsgPort, automagic delete * }
+
+  NP_CodeType      = (NP_Dummy + 100);
+  NP_PPC_Arg1      = (NP_Dummy + 101);
+  NP_PPC_Arg2      = (NP_Dummy + 102);
+  NP_PPC_Arg3      = (NP_Dummy + 103);
+  NP_PPC_Arg4      = (NP_Dummy + 104);
+  NP_PPC_Arg5      = (NP_Dummy + 105);
+  NP_PPC_Arg6      = (NP_Dummy + 106);
+  NP_PPC_Arg7      = (NP_Dummy + 107);
+  NP_PPC_Arg8      = (NP_Dummy + 108);
+  NP_PPCStackSize  = (NP_Dummy + 109);
+
+const
+  ADO_Dummy       = (TAG_USER + 2000);
+  ADO_FH_Mode     = (ADO_Dummy + 1);
+
+  ADO_DirLen      = (ADO_Dummy + 2);
+  ADO_CommNameLen = (ADO_Dummy + 3);
+  ADO_CommFileLen = (ADO_Dummy + 4);
+  ADO_PromptLen   = (ADO_Dummy + 5);
+
+  { *** V50 *** }
+  ADDS_Dummy      = (TAG_USER + 3000);
+  ADDS_Name       = (ADDS_Dummy + 1);  { * Segment name * }
+  ADDS_Seglist    = (ADDS_Dummy + 2);  { * Seglist for this segment * }
+  ADDS_Filename   = (ADDS_Dummy + 3);  { * Name of the file to load when needed. Ignored if Seglist is given. * }
+  ADDS_Type       = (ADDS_Dummy + 4);  { * Segment type * }
+
+const
+  FNDS_Dummy      = (TAG_USER + 3100);
+  FNDS_Name       = (FNDS_Dummy + 1);  { * Segment name * }
+  FNDS_From       = (FNDS_Dummy + 2);  { * Segment to start from * }
+  FNDS_System     = (FNDS_Dummy + 3);  { * Look for a system segment ? * }
+  FNDS_Load       = (FNDS_Dummy + 4);  { * Load the seglist if needed ? (Default: TRUE) * }
+
+
+
+{ * dos stdio definitions
+  *********************************************************************
+  * }
+
+
+const
+ BUF_LINE = 0;
+ BUF_FULL = 1;
+ BUF_NONE = 2;
+
+const
+ ENDSTREAMCH = -1;
+
+
+
+{ * dos env-var definitions
+  *********************************************************************
+  * }
+
+
+type
+  PLocalVar = ^TLocalVar;
+  TLocalVar = packed record
+    lv_Node : TNode;
+    lv_Flags: Word;
+    lv_Value: PChar;
+    lv_Len  : Cardinal;
+  end;
+
+
+const
+  LV_VAR   = 0;
+  LV_ALIAS = 1;
+
+const
+  LVB_IGNORE         = 7;
+  LVF_IGNORE         = (1 Shl LVB_IGNORE);
+
+  GVB_GLOBAL_ONLY    = 8;
+  GVF_GLOBAL_ONLY    = (1 Shl GVB_GLOBAL_ONLY);
+
+  GVB_LOCAL_ONLY     = 9;
+  GVF_LOCAL_ONLY     = (1 Shl GVB_LOCAL_ONLY);
+
+  GVB_BINARY_VAR     = 10;
+  GVF_BINARY_VAR     = (1 Shl GVB_BINARY_VAR);
+
+  GVB_DONT_NULL_TERM = 11;
+  GVF_DONT_NULL_TERM = (1 Shl GVB_DONT_NULL_TERM);
+
+  GVB_SAVE_VAR       = 12;
+  GVF_SAVE_VAR       = (1 Shl GVB_SAVE_VAR);
+
+
+
+{ * dos ReadArgs definitions
+  *********************************************************************
+  * }
+
+
+type
+  PCSource = ^TCSource;
+  TCSource = packed record
+    CS_Buffer: PChar;
+    CS_Length: LongInt;
+    CS_CurChr: LongInt;
+  end;
+
+type
+  PRDArgs = ^TRDArgs;
+  TRDArgs = packed record
+    RDA_Source : TCSource;
+    RDA_DAList : LongInt;
+    RDA_Buffer : PChar;
+    RDA_BufSiz : LongInt;
+    RDA_ExtHelp: PChar;
+    RDA_Flags  : LongInt;
+  end;
+
+
+const
+  RDAB_STDIN    = 0;
+  RDAF_STDIN    = (1 Shl RDAB_STDIN);
+
+  RDAB_NOALLOC  = 1;
+  RDAF_NOALLOC  = (1 Shl RDAB_NOALLOC);
+
+  RDAB_NOPROMPT = 2;
+  RDAF_NOPROMPT = (1 Shl RDAB_NOPROMPT);
+
+const
+  MAX_TEMPLATE_ITEMS = 100;
+  MAX_MULTIARGS      = 128;
+
+
+
+{ * dos filehandler definitions
+  *********************************************************************
+  * }
+
+
+type
+  PDosEnvec = ^TDosEnvec;
+  TDosEnvec = packed record
+    de_TableSize     : Cardinal;
+    de_SizeBlock     : Cardinal;
+    de_SecOrg        : Cardinal;
+    de_Surfaces      : Cardinal;
+    de_SectorPerBlock: Cardinal;
+    de_BlocksPerTrack: Cardinal;
+    de_Reserved      : Cardinal;
+    de_PreAlloc      : Cardinal;
+    de_Interleave    : Cardinal;
+    de_LowCyl        : Cardinal;
+    de_HighCyl       : Cardinal;
+    de_NumBuffers    : Cardinal;
+    de_BufMemType    : Cardinal;
+    de_MaxTransfer   : Cardinal;
+    de_Mask          : Cardinal;
+    de_BootPri       : LongInt;
+    de_DosType       : Cardinal;
+    de_Baud          : Cardinal;
+    de_Control       : Cardinal;
+    de_BootBlocks    : Cardinal;   
+  end;
+
+
+const
+  DE_TABLESIZE    = 0;
+  DE_SIZEBLOCK    = 1;
+  DE_SECORG       = 2;
+  DE_NUMHEADS     = 3;
+  DE_SECSPERBLK   = 4;
+  DE_BLKSPERTRACK = 5;
+  DE_RESERVEDBLKS = 6;
+  DE_PREFAC       = 7;
+  DE_INTERLEAVE   = 8;
+  DE_LOWCYL       = 9;
+  DE_UPPERCYL     = 10;
+  DE_NUMBUFFERS   = 11;
+  DE_MEMBUFTYPE   = 12;
+  DE_BUFMEMTYPE   = 12;
+  DE_MAXTRANSFER  = 13;
+  DE_MASK         = 14;
+  DE_BOOTPRI      = 15;
+  DE_DOSTYPE      = 16;
+  DE_BAUD         = 17;
+  DE_CONTROL      = 18;
+  DE_BOOTBLOCKS   = 19;
+
+
+type
+  PFileSysStartupMsg = ^TFileSysStartupMsg;
+  TFileSysStartupMsg = packed record
+    fssm_Unit   : Cardinal;
+    fssm_Device : LongInt;
+    fssm_Environ: LongInt;
+    fssm_Flags  : Cardinal;
+  end;
+
+type
+  PDeviceNode = ^TDeviceNode;
+  TDeviceNode = packed record
+    dn_Next     : LongInt;
+    dn_Type     : Cardinal;
+    dn_Task     : PMsgPort;
+    dn_Lock     : LongInt;
+    dn_Handler  : LongInt;
+    dn_StackSize: Cardinal;
+    dn_Priority : LongInt;
+    dn_Startup  : LongInt;
+    dn_SegList  : LongInt;
+    dn_GlobalVec: LongInt;
+    dn_Name     : LongInt; 
+  end;
+
+
+
+{ * dos notification definitions
+  *********************************************************************
+  * }
+
+
+const
+  NOTIFY_CLASS = $40000000;
+  NOTIFY_CODE  = $1234;
+
+
+type
+  PNotifyRequest = ^TNotifyRequest;
+  TNotifyRequest = packed record
+    nr_Name    : PChar;
+    nr_FullName: PChar;
+    nr_UserData: Cardinal;
+    nr_Flags   : Cardinal;
+    nr_stuff : record
+      case Byte of
+      0 : ( nr_Msg : record
+              nr_Port: PMsgPort;
+            end );
+      1 : ( nr_Signal : record
+              nr_Task     : PTask;
+              nr_SignalNum: Byte;
+              nr_pad      : Array[0..2] Of Byte;
+            end );
+    end;
+    nr_Reserved: Array[0..3] Of Cardinal;
+    nr_MsgCount: Cardinal;
+    nr_Handler : PMsgPort;
+  end;
+
+type
+  PNotifyMessage = ^TNotifyMessage;
+  TNotifyMessage = packed record
+    nm_ExecMessage: TMessage;
+    nm_Class      : Cardinal;
+    nm_Code       : Word;
+    nm_NReq       : PNotifyRequest;
+    nm_DoNotTouch : Cardinal;
+    nm_DoNotTouch2: Cardinal;
+  end;
+
+
+const
+  NRB_SEND_MESSAGE   = 0;
+  NRB_SEND_SIGNAL    = 1;
+  NRB_WAIT_REPLY     = 3;
+  NRB_NOTIFY_INITIAL = 4;
+
+  NRB_MAGIC          = 31;
+
+const
+  NRF_SEND_MESSAGE   = (1 Shl NRB_SEND_MESSAGE);
+  NRF_SEND_SIGNAL    = (1 Shl NRB_SEND_SIGNAL);
+  NRF_WAIT_REPLY     = (1 Shl NRB_WAIT_REPLY);
+  NRF_NOTIFY_INITIAL = (1 Shl NRB_NOTIFY_INITIAL);
+
+  NRF_MAGIC          = (1 Shl NRB_MAGIC);
+
+const
+  NR_HANDLER_FLAGS = $ffff0000;
+
+
+
+{ * dos.library segtracker include
+  *********************************************************************
+  * }
+
+
+const
+  SEG_SEM = 'SegTracker';
+
+
+type
+  PSegSem = ^TSegSem;
+  TSegSem = packed record
+    seg_Semaphore: TSignalSemaphore;
+    seg_Find     : Procedure; { Name = seg_Find(REG(a0, ULONG Address), REG(a1, ULONG *SegNum), REG(a2, ULONG *Offset)) }   
+    seg_List     : TMinList;
+  end;
+
+type
+  PSegArray = ^TSegArray;
+  TSegArray = packed record
+    seg_Address: Cardinal;
+    seg_Size   : Cardinal;
+  end;
+
+type
+  PSegNode = ^TSegNode;
+  TSegNode = packed record
+    seg_Node : TMinNode;
+    seg_Name : PChar;
+    seg_Array: Array[0..0] Of TSegArray;
+  end;
+
+
+
 {
   $Log$
-  Revision 1.1  2004-06-26 20:46:17  karoly
+  Revision 1.2  2004-08-09 00:10:19  karoly
+    + added most of missing stuff
+
+  Revision 1.1  2004/06/26 20:46:17  karoly
     * initial revision
 
 }

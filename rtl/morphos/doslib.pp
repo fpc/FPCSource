@@ -26,42 +26,93 @@ uses Exec, Timer;
 var
   DosBase: Pointer;
 
+
 {$include doslibd.inc}
 {$include doslibf.inc}
 
 
-{ * Define real functions * }
+{ * dos global definitions (V50)
+  *********************************************************************
+  * }
 
-function Close(fileh: LongInt location 'd1'): Boolean; 
-SysCall MOS_DOSBase 36;
+function BADDR(x: LongInt): Pointer; Inline;
+function MKBADDR(x: Pointer): LongInt; Inline;
 
-function Read(fileh : LongInt location 'd1'; 
-              buffer: Pointer location 'd2'; 
-              length: LongInt location 'd3'): LongInt; 
-SysCall MOS_DOSBase 42;
 
-function Write(fileh : LongInt location 'd1'; 
-               buffer: Pointer location 'd2'; 
-               length: LongInt location 'd3'): LongInt; 
-SysCall MOS_DOSBase 48;
+{ * dos stdio definitions
+  *********************************************************************
+  * }
 
-function Input: LongInt; 
-SysCall MOS_DOSBase 54;
+function ReadChar: LongInt; Inline;
+function WriteChar(ch: Char): LongInt; Inline;
+function UnReadChar(ch: Char): LongInt; Inline;
+function ReadChars(buf: Pointer; num: LongInt): LongInt; Inline;
+function dosReadLn(buf: PChar; num: LongInt): PChar; Inline;
+function WriteStr(str: PChar): LongInt; Inline;
+procedure VWritef(format: PChar; argv: Pointer); Inline;
 
-function Output: LongInt; 
-SysCall MOS_DOSBase 60;
-
-function Seek(fileh   : LongInt location 'd1';
-              position: LongInt location 'd2';
-              posmode : LongInt location 'd3'): LongInt; 
-SysCall MOS_DOSBase 66;
-
-function Rename(oldName: PChar location 'd1';
-                newName: PChar location 'd2'): Boolean; 
-SysCall MOS_DOSBase 78;
 
 
 implementation
+
+
+{ * dos stdio definitions
+  *********************************************************************
+  * }
+
+function ReadChar: LongInt; Inline;
+begin
+  ReadChar:=FGetC(dosInput);
+end;
+
+function WriteChar(ch: Char): LongInt; Inline;
+begin
+  WriteChar:=FPutC(dosOutput,Byte(ch));
+end;
+
+function UnReadChar(ch: Char): LongInt; Inline;
+begin
+  UnReadChar:=UnGetC(dosInput,Byte(ch));
+end;
+
+function ReadChars(buf: Pointer; num: LongInt): LongInt; Inline;
+begin
+  ReadChars:=FRead(dosInput,buf,1,num);
+end;
+
+function dosReadLn(buf: PChar; num: LongInt): PChar; Inline;
+begin
+  dosReadLn:=FGets(dosInput,buf,num);
+end;
+
+function WriteStr(str: PChar): LongInt; Inline;
+begin
+  WriteStr:=FPuts(dosOutput,str);
+end;
+
+procedure VWritef(format: PChar; argv: Pointer); Inline;
+begin
+  VFWritef(dosOutput,format,argv);
+end;
+
+
+
+{ * dos global definitions (V50)
+  *********************************************************************
+  * }
+
+
+function BADDR(x: LongInt): Pointer; Inline;
+begin
+ BADDR:=Pointer(x Shl 2);
+end;
+
+function MKBADDR(x: Pointer): LongInt; Inline;
+begin
+ MKBADDR:=LongInt(x) Shr 2;
+end;
+
+
 
 begin
   DosBase:=MOS_DOSBase;
@@ -69,7 +120,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-06-26 20:46:17  karoly
+  Revision 1.2  2004-08-09 00:10:19  karoly
+    + added most of missing stuff
+
+  Revision 1.1  2004/06/26 20:46:17  karoly
     * initial revision
 
 }
