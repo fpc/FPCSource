@@ -37,6 +37,9 @@ unit cgx86;
     type
       tcgx86 = class(tcg)
 
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
         { left to right), this allows to move the parameter to    }
@@ -162,6 +165,18 @@ unit cgx86;
 {****************************************************************************
                        This is private property, keep out! :)
 ****************************************************************************}
+
+    procedure Tcgx86.init_register_allocators;
+
+    begin
+      rg:=Trgcpu.create(6,#0#1#2#3#4#5);
+    end;
+
+    procedure Tcgx86.done_register_allocators;
+
+    begin
+      rg.free;
+    end;
 
     procedure tcgx86.sizes2load(s1,s2 : tcgsize; var op: tasmop; var s3: topsize);
 
@@ -1557,7 +1572,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.61  2003-09-07 22:09:35  peter
+  Revision 1.62  2003-09-09 20:59:27  daniel
+    * Adding register allocation order
+
+  Revision 1.61  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

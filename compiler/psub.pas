@@ -89,7 +89,7 @@ implementation
        scanner,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgobj,rgobj,
+       tgobj,rgobj,cgobj,
        ncgutil,regvars
        {$ifndef NOOPT}
          {$ifdef i386}
@@ -610,7 +610,7 @@ implementation
         tg.setfirsttemp(firsttemp_offset);
 
         { Create register allocator }
-        rg:=crgobj.create;
+        cg.init_register_allocators;
 
 {$warning FIXME!!}
         { FIXME!! If a procedure contains assembler blocks (or is pure assembler), }
@@ -757,7 +757,7 @@ implementation
         remove_from_symtablestack;
 
         { restore }
-        rg.free;
+        cg.done_register_allocators;
         templist.free;
         rg:=oldrg;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
@@ -1315,7 +1315,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2003-09-09 15:55:44  peter
+  Revision 1.144  2003-09-09 20:59:27  daniel
+    * Adding register allocation order
+
+  Revision 1.143  2003/09/09 15:55:44  peter
     * use register with least interferences in spillregister
 
   Revision 1.142  2003/09/07 22:09:35  peter

@@ -64,6 +64,9 @@ unit cgobj;
           {                 basic routines                 }
           constructor create;
 
+          procedure init_register_allocators;virtual;abstract;
+          procedure done_register_allocators;virtual;abstract;
+
           { returns the tcgsize corresponding with the size of reg }
           class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
 
@@ -1536,7 +1539,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.119  2003-09-07 22:09:34  peter
+  Revision 1.120  2003-09-09 20:59:27  daniel
+    * Adding register allocation order
+
+  Revision 1.119  2003/09/07 22:09:34  peter
     * preparations for different default calling conventions
     * various RA fixes
 

@@ -38,8 +38,6 @@ unit rgcpu;
        trgcpu = class(trgobj)
           fpuvaroffset : byte;
 
-          constructor create;override;
-
           { to keep the same allocation order as with the old routines }
           procedure add_constraints(reg:Tregister);override;
 
@@ -86,13 +84,6 @@ unit rgcpu;
 {************************************************************************}
 {                               trgcpu                                   }
 {************************************************************************}
-
-    constructor Trgcpu.create;
-      begin
-        inherited create;
-        cpu_registers:=6;
-      end;
-
 
     procedure Trgcpu.add_constraints(reg:Tregister);
     var
@@ -250,12 +241,14 @@ unit rgcpu;
 
 
 initialization
-  crgobj:=trgcpu;
 end.
 
 {
   $Log$
-  Revision 1.33  2003-09-07 22:09:35  peter
+  Revision 1.34  2003-09-09 20:59:27  daniel
+    * Adding register allocation order
+
+  Revision 1.33  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

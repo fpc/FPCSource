@@ -40,7 +40,7 @@ implementation
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmbase,aasmtai,aasmcpu,
-       cgbase,cpuinfo,rgobj,
+       cgbase,cpuinfo,cgobj,
        ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,
@@ -727,7 +727,7 @@ implementation
         current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
         { start register allocator }
-        rg:=crgobj.create;
+        cg.init_register_allocators;
         { return procdef }
         create_main_proc:=pd;
       end;
@@ -741,7 +741,7 @@ implementation
            not(current_procinfo.procdef=pd) then
          internalerror(200304276);
         { remove register allocator }
-        rg.free;
+        cg.done_register_allocators;
         { remove procinfo }
         current_module.procinfo:=nil;
         current_procinfo.free;
@@ -1471,7 +1471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2003-09-09 15:55:44  peter
+  Revision 1.124  2003-09-09 20:59:27  daniel
+    * Adding register allocation order
+
+  Revision 1.123  2003/09/09 15:55:44  peter
     * use register with least interferences in spillregister
 
   Revision 1.122  2003/09/07 22:09:35  peter

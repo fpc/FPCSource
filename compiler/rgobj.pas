@@ -162,6 +162,7 @@ unit rgobj;
           { contain all registers of type "xxx" that aren't currently    }
           { allocated                                                    }
           lastintreg,maxintreg:Tsuperregister;
+          usable_registers:string[32];
           unusedregsint,usableregsint:Tsuperregisterset;
           unusedregsaddr,usableregsaddr:Tsuperregisterset;
           unusedregsfpu,usableregsfpu : Tsuperregisterset;
@@ -193,7 +194,7 @@ unit rgobj;
           { tries to hold the amount of times which the current tree is processed  }
           t_times: longint;
 
-          constructor create;virtual;
+          constructor create(Acpu_registers:byte;const Ausable:string);
           destructor destroy;virtual;
 
           {# Allocate a general purpose register
@@ -396,8 +397,6 @@ unit rgobj;
        reg_not_saved = $7fffffff;
 
      var
-       {# This is the class instance used to access the register allocator class }
-       crgobj : trgobjclass;
        rg : trgobj;
 
      { trerefence handling }
@@ -461,7 +460,8 @@ unit rgobj;
        globals,verbose,
        cgobj,tgobj,regvars;
 
-    constructor Trgobj.create;
+    constructor Trgobj.create(Acpu_registers:byte;const Ausable:string);
+
      begin
        used_in_proc_int := [];
        used_in_proc_other:=[];
@@ -469,7 +469,7 @@ unit rgobj;
        resetusableregisters;
        lastintreg:=0;
        maxintreg:=first_int_imreg;
-       cpu_registers:=0;
+       cpu_registers:=Acpu_registers;
        unusedregsint:=[0..254]; { 255 (RS_INVALID) can't be used }
        unusedregsfpu:=usableregsfpu;
        unusedregsmm:=usableregsmm;
@@ -486,6 +486,7 @@ unit rgobj;
         by 255.}
        fillchar(movelist,sizeof(movelist),0);
        worklist_moves:=Tlinkedlist.create;
+       usable_registers:=Ausable;
        abtlist:='';
        fillchar(colour,sizeof(colour),RS_INVALID);
      end;
@@ -1668,7 +1669,7 @@ unit rgobj;
 
     var adj:Pstring;
         i,j,k:byte;
-        n,a:Tsuperregister;
+        n,a,c:Tsuperregister;
         adj_colours,colourednodes:set of Tsuperregister;
         w:char;
 
@@ -1698,16 +1699,19 @@ unit rgobj;
           {Assume a spill by default...}
           spillednodes:=spillednodes+char(n);
           {Search for a colour not in this list.}
-          for k:=first_int_supreg to last_int_supreg do
-            if not(k in adj_colours) then
-              begin
-                colour[n]:=k;
-                dec(spillednodes[0]);  {Colour found: no spill.}
-                include(colourednodes,n);
-                if n in used_in_proc_int then
-                  include(used_in_proc_int,k);
-                break;
-              end;
+          for k:=1 to length(usable_registers) do
+            begin
+              c:=Tsuperregister(usable_registers[k]);
+              if not(c in adj_colours) then
+                begin
+                  colour[n]:=c;
+                  dec(spillednodes[0]);  {Colour found: no spill.}
+                  include(colourednodes,n);
+                  if n in used_in_proc_int then
+                    include(used_in_proc_int,c);
+                  break;
+                end;
+            end;
         end;
       {Finally colour the nodes that were coalesced.}
       for i:=1 to length(coalescednodes) do
@@ -2213,16 +2217,14 @@ unit rgobj;
       end;
 
 
-initialization
-  { This check is required because rgcpu is initialized before rgobj
-    when compiling with FPC 1.0.x (PFV) }
-  if not assigned(crgobj) then
-    crgobj:=trgobj;
 end.
 
 {
   $Log$
-  Revision 1.72  2003-09-09 15:55:44  peter
+  Revision 1.73  2003-09-09 20:59:27  daniel
+    * Adding register allocation order
+
+  Revision 1.72  2003/09/09 15:55:44  peter
     * use register with least interferences in spillregister
 
   Revision 1.71  2003/09/07 22:09:35  peter
