@@ -66,6 +66,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
             windows ole2 opengl32 winsock \
+            sockets \
 	    dos crt objects \
 	    sysutils typinfo math \
 	    cpu mmx getopts heaptrc
@@ -209,6 +210,9 @@ windows$(PPUEXT) : windows.pp redef.inc $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
 
 winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU)
+
+sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMPPU) \
+                   $(INC)/sockets.inc $(INC)/socketsh.inc
 
 #
 # TP7 Compatible RTL Units
@@ -384,7 +388,11 @@ endif
 
 #
 # $Log$
-# Revision 1.33  1999-06-18 13:59:49  florian
+# Revision 1.34  1999-06-21 12:41:33  florian
+#   * minor typos in winsock.pp fixed
+#   + makefile for sockets.pp updated
+#
+# Revision 1.33  1999/06/18 13:59:49  florian
 #   * changes for the winsock unit
 #
 # Revision 1.32  1999/06/10 15:02:15  peter

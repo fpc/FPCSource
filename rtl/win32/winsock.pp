@@ -662,9 +662,10 @@ unit winsock;
     function closesocket(s:TSocket):longint;stdcall;
     function connect(s:TSocket; var name:TSockAddr; namelen:longint):longint;stdcall;
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):longint;stdcall;
-    function getpeername(s:TSocket; var name:TSockAddr;namelen:plongint):longint;stdcall;
-    function getsockname(s:TSocket; var name:TSockAddr; namelen:plongint):longint;stdcall;
+    function getpeername(s:TSocket; var name:TSockAddr;var namelen:longint):longint;stdcall;
+    function getsockname(s:TSocket; var name:TSockAddr;var namelen:longint):longint;stdcall;
     function getsockopt(s:TSocket; level:longint; optname:longint; optval:pchar;var optlen:longint):longint;stdcall;
+    function getsockopt(s:TSocket; level:longint; optname:longint; var optval; var optlen:longint):longint;stdcall;
     function htonl(hostlong:u_long):u_long;stdcall;
     function htons(hostshort:u_short):u_short;
     function inet_addr(cp:pchar):cardinal;stdcall;
@@ -678,6 +679,7 @@ unit winsock;
     function send(s:TSocket;var buf; len:longint; flags:longint):longint;stdcall;
     function sendto(s:TSocket; buf:pchar; len:longint; flags:longint;var toaddr:TSockAddr; tolen:longint):longint;stdcall;
     function setsockopt(s:TSocket; level:longint; optname:longint; optval:pchar; optlen:longint):longint;stdcall;
+    function setsockopt(s:TSocket; level:longint; optname:longint; var optval; optlen:longint):longint;stdcall;
     function shutdown(s:TSocket; how:longint):longint;stdcall;
     function socket(af:longint; t:longint; protocol:longint):TSocket;stdcall;
 
@@ -750,11 +752,13 @@ unit winsock;
     function closesocket(s:TSocket):longint;stdcall;external winsockdll name 'closesocket';
     function connect(s:TSocket; var name:TSockAddr; namelen:longint):longint;stdcall;external winsockdll name 'connect';
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):longint;stdcall;external winsockdll name 'ioctlsocket';
-    function getpeername(s:TSocket; var name:TSockAddr;namelen:plongint):longint;stdcall;
+    function getpeername(s:TSocket; var name:TSockAddr;var namelen:longint):longint;stdcall;
       external winsockdll name 'getpeername';
-    function getsockname(s:TSocket; var name:TSockAddr; namelen:plongint):longint;stdcall;
+    function getsockname(s:TSocket; var name:TSockAddr;var namelen:longint):longint;stdcall;
       external winsockdll name 'getsockname';
     function getsockopt(s:TSocket; level:longint; optname:longint; optval:pchar;var optlen:longint):longint;stdcall;
+      external winsockdll name 'getsockopt';
+    function getsockopt(s:TSocket; level:longint; optname:longint;var optval;var optlen:longint):longint;stdcall;
       external winsockdll name 'getsockopt';
     function htonl(hostlong:u_long):u_long;stdcall;external winsockdll name 'htonl';
     function htons(hostshort:u_short):u_short;external winsockdll name 'htons';
@@ -765,7 +769,7 @@ unit winsock;
     function ntohs(netshort:u_short):u_short;stdcall;external winsockdll name 'ntohs';
     function recv(s:TSocket;var buf; len:longint; flags:longint):longint;stdcall;external winsockdll name 'recv';
     function recvfrom(s:TSocket;var buf; len:longint; flags:longint;var from:TSockAddr; fromlen:plongint):longint;stdcall;
-      external winsockdll name 'recvfrom'; 
+      external winsockdll name 'recvfrom';
     function select(nfds:longint; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):longint;stdcall;
       external winsockdll name 'select';
     function send(s:TSocket;var buf; len:longint; flags:longint):longint;stdcall;
@@ -773,6 +777,8 @@ unit winsock;
     function sendto(s:TSocket; buf:pchar; len:longint; flags:longint;var toaddr:TSockAddr; tolen:longint):longint;stdcall;
       external winsockdll name 'sendto';
     function setsockopt(s:TSocket; level:longint; optname:longint; optval:pchar; optlen:longint):longint;stdcall;
+      external winsockdll name 'setsockopt';
+    function setsockopt(s:TSocket; level:longint; optname:longint; var optval; optlen:longint):longint;stdcall;
       external winsockdll name 'setsockopt';
     function shutdown(s:TSocket; how:longint):longint;stdcall;
       external winsockdll name 'shutdown';
@@ -790,7 +796,7 @@ unit winsock;
  
     { Microsoft Windows Extension function prototypes  }
     function WSAStartup(wVersionRequired:word;var WSAData:TWSADATA):longint;stdcall;
-      external winsockdll name 'WSAAsyncSelect';
+      external winsockdll name 'WSAStartup';
     function WSACleanup:longint;stdcall;external winsockdll name 'WSACleanup';
     procedure WSASetLastError(iError:longint);stdcall;external winsockdll name 'WSASetLastError';
     function WSAGetLastError:longint;stdcall;external winsockdll name 'WSAGetLastError';
@@ -923,8 +929,11 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.1  1999-06-18 13:58:59  florian
+  Revision 1.2  1999-06-21 12:41:34  florian
+    * minor typos in winsock.pp fixed
+    + makefile for sockets.pp updated
+
+  Revision 1.1  1999/06/18 13:58:59  florian
     + initial revision, should be completly compatible with the delphi
       winsock unit
-
 }
