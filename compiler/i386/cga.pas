@@ -152,11 +152,21 @@ implementation
       end;
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
-      begin
-         if not ((reg1.enum=R_INTREGISTER) and (reg2.enum<>R_INTREGISTER) and
-            (reg1.number=reg2.number) and (i=A_MOV)) then
-           exprasmlist.concat(Taicpu.op_reg_reg(i,s,reg1,reg2));
-      end;
+
+    var instr:Taicpu;
+
+    begin
+      if not ((reg1.enum=R_INTREGISTER) and (reg2.enum=R_INTREGISTER) and
+              (reg1.number=reg2.number) and (i=A_MOV)) then
+        begin
+          instr:=Taicpu.op_reg_reg(i,s,reg1,reg2);
+          exprasmlist.concat(instr);
+{$ifdef newra}
+          if i=A_MOV then
+            rg.add_move_instruction(instr);
+{$endif newra}
+        end;
+    end;
 
     procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
       begin
@@ -176,7 +186,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-03-08 08:59:07  daniel
+  Revision 1.38  2003-04-17 16:48:21  daniel
+    * Added some code to keep track of move instructions in register
+      allocator
+
+  Revision 1.37  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

@@ -479,6 +479,7 @@ unit cgx86;
         op: tasmop;
         s: topsize;
         eq:boolean;
+        instr:Taicpu;
 
       begin
         if (reg1.enum=R_INTREGISTER) and (reg2.enum=R_INTREGISTER) then
@@ -493,24 +494,14 @@ unit cgx86;
            { "mov reg1, reg1" doesn't make sense }
            if op = A_MOV then
              exit;
-           { optimize movzx with "and ffff,<reg>" operation }
-           if (op = A_MOVZX) then
-            begin
-              case fromsize of
-                OS_8:
-                  begin
-                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize(reg2),255,reg2));
-                    exit;
-                  end;
-                OS_16:
-                  begin
-                    list.concat(taicpu.op_const_reg(A_AND,reg2opsize(reg2),65535,reg2));
-                    exit;
-                  end;
-              end;
-            end;
          end;
-        list.concat(taicpu.op_reg_reg(op,s,reg1,reg2));
+        instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
+        {Notify the register allocator that we have written a move instruction so
+         it can try to eliminate it.}
+{$ifdef newra}
+        rg.add_move_instruction(instr);
+{$endif}
+        list.concat(instr);
       end;
 
 
@@ -791,6 +782,7 @@ unit cgx86;
           tmpreg : tregister;
           popecx : boolean;
           r:Tregister;
+          instr:Taicpu;
 
         begin
           if src.enum<>R_INTREGISTER then
@@ -875,8 +867,12 @@ unit cgx86;
               begin
                 if reg2opsize(src) <> dstsize then
                   internalerror(200109226);
-                list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
-                  src,dst));
+                instr:=taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,src,dst);
+{$ifdef newra}
+                if op in [_MOV,_XCHG] then
+                  rg.add_move_instruction(instr);
+{$endif newra}
+                list.concat(instr);
               end;
           end;
         end;
@@ -1441,7 +1437,7 @@ unit cgx86;
         { align stack on 4 bytes }
         list.concat(Taicpu.op_const_reg(A_AND,S_L,$fffffff4,rsp));
         { load destination }
-        list.concat(Taicpu.op_reg_reg(A_MOV,S_L,rsp,r));
+        a_load_reg_reg(list,OS_INT,OS_INT,rsp,r);
 
         { don't destroy the registers! }
         r2.number:=NR_ECX;
@@ -1451,11 +1447,11 @@ unit cgx86;
 
         { load count }
         r2.number:=NR_ECX;
-        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r2));
+        a_load_ref_reg(list,OS_INT,lenref,r2);
 
         { load source }
         r2.number:=NR_ESI;
-        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,ref,r2));
+        a_load_ref_reg(list,OS_INT,ref,r2);
 
         { scheduled .... }
         r2.number:=NR_ECX;
@@ -1493,7 +1489,7 @@ unit cgx86;
         list.concat(Taicpu.op_reg(A_POP,S_L,r2));
 
         { patch the new address }
-        list.concat(Taicpu.op_reg_ref(A_MOV,S_L,rsp,ref));
+        a_load_reg_ref(list,OS_INT,rsp,ref);
       end;
 
 
@@ -1843,7 +1839,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.37  2003-03-28 19:16:57  peter
+  Revision 1.38  2003-04-17 16:48:21  daniel
+    * Added some code to keep track of move instructions in register
+      allocator
+
+  Revision 1.37  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

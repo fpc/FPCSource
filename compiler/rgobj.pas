@@ -108,6 +108,13 @@ unit rgobj;
       end;
       Pinterferencegraph=^Tinterferencegraph;
 
+      Tmoveset=(ms_coalesced_moves,ms_constrained_moves,ms_frozen_moves,
+                ms_worklist_moves,ms_activemoves);
+      Tmoveins=class(Tlinkedlistitem)
+        moveset:Tmoveset;
+        instruction:Taicpu;
+      end;
+
        {#
           This class implements the abstract register allocator
           It is used by the code generator to allocate and free
@@ -291,6 +298,8 @@ unit rgobj;
        protected
 {$ifdef newra}
           igraph:Tinterferencegraph;
+          movelist:array[Tsuperregister] of Tlinkedlist;
+          worklistmoves:Tlinkedlist;
 {$endif}
           { the following two contain the common (generic) code for all }
           { get- and ungetregisterxxx functions/procedures              }
@@ -414,6 +423,8 @@ unit rgobj;
 {$endif TEMPREGDEBUG}
 {$ifdef newra}
        fillchar(igraph,sizeof(igraph),0);
+       fillchar(movelist,sizeof(movelist),0);
+       worklistmoves.create;
 {$endif}
      end;
 
@@ -741,9 +752,14 @@ unit rgobj;
       unusedregsmm:=usableregsmm;
    {$ifdef newra}
       for i:=low(Tsuperregister) to high(Tsuperregister) do
-       if igraph.adjlist[i]<>nil then
-         dispose(igraph.adjlist[i]);
+        begin
+          if igraph.adjlist[i]<>nil then
+            dispose(igraph.adjlist[i]);
+          if movelist[i]<>nil then
+            movelist[i].destroy;
+        end;
       fillchar(igraph,sizeof(igraph),0);
+      worklistmoves.destroy;
    {$endif}
     end;
 
@@ -1381,7 +1397,11 @@ end.
 
 {
   $Log$
-  Revision 1.33  2003-04-17 07:50:24  daniel
+  Revision 1.34  2003-04-17 16:48:21  daniel
+    * Added some code to keep track of move instructions in register
+      allocator
+
+  Revision 1.33  2003/04/17 07:50:24  daniel
     * Some work on interference graph construction
 
   Revision 1.32  2003/03/28 19:16:57  peter
