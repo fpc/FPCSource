@@ -5,6 +5,8 @@
 { e-mail: danny_milo@yahoo.com }
 program z;
 
+{$mode delphi}
+
 type
   IBla = interface
   class function X: Boolean;
