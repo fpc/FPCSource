@@ -1,3 +1,5 @@
+{ %fail }
+
 { Source provided for Free Pascal Bug Report 2285 }
 { Submitted by "Sergey Kosarevsky" on  2002-12-25 }
 { e-mail: netsurfer@au.ru }
@@ -21,6 +23,8 @@ Begin
 End;
 
 Begin
+   { This should fail, @tobject.init returns a pointer and
+     is not compatible with a methodpointer }
    CheckConstructor(@tObject.Init);
    b:=Longint(Pointer(@tObject.Init));
    WriteLn('b: ',b);
