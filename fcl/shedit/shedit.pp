@@ -1,22 +1,15 @@
 {
-  $Id$
+    $Id$
 
-  "shedit" - Text editor with syntax highlighting
-  Copyright (C) 1999  Sebastian Guenther (sguenther@gmx.de)
+    "SHEdit" - Text editor with syntax highlighting
+    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
 // ===================================================================
@@ -36,6 +29,7 @@ uses
 type
 
   TSHTextEdit = class;
+  TSHTextEditClass = class of TSHTextEdit;
 
 
 // -------------------------------------------------------------------
@@ -114,19 +108,17 @@ type
 
 
 // -------------------------------------------------------------------
-//   SHRenderer interface
+//   SHWidget interface
 // -------------------------------------------------------------------
 
-  ISHRenderer = class
-
+  ISHWidget = class
+    // Drawing
     procedure InvalidateRect(x1, y1, x2, y2: Integer); virtual; abstract;
     procedure InvalidateLines(y1, y2: Integer); virtual; abstract;
-
-    // Drawing
     procedure ClearRect(x1, y1, x2, y2: Integer); virtual; abstract;
     procedure DrawTextLine(x1, x2, y: Integer; s: PChar); virtual; abstract;
 
-    // Cursor
+    // Cursor placement
     procedure ShowCursor(x, y: Integer); virtual; abstract;
     procedure HideCursor(x, y: Integer); virtual; abstract;
 
@@ -141,16 +133,19 @@ type
     procedure SetLineWidth(count: Integer); virtual; abstract;
     function  GetLineCount: Integer; virtual; abstract;
     procedure SetLineCount(count: Integer); virtual; abstract;
+
+    // Clipboard support
+    function  GetClipboard: String; virtual; abstract;
+    procedure SetClipboard(Content: String); virtual; abstract;
+
+
     property  HorzPos: Integer read GetHorzPos write SetHorzPos;
     property  VertPos: Integer read GetVertPos write SetVertPos;
     property  PageWidth: Integer read GetPageWidth;
     property  PageHeight: Integer read GetPageHeight;
     property  LineWidth: Integer read GetLineWidth write SetLineWidth;
     property  LineCount: Integer read GetLineCount write SetLineCount;
-
-    // Clipboard support
-    function  GetClipboard: String; virtual; abstract;
-    procedure SetClipboard(Content: String); virtual; abstract;
+    property  Clipboard: String read GetClipboard write SetClipboard;
   end;
 
 
@@ -189,7 +184,7 @@ type
     FDoc: TTextDoc;                     // Document object for text
     FCursorX, FCursorY: Integer;        // 0/0 = upper left corner
     FOnModifiedChange: TNotifyEvent;
-    FRenderer: ISHRenderer;
+    FWidget: ISHWidget;
 
     procedure SetCursorX(NewCursorX: Integer);
     procedure SetCursorY(NewCursorY: Integer);
@@ -233,7 +228,7 @@ type
     procedure KeyReturn; virtual;
 
   public
-    constructor Create(ADoc: TTextDoc; ARenderer: ISHRenderer); virtual;
+    constructor Create(ADoc: TTextDoc; AWidget: ISHWidget); virtual;
     function  AddKeyboardAction(AMethod: TKeyboardActionProc;ASelectionAction:TSelectionAction;ADescr: String): TKeyboardActionDescr;
     function AddKeyboardAssignment(AKeyCode: Integer; AShiftState: TShiftState;
       AAction: TKeyboardActionDescr): TShortcut;
@@ -255,7 +250,7 @@ type
     property Selection: TSelection read FSel write FSel;
     property OnModifiedChange: TNotifyEvent
       read FOnModifiedChange write FOnModifiedChange;
-    property Renderer: ISHRenderer read FRenderer;
+    property Widget: ISHWidget read FWidget;
   end;
 
 
@@ -325,28 +320,28 @@ begin
 end;
 
 
-constructor TSHTextEdit.Create(ADoc: TTextDoc; ARenderer: ISHRenderer);
+constructor TSHTextEdit.Create(ADoc: TTextDoc; AWidget: ISHWidget);
 var
   i: Integer;
 begin
+  ASSERT(Assigned(ADoc) and Assigned(AWidget));
+
   FDoc := ADoc;
-  // The document must not be empty
-  if FDoc.LineCount = 0 then
-    FDoc.AddLine('');
+
   ViewInfo := TViewInfo(FDoc.ViewInfos.Add);
   ViewInfo.OnLineInsert := @LineInserted;
   ViewInfo.OnLineRemove := @LineRemoved;
   ViewInfo.OnModifiedChange := @ModifiedChanged;
 
-  FRenderer := ARenderer;
+  FWidget := AWidget;
 
   FSel := TSelection.Create;
 
   KeyboardActions := TCollection.Create(TKeyboardActionDescr);
   Shortcuts := TCollection.Create(TShortcut);
 
-  Renderer.LineCount := FDoc.LineCount;
-  Renderer.LineWidth := FDoc.LineWidth;
+  Widget.LineCount := FDoc.LineCount;
+  Widget.LineWidth := FDoc.LineWidth;
   CursorX:=0;
   CursorY:=0;
 end;
@@ -391,8 +386,8 @@ end;
 
 procedure TSHTextEdit.LineInserted(Sender: TTextDoc; Line: Integer);
 begin
-  Renderer.LineCount := FDoc.LineCount;
-  Renderer.LineWidth := FDoc.LineWidth;
+  Widget.LineCount := FDoc.LineCount;
+  Widget.LineWidth := FDoc.LineWidth;
   ChangeInLine(Line);
 end;
 
@@ -407,10 +402,9 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-12-23 09:47:09  sg
-  * Calling SetCursorX or SetCursorY with negative values will result in
-    setting these coordinates to 0 instead (as negative cursor coordinates
-    are impossible)
+  Revision 1.8  1999-12-30 21:12:43  sg
+  * Support for empty documents (0 lines)
+  * Renaming of *Renderer to *Widget
 
   Revision 1.6  1999/12/22 22:28:09  peter
     * updates for cursor setting
