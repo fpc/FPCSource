@@ -20,17 +20,33 @@ type
      end;
 
  o2 = class
-       nonsense  :longint;
+       nonsense  :string;
+       procedure flop;
        procedure flup(nonsense:longint);
+       procedure flup2(flop:longint);
      end;
 
 procedure o.flup(nonsense:string);
 begin
 end;
 
+procedure o2.flop;
+begin
+end;
 
 procedure o2.flup(nonsense:longint);
+var
+  l : longint;
 begin
+  l:=nonsense;
+end;
+
+procedure o2.flup2(flop:longint);
+var
+  l : longint;
+begin
+  l:=flop;
+  flup(flop);
 end;
 
 
