@@ -99,11 +99,13 @@ end;
 function TIDEApp.OpenSearch(FileName: string) : boolean;
 var D: PFileDialog;
     OpenIt: boolean;
+    P : PString;
+    Dir : String;
 begin
   OpenIt:=False;
   if not OpenIt then
    begin
-     New(D, Init(FileName,'Open a file','File to open',fdOpenButton,0));
+     New(D, Init(FileName+'*','Open a file','Looking for '+FileName,fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
        Begin
@@ -114,6 +116,13 @@ begin
   if OpenIt then
    begin
      FileName:=FExpand(LocatePasFile(FileName));
+     Dir:=DirOf(FileName);
+     P:=@Dir;
+     If Pos(Dir+';',GetSourceDirectories)=0 then
+       if ConfirmBox(#3'Directory %s is not in list'#13#3+
+            'Should we add it ?',@P,false)=cmYes then
+          SourceDirs:=SourceDirs+';'+Dir;
+       
      OpenEditorWindow(nil,FileName,0,0);
    end;
   OpenSearch:=OpenIt;
@@ -147,7 +156,16 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-02-04 13:32:05  pierre
+  Revision 1.8  1999-02-05 12:11:57  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.7  1999/02/04 13:32:05  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint

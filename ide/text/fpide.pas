@@ -636,6 +636,8 @@ end;
 
 destructor TIDEApp.Done;
 begin
+  { Close debugging session if active }
+  DoResetDebugger;
   inherited Done;
   DoneHelpSystem;
   DoneTemplates;
@@ -644,7 +646,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-02-04 13:32:03  pierre
+  Revision 1.8  1999-02-05 12:11:54  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.7  1999/02/04 13:32:03  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint

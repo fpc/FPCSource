@@ -22,11 +22,13 @@ uses Objects;
 const
 {$ifdef linux}
   dirsep = '/';
+  listsep = [';',':'];
   exeext = '';
   pasext = '.pas';
   ppext  = '.pp';
 {$else}
   dirsep = '\';
+  listsep = [';'];
   exeext = '.exe';
   pasext = '.pas';
   ppext  = '.pp';
@@ -70,6 +72,7 @@ function ExistsFile(const FileName: string): boolean;
 function CompleteDir(const Path: string): string;
 function LocateFile(FileList: string): string;
 function LocatePasFile(const FileName:string):string;
+function LocateExeFile(var FileName:string): boolean;
 function GetStr(P: PString): string;
 
 const LastStrToIntResult : integer = 0;
@@ -436,7 +439,9 @@ end;
 
 function CompleteDir(const Path: string): string;
 begin
-  if (Path<>'') and (Path[Length(Path)]<>DirSep) then
+  { keep c: untouched PM }
+  if (Path<>'') and (Path[Length(Path)]<>DirSep) and
+     (Path[Length(Path)]<>':') then
    CompleteDir:=Path+DirSep
   else
    CompleteDir:=Path;
@@ -494,6 +499,37 @@ begin
    end;
 end;
 
+function LocateExeFile(var FileName:string): boolean;
+var
+  dir,s : string;
+  i : longint;
+begin
+  LocateExeFile:=False;
+  if ExistsFile(FileName) then
+    begin
+      LocateExeFile:=true;
+      Exit;
+    end;
+   
+  S:=GetEnv('PATH');
+  i:=1;
+  While Length(S)>0 do
+    begin
+      While (i<=Length(S)) and not (S[i] in ListSep) do
+        Inc(i);
+      Dir:=CompleteDir(Copy(S,1,i-1));
+      if i<Length(S) then
+        S:=Copy(S,i+1,255)
+      else
+        S:='';
+      if ExistsFile(Dir+FileName) then
+        Begin
+           FileName:=Dir+FileName;
+           LocateExeFile:=true;
+           Exit;
+        End;
+   end;
+end;
 
 function GetStr(P: PString): string;
 begin
@@ -505,7 +541,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-02-02 16:41:43  peter
+  Revision 1.6  1999-02-05 12:12:01  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.5  1999/02/02 16:41:43  peter
     + automatic .pas/.pp adding by opening of file
     * better debuggerscreen changes
 

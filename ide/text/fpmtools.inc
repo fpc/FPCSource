@@ -48,7 +48,7 @@ procedure TIDEApp.Grep;
       IL : PInputLine;
       p,lineNb : longint;
       error : word;
-      GrepArgs,Line,ModuleName : String;
+      GrepExe,GrepArgs,Line,ModuleName : String;
       GrepOut : text;
       Params : Array[0..4] of longint;
       
@@ -56,9 +56,15 @@ procedure TIDEApp.Grep;
 {$ifdef linux}
    GrepExeName = 'grep';
 {$else linux}
-   GrepExeName = 'c:\djgpp\bin\grep.exe';
+   GrepExeName = 'grep.exe';
 {$endif linux}
 begin
+  GrepExe:=GrepExeName;
+  If not LocateExeFile(GrepExe) then
+    Begin
+      ErrorBox('Grep program not found',nil);
+      Exit;
+    End;
   R.Assign(0,0,45,6);
   new(PGrepDialog,Init(R,'Grep arguments'));
   with PGrepDialog^ do
@@ -80,12 +86,12 @@ begin
       Insert(New(PLabel, Init(R2, '~G~rep arguments', IL)));
     end;
 
-  InsertButtons(PGrepDialog);
+    InsertButtons(PGrepDialog);
     if Desktop^.ExecView(PGrepDialog)=cmOK then
     begin
       GrepArgs:=IL^.Data^;
       { Linux ? }
-      if not ExecuteRedir(GrepExeName,GrepArgs,GrepOutName,'grep$$.err') then
+      if not ExecuteRedir(GrepExe,GrepArgs,GrepOutName,'grep$$.err') then
         Begin
            { 2 as exit code just means that
              some file vwere not found ! }
@@ -121,7 +127,16 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  1999-02-04 15:59:08  pierre
+  Revision 1.5  1999-02-05 12:11:59  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.4  1999/02/04 15:59:08  pierre
    * grep$$$.out was not closed
 
   Revision 1.3  1999/02/04 13:32:09  pierre

@@ -52,6 +52,7 @@ const
   secMouse       = 'Mouse';
   secSearch      = 'Search';
   secTools       = 'Tools';
+  secSourcePath  = 'SourcePath';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
@@ -79,6 +80,8 @@ const
   ieBreakpointFunc   = 'Function';
   ieBreakpointFile   = 'FileName';
   ieBreakpointLine   = 'LineNumber';
+  ieBreakpointCond   = 'Condition';
+  ieSourceList       = 'SourceList';
 
 const
      BreakpointTypeStr : Array[BreakpointType] of String[9]
@@ -156,12 +159,14 @@ begin
             INIFile^.SetIntEntry(secBreakpoint,ieBreakpointLine+S,Line);
           end;
       end;
+      if assigned(Conditions) then
+        INIFile^.SetEntry(secBreakpoint,ieBreakpointCond+S,Conditions^);
     end;
 end;
 
 procedure ReadOneBreakPointEntry(i : longint;INIFile : PINIFile);
 var PB : PBreakpoint;
-    S,S2 : string;
+    S,S2,SC : string;
     Line : longint;
     typ : BreakpointType;
     state : BreakpointState;
@@ -188,14 +193,18 @@ begin
          Line:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointLine+S2,0);
        end;
      end;
+   SC:=INIFile^.GetEntry(secBreakpoint,ieBreakpointCond+S,'');
    if (typ=bt_function) and (S<>'') then
      new(PB,init_function(S))
    else if (typ=bt_file_line) and (S<>'') then
      new(PB,init_file_line(S,Line));
    If assigned(PB) then
-     PB^.state:=state;
-   If assigned(PB) then
-     BreakpointCollection^.Insert(PB);
+     begin
+       PB^.state:=state;
+       If SC<>'' then
+         PB^.conditions:=NewStr(SC);
+       BreakpointCollection^.Insert(PB);
+     end;
 end;
 
 function ReadINIFile: boolean;
@@ -251,6 +260,7 @@ begin
 {$endif}
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
   TabsPattern:=INIFile^.GetEntry(secHighlight,ieTabsPattern,TabsPattern);
+  SourceDirs:=INIFile^.GetEntry(secSourcePath,ieSourceList,SourceDirs);
   DoubleDelay:=INIFile^.GetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   MouseReverse:=boolean(INIFile^.GetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse)));
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
@@ -319,6 +329,7 @@ begin
 {$endif}
   INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
   INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
+  INIFile^.SetEntry(secSourcePath,ieSourceList,'"'+SourceDirs+'"');
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
@@ -363,7 +374,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-02-04 17:52:38  pierre
+  Revision 1.9  1999-02-05 12:11:55  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.8  1999/02/04 17:52:38  pierre
    * bs_invalid renamed bs_deleted
 
   Revision 1.7  1999/02/04 17:19:24  peter

@@ -2352,14 +2352,14 @@ begin
 
   HelpCtx:=hcInfoWindow;
 
-  GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+4;
+  GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+3;
   C:=((Desktop^.GetColor(32+6) and $f0) or White)*256+Desktop^.GetColor(32+6);
   New(InfoST, Init(R,'', C)); InfoST^.GrowMode:=gfGrowHiX;
   InfoST^.DontWrap:=true;
   Insert(InfoST);
-  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,4); R.B.Y:=R.A.Y+1;
+  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,3); R.B.Y:=R.A.Y+1;
   New(ST, Init(R, CharStr('Ä', MaxViewWidth))); ST^.GrowMode:=gfGrowHiX; Insert(ST);
-  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,5);
+  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,4);
   R2.Copy(R); Inc(R2.B.Y); R2.A.Y:=R2.B.Y-1;
   New(HSB, Init(R2)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX; Insert(HSB);
   R2.Copy(R); Inc(R2.B.X); R2.A.X:=R2.B.X-1;
@@ -2403,7 +2403,7 @@ end;
 procedure TProgramInfoWindow.Update;
 begin
   InfoST^.SetText(
-    #13+
+    {#13+ }
     '   Current module : '+MainFile+#13+
     '   Last exit code : '+IntToStr(LastExitCode)+#13+
     ' Available memory : '+IntToStrL(MemAvail div 1024,5)+'K'+#13+
@@ -2992,7 +2992,7 @@ function TryToOpen(const DD : dirstr): PSourceWindow;
 var Found: boolean;
     W : PSourceWindow;
 begin
-  D:=DD;
+  D:=CompleteDir(DD);
   Found:=true;
   if E<>'' then Found:=CheckExt(E) else
     if CheckExt('.pp') then Found:=true else
@@ -3049,11 +3049,13 @@ begin
   if W<>nil then
     begin
       NewEditorOpened:=false;
+      if assigned(Bounds) then
+        W^.ChangeBounds(Bounds^);
       W^.Editor^.SetCurPtr(CurX,CurY);
     end
   else
     begin
-      DrStr:=GetUnitDirectories;
+      DrStr:=GetSourceDirectories;
       While pos(';',DrStr)>0 do
         Begin
            W:=TryToOpen(Copy(DrStr,1,pos(';',DrStr)-1));
@@ -3074,7 +3076,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-02-04 17:45:23  pierre
+  Revision 1.9  1999-02-05 12:12:02  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.8  1999/02/04 17:45:23  pierre
     + BrowserAtCursor started
     * bug in TryToOpenFile removed
 

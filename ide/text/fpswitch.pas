@@ -137,7 +137,7 @@ procedure ReadSwitches(const fn:string);
 { initialize }
 procedure InitSwitches;
 procedure DoneSwitches;
-function  GetUnitDirectories : string;
+function  GetSourceDirectories : string;
 
 
 implementation
@@ -616,21 +616,30 @@ begin
 end;
 
 
-function  GetUnitDirectories : string;
+function  GetSourceDirectories : string;
 var
   P : PStringItem;
+  S : String;
+  c : char;
   function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
   begin
     CheckItem:=(P^.Typ=ot_string) and (P^.Param='u');
   end;
 begin
-  GetUnitDirectories:='';
+  GetSourceDirectories:='';
+  c:='u';
+  P:=DirectorySwitches^.Items^.FirstThat(@CheckItem);
+  S:='';
+  if assigned(P) then
+    S:=P^.Str[SwitchesMode];
+  c:='i';
   P:=DirectorySwitches^.Items^.FirstThat(@CheckItem);
   if assigned(P) then
-    Begin
-      GetUnitDirectories:=P^.Str[SwitchesMode];
-      exit;
-    End;
+    S:=P^.Str[SwitchesMode]+';'+S;
+  if S='' then
+    GetSourceDirectories:=SourceDirs+';'
+  else
+    GetSourceDirectories:=SourceDirs+';'+S+';';
 end;
 
 {*****************************************************************************
@@ -724,6 +733,7 @@ begin
      AddStringItem('~O~bject directories','o',true);
      AddStringItem('~E~XE & PPU directories','E',true);
    end;
+   
   New(LibLinkerSwitches,InitSelect('X'));
   with LibLinkerSwitches^ do
    begin
@@ -775,7 +785,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-02-04 13:32:10  pierre
+  Revision 1.5  1999-02-05 12:12:00  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.4  1999/02/04 13:32:10  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint

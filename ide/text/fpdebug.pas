@@ -139,6 +139,8 @@ end;
 procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
 var
   W: PSourceWindow;
+  Found : boolean;
+  
 begin
   Desktop^.Lock;
   if Line>0 then
@@ -149,6 +151,7 @@ begin
       if assigned(W) then
         begin
           W^.Editor^.SetCurPtr(0,Line);
+          W^.Editor^.TrackCursor(true);
           W^.Editor^.SetHighlightRow(Line);
           W^.Select;
           Invalid_line:=false;
@@ -162,6 +165,7 @@ begin
       if assigned(W) then
         begin
           W^.Editor^.SetHighlightRow(Line);
+          W^.Editor^.TrackCursor(true);
           W^.Select;
           LastSource:=W;
           Invalid_line:=false;
@@ -169,7 +173,10 @@ begin
         { only search a file once }
       else
        begin
-         if not MyApp.OpenSearch(fn+'*') then
+         Desktop^.UnLock;
+         Found:=MyApp.OpenSearch(fn);
+         Desktop^.Lock;
+         if not Found then
            begin
              Invalid_line:=true;
              LastSource:=Nil;
@@ -179,6 +186,7 @@ begin
              { should now be open }
               W:=TryToOpenFile(nil,fn,0,Line);
               W^.Editor^.SetHighlightRow(Line);
+              W^.Editor^.TrackCursor(true);
               W^.Select;
               LastSource:=W;
               Invalid_line:=false;
@@ -216,8 +224,7 @@ begin
   typ:=bt_function;
   state:=bs_enabled;
   GDBState:=bs_deleted;
-  GetMem(Name,Length(AFunc)+1);
-  Name^:=AFunc;
+  Name:=NewStr(AFunc);
   Conditions:=nil;
 end;
 
@@ -226,8 +233,7 @@ begin
   typ:=bt_file_line;
   state:=bs_enabled;
   GDBState:=bs_deleted;
-  GetMem(Name,Length(AFile)+1);
-  Name^:=AFile;
+  Name:=NewStr(AFile);
   Line:=ALine;
   Conditions:=nil;
 end;
@@ -291,9 +297,9 @@ end;
 destructor TBreakpoint.Done;
 begin
   if assigned(Name) then
-    FreeMem(Name,Length(Name^)+1);
+    DisposeStr(Name);
   if assigned(Conditions) then
-    FreeMem(Conditions,Length(Conditions^)+1);
+    DisposeStr(Conditions);
   inherited Done;
 end;
 
@@ -370,8 +376,9 @@ procedure DoneDebugger;
 begin
   if assigned(Debugger) then
    dispose(Debugger,Done);
+   If Use_gdb_file then
+     Close(GDB_file);
    Use_gdb_file:=false;
-   Close(GDB_file);
 end;
 
 begin
@@ -380,7 +387,16 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-02-04 17:54:22  pierre
+  Revision 1.6  1999-02-05 12:11:53  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.5  1999/02/04 17:54:22  pierre
    + several commands added
 
   Revision 1.4  1999/02/04 13:32:02  pierre

@@ -376,8 +376,22 @@ var R,R2: TRect;
     Count,I : integer;
 const
   LW = 25;
+   procedure Add(i : integer;Data,Name : string);
+     begin
+       R2.Copy(R);
+       R2.A.X:=LW;
+       New(IL[i], Init(R2, 255));
+       IL[i]^.Data^:=Data;
+       D^.Insert(IL[i]);
+       R2.Copy(R);
+       R2.B.X:=LW;
+       D^.Insert(New(PLabel, Init(R2, Name, IL[i])));
+       R.Move(0,2);
+     end;
+
 begin
-  Count:=DirectorySwitches^.ItemCount;
+  { add SourceDirs }
+  Count:=DirectorySwitches^.ItemCount+1;
   R.Assign(0,0,64,2+Count*2);
   New(D, Init(R, 'Directories'));
   with D^ do
@@ -386,25 +400,17 @@ begin
     R.Grow(-2,-2);
     Dec(R.B.X);
     R.B.Y:=R.A.Y+1;
-    for i:=Count-1 downto 0 do
-     begin
-       R2.Copy(R);
-       R2.A.X:=LW;
-       New(IL[i], Init(R2, 255));
-       IL[i]^.Data^:=DirectorySwitches^.GetStringItem(i);
-       Insert(IL[i]);
-       R2.Copy(R);
-       R2.B.X:=LW;
-       Insert(New(PLabel, Init(R2, DirectorySwitches^.ItemName(i), IL[i])));
-       R.Move(0,2);
-     end;
+    Add(Count-1,SourceDirs,'Path to ~S~ources');
+    for i:=Count-2 downto 0 do
+      Add(i,DirectorySwitches^.GetStringItem(i),DirectorySwitches^.ItemName(i));
   end;
   InsertButtons(D);
   IL[Count-1]^.Select;
   if Desktop^.ExecView(D)=cmOK then
    begin
-     for i:=Count-1 downto 0 do
+     for i:=Count-2 downto 0 do
       DirectorySwitches^.SetStringItem(i,IL[i]^.Data^);
+     SourceDirs:=IL[Count-1]^.Data^;
    end;
   Dispose(D, Done);
 end;
@@ -681,7 +687,16 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-02-04 13:32:06  pierre
+  Revision 1.9  1999-02-05 12:11:58  pierre
+    + SourceDir that stores directories for sources that the
+      compiler should not know about
+      Automatically asked for addition when a new file that
+      needed filedialog to be found is in an unknown directory
+      Stored and retrieved from INIFile
+    + Breakpoints conditions added to INIFile
+    * Breakpoints insterted and removed at debin and end of debug session
+
+  Revision 1.8  1999/02/04 13:32:06  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
