@@ -15,7 +15,7 @@
  ***********************************************************************}
 
 {***********************************************************************}
-{                         Base Unix Structures				}
+{                         Base Unix Structures                          }
 {***********************************************************************}
 
 {$IFDEF FPC_IS_SYSTEM}
@@ -29,7 +29,7 @@ CONST
    wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
    ln2bitmask      = 1 shl ln2bitsinword - 1;
-   
+
     UTSNAME_LENGTH = 256;   { 256 + 1 in pchar format }
     UTSNAME_NODENAME_LENGTH = 256;
 
@@ -38,7 +38,7 @@ CONST
 TYPE
     blksize_t = longint;
     blkcnt_t = longint;
-    
+
    { file characteristics services }
    stat = packed record { verify the alignment of the members }
      st_dev : dev_t;
@@ -63,9 +63,32 @@ TYPE
      st_fstype : array[0..ST_FSTYPSZ-1] of char;
      st_pad4 : array[1..8] of longint;
    end;
-   TStat	     = Stat;
-   PStat	     = ^Stat;
+   TStat             = Stat;
+   PStat             = ^Stat;
 
+   flock    = record
+                {$ifdef 64bitfs}
+                l_start : off64_t;      { starting offset }
+                l_len   : off64_t;      { len = 0 means until end of file }
+                {$else}
+                l_start : off_t;        { starting offset }
+                l_len   : off_t;        { len = 0 means until end of file }
+                {$endif}
+                l_pid   : pid_t;        { lock owner }
+                l_type  : cshort;       { lock type: read/write, etc. }
+                l_whence: cshort;       { type of l_start }
+                end;
+   TFlock   = flock;
+   pFlock   = ^flock;
+
+   TFDSet    = array[0..(FD_MAXFDSET div 32)-1] of Cardinal;
+   pFDSet    = ^TFDSet;
+
+   timezone = packed record
+     tz_minuteswest,tz_dsttime:cint;
+   end;
+   ptimezone =^timezone;
+   TTimeZone = timezone;
 
    { system information services }
    utsname = packed record   { don't forget to verify the alignment }
@@ -76,6 +99,12 @@ TYPE
      machine : array[0..UTSNAME_LENGTH] of char;
    end;
 
+   UTimBuf   = Record
+                 actime  : time_t;
+                 modtime : time_t;
+                end;
+   TUtimBuf  = UtimBuf;
+   pUtimBuf  = ^UtimBuf;
 
    { directory services }
    pdirent = ^dirent;
@@ -112,17 +141,17 @@ CONST
     SEEK_END    = 2;    { seek from end of file       }
     { open routine                                 }
     { File access modes for `open' and `fcntl'.    }
-    O_RDONLY    = 0;	{ Open read-only.  }
-    O_WRONLY    = 1;	{ Open write-only. }
-    O_RDWR      = 2;	{ Open read/write. }
+    O_RDONLY    = 0;    { Open read-only.  }
+    O_WRONLY    = 1;    { Open write-only. }
+    O_RDWR      = 2;    { Open read/write. }
     { Bits OR'd into the second argument to open.  }
     O_CREAT     = $100; { Create file if it doesn't exist.  }
-    O_EXCL      = $400;	{ Fail if file already ??????.      }
-    O_TRUNC     = $200;	{ Truncate file to zero length.     }
-    O_NOCTTY    = $800;	{ Don't assign a controlling terminal. }
+    O_EXCL      = $400; { Fail if file already ??????.      }
+    O_TRUNC     = $200; { Truncate file to zero length.     }
+    O_NOCTTY    = $800; { Don't assign a controlling terminal. }
     { File status flags for `open' and `fcntl'.  }
-    O_APPEND    =  $08;	{ Writes append to the file.        }
-    O_NONBLOCK	=  $80;	{ Non-blocking I/O.                 }
+    O_APPEND    =  $08; { Writes append to the file.        }
+    O_NONBLOCK  =  $80; { Non-blocking I/O.                 }
 
 
     { mode_t possible values                                 }
@@ -164,7 +193,10 @@ CONST
 
 {
   $Log$
-  Revision 1.2  2005-02-13 22:13:20  peter
+  Revision 1.3  2005-02-14 16:32:41  peter
+    * solaris updates
+
+  Revision 1.2  2005/02/13 22:13:20  peter
     * get solaris back in shape
 
   Revision 1.1  2005/02/10 17:30:54  peter

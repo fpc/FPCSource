@@ -17,6 +17,7 @@
 
 {$ifdef INTERNCONSTINTF}
 
+{$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : valreal) : valreal;compilerproc;
     begin
@@ -24,7 +25,9 @@
       runerror(207);
       result:=0;
     end;
+{$endif}
 
+{$ifndef FPC_SYSTEM_HAS_SQR}
     {$define FPC_SYSTEM_HAS_SQR}
     function fpc_sqr_real(d : valreal) : valreal;compilerproc;
     begin
@@ -32,7 +35,9 @@
       runerror(207);
       result:=0;
     end;
+{$endif}
 
+{$ifndef FPC_SYSTEM_HAS_SQRT}
     {$define FPC_SYSTEM_HAS_SQRT}
     function fpc_sqrt_real(d : valreal) : valreal;compilerproc;
     begin
@@ -40,6 +45,7 @@
       runerror(207);
       result:=0;
     end;
+{$endif}
 
 {$else}
 
@@ -56,7 +62,10 @@
 
 {
   $Log$
-  Revision 1.12  2004-11-21 19:11:33  peter
+  Revision 1.13  2005-02-14 16:32:41  peter
+    * solaris updates
+
+  Revision 1.12  2004/11/21 19:11:33  peter
     * fix bootstrapping
 
   Revision 1.11  2004/11/21 15:35:23  peter

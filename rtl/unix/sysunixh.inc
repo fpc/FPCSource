@@ -45,15 +45,20 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
+{$ifndef Solaris}
 {$ifndef Darwin}
 var argc:longint;external name 'operatingsystem_parameter_argc';
     argv:PPchar;external name 'operatingsystem_parameter_argv';
     envp:PPchar;external name 'operatingsystem_parameter_envp';
 {$endif}
+{$endif}
 
 {
   $Log$
-  Revision 1.23  2005-02-06 11:20:52  peter
+  Revision 1.24  2005-02-14 16:32:41  peter
+    * solaris updates
+
+  Revision 1.23  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 

@@ -23,6 +23,11 @@ interface
 
 {$I sysunixh.inc}
 
+var argc:longint;
+    argv:PPchar;
+    envp:PPchar;
+
+
 implementation
 
 { OS independant parts}
@@ -32,6 +37,8 @@ implementation
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
+
+{$i start.inc}
 
 procedure System_exit;
 begin
@@ -118,7 +125,6 @@ begin
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
   act.sa_handler :=@SignalToRunError;
-{$warning TODO SIGINFO}  
   act.sa_flags:=SA_SIGINFO;
   FpSigAction(SIGFPE,act,oldact);
   FpSigAction(SIGSEGV,act,oldact);
@@ -202,19 +208,6 @@ begin
 end;
 
 
-procedure pascalmain; external name 'PASCALMAIN';
-
-{ Main entry point in C style, needed to capture program parameters. }
-procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
-
-begin
-  argc:= argcparam;
-  argv:= argvparam;
-  envp:= envpparam;
-  pascalmain;  {run the pascal main program}
-end;
-
-
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
@@ -242,7 +235,10 @@ End.
 
 {
  $Log$
- Revision 1.4  2005-02-13 22:13:20  peter
+ Revision 1.5  2005-02-14 16:32:41  peter
+   * solaris updates
+
+ Revision 1.4  2005/02/13 22:13:20  peter
    * get solaris back in shape
 
  Revision 1.3  2005/02/13 21:47:56  peter
