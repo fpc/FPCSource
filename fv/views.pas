@@ -1275,7 +1275,10 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Draw;
-BEGIN                                                 { Abstract method }
+VAR B : TDrawBuffer;
+BEGIN
+  MoveChar(B, ' ', GetColor(1), Size.X);
+  WriteLine(0, 0, Size.X, Size.Y, B);
 END;
 
 
@@ -4647,7 +4650,10 @@ END.
 
 {
  $Log$
- Revision 1.55  2004-12-26 16:14:08  peter
+ Revision 1.56  2005-01-07 22:29:48  florian
+   + tview.draw clears the back ground
+
+ Revision 1.55  2004/12/26 16:14:08  peter
    * force redraw tgroup after changebounds
 
  Revision 1.54  2004/12/22 15:28:22  peter
