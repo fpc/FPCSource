@@ -30,6 +30,7 @@ interface
       tree;
 
     procedure loadshortstring(p:ptree);
+    procedure loadansi2short(source,dest : ptree);
 
     procedure secondtypeconv(var p : ptree);
     procedure secondas(var p : ptree);
@@ -118,6 +119,33 @@ implementation
          end;
       end;
 
+
+    procedure loadansi2short(source,dest : ptree);
+      var
+         pushed : tpushed;
+      begin
+         del_reference(dest^.location.reference);
+         case source^.location.loc of
+           LOC_REFERENCE,LOC_MEM:
+             begin
+                ungetiftemp(source^.location.reference);
+                del_reference(source^.location.reference);
+                pushusedregisters(pushed,$ff);
+                emit_push_mem(source^.location.reference);
+             end;
+           LOC_REGISTER,LOC_CREGISTER:
+             begin
+                ungetregister32(source^.location.register);
+                pushusedregisters(pushed,$ff);
+                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
+             end;
+         end;
+         push_shortstring_length(dest);
+         emitpushreferenceaddr(exprasmlist,dest^.location.reference);
+         emitcall('FPC_ANSISTR_TO_SHORTSTR',true);
+         popusedregisters(pushed);
+         maybe_loadesi;
+      end;
 
 
 
@@ -1587,7 +1615,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-01-29 11:22:13  pierre
+  Revision 1.53  1999-02-02 11:47:55  peter
+    * fixed ansi2short
+
+  Revision 1.52  1999/01/29 11:22:13  pierre
    * saving and restoring old ltemptoremove
 
   Revision 1.51  1999/01/28 19:50:15  peter
