@@ -1,7 +1,7 @@
 { %version=1.1 }
 
 uses
-   aunit in 'testunit';
+   testunit in 'uw1279';
 
 begin
 end.
