@@ -44,7 +44,8 @@ interface
          cnf_anon_inherited,
          cnf_new_call,
          cnf_dispose_call,
-         cnf_member_call        { called with implicit methodpointer tree }
+         cnf_member_call,        { called with implicit methodpointer tree }
+         cnf_uses_varargs        { varargs are used in the declaration }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -1018,6 +1019,7 @@ type
             CGMessage1(type_e_wrong_type_in_array_constructor,oldleft.left.resulttype.def.typename);
             exit;
           end;
+        include(callnodeflags,cnf_uses_varargs);
         { Get arrayconstructor node and insert typeconvs }
         hp:=tarrayconstructornode(oldleft.left);
         hp.insert_typeconvs;
@@ -1442,6 +1444,7 @@ type
            pt:=tcallparanode(pt.right);
          end;
 
+
         { Create parasyms for varargs, first count the number of varargs paras,
           then insert the parameters with numbering in reverse order. The SortParas
           will set the correct order at the end}
@@ -1767,7 +1770,7 @@ type
               error and to prevent users from generating non-working code
               when they expect to clone the current instance, see bug 3662 (PFV) }
               if (procdefinition.proctypeoption=potype_constructor) and
-		 is_class(tprocdef(procdefinition)._class) and
+                 is_class(tprocdef(procdefinition)._class) and
                  assigned(methodpointer) and
                  (nf_is_self in methodpointer.flags) then
                 resulttype:=voidtype
@@ -1855,6 +1858,11 @@ type
                (procdefinition.owner.symtabletype=objectsymtable) then
               internalerror(200305061);
           end;
+
+         { Set flag that the procedure uses varargs, also if they are not passed it is still
+           needed for x86_64 to pass the number of SSE registers used }
+         if po_varargs in procdefinition.procoptions then
+           include(callnodeflags,cnf_uses_varargs);
 
          { Change loading of array of const to varargs }
          if assigned(left) and
@@ -2508,7 +2516,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.279  2005-02-17 17:50:26  peter
+  Revision 1.280  2005-03-14 20:18:46  peter
+    * fix empty varargs codegeneration for x86_64
+
+  Revision 1.279  2005/02/17 17:50:26  peter
     * member call to constructor returns void to prevent
       generating unexpected code. Otherwise the return value is always
       equal to self, which can also be directly accessed

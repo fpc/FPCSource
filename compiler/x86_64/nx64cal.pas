@@ -38,14 +38,23 @@ interface
 implementation
 
     uses
+      globtype,
       cpubase,
       aasmtai,aasmcpu;
 
     procedure tx8664callnode.extra_call_code;
+      var
+        mmregs : aint;
       begin
         { x86_64 requires %al to contain the no. SSE regs passed }
-        if assigned(varargsparas) then
-          exprasmlist.concat(taicpu.op_const_reg(A_MOV,S_Q,varargsparas.mmregsused,NR_RAX));
+        if cnf_uses_varargs in callnodeflags then
+          begin
+            if assigned(varargsparas) then
+              mmregs:=varargsparas.mmregsused
+            else
+              mmregs:=0;
+            exprasmlist.concat(taicpu.op_const_reg(A_MOV,S_Q,mmregs,NR_RAX))
+          end;
       end;
 
 
@@ -54,7 +63,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:10  peter
+  Revision 1.4  2005-03-14 20:18:46  peter
+    * fix empty varargs codegeneration for x86_64
+
+  Revision 1.3  2005/02/14 17:13:10  peter
     * truncate log
 
 }
