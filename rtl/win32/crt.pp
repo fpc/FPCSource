@@ -524,7 +524,7 @@ var
   DestCoor: TCoord;
   CharInfo: TCharInfo;
 begin
-  CharInfo.UnicodeChar := 32;
+  CharInfo.UnicodeChar := #32;
   CharInfo.Attributes := TextAttr;
 
   Y := (WindMinY - 1) + (Y - 1) + 1;
@@ -561,7 +561,7 @@ var
 begin
   GetScreenCursor(X, Y);
 
-  CharInfo.UnicodeChar := 32;
+  CharInfo.UnicodeChar := #32;
   CharInfo.Attributes := TextAttr;
 
   SrcRect.Top := Y - 1;
@@ -835,7 +835,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.11  2001-07-13 17:43:25  peter
+  Revision 1.12  2001-07-30 15:00:54  marco
+   * Fixed unicode reference from word to widechar
+
+  Revision 1.11  2001/07/13 17:43:25  peter
     * updates from Tomas Schatzl so it works better with w2k virtual
       consoles
 
