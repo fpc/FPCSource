@@ -242,6 +242,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl bytes,%ebx
             addl $0xf,%ebx              // round up
             shrl $0x4,%ebx              // convert to Paragraphs
@@ -256,6 +257,7 @@ interface
             movw %dx,%ax                // return Selector in lo(Result)
           .LDos_end:
             movl %eax,__result
+            popl %ebx
          end;
       end;
 
@@ -279,6 +281,8 @@ interface
          asm
             { save all used registers to avoid crash under NTVDM }
             { when spawning a 32-bit DPMI application            }
+            pushl %edi
+            pushl %ebx
             pushw %fs
             movw  intnr,%bx
             xorl  %ecx,%ecx
@@ -289,6 +293,8 @@ interface
             popw  %fs
             setnc %al
             movb  %al,__RESULT
+            popl  %ebx
+            popl  %edi
          end;
       end;
 
@@ -296,6 +302,7 @@ interface
 
       begin
          asm
+            pushl %edi
             movl ofs,%edi
             movl count,%ecx
             movb c,%dl
@@ -319,13 +326,15 @@ interface
             rep
             stosb
             popw %es
-         end ['EAX','ECX','EDX','EDI'];
+            popl %edi
+         end;
       end;
 
     procedure seg_fillword(seg : word;ofs : longint;count : longint;w : word);
 
       begin
          asm
+            pushl %edi
             movl ofs,%edi
             movl count,%ecx
             movw w,%dx
@@ -347,7 +356,8 @@ interface
             rep
             stosw
             popw %es
-         end ['EAX','ECX','EDX','EDI'];
+            popl %edi
+         end;
       end;
 
     procedure seg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
@@ -357,6 +367,8 @@ interface
            exit;
          if (sseg<>dseg) or ((sseg=dseg) and (source>dest)) then
            asm
+              pushl %esi
+              pushl %edi
               pushw %es
               pushw %ds
               cld
@@ -377,10 +389,14 @@ interface
               movsb
               popw %ds
               popw %es
-           end ['ESI','EDI','ECX','EAX']
+              popl %edi
+              popl %esi
+           end ['ECX','EAX']
          else if (source<dest) then
            { copy backward for overlapping }
            asm
+              pushl %esi
+              pushl %edi
               pushw %es
               pushw %ds
               std
@@ -415,6 +431,8 @@ interface
               cld
               popw %ds
               popw %es
+              popl %edi
+              popl %esi
            end ['ESI','EDI','ECX'];
       end;
 
@@ -502,6 +520,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl intaddr,%eax
             movl (%eax),%edx
             movw 4(%eax),%cx
@@ -511,6 +530,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -518,6 +538,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl intaddr,%eax
             movw (%eax),%dx
             movw 4(%eax),%cx
@@ -527,6 +548,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -534,6 +556,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl intaddr,%eax
             movl (%eax),%edx
             movw 4(%eax),%cx
@@ -543,6 +566,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -550,6 +574,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl intaddr,%eax
             movl (%eax),%edx
             movw 4(%eax),%cx
@@ -559,6 +584,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -566,6 +592,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl $0x210,%eax
             movb e,%bl
             int $0x31
@@ -575,6 +602,7 @@ interface
             movl intaddr,%eax
             movl %edx,(%eax)
             movw %cx,4(%eax)
+            popl %ebx
          end;
       end;
 
@@ -582,6 +610,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movl $0x202,%eax
             movb e,%bl
             int $0x31
@@ -591,6 +620,7 @@ interface
             movl intaddr,%eax
             movl %edx,(%eax)
             movw %cx,4(%eax)
+            popl %ebx
          end;
       end;
 
@@ -598,6 +628,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movb vector,%bl
             movl $0x204,%eax
             int $0x31
@@ -607,6 +638,7 @@ interface
             movl intaddr,%eax
             movl %edx,(%eax)
             movw %cx,4(%eax)
+            popl %ebx
          end;
       end;
 
@@ -614,6 +646,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movb vector,%bl
             movl $0x200,%eax
             int $0x31
@@ -624,6 +657,7 @@ interface
             movzwl %dx,%edx
             movl %edx,(%eax)
             movw %cx,4(%eax)
+            popl %ebx
          end;
       end;
 
@@ -651,6 +685,8 @@ interface
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
          asm
+            pushl %esi
+            pushl %edi
             movl  pm_func,%esi
             movl  reg,%edi
             pushw %es
@@ -670,6 +706,8 @@ interface
             movzwl %dx,%edx
             movl  %edx,(%eax)
             movw  %cx,4(%eax)
+            popl %edi
+            popl %esi
          end;
       end;
 
@@ -688,12 +726,14 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw d,%bx
             movl $1,%eax
             int $0x31
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -701,10 +741,12 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw seg,%bx
             movl $2,%eax
             int $0x31
             movw %ax,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -722,6 +764,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw d,%bx
             movl $6,%eax
             int $0x31
@@ -730,17 +773,20 @@ interface
             shll $16,%ecx
             orl %ecx,%eax
             movl %eax,__RESULT
+            popl %ebx
          end;
       end;
 
     function get_page_size:longint;
       begin
         asm
+           pushl %ebx
            movl $0x604,%eax
            int $0x31
            shll $16,%ebx
            movw %cx,%bx
            movl %ebx,__RESULT
+           popl %ebx
         end;
       end;
 
@@ -754,6 +800,8 @@ interface
          linearaddr:=linearaddr-pageofs;
          size:=size+pageofs;
          asm
+            pushl %ebx
+            pushl %esi
             movl $0x504,%eax
             movl linearaddr,%ebx
             movl size,%ecx
@@ -766,6 +814,8 @@ interface
             movl blockhandle,%eax
             movl %esi,(%eax)
             movl %ebx,pageofs
+            popl %esi
+            popl %ebx
          end;
          if pageofs<>linearaddr then
            request_linear_region:=false;
@@ -774,6 +824,8 @@ interface
     function allocate_memory_block(size:longint):longint;
       begin
         asm
+          pushl %ebx
+          pushl %esi
           movl  $0x501,%eax
           movl  size,%ecx
           movl  %ecx,%ebx
@@ -789,12 +841,15 @@ interface
           shll  $16,%esi
           movw  %di,%si
           movl  %ebx,__RESULT
+          popl %esi
+          popl %ebx
         end;
      end;
 
     function free_memory_block(blockhandle : longint) : boolean;
       begin
          asm
+            pushl %esi
             movl blockhandle,%esi
             movl %esi,%edi
             shll $16,%esi
@@ -803,6 +858,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %esi
          end;
       end;
 
@@ -810,6 +866,9 @@ interface
 
       begin
           asm
+            pushl %ebx
+            pushl %edi
+            pushl %esi
             movl  $0x600,%eax
             movl  linearaddr,%ecx
             movl  %ecx,%ebx
@@ -821,6 +880,9 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %esi
+            popl %edi
+            popl %ebx
           end;
       end;
 
@@ -852,6 +914,9 @@ interface
 
       begin
          asm
+            pushl %ebx
+            pushl %edi
+            pushl %esi
             movl  $0x601,%eax
             movl  linearaddr,%ecx
             movl  %ecx,%ebx
@@ -863,6 +928,9 @@ interface
             pushf
             call  test_int31
             movb  %al,__RESULT
+            popl %esi
+            popl %edi
+            popl %ebx
          end;
       end;
 
@@ -892,6 +960,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw d,%bx
             leal s,%eax
             movw (%eax),%dx
@@ -901,6 +970,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -908,6 +978,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw d,%bx
             movw w,%cx
             movl $9,%eax
@@ -915,6 +986,7 @@ interface
             pushf
             call test_int31
             movw %ax,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -922,6 +994,7 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw d,%bx
             leal s,%eax
             movw (%eax),%dx
@@ -931,6 +1004,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -963,12 +1037,14 @@ interface
 
       begin
          asm
+            pushl %ebx
             movw seg,%bx
             movl $0xa,%eax
             int $0x31
             pushf
             call test_int31
             movw %ax,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -976,12 +1052,14 @@ interface
 
       begin
          asm
+            pushl %edi
             movl meminfo,%edi
             movl $0x500,%eax
             int $0x31
             pushf
             movb %al,__RESULT
             call test_int31
+            popl %edi
          end;
       end;
 
@@ -989,6 +1067,9 @@ interface
 
       begin
          asm
+            pushl %ebx
+            pushl %edi
+            pushl %esi
             movl phys_addr,%ebx
             movl %ebx,%ecx
             shrl $16,%ebx
@@ -1002,6 +1083,9 @@ interface
             shll $16,%ebx
             movw %cx,%bx
             movl %ebx,__RESULT
+            popl %esi
+            popl %edi
+            popl %ebx
          end;
       end;
 
@@ -1030,6 +1114,9 @@ interface
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
       begin
          asm
+           pushl %ebx
+           pushl %edi
+           pushl %esi
            movl device,%edx
            movl handle,%esi
            movl offset,%ebx
@@ -1040,6 +1127,9 @@ interface
            setnc %al
            movb %al,__RESULT
            call test_int31
+           popl %esi
+           popl %edi
+           popl %ebx
          end;
       end;
 
@@ -1097,7 +1187,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:18  peter
+  Revision 1.7  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.6  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/09/07 12:31:16  carl

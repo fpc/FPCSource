@@ -103,6 +103,7 @@ Var
 
 Implementation
 
+{$calling oldfpccall}
 {$asmmode ATT}
 
 Function InitMouse: Boolean;
@@ -358,7 +359,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2002-09-07 21:30:00  carl
+  Revision 1.5  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.4  2002/09/07 21:30:00  carl
     - removed mousecheck define
 
   Revision 1.3  2002/09/07 16:01:18  peter

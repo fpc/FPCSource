@@ -239,6 +239,8 @@ begin
      exit;
    if (sseg<>dseg) or ((sseg=dseg) and (source>dest)) then
      asm
+        pushl %esi
+        pushl %edi
         pushw %es
         pushw %ds
         cld
@@ -259,10 +261,14 @@ begin
         movsb
         popw %ds
         popw %es
-     end ['ESI','EDI','ECX','EAX']
+        popl %edi
+        popl %esi
+     end
    else if (source<dest) then
      { copy backward for overlapping }
      asm
+        pushl %esi
+        pushl %edi
         pushw %es
         pushw %ds
         std
@@ -297,7 +303,9 @@ begin
         cld
         popw %ds
         popw %es
-     end ['ESI','EDI','ECX'];
+        popl %edi
+        popl %esi
+     end;
 end;
 
 
@@ -578,9 +586,10 @@ begin
 end;
 
 
-function strcopy(dest,source : pchar) : pchar;
-begin
-  asm
+function strcopy(dest,source : pchar) : pchar;assembler;
+asm
+        pushl %esi
+        pushl %edi
         cld
         movl 12(%ebp),%edi
         movl $0xffffffff,%ecx
@@ -599,9 +608,8 @@ begin
         rep
         movsb
         movl 8(%ebp),%eax
-        leave
-        ret $8
-  end;
+        popl %edi
+        popl %esi
 end;
 
 
@@ -673,11 +681,15 @@ begin
    regs.realsp:=0;
    regs.realss:=0;
    asm
+      pushl %ebx
+      pushl %edi
       movw  intnr,%bx
       xorl  %ecx,%ecx
       movl  regs,%edi
       movw  $0x300,%ax
       int   $0x31
+      popl  %edi
+      popl  %ebx
    end;
 end;
 
@@ -685,12 +697,14 @@ end;
 procedure set_pm_interrupt(vector : byte;const intaddr : tseginfo);
 begin
   asm
+        pushl   %ebx
         movl intaddr,%eax
         movl (%eax),%edx
         movw 4(%eax),%cx
         movl $0x205,%eax
         movb vector,%bl
         int $0x31
+        popl  %ebx
   end;
 end;
 
@@ -698,12 +712,14 @@ end;
 procedure get_pm_interrupt(vector : byte;var intaddr : tseginfo);
 begin
   asm
+        pushl   %ebx
         movb    vector,%bl
         movl    $0x204,%eax
         int     $0x31
         movl    intaddr,%eax
         movl    %edx,(%eax)
         movw    %cx,4(%eax)
+        popl  %ebx
   end;
 end;
 
@@ -1495,7 +1511,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.25  2003-09-29 18:39:59  hajny
+  Revision 1.26  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.25  2003/09/29 18:39:59  hajny
     * append fix applied to GO32v2, OS/2 and EMX
 
   Revision 1.24  2003/09/27 11:52:35  peter

@@ -199,6 +199,8 @@ begin
   if not force then
    begin
      asm
+        pushl   %esi
+        pushl   %edi
         movl    VideoBuf,%esi
         movl    OldVideoBuf,%edi
         movl    VideoBufSize,%ecx
@@ -206,6 +208,8 @@ begin
         repe
         cmpsl
         setne   force
+        popl    %edi
+        popl    %esi
      end;
    end;
   if Force then
@@ -318,7 +322,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:19  peter
+  Revision 1.7  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.6  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

@@ -146,6 +146,8 @@ const
 
     begin
        asm
+          push edi
+          push esi
           push es
           push ds
           cld
@@ -159,6 +161,8 @@ const
           rep movsb
           pop ds
           pop es
+          pop esi
+          pop edi
        end ['ESI','EDI','ECX','EAX']
     end;
 
@@ -237,6 +241,8 @@ const
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
 {$else asmgraph}
       asm
+        push ebx
+        push edi
  {$ifndef fpc}
         mov  es, [SegA000]
  {$endif fpc}
@@ -308,6 +314,8 @@ const
         { restore enable set/reset register }
         mov  ax,0001h
         out  dx,ax
+        pop edi
+        pop ebx
  {$endif fpc}
       end;
 {$endif asmgraph}
@@ -338,6 +346,9 @@ const
 {$else asmgraph}
     asm
   {$ifndef fpc}
+      push esi
+      push edi
+      push ebx
       mov   ax, [X]          { Get X address                    }
       push  ax
       shr   ax, 3
@@ -466,6 +477,9 @@ const
       mov   al,ah            { 16-bit pixel in AX   }
       xor   ah,ah
       mov   @Result, ax
+      pop ebx
+      pop edi
+      pop esi
   {$endif fpc}
     end;
 {$endif asmgraph}
@@ -647,6 +661,9 @@ End;
 {$else asmgraph}
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
+      push esi
+      push edi
+      push ebx
   {$ifndef fpc}
       mov  es, [SegA000]
       { enable the set / reset function and load the color }
@@ -734,6 +751,9 @@ End;
       { restore enable set/reset register }
       mov  ax,0001h
       out  dx,ax
+      pop ebx
+      pop edi
+      pop esi
   {$endif fpc}
     end;
 {$endif asmgraph}
@@ -1082,6 +1102,8 @@ End;
   {$else fpc}
   assembler;
   asm
+      push edi
+      push ebx
     movsx  edi, x
     movsx  ebx, y
     cmp    clippixels, 0
@@ -1105,6 +1127,8 @@ End;
     add    edi, ebx
     mov    fs:[edi+ebx*4+$a0000], al
   @putpix320done:
+    pop ebx
+    pop edi
 {$endif fpc}
  end;
 
@@ -1130,6 +1154,8 @@ End;
   {$else fpc}
   assembler;
   asm
+    push edi
+    push ebx
     movsx  edi, x
     movsx  ebx, y
     movsx  ecx, StartYViewPort
@@ -1140,6 +1166,8 @@ End;
     shl    ebx, 6
     add    edi, ebx
     movzx  ax, byte ptr fs:[edi+ebx*4+$a0000]
+    pop ebx
+    pop edi
  {$endif fpc}
   end;
 
@@ -1181,6 +1209,8 @@ End;
     @MovMode:
       mov    es:[di], al
   {$else fpc}
+      push edi
+      push ebx
       movzx  edi, x
       movzx  ebx, y
    {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
@@ -1192,6 +1222,8 @@ End;
       xor    al, fs:[edi+ebx*4+$a0000]
      @MovMode:
       mov    fs:[edi+ebx*4+$a0000], al
+      pop ebx
+      pop edi
 {$endif fpc}
   end;
 {$endif asmgraph}
@@ -1258,6 +1290,7 @@ const CrtAddress: word = 0;
      CLD
      REP STOSW
 {$else fpc}
+      push edi
      push es
      push fs
      mov edi, $a0000
@@ -1267,6 +1300,7 @@ const CrtAddress: word = 0;
      cld
      rep stosd
      pop es
+     pop edi
 {$EndIf fpc}
      MOV DX,CRTAddress  {address the underline-location-register at }
      MOV AL,14h         {the CRT-controller Port, read out the according      }
@@ -1326,6 +1360,8 @@ const CrtAddress: word = 0;
     xor ah, ah
     mov @Result, ax
   {$else fpc}
+      push edi
+      push ebx
      movzx edi,[Y]                   ; (* DI = Y coordinate                 *)
      (* Multiply by 80 start *)
      mov ebx, edi
@@ -1348,6 +1384,8 @@ const CrtAddress: word = 0;
    (* End selection of plane *)
     mov ax, fs:[edi+$a0000]
     mov @Result, ax
+    pop ebx
+    pop edi
   {$endif fpc}
    end;
 {$endif asmgraph}
@@ -2708,7 +2746,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:18  peter
+  Revision 1.10  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.9  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
 }

@@ -143,8 +143,6 @@ implementation
 uses
   strings;
 
-{$ASMMODE ATT}
-
 {******************************************************************************
                            --- Dos Interrupt ---
 ******************************************************************************}
@@ -1049,7 +1047,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.15  2002-09-07 16:01:18  peter
+  Revision 1.16  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.15  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
 }

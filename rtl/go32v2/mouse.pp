@@ -84,6 +84,8 @@ procedure unlockmouse;
 {$ASMMODE ATT}
 procedure MouseInt;assembler;
 asm
+        pushl   %edi
+        pushl   %ebx
         movb    %bl,mousebuttons
         movw    %cx,mousewherex
         movw    %dx,mousewherey
@@ -156,6 +158,8 @@ asm
         movl    %edi,PendingMouseTail
         incb    PendingMouseEvents
 .Lmouse_exit:
+        popl   %ebx
+        popl   %edi
 end;
 
 
@@ -303,6 +307,8 @@ var
   error : word;
 begin
   ASM
+    pushl %edi
+    pushl %esi
     LEAL ACTIONREGS, %EDI;                       { Addr of actionregs }
     LEAL MOUSE_TRAP, %ESI;                       { Procedure address }
     CMPB $0, UnderNT
@@ -330,6 +336,8 @@ begin
     MOVW $0, %AX;                                { Force error to zero }
   .L_exit:
     MOVW %AX, ERROR;                             { Return error state }
+    popl %esi
+    popl %edi
   END;
   Allocate_mouse_bridge:=error=0;
 end;
@@ -534,6 +542,7 @@ end;
 
 function SysDetectMouse:byte;assembler;
 asm
+        pushl   %ebx
         movl    $0x200,%eax
         movl    $0x33,%ebx
         int     $0x31
@@ -548,6 +557,7 @@ asm
         jz      .Lno_mouse
         movl    %ebx,%eax
 .Lno_mouse:
+        popl    %ebx
 end;
 
 
@@ -645,6 +655,7 @@ end;
 
 function SysGetMouseButtons:word;assembler;
 asm
+        pushl   %ebx
         cmpb    $1,MousePresent
         jne     .LGetMouseButtonsError
         movl    $3,%eax
@@ -652,9 +663,11 @@ asm
         int     $0x33
         popl    %ebp
         movw    %bx,%ax
-        ret
+        jmp     .Lexit
 .LGetMouseButtonsError:
         xorl    %eax,%eax
+.Lexit:
+        popl    %ebx
 end;
 
 
@@ -775,7 +788,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:18  peter
+  Revision 1.8  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.7  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/05/09 08:42:24  carl

@@ -296,6 +296,7 @@ end;
 function FileRead (Handle: longint; var Buffer; Count: longint): longint;
                                                                      assembler;
 asm
+    push ebx
     mov eax, 3F00h
     mov ebx, Handle
     mov ecx, Count
@@ -304,12 +305,14 @@ asm
     jnc @FReadEnd
     mov eax, -1
 @FReadEnd:
+    pop ebx
 end;
 
 
 function FileWrite (Handle: longint; const Buffer; Count: longint): longint;
                                                                      assembler;
 asm
+    push ebx
     mov eax, 4000h
     mov ebx, Handle
     mov ecx, Count
@@ -318,11 +321,13 @@ asm
     jnc @FWriteEnd
     mov eax, -1
 @FWriteEnd:
+    pop ebx
 end;
 
 
 function FileSeek (Handle, FOffset, Origin: longint): longint; assembler;
 asm
+    push ebx
     mov eax, Origin
     mov ah, 42h
     mov ebx, Handle
@@ -331,6 +336,7 @@ asm
     jnc @FSeekEnd
     mov eax, -1
 @FSeekEnd:
+    pop ebx
 end;
 
 Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
@@ -343,15 +349,18 @@ procedure FileClose (Handle: longint);
 begin
     if (Handle > 4) or ((os_mode = osOS2) and (Handle > 2)) then
         asm
+            push ebx
             mov eax, 3E00h
             mov ebx, Handle
             call syscall
+            pop ebx
         end;
 end;
 
 
 function FileTruncate (Handle, Size: longint): boolean; assembler;
 asm
+    push ebx
     mov eax, 7F25h
     mov ebx, Handle
     mov edx, Size
@@ -365,6 +374,7 @@ asm
     jnc @FTruncEnd
     dec eax
 @FTruncEnd:
+    pop ebx
 end;
 
 
@@ -533,6 +543,7 @@ end;
 
 function FileGetDate (Handle: longint): longint; assembler;
 asm
+    push ebx
     mov ax, 5700h
     mov ebx, Handle
     call syscall
@@ -541,6 +552,7 @@ asm
     mov ax, dx
     shld eax, ecx, 16
 @FGetDateEnd:
+    pop ebx
 end;
 
 
@@ -572,6 +584,7 @@ begin
         end
     else
         asm
+            push ebx
             mov ax, 5701h
             mov ebx, Handle
             mov cx, word ptr [Age]
@@ -581,6 +594,7 @@ begin
             mov eax, -1
 @FSetDateEnd:
             mov [ebp - 4], eax
+            pop ebx
         end;
 end;
 
@@ -679,6 +693,7 @@ begin
     FN2 := NewName + #0;
 {$ENDIF}
 asm
+    push edi
     mov ax, 5600h
 {$IFOPT H+}
     mov edx, OldName
@@ -696,6 +711,7 @@ asm
 @FRenameEnd:
 {$IFOPT H-}
     mov [ebp - 4], eax
+    pop edi
 end;
 {$ENDIF}
 end;
@@ -716,6 +732,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
+            pushl %ebx
             movb Drive,%dl
             movb $0x36,%ah
             call syscall
@@ -727,10 +744,11 @@ begin
             movw %ax,%dx
             movl $0,%eax
             xchgl %edx,%eax
-            leave
-            ret
+            jmp .LDISKFREE2
          .LDISKFREE1:
             cltd
+         .LDISKFREE2:
+            popl %ebx
             leave
             ret
         end
@@ -755,6 +773,7 @@ begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
         {Function 36 is not supported in OS/2.}
         asm
+            pushl %ebx
             movb Drive,%dl
             movb $0x36,%ah
             call syscall
@@ -767,10 +786,11 @@ begin
             movw %ax,%dx
             movl $0,%eax
             xchgl %edx,%eax
-            leave
-            ret
-        .LDISKSIZE1:
+            jmp .LDISKSIZE2
+         .LDISKSIZE1:
             cltd
+         .LDISKSIZE2:
+            popl %ebx
             leave
             ret
         end
@@ -856,6 +876,7 @@ end;
 
 procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
+    push edi
 (* Expects the default record alignment (word)!!! *)
     mov ah, 2Ah
     call syscall
@@ -881,6 +902,7 @@ asm
     shl eax, 16
     mov al, dh
     stosd
+    pop edi
 end;
 {$asmmode default}
 
@@ -987,7 +1009,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2003-06-06 23:34:40  hajny
+  Revision 1.30  2003-10-03 21:46:41  peter
+    * stdcall fixes
+
+  Revision 1.29  2003/06/06 23:34:40  hajny
     * better fix for bug 2518
 
   Revision 1.28  2003/06/06 23:31:17  hajny

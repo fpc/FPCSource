@@ -521,12 +521,14 @@ begin
      ((os_MODE = osOS2) and (h > 2)) then
    begin
      asm
+        pushl %ebx
         movb $0x3e,%ah
         movl h,%ebx
         call syscall
         jnc  .Lnoerror           { error code?            }
         movw  %ax, InOutRes       { yes, then set InOutRes }
      .Lnoerror:
+        popl %ebx
      end;
    end;
 end;
@@ -551,6 +553,7 @@ begin
     allowslash(p1);
     allowslash(p2);
     asm
+        pushl %edi
         movl P1, %edx
         movl P2, %edi
         movb $0x56,%ah
@@ -558,11 +561,13 @@ begin
         jnc .LRENAME1
         movw %ax,inoutres;
     .LRENAME1:
+        popl %edi
     end;
 end;
 
 function do_read(h,addr,len:longint):longint; assembler;
 asm
+    pushl %ebx
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
@@ -572,10 +577,12 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSREAD1:
+    popl %ebx
 end;
 
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
+    pushl %ebx
     xorl %eax,%eax
     cmpl $0,len    { 0 bytes to write is undefined behavior }
     jz   .LDOSWRITE1
@@ -587,10 +594,12 @@ asm
     jnc .LDOSWRITE1
     movw %ax,inoutres;
 .LDOSWRITE1:
+    popl %ebx
 end;
 
 function do_filepos(handle:longint): longint; assembler;
 asm
+    pushl %ebx
     movw $0x4201,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -599,10 +608,12 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSFILEPOS:
+    popl %ebx
 end;
 
 procedure do_seek(handle,pos:longint); assembler;
 asm
+    pushl %ebx
     movw $0x4200,%ax
     movl handle,%ebx
     movl pos,%edx
@@ -610,10 +621,12 @@ asm
     jnc .LDOSSEEK1
     movw %ax,inoutres;
 .LDOSSEEK1:
+    popl %ebx
 end;
 
 function do_seekend(handle:longint):longint; assembler;
 asm
+    pushl %ebx
     movw $0x4202,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -622,6 +635,7 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .Lset_at_end1:
+    popl %ebx
 end;
 
 function do_filesize(handle:longint):longint;
@@ -636,6 +650,7 @@ end;
 
 procedure do_truncate(handle,pos:longint); assembler;
 asm
+    pushl %ebx
 (* DOS function 40h isn't safe for this according to EMX documentation *)
     movl $0x7F25,%eax
     movl Handle,%ebx
@@ -653,6 +668,7 @@ asm
 .LTruncate1:
     movw %ax,inoutres;
 .LTruncate2:
+    popl %ebx
 end;
 
 const
@@ -681,12 +697,14 @@ begin
             Inc (FileHandleCount, 10);
             Err := 0;
             asm
+                pushl %ebx
                 movl $0x6700, %eax
                 movl FileHandleCount, %ebx
                 call syscall
                 jnc .LIncFHandles
                 movw %ax, Err
 .LIncFHandles:
+                popl %ebx
             end;
             if Err <> 0 then
                 begin
@@ -808,6 +826,7 @@ begin
     else
 *)
 asm
+    pushl %ebx
     mov ebx, Handle
     mov eax, 4400h
     call syscall
@@ -817,6 +836,7 @@ asm
     jnz @IsDevEnd
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
+    popl %ebx
 end;
 {$ASMMODE ATT}
 
@@ -994,7 +1014,7 @@ begin
                             jz @LCHDIR
                             mov InOutRes, 15
 @LCHDIR:
-                        end;
+                        end ['eax','edx','esi'];
                         if (Length (S) > 2) and (InOutRes <> 0) then
                             { Under EMX 0.9d DOS this routine may sometime }
                             { fail or crash the system.                    }
@@ -1031,7 +1051,7 @@ begin
         jnc .LGetDir
         movw %ax, InOutRes
 .LGetDir:
-    end;
+    end [ 'eax','edx','esi'];
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }
     dir[0]:=#3;
@@ -1203,7 +1223,7 @@ begin
 @Stop:
   inc eax
   mov EnvSize, eax
- end;
+ end ['eax','ecx','edx','esi','edi'];
  Environment := GetMem (EnvSize);
  asm
   cld
@@ -1226,7 +1246,7 @@ begin
   jmp @L2
 @Stop2:
   stosb
- end;
+ end ['eax','ecx','edx','esi','edi'];
 end;
 
 
@@ -1289,6 +1309,7 @@ begin
     {Determine the operating system we are running on.}
 {$ASMMODE INTEL}
     asm
+        push ebx
         mov os_mode, 0
         mov eax, 7F0Ah
         call syscall
@@ -1298,7 +1319,6 @@ begin
         jz @noRSX
         mov os_mode, 2
     @noRSX:
-
     {Enable the brk area by initializing it with the initial heap size.}
 
         mov eax, 7F01h
@@ -1326,6 +1346,7 @@ begin
         mov edx, 8
         call syscall
 {$ENDIF CONTHEAP}
+        pop ebx
     end;
 
     { in OS/2 this will always be nil, but in DOS mode }
@@ -1335,6 +1356,7 @@ begin
      read-access to the first meg. of memory.}
     if os_mode in [osDOS,osDPMI] then
         asm
+            push ebx
             mov eax, 7F13h
             xor ebx, ebx
             mov ecx, 0FFFh
@@ -1343,6 +1365,7 @@ begin
             jc @endmem
             mov first_meg, eax
          @endmem:
+            pop ebx
         end
     else
         begin
@@ -1403,7 +1426,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-10-01 18:42:49  yuri
+  Revision 1.36  2003-10-03 21:46:41  peter
+    * stdcall fixes
+
+  Revision 1.35  2003/10/01 18:42:49  yuri
   * Unclosed comment
 
   Revision 1.34  2003/09/29 18:39:59  hajny

@@ -283,6 +283,7 @@ const
 
       begin
          asm
+            pushl %ebx
             movl $0x202,%eax
             movb e,%bl
             int $0x31
@@ -292,6 +293,7 @@ const
             movl intaddr,%eax
             movl %edx,(%eax)
             movw %cx,4(%eax)
+            popl %ebx
          end;
       end;
 
@@ -299,6 +301,7 @@ const
 
       begin
          asm
+            pushl %ebx
             movw d,%bx
             movl $6,%eax
             int $0x31
@@ -307,6 +310,7 @@ const
             shll $16,%ecx
             orl %ecx,%eax
             movl %eax,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -327,6 +331,7 @@ const
 
       begin
          asm
+            pushl %ebx
             movl intaddr,%eax
             movw (%eax),%dx
             movw 4(%eax),%cx
@@ -336,6 +341,7 @@ const
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %ebx
          end;
       end;
 
@@ -343,6 +349,7 @@ const
 
       begin
          asm
+            pushl %ebx
             movb vector,%bl
             movl $0x200,%eax
             int $0x31
@@ -353,6 +360,7 @@ const
             movzwl %dx,%edx
             movl %edx,(%eax)
             movw %cx,4(%eax)
+            popl %ebx
          end;
       end;
 
@@ -374,6 +382,8 @@ const
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
          asm
+            pushl %esi
+            pushl %edi
             movl  pm_func,%esi
             movl  reg,%edi
             pushw %es
@@ -393,6 +403,8 @@ const
             movzwl %dx,%edx
             movl  %edx,(%eax)
             movw  %cx,4(%eax)
+            popl %edi
+            popl %esi
          end;
       end;
 
@@ -400,6 +412,9 @@ const
 
       begin
           asm
+            pushl %ebx
+            pushl %esi
+            pushl %edi
             movl  $0x600,%eax
             movl  linearaddr,%ecx
             movl  %ecx,%ebx
@@ -411,6 +426,9 @@ const
             pushf
             call test_int31
             movb %al,__RESULT
+            popl %edi
+            popl %esi
+            popl %ebx
           end;
       end;
 
@@ -1115,6 +1133,7 @@ var
   res : longint;
 begin
   asm
+        pushl %ebx
         movl    flag,%ebx
         movl    $0xe01,%eax
         int     $0x31
@@ -1122,6 +1141,7 @@ begin
         xorl    %eax,%eax
 .L_coproc_error:
         movl    %eax,res
+        popl %ebx
   end;
   dpmi_set_coprocessor_emulation:=res;
 end;
@@ -1157,9 +1177,11 @@ begin
         begin
           psp_sel:=stub_info^.psp_selector;
           asm
+            pushl %ebx
             movw psp_sel,%bx
             movb $0x50,%ah
             int $0x21
+            popl %ebx
           end;
         end;
     end;
@@ -1537,7 +1559,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.13  2003-03-19 15:57:16  peter
+  Revision 1.14  2003-10-03 21:46:25  peter
+    * stdcall fixes
+
+  Revision 1.13  2003/03/19 15:57:16  peter
     * fix compile with 1.0.x
 
   Revision 1.12  2003/03/18 08:48:41  michael

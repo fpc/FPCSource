@@ -315,7 +315,7 @@ begin
         stosb               {Store an extra 0 to finish. (AL is now 0).}
         incl %edx
 //        movw %dx,ES.SizeEnv    {Store environment size.}
-    end;
+    end ['eax','ebx','ecx','edx','esi','edi'];
 
     //Not clear how to use
     exec:=DosExecPgm(ObjName, Longint(runflags), Args, Env, Res, Path);
@@ -567,7 +567,7 @@ begin
   pop eax
   mov P, edi      { place pointer to variable contents in P }
 @End:
- end;
+ end ['eax','ebx','ecx','edx','esi','edi'];
  GetEnvPChar := P;
 end;
 {$ASMMODE ATT}
@@ -703,7 +703,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-09-24 08:59:16  yuri
+  Revision 1.27  2003-10-03 21:46:41  peter
+    * stdcall fixes
+
+  Revision 1.26  2003/09/24 08:59:16  yuri
   * Prepared for native target (emx code replaced)
 
   Revision 1.25  2003/02/20 17:37:00  hajny

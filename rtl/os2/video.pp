@@ -78,7 +78,7 @@ begin
 end;
 
 
-Var 
+Var
   SysVideoBuf : PVideoBuf;
 
 procedure SysInitVideo;
@@ -206,7 +206,7 @@ begin
   if (OrigScreenSize <> 0) and (OrigScreen <> nil) then
     begin
     ScrSize := 0;
-    if (VioGetBuf (PScr, PWord (@ScrSize)^, 0) = 0) and 
+    if (VioGetBuf (PScr, PWord (@ScrSize)^, 0) = 0) and
        (ScrSize = OrigScreenSize) then
       begin
       PScr := SelToFlat (TFarPtr (PScr));
@@ -277,7 +277,7 @@ begin
     end;
 end;
 
-Const 
+Const
   SysVideoModeCount = 6;
   SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
    (Col: 40; Row: 25; Color: True),
@@ -315,7 +315,7 @@ begin
        (Mode.Color=SysVMD[i].Color) then
       SysSetVideoMode:=True
     else
-      Dec(I);  
+      Dec(I);
   If SysSetVideoMode then
     begin
     SysVideoModeSelector(Mode);
@@ -324,7 +324,7 @@ begin
     ScreenColor:=SysVMD[I].Color;
     end;
 end;
-  
+
 Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
 
 begin
@@ -357,6 +357,8 @@ begin
   if not (Force) then
     asm
     cld
+    push esi
+    push edi
     mov esi, VideoBuf
     mov edi, OldVideoBuf
     mov eax, VideoBufSize
@@ -391,6 +393,8 @@ begin
     shl ecx, 1
     mov CLen, ecx
 @no_update:
+    pop edi
+    pop esi
     end
   else
     begin
@@ -464,7 +468,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:25  peter
+  Revision 1.8  2003-10-03 21:46:41  peter
+    * stdcall fixes
+
+  Revision 1.7  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
 }
