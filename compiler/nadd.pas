@@ -107,6 +107,7 @@ implementation
          l1,l2   : longint;
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
+         resultrealtype : ttype;
 {$ifdef state_tracking}
      factval : Tnode;
      change  : boolean;
@@ -173,10 +174,20 @@ implementation
          { is one a real float, then both need to be floats, this
            need to be done before the constant folding so constant
            operation on a float and int are also handled }
+         resultrealtype:=pbestrealtype^;
          if (right.resulttype.def.deftype=floatdef) or (left.resulttype.def.deftype=floatdef) then
           begin
-            inserttypeconv(right,pbestrealtype^);
-            inserttypeconv(left,pbestrealtype^);
+            { when both floattypes are already equal then use that
+              floattype for results }
+            if (right.resulttype.def.deftype=floatdef) and
+               (left.resulttype.def.deftype=floatdef) and
+               (tfloatdef(right.resulttype.def).typ=tfloatdef(right.resulttype.def).typ) then
+              resultrealtype:=left.resulttype
+            else
+             begin
+               inserttypeconv(right,resultrealtype);
+               inserttypeconv(left,resultrealtype);
+             end;
           end;
 
          { if one operand is a widechar or a widestring, both operands    }
@@ -315,7 +326,7 @@ implementation
                     { int/int becomes a real }
                     rvd:=rv;
                     lvd:=lv;
-                    t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
+                    t:=crealconstnode.create(lvd/rvd,resultrealtype);
                   end;
                 else
                   begin
@@ -334,26 +345,26 @@ implementation
               rvd:=trealconstnode(right).value_real;
               case nodetype of
                  addn :
-                   t:=crealconstnode.create(lvd+rvd,pbestrealtype^);
+                   t:=crealconstnode.create(lvd+rvd,resultrealtype);
                  subn :
-                   t:=crealconstnode.create(lvd-rvd,pbestrealtype^);
+                   t:=crealconstnode.create(lvd-rvd,resultrealtype);
                  muln :
-                   t:=crealconstnode.create(lvd*rvd,pbestrealtype^);
+                   t:=crealconstnode.create(lvd*rvd,resultrealtype);
                  starstarn,
                  caretn :
                    begin
                      if lvd<0 then
                       begin
                         Message(parser_e_invalid_float_operation);
-                        t:=crealconstnode.create(0,pbestrealtype^);
+                        t:=crealconstnode.create(0,resultrealtype);
                       end
                      else if lvd=0 then
-                       t:=crealconstnode.create(1.0,pbestrealtype^)
+                       t:=crealconstnode.create(1.0,resultrealtype)
                      else
-                       t:=crealconstnode.create(exp(ln(lvd)*rvd),pbestrealtype^);
+                       t:=crealconstnode.create(exp(ln(lvd)*rvd),resultrealtype);
                    end;
                  slashn :
-                   t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
+                   t:=crealconstnode.create(lvd/rvd,resultrealtype);
                  ltn :
                    t:=cordconstnode.create(ord(lvd<rvd),booltype,true);
                  lten :
@@ -633,8 +644,8 @@ implementation
             if (left.resulttype.def.deftype <> floatdef) and
                (right.resulttype.def.deftype <> floatdef) then
               CGMessage(type_h_use_div_for_int);
-            inserttypeconv(right,pbestrealtype^);
-            inserttypeconv(left,pbestrealtype^);
+            inserttypeconv(right,resultrealtype);
+            inserttypeconv(left,resultrealtype);
           end
 
          { if both are orddefs then check sub types }
@@ -1200,7 +1211,7 @@ implementation
                 ltn,lten,gtn,gten,equaln,unequaln :
                   resulttype:=booltype;
                 slashn :
-                  resulttype:=pbestrealtype^;
+                  resulttype:=resultrealtype;
                 addn:
                   begin
                     { for strings, return is always a 255 char string }
@@ -1881,7 +1892,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2002-11-25 18:43:32  carl
+  Revision 1.74  2002-11-27 11:28:40  peter
+    * when both flaottypes are the same then handle the addnode using
+      that floattype instead of bestrealtype
+
+  Revision 1.73  2002/11/25 18:43:32  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.
