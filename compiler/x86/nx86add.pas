@@ -65,6 +65,7 @@ unit nx86add;
       globtype,globals,
       verbose,
       cutils,
+      cpuinfo,
       aasmbase,aasmtai,aasmcpu,
       symconst,symdef,
       cgobj,cgx86,cga,
@@ -551,37 +552,75 @@ unit nx86add;
         if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           location_release(exprasmlist,left.location);
 
-        emit_none(A_FCOMPP,S_NO);
-        tcgx86(cg).dec_fpu_stack;
-        tcgx86(cg).dec_fpu_stack;
+{$ifndef x86_64}
+        if aktspecificoptprocessor<ClassPentium2 then
+          begin
+            emit_none(A_FCOMPP,S_NO);
+            tcgx86(cg).dec_fpu_stack;
+            tcgx86(cg).dec_fpu_stack;
 
-        { load fpu flags }
-        cg.getexplicitregister(exprasmlist,NR_AX);
-        emit_reg(A_FNSTSW,S_NO,NR_AX);
-        emit_none(A_SAHF,S_NO);
-        cg.ungetregister(exprasmlist,NR_AX);
-        if nf_swaped in flags then
-         begin
-           case nodetype of
-               equaln : resflags:=F_E;
-             unequaln : resflags:=F_NE;
-                  ltn : resflags:=F_A;
-                 lten : resflags:=F_AE;
-                  gtn : resflags:=F_B;
-                 gten : resflags:=F_BE;
-           end;
-         end
+            { load fpu flags }
+            cg.getexplicitregister(exprasmlist,NR_AX);
+            emit_reg(A_FNSTSW,S_NO,NR_AX);
+            emit_none(A_SAHF,S_NO);
+            cg.ungetregister(exprasmlist,NR_AX);
+            if nf_swaped in flags then
+             begin
+               case nodetype of
+                   equaln : resflags:=F_E;
+                 unequaln : resflags:=F_NE;
+                      ltn : resflags:=F_A;
+                     lten : resflags:=F_AE;
+                      gtn : resflags:=F_B;
+                     gten : resflags:=F_BE;
+               end;
+             end
+            else
+             begin
+               case nodetype of
+                   equaln : resflags:=F_E;
+                 unequaln : resflags:=F_NE;
+                      ltn : resflags:=F_B;
+                     lten : resflags:=F_BE;
+                      gtn : resflags:=F_A;
+                     gten : resflags:=F_AE;
+               end;
+             end;
+          end
         else
-         begin
-           case nodetype of
-               equaln : resflags:=F_E;
-             unequaln : resflags:=F_NE;
-                  ltn : resflags:=F_B;
-                 lten : resflags:=F_BE;
-                  gtn : resflags:=F_A;
-                 gten : resflags:=F_AE;
-           end;
-         end;
+{$endif x86_64}
+          begin
+            exprasmlist.concat(taicpu.op_reg_reg(A_FCOMIP,S_NO,NR_ST1,NR_ST0));
+            { fcomip pops only one fpu register }
+            exprasmlist.concat(taicpu.op_reg(A_FSTP,S_NO,NR_ST0));
+            tcgx86(cg).dec_fpu_stack;
+            tcgx86(cg).dec_fpu_stack;
+
+            { load fpu flags }
+            if nf_swaped in flags then
+             begin
+               case nodetype of
+                   equaln : resflags:=F_E;
+                 unequaln : resflags:=F_NE;
+                      ltn : resflags:=F_A;
+                     lten : resflags:=F_AE;
+                      gtn : resflags:=F_B;
+                     gten : resflags:=F_BE;
+               end;
+             end
+            else
+             begin
+               case nodetype of
+                   equaln : resflags:=F_E;
+                 unequaln : resflags:=F_NE;
+                      ltn : resflags:=F_B;
+                     lten : resflags:=F_BE;
+                      gtn : resflags:=F_A;
+                     gten : resflags:=F_AE;
+               end;
+             end;
+          end;
+
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=resflags;
       end;
@@ -812,7 +851,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-02-04 19:22:27  peter
+  Revision 1.8  2004-02-06 16:44:42  florian
+    + improved floating point compares for x86-64 and Pentium2 and above
+
+  Revision 1.7  2004/02/04 19:22:27  peter
   *** empty log message ***
 
   Revision 1.6  2004/01/20 12:59:37  florian
