@@ -220,14 +220,33 @@ CONST
     O_RDONLY  =          0;        { Open read-only.  }
     O_WRONLY  =          1;        { Open write-only. }
     O_RDWR    =          2;        { Open read/write. }
-    { Bits OR'd into the second argument to open.  }
-    O_CREAT   =        $40;        { Create file if it doesn't exist.  }
-    O_EXCL    =        $80;        { Fail if file already exists.      }
-    O_TRUNC   =       $200;        { Truncate file to zero length.     }
-    O_NOCTTY  =       $100;        { Don't assign a controlling terminal. }
-    { File status flags for `open' and `fcntl'.  }
-    O_APPEND  =       $400;        { Writes append to the file.        }
-    O_NONBLOCK=       $800;        { Non-blocking I/O.                 }
+{$ifdef sparc}
+    O_APPEND  =          8;
+    O_CREAT   =       $200;
+    O_TRUNC   =       $400;
+    O_EXCL    =       $800;
+    O_SYNC    =      $2000;
+    O_NONBLOCK =     $4000;
+    O_NDELAY  =      O_NONBLOCK or 4;
+    O_NOCTTY  =      $8000;
+    O_DIRECTORY =   $10000;
+    O_NOFOLLOW =    $20000; 
+    O_LARGEFILE =   $40000;
+    O_DIRECT  =    $100000; 
+{$else sparc}
+    O_CREAT   =        $40;
+    O_EXCL    =        $80;
+    O_NOCTTY  =       $100;
+    O_TRUNC   =       $200;
+    O_APPEND  =       $400;
+    O_NONBLOCK =      $800;
+    O_NDELAY  =     O_NONBLOCK;
+    O_SYNC    =      $1000;
+    O_DIRECT  =      $4000;
+    O_LARGEFILE =    $8000;
+    O_DIRECTORY =   $10000;
+    O_NOFOLLOW =    $20000;
+{$endif sparc}    
 
     { mode_t possible values                                 }
     S_IRUSR =  %0100000000;     { Read permission for owner   }
@@ -268,7 +287,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2004-03-04 22:15:16  marco
+  Revision 1.10  2004-09-12 15:20:23  peter
+    * sparc has different values for O_ flags
+
+  Revision 1.9  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.8  2004/02/22 15:00:27  marco
