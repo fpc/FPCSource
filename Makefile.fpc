@@ -7,7 +7,7 @@ name=fpc
 version=1.0.5
 
 [target]
-dirs=compiler rtl utils fcl fv packages ide
+dirs=compiler rtl utils fcl fv packages ide installer
 
 [install]
 fpcpackage=y
@@ -50,19 +50,6 @@ endif
 
 PPNEW=$(BASEDIR)/compiler/$(PPPRE)$(PPSUF)$(SRCEXEEXT)
 endif
-
-# Check if there is already a ppc386 binary in compiler, then
-# we will use that version for target and version info
-#
-# This is not possible as you can't install a specific target
-# after a first target has been compiled
-#
-#ifneq ($(wildcard $(PPNEW)),)
-#override FPC_VERSION:=$(shell $(PPNEW) -iV)
-#override OS_TARGET:=$(shell $(PPNEW) -iTO)
-#override CPU_TARGET:=$(shell $(PPNEW) -iTP)
-#export FPC_VERSION OS_TARGET CPU_TARGET
-#endif
 
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
@@ -197,6 +184,26 @@ compiler_cycle:
 
 
 #######################################
+# Packages
+#######################################
+
+.PHONY: packages_base_all packages_extra_all \
+        packages_base_smart packages_extra_smart
+
+packages_base_all:
+        $(MAKE) -C packages base_all
+
+packages_base_smart:
+        $(MAKE) -C packages base_smart
+
+packages_extra_all:
+        $(MAKE) -C packages extra_all
+
+packages_extra_smart:
+        $(MAKE) -C packages extra_smart
+
+
+#######################################
 # Install targets
 #######################################
 
@@ -223,29 +230,6 @@ optcompinstall:
 
 optcompzip:
         $(MAKE) fpc_zipinstall PACKAGENAME=optcomp ZIPTARGET=optcompinstall
-
-
-##########################################################################
-# Install
-##########################################################################
-
-.PHONY: installer installersrc
-
-INSTALLERBUILDDIR=fpinst
-
-installer:
-        $(COPYTREE) $(CVSINSTALL)/fpinst $(INSTALLERBUILDDIR)
-        $(MAKE) -C $(INSTALLERBUILDDIR) all RELEASE=1
-        $(MOVE) $(INSTALLERBUILDDIR)/install.exe .
-ifdef UPXPROG
-        -$(UPXPROG) install.exe
-endif
-        $(DELTREE) $(INSTALLERBUILDDIR)
-
-installersrc:
-        $(COPYTREE) $(CVSINSTALL)/fpinst $(INSTALLERBUILDDIR)
-        $(MAKE) -C $(INSTALLERBUILDDIR) zipsourceinstall
-        $(DELTREE) $(INSTALLERBUILDDIR)
 
 
 ##########################################################################
@@ -277,11 +261,14 @@ ifdef IDE
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) packages_extra_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
+        $(MAKE) fv_all $(BUILDOPTS)
         $(MAKE) ide_all $(BUILDOPTS)
+        $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > build-stamp.$(OS_TARGET)
 
