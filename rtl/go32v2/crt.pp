@@ -214,10 +214,23 @@ end;
 
 
 procedure textmode(mode : integer);
+
+var
+   regs : trealregs;
+
 begin
   lastmode:=mode;
   mode:=mode and $ff;
   setscreenmode(mode);
+
+  { set 8x8 font }
+  if (lastmode and $100)<>0 then
+    begin
+       regs.realeax:=$1112;
+       regs.realebx:=$0;
+       realintr($10,regs);
+    end;
+
   screenwidth:=getscreenwidth;
   screenheight:=getscreenheight;
   windmin:=0;
@@ -789,7 +802,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1999-01-22 11:12:09  florian
+    + support of font8x8 added
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.17  1998/12/15 22:42:49  peter
