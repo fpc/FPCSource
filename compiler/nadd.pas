@@ -1292,6 +1292,25 @@ implementation
           begin
             if not(nodetype in [equaln,unequaln]) then
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+            { find proc field in methodpointer record }
+            hsym:=tfieldvarsym(trecorddef(methodpointertype.def).symtable.search('proc'));
+            if not assigned(hsym) then
+              internalerror(200412043);
+            { For methodpointers compare only tmethodpointer.proc }
+	    if (rd.deftype=procvardef) and
+               (not tprocvardef(rd).is_addressonly) then
+	      begin
+                right:=csubscriptnode.create(
+                           hsym,
+                           ctypeconvnode.create_internal(right,methodpointertype));
+	       end;
+	    if (ld.deftype=procvardef) and 
+	       (not tprocvardef(ld).is_addressonly) then
+	      begin   	     
+                left:=csubscriptnode.create(
+                          hsym,
+                          ctypeconvnode.create_internal(left,methodpointertype));
+              end;
           end
 
        { support dynamicarray=nil,dynamicarray<>nil }
@@ -2172,7 +2191,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2005-02-17 17:52:39  peter
+  Revision 1.142  2005-03-14 20:18:22  peter
+    * for methodpointers compare only proc field
+
+  Revision 1.141  2005/02/17 17:52:39  peter
     * allow enum arithmetics inside an enum def, compatible with delphi
 
   Revision 1.140  2005/02/14 17:13:06  peter
