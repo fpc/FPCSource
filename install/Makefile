@@ -136,9 +136,8 @@ basego32:
 	$(MKDIR) $(DOCINSTALLDIR)
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
-# readme & whatsnew
-	$(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
-# docs
+# readme & whatsnew and docs
+	$(COPY) readme.txt whatsnew.txt $(DOCINSTALLDIR)
 	$(COPY) doc/* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 	$(COPY) bingo32/* $(BININSTALLDIR)
@@ -173,9 +172,8 @@ basew32:
 	$(MKDIR) $(DOCINSTALLDIR)
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
-# readme & whatsnew
-	$(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
-# docs
+# readme & whatsnew and docs
+	$(COPY) readme.txt whatsnew.txt $(DOCINSTALLDIR)
 	$(COPY) doc/* $(DOCINSTALLDIR)
 # source (base)
 	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
@@ -205,9 +203,46 @@ basew32.zip:
 	$(DELTREE) $(PACKDIR)
 
 
+##########################################################################
+# Baseemx.zip
+##########################################################################
+
+baseemx:
+# create dirs
+	$(MKDIR) $(BASEINSTALLDIR)
+	$(MKDIR) $(DOCINSTALLDIR)
+	$(MKDIR) $(BININSTALLDIR)
+	$(MKDIR) $(SOURCEINSTALLDIR)
+# readme & whatsnew and docs
+	$(COPY) readme.txt whatsnew.txt $(DOCINSTALLDIR)
+	$(COPY) doc/* $(DOCINSTALLDIR)
+# source (base)
+	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
+# compiler
+	make -C $(CVSBASE)/compiler cycle OS_TARGET=os2 RELEASE=1
+	make -C $(CVSBASE)/compiler install OS_TARGET=os2
+# rtl os2
+	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=os2
+	make -C $(CVSBASE)/rtl/go32v2 install OS_TARGET=os2 RELEASE=1 PP=$(PPNEW)
+# rtl go32v2 libs
+#	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
+#	make -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
+# utils
+	make -C $(CVSBASE)/utils clean OS_TARGET=os2
+	make -C $(CVSBASE)/utils install OS_TARGET=os2 RELEASE=1 PP=$(PPNEW)
+
+baseemx.zip:
+	make baseemx BASEINSTALLDIR=$(PACKDIR)
+	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/baseemx.zip * ; cd $(BASEDIR)
+	$(DELTREE) $(PACKDIR)
+
 #
 # $Log$
-# Revision 1.3  1999-05-30 11:34:33  peter
+# Revision 1.4  1999-06-11 13:03:51  peter
+#   * os2 update, readme,whatsnew in doc/ dir
+# C
+#
+# Revision 1.3  1999/05/30 11:34:33  peter
 #   * updates to generate the installer
 #
 # Revision 1.2	1999/05/03 18:04:37  peter
