@@ -1,3 +1,4 @@
+{$I386_INTEL}
 { Compile with -Rintel switch }
 var
  l : longint;
