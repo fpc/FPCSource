@@ -635,7 +635,9 @@ begin
   if assigned(ai) then
    begin
      { Check the instruction if it's valid }
+{$ifndef NOAG386BIN}
      ai.CheckIfValid;
+{$endif NOAG386BIN}
      p.concat(ai);
    end
   else
@@ -645,7 +647,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-02-20 21:51:36  peter
+  Revision 1.7  2001-03-05 21:49:44  peter
+    * noag386bin fix
+
+  Revision 1.6  2001/02/20 21:51:36  peter
     * fpu fixes (merged)
 
   Revision 1.5  2001/01/12 19:18:42  peter
