@@ -821,8 +821,8 @@ begin
                 begin
                 // determine minimum needed number of hex digits.
                 Index:=1;
-                While (1 shl (Index*4))<Args[DoArg].VInteger do
-                  inc(Index);
+                While ((1 shl (Index*4))<Args[DoArg].VInteger) and (index<8) do
+                    inc(Index);
                 If Index>Prec then
                   Prec:=Index;
                 ToAdd:=HexStr(Args[DoArg].VInteger,Prec);
@@ -1141,7 +1141,10 @@ const
 
 {
   $Log$
-  Revision 1.22  1999-06-19 07:39:44  michael
+  Revision 1.23  1999-07-18 17:27:28  michael
+  + Fixed bug in format, reported by Romio Pedchecko
+
+  Revision 1.22  1999/06/19 07:39:44  michael
   Implemented strtofloat
 
   Revision 1.21  1999/06/05 20:47:03  michael
