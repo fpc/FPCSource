@@ -131,7 +131,7 @@ endif
 SYSTEMDEPS=$(INC)/system.inc $(INC)/systemh.inc $(INC)/mathh.inc $(INC)/real2str.inc \
 	$(INC)/heaph.inc $(INC)/innr.inc $(INC)/sstrings.inc $(INC)/file.inc \
 	$(INC)/text.inc $(INC)/typefile.inc $(INC)/version.inc $(INC)/filerec.inc \
-	$(INC)/textrec.inc $(INC)/objpas.inc $(INC)/objpash.inc \
+        $(INC)/textrec.inc \
 	$(PROCINC)/math.inc $(PROCINC)/set.inc $(PROCINC)/heap.inc $(PROCINC)/$(CPU).inc
 
 PPUEXT=.ppu
@@ -206,8 +206,8 @@ system$(PPUEXT) : system.pp $(SYSTEMDEPS)
 	$(COPY) $(INC)/*.inc $(PROCINC)/*.inc .
 	$(PP) $(OPT) -dI386 -Us -Sg system $(REDIR)
 	$(DEL) systemh.inc system.inc real2str.inc version.inc $(CPU).inc sstrings.inc
-	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc objpash.inc
-	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc objpas.inc
+	$(DEL) mathh.inc math.inc set.inc innr.inc heap.inc heaph.inc
+	$(DEL) filerec.inc textrec.inc file.inc typefile.inc text.inc
 
 prt0$(OEXT) : v2prt0.as
 	as -o prt0$(OEXT) v2prt0.as
@@ -234,11 +234,6 @@ cpu$(PPUEXT) : ../../i386/cpu.pp system$(PPUEXT)
 	$(PP) $(OPT) cpu $(REDIR)
 	$(DEL) cpu.pp
 
-objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
-	$(COPY) ../../objpas/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
-
 objects$(PPUEXT) : ../objects.pp system$(PPUEXT)
 	$(COPY) ../objects.pp .
 	$(PP) $(OPT) objects $(REDIR)
@@ -248,6 +243,12 @@ mouse$(PPUEXT) : ../mouse.pp system$(PPUEXT)
 	$(COPY) ../mouse.pp .
 	$(PP) $(OPT) mouse $(REDIR)
 	$(DEL) mouse.pp
+
+objpas$(PPUEXT) : ../../objpas/objpas.pp system$(PPUEXT)
+	$(COPY) ../../objpas/objpas.pp .
+	$(PP) $(OPT) objpas $(REDIR)
+	$(DEL) objpas.pp
+
 
 fmouse$(PPUEXT) : ../fmouse.pp system$(PPUEXT)
 	$(COPY) ../fmouse.pp .

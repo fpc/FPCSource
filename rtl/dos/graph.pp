@@ -654,10 +654,12 @@ end;
 
 function RegisterBGIdriver(driver : pointer) : integer;
 begin
+   RegisterBGIdriver:=grerror;
 end;
 
 function InstallUserDriver(const DriverFileName : string;AutoDetectPtr : pointer) : integer;
 begin
+   installuserdriver:=grerror;
 end;
 
 function GetMaxMode:Integer;
@@ -822,8 +824,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.2  1998-03-26 10:41:15  florian
+    * some warnings fixed
+
+  Revision 1.1.1.1  1998/03/25 11:18:41  root
+  * Restored version
 
   Revision 1.7  1998/03/03 22:48:41  florian
     + graph.drawpoly procedure
