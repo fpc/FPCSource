@@ -1594,7 +1594,6 @@ procedure T386IntelInstruction.InitOperands;
 var
   i : longint;
 begin
-  OpOrder:=op_intel;
   for i:=1 to 3 do
    Operands[i]:=T386IntelOperand.Create;
 end;
@@ -1612,6 +1611,7 @@ Begin
   repeat
     if is_prefix(actopcode) then
      begin
+       OpOrder:=op_intel;
        PrefixOp:=ActOpcode;
        opcode:=ActOpcode;
        condition:=ActCondition;
@@ -1622,6 +1622,7 @@ Begin
     else
      if is_override(actopcode) then
       begin
+        OpOrder:=op_intel;
         OverrideOp:=ActOpcode;
         opcode:=ActOpcode;
         condition:=ActCondition;
@@ -1643,6 +1644,7 @@ Begin
      exit;
    end;
   { Fill the instr object with the current state }
+  OpOrder:=op_intel;
   Opcode:=ActOpcode;
   condition:=ActCondition;
   opsize:=ActOpsize;
@@ -1928,7 +1930,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.53  2003-10-01 20:34:49  peter
+  Revision 1.54  2003-10-02 21:17:38  peter
+    * fix operand order when a prefix opcode is supplied
+
+  Revision 1.53  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
