@@ -20,17 +20,18 @@ Uses DosCalls;
 
 function GetEnv (var EnvVar: AnsiString): AnsiString;
 
-var RC: longint;
-    P: PChar;
+var P: PChar;
 
 begin
- RC := DosScanEnv (PChar (EnvVar), P);
- GetEnv := P;
+ if DosScanEnv (PChar (EnvVar), P) = 0 then GetEnv := P else GetEnv := nil;
 end;
 
 {
   $Log$
-  Revision 1.4  2000-10-28 16:56:02  hajny
+  Revision 1.5  2001-01-28 18:40:35  hajny
+    * error checking added
+
+  Revision 1.4  2000/10/28 16:56:02  hajny
     + real (ansistring) implementation
 
   Revision 1.3  2000/08/25 17:33:44  hajny
