@@ -991,7 +991,7 @@ var
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
-  copytodos(@c,length(p)+1);
+  copytodos(c,length(p)+1);
   dosregs.ax:=$7160;
   dosregs.cx:=1;
   dosregs.ds:=tb_segment;
@@ -1002,7 +1002,7 @@ begin
   LoadDosError;
   if DosError=0 then
    begin
-     copyfromdos(@c,255);
+     copyfromdos(c,255);
      move(c[0],p[1],strlen(c));
      p[0]:=char(strlen(c));
      GetShortName:=true;
@@ -1019,7 +1019,7 @@ var
 begin
   move(p[1],c[0],length(p));
   c[length(p)]:=#0;
-  copytodos(@c,length(p)+1);
+  copytodos(c,length(p)+1);
   dosregs.ax:=$7160;
   dosregs.cx:=2;
   dosregs.ds:=tb_segment;
@@ -1030,7 +1030,7 @@ begin
   LoadDosError;
   if DosError=0 then
    begin
-     copyfromdos(@c,255);
+     copyfromdos(c,255);
      move(c[0],p[1],strlen(c));
      p[0]:=char(strlen(c));
      GetLongName:=true;
@@ -1173,7 +1173,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.23  2000-03-22 08:00:42  pierre
+  Revision 1.24  2000-05-30 04:41:05  jonas
+    * fixed compiling problem with formal expression passed as var
+      parameter
+
+  Revision 1.23  2000/03/22 08:00:42  pierre
    + allow double backslash for network drives
 
   Revision 1.22  2000/02/09 16:59:28  peter
