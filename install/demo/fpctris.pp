@@ -35,7 +35,7 @@ TheHeight-1
 
 }
 
-Uses Crt,Dos;
+Uses Crt,Dos,GameUnit;
 
 {$dEFINE DoubleCache} {Try to write as less characters to console as possible}
 
@@ -51,11 +51,6 @@ CONST TheWidth  = 11; {Watch out, also correct RowMask!}
 TYPE TetrisFieldType = ARRAY [0..25] OF LONGINT;
      LevelInfoType   = ARRAY [0..NrLevels-1] OF LONGINT;
      FigureType      = LONGINT;    { actually array[0..3][0..3] of bit rounded up to a longint}
-     HighScoreType   = Packed RECORD
-                        Name : String[12];
-                        Score: LONGINT;
-                       END;
-     HighScoreArr    = ARRAY[0..9] OF HighScoreType;
      CHARSET         = SET OF CHAR;
 
 {The figures: }
@@ -98,16 +93,7 @@ in binary, and put 5 bits on a row. }
  LeftMask : ARRAY[0..4] OF LONGINT = ($84210800,$C6318C00,$E739CE00,$F7BDEF00,$FFFFFFE0);
  RightMask: ARRAY[0..4] OF LONGINT = ($08421080,$18C63180,$39CE7380,$7BDEF780,$FFFFFF80);
 
-{Some key-codes. Return value of ReadKey. If value is zero (functionkey) then
-  code=ReadKey SHL 8}
-
-   ArrU   = $04800;    ArrL   = $04B00;    ArrR   = $04D00;   BS  = $08;  (* Backspace *)
-   ArrD   = $05000;    CR     = $0D;       ESC    = $1B;      KDelete= $05300;
-   KInsert= $05200;    Home   = $04700;    KEnd   = $04F00;   CtrlY = $19;
-   CtrlT = $14;
-
 {Allowed characters entering highscores}
-   AlfaBeta : CHARSET= [' '..'z'];
 
 {This constant/parameter is used to detect a certain bug. The bug was fixed, but
 I use the constant to remind where the bug was, and what is related to eachother.}
@@ -125,11 +111,6 @@ I use the constant to remind where the bug was, and what is related to eachother
 them}
   ColorString = #196#179#192#217#219;
   DumbTermStr = '-|..*';
-
-{The variables. If people feel they are missing, I first checked the Alias, and
-   then filled with names of the FPC-Devel list.}
-  InitNames : ARRAY[0..9] OF String[12] = ('Carl','Daniel','Florian','Jonas','Lee','Marco','Michael (3x)',
-                                           'Peter','Pierre','Thomas' );
 
 { A multiplication factor to reward killing more then one line with one figure}
 
@@ -159,202 +140,12 @@ VAR
     NrFiguresLoaded : LONGINT;                  {Total figures available in GraphFigures}
     CurrentCol  : LONGINT;                      {Color of current falling piece}
     UseColor    : BOOLEAN;                      {Color/Mono mode}
-    DefColor    : BYTE;                         {Backup of startup colors}
     Level       : LONGINT;                      {The current level number}
     Style       : String;                       {Contains all chars to create the field}
     nonupdatemode  : BOOLEAN;                   {Helpmode/highscore screen or game mode}
     HelpMode    : BOOLEAN;
     NextFigure  : LONGINT;                      {Next figure to fall}
     Score       : LONGINT;                      {The score}
-    HighScore   : HighScoreArr;
-    ScorePath   : String;
-
-FUNCTION GetKey:LONGINT;
-
-VAR InKey: LONGINT;
-
-BEGIN
- InKey:=ORD(ReadKey);
- IF InKey=0 THEN InKey:=ORD(ReadKey) SHL 8;
- GetKey:=InKey;
-END;
-
-FUNCTION  InputStr(VAR S:String;X,Y,Len:LONGINT;TextIn:BOOLEAN;CharAllow:CHARSET):BOOLEAN;
-
-{
-  Input a string from keyboard, in a nice way,
-   allowed characters are in CHARSET CharAllow, but several editting
-   keys are always allowed, see CASE loop.
-
-Parameters:
-
-   X,Y       Coordinates field
-   Len       Length field
-   TextIn    S already filled?}
-
-VAR
-    InGev                     : LONGINT; { No. of chars inputted }
-    Posi                      : LONGINT; { Cursorposition}
-    Ins                       : BOOLEAN;  { Insert yes/no}
-    Key                       : LONGINT; { Last key as ELib.GetKey
-                                            code <255 if normal key,
-                                            >256 if special/function
-                                            key. See keys.inc}
-    Uitg                      : String;    {The inputted string}
-    Full                      : BOOLEAN;   { Is the string full? }
-    EndVal                    : WORD;
-
-PROCEDURE ReWr; { Rewrite the field, using Uitg}
-
-VAR    I                         : LONGINT;  { Temporary variabele }
-
-BEGIN
- IF Length(Uitg)>Len THEN
-  Uitg[0]:=CHR(Len);
- IF Length(Uitg)>0 THEN
-  FOR I:= 1 TO Length(Uitg) DO
-   BEGIN
-    GotoXY(X+I-1,Y);
-    IF Uitg[I]=CHR(32) THEN
-     Write(CHR(FieldSpace))
-    ELSE
-     Write(Uitg[I]);
-   END;
- IF Len<>Length(Uitg) THEN
-  BEGIN
-   GotoXY(X+Length(Uitg),Y);
-   FOR I:= Length(Uitg) TO Len-1 DO
-    Write(CHR(FieldSpace));
-  END;
-END;
-
-PROCEDURE DoCursor; { Put Cursor in/out insert-mode }
-
-BEGIN
- {$IFNDEF Linux}
-{ IF Ins THEN
-  SetCursorSize($11E)
- ELSE
-  SetCursorSize($71E); }
- {$ENDIF}
-
-END;
-
-BEGIN
-    { Init }
-
-  InGev :=0;              { 0 chars untill now }
-  Posi  :=1;               { Cursorposition 0 }
-  Ins   :=TRUE;            { Insert according to parameters }
-  DoCursor;        { Set cursor accordingly }
-  Key   :=0;
-
-       { put ±±± padded field on screen }
-
-  FillChar(Uitg,Len+1,CHR(FieldSpace));
-  Uitg[0]:=CHR(Len);
-  ReWr;
-  GotoXY(X,Y);
-
-  FillChar(Uitg,Len,32);
-  UitG[0]:=#0;
-
-  IF TextIn THEN
-   BEGIN
-    Uitg:=S;
-    Posi:=Length(Uitg)+1;                        { Put a predefined }
-    ReWr;                                   {  String on screen if specified }
-   END;
-
-  EndVal:=0;
-  WHILE EndVal=0 DO
-   BEGIN
-    Full:=FALSE;
-    IF ((Posi)>=Len) THEN
-     BEGIN
-      Full:=TRUE;
-      Posi:=Len;
-     END;
-    GotoXY(X+Posi-1,Y);
-    {$IFNDEF Linux}
-     {$IFDEF FPC}
-      CursorOn;
-     {$ENDIF}
-    DoCursor;
-    {$ENDIF}
-    Key:=GetKey;
-   {$IFNDEF Linux}
-    {$IFDEF FPC}
-    CursorOff;
-    {$ENDIF}
-   {$ENDIF}
-    CASE Key OF
-          CR              : BEGIN
-                             EndVal:=1;
-                             S:=UitG;
-                            END;
-          ESC             : EndVal:=2;
-          BS              : IF Posi>1 THEN       { BackSpace }
-                              BEGIN
-                               DEC(Posi);
-                               Delete(Uitg,Posi,1);
-                               DEC(InGev);
-                               ReWr;
-                              END;
-          KDelete          : BEGIN
-                              Delete(Uitg,Posi,1);
-                              DEC(InGev);
-                              ReWr;
-                             END;
-          ArrR            : IF (NOT Full) AND ((Posi-1)<InGev) THEN
-                              BEGIN
-                               INC (Posi);
-                               GotoXY(X+Posi-1,Y);
-                               END;
-          KInsert          : BEGIN
-                               Ins:= NOT Ins;
-                               DoCursor;
-                              END;
-          ArrL            : IF (NOT (Posi=1)) THEN
-                              BEGIN
-                               DEC (Posi);
-                               GotoXY(X+Posi-1,Y);
-                              END;
-          Home            : Posi:=1;
-          KEnd            : Posi:=InGev-1;
-          CtrlY           : BEGIN
-                             Delete(Uitg,Posi,Length(Uitg)-Posi);
-                             ReWr;
-                            END;
-          CtrlT           : BEGIN
-                             Uitg[0]:=#0; Posi:=1; ReWr;
-                            END;
-    END; {Case}
-   IF EndVal=0 THEN
-    BEGIN
-     IF (CHR(Key) IN CharAllow) THEN
-      BEGIN
-       IF Posi>Len THEN
-        Posi:=Len;
-       IF (Ins=FALSE) OR Full THEN
-        BEGIN
-         IF (ORD(Uitg[0])<Posi) THEN
-           Uitg[0]:=CHR(Posi);
-         Uitg[Posi]:=CHR(Key);
-        END
-       ELSE
-        BEGIN
-         Insert(CHR(Key),Uitg,Posi);
-{         InsertC(uitg,CHR(Key),Posi);}
-        END;
-       ReWr;
-       INC(Posi);
-      END;
-     END;
-    InGev:=Length(Uitg);
-   END;
-  InputStr:=Endval=1;
-END;
 
 
 FUNCTION RRotate(Figure:FigureType;ColumnsToDo:LONGINT):FigureType;
@@ -741,11 +532,8 @@ END;
 PROCEDURE FixScores;
 
 BEGIN
-    IF UseColor THEN
-    BEGIN
-     TextColor(DefColor AND 15);
-     TextBackground(DefColor SHR 4);
-    END;
+   IF UseColor THEN
+    SetDefaultColor;
    GotoXY(40,18);
    Write('Score :',Score);
 END;
@@ -784,7 +572,7 @@ BEGIN
  ShowNextFigure(NextFigure);
  CurrentCol:=RANDOM(14)+1;
 END;
-
+{
 PROCEDURE ShowHighScore;
 
 VAR I : LONGINT;
@@ -797,7 +585,7 @@ BEGIN
    Write(HighScore[I].Name,' ':(13-Length(HighScore[I].Name)),' ',HighScore[I].Score:5);
   END;
 END;
-
+}
 PROCEDURE ShowGameMode;
 
 BEGIN
@@ -819,10 +607,9 @@ but the text, and the cadre around the playfield}
 VAR I : LONGINT;
 
 BEGIN
- TextColor(DefColor AND 15);
- TextBackground(DefColor SHR 4);
+ SetDefaultColor;
  GotoXY(40,4);
- Write('FPCTris v0.06, (C) by the FPC team.');
+ Write('FPCTris v0.07, (C) by the FPC team.');
  GotoXY(40,6);
  Write('A demo of the FPC Crt unit, and');
  GotoXY(40,7);
@@ -950,7 +737,6 @@ VAR I,J : LONGINT;
     S   : String;
 
 BEGIN
- I:=0;
  FOR J:=9 TO 22 DO
     BEGIN
      GotoXY(40,J);
@@ -960,27 +746,16 @@ BEGIN
   TextColor(White);
  GotoXY(40,23);
  Writeln('Game Over, score = ',Score);
- WHILE (Score>HighScore[I].Score) AND (I<10) DO
-  INC(I);
+ I:=SlipInScore(Score);
  IF I<>0 THEN
   BEGIN
-   IF I>1 THEN
-    FOR J:=0 TO I-2 DO
-     HighScore[J]:=HighScore[J+1];
-    HighScore[I-1].Score:=Score;
-    HighScore[I-1].Name:='';
    NonUpdateMode:=TRUE;
    HelpMode:=FALSE;
-
    ShowHighScore;
    InputStr(S,40,21-I,10,FALSE,AlfaBeta);
    HighScore[I-1].Name:=S;
-   ShowHighScore;
-  END
- ELSE
-  BEGIN
-   ShowHighScore;
   END;
+ ShowHighScore;
 END;
 
 {$IFNDEF FPC}
@@ -1012,10 +787,11 @@ BEGIN
  {$ELSE}
   UseColor:=TRUE;
  {$ENDIF}
- DefColor:=TextAttr;                { Save the current attributes, to restore}
  ClrScr;
  CursorOff;
  RANDOMIZE;
+ HighX:=40;
+ HighY:=9;
  CreateFiguresArray;                  { Load and precalculate a lot of stuff}
  IF UseColor THEN
   Style:= ColorString
@@ -1103,8 +879,7 @@ BEGIN
 
 ORD('q'),
    ESC     : BEGIN
-             TextColor(DefColor AND 15);
-             TextBackground(DefColor SHR 4);
+             SetDefaultColor;
              GotoXY(1,25);
              EndGame:=TRUE;
             END;
@@ -1116,8 +891,7 @@ ORD('C'),
               Style:= ColorString
              ELSE
               BEGIN
-               TextColor(DefColor AND 15);
-               TextBackground(DefColor  SHR 4);
+               SetDefaultColor;
                Style:=DumbTermStr;
               END;
              CreateFrame;
@@ -1153,10 +927,7 @@ ORD('E'),
               NrFigures:=7;                   {Standard Tetris figures}
             CalculateTotalChance;             {Recalculate weight-totals}
             IF UseColor THEN
-             BEGIN
-              TextColor(DefColor AND 15);
-              TextBackground(DefColor SHR 4);
-             END;
+             SetDefaultColor;
             ShowGameMode;
            END;
 
@@ -1219,69 +990,28 @@ ORD('p') : BEGIN                             {"p" : Pause}
  UNTIL EndGame;
  FixHighScores;
  CursorOn;
- TextColor(DefColor AND 15);
- TextBackground(DefColor SHR 4);
+ SetDefaultColor;
  GotoXY(1,25);
 END;
 
 CONST FileName='fpctris.scr';
 
-Procedure LoadHighScore;
-
-var
- F: File;
- I : LONGINT;
+VAR I : LONGINT;
 
 BEGIN
- {$I-}
- Assign(F, FileName);
- FileMode := 0;  {Set file access to read only }
- Reset(F);
- Close(F);
- {$I+}
- IF IOResult=0 THEN
-  ScorePath:=FileName
- ELSE
-  ScorePath:=FSearch(FileName,GetEnv('PATH'));
- IF ScorePath='' THEN
-  BEGIN
-   FOR I:=0 TO 9 DO
-    BEGIN
-     HighScore[I].Name:=InitNames[I];
-     HighScore[I].Score:=(I+1)*750;
-    END;
-   ScorePath:=FileName;
-  END
- ELSE
-  BEGIN
-   Assign(F,ScorePath);
-   Reset(F,1);
-   BlockRead(F,HighScore,SIZEOF(HighScoreArr));
-   Close(F);
-  END;
-END;
-
-Procedure SaveHighScore;
-
-var
- F: File;
-
-BEGIN
- Assign(F,ScorePath);
- Rewrite(F,1);
- BlockWrite(F,HighScore,SIZEOF(HighScoreArr));
- Close(F);
-END;
-
-BEGIN
- LoadHighScore;
+ FOR I:=0 TO 9 DO
+  HighScore[I].Score:=(I+1)*750;
+ LoadHighScore(FileName);
  DoFpcTris;
  SaveHighScore;
 END.
 
 {
   $Log$
-  Revision 1.1  1999-05-27 21:36:33  peter
+  Revision 1.2  1999-06-01 19:24:32  peter
+    * updates from marco
+
+  Revision 1.1  1999/05/27 21:36:33  peter
     * new demo's
     * fixed mandel for linux
 
