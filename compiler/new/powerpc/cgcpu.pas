@@ -31,6 +31,17 @@ unit cgcpu;
        pcgppc = ^tcgppc;
 
        tcgppc = object(tcg)
+          { passing parameters, per default the parameter is pushed }
+          { nr gives the number of the parameter (enumerated from   }
+          { left to right), this allows to move the parameter to    }
+          { register, if the cpu supports register calling          }
+          { conventions                                             }
+          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
+          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+
+
           procedure a_call_name(list : paasmoutput;const s : string;
             offset : longint);virtual;
 
@@ -50,7 +61,7 @@ unit cgcpu;
 
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_restore_frame_pointer(list : paasmoutput);virtual;
-          procedure tcgppc.g_return_from_proc(list : paasmoutput;parasize : aword);
+          procedure g_return_from_proc(list : paasmoutput;parasize : aword); virtual;
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;const ref2 : treference;r : tregister);virtual;
 
@@ -59,27 +70,143 @@ unit cgcpu;
 
           private
 
-          procedure a_op_reg_reg_const32(list: PAasmOutPut; OpLo, OpHi: TAsmOp;
-                                          reg1, reg2: TRegister; a: AWord);
+          { Generates                                                                }
+          {   OpLo reg1, reg2, (a and $ffff) and/or }
+          {   OpHi reg1, reg2, (a shr 16)           }
+          { depending on the value of a             }
+          procedure a_op_reg_reg_const32(list: paasmOutPut; oplo, ophi: tasmop;
+                                          reg1, reg2: tregister; a: aword);
+          { Make sure ref is a valid reference for the PowerPC and sets the }
+          { base to the value of the index if (base = R_NO).                }
           procedure fixref(var ref: treference);
+
+          { contains the common code of a_load_reg_ref and a_load_ref_reg }
+          procedure a_load_store(list:paasmoutput;op: tasmop;reg:tregister;
+                      var ref: treference);
+
+          { creates the correct branch instruction for a given combination }
+          { of asmcondflags and destination addressing mode                }
+          procedure a_jmp(list: paasmoutput; op: tasmop;
+                          c: tasmcondflags; l: pasmlabel);
+
        end;
 
 const
-          TOpCG2AsmOpLo: Array[TOpCG] of TAsmOp = (A_ADDI,A_ANDI_,A_DIVWU,
-                              A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
-                              A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
-          TOpCG2AsmOpHi: Array[TOpCG] of TAsmOp = (A_ADDIS,A_ANDIS_,
-                              A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
-                              A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
+  TOpCG2AsmOpLo: Array[topcg] of TAsmOp = (A_ADDI,A_ANDI_,A_DIVWU,
+                      A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
+                      A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
+  TOpCG2AsmOpHi: Array[topcg] of TAsmOp = (A_ADDIS,A_ANDIS_,
+                      A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
+                      A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
-         TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_EQ,C_GT,C_LT,C_GE,
-                           C_LE,C_NE,C_LE,C_NG,C_GE,C_NL);
+  TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlags = (CF_EQ,CF_GT,CF_LT,CF_GE,
+                       CF_LE,CF_NE,CF_LE,CF_NG,CF_GE,CF_NL);
+
+  LoadInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
+                         { indexed? updating?}
+             (((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
+              ((A_LHZ,A_LHZU),(A_LHZX,A_LHZUX)),
+              ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)));
+
+  StoreInstr: Array[OS_8..OS_32,boolean, boolean] of TAsmOp =
+                          { indexed? updating?}
+             (((A_STB,A_STBU),(A_STBX,A_STBUX)),
+              ((A_STH,A_STHU),(A_STHX,A_STHUX)),
+              ((A_STW,A_STWU),(A_STWX,A_STWUX)));
 
 
   implementation
 
     uses
        globtype,globals,verbose;
+
+{ parameter passing... Still needs extra support from the processor }
+{ independent code generator                                        }
+
+    procedure tcgppc.a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);
+
+    var ref: treference;
+
+    begin
+{$ifdef para_sizes_known}
+      if (nr <= max_param_regs_int) then
+        a_load_reg_reg(list,size,r,param_regs_int[nr])
+      else
+        begin
+          reset_reference(ref);
+          ref.base := stack_pointer;
+          ref.offset := LinkageAreaSize+para_size_till_now;
+          a_load_reg_ref(list,size,reg,ref);
+        end;
+{$endif para_sizes_known}
+    end;
+
+
+    procedure tcgppc.a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);
+
+    var ref: treference;
+
+    begin
+{$ifdef para_sizes_known}
+      if (nr <= max_param_regs_int) then
+        a_load_const_reg(list,size,a,param_regs_int[nr])
+      else
+        begin
+          reset_reference(ref);
+          ref.base := stack_pointer;
+          ref.offset := LinkageAreaSize+para_size_till_now;
+          a_load_const_ref(list,size,a,ref);
+        end;
+{$endif para_sizes_known}
+    end;
+
+
+    procedure tcgppc.a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);
+
+    var ref: treference;
+        tmpreg: tregister;
+
+    begin
+{$ifdef para_sizes_known}
+      if (nr <= max_param_regs_int) then
+        a_load_ref_reg(list,size,r,param_regs_int[nr])
+      else
+        begin
+          reset_reference(ref);
+          ref.base := stack_pointer;
+          ref.offset := LinkageAreaSize+para_size_till_now;
+          tmpreg := get_scratch_reg(list);
+          a_load_ref_reg(list,size,r,tmpreg);
+          a_load_reg_ref(list,size,tmpreg,ref);
+          free_scratch_reg(list,tmpreg);
+        end;
+{$endif para_sizes_known}
+    end;
+
+
+    procedure tcgppc.a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);
+
+    var ref: treference;
+        tmpreg: tregister;
+
+    begin
+{$ifdef para_sizes_known}
+      if (nr <= max_param_regs_int) then
+        a_loadaddress_ref_reg(list,size,r,param_regs_int[nr])
+      else
+        begin
+          reset_reference(ref);
+          ref.base := stack_pointer;
+          ref.offset := LinkageAreaSize+para_size_till_now;
+          tmpreg := get_scratch_reg(list);
+          a_loadaddress_ref_reg(list,size,r,tmpreg);
+          a_load_reg_ref(list,size,tmpreg,ref);
+          free_scratch_reg(list,tmpreg);
+        end;
+{$endif para_sizes_known}
+    end;
+
+{ calling a code fragment by name }
 
     procedure tcgppc.a_call_name(list : paasmoutput;const s : string;
       offset : longint);
@@ -109,25 +236,7 @@ const
             list^.concat(new(paicpu,op_reg_const(A_LIS,reg,a shr 16)));
        end;
 
-       procedure tcgppc.a_load_reg_ref(list : paasmoutput; size: TCGSize; reg : tregister;const ref2 : treference);
-
-       Var
-         op: TAsmOp;
-         ref: TReference;
-
-         begin
-           ref := ref2;
-           FixRef(ref);
-           Case size of
-             OS_8 : op := A_STB;
-             OS_16: op := A_STH;
-             OS_32: op := A_STW;
-             Else InternalError(68993)
-           End;
-           list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
-         End;
-
-     procedure tcgppc.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref2: treference;reg : tregister);
+     procedure tcgppc.a_load_reg_ref(list : paasmoutput; size: TCGSize; reg : tregister;const ref2 : treference);
 
      Var
        op: TAsmOp;
@@ -136,13 +245,22 @@ const
        begin
          ref := ref2;
          FixRef(ref);
-         Case size of
-           OS_8 : op := A_LBZ;
-           OS_16: op := A_LHZ;
-           OS_32: op := A_LWZ
-           Else InternalError(68994)
-         End;
-         list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
+         op := storeinstr[size,ref.index<>R_NO,false];
+         a_load_store(list,op,reg,ref);
+       End;
+
+     procedure tcgppc.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref2: treference;reg : tregister);
+
+     Var
+       op: TAsmOp;
+       tmpreg: tregister;
+       ref, tmpref: TReference;
+
+       begin
+         ref := ref2;
+         FixRef(ref);
+         op := loadinstr[size,ref.index<>R_NO,false];
+         a_load_store(list,op,reg,ref);
        end;
 
      procedure tcgppc.a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);
@@ -176,7 +294,7 @@ const
              Begin
                if (a and 31) <> 0 Then
                  list^.concat(new(paicpu,op_reg_reg_const(
-                   TOpCG2AsmOpLo[Op],reg,reg,a and $ffff)));
+                   TOpCG2AsmOpLo[Op],reg,reg,a and 31)));
                If (a shr 5) <> 0 Then
                  InternalError(68991);
              End
@@ -190,7 +308,7 @@ const
       procedure tcgppc.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
         l : pasmlabel);
 
-      var AsmCond: TAsmCond;
+      var p: paicpu;
           scratch_register: TRegister;
           signed: boolean;
 
@@ -216,22 +334,19 @@ const
                 list^.concat(new(paicpu,op_const_reg_reg(A_CMPL,0,reg,scratch_register)));
                 free_scratch_reg(list,scratch_register);
              end;
-           AsmCond := TOpCmp2AsmCond[cmp_op];
-           list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
-             AsmCond2BI[AsmCond],newasmsymbol(l^.name))));
+           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
         end;
 
 
       procedure tcgppc.a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;
         reg1,reg2 : tregister;l : pasmlabel);
 
-      var AsmCond: TAsmCond;
+      var p: paicpu;
+          AsmCond: TAsmCondFlags;
 
       begin
         list^.concat(new(paicpu,op_const_reg_reg(A_CMPL,0,reg1,reg2)));
-        AsmCond := TOpCmp2AsmCond[cmp_op];
-        list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
-          AsmCond2BI[AsmCond],newasmsymbol(l^.name))));
+        a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
       end;
 
 
@@ -261,7 +376,8 @@ const
         free_scratch_reg(list,scratch_register);
 { if the current procedure is a leaf procedure, we can use the Red Zone,    }
 { but this is not yet implemented                                           }
-{        if (procinfo.flags and pi_do_call) <> 0 Then}
+{        if ((procinfo.flags and pi_do_call) <> 0) And                      }
+{           (localsize <= (256 - LinkageAreaSize)) Then                     }
            Begin
              if localsize<>0 then
                begin
@@ -317,28 +433,30 @@ const
 
 { ************* concatcopy ************ }
 
-    procedure tcgppc.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
+    procedure tcgppc.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);
 
     var
+      p: paicpu;
       countreg, tempreg: TRegister;
       src, dst: TReference;
       lab: PAsmLabel;
       count, count2: aword;
-
       begin
         { make sure source and dest are valid }
-        src := fixreference(source);
-        dst := fixreference(dest);
+        src := source;
+        fixref(src);
+        dst := dest;
+        fixref(dst);
         reset_reference(src);
         reset_reference(dst);
         { load the address of source into src.base }
         src.base := get_scratch_reg(list);
         if loadref then
           a_load_ref_reg(list,OS_32,source,src.base)
-        else a_load_address_ref_reg(list,source,src.base);
+        else a_loadaddress_ref_reg(list,source,src.base);
         { load the address of dest into dst.base }
         dst.base := get_scratch_reg(list);
-        a_load_address_ref_reg(list,dest,dst.base);
+        a_loadaddress_ref_reg(list,dest,dst.base);
         count := len div 4;
         if count > 3 then
           { generate a loop }
@@ -353,13 +471,12 @@ const
             getlabel(lab);
             a_label(list, lab);
             list^.concat(new(paicpu,op_reg_ref(A_LWZU,tempreg,
-              newreference(src)));
+              newreference(src))));
             a_op_reg_reg_const32(list,A_CMPI,A_NONE,R_CR0,countreg,0);
             list^.concat(new(paicpu,op_reg_ref(A_STWU,tempreg,
-              newreference(dst)));
+              newreference(dst))));
             a_op_reg_reg_const32(list,A_SUBI,A_NONE,countreg,countreg,1);
-            list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[C_NE],
-              AsmCond2BI[C_NE],newasmsymbol(l^.name))));
+            a_jmp(list,A_BC,CF_NE,lab);
             free_scratch_reg(list,countreg);
           end
         else
@@ -396,38 +513,72 @@ const
 
     procedure tcgppc.fixref(var ref: treference);
 
- { Make sure ref is a valid reference for the PowerPC and sets the base to  }
- { the value of the index if (base = R_NO). (Index <> R_NO) is not checked  }
- { because the less conditional jumps, the better                           }
-
        begin
-         If (ref.base <> R_NO) and (ref.index <> R_NO) and
-            (ref.offset <> 0) Then Internalerror(58992);
-         if (ref.base = R_NO) Then
+         If (ref.base <> R_NO) then
+           begin
+             if (ref.index <> R_NO) and
+                ((ref.offset <> 0) or assigned(ref.symbol)) Then
+               Internalerror(58992)
+           end
+         else
            begin
              ref.base := ref.index;
              ref.index := R_NO
            end
        end;
 
-    procedure tcgppc.a_op_reg_reg_const32(list: PAasmOutput; OpLo, OpHi:
-                       TAsmOp; reg1, reg2: TRegister; a: AWord);
- { Generates                                                                }
- {   OpLo reg1, reg2, (a and $ffff) and/or                                  }
- {   OpHi reg1, reg2, (a shr 16)                                            }
- { depending on the value of a                                              }
+    procedure tcgppc.a_op_reg_reg_const32(list: paasmoutput; oplo, ophi:
+                       tasmop; reg1, reg2: tregister; a: aword);
 
-     Begin
-       if (a and $ffff) <> 0 Then
-         list^.concat(new(paicpu,op_reg_reg_const(OpLo,reg1,reg2,a and $ffff)));
-       If (a shr 16) <> 0 Then
-         list^.concat(new(paicpu,op_reg_reg_const(OpHi,reg1,reg2,a shr 16)))
-     End;
+      begin
+        if (a and $ffff) <> 0 Then
+          list^.concat(new(paicpu,op_reg_reg_const(OpLo,reg1,reg2,a and $ffff)));
+        If (a shr 16) <> 0 Then
+          list^.concat(new(paicpu,op_reg_reg_const(OpHi,reg1,reg2,a shr 16)))
+      end;
 
+    procedure tcgppc.a_load_store(list:paasmoutput;op: tasmop;reg:tregister;
+                       var ref: treference);
+
+    var tmpreg: tregister;
+        tmpref: treference;
+
+      begin
+        if assigned(ref.symbol) then
+          begin
+            tmpreg := get_scratch_reg(list);
+            reset_reference(tmpref);
+            tmpref.symbol := ref.symbol;
+            tmpref.symaddr := refs_ha;
+            tmpref.is_immediate := true;
+            if ref.base <> R_NO then
+              list^.concat(new(paicpu,op_reg_reg_ref(A_ADDIS,tmpreg,
+                ref.base,newreference(tmpref))))
+            else
+              list^.concat(new(paicpu,op_reg_ref(A_LIS,tmpreg,
+                 newreference(tmpref))));
+            ref.base := tmpreg
+          end;
+        list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
+        if assigned(ref.symbol) then
+          free_scratch_reg(list,tmpreg);
+      end;
+
+    procedure tcgppc.a_jmp(list: paasmoutput; op: tasmop; c: tasmcondflags;
+                l: pasmlabel);
+    var p: paicpu;
+    begin
+      p := new(paicpu,op_sym(op,newasmsymbol(l^.name)));
+      p^.condition := create_cond_norm(c,0);
+      list^.concat(p)
+    end;
 end.
 {
   $Log$
-  Revision 1.4  1999-08-26 14:53:41  jonas
+  Revision 1.5  1999-09-03 13:14:11  jonas
+    + implemented some parameter passing methods, but they require\n    some more helper routines\n  * fix for loading symbol addresses (still needs to be done in a_loadaddress)\n  * several changes to the way conditional branches are handled
+
+  Revision 1.4  1999/08/26 14:53:41  jonas
     * first implementation of concatcopy (requires 4 scratch regs)
 
   Revision 1.3  1999/08/25 12:00:23  jonas
