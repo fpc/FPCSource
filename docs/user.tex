@@ -80,7 +80,7 @@ authoritative.
 % About the compiler
 \section{About the compiler}
 \fpc is a 32-bit compiler for the i386 and m68k processors\footnote{Work is being done
-on a port to ALPHA Architecture}. Currently, it supports 6 operating systems:
+on a port to ALPHA Architecture}. Currently, it supports 7 operating systems:
 \begin{itemize}
 \item \dos
 \item \linux
@@ -88,11 +88,11 @@ on a port to ALPHA Architecture}. Currently, it supports 6 operating systems:
 \item \amiga (version 0.99.5 only)
 \item \windows
 \item \ostwo (using the EMX package, so it also works on DOS/Windows)
+\item \freebsd (usable, but still under development).
 \end{itemize}
-and work is in progress to port it to other platforms (notably, \freebsd).
 
 \fpc is designed to be, as much as possible, source compatible with
-Turbo Pascal 7.0 and Delphi 4 (although this goal is not yet attained),
+Turbo Pascal 7.0 and Delphi 5 (although this goal is not yet attained),
 but it also enhances these languages with elements like function overloading.
 And, unlike these ancestors, it supports multiple platforms.
 
@@ -2162,12 +2162,12 @@ extensively. Programs using this construct must be run as ruit or setuid
 root, and are a serious security risk on your system.
 \end{itemize}
 
-\subsection{under OS/2}
+\subsection{Under OS/2}
 \begin{itemize}
 \item [doscalls] interface to \file{doscalls.dll}.
 \item [dive] interface to \file{dive.dll}
-\item [emx] Provides access to the EMX extender.
-\item [pm*] various programs to access o program manager functions.
+\item [emx] provides access to the EMX extender.
+\item [pm*] interface units for the program manager functions.
 \item [viocalls] interface to \file{viocalls.dll} screen handling library.
 \item [moucalls] interface to \file{moucalls.dll} mouse handling library.
 \item [kbdcalls] interface to \file{kbdcalls.dll} keyboard handling library.
