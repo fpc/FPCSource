@@ -128,7 +128,7 @@ implementation
         { the "and" is because 1.0.x will sign-extend the $80000000 to }
         { $ffffffff80000000 when converting it to int64 (JM)           }
         dummy1 := int64($80000000) and (int64($43300000) shl 32);
-        dymmy2 := int64($43300000) shl 32;
+        dummy2 := int64($43300000) shl 32;
 {$endif VER1_0}
 
         valuereg_is_scratch := false;
@@ -384,7 +384,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-21 16:57:22  jonas
+  Revision 1.16  2002-07-24 14:38:00  florian
+    * small typo fixed, compiles with 1.0.x again
+
+  Revision 1.15  2002/07/21 16:57:22  jonas
     * hopefully final fix for second_int_to_real()
 
   Revision 1.14  2002/07/20 11:58:05  florian
