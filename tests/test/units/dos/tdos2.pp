@@ -380,12 +380,14 @@ Begin
  FindClose(Search);
 {$ENDIF}
 
+{$ifdef go32v2}
  WriteLn('Trying to find an invalid file ('''') with VolumeID attribute...');
  FindFirst('',VolumeID,Search);
  CheckDosError(3);
 {$IFDEF FPC}
  FindClose(Search);
 {$ENDIF}
+{$endif go32v2}
 
  WriteLn('Trying to find an invalid file (''''zz.dat'''') with Any Attribute...');
  FindFirst('zz.dat',AnyFile,Search);
@@ -429,7 +431,7 @@ Begin
  { In addition to normal files          }
  { directory files should also be found }
  s:='Looking for '+TestFName +' with Directory Attribute...';
- FindFirst('*.DAT',Directory,Search);
+ FindFirst('*.DAT',Archive+Directory,Search);
  if DosError<> 0 then
    WriteLn(s+'FAILURE. ',TestFName,' should be found.')
  else
@@ -443,7 +445,6 @@ Begin
 {$IFDEF FPC}
  FindClose(Search);
 {$ENDIF}
-
 
  Write('Checking file stats of ',TestFName,'...');
  UnpackTime(Search.Time,DT);
@@ -537,6 +538,7 @@ Begin
  FindClose(Search);
 {$ENDIF}
 
+{$ifdef go32v2}
  s:='Searching using ??? wildcard (normal files + all special files)...';
  FindFirst('???',AnyFile,Search);
  FoundDot := False;
@@ -567,7 +569,6 @@ Begin
 {$IFDEF FPC}
   FindClose(Search);
 {$ENDIF}
-{$ifdef go32v2}
  { search for volume ID }
  s:='Searching using * wildcard in ROOT (normal files + volume ID)...';
  FindFirst(RootPath+'*',Directory+VolumeID,Search);
@@ -688,7 +689,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-11-27 16:41:46  peter
+  Revision 1.11  2002-12-06 16:36:17  peter
+    * made more tests go32v2 specific because they expect (buggy?) Dos
+      findfirst behaviour
+
+  Revision 1.10  2002/11/27 16:41:46  peter
     * volumeid is dos specific
 
   Revision 1.9  2002/11/18 09:49:49  pierre
