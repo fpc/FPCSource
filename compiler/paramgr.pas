@@ -150,10 +150,12 @@ unit paramgr;
 
     function tparamanager.push_high_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-         push_high_param:=is_open_array(def) or
-                          is_open_string(def) or
-                          (is_array_of_const(def) and
-                           not(calloption in [pocall_cdecl,pocall_cppdecl]));
+         push_high_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+                          (
+                           is_open_array(def) or
+                           is_open_string(def) or
+                           is_array_of_const(def)
+                          );
       end;
 
 
@@ -410,7 +412,10 @@ end.
 
 {
    $Log$
-   Revision 1.33  2003-04-23 10:14:30  peter
+   Revision 1.34  2003-04-23 13:15:04  peter
+     * fix push_high_param for cdecl
+
+   Revision 1.33  2003/04/23 10:14:30  peter
      * cdecl array of const has no addr push
 
    Revision 1.32  2003/04/22 13:47:08  peter
