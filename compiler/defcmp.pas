@@ -743,17 +743,35 @@ implementation
                           (tpointerdef(def_to).pointertype.def.deftype=objectdef) and
                           tobjectdef(tpointerdef(def_from).pointertype.def).is_related(
                             tobjectdef(tpointerdef(def_to).pointertype.def))
-                         ) or
-                         { all pointers can be assigned to/from void-pointer }
-                         is_void(tpointerdef(def_to).pointertype.def) or
-                         is_void(tpointerdef(def_from).pointertype.def) then
+                         ) then
                        begin
                          doconv:=tc_equal;
-                         { give pwidechar a penalty }
-                         if is_pwidechar(def_to) then
-                          eq:=te_convert_l2
+                         eq:=te_convert_l1;
+                       end
+                     else
+                      { all pointers can be assigned to void-pointer }
+                      if is_void(tpointerdef(def_to).pointertype.def) then
+                       begin
+                         doconv:=tc_equal;
+                         { give pwidechar,pchar a penalty so it prefers
+                           conversion to ansistring }
+                         if is_pchar(def_from) or
+                            is_pwidechar(def_from) then
+                           eq:=te_convert_l2
                          else
-                          eq:=te_convert_l1;
+                           eq:=te_convert_l1;
+                       end
+                     else
+                      { all pointers can be assigned from void-pointer }
+                      if is_void(tpointerdef(def_from).pointertype.def) then
+                       begin
+                         doconv:=tc_equal;
+                         { give pwidechar a penalty so it prefers
+                           conversion to pchar }
+                         if is_pwidechar(def_to) then
+                           eq:=te_convert_l2
+                         else
+                           eq:=te_convert_l1;
                        end;
                    end;
                  procvardef :
@@ -1282,7 +1300,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2004-09-16 16:32:44  peter
+  Revision 1.53  2004-09-21 15:52:35  peter
+    * prefer pchar-string over pchar-pointer
+
+  Revision 1.52  2004/09/16 16:32:44  peter
     * dynarr-pointer is allowed under delphi
 
   Revision 1.51  2004/06/20 08:55:29  florian
