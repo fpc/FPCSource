@@ -965,6 +965,10 @@ unit cgcpu;
           ungetregister(list,r);
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
           list.concat(setcondition(taicpu.op_sym(A_B,l),C_NE));
+          { keep the registers alive }
+          list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
+          list.concat(taicpu.op_reg_reg(A_MOV,srcreg,srcreg));
+          list.concat(taicpu.op_reg_reg(A_MOV,destreg,destreg));
         end;
 
       begin
@@ -1203,7 +1207,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2004-01-21 14:22:00  florian
+  Revision 1.33  2004-01-21 15:41:56  florian
+    * fixed register allocator problems with concatcopy
+
+  Revision 1.32  2004/01/21 14:22:00  florian
     + reintroduce implemented
 
   Revision 1.31  2004/01/21 01:22:35  florian
