@@ -94,7 +94,7 @@ end;
 
 {$ifdef FPC_USE_LIBC}
 Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
-function fpgetcwd(buf:pchar;_size:size_t):pchar; external name 'getcwd';
+function fpgetcwd(buf:pchar;_size:size_t):pchar; cdecl; external name 'getcwd';
 {$endif}
 
 
@@ -171,7 +171,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2003-12-31 20:20:57  marco
+  Revision 1.13  2004-01-01 14:16:55  marco
+   * getcwd missed cdecl
+
+  Revision 1.12  2003/12/31 20:20:57  marco
    * small additions for getcwd what we need for FPC_USE_LIBC
 
   Revision 1.11  2003/12/30 16:26:10  marco
