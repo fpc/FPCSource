@@ -942,9 +942,10 @@ implementation
          inlining_procedure:=true;
 
          { Add inling start }
+         exprasmlist.concat(Tai_force_line.Create);
          exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
-         exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
+         exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc '+tprocdef(procdefinition).procsym.name)));
 {$endif extdebug}
 
          { calculate registers to pass the parameters }
@@ -1019,6 +1020,7 @@ implementation
          { process the inline code }
          secondpass(inlinecode);
 
+         cg.a_label(exprasmlist,current_procinfo.aktexitlabel);
          gen_finalize_code(inlineexitcode,true);
          gen_load_return_value(inlineexitcode,usesacc,usesacchi,usesfpu);
          if po_assembler in current_procinfo.procdef.procoptions then
@@ -1117,7 +1119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2003-11-23 17:39:33  peter
+  Revision 1.142  2003-12-02 21:23:34  peter
+    * exitlabel for inline procs
+
+  Revision 1.141  2003/11/23 17:39:33  peter
     * removed obsolete nf_cargs flag
 
   Revision 1.140  2003/11/23 17:05:15  peter
