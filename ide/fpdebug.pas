@@ -210,6 +210,7 @@ type
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       (* procedure   AddWatch(P: PWatch); virtual; *)
       procedure   Update(AMaxWidth : integer);
+      function    GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
       function    GetIndentedText(Item,Indent,MaxLen: Sw_Integer;var Modified : boolean): String; virtual;
       function    GetLocalMenu: PMenu;virtual;
       (* procedure   Clear; virtual;
@@ -2647,6 +2648,13 @@ begin
   WatchesCollection^.Update;
 end;
 
+function    TWatchesListBox.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
+var
+  Dummy_Modified : boolean;
+begin
+  GetText:=GetIndentedText(Item, 0, MaxLen, Dummy_Modified);
+end;
+
 procedure TWatchesListBox.DeleteCurrent;
 var
   P: PWatch;
@@ -4057,7 +4065,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-04-03 06:18:30  pierre
+  Revision 1.16  2002-04-11 06:41:13  pierre
+   * fix problem of TWatchesListBox with fvision
+
+  Revision 1.15  2002/04/03 06:18:30  pierre
    * fix some win32 GDB filename problems
 
   Revision 1.14  2002/04/02 15:09:38  pierre
