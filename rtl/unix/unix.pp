@@ -1278,9 +1278,9 @@ end;
 Function TCGetAttr(fd:longint;var tios:TermIOS):boolean;
 begin
  {$ifndef BSD}
-  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios)>0;
+  TCGetAttr:=fpIOCtl(fd,TCGETS,@tios)=0;
  {$else}
-  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios)>0;
+  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios)=0;
  {$endif}
 end;
 
@@ -1307,7 +1307,7 @@ begin
      exit;
    end;
   end;
-  TCSetAttr:=fpIOCtl(fd,nr,@Tios)>0;
+  TCSetAttr:=fpIOCtl(fd,nr,@Tios)=0;
 end;
 
 
@@ -1363,30 +1363,30 @@ end;
 Function TCSendBreak(fd,duration:longint):boolean;
 begin
   {$ifndef BSD}
-  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration))>0;
+  TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(duration))=0;
   {$else}
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0)>0;
+  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0)=0;
   {$endif}
 end;
 
 
 Function TCSetPGrp(fd,id:longint):boolean;
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id))>0;
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id))=0;
 end;
 
 
 Function TCGetPGrp(fd:longint;var id:longint):boolean;
 begin
-  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id)>0;
+  TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id)=0;
 end;
 
 Function TCDrain(fd:longint):boolean;
 begin
  {$ifndef BSD}
-  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1))>0;
+  TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1))=0;
  {$else}
-  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0)>0; {Should set timeout to 1 first?}
+  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0)=0; {Should set timeout to 1 first?}
  {$endif}
 end;
 
@@ -1394,11 +1394,11 @@ end;
 Function TCFlow(fd,act:longint):boolean;
 begin
   {$ifndef BSD}
-   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act))>0;
+   TCFlow:=fpIOCtl(fd,TCXONC,pointer(act))=0;
   {$else}
     case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0)>0;
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0)>0;
+     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0)=0;
+     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0)=0;
      TCIOFF :  {N/I}
     end;
   {$endif}
@@ -1407,13 +1407,13 @@ end;
 Function TCFlush(fd,qsel:longint):boolean;
 begin
  {$ifndef BSD}
-  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel))>0;
+  TCFlush:=fpIOCtl(fd,TCFLSH,pointer(qsel))=0;
  {$else}
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel))>0;
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel))=0;
  {$endif}
 end;
 
-Function IsATTY(Handle:Longint):Boolean;
+Function IsATTY (Handle:Longint):Boolean;
 {
   Check if the filehandle described by 'handle' is a TTY (Terminal)
 }
@@ -1714,7 +1714,10 @@ End.
 
 {
   $Log$
-  Revision 1.40  2003-09-29 14:36:06  peter
+  Revision 1.41  2003-10-12 19:40:43  marco
+   * ioctl fixes. IDE now starts, but
+
+  Revision 1.40  2003/09/29 14:36:06  peter
     * fixed for stricter compiler
 
   Revision 1.39  2003/09/27 12:51:33  peter
