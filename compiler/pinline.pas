@@ -170,6 +170,15 @@ implementation
                 { we need the real called method }
                 { rg.cleartempgen;}
                 do_resulttypepass(p2);
+
+                if p2.nodetype<>calln then
+                  begin
+                    if is_new then
+                      CGMessage(parser_e_expr_have_to_be_constructor_call)
+                    else
+                      CGMessage(parser_e_expr_have_to_be_destructor_call);
+                  end;
+
                 if not codegenerror then
                  begin
                    if is_new then
@@ -648,7 +657,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-10-02 18:20:52  peter
+  Revision 1.9  2002-10-29 10:01:22  pierre
+   * fix crash report as webbug 2174
+
+  Revision 1.8  2002/10/02 18:20:52  peter
     * Copy() is now internal syssym that calls compilerprocs
 
   Revision 1.7  2002/09/07 12:16:03  carl
