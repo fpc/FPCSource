@@ -148,6 +148,14 @@ unit temp_gen;
          while assigned(tempansilist) do
            begin
               hp:=tempansilist;
+{$ifdef EXTDEBUG}
+              if not hp^.is_freeansistring then
+                Comment(V_Warning,'temporary ANSI assignment of size '
+                       +tostr(hp^.size)+' from pos '+tostr(hp^.posinfo.line)
+                       +':'+tostr(hp^.posinfo.column)
+                       +' at pos '+tostr(hp^.pos)+
+                       ' not freed at the end of the procedure');
+{$endif}
               tempansilist:=hp^.next;
               dispose(hp);
            end;
@@ -640,7 +648,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  1999-04-16 20:44:38  florian
+  Revision 1.20  1999-04-19 09:30:48  pierre
+   + added warning for unreleased ANSI temp
+
+  Revision 1.19  1999/04/16 20:44:38  florian
     * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
       operands fixed, small things for new ansistring management
 
