@@ -20,7 +20,7 @@ program MakeSkel;
 
 uses
   SysUtils, Classes, Gettext,
-  dGlobals, PasTree, PParser;
+  dGlobals, PasTree, PParser,PScanner;
 
 resourcestring
   STitle = 'MakeSkel - FPDoc skeleton XML description file generator';
@@ -260,12 +260,21 @@ begin
     begin
       Engine := TSkelEngine.Create;
       try
-        Engine.SetPackageName(PackageName);
-        Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
-	WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
+       try
+         Engine.SetPackageName(PackageName);
+         Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
+   	 WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
+       except
+        on e:EFileNotFoundError do
+           begin
+    	     Writeln(StdErr,' file ', e.message, ' not found');
+	     close(f);	
+	     Halt(1);
+           end; 
+         end;
       finally
-        Engine.Free;
-      end;
+        Engine.Free; 
+       end;
     end;
 
     WriteLn(f, '</package>');
@@ -282,7 +291,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-11-28 12:51:37  sg
+  Revision 1.6  2004-05-01 20:13:40  marco
+   * got fed up with exceptions on file not found.  Fileresolver now raises a
+  	EFileNotFound error, and makeskel catches and exists gracefully
+
+  Revision 1.5  2003/11/28 12:51:37  sg
   * Added support for source references
 
   Revision 1.4  2003/09/02 13:26:47  mattias
