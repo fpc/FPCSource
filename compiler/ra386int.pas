@@ -1331,28 +1331,44 @@ Begin
             { is it a normal variable ? }
              Begin
                InitRef;
-               if not SetupVar(actasmpattern) then
+               if SetupVar(actasmpattern) then
+                begin
+                  expr:=actasmpattern;
+                  Consume(AS_ID);
+                  MaybeRecordOffset;
+                  { add a constant expression? }
+                  if (actasmtoken=AS_PLUS) then
+                   begin
+                     l:=BuildConstExpression;
+                     if opr.typ=OPR_CONSTANT then
+                      inc(opr.val,l)
+                     else
+                      inc(opr.ref.offset,l);
+                   end
+                end
+               else
                 Begin
                   { not a variable, check special variables.. }
                   if actasmpattern = 'SELF' then
                    SetupSelf
                   else
                    Message1(sym_e_unknown_id,actasmpattern);
-                end;
-               expr:=actasmpattern;
-               Consume(AS_ID);
-               MaybeRecordOffset;
-               if actasmtoken=AS_LBRACKET then
-                begin
-                  if opr.typ<>OPR_REFERENCE then
-                   begin
-                     opr.typ:=OPR_REFERENCE;
-                     reset_reference(opr.Ref);
-                   end;
-                  BuildReference;
-                  MaybeRecordOffset;
+                  Consume(AS_ID);
                 end;
              end;
+           { handle references }
+           if actasmtoken=AS_LBRACKET then
+            begin
+              if opr.typ=OPR_CONSTANT then
+               begin
+                 l:=opr.val;
+                 opr.typ:=OPR_REFERENCE;
+                 reset_reference(opr.Ref);
+                 opr.Ref.Offset:=l;
+               end;
+              BuildReference;
+              MaybeRecordOffset;
+            end;
          end;
       end;
 
@@ -1751,7 +1767,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  1999-09-27 23:44:58  peter
+  Revision 1.50  1999-10-01 07:59:21  peter
+    * fixed object field parsing
+
+  Revision 1.49  1999/09/27 23:44:58  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

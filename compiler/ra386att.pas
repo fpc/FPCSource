@@ -1344,58 +1344,72 @@ Begin
          { probably a variable or normal expression }
          { or a procedure (such as in CALL ID)      }
          Begin
-           InitRef;
-           if not SetupVar(actasmpattern) then
+           { is it a constant ? }
+           if SearchIConstant(actasmpattern,l) then
             Begin
-              { look for special symbols ... }
-              if actasmpattern = '__RESULT' then
-                SetUpResult
-              else
-               if actasmpattern = '__SELF' then
-                SetupSelf
-              else
-               if actasmpattern = '__OLDEBP' then
-                SetupOldEBP
-              else
-                { check for direct symbolic names   }
-                { only if compiling the system unit }
-                if (cs_compilesystem in aktmoduleswitches) then
-                 begin
-                   if not SetupDirectVar(actasmpattern) then
-                    Begin
-                      { not found, finally ... add it anyways ... }
-                      Message1(asmr_w_id_supposed_external,actasmpattern);
-                      opr.ref.symbol:=newasmsymbol(actasmpattern);
-                    end;
-                 end
-              else
-                Message1(sym_e_unknown_id,actasmpattern);
-            end;
-           { constant expression? }
-           if (opr.typ=OPR_CONSTANT) then
-            begin
-              l:=BuildConstExpression(true,false);
-              { indexing? }
-              if actasmtoken=AS_LPAREN then
-               begin
-                 opr.typ:=OPR_REFERENCE;
-                 reset_reference(opr.Ref);
-                 opr.Ref.Offset:=l;
-                 BuildReference;
-               end
-              else
-               opr.Val:=l;
+              if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
+               Message(asmr_e_invalid_operand_type);
+              BuildConstant;
             end
            else
             begin
-              expr:=actasmpattern;
-              Consume(AS_ID);
-              MaybeRecordOffset;
+              InitRef;
+              if SetupVar(actasmpattern) then
+               begin
+                 expr:=actasmpattern;
+                 Consume(AS_ID);
+                 MaybeRecordOffset;
+                 { add a constant expression? }
+                 if (actasmtoken=AS_PLUS) then
+                  begin
+                    l:=BuildConstExpression(true,false);
+                    if opr.typ=OPR_CONSTANT then
+                     inc(opr.val,l)
+                    else
+                     inc(opr.ref.offset,l);
+                  end
+               end
+              else
+               Begin
+                 { look for special symbols ... }
+                 if actasmpattern = '__RESULT' then
+                   SetUpResult
+                 else
+                  if actasmpattern = '__SELF' then
+                   SetupSelf
+                 else
+                  if actasmpattern = '__OLDEBP' then
+                   SetupOldEBP
+                 else
+                   { check for direct symbolic names   }
+                   { only if compiling the system unit }
+                   if (cs_compilesystem in aktmoduleswitches) then
+                    begin
+                      if not SetupDirectVar(actasmpattern) then
+                       Begin
+                         { not found, finally ... add it anyways ... }
+                         Message1(asmr_w_id_supposed_external,actasmpattern);
+                         opr.ref.symbol:=newasmsymbol(actasmpattern);
+                       end;
+                    end
+                 else
+                   Message1(sym_e_unknown_id,actasmpattern);
+                 Consume(AS_ID);
+               end;
             end;
          end;
         { Do we have a indexing reference, then parse it also }
         if actasmtoken=AS_LPAREN then
-         BuildReference;
+         begin
+           if (opr.typ=OPR_CONSTANT) then
+            begin
+              l:=opr.val;
+              opr.typ:=OPR_REFERENCE;
+              reset_reference(opr.Ref);
+              opr.Ref.Offset:=l;
+            end;
+           BuildReference;
+         end;
       end;
 
     AS_REGISTER: { Register, a variable reference or a constant reference  }
@@ -1973,7 +1987,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  1999-09-27 23:44:57  peter
+  Revision 1.60  1999-10-01 07:59:20  peter
+    * fixed object field parsing
+
+  Revision 1.59  1999/09/27 23:44:57  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
