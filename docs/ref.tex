@@ -353,15 +353,24 @@ The following diagram gives the basic syntax for identifiers.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Numbers
 \section{Numbers}
-Numbers are denoted in decimal notation. Real (or decimal) numbers are
-written using engeneering notation (e.g. \var{0.314E1}).
-\fpc supports hexadecimal format the same way as Turbo Pascal does. To
-specify a constant value in hexadecimal format, prepend it with a dollar
+Numbers are by default denoted in decimal notation.
+Real (or decimal) numbers are written using engineering or scientific
+notation (e.g. \var{0.314E1}).
+
+For integer type constants, \fpc supports 4 formats:
+\begin{enumerate}
+\item Normal, decimal format (base 10). This is the standard format.
+\item Hexadecimal format (base 16), in the same way as Turbo Pascal does.
+To specify a constant value in hexadecimal format, prepend it with a dollar
 sign (\var{\$}). Thus, the hexadecimal \var{\$FF} equals 255 decimal.
-In addition to the support for hexadecimal notation, \fpc also supports
-binary notation. A binary number can be specified by preceding it with a
-percent sign (\var{\%}). Thus, \var{255} can be specified in binary notation
-as \var{\%11111111}.
+Note that case is insignificant when using hexadecimal constants.
+\item As of version 1.0.7, Octal format (base 8) is also supported.
+To specify a constant in octal format, prepend it with a ampersand (\&).
+For instance 15 is specified in octal notation as \var{\&17}.
+\item Binary notation (base 2). A binary number can be specified
+by preceding it with a percent sign (\var{\%}). Thus, \var{255} can be
+specified in binary notation as \var{\%11111111}.
+\end{enumerate}
 The following diagrams show the syntax for numbers.
 \input{syntax/numbers.syn}
 
@@ -4941,6 +4950,7 @@ All things connected to string handling.
 \procref{Insert}{Insert one string in another}
 \funcref{Length}{Return length of string}
 \funcref{Lowercase}{Convert string to all-lowercase}
+\funcref{OctStr}{Construct octal representation of integer}
 \funcref{Pos}{Calculate position of one string in another}
 \procref{SetLength}{Set length of a string}
 \procref{Str}{Convert number to string representation}
@@ -5096,7 +5106,7 @@ bits are needed, i.e. \var{cnt=32}
 \Errors
 None.
 \SeeAlso
-\seep{Str},\seep{Val},\seef{HexStr}
+\seep{Str},\seep{Val},\seef{HexStr}, \seef{OctStr}
 \end{function}
 
 \FPCexample{ex82}
@@ -5531,6 +5541,28 @@ is opened by the program.
 
 \FPCexample{ex20}
 
+\begin{procedure}{Exclude}
+\Declaration
+Procedure Exclude (Var S : Any set type; E : Set element);
+\Description
+\var{Exclude} removes \var{E} from the set \var{S} if it is
+included inthe set. E should be of the same type as the base type
+of the set \var{S}.
+
+Thus, the two following statements do the same thing:
+\begin{verbatim}
+S:=S-[E];
+Exclude(S,E);
+\end{verbatim}
+\Errors
+If the type of the element \var{E} is not equal to the base type of the
+set \var{S}, the compiler will generate an error.
+\SeeAlso
+\seep{Include}
+\end{procedure}
+
+\FPCexample{ex111}
+
 \begin{procedure}{Exit}
 \Declaration
 Procedure Exit ([Var X : return type )];
@@ -5771,9 +5803,10 @@ None.
 \begin{function}{HexStr}
 \Declaration
 Function HexStr (Value : longint; cnt : byte) : String;
+Function HexStr (Value : int64; cnt : byte) : String;
 \Description
 \var{HexStr} returns a string with the hexadecimal representation
-of \var{Value}. The string has at most \var{cnt} charaters.
+of \var{Value}. The string has exactly \var{cnt} charaters.
  (i.e. only the \var{cnt} rightmost nibbles are taken into account)
 To have a complete representation of a Longint-type value, 8
 nibbles are needed, i.e. \var{cnt=8}.
@@ -5843,6 +5876,28 @@ error, when an attempt is made to increase \var{X} over its maximum value.
 \end{procedure}
 
 \FPCexample{ex32}
+
+\begin{procedure}{Include}
+\Declaration
+Procedure Include (Var S : Any set type; E : Set element);
+\Description
+\var{Include} includes \var{E} in the set \var{S} if it is
+not yet part of the set. E should be of the same type as the base type
+of the set \var{S}.
+
+Thus, the two following statements do the same thing:
+\begin{verbatim}
+S:=S+[E];
+Include(S,E);
+\end{verbatim}
+\Errors
+If the type of the element \var{E} is not equal to the base type of the
+set \var{S}, the compiler will generate an error.
+\SeeAlso
+\seep{Exclude}
+\end{procedure}
+
+For an example, see \seep{Exclude}
 
 \begin{function}{IndexByte}
 \Declaration
@@ -6246,6 +6301,21 @@ None.
 \end{function}
 
 \FPCexample{ex43}
+
+\begin{function}{OctStr}
+\Declaration
+Function OctStr (Value : longint; cnt : byte) : String;
+Function OctStr (Value : int64; cnt : byte) : String;
+\Description
+\var{OctStr} returns a string with the octal representation
+of \var{Value}. The string has exactly \var{cnt} charaters.
+\Errors
+None.
+\SeeAlso
+\seep{Str}, \seep{Val}, \seef{BinStr}, \seef{HexStr}
+\end{function}
+
+\FPCexample{ex112}
 
 \begin{function}{Ofs}
 \Declaration
@@ -7010,7 +7080,11 @@ value, and stores this value in the variable \var{V}, which
 can be of type \var{Longint}, \var{Real} and \var{Byte}.
 If the conversion isn't succesfull, then the parameter \var{Code} contains
 the index of the character in \var{S} which prevented the conversion.
-The string \var{S} isn't allowed to contain spaces.
+The string \var{S} is allowed to contain spaces in the beginning.
+
+The string \var{S} can contain a number in decimal, hexadecimal, binary
+or octal format, as described in the language reference.
+
 \Errors
 If the conversion doesn't succeed, the value of \var{Code} indicates the
 position where the conversion went wrong.
