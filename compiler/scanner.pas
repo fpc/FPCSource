@@ -1570,7 +1570,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  1999-03-02 22:49:35  peter
+  Revision 1.74  1999-03-11 10:46:29  daniel
+  * Reverted C styled comments
+
+  Revision 1.73  1999/03/02 22:49:35  peter
     * fixed nested comments for old style tp and c
 
   Revision 1.72  1999/02/02 00:15:10  florian
