@@ -1404,4 +1404,9 @@ end;
   begin
   end;
 
+{
+$Log$
+Revision 1.5  1999-07-12 13:28:33  jonas
+  * forgot log tag in previous commit
 
+}
