@@ -362,7 +362,7 @@ implementation
             Cprefix      : '_';
             newline      : #13#10;
             endian       : endian_little;
-            stackalignment : 2;
+            stackalignment : 4;
             maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
@@ -1153,7 +1153,7 @@ implementation
             res         : res_i386_emx;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 32768
+            stacksize   : 256*1024
           ),
           (
             target      : target_i386_WIN32;
@@ -1725,7 +1725,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 15:06:30  peter
+  Revision 1.10  2000-09-24 21:12:41  hajny
+    * OS/2 stack alignment corrected + default stack increased
+
+  Revision 1.9  2000/09/24 15:06:30  peter
     * use defines.inc
 
   Revision 1.8  2000/09/20 10:49:39  marco
