@@ -41,9 +41,97 @@ begin
     ErrorBox('Execution successful. Exit code '+IntToStr(DosExitCode),nil);
 end;
 
+procedure TIDEApp.Grep;
+
+  var PGrepDialog : PCenterDialog;
+      R,R2 : TRect;
+      IL : PInputLine;
+      p,lineNb : longint;
+      error : word;
+      GrepArgs,Line,ModuleName : String;
+      GrepOut : text;
+      Params : Array[0..4] of longint;
+      
+  Const GrepOutName = 'grep$$.out';
+{$ifdef linux}
+   GrepExeName = 'grep';
+{$else linux}
+   GrepExeName = 'c:\djgpp\bin\grep.exe';
+{$endif linux}
+begin
+  R.Assign(0,0,45,6);
+  new(PGrepDialog,Init(R,'Grep arguments'));
+  with PGrepDialog^ do
+    begin
+      R2.A.Y:=R.A.Y+3;
+      R2.B.Y:=R2.A.Y+1;
+      R2.A.X:=R.A.X+3;
+      R2.B.X:=R.B.X-3;
+      New(IL, Init(R2, 128));
+      If Assigned(DeskTop^.First) and
+         (DeskTop^.First^.HelpCtx=hcSourceWindow) then
+        GrepArgs:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
+      else
+        GrepArgs:='';
+      GrepArgs:='-n -i '+GrepArgs+' *.pas *.pp *.inc';
+      IL^.Data^:=GrepArgs;
+      Insert(IL);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2, '~G~rep arguments', IL)));
+    end;
+
+  InsertButtons(PGrepDialog);
+    if Desktop^.ExecView(PGrepDialog)=cmOK then
+    begin
+      GrepArgs:=IL^.Data^;
+      { Linux ? }
+      if not ExecuteRedir(GrepExeName,GrepArgs,GrepOutName,'grep$$.err') then
+        Begin
+           { 2 as exit code just means that
+             some file vwere not found ! }
+           if (IOStatus<>0) or (ExecuteResult<>2) then
+             begin
+               Params[0]:=IOStatus;
+               Params[1]:=ExecuteResult;
+               WarningBox(#3'Error running Grep'#13#3'DosError = %d'#13#3'Exit code = %d',@Params);
+             end;
+        End;
+      Assign(GrepOut,GrepOutName);
+      Reset(GrepOut);
+      While not eof(GrepOut) do
+        begin
+          readln(GrepOut,Line);
+          p:=pos(':',line);
+          if p>0 then
+            begin
+              ModuleName:=copy(Line,1,p-1);
+              Line:=Copy(Line,p+1,255);
+              p:=pos(':',Line);
+              val(copy(Line,1,p-1),lineNb,error);
+              if error=0 then
+                ProgramInfoWindow^.AddMessage(V_Normal,Copy(Line,p+1,255),
+                  ModuleName,LineNb);
+                end;
+              ProgramInfoWindow^.Show;
+              ProgramInfoWindow^.MakeFirst;
+           end;
+         end;
+  Dispose(PGrepDialog, Done);
+end;
 {
   $Log$
-  Revision 1.2  1999-01-21 11:54:21  peter
+  Revision 1.3  1999-02-04 13:32:09  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.2  1999/01/21 11:54:21  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

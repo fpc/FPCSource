@@ -317,6 +317,7 @@ const
       CalcClipboard  : extended = 0;
 
       OpenFileName   : string = '';
+      OpenFileLastExt : string = '*.pas';
       NewEditorOpened: boolean = false;
 
 var  MsgParms : array[1..10] of
@@ -330,7 +331,7 @@ implementation
 
 uses
   Keyboard,Memory,MsgBox,Validate,
-  Tokens,
+  Tokens,FPSwitch,
   FPVars,FPUtils,FPHelp,FPCompile;
 
 const
@@ -2165,6 +2166,7 @@ begin
   W:=TryToOpenFile(@R,P^.GetModuleName,0,P^.ID-1);
   if W<>nil then
     begin
+      W^.Select;
       W^.Editor^.SetHighlightRow(P^.ID-1);
     end;
   if Assigned(Owner) then
@@ -2315,7 +2317,7 @@ begin
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   S:=ClassS;
-  if (Module<>nil) and (ID<>0) then
+  if (Module<>nil) {and (ID<>0)} then
      S:=S+Module^+' ('+IntToStr(ID)+'): ';
   if Text<>nil then S:=ClassS+Text^;
   if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
@@ -2951,6 +2953,8 @@ function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: integer): PSo
 var D : DirStr;
     N : NameStr;
     E : ExtStr;
+    DrStr : String;
+    
 function CheckDir(NewDir: DirStr; NewName: NameStr; NewExt: ExtStr): boolean;
 var OK: boolean;
 begin
@@ -2967,10 +2971,11 @@ begin
     if CheckDir('.'+DirSep,N,NewExt) then OK:=true;
   CheckExt:=OK;
 end;
-function TryToOpen: PSourceWindow;
+function TryToOpen(const DD : dirstr): PSourceWindow;
 var Found: boolean;
     W : PSourceWindow;
 begin
+  D:=DD;
   Found:=true;
   if E<>'' then Found:=CheckExt(E) else
     if CheckExt('.pp') then Found:=true else
@@ -2988,7 +2993,7 @@ function SearchOnDesktop: PSourceWindow;
 var W: PWindow;
     I: integer;
     Found: boolean;
-    SName: string;
+    SName : string;
 begin
   for I:=1 to 100 do
   begin
@@ -3031,7 +3036,15 @@ begin
     end
   else
     begin
-      W:=TryToOpen;
+      DrStr:=GetUnitDirectories;
+      While pos(';',DrStr)>0 do
+        Begin
+           W:=TryToOpen(Copy(DrStr,1,pos(';',DrStr)-1));
+           if assigned(W) then
+             break;
+           DrStr:=Copy(DrStr,pos(';',DrStr)+1,255);
+        End;
+      W:=TryToOpen(DrStr);
       NewEditorOpened:=W<>nil;
     end;
   TryToOpenFile:=W;
@@ -3041,7 +3054,18 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-01-21 11:54:27  peter
+  Revision 1.7  1999-02-04 13:32:11  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.6  1999/01/21 11:54:27  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

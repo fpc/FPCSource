@@ -22,7 +22,8 @@ procedure TIDEApp.Globals;
 var R: TRect;
     S: PSortedSymbolCollection;
     Overflow: boolean;
-
+    Level : longint;
+    
   procedure InsertInS(P: PSymbol); {$ifndef FPC}far;{$endif}
 
     procedure InsertItemsInS(P: PSymbolCollection);
@@ -33,14 +34,19 @@ var R: TRect;
     end;
 
   begin
+    Inc(level);
     if S^.Count=MaxCollectionSize then
        begin Overflow:=true; Exit; end;
     S^.Insert(P);
-    if P^.Items<>nil then
+    { this is wrong because it inserted args or locals of proc
+      in the globals list !! PM}
+    if (P^.Items<>nil) and (level=1) then
       InsertItemsInS(P^.Items);
+    Dec(level);
   end;
 
 begin
+  level:=0;
   if BrowCol.Modules=nil then
      begin ErrorBox('No debug info available.',nil); Exit; end;
   Overflow:=false;
@@ -70,7 +76,18 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-01-14 21:42:23  peter
+  Revision 1.3  1999-02-04 13:32:08  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.2  1999/01/14 21:42:23  peter
     * source tracking from Gabor
 
   Revision 1.1  1999/01/12 14:29:37  peter

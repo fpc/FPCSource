@@ -426,7 +426,7 @@ begin
   if Editor=nil
      then begin TabSize:=DefaultTabSize; EFlags:=DefaultCodeEditorFlags; end
      else begin TabSize:=Editor^.TabSize; EFlags:=Editor^.Flags; end;
-  R.Assign(0,0,56,15);
+  R.Assign(0,0,56,18);
   New(D, Init(R, 'Editor Options'));
   with D^ do
   begin
@@ -467,6 +467,14 @@ begin
     Insert(ExtIL);
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2, '~H~ighlight extensions', ExtIL)));
+
+    R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+2;
+    R2.Copy(R); Inc(R2.A.Y);
+    New(ExtIL, Init(R2, 128));
+    ExtIL^.SetData(TabsPattern);
+    Insert(ExtIL);
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2, 'File ~p~atterns needing tabs', ExtIL)));
   end;
   InsertButtons(D);
   CB^.Select;
@@ -673,7 +681,18 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-01-22 10:24:04  peter
+  Revision 1.8  1999-02-04 13:32:06  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.7  1999/01/22 10:24:04  peter
     * first debugger things
 
   Revision 1.6  1999/01/21 11:54:19  peter

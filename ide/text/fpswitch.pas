@@ -102,7 +102,7 @@ type
     private
       IsSel  : boolean;
       Prefix : char;
-      SelNr  : integer;
+      SelNr  : array[TSwitchMode] of integer;
       Items  : PCollection;
     end;
 
@@ -137,6 +137,7 @@ procedure ReadSwitches(const fn:string);
 { initialize }
 procedure InitSwitches;
 procedure DoneSwitches;
+function  GetUnitDirectories : string;
 
 
 implementation
@@ -150,7 +151,7 @@ var
   CfgFile : text;
 
 {*****************************************************************************
-                                TSwitchItem
+            TSwitchItem
 *****************************************************************************}
 
 constructor TSwitchItem.Init(const n,p:string);
@@ -179,7 +180,7 @@ end;
 
 
 {*****************************************************************************
-                                TSelectItem
+            TSelectItem
 *****************************************************************************}
 
 constructor TSelectItem.Init(const n,p:string);
@@ -190,7 +191,7 @@ end;
 
 
 {*****************************************************************************
-                               TBooleanItem
+                TBooleanItem
 *****************************************************************************}
 
 constructor TBooleanItem.Init(const n,p:string);
@@ -214,7 +215,7 @@ end;
 
 
 {*****************************************************************************
-                                TStringItem
+            TStringItem
 *****************************************************************************}
 
 constructor TStringItem.Init(const n,p:string;mult:boolean);
@@ -245,7 +246,7 @@ end;
 
 
 {*****************************************************************************
-                               TLongintItem
+                TLongintItem
 *****************************************************************************}
 
 constructor TLongintItem.Init(const n,p:string);
@@ -278,14 +279,14 @@ end;
 
 
 {*****************************************************************************
-                                   TSwitch
+               TSwitch
 *****************************************************************************}
 
 constructor TSwitches.Init(ch:char);
 begin
   new(Items,Init(10,5));
   Prefix:=ch;
-  SelNr:=0;
+  FillChar(SelNr,SizeOf(SelNr),#0);
   IsSel:=false;
 end;
 
@@ -294,7 +295,7 @@ constructor TSwitches.InitSelect(ch:char);
 begin
   new(Items,Init(10,5));
   Prefix:=ch;
-  SelNr:=0;
+  FillChar(SelNr,SizeOf(SelNr),#0);
   IsSel:=true;
 end;
 
@@ -428,7 +429,7 @@ end;
 function TSwitches.GetCurrSel:integer;
 begin
   if IsSel then
-   GetCurrSel:=SelNr
+   GetCurrSel:=SelNr[SwitchesMode]
   else
    GetCurrSel:=-1;
 end;
@@ -437,7 +438,7 @@ end;
 procedure TSwitches.SetCurrSel(index:integer);
 begin
   if IsSel then
-   SelNr:=index;
+   SelNr[SwitchesMode]:=index;
 end;
 
 
@@ -453,27 +454,27 @@ var
     if P^.NeedParam then
      begin
        if (P^.Typ=ot_string) and (PStringItem(P)^.Multiple) then
-        begin
-          s:=PStringItem(P)^.Str[SwitchesMode];
-          repeat
-            i:=pos(';',s);
-            if i=0 then
-             i:=255;
-            s1:=Copy(s,1,i-1);
-            if s1<>'' then
-             writeln(CfgFile,' -'+Pref+P^.Param+s1);
-            Delete(s,1,i);
-          until s='';
-        end
+   begin
+     s:=PStringItem(P)^.Str[SwitchesMode];
+     repeat
+       i:=pos(';',s);
+       if i=0 then
+        i:=256;
+       s1:=Copy(s,1,i-1);
+       if s1<>'' then
+        writeln(CfgFile,' -'+Pref+P^.Param+s1);
+       Delete(s,1,i);
+     until s='';
+   end
        else
-        Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
+   Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
      end;
   end;
 
 begin
   Pref:=Prefix;
   if IsSel then
-    writeln(CfgFile,' '+ItemParam(SelNr))
+    writeln(CfgFile,' '+ItemParam(SelNr[SwitchesMode]))
   else
     Items^.ForEach(@writeitem);
 end;
@@ -483,7 +484,9 @@ function TSwitches.ReadItemsCfg(const s:string):boolean;
 
   function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
   begin
-    CheckItem:=(P^.Param=Copy(s,1,length(P^.Param)));
+    { empty items are not equivalent to others !! }
+    CheckItem:=((S='') and (P^.Param='')) or
+               ((Length(S)>0) and (P^.Param=Copy(s,1,length(P^.Param))));
   end;
 
 var
@@ -494,15 +497,15 @@ begin
   if assigned(FoundP) then
    begin
      case FoundP^.Typ of
-      ot_Select  : SelNr:=Items^.IndexOf(FoundP);
+      ot_Select  : SelNr[SwitchesMode]:=Items^.IndexOf(FoundP);
       ot_Boolean : PBooleanItem(FoundP)^.IsSet[SwitchesMode]:=true;
       ot_String  : begin
-                     if (PStringItem(FoundP)^.Multiple) and (PStringItem(FoundP)^.Str[SwitchesMode]<>'') then
-                      PStringItem(FoundP)^.Str[SwitchesMode]:=PStringItem(FoundP)^.Str[SwitchesMode]+';'+
-                        Copy(s,length(FoundP^.Param)+1,255)
-                     else
-                      PStringItem(FoundP)^.Str[SwitchesMode]:=Copy(s,length(FoundP^.Param)+1,255);
-                   end;
+           if (PStringItem(FoundP)^.Multiple) and (PStringItem(FoundP)^.Str[SwitchesMode]<>'') then
+            PStringItem(FoundP)^.Str[SwitchesMode]:=PStringItem(FoundP)^.Str[SwitchesMode]+';'+
+         Copy(s,length(FoundP^.Param)+1,255)
+           else
+            PStringItem(FoundP)^.Str[SwitchesMode]:=Copy(s,length(FoundP^.Param)+1,255);
+         end;
       ot_Longint : Val(Copy(s,length(FoundP^.Param)+1,255),PLongintItem(FoundP)^.Val[SwitchesMode],code);
      end;
      ReadItemsCfg:=true;
@@ -513,7 +516,7 @@ end;
 
 
 {*****************************************************************************
-                                 Read / Write
+             Read / Write
 *****************************************************************************}
 
 procedure WriteSwitches(const fn:string);
@@ -572,40 +575,40 @@ begin
    begin
      readln(CfgFile,s);
      s:=LTrim(s);
-     if (length(s)>2) and (s[1]='-') then
+     if (length(s)>=2) and (s[1]='-') then
       begin
-        c:=s[2];
-        Delete(s,1,2);
-        case c of
-         'd' : ConditionalSwitches^.ReadItemsCfg(s);
-         'X' : LibLinkerSwitches^.ReadItemsCfg(s);
-         'g' : DebugInfoSwitches^.ReadItemsCfg(s);
-         'p' : ProfileInfoSwitches^.ReadItemsCfg(s);
-         'S' : SyntaxSwitches^.ReadItemsCfg(s);
-         'F' : DirectorySwitches^.ReadItemsCfg(s);
-         'T' : TargetSwitches^.ReadItemsCfg(s);
-         'R' : AsmReaderSwitches^.ReadItemsCfg(s);
-         'C' : begin
-                 CodegenSwitches^.ReadItemsCfg(s);
-                 MemorySizeSwitches^.ReadItemsCfg(s);
-               end;
-         'v' : VerboseSwitches^.ReadItemsCfg(s);
-         'O' : begin
-                 if not OptimizationSwitches^.ReadItemsCfg(s) then
-                  ProcessorSwitches^.ReadItemsCfg(s);
-               end;
-        end;
+      c:=s[2];
+      Delete(s,1,2);
+      case c of
+       'd' : ConditionalSwitches^.ReadItemsCfg(s);
+       'X' : LibLinkerSwitches^.ReadItemsCfg(s);
+       'g' : DebugInfoSwitches^.ReadItemsCfg(s);
+       'p' : ProfileInfoSwitches^.ReadItemsCfg(s);
+       'S' : SyntaxSwitches^.ReadItemsCfg(s);
+       'F' : DirectorySwitches^.ReadItemsCfg(s);
+       'T' : TargetSwitches^.ReadItemsCfg(s);
+       'R' : AsmReaderSwitches^.ReadItemsCfg(s);
+       'C' : begin
+               CodegenSwitches^.ReadItemsCfg(s);
+               MemorySizeSwitches^.ReadItemsCfg(s);
+             end;
+       'v' : VerboseSwitches^.ReadItemsCfg(s);
+       'O' : begin
+               if not OptimizationSwitches^.ReadItemsCfg(s) then
+                 ProcessorSwitches^.ReadItemsCfg(s);
+             end;
+      end;
       end
      else
       if (Copy(s,1,7)='#IFDEF ') then
        begin
-         Delete(s,1,7);
-         for i:=low(TSwitchMode) to high(TSwitchMode) do
-          if s=SwitchesModeStr[i] then
-           begin
-             SwitchesMode:=i;
-             break;
-           end;
+    Delete(s,1,7);
+    for i:=low(TSwitchMode) to high(TSwitchMode) do
+     if s=SwitchesModeStr[i] then
+      begin
+        SwitchesMode:=i;
+        break;
+      end;
        end;
    end;
   close(CfgFile);
@@ -613,9 +616,25 @@ begin
 end;
 
 
+function  GetUnitDirectories : string;
+var
+  P : PStringItem;
+  function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
+  begin
+    CheckItem:=(P^.Typ=ot_string) and (P^.Param='u');
+  end;
+begin
+  GetUnitDirectories:='';
+  P:=DirectorySwitches^.Items^.FirstThat(@CheckItem);
+  if assigned(P) then
+    Begin
+      GetUnitDirectories:=P^.Str[SwitchesMode];
+      exit;
+    End;
+end;
 
 {*****************************************************************************
-                                 Initialize
+             Initialize
 *****************************************************************************}
 
 procedure InitSwitches;
@@ -714,9 +733,10 @@ begin
   New(DebugInfoSwitches,InitSelect('g'));
   with DebugInfoSwitches^ do
    begin
-     AddSelectItem('~S~trip all symbols from executable','-');
-     AddSelectItem('Generate ~g~sym symbol information','g');
-     AddSelectItem('Generate ~d~bx symbol information','d');
+     AddSelectItem('~S~trip all debug symbols from executable','-');
+     AddSelectItem('Generate ~d~ebug symbol information','');
+     { AddSelectItem('Generate ~d~bx symbol information','d');
+       does not work anyhow (PM) }
    end;
   New(ProfileInfoSwitches,InitSelect('p'));
   with ProfileInfoSwitches^ do
@@ -755,7 +775,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-12 14:29:39  peter
+  Revision 1.4  1999-02-04 13:32:10  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.3  1999/01/12 14:29:39  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

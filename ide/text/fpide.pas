@@ -19,6 +19,7 @@ interface
 uses
   Drivers,Views,App,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
+  Comphook,
   FPViews;
 
 type
@@ -27,6 +28,7 @@ type
       procedure   InitMenuBar; virtual;
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string);
+      function    OpenSearch(FileName: string) : boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
       procedure   DosShell; virtual;
@@ -48,11 +50,13 @@ type
       procedure DoStepOver;
       procedure DoTraceInto;
       procedure DoRun;
+      procedure DoResetDebugger;
       procedure Target;
       procedure PrimaryFile_;
       procedure ClearPrimary;
       procedure DoUserScreenWindow;
       procedure DoUserScreen;
+      procedure DoToggleBreak;
       procedure Information;
       procedure Calculator;
       procedure ExecuteTool(Idx: integer);
@@ -63,6 +67,7 @@ type
       procedure DoDebuggerSwitch;
       procedure Directories;
       procedure Tools;
+      procedure Grep;
       procedure EditorOptions(Editor: PEditor);
       procedure Mouse;
       procedure Colors;
@@ -105,7 +110,7 @@ uses
   Systems,BrowCol,
   WHelp,WHlpView,WINI,
   FPConst,FPVars,FPUtils,FPSwitches,FPIni,FPIntf,FPCompile,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools,FPDebug;
+  FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools,FPDebug,FPRedir;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -113,9 +118,17 @@ begin
   IDEUseSyntaxHighlight:=(Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts);
 end;
 
+function IDEUseTabsPattern(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
+begin
+  IDEUseTabsPattern:=(Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),TabsPattern);
+end;
+
 constructor TIDEApp.Init;
 begin
-  {$ifndef EDITORS}UseSyntaxHighlight:=IDEUseSyntaxHighlight;{$endif}
+  {$ifndef EDITORS}
+  UseSyntaxHighlight:=IDEUseSyntaxHighlight;
+  UseTabsPattern:=IDEUseTabsPattern;
+  {$endif}
   inherited Init;
   New(ClipboardWindow, Init);
   Desktop^.Insert(ClipboardWindow);
@@ -172,7 +185,8 @@ begin
       NewItem('~S~tep Over','F8', kbF8, cmStepOver, hcRun,
       NewItem('~T~race Into','F7', kbF7, cmTraceInto, hcRun,
       NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
-      nil))))),
+      NewItem('Reset ~P~rog','Ctrl+F2', kbCtrlF2, cmResetDebugger, hcResetDebugger,
+      nil)))))),
     NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
       NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
       NewItem('~M~ake','F9', kbF9, cmMake, hcMake,
@@ -187,11 +201,14 @@ begin
     NewSubMenu('~D~ebug', hcDebugMenu, NewMenu(
       NewItem('~O~utput','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
-      nil))),
+      NewItem('~B~reakpoint','Ctrl+F8', kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
+      nil)))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', '', kbNoKey, cmToolsMessages, hcToolsMessages,
+      NewLine(
+      NewItem('~G~rep', 'Shift+F2', kbShiftF2, cmGrep, hcGrep,
       NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
-      nil))),
+      nil))))),
     NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
       NewItem('Mode~.~..','', kbNoKey, cmSwitchesMode, hcSwitchesMode,
       NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
@@ -320,6 +337,8 @@ begin
              cmStepOver      : DoStepOver;
              cmTraceInto     : DoTraceInto;
              cmRun           : DoRun;
+             cmResetDebugger : DoResetDebugger;
+
            { -- Compile menu -- }
              cmCompile       : DoCompile(cCompile);
              cmBuild         : DoCompile(cBuild);
@@ -330,6 +349,7 @@ begin
              cmInformation   : Information;
            { -- Debug menu -- }
              cmUserScreen    : DoUserScreen;
+             cmToggleBreakpoint   : DoToggleBreak;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : DoCompilerSwitch;
@@ -347,6 +367,7 @@ begin
              cmSaveAsINI     : SaveAsINI;
            { -- Tools menu -- }
              cmCalculator    : Calculator;
+             cmGrep          : Grep;
              cmToolsBase+1..
              cmToolsBase+MaxToolCount
                              : ExecuteTool(Event.Command-cmToolsBase);
@@ -623,7 +644,18 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-02-02 16:41:39  peter
+  Revision 1.7  1999-02-04 13:32:03  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.6  1999/02/02 16:41:39  peter
     + automatic .pas/.pp adding by opening of file
     * better debuggerscreen changes
 

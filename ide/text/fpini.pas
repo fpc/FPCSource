@@ -36,39 +36,55 @@ implementation
 uses
   Dos,Objects,Drivers,
   WINI,{$ifndef EDITORS}WEditor{$else}Editors{$endif},
-  FPConst,FPVars,FPIntf,FPTools;
+  FPDebug,FPConst,FPVars,
+  FPIntf,FPTools,FPSwitch;
 
 const
   { INI file sections }
-  secFiles           = 'Files';
-  secRun             = 'Run';
-  secCompile         = 'Compile';
-  secColors          = 'Colors';
-  secHelp            = 'Help';
-  secEditor          = 'Editor';
+  secFiles	   = 'Files';
+  secRun	     = 'Run';
+  secCompile	 = 'Compile';
+  secColors	  = 'Colors';
+  secHelp	    = 'Help';
+  secEditor	  = 'Editor';
+  secBreakpoint  = 'Breakpoints';
   secHighlight       = 'Highlight';
-  secMouse           = 'Mouse';
-  secSearch          = 'Search';
-  secTools           = 'Tools';
+  secMouse	   = 'Mouse';
+  secSearch	  = 'Search';
+  secTools	   = 'Tools';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
   ieRunParameters    = 'Parameters';
   iePrimaryFile      = 'PrimaryFile';
-  iePalette          = 'Palette';
-  ieHelpFiles        = 'Files';
+  ieCompileMode      = 'CompileMode';																									
+  iePalette	     = 'Palette';
+  ieHelpFiles	     = 'Files';
   ieDefaultTabSize   = 'DefaultTabSize';
   ieDefaultEditorFlags='DefaultFlags';
   ieHighlightExts    = 'Exts';
+  ieTabsPattern      = 'NeedsTabs';
   ieDoubleClickDelay = 'DoubleDelay';
   ieReverseButtons   = 'ReverseButtons';
   ieAltClickAction   = 'AltClickAction';
   ieCtrlClickAction  = 'CtrlClickAction';
-  ieFindFlags        = 'FindFlags';
-  ieToolName         = 'Title';
+  ieFindFlags	= 'FindFlags';
+  ieToolName	 = 'Title';
   ieToolProgram      = 'Program';
   ieToolParams       = 'Params';
   ieToolHotKey       = 'HotKey';
+  ieBreakpointTyp    = 'Type';
+  ieBreakpointCount  = 'Count';
+  ieBreakpointState  = 'State';
+  ieBreakpointFunc   = 'Function';
+  ieBreakpointFile   = 'FileName';
+  ieBreakpointLine   = 'LineNumber';
+
+const
+     BreakpointTypeStr : Array[BreakpointType] of String[9]
+       = ( 'function','file-line','invalid' );
+     BreakpointStateStr : Array[BreakpointState] of String[8]
+       = ( 'enabled','disabled','invalid' );
 
 procedure InitINIFile;
 var S: string;
@@ -106,13 +122,13 @@ begin
     P:=Pos('#',copy(S,I,255)); if P>0 then P:=I+P-1 else P:=length(S)+1;
     if Hex=false then
       begin
-        X:=StrToInt(copy(S,I,P-I));
-        OK:=(LastStrToIntResult=0) and (0<=X) and (X<=255);
+	X:=StrToInt(copy(S,I,P-I));
+	OK:=(LastStrToIntResult=0) and (0<=X) and (X<=255);
       end
     else
       begin
-        X:=HexToInt(copy(S,I,P-I));
-        OK:=(LastHexToIntResult=0) and (0<=X) and (X<=255);
+	X:=HexToInt(copy(S,I,P-I));
+	OK:=(LastHexToIntResult=0) and (0<=X) and (X<=255);
       end;
     if OK then C:=C+chr(X);
     Inc(I,P-I);
@@ -120,11 +136,75 @@ begin
   StrToPalette:=C;
 end;
 
+procedure WriteOneBreakPointEntry(I : longint;INIFile : PINIFile);
+var PB : PBreakpoint;
+    S : String;
+begin
+  Str(I,S);
+  PB:=BreakpointCollection^.At(I);
+  If assigned(PB) then
+   With PB^ do
+    Begin
+      INIFile^.SetEntry(secBreakpoint,ieBreakpointTyp+S,BreakpointTypeStr[typ]);
+      INIFile^.SetEntry(secBreakpoint,ieBreakpointState+S,BreakpointStateStr[state]);
+      case typ of
+        bt_function :
+          INIFile^.SetEntry(secBreakpoint,ieBreakpointFunc+S,Name^);
+        bt_file_line :
+          begin
+            INIFile^.SetEntry(secBreakpoint,ieBreakpointFile+S,Name^);
+            INIFile^.SetIntEntry(secBreakpoint,ieBreakpointLine+S,Line);
+          end;
+      end;
+    end;
+end;
+
+procedure ReadOneBreakPointEntry(i : longint;INIFile : PINIFile);
+var PB : PBreakpoint;
+    S,S2 : string;
+    Line : longint;
+    typ : BreakpointType;
+    state : BreakpointState;
+    
+begin
+  Str(I,S2);
+  typ:=bt_invalid;
+  S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointTyp+S2,BreakpointTypeStr[typ]);
+  for typ:=low(BreakpointType) to high(BreakpointType) do
+    If pos(BreakpointTypeStr[typ],S)>0 then break;
+  state:=bs_invalid;
+  S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointState+S2,BreakpointStateStr[state]);
+  for state:=low(BreakpointState) to high(BreakpointState) do
+    If pos(BreakpointStateStr[state],S)>0 then break;
+  case typ of
+     bt_invalid :;
+     bt_function :
+       begin
+         S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointFunc+S2,'');
+       end;
+     bt_file_line :
+       begin
+         S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointFile+S2,'');
+         Line:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointLine+S2,0);
+       end;
+     end;
+   if (typ=bt_function) and (S<>'') then
+     new(PB,init_function(S))
+   else if (typ=bt_file_line) and (S<>'') then
+     new(PB,init_file_line(S,Line));
+   If assigned(PB) then
+     PB^.state:=state;
+   If assigned(PB) then
+     BreakpointCollection^.Insert(PB);
+end;
+
 function ReadINIFile: boolean;
 var INIFile: PINIFile;
     S,PS,S1,S2,S3: string;
     I,P: integer;
+    BreakPointCount:longint;
     OK: boolean;
+    ts : TSwitchMode;
     W: word;
 begin
   OK:=ExistsFile(INIPath);
@@ -138,16 +218,26 @@ begin
       if (S='') and (RecentFileCount>I-1) then RecentFileCount:=I-1;
       with RecentFiles[I] do
       begin
-        P:=Pos(',',S); if P=0 then P:=length(S)+1;
-        FileName:=copy(S,1,P-1); Delete(S,1,P);
-        P:=Pos(',',S); if P=0 then P:=length(S)+1;
-        LastPos.X:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
-        P:=Pos(',',S); if P=0 then P:=length(S)+1;
-        LastPos.Y:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
+	P:=Pos(',',S); if P=0 then P:=length(S)+1;
+	FileName:=copy(S,1,P-1); Delete(S,1,P);
+	P:=Pos(',',S); if P=0 then P:=length(S)+1;
+	LastPos.X:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
+	P:=Pos(',',S); if P=0 then P:=length(S)+1;
+	LastPos.Y:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
       end;
     end;
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
   PrimaryFile:=INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile);
+ {   SwitchesModeStr : array[TSwitchMode] of string[8]=
+      ('NORMAL','DEBUG','RELEASE');}
+  S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
+  for ts:=low(TSwitchMode) to high(TSwitchMode) do
+    begin
+      if SwitchesModeStr[ts]=S then
+	begin
+	  SwitchesMode:=ts;
+	end;
+    end;
   S:=INIFile^.GetEntry(secHelp,ieHelpFiles,'');
   repeat
     P:=Pos(';',S); if P=0 then P:=length(S)+1;
@@ -160,10 +250,17 @@ begin
   DefaultCodeEditorFlags:=INIFile^.GetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
 {$endif}
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
+  TabsPattern:=INIFile^.GetEntry(secHighlight,ieTabsPattern,TabsPattern);
   DoubleDelay:=INIFile^.GetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   MouseReverse:=boolean(INIFile^.GetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse)));
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+  FindFlags:=INIFile^.GetIntEntry(secSearch,ieFindFlags,FindFlags);
+  { Breakpoints }
+  BreakpointCount:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointCount,0);
+  for i:=1 to BreakpointCount do
+    ReadOneBreakPointEntry(i-1,INIFile);
+    
   for I:=1 to MaxToolCount do
     begin
       S:=IntToStr(I);
@@ -192,6 +289,7 @@ var INIFile: PINIFile;
     S: string;
     S1,S2,S3: string;
     W: word;
+    BreakPointCount:longint;
     I: integer;
     OK: boolean;
 procedure ConcatName(P: PString); {$ifndef FPC}far;{$endif}
@@ -204,13 +302,14 @@ begin
   for I:=1 to High(RecentFiles) do
     begin
       if I<=RecentFileCount then
-         with RecentFiles[I] do S:=FileName+','+IntToStr(LastPos.X)+','+IntToStr(LastPos.Y)
+	 with RecentFiles[I] do S:=FileName+','+IntToStr(LastPos.X)+','+IntToStr(LastPos.Y)
       else
-         S:='';
+	 S:='';
       INIFile^.SetEntry(secFiles,ieRecentFile+IntToStr(I),S);
     end;
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
+  INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
   S:='';
   HelpFiles^.ForEach(@ConcatName);
   INIFile^.SetEntry(secHelp,ieHelpFiles,'"'+S+'"');
@@ -219,11 +318,17 @@ begin
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
 {$endif}
   INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
+  INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   INIFile^.SetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
+  { Breakpoints }
+  BreakPointCount:=BreakpointCollection^.Count;
+  INIFile^.SetIntEntry(secBreakpoint,ieBreakpointCount,BreakpointCount);
+  for i:=1 to BreakpointCount do
+    WriteOneBreakPointEntry(I-1,INIFile);
   INIFile^.DeleteSection(secTools);
   for I:=1 to GetToolCount do
     begin
@@ -258,7 +363,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-01-21 11:54:15  peter
+  Revision 1.6  1999-02-04 13:32:04  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.5  1999/01/21 11:54:15  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

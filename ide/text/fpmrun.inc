@@ -26,6 +26,11 @@ begin
    end
   else
    Debugger^.TraceNext;
+  While (Debugger^.invalid_line and
+    Debugger^.Debugger_started and
+    not Debugger^.error) do
+   Debugger^.TraceNext;
+  Debugger^.AnnotateError;
 end;
 
 
@@ -40,6 +45,13 @@ begin
    end
   else
    Debugger^.TraceStep;
+  { I think we should not try to go deeper !
+    if the source is not found PM }
+  While (Debugger^.invalid_line and
+        Debugger^.Debugger_started and
+        not Debugger^.error) do
+   Debugger^.TraceNext;
+  Debugger^.AnnotateError;
 end;
 
 
@@ -61,9 +73,13 @@ begin
       Exit;
     end;
 
-  DoExecute(ExeFile,GetRunParameters,false);
-
-  LastExitCode:=DosExitCode;
+  if not assigned(Debugger) then
+    begin
+      DoExecute(ExeFile,GetRunParameters,false);
+      LastExitCode:=DosExitCode;
+    end
+  else
+    Debugger^.Continue;
 end;
 
 
@@ -93,9 +109,51 @@ begin
   Dispose(D, Done);
 end;
 
+procedure TIDEApp.DoResetDebugger;
+begin
+  if assigned(Debugger) then
+     DoneDebugger;
+end;
+
+procedure TIDEApp.DoToggleBreak;
+var
+  W : PSourceWindow;
+  FileName : string;
+  b : boolean;
+  LineNr : longint;
+  Info : record
+          F : pstring;
+          L : longint;
+         end;
+begin
+  W:=FirstEditorWindow;
+  If assigned(W) then
+    begin
+      FileName:=W^.Editor^.FileName;
+      LineNr:=W^.Editor^.CurPos.Y+1;
+      Info.F:=@FileName;
+      Info.L:=LineNr;
+      InformationBox(#3'Trying to set a breakpoint at'#13#3+
+         '%s : %d',@Info);
+      b:=BreakpointCollection^.ToggleFileLine(FileName,LineNr);
+      W^.Editor^.SetLineBreakState(LineNr-1,b);
+    end;
+end;
+
 {
   $Log$
-  Revision 1.6  1999-01-22 10:24:05  peter
+  Revision 1.7  1999-02-04 13:32:07  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.6  1999/01/22 10:24:05  peter
     * first debugger things
 
   Revision 1.5  1999/01/21 11:54:20  peter

@@ -21,7 +21,7 @@ LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
 endif
 
 # We always need the API and FV
-NEEDUNITDIR=../../api ../../fv
+NEEDUNITDIR=../../api ../../fv ../../fv/base ../../fv/app ../../fv/dialogs
 
 # when making a full version include the compiler
 ifdef FULL
@@ -32,10 +32,14 @@ override NEEDUNITDIR+=../fake/compiler
 endif
 
 # when including debugger include the gdbinterface
+ifndef GDBINT
+GDBINT=gdbint
+endif
+
 ifdef GDB
-override NEEDUNITDIR+=../../gdbint
-NEEDLIBDIR+=../../gdbint/libgdb
-NEEDOBJDIR+=../../gdbint/libgdb
+override NEEDUNITDIR+=../../$(GDBINT)
+NEEDLIBDIR+=../../$(GDBINT)/libgdb
+NEEDOBJDIR+=../../$(GDBINT)/libgdb
 else
 override NEEDUNITDIR+=../fake/gdb
 endif
@@ -84,12 +88,26 @@ fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 full:
 	make all FULL=1
 
-fullgdb:
+fullgdb: clean_compiler
 	make all FULL=1 GDB=1
+
+clean_compiler:
+	make -C ../../compiler clean
 
 #
 # $Log$
-# Revision 1.6  1999-01-29 10:34:31  peter
+# Revision 1.7  1999-02-04 13:32:00  pierre
+#   * Several things added (I cannot commit them independently !)
+#   + added TBreakpoint and TBreakpointCollection
+#   + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+#   + Breakpoint list in INIFile
+#   * Select items now also depend of SwitchMode
+#   * Reading of option '-g' was not possible !
+#   + added search for -Fu args pathes in TryToOpen
+#   + added code for automatic opening of FileDialog
+#     if source not found
+#
+# Revision 1.6  1999/01/29 10:34:31  peter
 #   + needobjdir,needlibdir
 #
 # Revision 1.5  1999/01/28 19:58:23  peter

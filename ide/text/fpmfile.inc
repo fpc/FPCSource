@@ -80,10 +80,13 @@ begin
   OpenIt:=FileName<>'';
   if not OpenIt then
    begin
-     New(D, Init('*.pas','Open a file','*.pas',fdOpenButton,0));
+     New(D, Init(OpenFileLastExt,'Open a file','File to open',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
      if OpenIt then
-       D^.GetFileName(FileName);
+       Begin
+         D^.GetFileName(FileName);
+         OpenFileLastExt:=D^.WildCard;
+       End;
      Dispose(D, Done);
    end;
   if OpenIt then
@@ -91,6 +94,29 @@ begin
      FileName:=FExpand(LocatePasFile(FileName));
      OpenEditorWindow(nil,FileName,0,0);
    end;
+end;
+
+function TIDEApp.OpenSearch(FileName: string) : boolean;
+var D: PFileDialog;
+    OpenIt: boolean;
+begin
+  OpenIt:=False;
+  if not OpenIt then
+   begin
+     New(D, Init(FileName,'Open a file','File to open',fdOpenButton,0));
+     OpenIt:=Desktop^.ExecView(D)<>cmCancel;
+     if OpenIt then
+       Begin
+         D^.GetFileName(FileName);
+       End;
+     Dispose(D, Done);
+   end;
+  if OpenIt then
+   begin
+     FileName:=FExpand(LocatePasFile(FileName));
+     OpenEditorWindow(nil,FileName,0,0);
+   end;
+  OpenSearch:=OpenIt;
 end;
 
 
@@ -121,7 +147,18 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-02-02 16:41:41  peter
+  Revision 1.7  1999-02-04 13:32:05  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.6  1999/02/02 16:41:41  peter
     + automatic .pas/.pp adding by opening of file
     * better debuggerscreen changes
 

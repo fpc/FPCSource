@@ -42,6 +42,9 @@ uses
   Dos,Video,
   Objects,Drivers,Views,App,
   CompHook,
+{$ifdef go32v2}
+  FPRedir,
+{$endif def go32v2}
   FPConst,FPVars,FPUtils,FPIntf,FPSwitches;
 
 constructor TCompileStatusDialog.Init;
@@ -207,7 +210,15 @@ begin
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
 
+{$ifdef go32v2}
+  ChangeRedir('fp$$$.out',false);
+  ChangeErrorRedir('fp$$$.err',false);
+{$endif def go32v2}
   Compile(FileName);
+{$ifdef go32v2}
+  RestoreRedir;
+  RestoreErrorRedir;
+{$endif def go32v2}
 
   if status.errorCount=0
      then CompilationPhase:=cpDone
@@ -233,7 +244,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-01-21 11:54:11  peter
+  Revision 1.8  1999-02-04 13:32:01  pierre
+    * Several things added (I cannot commit them independently !)
+    + added TBreakpoint and TBreakpointCollection
+    + added cmResetDebugger,cmGrep,CmToggleBreakpoint
+    + Breakpoint list in INIFile
+    * Select items now also depend of SwitchMode
+    * Reading of option '-g' was not possible !
+    + added search for -Fu args pathes in TryToOpen
+    + added code for automatic opening of FileDialog
+      if source not found
+
+  Revision 1.7  1999/01/21 11:54:11  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
