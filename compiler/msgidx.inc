@@ -323,6 +323,7 @@ type tmsgconst=(
   cg_d_register_weight,
   cg_e_stacklimit_in_local_routine,
   cg_d_stackframe_omited,
+  cg_w_64bit_range_check_not_supported,
   cg_e_unable_inline_object_methods,
   cg_e_unable_inline_procvar,
   cg_e_no_code_for_inline_stored,

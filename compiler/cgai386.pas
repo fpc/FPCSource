@@ -2024,7 +2024,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     procedure emitrangecheck64(p : ptree;todef : pdef);
 
       begin
-         internalerror(28699);
+
+         CGMessage(cg_w_64bit_range_check_not_supported);
+         {internalerror(28699);}
       end;
 
      { produces if necessary rangecheckcode }
@@ -3715,7 +3717,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.74  2000-01-24 12:17:22  florian
+  Revision 1.75  2000-01-25 08:46:03  pierre
+   * Range check for int64 produces a warning only
+
+  Revision 1.74  2000/01/24 12:17:22  florian
     * some improvemenst to cmov support
     * disabled excpetion frame generation in cosntructors temporarily
 

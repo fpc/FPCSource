@@ -1187,6 +1187,8 @@ cg_e_stacklimit_in_local_routine=E_Stack limit excedeed in local routine
 cg_d_stackframe_omited=D_Stack frame is omitted
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
+cg_w_64bit_range_check_not_supported=W_Range check for 64 bit integers is not supported on this target
+% 64 bit range check is not yet implemented for 32 bit processors.
 cg_e_unable_inline_object_methods=E_Object or class methods can't be inline.
 % You cannot have inlined object methods.
 cg_e_unable_inline_procvar=E_Procvar calls can't be inline.
