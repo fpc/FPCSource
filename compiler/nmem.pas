@@ -323,7 +323,6 @@ implementation
     function taddrnode.det_resulttype:tnode;
       var
          hp  : tnode;
-         hp2 : TParavarsym;
          hp3 : tabstractprocdef;
       begin
         result:=nil;
@@ -436,7 +435,12 @@ implementation
                  tprocvardef(resulttype.def).calcparas;
               end
             else
-              resulttype:=voidpointertype;
+              begin
+                if assigned(tloadnode(left).left) then
+                  CGMessage(parser_e_illegal_expression)
+                else
+                  resulttype:=voidpointertype;
+              end;
           end
         else
           begin
@@ -996,7 +1000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2004-11-15 23:35:31  peter
+  Revision 1.90  2004-11-26 22:33:24  peter
+    * don't allow @method in tp procvar mode
+
+  Revision 1.89  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
