@@ -37,11 +37,12 @@ endif
 
 ifeq ($(GDB),1)
 override NEEDUNITDIR+=../../$(GDBINT)
-NEEDLIBDIR+=../../$(GDBINT)/libgdb
-NEEDOBJDIR+=../../$(GDBINT)/libgdb
+NEEDLIBDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
+NEEDOBJDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
 else
 override NEEDUNITDIR+=../fake/gdb
 endif
+
 
 # We need to link to libgcc
 NEEDGCCLIB=1
@@ -116,7 +117,6 @@ include $(FPCMAKE)
 testfpcmake:
 endif
 
-
 #####################################################################
 # Dependencies
 #####################################################################
@@ -154,7 +154,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.15  1999-07-06 15:49:54  peter
+# Revision 1.16  1999-10-08 15:34:11  pierre
+#  * adapted to target dependent libgdb dirs
+#
+# Revision 1.15  1999/07/06 15:49:54  peter
 #   * need gcc lib
 #
 # Revision 1.14  1999/03/16 00:47:00  peter
