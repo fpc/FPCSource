@@ -29,7 +29,7 @@ BuildRequires: fpc
 
 # The normal redhat rpm scripts does not recognize properly, what files to strip
 # Hook our own strip command
-%define __strip %{buildroot}/smart_strip.sh
+%define __strip %{_builddir}/%{name}-%{version}/smart_strip.sh
 
 
 %description
@@ -78,7 +78,7 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 
 	make demo_install ${INSTALLOPTS} INSTALL_SOURCEDIR=%{buildexampledir}
 	make doc_install ${INSTALLOPTS}
-	make man_install ${INSTALLOPTS} INSTALL_PREFIX=%{buildmandir}
+	make man_install ${INSTALLOPTS} INSTALL_MANDIR=%{buildmandir}
 	
 if [ -z ${NODOCS} ]; then
 	make -C docs pdfinstall DOCINSTALLDIR=%{builddocdir}
