@@ -322,6 +322,7 @@ type
     function newasmsymbol(const s : string) : pasmsymbol;
     function getasmsymbol(const s : string) : pasmsymbol;
     function renameasmsymbol(const sold, snew : string) : pasmsymbol;
+    procedure ResetAsmsymbolList;
 
   { label functions }
     const
@@ -864,6 +865,26 @@ uses
       end;
 
 
+    procedure ResetAsmSym(p:Pnamed_object);{$ifndef FPC}far;{$endif}
+      begin
+        pasmsymbol(p)^.idx:=0;
+        pasmsymbol(p)^.section:=sec_none;
+        pasmsymbol(p)^.address:=0;
+        pasmsymbol(p)^.size:=0;
+        pasmsymbol(p)^.typ:=AS_NONE;
+      end;
+
+
+    procedure ResetAsmsymbolList;
+      begin
+        {$ifdef tp}
+        asmsymbollist^.foreach(resetasmsym);
+        {$else}
+        asmsymbollist^.foreach(@resetasmsym);
+        {$endif}
+      end;
+
+
 {*****************************************************************************
                               Label Helpers
 *****************************************************************************}
@@ -966,6 +987,10 @@ uses
       end;
 
 
+{*****************************************************************************
+                                 TAAsmOutput
+*****************************************************************************}
+
     function taasmoutput.getlasttaifilepos : pfileposinfo;
       begin
          if assigned(last) then
@@ -977,7 +1002,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.34  1999-03-03 11:59:27  pierre
+  Revision 1.35  1999-03-05 13:09:48  peter
+    * first things for tai_cut support for ag386bin
+
+  Revision 1.34  1999/03/03 11:59:27  pierre
    + getasmsymbol to search for existing assembler symbol only
 
   Revision 1.33  1999/03/02 02:56:08  peter
