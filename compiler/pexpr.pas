@@ -88,7 +88,6 @@ implementation
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):tnode;forward;
 
     const
-      allow_type : boolean = true;
       got_addrn  : boolean = false;
       auto_inherited : boolean = false;
 
@@ -282,9 +281,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              {allow_type:=true;}
               p1:=comp_expr(true);
-              {allow_type:=false; }
               if p1.nodetype<>typen then
                 begin
                    p1.destroy;
@@ -359,9 +356,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              {allow_type:=true;}
               p1:=comp_expr(true);
-              {allow_type:=false;}
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -1139,14 +1134,7 @@ implementation
                                  end;
                               end
                              else
-                              begin
-                                { generate a type node }
-                                { (for typeof etc)     }
-                                if allow_type then
-                                 p1:=ctypenode.create(htype)
-                                else
-                                 Message(parser_e_no_type_not_allowed_here);
-                              end;
+                              p1:=ctypenode.create(htype);
                            end;
                         end;
                      end;
@@ -1680,9 +1668,7 @@ implementation
              begin
                consume(_NEW);
                consume(_LKLAMMER);
-               {allow_type:=true;}
                p1:=factor(false);
-               {allow_type:=false;}
                if p1.nodetype<>typen then
                 begin
                   Message(type_e_type_id_expected);
@@ -2322,7 +2308,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-05-04 15:52:03  florian
+  Revision 1.32  2001-05-09 19:52:51  peter
+    * removed unused allow_type
+
+  Revision 1.31  2001/05/04 15:52:03  florian
     * some Delphi incompatibilities fixed:
        - out, dispose and new can be used as idenfiers now
        - const p = apointerype(nil); is supported now
