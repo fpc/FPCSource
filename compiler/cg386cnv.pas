@@ -1099,6 +1099,17 @@ implementation
          getlabel(truelabel);
          getlabel(falselabel);
          secondpass(pfrom);
+{$ifndef OLDBOOL}
+         { byte(boolean) or word(wordbool) or longint(longbool) must
+         be accepted for var parameters }
+         if (pto^.explizit) and
+            (pfrom^.resulttype^.size=pto^.resulttype^.size) and
+            (pfrom^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+           begin
+              set_location(pto^.location,pfrom^.location);
+              exit;
+           end;
+{$endif ndef OLDBOOL}
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
          del_reference(pfrom^.location.reference);
@@ -1205,6 +1216,17 @@ implementation
         hregister : tregister;
       begin
          clear_location(pto^.location);
+{$ifndef OLDBOOL}
+         { byte(boolean) or word(wordbool) or longint(longbool) must
+         be accepted for var parameters }
+         if (pto^.explizit) and
+            (pfrom^.resulttype^.size=pto^.resulttype^.size) and
+            (pfrom^.location.loc in [LOC_REGISTER,LOC_MEM,LOC_CREGISTER]) then
+           begin
+              set_location(pto^.location,pfrom^.location);
+              exit;
+           end;
+{$endif ndef OLDBOOL}
          pto^.location.loc:=LOC_REGISTER;
          del_reference(pfrom^.location.reference);
          case pfrom^.location.loc of
@@ -1570,7 +1592,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-01-27 00:13:53  florian
+  Revision 1.47  1999-01-27 12:59:32  pierre
+  tccnv.pas
+
+  Revision 1.46  1999/01/27 00:13:53  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.45  1999/01/21 22:10:36  peter
