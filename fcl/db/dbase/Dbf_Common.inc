@@ -5,7 +5,9 @@
 
 // enables assembler routines, 486+ only
 
-{$define USE_ASSEMBLER_486_UP}
+{$ifdef cpui386}
+  {$define USE_ASSEMBLER_486_UP}
+{$endif cpui386}  
 
 // test compatibility
 

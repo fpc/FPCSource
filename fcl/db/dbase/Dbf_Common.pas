@@ -101,7 +101,7 @@ function GetFreeMemory: Integer;
 
 // OH 2000-11-15 dBase7 support. Swap Byte order for 4 and 8 Byte Integer
 function SwapInt(const Value: Cardinal): Cardinal;
-procedure SwapInt64(Value, Result: Pointer); pascal;
+procedure SwapInt64(Value, Result: Pointer); {$ifdef USE_ASSEMBLER_486_UP}pascal;{$endif}
 
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
 
@@ -425,7 +425,7 @@ begin
   PByteArray(@Result)[3] := PByteArray(@Value)[0];
 end;
 
-procedure SwapInt64(Value, Result: Pointer); pascal;
+procedure SwapInt64(Value, Result: Pointer); 
 var
   PtrResult: PByteArray;
   PtrSource: PByteArray;
