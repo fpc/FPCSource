@@ -566,12 +566,19 @@ End.
 
 {
  $Log$
- Revision 1.13  1998-11-09 19:33:39  jonas
-   * changed specific bugfix (which was actually wrong implemented, but did the
-     right thing in most cases nevertheless) to general bugfix
+ Revision 1.14  1998-11-09 19:40:48  jonas
+   * fixed comments from last commit (apparently there's still a 255 char limit :( )
+
+ Revision 1.13  1998/11/09 19:33:39  jonas
+   * changed specific bugfix (which was actually wrong implemented, but
+     did the right thing in most cases nevertheless) to general bugfix
    * fixed bug that caused
      mov (ebp), edx                                    mov (ebp), edx
-     mov (edx), edx
+     mov (edx), edx                                    mov (edx), edx
+     ...                   being changed to            ...
+     mov (ebp), edx                                    mov edx, eax
+     mov (eax), eax
+     but this disabled another small correct optimization...
 
  Revision 1.12  1998/10/20 09:32:54  peter
    * removed some unused vars

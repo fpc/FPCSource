@@ -2007,13 +2007,19 @@ End.
 
 {
  $Log$
- Revision 1.22  1998-11-09 19:33:40  jonas
-   * changed specific bugfix (which was actually wrong implemented, but did the
-     right thing in most cases nevertheless) to general bugfix
+ Revision 1.23  1998-11-09 19:40:46  jonas
+   * fixed comments from last commit (apparently there's still a 255 char limit :( )
+
+ Revision 1.22  1998/11/09 19:33:40  jonas
+   * changed specific bugfix (which was actually wrong implemented, but
+     did the right thing in most cases nevertheless) to general bugfix
    * fixed bug that caused
      mov (ebp), edx                                    mov (ebp), edx
-     mov (edx), edx
-
+     mov (edx), edx                                    mov (edx), edx
+     ...                   being changed to            ...
+     mov (ebp), edx                                    mov edx, eax
+     mov (eax), eax
+     but this disabled another small correct optimization...
  Revision 1.21  1998/11/02 23:17:49  jonas
    * fixed bug shown in sortbug program from fpc-devel list
 
