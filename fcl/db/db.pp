@@ -769,6 +769,7 @@ type
     FRecordCount: Longint;
     FRecordSize: Word;
     FState: TDataSetState;
+    Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
     Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
@@ -776,7 +777,8 @@ type
     Procedure RemoveField (Field : TField);
     Procedure SetActive (Value : Boolean);
     Procedure SetField (Index : Longint;Value : TField);
-    Procedure ShiftBuffers (Distance : Longint);
+    Procedure ShiftBuffers (Offset,Distance : Longint);
+    Function  TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
     Procedure UpdateFieldDefs;
   protected
     procedure ActivateBuffers; virtual;
@@ -1256,7 +1258,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-11-09 13:33:47  peter
+  Revision 1.4  1999-11-11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.3  1999/11/09 13:33:47  peter
     * reallocmem fixes
 
   Revision 1.2  1999/10/24 17:07:54  michael

@@ -2,6 +2,8 @@ unit DDG_Rec;
 
 interface
 
+uses sysutils;
+
 type
 
   // arbitary-length array of char used for name field
@@ -12,7 +14,13 @@ type
   TDDGData = record
     Name: TNameStr;
     Height: Extended;
-    ShoeSize: Integer;
+    LongField : Longint;
+    ShoeSize: SmallInt;
+    WordField : Word;
+    DatetimeField : TDateTime;
+    TimeField : TDateTime;
+    DateField : TDateTime;
+    Even : Boolean;
   end;
 
   // Pascal file of record which holds "table" data:

@@ -1030,6 +1030,7 @@ constructor TBooleanField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
+  SetDataType(ftBoolean);
   DisplayValues:='True;False';
 end;
 
@@ -1734,7 +1735,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-10-24 17:07:54  michael
+  Revision 1.3  1999-11-11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.2  1999/10/24 17:07:54  michael
   + Added copyright header
 
 }

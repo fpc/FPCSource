@@ -16,6 +16,8 @@
  **********************************************************************}
 program createds;
 
+{$mode delphi}
+
 uses ddg_rec,sysutils;
 
 Type IndexFile = File Of Longint;
@@ -41,9 +43,18 @@ begin
   For I:=1 to 100 do
     begin
     S:=Format('This is person %d.',[i]);
-    ARec.Name:=S; 
-    ARec.ShoeSize:=I;
-    ARec.height:=I*0.001;
+    With Arec Do 
+      begin
+      Name:=S; 
+      height:=I*0.001;
+      LongField:=i*4;
+      ShoeSize:=I;
+      WordField:=i*2;
+      DateTimeField:=Now;
+      TimeField:=Time;
+      DateField:=Date;
+      Even:=(I mod 2) = 0
+      end;
     Write(F,ARec);
     end;
   Close(F);
@@ -55,7 +66,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-10-24 17:07:54  michael
+  Revision 1.3  1999-11-11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.2  1999/10/24 17:07:54  michael
   + Added copyright header
 
 }

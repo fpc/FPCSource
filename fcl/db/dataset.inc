@@ -272,10 +272,22 @@ begin
   FDefaultFields:=FieldCount=0;
   DoBeforeOpen;
   Try
+    {$ifdef dsdebug}
+    Writeln ('Calling internal open');
+    {$endif}
     InternalOpen;
     FBOF:=True;
+    {$ifdef dsdebug}
+    Writeln ('Setting state to browse');
+    {$endif}
     SetState(dsBrowse);
+    {$ifdef dsdebug}
+    Writeln ('Setting buffer size');
+    {$endif}
     SetBufListSize(DefaultBufferCount);
+    {$ifdef dsdebug}
+    Writeln ('Getting next records');
+    {$endif}
     GetNextRecords;
     DoAfterOpen;
     DoAfterScroll;
@@ -366,7 +378,7 @@ end;
 function TDataset.GetCanModify: Boolean;
 
 begin
-  //!! To be implemented
+  Result:=True;
 end;
 
 procedure TDataset.GetChildren(Proc: TGetChildProc; Root: TComponent);
@@ -416,9 +428,9 @@ begin
   Case FieldType of
      ftUnknown : Result:=Tfield;
      ftString: Result := TStringField;
-     ftSmallint: Result := TLongIntField;
+     ftSmallint: Result := TSmallIntField;
      ftInteger: Result := TLongintField;
-     ftWord: Result := TLongintField;
+     ftWord: Result := TWordField;
      ftBoolean: Result := TBooleanField;
      ftFloat: Result := TFloatField;
      ftDate: Result := TDateField;
@@ -455,7 +467,7 @@ begin
   Shifted:=FRecordCount=FBufferCount;
   If Shifted then
     begin
-    ShiftBuffers(1);
+    ShiftBuffers(0,1);
     Dec(FRecordCount);
     end;
 {$ifdef dsdebug}
@@ -475,7 +487,7 @@ begin
     begin
     if shifted then
       begin
-      ShiftBuffers(-1);
+      ShiftBuffers(0,-1);
       inc(FRecordCount);
       end;
     CursorPosChanged;
@@ -511,7 +523,7 @@ begin
   If Shifted Then
     begin
     SetCurrentRecord(0);
-    ShiftBuffers(-1);
+    ShiftBuffers(0,-1);
     end;
   Result:=GetRecord(FBuffers[0],gmPrior,True)=grOK;
   If Result then
@@ -529,7 +541,7 @@ begin
     begin
     If Shifted then
       begin
-      ShiftBuffers(1);
+      ShiftBuffers(0,1);
       end;
     CursorPosChanged;
     end;
@@ -641,11 +653,26 @@ begin
     Value:=I;
   If Value>FBufferCount then
     begin
+   {$ifdef dsdebug}
+    Writeln ('Reallocating memory :',(Value+1)*SizeOf(PChar));
+   {$endif}
     ReAllocMem(FBuffers,(Value+1)*SizeOf(PChar));
-    FillChar(FBuffers[FBufferCount+1],(Value-FBufferCount)*SizeOF(Pchar),#0);
+   {$ifdef dsdebug}
+    Writeln ('Filling memory :',(Value-FBufferCount)*SizeOf(PChar));
+   {$endif}
+    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(Pchar),#0);
+   {$ifdef dsdebug}
+    Writeln ('Filled memory :');
+   {$endif}
     Try
+     {$ifdef dsdebug}
+      Writeln ('Assigning buffers :',(Value+1)*SizeOf(PChar));
+     {$endif}
       For I:=FBufferCount to Value do
         FBuffers[i]:=AllocRecordBuffer;
+     {$ifdef dsdebug}
+      Writeln ('Assigned buffers :',(Value+1)*SizeOf(PChar));
+     {$endif}
     except
       I:=FBufferCount;
       While (I<=Value) and (FBuffers[i]<>Nil) do
@@ -676,7 +703,9 @@ procedure TDataset.SetCurrentRecord(Index: Longint);
 begin
   If FCurrentRecord<>Index then
     begin
+    {$ifdef DSdebug}
     Writeln ('Setting current record to',index);
+    {$endif}
     Case GetBookMarkFlag(FBuffers[Index]) of
       bfCurrent : InternalSetToRecord(FBuffers[Index]);
       bfBOF : InternalFirst;
@@ -788,13 +817,11 @@ end;
 
 procedure TDataset.Append;
 
-
 begin
-  //!! To be implemented
+  DoInsertAppend(True);
 end;
 
 procedure TDataset.AppendRecord(const Values: array of const);
-
 
 begin
   //!! To be implemented
@@ -838,13 +865,11 @@ end;
 
 procedure TDataset.Close;
 
-
 begin
   Active:=False;
 end;
 
 function TDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
-
 
 begin
   Result:=0;
@@ -878,11 +903,76 @@ begin
   //!! To be implemented
 end;
 
+procedure TDataset.DoInsertAppend(DoAppend : Boolean);
+
+Var Buffer : PChar;
+    BookBeforeInsert : TBookmarkStr;
+begin
+  If Not CanModify then
+    DatabaseError(SDatasetReadOnly,Self);
+  CheckBrowseMode;
+  DoBeforeInsert;
+  DoBeforeScroll;
+  If Not DoAppend then 
+    begin
+    // need to scroll up al buffers after current one,
+    // but copy current bookmark to insert buffer.
+    BookBeforeInsert:=Bookmark;
+    ShiftBuffers(FActiveRecord,1);
+    // Active buffer is now edit buffer. Initialize.
+    InitRecord(ActiveBuffer);
+    // Put bookmark in edit buffer.
+    if FRecordCount=0 then
+      SetBookmarkFlag(ActiveBuffer,bfBOF)
+    else
+      SetBookMarkData(ActiveBuffer,Pointer(BookBeforeInsert));
+    // update buffer count.
+    If FRecordCount<FBufferCount then 
+      Inc(FRecordCount);
+    end
+  else
+    // Tricky, need to get last record and scroll down.
+    begin
+    Buffer:=FBuffers[0];
+    InitRecord(Buffer);
+    // just mark buffer as last. GetPreviousrecords will do an internallast
+    // Because of this...
+    SetBookMarkFlag(Buffer,bfEOF);
+    FRecordCount:=1;
+    GetPriorRecords;
+    end;
+  SetState(dsInsert);
+  try 
+    DoOnNewRecord;
+  except
+    UpdateCursorPos;
+    resync([]);
+    raise;
+  end;
+  // mark as not modified.
+  FModified:=False;
+  // Final events.
+  DoAfterInsert;
+  DoAfterScroll;
+end;
+
 procedure TDataset.Edit;
 
-
 begin
-  //!! To be implemented
+  If Not CanModify then
+    DatabaseError(SDatasetReadOnly,Self);
+  If State in [dsedit,dsinsert] then exit;
+  If FRecordCount = 0 then
+    begin
+    Insert;
+    Exit;
+    end;
+  CheckBrowseMode;
+  DoBeforeEdit;
+  If Not TryDoing(@InternalEdit,OnEditError) then 
+    exit;
+  SetState(dsedit);
+  DoAfterEdit;
 end;
 
 procedure TDataset.EnableControls;
@@ -1009,9 +1099,8 @@ end;
 
 procedure TDataset.Insert;
 
-
 begin
-  //!! To be implemented
+  DoInsertAppend(False);
 end;
 
 procedure TDataset.InsertRecord(const Values: array of const);
@@ -1185,7 +1274,7 @@ begin
     // keep current position.
     ShiftCount:=FActiveRecord;
   // Reposition on 0
-  ShiftBuffers(FRecordCount-1);
+  ShiftBuffers(0,FRecordCount-1);
   ActivateBuffers;
   Count:=0;
   Writeln ('Getting previous',ShiftCount,' records');
@@ -1215,6 +1304,32 @@ begin
   //!! To be implemented
 end;
 
+Function  Tdataset.TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
+
+Var Retry : TDataAction;
+
+begin
+  Result:=True;
+  Retry:=daRetry;
+  while Retry=daRetry do
+    Try 
+      P;
+    except
+      On E : EDatabaseError do 
+        begin
+        retry:=daFail;
+        If Assigned(Ev) then
+          Ev(Self,E,Retry);
+        Case Retry of
+          daFail : Raise;
+          daAbort : Result:=False;
+        end;
+        end;
+    else
+      Raise;  
+    end;
+end;
+
 procedure TDataset.UpdateCursorPos;
 
 begin
@@ -1239,7 +1354,7 @@ begin
   Result:=FFieldList.Count;
 end;
 
-Procedure TDataset.ShiftBuffers (Distance : longint);
+Procedure TDataset.ShiftBuffers (Offset, Distance : longint);
 
 Var Temp : Pointer;
     MoveSize : Longint;
@@ -1247,12 +1362,12 @@ Var Temp : Pointer;
   Procedure ShiftBuffersUp;
   begin
     {$ifdef DSDEBUG}
-    writeln ('Shifting buffers up with distance :',Distance);
+    writeln ('Shifting buffers up from ',OffSet,' with distance :',Distance);
     writeln ('Moving ',(FBufferCount-Distance), ' Buffers at ',Distance);
     {$endif}
-    Move(FBuffers[0],Temp^,MoveSize);
-    Move(FBuffers[Distance],FBuffers[0],(FBufferCount-Distance)*SizeOf(Pchar));
-    Move(Temp^,FBuffers[FBufferCount-Distance],MoveSize);
+    Move(FBuffers[Offset],Temp^,MoveSize);
+    Move(FBuffers[Offset+Distance],FBuffers[Offset],(FBufferCount-Distance-Offset)*SizeOf(Pchar));
+    Move(Temp^,FBuffers[FBufferCount-Distance-Offset],MoveSize);
   end;
 
   Procedure ShiftBuffersDown;
@@ -1284,7 +1399,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-11-09 13:33:47  peter
+  Revision 1.4  1999-11-11 17:31:09  michael
+  + Added Checks for all simple field types.
+  + Initial implementation of Insert/Append
+
+  Revision 1.3  1999/11/09 13:33:47  peter
     * reallocmem fixes
 
   Revision 1.2  1999/10/24 17:07:54  michael

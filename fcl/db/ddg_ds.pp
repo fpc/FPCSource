@@ -1,5 +1,7 @@
 unit DDG_DS;
 
+{$define dsdebug}
+
 interface
 
 uses Db, Classes, DDG_Rec;
@@ -251,7 +253,13 @@ begin
         Result := PChar(Buffer)^ <> #0;
       end;
     1: Move(PDDGData(ActiveBuffer)^.Height, Buffer^, Field.DataSize);
-    2: Move(PDDGData(ActiveBuffer)^.ShoeSize, Buffer^, Field.DataSize);
+    2: Move(PDDGData(ActiveBuffer)^.LongField, Buffer^, Field.DataSize);
+    3: Move(PDDGData(ActiveBuffer)^.ShoeSize, Buffer^, Field.DataSize);
+    4: Move(PDDGData(ActiveBuffer)^.WordField, Buffer^, Field.DataSize);
+    5: Move(PDDGData(ActiveBuffer)^.DateTimeField, Buffer^, Field.DataSize);
+    6: Move(PDDGData(ActiveBuffer)^.TimeField, Buffer^, Field.DataSize);
+    7: Move(PDDGData(ActiveBuffer)^.DateField, Buffer^, Field.DataSize);
+    8: Move(PDDGData(ActiveBuffer)^.Even, Buffer^, Field.DataSize);
   end;
 end;
 
@@ -308,7 +316,13 @@ begin
   FieldDefs.Clear;
   TFieldDef.Create(FieldDefs, 'Name', ftString, SizeOf(TNameStr), False, 1);
   TFieldDef.Create(FieldDefs, 'Height', ftFloat, 0, False, 2);
-  TFieldDef.Create(FieldDefs, 'ShoeSize', ftInteger, 0, False, 3);
+  TFieldDef.Create(FieldDefs, 'LongField',ftInteger, 0, False, 3);
+  TFieldDef.Create(FieldDefs, 'ShoeSize', ftSmallint, 0, False, 4);
+  TFieldDef.Create(FieldDefs, 'WordField', ftword, 0, false, 5);
+  TFieldDef.Create(FieldDefs, 'DateTimeField', ftDateTime, 0, false, 6);
+  TFieldDef.Create(FieldDefs, 'TimeField',ftTime, 0, false, 7);
+  TFieldDef.Create(FieldDefs, 'DateField',ftDate, 0, false, 8);
+  TFieldDef.Create(FieldDefs, 'Booleanfield',ftboolean, 0, False, 9); 
 end;
 
 procedure TDDGDataSet.InternalLast;
@@ -396,13 +410,25 @@ begin
     BookmarkSize := SizeOf(Integer);   // initialize bookmark size for VCL
     InternalInitFieldDefs;             // initialize FieldDef objects
     // Create TField components when no persistent fields have been created
+    {$ifdef dsdebug}
+    writeln ('Creating Fields');
+    {$endif}
     if DefaultFields then CreateFields;
+    {$ifdef dsdebug}
+    writeln ('Binding Fields');
+    {$endif}
     BindFields(True);                  // bind FieldDefs to actual data
   except
+    {$ifdef dsdebug}
+    Writeln ('Caught Exception !!');
+    {$endif}
     CloseFile(FDataFile);
     FillChar(FDataFile, SizeOf(FDataFile), 0);
     raise;
   end;
+ {$ifdef dsdebug}
+  Writeln ('End of internalopen');
+ {$endif}
 end;
 
 procedure TDDGDataSet.InternalPost;
