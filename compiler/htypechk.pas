@@ -695,6 +695,7 @@ implementation
         gotwith,
         gotsubscript,
         gotpointer,
+        gotvec,
         gotclass,
         gotderef : boolean;
         fromdef,
@@ -702,6 +703,7 @@ implementation
       begin
         valid_for_assign:=false;
         gotsubscript:=false;
+        gotvec:=false;
         gotderef:=false;
         gotclass:=false;
         gotpointer:=false;
@@ -790,7 +792,11 @@ implementation
                  end;
                  hp:=ttypeconvnode(hp).left;
                end;
-             vecn,
+             vecn :
+               begin
+                 gotvec:=true;
+                 hp:=tunarynode(hp).left;
+               end;
              asn :
                hp:=tunarynode(hp).left;
              subscriptn :
@@ -834,6 +840,17 @@ implementation
                begin
                  { check return type }
                  case hp.resulttype.def.deftype of
+                   arraydef :
+                     begin
+                       { dynamic arrays are allowed when there is also a
+                         vec node }
+                       if is_dynamic_array(hp.resulttype.def) and
+                          gotvec then
+                        begin
+                          gotderef:=true;
+                          gotpointer:=true;
+                        end;
+                     end;
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
@@ -958,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2002-10-05 00:47:03  peter
+  Revision 1.50  2002-10-07 20:12:08  peter
+    * ugly hack to fix tb0411
+
+  Revision 1.49  2002/10/05 00:47:03  peter
     * support dynamicarray<>nil
 
   Revision 1.48  2002/10/04 21:13:59  peter
