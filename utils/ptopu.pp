@@ -474,11 +474,12 @@ Function ReadChar (S : PStream) : Char;
 Var C : Char;
 
 begin
-  S^.Read(C,1);
-  If S^.Status=stReadError then
-    ReadChar:=#0
-  else
-    ReadChar:=C;
+  repeat
+    S^.Read(C,1);
+    If S^.Status=stReadError then
+      C:=#0;
+  Until C<>#13;
+  ReadChar:=C;
 end;
 
 Function EoSLn (S : PStream) : Char;
@@ -1187,7 +1188,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-05-12 16:11:39  peter
+  Revision 1.2  1999-05-31 10:08:36  michael
+  * Fix by Marco van de Voort to enable #13#10
+
+  Revision 1.1  1999/05/12 16:11:39  peter
     * moved
 
   Revision 1.4  1999/05/03 18:03:15  peter
