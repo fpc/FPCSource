@@ -45,6 +45,9 @@ interface
           function  pass_1 : tnode;override;
           function  det_resulttype:tnode;override;
           function  docompare(p: tnode): boolean; override;
+       {$ifdef extdebug}
+          procedure dowrite;override;
+       {$endif}
        end;
        tloadnodeclass = class of tloadnode;
 
@@ -400,6 +403,13 @@ implementation
           (symtableentry = tloadnode(p).symtableentry) and
           (symtable = tloadnode(p).symtable);
       end;
+    
+    procedure Tloadnode.dowrite;
+    
+    begin
+	inherited dowrite;
+	write('[',symtableentry.name,']');
+    end;
 
 
 {*****************************************************************************
@@ -983,7 +993,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-07-19 11:41:36  daniel
+  Revision 1.47  2002-07-19 12:55:27  daniel
+  * Further developed state tracking in whilerepeatn
+
+  Revision 1.46  2002/07/19 11:41:36  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

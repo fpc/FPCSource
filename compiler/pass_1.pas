@@ -197,15 +197,15 @@ implementation
       begin
          codegenerror:=false;
          firstpass(p);
-	     {$ifdef state_tracking}
-	         writeln('TRACKSTART');
-		 writeln('before');
-		        writenode(p);
-	    	        do_track_state_pass(p);
-		writeln('after');
-			writenode(p);
-		writeln('TRACKDONE');
-	     {$endif}
+{$ifdef state_tracking}
+         writeln('TRACKSTART');
+	 writeln('before');
+         writenode(p);
+         do_track_state_pass(p);
+         writeln('after');
+	 writenode(p);
+	 writeln('TRACKDONE');
+{$endif}
          do_firstpass:=codegenerror;
       end;
       
@@ -222,7 +222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-07-19 11:41:36  daniel
+  Revision 1.27  2002-07-19 12:55:27  daniel
+  * Further developed state tracking in whilerepeatn
+
+  Revision 1.26  2002/07/19 11:41:36  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

@@ -367,14 +367,23 @@ implementation
 	code:Tnode;
 	done:boolean;
 	value:boolean;
+	change:boolean;
+	factval:Tnode;
     
     begin
 	track_state_pass:=false;
 	done:=false;
-	writeln('Oeps!');
 	repeat
 	    condition:=left.getcopy;
-	    if condition.track_state_pass(exec_known) then
+	    change:=condition.track_state_pass(exec_known);
+	    factval:=aktstate.find_fact(left);
+	    if factval<>nil then
+		begin
+		    condition.destroy;
+		    condition:=factval.getcopy;
+		    change:=true;
+		end;
+	    if change then
 		begin
 		    track_state_pass:=true;
 		    {Force new resulttype pass.}
@@ -384,7 +393,7 @@ implementation
 	    code:=right.getcopy;
 	    if is_constboolnode(condition) then
 		begin
-		    value:=Tordconstnode(condition).value<>0;
+		    value:=(Tordconstnode(condition).value<>0) xor checknegate;
 		    if value then
 			begin
 			    if code.track_state_pass(exec_known) then
@@ -418,7 +427,7 @@ implementation
     		condition.resulttype.def:=nil;
 		do_resulttypepass(condition);
 	    end;
-	aktstate.store_fact(condition,cordconstnode.create(0,booltype));
+	aktstate.store_fact(condition,cordconstnode.create(byte(checknegate),booltype));
     end;
 {$endif}
 
@@ -1204,7 +1213,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-07-19 11:41:35  daniel
+  Revision 1.39  2002-07-19 12:55:27  daniel
+  * Further developed state tracking in whilerepeatn
+
+  Revision 1.38  2002/07/19 11:41:35  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into
