@@ -221,7 +221,7 @@ begin
     begin
       DeleteObject(TheFont);
       TheColor := ChooseFontRec.rgbColors;
-      TheFont  := CreateFontIndirect(TheLogFont);
+      TheFont  := CreateFontIndirect(@TheLogFont);
       SendMessage(HEdit,WM_SETFONT,TheFont,1);
     end;
 end;
@@ -363,7 +363,7 @@ Begin
           Strcopy(lfFaceName,'Courier New');    // pointer to typeface name string
         end;
       TheColor := GetSysColor(COLOR_WINDOWTEXT);
-      TheFont  := CreateFontIndirect(TheLogFont);
+      TheFont  := CreateFontIndirect(@TheLogFont);
       SendMessage(HEdit,WM_SETFONT,TheFont,1);
       ShowWindow(Hedit,SW_Show);
       UpdateWindow(HEdit);
@@ -461,7 +461,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-02-27 21:07:58  florian
+  Revision 1.3  2000-07-11 08:51:05  michael
+  + Fixed Font handling
+
+  Revision 1.2  2000/02/27 21:07:58  florian
     * updated version from Goran and Morton
 
   Revision 1.1  2000/02/20 20:33:37  florian
