@@ -49,7 +49,6 @@ unit cgx86;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
-
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_ref(list : taasmoutput;const ref : treference);override;
         procedure a_call_reg(list : taasmoutput;reg : tregister);override;
@@ -75,7 +74,7 @@ unit cgx86;
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         { fpu move instructions }
-        procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
+        procedure a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
 
@@ -426,11 +425,9 @@ unit cgx86;
 
 
     procedure tcgx86.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
-
       var
         tmpreg: tregister;
         baseno,indexno:boolean;
-
       begin
         if not((r.segment.enum=R_NO) or ((r.segment.enum=R_INTREGISTER) and (r.segment.number=NR_NO))) then
           CGMessage(cg_e_cant_use_far_pointer_there);
@@ -466,14 +463,14 @@ unit cgx86;
           end;
       end;
 
-    procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
 
+    procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
       begin
         list.concat(taicpu.op_sym(A_CALL,S_NO,objectlibrary.newasmsymbol(s)));
       end;
 
-    procedure tcgx86.a_call_ref(list : taasmoutput;const ref : treference);
 
+    procedure tcgx86.a_call_ref(list : taasmoutput;const ref : treference);
       begin
         list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
       end;
@@ -575,7 +572,7 @@ unit cgx86;
 
     { all fpu load routines expect that R_ST[0-7] means an fpu regvar and }
     { R_ST means "the current value at the top of the fpu stack" (JM)     }
-    procedure tcgx86.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister);
+    procedure tcgx86.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister);
 
        begin
          if (reg1.enum <> R_ST) then
@@ -603,7 +600,7 @@ unit cgx86;
          if reg.enum>lastreg then
             internalerror(200301081);
          if (reg.enum <> R_ST) then
-           a_loadfpu_reg_reg(list,rst,reg);
+           a_loadfpu_reg_reg(list,size,rst,reg);
        end;
 
 
@@ -616,7 +613,7 @@ unit cgx86;
          if reg.enum>lastreg then
             internalerror(200301081);
          if reg.enum <> R_ST then
-           a_loadfpu_reg_reg(list,reg,rst);
+           a_loadfpu_reg_reg(list,size,reg,rst);
          floatstore(list,size,ref);
        end;
 
@@ -1935,7 +1932,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.56  2003-06-14 14:53:50  jonas
+  Revision 1.57  2003-07-03 18:59:25  peter
+    * loadfpu_reg_reg size specifier
+
+  Revision 1.56  2003/06/14 14:53:50  jonas
     * fixed newra cycle for x86
     * added constants for indicating source and destination operands of the
       "move reg,reg" instruction to aasmcpu (and use those in rgobj)
