@@ -617,13 +617,19 @@ const
            (hp.name^>hp2.name^) do
           hp2:=texported_item(hp2.next);
         { insert hp there !! }
-        if assigned(hp2) and (hp2.name^=hp.name^) then
+        if hp2=nil then
+          current_module._exports.concat(hp)
+        else
           begin
-             { this is not allowed !! }
-             message1(parser_e_export_name_double,hp.name^);
-             exit;
+            if hp2.name^=hp.name^ then
+              begin
+                { this is not allowed !! }
+                message1(parser_e_export_name_double,hp.name^);
+                exit;
+              end;
+            current_module._exports.insertbefore(hp,hp2);
           end;
-        if hp2=texported_item(current_module._exports.first) then
+{        if hp2=texported_item(current_module._exports.first) then
           current_module._exports.concat(hp)
         else if assigned(hp2) then
           begin
@@ -634,7 +640,7 @@ const
              hp2.previous:=hp;
           end
         else
-          current_module._exports.concat(hp);
+          current_module._exports.concat(hp);}
       end;
 
 
@@ -757,10 +763,12 @@ const
               current_module._exports.remove(hp);
               hp2:=texported_item(temtexport.first);
               while assigned(hp2) and (hp.index>hp2.index) do
-                begin
-                   hp2:=texported_item(hp2.next);
-                end;
-              if hp2=texported_item(temtexport.first) then
+                hp2:=texported_item(hp2.next);
+              if hp2=nil then
+                temtexport.concat(hp)
+              else
+                temtexport.insertbefore(hp,hp2);
+{              if hp2=texported_item(temtexport.first) then
                  temtexport.insert(hp)
               else
                 begin
@@ -774,7 +782,7 @@ const
                       end
                     else
                       temtexport.concat(hp);
-                end;
+                end;}
               hp:=texported_item(current_module._exports.first);;
            end;
 
@@ -1622,7 +1630,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2003-12-09 19:54:59  marco
+  Revision 1.26  2004-01-09 13:36:26  daniel
+    * Export table generation fixed according to instructions from Pierre
+
+  Revision 1.25  2003/12/09 19:54:59  marco
    * base-file instead of base_file
 
   Revision 1.24  2003/12/08 22:37:04  peter
