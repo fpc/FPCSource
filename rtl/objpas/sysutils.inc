@@ -242,7 +242,11 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
+{$ifdef VER1_0}
   Raise E at longint(Address){$ifdef ENHANCEDRAISE},longint(Frame){$endif};
+{$else VER1_0}
+  Raise E at Address{$ifdef ENHANCEDRAISE},Frame){$endif};
+{$endif VER1_0}
 end;
 
 
@@ -352,7 +356,11 @@ end;
 procedure Abort;
 
 begin
-  Raise EAbort.Create(SAbortError) at Get_Caller_addr(Get_Frame)
+{$ifdef VER1_0}
+  Raise EAbort.Create(SAbortError) at Get_Caller_addr(Get_Frame);
+{$else VER1_0}
+  Raise EAbort.Create(SAbortError) at Pointer(Get_Caller_addr(Get_Frame));
+{$endif VER1_0}
 end;
 
 procedure OutOfMemoryError;
@@ -363,7 +371,11 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-01-25 17:42:03  peter
+  Revision 1.10  2002-07-16 13:57:39  florian
+    * raise takes now a void pointer as at and frame address
+      instead of a longint, fixed
+
+  Revision 1.9  2002/01/25 17:42:03  peter
     * interface helpers
 
   Revision 1.8  2002/01/25 16:23:03  peter
@@ -389,5 +401,4 @@ end;
 
   Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-
 }

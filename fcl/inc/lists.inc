@@ -159,7 +159,11 @@ end;
 class procedure TList.Error(const Msg: string; Data: Integer);
 
 begin
+{$ifdef VER1_0}
   Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+{$else VER1_0}
+  Raise EListError.CreateFmt(Msg,[Data]) at pointer(get_caller_addr(get_frame));
+{$endif VER1_0}
 end;
 
 procedure TList.Exchange(Index1, Index2: Integer);
@@ -427,7 +431,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-12-03 21:39:58  peter
+  Revision 1.7  2002-07-16 14:00:55  florian
+    * raise takes now a void pointer as at and frame address
+      instead of a longint, fixed
+
+  Revision 1.6  2001/12/03 21:39:58  peter
     * seek(int64) overload only for 1.1 compiler
 
   Revision 1.5  2001/07/17 22:07:29  sg

@@ -23,13 +23,21 @@ ResourceString
 Procedure BitsError (Msg : string);
 
 begin
+{$ifdef VER1_0}
   Raise EBitsError.Create(Msg) at get_caller_addr(get_frame);
+{$else VER1_0}
+  Raise EBitsError.Create(Msg) at pointer(get_caller_addr(get_frame));
+{$endif VER1_0}
 end;
 
 Procedure BitsErrorFmt (Msg : string; Args : array of const);
 
 begin
+{$ifdef VER1_0}
   Raise EBitsError.CreateFmt(Msg,args) at get_caller_addr(get_frame);
+{$else VER1_0}
+  Raise EBitsError.CreateFmt(Msg,args) at pointer(get_caller_addr(get_frame));
+{$endif VER1_0}
 end;
 
 procedure TBits.CheckBitIndex (Bit : longint;CurrentSize : Boolean);
@@ -372,7 +380,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-02-02 23:51:27  peter
+  Revision 1.7  2002-07-16 14:00:55  florian
+    * raise takes now a void pointer as at and frame address
+      instead of a longint, fixed
+
+  Revision 1.6  2001/02/02 23:51:27  peter
     * bit field to cardinal instead of longint
 
   Revision 1.5  2000/11/17 13:39:49  sg
