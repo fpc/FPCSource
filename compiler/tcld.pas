@@ -392,6 +392,11 @@ implementation
                           firstpass(hp^.left);
                         end;
                      end;
+                   procvardef :
+                     begin
+                       hp^.left:=gentypeconvnode(hp^.left,voidpointerdef);
+                       firstpass(hp^.left);
+                     end;
                    pointerdef,
                    classrefdef,
                    objectdef : ;
@@ -467,7 +472,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-11-30 10:40:58  peter
+  Revision 1.53  1999-12-02 17:28:53  peter
+    * fixed procvar -> pointer for array of const
+
+  Revision 1.52  1999/11/30 10:40:58  peter
     + ttype, tsymlist
 
   Revision 1.51  1999/11/18 15:34:50  pierre
