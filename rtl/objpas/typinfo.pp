@@ -221,7 +221,7 @@ unit typinfo;
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          je .LINoPush
          movl IValue,%eax
          pushl %eax
@@ -231,7 +231,7 @@ unit typinfo;
          // now the result is in EAX
       end;
 
-    function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IVAlue : Longint) : Integer;assembler;
+    function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IValue : Longint) : Integer;assembler;
       asm
          movl S,%esi
          movl Address,%edi
@@ -240,7 +240,7 @@ unit typinfo;
          pushl %eax
          // ? Indexed procedure
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          je .LIPNoPush
          movl IValue,%eax
          pushl %eax
@@ -255,7 +255,7 @@ unit typinfo;
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          je .LINoPush
          movl IValue,%eax
          pushl %eax
@@ -276,7 +276,7 @@ unit typinfo;
          pushl 8(%eax)
          // ? Indexed procedure
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          je .LIPNoPush
          movl IValue,%eax
          pushl %eax
@@ -291,7 +291,7 @@ unit typinfo;
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          je .LBNoPush
          movl IValue,%eax
          pushl %eax
@@ -311,7 +311,7 @@ unit typinfo;
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          jnz .LSSNoPush
          movl IValue,%eax
          pushl %eax
@@ -331,7 +331,7 @@ unit typinfo;
          pushl %eax
          // ? Indexed procedure
          movl Index,%eax
-         xorl %eax,%eax
+         testl %eax,%eax
          jnz .LSSPNoPush
          movl IValue,%eax
          pushl %eax
@@ -807,7 +807,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  1999-11-06 14:41:31  peter
+  Revision 1.31  1999-12-28 12:19:36  jonas
+    * replaced "movl mem,%eax; xorl %eax,%eax" with "movl mem,%eax;
+      testl %eax,%eax"
+
+  Revision 1.30  1999/11/06 14:41:31  peter
     * truncated log
 
   Revision 1.29  1999/09/16 08:59:48  florian
