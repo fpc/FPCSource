@@ -952,7 +952,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.16  2002-08-31 16:08:36  florian
+  Revision 1.17  2002-08-31 21:29:57  florian
+    * several PC related fixes
+
+  Revision 1.16  2002/08/31 16:08:36  florian
     * fixed undefined labels
 
   Revision 1.15  2002/08/31 13:11:11  florian

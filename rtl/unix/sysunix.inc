@@ -147,8 +147,8 @@ end['A0','D0'];
 {$ifdef powerpc}
 {$define fpc_getheapstart_ok}
 asm
-	lis r3,_HEAP@ha
-        la r3,_HEAP@l(r3)
+        lis r3,HEAP@ha
+        la r3,HEAP@l(r3)
 end['R3'];
 {$endif powerpc}
 {$ifndef fpc_getheapstart_ok}
@@ -175,8 +175,8 @@ end ['D0'];
 {$ifdef powerpc}
 {$define fpc_getheapsize_ok}
 asm
-	lis r9,_HEAPSIZE@ha
-	lwz r3,_HEAPSIZE@l(r9)
+        lis r9,HEAPSIZE@ha
+        lwz r3,HEAPSIZE@l(r9)
 end ['R0','R9'];
 {$endif powerpc}
 {$ifndef fpc_getheapsize_ok}
@@ -785,7 +785,10 @@ End.
 
 {
   $Log$
-  Revision 1.26  2002-08-13 18:11:08  florian
+  Revision 1.27  2002-08-31 21:29:57  florian
+    * several PC related fixes
+
+  Revision 1.26  2002/08/13 18:11:08  florian
     * heap stuff for powerpc fixed
 
   Revision 1.25  2002/08/03 20:05:13  florian
