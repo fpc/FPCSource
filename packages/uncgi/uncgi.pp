@@ -1,7 +1,7 @@
 unit uncgi;
 
 {
-  UNCGI UNIT 2.0.8
+  UNCGI UNIT 2.0.9
   ----------------
 }
 
@@ -19,7 +19,7 @@ const
   maxquery	= 100;
   hextable	: array[0..15] of char=('0','1','2','3','4','5','6','7',
                                         '8','9','A','B','C','D','E','F');
-  uncgi_version = 'UNCGI 2.0.5';
+  uncgi_version = 'UNCGI 2.0.9';
   uncgi_year    = '1999';
   maintainer_name = 'Your Name Here';
   maintainer_email= 'your@email.address.here';
@@ -450,5 +450,8 @@ end.
         -       2.0.8 04/08/99
                 --------------
                 Fixed bug in unescape, qslen wasn't initialized.
+        -       2.0.9 05/16/99
+                --------------
+                Some fixes by Georgi Georgiev
 }
 
