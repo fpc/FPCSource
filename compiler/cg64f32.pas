@@ -44,6 +44,7 @@ unit cg64f32;
         procedure a_load64_const_reg(list : taasmoutput;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);
         procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reglo,reghi : tregister);
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
+        procedure a_load64_const_loc(list : taasmoutput;valuelo, valuehi : AWord;const l : tlocation);
         procedure a_load64_reg_loc(list : taasmoutput;reglo, reghi : tregister;const l : tlocation);
         procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
         procedure a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
@@ -196,6 +197,20 @@ unit cg64f32;
             a_load64_const_ref(list,l.valuelow,l.valuehigh,ref);
           else
             internalerror(200203288);
+        end;
+      end;
+
+
+    procedure tcg64f32.a_load64_const_loc(list : taasmoutput;valuelo, valuehi : AWord;const l : tlocation);
+
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_load64_const_ref(list,valuelo,valuehi,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load64_const_reg(list,valuelo,valuehi,l.registerlow,l.registerhigh);
+          else
+            internalerror(200112293);
         end;
       end;
 
@@ -569,7 +584,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-04-02 17:11:27  peter
+  Revision 1.6  2002-04-03 10:41:35  jonas
+    + a_load64_const_loc method
+
+  Revision 1.5  2002/04/02 17:11:27  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
