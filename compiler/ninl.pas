@@ -881,6 +881,10 @@ implementation
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
             codepara.left := ctypeconvnode.create(codepara.left,s32bittype);
+            { make it explicit, oterwise you may get a nonsense range }
+            { check error if the cardinal already contained a value   }
+            { > $7fffffff                                             }
+            codepara.left.toggleflag(nf_explizit);
             codepara.get_paratype;
           end;
 
@@ -2709,7 +2713,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2001-08-26 13:36:40  florian
+  Revision 1.53  2001-08-27 11:04:41  jonas
+    * avoid nonsense range error when using cardinal with value
+      > high(longint) as code para with val()
+
+  Revision 1.52  2001/08/26 13:36:40  florian
     * some cg reorganisation
     * some PPC updates
 
