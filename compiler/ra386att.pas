@@ -1500,7 +1500,14 @@ const
             Message(assem_e_size_suffix_and_dest_reg_dont_match);
             exit;
          end;
-     end;
+     end
+     else
+     if instruc = A_PUSH then
+       Begin
+          if (instr.operands[1].operandtype = OPR_CONSTANT) and
+             (instr.stropsize = S_NO) then
+            Message(assem_e_size_suffix_and_dest_reg_dont_match);
+       end;
      { ------------------------------------------------------------------- }
 
 
@@ -1624,12 +1631,22 @@ const
           p^.concat(new(pai386,op_none(instruc,S_NO)));
      1: Begin
           case instr.operands[1].operandtype of
-               { all one operand opcodes with constant have no defined sizes }
-               { at least that is what it seems in the tasm 2.0 manual.      }
+              { GAS requires that the size be set in the case of a push }
+              { constant value,                                         }
            OPR_CONSTANT:
-             p^.concat(new(pai386,op_const(instruc,
-               S_NO, instr.operands[1].val)));
-           { was missing !!! }
+              Begin
+                 if instruc = A_PUSH then
+                   Begin
+                      if instr.stropsize <> S_NO then
+                         p^.concat(new(pai386,op_const(instruc,
+                              instr.stropsize, instr.operands[1].val)))
+                      else
+                        Message(assem_e_invalid_opcode_and_operand);
+                   end
+                 else
+                   p^.concat(new(pai386,op_const(instruc,
+                      S_NO, instr.operands[1].val)));
+              end;
            OPR_REGISTER:
              Begin
                 p^.concat(new(pai386,op_reg(instruc,
@@ -3675,7 +3692,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-08-21 08:45:49  pierre
+  Revision 1.10  1998-09-02 01:24:09  carl
+    * bugfix of PUSH opcode with constants
+
+  Revision 1.9  1998/08/21 08:45:49  pierre
     * better line info for asm statements
 
   Revision 1.8  1998/08/19 16:07:54  jonas
