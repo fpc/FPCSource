@@ -27,7 +27,7 @@ unit nppccnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,types;
+      node,ncnv,ncgcnv,defbase;
 
     type
        tppctypeconvnode = class(tcgtypeconvnode)
@@ -377,7 +377,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-07-13 06:49:39  jonas
+  Revision 1.14  2002-07-20 11:58:05  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.13  2002/07/13 06:49:39  jonas
     * fixed fpu constants in second_int_to_real (fpu values are also stored
       in big endian)
 

@@ -77,7 +77,7 @@ implementation
       systems,tokens,
       verbose,globals,cutils,
       globtype,
-      symconst,symtype,symtable,symdef,types,
+      symconst,symtype,symtable,symdef,defbase,
       htypechk,pass_1,cpubase,
       cgbase,
       ncon,ncnv,ncal,nadd;
@@ -696,10 +696,10 @@ implementation
               location.loc:=LOC_REGISTER;
            end
       end;
-      
+
 {$ifdef state_tracking}
     function Tnotnode.track_state_pass(exec_known:boolean):boolean;
-    
+
     begin
 	track_state_pass:=true;
 	if left.track_state_pass(exec_known) then
@@ -718,7 +718,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-07-19 11:41:36  daniel
+  Revision 1.36  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.35  2002/07/19 11:41:36  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

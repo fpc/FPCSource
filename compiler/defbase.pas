@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit types;
+unit defbase;
 
 {$i fpcdefs.inc}
 
@@ -1906,7 +1906,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-07-11 14:41:32  florian
+  Revision 1.1  2002-07-20 11:57:53  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.75  2002/07/11 14:41:32  florian
     * start of the new generic parameter handling
 
   Revision 1.74  2002/07/01 16:23:54  peter

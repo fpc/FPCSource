@@ -161,7 +161,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,types,paramgr,
+       symdef,symsym,defbase,paramgr,
        rgobj,tgobj,rgcpu;
 
 {$ifndef NOTARGETWIN32}
@@ -1785,7 +1785,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-07-11 14:41:32  florian
+  Revision 1.28  2002-07-20 11:58:00  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.27  2002/07/11 14:41:32  florian
     * start of the new generic parameter handling
 
   Revision 1.26  2002/07/07 09:52:33  florian

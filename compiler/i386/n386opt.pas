@@ -42,7 +42,7 @@ type
 implementation
 
 uses
-  pass_1, types, htypechk,
+  pass_1, defbase, htypechk,
   symdef,paramgr,
   aasmbase,aasmtai,aasmcpu,
   ncnv, ncon, pass_2,
@@ -248,7 +248,12 @@ end.
 
 {
   $Log$
-  Revision 1.20  2002-07-11 14:41:34  florian
+  Revision 1.21  2002-07-20 11:58:04  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.20  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.19  2002/07/07 09:52:34  florian

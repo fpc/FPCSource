@@ -131,7 +131,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,types,
+      symconst,symbase,defbase,
       nbas,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase
       ;
@@ -894,7 +894,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-05-18 13:34:10  peter
+  Revision 1.34  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.33  2002/05/18 13:34:10  peter
     * readded missing revisions
 
   Revision 1.32  2002/05/16 19:46:39  carl

@@ -357,7 +357,7 @@ implementation
        { target }
        systems,
        { symtable }
-       symtable,types,
+       symtable,defbase,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -2517,7 +2517,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-07-11 14:41:31  florian
+  Revision 1.43  2002-07-20 11:57:58  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.42  2002/07/11 14:41:31  florian
     * start of the new generic parameter handling
 
   Revision 1.41  2002/07/10 07:24:40  jonas

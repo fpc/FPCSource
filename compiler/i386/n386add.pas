@@ -57,7 +57,7 @@ interface
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmcpu,types,htypechk,
+      aasmbase,aasmtai,aasmcpu,defbase,htypechk,
       cgbase,pass_2,regvars,
       cpupara,
       ncon,nset,
@@ -1573,7 +1573,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-07-11 14:41:32  florian
+  Revision 1.44  2002-07-20 11:58:00  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.43  2002/07/11 14:41:32  florian
     * start of the new generic parameter handling
 
   Revision 1.42  2002/07/07 09:52:33  florian

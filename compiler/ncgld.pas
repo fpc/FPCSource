@@ -53,7 +53,7 @@ implementation
     uses
       systems,
       verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,types,paramgr,
+      symconst,symtype,symdef,symsym,symtable,defbase,paramgr,
       ncnv,ncon,nmem,
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
@@ -922,7 +922,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-07-16 09:17:44  florian
+  Revision 1.15  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.14  2002/07/16 09:17:44  florian
     * threadvar relocation result wasn't handled properly, it could cause
       a crash
 

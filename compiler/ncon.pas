@@ -150,7 +150,7 @@ implementation
 
     uses
       cutils,verbose,systems,
-      types,cpubase,nld;
+      defbase,cpubase,nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -403,7 +403,7 @@ implementation
 
 {$ifdef extdebug}
     procedure Tordconstnode.dowrite;
-    
+
     begin
 	inherited dowrite;
 	write('[',value,']');
@@ -733,7 +733,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-07-14 18:00:43  daniel
+  Revision 1.35  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.34  2002/07/14 18:00:43  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

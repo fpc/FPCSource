@@ -229,10 +229,16 @@ implementation
        IF_UNDOC  = $00001000;  { it's an undocumented instruction  }
        IF_FPU    = $00002000;  { it's an FPU instruction  }
        IF_MMX    = $00004000;  { it's an MMX instruction  }
-       IF_3DNOW  = $00008000;  { it's a 3DNow! instruction  }
-       IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
-       IF_PMASK  = longint($FF000000);  { the mask for processor types  }
-       IF_PFMASK = longint($F001FF00);  { the mask for disassembly "prefer"  }
+       { it's a 3DNow! instruction  }
+       IF_3DNOW  = $00008000;
+       { it's a SSE (KNI, MMX2) instruction  }
+       IF_SSE    = $00010000;
+       { SSE2 instructions  }
+       IF_SSE2   = $00020000;
+       { the mask for processor types  }
+       IF_PMASK  = longint($FF000000);
+       { the mask for disassembly "prefer"  }
+       IF_PFMASK = longint($F001FF00);
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
        IF_286    = $02000000;  { 286+ instruction  }
@@ -241,6 +247,8 @@ implementation
        IF_PENT   = $05000000;  { Pentium instruction  }
        IF_P6     = $06000000;  { P6 instruction  }
        IF_KATMAI = $07000000;  { Katmai instructions  }
+       { Willamette instructions }
+       IF_WILLAMETTE = $08000000;
        IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
        IF_AMD    = $20000000;  { AMD-specific instruction  }
        { added flags }
@@ -1788,7 +1796,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-01 18:46:29  peter
+  Revision 1.2  2002-07-20 11:57:59  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.1  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

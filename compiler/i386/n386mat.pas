@@ -52,7 +52,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,types,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,defbase,
       cginfo,cgbase,pass_1,pass_2,
       ncon,
       cpubase,
@@ -830,7 +830,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-07-01 18:46:33  peter
+  Revision 1.33  2002-07-20 11:58:02  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.32  2002/07/01 18:46:33  peter
     * internal linker
     * reorganized aasm layer
 

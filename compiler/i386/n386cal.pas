@@ -51,7 +51,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,types,
+      symconst,symbase,symsym,symtable,defbase,
 {$ifdef GDB}
   {$ifdef delphi}
       sysutils,
@@ -1481,7 +1481,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-07-11 14:41:33  florian
+  Revision 1.60  2002-07-20 11:58:01  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.59  2002/07/11 14:41:33  florian
     * start of the new generic parameter handling
 
   Revision 1.58  2002/07/07 09:52:34  florian

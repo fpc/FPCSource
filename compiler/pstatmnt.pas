@@ -46,7 +46,7 @@ implementation
        { aasm }
        cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,types,paramgr,
+       symconst,symbase,symtype,symdef,symsym,symtable,defbase,paramgr,
        { pass 1 }
        pass_1,htypechk,
        nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -1231,7 +1231,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-07-19 11:41:36  daniel
+  Revision 1.64  2002-07-20 11:57:56  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.63  2002/07/19 11:41:36  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

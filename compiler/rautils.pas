@@ -216,7 +216,7 @@ uses
 {$else}
   strings,
 {$endif}
-  types,systems,verbose,globals,
+  defbase,systems,verbose,globals,
   symsym,symtable,paramgr,
   aasmcpu,
   cpuinfo,cgbase;
@@ -1592,7 +1592,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2002-07-11 14:41:28  florian
+  Revision 1.38  2002-07-20 11:57:57  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.37  2002/07/11 14:41:28  florian
     * start of the new generic parameter handling
 
   Revision 1.36  2002/07/01 18:46:25  peter

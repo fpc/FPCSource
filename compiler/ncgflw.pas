@@ -71,7 +71,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,
-      symconst,symsym,aasmbase,aasmtai,aasmcpu,types,
+      symconst,symsym,aasmbase,aasmtai,aasmcpu,defbase,
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,
       nld,ncon,
@@ -107,7 +107,7 @@ implementation
 	 if not(cs_littlesize in aktglobalswitches) then
             { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
-	    
+	
          cg.a_label(exprasmlist,lloop);
 
          aktcontinuelabel:=lcont;
@@ -133,7 +133,7 @@ implementation
           end;
          rg.cleartempgen;
          secondpass(left);
-	 
+	
          maketojumpbool(exprasmlist,left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
          truelabel:=otlabel;
@@ -631,7 +631,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-07-20 11:15:51  daniel
+  Revision 1.26  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.25  2002/07/20 11:15:51  daniel
   * The for node does a check if the first comparision can be skipped. I moved
     the check from the second pass to the resulttype pass. The advantage is
     that the state tracker can now decide to skip the first comparision too.

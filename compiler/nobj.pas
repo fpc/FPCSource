@@ -135,7 +135,7 @@ implementation
        strings,
 {$endif}
        globtype,globals,verbose,
-       symtable,symconst,symtype,symsym,types,
+       symtable,symconst,symtype,symsym,defbase,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -1269,7 +1269,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2002-07-01 18:46:23  peter
+  Revision 1.22  2002-07-20 11:57:55  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.21  2002/07/01 18:46:23  peter
     * internal linker
     * reorganized aasm layer
 

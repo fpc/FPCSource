@@ -27,7 +27,7 @@ unit n386cnv;
 interface
 
     uses
-      node,ncgcnv,types;
+      node,ncgcnv,defbase;
 
     type
        ti386typeconvnode = class(tcgtypeconvnode)
@@ -365,7 +365,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-07-01 18:46:31  peter
+  Revision 1.44  2002-07-20 11:58:01  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.43  2002/07/01 18:46:31  peter
     * internal linker
     * reorganized aasm layer
 

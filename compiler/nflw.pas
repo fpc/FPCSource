@@ -184,7 +184,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtable,paramgr,types,htypechk,pass_1,
+      symconst,symtable,paramgr,defbase,htypechk,pass_1,
       ncon,nmem,nld,ncnv,nbas,rgobj,
     {$ifdef state_tracking}
       nstate,
@@ -203,7 +203,7 @@ implementation
                p:=cifnode.create(l,r,n1);
 	    whilerepeatn:
     	       if back then
-	          {Repeat until.}	        
+	          {Repeat until.}	
         	  p:=cwhilerepeatnode.create(l,r,n1,false,true)
 	       else
 	          {While do.}
@@ -363,7 +363,7 @@ implementation
 
 {$ifdef state_tracking}
     function Twhilerepeatnode.track_state_pass(exec_known:boolean):boolean;
-    
+
     var condition:Tnode;
 	code:Tnode;
 	done:boolean;
@@ -371,7 +371,7 @@ implementation
 	change:boolean;
 	firsttest:boolean;
 	factval:Tnode;
-    
+
     begin
 	track_state_pass:=false;
 	done:=false;
@@ -434,7 +434,7 @@ implementation
 	    begin
 	        ...
 	    end;
-	 
+	
 	 When the loop is done, we do know that i<10 = false.
 	}
 	condition:=left.getcopy;
@@ -1246,7 +1246,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-07-20 11:18:18  daniel
+  Revision 1.43  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.42  2002/07/20 11:18:18  daniel
   * Small mistake fixed; the skip test was done before we know the for node
     is correct.
 

@@ -60,7 +60,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symtype,symdef,symsym,symtable,types,
+      symconst,symtype,symdef,symsym,symtable,defbase,
       cgbase,
       htypechk,pass_1,
       nmat,ncnv,ncon,nset,nopt,ncal,ninl,
@@ -1346,7 +1346,7 @@ implementation
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
-	 
+	
          if codegenerror then
            exit;
 
@@ -1627,7 +1627,7 @@ implementation
     function Taddnode.track_state_pass(exec_known:boolean):boolean;
 
     var factval:Tnode;
-    
+
     begin
 	track_state_pass:=false;
 	if left.track_state_pass(exec_known) then
@@ -1664,7 +1664,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-07-19 11:41:34  daniel
+  Revision 1.54  2002-07-20 11:57:53  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.53  2002/07/19 11:41:34  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

@@ -129,7 +129,7 @@ implementation
     uses
       cutils,globtype,systems,
       verbose,globals,
-      symconst,paramgr,types,
+      symconst,paramgr,defbase,
       htypechk,pass_1,cpuinfo,cpubase,
       ncnv,nld,ninl,nadd,ncon,
       rgobj,cgbase
@@ -774,7 +774,7 @@ implementation
             end;
            { all types can be passed to a formaldef }
            is_equal:=(def.deftype=formaldef) or
-             (types.is_equal(p.resulttype.def,def))
+             (defbase.is_equal(p.resulttype.def,def))
            { integer constants are compatible with all integer parameters if
              the specified value matches the range }
              or
@@ -1223,7 +1223,7 @@ implementation
                                               is_in_limit(def_to,conv_to) then
                                              begin
                                                 { is it the same as the previous best? }
-                                                if not types.is_equal(def_to,conv_to) then
+                                                if not defbase.is_equal(def_to,conv_to) then
                                                   begin
                                                     { no -> remove all previous best matches }
                                                     hp := hp^.next;
@@ -1784,10 +1784,10 @@ implementation
 
 {$ifdef state_tracking}
     function Tcallnode.track_state_pass(exec_known:boolean):boolean;
-    
+
     var hp:Tcallparanode;
 	value:Tnode;
-    
+
     begin
 	track_state_pass:=false;
 	hp:=Tcallparanode(left);
@@ -1904,7 +1904,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2002-07-19 11:41:35  daniel
+  Revision 1.83  2002-07-20 11:57:53  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.82  2002/07/19 11:41:35  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

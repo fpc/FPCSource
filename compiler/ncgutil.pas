@@ -75,7 +75,7 @@ implementation
     strings,
 {$endif}
     cutils,cclasses,globtype,globals,systems,verbose,
-    symbase,symconst,symtype,symsym,symdef,symtable,types,paramgr,
+    symbase,symconst,symtype,symsym,symdef,symtable,defbase,paramgr,
     fmodule,
     cgbase,regvars,
 {$ifdef GDB}
@@ -1629,7 +1629,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-07-11 14:41:28  florian
+  Revision 1.23  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.22  2002/07/11 14:41:28  florian
     * start of the new generic parameter handling
 
   Revision 1.21  2002/07/11 07:33:25  jonas

@@ -126,7 +126,7 @@ implementation
        globtype,systems,
        cutils,verbose,globals,
        symconst,symsym,symtable,
-       types,cpubase,
+       defbase,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
        cgbase
@@ -938,7 +938,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-05-18 13:34:08  peter
+  Revision 1.46  2002-07-20 11:57:53  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.45  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.44  2002/05/16 19:46:37  carl

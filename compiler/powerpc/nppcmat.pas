@@ -53,7 +53,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,
-      types,
+      defbase,
       cgbase,cgobj,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,cginfo,
@@ -91,7 +91,7 @@ implementation
          numerator := location.register;
          resultreg := location.register;
          if (location.loc = LOC_CREGISTER) then
-           begin 
+           begin
              location.loc := LOC_REGISTER;
              location.register := rg.getregisterint(exprasmlist);
              resultreg := location.register;
@@ -295,7 +295,7 @@ implementation
                  resultreg := rg.getregisterint(exprasmlist);
                  location.register := resultreg;
                end;
-              
+
               { determine operator }
               if nodetype=shln then
                 op:=OP_SHL
@@ -454,7 +454,7 @@ implementation
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags.cr:=r_cr0;
                   location.resflags.flag:=F_EQ;
-               end;  
+               end;
             end;
           end
          else if is_64bitint(left.resulttype.def) then
@@ -489,7 +489,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-07-11 07:41:27  jonas
+  Revision 1.14  2002-07-20 11:58:05  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.13  2002/07/11 07:41:27  jonas
     * fixed tppcmoddivnode
     * fixed 64bit parts of tppcshlshrnode
 

@@ -131,7 +131,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symtable,paramgr,types,
+      symtable,paramgr,defbase,
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
       ;
@@ -406,7 +406,7 @@ implementation
 
 {$ifdef extdebug}
     procedure Tloadnode.dowrite;
-    
+
     begin
 	inherited dowrite;
 	write('[',symtableentry.name,']');
@@ -565,8 +565,8 @@ implementation
 
 
     function tassignmentnode.pass_1 : tnode;
-    
-    
+
+
       begin
          result:=nil;
 
@@ -591,7 +591,7 @@ implementation
 
 {$ifdef state_tracking}
     function Tassignmentnode.track_state_pass(exec_known:boolean):boolean;
-    
+
     var se:Tstate_entry;
 
     begin
@@ -995,7 +995,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2002-07-20 07:44:37  daniel
+  Revision 1.49  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.48  2002/07/20 07:44:37  daniel
   * Forgot to add a {$ifdef extdebug}
 
   Revision 1.47  2002/07/19 12:55:27  daniel

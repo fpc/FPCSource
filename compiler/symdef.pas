@@ -723,7 +723,7 @@ implementation
        systems,
        { symtable }
        symsym,symtable,paramgr,
-       types,
+       defbase,
        { module }
 {$ifdef GDB}
        gdb,
@@ -5482,7 +5482,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-07-11 14:41:30  florian
+  Revision 1.84  2002-07-20 11:57:57  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.83  2002/07/11 14:41:30  florian
     * start of the new generic parameter handling
 
   Revision 1.82  2002/07/07 09:52:32  florian

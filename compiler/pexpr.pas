@@ -68,7 +68,7 @@ implementation
        globtype,tokens,verbose,
        systems,widestr,
        { symtable }
-       symconst,symbase,symdef,symsym,symtable,types,
+       symconst,symbase,symdef,symsym,symtable,defbase,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -2251,7 +2251,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-07-16 15:34:20  florian
+  Revision 1.72  2002-07-20 11:57:55  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.71  2002/07/16 15:34:20  florian
     * exit is now a syssym instead of a keyword
 
   Revision 1.70  2002/07/06 20:18:02  carl

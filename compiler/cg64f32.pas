@@ -83,7 +83,7 @@ unit cg64f32;
        globtype,globals,systems,
        cgbase,
        verbose,
-       symbase,symconst,symdef,types;
+       symbase,symconst,symdef,defbase;
 
 
     function joinreg64(reglo,reghi : tregister) : tregister64;
@@ -620,7 +620,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-07-12 10:14:26  jonas
+  Revision 1.21  2002-07-20 11:57:52  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.20  2002/07/12 10:14:26  jonas
     * some big-endian fixes
 
   Revision 1.19  2002/07/11 07:23:17  jonas

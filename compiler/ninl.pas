@@ -57,7 +57,7 @@ implementation
     uses
       verbose,globals,systems,
       globtype, cutils,
-      symbase,symconst,symtype,symdef,symsym,symtable,paramgr,types,
+      symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defbase,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
       cpubase,tgobj,cgbase
@@ -2265,7 +2265,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2002-07-11 14:41:28  florian
+  Revision 1.79  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.78  2002/07/11 14:41:28  florian
     * start of the new generic parameter handling
 
   Revision 1.77  2002/06/06 18:53:53  jonas

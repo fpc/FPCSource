@@ -51,7 +51,7 @@ implementation
        globtype,tokens,verbose,
        systems,
        { symtable }
-       symconst,symdef,symsym,symtable,types,
+       symconst,symdef,symsym,symtable,defbase,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -565,7 +565,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:12  peter
+  Revision 1.6  2002-07-20 11:57:56  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.5  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:43  carl

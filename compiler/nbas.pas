@@ -161,7 +161,7 @@ implementation
     uses
       cutils,
       verbose,globals,globtype,systems,
-      symconst,symdef,symsym,types,
+      symconst,symdef,symsym,defbase,
       pass_1,
       nld,ncal,nflw,rgobj,cgbase
       ;
@@ -293,7 +293,7 @@ implementation
            registersmmx:=right.registersmmx;
 {$endif}
       end;
-      
+
 {$ifdef extdebug}
     procedure tstatementnode.dowrite;
 
@@ -438,9 +438,9 @@ implementation
 
 {$ifdef state_tracking}
       function Tblocknode.track_state_pass(exec_known:boolean):boolean;
-      
+
       var hp:Tstatementnode;
-      
+
       begin
         track_state_pass:=false;
         hp:=Tstatementnode(left);
@@ -694,7 +694,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-07-19 11:41:35  daniel
+  Revision 1.30  2002-07-20 11:57:53  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.29  2002/07/19 11:41:35  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into

@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symtype,types,
+       symtype,defbase,
        nld;
 
     type
@@ -1755,7 +1755,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-07-01 16:23:53  peter
+  Revision 1.60  2002-07-20 11:57:54  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.59  2002/07/01 16:23:53  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

@@ -44,7 +44,7 @@ implementation
     uses
       globtype,systems,
       verbose,globals,
-      symconst,symdef,types,
+      symconst,symdef,defbase,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       ncon,
@@ -1016,7 +1016,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-07-11 14:41:34  florian
+  Revision 1.35  2002-07-20 11:58:04  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.34  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.33  2002/07/06 20:27:26  carl

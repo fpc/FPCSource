@@ -111,7 +111,7 @@ implementation
     uses
       globtype,systems,
       verbose,
-      symconst,symdef,symsym,types,
+      symconst,symdef,symsym,defbase,
       htypechk,pass_1,
       ncnv,ncon,cpubase,nld,rgobj,cgbase;
 
@@ -277,7 +277,7 @@ implementation
       begin
          result:=nil;
          location.loc:=LOC_REGISTER;
-         
+
          firstpass(right);
          firstpass(left);
          if codegenerror then
@@ -578,7 +578,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-07-06 20:19:25  carl
+  Revision 1.27  2002-07-20 11:57:55  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
+
+  Revision 1.26  2002/07/06 20:19:25  carl
   + generic set handling
 
   Revision 1.25  2002/07/01 18:46:24  peter
