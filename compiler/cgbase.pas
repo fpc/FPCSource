@@ -234,7 +234,7 @@ unit cgbase;
     {# From a constant numeric value, return the abstract code generator
        size.
     }
-    function int_cgsize(const l: byte): tcgsize;
+    function int_cgsize(const a: aword): tcgsize;
 
     {# return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;
@@ -594,9 +594,14 @@ implementation
         end;
       end;
 
-    function int_cgsize(const l: byte): tcgsize;
+    function int_cgsize(const a: aword): tcgsize;
       begin
-        case l of
+        if a > 8 then
+          begin
+            int_cgsize := OS_NO;
+            exit;
+          end;
+        case byte(a) of
           1 :
             result := OS_8;
           2 :
@@ -605,8 +610,6 @@ implementation
             result := OS_32;
           5..8 :
             result := OS_64;
-          else
-            result:=OS_NO;
         end;
       end;
 
@@ -654,7 +657,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-09-30 07:00:44  florian
+  Revision 1.31  2002-10-03 21:20:19  carl
+    * range check error fix
+
+  Revision 1.30  2002/09/30 07:00:44  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.29  2002/09/07 19:35:45  florian
