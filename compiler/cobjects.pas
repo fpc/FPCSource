@@ -138,6 +138,7 @@ unit cobjects;
           function get : string;
           function get_with_tokeninfo(var file_info : tfileposinfo) : string;
 
+          function find(const s:string):boolean;
           { deletes all strings }
           procedure clear;
        end;
@@ -556,6 +557,25 @@ end;
             dispose(hp);
           end;
       end;
+
+    function tstringcontainer.find(const s:string):boolean;
+      var
+         hp : pstringitem;
+      begin
+        find:=false;
+        hp:=root;
+        while assigned(hp) do
+         begin
+           if hp^.data^=s then
+            begin
+              find:=true;
+              exit;
+            end;
+           hp:=hp^.next;
+
+         end;
+      end;
+
 
 {****************************************************************************
                             TLINKEDLIST_ITEM
@@ -1122,7 +1142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-07-14 14:46:47  peter
+  Revision 1.13  1998-08-12 19:28:16  peter
+    * better libc support
+
+  Revision 1.12  1998/07/14 14:46:47  peter
     * released NEWINPUT
 
   Revision 1.11  1998/07/07 11:19:54  peter

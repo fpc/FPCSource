@@ -105,11 +105,12 @@ begin
   SharedLibName:='';
   StaticLibName:='';
   ObjectSearchPath:='';
-  LibrarySearchPath:='';
 {$ifdef linux}
   DynamicLinker:='/lib/ld-linux.so.1';
+  LibrarySearchPath:='/lib;/usr/lib';
 {$else}
   DynamicLinker:='';
+  LibrarySearchPath:='';
 {$endif}
   LinkResName:='link.res';
 end;
@@ -279,6 +280,9 @@ Var
   LinkResponse : Text;
   i            : longint;
   prtobj,s,s2  : string;
+  found,
+  linklibc     : boolean;
+
 
   procedure WriteRes(const s:string);
   begin
@@ -289,6 +293,7 @@ Var
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
+  linklibc:=SharedLibFiles.Find('c');
   prtobj:='prt0';
   case target_info.target of
 {$ifdef i386}
@@ -299,7 +304,14 @@ begin
                        prtobj:='gprt0';
                        AddSharedLibrary('gmon');
                        AddSharedLibrary('c');
+                       linklibc:=true;
+                     end
+                    else
+                     begin
+                       if linklibc then
+                        prtobj:='cprt0';
                      end;
+
                   end;
 {$endif i386}
 {$ifdef m68k}
@@ -344,12 +356,33 @@ begin
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    WriteRes(FindObjectFile(prtobj));
+  if linklibc then
+   begin
+     s2:=search('crti.o',librarysearchpath,found);
+     if s2<>'' then
+      begin
+        WriteRes(s2+'crti.o');
+        WriteRes(s2+'crtbegin.o');
+      end;
+
+   end;
+
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
      if s<>'' then
       WriteRes(s);
    end;
+  if linklibc then
+   begin
+     if s2<>'' then
+      begin
+        WriteRes(s2+'crtend.o');
+        WriteRes(s2+'crtn.o');
+      end;
+
+   end;
+
 
   { Write sharedlibraries like -l<lib> }
   While not SharedLibFiles.Empty do
@@ -485,7 +518,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-08-10 14:50:02  peter
+  Revision 1.16  1998-08-12 19:28:15  peter
+    * better libc support
+
+  Revision 1.15  1998/08/10 14:50:02  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.14  1998/06/17 14:10:13  peter
