@@ -2090,22 +2090,26 @@
        count : longint;
     procedure count_inittable_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
-         if (psym(sym)^.typ=varsym) and
-            (pvarsym(sym)^.definition^.needs_inittable) then
+         if ((psym(sym)^.typ=varsym) and
+            pvarsym(sym)^.definition^.needs_inittable)
+            and ((pvarsym(sym)^.definition^.deftype<>objectdef) or
+                  (not pobjectdef(pvarsym(sym)^.definition)^.is_class)) then
            inc(count);
       end;
 
 
     procedure count_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
-         inc(count);
+            inc(count);
       end;
 
 
     procedure write_field_inittable(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
-         if (psym(sym)^.typ=varsym) and
-            pvarsym(sym)^.definition^.needs_inittable then
+         if ((psym(sym)^.typ=varsym) and
+            pvarsym(sym)^.definition^.needs_inittable)
+            and ((pvarsym(sym)^.definition^.deftype<>objectdef) or
+                  (not pobjectdef(pvarsym(sym)^.definition)^.is_class)) then
            begin
               rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_inittable_label)));
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
@@ -3718,7 +3722,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.157  1999-08-26 21:13:58  peter
+  Revision 1.158  1999-08-27 10:24:34  michael
+  + Inittables should not contain fields which are classes
+
+  Revision 1.157  1999/08/26 21:13:58  peter
     * array elementsize of 0 doesn't crash anymore
 
   Revision 1.156  1999/08/17 13:58:56  michael
