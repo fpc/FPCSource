@@ -1,4 +1,4 @@
-{ $OPT=-S2 }
+{$Mode objfpc}
 
 {
     $Id$
