@@ -902,7 +902,7 @@ begin
       else
        begin
          { external shouldn't override the cdecl/system name }
-         if (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+         if not (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
            aktprocsym^.definition^.setmangledname(aktprocsym^.name);
        end;
     end;
@@ -2025,7 +2025,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1999-08-10 12:37:44  pierre
+  Revision 1.14  1999-08-10 16:24:44  pierre
+   * linking to C code with cdecl;external; was broken
+
+  Revision 1.13  1999/08/10 12:37:44  pierre
    + procsym field of tprocdef set
 
   Revision 1.12  1999/08/05 16:53:06  peter
