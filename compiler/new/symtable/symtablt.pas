@@ -59,7 +59,6 @@ type    Pglobalsymtable=^Tglobalsymtable;
         end;
 
         Tabstractrecordsymtable=object(Tcontainingsymtable)
-            procedure insert(sym:Psym);virtual;
             function varsymtodata(sym:Psym;len:longint):longint;virtual;
         end;
 
@@ -81,7 +80,7 @@ type    Pglobalsymtable=^Tglobalsymtable;
              possible to make another Tmethodsymtable and move this field
              to it, but I think the advantage is not worth it. (DM)}
             method:Pdef;
-            procedure insert(sym:Psym);virtual;
+            function insert(sym:Psym):boolean;virtual;
             function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;
             function varsymtodata(sym:Psym;len:longint):longint;virtual;
@@ -207,18 +206,6 @@ end;
                         Tabstractrecordsymtable
 ****************************************************************************}
 
-procedure Tabstractrecordsymtable.insert(sym:Psym);
-
-begin
-{   if typeof(sym)=typeof(Tenumsym) then
-        if owner<>nil then
-            owner^.insert(sym)
-        else
-            internalerror($990802)
-    else}
-        inherited insert(sym);
-end;
-
 function Tabstractrecordsymtable.varsymtodata(sym:Psym;
                                              len:longint):longint;
 
@@ -261,13 +248,13 @@ end;}
                              Tprocsymsymtable
 ****************************************************************************}
 
-procedure Tprocsymtable.insert(sym:Psym);
+function Tprocsymtable.insert(sym:Psym):boolean;
 
 begin
-{   if (method<>nil) and (method^.search(sym^.name)<>nil) then}
-        inherited insert(sym)
-{   else
-        duplicatesym(sym)};
+    if (method<>nil) and (Pobjectdef(method)^.search(sym^.name)<>nil) then
+        insert:=inherited insert(sym)
+    else
+        duplicatesym(sym);
 end;
 
 function Tprocsymtable.speedsearch(const s:stringid;

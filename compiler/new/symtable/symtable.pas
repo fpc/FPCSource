@@ -1,11 +1,9 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl, Pierre Muller
+    Copyright (C) 1998-2000 by Florian Klaempfl, Daniel Mantione,
+     Pierre Muller and other members of the Free Pascal development team
 
     This unit handles the symbol tables
-
-    Copyright (C) 1998-2000 by Daniel Mantione,
-     member of the Free Pascal development team
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,7 +50,7 @@ type    Tdefprop=(dp_regable,           {Can be stored into a register.}
             name:Pstring;
             datasize:longint;
             procedure foreach(proc2call:Tnamedindexcallback);virtual;
-            procedure insert(sym:Psym);virtual;
+            function insert(sym:Psym):boolean;virtual;
             function search(const s:stringid):Psym;
             function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;
@@ -78,7 +76,7 @@ type    Tdefprop=(dp_regable,           {Can be stored into a register.}
             {Checks if all labels used.}
             procedure check_labels;
             procedure foreach(proc2call:Tnamedindexcallback);virtual;
-            procedure insert(sym:Psym);virtual;
+            function insert(sym:Psym):boolean;virtual;
             function speedsearch(const s:stringid;
                                  speedvalue:longint):Psym;virtual;
             procedure store(var s:Tstream);virtual;
@@ -171,6 +169,12 @@ var     read_member : boolean;      {True, wenn Members aus einer PPU-
                                      varsym seine Adresse einlesen soll }
         procprefix:stringid;
 
+        generrorsym:Psym;           {Jokersymbol, wenn das richtige
+                                     symbol nicht gefunden wird.}
+        generrordef:Pdef;           {Jokersymbol for eine fehlerhafte
+                                     typdefinition.}
+procedure duplicatesym(sym:psym);
+
 {**************************************************************************}
 
 implementation
@@ -191,7 +195,7 @@ begin
     abstract;
 end;
 
-procedure Tsymtable.insert(sym:Psym);
+function Tsymtable.insert(sym:Psym):boolean;
 
 begin
     abstract;
@@ -285,11 +289,20 @@ begin
     symsearch^.foreach(proc2call);
 end;
 
-procedure Tcontainingsymtable.insert(sym:Psym);
+function Tcontainingsymtable.insert(sym:Psym):boolean;
 
 begin
-    symsearch^.insert(sym);
-    sym^.register_defs;
+    insert:=true;
+    if symsearch^.insert(sym)<>Pnamedindexobject(sym) then
+        begin
+            duplicatesym(sym);
+            insert:=false;
+        end
+    else
+        begin
+            sym^.owner:=@self;
+            sym^.register_defs;
+        end;
 end;
 
 procedure Tcontainingsymtable.set_contents(s:Pdictionary;d:Pcollection);

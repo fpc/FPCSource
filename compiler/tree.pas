@@ -1814,6 +1814,50 @@ unit tree;
                set_varstate(p^.right,must_be_valid);
              end;
            loadn :
+         {$IFDEF NEWST}
+         if (typeof(p^.symtableentry^)=typeof(Tvarsym)) or
+           (typeof(p^.symtableentry^)=typeof(Tparamsym)) then
+          begin
+            if must_be_valid and p^.is_first then
+              begin
+                if (pvarsym(p^.symtableentry)^.state=vs_declared_and_first_found) or
+                   (pvarsym(p^.symtableentry)^.state=vs_set_but_first_not_passed) then
+                 if (assigned(pvarsym(p^.symtableentry)^.owner) and
+                    assigned(aktprocsym) and
+                    (pvarsym(p^.symtableentry)^.owner=
+                     Pcontainingsymtable(aktprocdef^.localst))) then
+                  begin
+                    if typeof(p^.symtable^)=typeof(Tprocsymtable) then
+                     CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
+                    else
+                     CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
+                  end;
+              end;
+          if (p^.is_first) then
+           begin
+             if pvarsym(p^.symtableentry)^.state=vs_declared_and_first_found then
+             { this can only happen at left of an assignment, no ? PM }
+              if (parsing_para_level=0) and not must_be_valid then
+               pvarsym(p^.symtableentry)^.state:=vs_assigned
+              else
+               pvarsym(p^.symtableentry)^.state:=vs_used;
+             if pvarsym(p^.symtableentry)^.state=vs_set_but_first_not_passed then
+               pvarsym(p^.symtableentry)^.state:=vs_used;
+             p^.is_first:=false;
+           end
+         else
+           begin
+             if (pvarsym(p^.symtableentry)^.state=vs_assigned) and
+                (must_be_valid or (parsing_para_level>0) or
+                 (typeof(p^.resulttype^)=typeof(Tprocvardef))) then
+               pvarsym(p^.symtableentry)^.state:=vs_used;
+             if (pvarsym(p^.symtableentry)^.state=vs_declared_and_first_found) and
+                (must_be_valid or (parsing_para_level>0) or
+                (typeof(p^.resulttype^)=typeof(Tprocvardef))) then
+               pvarsym(p^.symtableentry)^.state:=vs_set_but_first_not_passed;
+           end;
+         end;
+         {$ELSE}
          if (p^.symtableentry^.typ=varsym) then
           begin
             if must_be_valid and p^.is_first then
@@ -1854,6 +1898,7 @@ unit tree;
                pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
            end;
          end;
+         {$ENDIF NEWST}
          funcretn:
          begin
          { no claim if setting higher return value_str }
@@ -2021,7 +2066,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.114  2000-02-28 17:23:57  daniel
+  Revision 1.115  2000-03-01 11:43:55  daniel
+  * Some more work on the new symtable.
+  + Symtable stack unit 'symstack' added.
+
+  Revision 1.114  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

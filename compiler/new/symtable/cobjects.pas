@@ -172,9 +172,8 @@ type   pfileposinfo = ^tfileposinfo;
          {Note: Initname was changed to init. Init without a name is
                 undesired, the object is called _named_ index object.}
          constructor init(const n:string);
-         destructor  done;virtual;
-         procedure setname(const n:string);virtual;
          function  name:string;virtual;
+         destructor  done;virtual;
        end;
 
        Pdictionaryhasharray=^Tdictionaryhasharray;
@@ -190,6 +189,7 @@ type   pfileposinfo = ^tfileposinfo;
          procedure usehash;
          procedure clear;
          function  empty:boolean;
+         function contains(obj:Pnamedindexobject):boolean;
          procedure foreach(proc2call:Tnamedindexcallback);
          function  insert(obj:Pnamedindexobject):Pnamedindexobject;
          function  rename(const olds,news : string):Pnamedindexobject;
@@ -1009,23 +1009,13 @@ begin
   { index }
   indexnr:=-1;
   { dictionary }
-  speedvalue:=-1;
+  speedvalue:=getspeedvalue(n);
   _name:=stringdup(n);
 end;
 
 destructor Tnamedindexobject.done;
 begin
   stringdispose(_name);
-end;
-
-procedure Tnamedindexobject.setname(const n:string);
-begin
-  if speedvalue=-1 then
-   begin
-     if assigned(_name) then
-       stringdispose(_name);
-     _name:=stringdup(n);
-   end;
 end;
 
 function Tnamedindexobject.name:string;
@@ -1136,7 +1126,6 @@ end;
 
     function Tdictionary.insert(obj:Pnamedindexobject):Pnamedindexobject;
       begin
-        obj^.speedvalue:=getspeedvalue(obj^._name^);
         if assigned(hasharray) then
          insert:=insertnode(obj,hasharray^[obj^.speedvalue mod hasharraysize])
         else
@@ -1941,159 +1930,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-02-28 17:23:58  daniel
+  Revision 1.2  2000-03-01 11:43:55  daniel
+  * Some more work on the new symtable.
+  + Symtable stack unit 'symstack' added.
+
+  Revision 1.1  2000/02/28 17:23:58  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new
     symtablestack and adapt the parser to use it.
-
-  Revision 1.1  1999/08/05 20:49:15  daniel
-  * Use objects unit.
-
-  Revision 1.36  1999/06/23 11:13:20  peter
-    * fixed linebreak
-
-  Revision 1.35  1999/06/23 11:07:23  daniel
-  * Tdictionary.delete
-
-  Revision 1.33.2.1  1999/06/15 10:12:22  peter
-    * fixed inserttree which didn't reset left,right
-
-  Revision 1.33.2.1  1999/06/15 10:12:22  peter
-    * fixed inserttree which didn't reset left,right
-
-  Revision 1.33  1999/05/31 23:33:21  peter
-    * fixed tdictionary rename which didn't reset left,right when
-      reinserting
-
-  Revision 1.32  1999/05/27 19:44:23  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.31  1999/05/21 13:54:59  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.30  1999/05/21 10:38:59  peter
-    * fixed deleteindex which didn't reset indexnr and set first wrong
-
-  Revision 1.29  1999/05/08 19:47:27  peter
-    * indexarray.delete resets pointer after dispose
-
-  Revision 1.28  1999/05/05 10:05:48  florian
-    * a delphi compiled compiler recompiles ppc
-
-  Revision 1.27  1999/05/05 09:19:03  florian
-    * more fixes to get it with delphi running
-
-  Revision 1.26  1999/04/21 09:43:31  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.25  1999/04/15 10:01:44  peter
-    * small update for storenumber
-
-  Revision 1.24  1999/04/14 09:14:47  peter
-    * first things to store the symbol/def number in the ppu
-
-  Revision 1.23  1999/04/08 20:59:39  florian
-    * fixed problem with default properties which are a class
-    * case bug (from the mailing list with -O2) fixed, the
-      distance of the case labels can be greater than the positive
-      range of a longint => it is now a dword for fpc
-
-  Revision 1.22  1999/03/31 13:55:10  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.21  1999/03/19 16:35:29  pierre
-   * Tnamedindexobject done also removed left and right
-
-  Revision 1.20  1999/03/18 20:30:45  peter
-    + .a writer
-
-  Revision 1.19  1999/03/01 13:32:00  pierre
-   * external used before implemented problem fixed
-
-  Revision 1.18  1999/02/24 00:59:13  peter
-    * small updates for ag386bin
-
-  Revision 1.17  1999/01/19 11:00:33  daniel
-  + Tdictionary object:  Tsymtable will become object(TTdictionary) in the
-    future
-  + Tnamed_item object:  Tsym will become object(Tnamed_item) in the future
-
-  Revision 1.16  1998/11/04 10:11:37  peter
-    * ansistring fixes
-
-  Revision 1.15  1998/10/19 18:04:40  peter
-    + tstringcontainer.init_no_doubles
-
-  Revision 1.14  1998/09/18 16:03:37  florian
-    * some changes to compile with Delphi
-
-  Revision 1.13  1998/08/12 19:28:16  peter
-    * better libc support
-
-  Revision 1.12  1998/07/14 14:46:47  peter
-    * released NEWINPUT
-
-  Revision 1.11  1998/07/07 11:19:54  peter
-    + NEWINPUT for a better inputfile and scanner object
-
-  Revision 1.10  1998/07/01 15:26:59  peter
-    * better bufferfile.reset error handling
-
-  Revision 1.9  1998/06/03 23:40:37  peter
-    + unlimited file support, release tempclose
-
-  Revision 1.8  1998/05/20 09:42:33  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.7  1998/05/06 18:36:53  peter
-    * tai_section extended with code,data,bss sections and enumerated type
-    * ident 'compiled by FPC' moved to pmodules
-    * small fix for smartlink
-
-  Revision 1.6  1998/05/06 08:38:37  pierre
-    * better position info with UseTokenInfo
-      UseTokenInfo greatly simplified
-    + added check for changed tree after first time firstpass
-      (if we could remove all the cases were it happen
-      we could skip all firstpass if firstpasscount > 1)
-      Only with ExtDebug
-
-  Revision 1.5  1998/04/30 15:59:40  pierre
-    * GDB works again better :
-      correct type info in one pass
-    + UseTokenInfo for better source position
-    * fixed one remaining bug in scanner for line counts
-    * several little fixes
-
-  Revision 1.4  1998/04/29 10:33:50  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.3  1998/04/27 23:10:28  peter
-    + new scanner
-    * $makelib -> if smartlink
-    * small filename fixes pmodule.setfilename
-    * moved import from files.pas -> import.pas
-
-  Revision 1.2  1998/04/07 11:09:04  peter
-    + filemode is set correct in tbufferedfile.reset
 }

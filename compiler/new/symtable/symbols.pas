@@ -1,10 +1,10 @@
  {
     $Id$
 
-    This unit handles symbols
+    Copyright (C) 1998-2000 by Daniel Mantione
+     and other members of the Free Pascal development team
 
-    Copyright (C) 1998-2000 by Daniel Mantione,
-     member of the Free Pascal development team
+    This unit handles symbols
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -284,7 +284,9 @@ var current_object_option:Tobjprop;
     current_type_option:Ttypepropset;
 
     aktprocsym:Pprocsym;    {Pointer to the symbol for the
-                             currently be parsed procedure.}
+                             currently parsed procedure.}
+    aktprocdef:Pprocdef;    {Pointer to the defnition for the
+                             currently parsed procedure.}
     aktvarsym:Pvarsym;      {Pointer to the symbol for the
                              currently read var, only used
                              for variable directives.}
@@ -295,7 +297,7 @@ var current_object_option:Tobjprop;
 
 implementation
 
-uses    {callspec,}verbose,globals,systems,globtype;
+uses    callspec,verbose,globals,systems,globtype;
 
 {****************************************************************************
                                  Tlabelsym
@@ -363,8 +365,9 @@ begin
     if definitions<>nil then
         if typeof(definitions^)=typeof(Tcollection) then
             firstthat:=Pcollection(definitions)^.firstthat(action)
-        else
-            {***callpointer};
+        else if boolean(byte(longint(callpointerlocal(action,
+         previousframepointer,definitions)))) then
+            firstthat:=Pprocdef(definitions);
 end;
 
 procedure Tprocsym.foreach(action:pointer);
@@ -375,7 +378,7 @@ begin
             if typeof(definitions^)=typeof(Tcollection) then
                 Pcollection(definitions)^.foreach(action)
             else
-                {***callpointerlocal(action,previousframepointer,definitions)};
+                callpointerlocal(action,previousframepointer,definitions);
         end;
 end;
 
@@ -1442,3 +1445,11 @@ begin
 end;
 
 end.
+
+{
+  $Log$
+  Revision 1.4  2000-03-01 11:43:56  daniel
+  * Some more work on the new symtable.
+  + Symtable stack unit 'symstack' added.
+
+}

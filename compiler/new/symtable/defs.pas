@@ -1,10 +1,10 @@
 {
     $Id$
 
-    This unit handles definitions
+    Copyright (C) 1998-2000 by Daniel Mantione
+     and other members of the Free Pascal development team
 
-    Copyright (C) 1998-2000 by Daniel Mantione,
-     member of the Free Pascal development team
+    This unit handles definitions
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -577,9 +577,6 @@ var     cformaldef:Pformaldef;      {Unique formal definition.}
         cfiledef:Pfiledef;          {Get the same definition for all files
                                      used for stabs.}
 
-        generrordef:Pdef;           {Jokersymbol for eine fehlerhafte
-                                     typdefinition.}
-
 implementation
 
 uses    systems,symbols,verbose,globals,aasm,files;
@@ -974,6 +971,8 @@ var r:Psym;
 
 begin
     r:=publicsyms^.speedsearch(s,speedvalue);
+    {Privatesyms should be set to nil after compilation of the unit.
+     This way, private syms are not found by objects in other units.}
     if (r=nil) and (privatesyms<>nil) then
         r:=privatesyms^.speedsearch(s,speedvalue);
     if (r=nil) and (protectedsyms<>nil) then
@@ -2907,3 +2906,11 @@ begin
 end;
 
 end.
+
+{
+  $Log$
+  Revision 1.4  2000-03-01 11:43:55  daniel
+  * Some more work on the new symtable.
+  + Symtable stack unit 'symstack' added.
+
+}
