@@ -1000,6 +1000,12 @@ implementation
                          begin
                            vtype:=vtAnsiString;
                            freetemp:=false;
+                         end
+                       else
+                        if is_widestring(lt) then
+                         begin
+                           vtype:=vtWideString;
+                           freetemp:=false;
                          end;
                      end;
                  end;
@@ -1085,7 +1091,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-11-02 22:58:11  peter
+  Revision 1.27  2001-12-17 23:16:05  florian
+    * array of const can now take widestring parameters as well
+
+  Revision 1.26  2001/11/02 22:58:11  peter
     * procsym definition rewrite
 
   Revision 1.25  2001/10/28 17:22:25  peter
