@@ -739,7 +739,7 @@ implementation
                  LOC_CFPUREGISTER:
                    begin
                       emit_reg(A_FLD,S_NO,
-                        correct_fpuregister(p^.right^.location.register,fpuvaroffset));
+                        correct_fpuregister(p^.left^.location.register,fpuvaroffset));
                       inc(fpuvaroffset);
                       p^.location.loc:=LOC_FPU;
                       emit_none(A_FCHS,S_NO);
@@ -939,7 +939,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-08-19 13:08:50  pierre
+  Revision 1.32  1999-09-02 17:07:38  florian
+    * problems with -Or fixed: tdef.isfpuregable was wrong!
+
+  Revision 1.31  1999/08/19 13:08:50  pierre
    * emit_??? used
 
   Revision 1.30  1999/08/04 13:45:23  florian

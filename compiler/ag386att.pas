@@ -207,7 +207,15 @@ unit ag386att;
     begin
       case o.typ of
         top_reg :
-          getopstr:=att_reg2str[o.reg];
+          begin
+{$ifdef debug}
+             if not(o.reg) in tregister then
+               getopstr:=''
+             else
+{$endif}
+
+             getopstr:=att_reg2str[o.reg];
+          end;
         top_ref :
           getopstr:=getreferencestring(o.ref^);
         top_const :
@@ -861,7 +869,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-25 16:03:46  peter
+  Revision 1.13  1999-09-02 17:07:38  florian
+    * problems with -Or fixed: tdef.isfpuregable was wrong!
+
+  Revision 1.12  1999/08/25 16:03:46  peter
     * symbol name is now written using separate asmwrite() calls to overcome
       > 255 char strings
 

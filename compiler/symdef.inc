@@ -513,7 +513,7 @@
    function tdef.is_fpuregable : boolean;
 
      begin
-        is_fpuregable:=not(pfloatdef(@self)^.typ in [f32bit,f16bit]);
+        is_fpuregable:=(deftype=floatdef) and not(pfloatdef(@self)^.typ in [f32bit,f16bit]);
      end;
 
 {****************************************************************************
@@ -3737,7 +3737,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.159  1999-08-27 10:52:19  pierre
+  Revision 1.160  1999-09-02 17:07:40  florian
+    * problems with -Or fixed: tdef.isfpuregable was wrong!
+
+  Revision 1.159  1999/08/27 10:52:19  pierre
     + simplify_ppu code added :
       sets all registers used at PPU writing
     * tprocdef mangledname writing is CRC relevant

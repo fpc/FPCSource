@@ -873,7 +873,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          if needed>usablereg32 then
            begin
-              if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              if (p^.location.loc=LOC_REGISTER) then
                 begin
                    if isint64 then
                      begin
@@ -937,7 +937,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          if needed>usablereg32 then
            begin
-              if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              if (p^.location.loc=LOC_REGISTER) then
                 begin
                    if isint64(p^.resulttype) then
                      begin
@@ -3294,7 +3294,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.36  1999-09-01 09:26:23  peter
+  Revision 1.37  1999-09-02 17:07:38  florian
+    * problems with -Or fixed: tdef.isfpuregable was wrong!
+
+  Revision 1.36  1999/09/01 09:26:23  peter
     * fixed temp allocation for arrayconstructor
 
   Revision 1.35  1999/08/30 12:00:44  pierre
