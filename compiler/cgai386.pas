@@ -2710,6 +2710,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 parasize:=0
               else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-4;
+              if stackframe<>0 then
+                exprasmlist^.insert(new(pai386,
+                  op_const_reg(A_SUB,S_L,gettempsize,R_ESP)));
           end
       else
           begin
@@ -3079,9 +3082,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
           exprasmlist^.concat(new(pai386,op_none(A_POPA,S_L)));
         end;
+      if not(nostackframe) then
+        begin
+          if not inlined then
+            exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
+        end
+      else
+        begin
+          if (gettempsize<>0) and not inlined then
+            exprasmlist^.insert(new(pai386,
+              op_const_reg(A_ADD,S_L,gettempsize,R_ESP)));
+        end;
 
-      if not(nostackframe) and not inlined then
-          exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
       { parameters are limited to 65535 bytes because }
       { ret allows only imm16                    }
       if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
@@ -3176,7 +3188,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.27  1999-08-05 23:45:09  peter
+  Revision 1.28  1999-08-07 14:20:57  florian
+    * some small problems fixed
+
+  Revision 1.27  1999/08/05 23:45:09  peter
     * saveregister is now working and used for assert and iocheck (which has
       been moved to system.inc because it's now system independent)
 

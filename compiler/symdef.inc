@@ -475,6 +475,33 @@
       end;
 
 
+   function tdef.is_intregable : boolean;
+
+     begin
+        is_intregable:=false;
+        case deftype of
+          pointerdef,
+          enumdef,
+          procvardef :
+            is_intregable:=true;
+          orddef :
+            case porddef(@self)^.typ of
+              bool8bit,bool16bit,bool32bit,
+              u8bit,u16bit,u32bit,
+              s8bit,s16bit,s32bit:
+                is_intregable:=true;
+            end;
+          setdef:
+            is_intregable:=is_smallset(@self);
+        end;
+     end;
+
+   function tdef.is_fpuregable : boolean;
+
+     begin
+        is_fpuregable:=not(pfloatdef(@self)^.typ in [f32bit,f16bit]);
+     end;
+
 {****************************************************************************
                                TSTRINGDEF
 ****************************************************************************}
@@ -3590,7 +3617,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.145  1999-08-07 13:36:54  daniel
+  Revision 1.146  1999-08-07 14:21:00  florian
+    * some small problems fixed
+
+  Revision 1.145  1999/08/07 13:36:54  daniel
   * Recommitted the arraydef overflow bugfix.
 
   Revision 1.143  1999/08/06 11:13:30  peter

@@ -872,53 +872,32 @@
          varstate:=vs_used;
          varoptions:=[];
          { can we load the value into a register ? }
-         case p^.deftype of
-           pointerdef,
-           enumdef,
-           procvardef :
+         if p^.is_intregable then
+
 {$ifdef INCLUDEOK}
-             include(varoptions,vo_regable);
+           include(varoptions,vo_regable)
 {$else}
-             varoptions:=varoptions+[vo_regable];
+           varoptions:=varoptions+[vo_regable]
 {$endif}
-           orddef :
-             case porddef(p)^.typ of
-               bool8bit,bool16bit,bool32bit,
-               u8bit,u16bit,u32bit,
-               s8bit,s16bit,s32bit :
+         else
 {$ifdef INCLUDEOK}
-                 include(varoptions,vo_regable);
+           exclude(varoptions,vo_regable);
 {$else}
-                 varoptions:=varoptions+[vo_regable];
+           varoptions:=varoptions-[vo_regable];
 {$endif}
-               else
+
+         if p^.is_fpuregable then
 {$ifdef INCLUDEOK}
-                 exclude(varoptions,vo_regable);
+           include(varoptions,vo_fpuregable)
 {$else}
-                 varoptions:=varoptions-[vo_regable];
+           varoptions:=varoptions+[vo_fpuregable]
 {$endif}
-             end;
-           setdef:
-             if psetdef(p)^.settype=smallset then
+         else
 {$ifdef INCLUDEOK}
-                 include(varoptions,vo_regable);
+           exclude(varoptions,vo_regable);
 {$else}
-                 varoptions:=varoptions+[vo_regable];
+           varoptions:=varoptions-[vo_fpuregable];
 {$endif}
-           floatdef:
-             if not(pfloatdef(p)^.typ in [f32bit,f16bit]) then
-{$ifdef INCLUDEOK}
-               include(varoptions,vo_fpuregable);
-{$else}
-               varoptions:=varoptions+[vo_fpuregable];
-{$endif}
-           else
-{$ifdef INCLUDEOK}
-             exclude(varoptions,vo_regable);
-{$else}
-             varoptions:=varoptions-[vo_regable];
-{$endif}
-         end;
          reg:=R_NO;
       end;
 
@@ -2118,7 +2097,10 @@
 
 {
   $Log$
-  Revision 1.109  1999-08-07 13:24:34  daniel
+  Revision 1.110  1999-08-07 14:21:03  florian
+    * some small problems fixed
+
+  Revision 1.109  1999/08/07 13:24:34  daniel
   * Fixed open arrays
 
   Revision 1.108  1999/08/05 16:53:17  peter

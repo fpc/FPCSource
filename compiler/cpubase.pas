@@ -694,13 +694,9 @@ type
         );
   end;
 
-
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
-
-type
-  tcpuflags = (cf_registers64);
 
 const
   general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
@@ -716,9 +712,9 @@ const
   frame_pointer = R_EBP;
   self_pointer  = R_ESI;
   accumulator   = R_EAX;
-  scratchregister = R_EDI;
+  scratch_register = R_EDI;
 
-  cpuflags : set of tcpuflags = [];
+  cpuflags = [];
 
   { sizes }
   pointersize   = 4;
@@ -1011,7 +1007,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-08-05 14:58:09  florian
+  Revision 1.4  1999-08-07 14:20:58  florian
+    * some small problems fixed
+
+  Revision 1.3  1999/08/05 14:58:09  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

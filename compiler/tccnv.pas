@@ -709,8 +709,13 @@ implementation
             end;
            if p^.explizit then
             begin
+              { check if the result could be in a register }
+              if not(p^.resulttype^.is_intregable) and
+                not(p^.resulttype^.is_fpuregable) then
+                make_not_regable(p^.left);
               { boolean to byte are special because the
                 location can be different }
+
               if is_integer(p^.resulttype) and
                  is_boolean(p^.left^.resulttype) then
                begin
@@ -919,7 +924,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-08-04 13:03:14  jonas
+  Revision 1.45  1999-08-07 14:21:04  florian
+    * some small problems fixed
+
+  Revision 1.44  1999/08/04 13:03:14  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

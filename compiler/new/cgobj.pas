@@ -31,10 +31,14 @@ unit cgobj;
     type
        qword = comp;
 
+       talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
+
        pcg = ^tcg;
        tcg = object
           scratch_register_array_pointer : aword;
           unusedscratchregisters : tregisterset;
+
+          alignment : talignment
           {************************************************}
           {                 basic routines                 }
           constructor init;
@@ -159,7 +163,7 @@ unit cgobj;
           { loadref is true, it assumes that it first must load }
           { the source address from the memory location where   }
           { source points to					}
-          procedure g_concatcopy(const source,dest : treference;len : aword;loadref : boolean);virtual;
+          procedure g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);virtual;
 
           { uses the addr of ref as param, was emitpushreferenceaddr }
           procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
@@ -323,7 +327,7 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_concatcopy(const source,dest : treference;len : aword;loadref : boolean);
+    procedure tcg.g_concatcopy(list : paasmoutput;const source,dest : treference;len : aword;loadref : boolean);
 
       begin
          abstract;
@@ -994,7 +998,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.20  1999-08-06 18:05:52  florian
+  Revision 1.21  1999-08-07 14:21:08  florian
+    * some small problems fixed
+
+  Revision 1.20  1999/08/06 18:05:52  florian
     * implemented some stuff for assignments
 
   Revision 1.19  1999/08/06 17:00:54  florian

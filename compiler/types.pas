@@ -163,7 +163,6 @@ interface
     { returns the mmx type }
     function mmx_type(p : pdef) : tmmxtype;
 
-
 implementation
 
     uses
@@ -975,7 +974,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  1999-08-07 13:36:56  daniel
+  Revision 1.83  1999-08-07 14:21:06  florian
+    * some small problems fixed
+
+  Revision 1.82  1999/08/07 13:36:56  daniel
   * Recommitted the arraydef overflow bugfix.
 
   Revision 1.80  1999/08/05 22:42:49  daniel

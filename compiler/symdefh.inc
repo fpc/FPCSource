@@ -86,6 +86,8 @@
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
+          function is_intregable : boolean;
+          function is_fpuregable : boolean;
        private
           savesize  : longint;
        end;
@@ -517,7 +519,10 @@
 
 {
   $Log$
-  Revision 1.38  1999-08-05 16:53:15  peter
+  Revision 1.39  1999-08-07 14:21:02  florian
+    * some small problems fixed
+
+  Revision 1.38  1999/08/05 16:53:15  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives

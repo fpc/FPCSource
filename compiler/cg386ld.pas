@@ -166,8 +166,15 @@ implementation
                                 begin
                                    p^.location.reference.base:=procinfo.framepointer;
                                    p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
+
                                    if (symtabletype in [localsymtable,inlinelocalsymtable]) then
-                                     p^.location.reference.offset:=-p^.location.reference.offset;
+                                     begin
+                                        if use_esp_stackframe then
+                                          dec(p^.location.reference.offset,
+                                            pvarsym(p^.symtableentry)^.getsize)
+                                        else
+                                          p^.location.reference.offset:=-p^.location.reference.offset;
+                                     end;
                                    if (lexlevel>(p^.symtable^.symtablelevel)) then
                                      begin
                                         hregister:=getregister32;
@@ -929,7 +936,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  1999-08-04 13:45:22  florian
+  Revision 1.71  1999-08-07 14:20:55  florian
+    * some small problems fixed
+
+  Revision 1.70  1999/08/04 13:45:22  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 

@@ -425,6 +425,10 @@ implementation
                      3. no call to other procedures
                      4. no interrupt handler
                    }
+                   {!!!!!! this doesn work yet, because of problems with
+                     with linux and windows
+                   }
+                   (*
                    if assigned(aktprocsym) then
                      begin
                        if not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
@@ -450,6 +454,7 @@ implementation
                          aktprocsym^.definition^.parast^.address_fixup:=procinfo.call_offset;
                        end;
                      end;
+                   *)
                    if (p^.registers32<4) then
                      begin
                         for i:=1 to maxvarregs do
@@ -648,7 +653,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-08-04 14:21:07  florian
+  Revision 1.31  1999-08-07 14:20:59  florian
+    * some small problems fixed
+
+  Revision 1.30  1999/08/04 14:21:07  florian
     * now every available fpu register is used for
       fpu register variables
 
