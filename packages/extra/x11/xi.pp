@@ -50,16 +50,16 @@ SOFTWARE.
 
  Definitions used by the server, library and client
 
-        Pascal Convertion was made by Ido Kannner.
+        Pascal Convertion was made by Ido Kannner - kanerido@actcom.net.il
 
 Histroy:
+        2004/10/07 - Removed the "uses X;" line. The unit does not need it.
         2004/10/03 - Conversion from C header to Pascal unit.
 }
 {$PACKRECORDS C} {$MACRO ON} {$DEFINE MACROS}
 {$MODE OBJFPC}
 unit xi;
 interface
-uses X;
 
 const
         sz_xGetExtensionVersionReq           =  8;

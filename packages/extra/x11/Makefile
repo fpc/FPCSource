@@ -215,7 +215,7 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=x11
 override PACKAGE_VERSION=1.9.4
-override TARGET_UNITS+=x xlib xutil xresource xcms xshm xrender keysym xi
+override TARGET_UNITS+=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
