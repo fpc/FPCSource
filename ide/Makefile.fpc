@@ -9,7 +9,11 @@ version=1.0.5
 [target]
 dirs=fake text
 
+[install]
+fpcpackage=y
+
 [default]
+fpcdir=..
 dir=text
 
 [rules]
