@@ -2617,6 +2617,9 @@ implementation
         if not(p.typ=typesym) then
          internalerror(200108261);
         def:=tstoreddef(ttypesym(p).restype.def);
+        { there is an error, skip rtti info }
+        if def.deftype=errordef then
+          exit;
         { only create rtti once for each definition }
         if not(df_has_rttitable in def.defoptions) then
          begin
@@ -2684,7 +2687,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2003-12-12 12:09:40  marco
+  Revision 1.139  2003-12-23 22:13:26  peter
+    * don't generate rtti for errordef
+
+  Revision 1.138  2003/12/12 12:09:40  marco
    * always generate RTTI patch from peter
 
   Revision 1.137  2003/12/01 18:44:15  peter
