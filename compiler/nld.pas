@@ -168,6 +168,8 @@ implementation
         var
           p2 : tnode;
         begin
+          if p1.nodetype<>calln then
+            internalerror(200212251);
           { was it a procvar, then we simply remove the calln and
             reuse the right }
           if assigned(tcallnode(p1).right) then
@@ -625,6 +627,9 @@ implementation
                  is_ansistring(tbinarynode(right).right.resulttype.def)
                 ) then
                 begin
+                   { remove property flag so it'll not trigger an error }
+                   exclude(left.flags,nf_isproperty);
+                   { generate call to helper }
                    hp:=ccallparanode.create(tbinarynode(right).right,
                      ccallparanode.create(left,nil));
                    if is_char(tbinarynode(right).right.resulttype.def) then
@@ -1273,7 +1278,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2002-12-24 16:53:19  peter
+  Revision 1.75  2002-12-27 15:27:25  peter
+    * remove property indicator when calling internal helpers
+
+  Revision 1.74  2002/12/24 16:53:19  peter
     * fix for tb0438
 
   Revision 1.73  2002/12/20 18:14:53  peter
