@@ -88,7 +88,8 @@ unit i_morph;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+	    abi : abi_powerpc_aix
           );
 
   implementation
@@ -102,7 +103,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2004-02-13 05:46:26  karoly
+  Revision 1.2  2004-03-15 07:26:44  karoly
+   * added abi field into TSystemInfo to fix IE
+
+  Revision 1.1  2004/02/13 05:46:26  karoly
    * added powerpc-morphos target
 
 
