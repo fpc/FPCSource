@@ -183,7 +183,7 @@ unit tree;
 {$endif}
 
        { allows to determine which elementes are to be replaced }
-       tdisposetyp = (dt_nothing,dt_leftright,dt_left,
+       tdisposetyp = (dt_nothing,dt_leftright,dt_left,dt_leftrighthigh,
                       dt_mbleft,dt_typeconv,dt_inlinen,
                       dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn);
 
@@ -406,6 +406,15 @@ unit tree;
                  if assigned(p^.right) then
                    hp^.right:=getcopy(p^.right);
               end;
+            dt_leftrighthigh :
+              begin
+                 if assigned(p^.left) then
+                   hp^.left:=getcopy(p^.left);
+                 if assigned(p^.right) then
+                   hp^.right:=getcopy(p^.right);
+                 if assigned(p^.hightree) then
+                   hp^.left:=getcopy(p^.hightree);
+              end;
             dt_nothing : ;
             dt_left    :
               if assigned(p^.left) then
@@ -493,6 +502,15 @@ unit tree;
                    disposetree(p^.left);
                  if assigned(p^.right) then
                    disposetree(p^.right);
+              end;
+            dt_leftrighthigh :
+              begin
+                 if assigned(p^.left) then
+                   disposetree(p^.left);
+                 if assigned(p^.right) then
+                   disposetree(p^.right);
+                 if assigned(p^.hightree) then
+                   disposetree(p^.hightree);
               end;
             dt_case :
               begin
@@ -629,7 +647,7 @@ unit tree;
 
       begin
          p:=getnode;
-         p^.disposetyp:=dt_leftright;
+         p^.disposetyp:=dt_leftrighthigh;
          p^.treetype:=callparan;
          p^.left:=expr;
          p^.right:=next;
@@ -643,6 +661,7 @@ unit tree;
          p^.resulttype:=nil;
          p^.exact_match_found:=false;
          p^.is_colon_para:=false;
+         p^.hightree:=nil;
          set_file_line(expr,p);
          gencallparanode:=p;
       end;
@@ -1666,7 +1685,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.63  1999-01-27 00:14:00  florian
+  Revision 1.64  1999-01-27 12:57:22  pierre
+   * memory leaks with hightree solved by adding a new disposetyp
+     dt_leftrighthigh
+
+  Revision 1.63  1999/01/27 00:14:00  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.62  1999/01/21 22:10:52  peter
