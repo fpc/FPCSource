@@ -246,8 +246,8 @@ begin
   {$i+}
   If IOresult<>0 then
     begin
-    message(general_e_errorwritingresourcefile);
-    exit;
+      message1(general_e_errorwritingresourcefile,filename);
+      exit;
     end;
   R:=TResourceStringItem(List.First);
   While assigned(R) do
@@ -300,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2003-12-08 22:34:24  peter
+  Revision 1.20  2003-12-29 19:31:20  florian
+    * fixed error message, if a resource file can't be written
+
+  Revision 1.19  2003/12/08 22:34:24  peter
     * tai_const.create_32bit changed to cardinal
 
   Revision 1.18  2003/10/29 19:48:50  peter
