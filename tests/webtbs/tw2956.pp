@@ -4,7 +4,7 @@
 
 program something;
 {$mode Delphi}
-Uses altunit;
+Uses uw2956;
 
 type
      localclassfields = class(aclasswithfields)
