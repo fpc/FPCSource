@@ -224,7 +224,7 @@ function Tabstractrecordsymtable.varsymtodata(sym:Psym;
 
 begin
     datasize:=(datasize+(packrecordalignment[aktpackrecords]-1))
-     and (not packrecordalignment[aktpackrecords]-1);
+     and not (packrecordalignment[aktpackrecords]-1);
     varsymtodata:=inherited varsymtodata(sym,len);
 end;
 
