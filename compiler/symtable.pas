@@ -33,7 +33,7 @@ interface
        { symtable }
        symconst,symbase,symtype,symdef,symsym,
        { ppu }
-       ppu,symppu,
+       ppu,
        { assembler }
        aasmtai
        ;
@@ -399,18 +399,18 @@ implementation
 
     procedure tstoredsymtable.writesyms(ppufile:tcompilerppufile);
       var
-        pd : tstoredsym;
+        pd : Tsym;
       begin
          { each definition get a number, write then the amount of syms and the
            datasize to the ibsymdef entry }
          ppufile.putlongint(symindex.count);
          ppufile.writeentry(ibstartsyms);
          { foreach is used to write all symbols }
-         pd:=tstoredsym(symindex.first);
+         pd:=Tsym(symindex.first);
          while assigned(pd) do
            begin
               pd.ppuwrite(ppufile);
-              pd:=tstoredsym(pd.indexnext);
+              pd:=Tsym(pd.indexnext);
            end;
          { end of symbols }
          ppufile.writeentry(ibendsyms);
@@ -421,7 +421,7 @@ implementation
       var
         b     : byte;
         d     : tderef;
-        sym   : tstoredsym;
+        sym   : Tsym;
         prdef : tstoreddef;
       begin
          b:=ppufile.readentry;
@@ -433,7 +433,7 @@ implementation
              ibsymref :
                begin
                  ppufile.getderef(d);
-                 sym:=tstoredsym(d.resolve);
+                 sym:=Tsym(d.resolve);
                  if assigned(sym) then
                    sym.load_references(ppufile,locals);
                end;
@@ -459,15 +459,15 @@ implementation
 
     procedure tstoredsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       var
-        pd : tstoredsym;
+        pd : Tsym;
       begin
          ppufile.writeentry(ibbeginsymtablebrowser);
          { write all symbols }
-         pd:=tstoredsym(symindex.first);
+         pd:=Tsym(symindex.first);
          while assigned(pd) do
            begin
               pd.write_references(ppufile,locals);
-              pd:=tstoredsym(pd.indexnext);
+              pd:=Tsym(pd.indexnext);
            end;
          ppufile.writeentry(ibendsymtablebrowser);
       end;
@@ -610,10 +610,10 @@ implementation
 
     function tstoredsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
       var
-        hp : tstoredsym;
+        hp : Tsym;
         newref : tref;
       begin
-        hp:=tstoredsym(inherited speedsearch(s,speedvalue));
+        hp:=Tsym(inherited speedsearch(s,speedvalue));
         if assigned(hp) then
          begin
            { reject non static members in static procedures }
@@ -636,8 +636,7 @@ implementation
              as TCHILDCLASS.Create did not generate appropriate
              stabs debug info if TCHILDCLASS wasn't used anywhere else PM }
            if (cs_debuginfo in aktmoduleswitches) and
-              (hp.typ=typesym) and
-              make_ref then
+              (hp.typ=typesym) and make_ref then
              begin
                if assigned(ttypesym(hp).restype.def) then
                  tstoreddef(ttypesym(hp).restype.def).numberstring
@@ -765,12 +764,12 @@ implementation
               (copy(p.name,1,3)='def') then
              exit;
            { do not claim for inherited private fields !! }
-           if (tstoredsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
+           if (Tsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
              MessagePos2(tsym(p).fileinfo,sym_n_private_method_not_used,tsym(p).owner.realname^,tsym(p).realname)
            { units references are problematic }
            else
             begin
-              if (tstoredsym(p).refs=0) and
+              if (Tsym(p).refs=0) and
                  not(tsym(p).typ in [enumsym,unitsym]) and
                  not(is_funcret_sym(tsym(p))) and
                  (
@@ -1174,7 +1173,7 @@ implementation
               { but private ids can be reused }
               hsym:=search_class_member(tobjectdef(defowner),sym.name);
               if assigned(hsym) and
-                 tstoredsym(hsym).is_visible_for_object(tobjectdef(defowner)) then
+                 Tsym(hsym).is_visible_for_object(tobjectdef(defowner)) then
                begin
                  DuplicateSym(hsym);
                  exit;
@@ -1313,7 +1312,7 @@ implementation
               hsym:=search_class_member(tobjectdef(next.defowner),sym.name);
               { private ids can be reused }
               if assigned(hsym) and
-                 tstoredsym(hsym).is_visible_for_object(tobjectdef(next.defowner)) then
+                 Tsym(hsym).is_visible_for_object(tobjectdef(next.defowner)) then
                begin
                  { delphi allows to reuse the names in a class, but not
                    in object (tp7 compatible) }
@@ -1801,7 +1800,7 @@ implementation
               srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
               if assigned(srsym) and
                  (not assigned(current_procinfo) or
-                  tstoredsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
+                  Tsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
                begin
                  searchsym:=true;
                  exit;
@@ -1832,7 +1831,7 @@ implementation
                   srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
                   if assigned(srsym) and
                      (not assigned(current_procinfo) or
-                      tstoredsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
+                      Tsym(srsym).is_visible_for_object(current_procinfo.procdef._class)) then
                     begin
                       result:=true;
                       exit;
@@ -1899,7 +1898,7 @@ implementation
           begin
             sym:=tsym(classh.symtable.speedsearch(s,speedvalue));
             if assigned(sym) and
-               tstoredsym(sym).is_visible_for_object(topclassh) then
+               Tsym(sym).is_visible_for_object(topclassh) then
               break;
             classh:=classh.childof;
           end;
@@ -2298,7 +2297,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2004-01-15 15:16:18  daniel
+  Revision 1.126  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.125  2004/01/15 15:16:18  daniel
     * Some minor stuff
     * Managed to eliminate speed effects of string compression
 

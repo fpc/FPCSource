@@ -36,7 +36,7 @@ interface
       { symtable }
       symconst,symbase,
       { aasm }
-      aasmbase
+      aasmbase,ppu,cpuinfo
       ;
 
     type
@@ -45,6 +45,8 @@ interface
 ************************************************}
 
       tsym = class;
+      Tcompilerppufile=class;
+
 
 {************************************************
                      TRef
@@ -92,17 +94,39 @@ interface
 
       { this object is the base for all symbol objects }
       tsym = class(tsymentry)
+      protected
+{$ifdef GDB}
+{         isstabwritten : boolean;}
+{$endif GDB}
+      public
          _realname  : pstring;
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
+         refs          : longint;
+         lastref,
+         defref,
+         lastwritten : tref;
+         refcount    : longint;
+{$ifdef GDB}
+{         function  get_var_value(const s:string):string;
+         function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
+         function  stabstring : pchar;virtual;
+         procedure concatstabto(asmlist : taasmoutput);virtual;}
+{$endif GDB}
          constructor create(const n : string);
+         constructor loadsym(ppufile:tcompilerppufile);
          destructor destroy;override;
+         procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
+         procedure writesym(ppufile:tcompilerppufile);
          function  realname:string;
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
          function  gettypedef:tdef;virtual;
+         procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
+         function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
+         function is_visible_for_object(currobjdef:Tdef):boolean;
       end;
 
 {************************************************
@@ -163,6 +187,29 @@ interface
         procedure buildderef;
       end;
 
+{************************************************
+                Tcompilerppufile
+************************************************}
+       tcompilerppufile=class(tppufile)
+       public
+         procedure checkerror;
+         procedure getguid(var g: tguid);
+         function  getexprint:tconstexprint;
+         function  getptruint:TConstPtrUInt;
+         procedure getposinfo(var p:tfileposinfo);
+         procedure getderef(var d:tderef);
+         function  getsymlist:tsymlist;
+         procedure gettype(var t:ttype);
+         function  getasmsymbol:tasmsymbol;
+         procedure putguid(const g: tguid);
+         procedure putexprint(v:tconstexprint);
+         procedure PutPtrUInt(v:TConstPtrUInt);
+         procedure putposinfo(const p:tfileposinfo);
+         procedure putderef(const d:tderef);
+         procedure putsymlist(p:tsymlist);
+         procedure puttype(const t:ttype);
+         procedure putasmsymbol(s:tasmsymbol);
+       end;
 
 {$ifdef MEMDEBUG}
     var
@@ -180,7 +227,8 @@ implementation
 
     uses
        verbose,
-       fmodule;
+       fmodule,
+       symdef;
 
 {****************************************************************************
                                 Tdef
@@ -248,8 +296,40 @@ implementation
          _realname:=stringdup(n);
          typ:=abstractsym;
          symoptions:=[];
+         defref:=nil;
+         refs:=0;
+         lastwritten:=nil;
+         refcount:=0;
+         if (cs_browser in aktmoduleswitches) and make_ref then
+          begin
+            defref:=tref.create(defref,@akttokenpos);
+            inc(refcount);
+          end;
       end;
 
+    constructor tsym.loadsym(ppufile:tcompilerppufile);
+      var
+        s  : string;
+        nr : word;
+      begin
+         nr:=ppufile.getword;
+         s:=ppufile.getstring;
+         if s[1]='$' then
+          inherited createname(copy(s,2,255))
+         else
+          inherited createname(upper(s));
+         _realname:=stringdup(s);
+         typ:=abstractsym;
+         { force the correct indexnr. must be after create! }
+         indexnr:=nr;
+         ppufile.getposinfo(fileinfo);
+         ppufile.getsmallset(symoptions);
+         lastref:=nil;
+         defref:=nil;
+         refs:=0;
+         lastwritten:=nil;
+         refcount:=0;
+      end;
 
     destructor tsym.destroy;
       begin
@@ -262,6 +342,68 @@ implementation
 {$endif MEMDEBUG}
         inherited destroy;
       end;
+
+    procedure Tsym.writesym(ppufile:tcompilerppufile);
+      begin
+         ppufile.putword(indexnr);
+         ppufile.putstring(_realname^);
+         ppufile.putposinfo(fileinfo);
+         ppufile.putsmallset(symoptions);
+      end;
+
+{$ifdef xGDB}
+    function Tsym.get_var_value(const s:string):string;
+
+    begin
+      if s='name' then
+        get_var_value:=name
+      else if s='ownername' then
+        get_var_value:=owner.name^
+      else if s='mangledname' then
+        get_var_value:=mangledname
+      else if s='line' then
+        get_var_value:=tostr(fileinfo.line)
+      else if s='N_LSYM' then
+        get_var_value:=tostr(N_LSYM)
+      else if s='N_LCSYM' then
+        get_var_value:=tostr(N_LCSYM)
+      else if s='N_RSYM' then
+        get_var_value:=tostr(N_RSYM)
+      else if s='N_TSYM' then
+        get_var_value:=tostr(N_TSYM)
+      else if s='N_STSYM' then
+        get_var_value:=tostr(N_STSYM)
+      else if s='N_FUNCTION' then
+        get_var_value:=tostr(N_FUNCTION)
+      else
+        internalerror(200401152);
+    end;
+
+    function Tsym.stabstr_evaluate(const s:string;vars:array of string):Pchar;
+
+    begin
+      stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
+    end;
+
+    function Tsym.stabstring : pchar;
+
+    begin
+      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
+    end;
+
+    procedure Tsym.concatstabto(asmlist : taasmoutput);
+      var
+        stab_str : pchar;
+      begin
+         if not isstabwritten then
+           begin
+              stab_str := stabstring;
+              if assigned(stab_str) then
+                asmList.concat(Tai_stabs.Create(stab_str));
+              isstabwritten:=true;
+          end;
+    end;
+{$endif xGDB}
 
 
     function tsym.realname : string;
@@ -278,6 +420,107 @@ implementation
         gettypedef:=nil;
       end;
 
+
+    procedure Tsym.load_references(ppufile:tcompilerppufile;locals:boolean);
+      var
+        pos : tfileposinfo;
+        move_last : boolean;
+      begin
+        move_last:=lastwritten=lastref;
+        while (not ppufile.endofentry) do
+         begin
+           ppufile.getposinfo(pos);
+           inc(refcount);
+           lastref:=tref.create(lastref,@pos);
+           lastref.is_written:=true;
+           if refcount=1 then
+            defref:=lastref;
+         end;
+        if move_last then
+          lastwritten:=lastref;
+      end;
+
+    { big problem here :
+      wrong refs were written because of
+      interface parsing of other units PM
+      moduleindex must be checked !! }
+
+    function Tsym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
+      var
+        d : tderef;
+        ref   : tref;
+        symref_written,move_last : boolean;
+      begin
+        write_references:=false;
+        if lastwritten=lastref then
+          exit;
+      { should we update lastref }
+        move_last:=true;
+        symref_written:=false;
+      { write symbol refs }
+        d.reset;
+        if assigned(lastwritten) then
+          ref:=lastwritten
+        else
+          ref:=defref;
+        while assigned(ref) do
+         begin
+           if ref.moduleindex=current_module.unit_index then
+             begin
+              { write address to this symbol }
+                if not symref_written then
+                  begin
+                     d.build(self);
+                     ppufile.putderef(d);
+                     symref_written:=true;
+                  end;
+                ppufile.putposinfo(ref.posinfo);
+                ref.is_written:=true;
+                if move_last then
+                  lastwritten:=ref;
+             end
+           else if not ref.is_written then
+             move_last:=false
+           else if move_last then
+             lastwritten:=ref;
+           ref:=ref.nextref;
+         end;
+        if symref_written then
+          ppufile.writeentry(ibsymref);
+        write_references:=symref_written;
+      end;
+
+
+    function Tsym.is_visible_for_object(currobjdef:Tdef):boolean;
+      begin
+        is_visible_for_object:=false;
+
+        { private symbols are allowed when we are in the same
+          module as they are defined }
+        if (sp_private in symoptions) and
+           assigned(owner.defowner) and
+           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+           (owner.defowner.owner.unitid<>0) then
+          exit;
+
+        { protected symbols are vissible in the module that defines them and
+          also visible to related objects }
+        if (sp_protected in symoptions) and
+           (
+            (
+             assigned(owner.defowner) and
+             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+             (owner.defowner.owner.unitid<>0)
+            ) and
+            not(
+                assigned(currobjdef) and
+                Tobjectdef(currobjdef).is_related(tobjectdef(owner.defowner))
+               )
+           ) then
+          exit;
+
+        is_visible_for_object:=true;
+      end;
 
 {****************************************************************************
                                TRef
@@ -912,6 +1155,340 @@ implementation
           end;
       end;
 
+{*****************************************************************************
+                            TCompilerPPUFile
+*****************************************************************************}
+
+    procedure tcompilerppufile.checkerror;
+      begin
+        if error then
+         Message(unit_f_ppu_read_error);
+      end;
+
+
+    procedure tcompilerppufile.getguid(var g: tguid);
+      begin
+        getdata(g,sizeof(g));
+      end;
+
+
+    function tcompilerppufile.getexprint:tconstexprint;
+      var
+        l1,l2 : longint;
+      begin
+        if sizeof(tconstexprint)=8 then
+          begin
+            l1:=getlongint;
+            l2:=getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+{$ifdef Delphi}
+            result:=int64(l1)+(int64(l2) shl 32);
+{$else}
+            result:=qword(l1)+(int64(l2) shl 32);
+{$endif}
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+          end
+        else
+          result:=tconstexprint(getlongint);
+      end;
+
+
+    function tcompilerppufile.getPtrUInt:TConstPtrUInt;
+      var
+        l1,l2 : longint;
+      begin
+        if sizeof(TConstPtrUInt)=8 then
+          begin
+            l1:=getlongint;
+            l2:=getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+{$ifdef Delphi}
+            result:=int64(l1)+(int64(l2) shl 32);
+{$else}
+            result:=qword(l1)+(int64(l2) shl 32);
+{$endif}
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+          end
+        else
+          result:=TConstPtrUInt(getlongint);
+      end;
+
+
+    procedure tcompilerppufile.getposinfo(var p:tfileposinfo);
+      var
+        info : byte;
+      begin
+        {
+          info byte layout in bits:
+          0-1 - amount of bytes for fileindex
+          2-3 - amount of bytes for line
+          4-5 - amount of bytes for column
+        }
+        info:=getbyte;
+        case (info and $03) of
+         0 : p.fileindex:=getbyte;
+         1 : p.fileindex:=getword;
+         2 : p.fileindex:=(getbyte shl 16) or getword;
+         3 : p.fileindex:=getlongint;
+        end;
+        case ((info shr 2) and $03) of
+         0 : p.line:=getbyte;
+         1 : p.line:=getword;
+         2 : p.line:=(getbyte shl 16) or getword;
+         3 : p.line:=getlongint;
+        end;
+        case ((info shr 4) and $03) of
+         0 : p.column:=getbyte;
+         1 : p.column:=getword;
+         2 : p.column:=(getbyte shl 16) or getword;
+         3 : p.column:=getlongint;
+        end;
+      end;
+
+
+    procedure tcompilerppufile.getderef(var d:tderef);
+      begin
+        d.dataidx:=getlongint;
+      end;
+
+
+    function tcompilerppufile.getsymlist:tsymlist;
+      var
+        symderef : tderef;
+        tt  : ttype;
+        slt : tsltype;
+        idx : longint;
+        p   : tsymlist;
+      begin
+        p:=tsymlist.create;
+        getderef(p.procdefderef);
+        repeat
+          slt:=tsltype(getbyte);
+          case slt of
+            sl_none :
+              break;
+            sl_call,
+            sl_load,
+            sl_subscript :
+              begin
+                getderef(symderef);
+                p.addsymderef(slt,symderef);
+              end;
+            sl_typeconv :
+              begin
+                gettype(tt);
+                p.addtype(slt,tt);
+              end;
+            sl_vec :
+              begin
+                idx:=getlongint;
+                p.addconst(slt,idx);
+              end;
+            else
+              internalerror(200110204);
+          end;
+        until false;
+        getsymlist:=tsymlist(p);
+      end;
+
+
+    procedure tcompilerppufile.gettype(var t:ttype);
+      begin
+        getderef(t.deref);
+        t.def:=nil;
+        t.sym:=nil;
+      end;
+
+
+    function  tcompilerppufile.getasmsymbol:tasmsymbol;
+      begin
+        getasmsymbol:=tasmsymbol(pointer(getlongint));
+      end;
+
+
+    procedure tcompilerppufile.putposinfo(const p:tfileposinfo);
+      var
+        oldcrc : boolean;
+        info   : byte;
+      begin
+        { posinfo is not relevant for changes in PPU }
+        oldcrc:=do_crc;
+        do_crc:=false;
+        {
+          info byte layout in bits:
+          0-1 - amount of bytes for fileindex
+          2-3 - amount of bytes for line
+          4-5 - amount of bytes for column
+        }
+        info:=0;
+        { calculate info byte }
+        if (p.fileindex>$ff) then
+         begin
+           if (p.fileindex<=$ffff) then
+            info:=info or $1
+           else
+            if (p.fileindex<=$ffffff) then
+             info:=info or $2
+           else
+            info:=info or $3;
+          end;
+        if (p.line>$ff) then
+         begin
+           if (p.line<=$ffff) then
+            info:=info or $4
+           else
+            if (p.line<=$ffffff) then
+             info:=info or $8
+           else
+            info:=info or $c;
+          end;
+        if (p.column>$ff) then
+         begin
+           if (p.column<=$ffff) then
+            info:=info or $10
+           else
+            if (p.column<=$ffffff) then
+             info:=info or $20
+           else
+            info:=info or $30;
+          end;
+        { write data }
+        putbyte(info);
+        case (info and $03) of
+         0 : putbyte(p.fileindex);
+         1 : putword(p.fileindex);
+         2 : begin
+               putbyte(p.fileindex shr 16);
+               putword(p.fileindex and $ffff);
+             end;
+         3 : putlongint(p.fileindex);
+        end;
+        case ((info shr 2) and $03) of
+         0 : putbyte(p.line);
+         1 : putword(p.line);
+         2 : begin
+               putbyte(p.line shr 16);
+               putword(p.line and $ffff);
+             end;
+         3 : putlongint(p.line);
+        end;
+        case ((info shr 4) and $03) of
+         0 : putbyte(p.column);
+         1 : putword(p.column);
+         2 : begin
+               putbyte(p.column shr 16);
+               putword(p.column and $ffff);
+             end;
+         3 : putlongint(p.column);
+        end;
+        do_crc:=oldcrc;
+      end;
+
+
+    procedure tcompilerppufile.putguid(const g: tguid);
+      begin
+        putdata(g,sizeof(g));
+      end;
+
+
+    procedure tcompilerppufile.putexprint(v:tconstexprint);
+      begin
+        if sizeof(TConstExprInt)=8 then
+          begin
+             putlongint(longint(lo(v)));
+             putlongint(longint(hi(v)));
+          end
+        else if sizeof(TConstExprInt)=4 then
+          putlongint(longint(v))
+        else
+          internalerror(2002082601);
+      end;
+
+
+    procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
+      begin
+        if sizeof(TConstPtrUInt)=8 then
+          begin
+             putlongint(longint(lo(v)));
+             putlongint(longint(hi(v)));
+          end
+        else if sizeof(TConstPtrUInt)=4 then
+          putlongint(longint(v))
+        else
+          internalerror(2002082601);
+      end;
+
+
+    procedure tcompilerppufile.putderef(const d:tderef);
+      var
+        oldcrc : boolean;
+      begin
+        oldcrc:=do_crc;
+        do_crc:=false;
+        putlongint(d.dataidx);
+        do_crc:=oldcrc;
+      end;
+
+
+    procedure tcompilerppufile.putsymlist(p:tsymlist);
+      var
+        hp : psymlistitem;
+      begin
+        putderef(p.procdefderef);
+        hp:=p.firstsym;
+        while assigned(hp) do
+         begin
+           putbyte(byte(hp^.sltype));
+           case hp^.sltype of
+             sl_call,
+             sl_load,
+             sl_subscript :
+               putderef(hp^.symderef);
+             sl_typeconv :
+               puttype(hp^.tt);
+             sl_vec :
+               putlongint(hp^.value);
+             else
+              internalerror(200110205);
+           end;
+           hp:=hp^.next;
+         end;
+        putbyte(byte(sl_none));
+      end;
+
+
+    procedure tcompilerppufile.puttype(const t:ttype);
+      begin
+        putderef(t.deref);
+      end;
+
+
+    procedure tcompilerppufile.putasmsymbol(s:tasmsymbol);
+      begin
+        if assigned(s) then
+         begin
+           if s.ppuidx=-1 then
+            begin
+              inc(objectlibrary.asmsymbolppuidx);
+              s.ppuidx:=objectlibrary.asmsymbolppuidx;
+            end;
+           putlongint(s.ppuidx);
+         end
+        else
+         putlongint(0);
+      end;
 
 {$ifdef MEMDEBUG}
 initialization
@@ -943,7 +1520,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2003-11-10 22:02:52  peter
+  Revision 1.35  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.34  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.33  2003/10/28 15:36:01  peter
@@ -1044,3 +1625,7 @@ end.
       on demand from tprocdef.mangledname
 
 }
+
+
+
+end.

@@ -37,7 +37,7 @@ interface
        globtype,globals,systems,
        cpuinfo,cpubase,
        cgbase,
-       symppu,symtype,
+       symtype,
        aasmbase;
 
     type
@@ -1971,7 +1971,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-01-24 18:12:40  florian
+  Revision 1.67  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.66  2004/01/24 18:12:40  florian
     * fixed several arm floating point issues
 
   Revision 1.65  2004/01/23 15:12:49  florian

@@ -38,7 +38,7 @@ interface
     uses
        cutils,cclasses,
        globtype,globals,finput,fmodule,
-       symbase,symppu,ppu;
+       symbase,ppu,symtype;
 
     type
        tppumodule = class(tmodule)
@@ -1514,7 +1514,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.50  2004-01-22 17:23:56  peter
+  Revision 1.51  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.50  2004/01/22 17:23:56  peter
     * also check in the same dir as the unit we are loading from, this
       makes UNITPATH working better
 

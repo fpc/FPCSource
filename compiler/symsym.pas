@@ -33,7 +33,7 @@ interface
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
        { ppu }
-       ppu,symppu,
+       ppu,
        cclasses,symnot,
        { aasm }
        aasmbase,aasmtai,
@@ -50,30 +50,20 @@ interface
        protected
           _mangledname : pstring;
        public
-          refs          : longint;
-          lastref,
-          defref,
-          lastwritten : tref;
-          refcount    : longint;
 {$ifdef GDB}
           isstabwritten : boolean;
 {$endif GDB}
           constructor create(const n : string);
           constructor loadsym(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
-          procedure writesym(ppufile:tcompilerppufile);
           procedure buildderef;override;
           procedure deref;override;
 {$ifdef GDB}
           function  get_var_value(const s:string):string;
           function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
           function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          procedure concatstabto(asmlist : taasmoutput);
 {$endif GDB}
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
-          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
-          function  is_visible_for_object(currobjdef:tobjectdef):boolean;
           function  mangledname : string;
           procedure generate_mangledname;virtual;abstract;
        end;
@@ -97,11 +87,11 @@ interface
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function  stabstring:Pchar;override;
 {$endif GDB}
        end;
 
-       terrorsym = class(tstoredsym)
+       terrorsym = class(Tsym)
           constructor create;
        end;
 
@@ -151,7 +141,6 @@ interface
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
@@ -170,7 +159,6 @@ interface
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
@@ -202,7 +190,6 @@ interface
           procedure unregister_notification(id:cardinal);
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
          private
           procedure setvartype(const newtype: ttype);
@@ -233,7 +220,6 @@ interface
           procedure dooverride(overriden:tpropertysym);
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
@@ -251,7 +237,7 @@ interface
           function  mangledname : string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function  stabstring : pchar;override;
 {$endif GDB}
        end;
 
@@ -298,7 +284,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
-          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
@@ -314,7 +299,7 @@ interface
           procedure deref;override;
           procedure order;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function stabstring:Pchar;
 {$endif GDB}
        end;
 
@@ -325,7 +310,7 @@ interface
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
-          procedure concatstabto(asmlist : taasmoutput);override;
+          function stabstring:Pchar;
 {$endif GDB}
        end;
 
@@ -408,15 +393,6 @@ implementation
          isstabwritten := false;
 {$endif GDB}
          fileinfo:=akttokenpos;
-         defref:=nil;
-         refs:=0;
-         lastwritten:=nil;
-         refcount:=0;
-         if (cs_browser in aktmoduleswitches) and make_ref then
-          begin
-            defref:=tref.create(defref,@akttokenpos);
-            inc(refcount);
-          end;
          lastref:=defref;
          _mangledname:=nil;
       end;
@@ -427,24 +403,12 @@ implementation
         s  : string;
         nr : word;
       begin
-         nr:=ppufile.getword;
-         s:=ppufile.getstring;
-         inherited create(s);
-         { force the correct indexnr. must be after create! }
-         indexnr:=nr;
-         ppufile.getposinfo(fileinfo);
-         ppufile.getsmallset(symoptions);
-         lastref:=nil;
-         defref:=nil;
-         refs:=0;
-         lastwritten:=nil;
-         refcount:=0;
+         inherited loadsym(ppufile);
          _mangledname:=nil;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
       end;
-
 
     procedure tstoredsym.buildderef;
       begin
@@ -453,76 +417,6 @@ implementation
 
     procedure tstoredsym.deref;
       begin
-      end;
-
-
-    procedure tstoredsym.load_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        pos : tfileposinfo;
-        move_last : boolean;
-      begin
-        move_last:=lastwritten=lastref;
-        while (not ppufile.endofentry) do
-         begin
-           ppufile.getposinfo(pos);
-           inc(refcount);
-           lastref:=tref.create(lastref,@pos);
-           lastref.is_written:=true;
-           if refcount=1 then
-            defref:=lastref;
-         end;
-        if move_last then
-          lastwritten:=lastref;
-      end;
-
-    { big problem here :
-      wrong refs were written because of
-      interface parsing of other units PM
-      moduleindex must be checked !! }
-
-    function tstoredsym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
-      var
-        d : tderef;
-        ref   : tref;
-        symref_written,move_last : boolean;
-      begin
-        write_references:=false;
-        if lastwritten=lastref then
-          exit;
-      { should we update lastref }
-        move_last:=true;
-        symref_written:=false;
-      { write symbol refs }
-        d.reset;
-        if assigned(lastwritten) then
-          ref:=lastwritten
-        else
-          ref:=defref;
-        while assigned(ref) do
-         begin
-           if ref.moduleindex=current_module.unit_index then
-             begin
-              { write address to this symbol }
-                if not symref_written then
-                  begin
-                     d.build(self);
-                     ppufile.putderef(d);
-                     symref_written:=true;
-                  end;
-                ppufile.putposinfo(ref.posinfo);
-                ref.is_written:=true;
-                if move_last then
-                  lastwritten:=ref;
-             end
-           else if not ref.is_written then
-             move_last:=false
-           else if move_last then
-             lastwritten:=ref;
-           ref:=ref.nextref;
-         end;
-        if symref_written then
-          ppufile.writeentry(ibsymref);
-        write_references:=symref_written;
       end;
 
 
@@ -550,15 +444,6 @@ implementation
 {$endif MEMDEBUG}
          end;
         inherited destroy;
-      end;
-
-
-    procedure tstoredsym.writesym(ppufile:tcompilerppufile);
-      begin
-         ppufile.putword(indexnr);
-         ppufile.putstring(_realname^);
-         ppufile.putposinfo(fileinfo);
-         ppufile.putsmallset(symoptions);
       end;
 
 {$ifdef GDB}
@@ -609,44 +494,11 @@ implementation
            begin
               stab_str := stabstring;
               if assigned(stab_str) then
-                asmList.concat(Tai_stabs.Create(stab_str));
+                asmlist.concat(Tai_stabs.create(stab_str));
               isstabwritten:=true;
           end;
     end;
 {$endif GDB}
-
-
-    function tstoredsym.is_visible_for_object(currobjdef:tobjectdef):boolean;
-      begin
-        is_visible_for_object:=false;
-
-        { private symbols are allowed when we are in the same
-          module as they are defined }
-        if (sp_private in symoptions) and
-           assigned(owner.defowner) and
-           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (owner.defowner.owner.unitid<>0) then
-          exit;
-
-        { protected symbols are vissible in the module that defines them and
-          also visible to related objects }
-        if (sp_protected in symoptions) and
-           (
-            (
-             assigned(owner.defowner) and
-             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             (owner.defowner.owner.unitid<>0)
-            ) and
-            not(
-                assigned(currobjdef) and
-                currobjdef.is_related(tobjectdef(owner.defowner))
-               )
-           ) then
-          exit;
-
-        is_visible_for_object:=true;
-      end;
-
 
     function tstoredsym.mangledname : string;
       begin
@@ -759,10 +611,11 @@ implementation
       end;
 
 {$ifdef GDB}
-    procedure tunitsym.concatstabto(asmlist : taasmoutput);
-      begin
-      {Nothing to write to stabs !}
-      end;
+    function Tunitsym.stabstring:Pchar;
+
+    begin
+      stabstring:=nil;
+    end;
 {$endif GDB}
 
 {****************************************************************************
@@ -1362,13 +1215,7 @@ implementation
     function tprocsym.stabstring : pchar;
       begin
         internalerror(200111171);
-        stabstring:=nil;
       end;
-
-    procedure tprocsym.concatstabto(asmlist : taasmoutput);
-    begin
-      internalerror(200111172);
-    end;
 {$endif GDB}
 
 
@@ -1526,11 +1373,6 @@ implementation
          { !!!! don't know how to handle }
          stabstring:=nil;
       end;
-
-    procedure tpropertysym.concatstabto(asmlist : taasmoutput);
-      begin
-         { !!!! don't know how to handle }
-      end;
 {$endif GDB}
 
 
@@ -1648,10 +1490,11 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tabsolutesym.concatstabto(asmlist : taasmoutput);
-      begin
-      { I don't know how to handle this !! }
-      end;
+    function Tabsolutesym.stabstring:Pchar;
+
+    begin
+      stabstring:=nil;
+    end;
 {$endif GDB}
 
 
@@ -1849,124 +1692,117 @@ implementation
     end;
 
 {$ifdef GDB}
-    function tvarsym.stabstring : pchar;
-     var
-       st : string;
-       threadvaroffset : string;
-       regidx : tregisterindex;
-     begin
-       stabstring:=nil;
-       st:=tstoreddef(vartype.def).numberstring;
-       if (vo_is_thread_var in varoptions) then
-         threadvaroffset:='+'+tostr(pointer_size)
-       else
-         threadvaroffset:='';
+    function Tvarsym.stabstring:Pchar;
 
-       case owner.symtabletype of
-         objectsymtable :
-           if (sp_static in symoptions) then
-             begin
-               if (cs_gdb_gsym in aktglobalswitches) then
-                 st:='G'+st
-               else
-                 st:='S'+st;
-               stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-             end;
-         globalsymtable :
-           begin
-             { Here we used S instead of
-               because with G GDB doesn't look at the address field
-               but searches the same name or with a leading underscore
-               but these names don't exist in pascal !}
-             if (cs_gdb_gsym in aktglobalswitches) then
-               st:='G'+st
-             else
-               st:='S'+st;
-             stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-           end;
-         staticsymtable :
-           stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-         parasymtable,
-         localsymtable :
-           begin
-             { There is no space allocated for not referenced locals }
-             if (owner.symtabletype=localsymtable) and (refs=0) then
-               exit;
+    var st:string;
+        threadvaroffset:string;
+        regidx:Tregisterindex;
+        c:char;
 
-             if (vo_is_C_var in varoptions) then
-               begin
-                 stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}',[st]);
-                 exit;
-               end;
-             if (owner.symtabletype=parasymtable) then
-               begin
-                 if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
-                    not(vo_has_local_copy in varoptions) then
-                   st := 'v'+st { should be 'i' but 'i' doesn't work }
-                 else
-                   st := 'p'+st;
-               end;
-             case localloc.loc of
-               LOC_REGISTER, LOC_FPUREGISTER :
-                 begin
-                   regidx:=findreg_by_number(localloc.register);
-                   { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                   { this is the register order for GDB}
-                   stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
-                 end;
-               LOC_REFERENCE :
-                 { offset to ebp => will not work if the framepointer is esp
-                   so some optimizing will make things harder to debug }
-                 stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
-               else
-                 internalerror(2003091814);
-             end;
-           end;
-         else
-           stabstring := inherited stabstring;
-       end;
-     end;
+    begin
+      if (vo_is_self in varoptions) then
+        begin
+          if localloc.loc<>LOC_REFERENCE then
+            internalerror(2003091815);
+          if (po_classmethod in current_procinfo.procdef.procoptions) or
+             (po_staticmethod in current_procinfo.procdef.procoptions) then
+            stabstring:=stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
+                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)])
+          else
+            begin
+              if not(is_class(current_procinfo.procdef._class)) then
+                c:='v'
+              else
+                c:='p';
+              stabstring:=stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
+                    [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)]);
+            end;
+        end
+      else
+      (*
+        if (localloc.loc=LOC_REGISTER) then
+          begin
+            regidx:=findreg_by_number(localloc.register);
+            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+            { this is the register order for GDB}
+            stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',
+                  [Tstoreddef(vartype.def).numberstring,tostr(regstabs_table[regidx])]);
+          end
+        else
+       *)
+          begin
+            stabstring:=nil;
+            st:=tstoreddef(vartype.def).numberstring;
+            if (vo_is_thread_var in varoptions) then
+              threadvaroffset:='+'+tostr(pointer_size)
+            else
+              threadvaroffset:='';
 
+            case owner.symtabletype of
+              objectsymtable:
+                if (sp_static in symoptions) then
+                  begin
+                    if (cs_gdb_gsym in aktglobalswitches) then
+                      st:='G'+st
+                    else
+                      st:='S'+st;
+                    stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',
+                                                 [st,threadvaroffset]);
+                  end;
+              globalsymtable:
+                begin
+                  { Here we used S instead of
+                    because with G GDB doesn't look at the address field
+                    but searches the same name or with a leading underscore
+                    but these names don't exist in pascal !}
+                  if (cs_gdb_gsym in aktglobalswitches) then
+                    st:='G'+st
+                  else
+                    st:='S'+st;
+                  stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+                end;
+              staticsymtable :
+                stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+              parasymtable,localsymtable:
+                begin
+                  { There is no space allocated for not referenced locals }
+                  if (owner.symtabletype=localsymtable) and (refs=0) then
+                    exit;
 
-    procedure tvarsym.concatstabto(asmlist : taasmoutput);
-      var
-        regidx : tregisterindex;
-        stab_str : pchar;
-        c : char;
-      begin
-         if (owner.symtabletype=parasymtable) and
-            (copy(name,1,6)='hidden') then
-           exit;
-         if (vo_is_self in varoptions) then
-           begin
-             if localloc.loc<>LOC_REFERENCE then
-               internalerror(2003091815);
-             if (po_classmethod in current_procinfo.procdef.procoptions) or
-                (po_staticmethod in current_procinfo.procdef.procoptions) then
-               asmlist.concat(Tai_stabs.create(stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
-                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)])))
-             else
-               begin
-                 if not(is_class(current_procinfo.procdef._class)) then
-                   c:='v'
-                 else
-                   c:='p';
-                 asmlist.concat(Tai_stabs.create(stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
-                    [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)])));
-               end;
-           end
-         else
-           if (localloc.loc=LOC_REGISTER) then
-             begin
-                regidx:=findreg_by_number(localloc.register);
-                { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                { this is the register order for GDB}
-                asmlist.concat(Tai_stabs.create(stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',
-                  [Tstoreddef(vartype.def).numberstring,tostr(regstabs_table[regidx])])));
-             end
-         else
-           inherited concatstabto(asmlist);
-      end;
+                  if (vo_is_C_var in varoptions) then
+                    begin
+                      stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}',[st]);
+                      exit;
+                    end;
+                  if (owner.symtabletype=parasymtable) then
+                    begin
+                      if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
+                         not(vo_has_local_copy in varoptions) then
+                        st := 'v'+st { should be 'i' but 'i' doesn't work }
+                      else
+                        st := 'p'+st;
+                    end;
+                  case localloc.loc of
+                    LOC_REGISTER, LOC_FPUREGISTER :
+                      begin
+                        regidx:=findreg_by_number(localloc.register);
+                        { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+                        { this is the register order for GDB}
+                        stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+                      end;
+                    LOC_REFERENCE :
+                      { offset to ebp => will not work if the framepointer is esp
+                        so some optimizing will make things harder to debug }
+                      stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
+                    else
+                      internalerror(2003091814);
+                  end;
+                end;
+              else
+                stabstring := inherited stabstring;
+            end;
+          end;
+    end;
 {$endif GDB}
 
     procedure tvarsym.setvartype(const newtype: ttype);
@@ -2337,12 +2173,6 @@ implementation
       end;
       stabstring:=stabstr_evaluate('"${name}:c=$1",${N_FUNCTION},0,${line},0',[st]);
     end;
-
-    procedure tconstsym.concatstabto(asmlist : taasmoutput);
-      begin
-        if consttyp <> conststring then
-          inherited concatstabto(asmlist);
-      end;
 {$endif GDB}
 
 
@@ -2428,9 +2258,10 @@ implementation
 
 
 {$ifdef GDB}
-    procedure tenumsym.concatstabto(asmlist : taasmoutput);
+    function Tenumsym.stabstring:Pchar;
+
     begin
-    {enum elements have no stab !}
+      {enum elements have no stab !}
     end;
 {$EndIf GDB}
 
@@ -2534,22 +2365,17 @@ implementation
     var stabchar:string[2];
 
     begin
-      if restype.def.deftype in tagtypes then
-        stabchar:='Tt'
+      if restype.def=nil then
+        stabstring:=nil
       else
-        stabchar:='t';
-      stabstring:=stabstr_evaluate('"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,tstoreddef(restype.def).numberstring]);
+        begin
+          if restype.def.deftype in tagtypes then
+            stabchar:='Tt'
+          else
+            stabchar:='t';
+          stabstring:=stabstr_evaluate('"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,tstoreddef(restype.def).numberstring]);
+        end;
     end;
-
-    procedure ttypesym.concatstabto(asmlist : taasmoutput);
-      begin
-      {not stabs for forward defs }
-      if assigned(restype.def) then
-        if (restype.def.typesym = self) then
-          tstoreddef(restype.def).concatstabto(asmlist)
-        else
-          inherited concatstabto(asmlist);
-      end;
 {$endif GDB}
 
 
@@ -2584,9 +2410,11 @@ implementation
       end;
 
 {$ifdef GDB}
-    procedure tsyssym.concatstabto(asmlist : taasmoutput);
-      begin
-      end;
+    function Tsyssym.stabstring:Pchar;
+
+    begin
+      stabstring:=nil
+    end;
 {$endif GDB}
 
 
@@ -2719,7 +2547,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2004-01-25 11:33:48  daniel
+  Revision 1.145  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.144  2004/01/25 11:33:48  daniel
     * 2nd round of gdb cleanup
 
   Revision 1.143  2004/01/16 18:08:39  daniel

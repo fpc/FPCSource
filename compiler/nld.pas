@@ -31,7 +31,7 @@ interface
        {$ifdef state_tracking}
        nstate,
        {$endif}
-       symconst,symppu,symbase,symtype,symsym,symdef;
+       symconst,symbase,symtype,symsym,symdef;
 
     type
        tloadnode = class(tunarynode)
@@ -1246,7 +1246,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2003-12-01 18:44:15  peter
+  Revision 1.120  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.119  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 

@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symtype,symppu,
+       symtype,
        defutil,defcmp,
        nld
 {$ifdef Delphi}
@@ -2405,7 +2405,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2003-12-26 00:32:21  florian
+  Revision 1.135  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.134  2003/12/26 00:32:21  florian
     + fpu<->mm register conversion
 
   Revision 1.133  2003/12/22 23:11:15  peter

@@ -28,8 +28,7 @@ interface
 
     uses
        node,globals,
-       aasmbase,aasmtai,
-       symppu;
+       aasmbase,aasmtai,symtype;
 
     type
       pcaserecord = ^tcaserecord;
@@ -695,7 +694,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-11-10 19:10:57  peter
+  Revision 1.51  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.50  2003/11/10 19:10:57  peter
     * check for enumdef.maxval<255 instead of enumdef.savesize
 
   Revision 1.49  2003/10/23 14:44:07  peter

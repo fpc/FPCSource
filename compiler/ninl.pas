@@ -27,7 +27,7 @@ unit ninl;
 interface
 
     uses
-       node,htypechk,cpuinfo,symppu;
+       node,htypechk,cpuinfo,symtype;
 
     {$i compinnr.inc}
 
@@ -72,7 +72,7 @@ implementation
     uses
       verbose,globals,systems,
       globtype, cutils,
-      symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defutil,defcmp,
+      symbase,symconst,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
       cgbase,procinfo
@@ -2366,7 +2366,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2003-12-31 20:47:02  jonas
+  Revision 1.127  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.126  2003/12/31 20:47:02  jonas
     * properly fixed assigned() mess (by handling it separately in ncginl)
       -> all assigned()-related tests in the test suite work again
 

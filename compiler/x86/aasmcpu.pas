@@ -34,7 +34,7 @@ interface
       cclasses,globals,verbose,
       cpuinfo,cpubase,
       cgbase,
-      symppu,symtype,symsym,
+      symtype,symsym,
       aasmbase,aasmtai;
 
     const
@@ -1971,7 +1971,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2004-01-15 14:01:32  florian
+  Revision 1.46  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.45  2004/01/15 14:01:32  florian
     + x86 instruction tables for x86-64 extended
 
   Revision 1.44  2004/01/12 16:37:59  peter

@@ -34,7 +34,7 @@ interface
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}
-       symbase,symtype,symppu,symsym,symdef,symtable;
+       symbase,symtype,symsym,symdef,symtable;
 
     type
        pcandidate = ^tcandidate;
@@ -2711,7 +2711,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.220  2004-01-15 15:16:18  daniel
+  Revision 1.221  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.220  2004/01/15 15:16:18  daniel
     * Some minor stuff
     * Managed to eliminate speed effects of string compression
 

@@ -30,7 +30,7 @@ interface
       globtype,widestr,
       node,
       aasmbase,aasmtai,cpuinfo,globals,
-      symconst,symppu,symtype,symdef,symsym;
+      symconst,symtype,symdef,symsym;
 
     type
        trealconstnode = class(tnode)
@@ -950,7 +950,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-01-12 16:35:40  peter
+  Revision 1.58  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.57  2004/01/12 16:35:40  peter
     * range check error
 
   Revision 1.56  2003/10/23 14:44:07  peter

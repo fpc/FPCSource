@@ -33,7 +33,7 @@ interface
        { symtable }
        symconst,symbase,symtype,
        { ppu }
-       symppu,ppu,
+       ppu,
        { node }
        node,
        { aasm }
@@ -6191,7 +6191,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.206  2004-01-25 20:23:28  daniel
+  Revision 1.207  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.206  2004/01/25 20:23:28  daniel
     * More gdb cleanup: make record & object stab generation linear instead
       of quadratic.
 

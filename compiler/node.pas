@@ -31,7 +31,7 @@ interface
        globtype,globals,
        cpubase,cgbase,
        aasmbase,
-       symtype,symppu;
+       symtype;
 
     type
        pconstset = ^tconstset;
@@ -1087,7 +1087,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2003-12-26 00:32:22  florian
+  Revision 1.80  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.79  2003/12/26 00:32:22  florian
     + fpu<->mm register conversion
 
   Revision 1.78  2003/12/01 18:44:15  peter

@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symtype,symppu,symdef,symsym,symtable,
+       symdef,symsym,symtable,symtype,
        cpubase;
 
     type
@@ -967,7 +967,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-12-12 15:42:53  peter
+  Revision 1.77  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.76  2003/12/12 15:42:53  peter
     * don't give warnings for shortstring vecnodes
 
   Revision 1.75  2003/12/08 22:35:06  peter

@@ -30,7 +30,7 @@ interface
        cpubase,cgbase,
        aasmbase,aasmtai,aasmcpu,
        node,tgobj,
-       symtype,symppu;
+       symtype;
 
     type
        tnothingnode = class(tnode)
@@ -983,7 +983,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-12-10 20:31:40  jonas
+  Revision 1.75  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.74  2003/12/10 20:31:40  jonas
     * override tblocknode.destroy so all statements are freed sequentially
       instead of recusively.
 

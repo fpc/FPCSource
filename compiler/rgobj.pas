@@ -240,6 +240,8 @@ unit rgobj;
 {$ifdef EXTDEBUG}
         procedure writegraph(loopidx:longint);
 {$endif EXTDEBUG}
+        {# Disposes of the reginfo array.}
+        procedure dispose_reginfo;
         {# Prepare the register colouring.}
         procedure prepare_colouring;
         {# Clean up after register colouring.}
@@ -374,15 +376,15 @@ implementation
          used_in_proc:=[];
          live_registers.init;
          { Get reginfo for CPU registers }
-         reginfo:=allocmem(first_imaginary*sizeof(treginfo));
          maxreginfo:=first_imaginary;
          maxreginfoinc:=16;
+         worklist_moves:=Tlinkedlist.create;
+         reginfo:=allocmem(first_imaginary*sizeof(treginfo));
          for i:=0 to first_imaginary-1 do
            begin
              reginfo[i].degree:=high(tsuperregister);
              reginfo[i].alias:=RS_INVALID;
            end;
-         worklist_moves:=Tlinkedlist.create;
          { Usable registers }
          fillchar(usable_registers,sizeof(usable_registers),0);
          for i:=low(Ausable) to high(Ausable) do
@@ -399,8 +401,6 @@ implementation
 
     destructor trgobj.destroy;
 
-    var i:Tsuperregister;
-
     begin
       spillednodes.done;
       simplifyworklist.done;
@@ -408,17 +408,28 @@ implementation
       spillworklist.done;
       coalescednodes.done;
       selectstack.done;
-      for i:=0 to maxreg-1 do
-        begin
-          if reginfo[i].adjlist<>nil then
-            dispose(reginfo[i].adjlist,done);
-          if reginfo[i].movelist<>nil then
-            dispose(reginfo[i].movelist);
-        end;
-      freemem(reginfo);
       worklist_moves.free;
+      dispose_reginfo;
     end;
 
+    procedure Trgobj.dispose_reginfo;
+
+    var i:Tsuperregister;
+
+    begin
+      if reginfo<>nil then
+        begin
+          for i:=0 to maxreg-1 do
+            begin
+              if reginfo[i].adjlist<>nil then
+                dispose(reginfo[i].adjlist,done);
+              if reginfo[i].movelist<>nil then
+                dispose(reginfo[i].movelist);
+            end;
+          freemem(reginfo);
+          reginfo:=nil;
+        end;
+    end;
 
     function trgobj.getnewreg(subreg:tsubregister):tsuperregister;
       var
@@ -503,6 +514,7 @@ implementation
       var
         spillingcounter:byte;
         endspill:boolean;
+        i:Tsuperregister;
       begin
         { Insert regalloc info for imaginary registers }
         insert_regalloc_info(list,headertai);
@@ -528,6 +540,7 @@ implementation
         until endspill;
         ibitmap.free;
         translate_registers(list);
+        dispose_reginfo;
       end;
 
 
@@ -1817,9 +1830,9 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2004-01-25 23:21:02  daniel
-    * Keep interference bitmap only allocated during register allocation.
-      Saves 2 mb of memory.
+  Revision 1.114  2004-01-26 16:12:28  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
 
   Revision 1.112  2004/01/12 16:37:59  peter
     * moved spilling code from taicpu to rg

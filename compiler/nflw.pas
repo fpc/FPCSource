@@ -30,7 +30,7 @@ interface
     uses
        node,cpubase,
        aasmbase,aasmtai,aasmcpu,symnot,
-       symppu,symtype,symbase,symdef,symsym;
+       symtype,symbase,symdef,symsym;
 
     type
        { flags used by loop nodes }
@@ -1475,7 +1475,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-12-28 22:51:18  florian
+  Revision 1.92  2004-01-26 16:12:27  daniel
+    * reginfo now also only allocated during register allocation
+    * third round of gdb cleanups: kick out most of concatstabto
+
+  Revision 1.91  2003/12/28 22:51:18  florian
     + except handling related nodes now include pi_do_call if necessary
 
   Revision 1.90  2003/12/08 19:29:21  peter
