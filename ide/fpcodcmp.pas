@@ -45,15 +45,16 @@ procedure RegisterCodeComplete;
 
 implementation
 
-uses Views,MsgBox,Validate,
+uses App,Views,MsgBox,Validate,
 {$ifdef FVISION}
      FVConsts,
 {$else}
      Commands,
 {$endif}
      systems, BrowCol,
-     WEditor, FPCompil, FPVars, FPSymbol,
-     App,FPConst,FPString,FPViews;
+     WEditor, FPSwitch,
+     FPCompil, FPVars, FPSymbol,
+     FPConst,FPString,FPViews;
 
 {$ifndef NOOBJREG}
 const
@@ -82,19 +83,19 @@ begin
         St:=PString(CodeCompleteWords^.At(CIndex+1))^;
         if (UpCaseStr(Copy(St,1,length(WordS)))=UpWordS) then
           begin
-            if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then
+            {if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then}
               begin
                 Text:='';
                 FPCompleteCodeWord:=false;
                 exit;
-              end
+            (*  end
             else
               { only give the common part }
               begin
                 i:=Length(UpWordS)+1;
                 while (i<=length(st)) and (i<=length(text)) and (UpCase(st[i])=Upcase(Text[i])) do
                   inc(i);
-                SetLength(Text,i-1);
+                SetLength(Text,i-1);    *)
               end;
           end;
       end;
@@ -108,19 +109,19 @@ begin
         St:=PString(UnitsCodeCompleteWords^.At(Index+1))^;
         if UpCaseStr(Copy(St,1,length(WordS)))=UpWordS then
           begin
-            if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then
+            {if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then}
               begin
                 Text:='';
                 FPCompleteCodeWord:=false;
                 exit;
-              end
+            (*  end
             else
               { only give the common part }
               begin
                 i:=Length(UpWordS)+1;
                 while (i<=length(st)) and (i<=length(text)) and (UpCase(st[i])=Upcase(Text[i])) do
                   inc(i);
-                SetLength(Text,i-1);
+                SetLength(Text,i-1); *)
               end;
           end;
       end;
@@ -129,19 +130,19 @@ begin
   if ShowOnlyUnique and (Index<>-1) and (CIndex<>-1) then
     begin
       St:=PString(CodeCompleteWords^.At(CIndex+1))^;
-      if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then
+      {if UpCase(st[Length(UpWordS)+1])<>Upcase(Text[Length(UpWordS)+1]) then}
         begin
           Text:='';
           FPCompleteCodeWord:=false;
           exit;
-        end
+      (*  end
       else
         { only give the common part }
         begin
           i:=Length(UpWordS)+1;
           while (i<=length(st)) and (i<=length(text)) and (UpCase(st[i])=Upcase(Text[i])) do
             inc(i);
-          SetLength(Text,i-1);
+          SetLength(Text,i-1); *)
         end;
     end;
   if OK=false then Text:=''
@@ -157,8 +158,8 @@ procedure InitCodeComplete;
 var I:integer;
     S: string;
 begin
-  if Assigned(CodeCompleteWords) then Exit;
-
+  if Assigned(CodeCompleteWords) then
+    Dispose(CodeCompleteWords, Done);
   New(CodeCompleteWords, Init(10,10));
   for I:=0 to GetReservedWordCount-1 do
     begin
@@ -189,18 +190,22 @@ var
       for I:=0 to P^.Count-1 do
         InsertInS(P^.At(I));
     end;
+  Var
+    st : string;
 
   begin
     Inc(level);
     if UnitsCodeCompleteWords^.Count=MaxCollectionSize then
        begin Overflow:=true; Exit; end;
-    UnitsCodeCompleteWords^.Insert(NewStr(P^.GetName));
+    st:=P^.GetName;
+    if Length(st)>=CodeCompleteMinLen then
+      UnitsCodeCompleteWords^.Insert(NewStr(Lowcasestr(st)));
     { this is wrong because it inserted args or locals of proc
       in the globals list !! PM}
     if (P^.Items<>nil) and (level=1) and
-        (not OnlyStandard or (Pos(P^.GetName+',',UpStandardUnits)>0) or
+        ((not OnlyStandard or (Pos(P^.GetName+',',UpStandardUnits)>0) or
         { don't exclude system unit ... }
-        (Pos('SYS',P^.GetName)>0)) then
+        (Pos('SYS',P^.GetName)>0))) then
       InsertItemsInS(P^.Items);
     Dec(level);
   end;
@@ -229,9 +234,13 @@ procedure AddStandardUnitsToCodeComplete;
 var
   HiddenSource : PSourceWindow;
   R : TRect;
+  StoreBrowserSwitchesConfig : string;
 begin
   Desktop^.GetExtent(R);
-  New(HiddenSource,init(R,''));
+  New(HiddenSource,init(R,'*'));
+  HiddenSource^.NoNameCount:=0;
+  HiddenSource^.UpdateTitle;
+  HiddenSource^.Hide;
   CompilingHiddenFile:=HiddenSource;
   { compile a dummy file to get symbol info }
   with HiddenSource^.Editor^ do
@@ -240,13 +249,17 @@ begin
       if StandardUnits<>'' then
         begin
           AddLine('uses');
-          Addline(StandardUnits+';');
+          Addline(StandardUnits);
+          Addline('  ;');
         end;
       Addline('begin');
       Addline('end.');
       SaveFile;
     end;
+  StoreBrowserSwitchesConfig:=BrowserSwitches^.GetCurrSelParam;
+  BrowserSwitches^.ReadItemsCfg('+');
   DoCompile(cCompile);
+  BrowserSwitches^.SetCurrSelParam(StoreBrowserSwitchesConfig);
   AddAvailableUnitsToCodeComplete(true);
   { Now add the interface declarations to the Code Complete list }
   CompilingHiddenFile:=nil;
@@ -300,8 +313,11 @@ end;
 
 procedure DoneCodeComplete;
 begin
-  if Assigned(CodeCompleteWords) then Dispose(CodeCompleteWords, Done);
-  CodeCompleteWords:=nil;
+  if Assigned(CodeCompleteWords) then
+    begin
+      Dispose(CodeCompleteWords, Done);
+      CodeCompleteWords:=nil;
+    end;
   if Assigned(UnitsCodeCompleteWords) then
     begin
       Dispose(UnitsCodeCompleteWords,done);
@@ -444,6 +460,13 @@ begin
       if Assigned(CodeCompleteWords) then Dispose(CodeCompleteWords, Done);
       CodeCompleteWords:=C;
       CodeCompleteCase:=TCodeCompleteCase(RB^.Value);
+      MinInputL^.GetData(NewValStr);
+      NewVal:=StrToInt(NewValStr);
+      if (NewVal>0) and (NewVal<>CodeCompleteMinLen) then
+        begin
+          CodeCompleteMinLen:=NewVal;
+          InitCodeComplete;
+        end;
       ShowOnlyUnique:=CB^.Mark(0);
       UseAllUnitsInCodeComplete:=CB^.Mark(1);
       UseStandardUnitsInCodeComplete:=CB^.Mark(2);
@@ -455,10 +478,6 @@ begin
         end
       else
         InputL^.GetData(StandardUnits);
-      MinInputL^.GetData(NewValStr);
-      NewVal:=StrToInt(NewValStr);
-      if NewVal>0 then
-        CodeCompleteMinLen:=NewVal;
     end
   else
     Dispose(C, Done);
