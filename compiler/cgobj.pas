@@ -1570,9 +1570,7 @@ implementation
             is_interfacecom(t) then
            begin
              g_decrrefcount(list,t,ref);
-             { Temp locations are already reset to 0 }
-             if not tg.istemp(ref) then
-                a_load_const_ref(list,OS_ADDR,0,ref);
+             a_load_const_ref(list,OS_ADDR,0,ref);
            end
          else
            begin
@@ -2083,7 +2081,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.192  2005-01-27 20:32:51  florian
+  Revision 1.193  2005-01-29 00:32:53  peter
+    * finalize for refcounted strings shall also reset temps to 0, the
+      previous exception that decrrefcnt already set it to 0 is not valid
+      anymore
+
+  Revision 1.192  2005/01/27 20:32:51  florian
     + implemented overflow checking for 64 bit types on sparc
 
   Revision 1.191  2005/01/24 22:08:32  peter
