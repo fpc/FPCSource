@@ -30,6 +30,8 @@ type
   PixelCanvasException = class (TFPCanvasException);
 
   TFPPixelCanvas = class (TFPCustomCanvas)
+  private
+    FHashWidth : word;
   protected
     function DoCreateDefaultFont : TFPCustomFont; override;
     function DoCreateDefaultPen : TFPCustomPen; override;
@@ -47,6 +49,9 @@ type
     procedure DoPolyline (const points:array of TPoint); override;
     procedure DoFloodFill (x,y:integer); override;
     procedure DoLine (x1,y1,x2,y2:integer); override;
+  public
+    constructor create;
+    property HashWidth : word read FHashWidth write FHashWidth;
   end;
 
 implementation
@@ -55,10 +60,17 @@ uses Clipping;
 
 const
   ErrNotAvailable = 'Not availlable';
+  DefaultHashWidth = 5;
 
 procedure NotImplemented;
 begin
   raise PixelCanvasException.Create(ErrNotAvailable);
+end;
+
+constructor TFPPixelCanvas.Create;
+begin
+  inherited;
+  FHashWidth := DefaultHashWidth;
 end;
 
 function TFPPixelCanvas.DoCreateDefaultFont : TFPCustomFont;
@@ -132,22 +144,67 @@ end;
 
 procedure TFPPixelCanvas.DoRectangleFill (const Bounds:TRect);
 var b : TRect;
+
+  procedure FillHorizontal;
+  var y : integer;
+  begin
+    with b do
+      begin
+      y := FHashWidth + top;
+      while y <= bottom do
+        begin
+        DrawSolidLine (self, left,y, right,y, brush.color);
+        inc (y,FHashWidth);
+        end
+      end;
+  end;
+
+  procedure FillVertical;
+  var x : integer;
+  begin
+    with b do
+      begin
+      x := FHashWidth + left;
+      while x <= right do
+        begin
+        DrawSolidLine (self, x,top, x,bottom, brush.color);
+        inc (x, FHashWidth);
+        end;
+      end;
+  end;
+
+  procedure FillDiagonal;
+  begin
+  end;
+
+  procedure FillFDiagonal;
+  begin
+  end;
+
 begin
   b := Bounds;
   SortRect (b);
   if clipping then
     CheckRectClipping (ClipRect, B);
-  with b do
+  with b do  // Clipping needs still to be checked !!
     case Brush.style of  //TODO: patterns and image
       bsSolid : FillRectangleColor (self, left,top, right,bottom);
       bsPattern : ;
       bsImage : ;
-      bsDiagonal : ;
-      bsFDiagonal : ;
-      bsCross : ;
-      bsDiagCross : ;
-      bsHorizontal : ;
-      bsVertical : ;
+      bsDiagonal : FillDiagonal;
+      bsFDiagonal : FillFDiagonal;
+      bsCross :
+        begin
+        FillHorizontal;
+        FillVertical;
+        end;
+      bsDiagCross :
+        begin
+        FillDiagonal;
+        FillFDiagonal;
+        end;
+      bsHorizontal : FillHorizontal;
+      bsVertical : FillVertical;
     end;
 end;
 
@@ -197,8 +254,8 @@ begin    //TODO
 end;
 
 const
-  PenPatterns : array[psDash..psDashDotDot] of word =
-    ($EEEE, $AAAA, $E4E4, $EAEA);
+  PenPatterns : array[psDash..psDashDotDot] of longword =
+    ($EEEEEEEE, $AAAAAAAA, $E4E4E4E4, $EAEAEAEA);
 
 procedure TFPPixelCanvas.DoLine (x1,y1,x2,y2:integer);
 
@@ -206,7 +263,7 @@ procedure TFPPixelCanvas.DoLine (x1,y1,x2,y2:integer);
   begin
     if Clipping then
       CheckLineClipping (ClipRect, xx1,yy1, xx2,yy2);
-    DrawSolidLine (self, xx1,yy1, xx2,yy2);
+    DrawSolidLine (self, xx1,yy1, xx2,yy2, pen.color);
   end;
 
   procedure SolidThickLine;
@@ -242,15 +299,15 @@ begin
   case Pen.style of
     psSolid :
       begin
-      DrawSolidLine (self, x1,y1, x2,y2);
+      DrawSolidLine (self, x1,y1, x2,y2, pen.color);
       if pen.width > 1 then
         SolidThickLine;
       end;
-    psPattern: ;
-      // DrawPatternLine (self, x1,y1, x2,y2, pattern);
+    psPattern:
+      DrawPatternLine (self, x1,y1, x2,y2, pen.pattern);
       // Patterned lines have width always at 1
-    psDash, psDot, psDashDot, psDashDotDot : ;
-      //DrawPatternLine (self, x1,y1, x2,y2, PenPattern[Style]);
+    psDash, psDot, psDashDot, psDashDotDot :
+      DrawPatternLine (self, x1,y1, x2,y2, PenPatterns[Pen.Style]);
   end;
 end;
 
