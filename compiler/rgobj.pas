@@ -196,6 +196,7 @@ unit rgobj;
                            Afirst_imaginary:Tsuperregister;
                            Apreserved_by_proc:Tcpuregisterset);
         destructor destroy;override;
+
         {# Allocate a register. An internalerror will be generated if there is
          no more free registers which can be allocated.}
         function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
@@ -233,11 +234,12 @@ unit rgobj;
         {# Adds an interference edge.}
         procedure add_edge(u,v:Tsuperregister);
 
+        unusedregs        : Tsuperregisterset;
+
       protected
         regtype           : Tregistertype;
         { default subregister used }
         defaultsub        : tsubregister;
-        unusedregs        : Tsuperregisterset;
         {# First imaginary register.}
         first_imaginary   : Tsuperregister;
         {# Highest register allocated until now.}
@@ -311,6 +313,8 @@ implementation
 
     destructor tsuperregisterworklist.done;
       begin
+        if assigned(buf) then
+          freemem(buf);
       end;
 
 
@@ -505,6 +509,9 @@ implementation
        var
          i : Tsuperregister;
        begin
+         { empty super register sets can cause very strange problems }
+         if high(Ausable)=0 then
+           internalerror(200210181);
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
@@ -524,9 +531,8 @@ implementation
          worklist_moves:=Tlinkedlist.create;
          { Usable registers }
          fillchar(usable_registers,sizeof(usable_registers),0);
-         if high(Ausable)>0 then
-           for i:=low(Ausable) to high(Ausable) do
-             usable_registers[i]:=Ausable[i];
+         for i:=low(Ausable) to high(Ausable) do
+           usable_registers[i]:=Ausable[i];
          usable_registers_cnt:=high(Ausable)+1;
          { Initialize Worklists }
          spillednodes.init;
@@ -1660,7 +1666,7 @@ implementation
               end;
           end;
           p:=Tai(p.next);
-end;
+        end;
       aktfilepos:=current_procinfo.exitpos;
       i:=spillednodes.head;
       while (i<>spillednodes.tail) do
@@ -1765,7 +1771,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.88  2003-10-18 15:41:26  peter
+  Revision 1.89  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.88  2003/10/18 15:41:26  peter
     * made worklists dynamic in size
 
   Revision 1.87  2003/10/17 16:16:08  peter

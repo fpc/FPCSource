@@ -122,7 +122,7 @@ uses
       first_fpu_imreg     = $20;
 
       { MM Super register first and last }
-      first_mm_imreg     = $0;
+      first_mm_imreg     = $20;
 
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 64;
@@ -714,7 +714,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2003-10-17 15:08:34  peter
+  Revision 1.73  2003-10-19 01:34:31  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.72  2003/10/17 15:08:34  peter
     * commented out more obsolete constants
 
   Revision 1.71  2003/10/11 16:06:42  florian

@@ -183,9 +183,9 @@ unit cgobj;
           }
 
           { Copy a parameter to a (temporary) reference }
-          procedure a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);virtual;
+          procedure a_loadany_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference;shuffle : pmmshuffle);virtual;
           { Copy a parameter to a register }
-          procedure a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);virtual;
+          procedure a_loadany_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister;shuffle : pmmshuffle);virtual;
 
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overriden for each new target cpu.
@@ -680,7 +680,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference);
+    procedure tcg.a_loadany_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference;shuffle : pmmshuffle);
       begin
         case locpara.loc of
           LOC_CREGISTER,
@@ -705,16 +705,27 @@ implementation
                   a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
                 end;
             end;
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER:
+            begin
+              getexplicitregister(list,locpara.register);
+              ungetregister(list,locpara.register);
+              a_loadmm_reg_ref(list,locpara.size,locpara.size,locpara.register,ref,shuffle);
+            end;
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
-            a_loadfpu_reg_ref(list,locpara.size,locpara.register,ref);
+            begin
+              getexplicitregister(list,locpara.register);
+              ungetregister(list,locpara.register);
+              a_loadfpu_reg_ref(list,locpara.size,locpara.register,ref);
+            end;
           else
             internalerror(2002081302);
         end;
       end;
 
 
-    procedure tcg.a_load_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister);
+    procedure tcg.a_loadany_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister;shuffle : pmmshuffle);
       var
         href : treference;
       begin
@@ -734,7 +745,20 @@ implementation
             end;
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
-            a_loadfpu_reg_reg(list,locpara.size,locpara.register,reg);
+            begin
+              getexplicitregister(list,locpara.register);
+              ungetregister(list,locpara.register);
+              getexplicitregister(list,reg);
+              a_loadfpu_reg_reg(list,locpara.size,locpara.register,reg);
+            end;
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER:
+            begin
+              getexplicitregister(list,locpara.register);
+              ungetregister(list,locpara.register);
+              getexplicitregister(list,reg);
+              a_loadmm_reg_reg(list,locpara.size,locpara.size,locpara.register,reg,shuffle);
+            end;
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
@@ -1787,7 +1811,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.132  2003-10-17 15:25:18  florian
+  Revision 1.133  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.132  2003/10/17 15:25:18  florian
     * fixed more ppc stuff
 
   Revision 1.131  2003/10/17 14:38:32  peter

@@ -1115,7 +1115,15 @@ implementation
                       { cg.a_load_param_reg will first allocate and then deallocate paraloc }
                       { register (if the parameter resides in a register) and then allocate }
                       { the regvar (which is currently not allocated)                       }
-                      cg.a_load_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register);
+                      cg.a_loadany_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register,nil);
+                    end;
+                  LOC_FPUREGISTER:
+                    begin
+                      gotregvarparas := true;
+                      { cg.a_load_param_reg will first allocate and then deallocate paraloc }
+                      { register (if the parameter resides in a register) and then allocate }
+                      { the regvar (which is currently not allocated)                       }
+                      cg.a_loadany_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register,nil);
                     end;
                   LOC_REFERENCE :
                     begin
@@ -1144,7 +1152,7 @@ implementation
 {$endif cpu64bit}
                             cg.ungetregister(list,hp.paraloc[calleeside].register);
                           reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
-                          cg.a_load_param_ref(list,hp.paraloc[calleeside],href);
+                          cg.a_loadany_param_ref(list,hp.paraloc[calleeside],href,nil);
                         end;
                     end;
                   else
@@ -1957,7 +1965,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.160  2003-10-17 15:08:34  peter
+  Revision 1.161  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.160  2003/10/17 15:08:34  peter
     * commented out more obsolete constants
 
   Revision 1.159  2003/10/17 14:38:32  peter

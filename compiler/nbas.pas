@@ -354,7 +354,7 @@ implementation
                           (assigned(tcallnode(hp.left).funcretnode) or
                            (tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor))) and
                       not(is_void(hp.left.resulttype.def)) then
-                     CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
+                        CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
                    { the resulttype of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the
@@ -833,7 +833,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-10-17 14:38:32  peter
+  Revision 1.66  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.65  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

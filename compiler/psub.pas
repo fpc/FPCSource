@@ -660,7 +660,7 @@ implementation
         aktfilepos:=exitpos;
         aktlocalswitches:=exitswitches;
         gen_finalize_code(templist,false);
-        { the finalcode must be concatted if there was no position available,
+        { the finalcode must be concated if there was no position available,
           using insertlistafter will result in an insert at the start
           when currentai=nil }
         if assigned(tasmnode(finalasmnode).currenttai) then
@@ -1260,12 +1260,14 @@ implementation
       end;
 
 
-begin
-  cprocinfo:=tcgprocinfo;
 end.
 {
   $Log$
-  Revision 1.163  2003-10-17 14:38:32  peter
+  Revision 1.164  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.163  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

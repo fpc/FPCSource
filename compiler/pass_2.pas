@@ -232,6 +232,9 @@ implementation
          symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
          { firstpass everything }
          do_firstpass(p);
+
+         { after pass 1, we should have all necessary information to set the temp. start location }
+         current_procinfo.set_first_temp_offset;
          { only do secondpass if there are no errors }
          if ErrorCount=0 then
            begin
@@ -278,7 +281,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-10-18 15:41:26  peter
+  Revision 1.72  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.71  2003/10/18 15:41:26  peter
     * made worklists dynamic in size
 
   Revision 1.70  2003/10/17 15:08:34  peter

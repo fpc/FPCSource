@@ -36,11 +36,6 @@ unit cpupara;
        symconst,symtype,symdef,paramgr;
 
     type
-       { Returns the location for the nr-st 32 Bit int parameter
-         if every parameter before is an 32 Bit int parameter as well
-         and if the calling conventions for the helper routines of the
-         rtl are used.
-       }
        ti386paramanager = class(tparamanager)
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -48,6 +43,11 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          { Returns the location for the nr-st 32 Bit int parameter
+            if every parameter before is an 32 Bit int parameter as well
+            and if the calling conventions for the helper routines of the
+            rtl are used.
+          }
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
@@ -446,7 +446,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-10-17 14:38:32  peter
+  Revision 1.42  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.41  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

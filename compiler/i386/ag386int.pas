@@ -645,7 +645,7 @@ implementation
                           AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
                           AsmWrite(#9#9'DW');
                         end
-                       else  
+                       else
                          AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
                        if taicpu(hp).ops<>0 then
                         begin
@@ -875,7 +875,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.41  2003-10-18 09:16:45  hajny
+  Revision 1.42  2003-10-19 01:34:30  florian
+    * some ppc stuff fixed
+    * memory leak fixed
+
+  Revision 1.41  2003/10/18 09:16:45  hajny
     * Watcom patch by Wiktor Sywula
 
   Revision 1.40  2003/09/30 08:39:50  michael
