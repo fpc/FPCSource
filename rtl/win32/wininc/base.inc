@@ -69,6 +69,7 @@
      DWORD = cardinal;
 
      PINTEGER = ^longint;
+     PBOOL    = ^BOOL;
 
      LONGLONG  = int64;
      PLONGLONG = ^LONGLONG;
@@ -937,7 +938,10 @@ type
 
 {
   $Log$
-  Revision 1.13  2002-10-09 20:45:12  florian
+  Revision 1.14  2002-11-27 20:08:21  peter
+    * added PBOOL
+
+  Revision 1.13  2002/10/09 20:45:12  florian
     - NULL definition removed, the system unit contains now a NULL variant
 
   Revision 1.12  2002/10/06 20:00:22  peter
