@@ -58,6 +58,9 @@ uses
 { Error Messages }
 function do_faulting_finish_message(fake : boolean) : integer;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external;
+{$endif CREATE_C_FUNCTIONS}
 
 { SetJmp/LongJmp }
 type
@@ -72,8 +75,15 @@ type
   end;
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name 'FPC_setjmp';
+{$endif CREATE_C_FUNCTIONS}
+
 procedure dpmi_longjmp(var rec : dpmi_jmp_buf;return_value : longint);
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name 'FPC_longjmp';
+{$endif CREATE_C_FUNCTIONS}
 
 { Signals }
 const
@@ -102,10 +112,21 @@ const
 
 function SIG_DFL( x: longint) : longint;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_SIG_DFL';
+{$endif CREATE_C_FUNCTIONS}
+
 function SIG_ERR( x: longint) : longint;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_SIG_ERR';
+{$endif CREATE_C_FUNCTIONS}
+
 function SIG_IGN( x: longint) : longint;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_SIG_IGN';
+{$endif CREATE_C_FUNCTIONS}
 
 type
   SignalHandler  = function (v : longint) : longint;
@@ -131,22 +152,43 @@ type
 
 procedure djgpp_exception_toggle;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_exception_toggle';
+{$endif CREATE_C_FUNCTIONS}
+
 procedure djgpp_exception_setup;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_exception_setup';
+{$endif CREATE_C_FUNCTIONS}
+
 function  djgpp_exception_state : pexception_state;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+
 function  djgpp_set_ctrl_c(enable : boolean) : boolean;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { Other }
 function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+
 function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_set_sigint_key';
+{$endif CREATE_C_FUNCTIONS}
+
 function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '___djgpp_set_sigquit_key';
+{$endif CREATE_C_FUNCTIONS}
+
 function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
+{$ifndef CREATE_C_FUNCTIONS}
+external name '__djgpp__traceback_exit';
+{$endif CREATE_C_FUNCTIONS}
 
 {$ifndef IN_SYSTEM}
 implementation
@@ -156,20 +198,7 @@ implementation
 
 {$ifdef CREATE_C_FUNCTIONS}
 {$L exceptn.o}
-{$endif CREATE_C_FUNCTIONS}
 
-{$ifndef CREATE_C_FUNCTIONS}
-procedure djgpp_exception_toggle;
-external name '___djgpp_exception_toggle';
-procedure djgpp_exception_setup;
-external name '___djgpp_exception_setup';
-function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
-external name '___djgpp_set_sigint_key';
-function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
-external name '___djgpp_set_sigquit_key';
-function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
-external name '__djgpp__traceback_exit';
-{$else CREATE_C_FUNCTIONS}
 var
   v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
   djgpp_ds_alias  : word;external name '___djgpp_ds_alias';
@@ -496,10 +525,8 @@ function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
   end;
 {$endif CREATE_C_FUNCTIONS}
 
+{$ifdef CREATE_C_FUNCTIONS}
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
-{$ifndef CREATE_C_FUNCTIONS}
-external name 'FPC_setjmp';
-{$else CREATE_C_FUNCTIONS}
 [public, alias : 'FPC_setjmp'];
 begin
   asm
@@ -559,10 +586,8 @@ procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[public, ali
   end;
 {$endif CREATE_C_FUNCTIONS}
 
+{$ifdef CREATE_C_FUNCTIONS}
 procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);
-{$ifndef CREATE_C_FUNCTIONS}
-external name 'FPC_longjmp';
-{$else CREATE_C_FUNCTIONS}
 [public, alias : 'FPC_longjmp'];
 begin
   if (exception_level>0) then
@@ -641,11 +666,6 @@ function SIG_DFL(x:longint):longint;[public,alias : '___djgpp_SIG_DFL'];
 begin
   SIG_DFL:=0;
 end;
-
-{$else CREATE_C_FUNCTIONS}
-function SIG_ERR(x:longint):longint;external name '___djgpp_SIG_ERR';
-function SIG_IGN(x:longint):longint;external name '___djgpp_SIG_IGN';
-function SIG_DFL(x:longint):longint;external name '___djgpp_SIG_DFL';
 {$endif CREATE_C_FUNCTIONS}
 
 function signal(sig : longint;func : SignalHandler) : SignalHandler;
@@ -841,10 +861,11 @@ procedure ___exit(c:longint);cdecl;external name '___exit';
 {$endif}
 {$endif CREATE_C_FUNCTIONS}
 
+var
+  __djgpp_selector_limit: cardinal; external name '__djgpp_selector_limit';
+
+{$ifdef CREATE_C_FUNCTIONS}
 function do_faulting_finish_message(fake : boolean) : integer;cdecl;
-{$ifndef CREATE_C_FUNCTIONS}
-external;
-{$else CREATE_C_FUNCTIONS}
 public;
 var
   en : pchar;
@@ -852,6 +873,14 @@ var
   old_vid : byte;
 label
   simple_exit;
+
+ function _my_cs: word; assembler;
+ {$ASMMODE INTEL}
+ asm
+  mov ax, cs
+ end;
+ {$ASMMODE DEFAULT}
+
 begin
   inc(message_level);
   if message_level>2 then
@@ -878,6 +907,7 @@ begin
          $75 : en:='Floating Point exception';
          $1b : en:='Control-Break Pressed';
          $79 : en:='Control-C Pressed';
+         $7a : en:='QUIT key Pressed'
        else
          en:=nil;
        end;
@@ -893,6 +923,15 @@ begin
          err('Exception ');
        itox(signum, 2);
        err(' at eip=');
+{
+  ( * For fake exceptions like SIGABRT report where `raise' was called.  * )
+  if fake and (djgpp_exception_state_ptr^.__cs = _my_cs)
+     and (djgpp_exception_state_ptr^.__ebp >= djgpp_exception_state_ptr^.__esp)
+     and (djgpp_exception_state_ptr^.__ebp >= &end)  (* ??? *)
+     and (djgpp_exception_state_ptr^.__ebp < __djgpp_selector_limit) then
+       itox(djgpp_exception_state_ptr^.__ebp + 1), 8);
+     else
+}
        itox(djgpp_exception_state_ptr^.__eip, 8);
     end
   else
@@ -1194,6 +1233,29 @@ procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
   We only toggle the handlers if the original keyboard handler is intact
   (otherwise, they might have already toggled them). }
 begin
+{
+void __maybe_fix_w2k_ntvdm_bug(void)
+  if (_osmajor == 5 && _get_dos_version(1) == 0x532) /* Windows NT, 2000 or XP? */
+  {
+   if(_stubinfo->size < STUBINFO_END)	/* V2load'ed image, stubinfo PSP bad */
+
+    /* Protected mode call to SetPSP - uses BX from GetPSP (0x51) */
+    asm volatile("movb $0x51, %%ah                        \n\
+                  int  $0x21                              \n\
+                  movb $0x50, %%ah                        \n\
+                  int  $0x21                              "
+                  : : : "ax", "bx" );             /* output, input, regs */
+   else
+
+    /* Protected mode call to SetPSP - may destroy RM PSP if not extended */
+    asm volatile("movw %0, %%bx                           \n\
+                  movb $0x50, %%ah                        \n\
+                  int  $0x21                              "
+                  :                               /* output */
+                  : "g" (_stubinfo->psp_selector) /* input */
+                  : "ax", "bx" );                 /* regs */
+  }
+}
   if (exceptions_on) then
     djgpp_exception_toggle;
   _exception_exit:=nil;
@@ -1559,7 +1621,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.14  2003-10-03 21:46:25  peter
+  Revision 1.15  2004-11-25 20:06:55  jonas
+    * fixes from Tomas
+
+  Revision 1.14  2003/10/03 21:46:25  peter
     * stdcall fixes
 
   Revision 1.13  2003/03/19 15:57:16  peter
