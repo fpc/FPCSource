@@ -215,14 +215,7 @@ procedure djgpp_npx_hdlr;external name '___djgpp_npx_hdlr';
 procedure djgpp_kbd_hdlr;external name '___djgpp_kbd_hdlr';
 procedure djgpp_kbd_hdlr_pc98;external name '___djgpp_kbd_hdlr_pc98';
 procedure djgpp_cbrk_hdlr;external name '___djgpp_cbrk_hdlr';
-{$endif CREATE_C_FUNCTIONS}
-var
-  endtext        : longint;external name '_etext';
-  starttext       : longint;external name 'start';
-  djgpp_exception_state_ptr : pexception_state;external name '___djgpp_exception_state_ptr';
-  djgpp_hwint_flags : longint;external name '___djgpp_hwint_flags';
 
-{$ifdef CREATE_C_FUNCTIONS}
 var
   exceptions_on : boolean;
 {  old_int00 : tseginfo;cvar;external;
@@ -232,6 +225,12 @@ const
   cbrk_vect : byte = $1b;
   exception_level : longint = 0;
 {$endif CREATE_C_FUNCTIONS}
+
+var
+  endtext        : longint;external name '_etext';
+  starttext       : longint;external name 'start';
+  djgpp_exception_state_ptr : pexception_state;external name '___djgpp_exception_state_ptr';
+  djgpp_hwint_flags : longint;external name '___djgpp_hwint_flags';
 
 
 {$ifndef IN_DPMIEXCP_UNIT}
@@ -759,7 +758,16 @@ end;
                                  Exceptions
 ****************************************************************************}
 
+var
+  __djgpp_selector_limit: cardinal; external name '__djgpp_selector_limit';
+
+
 {$ifdef CREATE_C_FUNCTIONS}
+
+{$ifdef IN_DPMIEXCP_UNIT}
+procedure ___exit(c:longint);cdecl;external name '___exit';
+{$endif}
+
 function except_to_sig(excep : longint) : longint;
 begin
   case excep of
@@ -856,15 +864,6 @@ end;
 
 const message_level : byte = 0;
 
-{$ifdef IN_DPMIEXCP_UNIT}
-procedure ___exit(c:longint);cdecl;external name '___exit';
-{$endif}
-{$endif CREATE_C_FUNCTIONS}
-
-var
-  __djgpp_selector_limit: cardinal; external name '__djgpp_selector_limit';
-
-{$ifdef CREATE_C_FUNCTIONS}
 function do_faulting_finish_message(fake : boolean) : integer;cdecl;
 public;
 var
@@ -875,11 +874,9 @@ label
   simple_exit;
 
  function _my_cs: word; assembler;
- {$ASMMODE INTEL}
  asm
-  mov ax, cs
+  movw %cs,%ax
  end;
- {$ASMMODE DEFAULT}
 
 begin
   inc(message_level);
@@ -887,7 +884,7 @@ begin
     goto simple_exit;
   do_faulting_finish_message:=0;
   signum:=djgpp_exception_state_ptr^.__signum;
-  { check video mode for original here and reset (not if PC98) */ }
+  { check video mode for original here and reset (not if PC98) }
   if ((go32_info_block.linear_address_of_primary_screen <> $a0000) and
      (farpeekb(dosmemselector, $449) <> old_video_mode)) then
     begin
@@ -927,7 +924,7 @@ begin
   ( * For fake exceptions like SIGABRT report where `raise' was called.  * )
   if fake and (djgpp_exception_state_ptr^.__cs = _my_cs)
      and (djgpp_exception_state_ptr^.__ebp >= djgpp_exception_state_ptr^.__esp)
-     and (djgpp_exception_state_ptr^.__ebp >= &end)  (* ??? *)
+     and (djgpp_exception_state_ptr^.__ebp >= &end)
      and (djgpp_exception_state_ptr^.__ebp < __djgpp_selector_limit) then
        itox(djgpp_exception_state_ptr^.__ebp + 1), 8);
      else
@@ -1621,7 +1618,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.15  2004-11-25 20:06:55  jonas
+  Revision 1.16  2004-11-29 20:39:36  peter
+  fixed compilation
+
+  Revision 1.15  2004/11/25 20:06:55  jonas
     * fixes from Tomas
 
   Revision 1.14  2003/10/03 21:46:25  peter
