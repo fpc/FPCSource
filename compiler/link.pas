@@ -154,7 +154,6 @@ Procedure TLInker.AddLibraryFile(S:String);
 begin
   if pos('.',s)=0 then
    s:=s+target_info.dllext;
-  s:=FixFileName(s);
   LibFiles.Insert (S);
 end;
 
@@ -362,8 +361,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-03-30 09:50:49  michael
+  + fix for library support.
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.31  1998/03/13 22:45:58  florian
     * small bug fixes applied
