@@ -605,9 +605,13 @@ implementation
                 end;
                gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                pushusedregisters(pushed,$ff);
+               if l>=pto^.resulttype^.size then
+                 push_int(pto^.resulttype^.size-1)
+               else
+                 push_int(l);
                emit_push_lea_loc(pfrom^.location,true);
                emitpushreferenceaddr(pto^.location.reference);
-               emitcall('FPC_PCHAR_TO_SHORTSTR');
+               emitcall('FPC_CHARARRAY_TO_SHORTSTR');
                maybe_loadesi;
                popusedregisters(pushed);
              end;
@@ -1486,7 +1490,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  1999-12-01 12:42:31  peter
+  Revision 1.96  1999-12-21 11:49:51  pierre
+   * array of char to short string bug fixed
+
+  Revision 1.95  1999/12/01 12:42:31  peter
     * fixed bug 698
     * removed some notes about unused vars
 
