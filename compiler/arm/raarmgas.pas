@@ -269,7 +269,7 @@ Unit raarmgas;
                     will generate buggy code. Allow it only for explicit typecasting }
                   if hasdot and
                      (not oper.hastype) and
-                     (tvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
+                     (tabstractnormalvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
                      (current_procinfo.procdef.proccalloption<>pocall_register) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
@@ -748,7 +748,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:31  florian
+  Revision 1.10  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.9  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.8  2004/03/02 00:36:33  olle

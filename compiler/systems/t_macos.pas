@@ -33,7 +33,7 @@ interface
     timportlibmacos=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -76,7 +76,7 @@ begin
 end;
 
 
-procedure timportlibmacos.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlibmacos.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -252,7 +252,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-10-25 15:38:41  peter
+  Revision 1.14  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.13  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

@@ -90,14 +90,15 @@ unit nppcld;
         case target_info.system of
           system_powerpc_darwin:
             begin
-              if (tvarsym(symtableentry).owner.unitid<>0) or (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
+              if (tglobalvarsym(symtableentry).owner.unitid<>0) or
+                 (vo_is_dll_var in tglobalvarsym(symtableentry).varoptions) then
                 begin
-                  l:=objectlibrary.getasmsymbol('L'+tvarsym(symtableentry).mangledname+'$non_lazy_ptr');
+                  l:=objectlibrary.getasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr');
                   if not(assigned(l)) then
                     begin
-                      l:=objectlibrary.newasmsymbol('L'+tvarsym(symtableentry).mangledname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                      l:=objectlibrary.newasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
                       picdata.concat(tai_symbol.create(l,0));
-                      picdata.concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA)));
+                      picdata.concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA)));
                       picdata.concat(tai_const.create_32bit(0));
                     end;
 
@@ -121,7 +122,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-07-19 12:45:43  jonas
+  Revision 1.5  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.4  2004/07/19 12:45:43  jonas
     * fixed loading external procedure addresses
 
   Revision 1.3  2004/06/17 16:55:46  peter

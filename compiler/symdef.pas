@@ -4319,7 +4319,7 @@ implementation
          procsym:=tprocsym(procsymderef.resolve);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
-         libsym:=tvarsym(libsymderef.resolve);
+         libsym:=tsym(libsymderef.resolve);
 {$endif powerpc}
 
          aktparasymtable:=oldparasymtable;
@@ -6244,7 +6244,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.269  2004-11-08 22:09:59  peter
+  Revision 1.270  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.269  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.268  2004/11/06 17:44:47  florian

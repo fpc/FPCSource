@@ -1178,10 +1178,11 @@ const
                       begin
                         if assigned(hp.paraloc[callerside].location^.next) then
                           internalerror(2004091210);
-                        case tvarsym(hp.parasym).localloc.loc of
+                        case tabstractnormalvarsym(hp.parasym).localloc.loc of
                           LOC_REFERENCE:
                             begin
-                              reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.base,tvarsym(hp.parasym).localloc.reference.offset);
+                              reference_reset_base(href,tabstractnormalvarsym(hp.parasym).localloc.reference.base,
+                                  tabstractnormalvarsym(hp.parasym).localloc.reference.offset);
                               reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
                               { we can't use functions here which allocate registers (FK)
                                cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
@@ -2356,7 +2357,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.184  2004-10-31 21:45:03  peter
+  Revision 1.185  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.184  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

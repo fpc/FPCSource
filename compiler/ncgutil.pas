@@ -1348,7 +1348,7 @@ implementation
 {$ifdef sparc}
                   { Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
-                  tg.GetTemp(list,TCGSize2Size[tvarsym(hp.parasym).localloc.size],tt_normal,tempref);
+                  tg.GetTemp(list,TCGSize2Size[tparavarsym(hp.parasym).localloc.size],tt_normal,tempref);
                   href:=tempref;
                   while assigned(paraloc) do
                     begin
@@ -1357,7 +1357,7 @@ implementation
                       inc(href.offset,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
                     end;
-                  cg.a_loadfpu_ref_reg(list,tvarsym(hp.parasym).localloc.size,tempref,tvarsym(hp.parasym).localloc.register);
+                  cg.a_loadfpu_ref_reg(list,tparavarsym(hp.parasym).localloc.size,tempref,tparavarsym(hp.parasym).localloc.register);
                   tg.UnGetTemp(list,tempref);
 {$else sparc}
                   unget_para(paraloc^);
@@ -2212,7 +2212,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.239  2004-11-09 17:26:47  peter
+  Revision 1.240  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.239  2004/11/09 17:26:47  peter
     * fixed wrong typecasts
 
   Revision 1.238  2004/11/08 22:09:59  peter

@@ -1176,13 +1176,13 @@ begin
       include(pd.procoptions,po_explicitparaloc);
       if consume_sym(sym,symtable) then
         begin
-          if (sym.typ=varsym) and
-            ((tvarsym(sym).vartype.def.deftype=pointerdef) or
-              is_32bitint(tvarsym(sym).vartype.def)
+          if (sym.typ in [localvarsym,paravarsym]) and
+            ((tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
+              is_32bitint(tabstractvarsym(sym).vartype.def)
             ) then
             begin
               tprocdef(pd).libsym:=sym;
-              pd.concatpara(nil,tvarsym(sym).vartype,tvarsym(sym),nil,true);
+              pd.concatpara(nil,tabstractvarsym(sym).vartype,tabstractvarsym(sym),nil,true);
               paramanager.parseparaloc(tparaitem(pd.para.last),'A6');
             end
           else
@@ -2266,7 +2266,10 @@ const
 end.
 {
   $Log$
-  Revision 1.202  2004-11-09 22:32:59  peter
+  Revision 1.203  2004-11-11 19:31:33  peter
+    * fixed compile of powerpc,sparc,arm
+
+  Revision 1.202  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 
