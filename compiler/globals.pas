@@ -716,7 +716,9 @@ unit globals;
          Replace(s,'$FPCVER',full_version_string);
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCTARGET',target_cpu_string);
+         Replace(s,'$FPCCPU',target_cpu_string);
          Replace(s,'$TARGET',target_path);
+         Replace(s,'$FPCOS',target_path);
        end;
 
 
@@ -1207,7 +1209,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1999-07-10 10:26:18  peter
+  Revision 1.12  1999-07-13 19:14:44  michael
+  + Defaultreplacemens now more logical
+
+  Revision 1.11  1999/07/10 10:26:18  peter
     * merged
 
   Revision 1.8.2.2  1999/07/10 10:03:04  peter
