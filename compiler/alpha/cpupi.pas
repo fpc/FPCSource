@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2002 by Florian Klaempfl
 
-    Imports the Alpha code generator
+    This unit contains the CPU specific part of tprocinfo
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,43 +21,31 @@
  ****************************************************************************
 }
 {
-  This unit imports the Alpha code generator.
+  This unit contains the CPU specific part of tprocinfo.
 }
-unit cpunode;
+unit cpupi;
 
 {$i fpcdefs.inc}
 
   interface
 
+    uses
+       cgbase;
+
+    type
+       talphaprocinfo = class(tprocinfo)
+       end;
+
+
   implementation
 
-    uses
-       { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-//       naxpadd,
-//       naxpcal,
-//       naxpcon,
-//       naxpflw,
-//       naxpmem,
-//       naxpset,
-//       naxpinl,
-//       nppcopt,
-       { this not really a node }
-//       naxpobj,
-//       naxpmat,
-//       naxpcnv
-       ;
-
+begin
+   cprocinfo:=talphaprocinfo;
 end.
 {
   $Log$
-  Revision 1.2  2002-09-29 23:54:12  florian
+  Revision 1.1  2002-09-29 23:54:12  florian
     * alpha compiles again, changes to common code not yet commited
-
-  Revision 1.1  2002/08/18 09:13:02  florian
-    * small fixes to the alpha stuff
 }
+
+

@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 2000-2002 by Florian Klaempfl
+    Copyright (c) 2001-2002 by Peter Vreman
 
-    Imports the Alpha code generator
+    Includes the powerpc dependent target units
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,44 +20,38 @@
 
  ****************************************************************************
 }
-{
-  This unit imports the Alpha code generator.
-}
-unit cpunode;
+unit cputarg;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
-  implementation
+
+implementation
 
     uses
-       { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl
-       { to be able to only parts of the generic code,
-         the processor specific nodes must be included
-         after the generic one (FK)
-       }
-//       naxpadd,
-//       naxpcal,
-//       naxpcon,
-//       naxpflw,
-//       naxpmem,
-//       naxpset,
-//       naxpinl,
-//       nppcopt,
-       { this not really a node }
-//       naxpobj,
-//       naxpmat,
-//       naxpcnv
-       ;
+      systems { prevent a syntax error when nothing is included }
+
+{**************************************
+             Targets
+**************************************}
+
+    {$ifndef NOTARGETLINUX}
+      ,t_linux
+    {$endif}
+
+{**************************************
+             Assemblers
+**************************************}
+
+    {$ifndef NOAGAXPGAS}
+      ,agaxpgas
+    {$endif}
+      ;
 
 end.
 {
   $Log$
-  Revision 1.2  2002-09-29 23:54:12  florian
+  Revision 1.1  2002-09-29 23:54:13  florian
     * alpha compiles again, changes to common code not yet commited
-
-  Revision 1.1  2002/08/18 09:13:02  florian
-    * small fixes to the alpha stuff
 }

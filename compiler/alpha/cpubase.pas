@@ -193,11 +193,29 @@ unit cpubase;
        max_scratch_regs = 2;
        scratch_regs : array[1..max_scratch_regs] of tregister = (R_1,R_2);
 
-    type
+{*****************************************************************************
+                               GDB Information
+*****************************************************************************}
+
+       {  Register indexes for stabs information, when some
+         parameters or variables are stored in registers.
+       }
+       stab_regindex : array[tregister] of shortint =
+          (0,
+           0,0,0,0,0,0,0,0,0,0,
+           0,0,0,0,0,0,0,0,0,0,
+           0,0,0,0,0,0,0,0,0,0,
+           0,0,
+           0,0,0,0,0,0,0,0,0,0,
+           0,0,0,0,0,0,0,0,0,0,
+           0,0,0,0,0,0,0,0,0,0,
+           0,0
+          );
 
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
+       type
        { The Alpha doesn't have flags but some generic code depends on this type. }
        TResFlags = (F_NO);
 
@@ -432,7 +450,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-29 23:42:45  florian
+  Revision 1.4  2002-09-29 23:54:12  florian
+    * alpha compiles again, changes to common code not yet commited
+
+  Revision 1.3  2002/09/29 23:42:45  florian
     * several fixes to get forward with alpha compilation
 
   Revision 1.2  2002/09/07 15:25:10  peter

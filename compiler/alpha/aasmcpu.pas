@@ -27,63 +27,66 @@ unit aasmcpu;
 
 {$i fpcdefs.inc}
 
-interface
+  interface
 
-uses
-  aasmbase,globals,verbose,
-  cpubase,aasmtai;
+    uses
+       aasmbase,globals,verbose,
+       cpubase,aasmtai;
 
-type
-  tai_frame = class(tai)
-     G,R : TRegister;
-     LS,LU : longint;
-    Constructor Create (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
-    end;
+    type
+      tai_frame = class(tai)
+         G,R : TRegister;
+         LS,LU : longint;
+        Constructor Create (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
+        end;
 
-  tai_ent = class(tai)
-    Name : string;
-    Constructor Create (const ProcName : String);
-    end;
+      tai_ent = class(tai)
+        Name : string;
+        Constructor Create (const ProcName : String);
+        end;
 
 
-  taicpu = class(taicpu_abstract)
-     constructor op_none(op : tasmop);
+      taicpu = class(taicpu_abstract)
+         constructor op_none(op : tasmop);
 
-     constructor op_reg(op : tasmop;_op1 : tregister);
-     constructor op_const(op : tasmop;_op1 : longint);
-     constructor op_ref(op : tasmop;_op1 : preference);
+         constructor op_reg(op : tasmop;_op1 : tregister);
+         constructor op_const(op : tasmop;_op1 : longint);
+         constructor op_ref(op : tasmop;_op1 : preference);
 
-     constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
-     constructor op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
-     constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+         constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
+         constructor op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
+         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
 
-     constructor op_const_reg(op : tasmop;_op1 : longint;_op2 : tregister);
-     constructor op_const_const(op : tasmop;_op1,_op2 : longint);
-     constructor op_const_ref(op : tasmop;_op1 : longint;_op2 : preference);
+         constructor op_const_reg(op : tasmop;_op1 : longint;_op2 : tregister);
+         constructor op_const_const(op : tasmop;_op1,_op2 : longint);
+         constructor op_const_ref(op : tasmop;_op1 : longint;_op2 : preference);
 
-     constructor op_ref_reg(op : tasmop;_op1 : preference;_op2 : tregister);
-     { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
-     constructor op_ref_ref(op : tasmop;_op1,_op2 : preference);
+         constructor op_ref_reg(op : tasmop;_op1 : preference;_op2 : tregister);
+         { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
+         constructor op_ref_ref(op : tasmop;_op1,_op2 : preference);
 
-     constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
-     constructor op_reg_const_reg(op : tasmop;_op1 : tregister;_op2 : longint;_op3 : tregister);
-     constructor op_const_ref_reg(op : tasmop;_op1 : longint;_op2 : preference;_op3 : tregister);
-     constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3 : preference);
-     constructor op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
-     constructor op_reg_ref_const(op : tasmop;_op1 : tregister;_op2 : preference;_op3 : longint);
+         constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
+         constructor op_reg_const_reg(op : tasmop;_op1 : tregister;_op2 : longint;_op3 : tregister);
+         constructor op_const_ref_reg(op : tasmop;_op1 : longint;_op2 : preference;_op3 : tregister);
+         constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; _op3 : preference);
+         constructor op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
+         constructor op_reg_ref_const(op : tasmop;_op1 : tregister;_op2 : preference;_op3 : longint);
 
-     { this is for Jmp instructions }
-     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
+         { this is for Jmp instructions }
+         constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
 
-     constructor op_sym(op : tasmop;_op1 : tasmsymbol);
-     constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
-     constructor op_sym_ofs_reg(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
-     constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
-  end;
+         constructor op_sym(op : tasmop;_op1 : tasmsymbol);
+         constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
+         constructor op_sym_ofs_reg(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
+         constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
+      end;
 
-  tai_align = class(tai_align_abstract)
-    { nothing to add }
-  end;
+      tai_align = class(tai_align_abstract)
+        { nothing to add }
+      end;
+
+    procedure InitAsm;
+    procedure DoneAsm;
 
 implementation
 
@@ -266,10 +269,23 @@ implementation
       Name:=ProcName;
     end;
 
-end.
+    procedure InitAsm;
+      begin
+      end;
+
+
+    procedure DoneAsm;
+      begin
+      end;
+
+
+    end.
 {
   $Log$
-  Revision 1.2  2002-09-29 23:42:45  florian
+  Revision 1.3  2002-09-29 23:54:12  florian
+    * alpha compiles again, changes to common code not yet commited
+
+  Revision 1.2  2002/09/29 23:42:45  florian
     * several fixes to get forward with alpha compilation
 
   Revision 1.1  2002/09/29 22:34:17  florian
