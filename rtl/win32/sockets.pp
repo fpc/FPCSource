@@ -155,7 +155,7 @@ begin
     SocketError:=0;
 end;
 
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
   GetSocketOptions:=WinSock.GetSockOpt(Sock,Level,OptName,OptVal,OptLen);
   if GetSocketOptions<0 then
@@ -211,7 +211,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:34  peter
+  Revision 1.6  2000-06-19 13:32:18  michael
+  + Corrected GetSocketOptions
+
+  Revision 1.5  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:52  daniel

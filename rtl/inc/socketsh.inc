@@ -103,7 +103,7 @@ Function Shutdown(Sock:Longint;How:Longint):Longint;
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 
 {Text Support}
@@ -120,7 +120,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.6  2000-06-02 17:30:43  marco
+  Revision 1.7  2000-06-19 13:31:46  michael
+  + Corrected GetSocketOptions
+
+  Revision 1.6  2000/06/02 17:30:43  marco
    * added some constants for getsocketoptions under a linux define.
   	Allows server example to work ok.
 

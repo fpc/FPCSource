@@ -207,7 +207,7 @@ end;
 
 
 
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
   GetSocketOptions:=SocketCall(Socket_Sys_GetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
 end;
@@ -320,7 +320,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-03-16 15:24:37  marco
+  Revision 1.15  2000-06-19 13:31:46  michael
+  + Corrected GetSocketOptions
+
+  Revision 1.14  2000/03/16 15:24:37  marco
    * Put one BSD incompability under an ifndef BSD
 
   Revision 1.13  2000/02/09 16:59:32  peter
