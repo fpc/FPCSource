@@ -52,6 +52,7 @@ type
       function  NewSubView(var Bounds: TRect; AMenu: PMenu;
                   AParentMenu: PMenuView): PMenuView; virtual;
       procedure Update; virtual;
+      function  GetMenuItem(cm : word) : PMenuItem;
       procedure HandleEvent(var Event: TEvent); virtual;
       function  Execute: Word; virtual;
     end;
@@ -760,6 +761,55 @@ begin
   DrawView;
 end;
 
+function  TAdvancedMenuBar.GetMenuItem(cm : word) : PMenuItem;
+type
+   PItemChain = ^TItemChain;
+   TItemChain = record
+     Next : PMenuItem;
+     Up   : PItemChain;
+   end;
+var Cur : PMenuItem;
+    Up,NUp  : PItemChain;
+begin
+  Cur:=Menu^.Items;
+  Up:=nil;
+  if cm=0 then
+    begin
+      GetMenuItem:=nil;
+      exit;
+    end;
+  while assigned(Cur) and (Cur^.Command<>cm) do
+    begin
+      if (Cur^.Command=0) and assigned(Cur^.SubMenu) and
+         assigned(Cur^.SubMenu^.Items) then
+        {subMenu}
+        begin
+          If assigned(Cur^.Next) then
+            begin
+              New(Nup);
+              Nup^.Up:=Up;
+              Nup^.next:=Cur^.Next;
+              Up:=Nup;
+            end;
+          Cur:=Cur^.SubMenu^.Items;
+        end
+      else
+        { normal item }
+        begin
+          if assigned(Cur^.Next) then
+            Cur:=Cur^.Next
+          else if assigned(Up) then
+            begin
+              Cur:=Up^.next;
+              Up:=Up^.Up;
+            end
+          else
+            Cur:=Nil;
+        end;
+    end;
+  GetMenuItem:=Cur;
+end;
+
 procedure TAdvancedMenuBar.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
@@ -1464,7 +1514,9 @@ end;
 
 procedure NotImplemented;
 begin
-  InformationBox('This function is not yet implemented...',nil);
+  InformationBox( #3'This function is not'#13+
+  #3+'yet implemented...'#13+
+  #3+'Sorry',nil);
 end;
 
 procedure InsertButtons(ADialog: PDialog);
@@ -2008,7 +2060,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-04-07 21:56:07  peter
+  Revision 1.7  1999-06-25 00:30:34  pierre
+   + TAdvancedMenuBar.GetMenuItem(by command number)
+
+  Revision 1.6  1999/04/07 21:56:07  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
