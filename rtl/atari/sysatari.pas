@@ -164,7 +164,7 @@ begin
   asm
         move.l  d2,d6            { save d2   }
         movem.l d3/a2/a3,-(sp)   { save regs }
-        pea    8(a6)
+        move.l  p,-(sp)
         move.w #$41,-(sp)
         trap   #1
         add.l  #6,sp
@@ -185,8 +185,8 @@ begin
   asm
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
-            pea     p1
-            pea     p2
+            move.l  p1,-(sp)
+            move.l  p2,-(sp)
             clr.w   -(sp)
             move.w  #$56,-(sp)
             trap    #1
@@ -206,8 +206,8 @@ begin
   asm
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
-            pea     addr
-            pea     len
+            move.l  addr,-(sp)
+            move.l  len,-(sp)
             move.w  h,-(sp)
             move.w  #$40,-(sp)
             trap    #1
@@ -228,8 +228,8 @@ begin
   asm
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
-            pea    addr
-            pea    len
+            move.l addr,-(sp)
+            move.l len,-(sp)
             move.w h,-(sp)
             move.w #$40,-(sp)
             trap   #1
@@ -270,7 +270,7 @@ begin
             movem.l d3/a2/a3,-(sp)
             move.w #0,-(sp)     { seek from start of file    }
             move.w handle,-(sp)
-            pea    pos
+            move.l pos,-(sp)
             move.w #$42,-(sp)
             trap   #1
             lea    10(sp),sp
@@ -391,7 +391,7 @@ begin
       move.l  oflags,d0    { use flag as source  ...    }
     @opencont1:
       move.w  d0,-(sp)
-      pea     f
+      pea     p
       move.w  #$3d,-(sp)
       trap    #1
       add.l   #8,sp       { restore stack of os call }
@@ -567,8 +567,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.2  1998-05-25 12:13:51  carl
+   * bugfix of all routines with pea
+
+  Revision 1.1.1.1  1998/03/25 11:18:47  root
+  * Restored version
 
   Revision 1.8  1998/02/23 02:27:39  carl
     * make it link correctly
