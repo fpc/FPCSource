@@ -1,4 +1,4 @@
-fpc (1.0.6-0) unstable; urgency=low
+fpc (1.0.6-20020228) unstable; urgency=low
 
   * New upstream version.
 
@@ -110,8 +110,3 @@ fpc (0.99.12a-1) unstable; urgency=low
   * Initial Release
 
  -- Peter Vreman <pfv@cooldown.demon.nl>  Thu, 10 Jun 1999 12:00:00 +0200
-
-Local variables:
-mode: debian-changelog
-add-log-mailing-address: "mf@debian.org"
-End:
