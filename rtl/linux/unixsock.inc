@@ -68,7 +68,7 @@ end;
 
 function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint; 
 Begin
-  fpSocket:=Do_Syscall(Socket_Sys_socket,Domain,xtype,Protocol);
+  fpSocket:=SocketCall(Socket_Sys_socket,Domain,xtype,Protocol);
 End;
 
 function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
@@ -144,7 +144,10 @@ end;
 
 {
  $Log$
- Revision 1.10  2004-03-16 18:03:37  marco
+ Revision 1.11  2004-03-20 15:19:29  marco
+  * *BSD do_syscall was left behind. Replaced with socketcall
+
+ Revision 1.10  2004/03/16 18:03:37  marco
   * first changes sockets units
 
  Revision 1.9  2004/01/03 12:18:29  marco
