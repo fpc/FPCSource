@@ -1,3 +1,18 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+
+    <What does this file>
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit unixutil;
 
 interface
@@ -227,44 +242,56 @@ Var
       '?' : Found:=(j<=LenName);
       '*' : Begin
             {find the next character in pattern, different of ? and *}
-              while Found and (i<LenPat) do
+              while Found do
                 begin
                 inc(i);
+                if i>LenPat then Break;
                 case Pattern[i] of
                   '*' : ;
                   '?' : begin
+                          if j>LenName then begin DoFNMatch:=false; Exit; end;
                           inc(j);
-                          Found:=(j<=LenName);
                         end;
                 else
                   Found:=false;
                 end;
                end;
+              Assert((i>LenPat) or ( (Pattern[i]<>'*') and (Pattern[i]<>'?') ));
             {Now, find in name the character which i points to, if the * or ?
              wasn't the last character in the pattern, else, use up all the
              chars in name}
-              Found:=true;
+              Found:=false;
               if (i<=LenPat) then
-                begin
+              begin
                 repeat
-                {find a letter (not only first !) which maches pattern[i]}
-                while (j<=LenName) and (name[j]<>pattern[i]) do
-                  inc (j);
-                 if (j<LenName) then
+                  {find a letter (not only first !) which maches pattern[i]}
+                  while (j<=LenName) and (name[j]<>pattern[i]) do
+                    inc (j);
+                  if (j<LenName) then
                   begin
                     if DoFnMatch(i+1,j+1) then
-                     begin
-                       i:=LenPat;
-                       j:=LenName;{we can stop}
-                       Found:=true;
-                     end
-                    else
-                     inc(j);{We didn't find one, need to look further}
+                    begin
+                      i:=LenPat;
+                      j:=LenName;{we can stop}
+                      Found:=true;
+                      Break;
+                    end else
+                      inc(j);{We didn't find one, need to look further}
+                  end else
+                  if j=LenName then
+                  begin
+                    Found:=true;
+                    Break;
                   end;
-               until (j>=LenName);
-                end
-              else
+                  { This 'until' condition must be j>LenName, not j>=LenName.
+                    That's because when we 'need to look further' and
+                    j = LenName then loop must not terminate. }
+                until (j>LenName);
+              end else
+              begin
                 j:=LenName;{we can stop}
+                Found:=true;
+              end;
             end;
      else {not a wildcard character in pattern}
        Found:=(j<=LenName) and (pattern[i]=name[j]);
@@ -381,3 +408,35 @@ End;
 
 
 end.
+{
+  $Log$
+  Revision 1.6  2004-06-12 13:48:08  michael
+  + Patch from Michalis Kamburelis for FNMatch
+
+  revision 1.5
+  date: 2004/03/15 20:43:07;  author: peter;  state: Exp;  lines: +1 -1
+    * fix memory allocation in stringtoppchar
+  
+  revision 1.4
+  date: 2004/02/13 10:50:23;  author: marco;  state: Exp;  lines: +80 -22
+   * Hopefully last large changes to fpexec and friends.
+          - naming conventions changes from Michael.
+          - shell functions get alternative under ifdef.
+          - arraystring function moves to unixutil
+          - unixutil now regards quotes in stringtoppchar.
+          - sysutils/unix get executeprocess(ansi,array of ansi), and
+                  both executeprocess functions are fixed
+          - Sysutils/win32 get executeprocess(ansi,array of ansi)
+  
+  revision 1.3
+  date: 2003/11/03 09:42:28;  author: marco;  state: Exp;  lines: +3 -3
+   * Peter's Cardinal<->Longint fixes patch
+  
+  revision 1.2
+  date: 2003/09/17 19:07:44;  author: marco;  state: Exp;  lines: +80 -0
+   * more fixes for Unix<->unixutil
+  
+  revision 1.1
+  date: 2003/09/17 17:24:45;  author: marco;  state: Exp;
+   * Initial version. Plain vanilla copy and paste from unix.pp
+}
