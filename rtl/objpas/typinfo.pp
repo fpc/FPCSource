@@ -21,10 +21,13 @@ unit typinfo;
 
   interface
 
-    uses objpas;
-{
-       sysutils;
-}
+{$MODE objfpc}
+
+{$ifndef AUTOOBJPAS}
+    uses
+      objpas;
+{$endif}
+
 // temporary types:
 
     type
@@ -367,7 +370,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-09-20 08:25:34  florian
+  Revision 1.11  1998-09-24 23:45:28  peter
+    * updated for auto objpas loading
+
+  Revision 1.10  1998/09/20 08:25:34  florian
     + description of tpropinfo.propprocs bit 6 added
 
   Revision 1.9  1998/09/19 15:25:45  florian

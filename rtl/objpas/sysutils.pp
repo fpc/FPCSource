@@ -13,19 +13,23 @@
 
  **********************************************************************}
 unit sysutils;
-
 interface
+
+{$MODE objfpc}
 
     uses
     {$ifdef linux}
-       linux,
+       linux
     {$else}
-       dos,
-    {$ifdef go32v2}
-       go32,
-    {$endif go32v2}
+       dos
+      {$ifdef go32v2}
+         ,go32
+      {$endif go32v2}
     {$endif linux}
-       objpas;
+    {$ifndef AUTOOBJPAS}
+       ,objpas
+    {$endif}   
+       ;
 
 
     type
@@ -43,7 +47,6 @@ interface
           lo,hi : byte;
        end;
 
-{$ifdef USE_EXCEPTIONS}
        { exceptions }
        exception = class(TObject)
         private
@@ -68,7 +71,6 @@ interface
        eintoverflow = class(einterror);
        ematherror = class(exception);
 
-{$endif USE_EXCEPTIONS}
 
   { Read date & Time function declarations }
   {$i datih.inc}
@@ -103,7 +105,6 @@ interface
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
-{$ifdef USE_EXCEPTIONS}
     constructor exception.create(const msg : string);
 
       begin
@@ -126,48 +127,48 @@ interface
          inherited create;
          {!!!!!}
       end;
+
        
 Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);    
-
-Var Message : String;
-
+Var
+  Message : String;
 begin
 {$ifndef USE_WINDOWS}
-Writeln ('An unhandled exception occurred at ',HexStr(Longint(Addr),8),' : ');
-if Obj is exception then
-  begin
-  Message:=Exception(Obj).Message;
-  Writeln (Message);
-  end
-else
-  Writeln ('Exception object ',Obj.ClassName,' is not of class Exception.');
-Halt(217);
+  Writeln ('An unhandled exception occurred at ',HexStr(Longint(Addr),8),' : ');
+  if Obj is exception then
+   begin
+     Message:=Exception(Obj).Message;
+     Writeln (Message);
+   end
+  else
+   Writeln ('Exception object ',Obj.ClassName,' is not of class Exception.');
+  Halt(217);
 {$else}
 {$endif}  
 end;
 
-{$endif USE_EXCEPTIONS}
 
 Procedure InitExceptions;
 {
- Must install uncaught exception handler (ExceptProc)
- and install exceptions for system exceptions or signals.
- (e.g: SIGSEGV -> ESegFault or so.)
+  Must install uncaught exception handler (ExceptProc)
+  and install exceptions for system exceptions or signals.
+  (e.g: SIGSEGV -> ESegFault or so.)
 }
 begin
-{$ifdef USE_EXCEPTIONS}
   ExceptProc:=@CatchUnhandledException;   
-{$endif}
 end;
+
 
 {Initialization code.}
 begin
   InitExceptions;
 end.
-
 {
     $Log$
-    Revision 1.9  1998-09-24 16:13:49  michael
+    Revision 1.10  1998-09-24 23:45:27  peter
+      * updated for auto objpas loading
+
+    Revision 1.9  1998/09/24 16:13:49  michael
     Changes in exception and open array handling
 
     Revision 1.8  1998/09/18 23:57:26  michael
@@ -188,20 +189,4 @@ end.
 
     Revision 1.3  1998/07/29 15:44:32  michael
      included sysutils and math.pp as target. They compile now.
-
-    Revision 1.2  1998/04/10 15:18:21  michael
-    Added a lot of functions donated by GertJan Schouten
-
-    Revision 1.1.1.1  1998/03/25 11:18:49  root
-    * Restored version
-
-    Revision 1.1  1998/02/05 11:11:32  michael
-    + moved to objpas directory
-
-    Revision 1.2  1998/02/03 15:27:25  florian
-    *** empty log message ***
-
-    Revision 1.1  1998/02/01 23:32:01  florian
-      + initial revision
-
 }

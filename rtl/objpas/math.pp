@@ -36,13 +36,12 @@
 }
 
 unit math;
+interface
 
-  interface
+{$MODE objfpc}
 
-{$ifdef USE_EXCEPTIONS}
     uses
        sysutils;
-{$endif}
 
     type
        { the original delphi functions use extended as argument, }
@@ -52,9 +51,7 @@ unit math;
 
        tpaymenttime = (ptendofperiod,ptstartofperiod);
 
-{$ifdef USE_EXCEPTIONS}
        einvalidargument = class(ematherror);
-{$endif}
 
 { angle conversion }
 
@@ -614,7 +611,10 @@ end.
 
 {
     $Log$
-    Revision 1.4  1998-09-18 23:57:27  michael
+    Revision 1.5  1998-09-24 23:45:26  peter
+      * updated for auto objpas loading
+
+    Revision 1.4  1998/09/18 23:57:27  michael
     * Changed use_excepions to useexceptions
 
     Revision 1.3  1998/09/09 15:29:05  peter
@@ -622,22 +622,4 @@ end.
 
     Revision 1.2  1998/07/29 15:44:34  michael
      included sysutils and math.pp as target. They compile now.
-
-    Revision 1.1.1.1  1998/03/25 11:18:49  root
-    * Restored version
-
-    Revision 1.2  1998/02/12 22:23:14  michael
-    + All functions implemented, but untested
-
-    Revision 1.1  1998/02/05 11:11:31  michael
-    + moved to objpas directory
-
-    Revision 1.3  1998/02/03 15:27:06  florian
-    *** empty log message ***
-
-    Revision 1.2  1998/02/01 23:32:37  florian
-      + some basic statistical functions
-
-    Revision 1.1  1998/02/01 22:38:31  florian
-      + initial revision
 }
