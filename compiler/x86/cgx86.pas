@@ -1047,8 +1047,8 @@ unit cgx86;
           OP_SHR,OP_SHL,OP_SAR:
             begin
               getexplicitregister(list,NR_CL);
-              a_load_reg_reg(list,OS_8,OS_8,makeregsize(dst,OS_8),NR_CL);
-              list.concat(taicpu.op_reg_reg(Topcg2asmop[op],S_B,src,NR_CL));
+              a_load_reg_reg(list,OS_8,OS_8,makeregsize(src,OS_8),NR_CL);
+              list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,src));
               ungetregister(list,NR_CL);
             end;
           else
@@ -1887,7 +1887,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.111  2004-02-20 16:01:49  peter
+  Revision 1.112  2004-02-21 19:46:37  florian
+    * OP_SH* code generation fixed
+
+  Revision 1.111  2004/02/20 16:01:49  peter
     * allow mov to smaller sizes
 
   Revision 1.110  2004/02/09 22:14:17  peter
