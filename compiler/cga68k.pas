@@ -529,6 +529,7 @@ var hs:string;
     unitinits:taasmoutput;
 {$ifdef GDB}
     stab_function_name:Pai_stab_function_name;
+    npai : pai;
 {$endif GDB}
 begin
     if (aktprocsym^.definition^.options and poproginit<>0) then
@@ -592,6 +593,22 @@ begin
         end;
     { don't load ESI, does the caller }
 
+{$ifdef GDB}
+      if (cs_debuginfo in aktmoduleswitches) and
+         (((aktprocsym^.definition^.options and poconstructor)<>0) or
+          ((aktprocsym^.definition^.options and poproginit)<>0)) then
+        begin
+           { add a stabn here so trace begins here }
+           if (aktprocsym^.definition^.options and poconstructor)<>0 then
+             npai:=new(pai_asm_comment,init(' constructor entry'))
+           else
+             npai:=new(pai_asm_comment,init(' program entry'));
+           { used to force the stabn to be written again !! }
+           npai^.fileinfo.line:=0;
+           list^.insert(npai);
+        end;
+{$endif GDB}
+      
     { omit stack frame ? }
     if procinfo.framepointer=stack_pointer then
         begin
@@ -1346,7 +1363,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1998-10-20 08:06:46  pierre
+  Revision 1.27  1998-11-12 09:46:17  pierre
+    + break main stops before calls to unit inits
+    + break at constructors stops before call to FPC_NEW_CLASS
+      or FPC_HELP_CONSTRUCTOR
+
+  Revision 1.26  1998/10/20 08:06:46  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
