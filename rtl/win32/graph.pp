@@ -1496,9 +1496,9 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
                     ExitThread(1);
                  end;
             end;
-          GraphWindow:=WinCreate;
           winregistered:=true;
        end;
+     GraphWindow:=WinCreate;
      if longint(GraphWindow) = 0 then begin
        MessageBox(0, 'Window creation failed', nil, mb_Ok);
        ExitThread(1);
@@ -1562,6 +1562,10 @@ procedure CloseGraph;
      CloseHandle(MessageThreadHandle);
      DeleteCriticalSection(graphdrawing);
      freemem(pal,sizeof(RGBrec)*maxcolor);
+
+     MessageThreadID := 0;
+     MessageThreadHandle := 0;
+     isgraphmode := false;
   end;
 
 procedure LineWin32GUI(X1, Y1, X2, Y2: smallint); {$ifndef fpc}far;{$endif fpc}
@@ -2222,7 +2226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:32  peter
+  Revision 1.14  2005-03-31 12:47:20  marco
+   * fix from Thomas Schatzl for 3208
+
+  Revision 1.13  2005/02/14 17:13:32  peter
     * truncate log
 
 }
