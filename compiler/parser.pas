@@ -123,6 +123,8 @@ implementation
          case target_info.system of
            system_powerpc_morphos:
              include(supported_calling_conventions,pocall_syscall);
+	   system_m68k_amiga:
+	     include(supported_calling_conventions,pocall_syscall);
          end;
       end;
 
@@ -711,7 +713,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2004-04-28 15:19:03  florian
+  Revision 1.65  2004-05-12 13:21:09  karoly
+    * few small changes to add syscall support to M68k/Amiga target
+
+  Revision 1.64  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.63  2004/03/16 16:20:49  peter

@@ -463,7 +463,7 @@ implementation
                    single_type(tt,hs1,false);
                  end;
 
-                if (target_info.system in [system_powerpc_morphos]) then
+                if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
                     if (idtoken=_LOCATION) then
                       begin
@@ -533,7 +533,7 @@ implementation
               end;
              pd.concatpara(nil,tt,vs,defaultvalue,false);
 
-             if (target_info.system in [system_powerpc_morphos]) then
+             if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                begin
                  if locationstr<>'' then
                    begin
@@ -1162,7 +1162,7 @@ begin
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
 {$ifdef powerpc}
-  if target_info.system=system_powerpc_morphos then
+  if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
     begin
      pd.has_paraloc_info:=true;
      include(pd.procoptions,po_explicitparaloc);
@@ -2238,7 +2238,10 @@ const
 end.
 {
   $Log$
-  Revision 1.177  2004-05-11 22:52:48  olle
+  Revision 1.178  2004-05-12 13:21:09  karoly
+    * few small changes to add syscall support to M68k/Amiga target
+
+  Revision 1.177  2004/05/11 22:52:48  olle
     * Moved import_implicit_external to symsym
 
   Revision 1.176  2004/05/11 18:29:41  olle

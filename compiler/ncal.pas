@@ -1243,7 +1243,7 @@ type
 {$ifdef powerpc}
               else
                 { lib parameter has no special type but proccalloptions must be a syscall }
-                if (target_info.system=system_powerpc_morphos) and
+                if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) and
                   (procdefinition.proccalloption=pocall_syscall) then
                   begin
                     hiddentree:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
@@ -2050,7 +2050,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.232  2004-05-01 22:05:01  florian
+  Revision 1.233  2004-05-12 13:21:09  karoly
+    * few small changes to add syscall support to M68k/Amiga target
+
+  Revision 1.232  2004/05/01 22:05:01  florian
     + added lib support for Amiga/MorphOS syscalls
 
   Revision 1.231  2004/03/14 20:07:13  peter
