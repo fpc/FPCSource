@@ -14,7 +14,7 @@ begin
   asm
     mov   edi,$12345678
     mov   edi,x
-    mov   [edi],78
+    mov   dword ptr [edi],78
   end;
 {$else cpui386}
   x:=$78;
