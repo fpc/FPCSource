@@ -42,15 +42,18 @@
  { should be defined depending on CPU target }
 {$ifdef fpc}
   {$ifdef cpu68k}
-    BIG_INDEX = 8000;
+    BIG_INDEX = 12000;
+    MEDIUM_INDEX = 5000;
     SMALL_INDEX  = 13;
   {$endif}
   {$ifdef cpui386}
     BIG_INDEX = 33000;
+    MEDIUM_INDEX = 5000;
     SMALL_INDEX = 13;     { value should not be aligned! }
   {$endif}
 {$else}
   BIG_INDEX = 33000;
+  MEDIUM_INDEX = 5000;
   SMALL_INDEX = 13;     { value should not be aligned! }
 {$endif}
    RESULT_U8BIT = $55;
@@ -85,6 +88,10 @@
 
    tlargerecord = packed record
      b: array[1..BIG_INDEX] of byte;
+   end;
+   
+   tmediumrecord = packed record
+     b: array[1..MEDIUM_INDEX] of byte;
    end;
 
    tsmallarray = packed array[1..SMALL_INDEX] of byte;
@@ -128,6 +135,7 @@
   value_ptr : pchar;
   value_smallrec : tsmallrecord;
   value_largerec : tlargerecord;
+  value_mediumrec : tmediumrecord;
   value_smallset : tsmallset;
   value_smallstring : tsmallstring;
   value_bigstring   : shortstring;
@@ -171,6 +179,7 @@
        value_ptr := nil;
        fillchar(value_smallrec, sizeof(value_smallrec), #0);
        fillchar(value_largerec, sizeof(value_largerec), #0);
+       fillchar(value_mediumrec, sizeof(value_mediumrec), #0);
        value_smallset := [];
        value_smallstring := '';
        value_bigstring   := '';
@@ -209,6 +218,17 @@ function func_largerecord: tlargerecord;saveregisters;
    largerecord.b[BIG_INDEX] := RESULT_U8BIT;
    func_largerecord := largerecord;
  end;
+ 
+function func_mediumrecord: tmediumrecord;saveregisters;
+ var
+   mediumrecord : tmediumrecord;
+ begin
+   fillchar(mediumrecord, sizeof(mediumrecord), #0);
+   mediumrecord.b[1] := RESULT_U8BIT;
+   mediumrecord.b[MEDIUM_INDEX] := RESULT_U8BIT;
+   func_mediumrecord := mediumrecord;
+ end;
+ 
 
 function func_shortstring: shortstring;saveregisters;
  begin
@@ -907,6 +927,13 @@ Begin
  value_largerec := func_largerecord;
  if (value_largerec.b[1] <> RESULT_U8BIT) or (value_largerec.b[BIG_INDEX] <> RESULT_U8BIT) then
     failed:=true;
+    
+ clear_globals;
+ clear_values;
+ value_mediumrec := func_mediumrecord;
+ if (value_mediumrec.b[1] <> RESULT_U8BIT) or (value_mediumrec.b[MEDIUM_INDEX] <> RESULT_U8BIT) then
+    failed:=true;
+    
 
  clear_globals;
  clear_values;
@@ -1403,7 +1430,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:51  peter
+  Revision 1.4  2002-09-27 17:44:50  carl
+    * add testing for window-page size 4K, so as to test stack corruption
+
+  Revision 1.3  2002/09/07 15:40:51  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/13 13:45:37  peter
