@@ -84,7 +84,7 @@ Unit Ra386int;
        { aasm }
        cpuinfo,aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symsym,symtable,
+       symconst,symbase,symtype,symsym,symdef,symtable,
        { parser }
        scanner,
        { register allocator }
@@ -719,6 +719,7 @@ Unit Ra386int;
         errorflag : boolean;
         prevtok : tasmtoken;
         hl : tasmlabel;
+        def : tdef;
         sym : tsym;
         srsymtable : tsymtable;
       Begin
@@ -817,6 +818,7 @@ Unit Ra386int;
             AS_OFFSET:
               begin
                 Consume(AS_OFFSET);
+                needofs:=true;
                 if actasmtoken<>AS_ID then
                  Message(asmr_e_offset_without_identifier);
               end;
@@ -887,6 +889,7 @@ Unit Ra386int;
             AS_ID:
               Begin
                 hs:='';
+                def:=nil;
                 tempstr:=actasmpattern;
                 prevtok:=prevasmtoken;
                 consume(AS_ID);
@@ -916,9 +919,13 @@ Unit Ra386int;
                                if sym.owner.symtabletype in [localsymtable,parasymtable] then
                                 Message(asmr_e_no_local_or_para_allowed);
                                hs:=tvarsym(sym).mangledname;
+                               def:=tvarsym(sym).vartype.def;
                              end;
                            typedconstsym :
-                             hs:=ttypedconstsym(sym).mangledname;
+                             begin
+                               hs:=ttypedconstsym(sym).mangledname;
+                               def:=ttypedconstsym(sym).typedconsttype.def;
+                             end;
                            procsym :
                              begin
                                if Tprocsym(sym).procdef_count>1 then
@@ -940,8 +947,6 @@ Unit Ra386int;
                    { symbol found? }
                    if hs<>'' then
                     begin
-                      if needofs and (prevtok<>AS_OFFSET) then
-                       Message(asmr_e_need_offset);
                       if asmsym='' then
                        asmsym:=hs
                       else
@@ -953,7 +958,13 @@ Unit Ra386int;
                           delete(expr,length(expr),1);
                        end
                       else
-                       Message(asmr_e_only_add_relocatable_symbol);
+                       if needofs then
+                         begin
+                           if (prevtok<>AS_OFFSET) then
+                             Message(asmr_e_need_offset);
+                         end
+                       else
+                         Message(asmr_e_only_add_relocatable_symbol);
                     end;
                    if actasmtoken=AS_DOT then
                     begin
@@ -966,6 +977,23 @@ Unit Ra386int;
                       if (expr='') or (expr[length(expr)] in ['+','-','/','*']) then
                        delete(expr,length(expr),1);
                     end;
+                   if (actasmtoken=AS_LBRACKET) and
+                      assigned(def) and
+                      (def.deftype=arraydef) then
+                     begin
+                       consume(AS_LBRACKET);
+                       l:=BuildConstExpression;
+                       if l<tarraydef(def).lowrange then
+                         begin
+                           Message(asmr_e_constant_out_of_bounds);
+                           l:=0;
+                         end
+                       else
+                         l:=(l-tarraydef(def).lowrange)*tarraydef(def).elesize;
+                       str(l, tempstr);
+                       expr:=expr + '+' + tempstr;
+                       consume(AS_RBRACKET);
+                     end;
                  end;
                 { check if there are wrong operator used like / or mod etc. }
                 if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
@@ -1373,7 +1401,9 @@ Unit Ra386int;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
+           { the symbol already exists, but we don't know whether it is data or
+             a function. we can use AT_NONE }
+           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_NONE);
          end
         else
          begin
@@ -1741,12 +1771,23 @@ Unit Ra386int;
                   AS_TBYTE : size:=extended_size;
                 end;
                 Consume(actasmtoken);
-                if actasmtoken=AS_PTR then
-                 begin
-                   Consume(AS_PTR);
-                   instr.Operands[operandnum].InitRef;
-                 end;
-                BuildOperand(instr.Operands[operandnum] as tx86operand);
+                case actasmtoken of
+                  AS_LPAREN :
+                    begin
+                      instr.Operands[operandnum].hastype:=true;
+                      Consume(AS_LPAREN);
+                      BuildOperand(instr.Operands[operandnum] as tx86operand);
+                      Consume(AS_RPAREN);
+                    end;
+                  AS_PTR :
+                    begin
+                      Consume(AS_PTR);
+                      instr.Operands[operandnum].InitRef;
+                      BuildOperand(instr.Operands[operandnum] as tx86operand);
+                    end;
+                  else
+                    BuildOperand(instr.Operands[operandnum] as tx86operand);
+                end;
                 { now set the size which was specified by the override }
                 instr.Operands[operandnum].setsize(size,true);
               end;
@@ -1973,7 +2014,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2004-07-06 19:47:19  peter
+  Revision 1.77  2004-09-13 20:25:52  peter
+    * support byte() typecast
+    * support array index
+
+  Revision 1.76  2004/07/06 19:47:19  peter
     * fixed parsing of strings in db
 
   Revision 1.75  2004/06/23 14:54:46  peter
