@@ -602,19 +602,20 @@ will stop at this breakpoint.
 \item[Call stack] (\key{Ctrl-F3})
 Shows the call stack. The call stack is the list of addresses (and
 filenames and line numbers, if this information was compiled in) of 
-procedures that are currently being called in the running program.
+procedures that are currently being called by the running program.
 \item[Registers]
 Shows the current content of the CPU registers. 
 \item[Add watch] (\key{Ctrl-F7}) Add a watch. A watch is an expression
-that can be evaluated by the IDE and shown in a special window. usually this
-is the contents of some variable. 
+that can be evaluated by the IDE and will be shown in a special window. 
+Usually this is the content of some variable. 
 \item[Watches]
 Shows the current list of watches in a separate window.
 \item[Breakpoint list]
 Shows the current list of breakpoints in a separate window.
 \item[GDB window]
 Shows the GDB debugger console. This can be used to interact with the debugger
-directly.
+directly; here arbitrary GDB commands can be typed and the result will be
+shown in the window.
 \end{description}
 %
 % The tools menu
@@ -760,7 +761,7 @@ Jumps to the previously visited topic.
 \item[Using help]
 Displays help on using the help system.
 \item[Files]
-Allows to configure the help menu. Here help files can be added to the help
+Allows to configure the help menu. With this menu item,  help files can be added to the help
 system. 
 \item[About]
 Displays information about the IDE. See \sees{about} for more information.
@@ -827,8 +828,9 @@ inserted text is selected.
 \item Indent a block (\key{Ctrl-K I}).
 \item Undent a block (\key{Ctrl-K U}).
 \item Print the block contents (\key{Ctrl-K P}).
-\item Restrict a search to the block contents.
 \end{itemize}
+When searching and replacing, the search can be restricted to the block 
+contents.
 
 %
 % Bookmarks
@@ -865,7 +867,7 @@ The goto line dialog.
 The goto line dialog is shown in \seefig{gotoline}.
 \begin{figure}[ht]
 \begin{center}
-\caption{The code completion dialog.}\label{fig:gotoline}
+\caption{The goto line dialog.}\label{fig:gotoline}
 \ifpdf
 \epsfig{file=pics/ide/gotoline.png}
 \else
@@ -902,7 +904,8 @@ only the background color will be used.
 \item[Assembler] Any assembler blocks.
 \item[Symbols] Recognised symbols (variables, types)
 \item[Directives] Compiler directives.
-\item[Tabs] Can be given a different color than other whitespace.
+\item[Tabs] Tab characters in the source can be given a different color than 
+other whitespace.
 \end{description}
 The editor uses some default settings, but experimentation is the best way
 to find a fitting color scheme. A good color scheme helps detecting errors
@@ -977,7 +980,7 @@ If there is no template name before the cursor, a dialog will pop up to
 allow selection of a template.
 
 If a vertical bar (|) is present in the code template, the cursor is positioned
-on it, and it is deleted. In the above example, the cursor would be
+on it, and the vertical bar is deleted. In the above example, the cursor would be
 positioned between the \var{if} and \var{then}, ready to type an expression.
 
 Code templates can be added and edited in the code templates dialog, reachable via
@@ -1017,7 +1020,7 @@ template.
 All templates are saved and are available the next time the IDE is started.
 \begin{remark}
 Duplicates are not allowed. If an attempt is made to add a duplicate name
-to the list, an error will follow.
+to the list, an error will occur.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1025,7 +1028,7 @@ to the list, an error will follow.
 \section{Searching and replacing}
 \label{se:searching}
 The IDE allows to search for text in the active editor window. 
-To search for text, one  of the following can be done:
+To search for text, one of the following can be done:
 \begin{enumerate}
 \item Select \menu{Search|Find} in the menu.
 \item Press \key{Ctrl-Q F}.
@@ -1050,18 +1053,18 @@ and the following options can be entered
 
 \begin{description}
 \item[Text to find] The text to be searched for. If a block was active when
-the dialog was started, this is proposed.
+the dialog was started, the first line of this block is proposed.
 \item[Case sensitive] When checked, the search is case sensitive.
 \item[Whole words only] When checked, the search text must appear in the
 text as a complete word.
 \item[Direction] The direction in which the search must be conducted,
 starting from the specified origin.
-\item[Scope] Should the search be on the whole file, or just the selected
+\item[Scope] Specifies if the search should be on the whole file, or just the selected
 text.
-\item[Origin] Should the search start from the cursor position or the start
+\item[Origin] Specifies if the search should start from the cursor position or the start
 of the scope.
 \end{description}
-After the dialog is closed, the search is performed using the given options.
+After the dialog has closed, the search is performed using the given options.
 
 A search can be repeated (using the same options) in one of 2 ways:
 \begin{enumerate}
@@ -3126,7 +3129,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.19  2000-12-08 21:15:39  michael
+%  Revision 1.1.2.20  2000-12-08 23:59:53  michael
+%  + Some changes noted by marco
+%
+%  Revision 1.1.2.19  2000/12/08 21:15:39  michael
 %  + spell-checked
 %
 %  Revision 1.1.2.18  2000/12/08 20:41:50  michael
