@@ -50,18 +50,21 @@ CONST
 {# Size of a multimedia register               }
   mmreg_size = 8;
 { target cpu string (used by compiler options) }
-  target_cpu_string = 'SPARC';
+  target_cpu_string = 'sparc';
 { size of the buffer used for setjump/longjmp
   the size of this buffer is deduced from the
   jmp_buf structure in setjumph.inc file }
-{$warning jmp_buf_size not set!}  
+{$warning jmp_buf_size not set!}
   jmp_buf_size = 0;
 
 IMPLEMENTATION
 END.
 {
   $Log$
-  Revision 1.5  2002-10-16 12:36:54  mazen
+  Revision 1.6  2002-11-16 20:07:57  florian
+    * made target_cpu_name lowercase
+
+  Revision 1.5  2002/10/16 12:36:54  mazen
   * patch of Carl Eric added
 
-}  
+}
