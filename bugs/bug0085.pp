@@ -1,3 +1,0 @@
-Begin
- writeln(l);
-end.

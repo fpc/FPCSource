@@ -1,8 +1,0 @@
-
-Var
- out: boolean;
- int: byte;
-Begin
- { savesize is different! }
- out:=boolean((int AND $20) SHL 4);
-end.
