@@ -181,3 +181,4 @@ bug0130.pp   in [..#255] problem
 bug0131.pp   internal error 10 with highdimension arrays
 bug0132.pp   segmentation fault with type loop
 bug0133.pp   object type declaration not 100% compatibile with TP7
+bug0135.pp   Unsupported subrange type construction.
