@@ -463,15 +463,18 @@ begin
   else
    begin
      { create freelist entry for old heapptr-heapend }
-     pcurr:=pfreerecord(heapptr);
-     pcurr^.size:=heapend-heapptr;
-     pcurr^.root:=@freelists[0];
-     { insert the block in the freelist }
-     pcurr^.next:=freelists[0];
-     pcurr^.prev:=nil;
-     if assigned(freelists[0]) then
-      freelists[0]^.prev:=pcurr;
-     freelists[0]:=pcurr;
+     if heapend-heapptr>blocksize then
+      begin
+        pcurr:=pfreerecord(heapptr);
+        pcurr^.size:=heapend-heapptr;
+        pcurr^.root:=@freelists[0];
+        { insert the block in the freelist }
+        pcurr^.next:=freelists[0];
+        pcurr^.prev:=nil;
+        if assigned(freelists[0]) then
+         freelists[0]^.prev:=pcurr;
+        freelists[0]:=pcurr;
+      end;
      { now set the new heapptr,heapend to the new block }
      heapptr:=pointer(newpos);
      heapend:=pointer(newpos+size);
@@ -503,7 +506,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-09-17 17:14:12  peter
+  Revision 1.17  1999-09-20 14:17:37  peter
+    * fixed growheap freelist addition when heapend-heapptr<blocksize
+
+  Revision 1.16  1999/09/17 17:14:12  peter
     + new heap manager supporting delphi freemem(pointer)
 
 }
