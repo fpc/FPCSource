@@ -439,7 +439,7 @@ implementation
          { makes no problems there }
          rg.cleartempgen;
 
-         if lnf_dont_mind_loopvar_on_exit in loopflags then
+         if do_loopvar_at_end then
            if lnf_backward in loopflags then
              if count_var_is_signed then
                hcond:=OC_GTE
@@ -1450,7 +1450,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-01-02 15:29:25  daniel
+  Revision 1.48  2003-01-03 09:51:58  daniel
+    * Compiler now cycles with var_notification
+
+  Revision 1.47  2003/01/02 15:29:25  daniel
     * Some debugging on for loop optimization
 
   Revision 1.46  2002/12/31 09:55:58  daniel
