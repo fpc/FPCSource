@@ -266,7 +266,8 @@ implementation
                  end
                 { address }
                 else if is_constintnode(pt) and
-                        ((target_info.system in [system_i386_go32v2,system_i386_watcom]) or
+                        ((target_info.system in [system_i386_go32v2,system_i386_watcom,
+                                                 system_i386_wdosx,system_i386_win32]) or
                          (m_objfpc in aktmodeswitches) or
                          (m_delphi in aktmodeswitches)) then
                  begin
@@ -648,7 +649,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-10-03 14:45:09  peter
+  Revision 1.56  2003-10-05 12:55:37  peter
+    * allow absolute with value for win32,wdos
+
+  Revision 1.55  2003/10/03 14:45:09  peter
     * more proc directive for procvar fixes
 
   Revision 1.54  2003/10/02 21:13:09  peter
