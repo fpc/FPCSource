@@ -207,6 +207,8 @@ implementation
 
 {$else Delphi}
 
+{$asmmode ATT}
+
     function setjmp(var rec : jmp_buf) : longint;
       begin
          asm
@@ -351,7 +353,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-02-09 13:23:08  peter
+  Revision 1.11  2000-02-11 23:59:35  jonas
+    + {$asmmode att} for people with -Rintel in their ppc386.cfg
+
+  Revision 1.10  2000/02/09 13:23:08  peter
     * log truncated
 
   Revision 1.9  2000/01/07 01:14:48  peter
