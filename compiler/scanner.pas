@@ -141,6 +141,7 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
+          function  readval_asstring:string;
           function  readcomment:string;
           function  readstate:char;
           procedure skipspace;
@@ -454,6 +455,18 @@ implementation
                       read_factor:='0';
                   end
                 else
+                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='TRUE') then
+                  begin
+                    preproc_consume(_ID);
+                    read_factor:='1';
+                  end
+                else
+                if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='FALSE') then
+                  begin
+                    preproc_consume(_ID);
+                    read_factor:='0';
+                  end
+                else
                   begin
                     hs:=preproc_substitutedtoken;
                     preproc_consume(_ID);
@@ -721,7 +734,7 @@ implementation
              hs:= parse_compiler_expr;
              if length(hs) <> 0 then
                begin
-  		         Message2(parser_c_macro_set_to,mac.name,hs);
+                 Message2(parser_c_macro_set_to,mac.name,hs);
                  { free buffer of macro ?}
                  if assigned(mac.buftext) then
                    freemem(mac.buftext,mac.buflen);
@@ -1698,6 +1711,13 @@ implementation
         readval:=l;
       end;
 
+
+    function tscannerfile.readval_asstring:string;
+      begin
+        readnumber;
+        readval_asstring:=pattern;
+      end;
+    
 
     function tscannerfile.readcomment:string;
       var
@@ -2722,11 +2742,20 @@ exit_label:
          case c of
         'A'..'Z',
         'a'..'z',
-		//'$',       {for hexadecimal numbers, allowed in mode mac OR}
     '_','0'..'9' : begin
                      current_scanner.preproc_pattern:=readid;
                      readpreproc:=_ID;
                    end;
+             '$' : if (m_mac in aktmodeswitches) then
+                     begin {for hexadecimal numbers, allowed in mode mac OR}
+                       current_scanner.preproc_pattern:=readval_asstring;
+                       readpreproc:=_ID;
+                     end
+                   else
+                     begin
+                       readpreproc:=_EOF;
+                       checkpreprocstack;
+                     end;
              '}' : begin
                      readpreproc:=_END;
                    end;
@@ -2939,7 +2968,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.70  2004-02-23 23:38:25  olle
+  Revision 1.71  2004-02-25 00:54:47  olle
+    + mode mac: preproc support for hexadecimal numbers
+    + mode mac: preproc support for TRUE, FALSE
+
+  Revision 1.70  2004/02/23 23:38:25  olle
     + mode mac: added UNDEFINED construct
     + mode mac: added support for include $I
     * renamed one of the readpreproc to preproc_substitutedtoken to avoid confusement
