@@ -1,4 +1,4 @@
-{%RESULT=210 }
+{%RESULT=220 }
 {%OPT=-CR}
 {$mode objfpc}
 program test_class;
