@@ -168,7 +168,7 @@ unit cpupara;
          { inc(nextintreg);                     }
          { constructor? }
          { destructor? }
-         hp:=tparaitem(p.para.last);
+         hp:=tparaitem(p.para.first);
          while assigned(hp) do
            begin
               if (hp.paratyp in [vs_var,vs_out]) then
@@ -244,7 +244,7 @@ unit cpupara;
                  else
                    internalerror(2002071002);
               end;
-              hp:=tparaitem(hp.previous);
+              hp:=tparaitem(hp.next);
            end;
       end;
 
@@ -301,7 +301,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-04-16 07:55:07  jonas
+  Revision 1.25  2003-04-17 18:52:35  jonas
+    * process para's from first to last instead of the other way round
+
+  Revision 1.24  2003/04/16 07:55:07  jonas
     * fixed paralocation for integer var/out parameters
 
   Revision 1.23  2003/03/11 21:46:24  jonas
