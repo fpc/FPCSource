@@ -958,7 +958,7 @@ Begin
            '-','=' : PushExt(FAltKey(ch));
                #10 : PushKey(#10);
                '[' : State:=2;
-{$IFDEF LINUX}
+{$IFDEF Unix}
               'O': State:=7;
 {$ENDIF}
                else
@@ -1091,7 +1091,7 @@ Begin
               if (Ch<>'~') then
                State:=255;
             end;
-{$ifdef LINUX}
+{$ifdef Unix}
         7 : begin {Esc[O}
               case ch of
                'A' : PushExt(72);
@@ -1682,7 +1682,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.8  2001-12-26 21:03:57  peter
+  Revision 1.9  2002-05-31 13:37:24  marco
+   * more Renamefest
+
+  Revision 1.8  2001/12/26 21:03:57  peter
     * merged fixes from 1.0.x
 
   Revision 1.7  2001/07/30 21:53:53  peter

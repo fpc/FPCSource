@@ -572,14 +572,14 @@ begin
   dir:=thedir
 end;
 
-{$ifdef linux}
+{$ifdef Unix}
 {*****************************************************************************
                              Thread Handling
 *****************************************************************************}
 
 { include threading stuff, this is os independend part }
 {$I thread.inc}
-{$endif linux}
+{$endif Unix}
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -767,7 +767,10 @@ End.
 
 {
   $Log$
-  Revision 1.21  2002-04-21 15:55:00  carl
+  Revision 1.22  2002-05-31 13:37:24  marco
+   * more Renamefest
+
+  Revision 1.21  2002/04/21 15:55:00  carl
   + initialize some global variables
 
   Revision 1.20  2002/04/12 17:43:28  carl

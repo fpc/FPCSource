@@ -22,7 +22,7 @@ interface
 
 { This is very important as this code can be called
   from inside the RTE 202 error PM }
-{$ifndef linux}
+{$ifndef Unix}
   {$S-}
 {$endif}
 
@@ -352,7 +352,7 @@ end;
 {$ENDIF EMX}
 
 
-{$ifdef linux}
+{$ifdef Unix}
 function LoadElf32:boolean;
 type
   telf32header=packed record
@@ -443,7 +443,7 @@ begin
    end;
   LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
-{$endif linux}
+{$endif}
 
 {$ifdef sunos}
 function LoadElf32:boolean;
@@ -689,7 +689,7 @@ begin
      exit;
    end;
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
   if LoadElf32 then
    begin
      OpenStabs:=true;
@@ -879,7 +879,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2001-12-13 03:50:00  carl
+  Revision 1.9  2002-05-31 13:37:24  marco
+   * more Renamefest
+
+  Revision 1.8  2001/12/13 03:50:00  carl
   + SunOS target
 
   Revision 1.1  2000/07/13 06:30:47  michael
