@@ -658,8 +658,12 @@ implementation
     begin
       case t.loc of
         LOC_REGISTER:
-          { can't be a regvar, since it would be LOC_CREGISTER then }
-          regs := regs and not($80 shr byte(t.register));
+          begin
+            { can't be a regvar, since it would be LOC_CREGISTER then }
+            regs := regs and not($80 shr byte(t.register));
+            if t.registerhigh <> R_NO then
+              regs := regs and not($80 shr byte(t.registerhigh));
+          end;
         LOC_MEM,LOC_REFERENCE:
           begin
             if not(cs_regalloc in aktglobalswitches) or
@@ -2980,7 +2984,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-08-26 13:36:52  florian
+  Revision 1.3  2001-08-29 12:01:47  jonas
+    + support for int64 LOC_REGISTERS in remove_non_regvars_from_loc
+
+  Revision 1.2  2001/08/26 13:36:52  florian
     * some cg reorganisation
     * some PPC updates
 
