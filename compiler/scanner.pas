@@ -58,7 +58,7 @@ interface
           destructor  destroy;override;
        end;
 
-       preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else);
+       preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else,pp_elseif);
 
        tpreprocstack = class
           typ     : preproctyp;
@@ -133,6 +133,7 @@ interface
           procedure poppreprocstack;
           procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
           procedure elsepreprocstack;
+          procedure elseifpreprocstack(accept:boolean);
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
@@ -223,7 +224,7 @@ implementation
     const
       { use any special name that is an invalid file name to avoid problems }
       preprocstring : array [preproctyp] of string[7]
-        = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE');
+        = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE','$ELSEIF');
 
 
     function is_keyword(const s:string):boolean;
@@ -598,14 +599,24 @@ implementation
         parse_compiler_expr:=read_expr;
       end;
 
-    procedure dir_if;
 
+    procedure dir_if;
       var
         hs : string;
       begin
         hs:=parse_compiler_expr;
         current_scanner.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
       end;
+
+
+    procedure dir_elseif;
+      var
+        hs : string;
+      begin
+        hs:=parse_compiler_expr;
+        current_scanner.elseifpreprocstack(hs<>'0');
+      end;
+
 
     procedure dir_define;
       var
@@ -1468,16 +1479,55 @@ implementation
 
     procedure tscannerfile.elsepreprocstack;
       begin
-        if assigned(preprocstack) then
+        if assigned(preprocstack) and
+           (preprocstack.typ<>pp_else) then
          begin
+           if (preprocstack.typ=pp_elseif) then
+             preprocstack.accept:=false
+           else
+             if (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) then
+               preprocstack.accept:=not preprocstack.accept;
            preprocstack.typ:=pp_else;
            preprocstack.line_nb:=line_no;
-           if not(assigned(preprocstack.next)) or (preprocstack.next.accept) then
-            preprocstack.accept:=not preprocstack.accept;
            if preprocstack.accept then
             Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
             Message2(scan_c_else_found,preprocstack.name,'rejected');
+         end
+        else
+         Message(scan_e_endif_without_if);
+      end;
+
+
+    procedure tscannerfile.elseifpreprocstack(accept:boolean);
+      begin
+        if assigned(preprocstack) and
+           (preprocstack.typ in [pp_if,pp_elseif]) then
+         begin
+           { when the branch is accepted we use pp_elseif so we know that
+             all the next branches need to be rejected. when this branch is still
+             not accepted then leave it at pp_if }
+           if (preprocstack.typ=pp_elseif) then
+             preprocstack.accept:=false
+           else
+             if (preprocstack.typ=pp_if) and preprocstack.accept then
+               begin
+                 preprocstack.accept:=false;
+                 preprocstack.typ:=pp_elseif;
+               end
+           else
+             if accept and
+                (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) then
+               begin
+                 preprocstack.accept:=true;
+                 preprocstack.typ:=pp_elseif;
+               end;
+
+           preprocstack.line_nb:=line_no;
+           if preprocstack.accept then
+             Message2(scan_c_else_found,preprocstack.name,'accepted')
+           else
+             Message2(scan_c_else_found,preprocstack.name,'rejected');
          end
         else
          Message(scan_e_endif_without_if);
@@ -2030,7 +2080,7 @@ implementation
         readchar;
         { this is not supported }
         if c='$' then
-          Message(scan_e_wrong_styled_switch);
+          Message(scan_w_wrong_styled_switch);
         { skip comment }
         while not (c in [#10,#13,#26]) do
           readchar;
@@ -2951,6 +3001,7 @@ exit_label:
         AddDirective('INCLUDE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
 
         AddConditional('ELSE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_else);
+        AddConditional('ELSEIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_elseif);
         AddConditional('ENDIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
         AddConditional('IFEND',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
         AddConditional('IF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_if);
@@ -2977,7 +3028,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.74  2004-02-29 13:28:57  peter
+  Revision 1.75  2004-03-04 17:23:10  peter
+    * $elseif support
+    * conditiotnal in // returns warning isntead of error
+
+  Revision 1.74  2004/02/29 13:28:57  peter
     * more fixes for skipuntildirective
 
   Revision 1.73  2004/02/27 11:50:13  michael
