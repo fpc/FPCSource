@@ -880,11 +880,11 @@ implementation
            { if the symbol is in a register it is used   }
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
-           if (Errorcount<>0) then
+           if (Errorcount<>0) or
+              (copy(p^.name,1,3)='val') or
+              (copy(p^.name,1,4)='high') then
              exit;
-           if (pvarsym(p)^.refs=0) and
-              (copy(p^.name,1,3)<>'val') and
-              (copy(p^.name,1,4)<>'high') then
+           if (pvarsym(p)^.refs=0) then
              begin
                 if (psym(p)^.owner^.symtabletype=parasymtable) or pvarsym(p)^.islocalcopy then
                   begin
@@ -922,6 +922,7 @@ implementation
              MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,p^.name)
            { units references are problematic }
            else if (psym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
+             if (psym(p)^.typ<>procsym) or not (pprocsym(p)^.is_global) then
              MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],p^.name);
           end;
       end;
@@ -2561,7 +2562,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-11-18 15:34:48  pierre
+  Revision 1.65  1999-11-19 14:49:15  pierre
+   * avoid certain wrong notes/hints
+
+  Revision 1.64  1999/11/18 15:34:48  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 
