@@ -759,6 +759,26 @@ begin
    end;
 end;
 
+
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+var
+  e : EOSError;
+begin
+  dos.exec(path,comline);
+
+  result := dos.doserror;
+  { (dos)exit code is irrelevant, at least the unix implementation }
+  { does not }
+  { take it into account                                               }
+  if (result <> 0) then
+    begin
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[ComLine,result]);
+      e.ErrorCode:=result;
+      raise e;
+    end;
+end;
+
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -771,7 +791,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.19  2003-11-26 20:00:19  florian
+  Revision 1.20  2004-01-10 10:49:24  jonas
+    * fixed compilation
+
+  Revision 1.19  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.18  2003/11/05 11:42:27  florian
