@@ -434,6 +434,7 @@ var
 begin
 {$ifdef TP}
     assign(f,exepath+'tokens.dat');
+    {$I-}
     reset(f,1);
     {We are not sure that the msg file is loaded!}
     if ioresult<>0 then
@@ -446,17 +447,24 @@ begin
     blockread(f,header,1);
     blockread(f,header[1],length(header));
     blockread(f,a,sizeof(a));
-    if (header<>tokheader) or (a<>sizeof(ttokenarray)) then
-        begin
-            close(f);
-            writeln('Fatal: File tokens.dat corrupt.');
-            halt(3);
-        end;
+    if (ioresult<>0) or
+       (header<>tokheader) or (a<>sizeof(ttokenarray)) then
+     begin
+       close(f);
+       writeln('Fatal: File tokens.dat corrupt.');
+       halt(3);
+     end;
     new(tokeninfo);
     blockread(f,tokeninfo^,sizeof(ttokenarray));
     new(tokenidx);
     blockread(f,tokenidx^,sizeof(tokenidx^));
     close(f);
+{$I+}
+    if (ioresult<>0) then
+     begin
+       writeln('Fatal: File tokens.dat corrupt.');
+       halt(3);
+     end;
 {$else not TP}
   tokeninfo:=@arraytokeninfo;
   new(tokenidx);
@@ -478,7 +486,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-09-08 16:02:04  peter
+  Revision 1.15  1999-09-16 13:41:37  peter
+    * better error checking
+
+  Revision 1.14  1999/09/08 16:02:04  peter
     * tokendat compiles for tp
     * tokens.dat supplied by default
 
