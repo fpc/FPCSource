@@ -587,11 +587,49 @@
 
     destructor tpropertysym.done;
 
+        procedure disposepropsymlist(p:ppropsymlist);
+        var
+          hp : ppropsymlist;
+        begin
+          while assigned(p) do
+           begin
+             hp:=p;
+             p:=p^.next;
+             dispose(hp);
+           end;
+        end;
+
       begin
+         disposepropsymlist(readaccesssym);
+         disposepropsymlist(writeaccesssym);
+         disposepropsymlist(storedsym);
          inherited done;
       end;
 
     constructor tpropertysym.load;
+
+        function readpropsymlist:ppropsymlist;
+        var
+          root,last,p : ppropsymlist;
+          sym : psym;
+        begin
+          root:=nil;
+          last:=nil;
+          repeat
+            sym:=readsymref;
+            if sym=nil then
+             break;
+            new(p);
+            p^.sym:=sym;
+            p^.next:=nil;
+            if assigned(last) then
+             last^.next:=p
+            else
+             root:=p;
+            last:=p;
+          until false;
+          readpropsymlist:=root;
+        end;
 
       begin
          inherited load;
@@ -600,11 +638,11 @@
          readsmallset(propoptions);
          index:=readlong;
          default:=readlong;
-         { it's hack ... }
-         readaccesssym:=readsymref;
-         writeaccesssym:=readsymref;
-         storedsym:=readsymref;
-         { now the defs: }
+         { the syms }
+         readaccesssym:=readpropsymlist;
+         writeaccesssym:=readpropsymlist;
+         storedsym:=readpropsymlist;
+         { now the defs }
          readaccessdef:=readdefref;
          writeaccessdef:=readdefref;
          storeddef:=readdefref;
@@ -612,14 +650,23 @@
 
     procedure tpropertysym.deref;
 
+        procedure resolvepropsymlist(p:ppropsymlist);
+        begin
+          while assigned(p) do
+           begin
+             resolvesym(p^.sym);
+             p:=p^.next;
+           end;
+        end;
+
       begin
          resolvedef(proptype);
          resolvedef(readaccessdef);
          resolvedef(writeaccessdef);
          resolvedef(storeddef);
-         resolvesym(readaccesssym);
-         resolvesym(writeaccesssym);
-         resolvesym(storedsym);
+         resolvepropsymlist(readaccesssym);
+         resolvepropsymlist(writeaccesssym);
+         resolvepropsymlist(storedsym);
       end;
 
     function tpropertysym.getsize : longint;
@@ -630,15 +677,25 @@
 
     procedure tpropertysym.write;
 
+        procedure writepropsymlist(p:ppropsymlist);
+        begin
+          while assigned(p) do
+           begin
+             writesymref(p^.sym);
+             p:=p^.next;
+           end;
+          writesymref(nil);
+        end;
+
       begin
          tsym.write;
          writedefref(proptype);
          writesmallset(propoptions);
          writelong(index);
          writelong(default);
-         writesymref(readaccesssym);
-         writesymref(writeaccesssym);
-         writesymref(storedsym);
+         writepropsymlist(readaccesssym);
+         writepropsymlist(writeaccesssym);
+         writepropsymlist(storedsym);
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
          writedefref(storeddef);
@@ -1052,7 +1109,7 @@
 
     function tvarsym.getsize : longint;
       begin
-        if assigned(definition) and (varspez=vs_value) and 
+        if assigned(definition) and (varspez=vs_value) and
           ((definition^.deftype<>arraydef) or (Parraydef(definition)^.highrange>=
           Parraydef(definition)^.lowrange)) then
               getsize:=definition^.size
@@ -2104,7 +2161,10 @@
 
 {
   $Log$
-  Revision 1.112  1999-08-13 14:24:20  pierre
+  Revision 1.113  1999-08-14 00:39:00  peter
+    * hack to support property with record fields
+
+  Revision 1.112  1999/08/13 14:24:20  pierre
     + stabs for classes and classref working,
       a class still needs an ^ to get that content of it,
       but the class fields inside a class don't result into an

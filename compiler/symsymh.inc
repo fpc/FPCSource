@@ -199,11 +199,17 @@
           _mangledname  : pchar;
        end;
 
+       ppropsymlist = ^tpropsymlist;
+       tpropsymlist = record
+         sym  : psym;
+         next : ppropsymlist;
+       end;
+
        ppropertysym = ^tpropertysym;
        tpropertysym = object(tsym)
           propoptions : tpropertyoptions;
           proptype    : pdef;
-          readaccesssym,writeaccesssym,storedsym : psym;
+          readaccesssym,writeaccesssym,storedsym : ppropsymlist;
           readaccessdef,writeaccessdef,storeddef : pdef;
           index,default : longint;
           constructor init(const n : string);
@@ -330,7 +336,10 @@
 
 {
   $Log$
-  Revision 1.31  1999-08-10 12:33:38  pierre
+  Revision 1.32  1999-08-14 00:39:01  peter
+    * hack to support property with record fields
+
+  Revision 1.31  1999/08/10 12:33:38  pierre
    * pprocsym defined earlier for use in tprocdef
 
   Revision 1.30  1999/08/03 22:03:21  peter

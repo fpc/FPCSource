@@ -879,6 +879,26 @@ unit pdecl;
              get_procdef:=p;
           end;
 
+          procedure addpropsymlist(var root:ppropsymlist;s:psym);
+          var
+            last,hp : ppropsymlist;
+          begin
+            if not assigned(s) then
+             exit;
+            last:=root;
+            new(hp);
+            hp^.sym:=s;
+            hp^.next:=nil;
+            if assigned(last) then
+             begin
+               while assigned(last^.next) do
+                last:=last^.next;
+               last^.next:=hp;
+             end
+            else
+             root:=hp;
+          end;
+
         var
            hp2,datacoll : pdefcoll;
            p,p2 : ppropertysym;
@@ -1042,9 +1062,11 @@ unit pdecl;
                      else
                        begin
                           consume(_ID);
-                          if (token=_POINT) and
-                             ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
+                          while (token=_POINT) and
+                                ((sym^.typ=varsym) and
+                                 (pvarsym(sym)^.definition^.deftype=recorddef)) do
                            begin
+                             addpropsymlist(p^.readaccesssym,sym);
                              consume(_POINT);
                              getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
                              if not assigned(srsym) then
@@ -1067,21 +1089,22 @@ unit pdecl;
                              not(sym^.typ in [varsym,procsym]) then
                             Message(parser_e_ill_property_access_sym);
                           { search the matching definition }
-                          if sym^.typ=procsym then
-                            begin
-                               pp:=get_procdef;
-                               if not(assigned(pp)) or
-                                 not(is_equal(pp^.retdef,p^.proptype)) then
-                                 Message(parser_e_ill_property_access_sym);
-                               p^.readaccessdef:=pp;
-                            end
-                          else if sym^.typ=varsym then
-                            begin
-                               if not(is_equal(pvarsym(sym)^.definition,
-                                 p^.proptype)) then
-                                 Message(parser_e_ill_property_access_sym);
-                            end;
-                          p^.readaccesssym:=sym;
+                          case sym^.typ of
+                            procsym :
+                              begin
+                                 pp:=get_procdef;
+                                 if not(assigned(pp)) or
+                                    not(is_equal(pp^.retdef,p^.proptype)) then
+                                   Message(parser_e_ill_property_access_sym);
+                                 p^.readaccessdef:=pp;
+                              end;
+                            varsym :
+                              begin
+                                if not(is_equal(pvarsym(sym)^.definition,p^.proptype)) then
+                                  Message(parser_e_ill_property_access_sym);
+                              end;
+                          end;
+                          addpropsymlist(p^.readaccesssym,sym);
                        end;
                   end;
                 if (idtoken=_WRITE) then
@@ -1096,9 +1119,11 @@ unit pdecl;
                      else
                        begin
                           consume(_ID);
-                          if (token=_POINT) and
-                             ((sym^.typ=varsym) and (pvarsym(sym)^.definition^.deftype=recorddef)) then
+                          while (token=_POINT) and
+                                ((sym^.typ=varsym) and
+                                 (pvarsym(sym)^.definition^.deftype=recorddef)) do
                            begin
+                             addpropsymlist(p^.writeaccesssym,sym);
                              consume(_POINT);
                              getsymonlyin(precorddef(pvarsym(sym)^.definition)^.symtable,pattern);
                              if not assigned(srsym) then
@@ -1134,7 +1159,7 @@ unit pdecl;
                                  p^.proptype)) then
                                  Message(parser_e_ill_property_access_sym);
                             end;
-                          p^.writeaccesssym:=sym;
+                          addpropsymlist(p^.writeaccesssym,sym);
                        end;
                   end;
                 if (idtoken=_STORED) then
@@ -2383,7 +2408,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.143  1999-08-09 22:19:53  peter
+  Revision 1.144  1999-08-14 00:38:53  peter
+    * hack to support property with record fields
+
+  Revision 1.143  1999/08/09 22:19:53  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 

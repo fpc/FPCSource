@@ -595,6 +595,7 @@ unit pexpr;
       var
          paras : ptree;
          p2 : ptree;
+         plist : ppropsymlist;
 
       begin
          paras:=nil;
@@ -620,7 +621,7 @@ unit pexpr;
               pd:=voiddef;
               if assigned(ppropertysym(sym)^.writeaccesssym) then
                 begin
-                   if ppropertysym(sym)^.writeaccesssym^.typ=procsym then
+                   if ppropertysym(sym)^.writeaccesssym^.sym^.typ=procsym then
                      begin
                         { generate the method call }
                         p1:=genmethodcallnode(pprocsym(
@@ -645,7 +646,7 @@ unit pexpr;
                         p1^.left:=gencallparanode(p2,p1^.left);
                         getprocvar:=false;
                      end
-                   else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
+                   else if ppropertysym(sym)^.writeaccesssym^.sym^.typ=varsym then
                      begin
                         if assigned(paras) then
                           message(parser_e_no_paras_allowed);
@@ -677,31 +678,38 @@ unit pexpr;
               pd:=ppropertysym(sym)^.proptype;
               if assigned(ppropertysym(sym)^.readaccesssym) then
                 begin
-                   if ppropertysym(sym)^.readaccesssym^.typ=varsym then
-                     begin
-                        if assigned(paras) then
-                          message(parser_e_no_paras_allowed);
-                        { subscribed access? }
-                        if p1=nil then
-                          p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),st)
-                        else
-                          p1:=gensubscriptnode(pvarsym(ppropertysym(sym)^.readaccesssym),p1);
-                     end
-                   else if ppropertysym(sym)^.readaccesssym^.typ=procsym then
-                     begin
-                        { generate the method call }
-                        p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.readaccesssym),st,p1);
-                        { we know the procedure to call, so
-                          force the usage of that procedure }
-                        p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
-                        { insert paras }
-                        p1^.left:=paras;
-                     end
-                   else
-                     begin
-                        p1:=genzeronode(errorn);
-                        Message(type_e_mismatch);
-                     end;
+                   case ppropertysym(sym)^.readaccesssym^.sym^.typ of
+                     varsym :
+                       begin
+                          if assigned(paras) then
+                            message(parser_e_no_paras_allowed);
+                          { subscribed access? }
+                          plist:=ppropertysym(sym)^.readaccesssym;
+                          while assigned(plist) do
+                           begin
+                             if p1=nil then
+                               p1:=genloadnode(pvarsym(plist^.sym),st)
+                             else
+                               p1:=gensubscriptnode(pvarsym(plist^.sym),p1);
+                             plist:=plist^.next;
+                           end;
+                       end;
+                     procsym :
+                       begin
+                          { generate the method call }
+                          p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.readaccesssym^.sym),st,p1);
+                          { we know the procedure to call, so
+                            force the usage of that procedure }
+                          p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
+                          { insert paras }
+                          p1^.left:=paras;
+                       end
+                     else
+                       begin
+                          p1:=genzeronode(errorn);
+                          Message(type_e_mismatch);
+                       end;
+                  end;
                 end
               else
                 begin
@@ -2062,7 +2070,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.134  1999-08-09 22:16:29  peter
+  Revision 1.135  1999-08-14 00:38:56  peter
+    * hack to support property with record fields
+
+  Revision 1.134  1999/08/09 22:16:29  peter
     * fixed crash after wrong para's with class contrustor
 
   Revision 1.133  1999/08/05 16:53:04  peter

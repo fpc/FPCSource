@@ -3561,8 +3561,8 @@ Const local_symtable_index : longint = $8001;
             (sp_published in psym(sym)^.symoptions) then
            begin
               rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype^.get_rtti_label)));
-              writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
-              writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
+              writeproc(ppropertysym(sym)^.readaccesssym^.sym,ppropertysym(sym)^.readaccessdef,0);
+              writeproc(ppropertysym(sym)^.writeaccesssym^.sym,ppropertysym(sym)^.writeaccessdef,2);
               { isn't it stored ? }
               if not(ppo_stored in ppropertysym(sym)^.propoptions) then
                 begin
@@ -3570,7 +3570,7 @@ Const local_symtable_index : longint = $8001;
                    proctypesinfo:=proctypesinfo or (3 shl 4);
                 end
               else
-                writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
+                writeproc(ppropertysym(sym)^.storedsym^.sym,ppropertysym(sym)^.storeddef,4);
               rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.index)));
               rttilist^.concat(new(pai_const,init_32bit(ppropertysym(sym)^.default)));
               rttilist^.concat(new(pai_const,init_16bit(count)));
@@ -3715,7 +3715,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.153  1999-08-13 21:33:11  peter
+  Revision 1.154  1999-08-14 00:38:58  peter
+    * hack to support property with record fields
+
+  Revision 1.153  1999/08/13 21:33:11  peter
     * support for array constructors extended and more error checking
 
   Revision 1.152  1999/08/13 14:24:18  pierre
