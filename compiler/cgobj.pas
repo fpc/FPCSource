@@ -1657,7 +1657,7 @@ unit cgobj;
               procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             { parameter 2 : vmt pointer, 0 when called by inherited }
             reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
-            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
+            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(2));
             { parameter 1 : self pointer }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
@@ -1854,7 +1854,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.89  2003-04-26 17:21:08  florian
+  Revision 1.90  2003-04-26 20:57:17  florian
+    * fixed para locations of fpc_class_new helper call
+
+  Revision 1.89  2003/04/26 17:21:08  florian
     * fixed passing of fpu values by fpu register
 
   Revision 1.88  2003/04/23 20:16:03  peter
