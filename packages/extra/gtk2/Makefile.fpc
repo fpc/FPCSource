@@ -10,12 +10,12 @@ version=1.9.8
 libc=y
 
 [target]
-units=buildgtk2
+units=buildgtk2 
 exampledirs=examples
-implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2
+implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext
 
 [compiler]
-unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade
+unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext
 
 [libs]
 libname=libfpgtk2.so
