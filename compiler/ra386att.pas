@@ -1196,6 +1196,7 @@ var
 
   procedure MaybeRecordOffset;
   var
+    hasdot  : boolean;
     l,
     toffset,
     tsize   : longint;
@@ -1203,7 +1204,8 @@ var
     if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
      exit;
     l:=0;
-    if actasmtoken=AS_DOT then
+    hasdot:=(actasmtoken=AS_DOT);
+    if hasdot then
      begin
        if expr<>'' then
          begin
@@ -1216,7 +1218,7 @@ var
      inc(l,BuildConstExpression(true,false));
     if opr.typ=OPR_REFERENCE then
      begin
-       if opr.ref.options=ref_parafixup then
+       if hasdot and (opr.ref.options=ref_parafixup) then
         Message(asmr_e_cannot_access_field_directly_for_parameters);
        inc(opr.ref.offset,l)
      end
@@ -1974,7 +1976,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  1999-11-30 10:40:52  peter
+  Revision 1.65  1999-12-12 12:57:59  peter
+    * allow para+offset
+
+  Revision 1.64  1999/11/30 10:40:52  peter
     + ttype, tsymlist
 
   Revision 1.63  1999/11/17 17:05:03  pierre
