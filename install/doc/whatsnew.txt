@@ -38,7 +38,7 @@ FCL:
   * Small bug fixes
 
 Docs:
-  + Compiler internals documentation
+  + Compiler internals documentation (available through ftp site)
 
 Utils:
   * h2pas updates
