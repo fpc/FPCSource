@@ -1,7 +1,7 @@
 program TestPutP;
 
 {$ifdef go32v2}
-  {$define has_colors_equal}
+  {define has_colors_equal}
 {$endif go32v2}
 
 {$ifdef go32v2}
@@ -40,7 +40,7 @@ BEGIN
        if error<>0 then
          gm:=$111;
     end;
-  gd:=$FF;
+  gd:=VESA;
 
   InitGraph(gd,gm,'');
   gError := graphResult;
@@ -68,3 +68,14 @@ BEGIN
   closegraph;
 {$endif OK}
 END.
+
+{
+  $Log$
+  Revision 1.5  1999-11-28 12:17:14  jonas
+    * changed the requested graphdriver from $FF to VESA (= 10), so the
+      test program works again with the new graph unit
+    * undefined has_colors_equal for go32v2, because it is not anymore
+      in the new graph unit
+
+
+}
