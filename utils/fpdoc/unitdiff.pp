@@ -46,7 +46,6 @@ Constructor TSkelEngine.Create;
 begin
   Inherited Create;
   FList:=TStringList.Create;
-  FList.Sorted:=True;
 end;
 
 Destructor TSkelEngine.Destroy;
@@ -302,12 +301,14 @@ begin
       Try
         Engine1.SetPackageName('diff'); // do not localize
         ParseSource(Engine1, InputFile1, OSTarget, CPUTarget);
+        Engine1.FList.Sorted:=True;
         if (InputFile2<>'') then
           begin
           Engine2:=TSkelEngine.Create;
           Try
             Engine2.SetPackageName('diff'); // do not localize
             ParseSource(Engine2, InputFile2, OSTarget, CPUTarget);
+            Engine2.FList.Sorted:=True;
             If cmdLineAction=ActionList then
               begin
               ListIdentifiers(InputFile1,Engine1.FList);
@@ -333,7 +334,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-11-14 21:20:31  michael
+  Revision 1.3  2004-11-15 18:03:28  michael
+  + Faster inserts by sorting after all elements were parsed (suggestion by Mattias Gaertner)
+
+  Revision 1.2  2004/11/14 21:20:31  michael
   + Changed copyright
 
   Revision 1.1  2004/11/14 21:18:58  michael
