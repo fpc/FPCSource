@@ -4941,7 +4941,7 @@ begin
      SetStoreUndo(HoldUndo);
      Addaction(eaDeleteText,SCP,CurPos,Copy(S,CI,OI-CI),GetFlags);
      SetStoreUndo(false);
-     AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
+     AdjustSelectionPos(SCP.X-1,SCP.Y,CurPos.X-SCP.X,CurPos.Y-SCP.Y);
    end;
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
@@ -4986,6 +4986,7 @@ begin
    end
   else
    begin
+     SCP:=CurPos;
      { Problem if S[CurPos.X+1]=TAB !! PM }
      if S[CI]=TAB then
        begin
@@ -4999,6 +5000,7 @@ begin
           S:=Copy(S,1,CI-1)+CharStr(' ',GetTabSize-1)+Copy(S,CI+1,High(S));
          SetStoreUndo(HoldUndo);
          Addaction(eaDeleteText,CurPos,CurPos,#9,GetFlags);
+         SDX:=-1;
          SetStoreUndo(false);
        end
      else
@@ -5006,13 +5008,14 @@ begin
          SetStoreUndo(HoldUndo);
          Addaction(eaDeleteText,CurPos,CurPos,S[CI],GetFlags);
          SetStoreUndo(false);
+         SDX:=-1;
          Delete(S,CI,1);
        end;
      SetLineText(CurPos.Y,S);
-     SDX:=-1;SDY:=0;
+     SDY:=0;
      SetCurPtr(CurPos.X,CurPos.Y);
      UpdateAttrs(CurPos.Y,attrAll);
-     AdjustSelection(SDX,SDY);
+     AdjustSelectionPos(SCP.X,SCP.Y,SDX,SDY);
    end;
   DrawLines(CurPos.Y);
   SetStoreUndo(HoldUndo);
@@ -7274,7 +7277,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.41  2003-01-29 00:29:14  pierre
+  Revision 1.42  2003-01-31 12:04:50  pierre
+   * try to fix the selection extension better
+
+  Revision 1.41  2003/01/29 00:29:14  pierre
    * attempt to fix webbugs 2346-2348
 
   Revision 1.40  2003/01/21 11:03:56  pierre
