@@ -177,7 +177,7 @@ implementation
                   else
                     begin
                        { in case it is a register variable: }
-                       if tvarsym(symtableentry).reg.enum<>R_NO then
+                       if tvarsym(symtableentry).reg.number<>NR_NO then
                          begin
                             if tvarsym(symtableentry).reg.enum in fpuregs then
                               begin
@@ -241,7 +241,7 @@ implementation
                       paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption)
                      ) then
                     begin
-                      if hregister.enum=R_NO then
+                      if hregister.number=NR_NO then
                         hregister:=rg.getaddressregister(exprasmlist);
                       { we need to load only an address }
                       location.size:=OS_ADDR;
@@ -938,7 +938,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-08-20 20:11:24  daniel
+  Revision 1.77  2003-08-20 20:13:08  daniel
+    * Fixed the fixed trouble
+
+  Revision 1.76  2003/08/20 20:11:24  daniel
     * Fixed some R_NO trouble
 
   Revision 1.75  2003/07/20 16:26:43  jonas
