@@ -83,7 +83,7 @@ type    TByteArray = array [0..$ffff] of byte;
         PProcessInfoBlock = ^TProcessInfoBlock;
         PPProcessInfoBlock = ^PProcessInfoBlock;
 
-const   UnusedHandle=$ffff;
+const   UnusedHandle=-1;
         StdInputHandle=0;
         StdOutputHandle=1;
         StdErrorHandle=2;
@@ -1263,7 +1263,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-10-19 09:35:28  hajny
+  Revision 1.17  2003-10-19 12:13:41  hajny
+    * UnusedHandle value made the same as with other targets
+
+  Revision 1.16  2003/10/19 09:35:28  hajny
     * fixes from OS/2 merged to EMX
 
   Revision 1.15  2003/10/16 15:43:13  peter

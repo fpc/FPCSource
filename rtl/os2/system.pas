@@ -104,7 +104,7 @@ type    TByteArray = array [0..$ffff] of byte;
         PProcessInfoBlock = ^TProcessInfoBlock;
         PPProcessInfoBlock = ^PProcessInfoBlock;
 
-const   UnusedHandle=$ffff;
+const   UnusedHandle=-1;
         StdInputHandle=0;
         StdOutputHandle=1;
         StdErrorHandle=2;
@@ -1179,7 +1179,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-10-19 09:37:00  hajny
+  Revision 1.51  2003-10-19 12:13:41  hajny
+    * UnusedHandle value made the same as with other targets
+
+  Revision 1.50  2003/10/19 09:37:00  hajny
     * minor fix in non-default sbrk code
 
   Revision 1.49  2003/10/19 09:06:28  hajny
