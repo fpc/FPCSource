@@ -66,7 +66,7 @@ uses
       {$i rspsup.inc}
 
       { No Subregisters }
-      R_SUBWHOLE=R_SUBNONE;
+      R_SUBWHOLE = R_SUBD;
 
       { Available Registers }
       {$i rspcon.inc}
@@ -518,7 +518,10 @@ implementation
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
       begin
-        cgsize2subreg:=R_SUBWHOLE;
+        if s in [OS_64,OS_S64] then
+          cgsize2subreg:=R_SUBQ
+        else
+          cgsize2subreg:=R_SUBWHOLE;
       end;
 
 
@@ -540,11 +543,17 @@ implementation
       end;
 
 
+    function findreg_by_number(r:Tregister):tregisterindex;
+      begin
+        result:=findreg_by_number_table(r,regnumber_index);
+      end;
+
+
     function std_regname(r:Tregister):string;
       var
         p : tregisterindex;
       begin
-        p:=findreg_by_number_table(r,regnumber_index);
+        p:=findreg_by_number(r);
         if p<>0 then
           result:=std_regname_table[p]
         else
@@ -558,16 +567,13 @@ implementation
       end;
 
 
-    function findreg_by_number(r:Tregister):tregisterindex;
-      begin
-        result:=findreg_by_number_table(r,regnumber_index);
-      end;
-
-
 end.
 {
   $Log$
-  Revision 1.70  2004-08-15 13:30:18  florian
+  Revision 1.71  2004-08-24 21:02:33  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.70  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 

@@ -224,7 +224,7 @@ implementation
     procedure Tcgsparc.init_register_allocators;
       begin
         inherited init_register_allocators;
-        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBD,
             [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,
              RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],
             first_int_imreg,[]);
@@ -1108,7 +1108,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2004-06-20 08:55:32  florian
+  Revision 1.85  2004-08-24 21:02:32  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.84  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.83  2004/06/16 20:07:10  florian

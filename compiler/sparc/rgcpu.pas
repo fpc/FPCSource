@@ -57,17 +57,30 @@ implementation
         supreg,i: Tsuperregister;
         r: Tregister;
       begin
-        { Let 64bit floats conflict with all odd float regs }
-        if getsubreg(reg)=R_SUBFD then
-          begin
-            supreg:=getsupreg(reg);
-            i:=RS_F1;
-            while (i<=RS_F31) do
-              begin
-                add_edge(supreg,i);
-                inc(i,2);
-              end;
-          end;
+        case getsubreg(reg) of
+          { Let 64bit floats conflict with all odd float regs }
+          R_SUBFD:
+            begin
+              supreg:=getsupreg(reg);
+              i:=RS_F1;
+              while (i<=RS_F31) do
+                begin
+                  add_edge(supreg,i);
+                  inc(i,2);
+                end;
+            end;
+          { Let 64bit ints conflict with all odd int regs }
+          R_SUBQ:
+            begin
+              supreg:=getsupreg(reg);
+              i:=RS_G1;
+              while (i<=RS_I7) do
+                begin
+                  add_edge(supreg,i);
+                  inc(i,2);
+                end;
+            end;
+        end;
       end;
 
 
@@ -235,7 +248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2004-06-20 08:55:32  florian
+  Revision 1.24  2004-08-24 21:02:33  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.23  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.22  2004/06/20 08:47:33  florian

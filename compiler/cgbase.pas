@@ -130,7 +130,8 @@ interface
         R_SUBQ,    { = 5; 64 bits, Like RAX }
         { For Sparc floats that use F0:F1 to store doubles }
         R_SUBFS,   { = 6; Float that allocates 1 FPU register }
-        R_SUBFD    { = 7; Float that allocates 2 FPU registers }
+        R_SUBFD,   { = 7; Float that allocates 2 FPU registers }
+        R_SUBFQ    { = 8; Float that allocates 4 FPU registers }
       );
 
       TSuperRegister = type word;
@@ -606,7 +607,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.93  2004-07-19 19:21:02  florian
+  Revision 1.94  2004-08-24 21:02:32  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.93  2004/07/19 19:21:02  florian
     * indexword in 1.0.x is broken
 
   Revision 1.92  2004/07/18 15:14:59  jonas

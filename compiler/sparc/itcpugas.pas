@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Mazen NEIFER
 
-    This unit contains the PowerPC GAS instruction tables
+    This unit contains the SPARC GAS instruction tables
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -81,8 +81,12 @@ implementation
         p : longint;
       begin
         { Double uses the same table as single }
-        if getsubreg(r)=R_SUBFD then
-          setsubreg(r,R_SUBFS);
+        case getsubreg(r) of
+          R_SUBFD:
+            setsubreg(r,R_SUBFS);
+          R_SUBL,R_SUBW,R_SUBD,R_SUBQ:
+            setsubreg(r,R_SUBNONE);
+        end;
         p:=findreg_by_number(r);
         if p<>0 then
           result:=gas_regname_table[p]
@@ -93,7 +97,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-06-20 08:55:32  florian
+  Revision 1.4  2004-08-24 21:02:33  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.3  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.2  2004/01/12 16:39:41  peter

@@ -168,7 +168,8 @@ implementation
         objectlibrary.getlabel(falselabel);
         secondpass(left);
         if codegenerror then
-         exit;
+          exit;
+
         { byte(boolean) or word(wordbool) or longint(longbool) must }
         { be accepted for var parameters                            }
         if (nf_explicit in flags)and
@@ -180,23 +181,33 @@ implementation
             falselabel:=oldfalselabel;
             exit;
           end;
-        location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
-        opsize := def_cgsize(left.resulttype.def);
+        location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+        opsize:=def_cgsize(left.resulttype.def);
         case left.location.loc of
           LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
             begin
               if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
                   reference_release(exprasmlist,left.location.reference);
-                  hreg2:=cg.GetIntRegister(exprasmlist,opsize);
-                  cg.a_load_ref_reg(exprasmlist,OpSize,OpSize,left.location.reference,hreg2);
+                  hreg2:=cg.getintregister(exprasmlist,opsize);
+                  cg.a_load_ref_reg(exprasmlist,opsize,opsize,left.location.reference,hreg2);
                 end
               else
                 hreg2:=left.location.register;
-                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
-                cg.UnGetRegister(exprasmlist,hreg2);
-                hreg1:=cg.GetIntRegister(exprasmlist,opsize);
-                exprasmlist.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
+{$ifndef cpu64bit}
+              if left.location.size in [OS_64,OS_S64] then
+                begin
+                  cg.ungetregister(exprasmlist,hreg2);
+                  hreg1:=cg.getintregister(exprasmlist,OS_32);
+                  cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,succ(hreg2),hreg1);
+                  hreg2:=hreg1;
+                  opsize:=OS_32;
+                end;
+{$endif cpu64bit}
+              exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
+              cg.ungetregister(exprasmlist,hreg2);
+              hreg1:=cg.getintregister(exprasmlist,opsize);
+              exprasmlist.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
             end;
           LOC_FLAGS :
             begin
@@ -218,13 +229,11 @@ implementation
           else
             internalerror(10062);
         end;
-        with Location do
-          begin
-            location.register := hreg1;
-            if Size in [OS_64, OS_S64]
-            then
-              RegisterHigh:=Tregister(LongInt(hReg1)+1);{Alrady allocated OS_64}
-          end;
+        location.register:=hreg1;
+
+         if location.size in [OS_64, OS_S64] then
+           internalerror(200408241);
+
         truelabel:=oldtruelabel;
         falselabel:=oldfalselabel;
       end;
@@ -235,7 +244,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-08-23 20:45:52  florian
+  Revision 1.30  2004-08-24 21:02:33  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.29  2004/08/23 20:45:52  florian
     * fixed boolean(<int>) on sparc
 
   Revision 1.28  2004/08/22 20:11:38  florian

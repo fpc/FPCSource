@@ -831,9 +831,9 @@ implementation
           enumdef,
           setdef:
             begin
-              result := int_cgsize(def.size);
+              result:=int_cgsize(def.size);
               if is_signed(def) then
-                result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+                result:=tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
             end;
           classrefdef,
           pointerdef:
@@ -888,7 +888,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2004-06-20 08:55:29  florian
+  Revision 1.19  2004-08-24 21:02:32  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.18  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.17  2004/06/18 15:16:46  peter

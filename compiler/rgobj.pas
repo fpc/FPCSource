@@ -1882,12 +1882,12 @@ unit rgobj;
           i: longint;
           supreg: tsuperregister;
         begin
-          supreg := getsupreg(reg);
-          for i := 0 to pred(regindex) do
+          supreg:=getsupreg(reg);
+          for i:=0 to pred(regindex) do
             if (regs[i].mustbespilled) and
-               (regs[i].orgreg = supreg) then
+               (regs[i].orgreg=supreg) then
               begin
-                reg := regs[i].tempreg;
+                reg:=regs[i].tempreg;
                 break;
               end;
         end;
@@ -1957,7 +1957,7 @@ unit rgobj;
             end;
 
         { substitute registers }
-        for counter := 0 to instr.ops-1 do
+        for counter:=0 to instr.ops-1 do
          with instr.oper[counter]^ do
           begin
             case typ of
@@ -1986,7 +1986,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.133  2004-07-09 21:38:30  daniel
+  Revision 1.134  2004-08-24 21:02:32  florian
+    * fixed longbool(<int64>) on sparc
+
+  Revision 1.133  2004/07/09 21:38:30  daniel
     * Add check <= 255 when adding to adj_colours
 
   Revision 1.132  2004/07/08 09:57:55  daniel
