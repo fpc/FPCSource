@@ -2145,7 +2145,7 @@ implementation
                     {The i386 instruction set never gets boring... IMUL does
                      not support a memory location as destination. Check if
                      the opcode is IMUL and fix it. (DM)}
-                    if (opcode=A_IMUL) or (opcode=A_BTS) then
+                    if (opcode=A_IMUL) or (opcode=A_BTS) or (opcode=A_BTR) then
                       begin
                         {Yikes! We just changed the destination register into
                          a memory location above here.
@@ -2234,7 +2234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2003-09-10 19:14:31  daniel
+  Revision 1.22  2003-09-12 20:25:17  daniel
+    * Add BTR to destination memory location check in spilling
+
+  Revision 1.21  2003/09/10 19:14:31  daniel
     * Failed attempt to restore broken fastspill functionality
 
   Revision 1.20  2003/09/10 11:23:09  marco
