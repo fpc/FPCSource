@@ -268,7 +268,7 @@ begin
    end;
 
   { Open link.res file }
-  LinkRes.Init(Info.ResName);
+  LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
   HPath:=current_module^.locallibrarysearchpath.First;
@@ -383,14 +383,14 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',current_module^.exefilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
-   RemoveFile(current_module^.outpath^+Info.ResName);
+   RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -413,7 +413,7 @@ begin
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',current_module^.sharedlibfilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   success:=DoExec(FindUtil(binstr),cmdstr,true,false);
 
 { Strip the library ? }
@@ -426,7 +426,7 @@ begin
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
-   RemoveFile(current_module^.outpath^+Info.ResName);
+   RemoveFile(outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
@@ -435,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-11-12 11:03:50  peter
+  Revision 1.5  1999-11-16 23:39:04  peter
+    * use outputexedir for link.res location
+
+  Revision 1.4  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.3  1999/11/05 13:15:00  florian

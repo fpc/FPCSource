@@ -206,7 +206,6 @@ unit files;
           locallibrarysearchpath : TSearchPathList;
 
           path,                     { path where the module is find/created }
-          outpath,
           modulename,               { name of the module in uppercase }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
@@ -812,7 +811,6 @@ end;
          stringdispose(staticlibfilename);
          stringdispose(sharedlibfilename);
          stringdispose(exefilename);
-         stringdispose(outpath);
          stringdispose(path);
          { Create names }
          fsplit(fn,p,n,e);
@@ -829,7 +827,6 @@ end;
              if (OutputExeDir<>'') then
               p:=OutputExeDir;
           end;
-         outpath:=stringdup(p);
          objfilename:=stringdup(p+n+target_info.objext);
          asmfilename:=stringdup(p+n+target_info.asmext);
          ppufilename:=stringdup(p+n+target_info.unitext);
@@ -1182,7 +1179,6 @@ end;
         staticlibfilename:=nil;
         sharedlibfilename:=nil;
         exefilename:=nil;
-        outpath:=nil;
         { Dos has the famous 8.3 limit :( }
 {$ifdef SHORTASMPREFIX}
         asmprefix:=stringdup(FixFileName('as'));
@@ -1276,7 +1272,6 @@ end;
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);
-        stringdispose(outpath);
         stringdispose(path);
         stringdispose(modulename);
         stringdispose(mainsource);
@@ -1352,7 +1347,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.109  1999-11-12 11:03:50  peter
+  Revision 1.110  1999-11-16 23:39:04  peter
+    * use outputexedir for link.res location
+
+  Revision 1.109  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.108  1999/11/06 14:34:20  peter

@@ -654,7 +654,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes.Init(Info.ResName);
+  LinkRes.Init(outputexedir+Info.ResName);
 
   { Write path to search libraries }
   HPath:=current_module^.locallibrarysearchpath.First;
@@ -767,7 +767,7 @@ begin
       begin
         Replace(cmdstr,'$EXE',current_module^.exefilename^);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
@@ -789,7 +789,7 @@ begin
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
    begin
-     RemoveFile(current_module^.outpath^+Info.ResName);
+     RemoveFile(outputexedir+Info.ResName);
      RemoveFile('base.$$$');
      RemoveFile('exp.$$$');
    end;
@@ -839,7 +839,7 @@ begin
       begin
         Replace(cmdstr,'$EXE',current_module^.sharedlibfilename^);
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',current_module^.outpath^+Info.ResName);
+        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
@@ -861,7 +861,7 @@ begin
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
    begin
-     RemoveFile(current_module^.outpath^+Info.ResName);
+     RemoveFile(outputexedir+Info.ResName);
      RemoveFile('base.$$$');
      RemoveFile('exp.$$$');
    end;
@@ -1056,7 +1056,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-11-15 15:01:56  pierre
+  Revision 1.8  1999-11-16 23:39:04  peter
+    * use outputexedir for link.res location
+
+  Revision 1.7  1999/11/15 15:01:56  pierre
    + Pavel's changes to support reloc section in exes
 
   Revision 1.6  1999/11/12 11:03:50  peter
