@@ -299,6 +299,7 @@ unit cpupara;
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
+                            inc(stack_offset,4);
                          end;
                       end;
                     LOC_FPUREGISTER:
@@ -470,7 +471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-10-31 12:37:11  florian
+  Revision 1.24  2004-11-01 09:23:01  florian
+    * fixed handling of stack parameters on the arm
+
+  Revision 1.23  2004/10/31 12:37:11  florian
     * another couple of arm fixed
 
   Revision 1.22  2004/10/24 17:32:53  florian
