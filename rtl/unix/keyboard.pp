@@ -417,7 +417,10 @@ procedure FreeTree;
 var i : integer;
 begin
   for i := low(RootTree) to high(RootTree) do
+  begin
     FreeElement(RootTree[i]);
+    RootTree[i] := nil;
+  end;
 end;
 
 function NewPTree(ch : byte;Pa : PTreeElement) : PTreeElement;
@@ -1529,7 +1532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-03-26 12:35:23  armin
+  Revision 1.13  2003-03-27 12:52:10  armin
+  * forgot to initialize RootTree to nil in FreeTree
+
+  Revision 1.12  2003/03/26 12:35:23  armin
   * Free the Tree in SysDoneKeyboard to avoid a lot of messages if heaptrace is enabled
 
   Revision 1.11  2002/09/07 16:01:27  peter
