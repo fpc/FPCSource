@@ -643,6 +643,18 @@ None.
 \section{TDosStream}
 \label{se:TDosStream}
 
+\var{TDosStream} is a steam that stores it's contents in a file.
+it overrides a couple of methods of \var{TSteam} for this.
+
+In addition to the fields inherited from \var{TStream} (see \sees{TStream}),
+there are some extra fields, that describe the file. (mainly the name and
+the OS file handle)
+
+No buffering in memory is done when using \var{TDosStream}. 
+All data are written directly to the file. For a stream that buffers 
+in memory, see \sees{TBufStream}.
+
+Here is the full declaration of the \var{TDosStream} object:
 \begin{verbatim}
 TYPE
    TDosStream = OBJECT (TStream)
@@ -659,6 +671,70 @@ TYPE
    END;
    PDosStream = ^TDosStream;
 \end{verbatim}
+
+\begin{procedure}{TDosStream.Init}
+\Declaration
+Constructor Init (FileName: FNameStr; Mode: Word);
+\Description
+\var{Init} instantiates an instance of \var{TDosStream}. The name of the 
+file that contains (or will contain) the data of the stream is given in
+\var{FileName}. The \var{Mode} parameter determines whether a new file 
+should be created and what access righrts you have on the file. 
+It can be one of the following constants:
+\begin{description}
+\item[stCreate] Creates a new file.
+\item[stOpenRead] Read access only.
+\item[stOpenWrite] Write access only.
+\item[stOpen] Read and write access.
+\end{description}
+\Errors
+On error, \var{Status} is set to \var{stInitError}, and \var{ErrorInfo}
+is set to the \dos error code.
+\SeeAlso
+\seep{TStream.Init}, \seepl{Done}{TDosStream.Done}
+\end{procedure}
+
+\begin{procedure}{TDosStream.Done}
+\Declaration
+Destructor TDosStream.Done; Virtual;
+\Description
+\var{Done} closes the file if it was open and cleans up the 
+instance of \var{TDosStream}. 
+\Errors
+None.
+\SeeAlso
+\seep{TStream.Done}, \seepl{Init}{TDosStream.Init},
+\seepl{Close}{TDosStream.Close}
+\end{procedure}
+
+\begin{procedure}{TDosStream.Close}
+\Declaration
+Pocedure TDosStream.Close; Virtual;
+\Description
+\var{Close} closes the file if it was open, and sets \var{Handle} to -1. 
+Contrary to \seepl{Done}{TDosStream.Done} it does not clean up the instance
+of \var{TDosStream}
+\Errors
+None.
+\SeeAlso
+\seep{TStream.Close}, \seepl{Init}{TDosStream.Init},
+\seepl{Done}{TDosStream.Done}
+\end{procedure}
+
+\begin{procedure}
+\Declaration
+Procedure TDosStream.Truncate; Virtual;
+\Description
+If the status of the stream is \var{stOK}, then \var{Truncate} tries to
+truncate the stream size to the current file position.
+
+
+      PROCEDURE Seek (Pos: LongInt); Virtual;
+      PROCEDURE Open (OpenMode: Word); Virtual;
+      PROCEDURE Read (Var Buf; Count: Sw_Word); Virtual;
+      PROCEDURE Write (Var Buf; Count: Sw_Word); Virtual;
+
+\end{function}
 
 \section{TBufStream}
 \label{se:TBufStream}
