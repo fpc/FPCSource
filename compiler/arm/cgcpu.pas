@@ -934,7 +934,7 @@ unit cgcpu;
         ai : taicpu;
       begin
         list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f)));
-        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond[flags_to_cond(f)]));
+        list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f))));
       end;
 
 
@@ -1688,7 +1688,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2005-02-16 22:02:26  florian
+  Revision 1.72  2005-02-26 01:26:59  jonas
+    * fixed generic jumps optimizer and enabled it for ppc (the label table
+      was not being initialised -> getfinaldestination always failed, which
+      caused wrong optimizations in some cases)
+    * changed the inverse_cond into a function, because tasmcond is a record
+      on ppc
+    + added a compare_conditions() function for the same reason
+
+  Revision 1.71  2005/02/16 22:02:26  florian
     * fixed storing of floating point registers for procedures with large temp. area
     * fixed int64 comparisation
 

@@ -384,7 +384,6 @@ uses
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var r : TResFlags);
-    procedure inverse_cond(const c: TAsmCond;var r : TAsmCond);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
@@ -398,6 +397,8 @@ uses
     function std_regname(r:Tregister):string;
     function is_condreg(r : tregister):boolean;
 
+    function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function conditions_equal(const c1, c2: TAsmCond): boolean;
 
 implementation
 
@@ -441,14 +442,27 @@ implementation
       end;
 
 
-    procedure inverse_cond(const c: TAsmCond;var r : TAsmCond);
+    function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inv_condflags:array[TAsmCondFlag] of TAsmCondFlag=(C_None,
           C_GE,C_GT,C_NE,C_LT,C_LE,C_LT,C_EQ,C_GT,C_NS,C_SO,C_NU,C_UN,
           C_F,C_T,C_DNZ,C_DNZF,C_DNZT,C_DZ,C_DZF,C_DZT);
       begin
-        r := c;
-        r.cond := inv_condflags[c.cond];
+        if (c.cond in [C_DNZ,C_DZ]) then
+          internalerror(2005022501);
+        result := c;
+        result.cond := inv_condflags[c.cond];
+      end;
+
+
+    function conditions_equal(const c1, c2: TAsmCond): boolean;
+      begin
+        result :=
+          (c1.simple and c2.simple) and
+          (c1.cond = c2.cond) and
+          ((not(c1.cond in [C_T..C_DZF]) and
+           (c1.cr = c2.cr)) or
+           (c1.crbit = c2.crbit));
       end;
 
 
@@ -544,7 +558,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2005-02-18 23:05:47  jonas
+  Revision 1.98  2005-02-26 01:27:00  jonas
+    * fixed generic jumps optimizer and enabled it for ppc (the label table
+      was not being initialised -> getfinaldestination always failed, which
+      caused wrong optimizations in some cases)
+    * changed the inverse_cond into a function, because tasmcond is a record
+      on ppc
+    + added a compare_conditions() function for the same reason
+
+  Revision 1.97  2005/02/18 23:05:47  jonas
     - removed a non-existing instruction (lcrxe)
     * fixed an instruction (maffs_ -> mffs)
 

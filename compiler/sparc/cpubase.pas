@@ -112,13 +112,6 @@ uses
         'e','g','l','ge','le','ne'
       );
 
-      inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
-        C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
-        C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
-        C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ,
-        C_FNE,C_FLE,C_FGE,C_FL,C_FG,C_FE
-      );
-
     const
       CondAsmOps=2;
       CondAsmOp:array[0..CondAsmOps-1] of TAsmOp=(
@@ -336,6 +329,9 @@ uses
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var f: TResFlags);
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     function reg_cgsize(const reg: tregister): tcgsize;
@@ -446,10 +442,35 @@ implementation
       end;
 
 
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        inverse: array[TAsmCond] of TAsmCond=(C_None,
+          C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
+          C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
+          C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ,
+          C_FNE,C_FLE,C_FGE,C_FL,C_FG,C_FE
+        );
+      begin
+        result := inverse[c];
+      end;
+
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        result := c1 = c2;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.77  2005-02-14 17:13:10  peter
+  Revision 1.78  2005-02-26 01:27:00  jonas
+    * fixed generic jumps optimizer and enabled it for ppc (the label table
+      was not being initialised -> getfinaldestination always failed, which
+      caused wrong optimizations in some cases)
+    * changed the inverse_cond into a function, because tasmcond is a record
+      on ppc
+    + added a compare_conditions() function for the same reason
+
+  Revision 1.77  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.76  2005/01/20 16:38:45  peter

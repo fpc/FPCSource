@@ -24,6 +24,8 @@
 }
 Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
+{$i fpcdefs.inc}
+
 { enable the following define if memory references can have both a base and }
 { index register in 1 operand                                               }
 
@@ -41,7 +43,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 Interface
 
 Uses
-  aasmcpu,AOptBase;
+  aasmcpu,AOptBase, cpubase;
 
 Type
 
@@ -62,7 +64,7 @@ Type
 { **************************** TAoptBaseCpu ******************************* }
 { ************************************************************************* }
 
-  TAoptBaseCpu = Object(TAoptBase)
+  TAoptBaseCpu = class(TAoptBase)
   End;
 
 
@@ -78,17 +80,17 @@ Const
 
 { the maximum number of operands an instruction has }
 
-  MaxOps = 3;
+  MaxOps = 5;
 
 {Oper index of operand that contains the source (reference) with a load }
 {instruction                                                            }
 
-  LoadSrc = 0;
+  LoadSrc = 1;
 
 {Oper index of operand that contains the destination (register) with a load }
 {instruction                                                                }
 
-  LoadDst = 1;
+  LoadDst = 0;
 
 {Oper index of operand that contains the source (register) with a store }
 {instruction                                                            }
@@ -99,6 +101,10 @@ Const
 {instruction                                                                 }
 
   StoreDst = 1;
+
+
+  aopt_uncondjmp = A_B;
+  aopt_condjmp = A_BC;
 
 Implementation
 
@@ -117,7 +123,15 @@ End.
 
 {
  $Log$
- Revision 1.7  2005-02-14 17:13:10  peter
+ Revision 1.8  2005-02-26 01:27:00  jonas
+   * fixed generic jumps optimizer and enabled it for ppc (the label table
+     was not being initialised -> getfinaldestination always failed, which
+     caused wrong optimizations in some cases)
+   * changed the inverse_cond into a function, because tasmcond is a record
+     on ppc
+   + added a compare_conditions() function for the same reason
+
+ Revision 1.7  2005/02/14 17:13:10  peter
    * truncate log
 
 }

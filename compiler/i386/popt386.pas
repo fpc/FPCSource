@@ -483,7 +483,7 @@ var
              { that one there is a branch that will be taken, so perform a   }
              { little hack: set p1 equal to this instruction (that's what the}
              { last SkipLabels is for, only works with short bool evaluation)}
-             ((taicpu(p1).condition = inverse_cond[hp.condition]) and
+             ((taicpu(p1).condition = inverse_cond(hp.condition)) and
               SkipLabels(p1,p2) and
               (p2.typ = ait_instruction) and
               (taicpu(p2).is_jmp) and
@@ -501,7 +501,7 @@ var
               tasmlabel(hp.oper[0]^.ref^.symbol).increfs;
             end
           else
-            if (taicpu(p1).condition = inverse_cond[hp.condition]) then
+            if (taicpu(p1).condition = inverse_cond(hp.condition)) then
               if not FindAnyLabel(p1,l) then
                 begin
   {$ifdef finaldestdebug}
@@ -627,7 +627,7 @@ begin
                           begin
                             if taicpu(p).opcode=A_Jcc then
                               begin
-                                taicpu(p).condition:=inverse_cond[taicpu(p).condition];
+                                taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                                 tai_label(hp2).l.decrefs;
                                 taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
                                 taicpu(p).oper[0]^.ref^.symbol.increfs;
@@ -1673,7 +1673,7 @@ begin
                             begin
                                if (l<=4) and (l>0) then
                                  begin
-                                    condition:=inverse_cond[taicpu(p).condition];
+                                    condition:=inverse_cond(taicpu(p).condition);
                                     GetNextInstruction(p,hp1);
                                     asml.remove(p);
                                     p.free;
@@ -1723,7 +1723,7 @@ begin
                               if assigned(hp1) and
                                 FindLabel(tasmlabel(taicpu(hp2).oper[0]^.sym),hp1) then
                                 begin
-                                   condition:=inverse_cond[taicpu(p).condition];
+                                   condition:=inverse_cond(taicpu(p).condition;
                                    GetNextInstruction(p,hp1);
                                    asml.remove(p);
                                    p.free;
@@ -1735,7 +1735,7 @@ begin
                                    until not(assigned(hp1)) or
                                      not(CanBeCMOV(hp1));
                                    hp2:=hp1.next;
-                                   condition:=inverse_cond[condition];
+                                   condition:=inverse_cond(condition);
 
                                    asml.remove(hp1.next)
                                    hp1.next.free;
@@ -2003,7 +2003,15 @@ end.
 
 {
   $Log$
-  Revision 1.68  2005-02-25 20:50:53  jonas
+  Revision 1.69  2005-02-26 01:27:00  jonas
+    * fixed generic jumps optimizer and enabled it for ppc (the label table
+      was not being initialised -> getfinaldestination always failed, which
+      caused wrong optimizations in some cases)
+    * changed the inverse_cond into a function, because tasmcond is a record
+      on ppc
+    + added a compare_conditions() function for the same reason
+
+  Revision 1.68  2005/02/25 20:50:53  jonas
     * fixed uninitialised function result in getfinaldestination() when
       maximum recursion reached
 

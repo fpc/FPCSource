@@ -919,17 +919,19 @@ Unit AoptObj;
                (taicpu(p1).is_jmp) then
               if { the next instruction after the label where the jump hp arrives}
                  { is unconditional or of the same type as hp, so continue       }
-                 (taicpu(p1).condition in [C_None,hp.condition]) or
+                 ((taicpu(p1).opcode = aopt_uncondjmp) or
+                  conditions_equal(taicpu(p1).condition,hp.condition)) or
                  { the next instruction after the label where the jump hp arrives}
                  { is the opposite of hp (so this one is never taken), but after }
                  { that one there is a branch that will be taken, so perform a   }
                  { little hack: set p1 equal to this instruction (that's what the}
                  { last SkipLabels is for, only works with short bool evaluation)}
-                 ((taicpu(p1).condition = inverse_cond[hp.condition]) and
+                 (conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) and
                   SkipLabels(p1,p2) and
                   (p2.typ = ait_instruction) and
                   (taicpu(p2).is_jmp) and
-                  (taicpu(p2).condition in [C_None,hp.condition]) and
+                  ((taicpu(p2).opcode = aopt_uncondjmp) or
+                   (conditions_equal(taicpu(p2).condition,hp.condition))) and
                   SkipLabels(p1,p1)) then
                 begin
                   { quick check for loops of the form "l5: ; jmp l5 }
@@ -943,7 +945,7 @@ Unit AoptObj;
                   tasmlabel(hp.oper[0]^.ref^.symbol).increfs;
                 end
               else
-                if (taicpu(p1).condition = inverse_cond[hp.condition]) then
+                if conditions_equal(taicpu(p1).condition,inverse_cond(hp.condition)) then
                   if not FindAnyLabel(p1,l) then
                     begin
       {$ifdef finaldestdebug}
@@ -1034,7 +1036,7 @@ Unit AoptObj;
                                 begin
                                   if taicpu(p).opcode=aopt_condjmp then
                                     begin
-                                      taicpu(p).condition:=inverse_cond[taicpu(p).condition];
+                                      taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                                       tai_label(hp2).l.decrefs;
                                       taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
                                       taicpu(p).oper[0]^.ref^.symbol.increfs;
@@ -1085,7 +1087,15 @@ End.
 
 {
  $Log$
- Revision 1.16  2005-02-25 20:50:53  jonas
+ Revision 1.17  2005-02-26 01:26:59  jonas
+   * fixed generic jumps optimizer and enabled it for ppc (the label table
+     was not being initialised -> getfinaldestination always failed, which
+     caused wrong optimizations in some cases)
+   * changed the inverse_cond into a function, because tasmcond is a record
+     on ppc
+   + added a compare_conditions() function for the same reason
+
+ Revision 1.16  2005/02/25 20:50:53  jonas
    * fixed uninitialised function result in getfinaldestination() when
      maximum recursion reached
 

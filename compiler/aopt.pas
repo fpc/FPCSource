@@ -43,8 +43,10 @@ Unit aopt;
         Destructor destroy;override;
 
       private
-        Function FindLoHiLabels: tai;
+        procedure FindLoHiLabels;
         Procedure BuildLabelTableAndFixRegAlloc;
+        procedure clear;
+        procedure pass_1;
       End;
 
     var
@@ -63,20 +65,21 @@ Unit aopt;
         inherited create(_asml,nil,nil,nil);
       {setup labeltable, always necessary}
         New(LabelInfo);
+      End;
+
+    procedure TAsmOptimizer.FindLoHiLabels;
+      { Walks through the paasmlist to find the lowest and highest label number.  }
+      { Returns the last Pai object of the current block                          }
+      Var LabelFound: Boolean;
+          p, prev: tai;
+      Begin
         LabelInfo^.LowLabel := High(AWord);
         LabelInfo^.HighLabel := 0;
         LabelInfo^.LabelDif := 0;
         LabelInfo^.LabelTable:=nil;
-      End;
-
-    Function TAsmOptimizer.FindLoHiLabels: tai;
-      { Walks through the paasmlist to find the lowest and highest label number.  }
-      { Returns the last Pai object of the current block                          }
-      Var LabelFound: Boolean;
-          p: tai;
-      Begin
         LabelFound := False;
         P := BlockStart;
+        prev := p;
         With LabelInfo^ Do
           Begin
             While Assigned(P) And
@@ -92,9 +95,13 @@ Unit aopt;
                       If (tai_Label(p).l.labelnr > HighLabel) Then
                         HighLabel := tai_Label(p).l.labelnr
                     End;
+                prev := p;
                 GetNextInstruction(p, p)
               End;
-            FindLoHiLabels := p;
+            if (prev.typ = ait_marker) and
+               (tai_marker(prev).kind = asmblockstart) then
+              blockend := prev
+            else blockend := nil;
             If LabelFound
               Then LabelDif := HighLabel-LowLabel+1
               Else LabelDif := 0
@@ -160,15 +167,30 @@ Unit aopt;
                         End
                     };
                     End
-                End
+                End;
+                P := tai(p.Next);
+                While Assigned(p) and
+                      (p <> blockend) and
+                      (p.typ in (SkipInstr - [ait_regalloc])) Do
+                  P := tai(P.Next)
               End;
-            P := tai(p.Next);
-            While Assigned(p) And
-                  (p.typ in (SkipInstr - [ait_regalloc])) Do
-              P := tai(P.Next)
           End
     End;
 
+    procedure tasmoptimizer.clear;
+      begin
+        if LabelInfo^.labeldif <> 0 then
+          begin
+            freemem(LabelInfo^.labeltable);
+            LabelInfo^.labeltable := nil;
+          end;
+      end;
+
+    procedure tasmoptimizer.pass_1;
+      begin
+        findlohilabels;
+        BuildLabelTableAndFixRegAlloc;
+      end;
 
 
     Procedure TAsmOptimizer.Optimize;
@@ -178,6 +200,7 @@ Unit aopt;
       Begin
         pass:=0;
         BlockStart := tai(AsmL.First);
+        pass_1;
         While Assigned(BlockStart) Do
           Begin
              if pass = 0 then
@@ -189,20 +212,16 @@ Unit aopt;
                PeepHoleOptPass1;
             If (cs_slowoptimize in aktglobalswitches) Then
               Begin
-                // DFA:=TAOptDFACpu.Create(AsmL,BlockStart,BlockEnd,LabelInfo);
+//                DFA:=TAOptDFACpu.Create(AsmL,BlockStart,BlockEnd,LabelInfo);
                 { data flow analyzer }
-                DFA.DoDFA;
+//                DFA.DoDFA;
                 { common subexpression elimination }
       {          CSE;}
               End;
             { more peephole optimizations }
       {      PeepHoleOptPass2;}
-            {dispose labeltabel}
-            If Assigned(LabelInfo^.LabelTable) Then
-              Begin
-                Dispose(LabelInfo^.LabelTable);
-                LabelInfo := Nil
-              End;
+            { free memory }
+            clear;
             { continue where we left off, BlockEnd is either the start of an }
             { assembler block or nil}
             BlockStart := BlockEnd;
@@ -210,20 +229,20 @@ Unit aopt;
                   (BlockStart.typ = ait_Marker) And
                   (tai_Marker(BlockStart).Kind = AsmBlockStart) Do
               Begin
-               { we stopped at an assembler block, so skip it }
-                While GetNextInstruction(BlockStart, BlockStart) And
-                      ((BlockStart.Typ <> Ait_Marker) Or
-                       (tai_Marker(Blockstart).Kind <> AsmBlockEnd)) Do;
+               { we stopped at an assembler block, so skip it    }
+               While GetNextInstruction(BlockStart, BlockStart) And
+                     ((BlockStart.Typ <> Ait_Marker) Or
+                      (tai_Marker(Blockstart).Kind <> AsmBlockEnd)) Do;
                { blockstart now contains a tai_marker(asmblockend) }
-                If Not(GetNextInstruction(BlockStart, HP) And
-                       ((HP.typ <> ait_Marker) Or
-                        (tai_Marker(HP).Kind <> AsmBlockStart)
-                       )
-                      ) Then
-                 {skip the next assembler block }
-                 BlockStart := HP;
-               { otherwise there is no assembler block anymore after the current }
-               { one, so optimize the next block of "normal" instructions        }
+               If GetNextInstruction(BlockStart, HP) And
+                  ((HP.typ <> ait_Marker) Or
+                   (Tai_Marker(HP).Kind <> AsmBlockStart)) Then
+               { There is no assembler block anymore after the current one, so }
+               { optimize the next block of "normal" instructions              }
+                 pass_1
+               { Otherwise, skip the next assembler block }
+               else
+                 blockStart := hp;
               End
           End;
       End;
@@ -252,7 +271,15 @@ end.
 
 {
  $Log$
- Revision 1.9  2005-02-14 17:13:06  peter
+ Revision 1.10  2005-02-26 01:26:59  jonas
+   * fixed generic jumps optimizer and enabled it for ppc (the label table
+     was not being initialised -> getfinaldestination always failed, which
+     caused wrong optimizations in some cases)
+   * changed the inverse_cond into a function, because tasmcond is a record
+     on ppc
+   + added a compare_conditions() function for the same reason
+
+ Revision 1.9  2005/02/14 17:13:06  peter
    * truncate log
 
 }

@@ -186,11 +186,6 @@ unit cpubase;
         'GE','LT','GT','LE','AL','NV'
       );
 
-      inverse_cond : array[TAsmCond] of TAsmCond=(C_None,
-        C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
-        C_LT,C_GE,C_LE,C_GT,C_None,C_None
-      );
-
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
@@ -385,6 +380,9 @@ unit cpubase;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
 
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+
     procedure shifterop_reset(var so : tshifterop);
     function is_pc(const r : tregister) : boolean;
 
@@ -494,10 +492,36 @@ unit cpubase;
         is_pc:=(r=NR_R15);
       end;
 
+
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        inverse: array[TAsmCond] of TAsmCond=(C_None,
+          C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
+          C_LT,C_GE,C_LE,C_GT,C_None,C_None
+        );
+      begin
+        result := inverse[c];
+      end;
+    
+
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        result := c1 = c2;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.38  2005-02-14 17:13:09  peter
+  Revision 1.39  2005-02-26 01:26:59  jonas
+    * fixed generic jumps optimizer and enabled it for ppc (the label table
+      was not being initialised -> getfinaldestination always failed, which
+      caused wrong optimizations in some cases)
+    * changed the inverse_cond into a function, because tasmcond is a record
+      on ppc
+    + added a compare_conditions() function for the same reason
+
+  Revision 1.38  2005/02/14 17:13:09  peter
     * truncate log
 
 }
