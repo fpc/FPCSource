@@ -52,6 +52,30 @@ Another bad one (for wordstar fanatics like me)
 8  (related to 7?) ctrl-k c only works if the defined blocks is visible. If you press
         page-down a few times, it doesn't work anymore. Ctrl-k v (move) works fine however.
 
+9  F7 (trace into) a unit causes emergency exit (cannot run a unit?)
+
+10 When I set the memory of a dosbox to 16 MB DPMI, and debug the
+	compiler, emergency exit (very rarely even without cleaning the
+screen)
+
+Not bugs, but things I don't like:
+
+10a  Pressing F8 on a FOR loop should exec until after the for loop, not
+jump    into the loop? I believe BP also does this, but I always hated it.
+Now the
+	only way to jump over a for loop is to use breakpoints.
+10b  Bugs 1-8 are not solved :-)
+
+Things I like:
+
+11
+
+When I press F7 to start tracing, always some sources (and the main
+exe) 
+are rebuilt, even when I didn't change anything. (test source: the
+compiler)
+
+
 --- Ideas ---
 
  * Integrated source beautifier (fully configurable)
@@ -59,4 +83,6 @@ Another bad one (for wordstar fanatics like me)
    (eg. highlight standard Pascal types, etc.)
  * ASCII-table for inserting chars not accessible thru keyboard
  * Binary->source (const table/array) converter
+ * Browse all vars in debug mode, much like TD inspect command, but then
+    browsable instead of having to type names.
 
