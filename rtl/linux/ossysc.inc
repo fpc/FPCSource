@@ -15,7 +15,7 @@
 
  ****************************************************************************
 }
-{$if defined(CPUARM) or defined(CPUX86_64) or defined(CPUSPARC)}
+{$if defined(CPUARM) or defined(CPUX86_64) or defined(CPUSPARC) or defined(cpui386)}
   {$define RTSIGACTION}
 {$endif CPUARM}
 
@@ -545,7 +545,10 @@ end;
 
 {
  $Log$
- Revision 1.30  2004-08-22 12:34:11  florian
+ Revision 1.31  2005-01-31 19:22:48  peter
+   * i386 also needs rtsignal
+
+ Revision 1.30  2004/08/22 12:34:11  florian
    * fixed fork for sparc
 
  Revision 1.29  2004/08/18 21:03:35  florian
