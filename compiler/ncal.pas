@@ -987,6 +987,7 @@ implementation
             if po_overload in srprocsym.first_procdef.procoptions then
                 begin
                     repeat
+                        srprocsym:=nil;
                         repeat
                             srsymtable:=srsymtable.next;
                         until (srsymtable=nil) or (srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable]);
@@ -2596,7 +2597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2002-09-03 19:27:22  daniel
+  Revision 1.95  2002-09-03 21:32:49  daniel
+    * Small bugfix for procdef selection
+
+  Revision 1.94  2002/09/03 19:27:22  daniel
     * Activated new ncal code
 
   Revision 1.93  2002/09/03 16:26:26  daniel
