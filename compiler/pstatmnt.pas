@@ -758,14 +758,11 @@ implementation
               begin
                 repeat
                   { it's possible to specify the modified registers }
-                  include(asmstat.flags,nf_object_preserved);
                   hs:=upper(pattern);
                   found:=false;
                   for r.enum:=firstreg to lastreg do
                    if hs=upper(std_reg2str[r.enum]) then
                     begin
-                      if r.enum = SELF_POINTER_REG then
-                        exclude(asmstat.flags,nf_object_preserved);
                       include(rg.usedinproc,r.enum);
                       include(rg.usedbyproc,r.enum);
                       found:=true;
@@ -1126,7 +1123,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2003-03-17 18:55:30  peter
+  Revision 1.88  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.87  2003/03/17 18:55:30  peter
     * allow more tokens instead of only semicolon after inherited
 
   Revision 1.86  2003/02/19 22:00:14  daniel

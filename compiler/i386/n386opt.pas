@@ -238,7 +238,6 @@ begin
   rg.saveintregvars(exprasmlist,regstopush);
   cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
   tg.ungetiftemp(exprasmlist,right.location.reference);
-  cg.g_maybe_loadself(exprasmlist);
   rg.restoreusedintregisters(exprasmlist,pushedregs);
   location_copy(location,left.location);
 end;
@@ -250,7 +249,12 @@ end.
 
 {
   $Log$
-  Revision 1.28  2003-02-19 22:00:15  daniel
+  Revision 1.29  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.28  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -195,8 +195,7 @@ interface
       var
         power : longint;
         hl4   : tasmlabel;
-        r:Tregister;
-        nr:Tnewregister;
+        r     : Tregister;
       begin
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
@@ -399,7 +398,6 @@ interface
                         rg.saveintregvars(exprasmlist,regstopush);
                         cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
                         tg.ungetiftemp(exprasmlist,right.location.reference);
-                        cg.g_maybe_loadself(exprasmlist);
                         rg.restoreusedintregisters(exprasmlist,pushed);
                         location_copy(location,left.location);
                      end;
@@ -415,7 +413,6 @@ interface
                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
                        rg.saveintregvars(exprasmlist,all_intregisters);
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       cg.g_maybe_loadself(exprasmlist);
                        rg.restoreusedintregisters(exprasmlist,pushed);
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
@@ -1040,7 +1037,7 @@ interface
               rg.getexplicitregisterint(exprasmlist,NR_EDI);
               r.enum:=R_INTREGISTER;
               r.number:=NR_EDI;
-{$endif}            
+{$endif}
               cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op1,opsize,left.location.registerlow,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
@@ -1459,7 +1456,6 @@ interface
          pushedfpu,
          mboverflow,cmpop : boolean;
          op : tasmop;
-         power : longint;
          opsize : topsize;
 
          { true, if unsigned types are compared }
@@ -1645,7 +1641,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-03-13 19:52:23  jonas
+  Revision 1.60  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.59  2003/03/13 19:52:23  jonas
     * and more new register allocator fixes (in the i386 code generator this
       time). At least now the ppc cross compiler can compile the linux
       system unit again, but I haven't tested it.

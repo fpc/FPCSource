@@ -193,7 +193,7 @@ begin
     not(ref.base.enum in (rg.usableregsint+[R_EDI]));}
   isSimpleMemLoc :=
     (ref.index.enum = R_NO) and
-    not(ref.base.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI]);
+    not(ref.base.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,R_EDI]);
 end;
 
 {checks whether the current instruction sequence (starting with p) and the
@@ -277,7 +277,7 @@ var
 {    if (passedJump and not(reg.enum in (rg.usableregsint+[R_EDI]))) or
        not getLastInstruction(currentPrev,hp) then
       exit;}
-    if (passedJump and not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI])) or
+    if (passedJump and not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,R_EDI])) or
        not getLastInstruction(currentPrev,hp) then
       exit;
 
@@ -305,7 +305,7 @@ var
            { jump with a new value, since if the jump is taken, the old value }
            { is (probably) still necessary                                    }
 {           (passedJump and not(reg.enum in (rg.usableregsint+[R_EDI]))) or}
-           (passedJump and not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI])) or
+           (passedJump and not(reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,R_EDI])) or
            not getLastInstruction(hp,hp) then
           break;
       end;
@@ -363,8 +363,8 @@ Begin {CheckSequence}
   OrgRegResult := False;
   with startRegInfo do
     begin
-      newRegsEncountered := [procinfo.FramePointer.enum, STACK_POINTER_REG];
-      new2OldReg[procinfo.FramePointer.enum] := procinfo.FramePointer;
+      newRegsEncountered := [FRAME_POINTER_REG, STACK_POINTER_REG];
+      new2OldReg[FRAME_POINTER_REG].enum := FRAME_POINTER_REG;
       new2OldReg[STACK_POINTER_REG].enum := STACK_POINTER_REG;
       oldRegsEncountered := newRegsEncountered;
     end;
@@ -411,11 +411,9 @@ Begin {CheckSequence}
                     if (found <> 0) and
                        ((base.enum = R_NO) or
                         regModified[base.enum] or
-                        (base.enum = procinfo.framepointer.enum) or
-                        (assigned(procinfo._class) and (base.enum = R_ESI))) and
+                        (base.enum = procinfo.framepointer.enum)) and
                        ((index.enum = R_NO) or
-                        regModified[index.enum] or
-                        (assigned(procinfo._class) and (index.enum = R_ESI))) and
+                        regModified[index.enum]) and
                         not(regInRef(tmpReg,Taicpu(hp3).oper[0].ref^)) then
                       with pTaiprop(hp3.optinfo)^.regs[tmpreg.enum] do
                         if nrOfMods > (oldNrOfMods - found) then
@@ -1695,7 +1693,7 @@ Begin
                         if (Taicpu(p).oper[0].typ = top_reg) and
                            (Taicpu(p).oper[1].typ = top_reg) and
                            { only remove if we're not storing something in a regvar }
-                           (Taicpu(p).oper[1].reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_EDI]) and
+                           (Taicpu(p).oper[1].reg.enum in [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,R_EDI]) and
 {                           (Taicpu(p).oper[1].reg.enum in (rg.usableregsint+[R_EDI])) and}
                            (Taicpu(p).opcode = A_MOV) and
                            getLastInstruction(p,hp4) and
@@ -1999,7 +1997,12 @@ End.
 
 {
   $Log$
-  Revision 1.42  2003-03-18 18:15:53  peter
+  Revision 1.43  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.42  2003/03/18 18:15:53  peter
     * changed reg2opsize to function
 
   Revision 1.41  2003/02/26 21:15:43  daniel

@@ -347,18 +347,17 @@ implementation
 
     procedure tcgselfnode.pass_2;
       begin
-         rg.getexplicitregisterint(exprasmlist,NR_SELF_POINTER_REG);
          if (resulttype.def.deftype=classrefdef) or
             (is_class(resulttype.def) or
              (po_staticmethod in aktprocdef.procoptions)) then
           begin
-            location_reset(location,LOC_CREGISTER,OS_ADDR);
-            location.register.number:=NR_SELF_POINTER_REG;
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=cg.g_load_self(exprasmlist);
           end
          else
            begin
              location_reset(location,LOC_CREFERENCE,OS_ADDR);
-             location.reference.base.number:=NR_SELF_POINTER_REG;
+             location.reference.base:=cg.g_load_self(exprasmlist);
            end;
       end;
 
@@ -608,7 +607,6 @@ implementation
                rg.saveintregvars(exprasmlist,all_intregisters);
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
                rg.restoreusedintregisters(exprasmlist,pushed);
-               cg.g_maybe_loadself(exprasmlist);
             end
          else
            cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
@@ -648,7 +646,6 @@ implementation
                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(1));
                    rg.saveintregvars(exprasmlist,all_intregisters);
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
-                   cg.g_maybe_loadself(exprasmlist);
                    rg.restoreusedintregisters(exprasmlist,pushed);
                 end;
 
@@ -675,7 +672,6 @@ implementation
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
                    rg.saveintregvars(exprasmlist,all_intregisters);
                    cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
-                   cg.g_maybe_loadself(exprasmlist);
                    rg.restoreusedintregisters(exprasmlist,pushed);
                 end;
 
@@ -756,7 +752,6 @@ implementation
                               rg.saveintregvars(exprasmlist,all_intregisters);
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               rg.restoreusedintregisters(exprasmlist,pushed);
-                              cg.g_maybe_loadself(exprasmlist);
                            end;
 
                          st_shortstring:
@@ -888,7 +883,6 @@ implementation
                               rg.saveintregvars(exprasmlist,all_intregisters);
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               rg.restoreusedintregisters(exprasmlist,pushed);
-                              cg.g_maybe_loadself(exprasmlist);
                            end;
                          st_shortstring:
                            begin
@@ -925,7 +919,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-03-12 22:43:38  jonas
+  Revision 1.44  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.43  2003/03/12 22:43:38  jonas
     * more powerpc and generic fixes related to the new register allocator
 
   Revision 1.42  2003/02/19 22:00:14  daniel

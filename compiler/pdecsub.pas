@@ -659,26 +659,46 @@ implementation
             aktprocdef.parast.symtablelevel:=lexlevel;
           end;
 
-        if assigned (procinfo._Class)  and
-           is_object(procinfo._Class) and
-           (aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) then
-          inc(paramoffset,pointer_size);
+        { Get self, vmt offsets }
+        if assigned (procinfo._Class) then
+         begin
+           { self pointer offset, must be done after parsing the parameters }
+           { self isn't pushed in nested procedure of methods }
+           if (lexlevel=normal_function_level) then
+            begin
+              if assigned(aktprocdef) and
+                 not(po_containsself in aktprocdef.procoptions) then
+                begin
+                  procinfo.selfpointer_offset:=paramoffset;
+                  inc(paramoffset,POINTER_SIZE);
+                end;
+            end;
 
-        { self pointer offset, must be done after parsing the parameters }
-        { self isn't pushed in nested procedure of methods }
-        if assigned(procinfo._class) and (lexlevel=normal_function_level) then
-          begin
-            procinfo.selfpointer_offset:=paramoffset;
-            if assigned(aktprocdef) and
-               not(po_containsself in aktprocdef.procoptions) then
-              inc(paramoffset,pointer_size);
-          end;
-
-        { con/-destructor flag ? }
-        if assigned (procinfo._Class) and
-           is_class(procinfo._class) and
-           (aktprocdef.proctypeoption in [potype_destructor,potype_constructor]) then
-          inc(paramoffset,pointer_size);
+           { Special parameters for de-/constructors }
+           case aktprocdef.proctypeoption of
+             potype_constructor :
+               begin
+                 procinfo.vmtpointer_offset:=paramoffset;
+                 inc(paramoffset,POINTER_SIZE);
+               end;
+             potype_destructor :
+               begin
+                 if is_object(procinfo._class) then
+                  begin
+                    procinfo.vmtpointer_offset:=paramoffset;
+                    inc(paramoffset,POINTER_SIZE);
+                  end
+                 else
+                  if is_class(procinfo._class) then
+                   begin
+                     procinfo.inheritedflag_offset:=paramoffset;
+                     inc(paramoffset,POINTER_SIZE);
+                   end
+                 else
+                  internalerror(200303261);
+               end;
+           end;
+         end;
 
         procinfo.para_offset:=paramoffset;
 
@@ -2123,7 +2143,12 @@ const
 end.
 {
   $Log$
-  Revision 1.109  2003-03-23 23:21:42  hajny
+  Revision 1.110  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.109  2003/03/23 23:21:42  hajny
     + emx target added
 
   Revision 1.108  2003/03/19 17:34:04  peter

@@ -41,6 +41,7 @@ unit rgcpu;
           { to keep the same allocation order as with the old routines }
 {$ifndef newra}
           function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;override;
+          function getaddressregister(list:Taasmoutput):Tregister;override;
           procedure ungetregisterint(list:Taasmoutput;r:Tregister); override;
           function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;override;
 {$endif newra}
@@ -176,7 +177,7 @@ unit rgcpu;
 
       if countunusedregsint=0 then
         internalerror(10);
-      getregisterint.enum:=R_INTREGISTER;
+      result.enum:=R_INTREGISTER;
 {$ifdef TEMPREGDEBUG}
       if curptree^.usableregsint-countunusedregsint>curptree^.registers32 then
         internalerror(10);
@@ -185,52 +186,86 @@ unit rgcpu;
       if curptree^.usableregs-countunusedregistersint>curptree^^.reallyusedregs then
         curptree^.reallyusedregs:=curptree^^.usableregs-countunusedregistersint;
 {$endif EXTTEMPREGDEBUG}
-      dec(countunusedregsint);
       if RS_EAX in unusedregsint then
         begin
+          dec(countunusedregsint);
           exclude(unusedregsint,RS_EAX);
           include(usedintinproc,RS_EAX);
-          getregisterint.number:=RS_EAX shl 8 or subreg;
+          result.number:=RS_EAX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_EAX]:=curptree^;
 {$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(getregisterint));
+          exprasmlist.concat(tai_regalloc.alloc(result));
         end
       else if RS_EDX in unusedregsint then
         begin
+          dec(countunusedregsint);
           exclude(unusedregsint,RS_EDX);
           include(usedintinproc,RS_EDX);
-          getregisterint.number:=RS_EDX shl 8 or subreg;
+          result.number:=RS_EDX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_EDX]:=curptree^;
 {$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(getregisterint));
+          exprasmlist.concat(tai_regalloc.alloc(result));
         end
       else if RS_EBX in unusedregsint then
         begin
+          dec(countunusedregsint);
           exclude(unusedregsint,RS_EBX);
           include(usedintinproc,RS_EBX);
-          getregisterint.number:=RS_EBX shl 8 or subreg;
+          result.number:=RS_EBX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_EBX]:=curptree^;
 {$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(getregisterint));
+          exprasmlist.concat(tai_regalloc.alloc(result));
         end
       else if RS_ECX in unusedregsint then
         begin
+          dec(countunusedregsint);
           exclude(unusedregsint,RS_ECX);
           include(usedintinproc,RS_ECX);
-          getregisterint.number:=RS_ECX shl 8 or subreg;
+          result.number:=RS_ECX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_ECX]:=curptree^;
 {$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(getregisterint));
+          exprasmlist.concat(tai_regalloc.alloc(result));
         end
-      else internalerror(10);
+      else
+        internalerror(10);
 {$ifdef TEMPREGDEBUG}
       testregisters;
 {$endif TEMPREGDEBUG}
     end;
+
+
+    function trgcpu.getaddressregister(list:Taasmoutput):Tregister;
+    begin
+      if countunusedregsint=0 then
+        internalerror(10);
+      result.enum:=R_INTREGISTER;
+{$ifdef TEMPREGDEBUG}
+      if curptree^.usableregsint-countunusedregsint>curptree^.registers32 then
+        internalerror(10);
+{$endif TEMPREGDEBUG}
+{$ifdef EXTTEMPREGDEBUG}
+      if curptree^.usableregs-countunusedregistersint>curptree^^.reallyusedregs then
+        curptree^.reallyusedregs:=curptree^^.usableregs-countunusedregistersint;
+{$endif EXTTEMPREGDEBUG}
+      if RS_ESI in unusedregsint then
+        begin
+          dec(countunusedregsint);
+          exclude(unusedregsint,RS_ESI);
+          include(usedintinproc,RS_ESI);
+          result.number:=NR_ESI;
+{$ifdef TEMPREGDEBUG}
+          reg_user[R_ESI]:=curptree^;
+{$endif TEMPREGDEBUG}
+          exprasmlist.concat(tai_regalloc.alloc(result));
+        end
+      else
+        result:=getregisterint(list,OS_ADDR);
+    end;
+
 
     procedure trgcpu.ungetregisterint(list: taasmoutput; r : tregister);
 
@@ -242,13 +277,12 @@ unit rgcpu;
          if r.enum<>R_INTREGISTER then
             internalerror(200301234);
          supreg:=r.number shr 8;
-         if (supreg = RS_EDI) or
-            ((not assigned(procinfo._class)) and (supreg = RS_ESI)) then
+         if (supreg in [RS_EDI]) then
            begin
              list.concat(tai_regalloc.DeAlloc(r));
              exit;
            end;
-         if not(supreg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX]) then
+         if not(supreg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI]) then
            exit;
          inherited ungetregisterint(list,r);
       end;
@@ -259,7 +293,7 @@ unit rgcpu;
    var r2:Tregister;
 
     begin
-      if (r shr 8) in [RS_ESI,RS_EDI] then
+      if (r shr 8) in [RS_EDI] then
         begin
           r2.enum:=R_INTREGISTER;
           r2.number:=r;
@@ -308,7 +342,7 @@ unit rgcpu;
 
     begin
       usedintinproc:=usedintinproc+s;
-      for r:=RS_EAX to RS_EDX do
+      for r:=firstsaveintreg to lastsaveintreg do
         begin
           r2.enum:=R_INTREGISTER;
           r2.number:=r shl 8 or R_SUBWHOLE;
@@ -373,7 +407,7 @@ unit rgcpu;
         r2:Tregister;
     begin
       { restore in reverse order: }
-      for r:=RS_EDX downto RS_EAX do
+      for r:=lastsaveintreg downto firstsaveintreg do
         if pushed[r].pushed then
           begin
             r2.enum:=R_INTREGISTER;
@@ -525,7 +559,12 @@ end.
 
 {
   $Log$
-  Revision 1.16  2003-03-17 15:52:57  peter
+  Revision 1.17  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.16  2003/03/17 15:52:57  peter
     * SUPPORT_MMX define compile fix
 
   Revision 1.15  2003/03/08 13:59:17  daniel

@@ -448,12 +448,12 @@ begin
     internalerror(200301081);
 { if not(reg.enum in rg.usableregsint) then
     exit;}
- if not(reg.enum in [R_ESI,R_EDI]) then
+ if not(reg.enum in [R_EDI]) then
     exit;
   getNoDeallocRegs(funcResRegs);
 {  funcResRegs := funcResRegs - rg.usableregsint;}
-{  funcResRegs := funcResRegs - [R_ESI,R_EDI];}
-  funcResRegs := funcResRegs - [R_EAX,R_EBX,R_ECX,R_EDX];
+{  funcResRegs := funcResRegs - [R_EDI];}
+  funcResRegs := funcResRegs - [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI];
   funcResReg := reg.enum in funcResRegs;
   hp1 := p;
   while not(funcResReg and
@@ -499,7 +499,7 @@ Begin
             LabelTable^[Tai_Label(p).l.labelnr-LowLabel].TaiObj := p;
         ait_regAlloc:
           { ESI and EDI are (de)allocated manually, don't mess with them }
-          if not(tai_regalloc(p).Reg.enum in [R_EDI,R_ESI]) then
+          if not(tai_regalloc(p).Reg.enum in [R_EDI]) then
             begin
               if tai_regalloc(p).Allocation then
                 Begin
@@ -618,7 +618,7 @@ Begin
             prev.next := new_one;
             foll.previous := new_one;
             { shgould we update line information }
-            if (not (Tai(new_one).typ in SkipLineInfo)) and 
+            if (not (Tai(new_one).typ in SkipLineInfo)) and
                (not (Tai(foll).typ in SkipLineInfo)) then
             Tailineinfo(new_one).fileinfo := Tailineinfo(foll).fileinfo;
           End;
@@ -1738,9 +1738,7 @@ function isSimpleRef(const ref: treference): boolean;
 begin
   isSimpleRef :=
     assigned(ref.symbol) or
-    (ref.base.enum = procinfo.framepointer.enum) or
-    (assigned(procinfo._class) and
-     (ref.base.enum = R_ESI));
+    (ref.base.enum = procinfo.framepointer.enum);
 end;
 
 function containsPointerRef(p: Tai): boolean;
@@ -2671,7 +2669,12 @@ End.
 
 {
   $Log$
-  Revision 1.47  2003-02-26 21:15:43  daniel
+  Revision 1.48  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.47  2003/02/26 21:15:43  daniel
     * Fixed the optimizer
 
   Revision 1.46  2003/02/19 22:00:15  daniel

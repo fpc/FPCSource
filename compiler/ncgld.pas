@@ -66,7 +66,6 @@ implementation
 
     procedure tcgloadnode.pass_2;
       var
-        intreg,
         r,hregister : tregister;
         supreg:Tsuperregister;
         symtabletype : tsymtabletype;
@@ -252,9 +251,7 @@ implementation
                                      location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname)
                                    else
                                      begin
-                                        rg.getexplicitregisterint(exprasmlist,NR_SELF_POINTER_REG);
-                                        location.reference.base.enum:=R_INTREGISTER;
-                                        location.reference.base.number:=NR_SELF_POINTER_REG;
+                                        location.reference.base:=cg.g_load_self(exprasmlist);
                                         location.reference.offset:=tvarsym(symtableentry).address;
                                      end;
                                 end;
@@ -427,6 +424,7 @@ implementation
         { Try to determine which side to calculate first,  }
         if (right.location.loc<>LOC_FLAGS) and
            ((right.location.loc=LOC_JUMP) or
+            (right.nodetype=calln) or
             (right.registers32>=left.registers32)) then
          begin
            secondpass(right);
@@ -898,7 +896,7 @@ implementation
                      end
                     else
                       if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value_para(hp.left,pocall_cdecl,0,4,paralocdummy)
+                        push_value_para(exprasmlist,hp.left,pocall_cdecl,0,4,paralocdummy)
                     else
                       begin
                         cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
@@ -972,7 +970,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-02-19 22:00:14  daniel
+  Revision 1.46  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.45  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

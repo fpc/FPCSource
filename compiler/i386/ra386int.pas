@@ -1134,15 +1134,6 @@ Begin
                 { check if we can move the old base to the index register }
                 if (opr.ref.index.number<>NR_NO) then
                  Message(asmr_e_wrong_base_index)
-                else if assigned(procinfo._class) and
-                  (oldbase.number=NR_SELF_POINTER_REG) and
-                  (opr.ref.base.number=NR_SELF_POINTER_REG) then
-                  begin
-                    Message(asmr_w_possible_object_field_bug);
-                    { warn but accept... who knows what people
-                      caninvent in assembler ! }
-                    opr.ref.index:=oldbase;
-                  end
                 else
                  opr.ref.index:=oldbase;
               end
@@ -1980,7 +1971,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2003-03-18 18:15:53  peter
+  Revision 1.44  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.43  2003/03/18 18:15:53  peter
     * changed reg2opsize to function
 
   Revision 1.42  2003/03/17 21:32:52  peter

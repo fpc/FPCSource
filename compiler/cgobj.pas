@@ -302,8 +302,7 @@ unit cgobj;
           }
          procedure g_exception_reason_load(list : taasmoutput; const href : treference);virtual;
 
-
-          procedure g_maybe_loadself(list : taasmoutput);virtual;
+          function g_load_self(list : taasmoutput):tregister;
           procedure g_maybe_testself(list : taasmoutput;reg:tregister);
           procedure g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -506,6 +505,11 @@ unit cgobj;
     const
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
 
+      { Please leave this here, this module should NOT use
+        exprasmlist, the lists are always passed as arguments.
+        Declaring it as string here results in an error when compiling (PFV) }
+      exprasmlist = 'error';
+
 {*****************************************************************************
                             basic functionallity
 ******************************************************************************}
@@ -578,7 +582,7 @@ unit cgobj;
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
-         if r.enum<>R_INTREGISTER then 
+         if r.enum<>R_INTREGISTER then
            internalerror(200302058);
          include(unusedscratchregisters,r.number shr 8);
          a_reg_dealloc(list,r);
@@ -670,7 +674,6 @@ unit cgobj;
     procedure tcg.a_param_copy_ref(list : taasmoutput;size : qword;const r : treference;const locpara : tparalocation);
       var
         ref : treference;
-        hr : tregister;
       begin
          if not(locpara.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            internalerror(2003010901);
@@ -712,7 +715,7 @@ unit cgobj;
                 internalerror(200302037);
               if (dref.index.enum<>R_NO) and (dref.index.enum<>R_INTREGISTER) then
                 internalerror(200302037);
-                
+
               if (dref.base.number shr 8<>RS_EBX) and
                  (dref.index.number shr 8<>RS_EBX) then
                 pushed_reg.number:=NR_EBX
@@ -786,8 +789,6 @@ unit cgobj;
 
 
     procedure tcg.a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
-
-    var r:Tregister;
 
       begin
         case loc.loc of
@@ -1172,7 +1173,6 @@ unit cgobj;
          reference_release(list,source);
         a_param_const(list,OS_INT,len,paramanager.getintparaloc(1));
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
-        g_maybe_loadself(list);
       end;
 
 
@@ -1432,52 +1432,49 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_maybe_loadself(list : taasmoutput);
+    function tcg.g_load_self(list : taasmoutput):tregister;
       var
          hp : treference;
          p : tprocinfo;
          i : longint;
-         spr : Tregister;
+         self_reg : tregister;
       begin
-         spr.enum:=R_INTREGISTER;
-         spr.number:=NR_SELF_POINTER_REG;
-         if assigned(procinfo._class) then
+         if not assigned(procinfo._class) then
+           internalerror(200303211);
+         self_reg:=rg.getaddressregister(list);
+         if lexlevel>normal_function_level then
            begin
-              list.concat(tai_regalloc.Alloc(spr));
-              if lexlevel>normal_function_level then
-                begin
-                   reference_reset_base(hp,procinfo.framepointer,procinfo.framepointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,spr);
-                   p:=procinfo.parent;
-                   for i:=3 to lexlevel-1 do
-                     begin
-                        reference_reset_base(hp,spr,p.framepointer_offset);
-                        a_load_ref_reg(list,OS_ADDR,hp,spr);
-                        p:=p.parent;
-                     end;
-                   reference_reset_base(hp,spr,p.selfpointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,spr);
-                end
-              else
-                begin
-                   reference_reset_base(hp,procinfo.framepointer,procinfo.selfpointer_offset);
-                   a_load_ref_reg(list,OS_ADDR,hp,spr);
-                end;
+             reference_reset_base(hp,procinfo.framepointer,procinfo.framepointer_offset);
+             a_load_ref_reg(list,OS_ADDR,hp,self_reg);
+             p:=procinfo.parent;
+             for i:=3 to lexlevel-1 do
+               begin
+                  reference_reset_base(hp,self_reg,p.framepointer_offset);
+                  a_load_ref_reg(list,OS_ADDR,hp,self_reg);
+                  p:=p.parent;
+               end;
+             reference_reset_base(hp,self_reg,p.selfpointer_offset);
+             a_load_ref_reg(list,OS_ADDR,hp,self_reg);
+           end
+         else
+           begin
+             reference_reset_base(hp,procinfo.framepointer,procinfo.selfpointer_offset);
+             a_load_ref_reg(list,OS_ADDR,hp,self_reg);
            end;
+        g_load_self:=self_reg;
       end;
 
 
     procedure tcg.g_maybe_testself(list : taasmoutput;reg:tregister);
       var
         OKLabel : tasmlabel;
-        dummyloc : tparalocation;
       begin
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
            objectlibrary.getlabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
-           a_param_const(list,OS_INT,210,dummyloc);
+           a_param_const(list,OS_INT,210,paramanager.getintparaloc(1));
            a_call_name(list,'FPC_HANDLEERROR');
            a_label(list,oklabel);
          end;
@@ -1491,15 +1488,15 @@ unit cgobj;
         if (cs_check_object in aktlocalswitches) then
          begin
            reference_reset_symbol(hrefvmt,objectlibrary.newasmsymbol(objdef.vmt_mangledname),0);
-           a_paramaddr_ref(exprasmlist,hrefvmt,paramanager.getintparaloc(2));
-           a_param_reg(exprasmlist,OS_ADDR,reg,paramanager.getintparaloc(1));
-           a_call_name(exprasmlist,'FPC_CHECK_OBJECT_EXT');
+           a_paramaddr_ref(list,hrefvmt,paramanager.getintparaloc(2));
+           a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(1));
+           a_call_name(list,'FPC_CHECK_OBJECT_EXT');
          end
         else
          if (cs_check_range in aktlocalswitches) then
           begin
-            a_param_reg(exprasmlist,OS_ADDR,reg,paramanager.getintparaloc(1));
-            a_call_name(exprasmlist,'FPC_CHECK_OBJECT');
+            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(1));
+            a_call_name(list,'FPC_CHECK_OBJECT');
           end;
       end;
 
@@ -1510,52 +1507,49 @@ unit cgobj;
 
     procedure tcg.g_call_constructor_helper(list : taasmoutput);
      var
-      href : treference;
-      hregister : tregister;
-      spr,acc : Tregister;
+       href : treference;
+       acc : Tregister;
      begin
+        if procinfo.vmtpointer_offset=0 then
+         internalerror(200303251);
+        if procinfo.selfpointer_offset=0 then
+         internalerror(200303252);
         acc.enum:=R_INTREGISTER;
         acc.number:=NR_ACCUMULATOR;
-        spr.enum:=R_INTREGISTER;
-        spr.number:=NR_SELF_POINTER_REG;
         if is_class(procinfo._class) then
           begin
             if (cs_implicit_exceptions in aktmoduleswitches) then
               procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
-            { parameter 2 : self pointer / flag }
-            {!! this is a terrible hack, normally the helper should get three params : }
-            {    one with self register, one with flag and one with VMT pointer        }
-            {reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset+POINTER_SIZE);}
-            a_param_reg(list, OS_ADDR, spr, paramanager.getintparaloc(2));
-
-            { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
+            { parameter 2 : vmt pointer, 0 when called by inherited }
+            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
+            { parameter 1 : self pointer }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_NEW_CLASS');
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,acc,spr);
-            { save the self pointer result }
-            a_load_reg_ref(list,OS_ADDR,spr,href);
+            { save the self pointer }
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            a_load_reg_ref(list,OS_ADDR,acc,href);
+            { fail? }
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
           end
         else if is_object(procinfo._class) then
           begin
-            { parameter 3 :vmt_offset     }
+            { parameter 3 : vmt_offset }
             a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
-            { parameter 2 : address of pointer to vmt }
-            {  this is the first(?) parameter which was pushed to the constructor }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset-POINTER_SIZE);
-            hregister:=get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(2));
-            free_scratch_reg(list, hregister);
-            { parameter 1 : address of self pointer   }
+            { parameter 2 : address of pointer to vmt,
+              this is required to allow setting the vmt to -1 to indicate
+              that memory was allocated }
+            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+            { parameter 1 : self pointer }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
-            hregister:=get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
-            free_scratch_reg(list, hregister);
+            a_param_ref(list,OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
-            a_load_reg_reg(list,OS_ADDR,OS_ADDR,acc,spr);
+            { save the self pointer }
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            a_load_reg_ref(list,OS_ADDR,acc,href);
+            { fail? }
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
           end
         else
@@ -1567,46 +1561,51 @@ unit cgobj;
       var
         nofinal : tasmlabel;
         href : treference;
-      hregister : tregister;
-        spr : Tregister;
-      begin
-        spr.enum:=R_INTREGISTER;
-        spr.number:=NR_SELF_POINTER_REG;
+        reg  : tregister;
+     begin
         if is_class(procinfo._class) then
          begin
-           { 2nd parameter  : flag }
-           reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset+POINTER_SIZE);
+           if procinfo.selfpointer_offset=0 then
+            internalerror(200303253);
+           { parameter 2 : flag }
+           if procinfo.inheritedflag_offset=0 then
+            internalerror(200303251);
+           reference_reset_base(href, procinfo.framepointer,procinfo.inheritedflag_offset);
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(2));
-           { 1st parameter to destructor : self }
+           { parameter 1 : self }
+           if procinfo.selfpointer_offset=0 then
+            internalerror(200303252);
            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
            a_call_name(list,'FPC_DISPOSE_CLASS')
          end
         else if is_object(procinfo._class) then
          begin
-           { must the object be finalized ? }
-           if procinfo._class.needs_inittable then
-            begin
-              objectlibrary.getlabel(nofinal);
-              reference_reset_base(href,procinfo.framepointer,target_info.first_parm_offset);
-              a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
-              reference_reset_base(href,spr,0);
-              g_finalize(list,procinfo._class,href,false);
-              a_label(list,nofinal);
-            end;
-           { actually call destructor }
-            { parameter 3 :vmt_offset     }
+            if procinfo.selfpointer_offset=0 then
+             internalerror(200303254);
+            if procinfo.vmtpointer_offset=0 then
+             internalerror(200303255);
+            { must the object be finalized ? }
+            if procinfo._class.needs_inittable then
+             begin
+               objectlibrary.getlabel(nofinal);
+               reference_reset_base(href,procinfo.framepointer,target_info.first_parm_offset);
+               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
+               reg:=g_load_self(list);
+               reference_reset_base(href,reg,0);
+               g_finalize(list,procinfo._class,href,false);
+               reference_release(list,href);
+               a_label(list,nofinal);
+             end;
+            { actually call destructor }
+            { parameter 3 : vmt_offset }
             a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : pointer to vmt }
-            {  this is the first parameter which was pushed to the destructor }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset-POINTER_SIZE);
+            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
             a_param_ref(list, OS_ADDR, href ,paramanager.getintparaloc(2));
-            { parameter 1 : address of self pointer   }
+            { parameter 1 : address of self pointer }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
-            hregister:=get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
-            free_scratch_reg(list, hregister);
+            a_param_ref(list, OS_ADDR, href ,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_DESTRUCTOR');
          end
         else
@@ -1617,51 +1616,39 @@ unit cgobj;
     procedure tcg.g_call_fail_helper(list : taasmoutput);
       var
         href : treference;
-        hregister : tregister;
-        spr : Tregister;
-      begin
-        spr.enum:=R_INTREGISTER;
-        spr.number:=NR_SELF_POINTER_REG;
+     begin
         if is_class(procinfo._class) then
           begin
-            {
-              Dispose of the class then set self_pointer to nil
-              both in stack and in self register.
-            }
-            { 2nd parameter  : flag }
+            if procinfo.selfpointer_offset=0 then
+             internalerror(200303256);
+            { parameter 2 : flag, 0 -> inherited call (=no dispose) }
             a_param_const(list,OS_32,1,paramanager.getintparaloc(2));
-            { 1st parameter to destructor : self }
+            { parameter 1 : self }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_DISPOSE_CLASS');
-            { SET SELF TO NIL }
-            a_load_const_reg(list,OS_ADDR,0,spr);
-            { set the self pointer in the stack to nil }
-            a_load_reg_ref(list,OS_ADDR,spr,href);
           end
         else if is_object(procinfo._class) then
           begin
-            { parameter 3 :vmt_offset     }
+            if procinfo.selfpointer_offset=0 then
+             internalerror(200303257);
+            if procinfo.vmtpointer_offset=0 then
+             internalerror(200303258);
+            { parameter 3 : vmt_offset }
             a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
-            { parameter 2 : address of pointer to vmt }
-            {  this is the first(?) parameter which was pushed to the constructor }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset-POINTER_SIZE);
-            hregister:=get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(2));
-            free_scratch_reg(list, hregister);
+            { parameter 2 : address of pointer to vmt, will be reset to 0 when freed }
+            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
             { parameter 1 : address of self pointer   }
             reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
-            hregister:=get_scratch_reg_address(list);
-            a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
-            free_scratch_reg(list, hregister);
+            a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_FAIL');
-            { SET SELF TO NIL }
-            a_load_const_reg(list,OS_ADDR,0,spr);
           end
         else
           internalerror(200006163);
+        { set self to nil }
+        reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+        a_load_const_ref(list,OS_ADDR,0,href);
       end;
 
 
@@ -1732,7 +1719,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.79  2003-03-22 18:07:18  jonas
+  Revision 1.80  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.79  2003/03/22 18:07:18  jonas
     + add used scratch registers to usedintbyproc for non-i386
 
   Revision 1.78  2003/03/11 21:46:24  jonas

@@ -898,7 +898,7 @@ Begin
                 Begin
                   TmpUsedRegs := UsedRegs;
                   If (Taicpu(p).oper[1].typ = top_reg) And
-                     (Taicpu(p).oper[1].reg.enum In [R_EAX, R_EBX, R_EDX, R_EDI]) And
+                     (Taicpu(p).oper[1].reg.enum In [R_EAX, R_EBX, R_ECX, R_EDX, R_ESI, R_EDI]) And
                      GetNextInstruction(p, hp1) And
                      (Tai(hp1).typ = ait_instruction) And
                      (Taicpu(hp1).opcode = A_MOV) And
@@ -1135,9 +1135,9 @@ Begin
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.base,p,hp2);
                                           if (Taicpu(p).oper[0].ref^.index.enum in (rg.usableregsint+[R_EDI])) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.index,p,hp2);}
-                                          if (Taicpu(p).oper[0].ref^.base.enum in [R_ESI,R_EDI]) then
+                                          if (Taicpu(p).oper[0].ref^.base.enum in [R_EDI]) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.base,p,hp2);
-                                          if (Taicpu(p).oper[0].ref^.index.enum in [R_ESI,R_EDI]) then
+                                          if (Taicpu(p).oper[0].ref^.index.enum in [R_EDI]) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.index,p,hp2);
                                         End
                                       Else
@@ -2058,7 +2058,12 @@ End.
 
 {
   $Log$
-  Revision 1.41  2003-02-26 13:24:59  daniel
+  Revision 1.42  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.41  2003/02/26 13:24:59  daniel
     * Disabled mov reg,0 -> xor reg,reg optimization
 
   Revision 1.40  2003/02/25 07:41:54  daniel

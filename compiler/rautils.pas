@@ -811,24 +811,9 @@ Begin
         case tvarsym(sym).owner.symtabletype of
           objectsymtable :
             begin
-              { this is not allowed, because we don't know if the self
-                register is still free, and loading it first is also
-                not possible, because this could break code }
-              { Be TP/Delphi compatible in Delphi or TP modes }
-              if (m_tp7 in aktmodeswitches) or
-                 (m_delphi in aktmodeswitches) then
-                begin
-                  opr.typ:=OPR_CONSTANT;
-                  opr.val:=tvarsym(sym).address;
-                end
-              { I do not agree here people using method vars should ensure
-                that %esi is valid there }
-              else
-                begin
-                  opr.ref.base.enum:=R_INTREGISTER;
-                  opr.ref.base.number:=NR_SELF_POINTER_REG;
-                  opr.ref.offset:=tvarsym(sym).address;
-                end;
+              { We return the address of the field, just like Delphi/TP }
+              opr.typ:=OPR_CONSTANT;
+              opr.val:=tvarsym(sym).address;
               hasvar:=true;
               SetupVar:=true;
               Exit;
@@ -1597,7 +1582,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  2003-02-19 22:00:14  daniel
+  Revision 1.54  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.53  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

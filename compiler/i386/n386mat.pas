@@ -555,7 +555,7 @@ implementation
           { load left operators in a register }
           location_copy(location,left.location);
           location_force_reg(exprasmlist,location,OS_INT,false);
-             
+
           r2.enum:=R_INTREGISTER;
           r2.number:=NR_CL;
 
@@ -784,7 +784,7 @@ implementation
               { load left operators in a register }
               location_copy(location,left.location);
               location_force_reg(exprasmlist,location,OS_INT,false);
-              
+
               r.enum:=R_INTREGISTER;
               r.number:=NR_ECX;
               r2.enum:=R_INTREGISTER;
@@ -905,7 +905,7 @@ implementation
 
 
     procedure ti386unaryminusnode.pass_2;
-    
+
     var r:Tregister;
 
 {$ifdef SUPPORT_MMX}
@@ -1054,7 +1054,9 @@ implementation
       var
          hl : tasmlabel;
          opsize : topsize;
-         r,r2:Tregister;
+{$ifdef SUPPORT_MMX}
+         r,r2 : tregister;
+{$endif SUPPORT_MMX}
       begin
          if is_boolean(resulttype.def) then
           begin
@@ -1169,7 +1171,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-03-08 20:36:41  daniel
+  Revision 1.48  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.47  2003/03/08 20:36:41  daniel
     + Added newra version of Ti386shlshrnode
     + Added interference graph construction code
 

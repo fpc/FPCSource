@@ -76,7 +76,8 @@ interface
     procedure tcgtypeconvnode.second_int_to_int;
       var
         newsize : tcgsize;
-        ressize, leftsize: cardinal;
+        ressize,
+        leftsize : longint;
       begin
         newsize:=def_cgsize(resulttype.def);
 
@@ -510,7 +511,12 @@ end.
 
 {
   $Log$
-  Revision 1.36  2003-02-19 22:00:14  daniel
+  Revision 1.37  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.36  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

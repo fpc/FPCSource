@@ -73,8 +73,6 @@ implementation
 
     procedure tcginlinenode.pass_2;
        var
-         asmop : tasmop;
-         l : longint;
          oldpushedparasize : longint;
       begin
          { save & reset pushedparasize }
@@ -456,9 +454,7 @@ implementation
 *****************************************************************************}
       procedure tcginlinenode.second_IncludeExclude;
         var
-         scratch_reg : boolean;
          hregister : tregister;
-         asmop : tasmop;
          L : longint;
          pushedregs : TMaybesave;
          cgop : topcg;
@@ -650,7 +646,12 @@ end.
 
 {
   $Log$
-  Revision 1.21  2003-02-19 22:00:14  daniel
+  Revision 1.22  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.21  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

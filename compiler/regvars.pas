@@ -274,7 +274,7 @@ implementation
 
 
     procedure store_regvar_int(asml:Taasmoutput;reg:Tsuperregister);
-    
+
     begin
       internalerror(200301104);
     end;
@@ -497,7 +497,12 @@ end.
 
 {
   $Log$
-  Revision 1.45  2003-02-19 22:00:14  daniel
+  Revision 1.46  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.45  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

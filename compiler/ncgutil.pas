@@ -56,7 +56,7 @@ interface
     procedure maybe_restore(list:taasmoutput;var l:tlocation;const s:tmaybesave);
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
-    procedure push_value_para(p:tnode;calloption:tproccalloption;
+    procedure push_value_para(list:taasmoutput;p:tnode;calloption:tproccalloption;
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
 
@@ -107,6 +107,13 @@ implementation
 {$endif GDB}
     ncon,
     tgobj,cgobj,cgcpu;
+
+
+  const
+    { Please leave this here, this module should NOT use
+      exprasmlist, the lists are always passed as arguments.
+      Declaring it as string here results in an error when compiling (PFV) }
+    exprasmlist = 'error';
 
 
 {*****************************************************************************
@@ -570,7 +577,7 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.register,r);
-              location_release(exprasmlist,l);
+              location_release(list,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -583,7 +590,7 @@ implementation
                cg64.a_load64_loc_ref(list,l,r)
               else
                cg.a_load_loc_ref(list,l,r);
-              location_release(exprasmlist,l);
+              location_release(list,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
 
@@ -616,16 +623,16 @@ implementation
 {$ifndef cpu64bit}
                  if l.size in [OS_64,OS_S64] then
                   begin
-                    tg.GetTemp(exprasmlist,8,tt_normal,s.ref);
-                    cg64.a_load64_reg_ref(exprasmlist,joinreg64(l.registerlow,l.registerhigh),s.ref);
+                    tg.GetTemp(list,8,tt_normal,s.ref);
+                    cg64.a_load64_reg_ref(list,joinreg64(l.registerlow,l.registerhigh),s.ref);
                   end
                  else
 {$endif cpu64bit}
                   begin
-                    tg.GetTemp(exprasmlist,TCGSize2Size[l.size],tt_normal,s.ref);
-                    cg.a_load_reg_ref(exprasmlist,l.size,l.register,s.ref);
+                    tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,s.ref);
+                    cg.a_load_reg_ref(list,l.size,l.register,s.ref);
                   end;
-                 location_release(exprasmlist,l);
+                 location_release(list,l);
                  s.saved:=true;
                end;
              LOC_REFERENCE,
@@ -652,10 +659,10 @@ implementation
                        reference_reset_base(l.reference,l.reference.base,0);
                      end;
                     { save base register }
-                    tg.GetTemp(exprasmlist,TCGSize2Size[OS_ADDR],tt_normal,s.ref);
-                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,l.reference.base,s.ref);
+                    tg.GetTemp(list,TCGSize2Size[OS_ADDR],tt_normal,s.ref);
+                    cg.a_load_reg_ref(list,OS_ADDR,l.reference.base,s.ref);
                     { release }
-                    location_release(exprasmlist,l);
+                    location_release(list,l);
                     s.saved:=true;
                   end;
                end;
@@ -679,26 +686,26 @@ implementation
 {$ifndef cpu64bit}
               if l.size in [OS_64,OS_S64] then
                begin
-                 l.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
-                 l.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
-                 cg64.a_load64_ref_reg(exprasmlist,s.ref,joinreg64(l.registerlow,l.registerhigh));
+                 l.registerlow:=rg.getregisterint(list,OS_INT);
+                 l.registerhigh:=rg.getregisterint(list,OS_INT);
+                 cg64.a_load64_ref_reg(list,s.ref,joinreg64(l.registerlow,l.registerhigh));
                end
               else
 {$endif cpu64bit}
                begin
-                 l.register:=rg.getregisterint(exprasmlist,OS_INT);
-                 cg.a_load_ref_reg(exprasmlist,OS_INT,s.ref,l.register);
+                 l.register:=rg.getregisterint(list,OS_INT);
+                 cg.a_load_ref_reg(list,OS_INT,s.ref,l.register);
                end;
             end;
           LOC_CREFERENCE,
           LOC_REFERENCE :
             begin
               reference_reset(l.reference);
-              l.reference.base:=rg.getaddressregister(exprasmlist);
-              cg.a_load_ref_reg(exprasmlist,OS_ADDR,s.ref,l.reference.base);
+              l.reference.base:=rg.getaddressregister(list);
+              cg.a_load_ref_reg(list,OS_ADDR,s.ref,l.reference.base);
             end;
         end;
-        tg.ungetiftemp(exprasmlist,s.ref);
+        tg.ungetiftemp(list,s.ref);
       end;
 
 
@@ -719,7 +726,7 @@ implementation
                                 Push Value Para
 *****************************************************************************}
 
-    procedure push_value_para(p:tnode;calloption:tproccalloption;
+    procedure push_value_para(list:taasmoutput;p:tnode;calloption:tproccalloption;
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
       var
@@ -737,7 +744,7 @@ implementation
 
         { Move flags and jump in register to make it less complex }
         if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
-         location_force_reg(exprasmlist,p.location,def_cgsize(p.resulttype.def),false);
+         location_force_reg(list,p.location,def_cgsize(p.resulttype.def),false);
 
         { Handle Floating point types differently }
         if p.resulttype.def.deftype=floatdef then
@@ -751,11 +758,11 @@ implementation
                   inc(pushedparasize,size);
 
                   if calloption<>pocall_inline then
-                   cg.g_stackpointer_alloc(exprasmlist,size);
+                   cg.g_stackpointer_alloc(list,size);
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) and
-                     (exprasmList.first=exprasmList.last) then
-                    exprasmList.concat(Tai_force_line.Create);
+                     (list.first=list.last) then
+                    list.concat(Tai_force_line.Create);
 {$endif GDB}
 
                   { this is the easiest case for inlined !! }
@@ -765,10 +772,10 @@ implementation
                   else
                    reference_reset_base(href,r,0);
 
-                  cg.a_loadfpu_reg_ref(exprasmlist,
+                  cg.a_loadfpu_reg_ref(list,
                     def_cgsize(p.resulttype.def),p.location.register,href);
 {$else i386}
-                  cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,locpara);
+                  cg.a_paramfpu_reg(list,def_cgsize(p.resulttype.def),p.location.register,locpara);
 {$endif i386}
 
                end;
@@ -797,16 +804,16 @@ implementation
                     if calloption=pocall_inline then
                      begin
                        reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
-                       cg.a_load_ref_ref(exprasmlist,cgsize,tempreference,href);
+                       cg.a_load_ref_ref(list,cgsize,tempreference,href);
                      end
                     else
-                     cg.a_param_ref(exprasmlist,cgsize,tempreference,locpara);
+                     cg.a_param_ref(list,cgsize,tempreference,locpara);
                   end;
                end;
              else
                internalerror(200204243);
            end;
-           location_release(exprasmlist,p.location);
+           location_release(list,p.location);
          end
         else
          begin
@@ -819,13 +826,13 @@ implementation
               { push on stack }
               size:=align(p.resulttype.def.size,alignment);
               inc(pushedparasize,size);
-              cg.g_stackpointer_alloc(exprasmlist,size);
+              cg.g_stackpointer_alloc(list,size);
               r.enum:=R_INTREGISTER;
               r.number:=NR_STACK_POINTER_REG;
               reference_reset_base(href,r,0);
-              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
+              cg.g_concatcopy(list,p.location.reference,href,size,false,false);
 {$else i386}
-              cg.a_param_copy_ref(exprasmlist,p.resulttype.def.size,p.location.reference,locpara);
+              cg.a_param_copy_ref(list,p.resulttype.def.size,p.location.reference,locpara);
 {$endif i386}
             end
            else
@@ -847,13 +854,13 @@ implementation
                           if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                             begin
                               size:=align(p.resulttype.def.size,alignment);
-                              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false)
+                              cg.g_concatcopy(list,p.location.reference,href,size,false,false)
                             end
                           else
-                            cg64.a_load64_loc_ref(exprasmlist,p.location,href);
+                            cg64.a_load64_loc_ref(list,p.location,href);
                         end
                        else
-                        cg64.a_param64_loc(exprasmlist,p.location,locpara);
+                        cg64.a_param64_loc(list,p.location,locpara);
                      end
                     else
                      begin
@@ -886,18 +893,18 @@ implementation
                           if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                             begin
                               size:=align(p.resulttype.def.size,alignment);
-                              cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false)
+                              cg.g_concatcopy(list,p.location.reference,href,size,false,false)
                             end
                           else
-                            cg.a_load_loc_ref(exprasmlist,p.location,href);
+                            cg.a_load_loc_ref(list,p.location,href);
                         end
                        else
-                        cg.a_param_loc(exprasmlist,p.location,locpara);
+                        cg.a_param_loc(list,p.location,locpara);
                        { restore old register }
                        if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                          p.location.register:=hreg;
                      end;
-                    location_release(exprasmlist,p.location);
+                    location_release(list,p.location);
                   end;
 {$ifdef SUPPORT_MMX}
                 LOC_MMXREGISTER,
@@ -907,10 +914,10 @@ implementation
                      if calloption=pocall_inline then
                        begin
                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
-                          cg.a_loadmm_reg_ref(exprasmlist,p.location.register,href);
+                          cg.a_loadmm_reg_ref(list,p.location.register,href);
                        end
                      else
-                      cg.a_parammm_reg(exprasmlist,p.location.register);
+                      cg.a_parammm_reg(list,p.location.register);
                   end;
 {$endif SUPPORT_MMX}
                 else
@@ -1302,8 +1309,6 @@ function returns in a register and the caller receives it in an other one}
         stackalloclist : taasmoutput;
         hp : tparaitem;
         paraloc : tparalocation;
-        r:Tregister;
-
       begin
         if not inlined then
            stackalloclist:=taasmoutput.Create;
@@ -1312,7 +1317,6 @@ function returns in a register and the caller receives it in an other one}
           gdb stabs information is generated AFTER the rest of this
           code, since temp. allocation might occur before - carl
         }
-
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
@@ -1327,9 +1331,9 @@ function returns in a register and the caller receives it in an other one}
           therefore if the context must be saved, do it before
           the actual call to the profile code
         }
-        if (cs_profile in aktmoduleswitches)
-         and not(po_assembler in aktprocdef.procoptions)
-         and not(inlined) then
+        if (cs_profile in aktmoduleswitches) and
+           not(po_assembler in aktprocdef.procoptions) and
+           not(inlined) then
           begin
             { non-win32 can call mcout even in main }
             if not (target_info.system in [system_i386_win32,system_i386_wdosx])  then
@@ -1340,30 +1344,11 @@ function returns in a register and the caller receives it in an other one}
               cg.g_profilecode(list);
           end;
 
-
         { a constructor needs a help procedure }
         if (aktprocdef.proctypeoption=potype_constructor) then
-          cg.g_call_constructor_helper(list);
-
-        { don't load ESI, does the caller }
-        { we must do it for local function }
-        { that can be called from a foreach_static }
-        { of another object than self !! PM }
-        if assigned(procinfo._class) and  { !!!!! shouldn't we load ESI always? }
-           (lexlevel>normal_function_level) then
-         cg.g_maybe_loadself(list);
-
-        { When message method contains self as a parameter,
-          we must load it into ESI }
-        If (po_containsself in aktprocdef.procoptions) then
-          begin
-             r.enum:=R_INTREGISTER;
-             r.number:=NR_SELF_POINTER_REG;
-             list.concat(tai_regalloc.Alloc(r));
-             reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
-             cg.a_load_ref_reg(list,OS_ADDR,href,r);
-          end;
-
+         begin
+           cg.g_call_constructor_helper(list);
+         end;
 
         if not is_void(aktprocdef.rettype.def) then
           begin
@@ -1398,7 +1383,7 @@ function returns in a register and the caller receives it in an other one}
                end;
           end;
 
-        { initialisize local data like ansistrings }
+        { initialize local data like ansistrings }
         case aktprocdef.proctypeoption of
            potype_unitinit:
              begin
@@ -1502,8 +1487,6 @@ function returns in a register and the caller receives it in an other one}
               new_exception(list,procinfo.exception_jmp_ref,
                   procinfo.exception_env_ref,
                   procinfo.exception_result_ref,1,aktexitlabel);
-              { probably we've to reload self here }
-              cg.g_maybe_loadself(list);
             end;
 
 {$ifdef GDB}
@@ -1615,13 +1598,12 @@ function returns in a register and the caller receives it in an other one}
 {$endif GDB}
         okexitlabel,
         noreraiselabel,nodestroycall : tasmlabel;
-        tmpreg : tregister;
         href : treference;
         usesacc,
         usesacchi,
         usesself,usesfpu : boolean;
         pd : tprocdef;
-        r,r2:Tregister;
+        r  : Tregister;
       begin
         if aktexit2label.is_used and
            ((procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
@@ -1694,8 +1676,7 @@ function returns in a register and the caller receives it in an other one}
                             objectlibrary.getlabel(nodestroycall);
                             reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
-                            r.enum:=R_INTREGISTER;
-                            r.number:=NR_SELF_POINTER_REG;
+                            r:=cg.g_load_self(list);
                             if is_class(procinfo._class) then
                              begin
                                cg.a_param_const(list,OS_INT,1,paramanager.getintparaloc(2));
@@ -1712,14 +1693,13 @@ function returns in a register and the caller receives it in an other one}
                             if (po_virtualmethod in pd.procoptions) then
                              begin
                                reference_reset_base(href,r,0);
-                               tmpreg:=cg.get_scratch_reg_address(list);
-                               cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
-                               reference_reset_base(href,tmpreg,procinfo._class.vmtmethodoffset(pd.extnumber));
-                               cg.free_scratch_reg(list,tmpreg);
+                               cg.a_load_ref_reg(list,OS_ADDR,href,r);
+                               reference_reset_base(href,r,procinfo._class.vmtmethodoffset(pd.extnumber));
                                cg.a_call_ref(list,href);
                              end
                             else
                              cg.a_call_name(list,pd.mangledname);
+                            rg.ungetregisterint(list,r);
                             { not necessary because the result is never assigned in the
                               case of an exception (FK) }
                             cg.a_label(list,nodestroycall);
@@ -1770,30 +1750,18 @@ function returns in a register and the caller receives it in an other one}
                 { eax must be set to zero if the allocation failed !!! }
                 objectlibrary.getlabel(okexitlabel);
                 cg.a_jmp_always(list,okexitlabel);
+                { fail }
                 cg.a_label(list,faillabel);
                 cg.g_call_fail_helper(list);
+                { return the self pointer }
                 cg.a_label(list,okexitlabel);
-
-                { for classes this is done after the call to }
-                { AfterConstruction                          }
-                if is_object(procinfo._class) then
-                  begin
-                    r.enum:=R_INTREGISTER;
-                    r.number:=NR_SELF_POINTER_REG;
-                    r2.enum:=R_INTREGISTER;
-                    r2.number:=NR_ACCUMULATOR;
-                    cg.a_reg_alloc(list,r2);
-                    cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,r,r2);
-                    usesacc:=true;
-                  end;
-{$ifdef i386}
                 r.enum:=R_INTREGISTER;
-                r.number:=NR_SELF_POINTER_REG;
-                list.concat(taicpu.op_reg_reg(A_TEST,S_L,r,r));
-{$else}
-{$warning constructor returns in flags for i386}
-{$endif i386}
-                usesself:=true;
+                r.number:=NR_ACCUMULATOR;
+                cg.a_reg_alloc(list,r);
+                reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+                cg.a_load_ref_reg(list,OS_ADDR,href,r);
+                rg.ungetregisterint(list,r);
+                usesacc:=true;
               end;
           end;
 
@@ -1891,9 +1859,10 @@ function returns in a register and the caller receives it in an other one}
                     st:='*'
                   else
                     st:='';
-                  list.concat(Tai_stabs.Create(strpnew(
+{$warning GDB self}
+                  {list.concat(Tai_stabs.Create(strpnew(
                    '"$t:r'+st+procinfo._class.numberstring+'",'+
-                   tostr(N_RSYM)+',0,0,'+tostr(stab_regindex[SELF_POINTER_REG]))));
+                   tostr(N_RSYM)+',0,0,'+tostr(stab_regindex[SELF_POINTER_REG]))));}
                 end;
 
             { define calling EBP as pseudo local var PM }
@@ -1996,7 +1965,12 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.80  2003-03-17 15:52:20  peter
+  Revision 1.81  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.80  2003/03/17 15:52:20  peter
     * fix range error
 
   Revision 1.79  2003/03/11 21:46:24  jonas

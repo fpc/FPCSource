@@ -333,8 +333,8 @@ begin
                      (Taicpu(p).opsize = S_L) and
 {                     (Taicpu(p).oper[0].reg.enum in (rg.usableregsint+[R_EDI])) and
                      (Taicpu(p).oper[1].reg.enum in (rg.usableregsint+[R_EDI])) then}
-                     (Taicpu(p).oper[0].reg.enum in ([R_ESI,R_EDI])) and
-                     (Taicpu(p).oper[1].reg.enum in ([R_ESI,R_EDI])) then
+                     (Taicpu(p).oper[0].reg.enum in ([R_EDI])) and
+                     (Taicpu(p).oper[1].reg.enum in ([R_EDI])) then
                     if switchRegs(asml,Taicpu(p).oper[0].reg,
                          Taicpu(p).oper[1].reg,p) then
                       begin
@@ -358,7 +358,12 @@ End.
 
 {
   $Log$
-  Revision 1.20  2003-02-19 22:00:16  daniel
+  Revision 1.21  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.20  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

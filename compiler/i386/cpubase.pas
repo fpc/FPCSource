@@ -517,9 +517,9 @@ uses
 {$ifdef newra}
       usableregsint = [first_imreg..last_imreg];
 {$else}
-      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
+      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI];
 {$endif}
-      c_countusableregsint = 4;
+      c_countusableregsint = 5;
 
       maxfpuregs = 8;
       fpuregs = [R_ST0..R_ST7];
@@ -537,7 +537,7 @@ uses
 
 
       firstsaveintreg = RS_EAX;
-      lastsaveintreg  = RS_EDX;
+      lastsaveintreg  = RS_ESI;
       firstsavefpureg = R_NO;
       lastsavefpureg  = R_NO;
       firstsavemmreg  = R_MM0;
@@ -604,16 +604,6 @@ uses
       {# Frame pointer register }
       frame_pointer_reg = R_EBP;
       NR_FRAME_POINTER_REG = NR_EBP;
-      {# Self pointer register : contains the instance address of an
-         object or class. }
-      self_pointer_reg  = R_ESI;
-{$ifdef newra}
-      RS_SELF_POINTER_REG  = $11;
-      NR_SELF_POINTER_REG  = $1103;
-{$else}
-      RS_SELF_POINTER_REG  = RS_ESI;
-      NR_SELF_POINTER_REG  = NR_ESI;
-{$endif}
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -824,7 +814,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-03-18 18:15:53  peter
+  Revision 1.45  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.44  2003/03/18 18:15:53  peter
     * changed reg2opsize to function
 
   Revision 1.43  2003/03/08 08:59:07  daniel

@@ -249,13 +249,11 @@ implementation
     procedure tcgmoddivnode.pass_2;
       var
          hreg1 : tregister;
-         hdenom,hnumerator : tregister;
-         shrdiv,popeax,popedx : boolean;
+         hdenom : tregister;
          power : longint;
          hl : tasmlabel;
          pushedregs : tmaybesave;
       begin
-         shrdiv := false;
          secondpass(left);
          if codegenerror then
           exit;
@@ -288,7 +286,6 @@ implementation
                  (right.nodetype=ordconstn) and
                  ispowerof2(tordconstnode(right).value,power) then
                 Begin
-                  shrdiv := true;
                   { for signed numbers, the numerator must be adjusted before the
                     shift instruction, but not wih unsigned numbers! Otherwise,
                     "Cardinal($ffffffff) div 16" overflows! (JM) }
@@ -348,7 +345,6 @@ implementation
       var
          hcountreg : tregister;
          op : topcg;
-         l1,l2,l3 : tasmlabel;
          pushedregs : tmaybesave;
          freescratch : boolean;
       begin
@@ -454,7 +450,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-02-19 22:00:14  daniel
+  Revision 1.7  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.6  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

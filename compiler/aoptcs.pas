@@ -99,9 +99,9 @@ End;
 Procedure TRegInfo.Clear;
 Begin
   RegsLoadedForRef   := [];
-  NewRegsEncountered := [ProcInfo.FramePointer, STACK_POINTER_REG];
-  OldRegsEncountered := [ProcInfo.FramePointer, STACK_POINTER_REG];
-  New2OldReg[ProcInfo.FramePointer] := ProcInfo.FramePointer;
+  NewRegsEncountered := [FRAME_POINTER_REG, STACK_POINTER_REG];
+  OldRegsEncountered := [FRAME_POINTER_REG, STACK_POINTER_REG];
+  New2OldReg[FRAME_POINTER_REG] := FRAME_POINTER_REG;
   New2OldReg[STACK_POINTER_REG] := STACK_POINTER_REG;
 End;
 
@@ -850,7 +850,12 @@ End.
 
 {
   $Log$
-  Revision 1.7  2002-05-18 13:34:05  peter
+  Revision 1.8  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.7  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.6  2002/05/16 19:46:34  carl

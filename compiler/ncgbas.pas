@@ -209,8 +209,6 @@ interface
              else
                exprasmList.concatlist(p_asm);
            end;
-         if not (nf_object_preserved in flags) then
-           cg.g_maybe_loadself(exprasmlist);
        end;
 
 
@@ -290,7 +288,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-11-27 15:33:19  peter
+  Revision 1.29  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.28  2002/11/27 15:33:19  peter
     * fixed relabeling to relabel only tasmlabel (formerly proclocal)
 
   Revision 1.27  2002/11/27 02:37:13  peter

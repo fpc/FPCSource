@@ -1643,6 +1643,7 @@ begin
   def_symbol('VALUEFREEMEM');
   def_symbol('HASCURRENCY');
   def_symbol('HASTHREADVAR');
+  def_symbol('HAS_GENERICCONSTRUCTOR');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -1898,7 +1899,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.93  2003-03-23 23:20:38  hajny
+  Revision 1.94  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.93  2003/03/23 23:20:38  hajny
     + emx target added
 
   Revision 1.92  2003/03/08 08:59:07  daniel

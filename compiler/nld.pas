@@ -446,7 +446,7 @@ implementation
                       { call by value open arrays are also indirect addressed }
                       is_open_array(tvarsym(symtableentry).vartype.def) then
                      registers32:=1;
-                   if symtable.symtabletype=withsymtable then
+                   if symtable.symtabletype in [withsymtable,objectsymtable] then
                      inc(registers32);
 
                    if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
@@ -1257,7 +1257,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-03-11 21:46:24  jonas
+  Revision 1.82  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.81  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 

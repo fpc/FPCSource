@@ -606,22 +606,13 @@ unit rgobj;
           r2.enum:=R_INTREGISTER;
           r2.number:=r;
           list.concat(tai_regalloc.alloc(r2));
-          getexplicitregisterint:=r2;
 {$ifdef TEMPREGDEBUG}
           testregisters32;
 {$endif TEMPREGDEBUG}
          end
        else
-{         getexplicitregisterint:=getregisterint(list,r and $ff);}
-{$ifndef i386}
-          // not very cleanm I know :/ The self pointer is allocated a lot
-          // more than necessary (in tcgselfnode.pass_2), but a lot of those
-          // allocations are necessary for the optimizer.
-          // The i386 doesn't care, probably because esi isn't a normal
-          // allocatable register (JM)
-          if (r <> NR_SELF_POINTER_REG) then
-{$endif i386}
-            internalerror(200301103);
+         internalerror(200301103);
+       getexplicitregisterint:=r2;
     end;
 
 
@@ -727,7 +718,9 @@ unit rgobj;
 
     procedure Trgobj.cleartempgen;
 
+   {$ifdef newra}
     var i:Tsuperregister;
+   {$endif newra}
 
     begin
       countunusedregsint:=countusableregsint;
@@ -1350,7 +1343,12 @@ end.
 
 {
   $Log$
-  Revision 1.31  2003-03-11 21:46:24  jonas
+  Revision 1.32  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.31  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 

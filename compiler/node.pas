@@ -265,9 +265,6 @@ interface
          nf_isproperty,
          nf_varstateset,
 
-         { tasmnode }
-         nf_object_preserved,   { 30th }
-
          { taddnode }
          nf_use_strconcat
        );
@@ -976,7 +973,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-03-17 16:54:41  peter
+  Revision 1.51  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.50  2003/03/17 16:54:41  peter
     * support DefaultHandler and anonymous inheritance fixed
       for message methods
 

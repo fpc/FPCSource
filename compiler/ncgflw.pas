@@ -327,9 +327,9 @@ implementation
          { first set the to value
            because the count var can be in the expression !! }
          rg.cleartempgen;
-         
+
          do_loopvar_at_end:=lnf_dont_mind_loopvar_on_exit in loopflags;
-         
+
          secondpass(right);
          { calculate pointer value and check if changeable and if so }
          { load into temporary variable                       }
@@ -384,7 +384,7 @@ implementation
                    t2.location,aktbreaklabel);
                end;
            end;
-           
+
          {If the loopvar doesn't mind on exit, we avoid this ugly
           dec instruction and do the loopvar inc/dec after the loop
           body.}
@@ -718,10 +718,10 @@ implementation
                         { get an 8-bit register }
                         allocated_acc := true;
                         cg.a_label(exprasmlist,truelabel);
-                        cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
+                        cg.a_load_const_reg(exprasmlist,OS_8,1,r);
                         cg.a_jmp_always(exprasmlist,aktexit2label);
                         cg.a_label(exprasmlist,falselabel);
-                        cg.a_load_const_reg(exprasmlist,OS_8,0,hreg);
+                        cg.a_load_const_reg(exprasmlist,OS_8,0,r);
                         goto do_jmp;
                       end;
                   end;
@@ -880,7 +880,6 @@ implementation
 
       var
          a : tasmlabel;
-         href : treference;
          href2: treference;
          r:Tregister;
       begin
@@ -974,7 +973,6 @@ implementation
          r.number:=NR_ACCUMULATOR;
          cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-         cg.g_maybe_loadself(exprasmlist);
       end;
 
 
@@ -1084,7 +1082,6 @@ implementation
               }
               cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
-              cg.g_maybe_loadself(exprasmlist);
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
@@ -1267,8 +1264,6 @@ implementation
                  aktbreaklabel:=breakonlabel;
                end;
 
-              { esi is destroyed by FPC_CATCHES }
-              cg.g_maybe_loadself(exprasmlist);
               secondpass(right);
            end;
          objectlibrary.getlabel(doobjectdestroy);
@@ -1488,7 +1483,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-02-19 22:00:14  daniel
+  Revision 1.52  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.51  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

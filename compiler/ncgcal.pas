@@ -44,11 +44,11 @@ interface
           funcretref : treference;
           refcountedtemp : treference;
           procedure handle_return_value(inlined,extended_new:boolean);
-          {# This routine is used to push the current frame pointer 
+          {# This routine is used to push the current frame pointer
              on the stack. This is used in nested routines where the
              value of the frame pointer is always pushed as an extra
              parameter.
-             
+
              The default handling is the standard handling used on
              most stack based machines, where the frame pointer is
              the first invisible parameter.
@@ -104,7 +104,7 @@ implementation
             begin
               secondpass(hightree);
               { this is a longint anyway ! }
-              push_value_para(hightree,calloption,para_offset,4,paraitem.paraloc);
+              push_value_para(exprasmlist,hightree,calloption,para_offset,4,paraitem.paraloc);
             end;
         end;
 {$endif VS_HIDDEN}
@@ -143,7 +143,7 @@ implementation
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(left,calloption,para_offset,para_alignment,paraitem.paraloc);
+               push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,paraitem.paraloc);
            end
          { filter array constructor with c styled args }
          else if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
@@ -296,7 +296,7 @@ implementation
                 end
               else
                 begin
-                   push_value_para(left,calloption,
+                   push_value_para(exprasmlist,left,calloption,
                      para_offset,para_alignment,paraitem.paraloc);
                 end;
            end;
@@ -331,12 +331,12 @@ implementation
          emit_reg(A_PUSH,S_L,r);
 {$endif i386}
       end;
-      
-      
+
+
       procedure tcgcallnode.load_framepointer;
         var href : treference;
             hregister : tregister;
-            i: integer; 
+            i: integer;
         begin
           { this routine is itself not nested }
           if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
@@ -349,7 +349,7 @@ implementation
             begin
               cg.a_param_reg(exprasmlist,OS_ADDR,procinfo.framepointer,paramanager.getintparaloc(1));
             end
-          { very complex nesting level ... }  
+          { very complex nesting level ... }
           else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
             begin
               hregister:=rg.getaddressregister(exprasmlist);
@@ -364,7 +364,7 @@ implementation
               rg.ungetaddressregister(exprasmlist,hregister);
             end;
         end;
-      
+
 
 
 
@@ -403,24 +403,11 @@ implementation
               orddef :
                 begin
                   cgsize:=def_cgsize(resulttype.def);
-                  { an object constructor is a function with boolean result }
+
+                  { an object constructor is a function with pointer result }
                   if (inlined or (right=nil)) and
                      (procdefinition.proctypeoption=potype_constructor) then
-                   begin
-{$ifdef x86}
-                     if extended_new then
-                      cgsize:=OS_INT
-                     else
-                      begin
-                        cgsize:=OS_NO;
-                        { this fails if popsize > 0 PM }
-                        location_reset(location,LOC_FLAGS,OS_NO);
-                        location.resflags:=F_NE;
-                      end;
-{$else x86}
-                     cgsize:=OS_INT
-{$endif x86}
-                   end;
+                    cgsize:=OS_ADDR;
 
                   if cgsize<>OS_NO then
                    begin
@@ -1130,7 +1117,6 @@ implementation
                           Internalerror(200006165);
                      end;
                 end;
-{$endif dummy}
 
                 { call to BeforeDestruction? }
                 if (procdefinition.proctypeoption=potype_destructor) and
@@ -1150,6 +1136,8 @@ implementation
                      cg.a_call_ref(exprasmlist,href);
                      cg.free_scratch_reg(exprasmlist,tmpreg);
                   end;
+{$endif dummy}
+
 {$ifndef SPARC}{We don't need that on SPARC arch!}
               { push base pointer ?}
               { never when inlining, since if necessary, the base pointer }
@@ -1364,6 +1352,7 @@ implementation
               cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,faillabel);
            end;
 
+{$ifdef dummy}
          { call to AfterConstruction? }
          if is_class(resulttype.def) and
            (inlined or
@@ -1389,6 +1378,7 @@ implementation
               cg.a_label(exprasmlist,constructorfailed);
               cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,r,r2);
            end;
+{$endif dummy}
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1413,9 +1403,6 @@ implementation
          rg.restoreusedotherregisters(exprasmlist,pushed);
          rg.restoreusedintregisters(exprasmlist,pushedint);
 
-         { at last, restore instance pointer (SELF) }
-         if loadesi then
-           cg.g_maybe_loadself(exprasmlist);
          pp:=tbinarynode(params);
          while assigned(pp) do
            begin
@@ -1666,7 +1653,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-03-06 11:35:50  daniel
+  Revision 1.41  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.40  2003/03/06 11:35:50  daniel
     * Fixed internalerror 7843 issue
 
   Revision 1.39  2003/02/19 22:00:14  daniel

@@ -76,6 +76,9 @@ unit cgbase;
           framepointer_offset : longint;
           {# offset from frame pointer to get self reference }
           selfpointer_offset : longint;
+          {# offset from frame pointer to get vmt reference (constructors only) }
+          inheritedflag_offset,
+          vmtpointer_offset  : longint;
           {# result value offset in stack (functions only) }
           return_offset : longint;
           {# firsttemp position }
@@ -373,11 +376,14 @@ implementation
         procdef:=nil;
         framepointer_offset:=0;
         selfpointer_offset:=0;
+        vmtpointer_offset:=0;
+        inheritedflag_offset:=0;
         return_offset:=0;
         firsttemp_offset:=0;
         para_offset:=0;
         flags:=0;
         framepointer.enum:=R_NO;
+        framepointer.number:=NR_NO;
         globalsymbol:=false;
         exported:=false;
         no_fast_exit:=false;
@@ -651,7 +657,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-03-20 17:51:45  peter
+  Revision 1.38  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.37  2003/03/20 17:51:45  peter
     * dynamic arrays have size OS_ADDR
 
   Revision 1.36  2003/01/08 18:43:56  daniel

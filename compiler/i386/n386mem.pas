@@ -77,8 +77,6 @@ implementation
 *****************************************************************************}
 
     procedure ti386derefnode.pass_2;
-      var
-        oldglobalswitches : tglobalswitches;
       begin
          inherited pass_2;
          if tpointerdef(left.resulttype.def).is_far then
@@ -156,7 +154,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-02-19 22:00:15  daniel
+  Revision 1.51  2003-03-28 19:16:57  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.50  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

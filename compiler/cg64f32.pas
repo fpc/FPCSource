@@ -138,7 +138,6 @@ unit cg64f32;
 
     procedure tcg64f32.a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);
       var
-        tmpvalue : DWord;
         tmpref: treference;
       begin
         if target_info.endian = endian_big then
@@ -752,7 +751,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-02-19 22:00:14  daniel
+  Revision 1.36  2003-03-28 19:16:56  peter
+    * generic constructor working for i386
+    * remove fixed self register
+    * esi added as address register for i386
+
+  Revision 1.35  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
