@@ -320,13 +320,33 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
 
 
 {$ifndef FPC_SYSTEM_HAS_ABS}
-    function fpc_abs_real(d : Real) : Real; compilerproc;
+
+{$ifdef SUPPORT_DOUBLE}
+
+    function abs(d : Double) : Double;[public,alias:'FPC_ABS_REAL'];
     begin
        if (d<0.0) then
-         fpc_abs_real := -d
+         abs := -d
       else
-         fpc_abs_real := d ;
+         abs := d ;
     end;
+
+{$else}
+
+    function abs(d : Real) : Real;[public,alias:'FPC_ABS_REAL'];
+    begin
+       if (d<0.0) then
+         abs := -d
+      else
+         abs := d ;
+    end;
+
+{$endif}
+    
+{$ifdef hascompilerproc}
+    function fpc_abs_real(d:Real):Real;compilerproc; external name 'FPC_ABS_REAL';
+{$endif hascompilerproc}
+
 {$endif not FPC_SYSTEM_HAS_ABS}
 
 
@@ -1164,7 +1184,11 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.17  2004-01-02 17:19:04  jonas
+  Revision 1.18  2004-01-06 21:34:07  peter
+    * abs(double) added
+    * abs() alias
+
+  Revision 1.17  2004/01/02 17:19:04  jonas
     * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
     + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
       defined
