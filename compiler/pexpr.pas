@@ -572,12 +572,9 @@ unit pexpr;
                           message(parser_e_no_paras_allowed);
                         { subscribed access? }
                         if p1=nil then
-                          begin
-                             p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),st);
-                          end
+                          p1:=genloadnode(pvarsym(ppropertysym(sym)^.writeaccesssym),st)
                         else
-                          p1:=gensubscriptnode(pvarsym(
-                            ppropertysym(sym)^.readaccesssym),p1);
+                          p1:=gensubscriptnode(pvarsym(ppropertysym(sym)^.writeaccesssym),p1);
                         consume(ASSIGNMENT);
                         { read the expression }
                         p2:=comp_expr(true);
@@ -607,19 +604,14 @@ unit pexpr;
                           message(parser_e_no_paras_allowed);
                         { subscribed access? }
                         if p1=nil then
-                          begin
-                             p1:=genloadnode(pvarsym(
-                              ppropertysym(sym)^.readaccesssym),st);
-                          end
+                          p1:=genloadnode(pvarsym(ppropertysym(sym)^.readaccesssym),st)
                         else
-                          p1:=gensubscriptnode(pvarsym(
-                            ppropertysym(sym)^.readaccesssym),p1);
+                          p1:=gensubscriptnode(pvarsym(ppropertysym(sym)^.readaccesssym),p1);
                      end
                    else if ppropertysym(sym)^.readaccesssym^.typ=procsym then
                      begin
                         { generate the method call }
-                        p1:=genmethodcallnode(pprocsym(
-                          ppropertysym(sym)^.readaccesssym),st,p1);
+                        p1:=genmethodcallnode(pprocsym(ppropertysym(sym)^.readaccesssym),st,p1);
                         { we know the procedure to call, so
                           force the usage of that procedure }
                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
@@ -1973,7 +1965,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.92  1999-04-08 20:59:43  florian
+  Revision 1.93  1999-04-15 09:00:08  peter
+    * fixed property write
+
+  Revision 1.92  1999/04/08 20:59:43  florian
     * fixed problem with default properties which are a class
     * case bug (from the mailing list with -O2) fixed, the
       distance of the case labels can be greater than the positive
