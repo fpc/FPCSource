@@ -66,6 +66,7 @@ unit cg64f32;
         procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
 
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);override;
         procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);override;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
@@ -402,6 +403,20 @@ unit cg64f32;
         tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,tempreg,reg);
+        cg.free_scratch_reg(list,tempreg.reglo);
+        cg.free_scratch_reg(list,tempreg.reghi);
+      end;
+
+
+    procedure tcg64f32.a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);override;
+      var
+        tempreg: tregister64;
+      begin
+        tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
+        tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
+        a_load64_ref_reg(list,ref,tempreg);
+        a_op64_reg_reg(list,op,reg,tempreg);
+        a_load64_reg_ref(list,tempreg,ref);
         cg.free_scratch_reg(list,tempreg.reglo);
         cg.free_scratch_reg(list,tempreg.reghi);
       end;
@@ -751,7 +766,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-03-28 19:16:56  peter
+  Revision 1.37  2003-04-07 08:45:09  jonas
+    + generic a_op64_reg_ref implementation
+
+  Revision 1.36  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386
