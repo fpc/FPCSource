@@ -48,7 +48,6 @@ Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_
 }
 var
   ret  : longint;
-  errn : cint;
   fdis : array[0..1] of cint;
 begin
  fdis[0]:=pipe_in;
@@ -62,7 +61,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:22  peter
+  Revision 1.3  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.2  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.1  2005/02/13 21:47:56  peter

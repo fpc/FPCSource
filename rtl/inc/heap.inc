@@ -962,7 +962,7 @@ end;
 
 function SysGetMem_Var(size: ptrint): pointer;
 var
-  pcurr, pcurr_tmp : pmemchunk_var;
+  pcurr : pmemchunk_var;
 {$ifdef BESTMATCH}
   pbest : pmemchunk_var;
 {$endif}
@@ -1201,9 +1201,7 @@ function SysTryResizeMem(var p: pointer; size: ptrint): boolean;
 var
   pcurrsize,
   oldsize,
-  currsize,
-  sizeleft : ptrint;
-  pnew,
+  currsize : ptrint;
   pcurr : pmemchunk_var;
 begin
   { fix p to point to the heaprecord }
@@ -1354,7 +1352,11 @@ end;
 
 {
   $Log$
-  Revision 1.49  2005-03-21 16:31:33  peter
+  Revision 1.50  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.49  2005/03/21 16:31:33  peter
     * fix crash under win32 with previous reallocmem fix
 
   Revision 1.48  2005/03/20 18:57:29  peter

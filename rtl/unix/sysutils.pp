@@ -237,7 +237,6 @@ end;
 Function FileAge (Const FileName : String): Longint;
 
 Var Info : Stat;
-    Y,M,D,hh,mm,ss : word;
 
 begin
   If  fpstat (FileName,Info)<0 then
@@ -893,7 +892,6 @@ end;
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   pid    : longint;
-  err    : longint;
   e      : EOSError;
   CommandLine: AnsiString;
   cmdline2 : ppchar;
@@ -960,7 +958,6 @@ function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiStri
 
 var
   pid    : longint;
-  err    : longint;
   e : EOSError;
 
 Begin
@@ -1106,7 +1103,11 @@ end.
 {
 
   $Log$
-  Revision 1.58  2005-02-26 14:38:14  florian
+  Revision 1.59  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.58  2005/02/26 14:38:14  florian
     + SysLocale
 
   Revision 1.57  2005/02/14 17:13:31  peter

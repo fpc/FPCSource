@@ -742,8 +742,10 @@ procedure CheckPointer(p : pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$end
 var
   i  : ptrint;
   pp : pheap_mem_info;
+{$ifdef go32v2}
   get_ebp,stack_top : longword;
   data_end : longword;
+{$endif go32v2}
 label
   _exit;
 begin
@@ -1193,7 +1195,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2005-03-10 20:36:31  florian
+  Revision 1.43  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.42  2005/03/10 20:36:31  florian
     * fixed pointer checking for win32, thx to Martin Schreiber for the patch
 
   Revision 1.41  2005/03/04 16:49:34  peter

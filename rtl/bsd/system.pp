@@ -85,9 +85,6 @@ var
  execpathstr : shortstring;
 
 function paramstr(l: longint) : string;
- var
-  s: string;
-  s1: string;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
@@ -268,7 +265,11 @@ End.
 
 {
   $Log$
-  Revision 1.25  2005-02-14 17:13:21  peter
+  Revision 1.26  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.25  2005/02/14 17:13:21  peter
     * truncate log
 
   Revision 1.24  2005/02/13 21:47:56  peter

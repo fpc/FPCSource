@@ -1435,7 +1435,7 @@ end;
 
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  Result:=Result+ANumberOfMinutes / MinsPerDay;
+  Result:=AValue+ANumberOfMinutes / MinsPerDay;
 end;
 
 
@@ -1637,7 +1637,7 @@ Procedure DecodeDateMonthWeek(const AValue: TDateTime; var AYear, AMonth, AWeekO
 
 Var
   D,SDOM,EDOM : Word;
-  SOM,EOM : TdateTime;
+  SOM : TdateTime;
   DOM : Integer;
 begin
   DecodeDate(AValue,AYear,AMonth,D);
@@ -2022,7 +2022,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2005-02-14 17:13:31  peter
+  Revision 1.12  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.11  2005/02/14 17:13:31  peter
     * truncate log
 
 }

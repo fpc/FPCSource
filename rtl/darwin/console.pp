@@ -1853,13 +1853,13 @@ end;
 function KEYCHAR(c:longint):longint;
 
 begin
-  c:=c and $FF;
+  keychar:=c and $FF;
 end;
 
 function KEYFLAGS(c:longint):longint;
 
 begin
-  c:=c and NOT $FF;
+  keyflags:=c and NOT $FF;
 end;
 
 function kbio_F(x:longint):longint;

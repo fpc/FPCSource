@@ -836,7 +836,6 @@ function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint)
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
 
 var p   : ppchar;
-    Res,
     i   : LongInt;
 begin
   if High(s)<Low(s) Then Exit(NIL);
@@ -871,12 +870,10 @@ var
   i,nr  : longint;
   Buf : ^char;
   p   : ppchar;
-  InQuote : Boolean;
 
 begin
   buf:=s;
   nr:=1;
-  InQuote:=false;
   while (buf^<>#0) do                   // count nr of args
    begin
      while (buf^ in [' ',#9,#10]) do    // Kill separators.
@@ -1051,7 +1048,11 @@ end;
 
 {
   $Log$
-  Revision 1.77  2005-02-14 17:13:29  peter
+  Revision 1.78  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.77  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.76  2005/02/08 20:25:28  florian

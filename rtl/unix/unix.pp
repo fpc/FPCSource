@@ -227,7 +227,8 @@ Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
 
 { Most calls of WaitPID do not handle the result correctly, this funktion treats errors more correctly }
 Function  WaitProcess(Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
-var     ret,r,s     : cint;
+var
+  r,s     : cint;
 begin
   s:=$7F00;
 
@@ -257,8 +258,6 @@ function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPa
 Var
   NewCmd  : ansistring;
   ThePath : AnsiString;
-  Error   : cint;
-  NrParam : longint;
 
 Begin
   If SearchPath and (pos('/',pathname)=0) Then
@@ -749,7 +748,9 @@ var
   pipo : text;
   pid  : pid_t;
   pl   : ^cint;
+{$ifndef FPC_USE_FPEXEC}
   pp   : ppchar;
+{$endif not FPC_USE_FPEXEC}
   ret  : cint;
 begin
   rw:=upcase(rw);
@@ -830,8 +831,10 @@ var
   pipo : file;
   pid  : cint;
   pl   : ^cint;
+{$ifndef FPC_USE_FPEXEC}
   p,pp : ppchar;
   temp : string[255];
+{$endif not FPC_USE_FPEXEC}
   ret  : cint;
 begin
   rw:=upcase(rw);
@@ -1217,7 +1220,11 @@ End.
 
 {
   $Log$
-  Revision 1.84  2005-02-14 17:13:31  peter
+  Revision 1.85  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.84  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.83  2005/02/13 21:47:56  peter

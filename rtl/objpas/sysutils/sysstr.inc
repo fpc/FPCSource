@@ -566,7 +566,8 @@ end ;
 
 
 function AnsiExtractQuotedStr(var  Src: PChar; Quote: Char): string;
-var i: integer; P, Q,R: PChar;
+var
+  P,Q,R: PChar;
 begin
  P := Src;
  Q := StrEnd(P);
@@ -577,7 +578,6 @@ begin
 
  setlength(result,(Q-P)+1);
  R:=@Result[1];
- i := 0;
  while P <> Q do
    begin
      R^:=P^;
@@ -956,8 +956,6 @@ Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Var
   E,P : Integer;
   S : String;
-  C : Currency;
-  Ext : Extended;
 
 Begin
   S:=StrPas(Buffer);
@@ -1786,7 +1784,6 @@ End;
 Function FormatFloat(Const format: String; Value: Extended): String;
 
 Var
-  Temp: ShortString;
   buf : Array[0..1024] of char;
 
 Begin
@@ -2097,7 +2094,11 @@ const
 
 {
   $Log$
-  Revision 1.34  2005-03-13 14:30:24  marco
+  Revision 1.35  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.34  2005/03/13 14:30:24  marco
    * some 1.0.x fixes
 
   Revision 1.33  2005/03/12 14:56:22  florian

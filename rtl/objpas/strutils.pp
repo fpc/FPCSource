@@ -343,7 +343,7 @@ end;
 
 Function ReverseString(const AText: string): string;
 
-var c: char;
+var 
     i,j:longint;
 
 begin
@@ -1679,7 +1679,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:31  peter
+  Revision 1.15  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.14  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.13  2005/02/03 21:38:17  marco

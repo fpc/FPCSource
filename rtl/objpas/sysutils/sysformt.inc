@@ -119,8 +119,10 @@ var Code: word;
 {$endif}
     end;
 
+{$ifdef INWIDEFORMAT}
   var
     FormatChar : TFormatChar;
+{$endif INWIDEFORMAT}
 
   begin
 {$ifdef fmtdebug}

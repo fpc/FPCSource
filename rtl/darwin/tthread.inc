@@ -125,7 +125,6 @@ end;
 function ThreadFunc(parameter: Pointer): LongInt;
 var
   LThread: TThread;
-  c: char;
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);
@@ -287,7 +286,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-03-01 20:38:49  jonas
+  Revision 1.7  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.6  2005/03/01 20:38:49  jonas
     * fixed web bug 3387: if one called resume right after creating a
       suspended thread, it was possible that resume was executed before
       that thread had completed its initialisation in BeginThread ->

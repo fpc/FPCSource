@@ -582,6 +582,7 @@ var
       P := P + 1;
       end ;
    token:=#255;
+   lastformattoken:=' ';
    while FormatCurrent < FormatEnd do 
      begin
       Token := UpCase(FormatCurrent^);
@@ -754,7 +755,11 @@ end;
 
 {
   $Log$
-  Revision 1.8  2005-03-17 15:21:10  marco
+  Revision 1.9  2005-03-25 22:53:39  jonas
+    * fixed several warnings and notes about unused variables (mainly) or
+      uninitialised use of variables/function results (a few)
+
+  Revision 1.8  2005/03/17 15:21:10  marco
    * fixed incmonths default param. Thnks nldelphi
 
   Revision 1.7  2005/03/10 19:48:27  florian
