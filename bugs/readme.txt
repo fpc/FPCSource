@@ -66,6 +66,7 @@ Fixed bugs:
                  (already fixed ) but also for SET_IN_BYTE
   bug0047.pp    compiling with -So crashes the compiler              OK 0.99.1 (CEC)
   bug0049.pp    shows an error while defining subrange types         OK 0.99.7 (PFV)
+  bug0050.pp   can't set a function result in a nested procedure of a function OK 0.99.7 (PM)
   bug0053.pp    shows a problem with open arrays                     OK 0.99.1 (FK)
                 (crashes a win95-DOS box :) )
   bug0054.pp    wordbool and longbool types are missed               OK 0.99.6 (PFV)
@@ -114,6 +115,7 @@ Fixed bugs:
   bug0088.pp   internal error 12 or Runerror 216                     OK 0.99.1 (FK)
   bug0089.pp   internal error 12 or Runerror 216                     OK 0.99.1 (FK)
   bug0090.pp   shows PChar comparison problem                        OK 0.99.7 (PFV)
+  bug0091.pp   missing standard functions in constant expressions    OK 0.99.7 (PFV)
   bug0092.pp   The unfixable bug. Maybe we find a solution one day.  OK 0.99.6 (FK)
   bug0093.pp   Two Cardinal type bugs                                0K 0.99.1 (FK/MvC)
   bug0094.pp   internal error when recordtype not found with case    OK 0.99.1
@@ -200,8 +202,6 @@ bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
              because it's doomed to crash
 bug0155.pp   Asm, Missing string return for asm functions
 
-bug0050.pp   can't set a function result in a nested procedure of a function
-bug0091.pp   missing standard functions in constant expressions
 bug0127.pp   problem with cdecl in implementation part
 bug0132.pp   segmentation fault with type loop
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
