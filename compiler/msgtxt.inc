@@ -825,15 +825,15 @@ const msgtxt : array[0..000148,1..240] of char=(
   '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
   '3*1T<x>_Target operating system:'#010+
-  '3*2TEMX_OS/2 via EMX (inc','luding EMX/RSX extender)'#010+
-  '3*2TGO32V2_Version 2 of DJ Delorie DOS extender'#010+
-  '3*2TWATCOM_Watcom compatible DOS extender'#010+
-  '3*2TLINUX_Linux'#010+
-  '3*2TNETWARE_Novell Netware Module (clib)'#010+
-  '3*2TOS2_OS/2 / eComStation'#010+
-  '3*2TSUNOS_SunOS/Solaris'#010+
-  '3*2TWDOSX_WDOSX D','OS extender'#010+
-  '3*2TWIN32_Windows 32 Bit'#010+
+  '3*2Temx_OS/2 via EMX (inc','luding EMX/RSX extender)'#010+
+  '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
+  '3*2Tlinux_Linux'#010+
+  '3*2Tnetware_Novell Netware Module (clib)'#010+
+  '3*2Tos2_OS/2 / eComStation'#010+
+  '3*2Tsunos_SunOS/Solaris'#010+
+  '3*2Twatcom_Watcom compatible DOS extender'#010+
+  '3*2Twdosx_WDOSX D','OS extender'#010+
+  '3*2Twin32_Windows 32 Bit'#010+
   '3*1W<x>_Win32-like target options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
@@ -857,14 +857,14 @@ const msgtxt : array[0..000148,1..240] of char=(
   '6*1R<x>_assembler reading style:'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
-  '6*2TAMIGA_Commodore Amiga'#010+
-  '6*2TATARI_Atari ST/STe/TT'#010+
-  '6*2TMACOS_','Macintosh m68k'#010+
-  '6*2TLINUX_Linux-68k'#010+
-  '6*2TPALMOS_PalmOS'#010+
+  '6*2Tamiga_Commodore Amiga'#010+
+  '6*2Tatari_Atari ST/STe/TT'#010+
+  '6*2Tlinux_','Linux-68k'#010+
+  '6*2Tmacos_Macintosh m68k'#010+
+  '6*2Tpalmos_PalmOS'#010+
   'P*1T<x>_Target operating system:'#010+
-  'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
+  'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
   '**1h_shows this help without waiting'#000

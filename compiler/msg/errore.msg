@@ -2185,15 +2185,15 @@ option_help_pages=11025_[
 3*3Op2_set target processor to Pentium/PentiumMMX (tm)
 3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
 3*1T<x>_Target operating system:
-3*2TEMX_OS/2 via EMX (including EMX/RSX extender)
-3*2TGO32V2_Version 2 of DJ Delorie DOS extender
-3*2TWATCOM_Watcom compatible DOS extender
-3*2TLINUX_Linux
-3*2TNETWARE_Novell Netware Module (clib)
-3*2TOS2_OS/2 / eComStation
-3*2TSUNOS_SunOS/Solaris
-3*2TWDOSX_WDOSX DOS extender
-3*2TWIN32_Windows 32 Bit
+3*2Temx_OS/2 via EMX (including EMX/RSX extender)
+3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Tlinux_Linux
+3*2Tnetware_Novell Netware Module (clib)
+3*2Tos2_OS/2 / eComStation
+3*2Tsunos_SunOS/Solaris
+3*2Twatcom_Watcom compatible DOS extender
+3*2Twdosx_WDOSX DOS extender
+3*2Twin32_Windows 32 Bit
 3*1W<x>_Win32-like target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
@@ -2217,14 +2217,14 @@ option_help_pages=11025_[
 6*1R<x>_assembler reading style:
 6*2RMOT_read motorola style assembler
 6*1T<x>_Target operating system:
-6*2TAMIGA_Commodore Amiga
-6*2TATARI_Atari ST/STe/TT
-6*2TMACOS_Macintosh m68k
-6*2TLINUX_Linux-68k
-6*2TPALMOS_PalmOS
+6*2Tamiga_Commodore Amiga
+6*2Tatari_Atari ST/STe/TT
+6*2Tlinux_Linux-68k
+6*2Tmacos_Macintosh m68k
+6*2Tpalmos_PalmOS
 P*1T<x>_Target operating system:
-P*2Tmacos_MacOS (classic) on PowerPC
 P*2Tlinux_Linux on PowerPC
+P*2Tmacos_MacOS (classic) on PowerPC
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting
