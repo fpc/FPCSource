@@ -254,7 +254,6 @@ begin
 { Local Label, Label, Directive, Prefix or Opcode }
   if firsttoken and not (c in [newline,#13,'{',';']) then
    begin
-     firsttoken:=FALSE;
      len:=0;
      while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
       begin
@@ -282,6 +281,8 @@ begin
      { an at-sign...?                             }
      if forcelabel then
       Message(asmr_e_none_label_contain_at);
+     { we're not the first token anymore }
+     firsttoken:=FALSE;
      { opcode ? }
      If is_asmopcode(actasmpattern) then
       Begin
@@ -656,7 +657,7 @@ Begin
 end;
 
 
-Procedure BuildConstSymbolExpression(needofs:boolean;var value:longint;var asmsym:string);
+Procedure BuildConstSymbolExpression(needofs,exitreg:boolean;var value:longint;var asmsym:string);
 var
   tempstr,expr,hs : string;
   parenlevel,l,k : longint;
@@ -710,11 +711,15 @@ Begin
       AS_STAR:
         Begin
           Consume(AS_STAR);
+          if exitreg and (actasmtoken=AS_REGISTER) then
+           break;
           expr:=expr + '*';
         end;
       AS_PLUS:
         Begin
           Consume(AS_PLUS);
+          if exitreg and (actasmtoken=AS_REGISTER) then
+           break;
           expr:=expr + '+';
         end;
       AS_MINUS:
@@ -823,6 +828,7 @@ Begin
               end;
            end;
         end;
+      AS_END,
       AS_RBRACKET,
       AS_SEPARATOR,
       AS_COMMA:
@@ -856,10 +862,22 @@ var
   l : longint;
   hs : string;
 begin
-  BuildConstSymbolExpression(false,l,hs);
+  BuildConstSymbolExpression(false,false,l,hs);
   if hs<>'' then
    Message(asmr_e_relocatable_symbol_not_allowed);
   BuildConstExpression:=l;
+end;
+
+
+Function BuildRefConstExpression:longint;
+var
+  l : longint;
+  hs : string;
+begin
+  BuildConstSymbolExpression(false,true,l,hs);
+  if hs<>'' then
+   Message(asmr_e_relocatable_symbol_not_allowed);
+  BuildRefConstExpression:=l;
 end;
 
 
@@ -885,10 +903,12 @@ var
   code : integer;
   hreg,
   oldbase : tregister;
+  GotStar,
   GotPlus,Negative : boolean;
 Begin
   Consume(AS_LBRACKET);
   InitRef;
+  GotStar:=false;
   GotPlus:=true;
   Negative:=false;
   repeat
@@ -900,10 +920,14 @@ Begin
             Message(asmr_e_invalid_reference_syntax);
           if actasmpattern[1] = '@' then
            Message(asmr_e_local_symbol_not_allowed_as_ref);
+          GotStar:=false;
+          GotPlus:=false;
           if SearchIConstant(actasmpattern,l) then
            begin
-             l:=BuildConstExpression;
-             if actasmtoken=AS_STAR then
+             l:=BuildRefConstExpression;
+             GotPlus:=(prevasmtoken=AS_PLUS);
+             GotStar:=(prevasmtoken=AS_STAR);
+             if GotStar then
               opr.ref.scalefactor:=l
              else
               begin
@@ -943,7 +967,6 @@ Begin
               end;
              Consume(AS_ID);
            end;
-          GotPlus:=false;
         end;
 
       AS_PLUS :
@@ -951,6 +974,7 @@ Begin
           Consume(AS_PLUS);
           Negative:=false;
           GotPlus:=true;
+          GotStar:=false;
         end;
 
       AS_MINUS :
@@ -958,9 +982,10 @@ Begin
           Consume(AS_MINUS);
           Negative:=true;
           GotPlus:=true;
+          GotStar:=false;
         end;
 
-      AS_STAR : { Scaling }
+      AS_STAR : { Scaling, with eax*4 order }
         begin
           Consume(AS_STAR);
           hs:='';
@@ -988,16 +1013,21 @@ Begin
              opr.ref.scalefactor:=l
            end;
           GotPlus:=false;
+          GotStar:=false;
         end;
 
       AS_REGISTER :
         begin
-          if (not GotPlus) and (actasmtoken<>AS_STAR) then
+          if (not GotPlus) and (not GotStar) then
             Message(asmr_e_invalid_reference_syntax);
           hreg:=actasmregister;
           Consume(AS_REGISTER);
-          { this register will be the index }
-          if (actasmtoken=AS_STAR) or
+          { this register will be the index:
+             1. just read a *
+             2. next token is a *
+             3. base register is already used }
+          if (GotStar) or
+             (actasmtoken=AS_STAR) or
              (opr.ref.base<>R_NO) then
            begin
              if (opr.ref.index<>R_NO) then
@@ -1007,6 +1037,7 @@ Begin
           else
            opr.ref.base:=hreg;
           GotPlus:=false;
+          GotStar:=false;
         end;
 
       AS_NOT,
@@ -1015,8 +1046,10 @@ Begin
         begin
           if not GotPlus then
             Message(asmr_e_invalid_reference_syntax);
-          l:=BuildConstExpression;
-          if actasmtoken=AS_STAR then
+          l:=BuildRefConstExpression;
+          GotPlus:=(prevasmtoken=AS_PLUS);
+          GotStar:=(prevasmtoken=AS_STAR);
+          if GotStar then
            opr.ref.scalefactor:=l
           else
            begin
@@ -1025,7 +1058,6 @@ Begin
              else
                Inc(opr.ref.offset,l);
            end;
-          GotPlus:=false;
         end;
 
       AS_RBRACKET :
@@ -1052,7 +1084,7 @@ var
   l : longint;
   tempstr : string;
 begin
-  BuildConstSymbolExpression(true,l,tempstr);
+  BuildConstSymbolExpression(true,false,l,tempstr);
   if tempstr<>'' then
    begin
      opr.typ:=OPR_SYMBOL;
@@ -1140,7 +1172,7 @@ Begin
               CreateLocalLabel(actasmpattern,hl,false);
               Consume(AS_ID);
               AddLabelOperand(hl);
-              if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+              if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                Message(asmr_e_syntax_error);
             end;
          end
@@ -1169,7 +1201,7 @@ Begin
              begin
                Consume(AS_ID);
                AddLabelOperand(hl);
-               if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+               if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                 Message(asmr_e_syntax_error);
              end
             else
@@ -1249,6 +1281,7 @@ Begin
       end;
 
     AS_SEPARATOR,
+    AS_END,
     AS_COMMA: ;
 
     else
@@ -1440,6 +1473,7 @@ Begin
           Case actasmtoken of
             AS_COMMA:
               Consume(AS_COMMA);
+            AS_END,
             AS_SEPARATOR: ;
             else
               Message(asmr_e_invalid_string_expression);
@@ -1453,7 +1487,7 @@ Begin
       AS_INTNUM,
       AS_ID :
         Begin
-          BuildConstSymbolExpression(false,value,asmsym);
+          BuildConstSymbolExpression(false,false,value,asmsym);
           if asmsym<>'' then
            begin
              if maxvalue<>$ffffffff then
@@ -1465,6 +1499,7 @@ Begin
         end;
       AS_COMMA:
         Consume(AS_COMMA);
+      AS_END,
       AS_SEPARATOR:
         break;
       else
@@ -1605,7 +1640,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  1999-06-01 19:56:37  peter
+  Revision 1.37  1999-06-08 11:52:00  peter
+    * fixed some intel bugs with scale parsing
+    * end is now also a separator in many more cases
+
+  Revision 1.36  1999/06/01 19:56:37  peter
     * fixed llabel with delete the first @
 
   Revision 1.35  1999/05/27 19:44:59  peter

@@ -932,6 +932,7 @@ Begin
               end;
            end;
         end;
+      AS_END,
       AS_SEPARATOR,
       AS_COMMA:
         Begin
@@ -996,7 +997,7 @@ Procedure T386ATTOperand.BuildReference;
     else
      begin
        Consume(AS_RPAREN);
-       if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
+       if not (actasmtoken in [AS_COMMA,AS_SEPARATOR,AS_END]) then
         Begin
           Message(asmr_e_invalid_reference_syntax);
           RecoverConsume(true);
@@ -1193,6 +1194,7 @@ Procedure T386ATTOperand.BuildOperand;
             Message(asmr_e_invalid_reference_syntax);
           Consume(actasmtoken);
           case actasmtoken of
+            AS_END,
             AS_SEPARATOR,
             AS_COMMA: ;
             AS_LPAREN: BuildReference;
@@ -1369,7 +1371,7 @@ Begin
             end;
          end
         { Simple register  }
-        else if (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+        else if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
          Begin
            if not (opr.typ in [OPR_NONE,OPR_REGISTER]) then
              Message(asmr_e_invalid_operand_type);
@@ -1380,6 +1382,7 @@ Begin
         else
          Message(asmr_e_syn_operand);
       end;
+    AS_END,
     AS_SEPARATOR,
     AS_COMMA: ;
   else
@@ -1517,6 +1520,7 @@ Begin
           Consume(AS_STRING);
           Case actasmtoken of
             AS_COMMA: Consume(AS_COMMA);
+            AS_END,
             AS_SEPARATOR: ;
           else
             Message(asmr_e_invalid_string_expression);
@@ -1542,6 +1546,7 @@ Begin
         end;
       AS_COMMA:
         Consume(AS_COMMA);
+      AS_END,
       AS_SEPARATOR:
         break;
       else
@@ -1612,6 +1617,7 @@ Begin
         begin
           Consume(AS_COMMA);
         end;
+      AS_END,
       AS_SEPARATOR:
         begin
           break;
@@ -1648,6 +1654,7 @@ Begin
         begin
           Consume(AS_COMMA);
         end;
+      AS_END,
       AS_SEPARATOR:
         begin
           break;
@@ -1882,7 +1889,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  1999-06-03 16:28:03  pierre
+  Revision 1.50  1999-06-08 11:51:58  peter
+    * fixed some intel bugs with scale parsing
+    * end is now also a separator in many more cases
+
+  Revision 1.49  1999/06/03 16:28:03  pierre
    * typo corrected
 
   Revision 1.48  1999/05/27 19:44:56  peter
