@@ -510,7 +510,7 @@ implementation
 uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
-  cpubase,
+  cpubase,ra386,
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
@@ -877,7 +877,11 @@ var
 begin
 {$ifdef I386}
   if index <= ord(lastop) - ord(firstop) then
+{$ifdef ver1_0}
     GetAsmReservedWord:=att_op2str[tasmop(Index+ord(firstop))]
+{$else}
+    GetAsmReservedWord:=std_op2str[tasmop(Index+ord(firstop))]
+{$endif}
   else
     begin
       index:=index - (ord(lastop) - ord(firstop) );
@@ -4204,7 +4208,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2002-04-02 11:17:40  pierre
+  Revision 1.14  2002-04-16 18:12:35  carl
+  + compilation problems bugfixes
+
+  Revision 1.13  2002/04/02 11:17:40  pierre
    * Use new SetWidth method for GDB window
 
   Revision 1.12  2002/01/09 09:48:00  pierre
