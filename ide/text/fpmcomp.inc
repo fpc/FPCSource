@@ -66,6 +66,18 @@ begin
     end;
 end;
 
+procedure TIDEApp.UpdateMode;
+var ModeMenu : PMenuItem;
+begin
+  ModeMenu:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmSwitchesMode);
+  if assigned(ModeMenu) then
+    begin
+      If assigned(ModeMenu^.Param) then
+        DisposeStr(ModeMenu^.Param);
+      ModeMenu^.Param:=NewStr(KillTilde(SwitchesModeName[SwitchesMode]));
+    end;
+end;
+
 procedure TIDEApp.DoPrimaryFile;
 var
   D : PFileDialog;
@@ -116,7 +128,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-01-10 14:59:08  pierre
+  Revision 1.8  2000-03-07 21:45:33  pierre
+   + TIDEApp.UpdateMode
+
+  Revision 1.7  2000/01/10 14:59:08  pierre
    * force recompiling if we change target OS
 
   Revision 1.6  1999/06/25 00:37:56  pierre
