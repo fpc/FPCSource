@@ -24,7 +24,7 @@ begin
   if ObjectTree=nil then
      begin ErrorBox('No debug info available.',nil); Exit; end;
 
-  OpenSymbolBrowser(0,0,'Objects','Global scope',nil,nil,nil,ObjectTree,nil);
+  OpenSymbolBrowser(0,0,'Objects','Global scope',nil,nil,nil,nil,ObjectTree,nil);
 end;
 
 procedure TIDEApp.Globals;
@@ -71,7 +71,7 @@ begin
     WarningBox('Too many symbols. Can''t display all of them.',nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
   Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: Globals',SearchFreeWindowNo,nil,'Global scope',S,nil,nil,nil)));
+    'Browse: Globals',SearchFreeWindowNo,nil,'Global scope','',S,nil,nil,nil)));
 end;
 
 procedure TIDEApp.Modules;
@@ -92,7 +92,7 @@ begin
   New(S, Init(500,500));
   ModulesCollection:=S;
   BrowCol.Modules^.ForEach(@InsertInS);
-  OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil,nil,nil);
+  OpenSymbolBrowser(0,0,'Units','Global scope',nil,nil,S,nil,nil,nil);
 end;
 
 function SymbolDialog(S : string) : PDialog;
@@ -137,7 +137,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-07-28 23:11:21  peter
+  Revision 1.12  2000-03-07 21:57:01  pierre
+   * adapted to change of OpenSymbolBrowser
+
+  Revision 1.11  1999/07/28 23:11:21  peter
     * fixes from gabor
 
   Revision 1.10  1999/06/29 12:49:55  pierre
