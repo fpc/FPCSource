@@ -215,12 +215,16 @@ implementation
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
               { open array must always push the address, this is needed to
-                also push addr of small arrays (PFV) }
-
-              if ((assigned(defcoll^.paratype.def) and
-                  is_open_array(defcoll^.paratype.def)) or
-                 push_addr_param(p^.resulttype)) and
-                 not is_cdecl then
+                also push addr of small open arrays and with cdecl functions (PFV) }
+              if (
+                  assigned(defcoll^.paratype.def) and
+                  (is_open_array(defcoll^.paratype.def) or
+                   is_array_of_const(defcoll^.paratype.def))
+                 ) or
+                 (
+                  push_addr_param(p^.resulttype) and
+                  not is_cdecl
+                 ) then
                 begin
                    maybe_push_high;
                    inc(pushedparasize,4);
@@ -1351,7 +1355,7 @@ implementation
                    if (p^.resulttype^.needs_inittable) and
                      ( (p^.resulttype^.deftype<>objectdef) or
                        not(pobjectdef(p^.resulttype)^.is_class)) then
-                      finalize(p^.resulttype,p^.location.reference,ret_in_param(p^.resulttype));
+                      finalize(p^.resulttype,p^.location.reference,false);
                    { release unused temp }
                    ungetiftemp(p^.location.reference)
                 end
@@ -1584,7 +1588,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-08-03 14:27:04  jonas
+  Revision 1.8  2000-09-10 20:18:06  peter
+    * fixed open array with cdecl
+    * fixed finalize call with unused function return
+
+  Revision 1.7  2000/08/03 14:27:04  jonas
     * save/reset/restore regvar info around inlined code
 
   Revision 1.5  2000/07/27 13:03:35  jonas
