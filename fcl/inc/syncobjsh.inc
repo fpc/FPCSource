@@ -20,20 +20,48 @@ type
    end;
 
    TCriticalSection = class(TSyncroObject)
+{$ifdef win32}
    private
       CriticalSection : TRTLCriticalSection;
+{$endif win32}
    public
       procedure Acquire;override;
       procedure Release;override;
       procedure Enter;
       procedure Leave;
       constructor Create;
-      destructor Destroy;
+      destructor Destroy;override;
+   end;
+
+   THandleObject = class(TSyncroObject)
+   protected
+      FHandle : TEventHandle;
+      FLastError : Integer;
+   public
+      destructor destroy;override;
+      property Handle : TEventHandle read FHandle;
+      property LastError : Integer read FLastError;
+   end;
+
+   TEventObject = class(THandleObject)
+   public
+      constructor Create(EventAttributes : PSecurityAttributes;
+        ManualReset,InitialState : Boolean;const Name : string);
+      procedure ResetEvent;
+      procedure SetEvent;
+      function WaitFor(Timeout : Cardinal) : TWaitResult;
+   end;
+
+   TSimpleEvent = class(TEventObject)
+      constructor Create;
    end;
 
 {
   $Log$
-  Revision 1.1  1998-09-29 11:14:25  florian
+  Revision 1.2  1998-09-30 13:41:05  florian
+    * fixes to make it compilable
+
+  Revision 1.1  1998/09/29 11:14:25  florian
     + initial revision
 
 }

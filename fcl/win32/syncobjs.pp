@@ -12,22 +12,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
 unit syncobjs;
 
   interface
 
     uses
-       sysutils;
+       windows,sysutils;
 
-    {$syncobjsh.inc}
+    type
+      PSecurityAttributes = Windows.PSecurityAttributes;
+      TSecurityAttributes = Windows.TSecurityAttributes;
+      TEventHandle = THandle;
+
+    {$I syncobjsh.inc}
 
   implementation
 
-     uses
-        windows;
-
-    {$syncobjs.inc}
+    {$I syncobjs.inc}
 
     procedure TCriticalSection.Acquire;
 
@@ -55,11 +56,45 @@ unit syncobjs;
          inherited Destroy;
       end;
 
+    destructor THandleObject.destroy;
+
+      begin
+      end;
+
+    constructor TEvent.Create(EventAttributes : PSecurityAttributes;
+      ManualReset,InitialState : Boolean;const Name : string);
+
+      begin
+      end;
+
+    procedure TEvent.ResetEvent;
+
+      begin
+      end;
+
+    procedure TEvent.SetEvent;
+
+      begin
+      end;
+
+    function TEvent.WaitFor(Timeout : Cardinal) : TWaitResult;
+
+      begin
+      end;
+
+    constructor TSimpleEvent.Create;
+
+      begin
+      end;
+
 end.
 
 {
   $Log$
-  Revision 1.1  1998-09-29 11:15:24  florian
+  Revision 1.2  1998-09-30 13:41:06  florian
+    * fixes to make it compilable
+
+  Revision 1.1  1998/09/29 11:15:24  florian
     + initial revision
 
 }

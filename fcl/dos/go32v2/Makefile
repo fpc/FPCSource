@@ -38,8 +38,8 @@ MKDIR=mkdir
 .SUFFIXES: .pp .ppu .pas
 .PHONY: all install clean units progs
 
-INCDIR=../inc
-CPUDIR=../$(CPU)
+INCDIR=../../inc
+CPUDIR=../../$(CPU)
 
 include $(INCDIR)/Makefile.inc
 
