@@ -83,9 +83,47 @@ begin
   OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil,nil,nil);
 end;
 
+function SymbolDialog(Info: pointer): PDialog;
+var D: PDialog;
+    R,R1,R2: TRect;
+    IL: PInputLine;
+begin
+  R.Assign(0,0,40,7);
+  New(D, Init(R, 'Browse Symbol'));
+  with D^ do
+  begin
+    Options:=Options or ofCentered;
+    GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+1;
+    R1.Copy(R); R1.B.X:=27; R2.Copy(R); R2.A.X:=27;
+    New(IL, Init(R2,5));
+    Insert(IL);
+    Insert(New(PLabel, Init(R1, 'Enter S~y~mbol to browse', IL)));
+    GetExtent(R); R.Grow(-8,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
+    Insert(New(PButton, Init(R, '~O~K', cmOK, bfDefault)));
+    R.Move(15,0);
+    Insert(New(PButton, Init(R, '~C~ancel', cmCancel, bfNormal)));
+  end;
+  IL^.Select;
+  SymbolDialog:=D;
+end;
+
+procedure TIDEApp.SearchSymbol;
+Var S : String;
+  EditorWindow: PSourceWindow;
+begin
+  EditorWindow:=FirstEditorWindow;
+  If assigned(EditorWindow) then
+    S:=LowerCaseStr(GetEditorCurWord(EditorWindow));
+  if ExecuteDialog(SymbolDialog,@S)<>cmCancel then
+    OpenOneSymbolBrowser(S);
+end;
+                                                                                                                                                                                                                                                               
 {
   $Log$
-  Revision 1.6  1999-04-07 21:55:51  peter
+  Revision 1.7  1999-06-25 00:34:50  pierre
+   + SearchSymbol function
+
+  Revision 1.6  1999/04/07 21:55:51  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
