@@ -71,6 +71,7 @@ Type
   Private
     FTableColumns : TTableColumns;
     FBorder : Boolean;
+    Procedure SetTableColumns(Value : TTableColumns);
   Protected
     Procedure BindColumns;
     Procedure CreateTableColumns; Virtual;
@@ -91,6 +92,7 @@ Type
     Procedure CreateContent; override;
   Published
     Property Border : Boolean Read FBorder Write FBorder;
+    Property TableColumns : TTableColumns Read FTableColumns Write SetTableColumns;
   end;
   
   TComboBoxProducer = Class(THTMLProducer)
@@ -338,6 +340,12 @@ begin
   CreateTable;
 end;
 
+Procedure TTableProducer.SetTableColumns(Value : TTableColumns);
+
+begin
+  FTableColumns.Assign(Value);
+end;
+
 
 { TComboBoxProducer }
 
@@ -496,7 +504,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2003-10-03 08:42:22  michael
+  Revision 1.4  2003-10-03 22:43:17  michael
+  + Published tablecolumns property in tableproducer
+
+  Revision 1.3  2003/10/03 08:42:22  michael
   + Form support.
 
   Revision 1.2  2003/10/01 21:07:48  michael
