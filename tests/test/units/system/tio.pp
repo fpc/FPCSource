@@ -8,31 +8,31 @@
 {   do_seek()                                             }
 {   do_truncate()                                         }
 
-{ This routine overwrites/creates a filename called test.dat }
+{ This routine overwrites/creates a filename called test.tmp }
 { fills it up with values, checks its file size, reads the   }
 { data back in,                                              }
 
 Program tio;
 
 const
-  FILE_NAME = 'test.dat';
-  FILE_NAME2 = 'test1.dat';
+  FILE_NAME = 'test.tmp';
+  FILE_NAME2 = 'test1.tmp';
   DATA_SIZE = 17;
 
-  DATA: array[1..DATA_SIZE] of byte =
+  DATA: array[1..tmpA_SIZE] of byte =
   ($01,$02,$03,$04,$05,$06,$07,$08,
    $09,$A,$B,$C,$D,$E,$F,$10,
    $11
   );
- 
-  
+
+
 
 {$I+}
 var
  F: File;
  I: Integer;
  b: byte;
- readData : array[1..DATA_SIZE] of byte;
+ readData : array[1..tmpA_SIZE] of byte;
  BytesRead, BytesWritten : word;
 Begin
   {------------------------ create and play with a new file --------------------------}
@@ -96,14 +96,17 @@ Begin
   Close(F);
   Assign(F,FILE_NAME2);
   WriteLn('renaming file...');
-  ReName(F,'test3.dat');
+  ReName(F,'test3.tmp');
   WriteLn('erasing file....');
   Erase(F);
 end.
 
 {
  $Log$
- Revision 1.1  2001-07-14 04:25:00  carl
+ Revision 1.2  2001-07-30 22:09:34  peter
+   * use .tmp as extension so it gets cleaned
+
+ Revision 1.1  2001/07/14 04:25:00  carl
  system unit testing : basic I/O
 
 }
