@@ -2476,7 +2476,7 @@ implementation
       begin
         { the label is always a global label }
         if not assigned(lab) then
-         lab:=objectlibrary.newasmsymboltype(mangledname,AB_GLOBAL,AT_DATA);
+         lab:=objectlibrary.newasmsymboldata(mangledname);
         get_label:=lab;
       end;
 
@@ -2508,7 +2508,7 @@ implementation
            if (cs_create_smart in aktmoduleswitches) then
             rttiList.concat(Tai_cut.Create);
            rttilist.concat(tai_align.create(const_align(pointer_size)));
-           rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
+           rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
          end;
@@ -2547,7 +2547,7 @@ implementation
            if (cs_create_smart in aktmoduleswitches) then
             rttiList.concat(Tai_cut.Create);
            rttilist.concat(tai_align.create(const_align(pointer_size)));
-           rttiList.concat(Tai_symbol.Create(rsym.get_label,0));
+           rttiList.concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(initrtti);
            rttiList.concat(Tai_symbol_end.Create(rsym.get_label));
          end;
@@ -2558,7 +2558,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-05-09 17:47:03  peter
+  Revision 1.103  2003-05-12 18:13:57  peter
+    * create rtti label using newasmsymboldata and update binding
+      only when calling tai_symbol.create
+    * tai_symbol.create_global added
+
+  Revision 1.102  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

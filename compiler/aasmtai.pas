@@ -189,8 +189,6 @@ interface
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
           procedure derefimpl;virtual;
-          { helper for checking symbol redefines }
-          procedure checkredefinesym(sym:tasmsymbol);
        end;
 
        { abstract assembler item with line information }
@@ -226,6 +224,7 @@ interface
           sym       : tasmsymbol;
           size      : longint;
           constructor Create(_sym:tasmsymbol;siz:longint);
+          constructor Create_Global(_sym:tasmsymbol;siz:longint);
           constructor Createname(const _name : string;siz:longint);
           constructor Createname_global(const _name : string;siz:longint);
           constructor Createdataname(const _name : string;siz:longint);
@@ -569,18 +568,6 @@ uses
       end;
 
 
-    procedure tai.checkredefinesym(sym:tasmsymbol);
-      begin
-{        if assigned(sym.taiowner) and
-            (target_asm.id in binassem) then
-         begin
-           Message1(asmw_e_redefined_label,sym.name);
-         end
-        else
-         sym.taiowner:=self;}
-      end;
-
-
 {****************************************************************************
                               TAILINEINFO
  ****************************************************************************}
@@ -642,7 +629,6 @@ uses
          inherited Create;
          typ:=ait_datablock;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
-{         checkredefinesym(sym);}
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -656,7 +642,6 @@ uses
          inherited Create;
          typ:=ait_datablock;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
-{         checkredefinesym(sym);}
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -698,9 +683,19 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=_sym;
-{         checkredefinesym(sym);}
          size:=siz;
-         is_global:=(sym.defbind=AB_GLOBAL);
+         sym.defbind:=AB_LOCAL;
+         is_global:=false;
+      end;
+
+    constructor tai_symbol.Create_global(_sym:tasmsymbol;siz:longint);
+      begin
+         inherited Create;
+         typ:=ait_symbol;
+         sym:=_sym;
+         size:=siz;
+         sym.defbind:=AB_GLOBAL;
+         is_global:=true;
       end;
 
     constructor tai_symbol.Createname(const _name : string;siz:longint);
@@ -708,7 +703,6 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
-{         checkredefinesym(sym);}
          size:=siz;
          is_global:=false;
       end;
@@ -718,7 +712,6 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
-{         checkredefinesym(sym);}
          size:=siz;
          is_global:=true;
       end;
@@ -728,7 +721,6 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_LOCAL,AT_DATA);
-{         checkredefinesym(sym);}
          size:=siz;
          is_global:=false;
       end;
@@ -738,7 +730,6 @@ uses
          inherited Create;
          typ:=ait_symbol;
          sym:=objectlibrary.newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
-{         checkredefinesym(sym);}
          size:=siz;
          is_global:=true;
       end;
@@ -1142,7 +1133,6 @@ uses
         inherited Create;
         typ:=ait_label;
         l:=_l;
-{        checkredefinesym(l);}
         l.is_set:=true;
         is_global:=(l.defbind=AB_GLOBAL);
       end;
@@ -1826,7 +1816,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.27  2003-04-25 20:59:33  peter
+  Revision 1.28  2003-05-12 18:13:57  peter
+    * create rtti label using newasmsymboldata and update binding
+      only when calling tai_symbol.create
+    * tai_symbol.create_global added
+
+  Revision 1.27  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
