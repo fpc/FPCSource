@@ -1846,8 +1846,8 @@ Begin
   SetLineStyle(SolidLn, 0, NormWidth);
 
   { routines are relative here...}
-  for J:=0 to ViewHeight do
-       HLine(0, ViewWidth, J);
+  for J:=0 to ViewHeight - 1 do
+       HLine(0, ViewWidth - 1, J);
 
   { restore old settings...}
   SetLineStyle(LineSets.LineStyle, LineSets.Pattern, LineSets.Thickness);
@@ -3006,7 +3006,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2000-03-17 13:28:54  sg
+  Revision 1.60  2000-03-18 10:45:07  sg
+  * Fix for ClearViewportDefault: The width and the height of the rectangle
+    it filled has been one pixel too high.
+
+  Revision 1.59  2000/03/17 13:28:54  sg
   * Use linux unit under Linux
 
   Revision 1.58  2000/03/08 14:20:14  jonas
