@@ -313,15 +313,6 @@ begin
       Result := I;
 end;
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-var
-  LocalSyncException: Exception;
-begin
-  if SynchronizeMethodProc = nil then
-    { raise some error? }
-    exit;
-  rtleventsync(trtlmethod(method),synchronizemethodproc);
-end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
@@ -330,7 +321,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  2005-02-14 17:13:30  peter
+  Revision 1.13  2005-02-25 21:41:09  florian
+    * generic tthread.synchronize
+    * delphi compatible wakemainthread
+
+  Revision 1.12  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.11  2005/02/06 11:20:52  peter

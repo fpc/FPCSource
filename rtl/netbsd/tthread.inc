@@ -243,16 +243,6 @@ begin
 end;
 
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-  FSynchronizeException := nil;
-  FMethod := Method;
-{  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
-  if Assigned(FSynchronizeException) then
-    raise FSynchronizeException;
-end;
-
-
 procedure TThread.SetSuspended(Value: Boolean);
 begin
   if Value <> FSuspended then
@@ -593,10 +583,6 @@ begin
       Result := I;
 end;
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-{$TODO someone with more clue of the GUI stuff will have to do this}
-end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
@@ -606,7 +592,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:30  peter
+  Revision 1.4  2005-02-25 21:41:09  florian
+    * generic tthread.synchronize
+    * delphi compatible wakemainthread
+
+  Revision 1.3  2005/02/14 17:13:30  peter
     * truncate log
 
 }

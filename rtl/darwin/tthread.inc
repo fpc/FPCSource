@@ -279,10 +279,6 @@ begin
       Result := I;
 end;
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-{$TODO someone with more clue of the GUI stuff will have to do this}
-end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
@@ -291,7 +287,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:22  peter
+  Revision 1.5  2005-02-25 21:41:09  florian
+    * generic tthread.synchronize
+    * delphi compatible wakemainthread
+
+  Revision 1.4  2005/02/14 17:13:22  peter
     * truncate log
 
 }

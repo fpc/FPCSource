@@ -217,19 +217,6 @@ begin
   ThreadSetPriority(FHandle, Priorities[Value]);
 end;
 
-{does not make sense for netware}
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-(*
-  FSynchronizeException := nil;
-  FMethod := Method;
-{  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
-  {$warning Synchronize needs implementation}
-  if Assigned(FSynchronizeException) then
-    raise FSynchronizeException;
-*)
-end;
-
 
 procedure TThread.SetSuspended(Value: Boolean);
 begin
@@ -271,7 +258,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:30  peter
+  Revision 1.5  2005-02-25 21:41:09  florian
+    * generic tthread.synchronize
+    * delphi compatible wakemainthread
+
+  Revision 1.4  2005/02/14 17:13:30  peter
     * truncate log
 
 }

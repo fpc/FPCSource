@@ -243,16 +243,6 @@ begin
 end;
 
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-  FSynchronizeException := nil;
-  FMethod := Method;
-{  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
-  if Assigned(FSynchronizeException) then
-    raise FSynchronizeException;
-end;
-
-
 procedure TThread.SetSuspended(Value: Boolean);
 begin
   if Value <> FSuspended then
@@ -593,28 +583,6 @@ begin
       Result := I;
 end;
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-var
-  LocalSyncException: Exception;
-begin
-  if SynchronizeMethodProc = nil then
-    { raise some error? }
-    exit;
-  rtleventsync(trtlmethod(method),synchronizemethodproc);
-{
-  EnterCriticalSection(SynchronizeCritSect);
-  SynchronizeMethod := Method;
-  SynchronizeException := nil;
-  SynchronizeMethodProc;
-  // wait infinitely
-  RtlEventWaitFor(ExecuteEvent);
-  SynchronizeMethod := nil;
-  LocalSyncException := SynchronizeException;
-  LeaveCriticalSection(SynchronizeCritSect);
-  if LocalSyncException <> nil then
-    raise LocalSyncException;
-}
-end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
@@ -624,7 +592,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:22  peter
+  Revision 1.14  2005-02-25 21:41:09  florian
+    * generic tthread.synchronize
+    * delphi compatible wakemainthread
+
+  Revision 1.13  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.12  2005/02/06 12:16:52  peter

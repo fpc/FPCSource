@@ -156,11 +156,6 @@ begin
 end;
 
 
-procedure TThread.Synchronize(Method: TThreadMethod);
-begin
-end;
-
-
 function ThreadProc(Args: pointer): Integer; cdecl;
 var
   FreeThread: Boolean;
@@ -241,7 +236,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  2005-02-14 17:13:31  peter
+  Revision 1.6  2005-02-25 21:41:09  florian
+    * generic tthread.synchronize
+    * delphi compatible wakemainthread
+
+  Revision 1.5  2005/02/14 17:13:31  peter
     * truncate log
 
 }
