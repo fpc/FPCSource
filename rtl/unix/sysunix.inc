@@ -328,7 +328,6 @@ Procedure Do_Open(var f;p:pchar;flags:longint);
 }
 var
   oflags : longint;
-  dirtest : stat;
 Begin
 { close first if opened }
   if ((flags and $10000)=0) then
@@ -748,7 +747,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2001-04-12 17:53:43  peter
+  Revision 1.9  2001-04-13 22:39:05  peter
+    * removed warning
+
+  Revision 1.8  2001/04/12 17:53:43  peter
     * fixed usage of already release memory in getdir
 
   Revision 1.7  2001/03/21 21:08:20  hajny
