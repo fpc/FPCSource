@@ -257,7 +257,8 @@ implementation
           begin
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
             { add begin and end of the list }
-            ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));
+            ltvTable.insert(tai_symbol.Createname_global(s,AT_DATA,0));            
+            ltvTable.insert(Tai_align.Create(const_align(32)));
             ltvTable.concat(tai_const.create_sym(nil));  { end of list marker }
             ltvTable.concat(tai_symbol_end.createname(s));
             maybe_new_object_file(dataSegment);
@@ -1519,7 +1520,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2004-11-04 23:59:13  peter
+  Revision 1.172  2004-11-05 20:04:49  florian
+    * THREADVARLIST is now aligned
+
+  Revision 1.171  2004/11/04 23:59:13  peter
   use filepos of main when generating the module stabs
 
   Revision 1.170  2004/11/04 17:09:54  peter
