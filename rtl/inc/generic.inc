@@ -926,23 +926,19 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
   begin
      if n=0 then
        HandleErrorFrame(200,get_frame);
-     if n<0 then
+     nq:=abs(n);
+
+     if z<0 then
        begin
-          nq:=-n;
+          zq:=dword(-z);
           signed:=true;
        end
      else
        begin
-          signed:=false;
-          nq:=n;
+         zq:=z;
+         signed:=false;
        end;
-     if z<0 then
-       begin
-          zq:=dword(-z);
-          signed:=not(signed);
-       end
-     else
-       zq:=z;
+
      r:=zq mod nq;
      if signed then
        result:=-longint(r)
@@ -1245,7 +1241,10 @@ end;
 
 {
   $Log$
-  Revision 1.85  2004-11-02 08:50:40  florian
+  Revision 1.86  2004-11-06 13:36:42  florian
+    * fixed software longint mod operation
+
+  Revision 1.85  2004/11/02 08:50:40  florian
     * changed maxlongint to high(sizeint)
 
   Revision 1.83  2004/10/24 20:01:41  peter
