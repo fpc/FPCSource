@@ -50,7 +50,11 @@ Type
   NameStr = String[FileNameLen];
   ExtStr  = String[FileNameLen];
 
-  SearchRec = packed Record
+  SearchRec =
+{$ifndef ARM}
+    packed
+{$endif ARM}
+    Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
     SearchNum  : LongInt;     {to track which search this is}
     SearchPos  : LongInt;     {directory position}
@@ -484,7 +488,7 @@ begin
   if (st.st_mode and STAT_IWUSR)=0 then
    info.fmode:=info.fmode or 1;
   if s[f.NamePos+1]='.' then
-   info.fmode:=info.fmode or $2;   
+   info.fmode:=info.fmode or $2;
 
   If ((Info.FMode and Not(f.searchattr))=0) Then
    Begin
@@ -710,7 +714,7 @@ Begin
   if fpAccess(strpas(@textrec(f).name),W_OK)<0 then
    Attr:=Attr or $1;
   if filerec(f).name[0]='.' then
-   Attr:=Attr or $2;   
+   Attr:=Attr or $2;
 end;
 
 Procedure getftime (var f; var time : longint);
@@ -902,7 +906,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  2003-12-29 21:15:04  jonas
+  Revision 1.23  2004-01-31 16:15:14  florian
+    * packing of searchrec for arm fixed
+
+  Revision 1.22  2003/12/29 21:15:04  jonas
     * fixed setftime (sorry Marco :)
 
   Revision 1.21  2003/12/03 20:17:03  olle
