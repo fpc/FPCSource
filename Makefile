@@ -664,7 +664,7 @@ ifndef ECHOREDIR
 ECHOREDIR:=$(subst /,$(PATHSEP),$(ECHO))
 endif
 ifndef COPY
-COPY:=$(CPPROG) -fp
+COPY:=-$(CPPROG) -fp
 endif
 ifndef COPYTREE
 COPYTREE:=$(CPPROG) -rfp
