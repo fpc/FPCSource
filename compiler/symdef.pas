@@ -1769,19 +1769,19 @@ implementation
                 begin
                   { low }
                   rttiList.concat(Tai_const.Create_32bit($0));
-                  rttiList.concat(Tai_const.Create_32bit($80000000));
+                  rttiList.concat(Tai_const.Create_32bit(longint($80000000)));
                   { high }
-                  rttiList.concat(Tai_const.Create_32bit($ffffffff));
+                  rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
                   rttiList.concat(Tai_const.Create_32bit($7fffffff));
                 end
               else
                 begin
                   { low }
-                  rttiList.concat(Tai_const.Create_32bit($80000000));
+                  rttiList.concat(Tai_const.Create_32bit(longint($80000000)));
                   rttiList.concat(Tai_const.Create_32bit($0));
                   { high }
                   rttiList.concat(Tai_const.Create_32bit($7fffffff));
-                  rttiList.concat(Tai_const.Create_32bit($ffffffff));
+                  rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
                 end;
             end;
           u64bit :
@@ -1792,8 +1792,8 @@ implementation
               rttiList.concat(Tai_const.Create_32bit($0));
               rttiList.concat(Tai_const.Create_32bit($0));
               { high }
-              rttiList.concat(Tai_const.Create_32bit($ffffffff));
-              rttiList.concat(Tai_const.Create_32bit($ffffffff));
+              rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
+              rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
             end;
           bool8bit:
             begin
@@ -5517,7 +5517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2002-11-15 16:29:09  peter
+  Revision 1.104  2002-11-16 19:53:18  carl
+    * avoid Range check errors
+
+  Revision 1.103  2002/11/15 16:29:09  peter
     * fixed rtti for int64 (merged)
 
   Revision 1.102  2002/11/15 01:58:54  peter
