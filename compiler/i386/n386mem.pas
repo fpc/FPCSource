@@ -90,6 +90,7 @@ implementation
      procedure ti386vecnode.update_reference_reg_mul(reg:tregister;l:aword);
        var
          l2 : integer;
+         hreg : tregister;
        begin
          { Optimized for x86 to use the index register and scalefactor }
          if location.reference.index=NR_NO then
@@ -107,9 +108,10 @@ implementation
           end
          else
           begin
-            cg.ungetregister(exprasmlist,location.reference.base);
-            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
-            reference_reset_base(location.reference,location.reference.index,0);
+            cg.ungetreference(exprasmlist,location.reference);
+            hreg := cg.getaddressregister(exprasmlist);
+            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
+            reference_reset_base(location.reference,hreg,0);
           end;
          { insert the new index register and scalefactor or
            do the multiplication manual }
@@ -142,7 +144,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-10-10 17:48:14  peter
+  Revision 1.59  2003-10-21 15:13:27  peter
+    * fix vecnode code that caused to much register conflicts
+
+  Revision 1.58  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
