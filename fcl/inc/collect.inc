@@ -174,7 +174,7 @@ procedure TCollection.RemoveItem(Item: TCollectionItem);
 
 begin
   FItems.Remove(Pointer(Item));
-  Item.Collection:=Nil;
+  Item.FCollection:=Nil;
   Changed;
 end;
 
@@ -341,7 +341,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-04-13 12:46:15  michael
+  Revision 1.6  1999-04-17 08:04:55  michael
+  + RemoveItem now sets FCollection, to avoid a loop.
+
+  Revision 1.5  1999/04/13 12:46:15  michael
   + Some bug fixes by Romio
 
   Revision 1.4  1999/04/05 09:56:04  michael
