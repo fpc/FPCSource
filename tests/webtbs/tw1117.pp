@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$asmmode intel}
 var
   l1,l2 : longint;

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 program test;
 
 {$ASMMODE Intel }

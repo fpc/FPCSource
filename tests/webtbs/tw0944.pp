@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$ifdef TP}
 {$N+}
 {$endif TP}

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Source provided for Free Pascal Bug Report 1066 }
 { Submitted by "Fernando Oscar Schmitt" on  2000-07-24 }
 { e-mail: pulp@cpovo.net }

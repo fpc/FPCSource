@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$mode objfpc}
 uses sysutils;
 {$asmmode intel}

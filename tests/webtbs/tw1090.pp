@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$asmmode intel}
 const
   Number = $7FFFFFF;

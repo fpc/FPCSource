@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { FPC behaves interestingly once encountered virtual method
  declared as
   procedure TWhateverObject.Method1; assembler; asm ... end;

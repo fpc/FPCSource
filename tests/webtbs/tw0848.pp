@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$ASMMODE INTEL}
 
 PROCEDURE a;

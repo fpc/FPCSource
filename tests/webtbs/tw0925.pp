@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$asmmode intel}
 
 {$ifdef go32v2}

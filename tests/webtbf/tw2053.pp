@@ -1,3 +1,4 @@
+{ %FAIL }
 { Source provided for Free Pascal Bug Report 2053 }
 { Submitted by "Luis Castedo" on  2002-07-24 }
 { e-mail: castedo@elai.upm.es }
@@ -38,7 +39,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2002-09-27 21:09:56  carl
+   Revision 1.2  2002-10-09 16:56:46  carl
+     * some cpu specific tests not run under other CPU's
+
+   Revision 1.1  2002/09/27 21:09:56  carl
      + new bug report
 
 }

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$ifdef FPC}
 {$ASMMODE INTEL}
 {$INLINE ON}

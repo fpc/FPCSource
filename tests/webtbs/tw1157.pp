@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Source provided for Free Pascal Bug Report 1157 }
 { Submitted by "Colin Goldie" on  2000-10-06 }
 { e-mail: Colin_G@Positek.com.au }
