@@ -2035,6 +2035,9 @@ implementation
       var
          hp,hpp  : tnode;
          shiftconst: longint;
+         tempnode: ttempcreatenode;
+         newstatement: tstatementnode;
+         newblock: tblocknode;
 
       begin
          result:=nil;
@@ -2160,6 +2163,7 @@ implementation
                   ) then
                  { convert to simple add (JM) }
                  begin
+                   newblock := internalstatements(newstatement);
                    { extra parameter? }
                    if assigned(tcallparanode(left).right) then
                      begin
@@ -2172,18 +2176,37 @@ implementation
                    else
                      { no, create constant 1 }
                      hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
+                   { make sure we don't call functions part of the left node twice (and generally }
+                   { optimize the code generation)                                                }
+                   if (tcallparanode(left).left.nodetype <> loadn) or
+                      (vo_is_thread_var in tvarsym(tloadnode(tcallparanode(left).left).symtableentry).varoptions) then
+                     begin
+                       tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
+                       addstatement(newstatement,tempnode);
+                       addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                         caddrnode.create(tcallparanode(left).left.getcopy)));
+                       hp := cderefnode.create(ctemprefnode.create(tempnode));
+                       inserttypeconv_explicit(hp,tcallparanode(left).left.resulttype);
+                     end
+                   else
+                     begin
+                       hp := tcallparanode(left).left.getcopy;
+                       tempnode := nil;
+                     end;
                    { addition/substraction depending on inc/dec }
                    if inlinenumber = in_inc_x then
-                     hp := caddnode.create(addn,tcallparanode(left).left.getcopy,hpp)
+                     hpp := caddnode.create(addn,hp,hpp)
                    else
-                     hp := caddnode.create(subn,tcallparanode(left).left.getcopy,hpp);
+                     hpp := caddnode.create(subn,hp,hpp);
                    { assign result of addition }
-                   hpp := cassignmentnode.create(tcallparanode(left).left,hp);
-                   tcallparanode(left).left := nil;
+                   addstatement(newstatement,cassignmentnode.create(hp.getcopy,hpp));
+                   { deallocate the temp }
+                   if assigned(tempnode) then
+                     addstatement(newstatement,ctempdeletenode.create(tempnode));
                    { firstpass it }
-                   firstpass(hpp);
+                   firstpass(newblock);
                    { return new node }
-                   result := hpp;
+                   result := newblock;
                  end
                else if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                        is_ordinal(left.resulttype.def) then
@@ -2400,7 +2423,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2004-06-20 08:55:29  florian
+  Revision 1.139  2004-07-14 14:38:35  jonas
+    * fix for web bug 3210
+
+  Revision 1.138  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.137  2004/06/18 15:16:46  peter
