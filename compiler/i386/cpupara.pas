@@ -128,27 +128,36 @@ unit cpupara;
           end;
         { Only vs_const, vs_value here }
         case def.deftype of
-          variantdef,
+          variantdef :
+            begin
+              { Win32 stdcall passes small records on the stack for call by
+                value }
+              if (target_info.system=system_i386_win32) and
+                 (calloption=pocall_stdcall) and
+                 (varspez=vs_value) and
+                 (def.size<=16) then
+                result:=false
+            end;
           formaldef :
             result:=true;
           recorddef :
             begin
-              { Win32 passes small records on the stack for call by
+              { Win32 stdcall passes small records on the stack for call by
                 value }
               if (target_info.system=system_i386_win32) and
-                 (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
+                 (calloption=pocall_stdcall) and
                  (varspez=vs_value) and
-                 (def.size<=8) then
+                 (def.size<=16) then
                 result:=false
               else
                 result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>sizeof(aint));
             end;
           arraydef :
             begin
-              { Win32 passes arrays on the stack for call by
+              { Win32 stdcall passes arrays on the stack for call by
                 value }
               if (target_info.system=system_i386_win32) and
-                 (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
+                 (calloption=pocall_stdcall) and
                  (varspez=vs_value) and
                  (tarraydef(def).highrange>=tarraydef(def).lowrange) then
                 result:=false
@@ -630,7 +639,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2005-02-14 17:13:09  peter
+  Revision 1.67  2005-02-14 19:42:02  peter
+  win32 stdcall fixes needed for tw3650
+
+  Revision 1.66  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.65  2005/02/03 20:04:49  peter
