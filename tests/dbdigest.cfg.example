@@ -1,0 +1,10 @@
+DatabaseName=TESTSUITE
+#Host=www.freepascal.org
+UserName=<user>
+PassWord=<password>
+OS=linux
+CPU=i386
+logfile=log
+submitter=Cronjob
+machine=<machine>
+#version=1.9.5
