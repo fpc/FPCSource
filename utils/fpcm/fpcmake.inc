@@ -369,7 +369,7 @@ const fpcmakeini : array[0..196,1..240] of char=(
   #010+
   '# Copy a whole tree'#010+
   'ifndef COPYTREE'#010+
-  'COPYTREE:=$(CPPROG) -rfp'#010+
+  'COPYTREE:=$(CPPROG) -Rfp'#010+
   'endif'#010+
   #010+
   '# To move pograms'#010+
