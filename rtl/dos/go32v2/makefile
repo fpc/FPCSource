@@ -21,19 +21,9 @@
 # with the main makefile.
 #####################################################################
 
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-UNITINSTALLDIR=c:\lib\ppc\go32v2
-endif
-
-# set the directory where to install libraries
-ifndef LIBINSTALLDIR
-LIBINSTALLDIR=c:\lib
-endif
-
 # What is the Operating System
-ifndef OS_SRC
-OS_SRC=GO32V2
+ifndef OS_SOURCE
+OS_SOURCE=GO32V2
 endif
 
 # What is the target operating system ?
@@ -70,9 +60,9 @@ endif
 #####################################################################
 
 # Where are the include files
-CFG=../../cfg
 INC=../../inc
 PROCINC=../../$(CPU)
+CFG=../../cfg
 OBJPASDIR=../../objpas
 # Where are the .ppi files.
 PPI=../ppi
@@ -86,36 +76,23 @@ PPI=../ppi
 include $(CFG)/makefile.cfg
 
 # Get the system independent include file names.
-# This will set the following variables : 
+# This will set the following variables :
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 
 # Get the processor dependent include file names.
-# This will set the following variables : 
+# This will set the following variables :
 # CPUINCNAMES
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
-# Get the PPI file names
-# This sets the variable name PPIINCNAMES
-include $(PPI)/makefile.ppi
-PPIDEPS=$(addprefix $(PPI)/,$(PPIINCNAMES))
-
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
 
 #####################################################################
 # System dependent
 #####################################################################
-
-# Determine needed extensions
-PPUEXT=.ppu
-PPLEXT=.ppl
-OEXT=.o
-ASMEXT=.s
-LIBEXT=.a
 
 # Define Linux Units
 SYSTEMPPU=system$(PPUEXT)
@@ -134,7 +111,6 @@ LOADERS=prt0 exceptn fpu
 OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 
-
 .PHONY : all install clean \
 	 libs libsclean \
 	 diffs diffclean \
@@ -142,6 +118,7 @@ PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 all : $(OBJLOADERS) $(PPUOBJECTS)
 
 install : all
+	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
@@ -169,7 +146,7 @@ fpu$(OEXT) : fpu.as
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMPPU) : system.pp $(DSYSDEPS) 
+$(SYSTEMPPU) : system.pp $(SYSDEPS)
 	$(PP) $(OPT) -Us -Sg system.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
@@ -214,12 +191,14 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 
 dos$(PPUEXT) : ../dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) ../dos.pp .
 	$(PP) $(OPT) dos $(REDIR)
+	$(DEL) dos.pp
 
 crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
-	$(COPY) ../crt.pp  .
+	$(COPY) ../crt.pp .
 	$(PP) $(OPT) crt $(REDIR)
-	$(DEL) crt.pp 
+	$(DEL) crt.pp
 
 objects$(PPUEXT) : ../objects.pp $(SYSTEMPPU)
 	$(COPY) ../objects.pp .
@@ -255,11 +234,11 @@ getopts$(PPUEXT) : $(PROCINC)/getopts.pp $(SYSTEMPPU)
 	$(PP) $(OPT) getopts.pp $(REDIR)
 	$(DEL) getopts.pp
 
-graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
-	$(PPIDEPS)
-	$(COPY) ../graph.pp  .
-	$(PP) $(OPT) -Up$(PPI) graph $(REDIR)
-	$(DEL) graph.pp 
+PPIFILES:=$(wildcard $(PPI)/*.ppi)
+graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
+	$(COPY) ../graph.pp .
+	$(PP) $(OPT) -I$(PPI) graph $(REDIR)
+	$(DEL) graph.pp
 
 #####################################################################
 # Libs
@@ -278,32 +257,14 @@ libinstall: libs
 	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
 
 #####################################################################
-# Diffs
+# Default targets
 #####################################################################
 
-%.dif : %.pp
-	-$(DIFF) $(DIFFOPTS) $*.pp $(REFPATH)/dos/go32v2/$*.pp > $*.dif
+include $(CFG)/makefile.def
 
-%.dif : %.inc
-	-$(DIFF) $(DIFFOPTS) $*.inc $(REFPATH)/dos/go32v2/$*.inc > $*.dif
-
-%.dif : %.as
-	-$(DIFF) $(DIFFOPTS) $*.as $(REFPATH)/dos/go32v2/$*.as > $*.dif
-
-%.dif : %.asm
-	-$(DIFF) $(DIFFOPTS) $*.asm $(REFPATH)/dos/go32v2/$*.asm > $*.dif
-
-diffclean:
-	-$(DEL) *.dif
-
-makefile.dif : makefile
-	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/dos/go32v2/makefile > makefile.dif
-
-diffs: system.dif v2prt0.dif dpmiexcp.dif exceptn.dif profile.dif os.dif \
-       sbrk16.dif exit16.dif makefile.dif
-
-#####################################################################
-# Distribution
-#####################################################################
-
-distclean : clean libsclean diffclean
+#
+# $Log$
+# Revision 1.8  1998-05-06 11:53:40  peter
+#   * update
+#
+#
