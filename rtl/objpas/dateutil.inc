@@ -1,4 +1,4 @@
-{$mode objfpc}
+f{$mode objfpc}
 {$h+}
 {
     $Id$
@@ -419,7 +419,7 @@ end;
 
 Function DateOf(const AValue: TDateTime): TDateTime;
 begin
-  Result:=Trunc(DateOf);
+  Result:=Trunc(AValue);
 end;
 
 
@@ -1447,7 +1447,7 @@ end;
 
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
-  Result:=Result+ANumberOfSeconds / SecsPerDay;
+  Result:=AValue+ANumberOfSeconds / SecsPerDay;
 end;
 
 
@@ -1459,7 +1459,7 @@ end;
 
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
-  Result:=Result+ANumberOfMilliSeconds/MSecsPerDay;
+  Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay;
 end;
 
 
@@ -1996,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-09-19 19:25:52  armin
+  Revision 1.5  2004-09-20 06:58:59  michael
+  + Fixed some errors pointed out by Armin Diehl
+
+  Revision 1.4  2004/09/19 19:25:52  armin
   * fixed some compiler warnings
 
   Revision 1.3  2004/08/12 12:26:34  michael
