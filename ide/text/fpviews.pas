@@ -82,24 +82,27 @@ type
       destructor  Done; virtual;
     end;
 
-    PGDBInputLine = ^TGDBInputLine;
-    TGDBInputLine = object(TInputLine)
-      procedure HandleEvent(var Event: TEvent); virtual;
-      function GetPalette : PPalette;virtual;
-      end;
-      
     PGDBSourceEditor = ^TGDBSourceEditor;
     TGDBSourceEditor = object(TSourceEditor)
-      function InsertLine : Sw_integer;virtual;
+      function   InsertLine : Sw_integer;virtual;
+      function   Valid(Command: Word): Boolean; virtual;
+      procedure  AddLine(const S: string); virtual;
+      procedure  AddErrorLine(const S: string); virtual;
+    private
+      Silent,
+      AutoRepeat,
+      IgnoreStringAtEnd : boolean;
+      LastCommand : String;
       end;
       
     PGDBWindow = ^TGDBWindow;
     TGDBWindow = object(TFPWindow)
       Editor    : PGDBSourceEditor;
-      {Input     : PGDBInputLine;}
+      Indicator : PIndicator;
       constructor Init(var Bounds: TRect);
-      procedure   WriteText(Buf : pchar);
+      procedure   WriteText(Buf : pchar;IsError : boolean);
       procedure   WriteString(Const S : string);
+      procedure   WriteErrorString(Const S : string);
       procedure   WriteOutputText(Buf : pchar);
       procedure   WriteErrorText(Buf : pchar);
       function    GetPalette: PPalette;virtual;
@@ -653,6 +656,7 @@ var Count: integer;
 begin
   case SpecClass of
     ssCommentPrefix   : Count:=3;
+    ssCommentSingleLinePrefix   : Count:=1;
     ssCommentSuffix   : Count:=2;
     ssStringPrefix    : Count:=1;
     ssStringSuffix    : Count:=1;
@@ -673,6 +677,10 @@ begin
         0 : S:='{';
         1 : S:='(*';
         2 : S:='//';
+      end;
+    ssCommentSingleLinePrefix :
+      case Index of
+        0 : S:='//';
       end;
     ssCommentSuffix :
       case Index of
@@ -940,27 +948,29 @@ begin
 end;
 
 
-procedure TGDBInputLine.HandleEvent(var Event: TEvent);
-var S : String;
+function TGDBSourceEditor.Valid(Command: Word): Boolean;
+var OK: boolean;
 begin
-   if (Event.What=evKeyDown) and
-      (Event.KeyCode=kbEnter) then
-     begin
-        S:=Data^;
-        if assigned(Debugger) and (S<>'') then
-          Debugger^.Command(S);
-        S:='';
-        SetData(S);
-     end
-   else
-     TInputLine.HandleEvent(Event);
+  OK:=TCodeEditor.Valid(Command);
+  { do NOT ask for save !!
+  if OK and ((Command=cmClose) or (Command=cmQuit)) then
+     if IsClipboard=false then
+    OK:=SaveAsk;  }
+  Valid:=OK;
 end;
 
-function TGDBInputLine.GetPalette: PPalette;
-const
-  P: String[Length(CGDBInputLine)] = CGDBInputLine;
+procedure  TGDBSourceEditor.AddLine(const S: string);
 begin
-  GetPalette := PPalette(@P);
+   if Silent or (IgnoreStringAtEnd and (S=LastCommand)) then exit;
+   inherited AddLine(S);
+end;
+
+procedure  TGDBSourceEditor.AddErrorLine(const S: string);
+begin
+   if Silent then exit;
+   inherited AddLine(S);
+   { display like breakpoints in red }
+   Lines^.At(GetLineCount-1)^.IsBreakpoint:=true;
 end;
 
 function TGDBSourceEditor.InsertLine: Sw_integer;
@@ -971,8 +981,17 @@ begin
   if IsReadOnly then begin InsertLine:=-1; Exit; end;
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
   s:=Copy(S,1,CurPos.X);
-  if assigned(Debugger) and (S<>'') then
-    Debugger^.Command(S);
+  if assigned(Debugger) then
+    if S<>'' then
+      begin
+        LastCommand:=S;
+        { should be true only if we are at the end ! }
+        IgnoreStringAtEnd:=(CurPos.Y=GetLineCount-1) and (CurPos.X=length(GetDisplayText(GetLineCount-1)));
+        Debugger^.Command(S);
+        IgnoreStringAtEnd:=false;
+      end
+    else if AutoRepeat then
+      Debugger^.Command(LastCommand);
   InsertLine:=inherited InsertLine;
 end;
       
@@ -987,8 +1006,10 @@ begin
   GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
   New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
   GetExtent(R); R.A.X:=3; R.B.X:=14; R.A.Y:=R.B.Y-1;
+  New(Indicator, Init(R));
+  Indicator^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Indicator);
   GetExtent(R); R.Grow(-1,-1);
-  {Dec(R.B.Y);}
   New(Editor, Init(R, HSB, VSB, nil, GDBOutputFile));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   if ExistsFile(GDBOutputFile) then
@@ -1000,12 +1021,10 @@ begin
   { Empty files are buggy !! }
     Editor^.AddLine('');
   Insert(Editor);
-  {GetExtent(R); R.Grow(-1,-1);
-  R.A.Y:=R.B.Y-1;
-  New(Input, Init(R, 255));
-  Input^.GrowMode:=gfGrowHiX;
-  
-  Insert(Input);              }
+  if assigned(Debugger) then
+    Debugger^.Command('set width '+IntToStr(Size.Y));
+  Editor^.silent:=false;
+  Editor^.AutoRepeat:=true;
 end;
 
 destructor TGDBWindow.Done;
@@ -1024,13 +1043,13 @@ end;
 procedure TGDBWindow.WriteOutputText(Buf : pchar);
 begin
   {selected normal color ?}
-  WriteText(Buf);
+  WriteText(Buf,false);
 end;
 
 procedure TGDBWindow.WriteErrorText(Buf : pchar);
 begin
   {selected normal color ?}
-  WriteText(Buf);
+  WriteText(Buf,true);
 end;
 
 procedure TGDBWindow.WriteString(Const S : string);
@@ -1038,15 +1057,14 @@ begin
   Editor^.AddLine(S);
 end;
 
-procedure TGDBWindow.WriteText(Buf : pchar);
+procedure TGDBWindow.WriteErrorString(Const S : string);
+begin
+  Editor^.AddErrorLine(S);
+end;
+
+procedure TGDBWindow.WriteText(Buf : pchar;IsError : boolean);
   var p,pe : pchar;
       s : string;
-  const
-{$ifdef Linux}
-   NewLine=#10
-{$else}
-   NewLine=#13#10;
-{$endif def Linux}
 begin
   p:=buf;
   DeskTop^.Lock;
@@ -1055,9 +1073,11 @@ begin
        pe:=strscan(p,#10);
        if pe<>nil then
          pe^:=#0;
-       s:=strpas(p){+NewLine};
-       {Editor^.TextEnd;}
-       Editor^.AddLine(S);
+       s:=strpas(p);
+       If IsError then
+         Editor^.AddErrorLine(S)
+       else
+         Editor^.AddLine(S);
        { restore for dispose }
        if pe<>nil then
          pe^:=#10;
@@ -3248,7 +3268,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-02-11 19:07:25  pierre
+  Revision 1.13  1999-02-15 09:36:06  pierre
+    * // comment ends at end of line !
+      GDB window changed !
+      now all is in a normal text editor, but pressing
+      Enter key will send part of line before cursor to GDB !
+
+  Revision 1.12  1999/02/11 19:07:25  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)
