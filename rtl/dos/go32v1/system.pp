@@ -105,11 +105,16 @@ begin
   this function must preserve esi !!!!
   because esi is set by the calling
   proc for methods
-  it must preserve all registers !!     }
+  it must preserve all registers !!
+  With a 2048 byte safe area used to write to StdIo without crossing
+  the stack boundary
+
+  }
   asm
             pushl %eax
             pushl %ebx
             movl stack_size,%ebx
+            addl $2048,%ebx
             movl %esp,%eax
             subl %ebx,%eax
 {$ifdef SYSTEMDEBUG}
@@ -592,7 +597,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  1998-07-02 12:26:55  carl
+  Revision 1.7  1998-07-07 12:30:20  carl
+    * 2k buffer for stack shecking to permimt correct io
+
+  Revision 1.6  1998/07/02 12:26:55  carl
     * do_open was WRONG! Fixed!
     * do_isdevice small fix with ATT parser
     * I386_ATT put back , otherwise would NOT link!
