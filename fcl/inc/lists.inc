@@ -53,6 +53,26 @@ begin
 end;
 
 
+function TList.Extract(item: Pointer): Pointer;
+var
+  i : Integer;
+begin
+  result:=nil;
+  i:=IndexOf(item);
+  if i>=0 then
+   begin
+     Result:=item;
+     FList^[i]:=nil;
+     Delete(i);
+     Notify(Result,lnExtracted);
+   end;
+end;
+
+
+procedure TList.Notify(Ptr: Pointer; Action: TListNotification);
+begin
+end;
+
 
 procedure TList.SetCapacity(NewCapacity: Integer);
 
@@ -407,7 +427,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-07-17 22:07:29  sg
+  Revision 1.6  2001-12-03 21:39:58  peter
+    * seek(int64) overload only for 1.1 compiler
+
+  Revision 1.5  2001/07/17 22:07:29  sg
   * Added performance improvements suggested by Mattias Gaertner
     - list grows in steps of 25% if size >= 128
     - list shrinks by 50% if size drops below a quarter of the capacity
@@ -421,5 +444,5 @@ end;
 
   Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
 }

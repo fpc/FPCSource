@@ -15,6 +15,7 @@
 {*                             TStream                                      *}
 {****************************************************************************}
 
+{$ifdef seek64bit}
   function TStream.GetPosition: Int64;
 
     begin
@@ -71,12 +72,6 @@
       TStreamSeek : TSeek64;
       CurrClass   : TClass;
     begin
-{$ifdef ver1_0}    
-      if (Offset<Low(longint)) or
-         (Offset>High(longint)) then
-        raise ERangeError.Create(SRangeError);
-      raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
-{$else}
       // Redirect calls to 64bit Seek, but we can't call the 64bit Seek
       // from TStream, because then we end up in an infinite loop
       CurrSeek:=nil;
@@ -95,7 +90,6 @@
        Result:=Seek(Int64(offset),TSeekOrigin(origin))
       else
        raise EStreamError.CreateFmt(SSeekNotImplemented,[ClassName]);
-{$endif}
     end;
 
   function TStream.Seek(Offset: Int64; Origin: TSeekorigin): Int64;
@@ -107,6 +101,40 @@
         raise ERangeError.Create(SRangeError);
       Seek(longint(Offset),ord(Origin));
     end;
+
+{$else seek64bit}
+
+  function TStream.GetPosition: Longint;
+
+    begin
+       Result:=Seek(0,soFromCurrent);
+    end;
+
+  procedure TStream.SetPosition(Pos: Longint);
+
+    begin
+       Seek(pos,soFromBeginning);
+    end;
+
+  function TStream.GetSize: Longint;
+
+    var
+       p : longint;
+
+    begin
+       p:=GetPosition;
+       GetSize:=Seek(0,soFromEnd);
+       Seek(p,soFromBeginning);
+    end;
+
+  procedure TStream.SetSize(NewSize: Longint);
+
+    begin
+    // We do nothing. Pipe streams don't support this
+    // As wel as possible read-ony streams !!
+    end;
+
+{$endif seek64bit}
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
 
@@ -389,6 +417,7 @@ begin
   If Result=-1 then Result:=0;
 end;
 
+{$ifdef seek64bit}
 
 Procedure THandleStream.SetSize(NewSize: Longint);
 
@@ -409,6 +438,21 @@ function THandleStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   Result:=FileSeek(FHandle,Offset,ord(Origin));
 end;
+
+{$else seek64bit}
+
+Procedure THandleStream.SetSize(NewSize: Longint);
+begin
+  FileTruncate(FHandle,NewSize);
+end;
+
+
+function THandleStream.Seek(Offset: Longint; Origin: Word): Longint;
+begin
+  Result:=FileSeek(FHandle,Offset,Origin);
+end;
+
+{$endif seek64bit}
 
 
 {****************************************************************************}
@@ -740,7 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-11-24 20:41:40  carl
+  Revision 1.6  2001-12-03 21:39:58  peter
+    * seek(int64) overload only for 1.1 compiler
+
+  Revision 1.5  2001/11/24 20:41:40  carl
   * fix compilation under FPC version 1.0.x
 
   Revision 1.4  2001/10/28 17:16:44  peter

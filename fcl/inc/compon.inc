@@ -91,6 +91,22 @@ begin
 end;
 
 
+Procedure TComponent.RemoveNotification(AComponent: TComponent);
+
+begin
+  if FFreeNotifies<>nil then
+    begin
+    FFreeNotifies.Remove(AComponent);
+    if FFreeNotifies.Count=0 then
+      begin
+      FFreeNotifies.Free;
+      FFreeNotifies:=nil;
+      Exclude(FComponentState,csFreeNotification);
+      end;
+    end;
+end;
+
+
 Procedure TComponent.SetComponentIndex(Value: Integer);
 
 Var Temp,Count : longint;
@@ -434,6 +450,13 @@ begin
 end;
 
 
+procedure TComponent.RemoveFreeNotification(AComponent: TComponent);
+begin
+  RemoveNotification(AComponent);
+  AComponent.RemoveNotification (self);
+end;
+
+
 Procedure TComponent.FreeOnRelease;
 
 begin
@@ -488,10 +511,13 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-01-08 18:36:01  sg
+  Revision 1.4  2001-12-03 21:39:58  peter
+    * seek(int64) overload only for 1.1 compiler
+
+  Revision 1.3  2001/01/08 18:36:01  sg
   * Applied bugfix for bug #1330 (merged)
 
   Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
 }

@@ -15,6 +15,11 @@
 { We NEED ansistrings !!}
 {$H+}
 
+{ The 1.0 compiler cannot compile the Seek(int64) overloading correct }
+{$ifndef ver1_0}
+  {$define seek64bit}
+{$endif ver1_0}
+
 type
    { extra types to compile with FPC }
    HRSRC = longint;
@@ -146,6 +151,7 @@ type
   PPointerList = ^TPointerList;
   TPointerList = array[0..MaxListSize - 1] of Pointer;
   TListSortCompare = function (Item1, Item2: Pointer): Integer;
+  TListNotification = (lnAdded, lnExtracted, lnDeleted);
 
   TList = class(TObject)
   private
@@ -156,6 +162,7 @@ type
     function Get(Index: Integer): Pointer;
     procedure Grow; virtual;
     procedure Put(Index: Integer; Item: Pointer);
+    procedure Notify(Ptr: Pointer; Action: TListNotification); virtual;
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
   public
@@ -166,6 +173,7 @@ type
     class procedure Error(const Msg: string; Data: Integer); virtual;
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TList;
+    function Extract(item: Pointer): Pointer;
     function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
@@ -501,18 +509,32 @@ type
 
   TStream = class(TObject)
   private
+{$ifdef seek64bit}
     function GetPosition: Int64;
     procedure SetPosition(Pos: Int64);
     function GetSize: Int64;
     procedure SetSize64(NewSize: Int64);
+{$else seek64bit}
+    function GetPosition: Longint;
+    procedure SetPosition(Pos: Longint);
+    function GetSize: Longint;
+{$endif seek64bit}
   protected
+{$ifdef seek64bit}
+    procedure SetSize(NewSize: Longint); virtual;overload;
+    procedure SetSize(NewSize: Int64); virtual;overload;
+{$else seek64bit}
     procedure SetSize(NewSize: Longint); virtual;
-    procedure SetSize(NewSize: Int64); virtual;
+{$endif seek64bit}
   public
     function Read(var Buffer; Count: Longint): Longint; virtual; abstract;
     function Write(const Buffer; Count: Longint): Longint; virtual; abstract;
-    function Seek(Offset: Longint; Origin: Word): Longint; virtual; {$ifndef ver1_0}overload;{$endif}
-    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; virtual; {$ifndef ver1_0}overload;{$endif}
+{$ifdef seek64bit}
+    function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
+{$else seek64bit}
+    function Seek(Offset: Longint; Origin: Word): Longint; virtual; abstract;
+{$endif seek64bit}
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer; Count: Longint);
     function CopyFrom(Source: TStream; Count: Int64): Int64;
@@ -533,8 +555,13 @@ type
     procedure WriteWord(w : Word);
     procedure WriteDWord(d : Cardinal);
     Procedure WriteAnsiString (S : String);
+{$ifdef seek64bit}
     property Position: Int64 read GetPosition write SetPosition;
     property Size: Int64 read GetSize write SetSize64;
+{$else seek64bit}
+    property Position: Longint read GetPosition write SetPosition;
+    property Size: Longint read GetSize write SetSize;
+{$endif seek64bit}
   end;
 
 {$ifdef HASINTF}
@@ -550,13 +577,21 @@ type
   private
     FHandle: Integer;
   protected
+{$ifdef seek64bit}
     procedure SetSize(NewSize: Longint); override;
     procedure SetSize(NewSize: Int64); override;
+{$else seek64bit}
+    procedure SetSize(NewSize: Longint); override;
+{$endif seek64bit}
   public
     constructor Create(AHandle: Integer);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
+{$ifdef seek64bit}
     function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; override;
+{$else seek64bit}
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+{$endif seek64bit}
     property Handle: Integer read FHandle;
   end;
 
@@ -1122,6 +1157,7 @@ type
     procedure ReadLeft(Reader: TReader);
     procedure ReadTop(Reader: TReader);
     procedure Remove(AComponent: TComponent);
+    procedure RemoveNotification(AComponent: TComponent);
     procedure SetComponentIndex(Value: Integer);
     procedure SetReference(Enable: Boolean);
     procedure WriteLeft(Writer: TWriter);
@@ -1171,6 +1207,7 @@ type
     procedure Destroying;
     function FindComponent(const AName: string): TComponent;
     procedure FreeNotification(AComponent: TComponent);
+    procedure RemoveFreeNotification(AComponent: TComponent);
     procedure FreeOnRelease;
     function GetParentComponent: TComponent; dynamic;
     function HasParent: Boolean; dynamic;
@@ -1294,7 +1331,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.16  2001-11-24 20:41:04  carl
+  Revision 1.17  2001-12-03 21:39:58  peter
+    * seek(int64) overload only for 1.1 compiler
+
+  Revision 1.16  2001/11/24 20:41:04  carl
   * fix Peter's problems with compiling under version 1.0
 
   Revision 1.15  2001/11/20 18:53:29  peter
