@@ -749,10 +749,14 @@ implementation
            { Add automatic detect sections }
            AddIniSection('osdetect');
            { Forced target }
-           if CheckVariable('default_target') then
-            Add('override OS_TARGET='+FInput.GetVariable('default_target',false));
-           if CheckVariable('default_cpu') then
-            Add('override CPU_TARGET='+FInput.GetVariable('default_cpu',false));
+           if CheckVariable('require_target') then
+            Add('override OS_TARGET='+FInput.GetVariable('require_target',false))
+           else if CheckVariable('default_target') then
+            Add('OS_TARGET='+FInput.GetVariable('default_target',false));
+           if CheckVariable('require_cpu') then
+            Add('override CPU_TARGET='+FInput.GetVariable('require_cpu',false))
+           else if CheckVariable('default_cpu') then
+            Add('CPU_TARGET='+FInput.GetVariable('default_cpu',false));
            { FPC Detection }
            AddIniSection('fpcdetect');
            AddIniSection('fpcdircheckenv');
@@ -875,7 +879,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-08-22 20:45:19  peter
+  Revision 1.17  2001-09-11 11:04:51  pierre
+   * handle default cpu and target without override, use require section for override
+
+  Revision 1.16  2001/08/22 20:45:19  peter
     * firstword added
     * pathexist fix to include sysfile
 
