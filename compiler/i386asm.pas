@@ -593,6 +593,28 @@ uses
       end;
 
 
+procedure tai386.SwapOperands;
+var
+  p : TOper;
+begin
+  { Fix the operands which are in AT&T style and we need them in Intel style }
+  case ops of
+    2 : begin
+          { 0,1 -> 1,0 }
+          p:=oper[0];
+          oper[0]:=oper[1];
+          oper[1]:=p;
+        end;
+    3 : begin
+          { 0,1,2 -> 2,1,0 }
+          p:=oper[0];
+          oper[0]:=oper[2];
+          oper[2]:=p;
+        end;
+  end;
+end;
+
+
 {*****************************************************************************
                                 Assembler
 *****************************************************************************}
@@ -673,28 +695,6 @@ end;
 function tai386.InsEnd:longint;
 begin
   InsEnd:=InsOffset+InsSize;
-end;
-
-
-procedure tai386.SwapOperands;
-var
-  p : TOper;
-begin
-  { Fix the operands which are in AT&T style and we need them in Intel style }
-  case ops of
-    2 : begin
-          { 0,1 -> 1,0 }
-          p:=oper[0];
-          oper[0]:=oper[1];
-          oper[1]:=p;
-        end;
-    3 : begin
-          { 0,1,2 -> 2,1,0 }
-          p:=oper[0];
-          oper[0]:=oper[2];
-          oper[2]:=p;
-        end;
-  end;
 end;
 
 
@@ -1520,7 +1520,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-05-27 19:44:33  peter
+  Revision 1.11  1999-05-30 11:57:43  peter
+    * moved swapoperands out of the define
+
+  Revision 1.10  1999/05/27 19:44:33  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
