@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fpdocs
-override PACKAGE_VERSION=1.9.7
+override PACKAGE_VERSION=1.9.8
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -1622,7 +1622,7 @@ RTLOPTS+= --descr=gpm.xml --input="-dVER1_0 ../rtl/linux/gpm.pp -Fi../rtl/i386"
 RTLOPTS+= --descr=graph.xml --input="../rtl/unix/graph.pp -Fi../rtl/i386 -Fi../rtl/inc/graph"
 RTLOPTS+= --descr=oldlinux.xml --input="../rtl/unix/oldlinux.pp -Fi../rtl/linux -Fi../rtl/unix"
 RTLOPTS+= --descr=unixtype.xml --input="../rtl/unix/unixtype.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
-RTLOPTS+= --descr=baseunix.xml --input="../rtl/linux/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
+RTLOPTS+= --descr=baseunix.xml --input="../rtl/unix/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
 RTLOPTS+= --descr=unix.xml  --input="../rtl/unix/unix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
 RTLOPTS+= --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(CLASSESUNITDIR)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"

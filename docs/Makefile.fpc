@@ -15,7 +15,7 @@
 
 [package]
 name=fpdocs
-version=1.9.7
+version=1.9.8
 
 [require]
 nortl=y
@@ -301,7 +301,7 @@ RTLOPTS+= --descr=gpm.xml --input="-dVER1_0 ../rtl/linux/gpm.pp -Fi../rtl/i386"
 RTLOPTS+= --descr=graph.xml --input="../rtl/unix/graph.pp -Fi../rtl/i386 -Fi../rtl/inc/graph"
 RTLOPTS+= --descr=oldlinux.xml --input="../rtl/unix/oldlinux.pp -Fi../rtl/linux -Fi../rtl/unix"
 RTLOPTS+= --descr=unixtype.xml --input="../rtl/unix/unixtype.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
-RTLOPTS+= --descr=baseunix.xml --input="../rtl/linux/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
+RTLOPTS+= --descr=baseunix.xml --input="../rtl/unix/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
 RTLOPTS+= --descr=unix.xml  --input="../rtl/unix/unix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
 RTLOPTS+= --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(CLASSESUNITDIR)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"
@@ -566,7 +566,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.7  2005-02-11 16:26:38  peter
+# Revision 1.8  2005-02-14 17:53:11  peter
+#   * baseunix moved to unix
+#
+# Revision 1.7  2005/02/11 16:26:38  peter
 #   * fix previous commit
 #
 # Revision 1.6  2005/02/11 16:25:37  peter
