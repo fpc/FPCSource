@@ -19,23 +19,30 @@ Program server;
   Otherwise it will open a unix socket. You can connect by 
   running the 'sockcli' or 'dsockcli' programs in another 
   terminal.
+  
+  specifying -b on the command-line will disable blocking.
 } 
 
-uses ssockets;
+uses sysutils,ssockets,getopts;
 
 const
   ThePort=4100;
   TheSocket = 'ServerSoc';
+
+Var 
+  DoInet,NonBlocking : boolean;
   
 Type
   TServerApp = Class(TObject)
   Private 
+    FCalls : longint;
     FServer : TSocketServer;
   Public
     Constructor Create(Port : longint);
     Constructor Create(Socket : String);
     Destructor Destroy;override;
     Procedure OnConnect (Sender : TObject; Data : TSocketStream);
+    Procedure OnIdle(Sender : TObject);
     Procedure Run;
   end;
     
@@ -75,6 +82,12 @@ begin
   FServer.StopAccepting;
 end;
 
+Procedure TServerApp.OnIdle(Sender : TObject);
+
+begin
+  Inc(FCalls);
+  Write('.');
+end;
 Procedure TServerApp.Run;
 
 begin
@@ -83,14 +96,29 @@ begin
     Writeln ('socket : ',(FServer as TUnixServer).Filename)
   else If FServer is TINetServer Then
     Writeln ('port : ',(FServer as TInetServer).port);
+  If NonBlocking then
+    begin  
+    FServer.SetNonBlocking;
+    FServer.OnIdle:=@OnIdle;
+    end;
   FServer.StartAccepting;
 end;
       
 Var 
   Application : TServerApp;
-  
+  c : char;
+    
 begin
-  If (ParamCount=1) and (paramstr(1)='-i') then
+  DoInet:=False;
+  NonBlocking:=False;
+  repeat 
+    c:=getopt('ib');
+    case c of
+    'b' : NonBlocking:=True;
+    'i' : DoInet:=True;
+    end;
+  until c=EndOfOptions;  
+  If DoInet then
     Application:=TServerApp.Create(ThePort)
   else
     Application:=TServerApp.Create(TheSocket);  
@@ -100,7 +128,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-03-22 20:21:18  michael
+  Revision 1.2  2000-03-26 13:41:36  michael
+  + Added nonblocking option
+
+  Revision 1.1  2000/03/22 20:21:18  michael
   + Added ssockets examples
 
 }
