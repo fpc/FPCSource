@@ -133,7 +133,7 @@ interface
           property Doubles:boolean read FDoubles write FDoubles;
        end;
 
-{$ifdef OLD}
+{$ifdef NODIC}
 {********************************************
                 Dictionary
 ********************************************}
@@ -144,108 +144,85 @@ interface
 
     type
        { namedindexobect for use with dictionary and indexarray }
-       Pnamedindexobject=^Tnamedindexobject;
-       Tnamedindexobject=object
+       Tnamedindexobject=class
        { indexarray }
          indexnr    : integer;
-         indexNext  : Pnamedindexobject;
+         indexNext  : TNamedIndexObject;
        { dictionary }
          _name      : Pstring;
          _valuename : Pstring; { uppercase name }
-         left,right : Pnamedindexobject;
+         left,right : TNamedIndexObject;
          speedvalue : integer;
        { singleList }
-         ListNext   : Pnamedindexobject;
-         constructor init;
-         constructor initname(const n:string);
-         destructor  done;virtual;
+         ListNext   : TNamedIndexObject;
+         constructor create;
+         constructor createname(const n:string);
+         destructor  destroy;override;
          procedure setname(const n:string);virtual;
          function  name:string;virtual;
        end;
 
        Pdictionaryhasharray=^Tdictionaryhasharray;
-       Tdictionaryhasharray=array[-hasharraysize..hasharraysize] of Pnamedindexobject;
+       Tdictionaryhasharray=array[-hasharraysize..hasharraysize] of TNamedIndexObject;
 
-       Tnamedindexcallback = procedure(p:Pnamedindexobject);
+       Tnamedindexcallback = procedure(p:TNamedIndexObject) of object;
 
-       Pdictionary=^Tdictionary;
-       Tdictionary=object
+       Tdictionary=class
          noclear   : boolean;
          replace_existing : boolean;
-         constructor init;
-         destructor  done;virtual;
+         constructor Create;
+         destructor  Destroy;override;
          procedure usehash;
          procedure clear;
-         function delete(const s:string):Pnamedindexobject;
+         function  delete(const s:string):TNamedIndexObject;
          function  empty:boolean;
          procedure foreach(proc2call:Tnamedindexcallback);
-         function  insert(obj:Pnamedindexobject):Pnamedindexobject;
-         function  rename(const olds,News : string):Pnamedindexobject;
-         function  search(const s:string):Pnamedindexobject;
-         function  speedsearch(const s:string;speedvalue:integer):Pnamedindexobject;
+         function  insert(obj:TNamedIndexObject):TNamedIndexObject;
+         function  rename(const olds,News : string):TNamedIndexObject;
+         function  search(const s:string):TNamedIndexObject;
+         function  speedsearch(const s:string;speedvalue:integer):TNamedIndexObject;
        private
-         root      : Pnamedindexobject;
+         root      : TNamedIndexObject;
          hasharray : Pdictionaryhasharray;
-         procedure cleartree(obj:Pnamedindexobject);
-         function  insertNode(NewNode:Pnamedindexobject;var currNode:Pnamedindexobject):Pnamedindexobject;
-         procedure inserttree(currtree,currroot:Pnamedindexobject);
+         procedure cleartree(obj:TNamedIndexObject);
+         function  insertNode(NewNode:TNamedIndexObject;var currNode:TNamedIndexObject):TNamedIndexObject;
+         procedure inserttree(currtree,currroot:TNamedIndexObject);
        end;
 
        psingleList=^tsingleList;
-       tsingleList=object
+       tsingleList=class
          First,
-         last    : Pnamedindexobject;
-         constructor init;
-         destructor  done;
+         last    : TNamedIndexObject;
+         constructor Create;
          procedure reset;
          procedure clear;
-         procedure insert(p:Pnamedindexobject);
+         procedure insert(p:TNamedIndexObject);
        end;
 
-      tindexobjectarray=array[1..16000] of Pnamedindexobject;
-      Pnamedindexobjectarray=^tindexobjectarray;
+      tindexobjectarray=array[1..16000] of TNamedIndexObject;
+      TNamedIndexObjectarray=^tindexobjectarray;
 
       pindexarray=^tindexarray;
-      tindexarray=object
+      tindexarray=class
         noclear : boolean;
-        First   : Pnamedindexobject;
+        First   : TNamedIndexObject;
         count   : integer;
-        constructor init(Agrowsize:integer);
-        destructor  done;
+        constructor Create(Agrowsize:integer);
+        destructor  destroy;override;
         procedure clear;
         procedure foreach(proc2call : Tnamedindexcallback);
-        procedure deleteindex(p:Pnamedindexobject);
-        procedure delete(var p:Pnamedindexobject);
-        procedure insert(p:Pnamedindexobject);
-        function  search(nr:integer):Pnamedindexobject;
+        procedure deleteindex(p:TNamedIndexObject);
+        procedure delete(var p:TNamedIndexObject);
+        procedure insert(p:TNamedIndexObject);
+        function  search(nr:integer):TNamedIndexObject;
       private
         growsize,
         size  : integer;
-        data  : Pnamedindexobjectarray;
+        data  : TNamedIndexObjectarray;
         procedure grow(gsize:integer);
       end;
+{$endif NODIC}
 
-{$ifdef fixLeaksOnError}
-    PStackItem = ^TStackItem;
-    TStackItem = record
-      Next: PStackItem;
-      data: pointer;
-    end;
-
-    PStack = ^TStack;
-    TStack = object
-      constructor init;
-      destructor done;
-      procedure push(p: pointer);
-      function pop: pointer;
-      function top: pointer;
-      function isEmpty: boolean;
-     private
-      head: PStackItem;
-    end;
-{$endif fixLeaksOnError}
-
-{$endif OLD}
 
 {********************************************
               DynamicArray
@@ -761,12 +738,12 @@ end;
       end;
 
 
-{$ifdef OLD}
+{$ifdef NODIC}
 {****************************************************************************
                                Tnamedindexobject
  ****************************************************************************}
 
-constructor Tnamedindexobject.init;
+constructor Tnamedindexobject.Create;
 begin
   { index }
   indexnr:=-1;
@@ -780,7 +757,7 @@ begin
   ListNext:=nil;
 end;
 
-constructor Tnamedindexobject.initname(const n:string);
+constructor Tnamedindexobject.Createname(const n:string);
 begin
   { index }
   indexnr:=-1;
@@ -794,10 +771,12 @@ begin
   ListNext:=nil;
 end;
 
-destructor Tnamedindexobject.done;
+
+destructor Tnamedindexobject.destroy;
 begin
   stringdispose(_name);
 end;
+
 
 procedure Tnamedindexobject.setname(const n:string);
 begin
@@ -808,6 +787,7 @@ begin
      _name:=stringdup(n);
    end;
 end;
+
 
 function Tnamedindexobject.name:string;
 begin
@@ -822,7 +802,7 @@ end;
                                TDICTIONARY
 ****************************************************************************}
 
-    constructor Tdictionary.init;
+    constructor Tdictionary.Create;
       begin
         root:=nil;
         hasharray:=nil;
@@ -842,7 +822,7 @@ end;
       end;
 
 
-    destructor Tdictionary.done;
+    destructor Tdictionary.destroy;
       begin
         if not noclear then
          clear;
@@ -851,13 +831,13 @@ end;
       end;
 
 
-    procedure Tdictionary.cleartree(obj:Pnamedindexobject);
+    procedure Tdictionary.cleartree(obj:TNamedIndexObject);
       begin
-        if assigned(obj^.left) then
-          cleartree(obj^.left);
-        if assigned(obj^.right) then
-          cleartree(obj^.right);
-        dispose(obj,done);
+        if assigned(obj.left) then
+          cleartree(obj.left);
+        if assigned(obj.right) then
+          cleartree(obj.right);
+        obj.free;
         obj:=nil;
       end;
 
@@ -874,125 +854,126 @@ end;
            cleartree(hasharray^[w]);
       end;
 
-    function Tdictionary.delete(const s:string):Pnamedindexobject;
 
-    var p,speedvalue:integer;
-        n:Pnamedindexobject;
+    function Tdictionary.delete(const s:string):TNamedIndexObject;
+    var
+      p,speedvalue : integer;
+      n : TNamedIndexObject;
 
-        procedure insert_right_bottom(var root,Atree:Pnamedindexobject);
-
+        procedure insert_right_bottom(var root,Atree:TNamedIndexObject);
         begin
-            while root^.right<>nil do
-                root:=root^.right;
-            root^.right:=Atree;
+          while root.right<>nil do
+           root:=root.right;
+          root.right:=Atree;
         end;
 
-        function delete_from_tree(root:Pnamedindexobject):Pnamedindexobject;
-
-        type    leftright=(left,right);
-
-        var lr:leftright;
-            oldroot:Pnamedindexobject;
-
+        function delete_from_tree(root:TNamedIndexObject):TNamedIndexObject;
+        type
+          leftright=(left,right);
+        var
+          lr : leftright;
+          oldroot : TNamedIndexObject;
         begin
-            oldroot:=nil;
-            while (root<>nil) and (root^.speedvalue<>speedvalue) do
-                begin
-                    oldroot:=root;
-                    if speedvalue<root^.speedvalue then
-                        begin
-                            root:=root^.right;
-                            lr:=right;
-                        end
-                    else
-                        begin
-                            root:=root^.left;
-                            lr:=left;
-                        end;
-                end;
-            while (root<>nil) and (root^._name^<>s) do
-                begin
-                    oldroot:=root;
-                    if s<root^._name^ then
-                        begin
-                            root:=root^.right;
-                            lr:=right;
-                        end
-                    else
-                        begin
-                            root:=root^.left;
-                            lr:=left;
-                        end;
-                end;
-            if root^.left<>nil then
-                begin
-                    {Now the Node pointing to root must point to the left
-                     subtree of root. The right subtree of root must be
-                     connected to the right bottom of the left subtree.}
-                    if lr=left then
-                        oldroot^.left:=root^.left
-                    else
-                        oldroot^.right:=root^.left;
-                    if root^.right<>nil then
-                        insert_right_bottom(root^.left,root^.right);
-                end
-            else
-                {There is no left subtree. So we can just replace the Node to
-                 delete with the right subtree.}
-                if lr=left then
-                    oldroot^.left:=root^.right
-                else
-                    oldroot^.right:=root^.right;
-            delete_from_tree:=root;
+          oldroot:=nil;
+          while (root<>nil) and (root.speedvalue<>speedvalue) do
+           begin
+             oldroot:=root;
+             if speedvalue<root.speedvalue then
+              begin
+                root:=root.right;
+                lr:=right;
+              end
+             else
+              begin
+                root:=root.left;
+                lr:=left;
+              end;
+           end;
+          while (root<>nil) and (root._name^<>s) do
+           begin
+             oldroot:=root;
+             if s<root._name^ then
+              begin
+                root:=root.right;
+                lr:=right;
+              end
+             else
+              begin
+                root:=root.left;
+                lr:=left;
+              end;
+           end;
+          if root.left<>nil then
+           begin
+             { Now the Node pointing to root must point to the left
+               subtree of root. The right subtree of root must be
+               connected to the right bottom of the left subtree.}
+             if lr=left then
+              oldroot.left:=root.left
+             else
+              oldroot.right:=root.left;
+             if root.right<>nil then
+              insert_right_bottom(root.left,root.right);
+           end
+          else
+           begin
+             { There is no left subtree. So we can just replace the Node to
+               delete with the right subtree.}
+             if lr=left then
+              oldroot.left:=root.right
+             else
+              oldroot.right:=root.right;
+           end;
+          delete_from_tree:=root;
         end;
 
     begin
-        speedvalue:=Getspeedvalue(s);
-        n:=root;
-        if assigned(hasharray) then
-            begin
-                {First, check if the Node to delete directly located under
-                 the hasharray.}
-                p:=speedvalue mod hasharraysize;
-                n:=hasharray^[p];
-                if (n<>nil) and (n^.speedvalue=speedvalue) and
-                 (n^._name^=s) then
-                    begin
-                        {The Node to delete is directly located under the
-                         hasharray. Make the hasharray point to the left
-                         subtree of the Node and place the right subtree on
-                         the right-bottom of the left subtree.}
-                        if n^.left<>nil then
-                            begin
-                                hasharray^[p]:=n^.left;
-                                if n^.right<>nil then
-                                    insert_right_bottom(n^.left,n^.right);
-                            end
-                        else
-                            hasharray^[p]:=n^.right;
-                        delete:=n;
-                        exit;
-                    end;
-            end
-        else
-            begin
-                {First check if the Node to delete is the root.}
-                if (root<>nil) and (n^.speedvalue=speedvalue)
-                 and (n^._name^=s) then
-                    begin
-                        if n^.left<>nil then
-                            begin
-                                root:=n^.left;
-                                if n^.right<>nil then
-                                    insert_right_bottom(n^.left,n^.right);
-                            end
-                        else
-                            root:=n^.right;
-                        delete:=n;
-                        exit;
-                    end;
-            end;
-        delete:=delete_from_tree(n);
+      speedvalue:=Getspeedvalue(s);
+      n:=root;
+      if assigned(hasharray) then
+       begin
+         { First, check if the Node to delete directly located under
+           the hasharray.}
+         p:=speedvalue mod hasharraysize;
+         n:=hasharray^[p];
+         if (n<>nil) and (n.speedvalue=speedvalue) and
+            (n._name^=s) then
+          begin
+            { The Node to delete is directly located under the
+              hasharray. Make the hasharray point to the left
+              subtree of the Node and place the right subtree on
+              the right-bottom of the left subtree.}
+            if n.left<>nil then
+             begin
+               hasharray^[p]:=n.left;
+               if n.right<>nil then
+                insert_right_bottom(n.left,n.right);
+             end
+            else
+             hasharray^[p]:=n.right;
+            delete:=n;
+            exit;
+          end;
+       end
+      else
+       begin
+         { First check if the Node to delete is the root.}
+         if (root<>nil) and (n.speedvalue=speedvalue) and
+            (n._name^=s) then
+          begin
+            if n.left<>nil then
+             begin
+               root:=n.left;
+               if n.right<>nil then
+                insert_right_bottom(n.left,n.right);
+             end
+            else
+             root:=n.right;
+            delete:=n;
+            exit;
+          end;
+       end;
+      delete:=delete_from_tree(n);
     end;
 
     function Tdictionary.empty:boolean;
@@ -1014,13 +995,13 @@ end;
 
     procedure Tdictionary.foreach(proc2call:Tnamedindexcallback);
 
-        procedure a(p:Pnamedindexobject);
+        procedure a(p:TNamedIndexObject);
         begin
           proc2call(p);
-          if assigned(p^.left) then
-           a(p^.left);
-          if assigned(p^.right) then
-           a(p^.right);
+          if assigned(p.left) then
+           a(p.left);
+          if assigned(p.right) then
+           a(p.right);
         end;
 
       var
@@ -1038,17 +1019,17 @@ end;
       end;
 
 
-    function Tdictionary.insert(obj:Pnamedindexobject):Pnamedindexobject;
+    function Tdictionary.insert(obj:TNamedIndexObject):TNamedIndexObject;
       begin
-        obj^.speedvalue:=Getspeedvalue(obj^._name^);
+        obj.speedvalue:=Getspeedvalue(obj._name^);
         if assigned(hasharray) then
-         insert:=insertNode(obj,hasharray^[obj^.speedvalue mod hasharraysize])
+         insert:=insertNode(obj,hasharray^[obj.speedvalue mod hasharraysize])
         else
          insert:=insertNode(obj,root);
       end;
 
 
-    function tdictionary.insertNode(NewNode:Pnamedindexobject;var currNode:Pnamedindexobject):Pnamedindexobject;
+    function tdictionary.insertNode(NewNode:TNamedIndexObject;var currNode:TNamedIndexObject):TNamedIndexObject;
       begin
         if currNode=nil then
          begin
@@ -1057,25 +1038,25 @@ end;
          end
         { First check speedvalue, to allow a fast insert }
         else
-         if currNode^.speedvalue>NewNode^.speedvalue then
-          insertNode:=insertNode(NewNode,currNode^.right)
+         if currNode.speedvalue>NewNode.speedvalue then
+          insertNode:=insertNode(NewNode,currNode.right)
         else
-         if currNode^.speedvalue<NewNode^.speedvalue then
-          insertNode:=insertNode(NewNode,currNode^.left)
+         if currNode.speedvalue<NewNode.speedvalue then
+          insertNode:=insertNode(NewNode,currNode.left)
         else
          begin
-           if currNode^._name^>NewNode^._name^ then
-            insertNode:=insertNode(NewNode,currNode^.right)
+           if currNode._name^>NewNode._name^ then
+            insertNode:=insertNode(NewNode,currNode.right)
            else
-            if currNode^._name^<NewNode^._name^ then
-             insertNode:=insertNode(NewNode,currNode^.left)
+            if currNode._name^<NewNode._name^ then
+             insertNode:=insertNode(NewNode,currNode.left)
            else
             begin
               if replace_existing and
                  assigned(currNode) then
                 begin
-                  NewNode^.left:=currNode^.left;
-                  NewNode^.right:=currNode^.right;
+                  NewNode.left:=currNode.left;
+                  NewNode.right:=currNode.right;
                   currNode:=NewNode;
                   insertNode:=NewNode;
                 end
@@ -1086,24 +1067,24 @@ end;
       end;
 
 
-    procedure tdictionary.inserttree(currtree,currroot:Pnamedindexobject);
+    procedure tdictionary.inserttree(currtree,currroot:TNamedIndexObject);
       begin
         if assigned(currtree) then
          begin
-           inserttree(currtree^.left,currroot);
-           inserttree(currtree^.right,currroot);
-           currtree^.right:=nil;
-           currtree^.left:=nil;
+           inserttree(currtree.left,currroot);
+           inserttree(currtree.right,currroot);
+           currtree.right:=nil;
+           currtree.left:=nil;
            insertNode(currtree,currroot);
          end;
       end;
 
 
-    function tdictionary.rename(const olds,News : string):Pnamedindexobject;
+    function tdictionary.rename(const olds,News : string):TNamedIndexObject;
       var
         spdval : integer;
         lasthp,
-        hp,hp2,hp3 : Pnamedindexobject;
+        hp,hp2,hp3 : TNamedIndexObject;
       begin
         spdval:=Getspeedvalue(olds);
         if assigned(hasharray) then
@@ -1113,36 +1094,36 @@ end;
         lasthp:=nil;
         while assigned(hp) do
           begin
-            if spdval>hp^.speedvalue then
+            if spdval>hp.speedvalue then
              begin
                lasthp:=hp;
-               hp:=hp^.left
+               hp:=hp.left
              end
             else
-             if spdval<hp^.speedvalue then
+             if spdval<hp.speedvalue then
               begin
                 lasthp:=hp;
-                hp:=hp^.right
+                hp:=hp.right
               end
             else
              begin
-               if (hp^.name=olds) then
+               if (hp.name=olds) then
                 begin
                   { Get in hp2 the replacer for the root or hasharr }
-                  hp2:=hp^.left;
-                  hp3:=hp^.right;
+                  hp2:=hp.left;
+                  hp3:=hp.right;
                   if not assigned(hp2) then
                    begin
-                     hp2:=hp^.right;
-                     hp3:=hp^.left;
+                     hp2:=hp.right;
+                     hp3:=hp.left;
                    end;
                   { remove entry from the tree }
                   if assigned(lasthp) then
                    begin
-                     if lasthp^.left=hp then
-                      lasthp^.left:=hp2
+                     if lasthp.left=hp then
+                      lasthp.left:=hp2
                      else
-                      lasthp^.right:=hp2;
+                      lasthp.right:=hp2;
                    end
                   else
                    begin
@@ -1154,43 +1135,43 @@ end;
                   { reinsert the hp3 in the tree from hp2 }
                   inserttree(hp3,hp2);
                   { reset Node with New values }
-                  stringdispose(hp^._name);
-                  hp^._name:=stringdup(News);
-                  hp^.speedvalue:=Getspeedvalue(News);
-                  hp^.left:=nil;
-                  hp^.right:=nil;
+                  stringdispose(hp._name);
+                  hp._name:=stringdup(News);
+                  hp.speedvalue:=Getspeedvalue(News);
+                  hp.left:=nil;
+                  hp.right:=nil;
                   { reinsert }
                   if assigned(hasharray) then
-                   rename:=insertNode(hp,hasharray^[hp^.speedvalue mod hasharraysize])
+                   rename:=insertNode(hp,hasharray^[hp.speedvalue mod hasharraysize])
                   else
                    rename:=insertNode(hp,root);
                   exit;
                 end
                else
-                if olds>hp^.name then
+                if olds>hp.name then
                  begin
                    lasthp:=hp;
-                   hp:=hp^.left
+                   hp:=hp.left
                  end
                 else
                  begin
                    lasthp:=hp;
-                   hp:=hp^.right;
+                   hp:=hp.right;
                  end;
              end;
           end;
       end;
 
 
-    function Tdictionary.search(const s:string):Pnamedindexobject;
+    function Tdictionary.search(const s:string):TNamedIndexObject;
       begin
         search:=speedsearch(s,Getspeedvalue(s));
       end;
 
 
-    function Tdictionary.speedsearch(const s:string;speedvalue:integer):Pnamedindexobject;
+    function Tdictionary.speedsearch(const s:string;speedvalue:integer):TNamedIndexObject;
       var
-        NewNode:Pnamedindexobject;
+        NewNode:TNamedIndexObject;
       begin
         if assigned(hasharray) then
          NewNode:=hasharray^[speedvalue mod hasharraysize]
@@ -1198,23 +1179,23 @@ end;
          NewNode:=root;
         while assigned(NewNode) do
          begin
-           if speedvalue>NewNode^.speedvalue then
-            NewNode:=NewNode^.left
+           if speedvalue>NewNode.speedvalue then
+            NewNode:=NewNode.left
            else
-            if speedvalue<NewNode^.speedvalue then
-             NewNode:=NewNode^.right
+            if speedvalue<NewNode.speedvalue then
+             NewNode:=NewNode.right
            else
             begin
-              if (NewNode^._name^=s) then
+              if (NewNode._name^=s) then
                begin
                  speedsearch:=NewNode;
                  exit;
                end
               else
-               if s>NewNode^._name^ then
-                NewNode:=NewNode^.left
+               if s>NewNode._name^ then
+                NewNode:=NewNode.left
               else
-               NewNode:=NewNode^.right;
+               NewNode:=NewNode.right;
             end;
          end;
         speedsearch:=nil;
@@ -1225,15 +1206,10 @@ end;
                                tsingleList
  ****************************************************************************}
 
-    constructor tsingleList.init;
+    constructor tsingleList.create;
       begin
         First:=nil;
         last:=nil;
-      end;
-
-
-    destructor tsingleList.done;
-      begin
       end;
 
 
@@ -1246,29 +1222,30 @@ end;
 
     procedure tsingleList.clear;
       var
-        hp,hp2 : pnamedindexobject;
+        hp,hp2 : TNamedIndexObject;
       begin
         hp:=First;
         while assigned(hp) do
          begin
            hp2:=hp;
-           hp:=hp^.ListNext;
-           dispose(hp2,done);
+           hp:=hp.ListNext;
+           hp2.free;
          end;
         First:=nil;
         last:=nil;
       end;
 
 
-    procedure tsingleList.insert(p:Pnamedindexobject);
+    procedure tsingleList.insert(p:TNamedIndexObject);
       begin
         if not assigned(First) then
          First:=p
         else
-         last^.ListNext:=p;
+         last.ListNext:=p;
         last:=p;
-        p^.ListNext:=nil;
+        p.ListNext:=nil;
       end;
+
 
 {****************************************************************************
                                tindexarray
@@ -1284,6 +1261,7 @@ end;
         noclear:=false;
       end;
 
+
     destructor tindexarray.destroy;
       begin
         if assigned(data) then
@@ -1296,7 +1274,7 @@ end;
       end;
 
 
-    function tindexarray.search(nr:integer):Pnamedindexobject;
+    function tindexarray.search(nr:integer):TNamedIndexObject;
       begin
         if nr<=count then
          search:=data^[nr]
@@ -1312,7 +1290,7 @@ end;
         for i:=1 to count do
          if assigned(data^[i]) then
           begin
-            dispose(data^[i],done);
+            data^[i].free;
             data^[i]:=nil;
           end;
         count:=0;
@@ -1341,11 +1319,11 @@ end;
       end;
 
 
-    procedure tindexarray.deleteindex(p:Pnamedindexobject);
+    procedure tindexarray.deleteindex(p:TNamedIndexObject);
       var
         i : integer;
       begin
-        i:=p^.indexnr;
+        i:=p.indexnr;
         { update counter }
         if i=count then
          dec(count);
@@ -1355,71 +1333,70 @@ end;
            dec(i);
            if (i>0) and assigned(data^[i]) then
             begin
-              data^[i]^.indexNext:=data^[p^.indexnr]^.indexNext;
+              data^[i].indexNext:=data^[p.indexnr].indexNext;
               break;
             end;
          end;
         if i=0 then
-         First:=p^.indexNext;
-        data^[p^.indexnr]:=nil;
+         First:=p.indexNext;
+        data^[p.indexnr]:=nil;
         { clear entry }
-        p^.indexnr:=-1;
-        p^.indexNext:=nil;
+        p.indexnr:=-1;
+        p.indexNext:=nil;
       end;
 
 
-    procedure tindexarray.delete(var p:Pnamedindexobject);
+    procedure tindexarray.delete(var p:TNamedIndexObject);
       begin
         deleteindex(p);
-        dispose(p,done);
+        p.free;
         p:=nil;
       end;
 
 
-    procedure tindexarray.insert(p:Pnamedindexobject);
+    procedure tindexarray.insert(p:TNamedIndexObject);
       var
         i  : integer;
       begin
-        if p^.indexnr=-1 then
+        if p.indexnr=-1 then
          begin
            inc(count);
-           p^.indexnr:=count;
+           p.indexnr:=count;
          end;
-        if p^.indexnr>count then
-         count:=p^.indexnr;
+        if p.indexnr>count then
+         count:=p.indexnr;
         if count>size then
          grow(((count div growsize)+1)*growsize);
-        Assert(not assigned(data^[p^.indexnr]) or (p=data^[p^.indexnr]));
-        data^[p^.indexnr]:=p;
+        Assert(not assigned(data^[p.indexnr]) or (p=data^[p.indexnr]));
+        data^[p.indexnr]:=p;
         { update Linked List backward }
-        i:=p^.indexnr;
+        i:=p.indexnr;
         while (i>0) do
          begin
            dec(i);
            if (i>0) and assigned(data^[i]) then
             begin
-              data^[i]^.indexNext:=p;
+              data^[i].indexNext:=p;
               break;
             end;
          end;
         if i=0 then
          First:=p;
         { update Linked List forward }
-        i:=p^.indexnr;
+        i:=p.indexnr;
         while (i<=count) do
          begin
            inc(i);
            if (i<=count) and assigned(data^[i]) then
             begin
-              p^.indexNext:=data^[i];
+              p.indexNext:=data^[i];
               exit;
             end;
          end;
         if i>count then
-         p^.indexNext:=nil;
+         p.indexNext:=nil;
       end;
-{$endif OLD}
-
+{$endif NODIC}
 
 {****************************************************************************
                                 tdynamicarray
@@ -1652,7 +1629,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-12-25 00:07:25  peter
+  Revision 1.3  2000-12-29 21:57:27  peter
+    * 'classified' tdictionary, but leave it within an define
+
+  Revision 1.2  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
