@@ -5,7 +5,7 @@
 [targets]
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
-      windows ole2 opengl32 winsock initc \
+      windows ole2 opengl32 os_types winsock initc \
       dos crt objects graph \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
@@ -174,4 +174,3 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
 #
 # Other system-dependent RTL Units
 #
-
