@@ -398,10 +398,13 @@ var
 begin
   if pathTranslation then
     s := TranslatePathToMac(s, false);
-
   err:= FSMakeFSSpec(workingDirectorySpec.vRefNum,
       workingDirectorySpec.parID, s, spec);
-  PathArgToFSSpec := MacOSErr2RTEerr(err);
+
+  if s <> '' then
+    PathArgToFSSpec := MacOSErr2RTEerr(err)
+  else
+    PathArgToFSSpec := 3; {Empty paths are invalid paths}
 end;
 
 function PathArgToFullPath(s: string; var fullpath: AnsiString): Integer;
