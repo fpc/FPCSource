@@ -38,7 +38,7 @@ end;
 function InterLockedIncrement (var Target: integer) : Integer; assembler;
 asm
 {$ifdef REGCALL}
-        movl    $-1,%edx
+        movl    $1,%edx
         xchgl   %edx,%eax
 {$else}
         movl    Target, %edx
@@ -78,7 +78,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-11-11 21:08:17  peter
+  Revision 1.4  2003-12-23 22:23:34  peter
+    * increment should use ofcourse use 1 instead of -1
+
+  Revision 1.3  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.2  2002/09/07 16:01:19  peter
