@@ -1291,7 +1291,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-05-13 13:45:38  peter
+  Revision 1.3  2002-09-07 15:40:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/05/13 13:45:38  peter
     * updated to compile tests with kylix
 
   Revision 1.1  2002/04/13 17:49:45  carl

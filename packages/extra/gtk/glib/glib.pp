@@ -1654,21 +1654,13 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.2  2002-08-31 04:16:48  marco
+  Revision 1.3  2002-09-07 15:42:58  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/31 04:16:48  marco
    * BSD Libname fixes (eases Lazarus compilation).
 
   Revision 1.1  2002/01/29 17:55:08  peter
     * splitted to base and extra
 
-  Revision 1.5  2000/09/09 18:41:38  peter
-    * fixes for gtk win32
-
-  Revision 1.4  2000/09/06 21:14:28  peter
-    * packrecords 4 for win32, packrecords c for linux
-
-  Revision 1.3  2000/08/06 10:46:23  peter
-    * force smartlink (merged)
-
-  Revision 1.2  2000/07/13 11:33:19  michael
-  + removed logs
 }

@@ -579,13 +579,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-06-01 18:39:14  marco
+  Revision 1.4  2002-09-07 15:40:30  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/06/01 18:39:14  marco
    * Renamefest
 
   Revision 1.2  2002/02/27 16:32:50  carl
   * ifdef linux -> ifdef unix
-
-  Revision 1.1  2000/07/13 10:16:22  michael
-  + Initial import
 
 }

@@ -2,15 +2,15 @@
 
 ******************************************************************************
 
-   Free Pascal conversion (c) 1999 Sebastian Guenther   
+   Free Pascal conversion (c) 1999 Sebastian Guenther
 
    LibGGI API interface
 
-   Copyright (C) 1997 Jason McMullan		[jmcc@ggi-project.org]
-   Copyright (C) 1997 Steffen Seeger		[seeger@ggi-project.org]
-   Copyright (C) 1998 Andrew Apted		[andrew@ggi-project.org]
-   Copyright (C) 1998 Andreas Beck		[becka@ggi-project.org]
-   Copyright (C) 1998-1999 Marcus Sundberg	[marcus@ggi-project.org]
+   Copyright (C) 1997 Jason McMullan            [jmcc@ggi-project.org]
+   Copyright (C) 1997 Steffen Seeger            [seeger@ggi-project.org]
+   Copyright (C) 1998 Andrew Apted              [andrew@ggi-project.org]
+   Copyright (C) 1998 Andreas Beck              [becka@ggi-project.org]
+   Copyright (C) 1998-1999 Marcus Sundberg      [marcus@ggi-project.org]
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ const
  LibGGI datatypes and structures
  ******************************************************************************}
 
-  GGI_AUTO	= 0;
+  GGI_AUTO      = 0;
 
 type
 
@@ -66,18 +66,18 @@ type
 
 const
 
-  ATTR_FGCOLOR		= $0000FF00;	// fgcolor clut index
-  ATTR_BGCOLOR		= $000000FF;	// bgcolor clut index
-  ATTR_NORMAL		= $00000000;	// normal style
-  ATTR_HALF		= $00010000;	// half intensity
-  ATTR_BRIGHT		= $00020000;	// high intensity
-  ATTR_INTENSITY	= $00030000;	// mask to get intensity
-  ATTR_UNDERLINE	= $00040000;	// underline attribute
-  ATTR_BOLD		= $00080000;	// bold style
-  ATTR_ITALIC		= $00100000;	// italic style
-  ATTR_REVERSE		= $00200000;	// reverse fg/bg
-  ATTR_BLINK		= $00800000;	// enable blinking
-  ATTR_FONT		= $FF000000;	// font table
+  ATTR_FGCOLOR          = $0000FF00;    // fgcolor clut index
+  ATTR_BGCOLOR          = $000000FF;    // bgcolor clut index
+  ATTR_NORMAL           = $00000000;    // normal style
+  ATTR_HALF             = $00010000;    // half intensity
+  ATTR_BRIGHT           = $00020000;    // high intensity
+  ATTR_INTENSITY        = $00030000;    // mask to get intensity
+  ATTR_UNDERLINE        = $00040000;    // underline attribute
+  ATTR_BOLD             = $00080000;    // bold style
+  ATTR_ITALIC           = $00100000;    // italic style
+  ATTR_REVERSE          = $00200000;    // reverse fg/bg
+  ATTR_BLINK            = $00800000;    // enable blinking
+  ATTR_FONT             = $FF000000;    // font table
 
 function ATTR_COLOR(fg, bg: Integer): Integer;
 
@@ -96,7 +96,7 @@ type
     data: PGGIColor;
   end;
 
-const GGI_COLOR_PRECISION = 16;		// 16 bit per R,G, B value
+const GGI_COLOR_PRECISION = 16;         // 16 bit per R,G, B value
 
 // Graphtypes
 
@@ -104,15 +104,15 @@ type TGGIGraphType = LongWord;
 
 const
 
-  GT_DEPTH_SHIFT	= 0;
-  GT_SIZE_SHIFT		= 8;
-  GT_SUBSCHEME_SHIFT	= 16;
-  GT_SCHEME_SHIFT	= 24;
+  GT_DEPTH_SHIFT        = 0;
+  GT_SIZE_SHIFT         = 8;
+  GT_SUBSCHEME_SHIFT    = 16;
+  GT_SCHEME_SHIFT       = 24;
 
-  GT_DEPTH_MASK		= $ff shl GT_DEPTH_SHIFT;
-  GT_SIZE_MASK		= $ff shl GT_SIZE_SHIFT;
-  GT_SUBSCHEME_MASK	= $ff shl GT_SUBSCHEME_SHIFT;
-  GT_SCHEME_MASK	= $ff shl GT_SCHEME_SHIFT;
+  GT_DEPTH_MASK         = $ff shl GT_DEPTH_SHIFT;
+  GT_SIZE_MASK          = $ff shl GT_SIZE_SHIFT;
+  GT_SUBSCHEME_MASK     = $ff shl GT_SUBSCHEME_SHIFT;
+  GT_SCHEME_MASK        = $ff shl GT_SCHEME_SHIFT;
 
 // Macros to extract info from a ggi_graphtype.
 
@@ -131,16 +131,16 @@ const
 
 // Enumerated schemes
 
-  GT_TEXT		= 1 shl GT_SCHEME_SHIFT;
-  GT_TRUECOLOR		= 2 shl GT_SCHEME_SHIFT;
-  GT_GREYSCALE		= 3 shl GT_SCHEME_SHIFT;
-  GT_PALETTE		= 4 shl GT_SCHEME_SHIFT;
-  GT_STATIC_PALETTE	= 5 shl GT_SCHEME_SHIFT;
+  GT_TEXT               = 1 shl GT_SCHEME_SHIFT;
+  GT_TRUECOLOR          = 2 shl GT_SCHEME_SHIFT;
+  GT_GREYSCALE          = 3 shl GT_SCHEME_SHIFT;
+  GT_PALETTE            = 4 shl GT_SCHEME_SHIFT;
+  GT_STATIC_PALETTE     = 5 shl GT_SCHEME_SHIFT;
 
 // Subschemes
-  GT_SUB_REVERSE_ENDIAN	= 1 shl GT_SUBSCHEME_SHIFT;
-  GT_SUB_HIGHBIT_RIGHT	= 2 shl GT_SUBSCHEME_SHIFT;
-  GT_SUB_PACKED_GETPUT	= 4 shl GT_SUBSCHEME_SHIFT;
+  GT_SUB_REVERSE_ENDIAN = 1 shl GT_SUBSCHEME_SHIFT;
+  GT_SUB_HIGHBIT_RIGHT  = 2 shl GT_SUBSCHEME_SHIFT;
+  GT_SUB_PACKED_GETPUT  = 4 shl GT_SUBSCHEME_SHIFT;
 
 // Macro that constructs a graphtype
 function GT_CONSTRUCT(depth, scheme, size: Integer): Integer;
@@ -150,30 +150,30 @@ const
 
 // Common graphtypes
 
-  GT_TEXT16		= 4 or GT_TEXT or (16 shl GT_SIZE_SHIFT);
-  GT_TEXT32		= 8 or GT_TEXT or (32 shl GT_SIZE_SHIFT);
-  GT_1BIT		= 1 or GT_PALETTE or (1 shl GT_SIZE_SHIFT);
-  GT_2BIT		= 2 or GT_PALETTE or (2 shl GT_SIZE_SHIFT);
-  GT_4BIT		= 4 or GT_PALETTE or (4 shl GT_SIZE_SHIFT);
-  GT_8BIT		= 8 or GT_PALETTE or (8 shl GT_SIZE_SHIFT);
-  GT_15BIT		= 15 or GT_TRUECOLOR or (16 shl GT_SIZE_SHIFT);
-  GT_16BIT		= 16 or GT_TRUECOLOR or (16 shl GT_SIZE_SHIFT);
-  GT_24BIT		= 24 or GT_TRUECOLOR or (24 shl GT_SIZE_SHIFT);
-  GT_32BIT		= 24 or GT_TRUECOLOR or (32 shl GT_SIZE_SHIFT);
-  GT_AUTO		= 0;
-  GT_INVALID		= $ffffffff;
+  GT_TEXT16             = 4 or GT_TEXT or (16 shl GT_SIZE_SHIFT);
+  GT_TEXT32             = 8 or GT_TEXT or (32 shl GT_SIZE_SHIFT);
+  GT_1BIT               = 1 or GT_PALETTE or (1 shl GT_SIZE_SHIFT);
+  GT_2BIT               = 2 or GT_PALETTE or (2 shl GT_SIZE_SHIFT);
+  GT_4BIT               = 4 or GT_PALETTE or (4 shl GT_SIZE_SHIFT);
+  GT_8BIT               = 8 or GT_PALETTE or (8 shl GT_SIZE_SHIFT);
+  GT_15BIT              = 15 or GT_TRUECOLOR or (16 shl GT_SIZE_SHIFT);
+  GT_16BIT              = 16 or GT_TRUECOLOR or (16 shl GT_SIZE_SHIFT);
+  GT_24BIT              = 24 or GT_TRUECOLOR or (24 shl GT_SIZE_SHIFT);
+  GT_32BIT              = 24 or GT_TRUECOLOR or (32 shl GT_SIZE_SHIFT);
+  GT_AUTO               = 0;
+  GT_INVALID            = $ffffffff;
 
 // ggi_mode structure
 
 type
 
-  TGGIMode = record			// requested by user and changed by driver
-    Frames: LongInt;			// frames needed
-    Visible: TGGICoord;			// vis. pixels, may change slightly
-    Virt: TGGICoord;			// virtual pixels, may change
-    Size: TGGICoord;			// size of visible in mm
-    GraphType: TGGIGraphType;		// which mode ?
-    dpp: TGGICoord;			// dots per pixel
+  TGGIMode = record                     // requested by user and changed by driver
+    Frames: LongInt;                    // frames needed
+    Visible: TGGICoord;                 // vis. pixels, may change slightly
+    Virt: TGGICoord;                    // virtual pixels, may change
+    Size: TGGICoord;                    // size of visible in mm
+    GraphType: TGGIGraphType;           // which mode ?
+    dpp: TGGICoord;                     // dots per pixel
   end;
 
 
@@ -183,13 +183,13 @@ type
 
 const
 
-  GGI_CMDFLAG_LIBGGI	= GII_CMDFLAG_EXTERNAL shr 1;
+  GGI_CMDFLAG_LIBGGI    = GII_CMDFLAG_EXTERNAL shr 1;
 
   { Tell target that the application should not/should be halted when the
-    display is unmapped.	The default is to halt the application.}
+    display is unmapped.        The default is to halt the application.}
 
- GGICMD_NOHALT_ON_UNMAP	= GII_CMDFLAG_EXTERNAL or GGI_CMDFLAG_LIBGGI or GII_CMDFLAG_NODATA or 1;
- GGICMD_HALT_ON_UNMAP	= GII_CMDFLAG_EXTERNAL or GGI_CMDFLAG_LIBGGI or GII_CMDFLAG_NODATA or 2;
+ GGICMD_NOHALT_ON_UNMAP = GII_CMDFLAG_EXTERNAL or GGI_CMDFLAG_LIBGGI or GII_CMDFLAG_NODATA or 1;
+ GGICMD_HALT_ON_UNMAP   = GII_CMDFLAG_EXTERNAL or GGI_CMDFLAG_LIBGGI or GII_CMDFLAG_NODATA or 2;
 
   { Requests the application to switch target/mode, or to stop drawing on
     the visual.
@@ -201,12 +201,12 @@ const
      event, which tells the application that the visual is mapped back again.
   }
 
-  GGICMD_REQUEST_SWITCH	= GII_CMDFLAG_EXTERNAL or GGI_CMDFLAG_LIBGGI or 1;
+  GGICMD_REQUEST_SWITCH = GII_CMDFLAG_EXTERNAL or GGI_CMDFLAG_LIBGGI or 1;
 
   // Used for 'request' field in ggi_cmddata_switchrequest
-  GGI_REQSW_UNMAP	= 1;
-  GGI_REQSW_MODE	= 2;
-  GGI_REQSW_TARGET	= 4;
+  GGI_REQSW_UNMAP       = 1;
+  GGI_REQSW_MODE        = 2;
+  GGI_REQSW_TARGET      = 4;
 
 type
 
@@ -257,56 +257,56 @@ function GGI_BITREV1(x: Integer): Integer;
 
 const
 
-  GGI_BM_TYPE_NONE	= 0;		// This bit is not in use
+  GGI_BM_TYPE_NONE      = 0;            // This bit is not in use
 
 
   // Bit influences color of displayed pixel
 
-  GGI_BM_TYPE_COLOR	= $010000;
+  GGI_BM_TYPE_COLOR     = $010000;
 
-  GGI_BM_SUB_RED	= $0100;
-  GGI_BM_SUB_GREEN	= $0200;
-  GGI_BM_SUB_BLUE	= $0300;
+  GGI_BM_SUB_RED        = $0100;
+  GGI_BM_SUB_GREEN      = $0200;
+  GGI_BM_SUB_BLUE       = $0300;
 
-  GGI_BM_SUB_CYAN	= $1000;
-  GGI_BM_SUB_MAGENTA	= $1100;
-  GGI_BM_SUB_YELLOW	= $1200;
-  GGI_BM_SUB_K		= $1300;
+  GGI_BM_SUB_CYAN       = $1000;
+  GGI_BM_SUB_MAGENTA    = $1100;
+  GGI_BM_SUB_YELLOW     = $1200;
+  GGI_BM_SUB_K          = $1300;
 
-  GGI_BM_SUB_Y		= $2000;
-  GGI_BM_SUB_U		= $2100;
-  GGI_BM_SUB_V		= $2200;
+  GGI_BM_SUB_Y          = $2000;
+  GGI_BM_SUB_U          = $2100;
+  GGI_BM_SUB_V          = $2200;
 
-  GGI_BM_SUB_CLUT	= $f000;	// This bit Color or attrib ?
+  GGI_BM_SUB_CLUT       = $f000;        // This bit Color or attrib ?
 
 
   // Bit changes appearance of pixel/glyph
 
-  GGI_BM_TYPE_ATTRIB	= $020000;
+  GGI_BM_TYPE_ATTRIB    = $020000;
 
-  GGI_BM_SUB_ALPHA	= $0100;
+  GGI_BM_SUB_ALPHA      = $0100;
 
-  GGI_BM_SUB_BLINK	= $1000;
-  GGI_BM_SUB_INTENSITY	= $1100;
-  GGI_BM_SUB_UNDERLINE	= $1200;
-  GGI_BM_SUB_BOLD	= $1300;
-  GGI_BM_SUB_ITALIC	= $1400;
+  GGI_BM_SUB_BLINK      = $1000;
+  GGI_BM_SUB_INTENSITY  = $1100;
+  GGI_BM_SUB_UNDERLINE  = $1200;
+  GGI_BM_SUB_BOLD       = $1300;
+  GGI_BM_SUB_ITALIC     = $1400;
 
-  GGI_BM_SUB_FGCOL	= $2000;
-  GGI_BM_SUB_BGCOL	= $2100;
+  GGI_BM_SUB_FGCOL      = $2000;
+  GGI_BM_SUB_BGCOL      = $2100;
 
-  GGI_BM_SUB_TEXNUM	= $3000;
-  GGI_BM_SUB_FONTSEL	= $3100;	// select different font banks
-  GGI_BM_SUB_PALSEL	= $3200;	// select different palettes
-  GGI_BM_SUB_MODESEL	= $3300;	// select different palettes
-  
+  GGI_BM_SUB_TEXNUM     = $3000;
+  GGI_BM_SUB_FONTSEL    = $3100;        // select different font banks
+  GGI_BM_SUB_PALSEL     = $3200;        // select different palettes
+  GGI_BM_SUB_MODESEL    = $3300;        // select different palettes
+
   // Bit that influence drawing logic
 
-  GGI_BM_TYPE_LOGIC	= $030000;
+  GGI_BM_TYPE_LOGIC     = $030000;
 
-  GGI_BM_SUB_ZBUFFER	= $0100;
-  GGI_BM_SUB_WRITEPROT	= $1000;
-  GGI_BM_SUB_WINDOWID	= $2000;
+  GGI_BM_SUB_ZBUFFER    = $0100;
+  GGI_BM_SUB_WRITEPROT  = $1000;
+  GGI_BM_SUB_WINDOWID   = $2000;
 
 
 
@@ -318,59 +318,59 @@ type
   PGGIPixelFormat = ^TGGIPixelFormat;
 
   TGGIPixelFormat = record
-    depth: Integer;			// Number of significant bits
-    size: Integer;			// Physical size in bits
+    depth: Integer;                     // Number of significant bits
+    size: Integer;                      // Physical size in bits
 
 
     {* Simple and common things first :
-     * 
+     *
      * Usage of the mask/shift pairs:
-     * If new_value is the _sizeof(ggi_pixel)*8bit_ value of the thing 
+     * If new_value is the _sizeof(ggi_pixel)*8bit_ value of the thing
      * you want to set, you do
      *
-     * *pointer &= ~???_mask; 		// Mask out old bits 
+     * *pointer &= ~???_mask;           // Mask out old bits
      * *pointer |= (new_value>>shift) & ???_mask;
-     * 
+     *
      * The reason to use 32 bit and "downshifting" is alignment
      * and extensibility. You can easily adjust to other datasizes
      * with a simple addition ...
      *}
-	
+
     // Simple colors:
-    red_mask: TGGIPixel;		// Bitmask of red bits
-    red_shift: Integer;			// Shift for red bits
+    red_mask: TGGIPixel;                // Bitmask of red bits
+    red_shift: Integer;                 // Shift for red bits
 
-    green_mask: TGGIPixel;		// Bitmask of green bits
-    green_shift: Integer;		// Shift for green bits
+    green_mask: TGGIPixel;              // Bitmask of green bits
+    green_shift: Integer;               // Shift for green bits
 
-    blue_mask: TGGIPixel;		// Bitmask of blue bits
-    blue_shift: Integer;		// Shift for blue bits
+    blue_mask: TGGIPixel;               // Bitmask of blue bits
+    blue_shift: Integer;                // Shift for blue bits
 
     // A few common attributes:
-    alpha_mask: TGGIPixel;		// Bitmask of alphachannel bits
-    alpha_shift: Integer;		// Shift for alpha bits
+    alpha_mask: TGGIPixel;              // Bitmask of alphachannel bits
+    alpha_shift: Integer;               // Shift for alpha bits
 
-    clut_mask: TGGIPixel;		// Bitmask of bits for the clut
-    clut_shift: Integer;		// Shift for bits for the clut
+    clut_mask: TGGIPixel;               // Bitmask of bits for the clut
+    clut_shift: Integer;                // Shift for bits for the clut
 
-    fg_mask: TGGIPixel;			// Bitmask of foreground color
-    fg_shift: Integer;			// Shift for foreground color
+    fg_mask: TGGIPixel;                 // Bitmask of foreground color
+    fg_shift: Integer;                  // Shift for foreground color
 
-    bg_mask: TGGIPixel;			// Bitmask of background color
-    bg_shift: Integer;			// Shift for background color
+    bg_mask: TGGIPixel;                 // Bitmask of background color
+    bg_shift: Integer;                  // Shift for background color
 
-    texture_mask: TGGIPixel;		// Bitmask of the texture (for
-					// textmodes - the actual character)
-    texture_shift: Integer;		// Shift for texture
+    texture_mask: TGGIPixel;            // Bitmask of the texture (for
+                                        // textmodes - the actual character)
+    texture_shift: Integer;             // Shift for texture
 
     // Now if this does not suffice you might want to parse the following
     // to find out what each bit does:
     bitmeaning: array[0..SizeOf(TGGIPixel) * 8 - 1] of LongWord;
 
     // Shall we keep those?
-    flags: LongWord;			// Pixelformat flags
+    flags: LongWord;                    // Pixelformat flags
 
-    stdformat: LongWord;		// Standard format identifier
+    stdformat: LongWord;                // Standard format identifier
 
     {* This one has only one use for the usermode application:
      * To quickly check, if two buffers are identical. If both
@@ -383,10 +383,10 @@ end;
 const
 
   // Pixelformat flags
-  GGI_PF_REVERSE_ENDIAN	= 1;
-  GGI_PF_HIGHBIT_RIGHT	= 2;
-  GGI_PF_HAM		= 4;
-  GGI_PF_EXTENDED	= 8;
+  GGI_PF_REVERSE_ENDIAN = 1;
+  GGI_PF_HIGHBIT_RIGHT  = 2;
+  GGI_PF_HAM            = 4;
+  GGI_PF_EXTENDED       = 8;
 
 
 {******************************************************************************
@@ -396,41 +396,41 @@ const
 type
 
   TGGIBufferLayout = (
-	blPixelLinearBuffer,
-	blPixelPlanarBuffer,
-	blExtended,
+        blPixelLinearBuffer,
+        blPixelPlanarBuffer,
+        blExtended,
 
-	blLastBufferLayout
+        blLastBufferLayout
   );
 
 
   PGGIPixelLinearBuffer = ^TGGIPixelLinearBuffer;
 
   TGGIPixelLinearBuffer = record
-    stride: Integer;			// bytes per row
-    pixelformat: PGGIPixelFormat;	// format of the pixels
+    stride: Integer;                    // bytes per row
+    pixelformat: PGGIPixelFormat;       // format of the pixels
   end;
 
 
   PGGIPixelPlanarBuffer = ^TGGIPixelPlanarBuffer;
 
   TGGIPixelPlanarBuffer = record
-    next_line: Integer;			// bytes until next line
-    next_plane: Integer;		// bytes until next plane
-    pixelformat: PGGIPixelFormat;	// format of the pixels
+    next_line: Integer;                 // bytes until next line
+    next_plane: Integer;                // bytes until next plane
+    pixelformat: PGGIPixelFormat;       // format of the pixels
   end;
 
 // Buffer types
 
 const
 
-  GGI_DB_NORMAL		= 1;		// "frame" is valid when set
-  GGI_DB_EXTENDED	= 2;
-  GGI_DB_MULTI_LEFT	= 4;
-  GGI_DB_MULTI_RIGHT	= 8;
+  GGI_DB_NORMAL         = 1;            // "frame" is valid when set
+  GGI_DB_EXTENDED       = 2;
+  GGI_DB_MULTI_LEFT     = 4;
+  GGI_DB_MULTI_RIGHT    = 8;
 
   // Flags that may be 'or'ed with the buffer type
-  GGI_DB_SIMPLE_PLB	= $01000000;
+  GGI_DB_SIMPLE_PLB     = $01000000;
   { GGI_DB_SIMPLE_PLB means that the buffer has the following properties:
     type = GGI_DB_NORMAL
     read = write
@@ -444,15 +444,15 @@ type
   PGGIDirectBuffer = ^TGGIDirectBuffer;
 
   TGGIDirectBuffer = record
-    BufferType: LongWord;		// buffer type
-    frame: Integer;			// framenumber (GGI_DB_NORMAL)
+    BufferType: LongWord;               // buffer type
+    frame: Integer;                     // framenumber (GGI_DB_NORMAL)
 
     // access info
-    resource: TGGIResource;		// If non-NULL you must acquire the
-					// buffer before using it
-    read: Pointer;			// buffer address for reads
-    write:Pointer;			// buffer address for writes
-    page_size: LongWord;		// zero for true linear buffers
+    resource: TGGIResource;             // If non-NULL you must acquire the
+                                        // buffer before using it
+    read: Pointer;                      // buffer address for reads
+    write:Pointer;                      // buffer address for writes
+    page_size: LongWord;                // zero for true linear buffers
 
     noaccess: LongWord;
     {bitfield. bit x set means you may _not_ access this DB at the
@@ -471,8 +471,8 @@ type
     buffer: record
       case Integer of
         0: (plb: TGGIPixelLinearBuffer);
-	1: (plan: TGGIPixelPlanarBuffer);
-	2: (extended: Pointer);
+        1: (plan: TGGIPixelPlanarBuffer);
+        2: (extended: Pointer);
       end;
   end;
 
@@ -485,12 +485,12 @@ type
 
 const
 
-  GGI_ACTYPE_READ	= 1 shl 0;
-  GGI_ACTYPE_WRITE	= 1 shl 1;
+  GGI_ACTYPE_READ       = 1 shl 0;
+  GGI_ACTYPE_WRITE      = 1 shl 1;
 
 
 {******************************************************************************
- LibGGI function definitions 
+ LibGGI function definitions
 ******************************************************************************}
 
 // Enter and leave the library
@@ -617,7 +617,7 @@ function  ggiGetReadFrame(vis: TGGIVisual): Integer; cdecl; external libggi;
 function  ggiGetWriteFrame(vis: TGGIVisual): Integer; cdecl; external libggi;
 
 
-// Generic drawing routines 
+// Generic drawing routines
 
 function  ggiFillscreen(vis: TGGIVisual): Integer; cdecl; external libggi;
 
@@ -641,7 +641,7 @@ function  ggiCopyBox(vis: TGGIVisual; x, y, w, h, nx, ny: Integer): Integer; cde
 function  ggiCrossBlit(src: TGGIVisual; sx, sy, w, h: Integer; dst: TGGIVisual; dx, dy: Integer): Integer; cdecl; external libggi;
 
 
-// Text drawing routines 
+// Text drawing routines
 
 function  ggiPutc(vis: TGGIVisual; x, y: Integer; c: Char): Integer; cdecl; external libggi;
 function  ggiPuts(vis: TGGIVisual; x, y: Integer; str: PChar): Integer; cdecl; external libggi;
@@ -661,7 +661,7 @@ function  ggiJoinInputs(vis: TGGIVisual; Input: TGIIInput): TGIIInput; cdecl; ex
 function  ggiAddEventMask(vis: TGGIVisual; Mask: TGIIEventMask): Integer;
 function  ggiRemoveEventMask(vis: TGGIVisual; Mask: TGIIEventMask): Integer;
 
-                          
+
 // Convenience functions
 
 function  ggiKbhit(vis: TGGIVisual): Integer; cdecl; external libggi;
@@ -672,7 +672,7 @@ function  ggiGetc(vis: TGGIVisual): Integer; cdecl; external libggi;
 
 type
   TGGILibID = Pointer;
-  TGGIExtID = Integer;	{Don't rely on that !}
+  TGGIExtID = Integer;  {Don't rely on that !}
   TGGIParamChangeProc = function(Visual: TGGIVisual; WhatChanged: Integer): Integer;
 
 function  ggiExtensionRegister(name: PChar; size: Integer;
@@ -788,10 +788,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:03  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:03  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:16  michael
-  + removed logs
- 
 }

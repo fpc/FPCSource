@@ -13,7 +13,7 @@ begin
   if (fl_load_browser(br,fl_show_input('Filename to load',''))<>0) then
      fl_add_browser_line(br,'NO SUCH FILE!');
 end;
- 
+
 procedure set_size(ob : PFL_OBJECT; arg : Longint);export;
 
 begin
@@ -43,20 +43,20 @@ begin
 
   fl_clear_browser(br);
   fl_add_browser_line(br,'LOAD A FILE.');
-  fl_scale_form(form, 4.0, 4.0); 
+  fl_scale_form(form, 4.0, 4.0);
 
   fl_show_form(form,FL_PLACE_FREE,FL_FULLBORDER,'Browser');
 
-  repeat 
-    obj := fl_do_forms; 
+  repeat
+    obj := fl_do_forms;
   until obj = but;
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -236,7 +236,10 @@ end.
 
 {
  $Log$
- Revision 1.3  2002-08-25 19:27:40  peter
+ Revision 1.4  2002-09-07 15:40:52  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.3  2002/08/25 19:27:40  peter
    * failure test splitted for getmem reporting nil or a runtime error
 
  Revision 1.2  2002/04/02 17:05:17  peter

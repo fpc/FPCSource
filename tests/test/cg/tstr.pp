@@ -49,7 +49,7 @@ begin
   check('10');
   str(c:3,s);
   check(' 10');
-   
+
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
   str(f,s);
@@ -161,7 +161,7 @@ begin
   check('10');
   str(c:3,s);
   check(' 10');
-   
+
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
   str(f,s);
@@ -274,7 +274,7 @@ begin
   check('10');
   str(c:3,s);
   check(' 10');
-   
+
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
   str(f,s);

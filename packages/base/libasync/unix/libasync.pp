@@ -25,7 +25,7 @@ type
 
   TAsyncData = record
     IsRunning, DoBreak: Boolean;
-    HasCallbacks: Boolean;	// True as long as callbacks are set
+    HasCallbacks: Boolean;      // True as long as callbacks are set
     FirstTimer: Pointer;
     FirstIOCallback: Pointer;
     FDData: Pointer;
@@ -89,12 +89,12 @@ begin
       if ARead then
       begin
         Data^.ReadCallback := ReadCallback;
-	Data^.ReadUserData := ReadUserData;
+        Data^.ReadUserData := ReadUserData;
       end;
       if AWrite then
       begin
         Data^.WriteCallback := WriteCallback;
-	Data^.WriteUserData := WriteUserData;
+        Data^.WriteUserData := WriteUserData;
       end;
       NeedData := False;
       break;
@@ -153,9 +153,9 @@ begin
     Open_RdWr:
       begin
         if ARead then
-	  FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
-	if AWrite then
-	  FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
+          FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[0]);
+        if AWrite then
+          FD_Set(IOHandle, PFDSet(Handle^.Data.FDData)[1]);
       end;
   end;
 
@@ -244,8 +244,8 @@ begin
       while Assigned(Timer) do
       begin
         if Timer^.NextTick < NextTick then
-	  NextTick := Timer^.NextTick;
-	Timer := Timer^.Next;
+          NextTick := Timer^.NextTick;
+        Timer := Timer^.Next;
       end;
       TimeOut := NextTick - CurTime;
       if TimeOut < 0 then
@@ -270,18 +270,18 @@ begin
       while Assigned(Timer) do
       begin
         if Timer^.NextTick <= CurTime then
-	begin
-	  Timer^.Callback(Timer^.UserData);
-	  NextTimer := Timer^.Next;
-	  if Timer^.Periodic then
-	    Inc(Timer^.NextTick, Timer^.MSec)
-	  else
-	    asyncRemoveTimer(Handle, Timer);
-	  if Handle^.Data.DoBreak then
-	    break;
-	  Timer := NextTimer;
-	end else
-	  Timer := Timer^.Next;
+        begin
+          Timer^.Callback(Timer^.UserData);
+          NextTimer := Timer^.Next;
+          if Timer^.Periodic then
+            Inc(Timer^.NextTick, Timer^.MSec)
+          else
+            asyncRemoveTimer(Handle, Timer);
+          if Handle^.Data.DoBreak then
+            break;
+          Timer := NextTimer;
+        end else
+          Timer := Timer^.Next;
       end;
     end;
 
@@ -291,23 +291,23 @@ begin
       IOCallback := Handle^.Data.FirstIOCallback;
       while Assigned(IOCallback) do
       begin
-	if FD_IsSet(IOCallback^.IOHandle, CurReadFDSet) and
-	  FD_IsSet(IOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) then
-	begin
-	  IOCallback^.ReadCallback(IOCallback^.ReadUserData);
-	  if Handle^.Data.DoBreak then
-	    break;
-	end;
+        if FD_IsSet(IOCallback^.IOHandle, CurReadFDSet) and
+          FD_IsSet(IOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) then
+        begin
+          IOCallback^.ReadCallback(IOCallback^.ReadUserData);
+          if Handle^.Data.DoBreak then
+            break;
+        end;
 
-	if FD_IsSet(IOCallback^.IOHandle, CurWriteFDSet) and
-	  FD_IsSet(IOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) then
-	begin
-	  IOCallback^.WriteCallback(IOCallback^.WriteUserData);
-	  if Handle^.Data.DoBreak then
-	    break;
-	end;
+        if FD_IsSet(IOCallback^.IOHandle, CurWriteFDSet) and
+          FD_IsSet(IOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) then
+        begin
+          IOCallback^.WriteCallback(IOCallback^.WriteUserData);
+          if Handle^.Data.DoBreak then
+            break;
+        end;
 
-	IOCallback := IOCallback^.Next;
+        IOCallback := IOCallback^.Next;
       end;
     end;
   end;
@@ -509,20 +509,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:53  peter
+  Revision 1.2  2002-09-07 15:42:52  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:54:53  peter
     * splitted to base and extra
-
-  Revision 1.2  2001/12/11 19:06:16  marco
-   * from fixes to devel.
-
-  Revision 1.1.2.2  2001/11/16 12:51:41  sg
-  * Now different handlers for available data and space in write buffer can
-    be set
-  * LOTS of bugfixes in the implementation
-  * fpAsync now has a write buffer class (a read buffer class for reading
-    line by line will be included in the next release)
-
-  Revision 1.1.2.1  2001/09/08 15:43:24  sg
-  * First public version
 
 }

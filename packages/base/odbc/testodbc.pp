@@ -33,7 +33,7 @@ Var
 Procedure FreeHandles;
 
 begin
-  If StmtHAndle<>0 then  
+  If StmtHAndle<>0 then
     SQLFreeHandle(SQL_HANDLE_STMT,StmtHandle);
   If DBHandle<>0 then
     SQLFreeHandle(SQL_HANDLE_DBC,DBHandle);
@@ -48,7 +48,7 @@ begin
   Writeln(Msg,' Code : ',ErrCode);
   Halt(1);
 end;
-  
+
 Procedure StartSession;
 
 Var

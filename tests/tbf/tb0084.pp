@@ -5,13 +5,13 @@
 type
 
   ExecProc = Procedure;
-  
+
 type
   MenuItem = record
                Caption: String[32];
                Exec: ExecProc;
              end;
-             
+
 Procedure AddItem(ACaption: String; AExec: ExecProc; var Item: MenuItem);
 begin
   Item.Caption:=ACaption;

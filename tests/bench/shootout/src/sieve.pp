@@ -3,7 +3,7 @@
 program sieve;
 uses SysUtils;
 
-var 
+var
     NUM, i, k, count : integer;
     flags : array[0..8192] of integer;
 
@@ -12,7 +12,7 @@ begin
         NUM := 1
     else
         NUM := StrToInt(ParamStr(1));
-        
+
     if NUM < 1 then NUM := 1;
 
     while NUM > 0 do

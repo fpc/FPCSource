@@ -44,10 +44,10 @@ function  gtk_plug_new(socket_id:guint32):PGtkWidget;cdecl;external gtkdll name 
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:12  peter
+  Revision 1.2  2002-09-07 15:43:00  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:12  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:23  michael
-  + removed logs
- 
 }

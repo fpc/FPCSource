@@ -27,7 +27,7 @@ interface
 
 uses typ;
 
-Var 
+Var
     limit    : ArbInt;
     epsrel   : ArbFloat;
 
@@ -54,16 +54,16 @@ End;
 Procedure qk21(f: rfunc1r; a, b: ArbFloat;
                Var result, abserr, resabs, resasc: ArbFloat);
 
-Const 
+Const
 
- xgk: array[1..11] Of ArbFloat = 
+ xgk: array[1..11] Of ArbFloat =
                                 ( 0.9956571630258081, 0.9739065285171717,
                                   0.9301574913557082, 0.8650633666889845,
                                   0.7808177265864169, 0.6794095682990244,
                                   0.5627571346686047, 0.4333953941292472,
                                   0.2943928627014602, 0.1488743389816312, 0);
 
- wgk: array[1..11] Of ArbFloat = 
+ wgk: array[1..11] Of ArbFloat =
                                 ( 0.1169463886737187e-1, 0.3255816230796473e-1,
                                   0.5475589657435200e-1, 0.7503967481091995e-1,
                                   0.9312545458369761e-1, 0.1093871588022976,
@@ -71,7 +71,7 @@ Const
                                   0.1427759385770601,    0.1477391049013385,
                                   0.1494455540029169);
 
- wg: array[1..5] Of ArbFloat = 
+ wg: array[1..5] Of ArbFloat =
                               ( 0.6667134430868814e-1, 0.1494513491505806,
                                 0.2190863625159820,    0.2692667193099964,
                                 0.2955242247147529);
@@ -228,7 +228,7 @@ Begin
 
 End;
 
-Type 
+Type
      stock = array[1..52] Of ArbFloat;
      hulpar = array[1..3] Of ArbFloat;
 
@@ -238,7 +238,7 @@ Procedure qelg(Var n: ArbInt;
                Var res3la: hulpar;
                Var nres: ArbInt);
 
-Var 
+Var
      delta1, delta2, delta3,
      epsinf, error, err1, err2, err3,
      e0, e1, e2, e3, e0abs, e1abs, e2abs, e3abs,
@@ -709,7 +709,7 @@ Begin
       reskh := resk*0.5;
       resasc := wgk[8]*abs(fc-reskh);
 
-      For j:=1 To 7 
+      For j:=1 To 7
        Do
        resasc := resasc+wgk[j]*(abs(fv1[j]-reskh)+abs(fv2[j]-reskh));
 
@@ -907,7 +907,7 @@ Begin
               jupbnd := last;
               If (last>(2+limit Div 2)) Then jupbnd := limit+3-last;
               k := id-1;
-              while (k<jupbnd) and not break 
+              while (k<jupbnd) and not break
               Do
              Begin
                  Inc(k);
@@ -1064,17 +1064,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:18  peter
+  Revision 1.2  2002-09-07 15:43:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:18  peter
     * splitted to base and extra
-
-  Revision 1.1  2000/07/13 06:34:14  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:41  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
-
 
 }

@@ -130,56 +130,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.2  2000/11/23 16:33:31  pierre
-   * fix Alt-X problem and set HelpCtx for most dialogs
-
-  Revision 1.1.2.1  2000/10/18 21:53:27  pierre
-   * several Gabor fixes
-
-  Revision 1.1  2000/07/13 09:48:35  michael
-  + Initial import
-
-  Revision 1.9  2000/05/02 08:42:28  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.8  2000/03/07 21:45:33  pierre
-   + TIDEApp.UpdateMode
-
-  Revision 1.7  2000/01/10 14:59:08  pierre
-   * force recompiling if we change target OS
-
-  Revision 1.6  1999/06/25 00:37:56  pierre
-   + UpdateTarget to see current target main in Menu
-
-  Revision 1.5  1999/04/07 21:55:49  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.4  1999/03/19 16:04:30  peter
-    * new compiler dialog
-
-  Revision 1.3  1999/03/12 01:13:59  peter
-    * flag if trytoopen should look for other extensions
-    + browser tab in the tools-compiler
-
-  Revision 1.2  1998/12/28 15:47:46  peter
-    + Added user screen support, display & window
-    + Implemented Editor,Mouse Options dialog
-    + Added location of .INI and .CFG file
-    + Option (INI) file managment implemented (see bottom of Options Menu)
-    + Switches updated
-    + Run program
-
-  Revision 1.1  1998/12/22 14:27:54  peter
-    * moved
-
-  Revision 1.3  1998/12/22 10:39:44  peter
-    + Switches are now written/read
-    + find and replace routines
+  Revision 1.2  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
 
 }

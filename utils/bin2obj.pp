@@ -253,28 +253,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-09-29 16:02:15  carl
-  - don't see the point of not calling dos.exec here.... so remove unix defines
-
-  Revision 1.3  2001/04/25 22:45:45  peter
-    * regenerated
-
-  Revision 1.2  2001/01/29 21:48:26  peter
-    * linux -> unix
-
-  Revision 1.1  2000/07/13 10:16:21  michael
-  + Initial import
-
-  Revision 1.4  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.3  2000/02/07 13:42:39  peter
-    * fixed notes
-
-  Revision 1.2  2000/01/07 16:46:01  daniel
-    * copyright 2000
-
-  Revision 1.1  1999/12/08 23:11:20  michael
-  + Initial implementation
+  Revision 1.5  2002-09-07 15:40:30  peter
+    * old logs removed and tabs fixed
 
 }

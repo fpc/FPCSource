@@ -26,7 +26,7 @@ $Revision$
 $Modtime: 96-08-01 6:13 $
 
 $History: LEXDFA.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply

@@ -27,7 +27,7 @@ $Revision$
 $Modtime: 96-08-01 8:52 $
 
 $History: LEXMSGS.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -72,27 +72,27 @@ illegal_no_args                 = 'illegal number of parameters';
 (* syntax errors: *)
 
 unmatched_lbrace                = '101: unmatched %{';
-syntax_error 			= '102: syntax error';
+syntax_error                    = '102: syntax error';
 unexpected_eof                  = '103: unexpected end of file';
 
 (* semantic errors: *)
 
-symbol_already_defined 		= '201: symbol already defined';
+symbol_already_defined          = '201: symbol already defined';
 undefined_symbol                = '202: undefined symbol';
 invalid_charnum                 = '203: invalid character number';
-empty_grammar 			= '204: empty grammar?';
+empty_grammar                   = '204: empty grammar?';
 
 (* fatal errors: *)
 
-cannot_open_file 		= 'FATAL: cannot open file ';
+cannot_open_file                = 'FATAL: cannot open file ';
 write_error                     = 'FATAL: write error';
-mem_overflow 			= 'FATAL: memory overflow';
-intset_overflow 		= 'FATAL: integer set overflow';
-sym_table_overflow 		= 'FATAL: symbol table overflow';
-pos_table_overflow 		= 'FATAL: position table overflow';
-state_table_overflow 		= 'FATAL: state table overflow';
-trans_table_overflow 		= 'FATAL: transition table overflow';
-macro_stack_overflow 		= 'FATAL: macro stack overflow';
+mem_overflow                    = 'FATAL: memory overflow';
+intset_overflow                 = 'FATAL: integer set overflow';
+sym_table_overflow              = 'FATAL: symbol table overflow';
+pos_table_overflow              = 'FATAL: position table overflow';
+state_table_overflow            = 'FATAL: state table overflow';
+trans_table_overflow            = 'FATAL: transition table overflow';
+macro_stack_overflow            = 'FATAL: macro stack overflow';
 
 implementation
 

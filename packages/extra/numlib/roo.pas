@@ -499,7 +499,7 @@ End {rooqua};
 Procedure roo001(uplo, trans, diag: char; n: ArbInt; Var ap1, x1: ArbFloat;
                  incx: ArbInt);
 
-Var 
+Var
     ap   : arfloat1 absolute ap1;
     x    : arfloat1 absolute x1;
     temp : ArbFloat;
@@ -756,7 +756,7 @@ End;
 Procedure roo004(n: ArbInt; Var r1, diag1, qtb1: ArbFloat;
                  delta: ArbFloat; Var x1: ArbFloat);
 
-Var 
+Var
    r     : arfloat1 absolute r1;
    diag  : arfloat1 absolute diag1;
    qtb   : arfloat1 absolute qtb1;
@@ -1436,17 +1436,10 @@ End;
 End.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:18  peter
+  Revision 1.2  2002-09-07 15:43:04  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:18  peter
     * splitted to base and extra
-
-  Revision 1.1  2000/07/13 06:34:15  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:42  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
-
 
 }

@@ -26,7 +26,7 @@ begin
   b := 0;
   t := b;
   q := b;
-  
+
   s := 127;
   t := s;
   q := s;
@@ -55,7 +55,7 @@ begin
   try
     error := true;
     q := i;
-  except   
+  except
     error := false;
   end;
   haserror := haserror or error;
@@ -72,7 +72,7 @@ begin
   try
     error := true;
     q := l;
-  except   
+  except
     error := false;
   end;
   haserror := haserror or error;

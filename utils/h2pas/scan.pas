@@ -464,7 +464,7 @@ begin
                            return(NUMBER);
                         end;
   8:
-                          
+
                         begin
                            (* handle pre- and postfixes *)
                            if copy(yytext,1,2)='0x' then
@@ -477,7 +477,7 @@ begin
                            return(NUMBER);
                         end;
   9:
-                             
+
                         begin
                           return(NUMBER);
                         end;
@@ -601,13 +601,13 @@ begin
   49:
                         return(VOID);
   50:
-                                                      
+
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ extern C conditionnal removed }');
                         end;
   51:
-                                         
+
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');

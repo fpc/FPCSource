@@ -8,12 +8,12 @@ const
     IA =   3877;
     IC =  29573;
 
-var 
+var
     LAST, NUM, i : longint;
     result : real;
 
 function gen_random(n : integer) : real;
-begin    
+begin
     LAST := (LAST * IA + IC) mod IM;
     gen_random := n * LAST / IM;
 end;

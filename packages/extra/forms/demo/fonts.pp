@@ -5,12 +5,12 @@ uses forms;
 
 type
 TFD_fontsform = record
-	fontsform : PFL_FORM;
-	fontobj,
-	sizeobj,
-	textobj : PFL_OBJECT;
-	vdata : pointer;
-	ldata : longint;
+        fontsform : PFL_FORM;
+        fontobj,
+        sizeobj,
+        textobj : PFL_OBJECT;
+        vdata : pointer;
+        ldata : longint;
 end;
 PFD_fontsform=^TFD_fontsform;
 
@@ -29,21 +29,21 @@ end;
 procedure size_cb(obj : PFL_OBJECT; arg : longint); export;
 begin
   case fl_get_browser(obj) of
-     1: fl_set_object_lsize(ui^.textobj,8); 
-     2: fl_set_object_lsize(ui^.textobj,10); 
-     3: fl_set_object_lsize(ui^.textobj,11); 
-     4: fl_set_object_lsize(ui^.textobj,12); 
-     5: fl_set_object_lsize(ui^.textobj,13); 
-     6: fl_set_object_lsize(ui^.textobj,14); 
-     7: fl_set_object_lsize(ui^.textobj,18); 
-     8: fl_set_object_lsize(ui^.textobj,24); 
-     9: fl_set_object_lsize(ui^.textobj,30); 
+     1: fl_set_object_lsize(ui^.textobj,8);
+     2: fl_set_object_lsize(ui^.textobj,10);
+     3: fl_set_object_lsize(ui^.textobj,11);
+     4: fl_set_object_lsize(ui^.textobj,12);
+     5: fl_set_object_lsize(ui^.textobj,13);
+     6: fl_set_object_lsize(ui^.textobj,14);
+     7: fl_set_object_lsize(ui^.textobj,18);
+     8: fl_set_object_lsize(ui^.textobj,24);
+     9: fl_set_object_lsize(ui^.textobj,30);
   end;
 end;
 
 procedure addit(st : pchar);
 begin
-   fl_add_browser_line(ui^.fontobj,st); 
+   fl_add_browser_line(ui^.fontobj,st);
 end;
 
 
@@ -106,10 +106,10 @@ begin
   fl_do_forms();
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -3,7 +3,7 @@ Program testu;
 uses utmp,linux;
 
 Const UTMPFile = '/var/run/utmp';
-                     
+
 var
    EndOfUsers : Boolean;
    m,d,y,hh,mm,ss : Word;
@@ -29,10 +29,10 @@ begin
       Writeln ('.',ip_address[3],'.',ip_address[4]);
       end;
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:55:23  peter
+end.  Revision 1.2  2002-09-07 15:43:06  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:55:23  peter
 end.    * splitted to base and extra
 end.
-end.  Revision 1.2  2000/07/13 11:33:32  michael
-end.  + removed logs
-end. 
 }

@@ -730,7 +730,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-04-21 18:15:32  peter
+  Revision 1.15  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.14  2002/04/21 18:15:32  peter
     * Check for internal errors
 
   Revision 1.13  2002/03/03 13:27:28  hajny
@@ -745,23 +748,4 @@ end.
       to avoid trying to recompute the same test
       over and over again.
 
-  Revision 1.10  2001/07/31 09:00:16  pierre
-   + %Note= comment added
-
-  Revision 1.9  2001/07/04 11:23:39  florian
-    * spelling mistake fixed
-
-  Revision 1.8  2001/06/02 00:41:36  peter
-    * write exitcode for all executed programs in debug mode
-
-  Revision 1.7  2000/12/09 16:01:10  peter
-    + known bug flag
-    + norun flag
-    + recompile flag
-
-  Revision 1.6  2000/12/04 22:06:25  peter
-    * fixed stupid c&p bug for CPU check
-
-  Revision 1.5  2000/12/03 22:59:10  florian
-    * some problems for go32v2 fixed
 }

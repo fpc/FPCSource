@@ -37,21 +37,21 @@ function getupper0: longint;
  begin
    getupper0 := 1;
  end;
- 
-{$ifdef fpc} 
+
+{$ifdef fpc}
 function getupper64 : int64;
  begin
    getupper64:=1;
  end;
- 
+
 function getupper64high : int64;
  begin
    getupper64high:=LOOP_NUMS;
  end;
- 
-{$endif} 
- 
- 
+
+{$endif}
+
+
 var
   index_signed: longint;
   index_unsigned : cardinal;
@@ -59,12 +59,12 @@ var
   count1 : longint;
   loop_count : longint;
   failed : boolean;
-  
-{$ifdef fpc}  
+
+{$ifdef fpc}
   index64 : int64;
   count64 : int64;
   count642 : int64;
-{$endif}  
+{$endif}
 begin
   loop_count:=0;
   count := LOOP_NUMS;
@@ -168,48 +168,48 @@ begin
   count:=1;
   loop_count:=0;
   for index_unsigned:=count to LOOP_NUMS do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REGISTER }
   loop_count:=0;
   for index_unsigned:=count to getupper do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REFERENCE }
   loop_count:=0;
   for index_unsigned:=count to count1 do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
-    
+
 
   { lowerbound : LOC_REGISTER }
   { upper bound : constant     }
   count:=0;
   loop_count:=0;
   for index_unsigned:=getupper0 to LOOP_NUMS do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REGISTER }
   loop_count:=0;
   for index_unsigned:=getupper0 to getupper do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REFERENCE }
   loop_count:=0;
   for index_unsigned:=getupper0 to count1 do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   if failed then
     fail
   else
     WriteLn('Passed!');
- 
+
 (*  UNSUPPORTED IN FPC VERSION 1.0.x (CEC)
   { --------------------- int64 testing!------------------- }
   WriteLn('int64 testing...');
@@ -283,7 +283,7 @@ begin
     fail
   else
     WriteLn('Passed!');
-*)  
+*)
 
   loop_count:=0;
   count := LOOP_NUMS;
@@ -387,41 +387,41 @@ begin
   count:=1;
   loop_count:=0;
   for index_unsigned:=LOOP_NUMS downto count do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REGISTER }
   loop_count:=0;
   for index_unsigned:=getupper downto count do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REFERENCE }
   loop_count:=0;
   for index_unsigned:=count1 downto count do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
-    
+
 
   { lowerbound : LOC_REGISTER }
   { upper bound : constant     }
   count:=0;
   loop_count:=0;
   for index_unsigned:=LOOP_NUMS downto getupper0 do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REGISTER }
   loop_count:=0;
   for index_unsigned:=getupper downto getupper0 do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   { upper bound : LOC_REFERENCE }
   loop_count:=0;
   for index_unsigned:=count1 downto getupper0 do
-    loop_count:=loop_count+1; 
+    loop_count:=loop_count+1;
   if loop_count <> LOOP_NUMS then
     failed := true;
   if failed then

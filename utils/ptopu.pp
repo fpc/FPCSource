@@ -1219,7 +1219,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-07-14 13:39:45  carl
+  Revision 1.5  2002-09-07 15:40:31  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/07/14 13:39:45  carl
     * use special symbols for portability's sake
 
   Revision 1.3  2002/06/01 18:39:14  marco
@@ -1227,23 +1230,5 @@ end.
 
   Revision 1.2  2002/02/27 16:35:31  carl
   * bugfix of stream errors - would always give error!
-
-  Revision 1.1  2000/07/13 10:16:22  michael
-  + Initial import
-
-  Revision 1.8  2000/06/01 10:59:22  peter
-    * removed warning/notes
-
-  Revision 1.7  2000/05/03 13:04:08  pierre
-   * avoid a problem with range check
-
-  Revision 1.6  2000/02/09 16:44:15  peter
-    * log truncated
-
-  Revision 1.5  2000/02/06 19:57:45  carl
-  + More TP syntax compatible
-
-  Revision 1.4  2000/01/07 16:46:04  daniel
-    * copyright 2000
 
 }

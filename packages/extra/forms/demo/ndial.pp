@@ -2,7 +2,7 @@
 
 uses forms;
 
-var 
+var
 form : PFL_FORM;
 button, red, green, blue, redtext, greentext, bluetext, theresult : PFL_OBJECT;
 
@@ -33,7 +33,7 @@ begin
 
     theresult := fl_add_box(FL_DOWN_BOX,180,70,90,245,'');
     fl_set_object_color(theresult,FL_FREE_COL1,FL_FREE_COL1);
-    fl_set_object_dblbuffer(theresult, 1); 
+    fl_set_object_dblbuffer(theresult, 1);
   fl_end_form;
 end;
 
@@ -62,10 +62,10 @@ begin
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

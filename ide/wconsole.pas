@@ -77,13 +77,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-10-09 12:10:48  marco
-   * fix.
-
-  Revision 1.2  2001/10/02 23:58:51  pierre
-   * fix linux code
-
-  Revision 1.1  2001/10/02 23:40:44  pierre
-   New unit to preserve console mode
+  Revision 1.4  2002-09-07 15:40:48  peter
+    * old logs removed and tabs fixed
 
 }

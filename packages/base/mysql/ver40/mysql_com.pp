@@ -28,23 +28,23 @@ interface
     My_socket = longint;
     my_bool = byte;
     pppchar = ^PPChar;
-    gptr = Pointer;             
-                   
+    gptr = Pointer;
+
 
 {$PACKRECORDS C}
 
   { Copyright (C) 2000 MySQL AB
-  
+
      This program is free software; you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
      the Free Software Foundation; either version 2 of the License, or
      (at your option) any later version.
-  
+
      This program is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
      GNU General Public License for more details.
-  
+
      You should have received a copy of the GNU General Public License
      along with this program; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  }
@@ -117,10 +117,10 @@ interface
   { Flush status variables  }
      REFRESH_THREADS = 32;
   { Reset master info and restart slave
-  					   thread  }
+                                           thread  }
      REFRESH_SLAVE = 64;
   { Remove all bin logs in the index
-  					   and truncate the index  }
+                                           and truncate the index  }
      REFRESH_MASTER = 128;
   { The following can't be set with mysql_refresh()  }
   { Lock tables for read  }
@@ -170,11 +170,11 @@ interface
   { Timeout on write  }
      NET_WRITE_TIMEOUT = 60;
   {
-  #define NET_WAIT_TIMEOUT	(8 60 60)		
+  #define NET_WAIT_TIMEOUT      (8 60 60)
    }
   { Wait for new query  }
   {
-  struct st_vio;					// Only C 
+  struct st_vio;                                        // Only C
   typedef struct st_vio Vio;
    }
   { Default width for blob }
@@ -272,7 +272,7 @@ interface
   {
   struct sockaddr;
   int my_connect(my_socket s, const struct sockaddr  name, unsigned int namelen,
-  	       unsigned int timeout);
+               unsigned int timeout);
    }
 
   type
@@ -288,7 +288,7 @@ interface
      Item_result = (STRING_RESULT,REAL_RESULT,INT_RESULT
        );
   pitem_result = ^item_result;
-  
+
   { Number of arguments  }
   { Pointer to item_results  }
   { Pointer to argument  }

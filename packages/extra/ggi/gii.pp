@@ -4,9 +4,9 @@
    Free Pascal conversion (c) 1999 Sebastian Guenther
 
    LibGII API header file
- 
-   Copyright (C) 1998 Andreas Beck	[becka@ggi-project.org]
-   Copyright (C) 1999 Marcus Sundberg	[marcus@ggi-project.org]
+
+   Copyright (C) 1998 Andreas Beck      [becka@ggi-project.org]
+   Copyright (C) 1999 Marcus Sundberg   [marcus@ggi-project.org]
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -43,60 +43,60 @@ type
   TGIIEventMask = LongWord;
 
   TGIIEventType = (
-    evNothing := 0,			// event is not valid. (must be zero)
+    evNothing := 0,                     // event is not valid. (must be zero)
 
-    evCommand,				// report command/do action
-    evInformation,			// notification of new information
+    evCommand,                          // report command/do action
+    evInformation,                      // notification of new information
 
-    evExpose,				// exposure event
+    evExpose,                           // exposure event
     // empty slot
 
-    evKeyPress := 5,			// key has been pressed
-    evKeyRelease,			// key has been released
-    evKeyRepeat,			// automatically repeated keypress
+    evKeyPress := 5,                    // key has been pressed
+    evKeyRelease,                       // key has been released
+    evKeyRepeat,                        // automatically repeated keypress
 
-    evPtrRelative,			// pointer movements reported relative
-    evPtrAbsolute,			// pointer movements reported absolute
-    evPtrButtonPress,			// pointer button pressed
-    evPtrButtonRelease,			// pointer button released
+    evPtrRelative,                      // pointer movements reported relative
+    evPtrAbsolute,                      // pointer movements reported absolute
+    evPtrButtonPress,                   // pointer button pressed
+    evPtrButtonRelease,                 // pointer button released
 
-    evValRelative,			// valuator change (reported relative)
-    evValAbsolute,			// valuator change (reported absolute)
+    evValRelative,                      // valuator change (reported relative)
+    evValAbsolute,                      // valuator change (reported absolute)
 
-    evLast				// must be less than 33
+    evLast                              // must be less than 33
   );
 
 const
-  emNothing		= 1 shl Ord(evNothing);
-  emCommand		= 1 shl Ord(evCommand);
-  emInformation		= 1 shl Ord(evInformation);
-  emExpose		= 1 shl Ord(evExpose);
-  emKeyPress		= 1 shl Ord(evKeyPress);
-  emKeyRelease		= 1 shl Ord(evKeyRelease);
-  emKeyRepeat		= 1 shl Ord(evKeyRepeat);
-  emKey			= emKeyPress or emKeyRelease or emKeyRepeat;
-  emKeyboard		= emKey;
-  emPtrRelative		= 1 shl Ord(evPtrRelative);
-  emPtrAbsolute		= 1 shl Ord(evPtrAbsolute);
-  emPtrButtonPress	= 1 shl Ord(evPtrButtonPress);
-  emPtrButtonRelease	= 1 shl Ord(evPtrButtonRelease);
-  emPtrMove		= emPtrRelative or emPtrAbsolute;
-  emPtrButton		= emPtrButtonPress or emPtrButtonRelease;
-  emPointer		= emPtrMove or emPtrButton;
-  emValRelative		= 1 shl Ord(evValRelative);
-  emValAbsolute		= 1 shl Ord(evValAbsolute);
-  emValuator		= emValRelative or emValAbsolute;
-  emZero		= 0;
-  emAll			= ((1 shl Ord(evLast)) - 1) and not emNothing;
+  emNothing             = 1 shl Ord(evNothing);
+  emCommand             = 1 shl Ord(evCommand);
+  emInformation         = 1 shl Ord(evInformation);
+  emExpose              = 1 shl Ord(evExpose);
+  emKeyPress            = 1 shl Ord(evKeyPress);
+  emKeyRelease          = 1 shl Ord(evKeyRelease);
+  emKeyRepeat           = 1 shl Ord(evKeyRepeat);
+  emKey                 = emKeyPress or emKeyRelease or emKeyRepeat;
+  emKeyboard            = emKey;
+  emPtrRelative         = 1 shl Ord(evPtrRelative);
+  emPtrAbsolute         = 1 shl Ord(evPtrAbsolute);
+  emPtrButtonPress      = 1 shl Ord(evPtrButtonPress);
+  emPtrButtonRelease    = 1 shl Ord(evPtrButtonRelease);
+  emPtrMove             = emPtrRelative or emPtrAbsolute;
+  emPtrButton           = emPtrButtonPress or emPtrButtonRelease;
+  emPointer             = emPtrMove or emPtrButton;
+  emValRelative         = 1 shl Ord(evValRelative);
+  emValAbsolute         = 1 shl Ord(evValAbsolute);
+  emValuator            = emValRelative or emValAbsolute;
+  emZero                = 0;
+  emAll                 = ((1 shl Ord(evLast)) - 1) and not emNothing;
 
 
 {******************************************************************************
  Command/Information events
  ******************************************************************************}
- 
-  GII_CMDFLAG_NODATA	= 1 shl 31;	// Event has no data
-  GII_CMDFLAG_PRIVATE	= 1 shl 30;	// The code is specific to a certain inputlib
-  GII_CMDFLAG_EXTERNAL	= 1 shl 29;	// Event is sent to/from an external system (like LibGGI)
+
+  GII_CMDFLAG_NODATA    = 1 shl 31;     // Event has no data
+  GII_CMDFLAG_PRIVATE   = 1 shl 30;     // The code is specific to a certain inputlib
+  GII_CMDFLAG_EXTERNAL  = 1 shl 29;     // Event is sent to/from an external system (like LibGGI)
 
 
 
@@ -125,10 +125,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:04  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:04  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:17  michael
-  + removed logs
- 
 }

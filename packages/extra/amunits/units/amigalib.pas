@@ -29,9 +29,9 @@ function CreateStdIO (port: pMsgPort): pIOStdReq;
 procedure DeleteStdIO (ioReq: pIOStdReq);
 function CreatePort (name: STRPTR; pri: integer): pMsgPort;
 procedure DeletePort (port: pMsgPort);
-function CreateTask (name: STRPTR; pri: longint; 
+function CreateTask (name: STRPTR; pri: longint;
                      initPC : Pointer;
-             stackSize : ULONG): pTask; 
+             stackSize : ULONG): pTask;
 procedure DeleteTask (task: pTask);
 procedure NewList (list: pList);
 
@@ -168,7 +168,7 @@ begin
        NewList(@task^.tc_MemEntry);
        AddTail(@task^.tc_MemEntry,@memlist^.ml_Node);
 
-       AddTask(task,initPC,NIL) 
+       AddTask(task,initPC,NIL)
     end;
     CreateTask := task;
 end;

@@ -1,10 +1,10 @@
 {* tcl_demo.pas
  * ------------------------------------------------
- * Copyright 2002 by Bert Raccoon aka Max Artemev 
+ * Copyright 2002 by Bert Raccoon aka Max Artemev
  * (bert@furry.ru, bert_raccoon@freemail.ru)
  * ------------------------------------------------
- * Demo for tcl80.pas unit. 
- * Creating the Tcl interpreter, executing file, registering 
+ * Demo for tcl80.pas unit.
+ * Creating the Tcl interpreter, executing file, registering
  * new commands, call a function defined in the script.
  *
  * Under Win32 can cause crash.
@@ -31,7 +31,7 @@ end;
 function Test_max(clientData: Tcl_ClientData;  {* Some user defined data. *}
                   interp: PTcl_Interp;         {* Pointer to Tcl interpreter *}
                   argc: integer;               {* Arguments counter, arguments, etc *}
-                  argv: Tcl_Argv): longint;    {* Remeber! *NIX `integer` type is 16 bit! *} 
+                  argv: Tcl_Argv): longint;    {* Remeber! *NIX `integer` type is 16 bit! *}
                   cdecl;                       {* C calling convention *}
 var
    arg    : PChar;
@@ -53,8 +53,8 @@ begin
           exit;                        {* Leave *}
      end;
 
-     for idx := 1 to argc-1 do         {* In argv[0] passed function name, so 
-                                        * go from the first index, not zero. 
+     for idx := 1 to argc-1 do         {* In argv[0] passed function name, so
+                                        * go from the first index, not zero.
                                         *}
      begin
           arg := ArgvItem(argv,idx);   {* get an argument *}
@@ -89,7 +89,7 @@ begin
      Buff := '';
      for i:=1 to argc-1 do
        Buff:=Buff + ArgvItem(argv,i);  {* work around some bugs *}
-     writeln(Buff);                  
+     writeln(Buff);
      Test_writeln:=TCL_OK;
 end;
 
@@ -100,7 +100,7 @@ var
 begin
      interp := Tcl_CreateInterp();  {* Create an interpreter *}
      Tcl_Init(interp);              {* Initialize *}
-     
+
      {* Register/override in the Tcl engine our new functions *}
      Tcl_CreateCommand(interp,'max', TTclCmdProc(@Test_max),nil,nil);
      Tcl_CreateCommand(interp,'writeln',TTclCmdProc(@Test_writeln),nil,nil);
@@ -110,7 +110,7 @@ begin
         writeln(Tcl_GetStringResult(interp));
 
      {* Call a function `foo` defined in the script *}
-     code := Tcl_VarEval(interp,['foo ','1 2 3',nil]); 
+     code := Tcl_VarEval(interp,['foo ','1 2 3',nil]);
      if (code <> TCL_OK) then
         writeln(Tcl_GetStringResult(interp));
      Tcl_DeleteInterp(interp);                  {* Release interpreter *}

@@ -6,7 +6,7 @@ procedure dotest;
 
 var i : longint;
     prefix : ansistring;
-    
+
 begin
   i:=getpid;
   prefix:=format('testlog[%d] ',[i]);
@@ -21,10 +21,10 @@ begin
   dotest;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:22  peter
+  Revision 1.2  2002-09-07 15:43:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:22  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:31  michael
-  + removed logs
- 
 }

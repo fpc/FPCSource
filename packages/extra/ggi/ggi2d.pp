@@ -74,22 +74,22 @@ type
   TGGI2dPolymode = (GGI2D_POLY_EVENODD, GGI2D_POLY_WINDING);
 
   TGGI2DOperator = (
-    GGI2D_NOOP,			// dest = dest
-    GGI2D_INVERT,		// dest = ~dest
-    GGI2D_SET,			// dest = color
-    GGI2D_SET_INVERTED,		// dest = ~color
-    GGI2D_AND,			// dest = (dest & color)
-    GGI2D_NAND,			// dest = ~(dest & color)
-    GGI2D_AND_REVERSE,		// dest = ~dest & color
-    GGI2D_AND_INVERTED,		// dest = dest & ~color
-    GGI2D_OR,			// dest = (dest | color)
-    GGI2D_NOR,			// dest = ~(dest | color)
-    GGI2D_OR_REVERSE,		// dest = ~dest & color
-    GGI2D_OR_INVERTED,		// dest = dest & ~color
-    GGI2D_XOR,			// dest = (dest ^ color)
-    GGI2D_EQUIV,		// dest = ~(dest ^ color
-    GGI2D_ADD,			// dest = dest + color
-    GGI2D_SUB);			// dest = dest - color
+    GGI2D_NOOP,                 // dest = dest
+    GGI2D_INVERT,               // dest = ~dest
+    GGI2D_SET,                  // dest = color
+    GGI2D_SET_INVERTED,         // dest = ~color
+    GGI2D_AND,                  // dest = (dest & color)
+    GGI2D_NAND,                 // dest = ~(dest & color)
+    GGI2D_AND_REVERSE,          // dest = ~dest & color
+    GGI2D_AND_INVERTED,         // dest = dest & ~color
+    GGI2D_OR,                   // dest = (dest | color)
+    GGI2D_NOR,                  // dest = ~(dest | color)
+    GGI2D_OR_REVERSE,           // dest = ~dest & color
+    GGI2D_OR_INVERTED,          // dest = dest & ~color
+    GGI2D_XOR,                  // dest = (dest ^ color)
+    GGI2D_EQUIV,                // dest = ~(dest ^ color
+    GGI2D_ADD,                  // dest = dest + color
+    GGI2D_SUB);                 // dest = dest - color
 
   TGGI2dCoord = record
     x, y: SmallInt;
@@ -166,24 +166,24 @@ function  ggi2dCopyBox(Visual: TGGIVisual; x, y, w, h, nx, ny: SmallInt): Intege
 function  ggi2dCrossBlit(Src: TGGIVisual; sx, sy, w, h: SmallInt; Dest: TGGIVisual;  dx, dy: SmallInt): Integer; cdecl; external libggi2d;
 
 function  ggi2dBlit(
-	    Visual: TGGIVisual; dx, dy: SmallInt;
-	    Src: TGGI2dImage; sx, sy, Width, Height: SmallInt): Integer; cdecl; external libggi2d;
+            Visual: TGGIVisual; dx, dy: SmallInt;
+            Src: TGGI2dImage; sx, sy, Width, Height: SmallInt): Integer; cdecl; external libggi2d;
 
 function  ggi2dStretchBlit(
-	    Visual: TGGIVisual; dx, dy, DWith, DHeight: SmallInt;
-	    Src: TGGI2dImage; sx, sy, SWidth, SHeight: SmallInt): Integer; cdecl; external libggi2d;
+            Visual: TGGIVisual; dx, dy, DWith, DHeight: SmallInt;
+            Src: TGGI2dImage; sx, sy, SWidth, SHeight: SmallInt): Integer; cdecl; external libggi2d;
 
 function  ggi2dBlitOp(
-	    Visual: TGGIVisual; dx, dy: SmallInt;
-	    Src1: TGGI2dImage; s1x, s1y: SmallInt;
-	    Src2: TGGI2dImage; s2x, s2y: SmallInt;
-	    Width, Height: SmallInt; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
+            Visual: TGGIVisual; dx, dy: SmallInt;
+            Src1: TGGI2dImage; s1x, s1y: SmallInt;
+            Src2: TGGI2dImage; s2x, s2y: SmallInt;
+            Width, Height: SmallInt; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
 
 function  ggi2dStretchBlitOp(
-	    Visual: TGGIVisual; dx, dy, DWidth, DHeight: SmallInt;
-	    Src1: TGGI2dImage; s1x, s1y: SmallInt;
-	    Src2: TGGI2dImage; s2x, s2y: SmallInt;
-	    SWidth, SHeight: SmallInt; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
+            Visual: TGGIVisual; dx, dy, DWidth, DHeight: SmallInt;
+            Src1: TGGI2dImage; s1x, s1y: SmallInt;
+            Src2: TGGI2dImage; s2x, s2y: SmallInt;
+            SWidth, SHeight: SmallInt; Oper: TGGI2dOperator): Integer; cdecl; external libggi2d;
 
 
 
@@ -194,10 +194,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:04  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:04  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:17  michael
-  + removed logs
- 
 }

@@ -1112,7 +1112,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-09-04 08:35:31  pierre
+  Revision 1.17  2002-09-07 15:40:46  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.16  2002/09/04 08:35:31  pierre
    * remember IDE screen mode for win32
      to avoid videobuf writes after allocated size.
 
@@ -1140,134 +1143,5 @@ end.
   Revision 1.8  2002/01/22 16:29:52  pierre
     * try to fix win32 problem with Dos program ouptut in command shell
       Warning, to debug under win32 with GDB you must use "set new-console on"
-
-  Revision 1.7  2001/11/08 17:06:22  pierre
-   * impose the correct size for win32 console window
-
-  Revision 1.6  2001/11/08 16:38:25  pierre
-    * fix win32 scrolling
-    + always go back to 0,0 position in IDE mode
-
-  Revision 1.5  2001/11/08 16:07:41  pierre
-   * overcome buffer win32 problem due to a bug in ReadConsoleOutput
-
-  Revision 1.4  2001/10/24 14:17:27  pierre
-   * try to fix the Win2000 mouse problem
-
-  Revision 1.3  2001/09/09 20:44:53  carl
-  * bugfix of console sharing mode (on NT this would bug all
-  std_input access).
-
-  Revision 1.2  2001/08/12 00:04:50  pierre
-   * some speed improvements for string operations
-
-  Revision 1.1  2001/08/04 11:30:24  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.10  2001/06/14 09:15:16  pierre
-      TScreen methods reorganized:
-      SwitchTo method renamed SwitchToConsoleScreen
-      SwitchBack method renamed SwitchBackToIDEScreen
-    + method Scroll added
-    + SaveIDEScreen and SaveConsoleScreen methods added
-
-  Revision 1.1.2.9  2001/04/04 08:52:01  pierre
-   * allow inheritance for win32 DosScreenBufferHandle
-
-  Revision 1.1.2.8  2001/03/16 17:45:54  pierre
-   * free VIDEBuffer of TDosScreen
-
-  Revision 1.1.2.7  2000/11/30 13:04:01  pierre
-   * fix for bug 1205
-
-  Revision 1.1.2.6  2000/11/29 00:54:45  pierre
-   + preserve window number and save special windows
-
-  Revision 1.1.2.5  2000/11/22 12:47:21  pierre
-   * fix the screen saving at start for win32
-
-  Revision 1.1.2.4  2000/11/14 09:23:56  marco
-   * Second batch
-
-  Revision 1.1.2.3  2000/10/10 21:24:56  pierre
-   * avoid writing past IDE_screen buffer length
-
-  Revision 1.1.2.2  2000/08/21 12:10:19  jonas
-    * fixed errors in my previous commit, it now works properly
-
-  Revision 1.1.2.1  2000/08/21 10:51:13  jonas
-    * IDE screen saving/restoring implemented for Linux
-
-  Revision 1.1  2000/07/13 09:48:36  michael
-  + Initial import
-
-  Revision 1.13  2000/06/16 15:00:20  pierre
-   * accord to new WriteConsoleOuput declarations
-
-  Revision 1.12  2000/04/25 08:42:33  pierre
-   * New Gabor changes : see fixes.txt
-
-  Revision 1.11  2000/04/18 11:42:37  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.10  2000/03/13 20:30:37  pierre
-   + stores IDE screen before Switching for DOS
-
-  Revision 1.9  2000/02/04 23:17:25  pierre
-   * Keep the entry ScreenBuffer at exit
-
-  Revision 1.8  1999/12/01 16:17:18  pierre
-   * Restore std_output_handle correctly at exit for GDB
-
-  Revision 1.7  1999/11/10 17:12:00  pierre
-   * Win32 screen problems solved
-
-  Revision 1.6  1999/09/22 13:02:00  pierre
-   + Twin32Screen added
-
-  Revision 1.5  1999/08/16 18:25:24  peter
-    * Adjusting the selection when the editor didn't contain any line.
-    * Reserved word recognition redesigned, but this didn't affect the overall
-      syntax highlight speed remarkably (at least not on my Amd-K6/350).
-      The syntax scanner loop is a bit slow but the main problem is the
-      recognition of special symbols. Switching off symbol processing boosts
-      the performance up to ca. 200%...
-    * The editor didn't allow copying (for ex to clipboard) of a single character
-    * 'File|Save as' caused permanently run-time error 3. Not any more now...
-    * Compiler Messages window (actually the whole desktop) did not act on any
-      keypress when compilation failed and thus the window remained visible
-    + Message windows are now closed upon pressing Esc
-    + At 'Run' the IDE checks whether any sources are modified, and recompiles
-      only when neccessary
-    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
-    + LineSelect (Ctrl+K+L) implemented
-    * The IDE had problems closing help windows before saving the desktop
-
-  Revision 1.4  1999/06/28 19:32:25  peter
-    * fixes from gabor
-
-  Revision 1.3  1999/02/02 16:41:42  peter
-    + automatic .pas/.pp adding by opening of file
-    * better debuggerscreen changes
-
-  Revision 1.2  1999/01/04 11:49:51  peter
-   * 'Use tab characters' now works correctly
-   + Syntax highlight now acts on File|Save As...
-   + Added a new class to syntax highlight: 'hex numbers'.
-   * There was something very wrong with the palette managment. Now fixed.
-   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
-   * Fixed some possible bugs in Running/Compiling, and the compilation/run
-     process revised
-
-  Revision 1.1  1998/12/28 15:47:53  peter
-    + Added user screen support, display & window
-    + Implemented Editor,Mouse Options dialog
-    + Added location of .INI and .CFG file
-    + Option (INI) file managment implemented (see bottom of Options Menu)
-    + Switches updated
-    + Run program
-
-  Revision 1.0  1998/12/24 09:55:49  gabor
-    Original implementation
 
 }

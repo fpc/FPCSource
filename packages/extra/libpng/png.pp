@@ -21,7 +21,7 @@ type
    int = longint;
    z_stream = TZStream;
    voidp = pointer;
-   
+
    png_uint_32 = dword;
    png_int_32 = longint;
    png_uint_16 = word;
@@ -76,7 +76,7 @@ type
    png_zcharp = Pcharf;
    png_zcharpp = PPcharf;
    png_zstreamp = Pzstream;
-   
+
 
 var
   png_libpng_ver : array[0..11] of char;external name 'png_libpng_ver';
@@ -95,7 +95,7 @@ Type
     end;
   ppng_color = ^png_color;
   pppng_color = ^ppng_color;
-  
+
   png_color_struct = png_color;
   png_colorp = Ppng_color;
   ppng_colorp = ^png_colorp;
@@ -120,8 +120,8 @@ Type
        gray : png_byte;
        alpha : png_byte;
     end;
-  ppng_color_8 = ^png_color_8;  
-  pppng_color_8 = ^ppng_color_8;  
+  ppng_color_8 = ^png_color_8;
+  pppng_color_8 = ^ppng_color_8;
   png_color_8_struct = png_color_8;
   png_color_8p = Ppng_color_8;
   ppng_color_8p = ^png_color_8p;
@@ -133,8 +133,8 @@ Type
        alpha : png_uint_16;
        frequency : png_uint_16;
     end;
-  ppng_sPLT_entry = ^png_sPLT_entry;  
-  pppng_sPLT_entry = ^ppng_sPLT_entry;  
+  ppng_sPLT_entry = ^png_sPLT_entry;
+  pppng_sPLT_entry = ^ppng_sPLT_entry;
   png_sPLT_entry_struct = png_sPLT_entry;
   png_sPLT_entryp = Ppng_sPLT_entry;
   png_sPLT_entrypp = PPpng_sPLT_entry;
@@ -144,8 +144,8 @@ Type
        entries : png_sPLT_entryp;
        nentries : png_int_32;
     end;
-  ppng_sPLT_t = ^png_sPLT_t;  
-  pppng_sPLT_t = ^ppng_sPLT_t;  
+  ppng_sPLT_t = ^png_sPLT_t;
+  pppng_sPLT_t = ^ppng_sPLT_t;
   png_sPLT_struct = png_sPLT_t;
   png_sPLT_tp = Ppng_sPLT_t;
   png_sPLT_tpp = PPpng_sPLT_t;
@@ -157,7 +157,7 @@ Type
     end;
   ppng_text = ^png_text;
   pppng_text = ^ppng_text;
-    
+
   png_text_struct = png_text;
   png_textp = Ppng_text;
   ppng_textp = ^png_textp;
@@ -172,7 +172,7 @@ Type
     end;
   ppng_time = ^png_time;
   pppng_time = ^ppng_time;
-    
+
   png_time_struct = png_time;
   png_timep = Ppng_time;
   PPNG_TIMEP = ^PNG_TIMEP;
@@ -185,7 +185,7 @@ Type
     end;
   ppng_unknown_chunk = ^png_unknown_chunk;
   pppng_unknown_chunk = ^ppng_unknown_chunk;
-    
+
   png_unknown_chunk_t = png_unknown_chunk;
   png_unknown_chunkp = Ppng_unknown_chunk;
   png_unknown_chunkpp = PPpng_unknown_chunk;
@@ -265,7 +265,7 @@ Type
     end;
   ppng_info = ^png_info;
   pppng_info = ^ppng_info;
-    
+
   png_info_struct = png_info;
   png_infop = Ppng_info;
   png_infopp = PPpng_info;
@@ -279,7 +279,7 @@ Type
     end;
   ppng_row_info = ^png_row_info;
   pppng_row_info = ^ppng_row_info;
-    
+
   png_row_info_struct = png_row_info;
   png_row_infop = Ppng_row_info;
   png_row_infopp = PPpng_row_info;
@@ -429,10 +429,10 @@ png_free_ptr = Procedure (Arg1 : png_structp; Arg2 : png_voidp) ; cdecl;
    png_struct = png_struct_def;
    ppng_struct = ^png_struct;
    pppng_struct = ^ppng_struct;
-   
+
    version_1_0_8 = png_structp;
    png_structpp = PPpng_struct;
-   
+
 function png_access_version_number:png_uint_32;cdecl; external libpng;
 procedure png_set_sig_bytes(png_ptr:png_structp; num_bytes:longint);cdecl; external libpng;
 function png_sig_cmp(sig:png_bytep; start:png_size_t; num_to_check:png_size_t):longint;cdecl; external libpng;
@@ -476,7 +476,7 @@ function png_set_interlace_handling(png_ptr:png_structp):longint;cdecl; external
 procedure png_set_invert_mono(png_ptr:png_structp);cdecl; external libpng;
 procedure png_set_background(png_ptr:png_structp; background_color:png_color_16p; background_gamma_code:longint; need_expand:longint; background_gamma:double);cdecl; external libpng;
 procedure png_set_strip_16(png_ptr:png_structp);cdecl; external libpng;
-procedure png_set_dither(png_ptr:png_structp; palette:png_colorp; num_palette:longint; maximum_colors:longint; histogram:png_uint_16p; 
+procedure png_set_dither(png_ptr:png_structp; palette:png_colorp; num_palette:longint; maximum_colors:longint; histogram:png_uint_16p;
             full_dither:longint);cdecl; external libpng;
 procedure png_set_gamma(png_ptr:png_structp; screen_gamma:double; default_file_gamma:double);cdecl; external libpng;
 procedure png_permit_empty_plte(png_ptr:png_structp; empty_plte_permitted:longint);cdecl; external libpng;
@@ -557,13 +557,13 @@ function png_get_y_offset_microns(png_ptr:png_structp; info_ptr:png_infop):png_i
 function png_get_signature(png_ptr:png_structp; info_ptr:png_infop):png_bytep;cdecl; external libpng;
 function png_get_bKGD(png_ptr:png_structp; info_ptr:png_infop; background:Ppng_color_16p):png_uint_32;cdecl; external libpng;
 procedure png_set_bKGD(png_ptr:png_structp; info_ptr:png_infop; background:png_color_16p);cdecl; external libpng;
-function png_get_cHRM(png_ptr:png_structp; info_ptr:png_infop; white_x:Pdouble; white_y:Pdouble; red_x:Pdouble; 
+function png_get_cHRM(png_ptr:png_structp; info_ptr:png_infop; white_x:Pdouble; white_y:Pdouble; red_x:Pdouble;
            red_y:Pdouble; green_x:Pdouble; green_y:Pdouble; blue_x:Pdouble; blue_y:Pdouble):png_uint_32;cdecl; external libpng;
-function png_get_cHRM_fixed(png_ptr:png_structp; info_ptr:png_infop; int_white_x:Ppng_fixed_point; int_white_y:Ppng_fixed_point; int_red_x:Ppng_fixed_point; 
+function png_get_cHRM_fixed(png_ptr:png_structp; info_ptr:png_infop; int_white_x:Ppng_fixed_point; int_white_y:Ppng_fixed_point; int_red_x:Ppng_fixed_point;
            int_red_y:Ppng_fixed_point; int_green_x:Ppng_fixed_point; int_green_y:Ppng_fixed_point; int_blue_x:Ppng_fixed_point; int_blue_y:Ppng_fixed_point):png_uint_32;cdecl; external libpng;
-procedure png_set_cHRM(png_ptr:png_structp; info_ptr:png_infop; white_x:double; white_y:double; red_x:double; 
+procedure png_set_cHRM(png_ptr:png_structp; info_ptr:png_infop; white_x:double; white_y:double; red_x:double;
             red_y:double; green_x:double; green_y:double; blue_x:double; blue_y:double);cdecl; external libpng;
-procedure png_set_cHRM_fixed(png_ptr:png_structp; info_ptr:png_infop; int_white_x:png_fixed_point; int_white_y:png_fixed_point; int_red_x:png_fixed_point; 
+procedure png_set_cHRM_fixed(png_ptr:png_structp; info_ptr:png_infop; int_white_x:png_fixed_point; int_white_y:png_fixed_point; int_red_x:png_fixed_point;
             int_red_y:png_fixed_point; int_green_x:png_fixed_point; int_green_y:png_fixed_point; int_blue_x:png_fixed_point; int_blue_y:png_fixed_point);cdecl; external libpng;
 function png_get_gAMA(png_ptr:png_structp; info_ptr:png_infop; file_gamma:Pdouble):png_uint_32;cdecl; external libpng;
 function png_get_gAMA_fixed(png_ptr:png_structp; info_ptr:png_infop; int_file_gamma:Ppng_fixed_point):png_uint_32;cdecl; external libpng;
@@ -571,15 +571,15 @@ procedure png_set_gAMA(png_ptr:png_structp; info_ptr:png_infop; file_gamma:doubl
 procedure png_set_gAMA_fixed(png_ptr:png_structp; info_ptr:png_infop; int_file_gamma:png_fixed_point);cdecl; external libpng;
 function png_get_hIST(png_ptr:png_structp; info_ptr:png_infop; hist:Ppng_uint_16p):png_uint_32;cdecl; external libpng;
 procedure png_set_hIST(png_ptr:png_structp; info_ptr:png_infop; hist:png_uint_16p);cdecl; external libpng;
-function png_get_IHDR(png_ptr:png_structp; info_ptr:png_infop; width:Ppng_uint_32; height:Ppng_uint_32; bit_depth:Plongint; 
+function png_get_IHDR(png_ptr:png_structp; info_ptr:png_infop; width:Ppng_uint_32; height:Ppng_uint_32; bit_depth:Plongint;
            color_type:Plongint; interlace_type:Plongint; compression_type:Plongint; filter_type:Plongint):png_uint_32;cdecl; external libpng;
-procedure png_set_IHDR(png_ptr:png_structp; info_ptr:png_infop; width:png_uint_32; height:png_uint_32; bit_depth:longint; 
+procedure png_set_IHDR(png_ptr:png_structp; info_ptr:png_infop; width:png_uint_32; height:png_uint_32; bit_depth:longint;
             color_type:longint; interlace_type:longint; compression_type:longint; filter_type:longint);cdecl; external libpng;
 function png_get_oFFs(png_ptr:png_structp; info_ptr:png_infop; offset_x:Ppng_int_32; offset_y:Ppng_int_32; unit_type:Plongint):png_uint_32;cdecl; external libpng;
 procedure png_set_oFFs(png_ptr:png_structp; info_ptr:png_infop; offset_x:png_int_32; offset_y:png_int_32; unit_type:longint);cdecl; external libpng;
-function png_get_pCAL(png_ptr:png_structp; info_ptr:png_infop; purpose:Ppng_charp; X0:Ppng_int_32; X1:Ppng_int_32; 
+function png_get_pCAL(png_ptr:png_structp; info_ptr:png_infop; purpose:Ppng_charp; X0:Ppng_int_32; X1:Ppng_int_32;
            atype:Plongint; nparams:Plongint; units:Ppng_charp; params:Ppng_charpp):png_uint_32;cdecl; external libpng;
-procedure png_set_pCAL(png_ptr:png_structp; info_ptr:png_infop; purpose:png_charp; X0:png_int_32; X1:png_int_32; 
+procedure png_set_pCAL(png_ptr:png_structp; info_ptr:png_infop; purpose:png_charp; X0:png_int_32; X1:png_int_32;
             atype:longint; nparams:longint; units:png_charp; params:png_charpp);cdecl; external libpng;
 function png_get_pHYs(png_ptr:png_structp; info_ptr:png_infop; res_x:Ppng_uint_32; res_y:Ppng_uint_32; unit_type:Plongint):png_uint_32;cdecl; external libpng;
 procedure png_set_pHYs(png_ptr:png_structp; info_ptr:png_infop; res_x:png_uint_32; res_y:png_uint_32; unit_type:longint);cdecl; external libpng;
@@ -590,9 +590,9 @@ procedure png_set_sBIT(png_ptr:png_structp; info_ptr:png_infop; sig_bit:png_colo
 function png_get_sRGB(png_ptr:png_structp; info_ptr:png_infop; intent:Plongint):png_uint_32;cdecl; external libpng;
 procedure png_set_sRGB(png_ptr:png_structp; info_ptr:png_infop; intent:longint);cdecl; external libpng;
 procedure png_set_sRGB_gAMA_and_cHRM(png_ptr:png_structp; info_ptr:png_infop; intent:longint);cdecl; external libpng;
-function png_get_iCCP(png_ptr:png_structp; info_ptr:png_infop; name:png_charpp; compression_type:Plongint; profile:png_charpp; 
+function png_get_iCCP(png_ptr:png_structp; info_ptr:png_infop; name:png_charpp; compression_type:Plongint; profile:png_charpp;
            proflen:Ppng_uint_32):png_uint_32;cdecl; external libpng;
-procedure png_set_iCCP(png_ptr:png_structp; info_ptr:png_infop; name:png_charp; compression_type:longint; profile:png_charp; 
+procedure png_set_iCCP(png_ptr:png_structp; info_ptr:png_infop; name:png_charp; compression_type:longint; profile:png_charp;
             proflen:png_uint_32);cdecl; external libpng;
 function png_get_sPLT(png_ptr:png_structp; info_ptr:png_infop; entries:png_sPLT_tpp):png_uint_32;cdecl; external libpng;
 procedure png_set_sPLT(png_ptr:png_structp; info_ptr:png_infop; entries:png_sPLT_tp; nentries:longint);cdecl; external libpng;
@@ -617,5 +617,5 @@ function png_get_header_version(png_ptr:png_structp):png_charp;cdecl; external l
 function png_get_libpng_ver(png_ptr:png_structp):png_charp;cdecl; external libpng;
 
 implementation
-  
+
 end.

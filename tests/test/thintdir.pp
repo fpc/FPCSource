@@ -8,10 +8,10 @@ type
 
   t2 = class
   end platform;
-  
+
   t3 = object
   end platform;
-  
+
   t4 = record
     w1 : word deprecated;
     w2 : word deprecated

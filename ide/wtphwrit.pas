@@ -275,19 +275,8 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:26  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.1  2001/03/09 15:01:00  pierre
-   * missing unit ref added
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.1  1999/03/16 12:38:18  peter
-    * tools macro fixes
-    + tph writer
-    + first things for resource files
+  Revision 1.2  2002-09-07 15:40:50  peter
+    * old logs removed and tabs fixed
 
 }
 

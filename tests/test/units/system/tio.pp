@@ -39,7 +39,7 @@ const
   FILE_NAME = 'test.tmp';
   FILE_NAME2 = 'test1.tmp';
   DATA_SIZE = 17;
-  
+
   MODE_RESET = 0;
   MODE_REWRITE = 1;
 
@@ -92,7 +92,7 @@ begin
   Seek(F, _pos);
   test(IOResult, 0);
   WriteLn('Passed!');
-end;  
+end;
 
 
 procedure test_do_read(var buf; BytesToRead : word);
@@ -104,7 +104,7 @@ begin
   test(BytesToRead, BytesRead);
   test(IOResult, 0);
   WriteLn('Passed!');
-end;  
+end;
 
 procedure test_filepos(_pos : longint);
 var
@@ -114,7 +114,7 @@ begin
   test(FilePos(F),_pos);
   test(IOResult, 0);
   WriteLn('Passed!');
-end;  
+end;
 
 procedure test_do_close;
 begin
@@ -122,7 +122,7 @@ begin
   Close(F);
   test(IOResult, 0);
   WriteLn('Passed!');
-end;  
+end;
 
 
 procedure test_rename(oldname, newname : shortstring);
@@ -149,29 +149,29 @@ var
 Begin
   {------------------------ create and play with a new file --------------------------}
   FillChar(readData,DATA_SIZE,0);
-  
+
   test_do_open(FILE_NAME, MODE_REWRITE);
   test_do_write(DATA, DATA_SIZE);
   test_do_filesize(DATA_SIZE);
   test_do_seek(0);
   test_do_read(readData, DATA_SIZE);
-  
-  
+
+
   for i:=1 to DATA_SIZE do
    Begin
        test(readData[i], data[i]);
    end;
-   
+
   test_do_seek(5);
-  
+
   test_filepos(5);
-(*  
+(*
   test_do_truncate()
   WriteLn('truncating file...');
   Truncate(F);
   WriteLn(FileSize(F));
   if FileSize(F) <> 5 then
-   RunError(255);   
+   RunError(255);
 *)
   test_do_close;
   {------------------------ create and play with an old file --------------------------}
@@ -187,13 +187,13 @@ Begin
   test_do_filesize(DATA_SIZE);
   test_do_seek(0);
   test_do_read(readData, DATA_SIZE);
-  
-  
+
+
   for i:=1 to DATA_SIZE do
    Begin
        test(readData[i], data[i]);
    end;
-  
+
   test_do_close;
 
   test_rename(FILE_NAME2, 'test3.tmp');
@@ -202,16 +202,10 @@ end.
 
 {
  $Log$
- Revision 1.4  2002-03-05 21:53:53  carl
+ Revision 1.5  2002-09-07 15:40:56  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.4  2002/03/05 21:53:53  carl
  + cleanup
-
- Revision 1.3  2001/07/31 19:18:53  peter
-   * small fixes to compile
-
- Revision 1.2  2001/07/30 22:09:34  peter
-   * use .tmp as extension so it gets cleaned
-
- Revision 1.1  2001/07/14 04:25:00  carl
- system unit testing : basic I/O
 
 }

@@ -90,8 +90,8 @@ var
  globalindex : longint;
  globalansi : ansistring;
  globalboolarray : boolarray;
- 
- 
+
+
  procedure checkpassed(passed: boolean);
  begin
    if passed then
@@ -105,7 +105,7 @@ var
      end;
  end;
 
- 
+
 
    { this routine clears all arrays     }
    { without calling secondvecn() first }
@@ -406,7 +406,7 @@ var
    { right : + operator           }
    { right right : index constant }
    { With -Or switch only         }
-  
+
 
    { left: array definition       }
    { right : - operator           }
@@ -428,17 +428,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-03-05 21:56:44  carl
+  Revision 1.5  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/03/05 21:56:44  carl
   * Adapted for automated testing
-
-  Revision 1.3  2001/06/30 02:16:28  carl
-  - reduced sizes of arrays to make it work under m68k
-
-  Revision 1.2  2001/06/30 00:48:37  carl
-  + added LOC_FLAGS and LOC_JUMP tests (still missing open array tests)
-
-  Revision 1.1  2001/06/29 02:02:10  carl
-  + add array indexing test suite (incomplete)
 
 }
 

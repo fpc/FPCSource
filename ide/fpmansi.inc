@@ -85,19 +85,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-11-15 13:30:14  pierre
-   + save ansi dump as text is filename suffix is '.txt'
-
-  Revision 1.2  2001/10/12 14:20:11  pierre
-   * use correct video buffer size
-
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.2  2000/11/22 11:03:32  pierre
-   + window selection for Ansi Dump
-
-  Revision 1.1.2.1  2000/11/21 17:43:24  pierre
-   + first version of dump ansi file
+  Revision 1.4  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
 
 }

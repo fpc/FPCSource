@@ -8,7 +8,7 @@ uses forms;
 Const
   onn : boolean = True;
   dcol : longint = 1;
-  
+
 var
   cole : TFL_COLOR;
   form : PFL_FORM;
@@ -18,8 +18,8 @@ var
 
 
 { The call back routine }
-function handle_it(obj : PFL_OBJECT; event : longint; 
-                   mx,my : TFL_Coord; 
+function handle_it(obj : PFL_OBJECT; event : longint;
+                   mx,my : TFL_Coord;
                    key : longint; ev : pointer) : longint;export;
 
 begin
@@ -28,17 +28,17 @@ begin
     FL_DRAW:
         fl_rect(obj^.x,obj^.y,obj^.w,obj^.h, obj^.u_ldata);
     FL_RELEASE:
-	onn := not(onn);
+        onn := not(onn);
     FL_STEP:
- 	if (onn) then 
-	  begin
-	  if (obj^.u_ldata = cole) then
-	      dcol := -1;
-	  if (obj^.u_ldata = FL_FREE_COL1) then
-	      dcol := 1;
+        if (onn) then
+          begin
+          if (obj^.u_ldata = cole) then
+              dcol := -1;
+          if (obj^.u_ldata = FL_FREE_COL1) then
+              dcol := 1;
           obj^.u_ldata := dcol;
           fl_redraw_object(obj);
-	  end;
+          end;
   end;
   handle_it:=0;
 end;
@@ -77,16 +77,16 @@ begin
      j := round(255 * (i - col) /(cole  - col));
      dummy:=fl_mapcolor(i, j, j, j);
      inc(i);
-   end; 
+   end;
 
   fl_show_form(form,FL_PLACE_CENTER,FL_NOBORDER,'Free Object');
   fl_do_forms();
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -11,5 +11,5 @@ type
         packed record
                 Dates : array[1..11] of Date;
         end;
-implementation	
+implementation
 end.

@@ -118,7 +118,10 @@ end.
 
 {
  $Log$
- Revision 1.4  2002-07-01 16:24:04  peter
+ Revision 1.5  2002-09-07 15:42:54  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.4  2002/07/01 16:24:04  peter
    * updates for 1.0 compiler
 
  Revision 1.3  2002/06/13 05:01:44  michael
@@ -129,17 +132,5 @@ end.
 
  Revision 1.1  2002/01/29 17:54:59  peter
    * splitted to base and extra
-
- Revision 1.5  2001/10/23 12:14:36  jonas
-   * fixed CReAllocMem (web bug 1637)
-
- Revision 1.4  2001/06/07 16:34:41  jonas
-   * added ifdef fpc round @ for procvars
-
- Revision 1.3  2001/06/07 16:14:48  marco
-  * Fixed @ procvar
-
-    Revision 1.2  2000/07/13 11:33:10  michael
-     + removed logs
 
 }

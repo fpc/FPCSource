@@ -10,7 +10,7 @@ exitobj, readout : PFL_OBJECT;
 
 
 const
-bnames : array[0..3] of pchar = 
+bnames : array[0..3] of pchar =
 (
     'NORMAL_BROWSER', 'SELECT_BROWSER', 'HOLD_BROWSER', 'MULTI_BROWSER'
 );
@@ -28,7 +28,7 @@ procedure set_size(obj : PFL_OBJECT; arg : longint);export;
 var
   i : longint;
 begin
-  for i:=0 to 3 do 
+  for i:=0 to 3 do
      fl_set_browser_fontsize(br[i],arg);
 end;
 
@@ -58,12 +58,12 @@ begin
     i := fl_get_browser(ob);
     if i>0 then
       begin
-      buf:=buf+strpas(fl_get_browser_line(ob,i)); 
+      buf:=buf+strpas(fl_get_browser_line(ob,i));
       buf:=buf+' was selected'#0
       end
-    else 
+    else
       begin
-      buf:=buf+strpas(fl_get_browser_line(ob,-i)); 
+      buf:=buf+strpas(fl_get_browser_line(ob,-i));
       buf:=buf+' was deselected'#0
       end;
     fl_set_object_label(readout,@buf[1]);
@@ -144,7 +144,7 @@ var
 
 begin
   for i:=0 to 3 do
-    for j:=1 to 100 do 
+    for j:=1 to 100 do
       begin
       if ( j = 5) then
         begin
@@ -177,10 +177,10 @@ begin
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:13  michael
-  + removed logs
- 
 }

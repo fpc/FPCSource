@@ -4,7 +4,7 @@ Program vgatest;
 
 uses svgalib,strings;
 
-Var 
+Var
   line : array [0..2048 * 3-1] of byte;
 
 Procedure testmode (Mode : Longint);
@@ -12,7 +12,7 @@ Procedure testmode (Mode : Longint);
 var
   xmax, ymax, i, x, y, yw, ys, c : longint;
   modeinfo : Pvga_modeinfo;
-  
+
 begin
    vga_setmode(mode);
 
@@ -22,7 +22,7 @@ begin
      ' Colors: ',modeinfo^.colors);
    Write ('DisplayStartRange: ',modeinfo^.startaddressrange,
           ' Maxpixels: ',modeinfo^.maxpixels,' Blit: ');
-   if modeinfo^.haveblit<>0 then   
+   if modeinfo^.haveblit<>0 then
       writeln ('YES') else writeln ('NO');
 
    vga_screenoff();
@@ -42,7 +42,7 @@ begin
        vga_drawline(10 + i * 5, 10, 90 + i * 5, 90);
        end;
    for i := 0 to 25 do
-       begin 
+       begin
        vga_setegacolor(i);
        vga_drawline(90 + i * 5, 10, 10 + i * 5, 90);
        end;
@@ -51,10 +51,10 @@ begin
 
    ys := 100;
    yw := (ymax - 100) div 4;
-   Case vga_getcolors of 
+   Case vga_getcolors of
      256:
      begin
-     for i := 0 to 60 do 
+     for i := 0 to 60 do
        begin
        c := (i * 64) div 60;
        vga_setpalette(i + 16, c, c, c);
@@ -107,9 +107,9 @@ begin
          vga_setrgbcolor(0, 0, c);
          vga_drawline(x, y, x, y + yw - 1);
          end;
-         
-       for x := 0 to 63 do 
-         for y := 0 to 63 do 
+
+       for x := 0 to 63 do
+         for y := 0 to 63 do
              begin
              vga_setrgbcolor(x * 4 + 3, y * 4 + 3, 0);
              vga_drawpixel(xmax div 2 - 160 + x, y + ymax div 2 - 80);
@@ -171,7 +171,7 @@ begin
 
         highest := 0;
         for i := 1 to GLASTMODE do
-          if vga_hasmode(i) then 
+          if vga_hasmode(i) then
             begin
             expl[0]:=#0;
             info := vga_getmodeinfo(i);
@@ -189,7 +189,7 @@ begin
                     strcopy(pchar(@expl[0]), 'packed-pixel')
                 else if (i=G320x240x256) or
                         ((i=G320x400x256) or
-                         (i=G360x480x256)) then 
+                         (i=G360x480x256)) then
                     strcopy(expl, 'Mode X')
                 else
                     strcopy(expl,'packed-pixel,banked');
@@ -207,7 +207,7 @@ begin
             1 shl 24:
                 begin
                 cols := '16M';
-                if info^.bytesperpixel = 3 then 
+                if info^.bytesperpixel = 3 then
                    if (info^.flags and RGB_MISORDERED)=0 then
                         strcopy(expl, '8-8-8 BGR, red byte first, banked')
                     else
@@ -252,7 +252,7 @@ begin
        end;
     if (vga_hasmode(mode)) then
         testmode(mode)
-    else 
+    else
         begin
         Writeln ('Error: Video mode not supported by driver.');
         Halt(1);
@@ -260,10 +260,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:22  peter
+  Revision 1.2  2002-09-07 15:43:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:22  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:31  michael
-  + removed logs
- 
 }

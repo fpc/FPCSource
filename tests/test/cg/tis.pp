@@ -24,16 +24,16 @@ type
 {$endif}
 
  tclass1 = class
- end;  
- 
- 
+ end;
+
+
  tclass2 = class(tclass1)
  end;
- 
+
  tclass3 = class
  end;
- 
- 
+
+
 
 var
  myclass1 : tclass1;
@@ -48,13 +48,13 @@ begin
   halt(1);
 end;
 
- 
- 
+
+
   function getclass1 : tclass1;
    begin
      getclass1:=myclass1;
    end;
-  
+
   function getclass2 : tclass2;
    begin
      getclass2:=myclass2;
@@ -86,13 +86,13 @@ begin
     failed := true;
   if (getclass1 is tclass2) then
     failed := true;
-   
+
   if failed then
     Fail
   else
     WriteLn('Passed!');
-    
-  failed := false; 
+
+  failed := false;
   Write('Testing left/right : LOC_REFERENCE/LOC_REGISTER...');
   if not(myclass1 is tclass1) then
     failed := true;
@@ -102,14 +102,14 @@ begin
     failed := true;
   if (myclass1 is tclass2) then
     failed := true;
-   
+
   if failed then
     Fail
   else
     WriteLn('Passed!');
 
 
-  failed := false; 
+  failed := false;
   Write('Testing left/right : LOC_REFERENCE/LOC_REFERENCE...');
   if (myclass1 is class1) then
     failed := true;
@@ -122,7 +122,10 @@ end.
 {
 
  $Log$
- Revision 1.2  2002-03-22 21:32:23  carl
+ Revision 1.3  2002-09-07 15:40:56  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.2  2002/03/22 21:32:23  carl
  + added test LOC_REFERENCE/LOC_REFERENCE (thanks to Florian)
 
  Revision 1.1  2002/03/21 20:16:23  carl

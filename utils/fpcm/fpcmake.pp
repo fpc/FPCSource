@@ -291,35 +291,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-01-27 21:42:35  peter
+  Revision 1.8  2002-09-07 15:40:31  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/01/27 21:42:35  peter
     * -r option to process target dirs also
     * default changed to build only for current target
     * removed auto building of required packages
     * removed makefile target because it causes problems with
       an internal rule of make
-
-  Revision 1.6  2001/08/02 20:50:29  peter
-    * -T<target> support
-    * better error reporting for not found dirs
-    * some cleanups and nicer strings
-
-  Revision 1.5  2001/07/13 21:01:59  peter
-    * cygdrive support
-    * fixed cygwin detection
-    * fixed some duplicate and extraeous spaces
-
-  Revision 1.4  2001/06/04 21:42:57  peter
-    * Arguments added
-    * Start of Package.fpc creation
-
-  Revision 1.3  2001/02/22 21:11:24  peter
-    * fpcdir detection added
-    * fixed loading of variables in fpcmake itself
-
-  Revision 1.2  2001/01/29 21:49:10  peter
-    * lot of updates
-
-  Revision 1.1  2001/01/24 21:59:36  peter
-    * first commit of new fpcmake
 
 }

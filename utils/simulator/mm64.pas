@@ -296,13 +296,7 @@ unit mm64;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:24  michael
-  + Initial import
-
-  Revision 1.3  2000/02/09 16:44:15  peter
-    * log truncated
-
-  Revision 1.2  2000/01/07 16:46:07  daniel
-    * copyright 2000
+  Revision 1.2  2002-09-07 15:40:37  peter
+    * old logs removed and tabs fixed
 
 }

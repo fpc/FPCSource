@@ -3,10 +3,10 @@ program buttonall;
 uses forms;
 
 type TFD_buttform = record
-	buttform : PFL_FORM;
-	vdata : pointer;
-	ldata : Longint;
-	backface,done,objsgroup,bbutt,pbutt,bw_obj : PFL_OBJECT;
+        buttform : PFL_FORM;
+        vdata : pointer;
+        ldata : Longint;
+        backface,done,objsgroup,bbutt,pbutt,bw_obj : PFL_OBJECT;
 end;
 PFD_buttform = ^TFD_buttform;
 
@@ -19,10 +19,10 @@ procedure bw_cb(ob : PFL_OBJECT; data : longint);export;
 
 const
     bws : array [0..7] of longint = (-4,-3,-2,-1,1,2,3,4);
-var 
+var
   n : longint;
   fdui : PFD_BUTTform;
-   
+
 begin
     n:=fl_get_choice(ob)-1;
     fdui:=ob^.form^.fdui;
@@ -45,9 +45,9 @@ begin
   new(fdui);
   fdui^.buttform := fl_bgn_form(FL_NO_BOX, 290, 260);
   obj := fl_add_box(FL_UP_BOX,0,0,290,260,'');
-  fdui^.backface := obj; 
+  fdui^.backface := obj;
   obj := fl_add_button(FL_NORMAL_BUTTON,185,215,90,30,'Done');
-  fdui^.done := obj;    
+  fdui^.done := obj;
   fl_set_object_callback(obj,PFL_CALLBACKPTR(@done_cb),0);
 
   fdui^.objsgroup := fl_bgn_group();
@@ -84,7 +84,7 @@ begin
   obj := fl_add_button(FL_NORMAL_BUTTON,20,210,90,30,'Button');
     fl_set_object_boxtype(obj,FL_ROUNDED3D_UPBOX);
   obj := fl_add_choice(FL_NORMAL_CHOICE2,105,135,80,30,'BW');
-  fdui^.bw_obj := obj;   
+  fdui^.bw_obj := obj;
   fl_set_object_callback(obj,PFL_CALLBACKPTR(@bw_cb),0);
   obj := fl_add_labelframe(FL_ENGRAVED_FRAME,190,25,85,100,'RoundButton');
   obj := fl_add_labelframe(FL_ENGRAVED_FRAME,90,25,90,100,'CheckButton');
@@ -111,10 +111,10 @@ begin
    while (fl_do_forms<>nil) do ;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:13  michael
-  + removed logs
- 
 }

@@ -310,17 +310,14 @@ Begin
 End.
 {
  $Log$
- Revision 1.5  2002-07-14 13:39:45  carl
+ Revision 1.6  2002-09-07 15:40:31  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.5  2002/07/14 13:39:45  carl
    * use special symbols for portability's sake
 
  Revision 1.4  2002/06/01 18:39:15  marco
   * Renamefest
-
- Revision 1.3  2001/08/02 12:50:46  jonas
-   * added 'inline on' directive
-
- Revision 1.2  2001/08/02 10:41:50  marco
-  * Fix from peter (inline between ifdefs) committed
 
 }
 

@@ -8,7 +8,7 @@ var form : PFL_FORM;
 procedure change_color(ob : PFL_OBJECT; col : longint);export;
 
 begin
-  fl_set_object_color(topbox, col,  col); 
+  fl_set_object_color(topbox, col,  col);
 end;
 
 procedure  makeform;
@@ -20,7 +20,7 @@ var obj : PFL_OBJECT;
 begin
   form := fl_bgn_form(FL_UP_BOX,100,100);
     for i:=0 to 7 do
-      for j:=0 to 7 do 
+      for j:=0 to 7 do
         begin
         str (8*j+i,st);
         st:=st+#0;
@@ -46,10 +46,10 @@ begin
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

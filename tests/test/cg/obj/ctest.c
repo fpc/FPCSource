@@ -175,7 +175,10 @@ struct _7BYTE_ test_function_struct()
 
 /*
   $Log$
-  Revision 1.3  2002-05-04 16:57:23  carl
+  Revision 1.4  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/05/04 16:57:23  carl
   + var parameter testing
   + function result testing
   + floating point testing

@@ -4,7 +4,7 @@ program fbrowse;
 
 uses forms,strings;
 
-var 
+var
 form : PFL_FORM;
 br : PFL_OBJECT;
 
@@ -18,7 +18,7 @@ begin
   if (fl_load_browser(br,fname)<>0) then
      fl_add_browser_line(br,'NO SUCH FILE!');
 end;
- 
+
 procedure set_size(ob : PFL_OBJECT; arg : longint);export;
 begin
    fl_set_browser_fontsize(br,arg);
@@ -30,12 +30,12 @@ begin
 end;
 
 procedure create_form;
-var 
+var
   obj : PFL_OBJECT;
   x,dx : TFL_Coord;
 
 begin
-  x  := 20; 
+  x  := 20;
   dx := 85;
 
   form := fl_bgn_form(FL_NO_BOX,590,610);
@@ -50,7 +50,7 @@ begin
     x := x+dx;
   obj := fl_add_lightbutton(FL_RADIO_BUTTON,x ,560,dx,30,'Small');
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@set_size),FL_SMALL_SIZE);
-{ Compiler crashes on the next one. Probably the comparing of the 
+{ Compiler crashes on the next one. Probably the comparing of the
   constants..
     if (longint(FL_SMALL_SIZE)=longint(FL_BROWSER_FONTSIZE)) then
     fl_set_button(obj, 1);
@@ -83,10 +83,10 @@ begin
   fl_free_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

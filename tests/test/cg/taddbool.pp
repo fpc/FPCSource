@@ -569,19 +569,13 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-04-13 21:01:55  carl
+  Revision 1.5  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/04/13 21:01:55  carl
   * fixed typo
 
   Revision 1.3  2002/03/05 21:54:52  carl
   * Adapted for automated testing
-
-  Revision 1.2  2001/07/27 02:55:35  carl
-  + more complex testing
-
-  Revision 1.1  2001/05/19 11:51:50  peter
-    * renamed to .pp
-
-  Revision 1.1  2001/05/09 18:11:21  carl
-  + boolean secondadd()
 
 }

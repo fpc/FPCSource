@@ -715,54 +715,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2002-05-29 22:39:51  pierre
+  Revision 1.8  2002-09-07 15:40:47  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/05/29 22:39:51  pierre
    + FreeVesaModes
-
-  Revision 1.6  2001/10/12 21:50:15  pierre
-   * always remove cursor before updating the cursor cell
-
-  Revision 1.5  2001/10/12 14:22:45  pierre
-   + graphic modes support enhanced
-
-  Revision 1.4  2001/10/12 00:04:17  pierre
-   * fix color computation for graphic mode
-
-  Revision 1.3  2001/10/11 23:45:27  pierre
-   + some preliminary code for graph use
-
-  Revision 1.2  2001/10/11 11:35:34  pierre
-   * adapt to new video unit layout
-
-  Revision 1.1  2001/08/04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1  2000/07/13 09:48:36  michael
-  + Initial import
-
-  Revision 1.8  2000/06/22 09:07:13  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.7  2000/03/21 23:22:37  pierre
-   Gabor fixes to avoid unused vars
-
-  Revision 1.6  2000/01/03 11:38:35  michael
-  Changes from Gabor
-
-  Revision 1.4  1999/04/07 21:55:58  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.3  1999/04/01 10:04:18  pierre
-   * uses typo errror fixed
-
-  Revision 1.2  1999/03/26 19:09:44  peter
-    * fixed for go32v2
-
-  Revision 1.1  1999/03/23 15:11:39  peter
-    * desktop saving things
-    * vesa mode
-    * preferences dialog
 
 }

@@ -12,9 +12,9 @@ Procedure Do_position (ob :PFL_OBJECT; q : longint);
 
 var
     st : string [30];
-    
+
 begin
-    
+
     str(fl_get_positioner_xvalue(ob),st);st:=st+#0;
     fl_set_object_label(xval,@st[1]);
     str(fl_get_positioner_yvalue(ob),st);st:=st+#0;
@@ -27,7 +27,7 @@ begin
   Do_Position (ob,q);
 end;
 
-var 
+var
   form : PFL_FORM;
   thepos, button : PFL_OBJECT;
 
@@ -55,10 +55,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

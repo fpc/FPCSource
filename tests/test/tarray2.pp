@@ -105,7 +105,7 @@ begin
   TestIt ([QWord(1234)]);
   TestIt ([Int64(1234)]);
   TestIt ([Int64(12341234)*1000000000+Int64(12341234)]);
- 
+
   TestIt2 ([]);
   TestIt2 ([1,2]);
 end.

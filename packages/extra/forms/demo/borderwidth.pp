@@ -3,16 +3,16 @@ program borderwidth;
 uses forms;
 
 type TFD_bwform = record
-	bwform : PFL_FORM;
-	vdata : pointer;
-	ldata : longint;
-	done,
-	bw_choice,
-	bwgroup,
-	pmobj : PFL_OBJECT;
-	end;
+        bwform : PFL_FORM;
+        vdata : pointer;
+        ldata : longint;
+        done,
+        bw_choice,
+        bwgroup,
+        pmobj : PFL_OBJECT;
+        end;
 PFD_bwform = ^TFD_bwform;
-	
+
 
 { callbacks for form bwform }
 procedure done_callback(ob : PFL_OBJECT; data : longint);export;
@@ -34,7 +34,7 @@ begin
    bw := bws[fl_get_choice(ob)-1];
 
    fl_set_object_bw(fd_bwform^.bwgroup, bw);
-   { since bwgroup includes the backface, it wipes out the done button}  
+   { since bwgroup includes the backface, it wipes out the done button}
    fl_redraw_object(fd_bwform^.done);
    fl_redraw_object(fd_bwform^.bw_choice);
 end;
@@ -43,7 +43,7 @@ function create_form_bwform : PFD_bwform;
 var
   obj : PFL_OBJECT;
   fdui : PFD_bwform;
-  
+
 begin
 
   new(fdui);
@@ -82,7 +82,7 @@ end;
 
 begin
    { application default. Can be overriden by the command line options }
-   fl_set_border_width(-2); 
+   fl_set_border_width(-2);
 
    fl_initialize(@argc, argv, 'FormDemo', nil, 0);
    fd_bwform := create_form_bwform;
@@ -103,10 +103,10 @@ end.
 
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:12  michael
-  + removed logs
- 
 }

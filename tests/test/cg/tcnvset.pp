@@ -115,14 +115,13 @@ end.
 {
 
  $Log$
- Revision 1.3  2002-03-29 18:43:55  peter
+ Revision 1.4  2002-09-07 15:40:55  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.3  2002/03/29 18:43:55  peter
    * updated int64 tests so kylix passes the tests
 
  Revision 1.2  2002/03/05 21:55:42  carl
  * Adapted for automated testing
-
- Revision 1.1  2001/06/24 23:01:22  carl
- + completed small set -. normal set conversion tests
-
 
 }

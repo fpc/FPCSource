@@ -403,19 +403,14 @@ end; {detgtr}
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:18  peter
+  Revision 1.2  2002-09-07 15:43:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:18  peter
     * splitted to base and extra
 
   Revision 1.2  2002/01/16 14:47:16  florian
     + Makefile.fpc added
     * several small changes to get things running with FPC 1.0.x
 
-  Revision 1.1  2000/07/13 06:34:14  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:41  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:57  marco
-   * initial version
 }

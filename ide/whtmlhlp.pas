@@ -1233,7 +1233,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2002-04-23 09:55:22  pierre
+  Revision 1.6  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/04/23 09:55:22  pierre
     + added lastsynonym and InNameAnchor fields to TCustomHTMLLinkScanner
       these allow to eliminate double index entries pointing to the same
       html file location (which had two different names).
@@ -1243,38 +1246,5 @@ END.
 
   Revision 1.3  2002/03/20 17:16:11  pierre
    * correct some ansii file conversion problems
-
-  Revision 1.2  2001/09/18 11:33:53  pierre
-   * fix Previous Help Topic
-
-  Revision 1.1  2001/08/04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.6  2001/06/07 16:41:14  jonas
-    *  updated for stricter checking of @ for procvars
-
-  Revision 1.1.2.5  2001/03/06 22:41:21  pierre
-   * avoid clipping for ansi file loading
-
-  Revision 1.1.2.4  2000/11/27 12:06:52  pierre
-   New bunch of Gabor fixes
-
-  Revision 1.1.2.3  2000/11/16 23:13:06  pierre
-   + support for ANSI substitutes to HTML images in HTML viewer
-
-  Revision 1.1.2.2  2000/10/18 21:53:27  pierre
-   * several Gabor fixes
-
-  Revision 1.1.2.1  2000/09/18 13:20:56  pierre
-   New bunch of Gabor changes
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.15  2000/06/22 09:07:15  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.14  2000/06/16 08:50:45  pierre
-   + new bunch of Gabor's changes
 
 }

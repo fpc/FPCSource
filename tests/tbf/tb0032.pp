@@ -11,4 +11,4 @@ type
 
 begin
 end.
-  
+

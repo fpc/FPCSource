@@ -5,16 +5,16 @@ program methcall;
 
 uses SysUtils;
 
-type TToggle = class 
+type TToggle = class
     private
         value : boolean;
 
     public
         property Bool : boolean read value write value;
         procedure Activate;
-end;    
+end;
 
-type TNthToggle = class 
+type TNthToggle = class
     constructor Create;
     private
         value : boolean;
@@ -52,7 +52,7 @@ begin
 end;
 
 
-var 
+var
     NUM, i : longint;
     val : boolean;
     oToggle : TToggle;
@@ -62,11 +62,11 @@ begin
         NUM := 1
     else
         NUM := StrToInt(ParamStr(1));
-        
+
     if NUM < 1 then NUM := 1;
 
     val := True;
-    oToggle := TToggle.Create;    
+    oToggle := TToggle.Create;
     oToggle.Bool := val;
     For i := 1 to NUM do
     begin

@@ -6,16 +6,16 @@ uses forms,x,xlib;
 {*** Forms and Objects ***}
 
 type TFD_canvasform = record
-	canvasform : PFL_FORM;
-	vdata : pointer;
-	ldata : longint;
-	canvas,
-	br,
-	keyboard,
-	mouse,
-	done,
-	misc,
-	menu : PFL_OBJECT;
+        canvasform : PFL_FORM;
+        vdata : pointer;
+        ldata : longint;
+        canvas,
+        br,
+        keyboard,
+        mouse,
+        done,
+        misc,
+        menu : PFL_OBJECT;
 end;
 
 PFD_canvasform = ^TFD_canvasform;
@@ -34,7 +34,7 @@ begin
     fl_addto_browser(ui^.br, 'Expose');
 end;
 
- 
+
 function canvas_key(ob : PFL_OBJECT; win : TWindow; w,h : Longint; ev : PXEvent; d: pointer) : longint;export;
 var
    ui :PFD_canvasform;
@@ -44,12 +44,12 @@ var
 begin
     ui := d;
     str (XKeycodeToKeysym(PDisplay(fl_display),ev^.xkey.keycode, TkeyCode(#0)),buf);
-    buf:= 'KeyPress: keysym='+buf+#0; 
+    buf:= 'KeyPress: keysym='+buf+#0;
     fl_addto_browser(ui^.br, @buf[1]);
     return 0;
 end;
 
- 
+
 function canvas_but(ob : PFL_OBJECT; win : TWindow; w,h : longint, ev : PXEvent;d : pointer) : longint;export;
 
 var
@@ -58,7 +58,7 @@ var
 
 begin
   ui := d;
-  
+
   str(ev^.xbutton.button,buf);
   if ev^.eventtype=ButtonPress then
     buf:='Press '+buf
@@ -72,7 +72,7 @@ function canvas_misc(ob : PFL_OBJECT; win : TWindow; w,h : longint, ev : PXEvent
 
 var
 
-   ui : PFD_canvasform; 
+   ui : PFD_canvasform;
 begin
   ui := d;
   if ev^.xcrossing.eventtype=EnterNotify then
@@ -116,7 +116,7 @@ end;
 procedure disable_it(ob : PFL_OBJECT; data : longint);export;
 
 begin
-    if fl_get_button(ob)<>0 then 
+    if fl_get_button(ob)<>0 then
       fl_deactivate_object(fd_canvasform^.canvas)
     else
       fl_activate_object (fd_canvasform^.canvas);
@@ -135,7 +135,7 @@ begin
        fl_remove_selected_xevent(fd_canvasform^.canvasform^.window,
             OwnerGrabButtonMask);
 {$endif }
-        end       
+        end
       else
        begin
          if(fd_canvasform^.canvas^.visible)<>0 then
@@ -156,16 +156,16 @@ procedure misc_cb(ob : PFL_OBJECT; data : longint); export;
 begin
     if(fl_get_button(ob)<>0) then
       begin
-       fl_add_canvas_handler(fd_canvasform^.canvas, EnterNotify, 
+       fl_add_canvas_handler(fd_canvasform^.canvas, EnterNotify,
                              PFL_HANDLE_CANVAS(@canvas_misc), fd_canvasform);
        fl_add_canvas_handler(fd_canvasform^.canvas, LeaveNotify,
                              PFL_HANDLE_CANVAS(@canvas_misc), fd_canvasform);
       end
     else
       begin
-       fl_remove_canvas_handler(fd_canvasform^.canvas, 
+       fl_remove_canvas_handler(fd_canvasform^.canvas,
                                 EnterNotify, PFL_HANDLE_CANVAS(@canvas_misc));
-       fl_remove_canvas_handler(fd_canvasform^.canvas, 
+       fl_remove_canvas_handler(fd_canvasform^.canvas,
                                 LeaveNotify, PFL_HANDLE_CANVAS(@canvas_misc));
       end;
 end;
@@ -242,10 +242,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:13  michael
-  + removed logs
- 
 }

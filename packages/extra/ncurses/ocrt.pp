@@ -3266,27 +3266,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:17  peter
+  Revision 1.2  2002-09-07 15:43:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:17  peter
     * splitted to base and extra
-
-  Revision 1.8  2001/06/19 15:24:54  marco
-   * UNIX peter, UNIX, not LINUX!!!
-
-  Revision 1.7  2001/04/10 23:30:04  peter
-    * regenerated
-
-  Revision 1.6  2001/04/08 12:27:55  peter
-    * made it compilable with both 1.0.x and 1.1
-
-  Revision 1.5  2001/01/21 21:38:52  marco
-   * renamefest in packages
-
-  Revision 1.4  2000/08/29 05:51:09  michael
-  + Merged changes and additions from fixbranch
-  Revision 1.3  2000/08/20 10:11:41  jonas
-    * added missing open comment at start of log section
-
-  Revision 1.2  2000/07/13 11:33:27  michael
-  + removed logs
 
 }

@@ -619,7 +619,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2002-04-23 10:11:31  pierre
+  Revision 1.5  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/04/23 10:11:31  pierre
    * try to adapt .htx files to system DirSep
 
   Revision 1.3  2002/04/23 09:55:22  pierre
@@ -629,26 +632,5 @@ END.
 
   Revision 1.2  2002/04/11 07:06:31  pierre
    + recreate the full target of an anchor that only has a NAME field
-
-  Revision 1.1  2001/08/04 11:30:26  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.1  2000/10/18 21:53:28  pierre
-   * several Gabor fixes
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.7  2000/06/22 09:07:15  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.6  2000/05/29 11:09:14  pierre
-   + New bunch of Gabor's changes: see fixes.txt
-
-  Revision 1.5  2000/05/17 08:49:16  pierre
-   readded
-
-  Revision 1.1  2000/04/25 08:42:32  pierre
-   * New Gabor changes : see fixes.txt
 
 }

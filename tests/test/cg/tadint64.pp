@@ -339,13 +339,13 @@ end.
 
 {
  $Log$
- Revision 1.4  2002-04-13 21:02:48  carl
+ Revision 1.5  2002-09-07 15:40:49  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.4  2002/04/13 21:02:48  carl
  * fixed typos
 
  Revision 1.3  2002/03/05 21:55:11  carl
  * Adapted for automated testing
-
- Revision 1.2  2001/06/24 23:58:14  carl
- * fixed problem with log
 
 }

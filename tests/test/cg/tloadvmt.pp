@@ -17,7 +17,7 @@ program tloadvmt;
 
 const
   RESULT_STRING = 'Hello world';
-  
+
 Type
   TAObject = class(TObject)
     a : longint;
@@ -36,20 +36,20 @@ Type
       halt(1);
     end;
 
- 
+
  constructor tbobject.create(c:longint);
   begin
     taobject.create;
     b:=c;
     s:=RESULT_STRING;
   end;
-  
+
  function tbobject.getstring : shortstring;
   begin
     getstring := s;
   end;
-  
- 
+
+
 var
  bobj: TBobject;
  i: integer;
@@ -66,7 +66,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-10 08:27:43  carl
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/10 08:27:43  carl
     + mre tests for cg testuit
 
-}  
+}

@@ -26,7 +26,7 @@ $Revision$
 $Modtime: 96-07-31 14:09 $
 
 $History: YACCLOOK.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -156,7 +156,7 @@ uses YaccBase, YaccTabl;
       modified during the previous pass. *)
 
 (* Data structures used in lookahead computation: *)
- 
+
 type
 
 SymSetArray = array [1..max_set_items] of IntSet;
@@ -289,7 +289,7 @@ procedure sort_redns;
   begin
     with state_table^[act_state] do
       quicksort(redns_lo, redns_hi, {$ifdef fpc}@{$endif}redns_less,
-		{$ifdef fpc}@{$endif}redns_swap);
+                {$ifdef fpc}@{$endif}redns_swap);
   end(*sort_redns*);
 
 procedure initialize;

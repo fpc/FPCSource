@@ -45,7 +45,7 @@ var n : longint;
 begin
     n := fl_get_choice(ob) - 1;
     if (n >= 0) then
-	set_when(n);
+        set_when(n);
 end;
 
 procedure resetlog_cb(ob : PFL_OBJECT; data : longint);export;
@@ -66,7 +66,7 @@ var
   fdui : PFD_form;
   old_bw : longint;
 
-begin  
+begin
   new(fdui);
   old_bw := fl_get_border_width();
 
@@ -112,7 +112,7 @@ begin
     set_when(0);
     fl_set_object_dblbuffer(fd_form0^.br, 1);
     fl_addto_choice(fd_form0^.when,
-	      'RETURN_END_CHANGED|RETURN_CHANGED|RETURN_END|RETURN_ALWAYS');
+              'RETURN_END_CHANGED|RETURN_CHANGED|RETURN_END|RETURN_ALWAYS');
 
     { show the first form }
     fl_show_form(fd_form0^.form0, FL_PLACE_CENTER, FL_FULLBORDER, 'form0');
@@ -121,10 +121,10 @@ end.
 
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

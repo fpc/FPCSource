@@ -3,8 +3,8 @@
     This file is part of the Free Pascal packages.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
-    Implements a MD5 digest algorithm. 
-    
+    Implements a MD5 digest algorithm.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -16,7 +16,7 @@
 
 {
   Implements a MD5 digest algorithm (RFC 1321)
-}  
+}
 
 unit md5;
 
@@ -26,7 +26,7 @@ unit md5;
 Interface
 
 type
-  PCardinal = ^Cardinal;  
+  PCardinal = ^Cardinal;
   TMD5Count = array[0..1] of Cardinal;
   TMD5State = array[0..3] of Cardinal;
   TMD5Block = array[0..15] of Cardinal;
@@ -145,7 +145,7 @@ var
 begin
   S := Source;
   T := Target;
-  for I := 1 to (Count div 4) do 
+  for I := 1 to (Count div 4) do
     begin
     T^:=S[0] or (S[1] shl 8) or (S[2] shl 16) or (S[3] shl 24);
     inc(S,4);
@@ -240,7 +240,7 @@ end;
 procedure MD5Init(var Context: TMD5Context);
 
 begin
-  with Context do 
+  with Context do
     begin
     State[0] := $67452301;
     State[1] := $efcdab89;
@@ -261,10 +261,10 @@ var
   PartLen: cardinal;
   I: cardinal;
   P : PByte;
-  
+
 begin
   P:=PByte(@Buf);
-  with Context do 
+  with Context do
     begin
     Index := (Count[0] shr 3) and $3f;
     inc(Count[0], BufLen shl 3);
@@ -272,18 +272,18 @@ begin
     inc(Count[1], BufLen shr 29);
     end;
   PartLen := 64 - Index;
-  if BufLen >= PartLen then 
+  if BufLen >= PartLen then
     begin
     Move(Buf,Context.Buffer[Index], PartLen);
     Transform(@Context.Buffer, Context.State);
     I := PartLen;
-    while I+63 < BufLen do 
+    while I+63 < BufLen do
       begin
       Transform(@P[I], Context.State);
       inc(I, 64);
       end;
     Index := 0;
-  end 
+  end
     else I := 0;
   Move(P[I],Context.Buffer[Index], BufLen - I);
 end;
@@ -296,13 +296,13 @@ var
   Bits: TMD5CBits;
   I : cardinal;
   Pad : cardinal;
-  
+
 begin
   Invert(@Context.Count, @Bits, 8);
   I:=(Context.Count[0] shr 3) and $3f;
-  if I<56 then 
-    Pad:=56-I 
-  else 
+  if I<56 then
+    Pad:=56-I
+  else
     Pad:=120-I;
   MD5Update(Context, Padding, Pad);
   MD5Update(Context, Bits, 8);
@@ -337,14 +337,14 @@ var
   Buf : Pchar;
   Context: TMD5Context;
   Count : Longint;
-  
+
 begin
   MD5Init(Context);
   Assign(F,N);
   {$i-}
   Reset(F,1);
   {$i+}
-  if (IOResult=0) then 
+  if (IOResult=0) then
     begin
     GetMem(Buf,BufSize);
     Repeat
@@ -365,7 +365,7 @@ var
 
 begin
   Result := '';
-  for I := 0 to 15 do 
+  for I := 0 to 15 do
     Result := Result + HexStr(D[i],2);
   Result:=LowerCase(Result);
 end;

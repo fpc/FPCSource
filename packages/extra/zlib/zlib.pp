@@ -177,13 +177,13 @@ function zError(err:longint):string;
 end.
 {
   $Log$
-  Revision 1.2  2002-05-31 11:54:33  marco
+  Revision 1.3  2002-09-07 15:43:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/05/31 11:54:33  marco
   * Renamefest for 1.0, many 1.1.x spots patched also.
 
   Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:34  michael
-  + removed logs
- 
 }

@@ -37,7 +37,7 @@ end;
 
 
 const
- RESULT_S64BIT            =   101234; 
+ RESULT_S64BIT            =   101234;
  RESULT_S32BIT            = -1000000;
  RESULT_U32BIT            =  2000000;
  RESULT_S16BIT            =   -12123;
@@ -57,22 +57,22 @@ const
     begin
       gets32bit := RESULT_S32BIT;
     end;
-    
+
    function gets16bit : smallint;
     begin
       gets16bit := RESULT_S16BIT;
     end;
-    
+
    function gets8bit : shortint;
     begin
-      gets8bit := RESULT_S8BIT; 
+      gets8bit := RESULT_S8BIT;
     end;
 
    function getu8bit : byte;
     begin
       getu8bit := RESULT_U8BIT;
     end;
-    
+
    function getu16bit : word;
     begin
       getu16bit := RESULT_U16BIT;
@@ -103,7 +103,7 @@ begin
   result_val := s64bit;
   if trunc(result_val) <> RESULT_S64BIT then
      failed:=true;
-     
+
   s32bit := RESULT_S32BIT;
   result_val := s32bit;
   if trunc(result_val) <> RESULT_S32BIT then
@@ -114,7 +114,7 @@ begin
   result_val := u32bit;
   if trunc(result_val) <> RESULT_U32BIT then
      failed:=true;
-     
+
   s16bit := RESULT_S16BIT;
   result_val := s16bit;
   if trunc(result_val) <> RESULT_S16BIT then
@@ -135,7 +135,7 @@ begin
   result_val := u8bit;
   if trunc(result_val) <> RESULT_U8BIT then
      failed:=true;
-     
+
 
   if failed then
     fail
@@ -147,7 +147,7 @@ begin
   result_val := gets64bit;
   if trunc(result_val) <> RESULT_S64BIT then
      failed:=true;
-     
+
   result_val := gets32bit;
   if trunc(result_val) <> RESULT_S32BIT then
      failed:=true;
@@ -181,13 +181,16 @@ begin
     fail
   else
     WriteLn('Passed!');
-    
+
 end.
 
 {
 
  $Log$
- Revision 1.1  2002-08-10 08:27:43  carl
+ Revision 1.2  2002-09-07 15:40:55  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.1  2002/08/10 08:27:43  carl
    + mre tests for cg testuit
 
 }

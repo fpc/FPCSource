@@ -27,7 +27,7 @@ uses sysutils;
 *)
 
 type
-  SQLCHAR      = Char; 
+  SQLCHAR      = Char;
   SQLSMALLINT  = smallint;
   SQLUSMALLINT = Word;
   SQLRETURN    = SQLSMALLINT;
@@ -123,8 +123,8 @@ type
 const
   SQL_NAME_LEN = 128;
 
-  SQL_OV_ODBC3	        = 3;
-  SQL_OV_ODBC2	        = 2;
+  SQL_OV_ODBC3          = 3;
+  SQL_OV_ODBC2          = 2;
   SQL_ATTR_ODBC_VERSION = 200;
 
   { Options for SQLDriverConnect }
@@ -170,33 +170,33 @@ const
   SQL_BP_OTHER_HSTMT = $20;
   SQL_BP_SCROLL      = $40;
 
-  SQL_DYNAMIC_CURSOR_ATTRIBUTES1      =	144;
-  SQL_DYNAMIC_CURSOR_ATTRIBUTES2      =	145;
-  SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1 =	146;
-  SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2 =	147;
-  SQL_INDEX_KEYWORDS		      =	148;
-  SQL_INFO_SCHEMA_VIEWS		      =	149;
-  SQL_KEYSET_CURSOR_ATTRIBUTES1	      =	150;
-  SQL_KEYSET_CURSOR_ATTRIBUTES2	      =	151;
-  SQL_STATIC_CURSOR_ATTRIBUTES1	      = 167;
-  SQL_STATIC_CURSOR_ATTRIBUTES2	      = 168;
+  SQL_DYNAMIC_CURSOR_ATTRIBUTES1      = 144;
+  SQL_DYNAMIC_CURSOR_ATTRIBUTES2      = 145;
+  SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1 = 146;
+  SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2 = 147;
+  SQL_INDEX_KEYWORDS                  = 148;
+  SQL_INFO_SCHEMA_VIEWS               = 149;
+  SQL_KEYSET_CURSOR_ATTRIBUTES1       = 150;
+  SQL_KEYSET_CURSOR_ATTRIBUTES2       = 151;
+  SQL_STATIC_CURSOR_ATTRIBUTES1       = 167;
+  SQL_STATIC_CURSOR_ATTRIBUTES2       = 168;
 
   { supported SQLFetchScroll FetchOrientation's }
-  SQL_CA1_NEXT		= 1;
-  SQL_CA1_ABSOLUTE	= 2;
-  SQL_CA1_RELATIVE	= 4;
-  SQL_CA1_BOOKMARK	= 8;
+  SQL_CA1_NEXT          = 1;
+  SQL_CA1_ABSOLUTE      = 2;
+  SQL_CA1_RELATIVE      = 4;
+  SQL_CA1_BOOKMARK      = 8;
 
   { supported SQLSetPos LockType's }
   SQL_CA1_LOCK_NO_CHANGE= $40;
   SQL_CA1_LOCK_EXCLUSIVE= $80;
-  SQL_CA1_LOCK_UNLOCK	=$100;
+  SQL_CA1_LOCK_UNLOCK   =$100;
 
   { supported SQLSetPos Operations }
-  SQL_CA1_POS_POSITION	= $200;
-  SQL_CA1_POS_UPDATE	= $400;
-  SQL_CA1_POS_DELETE	= $800;
-  SQL_CA1_POS_REFRESH	=$1000;
+  SQL_CA1_POS_POSITION  = $200;
+  SQL_CA1_POS_UPDATE    = $400;
+  SQL_CA1_POS_DELETE    = $800;
+  SQL_CA1_POS_REFRESH   =$1000;
 
   { positioned updates and deletes }
   SQL_CA1_POSITIONED_UPDATE=$2000;
@@ -204,47 +204,47 @@ const
   SQL_CA1_SELECT_FOR_UPDATE=$8000;
 
   { supported SQLBulkOperations operations }
-  SQL_CA1_BULK_ADD		  =$10000;
+  SQL_CA1_BULK_ADD                =$10000;
   SQL_CA1_BULK_UPDATE_BY_BOOKMARK =$20000;
   SQL_CA1_BULK_DELETE_BY_BOOKMARK =$40000;
   SQL_CA1_BULK_FETCH_BY_BOOKMARK  =$80000;
 
   { supported values for SQL_ATTR_SCROLL_CONCURRENCY }
-  SQL_CA2_READ_ONLY_CONCURRENCY	= 1;
-  SQL_CA2_LOCK_CONCURRENCY	= 2;
+  SQL_CA2_READ_ONLY_CONCURRENCY = 1;
+  SQL_CA2_LOCK_CONCURRENCY      = 2;
   SQL_CA2_OPT_ROWVER_CONCURRENCY= 4;
   SQL_CA2_OPT_VALUES_CONCURRENCY= 8;
 
   { sensitivity of the cursor to its own inserts, deletes, and updates }
-  SQL_CA2_SENSITIVITY_ADDITIONS	=$10;
-  SQL_CA2_SENSITIVITY_DELETIONS	=$20;
-  SQL_CA2_SENSITIVITY_UPDATES	=$40;
+  SQL_CA2_SENSITIVITY_ADDITIONS =$10;
+  SQL_CA2_SENSITIVITY_DELETIONS =$20;
+  SQL_CA2_SENSITIVITY_UPDATES   =$40;
 
 {  semantics of SQL_ATTR_MAX_ROWS }
-  SQL_CA2_MAX_ROWS_SELECT	= $80;
-  SQL_CA2_MAX_ROWS_INSERT	=$100;
-  SQL_CA2_MAX_ROWS_DELETE	=$200;
-  SQL_CA2_MAX_ROWS_UPDATE	=$400;
-  SQL_CA2_MAX_ROWS_CATALOG	=$800;
-  SQL_CA2_MAX_ROWS_AFFECTS_ALL	=(SQL_CA2_MAX_ROWS_SELECT or
-					SQL_CA2_MAX_ROWS_INSERT or SQL_CA2_MAX_ROWS_DELETE or
-					SQL_CA2_MAX_ROWS_UPDATE or SQL_CA2_MAX_ROWS_CATALOG);
+  SQL_CA2_MAX_ROWS_SELECT       = $80;
+  SQL_CA2_MAX_ROWS_INSERT       =$100;
+  SQL_CA2_MAX_ROWS_DELETE       =$200;
+  SQL_CA2_MAX_ROWS_UPDATE       =$400;
+  SQL_CA2_MAX_ROWS_CATALOG      =$800;
+  SQL_CA2_MAX_ROWS_AFFECTS_ALL  =(SQL_CA2_MAX_ROWS_SELECT or
+                                        SQL_CA2_MAX_ROWS_INSERT or SQL_CA2_MAX_ROWS_DELETE or
+                                        SQL_CA2_MAX_ROWS_UPDATE or SQL_CA2_MAX_ROWS_CATALOG);
 
   { semantics of SQL_DIAG_CURSOR_ROW_COUNT }
-  SQL_CA2_CRC_EXACT		= $1000;
-  SQL_CA2_CRC_APPROXIMATE	= $2000;
+  SQL_CA2_CRC_EXACT             = $1000;
+  SQL_CA2_CRC_APPROXIMATE       = $2000;
 
   {  the kinds of positioned statements that can be simulated }
-  SQL_CA2_SIMULATE_NON_UNIQUE	= $4000;
-  SQL_CA2_SIMULATE_TRY_UNIQUE	= $8000;
-  SQL_CA2_SIMULATE_UNIQUE	=$10000;
+  SQL_CA2_SIMULATE_NON_UNIQUE   = $4000;
+  SQL_CA2_SIMULATE_TRY_UNIQUE   = $8000;
+  SQL_CA2_SIMULATE_UNIQUE       =$10000;
 
   {  Operations in SQLBulkOperations }
   SQL_ADD                     = 4;
-  SQL_SETPOS_MAX_OPTION_VALUE =	SQL_ADD;
+  SQL_SETPOS_MAX_OPTION_VALUE = SQL_ADD;
   SQL_UPDATE_BY_BOOKMARK      = 5;
   SQL_DELETE_BY_BOOKMARK      = 6;
-  SQL_FETCH_BY_BOOKMARK	      = 7;
+  SQL_FETCH_BY_BOOKMARK       = 7;
 
   { Operations in SQLSetPos }
   SQL_POSITION                = 0;
@@ -266,15 +266,15 @@ const
   SQL_ROW_ERROR             = 5;
   SQL_ROW_SUCCESS_WITH_INFO = 6;
 
-  SQL_ROW_PROCEED	    = 0;
-  SQL_ROW_IGNORE	    = 1;
+  SQL_ROW_PROCEED           = 0;
+  SQL_ROW_IGNORE            = 1;
 
-  SQL_MAX_DSN_LENGTH	       = 32; { maximum data source name size }
+  SQL_MAX_DSN_LENGTH           = 32; { maximum data source name size }
 
   SQL_MAX_OPTION_STRING_LENGTH = 256;
 
   SQL_ODBC_CURSORS      = 110;
-  SQL_ATTR_ODBC_CURSORS	= SQL_ODBC_CURSORS;
+  SQL_ATTR_ODBC_CURSORS = SQL_ODBC_CURSORS;
   { SQL_ODBC_CURSORS options }
   SQL_CUR_USE_IF_NEEDED = 0;
   SQL_CUR_USE_ODBC      = 1;
@@ -335,30 +335,30 @@ const
   SQL_ATTR_IMP_PARAM_DESC     = 10013;
   SQL_ATTR_CURSOR_SCROLLABLE  = (-1);
   SQL_ATTR_CURSOR_SENSITIVITY = (-2);
-  SQL_QUERY_TIMEOUT	      =0;
-  SQL_MAX_ROWS		      =1;
-  SQL_NOSCAN		      =2;
-  SQL_MAX_LENGTH	      =3;
-  SQL_ASYNC_ENABLE	      =4;	// same as SQL_ATTR_ASYNC_ENABLE */
-  SQL_BIND_TYPE		      =5;
+  SQL_QUERY_TIMEOUT           =0;
+  SQL_MAX_ROWS                =1;
+  SQL_NOSCAN                  =2;
+  SQL_MAX_LENGTH              =3;
+  SQL_ASYNC_ENABLE            =4;       // same as SQL_ATTR_ASYNC_ENABLE */
+  SQL_BIND_TYPE               =5;
   SQL_CURSOR_TYPE             = 6;
-  SQL_CONCURRENCY	      = 7;
-  SQL_KEYSET_SIZE	      =8;
-  SQL_ROWSET_SIZE	      =9;
-  SQL_SIMULATE_CURSOR	      =10;
-  SQL_RETRIEVE_DATA	      =11;
-  SQL_USE_BOOKMARKS	      =12;
-  SQL_GET_BOOKMARK	      =13;      //      GetStmtOption Only */
-  SQL_ROW_NUMBER	      = 14;     //      GetStmtOption Only */
+  SQL_CONCURRENCY             = 7;
+  SQL_KEYSET_SIZE             =8;
+  SQL_ROWSET_SIZE             =9;
+  SQL_SIMULATE_CURSOR         =10;
+  SQL_RETRIEVE_DATA           =11;
+  SQL_USE_BOOKMARKS           =12;
+  SQL_GET_BOOKMARK            =13;      //      GetStmtOption Only */
+  SQL_ROW_NUMBER              = 14;     //      GetStmtOption Only */
   SQL_ATTR_CURSOR_TYPE        = SQL_CURSOR_TYPE;
-  SQL_ATTR_CONCURRENCY	      = SQL_CONCURRENCY;
+  SQL_ATTR_CONCURRENCY        = SQL_CONCURRENCY;
   SQL_ATTR_FETCH_BOOKMARK_PTR = 16;
   SQL_ATTR_ROW_STATUS_PTR     = 25;
   SQL_ATTR_ROWS_FETCHED_PTR   = 26;
   SQL_AUTOCOMMIT              = 102;
-  SQL_ATTR_AUTOCOMMIT	      = SQL_AUTOCOMMIT;
+  SQL_ATTR_AUTOCOMMIT         = SQL_AUTOCOMMIT;
 
-  SQL_ATTR_ROW_NUMBER	      = SQL_ROW_NUMBER;
+  SQL_ATTR_ROW_NUMBER         = SQL_ROW_NUMBER;
   SQL_TXN_ISOLATION           = 108;
   SQL_ATTR_TXN_ISOLATION      = SQL_TXN_ISOLATION;
   SQL_ATTR_MAX_ROWS           = SQL_MAX_ROWS;
@@ -408,8 +408,8 @@ const
   SQL_AUTOCOMMIT_ON           = 1;
   SQL_AUTOCOMMIT_DEFAULT      = SQL_AUTOCOMMIT_ON;
   { SQL_ATTR_CURSOR_SCROLLABLE values }
-  SQL_NONSCROLLABLE		 = 0;
-  SQL_SCROLLABLE		 = 1;
+  SQL_NONSCROLLABLE              = 0;
+  SQL_SCROLLABLE                 = 1;
   { SQL_CURSOR_TYPE options }
   SQL_CURSOR_FORWARD_ONLY     = 0;
   SQL_CURSOR_KEYSET_DRIVEN    = 1;
@@ -618,9 +618,9 @@ const
 /* Information requested by SQLGetInfo() */
 #if (ODBCVER >= 0x0300)
 #define SQL_MAX_DRIVER_CONNECTIONS           0
-#define SQL_MAXIMUM_DRIVER_CONNECTIONS		SQL_MAX_DRIVER_CONNECTIONS
+#define SQL_MAXIMUM_DRIVER_CONNECTIONS          SQL_MAX_DRIVER_CONNECTIONS
 #define SQL_MAX_CONCURRENT_ACTIVITIES        1
-#define SQL_MAXIMUM_CONCURRENT_ACTIVITIES	SQL_MAX_CONCURRENT_ACTIVITIES
+#define SQL_MAXIMUM_CONCURRENT_ACTIVITIES       SQL_MAX_CONCURRENT_ACTIVITIES
 #endif
 #define SQL_DATA_SOURCE_NAME                 2
 #define SQL_FETCH_DIRECTION                  8
@@ -629,25 +629,25 @@ const
 #define SQL_DBMS_NAME                       17
 #define SQL_DBMS_VER                        18
 #define SQL_ACCESSIBLE_TABLES               19
-#define SQL_ACCESSIBLE_PROCEDURES        	20
+#define SQL_ACCESSIBLE_PROCEDURES               20
 #define SQL_CURSOR_COMMIT_BEHAVIOR          23
 #define SQL_DATA_SOURCE_READ_ONLY           25
 #define SQL_DEFAULT_TXN_ISOLATION           26
 #define SQL_IDENTIFIER_CASE                 28
 #define SQL_IDENTIFIER_QUOTE_CHAR           29
 #define SQL_MAX_COLUMN_NAME_LEN             30
-#define SQL_MAXIMUM_COLUMN_NAME_LENGTH		SQL_MAX_COLUMN_NAME_LEN
+#define SQL_MAXIMUM_COLUMN_NAME_LENGTH          SQL_MAX_COLUMN_NAME_LEN
 #define SQL_MAX_CURSOR_NAME_LEN             31
-#define SQL_MAXIMUM_CURSOR_NAME_LENGTH		SQL_MAX_CURSOR_NAME_LEN
+#define SQL_MAXIMUM_CURSOR_NAME_LENGTH          SQL_MAX_CURSOR_NAME_LEN
 #define SQL_MAX_SCHEMA_NAME_LEN             32
-#define SQL_MAXIMUM_SCHEMA_NAME_LENGTH		SQL_MAX_SCHEMA_NAME_LEN
+#define SQL_MAXIMUM_SCHEMA_NAME_LENGTH          SQL_MAX_SCHEMA_NAME_LEN
 #define SQL_MAX_CATALOG_NAME_LEN            34
-#define SQL_MAXIMUM_CATALOG_NAME_LENGTH		SQL_MAX_CATALOG_NAME_LEN
+#define SQL_MAXIMUM_CATALOG_NAME_LENGTH         SQL_MAX_CATALOG_NAME_LEN
 #define SQL_MAX_TABLE_NAME_LEN              35
 }
   SQL_SCROLL_CONCURRENCY              = 43;
   SQL_TXN_CAPABLE                     = 46;
-  SQL_TRANSACTION_CAPABLE	       = SQL_TXN_CAPABLE;
+  SQL_TRANSACTION_CAPABLE              = SQL_TXN_CAPABLE;
   SQL_USER_NAME                       = 47;
   SQL_TXN_ISOLATION_OPTION            = 72;
   SQL_TRANSACTION_ISOLATION_OPTION    = SQL_TXN_ISOLATION_OPTION;
@@ -659,24 +659,24 @@ const
 #define SQL_ORDER_BY_COLUMNS_IN_SELECT      90
 #define SQL_SPECIAL_CHARACTERS              94
 #define SQL_MAX_COLUMNS_IN_GROUP_BY         97
-#define SQL_MAXIMUM_COLUMNS_IN_GROUP_BY		SQL_MAX_COLUMNS_IN_GROUP_BY
+#define SQL_MAXIMUM_COLUMNS_IN_GROUP_BY         SQL_MAX_COLUMNS_IN_GROUP_BY
 #define SQL_MAX_COLUMNS_IN_INDEX            98
-#define SQL_MAXIMUM_COLUMNS_IN_INDEX		SQL_MAX_COLUMNS_IN_INDEX
+#define SQL_MAXIMUM_COLUMNS_IN_INDEX            SQL_MAX_COLUMNS_IN_INDEX
 #define SQL_MAX_COLUMNS_IN_ORDER_BY         99
-#define SQL_MAXIMUM_COLUMNS_IN_ORDER_BY		SQL_MAX_COLUMNS_IN_ORDER_BY
+#define SQL_MAXIMUM_COLUMNS_IN_ORDER_BY         SQL_MAX_COLUMNS_IN_ORDER_BY
 #define SQL_MAX_COLUMNS_IN_SELECT          100
-#define SQL_MAXIMUM_COLUMNS_IN_SELECT	   SQL_MAX_COLUMNS_IN_SELECT
+#define SQL_MAXIMUM_COLUMNS_IN_SELECT      SQL_MAX_COLUMNS_IN_SELECT
 #define SQL_MAX_COLUMNS_IN_TABLE           101
 #define SQL_MAX_INDEX_SIZE                 102
-#define SQL_MAXIMUM_INDEX_SIZE			   SQL_MAX_INDEX_SIZE
+#define SQL_MAXIMUM_INDEX_SIZE                     SQL_MAX_INDEX_SIZE
 #define SQL_MAX_ROW_SIZE                   104
-#define SQL_MAXIMUM_ROW_SIZE			   SQL_MAX_ROW_SIZE
+#define SQL_MAXIMUM_ROW_SIZE                       SQL_MAX_ROW_SIZE
 #define SQL_MAX_STATEMENT_LEN              105
-#define SQL_MAXIMUM_STATEMENT_LENGTH	   SQL_MAX_STATEMENT_LEN
+#define SQL_MAXIMUM_STATEMENT_LENGTH       SQL_MAX_STATEMENT_LEN
 #define SQL_MAX_TABLES_IN_SELECT           106
-#define SQL_MAXIMUM_TABLES_IN_SELECT	   SQL_MAX_TABLES_IN_SELECT
+#define SQL_MAXIMUM_TABLES_IN_SELECT       SQL_MAX_TABLES_IN_SELECT
 #define SQL_MAX_USER_NAME_LEN              107
-#define SQL_MAXIMUM_USER_NAME_LENGTH	   SQL_MAX_USER_NAME_LEN}
+#define SQL_MAXIMUM_USER_NAME_LENGTH       SQL_MAX_USER_NAME_LEN}
 {$ifdef ODBCVER3}
   SQL_OJ_CAPABILITIES         = 115;
   SQL_OUTER_JOIN_CAPABILITIES = SQL_OJ_CAPABILITIES;
@@ -694,29 +694,29 @@ const
 
 {/* SQL_ALTER_TABLE bitmasks */
 #if (ODBCVER >= 0x0200)
-#define SQL_AT_ADD_COLUMN                   	0x00000001L
-#define SQL_AT_DROP_COLUMN                  	0x00000002L
+#define SQL_AT_ADD_COLUMN                       0x00000001L
+#define SQL_AT_DROP_COLUMN                      0x00000002L
 #endif /* ODBCVER >= 0x0200 */
 
 #if (ODBCVER >= 0x0300)
-#define SQL_AT_ADD_CONSTRAINT               	0x00000008L
+#define SQL_AT_ADD_CONSTRAINT                   0x00000008L
 
 /* The following bitmasks are ODBC extensions and defined in sqlext.h
-*#define	SQL_AT_COLUMN_SINGLE					0x00000020L
-*#define	SQL_AT_ADD_COLUMN_DEFAULT				0x00000040L
-*#define	SQL_AT_ADD_COLUMN_COLLATION				0x00000080L
-*#define	SQL_AT_SET_COLUMN_DEFAULT				0x00000100L
-*#define	SQL_AT_DROP_COLUMN_DEFAULT				0x00000200L
-*#define	SQL_AT_DROP_COLUMN_CASCADE				0x00000400L
-*#define	SQL_AT_DROP_COLUMN_RESTRICT				0x00000800L
-*#define SQL_AT_ADD_TABLE_CONSTRAINT				0x00001000L
-*#define SQL_AT_DROP_TABLE_CONSTRAINT_CASCADE		0x00002000L
-*#define SQL_AT_DROP_TABLE_CONSTRAINT_RESTRICT		0x00004000L
-*#define SQL_AT_CONSTRAINT_NAME_DEFINITION			0x00008000L
-*#define SQL_AT_CONSTRAINT_INITIALLY_DEFERRED		0x00010000L
-*#define SQL_AT_CONSTRAINT_INITIALLY_IMMEDIATE		0x00020000L
-*#define SQL_AT_CONSTRAINT_DEFERRABLE				0x00040000L
-*#define SQL_AT_CONSTRAINT_NON_DEFERRABLE			0x00080000L
+*#define        SQL_AT_COLUMN_SINGLE                                    0x00000020L
+*#define        SQL_AT_ADD_COLUMN_DEFAULT                               0x00000040L
+*#define        SQL_AT_ADD_COLUMN_COLLATION                             0x00000080L
+*#define        SQL_AT_SET_COLUMN_DEFAULT                               0x00000100L
+*#define        SQL_AT_DROP_COLUMN_DEFAULT                              0x00000200L
+*#define        SQL_AT_DROP_COLUMN_CASCADE                              0x00000400L
+*#define        SQL_AT_DROP_COLUMN_RESTRICT                             0x00000800L
+*#define SQL_AT_ADD_TABLE_CONSTRAINT                            0x00001000L
+*#define SQL_AT_DROP_TABLE_CONSTRAINT_CASCADE           0x00002000L
+*#define SQL_AT_DROP_TABLE_CONSTRAINT_RESTRICT          0x00004000L
+*#define SQL_AT_CONSTRAINT_NAME_DEFINITION                      0x00008000L
+*#define SQL_AT_CONSTRAINT_INITIALLY_DEFERRED           0x00010000L
+*#define SQL_AT_CONSTRAINT_INITIALLY_IMMEDIATE          0x00020000L
+*#define SQL_AT_CONSTRAINT_DEFERRABLE                           0x00040000L
+*#define SQL_AT_CONSTRAINT_NON_DEFERRABLE                       0x00080000L
 
 #endif  /* ODBCVER >= 0x0300 */
 
@@ -825,9 +825,9 @@ const
   SQL_COLUMN_DRIVER_START        = 1000;
 {$endif} { ODBCVER >= 0x0300 }
   SQL_DESC_AUTO_UNIQUE_VALUE     = SQL_COLUMN_AUTO_INCREMENT;
-  SQL_DESC_BASE_COLUMN_NAME	   = 22;
-  SQL_DESC_BASE_TABLE_NAME	   = 23;
-  SQL_DESC_TABLE_NAME		   = SQL_COLUMN_TABLE_NAME;
+  SQL_DESC_BASE_COLUMN_NAME        = 22;
+  SQL_DESC_BASE_TABLE_NAME         = 23;
+  SQL_DESC_TABLE_NAME              = SQL_COLUMN_TABLE_NAME;
 
 //* SQLEndTran() options */
   SQL_COMMIT    = 0;
@@ -1184,11 +1184,11 @@ Const
                StrLen_or_Ind:SQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLBindCol(
                StatementHandle:SQLHSTMT;
-	       ColumnNumber:SQLUSMALLINT;
+               ColumnNumber:SQLUSMALLINT;
                TargetType:SQLSMALLINT;
-	       TargetValue:SQLPOINTER;
+               TargetValue:SQLPOINTER;
                BufferLength:SQLINTEGER;
-	       StrLen_or_Ind:PSQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
+               StrLen_or_Ind:PSQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLSetPos(
                hstmt:SQLHSTMT;
                irow:SQLUSMALLINT;
@@ -1226,7 +1226,7 @@ Const
                ):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLRowCount(
                StatementHandle:SQLHSTMT;
-	       Var RowCount:SQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
+               Var RowCount:SQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLBindParameter(
                hstmt:SQLHSTMT;
                ipar:SQLUSMALLINT;
@@ -1265,7 +1265,7 @@ Const
                 szTableType : PSQLCHAR;
                 cbTableType : SQLSMALLINT ) : SQLRETURN; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName;
    function SQLColumns( hstmt : SQLHSTMT;
-    		szTableQualifier : PSQLCHAR;
+                szTableQualifier : PSQLCHAR;
                 cbTableQualifier : SQLSMALLINT;
                 szTableOwner : PSQLCHAR;
                 cbTableOwner : SQLSMALLINT;
@@ -1542,7 +1542,7 @@ begin
   end;
 
   OdbccpHMODULE:=0;
-{$endif}  
+{$endif}
 end;
 
 //  function SQLConfigDataSource(
@@ -1575,10 +1575,10 @@ begin
 end;
 
 //SQLRETURN INSTAPI SQLInstallerError(WORD iError,
-//					DWORD *pfErrorCode,
-//					LPSTR	lpszErrorMsg,
-//					WORD	cbErrorMsgMax,
-//					WORD	*pcbErrorMsg);
+//                                      DWORD *pfErrorCode,
+//                                      LPSTR   lpszErrorMsg,
+//                                      WORD    cbErrorMsgMax,
+//                                      WORD    *pcbErrorMsg);
 function SQLInstallerError(
                            iError:          SQLUSMALLINT;
                            pfErrorCode:     PSQLINTEGER;

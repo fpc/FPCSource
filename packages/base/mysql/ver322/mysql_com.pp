@@ -223,22 +223,13 @@ function  get_tty_password(opt_message:  pchar) : pchar;{$ifdef win32} stdcall {
 
 end.
   $Log$
-  Revision 1.1  2002-08-26 17:51:13  michael
+  Revision 1.2  2002-09-07 15:42:53  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/26 17:51:13  michael
   + Initial move
 
   Revision 1.1  2002/01/29 17:54:53  peter
     * splitted to base and extra
-
-  Revision 1.5  2001/04/13 18:04:56  peter
-    * added missing $ifndef win32
-
-  Revision 1.4  2001/03/13 08:50:38  michael
-  + merged Fixed calling convention for win32
-
-  Revision 1.3  2000/12/02 15:24:37  michael
-  + Merged changes from fixbranch
-
-  Revision 1.2  2000/07/13 11:33:26  michael
-  + removed logs
 
 }

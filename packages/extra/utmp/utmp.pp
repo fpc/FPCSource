@@ -325,19 +325,10 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:23  peter
+  Revision 1.2  2002-09-07 15:43:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
-
-  Revision 1.5  2001/08/31 22:17:27  pierre
-   * avoid typecast at left of assignment
-
-  Revision 1.4  2001/04/08 12:27:55  peter
-    * made it compilable with both 1.0.x and 1.1
-
-  Revision 1.3  2001/01/21 21:38:52  marco
-   * renamefest in packages
-
-  Revision 1.2  2000/07/13 11:33:33  michael
-  + removed logs
 
 }

@@ -2,9 +2,9 @@
    $Id$
 
    GdkPixbuf library
- 
+
    Copyright (C) 1999 The Free Software Foundation
- 
+
    Authors: Mark Crichton <crichton@gimp.org>
            Miguel de Icaza <miguel@gnu.org>
            Federico Mena-Quintero <federico@gimp.org>
@@ -34,27 +34,27 @@ interface
   {$PACKRECORDS C}
 {$EndIf}
 
-{.$Define XLIB_SUPPORT} 	(* Use gdk_pixbuf_xlib instead of gdk_pixbuf *)
-{$Define GTK_SUPPORT} 		(* enable TGdkPixbufLoader support *)
-{.$Define GNOME_SUPPORT} 	(* enable TGnomeCanvasPixbuf support *)
+{.$Define XLIB_SUPPORT}         (* Use gdk_pixbuf_xlib instead of gdk_pixbuf *)
+{$Define GTK_SUPPORT}           (* enable TGdkPixbufLoader support *)
+{.$Define GNOME_SUPPORT}        (* enable TGnomeCanvasPixbuf support *)
 
 {$IFDef XLIB_SUPPORT}
 
   {$Ifdef FPC}
     {$linklib gdk_pixbuf_xlib}
   {$EndIf}
-  
-  {$Undef GTK_SUPPORT} 		(* Ensure GTK is disabled in XLIB mode *)
-  {$Undef GNOME_SUPPORT}	(* Ensure GNOME is disabled in XLIB mode *)
+
+  {$Undef GTK_SUPPORT}          (* Ensure GTK is disabled in XLIB mode *)
+  {$Undef GNOME_SUPPORT}        (* Ensure GNOME is disabled in XLIB mode *)
 
 {$Else}
 
   {$Ifdef FPC}
     {$linklib gdk_pixbuf}
   {$EndIf}
-  
+
   {$IFDef GNOME_SUPPORT}
-    {$Define GTK_SUPPORT}	(* Ensure GTK is enabled if GNOME is *)
+    {$Define GTK_SUPPORT}       (* Ensure GTK is enabled if GNOME is *)
   {$EndIf}
 
 {$EndIf}
@@ -63,38 +63,38 @@ Uses
   GLIB,
   {$IFDef XLIB_SUPPORT}
   XLib,
-  {$Else} 
+  {$Else}
     GDK
     {$IFDef GTK_SUPPORT}
       ,GTK
       {$IfDef GNOME_SUPPORT}
         ,GNOME
       {$ENDIF}
-    {$ENDIF}      
+    {$ENDIF}
   {$ENDIF};
-  
+
 
 {$IFDef XLIB_SUPPORT}
 
   const
-    libgdkpixbuf = 
+    libgdkpixbuf =
       {$Ifdef FPC}
-        'gdk_pixbuf_xlib';   		(* Set library to gdk_pixbuf_xlib *) 
+        'gdk_pixbuf_xlib';              (* Set library to gdk_pixbuf_xlib *)
       {$Else}
-        'libgdk_pixbuf_xlib.so';   	(* Set library to gdk_pixbuf_xlib *) 
+        'libgdk_pixbuf_xlib.so';        (* Set library to gdk_pixbuf_xlib *)
       {$EndIf}
-      
+
 {$Else}
 
   const
-    libgdkpixbuf = 
+    libgdkpixbuf =
       {$Ifdef FPC}
-        'gdk_pixbuf';		(* Set library to gdk_pixbuf *) 
+        'gdk_pixbuf';           (* Set library to gdk_pixbuf *)
 
       {$Else}
-        'libgdk_pixbuf.so';   	(* Set library to gdk_pixbuf *) 
+        'libgdk_pixbuf.so';     (* Set library to gdk_pixbuf *)
       {$EndIf}
-      
+
 {$EndIf}
 
 {From gdk-pixbuf-features.h}
@@ -124,16 +124,16 @@ type
    end;
    TGdkPixbufFrame = _GdkPixbufFrame;
    PGdkPixbufFrame = ^TGdkPixbufFrame;
-     
+
    _GdkPixbufAnimation = Record
    end;
    TGdkPixbufAnimation = _GdkPixbufAnimation;
    PGdkPixbufAnimation = ^TGdkPixbufAnimation;
 
   { Handler that must free the pixel array  }
-   TGdkPixbufDestroyNotify = Function (pixels : Pguchar; data : gpointer) : Pointer; 
+   TGdkPixbufDestroyNotify = Function (pixels : Pguchar; data : gpointer) : Pointer;
   { Handler for the last unref operation  }
-   TGdkPixbufLastUnref = Function (pixbuf : PGdkPixbuf; data : gpointer) : Pointer; 
+   TGdkPixbufLastUnref = Function (pixbuf : PGdkPixbuf; data : gpointer) : Pointer;
   { Reference counting  }
 
   function gdk_pixbuf_ref(pixbuf:PGdkPixbuf):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_ref';
@@ -160,7 +160,7 @@ type
   { Simple loading  }
   function gdk_pixbuf_new_from_file(filename:Pchar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_file';
 
-  function gdk_pixbuf_new_from_data(data:Pguchar; colorspace:TGdkColorspace; has_alpha:gboolean; bits_per_sample:longint; width:longint; 
+  function gdk_pixbuf_new_from_data(data:Pguchar; colorspace:TGdkColorspace; has_alpha:gboolean; bits_per_sample:longint; width:longint;
              height:longint; rowstride:longint; destroy_fn:TGdkPixbufDestroyNotify; destroy_fn_data:gpointer):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_data';
 
   function gdk_pixbuf_new_from_xpm_data(data:PPchar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_xpm_data';
@@ -169,7 +169,7 @@ type
   function gdk_pixbuf_add_alpha(pixbuf:PGdkPixbuf; substitute_color:gboolean; r:guchar; g:guchar; b:guchar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_add_alpha';
 
   { Copy an area of a pixbuf onto another one  }
-  procedure gdk_pixbuf_copy_area(src_pixbuf:PGdkPixbuf; src_x:longint; src_y:longint; width:longint; height:longint; 
+  procedure gdk_pixbuf_copy_area(src_pixbuf:PGdkPixbuf; src_x:longint; src_y:longint; width:longint; height:longint;
               dest_pixbuf:PGdkPixbuf; dest_x:longint; dest_y:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_copy_area';
 
   type
@@ -177,42 +177,42 @@ type
 
   {$IfNDef XLIB_SUPPORT}
 
-    { Rendering to a TGDKDrawable  } 
+    { Rendering to a TGDKDrawable  }
 
-    procedure gdk_pixbuf_render_threshold_alpha(pixbuf:PGdkPixbuf; bitmap:PGdkBitmap; src_x:longint; src_y:longint; dest_x:longint; 
+    procedure gdk_pixbuf_render_threshold_alpha(pixbuf:PGdkPixbuf; bitmap:PGdkBitmap; src_x:longint; src_y:longint; dest_x:longint;
               dest_y:longint; width:longint; height:longint; alpha_threshold:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_render_threshold_alpha';
-    procedure gdk_pixbuf_render_to_drawable(pixbuf:PGdkPixbuf; Drawable:PGDKDrawable; GC:PGDKGC; src_x:longint; src_y:longint; 
-              dest_x:longint; dest_y:longint; width:longint; height:longint; dither:TGDKRGBDither; 
+    procedure gdk_pixbuf_render_to_drawable(pixbuf:PGdkPixbuf; Drawable:PGDKDrawable; GC:PGDKGC; src_x:longint; src_y:longint;
+              dest_x:longint; dest_y:longint; width:longint; height:longint; dither:TGDKRGBDither;
               x_dither:longint; y_dither:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_render_to_drawable';
-    procedure gdk_pixbuf_render_to_drawable_alpha(pixbuf:PGdkPixbuf; Drawable:PGDKDrawable; src_x:longint; src_y:longint; dest_x:longint; 
-              dest_y:longint; width:longint; height:longint; alpha_mode:TGdkPixbufAlphaMode; alpha_threshold:longint; 
+    procedure gdk_pixbuf_render_to_drawable_alpha(pixbuf:PGdkPixbuf; Drawable:PGDKDrawable; src_x:longint; src_y:longint; dest_x:longint;
+              dest_y:longint; width:longint; height:longint; alpha_mode:TGdkPixbufAlphaMode; alpha_threshold:longint;
               dither:TGDKRGBDither; x_dither:longint; y_dither:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_render_to_drawable_alpha';
     procedure gdk_pixbuf_render_pixmap_and_mask(pixbuf:PGdkPixbuf; Pixmap_return:PPGDKPixmap; mask_return:PPGdkBitmap; alpha_threshold:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_render_pixmap_and_mask';
 
     { Fetching a region from a TDrawable  }
-    function gdk_pixbuf_get_from_drawable(dest:PGdkPixbuf; src:PGDKDrawable; cmap:PGDKColormap; src_x:longint; src_y:longint; 
+    function gdk_pixbuf_get_from_drawable(dest:PGdkPixbuf; src:PGDKDrawable; cmap:PGDKColormap; src_x:longint; src_y:longint;
                dest_x:longint; dest_y:longint; width:longint; height:longint):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_get_from_drawable';
-	       
+
   {$EndIf}
-  
+
   { Scaling  }
 
   type
      TGdkInterpType = (GDK_INTERP_NEAREST,GDK_INTERP_TILES,
        GDK_INTERP_BILINEAR,GDK_INTERP_HYPER);
 
-  procedure gdk_pixbuf_scale(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:longint; dest_y:longint; dest_width:longint; 
-              dest_height:longint; offset_x:double; offset_y:double; scale_x:double; scale_y:double; 
+  procedure gdk_pixbuf_scale(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:longint; dest_y:longint; dest_width:longint;
+              dest_height:longint; offset_x:double; offset_y:double; scale_x:double; scale_y:double;
               interp_type:TGdkInterpType);cdecl; external libgdkpixbuf name 'gdk_pixbuf_scale';
-  procedure gdk_pixbuf_composite(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:longint; dest_y:longint; dest_width:longint; 
-              dest_height:longint; offset_x:double; offset_y:double; scale_x:double; scale_y:double; 
+  procedure gdk_pixbuf_composite(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:longint; dest_y:longint; dest_width:longint;
+              dest_height:longint; offset_x:double; offset_y:double; scale_x:double; scale_y:double;
               interp_type:TGdkInterpType; overall_alpha:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_composite';
-  procedure gdk_pixbuf_composite_color(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:longint; dest_y:longint; dest_width:longint; 
-              dest_height:longint; offset_x:double; offset_y:double; scale_x:double; scale_y:double; 
-              interp_type:TGdkInterpType; overall_alpha:longint; check_x:longint; check_y:longint; check_size:longint; 
+  procedure gdk_pixbuf_composite_color(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:longint; dest_y:longint; dest_width:longint;
+              dest_height:longint; offset_x:double; offset_y:double; scale_x:double; scale_y:double;
+              interp_type:TGdkInterpType; overall_alpha:longint; check_x:longint; check_y:longint; check_size:longint;
               color1:guint32; color2:guint32);cdecl; external libgdkpixbuf name 'gdk_pixbuf_composite_color';
   function gdk_pixbuf_scale_simple(src:PGdkPixbuf; dest_width:longint; dest_height:longint; interp_type:TGdkInterpType):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_scale_simple';
-  function gdk_pixbuf_composite_color_simple(src:PGdkPixbuf; dest_width:longint; dest_height:longint; interp_type:TGdkInterpType; overall_alpha:longint; 
+  function gdk_pixbuf_composite_color_simple(src:PGdkPixbuf; dest_width:longint; dest_height:longint; interp_type:TGdkInterpType; overall_alpha:longint;
              check_size:longint; color1:guint32; color2:guint32):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_composite_color_simple';
 
   { Animation support  }
@@ -261,7 +261,7 @@ Type
 
   _GdkPixbufLoaderClass = record
     parent_class : PGtkObjectClass;
-    
+
     area_prepared :  Function (loader : PGdkPixbufLoader) : Pointer; cdecl;
     area_updated  :  Function (loader : PGdkPixbufLoader; x, y, width, height : guint) : Pointer; cdecl;
     frame_done  :  Function (loader : PGdkPixbufLoader;  frame : PGdkPixbufFrame) : Pointer; cdecl;
@@ -277,7 +277,7 @@ type
 
   Function gdk_pixbuf_loader_get_type : TGtkType; cdecl; external libgdkpixbuf name 'gdk_pixbuf_loader_get_type';
   Function gdk_pixbuf_loader_new : PGdkPixbufLoader; cdecl; external libgdkpixbuf name 'gdk_pixbuf_loader_new';
-  Function gdk_pixbuf_loader_write(loader : PGdkPixbufLoader; 
+  Function gdk_pixbuf_loader_write(loader : PGdkPixbufLoader;
     const buf : Pguchar; count : longint) : gBoolean; cdecl; external libgdkpixbuf name 'gdk_pixbuf_loader_write';
   Function gdk_pixbuf_loader_get_pixbuf(loader : PGdkPixbufLoader) : PGdkPixbuf; cdecl; external libgdkpixbuf name 'gdk_pixbuf_loader_get_pixbuf';
   Function gdk_pixbuf_loader_get_animation (loader : PGdkPixbufLoader) : PGdkPixbufAnimation; cdecl; external libgdkpixbuf name 'gdk_pixbuf_loader_get_animation';
@@ -310,18 +310,18 @@ type
      TXlibRgbDither = (XLIB_RGB_DITHER_NONE,XLIB_RGB_DITHER_NORMAL,
        XLIB_RGB_DITHER_MAX);
 
-  procedure xlib_draw_rgb_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint; 
+  procedure xlib_draw_rgb_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint;
               height:longint; dith:TXlibRgbDither; rgb_buf:Pbyte; rowstride:longint);cdecl; external libgdkpixbuf name 'xlib_draw_rgb_image';
-  procedure xlib_draw_rgb_image_dithalign(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint; 
-              height:longint; dith:TXlibRgbDither; rgb_buf:Pbyte; rowstride:longint; xdith:longint; 
+  procedure xlib_draw_rgb_image_dithalign(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint;
+              height:longint; dith:TXlibRgbDither; rgb_buf:Pbyte; rowstride:longint; xdith:longint;
               ydith:longint);cdecl; external libgdkpixbuf name 'xlib_draw_rgb_image_dithalign';
-  procedure xlib_draw_rgb_32_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint; 
+  procedure xlib_draw_rgb_32_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint;
               height:longint; dith:TXlibRgbDither; buf:Pbyte; rowstride:longint);cdecl; external libgdkpixbuf name 'xlib_draw_rgb_32_image';
-  procedure xlib_draw_gray_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint; 
+  procedure xlib_draw_gray_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint;
               height:longint; dith:TXlibRgbDither; buf:Pbyte; rowstride:longint);cdecl; external libgdkpixbuf name 'xlib_draw_gray_image';
   function xlib_rgb_cmap_new(colors:Pguint32; n_colors:longint):PXlibRgbCmap;cdecl; external libgdkpixbuf name 'xlib_rgb_cmap_new';
   procedure xlib_rgb_cmap_free(cmap:PXlibRgbCmap);cdecl; external libgdkpixbuf name 'xlib_rgb_cmap_free';
-  procedure xlib_draw_indexed_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint; 
+  procedure xlib_draw_indexed_image(Drawable:TDrawable; GC:TGC; x:longint; y:longint; width:longint;
               height:longint; dith:TXlibRgbDither; buf:Pbyte; rowstride:longint; cmap:PXlibRgbCmap);cdecl; external libgdkpixbuf name 'xlib_draw_indexed_image';
 
   { Below are some functions which are primarily useful for debugging
@@ -345,16 +345,16 @@ type
 {$IfDef XLIB_SUPPORT}
   procedure gdk_pixbuf_xlib_init(display:PDisplay; screen_num:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_init';
   procedure gdk_pixbuf_xlib_init_with_depth(display:PDisplay; screen_num:longint; prefDepth:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_init_with_depth';
-  procedure gdk_pixbuf_xlib_render_threshold_alpha(pixbuf:PGdkPixbuf; bitmap:TPixmap; src_x:longint; src_y:longint; dest_x:longint; 
+  procedure gdk_pixbuf_xlib_render_threshold_alpha(pixbuf:PGdkPixbuf; bitmap:TPixmap; src_x:longint; src_y:longint; dest_x:longint;
               dest_y:longint; width:longint; height:longint; alpha_threshold:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_render_threshold_alpha';
-  procedure gdk_pixbuf_xlib_render_to_drawable(pixbuf:PGdkPixbuf; Drawable:TDrawable; GC:TGC; src_x:longint; src_y:longint; 
-              dest_x:longint; dest_y:longint; width:longint; height:longint; dither:TXlibRgbDither; 
+  procedure gdk_pixbuf_xlib_render_to_drawable(pixbuf:PGdkPixbuf; Drawable:TDrawable; GC:TGC; src_x:longint; src_y:longint;
+              dest_x:longint; dest_y:longint; width:longint; height:longint; dither:TXlibRgbDither;
               x_dither:longint; y_dither:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_render_to_drawable';
-  procedure gdk_pixbuf_xlib_render_to_drawable_alpha(pixbuf:PGdkPixbuf; Drawable:TDrawable; src_x:longint; src_y:longint; dest_x:longint; 
-              dest_y:longint; width:longint; height:longint; alpha_mode:TGdkPixbufAlphaMode; alpha_threshold:longint; 
+  procedure gdk_pixbuf_xlib_render_to_drawable_alpha(pixbuf:PGdkPixbuf; Drawable:TDrawable; src_x:longint; src_y:longint; dest_x:longint;
+              dest_y:longint; width:longint; height:longint; alpha_mode:TGdkPixbufAlphaMode; alpha_threshold:longint;
               dither:TXlibRgbDither; x_dither:longint; y_dither:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_render_to_drawable_alpha';
   procedure gdk_pixbuf_xlib_render_Pixmap_and_mask(pixbuf:PGdkPixbuf; Pixmap_return:PPixmap; mask_return:PPixmap; alpha_threshold:longint);cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_render_Pixmap_and_mask';
-  function gdk_pixbuf_xlib_get_from_drawable(dest:PGdkPixbuf; src:TDrawable; cmap:TColormap; visual:PVisual; src_x:longint; 
+  function gdk_pixbuf_xlib_get_from_drawable(dest:PGdkPixbuf; src:TDrawable; cmap:TColormap; visual:PVisual; src_x:longint;
              src_y:longint; dest_x:longint; dest_y:longint; width:longint; height:longint):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_xlib_get_from_drawable';
 {$EndIf}
 
@@ -374,7 +374,7 @@ Type
   _GnomeCanvasPixbufClass = record
     parent_class : TGnomeCanvasItemClass;
   end;
-  
+
   TGnomeCanvasPixbufClass = _GnomeCanvasPixbufClass;
   PGnomeCanvasPixbufClass = ^TGnomeCanvasPixbufClass;
 
@@ -383,9 +383,9 @@ Type
 
   Function GNOME_TYPE_CANVAS_PIXBUF : TGTKType; cdcel; external libgdkpixbuf name 'gnome_canvas_pixbuf_get_type';
 
-  Function GNOME_IS_CANVAS_PIXBUF(obj : Pointer); 
-  Function GNOME_IS_CANVAS_PIXBUF_CLASS(klass : Pointer); 
-  
+  Function GNOME_IS_CANVAS_PIXBUF(obj : Pointer);
+  Function GNOME_IS_CANVAS_PIXBUF_CLASS(klass : Pointer);
+
   Function gnome_canvas_pixbuf_get_type : PGtkType; cdecl; external libgdkpixbuf name 'gnome_canvas_pixbuf_get_type';
 {$EndIf}
 
@@ -404,29 +404,29 @@ end;
 {$EndIf}
 
 {$IfDef GTK_SUPPORT}
-  Function GDK_TYPE_PIXBUF_LOADER	: TGtkType;	   
+  Function GDK_TYPE_PIXBUF_LOADER       : TGtkType;
   begin
     GDK_TYPE_PIXBUF_LOADER := gdk_pixbuf_loader_get_type;
   end;
 
-  Function GDK_IS_PIXBUF_LOADER(obj : pointer) : boolean;	   
+  Function GDK_IS_PIXBUF_LOADER(obj : pointer) : boolean;
   begin
     GDK_IS_PIXBUF_LOADER :=(obj<>nil) and GDK_IS_PIXBUF_LOADER_CLASS(PGtkTypeObject(obj)^.klass);
   end;
 
-  Function GDK_IS_PIXBUF_LOADER_CLASS(klass:pointer) : boolean; 
+  Function GDK_IS_PIXBUF_LOADER_CLASS(klass:pointer) : boolean;
   begin
     GDK_IS_PIXBUF_LOADER_CLASS:=(klass<>nil) and (PGtkTypeClass(klass)^.thetype=GDK_TYPE_PIXBUF_LOADER);
   end;
 {$EndIf}
 
 {$IfDef GNOME_SUPPORT}
-  Function GNOME_IS_CANVAS_PIXBUF(obj : Pointer);         
+  Function GNOME_IS_CANVAS_PIXBUF(obj : Pointer);
   begin
     GNOME_IS_CANVAS_PIXBUF :=(obj<>nil) and GNOME_IS_CANVAS_PIXBUF_CLASS(PGtkTypeObject(obj)^.klass);
   end;
 
-  Function GNOME_IS_CANVAS_PIXBUF_CLASS(klass : Pointer); 
+  Function GNOME_IS_CANVAS_PIXBUF_CLASS(klass : Pointer);
   begin
     GNOME_IS_CANVAS_PIXBUF_CLASS:=(klass<>nil) and (PGtkTypeClass(klass)^.thetype=GNOME_TYPE_CANVAS_PIXBUF);
   end;
@@ -435,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-13 07:36:27  michael
+  Revision 1.2  2002-09-07 15:42:58  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/13 07:36:27  michael
   + Added from lazarus project
 
   Revision 1.1  2002/08/13 07:08:24  lazarus
@@ -449,16 +452,16 @@ end.
       primarily so the file could be use in four modes :
          GDK
          GDK with GTK(aka TGdkPixbufLoader)
-	 GDK with GTK and GNOME(aka TGnomeCanvasPixbuf)
+         GDK with GTK and GNOME(aka TGnomeCanvasPixbuf)
          XLIB
     *Tried to enforce above scheme
     *Fixed *gdk_version* variables
-    *Added a few Ifdef FPC's just in case anybody every port's 
-      the GTK header's to Kylix, I haven't tried, but it may still 
-      be possible to use in Kylix in XLIB mode, so long as GLIB is 
-      available, and since there is very little in GLIB, I doubt 
+    *Added a few Ifdef FPC's just in case anybody every port's
+      the GTK header's to Kylix, I haven't tried, but it may still
+      be possible to use in Kylix in XLIB mode, so long as GLIB is
+      available, and since there is very little in GLIB, I doubt
       much, if anything would have to be changed to make it work.
-    	 
+
   Revision 1.0.2  2002/04/22 13:48:31  Andrew(AJ_Genius@Hotmail.com)
     *Fixed names of a few routines _GC, supposed to be _gc,
       more stupid case sensitive C....

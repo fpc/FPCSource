@@ -29,7 +29,7 @@ begin
         begin
             if Buf[A] = 10 Then Inc(nl);
             if Buf[A] = 13 Then Dec(nc);
-            if (Buf[A] = 32) Or (Buf[A] = 10) Or (Buf[A] = 13) Or (Buf[A] = 9) Then 
+            if (Buf[A] = 32) Or (Buf[A] = 10) Or (Buf[A] = 13) Or (Buf[A] = 9) Then
                 InWord := False
             else
             begin

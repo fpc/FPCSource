@@ -1,7 +1,7 @@
 {
     $Id$
     Copyright (c) 1999-2000 by Pavel Stingl <stingp1.eti@mail.cez.cz>
-    
+
 
     Oracle Call Interface Translation
 
@@ -26,26 +26,26 @@ unit OraOCI;
 interface
 
   type
-    sb1			= shortint;
-    ub1			= byte;
-    sb2			= integer;
-    ub2			= word;
-    sb4			= longint;
-    ub4			= cardinal;
-    eb1			= byte;
-    eb2			= word;
-    eb4			= cardinal;
-    sword		= integer;
-    uword		= integer;
-    eword		= integer;
-    PDouble		= ^double;
-    PLongint		= ^longint;
-    PPointer		= ^pointer;
-    PWord		= ^word;
-    PBoolean		= ^boolean;
-    PCardinal		= ^cardinal;
-    PByte		= ^byte;
-    
+    sb1                 = shortint;
+    ub1                 = byte;
+    sb2                 = integer;
+    ub2                 = word;
+    sb4                 = longint;
+    ub4                 = cardinal;
+    eb1                 = byte;
+    eb2                 = word;
+    eb4                 = cardinal;
+    sword               = integer;
+    uword               = integer;
+    eword               = integer;
+    PDouble             = ^double;
+    PLongint            = ^longint;
+    PPointer            = ^pointer;
+    PWord               = ^word;
+    PBoolean            = ^boolean;
+    PCardinal           = ^cardinal;
+    PByte               = ^byte;
+
 
     POCITime = ^OCITime;
     OCITime = packed record
@@ -53,7 +53,7 @@ interface
       OCITimeMM      : ub1;
       OCITimeSS      : ub1;
     end;
-  
+
     POCIDate = ^OCIDate;
     OCIDate = packed record
       OCIDateYYYY    : sb2;
@@ -61,62 +61,62 @@ interface
       OCIDateDD      : ub1;
       OCIDateTime    : OCITime;
     end;
-    
+
     POCIDateTime = ^TOCIDate;
-    TOCIDate = packed record    
+    TOCIDate = packed record
       Year           : sb2;
       Month          : ub1;
       Day            : ub1;
       Hour           : ub1;
       Min            : ub1;
-      Sec            : ub1;    
+      Sec            : ub1;
     end;
 
     PCDA_DEF = ^TCDA_DEF;
     TCDA_DEF = packed record
-      v2_rc 		: sb2;
-      ft 		: ub2;
-      rpc 		: ub4;
-      peo 		: ub2;
-      fc 		: ub1;
-      rcs1 		: ub1;
-      rc 		: ub2;
-      wrn 		: ub1;
-      rcs2 		: ub1;
-      rcs3 		: sword;
-        rid 		: record
-          rd 		: record
-            rcs4 	: ub4;
-            rcs5 	: ub2;
-            rcs6 	: ub1;
+      v2_rc             : sb2;
+      ft                : ub2;
+      rpc               : ub4;
+      peo               : ub2;
+      fc                : ub1;
+      rcs1              : ub1;
+      rc                : ub2;
+      wrn               : ub1;
+      rcs2              : ub1;
+      rcs3              : sword;
+        rid             : record
+          rd            : record
+            rcs4        : ub4;
+            rcs5        : ub2;
+            rcs6        : ub1;
           end;
-          rcs7 		: ub4;
-          rcs8	 	: ub2;
+          rcs7          : ub4;
+          rcs8          : ub2;
         end;
-      ose 		: sword;
-      chk 		: ub1;
-      rcsp 		: pointer;
-      filler		: array [39..64] of byte;
+      ose               : sword;
+      chk               : ub1;
+      rcsp              : pointer;
+      filler            : array [39..64] of byte;
     end;
-    
-    PLDA_DEF		= ^TCDA_DEF;
-    TLDA_DEF		= TCDA_DEF;
-    
-    
+
+    PLDA_DEF            = ^TCDA_DEF;
+    TLDA_DEF            = TCDA_DEF;
+
+
 
   const
-    EB4MAXVAL    	= 2147483647;
-    EB4MINVAL    	= 0;
-    UB4MAXVAL    	= $FFFFFFFF;
-    UB4MINVAL    	= 0;
-    SB4MAXVAL    	= 2147483647;
-    SB4MINVAL    	= -2147483647;
-    MINEB4MAXVAL 	= 2147483647;
-    MAXEB4MINVAL 	= 0;
-    MINUB4MAXVAL 	= $FFFFFFFF;
-    MAXUB4MINVAL 	= 0;
-    MINSB4MAXVAL 	= 2147483647;
-    MAXSB4MINVAL 	= -2147483647;
+    EB4MAXVAL           = 2147483647;
+    EB4MINVAL           = 0;
+    UB4MAXVAL           = $FFFFFFFF;
+    UB4MINVAL           = 0;
+    SB4MAXVAL           = 2147483647;
+    SB4MINVAL           = -2147483647;
+    MINEB4MAXVAL        = 2147483647;
+    MAXEB4MINVAL        = 0;
+    MINUB4MAXVAL        = $FFFFFFFF;
+    MAXUB4MINVAL        = 0;
+    MINSB4MAXVAL        = 2147483647;
+    MAXSB4MINVAL        = -2147483647;
 
   const
      VARCHAR2_TYPE = 1;
@@ -128,54 +128,54 @@ interface
      DATE_TYPE = 12;
 
      { OCI Environment Modes for opinit call  }
-     OCI_EV_DEF = 0;  		{ default single-threaded environment  }
-     OCI_EV_TSF = 1;  		{ thread-safe environment  }
+     OCI_EV_DEF = 0;            { default single-threaded environment  }
+     OCI_EV_TSF = 1;            { thread-safe environment  }
 
      { OCI Logon Modes for olog call  }
-     OCI_LM_DEF = 0;  		{ default login  }
-     OCI_LM_NBL = 1;  		{ non-blocking logon  }
+     OCI_LM_DEF = 0;            { default login  }
+     OCI_LM_NBL = 1;            { non-blocking logon  }
 
-     OCI_ONE_PIECE = 0;  	{ there or this is the only piece  }
-     OCI_FIRST_PIECE = 1;  	{ the first of many pieces  }
-     OCI_NEXT_PIECE = 2;  	{ the next of many pieces  }
-     OCI_LAST_PIECE = 3;  	{ the last piece of this column  }
+     OCI_ONE_PIECE = 0;         { there or this is the only piece  }
+     OCI_FIRST_PIECE = 1;       { the first of many pieces  }
+     OCI_NEXT_PIECE = 2;        { the next of many pieces  }
+     OCI_LAST_PIECE = 3;        { the last piece of this column  }
 
      { input data types  }
-     SQLT_CHR = 1;  		{ (ORANET TYPE) character string  }
-     SQLT_NUM = 2;  		{ (ORANET TYPE) oracle numeric  }
-     SQLT_INT = 3;  		{ (ORANET TYPE) integer  }
-     SQLT_FLT = 4;  		{ (ORANET TYPE) Floating point number  }
-     SQLT_STR = 5;  		{ zero terminated string  }
-     SQLT_VNU = 6;  		{ NUM with preceding length byte  }
-     SQLT_PDN = 7;  		{ (ORANET TYPE) Packed Decimal Numeric  }
-     SQLT_LNG = 8;  		{ long  }
-     SQLT_VCS = 9;  		{ Variable character string  }
-     SQLT_NON = 10;  		{ Null/empty PCC Descriptor entry  }
-     SQLT_RID = 11;  		{ rowid  }
-     SQLT_DAT = 12;  		{ date in oracle format  }
-     SQLT_VBI = 15;  		{ binary in VCS format  }
-     SQLT_BIN = 23;  		{ binary data(DTYBIN)  }
-     SQLT_LBI = 24;  		{ long binary  }
-     SQLT_UIN = 68;  		{ unsigned integer  }
-     SQLT_SLS = 91;  		{ Display sign leading separate  }
-     SQLT_LVC = 94;  		{ Longer longs (char)  }
-     SQLT_LVB = 95;  		{ Longer long binary  }
-     SQLT_AFC = 96;  		{ Ansi fixed char  }
-     SQLT_AVC = 97;  		{ Ansi Var char  }
-     SQLT_CUR = 102;  		{ cursor  type  }
-     SQLT_RDD = 104;  		{ rowid descriptor  }
-     SQLT_LAB = 105;  		{ label type  }
-     SQLT_OSL = 106;  		{ oslabel type  }
-     SQLT_NTY = 108;  		{ named object type  }
-     SQLT_REF = 110;  		{ ref type  }
-     SQLT_CLOB = 112;  		{ character lob  }
-     SQLT_BLOB = 113;  		{ binary lob  }
-     SQLT_BFILEE = 114;  	{ binary file lob  }
-     SQLT_CFILEE = 115;  	{ character file lob  }
-     SQLT_RSET = 116;  		{ result set type  }
-     SQLT_NCO = 122;  		{ named collection type (varray or nested table)  }
-     SQLT_VST = 155;  		{ OCIString type  }
-     SQLT_ODT = 156;  		{ OCIDate type  }
+     SQLT_CHR = 1;              { (ORANET TYPE) character string  }
+     SQLT_NUM = 2;              { (ORANET TYPE) oracle numeric  }
+     SQLT_INT = 3;              { (ORANET TYPE) integer  }
+     SQLT_FLT = 4;              { (ORANET TYPE) Floating point number  }
+     SQLT_STR = 5;              { zero terminated string  }
+     SQLT_VNU = 6;              { NUM with preceding length byte  }
+     SQLT_PDN = 7;              { (ORANET TYPE) Packed Decimal Numeric  }
+     SQLT_LNG = 8;              { long  }
+     SQLT_VCS = 9;              { Variable character string  }
+     SQLT_NON = 10;             { Null/empty PCC Descriptor entry  }
+     SQLT_RID = 11;             { rowid  }
+     SQLT_DAT = 12;             { date in oracle format  }
+     SQLT_VBI = 15;             { binary in VCS format  }
+     SQLT_BIN = 23;             { binary data(DTYBIN)  }
+     SQLT_LBI = 24;             { long binary  }
+     SQLT_UIN = 68;             { unsigned integer  }
+     SQLT_SLS = 91;             { Display sign leading separate  }
+     SQLT_LVC = 94;             { Longer longs (char)  }
+     SQLT_LVB = 95;             { Longer long binary  }
+     SQLT_AFC = 96;             { Ansi fixed char  }
+     SQLT_AVC = 97;             { Ansi Var char  }
+     SQLT_CUR = 102;            { cursor  type  }
+     SQLT_RDD = 104;            { rowid descriptor  }
+     SQLT_LAB = 105;            { label type  }
+     SQLT_OSL = 106;            { oslabel type  }
+     SQLT_NTY = 108;            { named object type  }
+     SQLT_REF = 110;            { ref type  }
+     SQLT_CLOB = 112;           { character lob  }
+     SQLT_BLOB = 113;           { binary lob  }
+     SQLT_BFILEE = 114;         { binary file lob  }
+     SQLT_CFILEE = 115;         { character file lob  }
+     SQLT_RSET = 116;           { result set type  }
+     SQLT_NCO = 122;            { named collection type (varray or nested table)  }
+     SQLT_VST = 155;            { OCIString type  }
+     SQLT_ODT = 156;            { OCIDate type  }
 
      { binary file lob  }
      SQLT_FILE = SQLT_BFILEE;
@@ -183,19 +183,19 @@ interface
      SQLT_BFILE = SQLT_BFILEE;
 
      { CHAR/NCHAR/VARCHAR2/NVARCHAR2/CLOB/NCLOB char set "form" information  }
-     SQLCS_IMPLICIT = 1;  	{ for CHAR, VARCHAR2, CLOB w/o a specified set  }
-     SQLCS_NCHAR = 2;  		{ for NCHAR, NCHAR VARYING, NCLOB  }
-     SQLCS_EXPLICIT = 3;  	{ for CHAR, etc, with "CHARACTER SET ..." syntax  }
-     SQLCS_FLEXIBLE = 4;  	{ for PL/SQL "flexible" parameters  }
-     SQLCS_LIT_NULL = 5;  	{ for typecheck of NULL and empty_clob() lits  }
-     
+     SQLCS_IMPLICIT = 1;        { for CHAR, VARCHAR2, CLOB w/o a specified set  }
+     SQLCS_NCHAR = 2;           { for NCHAR, NCHAR VARYING, NCLOB  }
+     SQLCS_EXPLICIT = 3;        { for CHAR, etc, with "CHARACTER SET ..." syntax  }
+     SQLCS_FLEXIBLE = 4;        { for PL/SQL "flexible" parameters  }
+     SQLCS_LIT_NULL = 5;        { for typecheck of NULL and empty_clob() lits  }
+
      { OCI Modes }
      OCI_DEFAULT = $00;  { the default value for parameters and attributes  }
      OCI_THREADED = $01;  { the application is in threaded environment  }
      OCI_OBJECT = $02;  { the application is in object environment  }
      OCI_NON_BLOCKING = $04;  { non blocking mode of operation  }
      OCI_ENV_NO_MUTEX = $08;  { the environment handle will not be protected
-  				 by a mutex internally  }
+                                 by a mutex internally  }
 
      { OCI Handle Types }
      { handle types range from 1 - 49  }
@@ -359,7 +359,7 @@ interface
   { Parsing Syntax Types }
      OCI_V7_SYNTAX = 2;  { V7 language  }
      OCI_V8_SYNTAX = 3;  { V8 language  }
-     OCI_NTV_SYNTAX = 1;  
+     OCI_NTV_SYNTAX = 1;
      { Use what so ever is the native lang of server  }
      { these values must match the values defined in kpul.h  }
 
@@ -414,7 +414,7 @@ interface
   { Transaction End Flags }
      OCI_TRANS_TWOPHASE = $01000000;  { use two phase commit  }
 
-  { AQ Constants 
+  { AQ Constants
      NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
      The following constants must match the PL/SQL dbms_aq constants
      NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
@@ -422,7 +422,7 @@ interface
   { Visibility flags }
      OCI_ENQ_IMMEDIATE = 1;  { enqueue is an independent transaction  }
      OCI_ENQ_ON_COMMIT = 2;  { enqueue is part of current transaction  }
-     
+
      OCI_DEQ_BROWSE = 1;  { read message without acquiring a lock  }
      OCI_DEQ_LOCKED = 2;  { read and obtain write lock on message  }
      OCI_DEQ_REMOVE = 3;  { read the message and delete it  }
@@ -699,7 +699,7 @@ interface
      OCI_FNCODE_LOBFLUSHBUFFER = 79;
   { OCILobLoadFromFile  }
      OCI_FNCODE_LOBLOADFROMFILE = 80;
-     
+
   {--------------------------- FILE open modes ------------------------------- }
      OCI_FILE_READONLY = 1;  { readonly mode open for FILE types  }
 
@@ -748,540 +748,552 @@ interface
      OCI_LTYPE_TYPE_ARG_PROC = 7;  { type method w/o result argument list  }
      OCI_LTYPE_TYPE_ARG_FUNC = 8;  { type method w/result argument list  }
 
-type { Handle Definitions }
-  OCIEnv           = pointer;  { OCI environment handle }
-  OCIError         = pointer;  { OCI error handle }
+type { Handle Definitions
+ }
+  OCIEnv           = pointer;  { OCI environment handle
+ }
+  OCIError         = pointer;  { OCI error handle
+ }
   OCISvcCtx        = pointer;  { OCI service handle }
   OCIStmt          = pointer;  { OCI statement handle }
-  OCIBind          = pointer;  { OCI bind handle }
-  OCIDefine        = pointer;  { OCI Define handle }
-  OCIDescribe      = pointer;  { OCI Describe handle }
-  OCIServer        = pointer;  { OCI Server handle }
-  OCISession       = pointer;  { OCI Authentication handle }
-  OCIComplexObject = pointer;  { OCI COR handle }
-  OCITrans         = pointer;  { OCI Transaction handle }
-  OCISecurity      = pointer;  { OCI Security handle }
-  OCIDirPathCtx    = pointer;  { OCI Direct Path handle }
+  OCIBind          = pointer;  { OCI bind handle
+ }
+  OCIDefine        = pointer;  { OCI Define handle
+ }
+  OCIDescribe      = pointer;  { OCI Describe handle
+ }
+  OCIServer        = pointer;  { OCI Server handle
+ }
+  OCISession       = pointer;  { OCI Authentication handle
+ }
+  OCIComplexObject = pointer;  { OCI COR handle
+ }
+  OCITrans         = pointer;  { OCI Transaction handle
+ }
+  OCISecurity      = pointer;  { OCI Security handle
+ }
+  OCIDirPathCtx    = pointer;  { OCI Direct Path handle
+ }
 
 type
-  OCILobLocator	   	= pointer;  { OCI LOB Locator }
-  OCIType	   	= pointer;
-  OCICallbackInBind	= pointer;
-  OCICallbackOutBind   	= pointer;
-  OCISnapshot		= pointer;
-  OCIResult		= pointer;
-  OCICallbackDefine	= pointer;
-  OCIParam		= pointer;
-  
+  OCILobLocator         = pointer;  { OCI LOB Locator }
+  OCIType               = pointer;
+  OCICallbackInBind     = pointer;
+  OCICallbackOutBind    = pointer;
+  OCISnapshot           = pointer;
+  OCIResult             = pointer;
+  OCICallbackDefine     = pointer;
+  OCIParam              = pointer;
+
 
   function OCIErrorGet(
-          hndlp:pointer; 
-	  recordno:cardinal; 
-	  sqlstate:PChar; 
-	  var errcodep:plongint; 
-	  bufp:PChar; 
-          bufsiz:cardinal; 
-	  AType:cardinal):sword;cdecl;
+          hndlp:pointer;
+          recordno:cardinal;
+          sqlstate:PChar;
+          var errcodep:plongint;
+          bufp:PChar;
+          bufsiz:cardinal;
+          AType:cardinal):sword;cdecl;
 
   function OCIInitialize(
-          mode:cardinal; 
-	  ctxp:pointer; 
-	  malocfp:pointer; 
-	  ralocfp:pointer; 
-	  mfreefp:pointer):sword;cdecl;
-	  
+          mode:cardinal;
+          ctxp:pointer;
+          malocfp:pointer;
+          ralocfp:pointer;
+          mfreefp:pointer):sword;cdecl;
+
   function OCIHandleAlloc(
-          parenth:pointer; 
-	  var hndlpp:pointer; 
-	  AType:cardinal; 
-	  xtramem_sz:cardinal; 
-	  usrmempp:pointer):sword;cdecl;
+          parenth:pointer;
+          var hndlpp:pointer;
+          AType:cardinal;
+          xtramem_sz:cardinal;
+          usrmempp:pointer):sword;cdecl;
 
   function OCIHandleFree(
-          hndlp:pointer; 
-	  AType:cardinal):sword;cdecl;
+          hndlp:pointer;
+          AType:cardinal):sword;cdecl;
 
   function OCIEnvInit(
-	  var envp: OCIEnv;
-	    
-	  mode: ub4;
-	  xtramemsz: Integer;
-	  usrmempp: pointer): sword; cdecl;
-	  
+          var envp: OCIEnv;
+
+          mode: ub4;
+          xtramemsz: Integer;
+          usrmempp: pointer): sword; cdecl;
+
   function OCIDescriptorAlloc(
-          parenth:pointer; 
-	  descpp:pointer; 
-	  AType:cardinal; 
-	  xtramem_sz:cardinal; 
-	  usrmempp:pointer):sword;cdecl;
+          parenth:pointer;
+          descpp:pointer;
+          AType:cardinal;
+          xtramem_sz:cardinal;
+          usrmempp:pointer):sword;cdecl;
 
   function OCIDescriptorFree(
           descp:pointer;
-	  AType:cardinal):sword;cdecl;
+          AType:cardinal):sword;cdecl;
 
   function OCIServerAttach(
-          srvhp:OCIServer; 
-	  errhp:OCIError; 
-	  dblink:PChar; 
-	  dblink_len:longint; 
-	  mode:cardinal):sword;cdecl;
+          srvhp:OCIServer;
+          errhp:OCIError;
+          dblink:PChar;
+          dblink_len:longint;
+          mode:cardinal):sword;cdecl;
 
   function OCIServerDetach(
-          srvhp:OCIServer; 
-	  errhp:OCIError; 
-	  mode:cardinal):sword;cdecl;
+          srvhp:OCIServer;
+          errhp:OCIError;
+          mode:cardinal):sword;cdecl;
 
   function OCISessionBegin(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  usrhp:OCISession; 
-	  credt:cardinal; 
-	  mode:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          usrhp:OCISession;
+          credt:cardinal;
+          mode:cardinal):sword;cdecl;
 
   function OCISessionEnd(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  usrhp:OCISession; 
-	  mode:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          usrhp:OCISession;
+          mode:cardinal):sword;cdecl;
 
   function OCILogon(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  var svchp:OCISvcCtx; 
-	  username:PChar; 
-	  uname_len:cardinal; 
-          password:PChar; 
-	  passwd_len:cardinal; 
-	  dbname:PChar; 
-	  dbname_len:cardinal):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          var svchp:OCISvcCtx;
+          username:PChar;
+          uname_len:cardinal;
+          password:PChar;
+          passwd_len:cardinal;
+          dbname:PChar;
+          dbname_len:cardinal):sword;cdecl;
 
   function OCILogoff(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError):sword;cdecl;
-	  
+          svchp:OCISvcCtx;
+          errhp:OCIError):sword;cdecl;
+
   {----------------------------------------------------------------------------}
 
   function OCIPasswordChange(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  user_name:PChar; 
-	  usernm_len:cardinal; 
-	  opasswd:PChar; 
-	  opasswd_len:cardinal; 
-	  npasswd:PChar; 
-	  npasswd_len:cardinal; 
-	  mode:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          user_name:PChar;
+          usernm_len:cardinal;
+          opasswd:PChar;
+          opasswd_len:cardinal;
+          npasswd:PChar;
+          npasswd_len:cardinal;
+          mode:cardinal):sword;cdecl;
 
   function OCIStmtPrepare(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  stmt:PChar; 
-	  stmt_len:cardinal; 
-	  language:cardinal; 
-	  mode:cardinal):sword;cdecl;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          stmt:PChar;
+          stmt_len:cardinal;
+          language:cardinal;
+          mode:cardinal):sword;cdecl;
 
   function OCIBindByPos(
-          stmtp:OCIStmt; 
-	  bindp:OCIBind; 
-	  errhp:OCIError; 
-	  position:cardinal; 
-	  valuep:pointer; 
-	  value_sz:longint; 
-	  dty:word; 
-	  indp:pointer; 
-	  alenp:pword; rcodep:pword; 
-	  maxarr_len:cardinal; 
-	  curelep:pcardinal; 
-	  mode:cardinal):sword;cdecl;
+          stmtp:OCIStmt;
+          bindp:OCIBind;
+          errhp:OCIError;
+          position:cardinal;
+          valuep:pointer;
+          value_sz:longint;
+          dty:word;
+          indp:pointer;
+          alenp:pword; rcodep:pword;
+          maxarr_len:cardinal;
+          curelep:pcardinal;
+          mode:cardinal):sword;cdecl;
 
   function OCIBindByName(
-          stmtp:OCIStmt; 
-	  bindp:OCIBind; 
-	  errhp:OCIError; 
-	  placeholder:PChar; 
-	  placeh_len:longint; 
-	  valuep:pointer; 
-	  value_sz:longint; 
-	  dty:word; 
-	  indp:pointer; 
-	  alenp:pword; 
-	  rcodep:pword; 
-	  maxarr_len:cardinal; 
-	  curelep:pcardinal; 
-	  mode:cardinal):sword;cdecl;
+          stmtp:OCIStmt;
+          bindp:OCIBind;
+          errhp:OCIError;
+          placeholder:PChar;
+          placeh_len:longint;
+          valuep:pointer;
+          value_sz:longint;
+          dty:word;
+          indp:pointer;
+          alenp:pword;
+          rcodep:pword;
+          maxarr_len:cardinal;
+          curelep:pcardinal;
+          mode:cardinal):sword;cdecl;
 
   function OCIBindObject(
-          bindp:OCIBind; 
-	  errhp:OCIError; 
-	  AType:OCIType; 
-	  pgvpp:pointer; 
-	  pvszsp:pcardinal; 
-	  indpp:pointer; 
-	  indszp:pcardinal):sword;cdecl;
+          bindp:OCIBind;
+          errhp:OCIError;
+          AType:OCIType;
+          pgvpp:pointer;
+          pvszsp:pcardinal;
+          indpp:pointer;
+          indszp:pcardinal):sword;cdecl;
 
   function OCIBindDynamic(
-          bindp:OCIBind; 
-	  errhp:OCIError; 
-	  ictxp:pointer; 
-	  icbfp:OCICallbackInBind; 
-	  octxp:pointer; 
+          bindp:OCIBind;
+          errhp:OCIError;
+          ictxp:pointer;
+          icbfp:OCICallbackInBind;
+          octxp:pointer;
           ocbfp:OCICallbackOutBind):sword;cdecl;
 
   function OCIBindArrayOfStruct(
-          bindp:OCIBind; 
-	  errhp:OCIError; 
-	  pvskip:cardinal; 
-	  indskip:cardinal; 
-	  alskip:cardinal; 
+          bindp:OCIBind;
+          errhp:OCIError;
+          pvskip:cardinal;
+          indskip:cardinal;
+          alskip:cardinal;
           rcskip:cardinal):sword;cdecl;
 
   function OCIStmtGetPieceInfo(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  hndlpp:pointer; 
-	  typep:pcardinal; 
-	  in_outp:pbyte; 
-          iterp:pcardinal; 
-	  idxp:pcardinal; 
-	  piecep:pbyte):sword;cdecl;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          hndlpp:pointer;
+          typep:pcardinal;
+          in_outp:pbyte;
+          iterp:pcardinal;
+          idxp:pcardinal;
+          piecep:pbyte):sword;cdecl;
 
   function OCIStmtSetPieceInfo(
-          hndlp:pointer; 
-	  AType:cardinal; 
-	  errhp:OCIError; 
-	  bufp:pointer; 
-	  alenp:pcardinal; 
-	  piece:byte; 
-	  indp:pointer; 
-	  rcodep:pword):sword;cdecl;
+          hndlp:pointer;
+          AType:cardinal;
+          errhp:OCIError;
+          bufp:pointer;
+          alenp:pcardinal;
+          piece:byte;
+          indp:pointer;
+          rcodep:pword):sword;cdecl;
 
   function OCIStmtExecute(
-          svchp:OCISvcCtx; 
-	  stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  iters:cardinal; 
-	  rowoff:cardinal; 
-          snap_in:OCISnapshot; 
-	  snap_out:OCISnapshot; 
-	  mode:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          iters:cardinal;
+          rowoff:cardinal;
+          snap_in:OCISnapshot;
+          snap_out:OCISnapshot;
+          mode:cardinal):sword;cdecl;
 
   function OCIDefineByPos(
-          stmtp:OCIStmt; 
-	  defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  position:cardinal; 
-	  valuep:pointer; 
-          value_sz:longint; 
-	  dty:word; 
-	  indp:pointer; 
-	  rlenp:pword; 
-	  rcodep:pword; 
+          stmtp:OCIStmt;
+          defnp:OCIDefine;
+          errhp:OCIError;
+          position:cardinal;
+          valuep:pointer;
+          value_sz:longint;
+          dty:word;
+          indp:pointer;
+          rlenp:pword;
+          rcodep:pword;
           mode:cardinal):sword;cdecl;
 
   function OCIDefineObject(
-          defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  AType:OCIType; 
-	  pgvpp:pointer; 
-	  pvszsp:pcardinal; 
-    	  indpp:pointer; 
-	  indszp:pcardinal):sword;cdecl;
+          defnp:OCIDefine;
+          errhp:OCIError;
+          AType:OCIType;
+          pgvpp:pointer;
+          pvszsp:pcardinal;
+          indpp:pointer;
+          indszp:pcardinal):sword;cdecl;
 
   function OCIDefineDynamic(
-          defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  octxp:pointer; 
-	  ocbfp:OCICallbackDefine):sword;cdecl;
+          defnp:OCIDefine;
+          errhp:OCIError;
+          octxp:pointer;
+          ocbfp:OCICallbackDefine):sword;cdecl;
 
   function OCIDefineArrayOfStruct(
-          defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  pvskip:cardinal; 
-	  indskip:cardinal; 
-	  rlskip:cardinal; 
+          defnp:OCIDefine;
+          errhp:OCIError;
+          pvskip:cardinal;
+          indskip:cardinal;
+          rlskip:cardinal;
           rcskip:cardinal):sword;cdecl;
 
   function OCIStmtFetch(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  nrows:cardinal; 
-	  orientation:word; 
-	  mode:cardinal):sword;cdecl;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          nrows:cardinal;
+          orientation:word;
+          mode:cardinal):sword;cdecl;
 
   function OCIStmtGetBindInfo(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  size:cardinal; 
-	  startloc:cardinal; 
-	  found:plongint; 
-          bvnp:PChar; 
-	  bvnl:byte; 
-	  invp:PChar; 
-	  inpl:byte; 
-	  dupl:byte; 
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          size:cardinal;
+          startloc:cardinal;
+          found:plongint;
+          bvnp:PChar;
+          bvnl:byte;
+          invp:PChar;
+          inpl:byte;
+          dupl:byte;
           hndl:OCIBind):sword;cdecl;
 
   function OCIDescribeAny(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  objptr:pointer; 
-	  objnm_len:cardinal; 
-	  objptr_typ:byte; 
-          info_level:byte; 
-	  objtyp:byte; 
-	  dschp:OCIDescribe):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          objptr:pointer;
+          objnm_len:cardinal;
+          objptr_typ:byte;
+          info_level:byte;
+          objtyp:byte;
+          dschp:OCIDescribe):sword;cdecl;
 
   function OCIParamGet(
-          hndlp:pointer; 
-	  htype:cardinal; 
-	  errhp:OCIError; 
-	  parmdpp:pointer; 
-	  pos:cardinal):sword;cdecl;
+          hndlp:pointer;
+          htype:cardinal;
+          errhp:OCIError;
+          parmdpp:pointer;
+          pos:cardinal):sword;cdecl;
 
   function OCIParamSet(
-          hdlp:pointer; 
-	  htyp:cardinal; 
-	  errhp:OCIError; 
-	  dscp:pointer; 
-	  dtyp:cardinal; 
+          hdlp:pointer;
+          htyp:cardinal;
+          errhp:OCIError;
+          dscp:pointer;
+          dtyp:cardinal;
           pos:cardinal):sword;cdecl;
 
   function OCITransStart(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  timeout:uword; 
-	  flags:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          timeout:uword;
+          flags:cardinal):sword;cdecl;
 
   function OCITransDetach(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;
 
   function OCITransCommit(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;
 
   function OCITransRollback(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;
 
   function OCITransPrepare(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;
 
   function OCITransForget(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;
 
   function OCILobAppend(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  dst_locp:OCILobLocator; 
-	  src_locp:OCILobLocator):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          dst_locp:OCILobLocator;
+          src_locp:OCILobLocator):sword;cdecl;
 
   function OCILobAssign(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  src_locp:OCILobLocator; 
-	  dst_locpp:OCILobLocator):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          src_locp:OCILobLocator;
+          dst_locpp:OCILobLocator):sword;cdecl;
 
   function OCILobCharSetForm(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  csfrm:pbyte):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          csfrm:pbyte):sword;cdecl;
 
   function OCILobCharSetId(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  csid:pword):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          csid:pword):sword;cdecl;
 
   function OCILobCopy(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  dst_locp:OCILobLocator; 
-	  src_locp:OCILobLocator; 
-	  amount:cardinal; 
-          dst_offset:cardinal; 
-	  src_offset:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          dst_locp:OCILobLocator;
+          src_locp:OCILobLocator;
+          amount:cardinal;
+          dst_offset:cardinal;
+          src_offset:cardinal):sword;cdecl;
 
   function OCILobDisableBuffering(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator):sword;cdecl;
 
   function OCILobEnableBuffering(
           svchp:OCISvcCtx;
-	  errhp:OCIError; 
-	  locp:OCILobLocator):sword;cdecl;
+          errhp:OCIError;
+          locp:OCILobLocator):sword;cdecl;
 
   function OCILobErase(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  amount:pcardinal; 
-	  offset:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          amount:pcardinal;
+          offset:cardinal):sword;cdecl;
 
   function OCILobFileClose(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator):sword;cdecl;
 
   function OCILobFileCloseAll(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError):sword;cdecl;
 
   function OCILobFileExists(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  flag:pboolean):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          flag:pboolean):sword;cdecl;
 
   function OCILobFileGetName(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  dir_alias:PChar; 
-	  d_length:pword; 
-    	  filename:PChar; 
-	  f_length:pword):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          dir_alias:PChar;
+          d_length:pword;
+          filename:PChar;
+          f_length:pword):sword;cdecl;
 
   function OCILobFileIsOpen(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  flag:pboolean):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          flag:pboolean):sword;cdecl;
 
   function OCILobFileOpen(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  mode:byte):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          mode:byte):sword;cdecl;
 
   function OCILobFileSetName(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  filepp:OCILobLocator; 
-	  dir_alias:PChar; 
-	  d_length:word; 
-    	  filename:PChar; 
-	  f_length:word):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          filepp:OCILobLocator;
+          dir_alias:PChar;
+          d_length:word;
+          filename:PChar;
+          f_length:word):sword;cdecl;
 
   function OCILobFlushBuffer(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  flag:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          flag:cardinal):sword;cdecl;
 
   function OCILobGetLength(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  lenp:pcardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          lenp:pcardinal):sword;cdecl;
 
   function OCILobIsEqual(
-          envhp:OCIEnv; 
-	  x:OCILobLocator; 
-	  y:OCILobLocator; 
-	  is_equal:pboolean):sword;cdecl;
+          envhp:OCIEnv;
+          x:OCILobLocator;
+          y:OCILobLocator;
+          is_equal:pboolean):sword;cdecl;
 
   function OCILobLoadFromFile(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  dst_locp:OCILobLocator; 
-	  src_filep:OCILobLocator; 
-	  amount:cardinal; 
-	  dst_offset:cardinal; 
-	  src_offset:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          dst_locp:OCILobLocator;
+          src_filep:OCILobLocator;
+          amount:cardinal;
+          dst_offset:cardinal;
+          src_offset:cardinal):sword;cdecl;
 
   function OCILobLocatorIsInit(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  is_initialized:pboolean):sword;cdecl;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          is_initialized:pboolean):sword;cdecl;
 
   function OCILobRead(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  amtp:pcardinal; 
-	  offset:cardinal; 
-    	  bufp:pointer; 
-	  bufl:cardinal; 
-	  ctxp:pointer; 
-	  cbfp:pointer; 
-	  csid:word; 
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          amtp:pcardinal;
+          offset:cardinal;
+          bufp:pointer;
+          bufl:cardinal;
+          ctxp:pointer;
+          cbfp:pointer;
+          csid:word;
           csfrm:byte):sword;cdecl;
 
   function OCILobTrim(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  newlen:cardinal):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          newlen:cardinal):sword;cdecl;
 
   function OCILobWrite(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  amtp:pcardinal; 
-	  offset:cardinal; 
-          bufp:pointer; 
-	  buflen:cardinal; 
-	  piece:byte; 
-	  ctxp:pointer; 
-	  cbfp:pointer; 
-          csid:word; 
-	  csfrm:byte):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          amtp:pcardinal;
+          offset:cardinal;
+          bufp:pointer;
+          buflen:cardinal;
+          piece:byte;
+          ctxp:pointer;
+          cbfp:pointer;
+          csid:word;
+          csfrm:byte):sword;cdecl;
 
   function OCIBreak(
-          hndlp:pointer; 
-	  errhp:OCIError):sword;cdecl;
+          hndlp:pointer;
+          errhp:OCIError):sword;cdecl;
 
   function OCIReset(
-          hndlp:pointer; 
-	  errhp:OCIError):sword;cdecl;
+          hndlp:pointer;
+          errhp:OCIError):sword;cdecl;
 
   function OCIServerVersion(
-          hndlp:pointer; 
-	  errhp:OCIError; 
-	  bufp:PChar; 
-	  bufsz:cardinal; 
-	  hndltype:byte):sword;cdecl;
+          hndlp:pointer;
+          errhp:OCIError;
+          bufp:PChar;
+          bufsz:cardinal;
+          hndltype:byte):sword;cdecl;
 
   function OCIAttrGet(
-          trgthndlp:pointer; 
-	  trghndltyp:cardinal; 
-	  attributep:pointer; 
-	  sizep:pcardinal; 
-	  attrtype:cardinal; 
+          trgthndlp:pointer;
+          trghndltyp:cardinal;
+          attributep:pointer;
+          sizep:pcardinal;
+          attrtype:cardinal;
           errhp:OCIError):sword;cdecl;
 
   function OCIAttrSet(
-          trgthndlp:pointer; 
-	  trghndltyp:cardinal; 
-	  attributep:pointer; 
-	  size:cardinal; 
-	  attrtype:cardinal; 
+          trgthndlp:pointer;
+          trghndltyp:cardinal;
+          attributep:pointer;
+          size:cardinal;
+          attrtype:cardinal;
           errhp:OCIError):sword;cdecl;
 
   function OCISvcCtxToLda(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  ldap:pLda_Def):sword;cdecl;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          ldap:pLda_Def):sword;cdecl;
 
   function OCILdaToSvcCtx(
-          svchpp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  ldap:pLda_Def):sword;cdecl;
+          svchpp:OCISvcCtx;
+          errhp:OCIError;
+          ldap:pLda_Def):sword;cdecl;
 
   function OCIResultSetToStmt(
-          rsetdp:OCIResult; 
-	  errhp:OCIError):sword;cdecl;
+          rsetdp:OCIResult;
+          errhp:OCIError):sword;cdecl;
 
   {-------------------------------------------------------------------------------------------}
   { Security Package                                                                          }
@@ -1291,15 +1303,15 @@ type
 
   function OCISecurityTerminate(sechandle:pOCISecurity; error_handle:OCIError):sword;cdecl;
 
-  function OCISecurityOpenWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t; 
+  function OCISecurityOpenWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
              password:PChar; wallet:pnzttWallet):sword;cdecl;
 
   function OCISecurityCloseWallet(osshandle:pOCISecurity; error_handle:OCIError; wallet:pnzttWallet):sword;cdecl;
 
-  function OCISecurityCreateWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t; 
+  function OCISecurityCreateWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
              password:PChar; wallet:pnzttWallet):sword;cdecl;
 
-  function OCISecurityDestroyWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t; 
+  function OCISecurityDestroyWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
              password:PChar):sword;cdecl;
 
   function OCISecurityStorePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona; wallet:pnzttWallet):sword;cdecl;
@@ -1310,13 +1322,13 @@ type
 
   function OCISecurityRemovePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona):sword;cdecl;
 
-  function OCISecurityCreatePersona(osshandle:pOCISecurity; error_handle:OCIError; identity_type:nzttIdentType; cipher_type:nzttCipherType; desc:pnzttPersonaDesc; 
+  function OCISecurityCreatePersona(osshandle:pOCISecurity; error_handle:OCIError; identity_type:nzttIdentType; cipher_type:nzttCipherType; desc:pnzttPersonaDesc;
              persona:ppnzttPersona):sword;cdecl;
 
-  function OCISecuritySetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format:nztttdufmt; 
+  function OCISecuritySetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format:nztttdufmt;
              protection_info:pnzttProtInfo):sword;cdecl;
 
-  function OCISecurityGetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format_ptr:pnztttdufmt; 
+  function OCISecurityGetProtection(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; crypto_engine_function:nzttcef; data_unit_format_ptr:pnztttdufmt;
              protection_info:pnzttProtInfo):sword;cdecl;
 
   function OCISecurityRemoveIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity):sword;cdecl;
@@ -1329,54 +1341,54 @@ type
 
   function OCISecurityStoreTrustedIdentity(osshandle:pOCISecurity; error_handle:OCIError; identity_ptr:ppnzttIdentity; persona:pnzttPersona):sword;cdecl;
 
-  function OCISecuritySign(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t; 
+  function OCISecuritySign(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t;
              input:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
 
   function OCISecuritySignExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; inputlen:size_t; signature_length:psize_t):sword;cdecl;
 
-  function OCISecurityVerify(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; siglen:size_t; 
+  function OCISecurityVerify(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; siglen:size_t;
              signature:pbyte; extracted_message:pnzttBufferBlock; verified:pboolean; validated:pboolean; signing_party_identity:ppnzttIdentity):sword;cdecl;
 
   function OCISecurityValidate(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; identity:pnzttIdentity; validated:pboolean):sword;cdecl;
 
-  function OCISecuritySignDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t; 
+  function OCISecuritySignDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; input_length:size_t;
              input:pbyte; signature:pnzttBufferBlock):sword;cdecl;
 
   function OCISecuritySignDetExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
 
-  function OCISecurityVerifyDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; data_length:size_t; 
-             data:pbyte; siglen:size_t; signature:pbyte; verified:pboolean; validated:pboolean; 
+  function OCISecurityVerifyDetached(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; signature_state:nzttces; data_length:size_t;
+             data:pbyte; siglen:size_t; signature:pbyte; verified:pboolean; validated:pboolean;
              signing_party_identity:ppnzttIdentity):sword;cdecl;
 
-  function OCISecurity_PKEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; recipient_list:pnzttIdentity; 
+  function OCISecurity_PKEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; recipient_list:pnzttIdentity;
              encryption_state:nzttces; input_length:size_t; input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
 
-  function OCISecurityPKEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_recipients:size_t; input_length:size_t; 
+  function OCISecurityPKEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_recipients:size_t; input_length:size_t;
              buffer_length_required:psize_t):sword;cdecl;
 
-  function OCISecurityPKDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t; 
+  function OCISecurityPKDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t;
              input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
 
-  function OCISecurityEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t; 
+  function OCISecurityEncrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; encryption_state:nzttces; input_length:size_t;
              input:pbyte; encrypted_data:pnzttBufferBlock):sword;cdecl;
 
   function OCISecurityEncryptExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; encrypted_data_length:psize_t):sword;cdecl;
 
-  function OCISecurityDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t; 
+  function OCISecurityDecrypt(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t;
              input:pbyte; decrypted_data:pnzttBufferBlock):sword;cdecl;
 
-  function OCISecurityEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; identity:pnzttIdentity; 
+  function OCISecurityEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; number_of_recipients:size_t; identity:pnzttIdentity;
              encryption_state:nzttces; input_length:size_t; input:pbyte; enveloped_data:pnzttBufferBlock):sword;cdecl;
 
-  function OCISecurityDeEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t; 
+  function OCISecurityDeEnvelope(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; decryption_state:nzttces; input_length:size_t;
              input:pbyte; output_message:pnzttBufferBlock; verified:pboolean; validated:pboolean; sender_identity:ppnzttIdentity):sword;cdecl;
 
-  function OCISecurityKeyedHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input_length:size_t; 
+  function OCISecurityKeyedHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input_length:size_t;
              input:pbyte; keyed_hash:pnzttBufferBlock):sword;cdecl;
 
   function OCISecurityKeyedHashExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
 
-  function OCISecurityHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input:size_t; 
+  function OCISecurityHash(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; hash_state:nzttces; input:size_t;
              input_length:pbyte; hash:pnzttBufferBlock):sword;cdecl;
 
   function OCISecurityHashExpansion(osshandle:pOCISecurity; error_handle:OCIError; persona:pnzttPersona; input_length:size_t; required_buffer_length:psize_t):sword;cdecl;
@@ -1393,15 +1405,15 @@ type
 
   function OCISecurityPurgeBlock(osshandle:pOCISecurity; error_handle:OCIError; buffer_block:pnzttBufferBlock):sword;cdecl;
 
-  function OCISecuritySetBlock(osshandle:pOCISecurity; error_handle:OCIError; flags_to_set:uword; buffer_length:size_t; used_buffer_length:size_t; 
+  function OCISecuritySetBlock(osshandle:pOCISecurity; error_handle:OCIError; flags_to_set:uword; buffer_length:size_t; used_buffer_length:size_t;
              buffer:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
 
   function OCISecurityGetIdentity(osshandle:pOCISecurity; error_handle:OCIError; namelen:size_t; distinguished_name:PChar; identity:ppnzttIdentity):sword;cdecl;
 
-  function OCIAQEnq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; enqopt:pOCIAQEnqOptions; msgprop:pOCIAQMsgProperties; 
+  function OCIAQEnq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; enqopt:pOCIAQEnqOptions; msgprop:pOCIAQMsgProperties;
              payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
 
-  function OCIAQDeq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; deqopt:pOCIAQDeqOptions; msgprop:pOCIAQMsgProperties; 
+  function OCIAQDeq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; deqopt:pOCIAQDeqOptions; msgprop:pOCIAQMsgProperties;
              payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
 }
 
@@ -1410,545 +1422,542 @@ type
   {-------------------------------------------------------------------------------------------}
 
   function OCIDateToText(
-      err:OCIError; 
-	  date:POCIDate; 
-	  fmt:PChar; 
-	  fmt_length:ub1; 
-	  lang_name:PChar; 
-      lang_length:ub4; 
-	  buf_size:PCardinal; 
-	  buf:PChar):sword;cdecl;
+      err:OCIError;
+          date:POCIDate;
+          fmt:PChar;
+          fmt_length:ub1;
+          lang_name:PChar;
+      lang_length:ub4;
+          buf_size:PCardinal;
+          buf:PChar):sword;cdecl;
 
 implementation
 
   function OCIInitialize(
-          mode:cardinal; 
-	  ctxp:pointer; 
-	  malocfp:pointer; 
-	  ralocfp:pointer; 
-	  mfreefp:pointer):sword;cdecl;external;
+          mode:cardinal;
+          ctxp:pointer;
+          malocfp:pointer;
+          ralocfp:pointer;
+          mfreefp:pointer):sword;cdecl;external;
 
   function OCIHandleAlloc(
-          parenth:pointer; 
-	  var hndlpp:pointer; 
-	  AType:cardinal; 
-	  xtramem_sz:cardinal; 
-	  usrmempp:pointer):sword;cdecl;external;
+          parenth:pointer;
+          var hndlpp:pointer;
+          AType:cardinal;
+          xtramem_sz:cardinal;
+          usrmempp:pointer):sword;cdecl;external;
 
   function OCIHandleFree(
-          hndlp:pointer; 
-	  AType:cardinal):sword;cdecl;external;
+          hndlp:pointer;
+          AType:cardinal):sword;cdecl;external;
 
   function OCIEnvInit(
-	  var envp: OCIEnv;
-	    
-	  mode: ub4;
-	  xtramemsz: Integer;
-	  usrmempp: pointer): sword; cdecl;external;
+          var envp: OCIEnv;
+
+          mode: ub4;
+          xtramemsz: Integer;
+          usrmempp: pointer): sword; cdecl;external;
 
   function OCIDescriptorAlloc(
-          parenth:pointer; 
-	  descpp:pointer; 
-	  AType:cardinal; 
-	  xtramem_sz:cardinal; 
-	  usrmempp:pointer):sword;cdecl;external;
+          parenth:pointer;
+          descpp:pointer;
+          AType:cardinal;
+          xtramem_sz:cardinal;
+          usrmempp:pointer):sword;cdecl;external;
 
   function OCIDescriptorFree(
           descp:pointer;
-	  AType:cardinal):sword;cdecl;external;
+          AType:cardinal):sword;cdecl;external;
 
   function OCIServerAttach(
-          srvhp:OCIServer; 
-	  errhp:OCIError; 
-	  dblink:PChar; 
-	  dblink_len:longint; 
-	  mode:cardinal):sword;cdecl;external;
+          srvhp:OCIServer;
+          errhp:OCIError;
+          dblink:PChar;
+          dblink_len:longint;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIServerDetach(
-          srvhp:OCIServer; 
-	  errhp:OCIError; 
-	  mode:cardinal):sword;cdecl;external;
+          srvhp:OCIServer;
+          errhp:OCIError;
+          mode:cardinal):sword;cdecl;external;
 
   function OCISessionBegin(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  usrhp:OCISession; 
-	  credt:cardinal; 
-	  mode:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          usrhp:OCISession;
+          credt:cardinal;
+          mode:cardinal):sword;cdecl;external;
 
   function OCISessionEnd(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  usrhp:OCISession; 
-	  mode:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          usrhp:OCISession;
+          mode:cardinal):sword;cdecl;external;
 
   function OCILogon(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  var svchp:OCISvcCtx; 
-	  username:PChar; 
-	  uname_len:cardinal; 
-          password:PChar; 
-	  passwd_len:cardinal; 
-	  dbname:PChar; 
-	  dbname_len:cardinal):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          var svchp:OCISvcCtx;
+          username:PChar;
+          uname_len:cardinal;
+          password:PChar;
+          passwd_len:cardinal;
+          dbname:PChar;
+          dbname_len:cardinal):sword;cdecl;external;
 
   function OCILogoff(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError):sword;cdecl;external;
 
   function OCIErrorGet(
-          hndlp:pointer; 
-	  recordno:cardinal; 
-	  sqlstate:PChar; 
-	  var errcodep:PLongint; 
-	  bufp:PChar; 
-          bufsiz:cardinal; 
-	  AType:cardinal):sword;cdecl;external;
+          hndlp:pointer;
+          recordno:cardinal;
+          sqlstate:PChar;
+          var errcodep:PLongint;
+          bufp:PChar;
+          bufsiz:cardinal;
+          AType:cardinal):sword;cdecl;external;
 
   function OCIPasswordChange(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  user_name:PChar; 
-	  usernm_len:cardinal; 
-	  opasswd:PChar; 
-	  opasswd_len:cardinal; 
-	  npasswd:PChar; 
-	  npasswd_len:cardinal; 
-	  mode:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          user_name:PChar;
+          usernm_len:cardinal;
+          opasswd:PChar;
+          opasswd_len:cardinal;
+          npasswd:PChar;
+          npasswd_len:cardinal;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIStmtPrepare(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  stmt:PChar; 
-	  stmt_len:cardinal; 
-	  language:cardinal; 
-	  mode:cardinal):sword;cdecl;external;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          stmt:PChar;
+          stmt_len:cardinal;
+          language:cardinal;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIBindByPos(
-          stmtp:OCIStmt; 
-	  bindp:OCIBind; 
-	  errhp:OCIError; 
-	  position:cardinal; 
-	  valuep:pointer; 
-	  value_sz:longint; 
-	  dty:word; 
-	  indp:pointer; 
-	  alenp:pword; rcodep:pword; 
-	  maxarr_len:cardinal; 
-	  curelep:pcardinal; 
-	  mode:cardinal):sword;cdecl;external;
+          stmtp:OCIStmt;
+          bindp:OCIBind;
+          errhp:OCIError;
+          position:cardinal;
+          valuep:pointer;
+          value_sz:longint;
+          dty:word;
+          indp:pointer;
+          alenp:pword; rcodep:pword;
+          maxarr_len:cardinal;
+          curelep:pcardinal;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIBindByName(
-          stmtp:OCIStmt; 
-	  bindp:OCIBind; 
-	  errhp:OCIError; 
-	  placeholder:PChar; 
-	  placeh_len:longint; 
-	  valuep:pointer; 
-	  value_sz:longint; 
-	  dty:word; 
-	  indp:pointer; 
-	  alenp:pword; 
-	  rcodep:pword; 
-	  maxarr_len:cardinal; 
-	  curelep:pcardinal; 
-	  mode:cardinal):sword;cdecl;external;
+          stmtp:OCIStmt;
+          bindp:OCIBind;
+          errhp:OCIError;
+          placeholder:PChar;
+          placeh_len:longint;
+          valuep:pointer;
+          value_sz:longint;
+          dty:word;
+          indp:pointer;
+          alenp:pword;
+          rcodep:pword;
+          maxarr_len:cardinal;
+          curelep:pcardinal;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIBindObject(
-          bindp:OCIBind; 
-	  errhp:OCIError; 
-	  AType:OCIType; 
-	  pgvpp:pointer; 
-	  pvszsp:pcardinal; 
-	  indpp:pointer; 
-	  indszp:pcardinal):sword;cdecl;external;
+          bindp:OCIBind;
+          errhp:OCIError;
+          AType:OCIType;
+          pgvpp:pointer;
+          pvszsp:pcardinal;
+          indpp:pointer;
+          indszp:pcardinal):sword;cdecl;external;
 
   function OCIBindDynamic(
-          bindp:OCIBind; 
-	  errhp:OCIError; 
-	  ictxp:pointer; 
-	  icbfp:OCICallbackInBind; 
-	  octxp:pointer; 
+          bindp:OCIBind;
+          errhp:OCIError;
+          ictxp:pointer;
+          icbfp:OCICallbackInBind;
+          octxp:pointer;
           ocbfp:OCICallbackOutBind):sword;cdecl;external;
 
   function OCIBindArrayOfStruct(
-          bindp:OCIBind; 
-	  errhp:OCIError; 
-	  pvskip:cardinal; 
-	  indskip:cardinal; 
-	  alskip:cardinal; 
+          bindp:OCIBind;
+          errhp:OCIError;
+          pvskip:cardinal;
+          indskip:cardinal;
+          alskip:cardinal;
           rcskip:cardinal):sword;cdecl;external;
 
   function OCIStmtGetPieceInfo(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  hndlpp:pointer; 
-	  typep:pcardinal; 
-	  in_outp:pbyte; 
-          iterp:pcardinal; 
-	  idxp:pcardinal; 
-	  piecep:pbyte):sword;cdecl;external;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          hndlpp:pointer;
+          typep:pcardinal;
+          in_outp:pbyte;
+          iterp:pcardinal;
+          idxp:pcardinal;
+          piecep:pbyte):sword;cdecl;external;
 
   function OCIStmtSetPieceInfo(
-          hndlp:pointer; 
-	  AType:cardinal; 
-	  errhp:OCIError; 
-	  bufp:pointer; 
-	  alenp:pcardinal; 
-	  piece:byte; 
-	  indp:pointer; 
-	  rcodep:pword):sword;cdecl;external;
+          hndlp:pointer;
+          AType:cardinal;
+          errhp:OCIError;
+          bufp:pointer;
+          alenp:pcardinal;
+          piece:byte;
+          indp:pointer;
+          rcodep:pword):sword;cdecl;external;
 
   function OCIStmtExecute(
-          svchp:OCISvcCtx; 
-	  stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  iters:cardinal; 
-	  rowoff:cardinal; 
-          snap_in:OCISnapshot; 
-	  snap_out:OCISnapshot; 
-	  mode:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          iters:cardinal;
+          rowoff:cardinal;
+          snap_in:OCISnapshot;
+          snap_out:OCISnapshot;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIDefineByPos(
-          stmtp:OCIStmt; 
-	  defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  position:cardinal; 
-	  valuep:pointer; 
-          value_sz:longint; 
-	  dty:word; 
-	  indp:pointer; 
-	  rlenp:pword; 
-	  rcodep:pword; 
+          stmtp:OCIStmt;
+          defnp:OCIDefine;
+          errhp:OCIError;
+          position:cardinal;
+          valuep:pointer;
+          value_sz:longint;
+          dty:word;
+          indp:pointer;
+          rlenp:pword;
+          rcodep:pword;
           mode:cardinal):sword;cdecl;external;
 
   function OCIDefineObject(
-          defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  AType:OCIType; 
-	  pgvpp:pointer; 
-	  pvszsp:pcardinal; 
-    	  indpp:pointer; 
-	  indszp:pcardinal):sword;cdecl;external;
+          defnp:OCIDefine;
+          errhp:OCIError;
+          AType:OCIType;
+          pgvpp:pointer;
+          pvszsp:pcardinal;
+          indpp:pointer;
+          indszp:pcardinal):sword;cdecl;external;
 
   function OCIDefineDynamic(
-          defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  octxp:pointer; 
-	  ocbfp:OCICallbackDefine):sword;cdecl;external;
+          defnp:OCIDefine;
+          errhp:OCIError;
+          octxp:pointer;
+          ocbfp:OCICallbackDefine):sword;cdecl;external;
 
   function OCIDefineArrayOfStruct(
-          defnp:OCIDefine; 
-	  errhp:OCIError; 
-	  pvskip:cardinal; 
-	  indskip:cardinal; 
-	  rlskip:cardinal; 
+          defnp:OCIDefine;
+          errhp:OCIError;
+          pvskip:cardinal;
+          indskip:cardinal;
+          rlskip:cardinal;
           rcskip:cardinal):sword;cdecl;external;
 
   function OCIStmtFetch(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  nrows:cardinal; 
-	  orientation:word; 
-	  mode:cardinal):sword;cdecl;external;
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          nrows:cardinal;
+          orientation:word;
+          mode:cardinal):sword;cdecl;external;
 
   function OCIStmtGetBindInfo(
-          stmtp:OCIStmt; 
-	  errhp:OCIError; 
-	  size:cardinal; 
-	  startloc:cardinal; 
-	  found:plongint; 
-          bvnp:PChar; 
-	  bvnl:byte; 
-	  invp:PChar; 
-	  inpl:byte; 
-	  dupl:byte; 
+          stmtp:OCIStmt;
+          errhp:OCIError;
+          size:cardinal;
+          startloc:cardinal;
+          found:plongint;
+          bvnp:PChar;
+          bvnl:byte;
+          invp:PChar;
+          inpl:byte;
+          dupl:byte;
           hndl:OCIBind):sword;cdecl;external;
 
   function OCIDescribeAny(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  objptr:pointer; 
-	  objnm_len:cardinal; 
-	  objptr_typ:byte; 
-          info_level:byte; 
-	  objtyp:byte; 
-	  dschp:OCIDescribe):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          objptr:pointer;
+          objnm_len:cardinal;
+          objptr_typ:byte;
+          info_level:byte;
+          objtyp:byte;
+          dschp:OCIDescribe):sword;cdecl;external;
 
   function OCIParamGet(
-          hndlp:pointer; 
-	  htype:cardinal; 
-	  errhp:OCIError; 
-	  parmdpp:pointer; 
-	  pos:cardinal):sword;cdecl;external;
+          hndlp:pointer;
+          htype:cardinal;
+          errhp:OCIError;
+          parmdpp:pointer;
+          pos:cardinal):sword;cdecl;external;
 
   function OCIParamSet(
-          hdlp:pointer; 
-	  htyp:cardinal; 
-	  errhp:OCIError; 
-	  dscp:pointer; 
-	  dtyp:cardinal; 
+          hdlp:pointer;
+          htyp:cardinal;
+          errhp:OCIError;
+          dscp:pointer;
+          dtyp:cardinal;
           pos:cardinal):sword;cdecl;external;
 
   function OCITransStart(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  timeout:uword; 
-	  flags:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          timeout:uword;
+          flags:cardinal):sword;cdecl;external;
 
   function OCITransDetach(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;external;
 
   function OCITransCommit(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;external;
 
   function OCITransRollback(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;external;
 
   function OCITransPrepare(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;external;
 
   function OCITransForget(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  flags:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          flags:cardinal):sword;cdecl;external;
 
   function OCILobAppend(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  dst_locp:OCILobLocator; 
-	  src_locp:OCILobLocator):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          dst_locp:OCILobLocator;
+          src_locp:OCILobLocator):sword;cdecl;external;
 
   function OCILobAssign(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  src_locp:OCILobLocator; 
-	  dst_locpp:OCILobLocator):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          src_locp:OCILobLocator;
+          dst_locpp:OCILobLocator):sword;cdecl;external;
 
   function OCILobCharSetForm(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  csfrm:pbyte):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          csfrm:pbyte):sword;cdecl;external;
 
   function OCILobCharSetId(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  csid:pword):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          csid:pword):sword;cdecl;external;
 
   function OCILobCopy(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  dst_locp:OCILobLocator; 
-	  src_locp:OCILobLocator; 
-	  amount:cardinal; 
-          dst_offset:cardinal; 
-	  src_offset:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          dst_locp:OCILobLocator;
+          src_locp:OCILobLocator;
+          amount:cardinal;
+          dst_offset:cardinal;
+          src_offset:cardinal):sword;cdecl;external;
 
   function OCILobDisableBuffering(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator):sword;cdecl;external;
 
   function OCILobEnableBuffering(
           svchp:OCISvcCtx;
-	  errhp:OCIError; 
-	  locp:OCILobLocator):sword;cdecl;external;
+          errhp:OCIError;
+          locp:OCILobLocator):sword;cdecl;external;
 
   function OCILobErase(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  amount:pcardinal; 
-	  offset:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          amount:pcardinal;
+          offset:cardinal):sword;cdecl;external;
 
   function OCILobFileClose(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator):sword;cdecl;external;
 
   function OCILobFileCloseAll(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError):sword;cdecl;external;
 
   function OCILobFileExists(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  flag:pboolean):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          flag:pboolean):sword;cdecl;external;
 
   function OCILobFileGetName(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  dir_alias:PChar; 
-	  d_length:pword; 
-    	  filename:PChar; 
-	  f_length:pword):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          dir_alias:PChar;
+          d_length:pword;
+          filename:PChar;
+          f_length:pword):sword;cdecl;external;
 
   function OCILobFileIsOpen(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  flag:pboolean):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          flag:pboolean):sword;cdecl;external;
 
   function OCILobFileOpen(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  filep:OCILobLocator; 
-	  mode:byte):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          filep:OCILobLocator;
+          mode:byte):sword;cdecl;external;
 
   function OCILobFileSetName(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  filepp:OCILobLocator; 
-	  dir_alias:PChar; 
-	  d_length:word; 
-    	  filename:PChar; 
-	  f_length:word):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          filepp:OCILobLocator;
+          dir_alias:PChar;
+          d_length:word;
+          filename:PChar;
+          f_length:word):sword;cdecl;external;
 
   function OCILobFlushBuffer(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  flag:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          flag:cardinal):sword;cdecl;external;
 
   function OCILobGetLength(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  lenp:pcardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          lenp:pcardinal):sword;cdecl;external;
 
   function OCILobIsEqual(
-          envhp:OCIEnv; 
-	  x:OCILobLocator; 
-	  y:OCILobLocator; 
-	  is_equal:pboolean):sword;cdecl;external;
+          envhp:OCIEnv;
+          x:OCILobLocator;
+          y:OCILobLocator;
+          is_equal:pboolean):sword;cdecl;external;
 
   function OCILobLoadFromFile(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  dst_locp:OCILobLocator; 
-	  src_filep:OCILobLocator; 
-	  amount:cardinal; 
-	  dst_offset:cardinal; 
-	  src_offset:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          dst_locp:OCILobLocator;
+          src_filep:OCILobLocator;
+          amount:cardinal;
+          dst_offset:cardinal;
+          src_offset:cardinal):sword;cdecl;external;
 
   function OCILobLocatorIsInit(
-          envhp:OCIEnv; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  is_initialized:pboolean):sword;cdecl;external;
+          envhp:OCIEnv;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          is_initialized:pboolean):sword;cdecl;external;
 
   function OCILobRead(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  amtp:pcardinal; 
-	  offset:cardinal; 
-    	  bufp:pointer; 
-	  bufl:cardinal; 
-	  ctxp:pointer; 
-	  cbfp:pointer; 
-	  csid:word; 
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          amtp:pcardinal;
+          offset:cardinal;
+          bufp:pointer;
+          bufl:cardinal;
+          ctxp:pointer;
+          cbfp:pointer;
+          csid:word;
           csfrm:byte):sword;cdecl;external;
 
   function OCILobTrim(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  newlen:cardinal):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          newlen:cardinal):sword;cdecl;external;
 
   function OCILobWrite(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  locp:OCILobLocator; 
-	  amtp:pcardinal; 
-	  offset:cardinal; 
-          bufp:pointer; 
-	  buflen:cardinal; 
-	  piece:byte; 
-	  ctxp:pointer; 
-	  cbfp:pointer; 
-          csid:word; 
-	  csfrm:byte):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          locp:OCILobLocator;
+          amtp:pcardinal;
+          offset:cardinal;
+          bufp:pointer;
+          buflen:cardinal;
+          piece:byte;
+          ctxp:pointer;
+          cbfp:pointer;
+          csid:word;
+          csfrm:byte):sword;cdecl;external;
 
   function OCIBreak(
-          hndlp:pointer; 
-	  errhp:OCIError):sword;cdecl;external;
+          hndlp:pointer;
+          errhp:OCIError):sword;cdecl;external;
 
   function OCIReset(
-          hndlp:pointer; 
-	  errhp:OCIError):sword;cdecl;external;
+          hndlp:pointer;
+          errhp:OCIError):sword;cdecl;external;
 
   function OCIServerVersion(
-          hndlp:pointer; 
-	  errhp:OCIError; 
-	  bufp:PChar; 
-	  bufsz:cardinal; 
-	  hndltype:byte):sword;cdecl;external;
+          hndlp:pointer;
+          errhp:OCIError;
+          bufp:PChar;
+          bufsz:cardinal;
+          hndltype:byte):sword;cdecl;external;
 
   function OCIAttrGet(
-          trgthndlp:pointer; 
-	  trghndltyp:cardinal; 
-	  attributep:pointer; 
-	  sizep:pcardinal; 
-	  attrtype:cardinal; 
+          trgthndlp:pointer;
+          trghndltyp:cardinal;
+          attributep:pointer;
+          sizep:pcardinal;
+          attrtype:cardinal;
           errhp:OCIError):sword;cdecl;external;
 
   function OCIAttrSet(
-          trgthndlp:pointer; 
-	  trghndltyp:cardinal; 
-	  attributep:pointer; 
-	  size:cardinal; 
-	  attrtype:cardinal; 
+          trgthndlp:pointer;
+          trghndltyp:cardinal;
+          attributep:pointer;
+          size:cardinal;
+          attrtype:cardinal;
           errhp:OCIError):sword;cdecl;external;
 
   function OCISvcCtxToLda(
-          svchp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  ldap:pLda_Def):sword;cdecl;external;
+          svchp:OCISvcCtx;
+          errhp:OCIError;
+          ldap:pLda_Def):sword;cdecl;external;
 
   function OCILdaToSvcCtx(
-          svchpp:OCISvcCtx; 
-	  errhp:OCIError; 
-	  ldap:pLda_Def):sword;cdecl;external;
+          svchpp:OCISvcCtx;
+          errhp:OCIError;
+          ldap:pLda_Def):sword;cdecl;external;
 
   function OCIResultSetToStmt(
-          rsetdp:OCIResult; 
-	  errhp:OCIError):sword;cdecl;external;
+          rsetdp:OCIResult;
+          errhp:OCIError):sword;cdecl;external;
 
   function OCIDateToText(
-      err:OCIError; 
-	  date:POCIDate; 
-	  fmt:PChar; 
-	  fmt_length:ub1; 
-	  lang_name:PChar; 
-      lang_length:ub4; 
-	  buf_size:PCardinal; 
-	  buf:PChar):sword;cdecl;external;
+      err:OCIError;
+          date:POCIDate;
+          fmt:PChar;
+          fmt_length:ub1;
+          lang_name:PChar;
+      lang_length:ub4;
+          buf_size:PCardinal;
+          buf:PChar):sword;cdecl;external;
 
 end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:54  peter
+  Revision 1.2  2002-09-07 15:42:53  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:54:54  peter
     * splitted to base and extra
-
-  Revision 1.1  2000/12/02 15:14:15  michael
-  + Initial implementation of Pavel Stingl
-
-  Revision 1.1.1.1  2000/10/11 07:48:28  stingp1
-    * Import to cvs
 
 }

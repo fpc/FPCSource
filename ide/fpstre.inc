@@ -1037,7 +1037,10 @@ const
 
 {
   $Log$
-  Revision 1.12  2002-09-02 10:18:10  pierre
+  Revision 1.13  2002-09-07 15:40:44  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.12  2002/09/02 10:18:10  pierre
    * fix problems with breakpoint lists
 
   Revision 1.11  2002/08/13 08:57:03  pierre
@@ -1057,111 +1060,5 @@ const
 
   Revision 1.6  2002/02/06 14:45:00  pierre
    + handle signals
-
-  Revision 1.5  2001/11/07 00:28:53  pierre
-   + Disassembly window made public
-
-  Revision 1.4  2001/10/24 21:49:56  pierre
-   + FindProcedure implemented
-
-  Revision 1.3  2001/10/12 14:21:47  pierre
-   + show error if switch to new screen mode failed
-
-  Revision 1.2  2001/08/29 23:31:27  pierre
-   * fix some m68k specific options
-
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.21  2001/03/12 17:34:56  pierre
-   + Disassembly window started
-
-  Revision 1.1.2.20  2001/03/09 15:03:16  pierre
-   + Floating point Unit added to Debug menu
-
-  Revision 1.1.2.19  2001/02/13 11:48:26  pierre
-   + Strip debug nifo switch added
-
-  Revision 1.1.2.18  2000/12/12 16:51:51  pierre
-   + keys loading/storing begin
-
-  Revision 1.1.2.17  2000/12/11 00:41:42  pierre
-   * start of LearnKey dialog implementation
-
-  Revision 1.1.2.16  2000/11/29 18:28:51  pierre
-   + add save to file capability for list boxes
-
-  Revision 1.1.2.15  2000/11/27 11:53:38  pierre
-   + Indent size (Gabor)
-
-  Revision 1.1.2.14  2000/11/23 16:33:31  pierre
-   * fix Alt-X problem and set HelpCtx for most dialogs
-
-  Revision 1.1.2.13  2000/11/23 13:00:47  pierre
-   + better infos while compiling
-
-  Revision 1.1.2.12  2000/11/22 11:03:32  pierre
-   + window selection for Ansi Dump
-
-  Revision 1.1.2.11  2000/11/21 17:43:24  pierre
-   + first version of dump ansi file
-
-  Revision 1.1.2.10  2000/11/21 16:08:50  pierre
-   * Dos Shell renamed Command shell
-
-  Revision 1.1.2.9  2000/11/19 00:23:33  pierre
-   Task 23: nicer error message when trying to run unit or library
-
-  Revision 1.1.2.8  2000/11/16 23:13:06  pierre
-   + support for ANSI substitutes to HTML images in HTML viewer
-
-  Revision 1.1.2.7  2000/11/14 17:40:43  pierre
-   + External linking now optional
-
-  Revision 1.1.2.6  2000/10/06 22:52:36  pierre
-   * fixes for linux GDB tty command
-
-  Revision 1.1.2.5  2000/10/04 13:30:50  pierre
-   * DosShell for linux
-
-  Revision 1.1.2.4  2000/09/18 13:20:54  pierre
-   New bunch of Gabor changes
-
-  Revision 1.1.2.3  2000/08/16 18:46:14  peter
-   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
-   [*] Make, Build now possible even in Compiler Messages Window
-   [+] when started in a new dir the IDE now ask whether to create a local
-       config, or to use the one located in the IDE dir
-
-  Revision 1.1.2.2  2000/08/04 14:05:18  michael
-  * Fixes from Gabor:
-   [*] the IDE now doesn't disable Compile|Make & Build when all windows
-       are closed, but there's still a primary file set
-       (set bug 1059 to fixed!)
-
-   [*] the IDE didn't read some compiler options correctly back from the
-       FP.CFG file, for ex. the linker options. Now it read everything
-       correctly, and also automatically handles smartlinking option synch-
-       ronization.
-       (set bug 1048 to fixed!)
-
-  Revision 1.1.2.1  2000/07/15 21:16:23  pierre
-   + some new texts
-
-  Revision 1.1  2000/07/13 09:48:35  michael
-  + Initial import
-
-  Revision 1.4  2000/06/16 08:50:41  pierre
-   + new bunch of Gabor's changes
-
-  Revision 1.3  2000/05/30 07:18:33  pierre
-   + colors for HTML help by Gabor
-
-  Revision 1.2  2000/05/29 10:44:57  pierre
-   + New bunch of Gabor's changes: see fixes.txt
-
-  Revision 1.1  2000/05/02 08:42:28  pierre
-   * new set of Gabor changes: see fixes.txt
-
 
 }

@@ -47,7 +47,7 @@ const
     ADIOF_NOWAIT        = 64;
     ADIOB_WRITEMESSAGE  = 7;
     ADIOF_WRITEMESSAGE  = 128;
- 
+
     ADIOERR_NOALLOCATION        = -10;
     ADIOERR_ALLOCFAILED         = -11;
     ADIOERR_CHANNELSTOLEN       = -12;

@@ -33,7 +33,7 @@ $Revision$
 $Modtime: 96-08-01 10:21 $
 
 $History: LEXBASE.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -51,11 +51,11 @@ const
 
 (* symbolic character constants: *)
 
-bs   = #8;	(* backspace character *)
-tab  = #9;	(* tab character *)
-nl   = #10;	(* newline character *)
-cr   = #13;	(* carriage return *)
-ff   = #12;	(* form feed character *)
+bs   = #8;      (* backspace character *)
+tab  = #9;      (* tab character *)
+nl   = #10;     (* newline character *)
+cr   = #13;     (* carriage return *)
+ff   = #12;     (* form feed character *)
 
 var
 
@@ -65,7 +65,7 @@ lfilename     : String;
 pasfilename   : String;
 lstfilename   : String;
 codfilename   : String;
-codfilepath   : String; { Under linux, binary and conf file 
+codfilepath   : String; { Under linux, binary and conf file
                           are not in the same path}
 
 (* Lex input, output, list and code template file: *)
@@ -1086,18 +1086,18 @@ function cclassStr(cc : CClass) : String;
         c1 := chr(0);
         Quit := False;
         while not Quit do  begin
-	  if c1 in cc then  begin
-	    c2 := c1;
-	    while (c2<MaxChar) and (succ(c2) in cc) do
+          if c1 in cc then  begin
+            c2 := c1;
+            while (c2<MaxChar) and (succ(c2) in cc) do
               c2 := succ(c2);
-	    if c1=c2
+            if c1=c2
              then  str := str+charStr(c1, reserved)
-	     else
+             else
                if c2=succ(c1)
                 then  str := str+charStr(c1, reserved)+charStr(c2, reserved)
-	        else  str := str+charStr(c1, reserved)+'-'+charStr(c2, reserved);
+                else  str := str+charStr(c1, reserved)+'-'+charStr(c2, reserved);
               c1 := c2;
-	  end;
+          end;
           Quit := c1 = MaxChar;
           if not Quit then
             c1 := Succ(c1);

@@ -11,7 +11,7 @@ procedure push_cb( ob : PFL_OBJECT; n : longint);export;
 begin
    if (fl_get_button(ob)<>0) then
       fl_show_object(abox[n])
-   else 
+   else
       fl_hide_object(abox[n]);
 end;
 
@@ -20,7 +20,7 @@ Procedure makeform;
 
 Var i : Integer;
     obj : PFL_OBJECT;
-    
+
 begin
   form := fl_bgn_form(FL_UP_BOX,400,400);
   for i:=0 to 7 do
@@ -44,10 +44,10 @@ Begin
   fl_do_forms;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:02  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:02  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

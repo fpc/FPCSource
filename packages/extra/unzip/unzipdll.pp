@@ -239,7 +239,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-07-07 17:58:09  hajny
+  Revision 1.4  2002-09-07 15:43:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/07/07 17:58:09  hajny
     * check for TZ variable added
 
   Revision 1.2  2002/07/07 08:22:17  hajny
@@ -247,24 +250,5 @@ end.
 
   Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
-
-  Revision 1.1  2001/01/30 19:26:18  peter
-    * renamed zip to unzip
-
-  Revision 1.2  2000/12/19 00:51:10  hajny
-    * modifications from /install/fpinst merged in
-
-  Revision 1.1  2000/07/13 06:34:24  michael
-  + Initial import
-
-  Revision 1.1  2000/03/02 12:16:57  michael
-  + Initial implementation
-
-  Revision 1.2  1999/06/10 07:28:29  hajny
-    * compilable with TP again
-
-  Revision 1.1  1999/02/19 16:45:26  peter
-    * moved to fpinst/ directory
-    + makefile
 
 }

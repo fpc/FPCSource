@@ -53,6 +53,6 @@ begin
     halt(1);
   if GetProcVar('xyz',ProcVar) then
     halt(1)
-  else 
+  else
    writeln('ok');
 end.

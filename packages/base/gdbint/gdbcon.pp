@@ -330,7 +330,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-04-03 09:09:22  pierre
+  Revision 1.4  2002-09-07 15:42:51  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/04/03 09:09:22  pierre
    * fix UniwDir for win32 gdbcon.pp
 
   Revision 1.2  2002/03/26 16:23:14  pierre
@@ -338,11 +341,5 @@ end.
 
   Revision 1.1  2002/01/29 17:54:49  peter
     * splitted to base and extra
-
-  Revision 1.3  2001/04/08 11:43:39  peter
-    * merged changes from fixes branch
-
-  Revision 1.2  2000/07/13 11:33:15  michael
-  + removed logs
 
 }

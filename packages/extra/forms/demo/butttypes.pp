@@ -3,10 +3,10 @@ program butttypes;
 uses strings,forms;
 
 type TFD_form0 = record
-	form0 : PFL_FORM;
-	vdata : pointer;
-	ldata : longint;
-	br : PFL_OBJECT;
+        form0 : PFL_FORM;
+        vdata : pointer;
+        ldata : longint;
+        br : PFL_OBJECT;
 end;
 PFD_form0 = ^TFD_form0;
 
@@ -21,7 +21,7 @@ begin
    if (ob^.thetype = FL_HIDDEN_BUTTON ) then
      begin
       if (fl_show_question('Want to Quit ?', 1) = 1) then
-	halt(0);
+        halt(0);
      end
    else
      begin
@@ -67,7 +67,7 @@ begin
     fl_set_object_lstyle(obj,FL_BOLD_STYLE);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@button_cb),0);
     obj := fl_add_browser(FL_NORMAL_BROWSER,135,15,210,260,'');
-    fdui^.br :=obj;  
+    fdui^.br :=obj;
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@button_cb),0);
   fl_end_form();
 
@@ -94,10 +94,10 @@ begin
    fl_do_forms();
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:13  michael
-  + removed logs
- 
 }

@@ -56,7 +56,7 @@ procedure boxtype_cb (ob : PFL_OBJECT; arg : longint);export;
 
 var
   i, req_bt  : longint;
-  
+
 begin
   req_bt:= fl_get_choice(ob) - 1;
   if (lastbt <> req_bt) then
@@ -189,7 +189,7 @@ var
   p : ppchar;
   vn : ^TVN_struct;
   i : longint;
-  
+
 begin
   c := FL_BLACK;
   fl_initialize(@argc, argv, 'FormDemo', nil, 0);
@@ -206,24 +206,24 @@ begin
   fl_addto_choice (tobj[15], 'item 4');
   fl_addto_choice (tobj[15], 'item 5');
   fl_set_timer (tobj[16], 1000.0);
-  for i:=0 to 21 do 
+  for i:=0 to 21 do
      fl_add_browser_line (tobj[17], browserlines[i]);
   for i:= 0 to 15 do
      fl_addto_choice(btypeob, btypes[i].name);
   for i:=0 to 5 do
-      begin 
+      begin
       fl_addto_choice (modeob, gmode[i].name);
       if (fl_mode_capable(gmode[i].theval, 0)=0) then
         fl_set_choice_item_mode(modeob, i, FL_PUP_GRAY);
       end;
-  fl_set_choice (modeob, fl_vmode+1); 
+  fl_set_choice (modeob, fl_vmode+1);
    fl_show_form (form, FL_PLACE_MOUSE, border, 'Box types');
   while (fl_do_forms <> exitob) do;
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:55:00  peter
+end.  Revision 1.2  2002-09-07 15:42:54  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:55:00  peter
 end.    * splitted to base and extra
 end.
-end.  Revision 1.2  2000/07/13 11:33:12  michael
-end.  + removed logs
-end. 
 }

@@ -6,7 +6,7 @@ var
    a : ansistring;
    w : widestring;
    err : boolean;
-  
+
 const somestr : pwidechar = 'blaat';
 
 begin

@@ -27,7 +27,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-06-01 19:08:52  marco
+  Revision 1.6  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/06/01 19:08:52  marco
    * Renamefest
 
   Revision 1.4  2002/03/09 23:18:51  carl
@@ -38,8 +41,5 @@ end.
 
   Revision 1.2  2002/01/19 12:37:12  peter
     * no checking for linux
-
-  Revision 1.1  2001/12/10 02:41:41  carl
-  + initial version of stack checking routines
 
 }

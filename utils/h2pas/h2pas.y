@@ -2443,18 +2443,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-12-17 23:34:59  florian
-    * support for enum enumtype enumvar; fixed
-      same for unions done
+  Revision 1.5  2002-09-07 15:40:33  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.3  2001/04/10 21:22:38  peter
-    * more fixes that were still laying around
-
-  Revision 1.2  2000/12/27 21:59:59  peter
-    * big update, it now converts much more files without serious errors
-    + h2pas preprocessor to remove specific defines from a .h file
-      (you need to run h2paspp manual)
-
-  Revision 1.1  2000/07/13 10:16:23  michael
-    + Initial import
 }

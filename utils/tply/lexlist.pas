@@ -32,7 +32,7 @@ $Revision$
 $Modtime: 96-08-01 6:28 $
 
 $History: LEXLIST.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -75,16 +75,16 @@ procedure listPosTable;
     for p := 1 to n_pos do
       with pos_table^[p] do
         begin
-	  write(yylst, p:5, '     ');
+          write(yylst, p:5, '     ');
           if pos_type=char_pos then
             write(yylst, singleQuoteStr(c):20)
           else if pos_type=cclass_pos then
             write(yylst, cclassStr(cc^):20)
-	  else if pos_type=mark_pos then
-	    if pos=0 then
-	      write(yylst, '# (rule '+intStr(rule)+')':20)
-	    else
-	      write(yylst, '/ (rule '+intStr(rule)+')':20);
+          else if pos_type=mark_pos then
+            if pos=0 then
+              write(yylst, '# (rule '+intStr(rule)+')':20)
+            else
+              write(yylst, '/ (rule '+intStr(rule)+')':20);
           write(yylst, ' ':5);
           for i := 1 to size(follow_pos^) do
             if follow_pos^[i]>0 then write(yylst, follow_pos^[i]:5, ' ');
@@ -124,7 +124,7 @@ procedure listDFATable;
 {$else}
             for k := 1 to size(state_pos^) do
               with pos_table^[state_pos^[k]] do
-		if (pos_type=mark_pos) and (pos=0) then
+                if (pos_type=mark_pos) and (pos=0) then
                   write(yylst, ' ', rule:5);
 {$endif}
             writeln(yylst);

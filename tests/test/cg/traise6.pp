@@ -41,25 +41,25 @@ Type
       halt(1);
     end;
 
- 
+
  constructor tbobject.create(c:longint);
   begin
     inherited create;
     b:=c;
   end;
-  
-  
+
+
   procedure MyRoutine;
    Begin
      WriteLn('hello world!');
    end;
- 
+
 var
  bobj: TBobject;
  i: integer;
 Begin
   i:=$7f;
-{$ifdef ver1_0}  
+{$ifdef ver1_0}
   raise TBobject.create(i) at longint(@MyRoutine);
 {$else}
   raise TBobject.create(i) at @MyRoutine,$00000001;
@@ -68,7 +68,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-10 08:27:44  carl
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/10 08:27:44  carl
     + mre tests for cg testuit
 
-}  
+}

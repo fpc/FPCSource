@@ -184,14 +184,13 @@ end.
 
 {
    $Log$
-   Revision 1.3  2002-05-13 13:45:38  peter
+   Revision 1.4  2002-09-07 15:40:55  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.3  2002/05/13 13:45:38  peter
      * updated to compile tests with kylix
 
    Revision 1.2  2002/03/29 12:36:03  peter
      * add check if tests are successfull or not
-
-   Revision 1.1  2001/08/31 23:56:45  carl
-   + first revision (missing LOC_FLAGS location test)
-
 
 }

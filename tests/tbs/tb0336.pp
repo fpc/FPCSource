@@ -16,7 +16,7 @@ begin
    val(s,d,code);
    if code<>0 then
      do_error(1);
-   s:='4294967296';   
+   s:='4294967296';
    val(s,d,code);
    if code=0 then
      do_error(1);

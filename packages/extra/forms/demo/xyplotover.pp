@@ -7,10 +7,10 @@ uses forms;
 
 type
 TFD_fff = record
-	fff : PFL_FORM;
-	xyplot : PFL_OBJECT;
-	vdata : pointer;
-	ldata : longint;
+        fff : PFL_FORM;
+        xyplot : PFL_OBJECT;
+        vdata : pointer;
+        ldata : longint;
 end;
 PFD_FFF = ^TFD_fff;
 
@@ -38,7 +38,7 @@ var
   i : integer;
   xx,yy : array[0..69] of real;
   fd_fff : PFD_fff;
-  
+
 begin
    fl_initialize(@argc, argv, 'FormDemo', nil, 0);
 
@@ -59,7 +59,7 @@ begin
    { add inset text }
    fl_add_xyplot_text(fd_fff^.xyplot, 2.2, 1.2, 'Original: Impulse',
                       FL_ALIGN_LEFT , FL_BLACK);
-   fl_add_xyplot_text(fd_fff^.xyplot, 2.2, 1.0, 'Overlay: Solid', 
+   fl_add_xyplot_text(fd_fff^.xyplot, 2.2, 1.0, 'Overlay: Solid',
                       FL_ALIGN_LEFT, FL_BLUE);
 
 
@@ -70,10 +70,10 @@ end.
 
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:02  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:02  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:15  michael
-  + removed logs
- 
 }

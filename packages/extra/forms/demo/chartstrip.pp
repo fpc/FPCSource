@@ -4,8 +4,8 @@ program chartstrip;
 uses forms,xlib;
 
 var
- func : longint; 
- xx    : double; 
+ func : longint;
+ xx    : double;
  step : double;
 
  form : PFL_FORM;
@@ -14,8 +14,8 @@ var
 
 procedure set_function(obj : PFL_OBJECT; arg : longint);export;
 begin
-   func := arg; 
-   fl_clear_chart(chartobj); 
+   func := arg;
+   fl_clear_chart(chartobj);
    xx := 0.0;
 end;
 
@@ -79,12 +79,12 @@ var res : double;
 begin
   res := 0.0;
   case func of
-     1: res := sin(xx); 
-     2: res := sin(2*xx)*cos(xx); 
-     3: res := sin(2*xx)+cos(xx); 
-     4: res := sin(3*xx)+cos(xx); 
-     5: res := sin(xx)*sin(xx) + cos(xx); 
-     6: res := sin(xx)*sin(xx)*sin(xx); 
+     1: res := sin(xx);
+     2: res := sin(2*xx)*cos(xx);
+     3: res := sin(2*xx)+cos(xx);
+     4: res := sin(3*xx)+cos(xx);
+     5: res := sin(xx)*sin(xx) + cos(xx);
+     6: res := sin(xx)*sin(xx)*sin(xx);
   end;
   xx := xx+step;
   next_step:=res;
@@ -120,10 +120,10 @@ begin
   until obj = exitbut;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

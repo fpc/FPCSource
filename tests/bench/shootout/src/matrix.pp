@@ -9,7 +9,7 @@ const
 type tMatrix = array[0..size, 0..size] of longint;
 
 procedure mkmatrix( rows, cols : integer; var mx : tMatrix);
-var 
+var
     R, C : integer;
     count : longint;
 begin
@@ -32,7 +32,7 @@ var
     val: longint;
 begin
     Dec(rows);
-    Dec(cols);    
+    Dec(cols);
     For i := 0 To rows do
     begin
         For j := 0 To cols do
@@ -56,12 +56,12 @@ begin
         NUM := 1
     else
         NUM := StrToInt(ParamStr(1));
-        
+
     if NUM < 1 then NUM := 1;
 
     mkmatrix(size, size, M1);
     mkmatrix(size, size, M2);
-    
+
     for I := 0 To NUM do
     begin
         mmult(size, size, M1, M2, MM);

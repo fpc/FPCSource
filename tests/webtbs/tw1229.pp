@@ -10,7 +10,7 @@ procedure SomePostScript; assembler;
     db '/pop2 { pop pop } def',0;
   end;
 var
-  st : string; 
+  st : string;
 begin
   WriteLn(pchar(@SomePostScript));
   st:=strpas(pchar(@SomePostScript));

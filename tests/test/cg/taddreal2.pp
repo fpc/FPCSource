@@ -265,7 +265,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-25 19:26:23  peter
+  Revision 1.2  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/25 19:26:23  peter
     * splitted in $E+ file and without emulator
 
   Revision 1.5  2002/04/13 21:02:38  carl
@@ -273,18 +276,5 @@ end.
 
   Revision 1.4  2002/03/05 21:55:11  carl
   * Adapted for automated testing
-
-  Revision 1.3  2001/07/31 01:55:23  carl
-  * corrected comparing value for real
-
-  Revision 1.2  2001/06/12 01:12:34  carl
-  + added header
-
-  Revision 1.1  2001/05/19 11:51:50  peter
-    * renamed to .pp
-
-  Revision 1.2  2001/05/16 15:28:40  carl
-  * corrected problem with log
-
 
 }

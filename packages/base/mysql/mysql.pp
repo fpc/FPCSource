@@ -32,39 +32,39 @@ Const mysqllib = 'mysqlclient';
 { All is 4-byte aligned on my machine. }
 {$packrecords 4}
 
-type 
+type
    my_bool = byte;
    gptr   = pchar;
    Socket = Longint;
-   PCardinal = ^Cardinal;    
+   PCardinal = ^Cardinal;
 
-{$ifdef linux}    
+{$ifdef linux}
 Var
   mysql_port : cardinal; external name 'mysql_port';
   mysql_unix_port : pchar; external name 'mysql_unix_port';
 {$endif}
 
 {
-#define IS_PRI_KEY(n)	((n) & PRI_KEY_FLAG)
-#define IS_NOT_NULL(n)	((n) & NOT_NULL_FLAG)
-#define IS_BLOB(n)	((n) & BLOB_FLAG)
-#define IS_NUM(t)	((t) <= FIELD_TYPE_INT24)
+#define IS_PRI_KEY(n)   ((n) & PRI_KEY_FLAG)
+#define IS_NOT_NULL(n)  ((n) & NOT_NULL_FLAG)
+#define IS_BLOB(n)      ((n) & BLOB_FLAG)
+#define IS_NUM(t)       ((t) <= FIELD_TYPE_INT24)
 }
 Type
-st_mysql_field = record 
-  name : Pchar;			{ Name of column }
-  table : pchar;		{ Table of column if column was a field }
-  def: pchar;			{ Default value (set by mysql_list_fields) }
-  ftype : enum_field_types;	{ Type of field. See mysql_com.h for types }
-  length : cardinal;		{ Width of column }
-  max_length : cardinal;	{ Max width of selected set }
-  flags : cardinal;		{ Div flags }
-  decimals : cardinal;	{ Number of decimals in field }
+st_mysql_field = record
+  name : Pchar;                 { Name of column }
+  table : pchar;                { Table of column if column was a field }
+  def: pchar;                   { Default value (set by mysql_list_fields) }
+  ftype : enum_field_types;     { Type of field. See mysql_com.h for types }
+  length : cardinal;            { Width of column }
+  max_length : cardinal;        { Max width of selected set }
+  flags : cardinal;             { Div flags }
+  decimals : cardinal;  { Number of decimals in field }
 end;
 TMYSQL_FIELD = st_mysql_field;
 PMYSQL_FIELD = ^TMYSQL_FIELD;
 
-TMYSQL_ROW = PPchar;		 { return data as array of strings }
+TMYSQL_ROW = PPchar;             { return data as array of strings }
 TMYSQL_FIELD_OFFSET = cardinal;  { offset to current field }
 
 {$ifndef oldmysql}
@@ -75,17 +75,17 @@ TMYSQL_FIELD_OFFSET = cardinal;  { offset to current field }
 
 PST_MYSQL_Rows = ^st_mysql_rows;
 st_mysql_rows = Record
-  next : pst_mysql_rows;		{ list of rows }
+  next : pst_mysql_rows;                { list of rows }
   Data : TMYSQL_ROW;
 end;
 TMYSQL_ROWS = st_mysql_rows;
 PMYSQL_ROWS = ^TMYSQL_ROWS;
 
 
-TMYSQL_ROW_OFFSET = PMYSQL_ROWS;	{ offset to current row }
+TMYSQL_ROW_OFFSET = PMYSQL_ROWS;        { offset to current row }
 
 st_mysql_data  = record
-  rows   : my_ulonglong; 
+  rows   : my_ulonglong;
   fields : cardinal;
   data : PMYSQL_ROWS;
   alloc : TMEM_ROOT;
@@ -94,7 +94,7 @@ end;
 TMYSQL_DATA = st_mysql_data;
 PMYSQL_DATA = ^TMYSQL_DATA;
 
-st_mysql_options = record 
+st_mysql_options = record
   connect_timeout,client_flag : cardinal;
   compress,named_pipe : my_bool;
   port : cardinal;
@@ -105,13 +105,13 @@ st_mysql_options = record
   use_ssl : my_bool;
   ssl_key, ssl_cert, ssl_ca, ssl_capath : pchar;
 {$endif}
-end;  
+end;
 
 {$ifndef use_mysql_321}
 mysql_option = (MYSQL_OPT_CONNECT_TIMEOUT, MYSQL_OPT_COMPRESS,
-		    MYSQL_OPT_NAMED_PIPE, MYSQL_INIT_COMMAND,
-		    MYSQL_READ_DEFAULT_FILE, MYSQL_READ_DEFAULT_GROUP,
-		    MYSQL_SET_CHARSET_DIR, MYSQL_SET_CHARSET_NAME);
+                    MYSQL_OPT_NAMED_PIPE, MYSQL_INIT_COMMAND,
+                    MYSQL_READ_DEFAULT_FILE, MYSQL_READ_DEFAULT_GROUP,
+                    MYSQL_SET_CHARSET_DIR, MYSQL_SET_CHARSET_NAME);
 {$endif}
 
 mysql_status = (MYSQL_STATUS_READY,
@@ -121,24 +121,24 @@ mysql_status = (MYSQL_STATUS_READY,
 {$ifndef use_mysql_321}
 (*
 charset_info_st = Record
-	number : cardinal;
-	name : pchar;
-	ctype : pointer {uchar*};
-	to_lower : pointer {uchar*};
-	to_upper : pointer {uchar*};
-	sort_order : pointer {uchar*};
-	strxfrm_multiply : cardinal;
+        number : cardinal;
+        name : pchar;
+        ctype : pointer {uchar*};
+        to_lower : pointer {uchar*};
+        to_upper : pointer {uchar*};
+        sort_order : pointer {uchar*};
+        strxfrm_multiply : cardinal;
 
-	{ einige nicht näher definierte Felder }
-	a, strxfrm, strnncoll, strnxfrm, like_range : pointer;
-	mbmaxlen : cardinal;
-	ismbchar, ismbhead, mbcharlen : pointer;
+        { einige nicht näher definierte Felder }
+        a, strxfrm, strnncoll, strnxfrm, like_range : pointer;
+        mbmaxlen : cardinal;
+        ismbchar, ismbhead, mbcharlen : pointer;
 end;
 *)
 {$endif}
 
 st_mysql = Record
-  NET : TNET;			{ Communication parameters }
+  NET : TNET;                   { Communication parameters }
 {$ifndef use_mysql_321}
   connector_fd : gptr;
 {$endif}
@@ -150,16 +150,16 @@ st_mysql = Record
 {$ifndef use_mysql_321}
   server_status : cardinal;
 {$endif}
-  thread_id : cardinal;		{ Id for connection in server }
+  thread_id : cardinal;         { Id for connection in server }
   affected_rows : my_ulonglong;
-  insert_id : my_ulonglong;		{ id if insert on table with NEXTNR }
-  extra_info : my_ulonglong;    	{ Used by mysqlshow }
-  packet_length : cardinal; 
+  insert_id : my_ulonglong;             { id if insert on table with NEXTNR }
+  extra_info : my_ulonglong;            { Used by mysqlshow }
+  packet_length : cardinal;
   status : mysql_status;
   fields : PMYSQL_FIELD;
   field_alloc : TMEM_ROOT;
-  free_me : my_bool;		{ If free in mysql_close }
-  reconnect : my_bool;		{ set to 1 if automatic reconnect }
+  free_me : my_bool;            { If free in mysql_close }
+  reconnect : my_bool;          { set to 1 if automatic reconnect }
   options : st_mysql_options;
 {$ifndef use_mysql_321}
   scramble_buf : array[0..8] of char;
@@ -172,17 +172,17 @@ PMYSQL = ^TMYSQL;
 
 
 st_mysql_res = record
-  row_count : my_ulonglong; 
+  row_count : my_ulonglong;
   field_count, current_field : cardinal;
   fields :         PMYSQL_FIELD;
   data :           PMYSQL_DATA;
   data_cursor :    PMYSQL_ROWS;
   field_alloc :    TMEM_ROOT;
-  row :            TMYSQL_ROW;			{ If unbuffered read }
-  current_row :    TMYSQL_ROW;		{ buffer to current row }
-  lengths :        pcardinal;		{ column lengths of current row }
-  handle :         PMYSQL;		{ for unbuffered reads }
-  eof :            my_bool;			{ Used my mysql_fetch_row }
+  row :            TMYSQL_ROW;                  { If unbuffered read }
+  current_row :    TMYSQL_ROW;          { buffer to current row }
+  lengths :        pcardinal;           { column lengths of current row }
+  handle :         PMYSQL;              { for unbuffered reads }
+  eof :            my_bool;                     { Used my mysql_fetch_row }
 end;
 TMYSQL_RES  = st_mysql_res;
 PMYSQL_RES  = ^TMYSQL_RES;
@@ -192,27 +192,27 @@ PMYSQL_RES  = ^TMYSQL_RES;
 
 Function mysql_num_rows (res : PMYSQL_RES) : my_ulonglong;
 Function mysql_num_fields(res : PMYSQL_RES) : Cardinal;
-Function mysql_eof(res : PMYSQL_RES) : my_bool; 
-Function mysql_fetch_field_direct(res : PMYSQL_RES; fieldnr : Cardinal) : TMYSQL_FIELD; 
-Function mysql_fetch_fields(res : PMYSQL_RES) : PMYSQL_FIELD; 
+Function mysql_eof(res : PMYSQL_RES) : my_bool;
+Function mysql_fetch_field_direct(res : PMYSQL_RES; fieldnr : Cardinal) : TMYSQL_FIELD;
+Function mysql_fetch_fields(res : PMYSQL_RES) : PMYSQL_FIELD;
 Function mysql_row_tell(res : PMYSQL_RES) : PMYSQL_ROWS;
 Function mysql_field_tell(res : PMYSQL_RES) : Cardinal;
-Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong;  
-Function mysql_insert_id(mysql : PMYSQL): my_ulonglong;  
+Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong;
+Function mysql_insert_id(mysql : PMYSQL): my_ulonglong;
 Function mysql_errno(mysql : PMYSQL) : Cardinal;
 Function mysql_info(mysql : PMYSQL): Pchar;
-Function mysql_reload(mysql : PMYSQL) : Longint; 
-Function mysql_thread_id(mysql : PMYSQL) : Cardinal; 
-Function mysql_error(mysql : PMYSQL) : pchar; 
+Function mysql_reload(mysql : PMYSQL) : Longint;
+Function mysql_thread_id(mysql : PMYSQL) : Cardinal;
+Function mysql_error(mysql : PMYSQL) : pchar;
 
 { Original functions }
 
 Function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL; stdcall;
 Function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : pchar;
-				   port : cardinal;
-				   unix_socket : pchar;
-				   clientflag : cardinal) : PMYSQL;stdcall;
-				   
+                                   port : cardinal;
+                                   unix_socket : pchar;
+                                   clientflag : cardinal) : PMYSQL;stdcall;
+
 Function mysql_close(sock : PMYSQL) : longint; stdcall;
 Function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint; stdcall;
 Function mysql_query(mysql : PMYSQL; q : pchar) : longint; stdcall;
@@ -249,10 +249,10 @@ implementation
 
 function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL;stdcall; external mysqllib name 'mysql_connect';
 function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : pchar;
-				   port : cardinal;
-				   unix_socket : pchar;
-				   clientflag : cardinal) : PMYSQL;stdcall; external mysqllib;
-				   
+                                   port : cardinal;
+                                   unix_socket : pchar;
+                                   clientflag : cardinal) : PMYSQL;stdcall; external mysqllib;
+
 function mysql_close(sock : PMYSQL) : longint ;stdcall; external mysqllib name 'mysql_close';
 function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint;stdcall; external mysqllib name 'mysql_select_db';
 function mysql_query(mysql : PMYSQL; q : pchar) : longint;stdcall; external mysqllib name 'mysql_query';
@@ -290,7 +290,7 @@ begin
  mysql_error:=mysql^.net.last_error
 end;
 
-Function mysql_num_rows (res : PMYSQL_RES) : my_ulonglong;  
+Function mysql_num_rows (res : PMYSQL_RES) : my_ulonglong;
 
 begin
   mysql_num_rows:=res^.row_count
@@ -332,13 +332,13 @@ begin
   mysql_field_tell:=res^.current_field
 end;
 
-Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong; 
+Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong;
 
 begin
   mysql_affected_rows:=mysql^.affected_rows
 end;
 
-Function mysql_insert_id(mysql : PMYSQL): my_ulonglong; 
+Function mysql_insert_id(mysql : PMYSQL): my_ulonglong;
 
 begin
   mysql_insert_id:=mysql^.insert_id
@@ -372,13 +372,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-08-26 17:52:31  michael
+  Revision 1.3  2002-09-07 15:42:52  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/26 17:52:31  michael
   + Upgraded to 3.23
-
-  Revision 1.4  2000/12/03 13:41:39  sg
-  * Fixed small merging bug by Michael
-
-  Revision 1.3  2000/12/02 15:24:37  michael
-  + Merged changes from fixbranch
 
 }

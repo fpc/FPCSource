@@ -7,7 +7,7 @@
 { PRE-REQUISITES: secondload()                                   }
 {                 secondassign()                                 }
 {                 secondtypeconv()                               }
-{                 secondcalln()                                  }  
+{                 secondcalln()                                  }
 {                 secondin()                                     }
 {****************************************************************}
 { DEFINES:                                                       }
@@ -34,8 +34,8 @@ function simple_exit : longint;
   exit;
   z:=12;
  end;
- 
- 
+
+
 const
   RET_S64BIT = $100000;
   RET_S32BIT = -123456;
@@ -47,53 +47,53 @@ const
   RET_SINGLE = 57689.15;
   RET_DOUBLE = 100012.345;
   PCHAR_STRING: pchar = 'HELLO STRING';
-  
+
 type
   t24bitarray = packed array[1..3] of byte;
-  
+
 var
  global_var : longint;
- 
- 
+
+
  function getu8bit : byte;
   begin
     getu8bit := RET_U8BIT;
   end;
-  
+
  function gets8bit : shortint;
   begin
     gets8bit := RET_S8BIT;
   end;
-  
+
 
  function getu16bit : word;
   begin
     getu16bit := RET_U16BIT;
   end;
-  
+
  function gets16bit : smallint;
   begin
     gets16bit := RET_S16BIT;
   end;
-  
+
 
  function getu32bit : cardinal;
   begin
     getu32bit := RET_U32BIT;
   end;
-  
+
  function gets32bit : longint;
   begin
     gets32bit := RET_S32BIT;
   end;
-  
+
 
   function gets64bit : longint;
    begin
      gets64bit := RET_S64BIT;
    end;
-   
-   
+
+
    function gets32real : single;
     begin
      gets32real := RET_SINGLE;
@@ -104,7 +104,7 @@ var
     begin
      gets64real := RET_DOUBLE;
     end;
-    
+
    function getpchar: pchar;
     begin
      getpchar := PCHAR_STRING;
@@ -123,28 +123,28 @@ function exit_loc_mem_ordinal_1 : longint;
 
 
 function exit_loc_reg_pointerdef  : pchar;
- begin  
+ begin
   exit(getpchar);
  end;
 
 function exit_loc_ref_pointerdef  : pchar;
  var
   p: pchar;
- begin  
+ begin
   p:=PCHAR_STRING;
   exit(p);
  end;
 
 function exit_loc_reg_ordinal_s64bit  : int64;
- begin  
+ begin
   exit(gets64bit);
  end;
- 
+
 function exit_loc_reg_ordinal_s32bit  :longint;
- begin  
+ begin
   exit(gets32bit);
  end;
- 
+
 function exit_loc_reg_ordinal_u32bit  :cardinal;
  begin
   exit(getu32bit);
@@ -152,9 +152,9 @@ function exit_loc_reg_ordinal_u32bit  :cardinal;
 
 function exit_loc_reg_ordinal_s16bit  : smallint;
  begin
-  exit(gets16bit); 
+  exit(gets16bit);
  end;
- 
+
 function exit_loc_reg_ordinal_u16bit  :word;
  begin
   exit(getu16bit)
@@ -164,38 +164,38 @@ function exit_loc_reg_ordinal_s8bit  : shortint;
  begin
   exit(gets8bit);
  end;
- 
+
 function exit_loc_reg_ordinal_u8bit  : byte;
  begin
    exit(getu8bit);
  end;
 
 
- 
+
 
 function exit_loc_ref_constant : word;
  begin
   exit(RET_U16BIT);
  end;
- 
- 
- 
+
+
+
 function exit_loc_ref_ordinal_s64bit  : int64;
  var
    s : int64;
- begin  
+ begin
   s := RET_S64BIT;
   exit(s);
  end;
- 
+
 function exit_loc_ref_ordinal_s32bit  :longint;
  var
    s : longint;
- begin  
+ begin
   s := RET_S32BIT;
   exit(s);
  end;
- 
+
 function exit_loc_ref_ordinal_u32bit  :cardinal;
  var
   c: cardinal;
@@ -211,13 +211,13 @@ function exit_loc_ref_ordinal_s16bit  : smallint;
   s := RET_S16BIT;
   exit(s);
  end;
- 
+
 function exit_loc_ref_ordinal_u16bit  :word;
  var
   w: word;
  begin
   w := RET_U16BIT;
-  exit(w); 
+  exit(w);
  end;
 
 function exit_loc_ref_ordinal_s8bit  : shortint;
@@ -227,7 +227,7 @@ function exit_loc_ref_ordinal_s8bit  : shortint;
   s := RET_S8BIT;
   exit(s);
  end;
- 
+
 function exit_loc_ref_ordinal_u8bit  : byte;
  var
   b: byte;
@@ -235,7 +235,7 @@ function exit_loc_ref_ordinal_u8bit  : byte;
    b:=RET_U8BIT;
    exit(b);
  end;
- 
+
 
  function exit_loc_ref_ordinal_24bit : t24bitarray;
   var
@@ -246,7 +246,7 @@ function exit_loc_ref_ordinal_u8bit  : byte;
     r[3]:=14;
     exit(r);
   end;
-  
+
 
 
 function exit_loc_ref_float_s32real : single;
@@ -281,7 +281,7 @@ function exit_loc_reg_float_s64real : double;
 
 function exit_loc_flags : boolean;
  var
-   c: char;     
+   c: char;
  begin
   c:='A';
   exit(c in ['a'..'z']);
@@ -289,28 +289,28 @@ function exit_loc_flags : boolean;
 
 function exit_loc_jump : boolean;
  var
-   b,c: boolean;     
+   b,c: boolean;
  begin
   b:=TRUE;
   c:=FALSE;
   exit(b and c);
  end;
- 
- 
+
+
  function exit_loc_ansi(w: word) : ansistring;
   var d: ansistring;
  begin
    str(w,d);
    exit(d);
  end;
-  
+
 
 
 var
  failed : boolean;
  array_24bits : t24bitarray;
 Begin
-  
+
  { simple exit }
  write('Testing secondexitn() simple case...');
  failed := false;
@@ -329,7 +329,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
  write('secondexitn() LOC_CONSTANT case...');
  failed := false;
  if exit_loc_ref_constant <> RET_U16BIT then
@@ -339,8 +339,8 @@ Begin
  else
    writeln('Passed!');
 
-   
- 
+
+
  write('secondexitn() LOC_MEM case...');
  failed := false;
  if exit_loc_mem_ordinal_1 <> RET_S32BIT then
@@ -349,7 +349,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
  writeln('Testing secondexitn() LOC_REFERENCE case...');
 
  write('    ordinal/enumdef return value...');
@@ -372,7 +372,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
  write('    floating point return value...');
  failed := false;
  if (trunc(exit_loc_ref_float_s32real) <>  trunc(RET_SINGLE)) then
@@ -383,7 +383,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
  { procvardef is not tested since it is the same as pointer return value...}
  write('    pointer/procedure variable return value...');
  failed := false;
@@ -394,8 +394,8 @@ Begin
    fail
  else
    writeln('Passed!');
-   
-   
+
+
 
  writeln('Testing secondexitn() LOC_REGISTER case...');
 
@@ -419,7 +419,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
  write('    floating point return value...');
  failed := false;
  if (trunc(exit_loc_reg_float_s32real) <>  trunc(RET_SINGLE)) then
@@ -430,7 +430,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
  { procvardef is not tested since it is the same as pointer return value...}
  write('    pointer/procedure variable return value...');
  failed := false;
@@ -441,7 +441,7 @@ Begin
    fail
  else
    writeln('Passed!');
-   
+
 
  write('Testing secondexitn() LOC_FLAGS case...');
  failed := false;
@@ -478,7 +478,10 @@ end.
 
 {
  $Log$
- Revision 1.3  2002-09-01 14:45:54  peter
+ Revision 1.4  2002-09-07 15:40:56  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.3  2002/09/01 14:45:54  peter
    * updates to compile with kylix
    * fixed some tests
 

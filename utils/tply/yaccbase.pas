@@ -33,7 +33,7 @@ $Revision$
 $Modtime: 96-07-31 15:18 $
 
 $History: YACCBASE.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -52,11 +52,11 @@ const
 
 (* symbolic character constants: *)
 
-bs   = #8;	(* backspace character *)
-tab  = #9;	(* tab character *)
-nl   = #10;	(* newline character *)
-cr   = #13;	(* carriage return *)
-ff   = #12;	(* form feed character *)
+bs   = #8;      (* backspace character *)
+tab  = #9;      (* tab character *)
+nl   = #10;     (* newline character *)
+cr   = #13;     (* carriage return *)
+ff   = #12;     (* form feed character *)
 
 var
 
@@ -66,9 +66,9 @@ yfilename     : String;
 pasfilename   : String;
 lstfilename   : String;
 codfilename   : String;
-codfilepath   : String; { Under Linux, 
+codfilepath   : String; { Under Linux,
                           binary and conf file are never in 1 directory.}
-                          
+
 (* Yacc input, output, list and code template file: *)
 
 yyin, yyout, yylst, yycod : Text;

@@ -229,59 +229,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-03-20 14:48:27  pierre
+  Revision 1.5  2002-09-07 15:40:42  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/03/20 14:48:27  pierre
    * moved StopJmp buffer to fpcatch unit
-
-  Revision 1.3  2001/10/24 14:17:27  pierre
-   * try to fix the Win2000 mouse problem
-
-  Revision 1.2  2001/08/05 02:01:47  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:22  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.4  2000/11/30 13:04:01  pierre
-   * fix for bug 1205
-
-  Revision 1.1.2.3  2000/11/29 00:54:44  pierre
-   + preserve window number and save special windows
-
-  Revision 1.1.2.2  2000/11/14 09:23:55  marco
-   * Second batch
-
-  Revision 1.1.2.1  2000/10/31 07:52:55  pierre
-   * recover gracefully if compiler generates a signal
-
-  Revision 1.1  2000/07/13 09:48:34  michael
-  + Initial import
-
-  Revision 1.6  2000/06/22 09:07:11  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.5  2000/05/02 08:42:26  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.4  2000/03/07 21:09:20  pierre
-    * Use globdir.inc HasSignal conditional
-    + Uses PutKeyEvent for CtrlC
-
-  Revision 1.3  1999/12/20 14:23:16  pierre
-    * MyApp renamed IDEApp
-    * TDebugController.ResetDebuggerRows added to
-      get resetting of debugger rows
-
-  Revision 1.2  1999/04/07 21:55:42  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.1  1999/02/20 15:18:28  peter
-    + ctrl-c capture with confirm dialog
-    + ascii table in the tools menu
-    + heapviewer
-    * empty file fixed
-    * fixed callback routines in fpdebug to have far for tp7
 
 }

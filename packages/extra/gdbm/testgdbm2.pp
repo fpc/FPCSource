@@ -1,11 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
 
     Test strings interface to gdbm library
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -26,7 +26,7 @@ Var
   dbf : pgdbm_file;
   A,B : String;
   i : longint;
-  
+
 begin
   dbf:=gdbm_open('test.dat',512,GDBM_NEWDB,432,nil);
   If dbf=Nil then
@@ -38,9 +38,9 @@ begin
     if not gdbm_store(dbf,B,A,gdbm_insert) then
       Writeln('Error inserting data')
     else
-      Writeln('Inserted string ',i)  
+      Writeln('Inserted string ',i)
     end;
-  gdbm_firstkey(dbf,B);  
+  gdbm_firstkey(dbf,B);
   I:=0;
   While B<>'' do
     begin
@@ -49,18 +49,15 @@ begin
     writeln('Data for key ',i,' (',B,') : ',A);
     B:=gdbm_nextkey(dbf,B);
     end;
-  gdbm_close(dbf);  
+  gdbm_close(dbf);
 end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:03  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:03  peter
     * splitted to base and extra
-
-  Revision 1.2  2001/03/02 11:54:02  michael
-  + Merged from fixbranch
-
-  Revision 1.1.2.1  2001/03/02 11:49:44  michael
-  + Initial implementation
 
 }

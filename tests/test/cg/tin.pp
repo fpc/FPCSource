@@ -67,8 +67,8 @@ type
          A_CPRESTORE,A_CPSAVE,
          A_FRESTORE,A_FSAVE,A_PFLUSH,A_PFLUSHA,A_PLOAD,A_PMOVE,A_PTEST,
          A_LABEL,A_NONE);
-      
-     { this is also a normal set } 
+
+     { this is also a normal set }
      tregister = (R_NO,
         R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
         R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
@@ -81,19 +81,19 @@ type
         R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
       );
-const      
+const
       LoReg = R_EAX;
       HiReg = R_DH;
 
-      
+
 
 type
   tnormalset = set of tbigenum;
   tsmallset = set of tsmallenum;
   tregset = set of LoReg..HiReg;
 
-  
-  
+
+
   procedure checkpassed(passed : boolean);
    begin
     if passed then
@@ -104,8 +104,8 @@ type
         Halt(1);
       end;
    end;
-   
-   
+
+
 var
   NewRegsEncountered : TRegSet;
 
@@ -113,10 +113,10 @@ var
 
   function Reg32 : tregister;
    begin
-     Reg32:=R_EAX;  
+     Reg32:=R_EAX;
    end;
-   
-   
+
+
 {*******************************************************************}
 { The following cases are possible                                  }
 {     jump table usage                                              }
@@ -171,16 +171,16 @@ var
      op3 := [DF];
      if not (DB in (op2+op3)) then
        passed := false;
-     checkpassed(passed);  
+     checkpassed(passed);
    end;
 
-  
+
   { returns result in register }
    function getsmallop : tsmallenum;
      begin
        getsmallop := DQ;
      end;
-    
+
   { NO GENERATION OF JUMP TABLE }
   { SMALL SET                   }
   procedure smallsettestthree;
@@ -209,9 +209,9 @@ var
      if not (getsmallop in (op2+op3)) then
        passed := false;
 
-     checkpassed(passed);  
+     checkpassed(passed);
    end;
-   
+
   { GENERATION OF JUMP TABLE }
   { SMALL SET                }
   procedure smallsettesttwo;
@@ -238,7 +238,7 @@ var
      op:=DK;
      if not (op in [dA,dB,dC,dd,de,df,dg,dh,di,dj,dk,dl,dm,dn,dop,dp,dq,dr]) then
        passed := false;
-     
+
      { LEFT : LOC_REGISTER                        }
      { RIGHT : NOT range constant set (zero flag) }
      op := DH;
@@ -248,10 +248,10 @@ var
      { RIGHT : range constant set with full set   }
      if not (getsmallop in [dA,dB,dC,dd,de,df,dg,dh,di,dj,dk,dl,dm,dn,dop,dp,dq,dr]) then
        passed := false;
-     checkpassed(passed);  
+     checkpassed(passed);
    end;
-  
-   
+
+
   { returns result in register }
   function getop : tbigenum;
     begin
@@ -287,8 +287,8 @@ var
      op1 := [A_MOVE,A_TRAP];
      if not (A_MOVE in op1) then
        passed := false;
-       
-     checkpassed(passed);  
+
+     checkpassed(passed);
    end;
 
 
@@ -312,7 +312,7 @@ var
 
      if not (getop in [A_BFSET,A_MOVE]) then
        passed := false;
-       
+
      { Left : LOC_REGISTER               }
      { right : no set at all             }
      if getop in [] then
@@ -333,7 +333,7 @@ var
      op:= A_MOVE;
      if not (getop in [A_BFSET,A_MOVE]) then
        passed := false;
-       
+
      { Left : LOC_REFERENCE              }
      { right : no set at all             }
      op := A_MOVE;
@@ -346,7 +346,7 @@ var
      if not (op in [A_ABCD..A_NONE]) then
        passed:=false;
 
-     checkpassed(passed);  
+     checkpassed(passed);
    end;
 
    { WITH JUMP TABLE }
@@ -359,15 +359,15 @@ var
        passed := false;
        NewRegsEncountered := [R_EAX..R_EDX];
        If (Reg32 in NewRegsEncountered) Then
-         passed := true;  
-       checkpassed(passed);  
+         passed := true;
+       checkpassed(passed);
      end;
 
 Begin
   smallsettestone;
   smallsettesttwo;
   smallsettestthree;
-  
+
   settestone;
   settesttwo;
   settestthree;
@@ -376,14 +376,13 @@ end.
 {
 
   $Log$
-  Revision 1.3  2002-06-16 08:28:11  carl
+  Revision 1.4  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/06/16 08:28:11  carl
   + added several missing tests (adapted to both v1.1 and v1.0)
 
   Revision 1.2  2002/03/05 21:56:02  carl
   * Adapted for automated testing
-
-  Revision 1.1  2001/06/25 01:34:03  carl
-  + secondin() node testing
-
 
 }

@@ -33,7 +33,7 @@ begin
   result := obj ;
     fl_set_object_dblbuffer(result, 1);
   obj := fl_add_counter(FL_NORMAL_COUNTER,20,20,270,30,'');
-  co[0] := obj; 
+  co[0] := obj;
     fl_set_object_color(obj,FL_INDIANRED,FL_RED);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@color_change),0);
   obj:= fl_add_counter(FL_NORMAL_COUNTER,20,60,270,30,'');
@@ -71,10 +71,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

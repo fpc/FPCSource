@@ -290,69 +290,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:24  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1  2000/07/13 09:48:36  michael
-  + Initial import
-
-  Revision 1.10  2000/06/22 09:07:12  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.9  2000/05/02 08:42:28  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.8  1999/06/25 00:33:40  pierre
-   * avoid lost memory on duplicate Template Items
-
-  Revision 1.7  1999/03/08 14:58:11  peter
-    + prompt with dialogs for tools
-
-  Revision 1.6  1999/03/01 15:42:03  peter
-    + Added dummy entries for functions not yet implemented
-    * MenuBar didn't update itself automatically on command-set changes
-    * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
- set
-    * efBackSpaceUnindents works correctly
-    + 'Messages' window implemented
-    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
-    + Added TP message-filter support (for ex. you can call GREP thru
-      GREP2MSG and view the result in the messages window - just like in TP)
-    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
-      so topic search didn't work...
-    * In FPHELP.PAS there were still context-variables defined as word instead
-      of THelpCtx
-    * StdStatusKeys() was missing from the statusdef for help windows
-    + Topic-title for index-table can be specified when adding a HTML-files
-
-  Revision 1.5  1999/02/18 13:44:35  peter
-    * search fixed
-    + backward search
-    * help fixes
-    * browser updates
-
-  Revision 1.4  1999/02/16 17:13:56  pierre
-   + findclose added for FPC
-
-  Revision 1.3  1999/01/21 11:54:24  peter
-    + tools menu
-    + speedsearch in symbolbrowser
-    * working run command
-
-  Revision 1.2  1998/12/28 15:47:52  peter
-    + Added user screen support, display & window
-    + Implemented Editor,Mouse Options dialog
-    + Added location of .INI and .CFG file
-    + Option (INI) file managment implemented (see bottom of Options Menu)
-    + Switches updated
-    + Run program
-
-  Revision 1.2  1998/12/22 10:39:51  peter
-    + options are now written/read
-    + find and replace routines
+  Revision 1.3  2002-09-07 15:40:45  peter
+    * old logs removed and tabs fixed
 
 }

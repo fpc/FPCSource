@@ -21,7 +21,7 @@ program tcase;
     {$define int64_Test}
 {$endif}
 
-{ 
+{
    The value is in LOC_REGISTER (operand to test)
 }
 
@@ -121,7 +121,7 @@ procedure TestCmpListTwoWord;
    else
      WriteLn('Passed!');
  end;
- 
+
 {$IFDEF INT64_TEST}
 {   low = high           }
 procedure TestCmpListOneInt64;
@@ -164,7 +164,7 @@ procedure TestCmpListTwoInt64;
    else
      WriteLn('Passed!');
  end;
- 
+
  {   low = high           }
  procedure TestCmpListThreeInt64;
   var
@@ -269,8 +269,8 @@ procedure TestCmpListRangesTwoWord;
    else
      WriteLn('Passed!');
  end;
- 
- 
+
+
  procedure TestCmpListRangesThreeWord;
   var
    s: word;
@@ -280,7 +280,7 @@ procedure TestCmpListRangesTwoWord;
     s := 3;
     failed := true;
     case s of
-    12..13 : ; 
+    12..13 : ;
     10 : ;
     3..7 : failed := false;
     end;
@@ -290,7 +290,7 @@ procedure TestCmpListRangesTwoWord;
       WriteLn('Passed!');
   end;
 
- 
+
 {$IFDEF INT64_TEST}
 {   low = high           }
 procedure TestCmpListRangesOneInt64;
@@ -333,8 +333,8 @@ procedure TestCmpListRangesTwoInt64;
    else
      WriteLn('Passed!');
  end;
-{$ENDIF} 
- 
+{$ENDIF}
+
 Begin
   TestCmpListOneShort;
   TestCmpListTwoShort;
@@ -345,18 +345,21 @@ Begin
   TestCmpListRangesOneWord;
   TestCmpListRangesTwoWord;
   TestCmpListRangesThreeWord;
-{$ifdef int64_test}  
+{$ifdef int64_test}
   TestCmpListOneInt64;
   TestCmpListTwoInt64;
   TestCmpListThreeInt64;
   TestCmpListRangesOneInt64;
   TestCmpListRangesTwoInt64;
-{$endif}  
+{$endif}
 end.
 
 {
    $Log$
-   Revision 1.1  2002-07-28 09:45:24  carl
+   Revision 1.2  2002-09-07 15:40:55  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.1  2002/07/28 09:45:24  carl
      + case node testing
 
 

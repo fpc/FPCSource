@@ -314,7 +314,7 @@ begin
       spebj0:=cx*spepol(t, d1[0], sizeof(d1) div sizeof(ArbFloat) - 1)
               + sx*spepol(t, d2[0], sizeof(d2) div sizeof(ArbFloat) - 1)
     end {abs(x)>8}
-    
+
 end {spebj0};
 
 function spebj1(x: ArbFloat): ArbFloat;
@@ -678,7 +678,7 @@ const
    (-2.44094900000000000e-14, 1.87547032473000000e-9,
     -2.83046401495148000e-5,  4.23191803533369041e-2,
     -7.67296362886645940e-1);
-    
+
    d1 : array[0..13] of ArbFloat =
    ( 1.00090702627808217e+0,  8.98804941670557880e-4,
     -7.95969469843846000e-6,  2.45367662227560000e-7,
@@ -1300,17 +1300,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:19  peter
+  Revision 1.2  2002-09-07 15:43:04  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:19  peter
     * splitted to base and extra
-
-  Revision 1.1  2000/07/13 06:34:16  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:42  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
-
 
 }

@@ -1124,16 +1124,10 @@ begin
   EmitFooter;
   CloseOutFile;
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:54:59  peter
+end.  Revision 1.2  2002-09-07 15:42:54  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:54:59  peter
 end.    * splitted to base and extra
-end.
-end.  Revision 1.4  2001/04/08 12:27:55  peter
-end.    * made it compilable with both 1.0.x and 1.1
-end.
-end.  Revision 1.3  2001/01/21 21:38:52  marco
-end.   * renamefest in packages
-end.
-end.  Revision 1.2  2000/07/13 11:33:11  michael
-end.  + removed logs
 end.
 }

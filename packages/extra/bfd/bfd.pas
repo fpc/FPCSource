@@ -18,9 +18,9 @@ interface
       possible across different type blocks)
     - Maybe some comments were removed or are at wrong places: while
       the codelines were sorted I did not check everything
-    - I did a lot of Search and Replace, so don't wonder if comments 
+    - I did a lot of Search and Replace, so don't wonder if comments
       were changed a bit, too.
-    - I renamed bfd to TBFD and a few other minor changes to keep the 
+    - I renamed bfd to TBFD and a few other minor changes to keep the
       namespace a bit cleaner
 
 }
@@ -85,7 +85,7 @@ here.  *)
 Type
  PBoolean     = ^Boolean;
  PLongWord    = ^LongWord;
-{$endif}  
+{$endif}
 
 const
   BFD_VERSION   = '2.10.91';
@@ -136,7 +136,7 @@ type
   symvalue = LongWord;
   bfd_size_type = LongWord;
 
-  flagword = LongWord;	(* 32 bits of flags *)
+  flagword = LongWord;  (* 32 bits of flags *)
 
   pppchar = ^ppchar;
   Pbfd_byte = ^bfd_byte;
@@ -149,9 +149,9 @@ is in practice already 0 *)
 
   bfd_format = (
     bfd_unknown {$ifndef ver1_0}= 0{$endif},  (* file format is unknown *)
-    bfd_object,	    (* linker/assember/compiler output *)
+    bfd_object,     (* linker/assember/compiler output *)
     bfd_archive,    (* object archive file *)
-    bfd_core	    (* core dump *)
+    bfd_core        (* core dump *)
     //UT: to use this enum in arrays the following is not needed:
     //bfd_type_end  (* marks the end; don't use it! *)
   );
@@ -166,23 +166,23 @@ is in practice already 0 *)
   carsym = record
     name: pchar;
     file_offset: file_ptr;  (* look here to find the file *)
-  end;	   		    (* to make these you call a carsymogen *)
+  end;                      (* to make these you call a carsymogen *)
 
 (* Used in generating armaps (archive tables of contents).
    Perhaps just a forward definition would do? *)
-  orl = record 			(* output ranlib *)
-    name:    ppchar;		(* symbol name *)
-    pos:     file_ptr;		(* TBFD* or file position *)
-    nameidx: integer;		(* index into string table *)
+  orl = record                  (* output ranlib *)
+    name:    ppchar;            (* symbol name *)
+    pos:     file_ptr;          (* TBFD* or file position *)
+    nameidx: integer;           (* index into string table *)
   end;
 
 (* Linenumber stuff *)
   lineno_cache_entry = record
-    line_number: LongWord;	(* Linenumber from start of function*)
+    line_number: LongWord;      (* Linenumber from start of function*)
     u: record
       case integer of
         0: (sym:    Psymbol_cache_entry); (* Function name *)
-        1: (offset: LongWord);	          (* Offset into section *)
+        1: (offset: LongWord);            (* Offset into section *)
       end;
   end;
   alent = lineno_cache_entry;
@@ -2328,20 +2328,20 @@ function bfd_stat  (abfd: PBFD; a: Pstat): integer;cdecl;
 function bfd_get_filename(abfd: PBFD): pchar;
 
 function bfd_record_phdr(abfd: PBFD; a: LongWord; b: bfd_boolean; c: flagword; d: bfd_boolean; e: bfd_vma;
-	   f: bfd_boolean; g: bfd_boolean; h: LongWord; i: PPsec):bfd_boolean;cdecl;
+           f: bfd_boolean; g: bfd_boolean; h: LongWord; i: PPsec):bfd_boolean;cdecl;
 
 (* Byte swapping routines.  *)
 
-function bfd_getb64	    (const val):bfd_vma;cdecl;
-function bfd_getl64	    (const val):bfd_vma;cdecl;
+function bfd_getb64         (const val):bfd_vma;cdecl;
+function bfd_getl64         (const val):bfd_vma;cdecl;
 function bfd_getb_signed_64 (const val):bfd_signed_vma;cdecl;
 function bfd_getl_signed_64 (const val):bfd_signed_vma;cdecl;
-function bfd_getb32	    (const val):bfd_vma;cdecl;
-function bfd_getl32	    (const val):bfd_vma;cdecl;
+function bfd_getb32         (const val):bfd_vma;cdecl;
+function bfd_getl32         (const val):bfd_vma;cdecl;
 function bfd_getb_signed_32 (const val):bfd_signed_vma;cdecl;
 function bfd_getl_signed_32 (const val):bfd_signed_vma;cdecl;
-function bfd_getb16	    (const val):bfd_vma;cdecl;
-function bfd_getl16	    (const val):bfd_vma;cdecl;
+function bfd_getb16         (const val):bfd_vma;cdecl;
+function bfd_getl16         (const val):bfd_vma;cdecl;
 function bfd_getb_signed_16 (const val):bfd_signed_vma;cdecl;
 function bfd_getl_signed_16 (const val):bfd_signed_vma;cdecl;
 procedure bfd_putb64(vma: bfd_vma; var val);cdecl;
@@ -2369,38 +2369,38 @@ function bfd_ecoff_debug_init(output_bfd: PBFD; output_debug: Pecoff_debug_info;
 procedure bfd_ecoff_debug_free(handle: pointer; output_bfd: PBFD; output_debug: Pecoff_debug_info; output_swap: Pecoff_debug_swap;li: Pbfd_link_info);cdecl;
 function bfd_ecoff_debug_accumulate(
            handle: pointer; output_bfd: PBFD; output_debug: Pecoff_debug_info;
-	   output_swap: Pecoff_debug_swap;
-	   input_bfd: PBFD; input_debug: Pecoff_debug_info;
-	   input_swap: Pecoff_debug_swap;
+           output_swap: Pecoff_debug_swap;
+           input_bfd: PBFD; input_debug: Pecoff_debug_info;
+           input_swap: Pecoff_debug_swap;
            li: Pbfd_link_info):bfd_boolean ;cdecl;
 
 (*todo: function bfd_ecoff_debug_accumulate_other(
            pointer handle;
            PBFD output_bfd;
            Pecoff_debug_info output_debug;
-	   Pecoff_debug_swap output_swap;
+           Pecoff_debug_swap output_swap;
            PBFD input_bfd;
-	   li: Pbfd_link_info
+           li: Pbfd_link_info
            ):bfd_boolean ;cdecl;
 *)
 
 (*todo: function bfd_ecoff_debug_externals(
            PBFD abfd;
            Pecoff_debug_info debug;
-	   Pecoff_debug_swap swap;
-	   bfd_boolean relocateable;
-	   bfd_boolean ( *get_extr) (struct symbol_cache_entry *;
-				struct ecoff_extr * );
-	   void ( *set_index) (struct symbol_cache_entry *;
-			      bfd_size_type)
+           Pecoff_debug_swap swap;
+           bfd_boolean relocateable;
+           bfd_boolean ( *get_extr) (struct symbol_cache_entry *;
+                                struct ecoff_extr * );
+           void ( *set_index) (struct symbol_cache_entry *;
+                              bfd_size_type)
            ):bfd_boolean ;cdecl;
 *)
 
 (*todo: function bfd_ecoff_debug_one_external(
            PBFD abfd,
            Pecoff_debug_info debug,
-	   Pecoff_debug_swap swap,
-	   const ShortInt *name,
+           Pecoff_debug_swap swap,
+           const ShortInt *name,
            struct ecoff_extr *esym
            ):bfd_boolean ;cdecl;
 *)
@@ -2408,14 +2408,14 @@ function bfd_ecoff_debug_accumulate(
 (*todo: function bfd_ecoff_debug_size(
            PBFD abfd,
            Pecoff_debug_info debug,
-	   Pecoff_debug_swap swap
+           Pecoff_debug_swap swap
            ):bfd_size_type;cdecl;
 *)
 
 (*todo: function bfd_ecoff_write_debug(
            PBFD abfd,
            Pecoff_debug_info debug,
-	   Pecoff_debug_swap swap,
+           Pecoff_debug_swap swap,
            file_ptr where
            ):bfd_boolean;cdecl;
 *)
@@ -2424,8 +2424,8 @@ function bfd_ecoff_debug_accumulate(
            pointer handle,
            PBFD abfd,
            Pecoff_debug_info debug,
-	   Pecoff_debug_swap swa,
-	   struct bfd_link_info *info, file_ptr where)
+           Pecoff_debug_swap swa,
+           struct bfd_link_info *info, file_ptr where)
            ):bfd_boolean;cdecl;
 *)
 
@@ -2434,7 +2434,7 @@ function bfd_ecoff_debug_accumulate(
            struct bfd_link_info *,
            struct sec *,
            struct sec *,
-	   pchar*
+           pchar*
            ):bfd_boolean;cdecl;
 *)
 
@@ -2444,8 +2444,8 @@ function bfd_ecoff_debug_accumulate(
 //todo:function bfd_elf64_record_link_assignment(PBFD ; struct bfd_link_info *; const pchar; bfd_boolean):bfd_boolean;cdecl;
 //todo:function bfd_link_needed_list *bfd_elf_get_needed_list(PBFD ; struct bfd_link_info *):struct;cdecl;
 //todo:function bfd_elf_get_bfd_needed_list(PBFD ; struct bfd_link_needed_list **):bfd_boolean;cdecl;
-//todo:function bfd_elf32_size_dynamic_sections (PBFD ; const pchar; const pchar; bfd_boolean; const pchar;	 const pchar const *; struct bfd_link_info *; struct sec **;	 struct bfd_elf_version_tree *):bfd_boolean;cdecl;
-//todo:function bfd_elf64_size_dynamic_sections (PBFD ; const pchar; const pchar; bfd_boolean; const pchar;	 const pchar const *; struct bfd_link_info *; struct sec **;	 struct bfd_elf_version_tree *):bfd_boolean;cdecl;
+//todo:function bfd_elf32_size_dynamic_sections (PBFD ; const pchar; const pchar; bfd_boolean; const pchar;      const pchar const *; struct bfd_link_info *; struct sec **;     struct bfd_elf_version_tree *):bfd_boolean;cdecl;
+//todo:function bfd_elf64_size_dynamic_sections (PBFD ; const pchar; const pchar; bfd_boolean; const pchar;      const pchar const *; struct bfd_link_info *; struct sec **;     struct bfd_elf_version_tree *):bfd_boolean;cdecl;
 //todo:function bfd_elf_set_dt_needed_name(PBFD ; const pchar):void;cdecl;
 //todo:function bfd_elf_set_dt_needed_soname(PBFD ; const pchar):void;cdecl;
 //todo:function const ShortInt *bfd_elf_get_dt_soname (PBFD );cdecl;
@@ -2471,7 +2471,7 @@ function bfd_ecoff_debug_accumulate(
 (* Return true if address "naturally" sign extends, or -1 if not elf.  *)
 //todo:function bfd_get_sign_extend_vma(PBFD  ):integer;cdecl;
 
-//todo:function bfd_m68k_elf32_create_embedded_relocs(PBFD , struct bfd_link_info *, struct sec *, struct sec *,	   pchar*):bfd_boolean;cdecl;
+//todo:function bfd_m68k_elf32_create_embedded_relocs(PBFD , struct bfd_link_info *, struct sec *, struct sec *,           pchar*):bfd_boolean;cdecl;
 
 (* SunOS shared library support routines for the linker.  *)
 
@@ -2490,19 +2490,19 @@ function bfd_ecoff_debug_accumulate(
 //todo:function bfd_get_file_window(PBFD , file_ptr, bfd_size_type, bfd_window *, bfd_boolean):bfd_boolean;cdecl;
 
 (* XCOFF support routines for the linker.  *)
-//todo:function bfd_boolean bfd_xcoff_link_record_set (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,	   bfd_size_type));cdecl;
-//todo:function bfd_boolean bfd_xcoff_import_symbol (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,	   bfd_vma, const pchar, const pchar, const pchar));cdecl;
-//todo:function bfd_boolean bfd_xcoff_export_symbol  (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,	   bfd_boolean));cdecl;
+//todo:function bfd_boolean bfd_xcoff_link_record_set (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,        bfd_size_type));cdecl;
+//todo:function bfd_boolean bfd_xcoff_import_symbol (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,          bfd_vma, const pchar, const pchar, const pchar));cdecl;
+//todo:function bfd_boolean bfd_xcoff_export_symbol  (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,         bfd_boolean));cdecl;
 //todo:function bfd_boolean bfd_xcoff_link_count_reloc  (PBFD , struct bfd_link_info *, const pchar));cdecl;
 //todo:function bfd_boolean bfd_xcoff_record_link_assignment  (PBFD , struct bfd_link_info *, const pchar));cdecl;
-//todo:function bfd_boolean bfd_xcoff_size_dynamic_sections  (PBFD , struct bfd_link_info *, const pchar, const pchar,	   LongWord, LongWord, LongWord, bfd_boolean,	   integer, bfd_boolean, bfd_boolean, struct sec **));cdecl;
+//todo:function bfd_boolean bfd_xcoff_size_dynamic_sections  (PBFD , struct bfd_link_info *, const pchar, const pchar,     LongWord, LongWord, LongWord, bfd_boolean,      integer, bfd_boolean, bfd_boolean, struct sec **));cdecl;
 
 (* Externally visible COFF routines.  *)
 
 //todo:function bfd_boolean bfd_coff_get_syment (PBFD , struct symbol_cache_entry *, struct internal_syment *));cdecl;
 //todo:function bfd_boolean bfd_coff_get_auxent (PBFD , struct symbol_cache_entry *, integer, union internal_auxent *));cdecl;
 //todo:function bfd_boolean bfd_coff_set_symbol_class (PBFD , struct symbol_cache_entry *, LongWord));cdecl;
-//todo:function bfd_boolean bfd_m68k_coff_create_embedded_relocs (PBFD , struct bfd_link_info *, struct sec *, struct sec *,	   pchar*));cdecl;
+//todo:function bfd_boolean bfd_m68k_coff_create_embedded_relocs (PBFD , struct bfd_link_info *, struct sec *, struct sec *,       pchar*));cdecl;
 
 (* ARM Interworking support.  Called from linker.  *)
 //todo:function bfd_boolean bfd_arm_allocate_interworking_sections (struct bfd_link_info *));cdecl;
@@ -2548,7 +2548,7 @@ function bfd_make_readable(abfd: PBFD ):bfd_boolean;cdecl;
 //todo:#define bfd_asymbol_bfd(x) ((x)->the_bfd)
 //todo:#define bfd_asymbol_flavour(x) (bfd_asymbol_bfd(x)->xvec->flavour)
 
-//todo:#define	align_power(addr, align) ((addr) + ((1<<(align))-1)) & (-1 << (align)))
+//todo:#define  align_power(addr, align) ((addr) + ((1<<(align))-1)) & (-1 << (align)))
 //todo:#define bfd_get_section_name(bfd, ptr) ((ptr)->name + 0)
 //todo:#define bfd_get_section_vma(bfd, ptr) ((ptr)->vma + 0)
 //todo:#define bfd_get_section_alignment(bfd, ptr) ((ptr)->alignment_power + 0)
@@ -2898,39 +2898,39 @@ function bfd_check_format_matches(abfd: PBFD; format: bfd_format; matching: pppc
 
 (* No flags.  *)
 const
-  BFD_NO_FLAGS 	= $00;
+  BFD_NO_FLAGS  = $00;
 
 (* BFD contains relocation entries.  *)
-  HAS_RELOC   	= $01;
+  HAS_RELOC     = $01;
 
 (* BFD is directly executable.  *)
-  EXEC_P      	= $02;
+  EXEC_P        = $02;
 
 (* BFD has line number information (basically used for F_LNNO in a
    COFF header).  *)
-  HAS_LINENO  	= $04;
+  HAS_LINENO    = $04;
 
 (* BFD has debugging information.  *)
-  HAS_DEBUG   	= $08;
+  HAS_DEBUG     = $08;
 
 (* BFD has symbols.  *)
-  HAS_SYMS    	= $10;
+  HAS_SYMS      = $10;
 
 (* BFD has local symbols (basically used for F_LSYMS in a COFF
    header).  *)
-  HAS_LOCALS  	= $20;
+  HAS_LOCALS    = $20;
 
 (* BFD is a dynamic object.  *)
-  DYNAMIC     	= $40;
+  DYNAMIC       = $40;
 
 (* Text section is write protected (if D_PAGED is not set, this is
    like an a.out NMAGIC file) (the linker sets this by default, but
    clears it for -r or -N).  *)
-  WP_TEXT     	= $80;
+  WP_TEXT       = $80;
 
 (* BFD is dynamically paged (this is like an a.out ZMAGIC file) (the
    linker sets this by default, but clears it for -r or -n or -N).  *)
-  D_PAGED     	= $100;
+  D_PAGED       = $100;
 
 (* BFD is relaxable (this means that bfd_relax_section may be able to
    do something) (sometimes bfd_relax_section can do something even if

@@ -614,20 +614,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-09-18 11:33:54  pierre
-   * fix Previous Help Topic
-
-  Revision 1.1  2001/08/04 11:30:26  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.3  2001/06/07 16:41:15  jonas
-    *  updated for stricter checking of @ for procvars
-
-  Revision 1.1.2.2  2000/11/27 12:06:52  pierre
-   New bunch of Gabor fixes
-
-  Revision 1.1.2.1  2000/09/18 19:50:37  pierre
-   New file from Gabor
-
+  Revision 1.3  2002-09-07 15:40:50  peter
+    * old logs removed and tabs fixed
 
 }

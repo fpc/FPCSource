@@ -7,7 +7,7 @@ var
 begin
     While Not Eof(input) Do
     begin
-        ReadLn(input, num);    
+        ReadLn(input, num);
         tot := tot + num;
     end;
     WriteLn(tot);

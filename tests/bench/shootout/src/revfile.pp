@@ -7,7 +7,7 @@ var
     i, N : longint;
     list : TList;
     line : string;
-    pline : pointer;    
+    pline : pointer;
 begin
     list := TList.Create;
     While Not Eof(input) do

@@ -1,11 +1,11 @@
-{ Author   : Mike Bradbery 
+{ Author   : Mike Bradbery
   Copyright: 2000 Mike Bradbery and others, see file "forum.txt" }
 
 program gdtest;
 
 uses gd;
 
-var 
+var
   f:pFile;
   black,white:integer;
   red,green,blue:integer;
@@ -74,7 +74,7 @@ Begin
     gdImageString(im, gdFontLarge,left-5-((length(s1)-1)*gdFontLarge^.w),bottom-(x*(bottom-top) div 10)-gdFontLarge^.h div 2, s1, white);
   end;
   f:=fopen(paramstr(1),'wb');
-  if (f=nil) then 
+  if (f=nil) then
     writeln('Help, the file pointer is nil');
   gdImagePng(im,f);
   fclose(f);

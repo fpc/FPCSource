@@ -31,7 +31,7 @@ $Revision$
 $Modtime: 96-07-31 21:15 $
 
 $History: YACCTABL.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -488,7 +488,7 @@ procedure entry(k : Integer; symbol : String);
 function get_key ( symbol : String ) : Integer;
   begin
     get_key := key(symbol, max_keys, {$ifdef fpc}@{$endif}lookup,
-		   {$ifdef fpc}@{$endif}entry);
+                   {$ifdef fpc}@{$endif}entry);
   end(*get_key*);
 
 procedure def_key ( k : Integer; sym : Integer );
@@ -573,7 +573,7 @@ procedure sort_rules;
   begin
     for i := 1 to n_rules do rule_no^[i] := i;
     quicksort ( 1, n_rules, {$ifdef fpc}@{$endif}rule_less,
-	       {$ifdef fpc}@{$endif}rule_swap );
+               {$ifdef fpc}@{$endif}rule_swap );
   end(*sort_rules*);
 
 procedure rule_offsets;
@@ -636,7 +636,7 @@ procedure sort_types;
   begin
     (* sort: *)
     quicksort(1, n_types, {$ifdef fpc}@{$endif}type_less,
-	      {$ifdef fpc}@{$endif}type_swap);
+              {$ifdef fpc}@{$endif}type_swap);
     (* eliminate dups: *)
     i := 1; j := 1; count := 0;
     while i<=n_types do
@@ -917,7 +917,7 @@ procedure sort_item_set ( var item_set : ItemSet );
   begin
     sort_items := item_set;
     quicksort(1, sort_items.n_items, {$ifdef fpc}@{$endif}items_less,
-	      {$ifdef fpc}@{$endif}items_swap);
+              {$ifdef fpc}@{$endif}items_swap);
     item_set := sort_items;
   end(*sort_item_set*);
 

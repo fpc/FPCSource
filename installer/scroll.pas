@@ -257,16 +257,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2002-01-29 22:01:17  peter
+  Revision 1.3  2002-09-07 15:40:59  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/01/29 22:01:17  peter
     * support fvision
 
   Revision 1.1  2002/01/29 17:59:15  peter
     * moved installer
-
-  Revision 1.1.2.2  2001/05/02 16:22:44  pierre
-   + Shorten file names to comply with Dos 8+3 limitation
-
-  Revision 1.1.2.1  2000/09/21 10:51:33  pierre
-   new file from Gabor
 
 }

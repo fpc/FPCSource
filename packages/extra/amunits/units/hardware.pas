@@ -102,7 +102,7 @@ Const
     CIACRBB_INMODE0     = 5;
     CIACRBB_INMODE1     = 6;
     CIACRBB_ALARM   = 7;
- 
+
 { interrupt control register masks }
 
     CIAICRF_TA      = $01;
@@ -123,7 +123,7 @@ Const
     CIACRAF_INMODE  = $20;
     CIACRAF_SPMODE  = $40;
     CIACRAF_TODIN   = $80;
- 
+
 { control register B register masks }
 
     CIACRBF_START   = $01;

@@ -24,7 +24,7 @@ $Revision$
 $Modtime: 96-07-31 14:09 $
 
 $History: YACCPARS.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -237,7 +237,7 @@ procedure build;
                     exclude(symset^, sym);
                   end;
 
-        for i := redns_lo to redns_hi do 
+        for i := redns_lo to redns_hi do
           for j := i+1 to redns_hi do with redn_table^[j] do
             begin
               for k := 1 to size(symset^) do

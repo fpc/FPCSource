@@ -867,7 +867,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-03-19 19:37:09  peter
+  Revision 1.24  2002-09-07 15:40:32  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.23  2002/03/19 19:37:09  peter
     * fix source location in zips for packages and demos
 
   Revision 1.22  2002/03/11 19:10:36  peter
@@ -886,70 +889,5 @@ end.
   Revision 1.19  2002/01/06 21:50:05  peter
     * lcl updates
     * small optimizes for package check
-
-  Revision 1.18  2001/10/14 21:38:33  peter
-    * cross compiling support
-
-  Revision 1.17  2001/09/11 11:04:51  pierre
-   * handle default cpu and target without override, use require section for override
-
-  Revision 1.16  2001/08/22 20:45:19  peter
-    * firstword added
-    * pathexist fix to include sysfile
-
-  Revision 1.15  2001/08/02 20:50:29  peter
-    * -T<target> support
-    * better error reporting for not found dirs
-    * some cleanups and nicer strings
-
-  Revision 1.14  2001/07/31 22:02:32  peter
-    * install Package.fpc
-
-  Revision 1.13  2001/07/13 21:01:59  peter
-    * cygdrive support
-    * fixed cygwin detection
-    * fixed some duplicate and extraeous spaces
-
-  Revision 1.12  2001/06/07 21:21:38  peter
-    * remove ppufiles
-    * fix staticlib prefix that is now libp instead of lib
-
-  Revision 1.11  2001/06/06 21:58:25  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.10  2001/06/04 22:18:16  peter
-    * Still process subdirs if a target has no section defined
-
-  Revision 1.9  2001/06/04 21:42:57  peter
-    * Arguments added
-    * Start of Package.fpc creation
-
-  Revision 1.8  2001/05/30 21:39:17  peter
-    * gecho, gdate fixes
-    * distinstall target rewrite to not install things twice
-
-  Revision 1.7  2001/05/03 21:35:10  peter
-    * Makefile fixes
-
-  Revision 1.6  2001/02/24 10:44:33  peter
-    * another fix for internal variable checking
-
-  Revision 1.5  2001/02/22 21:11:24  peter
-    * fpcdir detection added
-    * fixed loading of variables in fpcmake itself
-
-  Revision 1.4  2001/02/20 21:49:31  peter
-    * fixed change variable accessing using _ instead of .
-
-  Revision 1.3  2001/02/01 22:00:10  peter
-    * default.fpcdir is back
-    * subdir requirement checking works, but not very optimal yet as
-      it can load the same Makefile.fpc multiple times
-
-  Revision 1.2  2001/01/29 21:49:10  peter
-    * lot of updates
-
-  Revision 1.1  2001/01/24 21:59:36  peter
-    * first commit of new fpcmake
 
 }

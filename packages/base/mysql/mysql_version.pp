@@ -31,10 +31,10 @@ implementation
 
 end.
   $Log$
-  Revision 1.2  2002-08-26 17:52:31  michael
+  Revision 1.3  2002-09-07 15:42:53  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/26 17:52:31  michael
   + Upgraded to 3.23
 
-  Revision 1.2  2000/07/13 11:33:26  michael
-  + removed logs
- 
 }

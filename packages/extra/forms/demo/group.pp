@@ -9,20 +9,20 @@ uses forms;
 Const NGROUP = 4;
 
 type TFD_objsform = record
-	objsform : PFL_Form;
-	vdata : Pointer;
-	ldata : longint;
-	bitbutton,
-	pixbutton,
-	bit,
-	pix,
-	chart,
-	quit,
-	menu,
-	choice,
-	browser,
-	xyplot : PFL_Object;
-	button,group :  array [0..4] of PFL_OBJECT;
+        objsform : PFL_Form;
+        vdata : Pointer;
+        ldata : longint;
+        bitbutton,
+        pixbutton,
+        bit,
+        pix,
+        chart,
+        quit,
+        menu,
+        choice,
+        browser,
+        xyplot : PFL_Object;
+        button,group :  array [0..4] of PFL_OBJECT;
 end;
 PFD_objsform = ^TFD_objsform;
 
@@ -76,7 +76,7 @@ begin
 
     fl_set_xyplot_data(fd^.xyplot,x,y,6,'','','');
     fl_add_xyplot_overlay(fd^.xyplot,1, x, y, 6, FL_RED);
-    fl_add_xyplot_text(fd^.xyplot,2.5,5.2,'Weekly Summary', 
+    fl_add_xyplot_text(fd^.xyplot,2.5,5.2,'Weekly Summary',
                        FL_ALIGN_CENTER,FL_BLUE);
     fl_add_xyplot_text(fd^.xyplot, 3, 3.85, '@-22^.', FL_ALIGN_TOP, FL_RED);
 
@@ -91,7 +91,7 @@ var
   obj : PFL_OBJECT;
   fdui : PFD_objsform;
   old_bw : Longint;
-  
+
 begin
   new(fdui);
   old_bw := fl_get_border_width;
@@ -102,27 +102,27 @@ begin
   obj := fl_add_box(FL_UP_BOX,0,0,455,360,'');
   obj := fl_add_box(FL_UP_BOX,0,0,456,70,'');
   obj := fl_add_button(FL_RADIO_BUTTON,15,20,75,30,'Static');
-    fdui^.button[0] := obj; 
+    fdui^.button[0] := obj;
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@show_group),0);
   obj := fl_add_button(FL_RADIO_BUTTON,90,20,75,30,'Button');
-    fdui^.button[1] := obj; 
+    fdui^.button[1] := obj;
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@show_group),1);
   obj := fl_add_button(FL_RADIO_BUTTON,165,20,70,30,'Valuator');
-    fdui^.button[2] := obj; 
+    fdui^.button[2] := obj;
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@show_group),2);
   obj := fl_add_button(FL_RADIO_BUTTON,235,20,70,30,'Input');
-    fdui^.button[3] := obj; 
+    fdui^.button[3] := obj;
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@show_group),3);
   obj := fl_add_button(FL_RADIO_BUTTON,305,20,70,30,'Other');
-    fdui^.button[4] := obj; 
+    fdui^.button[4] := obj;
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@show_group),4);
@@ -147,9 +147,9 @@ begin
 
   fdui^.group[1] := fl_bgn_group();
   obj := fl_add_bitmapbutton(FL_NORMAL_BUTTON,60,250,50,40,'');
-    fdui^.bitbutton := obj; 
+    fdui^.bitbutton := obj;
   obj := fl_add_pixmapbutton(FL_NORMAL_BUTTON,85,120,80,80,'');
-    fdui^.pixbutton := obj; 
+    fdui^.pixbutton := obj;
   obj := fl_add_button(FL_NORMAL_BUTTON,290,270,90,35,'Button');
   obj := fl_add_round3dbutton(FL_PUSH_BUTTON,260,95,60,40,'Round3DButton');
     fl_set_object_color(obj, FL_COL1, FL_MAGENTA);
@@ -167,15 +167,15 @@ begin
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
   obj := fl_add_bitmap(FL_NORMAL_BITMAP,30,220,80,70,'bitmap');
-    fdui^.bit := obj; 
+    fdui^.bit := obj;
   obj := fl_add_clock(FL_ANALOG_CLOCK,330,240,90,80,'');
   obj := fl_add_frame(FL_ENGRAVED_FRAME,130,120,80,70,'A Frame');
     fl_set_object_lsize(obj,FL_NORMAL_SIZE);
     fl_set_object_lstyle(obj,FL_TIMESBOLD_STYLE);
   obj := fl_add_pixmap(FL_NORMAL_PIXMAP,340,110,90,70,'pixmap');
-    fdui^.pix := obj; 
+    fdui^.pix := obj;
   obj := fl_add_chart(FL_PIE_CHART,160,210,130,110,'chart');
-    fdui^.chart := obj; 
+    fdui^.chart := obj;
   obj := fl_add_text(FL_NORMAL_TEXT,240,130,100,30,'Text stuff\nand more stuff');
     fl_set_object_lalign(obj,FL_ALIGN_CENTER or FL_ALIGN_INSIDE);
   fl_end_group();
@@ -187,18 +187,18 @@ begin
   fl_end_group();
 
   obj := fl_add_button(FL_NORMAL_BUTTON,385,20,60,30,'Quit');
-    fdui^.quit := obj; 
+    fdui^.quit := obj;
 
   fdui^.group[4] := fl_bgn_group();
   obj := fl_add_menu(FL_PULLDOWN_MENU,190,110,40,19,'Menu');
-    fdui^.menu := obj; 
+    fdui^.menu := obj;
     fl_set_object_boxtype(obj,FL_FLAT_BOX);
   obj := fl_add_choice(FL_NORMAL_CHOICE,290,110,120,30,'');
-    fdui^.choice := obj; 
+    fdui^.choice := obj;
   obj := fl_add_browser(FL_NORMAL_BROWSER,30,140,140,150,'');
-    fdui^.browser := obj; 
+    fdui^.browser := obj;
   obj := fl_add_xyplot(FL_IMPULSE_XYPLOT,190,150,240,180,'');
-    fdui^.xyplot := obj; 
+    fdui^.xyplot := obj;
     fl_set_object_lsize(obj,FL_DEFAULT_SIZE);
   fl_end_group();
 
@@ -216,19 +216,19 @@ begin
 
    { fill-in form initialization code }
    fl_set_button(fd_objsform^.button[0], 1);
-   show_group(nil, 0); 
+   show_group(nil, 0);
 
    { show the first form }
    fl_show_form(fd_objsform^.objsform,FL_PLACE_CENTER,FL_FULLBORDER,'objsform');
-   while (fl_do_forms() <> fd_objsform^.quit) do 
+   while (fl_do_forms() <> fd_objsform^.quit) do
      begin
      end;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -25,7 +25,7 @@ begin
     green := fl_add_dial(FL_FILL_DIAL,30,155,60,60,'Green');
     fl_set_dial_bounds(green,0.0,255.0);
     fl_set_dial_value(green,128.0);
-    fl_set_dial_angles(green, 45.0, (360-45.0)); 
+    fl_set_dial_angles(green, 45.0, (360-45.0));
     fl_set_object_color(green,FL_DIAL_COL1, FL_GREEN);
     greentext := fl_add_box(FL_DOWN_BOX,105,170,50,25,'');
 
@@ -42,7 +42,7 @@ begin
   fl_end_form;
 end;
 
-var 
+var
   ret : PFL_OBJECT;
   r,g,b : longint;
   st : string;
@@ -57,24 +57,24 @@ begin
     b :=  round(fl_get_dial_value(blue)+0.001);
     fl_mapcolor(FL_FREE_COL1,r,g,b);
     fl_redraw_object(theresult);
-    str (r,st); 
-    st:=st+#0; 
+    str (r,st);
+    st:=st+#0;
     fl_set_object_label(redtext,@st[1]);
-    str (g,st); 
-    st:=st+#0; 
+    str (g,st);
+    st:=st+#0;
     fl_set_object_label(greentext,@st[1]);
-    str (b,st); 
-    st:=st+#0; 
+    str (b,st);
+    st:=st+#0;
     fl_set_object_label(bluetext,@st[1]);
     ret := fl_do_forms;
   until (ret = button);
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

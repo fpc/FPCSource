@@ -5,7 +5,7 @@
 { $version >= 1.1}
 type
    ti = interface
-      destructor destroy; 
+      destructor destroy;
    end;
 
 begin

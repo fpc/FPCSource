@@ -108,13 +108,13 @@ type
     Include(oplist, op);
     CheckPassed(oplist = [A_LABEL]);
   end;
-  
-  
+
+
   function get_large_enum : tasmop;
    begin
      get_large_enum := A_LABEL;
    end;
-   
+
   Procedure SetTestIncludeTwo;
     var
      oplist: set of tasmop;
@@ -124,8 +124,8 @@ type
     Include(oplist, get_large_enum);
     CheckPassed(oplist = [A_LABEL]);
   end;
-   
-  
+
+
  Procedure SetTestIncludeThree;
   var
    small_enum : tsmallenum;
@@ -137,13 +137,13 @@ type
    Include(small_set, small_enum);
    CheckPassed(small_set = [DOP]);
  end;
-   
-   
+
+
  function get_small_enum : tsmallenum;
   begin
     get_small_enum := dop;
   end;
-  
+
  Procedure SetTestIncludeFour;
   var
    small_enum : tsmallenum;
@@ -168,7 +168,7 @@ type
     Exclude(oplist, op);
     CheckPassed(oplist = [A_LABEL,A_STOP]);
   end;
-  
+
  Procedure SetTestExcludeTwo;
   var
    small_enum : tsmallenum;
@@ -180,13 +180,13 @@ type
    Exclude(small_set, small_enum);
    CheckPassed(small_set = [dc,dp,dq,dm]);
  end;
-   
-   
+
+
  function get_small_enum_two : tsmallenum;
   begin
     get_small_enum_two := dop;
   end;
-  
+
  Procedure SetTestExcludeThree;
   var
    small_set : set of tsmallenum;
@@ -201,7 +201,7 @@ type
    begin
      get_large_enum_two := A_LABEL;
    end;
-   
+
   Procedure SetTestExcludeFour;
     var
      oplist: set of tasmop;
@@ -226,7 +226,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2002-07-25 17:52:59  carl
+   Revision 1.2  2002-09-07 15:40:56  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.1  2002/07/25 17:52:59  carl
     + include / exclude inline node testing
 
 }

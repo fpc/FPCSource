@@ -7,13 +7,13 @@ const
   MAX_TABLE = 69;  { this value should not be even ! }
   DEFAULT_VALUE = $55;
   FILL_VALUE = $33;
-  
-  
+
+
 var
   dst_array : array[1..MAX_TABLE] of byte;
   src_array : array[1..MAX_TABLE] of byte;
   i: integer;
-  
+
 
 procedure test(value, required: longint);
 begin
@@ -24,8 +24,8 @@ begin
     end;
 end;
 
-  
-  
+
+
 
 procedure test_fillchar;
  var
@@ -61,7 +61,7 @@ begin
   begin
     dst_array[i] := DEFAULT_VALUE;
     src_array[i] := FILL_VALUE;
-  end;  
+  end;
   move(src_array, dst_array, MAX_TABLE-2);
   test(dst_array[MAX_TABLE], DEFAULT_VALUE);
   test(dst_array[MAX_TABLE-1], DEFAULT_VALUE);
@@ -75,7 +75,7 @@ begin
   begin
     dst_array[i] := DEFAULT_VALUE;
     src_array[i] := FILL_VALUE;
-  end;  
+  end;
   move(src_array, dst_array, MAX_TABLE-1);
   test(dst_array[MAX_TABLE], DEFAULT_VALUE);
   for i:= 1 to MAX_TABLE-1 do
@@ -92,7 +92,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-03-05 21:52:00  carl
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/03/05 21:52:00  carl
   basic mem testing
 
 }

@@ -20,9 +20,9 @@
   var i:t;
  begin
   i:=t.Init;
-  if i<>nil then 
+  if i<>nil then
     begin
-       writeln('Problem with saving a non assigned self'); 
+       writeln('Problem with saving a non assigned self');
        halt(1);
     end;
   { returned is NULL in ESI, and AfterConstructor is attempted to call by

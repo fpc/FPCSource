@@ -1,7 +1,7 @@
 {
  * Demo showing the use of user defined object class: CROSSBUTTON
  *
- * Form definition file generated with fdesign. 
+ * Form definition file generated with fdesign.
  * changed stub button to crossbutton
  }
 
@@ -13,13 +13,13 @@ Const FL_CROSSBUTTON=2000;
 { How to draw it }
 type TSPEC = TFL_BUTTON_STRUCT;
      PSPEC = ^TSPEC;
-     
+
 Procedure draw_crossbutton(ob : PFL_OBJECT);export;
 
 var temp : longint;
     xx, yy, ww, hh ,tt : TFL_Coord;
-    
-begin 
+
+begin
    temp:=0;
    { if redraw is demanded by FL_ENTER, ignore it }
 
@@ -50,16 +50,16 @@ begin
 
     { label }
     if (ob^.align = FL_ALIGN_CENTER) then
-	fl_drw_text(FL_ALIGN_LEFT, xx + ww + 3, ob^.y, 0, ob^.h,
-		    ob^.lcol, ob^.lstyle, ob^.lsize, ob^.thelabel)
+        fl_drw_text(FL_ALIGN_LEFT, xx + ww + 3, ob^.y, 0, ob^.h,
+                    ob^.lcol, ob^.lstyle, ob^.lsize, ob^.thelabel)
     else
         fl_draw_object_label_outside(ob);
 
     if (ob^.thetype = FL_RETURN_BUTTON) then
-	fl_drw_text(FL_ALIGN_CENTER,
-		    TFL_Coord (ob^.x + ob^.w - round(0.8 * ob^.h)),
-		    TFL_Coord (ob^.y + round(0.2 * ob^.h)),
-		    TFL_Coord (round(0.6 * ob^.h)),
+        fl_drw_text(FL_ALIGN_CENTER,
+                    TFL_Coord (ob^.x + ob^.w - round(0.8 * ob^.h)),
+                    TFL_Coord (ob^.y + round(0.2 * ob^.h)),
+                    TFL_Coord (round(0.6 * ob^.h)),
                     TFL_Coord (round(0.6 * ob^.h)), ob^.lcol, 0, 0, '@returnarrow');
 
 end;
@@ -71,7 +71,7 @@ function fl_create_crossbutton(Thetype : Longint; x,y,w,h : TFL_Coord; thelabel 
 var ob : PFL_OBJECT;
 
 begin
-     fl_add_button_class(FL_CROSSBUTTON, PFL_Drawbutton(@draw_crossbutton), nil); 
+     fl_add_button_class(FL_CROSSBUTTON, PFL_Drawbutton(@draw_crossbutton), nil);
      ob := fl_create_generic_button(FL_CROSSBUTTON, thetype, x, y,w, h, thelabel);
      ob^.boxtype := FL_NO_BOX;
      ob^.col2 := FL_BLACK;   { cross color }
@@ -83,7 +83,7 @@ function fl_add_crossbutton(Thetype : longint; x,y,w,h : TFL_COORD; thelabel : p
 
 var ob : PFL_OBJECT;
     theform : PFL_FORM;
-    
+
 begin
     ob := fl_create_crossbutton(thetype, x, y, w, h, thelabel);
     theform:=fl_current_form;
@@ -93,10 +93,10 @@ end;
 
 {*** Forms and Objects ***}
 type TFD_NEwBut = record
-	newbut : PFL_FORM;
-	bexit : PFL_object;
-	vdata : pointer;
-	ldata : Longint;
+        newbut : PFL_FORM;
+        bexit : PFL_object;
+        vdata : pointer;
+        ldata : Longint;
 end;
 PFD_NewBut= ^TFD_NewBut;
 
@@ -106,7 +106,7 @@ var
   obj : PFL_OBJECT;
   fdui  : PFD_newbut;
   oldbw : longint;
-  
+
 begin
   new (fdui);
   oldbw := fl_get_border_width;
@@ -151,10 +151,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

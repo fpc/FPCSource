@@ -81,16 +81,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:17  peter
+  Revision 1.2  2002-09-07 15:43:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:17  peter
     * splitted to base and extra
-
-  Revision 1.4  2000/08/29 05:51:10  michael
-  + Merged changes and additions from fixbranch
-
-  Revision 1.3  2000/08/20 10:11:41  jonas
-    * added missing open comment at start of log section
-
-  Revision 1.2  2000/07/13 11:33:27  michael
-  + removed logs
 
 }

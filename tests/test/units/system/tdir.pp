@@ -27,7 +27,7 @@ Begin
    chdir('..');
    test(IOResult, 0);
    WriteLn('Passed!');
-   
+
    Write('making directory...');
    mkdir('testdir');
    test(IOResult, 0);
@@ -37,7 +37,7 @@ Begin
    chdir('testdir');
    test(IOResult, 0);
    WriteLn('Passed!');
-   
+
    Write('making directory...');
    mkdir('testdir2');
    test(IOResult, 0);
@@ -47,18 +47,18 @@ Begin
    rmdir('testdir2');
    test(IOResult, 0);
    WriteLn('Passed!');
-   
-   
+
+
    Write('going directory up ...');
    chdir('..');
    test(IOResult, 0);
    WriteLn('Passed!');
-   
+
    Write('removing directory ...');
    rmdir('testdir');
    test(IOResult, 0);
    WriteLn('Passed!');
-   
+
    WriteLn('getting current directory...');
    getdir(0,s);
    WriteLn(s);
@@ -66,14 +66,11 @@ end.
 
 {
  $Log$
- Revision 1.3  2002-03-05 21:54:22  carl
+ Revision 1.4  2002-09-07 15:40:56  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.3  2002/03/05 21:54:22  carl
  + cleanup
-
- Revision 1.2  2001/10/20 17:26:13  peter
-   * several fixes to run also with kylix
-
- Revision 1.1  2001/07/14 04:25:17  carl
- system unit testing : basic directory services
 
 }
 

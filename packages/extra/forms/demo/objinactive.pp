@@ -4,7 +4,7 @@ program objin;
 
 uses forms;
 
-var 
+var
 form : PFL_FORM;
 
         button1,
@@ -21,7 +21,7 @@ end;
 
 
 
-Procedure setit(obj : PFL_OBJECT; val : longint); 
+Procedure setit(obj : PFL_OBJECT; val : longint);
 begin
   if (val<>0) then
     begin
@@ -53,7 +53,7 @@ end;
 Procedure set_active(obj : PFL_OBJECT; arg : longint); export;
 
 begin
-  case arg of 
+  case arg of
     0: doit(1,1,1,1);
     1: doit(0,0,0,0);
     2: doit(0,1,0,1);
@@ -107,13 +107,13 @@ begin
 
   fl_set_button(firstbut,1);
   fl_show_form(form,FL_PLACE_CENTER,FL_NOBORDER,NiL);
-  while (fl_do_forms()<>nil) do 
+  while (fl_do_forms()<>nil) do
     begin end;
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:55:01  peter
+end.  Revision 1.2  2002-09-07 15:42:57  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:55:01  peter
 end.    * splitted to base and extra
 end.
-end.  Revision 1.2  2000/07/13 11:33:14  michael
-end.  + removed logs
-end. 
 }

@@ -18,7 +18,7 @@ program tassign1;
 
 const
   RESULT_STRING = 'Hello world';
-  
+
 
 
     procedure fail;
@@ -26,13 +26,13 @@ const
       WriteLn('Failure.');
       halt(1);
     end;
-    
+
     function getc : char;
      begin
       getc := 'a';
      end;
 
- 
+
 var
  failed : boolean;
  s: shortstring;
@@ -40,12 +40,12 @@ var
 Begin
   Write('secondassign shortstring node testing...');
   failed := false;
-  
+
   { constant string }
   s:=RESULT_STRING;
   if s<>RESULT_STRING then
     failed := true;
-  { empty constant string, small optim. }  
+  { empty constant string, small optim. }
   s:='';
   if s<>'' then
     failed := true;
@@ -58,11 +58,11 @@ Begin
   s:=c;
   if s<>'a' then
      failed := true;
-     
+
   s:=getc;
   if s<>'a' then
      failed := true;
-     
+
   if failed then
     fail
   else
@@ -71,7 +71,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-10 08:27:43  carl
+  Revision 1.2  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/10 08:27:43  carl
     + mre tests for cg testuit
 
-}  
+}

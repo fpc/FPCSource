@@ -9,7 +9,7 @@ form : PFL_FORM;
 exitobj : PFL_OBJECT;
 
 procedure create_form_form;
-var 
+var
   obj : PFL_OBJECT;
 begin
   form := fl_bgn_form(FL_NO_BOX,780,320);
@@ -69,15 +69,15 @@ begin
 
   fl_show_form(form,FL_PLACE_CENTER,FL_NOBORDER,'All Sliders');
   repeat
-   obj := fl_do_forms; 
+   obj := fl_do_forms;
   until  (obj = exitobj);
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:02  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:02  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:15  michael
-  + removed logs
- 
 }

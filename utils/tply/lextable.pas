@@ -29,7 +29,7 @@ $Revision$
 $Modtime: 96-08-01 10:23 $
 
 $History: LEXTABLE.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply

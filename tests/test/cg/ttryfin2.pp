@@ -98,8 +98,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-03 11:05:14  carl
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/03 11:05:14  carl
     + exception handling testing
        (still missing raise / on node testing)
 
-}  
+}

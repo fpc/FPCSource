@@ -75,30 +75,10 @@ END.
 
 {
   $Log$
-  Revision 1.2  2002-06-01 19:08:52  marco
+  Revision 1.3  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/06/01 19:08:52  marco
    * Renamefest
-
-  Revision 1.1  2000/11/30 22:38:17  peter
-    * renamed test suite
-
-  Revision 1.1  2000/11/29 23:14:15  peter
-    * new testsuite setup
-
-  Revision 1.1  2000/07/13 09:21:54  michael
-  + Initial import
-
-  Revision 1.2  2000/04/14 05:44:22  pierre
-   * adapted to new graph unit
-
-  Revision 1.1  1999/12/02 17:37:38  peter
-    * moved *.pp into subdirs
-    * fpcmaked
-
-  Revision 1.5  1999/11/28 12:17:14  jonas
-    * changed the requested graphdriver from $FF to VESA (= 10), so the
-      test program works again with the new graph unit
-    * undefined has_colors_equal for go32v2, because it is not anymore
-      in the new graph unit
-
 
 }

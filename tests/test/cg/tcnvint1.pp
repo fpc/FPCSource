@@ -207,13 +207,10 @@ end.
 
 {
    $Log$
-   Revision 1.3  2002-05-13 13:45:38  peter
+   Revision 1.4  2002-09-07 15:40:55  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.3  2002/05/13 13:45:38  peter
      * updated to compile tests with kylix
-
-   Revision 1.2  2001/07/31 01:55:47  carl
-   * corrected small spelling mistake
-
-   Revision 1.1  2001/07/27 02:56:10  carl
-   + second_bool_to_int node testing (initial revision)
 
 }

@@ -1409,7 +1409,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2002-03-25 14:37:45  pierre
+  Revision 1.9  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/03/25 14:37:45  pierre
    +handle hscDirect
 
   Revision 1.7  2002/03/20 17:10:04  pierre
@@ -1417,151 +1420,5 @@ END.
 
   Revision 1.6  2002/03/20 11:15:51  pierre
    * possible fix for the IDE prerelease crash
-
-  Revision 1.5  2001/09/30 22:18:57  pierre
-   * try to fix problem when unzooming help
-
-  Revision 1.4  2001/09/26 22:46:04  pierre
-   * remove break for #1 in THelpTopic.Rebuild
-
-  Revision 1.3  2001/09/24 23:54:46  pierre
-   * save text position to allow correct cursor placement when zooming
-
-  Revision 1.2  2001/08/05 02:01:49  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.5  2001/03/20 00:20:44  pierre
-   * fix some memory leaks + several small enhancements
-
-  Revision 1.1.2.4  2001/03/06 22:04:54  pierre
-   * Avoid cursor updates when editor window is locked
-
-  Revision 1.1.2.3  2000/12/18 21:59:25  pierre
-   * fix for bug1216
-
-  Revision 1.1.2.2  2000/11/16 23:13:06  pierre
-   + support for ANSI substitutes to HTML images in HTML viewer
-
-  Revision 1.1.2.1  2000/11/14 23:41:33  pierre
-   * fix for bug 1234
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.18  2000/06/22 09:07:14  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.17  2000/06/16 08:50:45  pierre
-   + new bunch of Gabor's changes
-
-  Revision 1.16  2000/05/30 07:18:33  pierre
-   + colors for HTML help by Gabor
-
-  Revision 1.15  2000/05/29 10:45:00  pierre
-   + New bunch of Gabor's changes: see fixes.txt
-
-  Revision 1.14  2000/04/25 08:42:35  pierre
-   * New Gabor changes : see fixes.txt
-
-  Revision 1.13  2000/04/18 11:42:39  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.12  2000/03/21 23:21:38  pierre
-   adapted to wcedit addition
-
-  Revision 1.11  2000/02/07 08:29:13  michael
-  [*] the fake (!) TOKENS.PAS still contained the typo bug
-       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
-  [*] CodeComplete had a very ugly bug - coordinates were document-relative
-      (instead of being screen-relative)
-  [*] TResourceStream didn't count the size of the resource names when
-      determining the file size and this could lead to the last resources not
-      loaded correctly
-
-
-  [+] Ctrl-Enter in editor now tries to open the file at cursor
-  [+] CodeComplete option added to Options|Environment|Editor
-  [+] user interface for managing CodeComplete implemented
-  [+] user interface for CodeTemplates implemented
-  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
-  [+] help topic size no longer limited to 64KB when compiled with FPC
-
-  Revision 1.10  1999/08/16 18:25:31  peter
-    * Adjusting the selection when the editor didn't contain any line.
-    * Reserved word recognition redesigned, but this didn't affect the overall
-      syntax highlight speed remarkably (at least not on my Amd-K6/350).
-      The syntax scanner loop is a bit slow but the main problem is the
-      recognition of special symbols. Switching off symbol processing boosts
-      the performance up to ca. 200%...
-    * The editor didn't allow copying (for ex to clipboard) of a single character
-    * 'File|Save as' caused permanently run-time error 3. Not any more now...
-    * Compiler Messages window (actually the whole desktop) did not act on any
-      keypress when compilation failed and thus the window remained visible
-    + Message windows are now closed upon pressing Esc
-    + At 'Run' the IDE checks whether any sources are modified, and recompiles
-      only when neccessary
-    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
-    + LineSelect (Ctrl+K+L) implemented
-    * The IDE had problems closing help windows before saving the desktop
-
-  Revision 1.9  1999/06/28 19:32:35  peter
-    * fixes from gabor
-
-  Revision 1.8  1999/04/07 21:56:02  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.7  1999/03/08 14:58:20  peter
-    + prompt with dialogs for tools
-
-  Revision 1.6  1999/03/01 15:42:13  peter
-    + Added dummy entries for functions not yet implemented
-    * MenuBar didn't update itself automatically on command-set changes
-    * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
-    * efBackSpaceUnindents works correctly
-    + 'Messages' window implemented
-    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
-    + Added TP message-filter support (for ex. you can call GREP thru
-      GREP2MSG and view the result in the messages window - just like in TP)
-    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
-      so topic search didn't work...
-    * In FPHELP.PAS there were still context-variables defined as word instead
-      of THelpCtx
-    * StdStatusKeys() was missing from the statusdef for help windows
-    + Topic-title for index-table can be specified when adding a HTML-files
-
-  Revision 1.5  1999/02/18 13:44:38  peter
-    * search fixed
-    + backward search
-    * help fixes
-    * browser updates
-
-  Revision 1.4  1999/02/08 10:37:47  peter
-    + html helpviewer
-
-  Revision 1.3  1999/01/21 11:54:32  peter
-    + tools menu
-    + speedsearch in symbolbrowser
-    * working run command
-
-  Revision 1.2  1998/12/28 15:47:57  peter
-    + Added user screen support, display & window
-    + Implemented Editor,Mouse Options dialog
-    + Added location of .INI and .CFG file
-    + Option (INI) file managment implemented (see bottom of Options Menu)
-    + Switches updated
-    + Run program
-
-  Revision 1.31 1998/12/27 12:07:30  gabor
-    * changed THelpViewer.Init to reflect changes in WEDITOR
-  Revision 1.3  1998/12/22 10:39:56  peter
-    + options are now written/read
-    + find and replace routines
 
 }

@@ -5,7 +5,7 @@ uses forms;
 
 const border : longint = FL_TRANSIENT;
 
-var 
+var
   form : PFL_FORM;
   obj,but : PFL_OBJECT;
 
@@ -38,10 +38,10 @@ begin
   while (fl_do_forms() <> but) do;
   fl_hide_form(form);
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:55:00  peter
+end.  Revision 1.2  2002-09-07 15:42:54  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:55:00  peter
 end.    * splitted to base and extra
 end.
-end.  Revision 1.2  2000/07/13 11:33:12  michael
-end.  + removed logs
-end. 
 }

@@ -26,8 +26,8 @@ end;
 var
     i, N, sum, num, middle : longint;
     list : TList;
-    median, mean, deviation, 
-    average_deviation, standard_deviation, 
+    median, mean, deviation,
+    average_deviation, standard_deviation,
     variance, skew, kurtosis : real;
 begin
     list := TList.Create;
@@ -35,7 +35,7 @@ begin
     begin
         Readln(input, num);
         list.Add( Pointer(num) );
-    end;    
+    end;
     N := list.Count;
     For i := 0 To N-1 do Inc(sum, longint(list.Items[i]));
     mean := sum / N;
@@ -52,12 +52,12 @@ begin
         variance := variance + Power(deviation, 2);
         skew := skew + Power(deviation, 3);
         kurtosis := kurtosis + Power(deviation, 4);
-        
+
     end;
     average_deviation := average_deviation / N;
     variance := variance / (N-1);
     standard_deviation := Sqrt(variance);
-    
+
 
     If variance <> 0 Then
     begin
@@ -66,7 +66,7 @@ begin
     end;
 
     list.Sort(@Compare);
-    
+
 
     middle := N Div 2;
 

@@ -243,25 +243,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2002-06-02 17:10:35  marco
+  Revision 1.3  2002-09-07 15:40:30  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/06/02 17:10:35  marco
    * Renamefest
-
-  Revision 1.1  2000/07/13 10:16:21  michael
-  + Initial import
-
-  Revision 1.4  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.3  2000/02/20 13:05:41  marco
-   * No parameters show last modification in dir + small bugfix
-
-  Revision 1.2  2000/01/16 13:24:48  marco
-   * some ugly comments fixed.
-
-  Revision 1.1  2000/01/14 22:05:47  marco
-   * Some fixes, rename .pas to .pp, ptop'ed
-
-  Revision 1.1  2000/01/14 12:02:04  marco
-   * Initial version
 
 }

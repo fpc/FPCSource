@@ -8,7 +8,7 @@ var
   a2: array[-12..-1] of byte;
   a3: array[0..6] of byte;
   a4: array[1..12] of byte;
-  
+
   c: cardinal;
   l: longint;
   b: byte;
@@ -30,7 +30,7 @@ begin
   error := caught <> res1;
   if error then writeln('long 1 failed for ',l);
   result := result or error;
-  
+
   caught := false;
   try
     b := a2[l];
@@ -79,7 +79,7 @@ begin
   error := caught <> res1;
   if error then writeln('card 1 failed for ',l);
   result := result or error;
-  
+
   caught := false;
   try
     b := a2[l];

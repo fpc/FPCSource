@@ -4,7 +4,7 @@ label l;
 
 begin
    try
-   finally     
+   finally
    l:
    end;
    goto l;

@@ -27,7 +27,7 @@ $Revision$
 $Modtime: 96-07-31 14:50 $
 
 $History: YACCMSGS.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -79,7 +79,7 @@ rangle_expected                 = '105: > expected';
 ident_expected                  = '106: identifier expected';
 error_in_def                    = '110: error in definition';
 error_in_rule                   = '111: error in rule';
-syntax_error 			= '112: syntax error';
+syntax_error                    = '112: syntax error';
 unexpected_eof                  = '113: unexpected end of file';
 
 (* semantic errors: *)
@@ -90,24 +90,24 @@ double_tokennum_def             = '203: literal already defined';
 unknown_identifier              = '204: unknown identifier';
 type_error                      = '205: type error';
 range_error                     = '206: range error';
-empty_grammar 			= '207: empty grammar?';
+empty_grammar                   = '207: empty grammar?';
 
 (* fatal errors: *)
 
-cannot_open_file 		= 'FATAL: cannot open file ';
+cannot_open_file                = 'FATAL: cannot open file ';
 write_error                     = 'FATAL: write error';
-mem_overflow 			= 'FATAL: memory overflow';
-intset_overflow 		= 'FATAL: integer set overflow';
-sym_table_overflow 		= 'FATAL: symbol table overflow';
-nt_table_overflow 		= 'FATAL: nonterminal table overflow';
-lit_table_overflow 		= 'FATAL: literal table overflow';
-type_table_overflow 		= 'FATAL: type table overflow';
-prec_table_overflow 		= 'FATAL: precedence table overflow';
-rule_table_overflow 		= 'FATAL: rule table overflow';
-state_table_overflow 		= 'FATAL: state table overflow';
-item_table_overflow 		= 'FATAL: item table overflow';
-trans_table_overflow 		= 'FATAL: transition table overflow';
-redn_table_overflow 		= 'FATAL: reduction table overflow';
+mem_overflow                    = 'FATAL: memory overflow';
+intset_overflow                 = 'FATAL: integer set overflow';
+sym_table_overflow              = 'FATAL: symbol table overflow';
+nt_table_overflow               = 'FATAL: nonterminal table overflow';
+lit_table_overflow              = 'FATAL: literal table overflow';
+type_table_overflow             = 'FATAL: type table overflow';
+prec_table_overflow             = 'FATAL: precedence table overflow';
+rule_table_overflow             = 'FATAL: rule table overflow';
+state_table_overflow            = 'FATAL: state table overflow';
+item_table_overflow             = 'FATAL: item table overflow';
+trans_table_overflow            = 'FATAL: transition table overflow';
+redn_table_overflow             = 'FATAL: reduction table overflow';
 
 implementation
 

@@ -717,34 +717,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-03-25 14:42:23  pierre
+  Revision 1.4  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/03/25 14:42:23  pierre
    * also call DocTableXXX at end tag
-
-  Revision 1.2  2001/09/06 23:19:47  pierre
-   * fix the title, up, next and previous links
-
-  Revision 1.1  2001/08/04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.7  2000/06/22 09:07:15  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.6  2000/04/25 08:42:35  pierre
-   * New Gabor changes : see fixes.txt
-
-  Revision 1.5  2000/03/21 23:20:47  pierre
-   suppress some warnings by Gabor
-
-  Revision 1.4  1999/04/07 21:56:03  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.3  1999/03/01 15:51:42  peter
-    + Log
 
 }

@@ -18,14 +18,14 @@ Type
    MsgType = Cardinal;
    PLongint = ^Longint;
    TSockAddr = Array [1..112] of byte; { Testded using C version sizeof() }
-     
+
 Const
    NAMEDATALEN = 32;
    OIDNAMELEN = 36;
 
-Type  
+Type
    TFILE = Longint;
-   PFIle = ^TFILE; 
+   PFIle = ^TFILE;
 
 type
    TConnStatusType = (CONNECTION_OK,CONNECTION_BAD);
@@ -40,7 +40,7 @@ type
      );
    PExecStatusType= ^TExecStatusType;
 {
-	extern const char  pgresStatus[];
+        extern const char  pgresStatus[];
 }
 
 const
@@ -163,7 +163,7 @@ type
       dispchar  : pchar;
       dispsize  : longint;
    end;
-   PPQconninfoOption = ^TPQconninfoOption; 
+   PPQconninfoOption = ^TPQconninfoOption;
 
 
 Function  PQconnectdb(conninfo:Pchar):PPGconn; cdecl;
@@ -328,13 +328,10 @@ end;
 {$endif}
 
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:54:56  peter
+end.  Revision 1.2  2002-09-07 15:42:53  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:54:56  peter
 end.    * splitted to base and extra
 end.
-end.  Revision 1.3  2001/05/03 21:35:09  peter
-end.    * Makefile fixes
-end.
-end.  Revision 1.2  2000/07/13 11:33:30  michael
-end.  + removed logs
-end. 
 }

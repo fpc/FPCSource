@@ -20,7 +20,7 @@ end.
 
 {
  $Log$
- Revision 1.2  2001-07-14 04:24:40  carl
- - remove graph unit usage
+ Revision 1.3  2002-09-07 15:40:56  peter
+   * old logs removed and tabs fixed
 
 }

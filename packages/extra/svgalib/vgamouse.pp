@@ -5,7 +5,7 @@ unit vgamouse;
 {$linklib vga}
 {$linklib c}
 
-  Type 
+  Type
     PLongint = ^Longint;
 
   const
@@ -49,7 +49,7 @@ unit vgamouse;
 
   type
 
-     __mouse_handler = procedure (button:longint; dx:longint; dy:longint; dz:longint; drx:longint; 
+     __mouse_handler = procedure (button:longint; dx:longint; dy:longint; dz:longint; drx:longint;
                    dry:longint; drz:longint);CDECL;
 
   procedure mouse_seteventhandler(handler:__mouse_handler);cdecl;
@@ -69,7 +69,7 @@ unit vgamouse;
      MOUSE_WRAPRY = 16;
      MOUSE_WRAPRZ = 32;
      MOUSE_WRAP = 63;
-     
+
      MOUSE_ROT_COORDS = 196;
      MOUSE_ROT_INFINITESIMAL = 0;
      MOUSE_ROT_RX_RY_RZ = 64;
@@ -78,18 +78,18 @@ unit vgamouse;
 
   procedure mouse_setdefaulteventhandler;cdecl;
   procedure mouse_setposition(x:longint; y:longint);cdecl;
-  procedure mouse_setposition_6d(x:longint; y:longint; z:longint; rx:longint; ry:longint; 
+  procedure mouse_setposition_6d(x:longint; y:longint; z:longint; rx:longint; ry:longint;
               rz:longint; dim_mask:longint);cdecl;
   procedure mouse_setxrange(x1:longint; x2:longint);cdecl;
   procedure mouse_setyrange(y1:longint; y2:longint);cdecl;
-  procedure mouse_setrange_6d(x1:longint; x2:longint; y1:longint; y2:longint; z1:longint; 
-              z2:longint; rx1:longint; rx2:longint; ry1:longint; ry2:longint; 
+  procedure mouse_setrange_6d(x1:longint; x2:longint; y1:longint; y2:longint; z1:longint;
+              z2:longint; rx1:longint; rx2:longint; ry1:longint; ry2:longint;
               rz1:longint; rz2:longint; dim_mask:longint);cdecl;
   procedure mouse_setscale(s:longint);cdecl;
   procedure mouse_setwrap(w:longint);cdecl;
   function mouse_getx:longint;cdecl;
   function mouse_gety:longint;cdecl;
-  procedure mouse_getposition_6d(x:plongint; y:plongint; z:plongint; rx:plongint; ry:plongint; 
+  procedure mouse_getposition_6d(x:plongint; y:plongint; z:plongint; rx:plongint; ry:plongint;
               rz:plongint);cdecl;
   function mouse_getbutton:longint;cdecl;
 
@@ -104,27 +104,27 @@ unit vgamouse;
   procedure mouse_waitforupdate;CDECL; external;
   procedure mouse_setdefaulteventhandler;CDECL; external;
   procedure mouse_setposition(x:longint; y:longint);CDECL; external;
-  procedure mouse_setposition_6d(x:longint; y:longint; z:longint; rx:longint; ry:longint; 
+  procedure mouse_setposition_6d(x:longint; y:longint; z:longint; rx:longint; ry:longint;
               rz:longint; dim_mask:longint);CDECL; external;
   procedure mouse_setxrange(x1:longint; x2:longint);CDECL; external;
   procedure mouse_setyrange(y1:longint; y2:longint);CDECL; external;
-  procedure mouse_setrange_6d(x1:longint; x2:longint; y1:longint; y2:longint; z1:longint; 
-              z2:longint; rx1:longint; rx2:longint; ry1:longint; ry2:longint; 
+  procedure mouse_setrange_6d(x1:longint; x2:longint; y1:longint; y2:longint; z1:longint;
+              z2:longint; rx1:longint; rx2:longint; ry1:longint; ry2:longint;
               rz1:longint; rz2:longint; dim_mask:longint);CDECL; external;
   procedure mouse_setscale(s:longint);CDECL; external;
   procedure mouse_setwrap(w:longint);CDECL; external;
   function mouse_getx:longint;CDECL; external;
   function mouse_gety:longint;CDECL; external;
-  procedure mouse_getposition_6d(x:plongint; y:plongint; z:plongint; rx:plongint; ry:plongint; 
+  procedure mouse_getposition_6d(x:plongint; y:plongint; z:plongint; rx:plongint; ry:plongint;
               rz:plongint);CDECL; external;
   function mouse_getbutton:longint;CDECL; external;
 
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:22  peter
+  Revision 1.2  2002-09-07 15:43:05  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:22  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:31  michael
-  + removed logs
- 
 }

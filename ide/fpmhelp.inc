@@ -266,99 +266,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-03-14 17:01:54  pierre
+  Revision 1.4  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/03/14 17:01:54  pierre
    + find Table of contents for FPC docs
-
-  Revision 1.2  2001/10/01 00:24:09  pierre
-   * fix several help problems
-
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.2  2001/03/20 00:20:42  pierre
-   * fix some memory leaks + several small enhancements
-
-  Revision 1.1.2.1  2000/10/18 21:53:27  pierre
-   * several Gabor fixes
-
-  Revision 1.1  2000/07/13 09:48:35  michael
-  + Initial import
-
-  Revision 1.11  2000/05/29 10:44:57  pierre
-   + New bunch of Gabor's changes: see fixes.txt
-
-  Revision 1.10  2000/05/02 08:42:28  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.9  2000/04/25 08:42:33  pierre
-   * New Gabor changes : see fixes.txt
-
-  Revision 1.8  2000/02/07 08:29:13  michael
-  [*] the fake (!) TOKENS.PAS still contained the typo bug
-       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
-  [*] CodeComplete had a very ugly bug - coordinates were document-relative
-      (instead of being screen-relative)
-  [*] TResourceStream didn't count the size of the resource names when
-      determining the file size and this could lead to the last resources not
-      loaded correctly
-
-
-  [+] Ctrl-Enter in editor now tries to open the file at cursor
-  [+] CodeComplete option added to Options|Environment|Editor
-  [+] user interface for managing CodeComplete implemented
-  [+] user interface for CodeTemplates implemented
-  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
-  [+] help topic size no longer limited to 64KB when compiled with FPC
-
-  Revision 1.7  1999/05/22 13:44:31  peter
-    * fixed couple of bugs
-
-  Revision 1.6  1999/03/01 15:41:56  peter
-    + Added dummy entries for functions not yet implemented
-    * MenuBar didn't update itself automatically on command-set changes
-    * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
- set
-    * efBackSpaceUnindents works correctly
-    + 'Messages' window implemented
-    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
-    + Added TP message-filter support (for ex. you can call GREP thru
-      GREP2MSG and view the result in the messages window - just like in TP)
-    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
-      so topic search didn't work...
-    * In FPHELP.PAS there were still context-variables defined as word instead
-      of THelpCtx
-    * StdStatusKeys() was missing from the statusdef for help windows
-    + Topic-title for index-table can be specified when adding a HTML-files
-
-  Revision 1.5  1999/02/22 02:15:16  peter
-    + default extension for save in the editor
-    + Separate Text to Find for the grep dialog
-    * fixed redir crash with tp7
-
-  Revision 1.4  1999/01/21 11:54:18  peter
-    + tools menu
-    + speedsearch in symbolbrowser
-    * working run command
-
-  Revision 1.3  1999/01/12 14:29:34  peter
-    + Implemented still missing 'switch' entries in Options menu
-    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
-      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
-      ASCII chars and inserted directly in the text.
-    + Added symbol browser
-    * splitted fp.pas to fpide.pas
-
-  Revision 1.2  1998/12/28 15:47:48  peter
-    + Added user screen support, display & window
-    + Implemented Editor,Mouse Options dialog
-    + Added location of .INI and .CFG file
-    + Option (INI) file managment implemented (see bottom of Options Menu)
-    + Switches updated
-    + Run program
-
-  Revision 1.2  1998/12/22 10:39:47  peter
-    + options are now written/read
-    + find and replace routines
 
 }

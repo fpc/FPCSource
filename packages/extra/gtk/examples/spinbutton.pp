@@ -50,7 +50,7 @@ Begin
 End;
 
 Procedure change_digits( widget : PGtkWidget;
-	            spin : PGtkSpinButton ); cdecl;
+                    spin : PGtkSpinButton ); cdecl;
 Begin
   gtk_spin_button_set_digits (GTK_SPIN_BUTTON (spinner1),
                               gtk_spin_button_get_value_as_int (spin));
@@ -99,8 +99,8 @@ Begin
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
   gtk_signal_connect (GTK_OBJECT (window), 'destroy',
-		      GTK_SIGNAL_FUNC (@gtk_main_quit),
-		      NULL);
+                      GTK_SIGNAL_FUNC (@gtk_main_quit),
+                      NULL);
 
   gtk_window_set_title (GTK_WINDOW (window), 'Spin Button');
 
@@ -128,11 +128,11 @@ Begin
   gtk_box_pack_start (GTK_BOX (vbox2), label_l, FALSE, TRUE, 0);
 
   adj := PGtkAdjustment ( gtk_adjustment_new (1.0, 1.0, 31.0, 1.0,
-					      5.0, 0.0));
+                                              5.0, 0.0));
   spinner := gtk_spin_button_new (adj, 0, 0);
   gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), TRUE);
   gtk_spin_button_set_shadow_type (GTK_SPIN_BUTTON (spinner),
-				   GTK_SHADOW_OUT);
+                                   GTK_SHADOW_OUT);
   gtk_box_pack_start (GTK_BOX (vbox2), spinner, FALSE, TRUE, 0);
 
   vbox2 := gtk_vbox_new (FALSE, 0);
@@ -143,11 +143,11 @@ Begin
   gtk_box_pack_start (GTK_BOX (vbox2), label_l, FALSE, TRUE, 0);
 
   adj := PGtkAdjustment (gtk_adjustment_new (1.0, 1.0, 12.0, 1.0,
-					      5.0, 0.0));
+                                              5.0, 0.0));
   spinner := gtk_spin_button_new (adj, 0, 0);
   gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), TRUE);
   gtk_spin_button_set_shadow_type (GTK_SPIN_BUTTON (spinner),
-				   GTK_SHADOW_ETCHED_IN);
+                                   GTK_SHADOW_ETCHED_IN);
   gtk_box_pack_start (GTK_BOX (vbox2), spinner, FALSE, TRUE, 0);
 
   vbox2 := gtk_vbox_new (FALSE, 0);
@@ -158,11 +158,11 @@ Begin
   gtk_box_pack_start (GTK_BOX (vbox2), label_l, FALSE, TRUE, 0);
 
   adj := PGtkAdjustment (gtk_adjustment_new (1998.0, 0.0, 2100.0,
-					      1.0, 100.0, 0.0));
+                                              1.0, 100.0, 0.0));
   spinner := gtk_spin_button_new (adj, 0, 0);
   gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), FALSE);
   gtk_spin_button_set_shadow_type (GTK_SPIN_BUTTON (spinner),
-				   GTK_SHADOW_IN);
+                                   GTK_SHADOW_IN);
   gtk_widget_set_usize (spinner, 55, 0);
   gtk_box_pack_start (GTK_BOX (vbox2), spinner, FALSE, TRUE, 0);
 
@@ -184,7 +184,7 @@ Begin
   gtk_box_pack_start (GTK_BOX (vbox2), label_l, FALSE, TRUE, 0);
 
   adj := PGtkAdjustment (gtk_adjustment_new (0.0, -10000.0, 10000.0,
-					      0.5, 100.0, 0.0));
+                                              0.5, 100.0, 0.0));
   spinner1 := gtk_spin_button_new (adj, 1.0, 2);
   gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner1), TRUE);
   gtk_widget_set_usize (spinner1, 100, 0);
@@ -201,8 +201,8 @@ Begin
   spinner2 := gtk_spin_button_new (adj, 0.0, 0);
   gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner2), TRUE);
   gtk_signal_connect (GTK_OBJECT (adj), 'value_changed',
-		      GTK_SIGNAL_FUNC (@change_digits),
-		      gpointer (spinner2));
+                      GTK_SIGNAL_FUNC (@change_digits),
+                      gpointer (spinner2));
   gtk_box_pack_start (GTK_BOX (vbox2), spinner2, FALSE, TRUE, 0);
 
   hbox := gtk_hbox_new (FALSE, 0);
@@ -210,15 +210,15 @@ Begin
 
   button := gtk_check_button_new_with_label ('Snap to 0.5-ticks');
   gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-		      GTK_SIGNAL_FUNC (@toggle_snap),
-		      spinner1);
+                      GTK_SIGNAL_FUNC (@toggle_snap),
+                      spinner1);
   gtk_box_pack_start (GTK_BOX (vbox), button, TRUE, TRUE, 0);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
 
   button := gtk_check_button_new_with_label ('Numeric only input mode');
   gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-		      GTK_SIGNAL_FUNC (@toggle_numeric),
-		      spinner1);
+                      GTK_SIGNAL_FUNC (@toggle_numeric),
+                      spinner1);
   gtk_box_pack_start (GTK_BOX (vbox), button, TRUE, TRUE, 0);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
 
@@ -246,8 +246,8 @@ Begin
 
   button := gtk_button_new_with_label ('Close');
   gtk_signal_connect_object (GTK_OBJECT (button), 'clicked',
-			     GTK_SIGNAL_FUNC (@gtk_widget_destroy),
-			     GTK_OBJECT (window));
+                             GTK_SIGNAL_FUNC (@gtk_widget_destroy),
+                             GTK_OBJECT (window));
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 5);
 
   gtk_widget_show_all (window);

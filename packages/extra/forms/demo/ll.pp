@@ -6,11 +6,11 @@ uses forms;
 
 Type
 TFD_axypform = record
-	axypform : PFL_FORM;
-	xyplot : PFL_OBJECT;
-	status : PFL_OBJECT;
-	vdata : pointer;
-	ldata : longint;
+        axypform : PFL_FORM;
+        xyplot : PFL_OBJECT;
+        status : PFL_OBJECT;
+        vdata : pointer;
+        ldata : longint;
 end;
 PFD_axypform = ^TFD_axypform;
 
@@ -26,7 +26,7 @@ var
     x, y : double;
     i : Longint;
     temp,buf : string[64];
-    
+
 begin
     fl_get_xyplot(ob, @x, @y, @i);
     if (i < 0) then exit;
@@ -48,11 +48,11 @@ procedure interpolate_cb(ob : PFL_OBJECT; data : longint);export;
 begin
    if fl_get_button(ob)=0 then
      fl_set_xyplot_interpolate(xypui^.xyplot, 0,2,0.2)
-   else 
+   else
      fl_set_xyplot_interpolate(xypui^.xyplot, 0,0,0.2);
 end;
 
-Procedure inspect_cb(ob : PFL_OBJECT; data :longint); export; 
+Procedure inspect_cb(ob : PFL_OBJECT; data :longint); export;
 
 begin
    fl_set_xyplot_inspect(xypui^.xyplot, fl_get_button(ob));
@@ -84,7 +84,7 @@ Function create_form_axypform : PFD_axypform;
 var
   obj : PFL_OBJECT;
   fdui : PFD_axypform;
-  
+
 begin
   new(fdui);
 
@@ -140,10 +140,10 @@ begin
    fl_do_forms();
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

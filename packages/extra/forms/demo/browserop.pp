@@ -50,7 +50,7 @@ end;
 
 
 procedure create_form;
-var 
+var
   obj : PFL_OBJECT;
 
 begin
@@ -82,16 +82,16 @@ begin
   fl_initialize(@argc, argv, 'FormDemo', nil, 0);
   create_form;
   fl_show_form(form,FL_PLACE_CENTER,FL_TRANSIENT,'Browser Op');
-  repeat 
-    obj := fl_do_forms 
+  repeat
+    obj := fl_do_forms
   until obj = exitobj;
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:13  michael
-  + removed logs
- 
 }

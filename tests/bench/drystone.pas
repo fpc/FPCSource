@@ -46,7 +46,7 @@ PROGRAM Dhrystone( input, output );
 {$R- range checking off}
 
 
-CONST     
+CONST
 
 {    Set LOOPS to specify how many thousand drystones to perform.
       LOOPS = 50 will perforum 50,000 drystones. Choose longer for
@@ -59,7 +59,7 @@ CONST
   Ident3 = 3;
   Ident4 = 4;
   Ident5 = 5;
-  
+
 type integer = longint;
 Type Enumeration = INTEGER;
 { TYPE Enumeration = (Ident1, Ident2, Ident3, Ident4, Ident5); }
@@ -135,7 +135,7 @@ BEGIN
     Ident2:   IF (IntGlob > 100) THEN EnumParOut:= Ident1
                                  ELSE EnumParOut:= Ident4;
     Ident3:   EnumParOut:= Ident2 ;
-    Ident4:   ; 
+    Ident4:   ;
     Ident5:   EnumParOut:= Ident3;
    END;
 END ;
@@ -153,7 +153,7 @@ BEGIN
    MyRec[i].PtrComp:= i;
    Proc3( MyRec[i].PtrComp );
    IF ( MyRec[i].Discr = Ident1 ) THEN
-      BEGIN 
+      BEGIN
          MyRec[i].IntComp:= 6;
          Proc6( MyRec[inIdx].EnumComp, MyRec[i].EnumComp );
          MyRec[i].PtrComp:= MyRec[PtrGlb].PtrComp;
@@ -206,7 +206,7 @@ BEGIN
    Array1Par[IntLoc+1]:= Array1Par[IntLoc];
    Array1Par[IntLoc+30]:= IntLoc;
    FOR IntIndex:= IntLoc TO (IntLoc+1) DO
-      Array2Par[IntLoc,IntIndex]:= IntLoc; 
+      Array2Par[IntLoc,IntIndex]:= IntLoc;
    { Array2Par[IntLoc,IntLoc-1]:= Array2Par[IntLoc,IntLoc-1] + 1; }
    Array2Par[IntLoc+20,IntLoc]:= Array1Par[IntLoc];
    IntGlob:= 5;
@@ -239,14 +239,14 @@ BEGIN
        END;
     END;
    IF (CharLoc >= 'W') AND (CharLoc <= 'Z') THEN IntLoc:= 7;
-   IF CharLoc = 'X' THEN 
+   IF CharLoc = 'X' THEN
      Func2:= TRUE
    ELSE IF StrParI1 > StrParI2 THEN
     BEGIN
      IntLoc:= IntLoc + 7;
      Func2:= TRUE;
     END
-   ELSE 
+   ELSE
      Func2:= FALSE;
 END ;
 

@@ -1,7 +1,7 @@
 {
     $Id$
     Copyright (c) 1999 by Pierre Muller
-    
+
     direct GDB objects linking for debug info
 
     See the file COPYING.FPC, included in this distribution,
@@ -183,10 +183,10 @@
 {$endif GDB_V418}
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:49  peter
+  Revision 1.2  2002-09-07 15:42:52  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:54:49  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:16  michael
-  + removed logs
- 
 }

@@ -169,16 +169,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:16  peter
+  Revision 1.2  2002-09-07 15:43:00  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:16  peter
     * splitted to base and extra
-
-  Revision 1.1  2001/01/30 19:27:18  peter
-    * gtkgl moved to gtk
-
-  Revision 1.1  2000/09/03 21:25:45  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
 
 }

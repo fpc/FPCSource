@@ -215,23 +215,23 @@ Begin
  CheckDosError(0);
  GetVerify(b);
  CheckDosError(0);
-{ verify actually only works under dos       }  
+{ verify actually only works under dos       }
 { and always returns TRUE on other platforms }
-{$ifdef go32v2} 
+{$ifdef go32v2}
  if NOT b then
    WriteLn(s+'Success.')
  else
   Begin
     WriteLn(s+'FAILURE.');
   end;
-{$else}  
+{$else}
  if b then
    WriteLn(s+'Success.')
  else
   Begin
     WriteLn(s+'FAILURE.');
   end;
-{$endif}  
+{$endif}
  PauseScreen;
 end;
 
@@ -255,8 +255,8 @@ Begin
   Begin
     WriteLn(s+'FAILURE.');
   end;
-{ actually setting Ctrl-C only works under DOS }  
-{$ifdef go32v2}  
+{ actually setting Ctrl-C only works under DOS }
+{$ifdef go32v2}
  s:='Testing GetCBreak...';
  SetCBreak(FALSE);
  CheckDosError(0);
@@ -268,7 +268,7 @@ Begin
   Begin
     WriteLn(s+'FAILURE.');
   end;
-{$endif}  
+{$endif}
  PauseScreen;
 end;
 
@@ -295,7 +295,7 @@ Begin
  Write('DD-MM-YYYY : ',Day,'-',Month,'-',Year);
  WriteLn(' (',Week[DayOfWeek],')');
  PauseScreen;
-  
+
  WriteLn('----------------------------------------------------------------------');
  WriteLn('                            SETDATE                                   ');
  WriteLn('----------------------------------------------------------------------');
@@ -389,7 +389,7 @@ Begin
  CheckDosError(0);
  WriteLn('HH:MIN:SEC ',Hour1,':',Minute1,':',Second1);
  { actual settime is only supported under DOS }
-{$ifdef go32v2} 
+{$ifdef go32v2}
  SetTime(Hour,32000,Second,Sec100);
  CheckDosError(0);
  GetTime(Hour1,Minute1,Second1,Sec1001);
@@ -971,26 +971,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-11-23 01:57:30  carl
-  * updated some tests so they work on other systems
-
-  Revision 1.5  2001/08/12 18:55:00  carl
-  + added printing the number of ENV vars.
-
-  Revision 1.4  2001/08/09 01:14:57  carl
-  * several updates and more error checking
-
-  Revision 1.3  2001/06/06 01:31:24  carl
-  * fsplit with .. only works for go32v2 version and TP
-
-  Revision 1.2  2001/05/20 18:30:46  hajny
-    + support for GO32v1 and GO32v2 added
-
-  Revision 1.1  2001/05/19 12:10:02  peter
-    * renamed to .pp
-
-  Revision 1.1  2001/04/02 02:34:13  carl
-  + initial version of complete test for dos unit
-
+  Revision 1.7  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
 
 }

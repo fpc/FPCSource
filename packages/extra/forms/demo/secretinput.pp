@@ -26,12 +26,12 @@ begin
     fl_set_object_label(info,@str[1]);
   until (ret = but);
   fl_hide_form(form);
-end. 
+end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:02  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:02  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -66,7 +66,7 @@ implementation
 Procedure dslgen(n, rwidth: ArbInt; Var alu: ArbFloat; Var p: ArbInt;
                  Var b, x: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
                           success : boolean;
     indk, j, k, indexpivot, kmin1 : ArbInt;
                       h, pivot, s : ArbFloat;
@@ -128,7 +128,7 @@ End; {dslgen}
 Procedure dslgtr(n: ArbInt; Var l1, d1, u1, u2: ArbFloat;
                  Var p: boolean; Var b, x: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
                     i, j, nmin1 : ArbInt;
                           h, di : ArbFloat;
                         success : boolean;
@@ -190,7 +190,7 @@ End; {dslgtr}
 Procedure dslgsy(n, rwidth: ArbInt; Var alt: ArbFloat; Var p: ArbInt;
                  Var q: boolean; Var b, x: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
     i, indexpivot, imin1, j, jmin1, iplus1, imin2, ns, ii  : ArbInt;
                                           success, regular : boolean;
                                                  h, ct, di : ArbFloat;
@@ -313,7 +313,7 @@ End; {dslgsy}
 Procedure dslgpd(n, rwidth: ArbInt; Var al, b, x: ArbFloat;
                  Var term: ArbInt);
 
-Var 
+Var
        ii, imin1, i, j : ArbInt;
                 h, lii : ArbFloat;
                success : boolean;
@@ -367,7 +367,7 @@ Procedure dslgba(n, lb, rb, rwa: ArbInt; Var au: ArbFloat; rwl: ArbInt;
                  Var l: ArbFloat; Var p: ArbInt; Var b, x: ArbFloat;
                  Var term: ArbInt);
 
-Var 
+Var
    i, j, k, ipivot, ubi, ubj : ArbInt;
    h, pivot                  : ArbFloat;
    pau, pl, px, pb           : ^arfloat1;
@@ -423,7 +423,7 @@ End; {dslgba}
 Procedure dslgpb(n, lb, rwidth: ArbInt; Var al, b, x: ArbFloat;
                  Var term: ArbInt);
 
-Var 
+Var
    ll, ii, llmin1, p, i, q, k : ArbInt;
             h, hh, alim       : ArbFloat;
                   pal, pb, px : ^arfloat1;
@@ -482,7 +482,7 @@ End; {dslgpb}
 
 Procedure dsldtr(n:ArbInt; Var l, d, u, b, x: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
                    i, j : ArbInt;
                      di : ArbFloat;
          pd, pu, pb, px : ^arfloat1;
@@ -528,17 +528,10 @@ End; {dsldtr}
 End.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:18  peter
+  Revision 1.2  2002-09-07 15:43:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:18  peter
     * splitted to base and extra
-
-  Revision 1.1  2000/07/13 06:34:14  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:41  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
-
 
 }

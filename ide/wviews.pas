@@ -2495,124 +2495,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2002-08-13 07:12:08  pierre
+  Revision 1.5  2002-09-07 15:40:50  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/08/13 07:12:08  pierre
    * use normal strings for ChoiceBox function
 
   Revision 1.3  2002/04/12 08:59:00  pierre
    + new function OKCancelBox added
-
-  Revision 1.2  2001/08/05 02:01:49  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:26  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.8  2001/03/20 00:13:54  pierre
-   * correct mouse behavior in TAdvancedListBox
-
-  Revision 1.1.2.7  2001/03/08 16:35:23  pierre
-   * set step size for list scrollbars
-
-  Revision 1.1.2.6  2000/11/29 18:28:54  pierre
-   + add save to file capability for list boxes
-
-  Revision 1.1.2.5  2000/11/29 11:24:45  pierre
-   * cmSearchWindow removed from wviews
-
-  Revision 1.1.2.4  2000/11/29 00:54:45  pierre
-   + preserve window number and save special windows
-
-  Revision 1.1.2.3  2000/10/24 00:21:59  pierre
-   * fix the greyed save after window list box
-
-  Revision 1.1.2.2  2000/08/16 18:46:15  peter
-   [*] double clicking on a droplistbox caused GPF (due to invalid recurson)
-   [*] Make, Build now possible even in Compiler Messages Window
-   [+] when started in a new dir the IDE now ask whether to create a local
-       config, or to use the one located in the IDE dir
-
-  Revision 1.1.2.1  2000/08/04 14:05:20  michael
-  * Fixes from Gabor:
-   [*] the IDE now doesn't disable Compile|Make & Build when all windows
-       are closed, but there's still a primary file set
-       (set bug 1059 to fixed!)
-
-   [*] the IDE didn't read some compiler options correctly back from the
-       FP.CFG file, for ex. the linker options. Now it read everything
-       correctly, and also automatically handles smartlinking option synch-
-       ronization.
-       (set bug 1048 to fixed!)
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.15  2000/06/22 09:07:15  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.14  2000/06/16 08:50:45  pierre
-   + new bunch of Gabor's changes
-
-  Revision 1.13  2000/05/02 08:42:29  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.12  2000/04/18 11:42:39  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.11  2000/01/10 15:53:37  pierre
-  * WViews objects were not registered
-
-  Revision 1.10  1999/08/03 20:22:46  peter
-    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
-    + Desktop saving should work now
-       - History saved
-       - Clipboard content saved
-       - Desktop saved
-       - Symbol info saved
-    * syntax-highlight bug fixed, which compared special keywords case sensitive
-      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
-    * with 'whole words only' set, the editor didn't found occourences of the
-      searched text, if the text appeared previously in the same line, but didn't
-      satisfied the 'whole-word' condition
-    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
-      (ie. the beginning of the selection)
-    * when started typing in a new line, but not at the start (X=0) of it,
-      the editor inserted the text one character more to left as it should...
-    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
-    * Shift shouldn't cause so much trouble in TCodeEditor now...
-    * Syntax highlight had problems recognizing a special symbol if it was
-      prefixed by another symbol character in the source text
-    * Auto-save also occours at Dos shell, Tool execution, etc. now...
-
-  Revision 1.9  1999/06/28 19:32:37  peter
-    * fixes from gabor
-
-  Revision 1.8  1999/06/28 12:29:56  pierre
-   *GetMenuItem fixed
-
-  Revision 1.7  1999/06/25 00:30:34  pierre
-   + TAdvancedMenuBar.GetMenuItem(by command number)
-
-  Revision 1.6  1999/04/07 21:56:07  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.5  1999/03/23 16:16:44  peter
-    * linux fixes
-
-  Revision 1.4  1999/03/23 15:11:42  peter
-    * desktop saving things
-    * vesa mode
-    * preferences dialog
-
-  Revision 1.3  1999/03/19 16:04:35  peter
-    * new compiler dialog
-
-  Revision 1.2  1999/03/08 14:58:23  peter
-    + prompt with dialogs for tools
-
-  Revision 1.1  1999/03/01 15:51:43  peter
-    + Log
 
 }

@@ -133,25 +133,25 @@ Begin
          Str(row:2,s);
          FWrite((cols-10) div 2,rows-1,26,0,'Record #'+s);
          With address[row] Do Begin
-	    With fields[col] Do Begin
-	       ec.Picture := pic;
-	       Case col of
-		  1 : s := FirstName;
-		  2 : s := LastName;
-		  3 : s := Street;
-		  4 : s := Country;
-		  5 : s := Zip;
-		  6 : s := City;
-	       End;
-	       s := Edit(x,y,att2,x+wid-1,x+Length(s),s,ch);
-	       If ch <> #27 Then
-		  Case col of
-		     1 : FirstName := s;
-		     2 : LastName := s;
-		     3 : Street := s;
-		     4 : Country := s;
-		     5 : Zip := s;
-		     6 : City := s;
+            With fields[col] Do Begin
+               ec.Picture := pic;
+               Case col of
+                  1 : s := FirstName;
+                  2 : s := LastName;
+                  3 : s := Street;
+                  4 : s := Country;
+                  5 : s := Zip;
+                  6 : s := City;
+               End;
+               s := Edit(x,y,att2,x+wid-1,x+Length(s),s,ch);
+               If ch <> #27 Then
+                  Case col of
+                     1 : FirstName := s;
+                     2 : LastName := s;
+                     3 : Street := s;
+                     4 : Country := s;
+                     5 : Zip := s;
+                     6 : City := s;
                   End;
                FWrite(x,y,att1,x+wid-1,s);
                Case Ord(ch) of
@@ -173,7 +173,7 @@ Begin
                   nKeyF2 : UnBindArrows; { use arrows for editing }
                   nKeyF10 : IsDone := true;
                End;
-	    End;
+            End;
          End;
          If row > MAXROWS Then row := MAXROWS;
          If row < 1 Then row := 1;
@@ -188,16 +188,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:17  peter
+  Revision 1.2  2002-09-07 15:43:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:17  peter
     * splitted to base and extra
-
-  Revision 1.4  2000/08/29 05:51:09  michael
-  + Merged changes and additions from fixbranch
-
-  Revision 1.3  2000/08/20 10:11:41  jonas
-    * added missing open comment at start of log section
-
-  Revision 1.2  2000/07/13 11:33:26  michael
-  + removed logs
 
 }

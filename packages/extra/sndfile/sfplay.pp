@@ -17,7 +17,7 @@ Const
   SOUND_PCM_WRITE_CHANNELS = -1073459194;
   SOUND_PCM_WRITE_RATE = -1073459198;
 
-ResourceString 
+ResourceString
   SPlaying = 'Playing : ';
   SErrChannels = 'Error : Number of channels not supported: ';
   SErrOpeningDevice = 'Could not open sound device';
@@ -27,7 +27,7 @@ ResourceString
   SErrSetChannels = 'Could not set channels';
   SErrSetSampleRate = 'Could not set sync mode';
   SErrSetSyncMode = 'Could not set sync mode';
-    
+
 Procedure PlayError(Msg : String);
 
 begin
@@ -44,8 +44,8 @@ Var
   SoundFile : PSndFile;
   Info  : SF_INFO;
   k, m, AudioDevice, readcount : Longint;
-  ScaleData : Boolean;  
-  
+  ScaleData : Boolean;
+
 begin
   Writeln(SPlaying,FileName);
   SoundFile:=sf_open_read(pChar(FileName),@Info);
@@ -56,7 +56,7 @@ begin
     end;
   If not (Info.Channels in [1,2]) then
     PlayError(SerrChannels);
-  AudioDevice:=OpenDSPDevice(Info.channels, Info.samplerate);  
+  AudioDevice:=OpenDSPDevice(Info.channels, Info.samplerate);
   ScaleData:=(Info.pcmbitwidth < 16);
   readcount:=sf_read_short(SoundFile,@Buffer,BUFFERLEN);
   While ReadCount<>0 do
@@ -71,21 +71,21 @@ begin
   fdclose (AudioDevice) ;
 end;
 
-Function OpenDSPDevice (channels,SampleRate : LongInt) : Longint; 
+Function OpenDSPDevice (channels,SampleRate : LongInt) : Longint;
 
 var
  fd, stereo, temp, error : longint ;
- 
+
 begin
   fd:=fdOpen('/dev/dsp',OPEN_WRONLY,0);
   if fd<0 then
     PlayError(SErrOpeningDevice);
-  Stereo:=0;  
+  Stereo:=0;
   if Not ioctl(fd, SNDCTL_DSP_STEREO  , @stereo) then
     PlayError(SErrSettingStereo);
   if Not ioctl (fd, SNDCTL_DSP_RESET, Nil) then
     PlayError(SErrResettingDevice);
-  temp := 16 ; 
+  temp := 16 ;
   If not ioctl (fd, SOUND_PCM_WRITE_BITS, @temp) then
     PlayError(SErrSetWriteBits);
   If not  ioctl (fd, SOUND_PCM_WRITE_CHANNELS, @channels) then
@@ -99,7 +99,7 @@ end;
 
 Var
   I : Integer;
-  
+
 begin
   For I:=1 to ParamCount do
     PlayFile(Paramstr(i));

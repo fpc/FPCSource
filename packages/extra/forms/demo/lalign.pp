@@ -5,10 +5,10 @@ uses forms;
 
 type
 TFD_Form0 = record
-	form0 : PFL_FORM;
-	box,inside,center : PFL_Object;
-	vdata : pointer;
-	ldata  : longint;
+        form0 : PFL_FORM;
+        box,inside,center : PFL_Object;
+        vdata : pointer;
+        ldata  : longint;
 end;
 PFD_Form0 = ^TFD_Form0;
 
@@ -19,7 +19,7 @@ var fd_form0 : PFD_form0;
 
 Procedure align_cb(ob : PFL_OBJECT; n : longint);export;
 begin
-    if fl_get_button(fd_form0^.inside)<>0 then 
+    if fl_get_button(fd_form0^.inside)<>0 then
        n:=n or FL_ALIGN_INSIDE;
     fl_set_object_lalign(fd_form0^.box, n);
 end;
@@ -102,10 +102,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

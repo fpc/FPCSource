@@ -5,7 +5,7 @@
 { $version >= 1.1}
 type
    ti = interface
-     constructor create; 
+     constructor create;
    end;
 
 begin

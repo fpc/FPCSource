@@ -3,9 +3,9 @@
  *
  * This header file describes the externally-visible facilities of the Tcl
  * interpreter.
- * 
- * Translated to Pascal Copyright (c) 2002 by Max Artemev 
- * aka Bert Raccoon (bert@furry.ru, bert_raccoon@freemail.ru) 
+ *
+ * Translated to Pascal Copyright (c) 2002 by Max Artemev
+ * aka Bert Raccoon (bert@furry.ru, bert_raccoon@freemail.ru)
  *
  *
  * Copyright (c) 1998-2000 by Scriptics Corporation.
@@ -14,7 +14,7 @@
  * Copyright (c) 1987-1994 John Ousterhout, The Regents of the
  *                         University of California, Berkeley.
  *
- * ***********************************************************************  
+ * ***********************************************************************
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -35,7 +35,7 @@ unit Tcl80;
 { $DEFINE USE_C}
 {*
  * I recommend you to compile and link "argv.o" file to this unit.
- * If you don't have the GCC and you working on the Intel platform 
+ * If you don't have the GCC and you working on the Intel platform
  * undefine/comment the `USE_C` macro
  *}
 {$IFDEF USE_C}
@@ -45,7 +45,7 @@ unit Tcl80;
 interface
 
 // M$ Win32?
-{$IFDEF WIN32}     
+{$IFDEF WIN32}
 uses windows;
 {$ENDIF}
 
@@ -248,7 +248,7 @@ const
     EINVAL                          = 22;
 {* Invalid argument.  This is used to indicate various kinds of
  * problems with passing the wrong argument to a library function.
- *}  
+ *}
 
     EMFILE                          = 24;
 {* The current process has too many files open and can't open any
@@ -762,7 +762,7 @@ type
 
     TTclPanicProc          = procedure(fmt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8: PChar); cdecl; // 1/15/97 orig. Tcl style
     TTclClientDataProc     = procedure (clientData: Tcl_ClientData); cdecl;
-    TTclIdleProc           = procedure (clientData: Tcl_ClientData); cdecl; 
+    TTclIdleProc           = procedure (clientData: Tcl_ClientData); cdecl;
     TTclTimerProc          = TTclIdleProc;
     TTclCreateCloseHandler = procedure  (channel: pTcl_Channel; proc: TTclClientDataProc; clientData: Tcl_ClientData); cdecl;
     TTclDeleteCloseHandler = TTclCreateCloseHandler;
@@ -819,7 +819,7 @@ type
                                     checkProc: TTcl_EventCheckProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     procedure Tcl_QueueEvent(evPtr: pTcl_Event; pos: integer); cdecl; external TCL_LIBRARY;
     procedure Tcl_SetMaxBlockTime(timePtr: pTcl_Time); cdecl; external TCL_LIBRARY;
-  
+
     procedure Tcl_DeleteEvents(proc: TTclEventDeleteProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     function  Tcl_DoOneEvent(flags: integer): integer; cdecl; external TCL_LIBRARY;
 
@@ -926,8 +926,8 @@ type
     function  Tcl_FindHashEntry(tablePtr: pTcl_HashTable; key: PChar): pTcl_HashEntry;
     procedure Tcl_SetHashValue(h: pTcl_HashEntry; clientData: Tcl_ClientData);
     function  Tcl_GetHashValue(h: pTcl_HashEntry): Tcl_ClientData;
-    procedure Tcl_IncrRefCount(pObj: pTcl_Obj); cdecl; 
-    procedure Tcl_DecrRefCount(pObj: pTcl_Obj); cdecl; 
+    procedure Tcl_IncrRefCount(pObj: pTcl_Obj); cdecl;
+    procedure Tcl_DecrRefCount(pObj: pTcl_Obj); cdecl;
     function  Tcl_IsShared(pObj: pTcl_Obj): integer; cdecl;
 
 {$IFDEF USE_C}
@@ -974,19 +974,19 @@ begin
 end;
 
 
-procedure Tcl_IncrRefCount(pObj: pTcl_Obj); cdecl; 
+procedure Tcl_IncrRefCount(pObj: pTcl_Obj); cdecl;
 begin
      inc(pObj^.refCount);
 end;
 
-procedure Tcl_DecrRefCount(pObj: pTcl_Obj); cdecl; 
+procedure Tcl_DecrRefCount(pObj: pTcl_Obj); cdecl;
 begin
      dec(pObj^.refCount);
      if pObj^.refCount <= 0 then
         FreeMem(pObj);
 end;
 
-function Tcl_IsShared(pObj: pTcl_Obj): integer; cdecl; 
+function Tcl_IsShared(pObj: pTcl_Obj): integer; cdecl;
 begin
      if pObj^.refCount > 0 then
         result := 1
@@ -1007,7 +1007,7 @@ end;
 
 {$IFNDEF USE_C}
 {*
- *  Use this if you don't have the C compiler and you're on 
+ *  Use this if you don't have the C compiler and you're on
  *  the Intel platform.
  *  Otherwise define `USE_C` macro.
  *}
@@ -1016,8 +1016,8 @@ var
    Buf: LongWord;
 begin
      asm
-        MOV   EAX,idx             //* index please 
-        MOV   EDX,[argv]          //* gotcha argv^ 
+        MOV   EAX,idx             //* index please
+        MOV   EDX,[argv]          //* gotcha argv^
         MOV   EAX,[EDX + EAX*4]   //* PChar is 32bit pointer, so EAX*4 its offset for
                                   //* one item in array.
                                   //* gotcha something like this: (argv^)^[idx]

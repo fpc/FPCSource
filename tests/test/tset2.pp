@@ -181,7 +181,7 @@ Begin
  if (A_MOVE in oplist) then
   WriteLn('TESTING EXCLUDE: FAILED.')
  else
-  WriteLn('TESTING EXCLUDE: PASSED.')  
+  WriteLn('TESTING EXCLUDE: PASSED.')
 end;
 
 Procedure SetCompSets;

@@ -53,8 +53,7 @@ End.
 
 {
   $Log$
-  Revision 1.1  2001-06-19 02:07:42  carl
-  + cstring_to_pchar type conversion test
-
+  Revision 1.2  2002-09-07 15:40:55  peter
+    * old logs removed and tabs fixed
 
 }

@@ -342,40 +342,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.10  2001/03/27 14:22:44  pierre
-   * small key dialog enhancements
-
-  Revision 1.1.2.9  2001/03/26 22:45:57  pierre
-   * fix a problem with key bindings
-
-  Revision 1.1.2.8  2000/12/16 23:55:51  pierre
-   UseTree code released, old code in ifdef NotUseTree
-
-  Revision 1.1.2.7  2000/12/16 23:29:49  pierre
-   + Restore special keys correctly
-
-  Revision 1.1.2.6  2000/12/12 16:51:51  pierre
-   + keys loading/storing begin
-
-  Revision 1.1.2.5  2000/12/12 08:00:30  pierre
-   * didn't compile without UseTree
-
-  Revision 1.1.2.4  2000/12/11 22:44:19  pierre
-   more changes
-
-  Revision 1.1.2.3  2000/12/11 17:03:46  pierre
-   * several 'learn keys' improovements
-
-  Revision 1.1.2.2  2000/12/11 00:55:54  pierre
-   * get it to compile
-
-  Revision 1.1.2.1  2000/12/11 00:41:42  pierre
-   * start of LearnKey dialog implementation
+  Revision 1.3  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
 
 }

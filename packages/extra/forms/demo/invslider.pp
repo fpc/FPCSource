@@ -2,14 +2,14 @@ program invslider;
 
 uses forms;
 
-type 
+type
 TFD_inv = record
-	inv : PFL_FORM;
+        inv : PFL_FORM;
         sl : array[0..2] of PFL_OBJECT;
-	done : PFL_OBJECT;
-	vdata : pointer;
-	ldata : longint;
-	end;
+        done : PFL_OBJECT;
+        vdata : pointer;
+        ldata : longint;
+        end;
 PFD_inv=^TFD_inv;
 
 var ui : PFD_INV;
@@ -31,8 +31,8 @@ begin
     end;
 end;
 
-function create_form_inv : PFD_inv; 
-var 
+function create_form_inv : PFD_inv;
+var
   obj : PFL_OBJECT ;
   fdui : PFD_inv;
 
@@ -66,10 +66,10 @@ begin
    while fl_do_forms <> ui^.done do;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

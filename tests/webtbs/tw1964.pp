@@ -27,4 +27,4 @@
    Writeln('Win32 only test');
 {$endif}
   end.
-  
+

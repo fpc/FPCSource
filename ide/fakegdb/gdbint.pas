@@ -306,10 +306,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-02-11 18:51:39  peter
-    * signal_name added
+  Revision 1.3  2002-09-07 15:40:51  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1  2001/08/04 11:30:27  peter
-    * ide works now with both compiler versions
+  Revision 1.2  2002/02/11 18:51:39  peter
+    * signal_name added
 
 }

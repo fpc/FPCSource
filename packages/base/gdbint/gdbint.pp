@@ -23,7 +23,7 @@ interface
 {.$define DebugCommand}
 {$define NotImplemented}
 
-{$ifdef BSD}			{v4.x nearly useless for BSD. 5.x is fine}
+{$ifdef BSD}                    {v4.x nearly useless for BSD. 5.x is fine}
  {$DEFINE GDB_V502}
 {$endif}
 
@@ -117,7 +117,7 @@ interface
       {$LINKLIB m}
       {$LINKLIB iberty}
       {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
-				but I use GDB CVS snapshots for the *BSDs}
+                                but I use GDB CVS snapshots for the *BSDs}
     {$endif GDB_V5}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -2571,7 +2571,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-07-30 16:40:41  marco
+  Revision 1.8  2002-09-07 15:42:52  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/07/30 16:40:41  marco
    * Gdbint openbsd support
 
   Revision 1.6  2002/05/31 11:54:32  marco
@@ -2604,27 +2607,4 @@ end.
   Revision 1.10  2002/01/07 10:31:57  pierre
    * avoid problem if gdb start generates output
 
-  Revision 1.9  2001/09/19 15:25:56  pierre
-   + define inferior_pid as a function for 5.01
-
-  Revision 1.8  2001/09/11 10:22:36  pierre
-   + NetBSD support
-
-  Revision 1.7  2001/07/31 15:42:11  pierre
-   + first lines to support coming 5.1 release
-
-  Revision 1.6  2001/04/20 18:43:00  marco
-   * Freebsd fix
-
-  Revision 1.5  2001/04/08 11:43:39  peter
-    * merged changes from fixes branch
-
-  Revision 1.4  2001/01/21 21:38:52  marco
-   * renamefest in packages
-
-  Revision 1.3  2000/10/08 10:07:22  peter
-    * merged fixes from Pierre
-
-  Revision 1.2  2000/07/13 11:33:15  michael
-  + removed logs
 }

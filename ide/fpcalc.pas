@@ -571,79 +571,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-01-22 14:56:37  pierre
+  Revision 1.6  2002-09-07 15:40:42  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/01/22 14:56:37  pierre
     * fix wrong sign change handling
     + add 'H' to view current value as hexadecimal
 
   Revision 1.4  2002/01/22 13:56:04  pierre
    * fix multiple FPU excpetion trapping problem for unix
-
-  Revision 1.3  2001/11/14 23:55:38  pierre
-   * fix bug 1680 for go32v2 and hopefully for linux
-
-  Revision 1.2  2001/08/05 02:01:47  peter
-    * FVISION define to compile with fvision units
-
-  Revision 1.1  2001/08/04 11:30:22  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.1  2000/11/13 16:59:08  pierre
-   * some function in double removed from fputils unit
-
-  Revision 1.1  2000/07/13 09:48:34  michael
-  + Initial import
-
-  Revision 1.10  2000/05/02 08:42:26  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.9  2000/04/18 11:42:36  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.8  2000/03/21 23:34:10  pierre
-   adapted to wcedit addition by Gabor
-
-  Revision 1.7  1999/09/13 16:24:42  peter
-    + clock
-    * backspace unident like tp7
-
-  Revision 1.6  1999/09/07 09:20:52  pierre
-    * traling zero after . could not be inserted
-    * load/store was missing => CD not set on loading.
-    * log function was not implemented : ln is used,
-      should it rather be decimal logarithm ?
-
-  Revision 1.5  1999/06/28 19:25:35  peter
-    * fixes from gabor
-
-  Revision 1.4  1999/04/07 21:55:41  peter
-    + object support for browser
-    * html help fixes
-    * more desktop saving things
-    * NODEBUG directive to exclude debugger
-
-  Revision 1.3  1999/03/01 15:41:49  peter
-    + Added dummy entries for functions not yet implemented
-    * MenuBar didn't update itself automatically on command-set changes
-    * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
- set
-    * efBackSpaceUnindents works correctly
-    + 'Messages' window implemented
-    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
-    + Added TP message-filter support (for ex. you can call GREP thru
-      GREP2MSG and view the result in the messages window - just like in TP)
-    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
-      so topic search didn't work...
-    * In FPHELP.PAS there were still context-variables defined as word instead
-      of THelpCtx
-    * StdStatusKeys() was missing from the statusdef for help windows
-    + Topic-title for index-table can be specified when adding a HTML-files
-
-  Revision 1.1  1998/12/22 14:27:54  peter
-    * moved
-
-  Revision 1.2  1998/12/22 10:39:39  peter
-    + options are now written/read
-    + find and replace routines
 
 }

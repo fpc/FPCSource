@@ -24,7 +24,7 @@ $Revision$
 $Modtime: 96-08-01 14:04 $
 
 $History: YACCLIB.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply

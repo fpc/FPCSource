@@ -22,17 +22,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1  2000/07/13 09:48:35  michael
-  + Initial import
-
-  Revision 1.1  1998/12/22 14:27:54  peter
-    * moved
-
-  Revision 1.2  1998/12/22 10:39:45  peter
-    + options are now written/read
-    + find and replace routines
+  Revision 1.2  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
 
 }

@@ -38,7 +38,7 @@ Type
 { CAUTION !!  IF YOU ACCESS the parallel.device, you MUST (!!!!) use
    an IOExtPar-sized structure or you may overlay innocent memory !! }
 {****************************************************************}
- 
+
     pIOExtPar = ^tIOExtPar;
     tIOExtPar = record
         IOPar           : tIOStdReq;

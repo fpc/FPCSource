@@ -183,19 +183,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:16  peter
+  Revision 1.2  2002-09-07 15:43:00  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:16  peter
     * splitted to base and extra
 
-  Revision 1.5  2000/09/09 18:41:39  peter
-    * fixes for gtk win32
-
-  Revision 1.4  2000/09/06 21:13:55  peter
-    * packrecords 4 for win32, packrecords c for linux
-
-  Revision 1.3  2000/09/06 20:48:11  peter
-    * fixed flag0 for win32
-
-  Revision 1.2  2000/07/13 11:33:25  michael
-  + removed logs
- 
 }

@@ -15,7 +15,7 @@ var
 
 const rgbfile = '/usr/lib/X11/rgb.txt';
 
-type TRGBdb = record 
+type TRGBdb = record
        r, g, b : longint;
      end;
 
@@ -25,7 +25,7 @@ numcol : longint;
 
 procedure set_entry(i : longint);
 
-var 
+var
     db : TRGBdb;
 
 begin
@@ -74,7 +74,7 @@ var
 
 begin
     readln (infile,buf);
-    if buf[1]='!' then exit(0);    
+    if buf[1]='!' then exit(0);
     temp:=stripsp(copy(buf,1,4));delete(buf,1,4);
     val (temp,r,code);
     if code<>0 then exit(0);
@@ -87,7 +87,7 @@ begin
     { strip leading spaces from name }
     while (buf[code+1]=' ') or (buf[code+1]=#9) do inc(code);
     if code<>0 then delete(buf,1,code);
-    name:=buf+#0;    
+    name:=buf+#0;
     read_entry:=1;
 end;
 
@@ -97,7 +97,7 @@ function load_browser(fname : string) : longint;
 var buf : string;
     r,g,b : Longint;
     rr,gg,bb : string[3];
-    
+
 begin
    assign (infile,fname);
 {$i-}
@@ -106,8 +106,8 @@ begin
   if ioresult<>0 then
     begin
       fname:=fname+#0;
-	fl_show_alert('Load', @fname[1], 'Can''t open', 0);
-	exit(0);
+        fl_show_alert('Load', @fname[1], 'Can''t open', 0);
+        exit(0);
     end;
 
     fl_freeze_form(cl);
@@ -117,15 +117,15 @@ begin
       if read_entry(r, g, b, buf)<>0 then
         begin
         inc(numcol);
-	rgbdb[numcol].r := r;
-	rgbdb[numcol].g := g;
-	rgbdb[numcol].b := b;
+        rgbdb[numcol].r := r;
+        rgbdb[numcol].g := g;
+        rgbdb[numcol].b := b;
         str (r,rr); if length(rr)<3 then rr:=copy('   ',1,3-length(rr))+rr;
         str(g,gg);if length(gg)<3 then gg:=copy('   ',1,3-length(gg))+gg;
         str(b,bb);if length(bb)<3 then bb:=copy('   ',1,3-length(bb))+bb;
         buf:='('+rr+' '+gg+' '+bb+') '+buf;
-	fl_addto_browser(colbr, @buf[1]);
-	end;
+        fl_addto_browser(colbr, @buf[1]);
+        end;
       end;
     close(infile);
     fl_set_browser_topline(colbr, 1);
@@ -149,13 +149,13 @@ begin
        diffg := abs(g - rgbdb[i].g);
        diffb := abs(b - rgbdb[i].b);
        diff := round((3.0 * diffr) +
-	       (5.9 * diffg) +
-	       (1.1 * diffb));
+               (5.9 * diffg) +
+               (1.1 * diffb));
        if (mindiff > diff) then
-	 begin
-	 mindiff := diff;
+         begin
+         mindiff := diff;
          j := i;
-	 end;
+         end;
       end;
     search_entry:= j;
 end;
@@ -186,16 +186,16 @@ procedure db_cb(ob : PFL_OBJECT; q : longint);export;
 
 var p: pchar;
     buf : string;
-    
+
 begin
     p := fl_show_input('Enter New Database Name', @dbname[1]);
     buf:=strpas(p)+#0;
     if buf=dbname then exit;
 
     if (load_browser(buf)<>0) then
-	dbname:=buf
+        dbname:=buf
     else
-	fl_set_object_label(ob, @dbname[1]);
+        fl_set_object_label(ob, @dbname[1]);
 end;
 
 procedure done_cb (ob : PFL_OBJECT; q :  longint);export;
@@ -227,7 +227,7 @@ begin
     fl_set_object_callback(obj, PFL_CALLBACKPTR(@db_cb), 0);
 
     obj:= fl_add_valslider(FL_VERT_FILL_SLIDER, 225, 130, 30, 200, '');
-    rs := obj; 
+    rs := obj;
     fl_set_object_color(obj, FL_INDIANRED, FL_RED);
     fl_set_slider_bounds(obj, 0, 255);
     fl_set_slider_precision(obj, 0);
@@ -241,7 +241,7 @@ begin
     fl_set_object_callback(obj, PFL_CALLBACKPTR(@search_rgb), 1);
     fl_set_slider_return(obj, 0);
     obj := fl_add_valslider(FL_VERT_FILL_SLIDER, 285, 130, 30, 200, '');
-    bs := obj; 
+    bs := obj;
     fl_set_object_color(obj, FL_INDIANRED, FL_BLUE);
     fl_set_slider_bounds(obj, double(0.0), double(255.0));
     fl_set_slider_precision(obj, 0);
@@ -249,13 +249,13 @@ begin
     fl_set_slider_return(obj, 0);
     obj := fl_add_browser(FL_HOLD_BROWSER, 10, 90, 205, 240, '');
     colbr := obj ;
-    fl_set_browser_fontstyle(obj, FL_FIXED_STYLE); 
+    fl_set_browser_fontstyle(obj, FL_FIXED_STYLE);
     fl_set_object_callback(obj, PFL_CALLBACKPTR(@br_cb), 0);
 
     obj := fl_add_button(FL_NORMAL_BUTTON, 135, 345, 80, 30, 'Done');
     fl_set_object_callback(obj, PFL_CALLBACKPTR(@done_cb), 0);
     obj := fl_add_box(FL_FLAT_BOX, 225, 90, 90, 35, '');
-    rescol := obj; 
+    rescol := obj;
     fl_set_object_color(obj, FL_FREE_COL4, FL_FREE_COL4);
     fl_set_object_boxtype(obj, FL_BORDER_BOX);
 
@@ -269,9 +269,9 @@ begin
     create_form_cl();
     dbname:= rgbfile+#0;
     if (load_browser(dbname)<>0) then
-	fl_set_object_label(dbobj, @dbname[1])
+        fl_set_object_label(dbobj, @dbname[1])
     else
-	fl_set_object_label(dbobj, 'None');
+        fl_set_object_label(dbobj, 'None');
 
     fl_set_form_minsize(cl, cl^.w , cl^.h);
     fl_set_form_maxsize(cl, 2*cl^.w , 2*cl^.h);
@@ -280,10 +280,10 @@ begin
     while (fl_do_forms()<>nil) do;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:00  peter
+  Revision 1.2  2002-09-07 15:42:54  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:00  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -538,11 +538,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-06-04 21:42:57  peter
-    * Arguments added
-    * Start of Package.fpc creation
-
-  Revision 1.1  2001/01/24 21:59:36  peter
-    * first commit of new fpcmake
+  Revision 1.3  2002-09-07 15:40:31  peter
+    * old logs removed and tabs fixed
 
 }

@@ -1091,23 +1091,10 @@ end;
 END.
 {
  $Log$
- Revision 1.3  2002-03-25 11:51:43  pierre
+ Revision 1.4  2002-09-07 15:40:47  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.3  2002/03/25 11:51:43  pierre
   * Escape Escape and chars ord(char)<=16
-
- Revision 1.2  2001/08/12 00:04:50  pierre
-  * some speed improvements for string operations
-
- Revision 1.1  2001/08/04 11:30:25  peter
-   * ide works now with both compiler versions
-
- Revision 1.1.2.5  2001/03/06 22:39:31  pierre
-  * provide large enough buffers for all ansi consoles
-
- Revision 1.1.2.4  2000/11/27 12:06:49  pierre
-  New bunch of Gabor fixes
-
- Revision 1.1.2.3  2000/11/21 16:07:39  pierre
-  * fix a small bug in rendering ansi files
-
 
 }

@@ -20,7 +20,7 @@ Type
 { what list this element is in }
 
 type
-   { Pointer types } 
+   { Pointer types }
    PDllist= ^TDllist;
    PDlelem= ^TDlelem;
 
@@ -51,7 +51,7 @@ procedure DLAddTail(list:PDllist; node:PDlelem);cdecl;
 function  DLRemHead(list:PDllist):PDlelem;cdecl;
 
 { Macro translated }
-Function  DLE_VAL(elem : PDlelem) : pointer; 
+Function  DLE_VAL(elem : PDlelem) : pointer;
 
 implementation
 
@@ -77,10 +77,10 @@ end;
 
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:54:56  peter
+  Revision 1.2  2002-09-07 15:42:53  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:54:56  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:30  michael
-  + removed logs
- 
 }

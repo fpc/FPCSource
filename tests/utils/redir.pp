@@ -790,7 +790,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.9  2002-06-03 19:07:55  pierre
+  Revision 1.10  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/06/03 19:07:55  pierre
    * fix compilation failure
 
   Revision 1.8  2002/06/01 19:08:52  marco
@@ -798,20 +801,5 @@ End.
 
   Revision 1.7  2002/02/24 20:07:23  hajny
     * dummy implementation for OS/2
-
-  Revision 1.6  2001/07/01 20:13:50  peter
-    * udpated for dos
-
-  Revision 1.5  2001/02/03 00:13:34  peter
-    * linux -> unix for not 1.0.x compilers
-
-  Revision 1.4  2000/12/10 12:08:11  peter
-    * win32 and go32v2 updates
-
-  Revision 1.3  2000/11/30 22:38:22  peter
-    * renamed test suite
-
-  Revision 1.1  2000/11/29 23:14:20  peter
-    * new testsuite setup
 
 }

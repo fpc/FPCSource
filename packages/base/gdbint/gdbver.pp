@@ -75,7 +75,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:49  peter
+  Revision 1.2  2002-09-07 15:42:52  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:54:49  peter
     * splitted to base and extra
 
   Revision 1.5  2002/01/25 08:56:50  pierre
@@ -83,11 +86,5 @@ end.
 
   Revision 1.4  2002/01/24 09:14:40  pierre
    * adapt to GDB 5.1
-
-  Revision 1.3  2001/09/11 10:22:09  pierre
-   * Hack to allow to recognize CVS version as 5.01
-
-  Revision 1.2  2001/04/08 11:44:01  peter
-    * new file
 
 }

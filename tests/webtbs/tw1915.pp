@@ -25,7 +25,7 @@ BEGIN
     WITH ep^ DO
             IF ([e1,e0] <= attr)
             THEN Writeln('A2: [e1,e0] is included in attr')
-            ELSE 
+            ELSE
              begin
               Writeln('A2 statement incorrectly executed');
               Halt(1);
@@ -35,7 +35,10 @@ END.
 
 {
   $Log$
-  Revision 1.1  2002-04-13 08:00:16  carl
+  Revision 1.2  2002-09-07 15:40:59  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/04/13 08:00:16  carl
   + web bug test #1915
 
 }

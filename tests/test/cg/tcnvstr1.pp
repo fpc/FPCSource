@@ -67,8 +67,7 @@ End.
 
 {
   $Log$
-  Revision 1.1  2001-06-19 01:49:06  carl
-  + string_string conversion test
-
+  Revision 1.2  2002-09-07 15:40:55  peter
+    * old logs removed and tabs fixed
 
 }

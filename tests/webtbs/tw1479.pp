@@ -5,7 +5,8 @@ uses
 
 const
   fname = 'Makefile';
- ThisDir = '.'+DirectorySeparator;
+
+ ThisDir = '.'+DirectorySeparator;
 var
   fn : string;
 begin

@@ -718,26 +718,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-09-13 13:30:24  pierre
-   * pmode patch from Peter applied blindly
-
-  Revision 1.1  2001/08/04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.1  2001/06/06 12:11:01  pierre
-   * change Src arg type of MemPtr.MoveDataTo from const to var
-
-  Revision 1.1  2000/07/13 09:48:36  michael
-  + Initial import
-
-  Revision 1.2  2000/06/22 09:07:13  pierre
-   * Gabor changes: see fixes.txt
-
-  Revision 1.1  2000/04/20 08:47:39  pierre
-   + new files from Gabor
-
-
-  Revision 1.0  1999/07/07 09:46:55  gabor
-     Original implementation
+  Revision 1.3  2002-09-07 15:40:47  peter
+    * old logs removed and tabs fixed
 
 }

@@ -359,7 +359,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-08-25 19:28:07  peter
+  Revision 1.5  2002-09-07 15:40:51  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/08/25 19:28:07  peter
     * fixed long double typo that was using double instead of extended
 
   Revision 1.3  2002/05/04 16:56:54  carl

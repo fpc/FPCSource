@@ -5,7 +5,7 @@ Program ldial;
 uses forms;
 
 
-var 
+var
 form : PFL_FORM ;
 button, red, green, blue, redtext, greentext, bluetext, theresult : PFL_OBJECT;
 
@@ -24,7 +24,7 @@ begin
     green := fl_add_dial(FL_LINE_DIAL,30,155,60,60,'Green');
     fl_set_dial_bounds(green,0.0,255.0);
     fl_set_dial_value(green,128.0);
-    fl_set_dial_angles(green, 45.0, (360-45.0)); 
+    fl_set_dial_angles(green, 45.0, (360-45.0));
     fl_set_object_color(green,FL_GREEN,FL_DIAL_COL2);
     greentext := fl_add_box(FL_DOWN_BOX,105,170,50,25,'');
 
@@ -63,10 +63,10 @@ begin
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

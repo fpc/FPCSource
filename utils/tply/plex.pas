@@ -24,7 +24,7 @@ $Revision$
 $Modtime: 96-08-01 10:22 $
 
 $History: LEX.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -259,30 +259,30 @@ procedure generate_table;
       while not Quit do begin
         if c1 in cc then  begin
           if col>0 then
-	    begin
-	      write(f, ',');
-	      inc(col);
-	    end;
-	  if col>40 then
-	    { insert line break }
-	    begin
-	      writeln(f);
-	      write(f, ' ':12);
-	      col := 0;
-	    end;
-	  c2 := c1;
-	  while (c2<MaxChar) and (succ(c2) in cc) do
-	    c2 := succ(c2);
-	  if c1=c2 then
-	    tag := charStr(c1)
-	  else if c2=succ(c1) then
-	    tag := charStr(c1)+','+charStr(c2)
-	  else
-	    tag := charStr(c1)+'..'+charStr(c2);
-	  write(f, tag);
-	  col := col + length(tag);
+            begin
+              write(f, ',');
+              inc(col);
+            end;
+          if col>40 then
+            { insert line break }
+            begin
+              writeln(f);
+              write(f, ' ':12);
+              col := 0;
+            end;
+          c2 := c1;
+          while (c2<MaxChar) and (succ(c2) in cc) do
+            c2 := succ(c2);
+          if c1=c2 then
+            tag := charStr(c1)
+          else if c2=succ(c1) then
+            tag := charStr(c1)+','+charStr(c2)
+          else
+            tag := charStr(c1)+'..'+charStr(c2);
+          write(f, tag);
+          col := col + length(tag);
           c1 := c2;
-	end;
+        end;
         Quit := c1 = MaxChar;
         if not Quit then
           c1 := Succ(c1);
@@ -514,7 +514,7 @@ procedure definitions;
           end
       end(*check_id*);
     var i : Integer;
-	com : String;
+        com : String;
     begin
       split(line, 2);
       com := upper(itemv(1));

@@ -1,34 +1,34 @@
-{ Demo: complete pop-ups. 
+{ Demo: complete pop-ups.
  * test font/cursor change
- * test attaching pup to menu 
+ * test attaching pup to menu
  }
 program popup;
 
 uses forms,strings;
 
-var 
+var
 pup : PFL_FORM;
 done, pret, b1, b2, b3, menu : PFL_OBJECT;
 
 var
     aa : TFL_IOPT;
     mask : cardinal;
-     
 
-const 
-   subm : longint = -1; 
+
+const
+   subm : longint = -1;
     m : longint = -1;
-    ssm : longint = 0; 
+    ssm : longint = 0;
     n1 : longint = -1;
     n2 : longint = -1;
     n : longint = 0;
-    
+
 { post-handler }
 function  post(ob : PFL_OBJECT; ev : Longint; mx,y : TFL_Coord; key  : longint; xev : pointer) : Longint;
 
 begin
     if (n1 = -1) then
-     begin    
+     begin
       n1 := fl_defpup(FL_ObjWin(ob),'line1|line2');
       fl_setpup_shadow(n1,0);
       fl_setpup_bw(n1,0);
@@ -61,7 +61,7 @@ begin
        else
          if ob=b1 then
            fl_hidepup(n1)
-         else 
+         else
            fl_hidepup(n2);
       end;
 end;
@@ -95,7 +95,7 @@ begin
       ssm  := fl_newpup(FL_ObjWin(ob));
       subm := fl_newpup(FL_ObjWin(ob));
       m    := fl_newpup(FL_ObjWin(ob));
-      
+
       { Problem, variable nr. of arguments in c code !!!!}
       { fl_addtopup(ssm,'SubSubM%F%t',ssm_cb); }
       fl_addtopup(ssm,'SSMItem20%x20%R1');
@@ -106,7 +106,7 @@ begin
       fl_addtopup(ssm,'SSMItem32%x32%r2');
 
       fl_addtopup(subm,'SubMenu%t');
-      fl_addtopup(subm,'SMItemA\tAlt-A%x10%h','#a'); 
+      fl_addtopup(subm,'SMItemA\tAlt-A%x10%h','#a');
       fl_addtopup(subm,'SMItemB\tAlt-B%x11%h','#b');
       fl_addtopup(subm,'SMItemC\tAlt-C%x12%h','#c');
       fl_addtopup(subm,'SMItemD\tAlt-F5%x13%h%m','#&5',ssm);
@@ -125,8 +125,8 @@ begin
 
 
    if (fl_get_button_numb(ob) >= FL_SHORTCUT) then
-      fl_setpup_position(ob^.form^.x + ob^.x, 
-                      ob^.form^.y + ob^.y + ob^.h); 
+      fl_setpup_position(ob^.form^.x + ob^.x,
+                      ob^.form^.y + ob^.y + ob^.h);
 
    show_return_val(fl_dopup(m));
 
@@ -162,7 +162,7 @@ begin
 
 
     { attach pup to menu }
-    
+
     fl_set_menu_popup(menu, mm);
 end;
 
@@ -170,7 +170,7 @@ end;
 procedure do_menu(ob  : PFL_OBJECT; data : longint);
 var
     buf : string[128];
-    
+
 begin
     str(fl_get_menu(ob),buf);
     if (fl_get_menu(ob) >= 0) then
@@ -206,7 +206,7 @@ begin
   menu := obj;
   obj := fl_add_text(FL_NORMAL_TEXT,20,60,220,30,'');
     fl_set_object_lalign(obj,FL_ALIGN_CENTER);
-  pret := obj; 
+  pret := obj;
   b1 := fl_add_button(FL_NORMAL_BUTTON, 20, 10, 60, 30,'Button1');
   b2 := fl_add_button(FL_NORMAL_BUTTON, 90, 10, 60, 30,'Button2');
   b3 := fl_add_button(FL_NORMAL_BUTTON, 160, 10, 60, 30,'Button3');
@@ -235,10 +235,10 @@ begin
     fl_do_forms;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:02  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:02  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

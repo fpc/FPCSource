@@ -36,8 +36,8 @@ type
     procedure test_normal(x: byte);pascal;
     procedure test_static(x: byte);static;pascal;
     procedure test_virtual(x: byte);virtual;pascal;
-  end;  
-  
+  end;
+
   tsimpleclass = class
     constructor create;pascal;
     procedure test_normal(x: byte);pascal;
@@ -46,13 +46,13 @@ type
     procedure test_normal_self(self : tsimpleclass; x: byte); message 0;pascal;
     class procedure test_static_self(self : tsimpleclass; x: byte); message 1;pascal;
     procedure test_virtual_self(self : tsimpleclass; x: byte);virtual;message 2;pascal;
-  end;    
+  end;
 
   tobjectmethod = procedure (x: byte) of object ;pascal;
   tclassmethod = procedure (x: byte) of object;pascal;
   { used for testing pocontainsself explicit parameter }
   tclassmethodself = procedure (self : tsimpleclass; x: byte) of object;pascal;
-  
+
 var
   proc : troutine;
   func : troutineresult;
@@ -66,23 +66,23 @@ var
   value_u8bit : byte;
   obj : tsimpleobject;
   cla : tsimpleclass;
-  
-    
-  
+
+
+
 
   procedure fail;
    begin
      WriteLn('Failed!');
      halt(1);
    end;
-  
+
   procedure clear_globals;
    begin
      global_s32bit := 0;
      global_u8bit := 0;
      global_s64bit := 0;
    end;
-   
+
   procedure clear_values;
     begin
       value_s32bit := 0;
@@ -95,7 +95,7 @@ var
      global_s32bit := x;
      global_u8bit := y;
    end;
-   
+
   function testroutineresult(x: longint; y: byte): int64;pascal;
    begin
      global_s32bit := x;
@@ -108,18 +108,18 @@ var
     begin
       getroutine:=proc;
     end;
-    
+
   function getroutineresult : troutineresult;
    begin
      getroutineresult := func;
    end;
-   
-{ IMPOSSIBLE TO DO CURRENTLY !    
+
+{ IMPOSSIBLE TO DO CURRENTLY !
   function get_object_method_static : tnormalmethod;
    begin
      get_object_method_static := @obj.test_static;
    end;
-}   
+}
 
   { objects access }
   function get_object_method_normal : tobjectmethod;
@@ -144,18 +144,18 @@ var
    end;
 
 {
-  HOW CAN WE GET THIS ADDRESS??? 
+  HOW CAN WE GET THIS ADDRESS???
   function get_class_method_static_self : tclassmethodself;
    begin
      get_class_method_static_self := @cla.test_static_self;
    end;
-}   
+}
 
   function get_class_method_virtual_self : tclassmethodself;
    begin
      get_class_method_virtual_self := @tsimpleclass.test_virtual_self;
    end;
-   
+
 
   function get_class_method_normal : tclassmethod;
    begin
@@ -171,59 +171,59 @@ var
    begin
      get_class_method_virtual := @tsimpleclass.test_virtual;
    end;
-   
- {****************************************************************************************************}  
+
+ {****************************************************************************************************}
 
   constructor tsimpleobject.init;pascal;
    begin
    end;
-   
+
   procedure tsimpleobject.test_normal(x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-   
+
   procedure tsimpleobject.test_static(x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-   
+
   procedure tsimpleobject.test_virtual(x: byte);pascal;
    begin
      global_u8bit := x;
    end;
 
- {****************************************************************************************************}  
+ {****************************************************************************************************}
   constructor tsimpleclass.create;pascal;
    begin
     inherited create;
    end;
-   
+
   procedure tsimpleclass. test_normal(x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-   
+
   class procedure tsimpleclass.test_static(x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-   
+
   procedure tsimpleclass.test_virtual(x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-  
+
   procedure tsimpleclass.test_normal_self(self : tsimpleclass; x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-   
+
   class procedure tsimpleclass.test_static_self(self : tsimpleclass; x: byte);pascal;
    begin
      global_u8bit := x;
    end;
-  
+
   procedure tsimpleclass.test_virtual_self(self : tsimpleclass; x: byte);pascal;
    begin
      global_u8bit := x;
@@ -238,15 +238,15 @@ Begin
  func := @testroutineresult;
  obj.init;
  cla:=tsimpleclass.create;
- 
- {****************************************************************************************************}  
+
+ {****************************************************************************************************}
 
  Write('Testing procedure variable call (LOC_REGISTER)..');
- 
+
  clear_globals;
  clear_values;
  failed := false;
- 
+
  { parameters in LOC_CONSTANT, routine address in LOC_REGISTER }
  troutine(getroutine)(RESULT_S32BIT,RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -264,19 +264,19 @@ Begin
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
- 
+
  If failed then
    fail
  else
    WriteLn('Passed!');
-   
-   
+
+
  Write('Testing procedure variable call (LOC_REFERENCE)..');
- 
+
  clear_globals;
  clear_values;
  failed := false;
- 
+
  { parameters in LOC_CONSTANT, routine address in LOC_REGISTER }
  proc(RESULT_S32BIT,RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -294,18 +294,18 @@ Begin
    failed := true;
  if global_s32bit <> RESULT_S32BIT then
    failed := true;
- 
+
  If failed then
    fail
  else
    WriteLn('Passed!');
- {****************************************************************************************************}  
+ {****************************************************************************************************}
  Write('Testing function variable call (LOC_REGISTER)..');
- 
+
  clear_globals;
  clear_values;
  failed := false;
- 
+
  { parameters in LOC_CONSTANT, routine address in LOC_REGISTER }
  global_s64bit := troutineresult(getroutineresult)(RESULT_S32BIT,RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -327,19 +327,19 @@ Begin
    failed := true;
  if global_s64bit <> RESULT_S64BIT then
    failed := true;
- 
+
  If failed then
    fail
  else
    WriteLn('Passed!');
-   
-   
+
+
  Write('Testing function variable call (LOC_REFERENCE)..');
- 
+
  clear_globals;
  clear_values;
  failed := false;
- 
+
  { parameters in LOC_CONSTANT, routine address in LOC_REGISTER }
  global_s64bit := func(RESULT_S32BIT,RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -361,29 +361,29 @@ Begin
    failed := true;
  if global_s64bit <> RESULT_S64BIT then
    failed := true;
- 
+
  If failed then
    fail
  else
    WriteLn('Passed!');
- {****************************************************************************************************}  
+ {****************************************************************************************************}
  Write('Testing object method variable call (LOC_REGISTER) ..');
 
  clear_globals;
  clear_values;
  failed := false;
- 
+
  tobjectmethod(get_object_method_normal)(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
  tobjectmethod(get_object_type_method_virtual)(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
@@ -393,29 +393,29 @@ Begin
 
  clear_globals;
  clear_values;
- 
- value_u8bit := RESULT_U8BIT;   
+
+ value_u8bit := RESULT_U8BIT;
  tobjectmethod(get_object_method_normal)(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
- value_u8bit := RESULT_U8BIT;   
+ value_u8bit := RESULT_U8BIT;
  tobjectmethod(get_object_type_method_virtual)(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
- value_u8bit := RESULT_U8BIT;   
+ value_u8bit := RESULT_U8BIT;
  tobjectmethod(get_object_method_virtual)(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
-   
+
+
  If failed then
    fail
  else
@@ -431,7 +431,7 @@ Begin
  obj_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
@@ -439,7 +439,7 @@ Begin
  obj_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
@@ -450,44 +450,44 @@ Begin
 
  clear_globals;
  clear_values;
- 
- value_u8bit := RESULT_U8BIT;   
+
+ value_u8bit := RESULT_U8BIT;
  obj_method:=@obj.test_normal;
  obj_method(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
- value_u8bit := RESULT_U8BIT;   
+ value_u8bit := RESULT_U8BIT;
  obj_method:=@tsimpleobject.test_virtual;
  obj_method(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
- value_u8bit := RESULT_U8BIT;   
+ value_u8bit := RESULT_U8BIT;
  obj_method:=@obj.test_normal;
  obj_method(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
-   
+
+
  If failed then
    fail
  else
    WriteLn('Passed!');
 
- {****************************************************************************************************}  
+ {****************************************************************************************************}
  Write('Testing class method variable call (LOC_REGISTER) ..');
- 
+
  clear_globals;
  clear_values;
  failed := false;
- 
+
  tclassmethod(get_class_method_normal)(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -499,7 +499,7 @@ Begin
  tclassmethod(get_class_method_virtual)(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
-   
+
  clear_globals;
  clear_values;
 
@@ -522,12 +522,12 @@ Begin
    WriteLn('Passed!');
 
  Write('Testing class method variable call (LOC_REFERENCE)...');
- 
+
  clear_globals;
  clear_values;
  failed := false;
- 
- 
+
+
  cla_method := @tsimpleclass.test_normal;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -549,7 +549,7 @@ Begin
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
- 
+
  clear_globals;
  clear_values;
 
@@ -560,8 +560,8 @@ Begin
 
  clear_globals;
  clear_values;
- 
- 
+
+
  cla_method_self := @tsimpleclass.test_normal_self;
  cla_method_self(cla, RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
@@ -583,7 +583,7 @@ Begin
  cla_method_self(cla, RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
- 
+
  clear_globals;
  clear_values;
 
@@ -591,7 +591,7 @@ Begin
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;}
- 
+
  If failed then
    fail
  else
@@ -601,7 +601,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2002-05-05 13:58:50  carl
+   Revision 1.2  2002-09-07 15:40:54  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.1  2002/05/05 13:58:50  carl
    + finished procedural variable testsuit
    + finished method testsuit
 

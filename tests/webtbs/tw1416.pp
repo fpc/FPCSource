@@ -20,4 +20,4 @@ begin
      writeln('ERROR');
      halt(1);
    end;
-end. 
+end.

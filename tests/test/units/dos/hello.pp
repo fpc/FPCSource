@@ -8,13 +8,13 @@ Begin
    begin
      WriteLn(ParamStr(i));
    end;
- RunError(213);  
+ RunError(213);
 end.
 
-{ 
+{
 
   $Log$
-  Revision 1.1  2001-12-10 02:25:33  carl
-  + test file for tdos
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
 
-}  
+}

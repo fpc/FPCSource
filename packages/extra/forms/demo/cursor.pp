@@ -7,15 +7,15 @@ uses forms;
 {$i bm1.xbm}
 {$i bm2.xbm}
 
-type 
+type
 TFD_cursor = record
-	cursor : PFL_FORM;
-	vdata : Pointer;
-	ldata : Longint;
-	end;
+        cursor : PFL_FORM;
+        vdata : Pointer;
+        ldata : Longint;
+        end;
 PFD_Cursor = ^TFD_Cursor;
 
-var 
+var
   bitmapcur : Longint;
 
 
@@ -31,7 +31,7 @@ procedure setbitmapcursor_cb(ob : PFL_OBJECT ; data : Longint);export;
 
 begin
   if bitmapcur<>0 then
-     bitmapcur := longint(fl_create_bitmap_cursor(Pchar(@bm1_bits), Pchar(@bm2_bits), 
+     bitmapcur := longint(fl_create_bitmap_cursor(Pchar(@bm1_bits), Pchar(@bm2_bits),
                   16, 16, 8 ,8 ));
                   {bm1_width, bm1_height,  bm1_width/2, bm1_height/2);}
   fl_set_cursor(FL_ObjWin(ob), bitmapcur);
@@ -46,7 +46,7 @@ end;
 
 Function create_form_cursor : PFD_cursor;
 
-var 
+var
   obj : PFL_OBJECT;
   fdui : PFD_cursor;
 
@@ -89,10 +89,10 @@ Begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:55  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

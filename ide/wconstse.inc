@@ -115,26 +115,7 @@
 
 {
   $Log$
-  Revision 1.2  2001-09-14 23:47:09  pierre
-   + more regexp, options now in Find/Replace dialogs
-
-  Revision 1.1  2001/08/04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.3  2001/03/06 22:04:53  pierre
-   * Avoid cursor updates when editor window is locked
-
-  Revision 1.1.2.2  2001/02/19 10:40:51  pierre
-   * Check for changed files after Running tool or shell
-
-  Revision 1.1.2.1  2000/09/18 13:20:55  pierre
-   New bunch of Gabor changes
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.1  2000/06/16 09:30:01  pierre
-   * new files from Gabor
-
+  Revision 1.3  2002-09-07 15:40:48  peter
+    * old logs removed and tabs fixed
 
 }

@@ -147,32 +147,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-07-31 19:18:53  peter
-    * small fixes to compile
-
-  Revision 1.4  2001/05/19 21:57:07  peter
-    * removed other warning
-
-  Revision 1.3  2000/11/30 22:38:21  peter
-    * renamed test suite
-
-  Revision 1.1  2000/11/29 23:14:19  peter
-    * new testsuite setup
-
-  Revision 1.1  2000/07/13 09:22:06  michael
-  + Initial import
-
-  Revision 1.2  2000/04/02 09:06:55  florian
-  *** empty log message ***
-
-  Revision 1.1  1999/12/02 17:37:45  peter
-    * moved *.pp into subdirs
-    * fpcmaked
-
-  Revision 1.2  1999/11/29 22:55:25  florian
-    * small update
-
-  Revision 1.1  1999/09/11 19:45:33  florian
-    * first version, please keep it up-to-date
+  Revision 1.6  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
 
 }

@@ -42,8 +42,8 @@ function  GTK_IS_CHECK_MENU_ITEM(obj:pointer):boolean;
 function  GTK_IS_CHECK_MENU_ITEM_CLASS(klass:pointer):boolean;
 
 function  gtk_check_menu_item_get_type:TGtkType;cdecl;external gtkdll name 'gtk_check_menu_item_get_type';
-function  gtk_check_menu_item_new : PGtkWidget;cdecl;external gtkdll name 'gtk_check_menu_item_new'; 
-function  gtk_check_menu_item_new_with_label (thelabel:Pgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_check_menu_item_new_with_label'; 
+function  gtk_check_menu_item_new : PGtkWidget;cdecl;external gtkdll name 'gtk_check_menu_item_new';
+function  gtk_check_menu_item_new_with_label (thelabel:Pgchar):PGtkWidget;cdecl;external gtkdll name 'gtk_check_menu_item_new_with_label';
 procedure gtk_check_menu_item_set_active(check_menu_item:PGtkCheckMenuItem; is_active:gboolean);cdecl;external gtkdll name 'gtk_check_menu_item_set_active';
 procedure gtk_check_menu_item_set_show_toggle(menu_item:PGtkCheckMenuItem; always:gboolean);cdecl;external gtkdll name 'gtk_check_menu_item_set_show_toggle';
 procedure gtk_check_menu_item_toggled(check_menu_item:PGtkCheckMenuItem);cdecl;external gtkdll name 'gtk_check_menu_item_toggled';
@@ -92,10 +92,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:09  peter
+  Revision 1.2  2002-09-07 15:42:59  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:09  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:21  michael
-  + removed logs
- 
 }

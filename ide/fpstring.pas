@@ -37,36 +37,7 @@ unit fpstring;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1  2000/07/13 09:48:36  michael
-  + Initial import
-
-  Revision 1.4  2000/05/02 08:42:28  pierre
-   * new set of Gabor changes: see fixes.txt
-
-  Revision 1.3  2000/04/18 11:42:37  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.2  2000/02/07 08:29:13  michael
-  [*] the fake (!) TOKENS.PAS still contained the typo bug
-       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
-  [*] CodeComplete had a very ugly bug - coordinates were document-relative
-      (instead of being screen-relative)
-  [*] TResourceStream didn't count the size of the resource names when
-      determining the file size and this could lead to the last resources not
-      loaded correctly
-
-
-  [+] Ctrl-Enter in editor now tries to open the file at cursor
-  [+] CodeComplete option added to Options|Environment|Editor
-  [+] user interface for managing CodeComplete implemented
-  [+] user interface for CodeTemplates implemented
-  [+] CodeComplete wordlist and CodeTemplates stored in desktop file
-  [+] help topic size no longer limited to 64KB when compiled with FPC
-
-  Revision 1.1  2000/01/23 21:25:17  florian
-    + start of internationalization support
+  Revision 1.2  2002-09-07 15:40:44  peter
+    * old logs removed and tabs fixed
 
 }

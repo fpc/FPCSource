@@ -162,7 +162,7 @@ Const
     RXCODEMASK      = $FF000000;
     RXARGMASK       = $0000000F;
 
-{ The RexxRsrc structure is used to manage global resources.  Each node 
+{ The RexxRsrc structure is used to manage global resources.  Each node
  * has a name string created as a RexxArg structure, and the total size
  * of the node is saved in the "rr_Size" field.  The REXX systems library
  * provides functions to allocate and release resource nodes.  If special
@@ -442,7 +442,7 @@ Const
     CTB_REXXSPC = 5;            { REXX special symbols          }
     CTB_UPPER   = 6;            { UPPERCASE alphabetic          }
     CTB_LOWER   = 7;            { lowercase alphabetic          }
-                                                                      
+
 { Attribute flags                                                      }
 
     CTF_SPACE   = 1;

@@ -12,21 +12,21 @@ begin
         n := 1
     else
         n := StrToInt(ParamStr(1));
-        
+
     if n < 1 then n := 1;
-    
+
     last := n - 1;
     X := TList.Create;
     X.Capacity := n;
     For i := 0 To last do
         X.Add( Pointer(i+1) );
-    
+
     Y := TList.Create;
     Y.Capacity := n;
     For i := 0 To last do
         Y.Add( Pointer(0) );
-    
-    
+
+
     For k := 0 To 999 do
     begin
         For i := last downto 0 do

@@ -43,16 +43,7 @@ const
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.1  2000/11/29 18:28:53  pierre
-   + add save to file capability for list boxes
-
-  Revision 1.1  2000/07/13 09:48:37  michael
-  + Initial import
-
-  Revision 1.1  2000/06/16 09:30:01  pierre
-   * new files from Gabor
+  Revision 1.2  2002-09-07 15:40:48  peter
+    * old logs removed and tabs fixed
 
 }

@@ -6,7 +6,7 @@ type
   rec = record
     ch : char;
   end;
-  
+
   TBadObject = class
     a: array[0..0,0..0] of array[0..0] of rec;
   public

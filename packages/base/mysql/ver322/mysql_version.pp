@@ -18,13 +18,13 @@ implementation
 
 end.
   $Log$
-  Revision 1.1  2002-08-26 17:51:13  michael
+  Revision 1.2  2002-09-07 15:42:53  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/26 17:51:13  michael
   + Initial move
 
   Revision 1.1  2002/01/29 17:54:53  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:26  michael
-  + removed logs
- 
 }

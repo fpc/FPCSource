@@ -473,9 +473,9 @@ unit regexpr;
             dosearch:=false;
             while true do
               begin
-	         {$IFDEF Debug}
+                 {$IFDEF Debug}
                  writeln(byte(regexpr^.typ));
-		 {$ENDIF Debug}
+                 {$ENDIF Debug}
                  case regexpr^.typ of
                     ret_endline:
                       begin
@@ -593,18 +593,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:56  peter
+  Revision 1.2  2002-09-07 15:42:53  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:54:56  peter
     * splitted to base and extra
 
   Revision 1.4  2002/01/22 13:13:14  pierre
    + add mode objfpc to avoid problems if compiling from IDE dir
 
-  Revision 1.3  2000/07/30 14:58:04  sg
-  * Added modifications by Markus Kaemmerer:
-    - Unit now compiles with Delphi
-    - Removed debug output when not compiled with -dDEBUG
-
-  Revision 1.2  2000/07/13 11:33:31  michael
-  + removed logs
- 
 }

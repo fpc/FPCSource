@@ -16,4 +16,4 @@ VAR S: STRING;
                 WRITE(S);
                    WRITE('*',S);
                    END.
-                   
+

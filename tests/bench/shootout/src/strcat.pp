@@ -3,7 +3,7 @@
 program strcat;
 
 uses SysUtils;
-var 
+var
     NUM, i : longint;
     str : string;
 
@@ -16,5 +16,5 @@ begin
     For i := 1 To NUM Do
         str := str + 'hello'#13;
     WriteLn( Longint(Length(str)) );
-    WriteLn( str );    
+    WriteLn( str );
 end.

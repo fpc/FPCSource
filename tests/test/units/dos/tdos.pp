@@ -197,13 +197,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-07-06 11:46:08  carl
+  Revision 1.6  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/07/06 11:46:08  carl
   + fsearch testing added
 
   Revision 1.4  2002/06/01 19:08:52  marco
    * Renamefest
 
-  Revision 1.3  2001/12/10 02:25:08  carl
-  + exec now tests hello, which permits testing of DosError and DosExitCode
-
-}  
+}

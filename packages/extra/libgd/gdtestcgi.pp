@@ -1,11 +1,11 @@
-{ Author   : Mike Bradbery 
+{ Author   : Mike Bradbery
   Copyright: 2000 Mike Bradbery and others, see file "forum.txt" }
 
 program gdtestcgi;
 
 uses gd;
 
-var 
+var
   f:pFile;
   black,white:integer;
   red,green,blue:integer;

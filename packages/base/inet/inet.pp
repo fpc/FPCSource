@@ -528,14 +528,10 @@ end.
 
 
    $Log$
-   Revision 1.1  2002-01-29 17:54:53  peter
+   Revision 1.2  2002-09-07 15:42:52  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.1  2002/01/29 17:54:53  peter
      * splitted to base and extra
 
-   Revision 1.3  2001/12/17 20:29:00  sg
-   * Now uses 'word' instead of 'integer' for short<->net conversions, as the
-     short conversions are used for port numbers, which are unsigned.
-
-   Revision 1.2  2000/07/13 11:33:26  michael
-   + removed logs
- 
 }

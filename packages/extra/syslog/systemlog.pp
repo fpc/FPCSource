@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal packages.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, 
+    Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
-    
+
     This unit implements an interface to the Linux system logger.
 
     See the file COPYING.FPC, included in this distribution,
@@ -76,9 +76,9 @@ const
      ( name : 'debug'; val : LOG_DEBUG ),
      ( name : 'emerg'; val : LOG_EMERG ),
      ( name : 'err';val :  LOG_ERR ),
-     ( name : 'error'; val :  LOG_ERR ),		
+     ( name : 'error'; val :  LOG_ERR ),
      ( name : 'info';val : LOG_INFO ),
-     ( name : 'none'; val : INTERNAL_NOPRI ),	
+     ( name : 'none'; val : INTERNAL_NOPRI ),
      ( name : 'notice'; val  :  LOG_NOTICE ),
      ( name : 'panic'; val : LOG_EMERG ),
      ( name : 'warn'; val : LOG_WARNING ),
@@ -99,7 +99,7 @@ const
       ( name : 'mail'; val :  LOG_MAIL ),
       ( name : 'mark'; val :  INTERNAL_MARK ),
       ( name : 'news'; val :  LOG_NEWS ),
-      ( name : 'security'; val :  LOG_AUTH ),	
+      ( name : 'security'; val :  LOG_AUTH ),
       ( name : 'syslog'; val :  LOG_SYSLOG ),
       ( name : 'user'; val :  LOG_USER ),
       ( name : 'uucp'; val :  LOG_UUCP ),
@@ -172,10 +172,10 @@ const
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:22  peter
+  Revision 1.2  2002-09-07 15:43:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:22  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:31  michael
-  + removed logs
- 
 }

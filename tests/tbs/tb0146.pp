@@ -18,4 +18,4 @@ var
 begin
   tb150_wrong.l1:=1;
   tb150_wrong.l2:=1;
-end.  
+end.

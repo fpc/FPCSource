@@ -92,7 +92,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure WriteLine(const line: String);
-    procedure Run;		// Write as many data as possible
+    procedure Run;              // Write as many data as possible
 
     property BytesInBuffer: Integer read FBytesInBuffer;
     property OnBufferEmpty: TNotifyEvent read FOnBufferEmpty write FOnBufferEmpty;
@@ -124,20 +124,10 @@ type
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:02  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:02  peter
     * splitted to base and extra
-
-  Revision 1.2  2001/12/11 17:45:28  marco
-   * was only commited to fixes.
-
-  Revision 1.1.2.2  2001/11/16 12:51:41  sg
-  * Now different handlers for available data and space in write buffer can
-    be set
-  * LOTS of bugfixes in the implementation
-  * fpAsync now has a write buffer class (a read buffer class for reading
-    line by line will be included in the next release)
-
-  Revision 1.1.2.1  2001/09/08 15:43:24  sg
-  * First public version
 
 }

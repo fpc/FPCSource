@@ -562,7 +562,7 @@ End; {slegba}
 Procedure slegbal(n, l, r: ArbInt;
                   Var a1; Var b1, x1, ca: ArbFloat; Var term:ArbInt);
 
-Var 
+Var
   sr, i, j, k, ipivot, m, lbj, lbi, ubi, ls,
                  ll, s, js, ubj, rwidth       : ArbInt;
   ra, normr, sumrowi, pivot, normt, maxim, h  : ArbFloat;
@@ -689,7 +689,7 @@ End; {slegbal}
 Procedure slegen(n, rwidth: ArbInt; Var a, b, x, ca: ArbFloat;
                  Var term: ArbInt);
 
-Var 
+Var
           nsr, i, j, k, ipiv, ip, ik, i1n, k1n : ArbInt;
                                       singular : boolean;
            normr, pivot, l, normt, maxim, h, s : ArbFloat;
@@ -826,7 +826,7 @@ Procedure slegenl(     n: ArbInt;
                   Var b1, x1, ca: ArbFloat;
                   Var term: ArbInt);
 
-Var 
+Var
      nsr, i, j, k, ipiv : ArbInt;
                singular : boolean;
      normr, pivot, l, normt, maxim, h, s : ArbFloat;
@@ -1281,7 +1281,7 @@ End;  {slegpb}
 Procedure slegpbl(n, l: ArbInt;
                   Var a1; Var b1, x1, ca: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
     posdef                                    : boolean;
     i, j, k, r, p, q, ll, sr, rwidth          : ArbInt;
     h, normr, normt, sumrowi, hh, alim, norma : ArbFloat;
@@ -1421,7 +1421,7 @@ End;  {slegpbl}
 Procedure slegpd(n, rwidth: ArbInt; Var a, b, x, ca: ArbFloat;
                  Var term: ArbInt);
 
-Var 
+Var
     sr, i, j, k, kmin1, kk, k1n, i1n, ik, ii : ArbInt;
                                           pd : boolean;
         h, lkk, normr, normt, sumrowi, norma : ArbFloat;
@@ -1625,7 +1625,7 @@ End; {slegpdl}
 Procedure slegsy(n, rwidth: ArbInt; Var a, b, x, ca: ArbFloat;
                  Var term:ArbInt);
 
-Var 
+Var
    i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb, ii,
    imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp       : ArbInt;
    ra, h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
@@ -1885,7 +1885,7 @@ End; {slegsy}
 Procedure slegsyl(n: ArbInt; Var a1; Var b1, x1, ca: ArbFloat;
                   Var term: ArbInt);
 
-Var 
+Var
    i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb, ii,
    imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp       : ArbInt;
    ra, h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
@@ -2278,17 +2278,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:18  peter
+  Revision 1.2  2002-09-07 15:43:04  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:18  peter
     * splitted to base and extra
-
-  Revision 1.1  2000/07/13 06:34:15  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:42  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
-
 
 }

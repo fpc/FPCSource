@@ -892,26 +892,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:21  michael
-  + Initial import
-
-  Revision 1.6  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.5  2000/01/18 20:54:56  peter
-    * fixed array calc when size is multiple of maxlen
-
-  Revision 1.4  2000/01/07 16:46:01  daniel
-    * copyright 2000
-
-  Revision 1.3  1999/12/03 10:49:31  michael
-  Counters must be global or completely local
-
-  Revision 1.2  1999/11/23 09:42:18  peter
-    + -s for string writing
-    * some small cleanups
-
-  Revision 1.1  1999/11/09 14:40:50  peter
-    * initial version
+  Revision 1.2  2002-09-07 15:40:30  peter
+    * old logs removed and tabs fixed
 
 }

@@ -42,7 +42,7 @@ begin
   end;
 
 
-  Visual := ggiOpen(nil, []);	// Open default visual
+  Visual := ggiOpen(nil, []);   // Open default visual
   if not Assigned(Visual) then
   begin
     WriteLn(StdErr, 'Could not get default visual');
@@ -103,10 +103,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:03  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:03  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:17  michael
-  + removed logs
- 
 }

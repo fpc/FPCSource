@@ -28,17 +28,17 @@ uses mysql_com;
 {$PACKRECORDS C}
 
   { Copyright (C) 2000 MySQL AB
-  
+
      This program is free software; you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
      the Free Software Foundation; either version 2 of the License, or
      (at your option) any later version.
-  
+
      This program is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
      GNU General Public License for more details.
-  
+
      You should have received a copy of the GNU General Public License
      along with this program; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  }
@@ -87,15 +87,15 @@ uses mysql_com;
   { argument types are unknown }
   function IS_BLOB(n : longint) : boolean;
 
-(* error 
-#define IS_NUM(t)	((t) <= FIELD_TYPE_INT24 || (t) == FIELD_TYPE_YEAR)
+(* error
+#define IS_NUM(t)       ((t) <= FIELD_TYPE_INT24 || (t) == FIELD_TYPE_YEAR)
 in define line 32 *)
     { was #define dname(params) para_def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
+    { return type might be wrong }
     function IS_NUM_FIELD(f : Pst_mysql_field) : boolean;
 
-(* error 
+(* error
 #define INTERNAL_NUM_FIELD(f) (((f)->type <= FIELD_TYPE_INT24 && ((f)->type != FIELD_TYPE_TIMESTAMP || (f)->length == 14 || (f)->length == 8)) || (f)->type == FIELD_TYPE_YEAR)
 in define line 34 *)
     { Name of column  }
@@ -184,7 +184,7 @@ type
        on connect, find out the replication role of the server, and
        establish connections to all the peers
       }
-    { 
+    {
         each call to mysql_real_query() will parse it to tell if it is a read
         or a write, and direct it to the slave or the master
       }
@@ -403,7 +403,7 @@ type
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-    function mysql_ssl_set(mysql:PMYSQL; key:Pchar; cert:Pchar; ca:Pchar; capath:Pchar; 
+    function mysql_ssl_set(mysql:PMYSQL; key:Pchar; cert:Pchar; ca:Pchar; capath:Pchar;
                cipher:Pchar):longint;cdecl;external External_library name 'mysql_ssl_set';
 
     function mysql_ssl_clear(mysql:PMYSQL):longint;cdecl;external External_library name 'mysql_ssl_clear';
@@ -418,7 +418,7 @@ type
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-    function mysql_real_connect(mysql:PMYSQL; host:Pchar; user:Pchar; passwd:Pchar; db:Pchar; 
+    function mysql_real_connect(mysql:PMYSQL; host:Pchar; user:Pchar; passwd:Pchar; db:Pchar;
                port:dword; unix_socket:Pchar; clientflag:dword):PMYSQL;cdecl;external External_library name 'mysql_real_connect';
 
     procedure mysql_close(sock:PMYSQL);cdecl;external External_library name 'mysql_close';
@@ -470,8 +470,8 @@ type
     { get the value of the master read flag  }
     function mysql_reads_from_master_enabled(mysql:PMYSQL):longint;cdecl;external External_library name 'mysql_reads_from_master_enabled';
 
-(* error 
-enum mysql_rpl_type      mysql_rpl_query_type(const char* q, int len);  
+(* error
+enum mysql_rpl_type      mysql_rpl_query_type(const char* q, int len);
 in declaration at line 291 *)
     { discover the master and its slaves  }
     function mysql_rpl_probe(mysql:PMYSQL):longint;cdecl;external External_library name 'mysql_rpl_probe';
@@ -552,8 +552,8 @@ in declaration at line 291 *)
 (* Const before type ignored *)
 Type
   TExdendBuffer = function (_para1:pointer; _to:Pchar; length:Pdword):Pchar;
-  
-    function mysql_odbc_escape_string(mysql:PMYSQL; _to:Pchar; to_length:dword; from:Pchar; from_length:dword; 
+
+    function mysql_odbc_escape_string(mysql:PMYSQL; _to:Pchar; to_length:dword; from:Pchar; from_length:dword;
                param:pointer; extend_buffer: TExdendBuffer):Pchar;cdecl;external External_library name 'mysql_odbc_escape_string';
 
     procedure myodbc_remove_escape(mysql:PMYSQL; name:Pchar);cdecl;external External_library name 'myodbc_remove_escape';
@@ -576,7 +576,7 @@ Type
 
     { was #define dname(params) para_def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
+    { return type might be wrong }
     function mysql_reload(mysql : pmysql) : longint;
 
     {
@@ -614,7 +614,7 @@ implementation
 
     { was #define dname(params) para_def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
+    { return type might be wrong }
     function IS_NUM_FIELD(f : Pst_mysql_field) : Boolean;
       begin
          IS_NUM_FIELD:=((f^.flags) and NUM_FLAG)<>0;
@@ -629,7 +629,7 @@ implementation
 
     { was #define dname(params) para_def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
+    { return type might be wrong }
     function mysql_reload(mysql : pmysql) : longint;
       begin
          mysql_reload:=mysql_refresh(mysql,REFRESH_GRANT);

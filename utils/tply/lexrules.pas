@@ -30,7 +30,7 @@ $Revision$
 $Modtime: 96-08-01 6:30 $
 
 $History: LEXRULES.PAS $
- * 
+ *
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -265,37 +265,37 @@ procedure parse_rule ( rule_no : Integer );
 
     (* parse rule according to syntax:
 
-       rule			: start_state_prefix caret
-				  expr [ '$' | '/' expr ]
-				;
+       rule                     : start_state_prefix caret
+                                  expr [ '$' | '/' expr ]
+                                ;
 
-       start_state_prefix	: /* empty */
-				| '<' start_state_list '>'
-				;
+       start_state_prefix       : /* empty */
+                                | '<' start_state_list '>'
+                                ;
 
        start_state_list         : ident { ',' ident }
                                 ;
 
-       caret			: /* empty */
-				| '^'
-				;
+       caret                    : /* empty */
+                                | '^'
+                                ;
 
-       expr			: term { '|' term }
-				;
+       expr                     : term { '|' term }
+                                ;
 
-       term			: factor { factor }
-				;
+       term                     : factor { factor }
+                                ;
 
-       factor			: char
-				| string
-				| cclass
-				| '.'
-				| '(' expr ')'
-				| factor '*'
-				| factor '+'
-				| factor '?'
-				| factor '{' num [ ',' num ] '}'
-				;
+       factor                   : char
+                                | string
+                                | cclass
+                                | '.'
+                                | '(' expr ')'
+                                | factor '*'
+                                | factor '+'
+                                | factor '?'
+                                | factor '{' num [ ',' num ] '}'
+                                ;
     *)
 
     procedure start_state_prefix ( var done : Boolean );

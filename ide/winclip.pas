@@ -248,35 +248,7 @@ end.
 
 {
  $Log$
- Revision 1.2  2001-10-05 11:59:06  pierre
-  * Empty CF_TEXT clipboard data for go32v2 to force data conversion
-    if CF_TEXT is requested
-  * Use OemToCharBuff to also set the CF_TEXT clipboard format on win32
-
- Revision 1.1  2001/08/04 11:30:26  peter
-   * ide works now with both compiler versions
-
- Revision 1.1.2.1  2000/12/01 11:35:01  pierre
-  * fix a problem that created garbage at end of Windows Clipboard on Copy
-
- Revision 1.1  2000/07/13 09:48:37  michael
- + Initial import
-
- Revision 1.7  2000/06/16 08:50:45  pierre
-  + new bunch of Gabor's changes
-
- Revision 1.6  2000/04/25 08:42:35  pierre
-  * New Gabor changes : see fixes.txt
-
- Revision 1.5  2000/04/18 11:42:39  pierre
-  lot of Gabor changes : see fixes.txt
-
- Revision 1.4  1999/11/05 13:46:26  pierre
-   * Use CF_OEMTEXT under win32 and dx=7 under go32v2 to obtain
-     OEM to ANSI conversion
-   * GetClipboardDataSize for Win32
-
- Revision 1.3  1999/10/14 14:22:23  florian
-   * if no ini file is found the ide uses some useful defaults
+ Revision 1.3  2002-09-07 15:40:50  peter
+   * old logs removed and tabs fixed
 
 }

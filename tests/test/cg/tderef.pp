@@ -63,13 +63,13 @@ end.
 
 {
    $Log$
-   Revision 1.3  2002-04-13 21:04:46  carl
+   Revision 1.4  2002-09-07 15:40:56  peter
+     * old logs removed and tabs fixed
+
+   Revision 1.3  2002/04/13 21:04:46  carl
    * fixed stupid typo
 
    Revision 1.2  2002/03/05 21:56:02  carl
    * Adapted for automated testing
-
-   Revision 1.1  2001/06/30 02:02:06  carl
-   + secondderef()
 
 }

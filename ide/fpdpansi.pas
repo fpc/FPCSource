@@ -115,26 +115,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-03-25 11:51:43  pierre
+  Revision 1.4  2002-09-07 15:40:43  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/03/25 11:51:43  pierre
    * Escape Escape and chars ord(char)<=16
-
-  Revision 1.2  2001/11/15 13:30:14  pierre
-   + save ansi dump as text is filename suffix is '.txt'
-
-  Revision 1.1  2001/08/04 11:30:23  peter
-    * ide works now with both compiler versions
-
-  Revision 1.1.2.1  2000/11/21 17:43:24  pierre
-   + first version of dump ansi file
-
-  Revision 1.1  2000/07/13 09:48:36  michael
-  + Initial import
-
-  Revision 1.4  2000/06/07 06:17:14  pierre
-   * New templates from Gabor
-
-  Revision 1.1  1999/02/19 15:37:26  peter
-    + init
 
 }
 

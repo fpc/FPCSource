@@ -14,4 +14,4 @@
  a:=Lowercase(A);        // ERROR
  Writeln (a);
  end.
- 
+

@@ -11,7 +11,7 @@ var
   choice : Longint;
   str1,str2 : string[100];
   s : pchar;
-  
+
 begin
   fl_initialize(@argc, argv, 'FormDemo', nil, 0);
 
@@ -22,7 +22,7 @@ begin
 
   fl_show_messages('This is a test program for the goodies of the forms library');
 
-  fl_show_alert('Alert', 'Alert form can be used to inform', 
+  fl_show_alert('Alert', 'Alert form can be used to inform',
                'recoverable errors', 0);
 
   if (fl_show_question('Do you want to quit?', 0)<>0) then
@@ -33,11 +33,11 @@ begin
   fl_show_message('You typed:','',@str1[1]);
   choice := fl_show_choices('Pick a choice',3,'One','Two','Three',2);
   case choice of
-    1: fl_show_message('You typed: One','',''); 
-    2: fl_show_message('You typed: Two','',''); 
+    1: fl_show_message('You typed: One','','');
+    2: fl_show_message('You typed: Two','','');
     3: fl_show_message('You typed: Three','','');
   else
-    begin 
+    begin
     fl_show_message('An error occured!','','');
     end
   end;
@@ -48,10 +48,10 @@ begin
   fl_show_messages('Good Bye');
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

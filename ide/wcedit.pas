@@ -2050,7 +2050,10 @@ end;
 END.
 {
  $Log$
- Revision 1.12  2002-09-03 11:50:08  pierre
+ Revision 1.13  2002-09-07 15:40:47  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.12  2002/09/03 11:50:08  pierre
   * Indicator like in BP, web bug 1945
 
  Revision 1.11  2002/08/26 13:40:15  pierre
@@ -2067,77 +2070,5 @@ END.
 
  Revision 1.7  2002/01/25 14:15:35  pierre
   * fix bug 1774
-
- Revision 1.6  2001/10/10 23:34:54  pierre
-  * fix bug 1632
-
- Revision 1.5  2001/09/27 22:32:24  pierre
-  * avoid to get unnecessary warnings about modified files if file already open
-
- Revision 1.4  2001/09/14 23:47:08  pierre
-  + more regexp, options now in Find/Replace dialogs
-
- Revision 1.3  2001/09/14 16:33:06  pierre
-  * several small changes
-
- Revision 1.2  2001/08/05 02:01:48  peter
-   * FVISION define to compile with fvision units
-
- Revision 1.1  2001/08/04 11:30:25  peter
-   * ide works now with both compiler versions
-
- Revision 1.1.2.20  2001/06/07 16:41:12  jonas
-   *  updated for stricter checking of @ for procvars
-
- Revision 1.1.2.19  2001/03/20 00:20:43  pierre
-  * fix some memory leaks + several small enhancements
-
- Revision 1.1.2.18  2001/03/12 17:34:57  pierre
-  + Disassembly window started
-
- Revision 1.1.2.17  2001/03/06 22:04:53  pierre
-  * Avoid cursor updates when editor window is locked
-
- Revision 1.1.2.16  2001/02/19 10:40:51  pierre
-  * Check for changed files after Running tool or shell
-
- Revision 1.1.2.15  2001/02/13 16:04:00  pierre
-  * fixes for bugs 1280
-
- Revision 1.1.2.14  2001/02/05 12:58:26  pierre
-  * fix several Undo bugs
-
- Revision 1.1.2.13  2000/12/30 22:44:37  peter
-   * autosave editor files fixed
-
- Revision 1.1.2.12  2000/12/23 23:08:42  florian
-   * better message for unsaved files
-
- Revision 1.1.2.11  2000/12/09 17:41:20  florian
-   * IndentSize is stored in the .INI file now
-
- Revision 1.1.2.10  2000/11/29 12:04:37  pierre
-  * remove unwanted Indicator changes
-
- Revision 1.1.2.9  2000/11/29 11:26:01  pierre
-  + TFPDlgWindow that handles cmSearchWindow
-
- Revision 1.1.2.8  2000/11/27 12:06:50  pierre
-  New bunch of Gabor fixes
-
- Revision 1.1.2.7  2000/11/14 23:41:32  pierre
-  * fix for bug 1234
-
- Revision 1.1.2.6  2000/11/03 15:49:26  pierre
-  * more Undo fixes
-
- Revision 1.1.2.5  2000/11/03 13:31:33  pierre
-  + more Undo stuff and smarter indent/unindent
-
- Revision 1.1.2.4  2000/10/24 23:06:30  pierre
-  * some Undo/redo fixes
-
- Revision 1.1.2.3  2000/09/18 13:20:55  pierre
-  New bunch of Gabor changes
 
 }

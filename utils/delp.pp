@@ -266,7 +266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-06-01 18:39:14  marco
+  Revision 1.7  2002-09-07 15:40:30  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/06/01 18:39:14  marco
    * Renamefest
 
   Revision 1.5  2002/03/02 23:21:32  carl
@@ -277,11 +280,5 @@ end.
   + added OS/2 masks
   - remove log
 
-  Revision 1.3  2001/06/03 20:30:23  peter
-    * delphi units added
-    * ~ backup files added
-
-  Revision 1.2  2000/12/27 22:13:44  peter
-    * .rst added
 }
 

@@ -4,7 +4,7 @@ uses forms;
 
 procedure input_cb( ob : PFL_OBJECT; data : Longint);export;
 
-var 
+var
     x, y : Longint;
 begin
     fl_get_input_cursorpos(ob, @x , @y);
@@ -12,7 +12,7 @@ begin
 end;
 
 
-var 
+var
   form : PFL_FORM;
   but, obj : PFL_OBJECT;
 
@@ -28,10 +28,10 @@ begin
   while (obj <> but) do obj:=fl_do_forms;
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -87,11 +87,11 @@ begin
 end;
 
 
-{ 
-  Will the finally clause of a try block be called if the try block 
-  is inside a sub-block and the try block is exited with the break 
+{
+  Will the finally clause of a try block be called if the try block
+  is inside a sub-block and the try block is exited with the break
   statement?
-}  
+}
 Function DoTryFinallyTwo : boolean;
 var
  failed : boolean;
@@ -115,11 +115,11 @@ begin
 end;
 
 
-{ 
-  Will the finally clause of a try block be called if the try block 
-  is inside a sub-block and the try block is exited with the continue 
+{
+  Will the finally clause of a try block be called if the try block
+  is inside a sub-block and the try block is exited with the continue
   statement?
-}  
+}
 Function DoTryFinallyThree : boolean;
 var
  failed : boolean;
@@ -143,11 +143,11 @@ begin
 end;
 
 
-{ 
-  Will the finally clause of a try block be called if the try block 
+{
+  Will the finally clause of a try block be called if the try block
   is inside a sub-block and the try block is exited with the exit
   statement?
-}  
+}
 Function DoTryFinallyFour: boolean;
 var
  failed : boolean;
@@ -209,17 +209,17 @@ begin
   x:=0;
   Try
     IncrementCounter(global_counter);
-    Try 
+    Try
         DecrementCounter(global_counter);
         IncrementCounter(global_counter);
-        Try 
+        Try
            DecrementCounter(global_counter);
         finally
           Inc(x);
         end;
     finally
       Inc(x);
-    End;  
+    End;
   finally
     if (global_counter = 0) and (x = 2) then
       failed :=false;
@@ -228,12 +228,12 @@ begin
 end;
 
 
-{ 
+{
    Will the finally clauses of all try blocks be called if they are
    nested within each other and all are nested within a sub-block
    and a break statement is encountered in the innermost try
    block?
-}  
+}
 Function DoTryFinallySix : boolean;
 var
  failed : boolean;
@@ -248,10 +248,10 @@ begin
   begin
       Try
         IncrementCounter(global_counter);
-        Try 
+        Try
           DecrementCounter(global_counter);
           IncrementCounter(global_counter);
-          Try 
+          Try
              DecrementCounter(global_counter);
              break;
           finally
@@ -259,7 +259,7 @@ begin
           end;
         finally
             Inc(x);
-        End;  
+        End;
      finally
         if (global_counter = 0) and (x = 2) then
           failed :=false;
@@ -269,12 +269,12 @@ begin
 end;
 
 
-{ 
+{
    Will the finally clauses of all try blocks be called if they are
    nested within each other and all are nested within a sub-block
    and a continue statement is encountered in the innermost try
    block?
-}  
+}
 Function DoTryFinallySeven : boolean;
 var
  failed : boolean;
@@ -289,10 +289,10 @@ begin
   begin
       Try
         IncrementCounter(global_counter);
-        Try 
+        Try
           DecrementCounter(global_counter);
           IncrementCounter(global_counter);
-          Try 
+          Try
              DecrementCounter(global_counter);
              continue;
           finally
@@ -300,7 +300,7 @@ begin
           end;
         finally
             Inc(x);
-        End;  
+        End;
      finally
         if (global_counter = 0) and (x = 2) then
           failed :=false;
@@ -309,12 +309,12 @@ begin
   end;
 end;
 
-{ 
+{
    Will the finally clauses of all try blocks be called if they are
    nested within each other and all are nested within a sub-block
    and an exit statement is encountered in the innermost try
    block?
-}  
+}
 Function DoTryFinallyEight : boolean;
 var
  failed : boolean;
@@ -329,10 +329,10 @@ begin
   begin
       Try
         IncrementCounter(global_counter);
-        Try 
+        Try
           DecrementCounter(global_counter);
           IncrementCounter(global_counter);
-          Try 
+          Try
              DecrementCounter(global_counter);
              exit;
           finally
@@ -340,7 +340,7 @@ begin
           end;
         finally
             Inc(x);
-        End;  
+        End;
      finally
         if (global_counter = 0) and (x = 2) then
           failed :=false;
@@ -352,11 +352,11 @@ end;
 (*
 ------------------
 *)
-{ 
-  If several try blocks are nested within a sub-block, and that sub-block is 
+{
+  If several try blocks are nested within a sub-block, and that sub-block is
   nested in a try block within another try block, and the innermost try
   blocks are exited due to a break, will all finally clauses be called?
-}  
+}
 Function DoTryFinallyNine : boolean;
 var
  failed : boolean;
@@ -372,10 +372,10 @@ begin
     begin
         Try
           IncrementCounter(global_counter);
-          Try 
+          Try
             DecrementCounter(global_counter);
             IncrementCounter(global_counter);
-            Try 
+            Try
                DecrementCounter(global_counter);
                break;
             finally
@@ -383,7 +383,7 @@ begin
             end;
           finally
               Inc(x);
-          End;  
+          End;
        finally
           if (global_counter = 0) and (x = 2) then
             failed :=false;
@@ -397,11 +397,11 @@ begin
 end;
 
 
-{ 
-  If several try blocks are nested within a sub-block, and that sub-block is 
+{
+  If several try blocks are nested within a sub-block, and that sub-block is
   nested in a try block within another try block, and the innermost try
   blocks are exited due to an exit, will all finally clauses be called?
-}  
+}
 Function DoTryFinallyTen : boolean;
 var
  failed : boolean;
@@ -417,10 +417,10 @@ begin
     begin
         Try
           IncrementCounter(global_counter);
-          Try 
+          Try
             DecrementCounter(global_counter);
             IncrementCounter(global_counter);
-            Try 
+            Try
                DecrementCounter(global_counter);
                exit;
             finally
@@ -428,7 +428,7 @@ begin
             end;
           finally
               Inc(x);
-          End;  
+          End;
        finally
           x:=1;
        end;
@@ -499,8 +499,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-03 11:05:14  carl
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/03 11:05:14  carl
     + exception handling testing
        (still missing raise / on node testing)
 
-}  
+}

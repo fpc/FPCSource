@@ -109,13 +109,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-07-13 21:01:59  peter
-    * cygdrive support
-    * fixed cygwin detection
-    * fixed some duplicate and extraeous spaces
-
-  Revision 1.1  2001/06/04 21:42:57  peter
-    * Arguments added
-    * Start of Package.fpc creation
+  Revision 1.3  2002-09-07 15:40:32  peter
+    * old logs removed and tabs fixed
 
 }

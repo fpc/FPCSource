@@ -640,20 +640,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-03-05 21:55:11  carl
+  Revision 1.6  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/03/05 21:55:11  carl
   * Adapted for automated testing
-
-  Revision 1.4  2001/10/20 17:26:13  peter
-    * several fixes to run also with kylix
-
-  Revision 1.3  2001/06/24 22:30:19  carl
-  + completed small set tests
-
-  Revision 1.2  2001/06/22 02:24:40  carl
-  + complete normal set tests
-
-  Revision 1.1  2001/06/21 02:50:44  carl
-  cgadd node testing for sets (incomplete)
-
 
 }

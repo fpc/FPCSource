@@ -24,10 +24,10 @@ type  smallint = integer;
 const
  { Should be equal to the maximum offset possible in indirect addressing
    mode with displacement. (CPU SPECIFIC) }
-   
-{$ifdef cpu86}   
+
+{$ifdef cpu86}
  MAX_DISP = 65535;
-{$endif} 
+{$endif}
 {$ifdef cpu68k}
  MAX_DISP = 32767;
 {$endif}
@@ -152,10 +152,10 @@ end;
 
 
  level1rec : tlevel1rec =
- ( 
+ (
   c: RESULT_U8BIT
  );
- 
+
  level2rec : tlevel2rec =
  (
    c: RESULT_U8BIT;
@@ -168,28 +168,28 @@ end;
  (
   c: RESULT_U8BIT;
   s: RESULT_U16BIT;
-  
+
  );
- 
+
  level4rec : tlevel4rec =
  (
   c: RESULT_U8BIT;
   i : RESULT_S64BIT;
   s : RESULT_U16BIT
  );
- 
+
  level5rec : tlevel5rec =
  (
    c: RESULT_U8BIT;
    s: RESULT_U16BIT;
    j: RESULT_S32BIT;
  );
- 
+
  level1rec_packed : tlevel1rec_packed =
  (
   c: RESULT_U8BIT
  );
- 
+
  level2rec_packed : tlevel2rec_packed =
  (
    c: RESULT_U8BIT;
@@ -197,33 +197,33 @@ end;
    s: RESULT_U16BIT;
    n: RESULT_S32BIT;
  );
- 
+
  level3rec_packed : tlevel3rec_packed =
  (
   c: RESULT_U8BIT;
   s: RESULT_U16BIT;
  );
- 
+
  level4rec_packed : tlevel4rec_packed =
  (
   c: RESULT_U8BIT;
   i : RESULT_S64BIT;
   s : RESULT_U16BIT
  );
- 
+
  level5rec_packed : tlevel5rec_packed =
  (
    c: RESULT_U8BIT;
    s: RESULT_U16BIT;
    j: RESULT_S32BIT;
  );
- 
+
     procedure fail;
     begin
       WriteLn('Failure.');
       halt(1);
     end;
- 
+
 var
  c,d: byte;
  s: word;
@@ -232,7 +232,7 @@ var
  failed : boolean;
  class1 : tclass1;
  class2 : tclass2;
- 
+
  procedure clear_globals;
   begin
     c:=0;
@@ -244,13 +244,13 @@ var
     class1:=nil;
     class2:=nil
   end;
-  
-  
+
+
  function getclass : tclass1;
   begin
     getclass := class1;
   end;
-  
+
  function getclass2: tclass2;
   begin
     getclass2 := class2;
@@ -267,8 +267,8 @@ var
      if c <> RESULT_U8BIT then
        failed := true;
   end;
-  
-  
+
+
   procedure testlocal_big_2;
    var
     local2rec_big : tlevel2rec_big;
@@ -279,22 +279,22 @@ var
      local2rec_big.d := RESULT_U8BIT;
      local2rec_big.s := RESULT_U16BIT;
      local2rec_big.n := RESULT_S32BIT;
-     { load values - load } 
+     { load values - load }
      c:= local2rec_big.c;
      if c <> RESULT_U8BIT then
        failed := true;
      d:= local2rec_big.d;
      if d <> RESULT_U8BIT then
        failed := true;
-     s:= local2rec_big.s;  
+     s:= local2rec_big.s;
      if s <> RESULT_U16BIT then
        failed := true;
-     n:= local2rec_big.n;  
+     n:= local2rec_big.n;
      if n <> RESULT_S32BIT then
        failed := true;
    end;
-   
-   
+
+
    procedure testlocal_big_3;
     var
      local3rec_big : tlevel3rec_big;
@@ -310,7 +310,7 @@ var
      if s <> RESULT_U16BIT then
        failed := true;
     end;
-    
+
     procedure testlocal_big_4;
     var
      local4rec_big : tlevel4rec_big;
@@ -320,7 +320,7 @@ var
          local4rec_big.c := RESULT_U8BIT;
          local4rec_big.i := RESULT_S64BIT;
          local4rec_big.s := RESULT_U16BIT;
-        
+
          c:= local4rec_big.c;
          if c <> RESULT_U8BIT then
            failed := true;
@@ -331,10 +331,10 @@ var
          if s <> RESULT_U16BIT then
            failed := true;
      end;
-     
-     
+
+
      procedure testlocal_big_5;
-     var 
+     var
       local5rec_big : tlevel5rec_big;
       begin
        clear_globals;
@@ -352,10 +352,10 @@ var
        if j <> RESULT_S32BIT then
         failed := true;
      end;
-{$endif}     
+{$endif}
 
 procedure testlocals;
-var 
+var
  local1rec : tlevel1rec_packed;
  local2rec : tlevel2rec_packed;
  local3rec : tlevel3rec_packed;
@@ -365,7 +365,7 @@ begin
  { normal record access }
  Write('Non-Aligned simple local record access (secondvecn())...');
  failed := false;
- 
+
  clear_globals;
 
  clear_globals;
@@ -380,17 +380,17 @@ begin
  local2rec.d := RESULT_U8BIT;
  local2rec.s := RESULT_U16BIT;
  local2rec.n := RESULT_S32BIT;
- { load values - load } 
+ { load values - load }
  c:= local2rec.c;
  if c <> RESULT_U8BIT then
    failed := true;
  d:= local2rec.d;
  if d <> RESULT_U8BIT then
    failed := true;
- s:= local2rec.s;  
+ s:= local2rec.s;
  if s <> RESULT_U16BIT then
    failed := true;
- n:= local2rec.n;  
+ n:= local2rec.n;
  if n <> RESULT_S32BIT then
    failed := true;
 
@@ -427,7 +427,7 @@ begin
  local5rec.c := RESULT_U8BIT;
  local5rec.s := RESULT_U16BIT;
  local5rec.j := RESULT_S32BIT;
- 
+
  c:= local5rec.c;
  if c <> RESULT_U8BIT then
    failed := true;
@@ -444,8 +444,8 @@ begin
    WriteLN('Passed!');
 end;
 {---------------------------}
-     
-var 
+
+var
  level1rec_big : tlevel1rec_big;
  level2rec_big : tlevel2rec_big;
  level3rec_big : tlevel3rec_big;
@@ -455,12 +455,12 @@ begin
  { normal record access }
  Write('Aligned simple global record access (secondvecn())...');
  failed := false;
- 
+
  clear_globals;
  c:= level1rec.c;
  if c <> RESULT_U8BIT then
    failed := true;
- 
+
  clear_globals;
  c:= level2rec.c;
  if c <> RESULT_U8BIT then
@@ -468,10 +468,10 @@ begin
  d:= level2rec.d;
  if d <> RESULT_U8BIT then
    failed := true;
- s:= level2rec.s;  
+ s:= level2rec.s;
  if s <> RESULT_U16BIT then
    failed := true;
- n:= level2rec.n;  
+ n:= level2rec.n;
  if n <> RESULT_S32BIT then
    failed := true;
 
@@ -518,7 +518,7 @@ begin
  c:= level1rec_packed.c;
  if c <> RESULT_U8BIT then
    failed := true;
- 
+
  clear_globals;
  c:= level2rec_packed.c;
  if c <> RESULT_U8BIT then
@@ -526,10 +526,10 @@ begin
  d:= level2rec_packed.d;
  if d <> RESULT_U8BIT then
    failed := true;
- s:= level2rec_packed.s;  
+ s:= level2rec_packed.s;
  if s <> RESULT_U16BIT then
    failed := true;
- n:= level2rec_packed.n;  
+ n:= level2rec_packed.n;
  if n <> RESULT_S32BIT then
    failed := true;
 
@@ -584,17 +584,17 @@ begin
  level2rec_big.d := RESULT_U8BIT;
  level2rec_big.s := RESULT_U16BIT;
  level2rec_big.n := RESULT_S32BIT;
- { load values - load } 
+ { load values - load }
  c:= level2rec_big.c;
  if c <> RESULT_U8BIT then
    failed := true;
  d:= level2rec_big.d;
  if d <> RESULT_U8BIT then
    failed := true;
- s:= level2rec_big.s;  
+ s:= level2rec_big.s;
  if s <> RESULT_U16BIT then
    failed := true;
- n:= level2rec_big.n;  
+ n:= level2rec_big.n;
  if n <> RESULT_S32BIT then
    failed := true;
 
@@ -631,7 +631,7 @@ begin
  level5rec_big.c := RESULT_U8BIT;
  level5rec_big.s := RESULT_U16BIT;
  level5rec_big.j := RESULT_S32BIT;
- 
+
  c:= level5rec_big.c;
  if c <> RESULT_U8BIT then
    failed := true;
@@ -648,8 +648,8 @@ begin
    WriteLN('Passed!');
 
  testlocals;
- 
-{$ifndef cpu68k} 
+
+{$ifndef cpu68k}
  Write('Non-Aligned big local record access (secondvecn())...');
  failed := false;
 
@@ -662,12 +662,12 @@ begin
    fail
  else
    WriteLN('Passed!');
-{$endif}   
+{$endif}
  Write('Aligned class big field access (secondvecn())...');
  clear_globals;
  failed := false;
- 
- 
+
+
  { LOC_REFERENCE }
  class1:=tclass1.create;
  class1.c:= RESULT_U8BIT;
@@ -682,10 +682,10 @@ begin
  s:=class1.s;
  if s <> RESULT_U16BIT then
    failed := true;
- 
+
  class1.destroy;
  clear_globals;
- 
+
  { LOC_REGISTER }
  class1:=tclass1.create;
  class1.c:= RESULT_U8BIT;
@@ -700,10 +700,10 @@ begin
  s:=(getclass).s;
  if s <> RESULT_U16BIT then
    failed := true;
- 
+
  class1.destroy;
- 
- 
+
+
  if failed then
    fail
  else
@@ -712,8 +712,8 @@ begin
  Write('Aligned class simple field access (secondvecn())...');
  clear_globals;
  failed := false;
- 
- 
+
+
  { LOC_REFERENCE }
  class2:=tclass2.create;
  class2.c:= RESULT_U8BIT;
@@ -728,10 +728,10 @@ begin
  s:=class2.s;
  if s <> RESULT_U16BIT then
    failed := true;
- 
+
  class2.destroy;
  clear_globals;
- 
+
  { LOC_REGISTER }
  class2:=tclass2.create;
  class2.c:= RESULT_U8BIT;
@@ -746,21 +746,24 @@ begin
  s:=(getclass2).s;
  if s <> RESULT_U16BIT then
    failed := true;
- 
+
  class2.destroy;
- 
- 
+
+
  if failed then
    fail
  else
    WriteLN('Passed!');
 
-   
+
 end.
 
 {
   $Log$
-  Revision 1.1  2002-05-09 20:16:05  carl
+  Revision 1.2  2002-09-07 15:40:56  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/05/09 20:16:05  carl
   * subscriptn() secondpass testing...
 
 }

@@ -67,9 +67,9 @@ begin
 
   write('Reading from write-only (appended) text file...');
   read(f,s);
-  test(ioresult,104); 
+  test(ioresult,104);
   readln(f);
-  test(ioresult,104); 
+  test(ioresult,104);
   writeln(' Passed!');
 
   write('Seekeoln from write-only (appended) text file...');
@@ -83,9 +83,9 @@ begin
   writeln(' Passed!');
 
   close(f);
-  test(ioresult,0); 
+  test(ioresult,0);
   erase(f);
-  test(ioresult,0); 
+  test(ioresult,0);
 end;
 
 procedure test_read_typed;
@@ -98,7 +98,7 @@ begin
 
   write('Reading from not opened typed file...');
   read(f,s);
-  test(ioresult,103); 
+  test(ioresult,103);
   writeln(' Passed!');
 
   { with filemode 2, the file is read-write }
@@ -114,7 +114,7 @@ begin
   test(ioresult, 0);
   write('Reading from write-only typed file...');
   read(f,s);
-  test(ioresult,104); 
+  test(ioresult,104);
   writeln(' Passed!');
 
   filemode := 2;
@@ -291,7 +291,7 @@ var f: file;
 begin
   { to avoid influence of previous runs/procedures }
   fillchar(f,sizeof(f),0);
-  
+
   write('Testing closing of not opened untyped file...');
   close(f);
   test(ioresult,103);
@@ -394,18 +394,13 @@ end.
 
 {
  $Log$
- Revision 1.4  2002-03-09 23:17:35  carl
+ Revision 1.5  2002-09-07 15:40:56  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.4  2002/03/09 23:17:35  carl
  * removing current directory should return 16
 
  Revision 1.3  2002/03/05 21:53:18  carl
  + tests on removing current directory and parent directory
-
- Revision 1.2  2001/08/18 00:45:24  carl
- + more testing
-
- Revision 1.1  2001/05/09 21:12:36  carl
- + moved from /test/ and renamed
- + added directory service testing
- + added filesize/filepos testing.
 
 }

@@ -61,7 +61,7 @@ begin
 
    prev := @hashtable[hash(name)];
    node := prev^.next;
-   
+
    while (node <> nil) and (node^.name <> name) do
    begin
       prev := node;
@@ -79,7 +79,7 @@ begin
      node^.next := nil;
       end;
    end;
-   
+
    Result := error = 0;
 end;
 
@@ -103,7 +103,7 @@ begin
       node := node^.next;
    Result := node <> nil;
 end;
-    
+
 
 var
     n, i, c, err : longint;
@@ -113,19 +113,19 @@ begin
         n := 1
     else
         n := StrToInt(ParamStr(1));
-        
+
     if n < 1 then n := 1;
-    
+
     X := THash.Create();
-    
+
     For i := 1 To n do
         X.store( Format('%x', [i]), i, err );
-    
+
     c := 0;
     For i:= n downto 1 do
     begin
         if X.exists( IntToStr(i) ) Then Inc(c);
     end;
-    
+
     Writeln (IntToStr(c));
 end.

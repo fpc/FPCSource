@@ -2,7 +2,7 @@ program testinet;
 
 {
    Program to test the inet unit.
-  (C) 1997,1998 by Michael Van Canneyt 
+  (C) 1997,1998 by Michael Van Canneyt
 }
 
 uses inet;
@@ -19,7 +19,7 @@ var p : PHostEnt;
     TheAddr : THostAddr;
 
 const
-    { Lily is my machine. This may not work of you're on a 
+    { Lily is my machine. This may not work of you're on a
       standalone machine. In that case, replace the address by
       an address known to your machine, or, as a last resort, 127.0.0.1 }
 
@@ -29,7 +29,7 @@ const
 begin
   p:=gethostbyname ('LocalHost');
   if p=nil then
-    begin 
+    begin
     Writeln ('GetHostByname : No entry');
     end
   else
@@ -49,9 +49,9 @@ begin
       writeln ('Addres : ',ph^[1],'.',ph^[2],'.',ph^[3],'.',ph^[4]);
       end;
     end;
-  p:=gethostbyaddr (@lily,4,2);  
+  p:=gethostbyaddr (@lily,4,2);
   if p=nil then
-    begin 
+    begin
     Writeln ('Gethostbyaddr : No entry');
     end
   else
@@ -121,7 +121,7 @@ begin
     writeln ('GetServByName : No entry ');
     end
   else
-    with ps^ do 
+    with ps^ do
       begin
       writeln ('Name : ',name);
       writeln ('Protocol : ',proto);
@@ -139,7 +139,7 @@ begin
     writeln ('GetServByPort : No entry ');
     end
   else
-    with ps^ do 
+    with ps^ do
       begin
       writeln ('Name : ',name);
       writeln ('Protocol : ',proto);
@@ -245,12 +245,12 @@ begin
       S:=service.GetAlias(stnext);
       end;
     end;
-    
+
 end.  $Log$
-end.  Revision 1.1  2002-01-29 17:54:53  peter
+end.  Revision 1.2  2002-09-07 15:42:52  peter
+end.    * old logs removed and tabs fixed
+end.
+end.  Revision 1.1  2002/01/29 17:54:53  peter
 end.    * splitted to base and extra
 end.
-end.  Revision 1.2  2000/07/13 11:33:26  michael
-end.  + removed logs
-end. 
 }

@@ -55,7 +55,7 @@ implementation
 Procedure mdtgen(n, rwidth: ArbInt; Var alu: ArbFloat; Var p: ArbInt;
                  Var ca:ArbFloat; Var term: ArbInt);
 
-Var 
+Var
          indi, indk, nsr, ind, i, j, k, indexpivot : ArbInt;
       normr, sumrowi, pivot, l, normt, maxim, h, s : ArbFloat;
                                    palu, sumrow, t : ^arfloat1;
@@ -173,7 +173,7 @@ End; {mdtgen}
 Procedure mdtgtr(n: ArbInt; Var l, d, u, l1, d1, u1, u2: ArbFloat;
                  Var p: boolean; Var ca: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
                          i, j, k, nmin1, sr : ArbInt;
    normr, normt, sumrowi, h, lj, di, ui, ll : ArbFloat;
                                        sing : boolean;
@@ -314,7 +314,7 @@ End; {mdtgtr}
 Procedure mdtgsy(n, rwidth: ArbInt; Var a: ArbFloat; Var pp:ArbInt;
                  Var qq:boolean; Var ca:ArbFloat; Var term:ArbInt);
 
-Var 
+Var
    i, j, kmin1, k, kplus1, kmin2, imin2, nsr, nsi, nsb, ii,
    imin1, jmin1, indexpivot, iplus1, indi, indj, indk, indp       : ArbInt;
    ra, h, absh, maxim, pivot, ct, norma, sumrowi, normt, normr, s : ArbFloat;
@@ -530,7 +530,7 @@ End; {mdtgsy}
 
 Procedure mdtgpd(n, rwidth: ArbInt; Var al, ca: ArbFloat; Var term: ArbInt);
 
-Var 
+Var
     posdef                               : boolean;
     i, j, k, kmin1, indk, indi           : ArbInt;
     h, lkk, normr, normt, sumrowi, norma : ArbFloat;
@@ -769,7 +769,7 @@ End; {mdtgba}
 Procedure mdtgpb(n, lb, rwidth: ArbInt; Var al, ca: ArbFloat;
                  Var term: ArbInt);
 
-Var 
+Var
     posdef                                           : boolean;
     i, j, k, r, p, q, ll, llmin1, jmin1, indi        : ArbInt;
     h, normr, normt, sumrowi, alim, norma            : ArbFloat;
@@ -777,7 +777,7 @@ Var
 
     Procedure decomp(i, r: ArbInt);
 
-    Var 
+    Var
         k, ii, ir : ArbInt;
     Begin
       ii := (i-1)*rwidth;
@@ -795,7 +795,7 @@ Var
 
     Procedure lmin1t(i: ArbInt);
 
-    Var 
+    Var
         k:ArbInt;
     Begin
       h := t^[i];
@@ -952,19 +952,14 @@ End.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:18  peter
+  Revision 1.2  2002-09-07 15:43:04  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:18  peter
     * splitted to base and extra
 
   Revision 1.2  2002/01/16 14:47:16  florian
     + Makefile.fpc added
     * several small changes to get things running with FPC 1.0.x
 
-  Revision 1.1  2000/07/13 06:34:15  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:42  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
 }

@@ -75,10 +75,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2002-04-22 16:33:40  peter
-     * splitted in 2 files, one fpc mode and other tp mode
+   Revision 1.2  2002-09-07 15:40:49  peter
+     * old logs removed and tabs fixed
 
-   Revision 1.1  2001/06/30 02:00:30  carl
-   + secondaddr() testing
+   Revision 1.1  2002/04/22 16:33:40  peter
+     * splitted in 2 files, one fpc mode and other tp mode
 
 }

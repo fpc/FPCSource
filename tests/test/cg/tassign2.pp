@@ -24,15 +24,15 @@ const
   RESULT_U8BIT  = $55;
   RESULT_S16BIT = -12124;
   RESULT_REAL   = 12.12;
-  
+
   { adjusts the size of the bigrecord }
   MAX_INDEX = 7;
 
 type
-  { 
+  {
     the size of this record should *at least* be the size
     of a natural register for the target processor
-  }  
+  }
   tbigrecord = record
    x : cardinal;
    y : cardinal;
@@ -45,24 +45,24 @@ type
       WriteLn('Failure.');
       halt(1);
     end;
-    
-     
-     
+
+
+
     function getresults64bit: int64;
      begin
        getresults64bit := RESULT_S64BIT;
      end;
-     
+
     function getresults32bit : longint;
      begin
        getresults32bit := RESULT_S32BIT;
      end;
-     
+
     function getresultu8bit : byte;
       begin
         getresultu8bit := RESULT_U8BIT;
       end;
-      
+
     function getresults16bit : smallint;
       begin
         getresults16bit := RESULT_S16BIT;
@@ -72,7 +72,7 @@ type
       begin
         getresultreal := RESULT_REAL;
       end;
- 
+
 var
  failed : boolean;
  s64bit : int64;
@@ -92,40 +92,40 @@ Begin
   s64bit := RESULT_S64BIT;
   if s64bit <> RESULT_S64BIT then
     failed := true;
-    
+
   s32bit := RESULT_S32BIT;
   if s32bit <> RESULT_S32BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
     WriteLn('Success!');
-    
+
   Write('left : LOC_REFERENCE, right : LOC_REGISTER tests..');
   failed := false;
-  
+
   s64bit := getresults64bit;
   if s64bit <> RESULT_S64BIT then
     failed := true;
-    
+
   s32bit := getresults32bit;
   if s32bit <> RESULT_S32BIT then
     failed := true;
-  
+
   s16bit := getresults16bit;
   if s16bit <> RESULT_S16BIT then
     failed := true;
-    
+
   u8bit := getresultu8bit;
   if u8bit <> RESULT_U8BIT then
     failed := true;
-     
+
   if failed then
     fail
   else
     WriteLn('Success!');
-    
+
   Write('left : LOC_REFERENCE, right : LOC_FPUREGISTER tests..');
   failed := false;
 
@@ -140,16 +140,16 @@ Begin
 
   Write('left : LOC_REFERENCE, right : LOC_REFERENCE tests..');
   failed := false;
-  
+
   bigrecord1.x := RESULT_U32BIT;
   bigrecord1.y := RESULT_U32BIT;
   for i:=0 to MAX_INDEX do
     bigrecord1.z[i] := RESULT_U8BIT;
-  
+
   fillchar(bigrecord2, sizeof(bigrecord2),#0);
-  
+
   bigrecord2 := bigrecord1;
-  
+
   if bigrecord2.x <> RESULT_U32BIT then
     failed := true;
   if bigrecord2.y <> RESULT_U32BIT then
@@ -162,7 +162,7 @@ Begin
            break;
          end;
     end;
-  
+
 
   if failed then
     fail
@@ -174,38 +174,41 @@ Begin
     the location should be in LOC_FLAGS
   }
   failed := false;
-  
+
   s64bit := RESULT_S64BIT;
   boolval := s64bit = RESULT_S64BIT;
   if boolval = FALSE then
     failed := true;
-    
+
   if failed then
     fail
   else
     WriteLn('Success!');
-    
+
 
   Write('left : LOC_REFERENCE, right : LOC_FLAGS tests..');
   failed := false;
-  
+
   s32bit := RESULT_S32BIT;
   boolval := s32bit = RESULT_S32BIT;
   if boolval = FALSE then
     failed := true;
-  
-  
+
+
   if failed then
     fail
   else
     WriteLn('Success!');
-  
-    
+
+
 end.
 
 {
   $Log$
-  Revision 1.1  2002-08-10 08:27:43  carl
+  Revision 1.2  2002-09-07 15:40:49  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/10 08:27:43  carl
     + mre tests for cg testuit
 
-}  
+}

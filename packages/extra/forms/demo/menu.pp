@@ -1,4 +1,4 @@
-{ This demo shows the use of menu's. 
+{ This demo shows the use of menu's.
  * The first two are PUSH_MENUs (pop-up).
  * The third one is PULLDOWN_MENU
  * and the last one is TOUCH_MENU
@@ -14,7 +14,7 @@ Var menu,abox : array[0..3] of PFL_OBJECT;
 
    form : PFL_FORM;
    i, j : longint;
-   
+
 
 procedure menu_cb(ob : PFL_OBJECT; m : longint);export;
 
@@ -23,21 +23,21 @@ var i,item : longint;
 begin
     item := fl_get_menu(ob);
 
-    if (item <= 0) or (isset[m] = item) then 
+    if (item <= 0) or (isset[m] = item) then
        exit;
 
     for i := 0 to 3 do
        if ( i <> m) then
          begin
          { enable the old selected color for other menus}
-	 fl_set_menu_item_mode(menu[i], isset[m], Cardinal(FL_PUP_RADIO));
-	 { disable the currently selected color for other menus }
-	 fl_set_menu_item_mode(menu[i], item, Cardinal(FL_PUP_GRAY or FL_PUP_RADIO));
+         fl_set_menu_item_mode(menu[i], isset[m], Cardinal(FL_PUP_RADIO));
+         { disable the currently selected color for other menus }
+         fl_set_menu_item_mode(menu[i], item, Cardinal(FL_PUP_GRAY or FL_PUP_RADIO));
          end;
-    
+
     isset[m] := item;
     fl_set_object_color(abox[m], FL_BLACK+item, FL_BLACK);
-end; 
+end;
 
 procedure done_cb(ob : PFL_OBJECT; data : longint) ; export;
 
@@ -94,7 +94,7 @@ begin
    for i:=0 to 3 do
       begin
       fl_show_menu_symbol(menu[i], 1);
-      fl_set_menu(menu[i], 
+      fl_set_menu(menu[i],
               'Red%r1|Green%r1|Yellow%r1|Blue%r1|Purple%r1|Cyran%r1|White%r1');
       fl_set_menu_item_shortcut(menu[i], 1, 'Rr#R#r');
       fl_set_menu_item_shortcut(menu[i], 2, 'Gg#G#g');
@@ -114,16 +114,16 @@ begin
       fl_set_object_color(abox[i], FL_BLACK+isset[i], FL_BLACK);
       fl_set_menu_item_mode(menu[i], isset[i], Cardinal(FL_PUP_CHECK or FL_PUP_RADIO));
       end;
-   
+
   fl_show_form(form,FL_PLACE_CENTER,FL_NOBORDER,Nil);
   fl_do_forms();
   fl_hide_form(form);
 end.
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }

@@ -192,7 +192,7 @@ type
      rfunc1z    = Function(z: complex): ArbFloat;
 
      {Special Functions}
-     oderk1n    = procedure(x: ArbFloat; var y, f: ArbFloat);  
+     oderk1n    = procedure(x: ArbFloat; var y, f: ArbFloat);
      roofnrfunc = procedure(var x, fx: ArbFloat; var deff: boolean);
 
      {Definition of matrix types in NumLib. First some vectors.
@@ -226,8 +226,8 @@ type
      parcomp    = ^arcomp1;
 
 {(de) Allocate mxn matrix to A}
-procedure AllocateAr2dr(m, n: integer; var a: par2dr1);   
-procedure DeAllocateAr2dr(m, n: integer; var a: par2dr1); 
+procedure AllocateAr2dr(m, n: integer; var a: par2dr1);
+procedure DeAllocateAr2dr(m, n: integer; var a: par2dr1);
 
 {(de) allocate below-left triangle matrix for (de)convolution
 (a 3x3 matrix looks like this
@@ -237,14 +237,14 @@ procedure DeAllocateAr2dr(m, n: integer; var a: par2dr1);
   x x x)
 }
 procedure AllocateL2dr(n: integer; var a: par2dr1);
-procedure DeAllocateL2dr(n: integer; var a: par2dr1);     
+procedure DeAllocateL2dr(n: integer; var a: par2dr1);
 
 {Get the Re and Im parts of a complex type}
-Function Re(z: complex): ArbFloat;                            
+Function Re(z: complex): ArbFloat;
 Function Im(z: complex): ArbFloat;
 
 { Creates a string from a floatingpoint value}
-Function R2S(x: ArbFloat; p, q: integer): string;             
+Function R2S(x: ArbFloat; p, q: integer): string;
 
 {Calculate inproduct of V1 and V2, which are vectors with N elements;
 I1 and I2 are the SIZEOF the datatypes of V1 and V2
@@ -562,19 +562,14 @@ END.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:19  peter
+  Revision 1.2  2002-09-07 15:43:04  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:19  peter
     * splitted to base and extra
 
   Revision 1.2  2002/01/16 14:47:16  florian
     + Makefile.fpc added
     * several small changes to get things running with FPC 1.0.x
 
-  Revision 1.1  2000/07/13 06:34:16  michael
-  + Initial import
-
-  Revision 1.2  2000/01/25 20:21:41  marco
-   * small updates, crlf fix, and RTE 207 problem
-
-  Revision 1.1  2000/01/24 22:08:58  marco
-   * initial version
 }

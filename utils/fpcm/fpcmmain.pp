@@ -1483,7 +1483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-07-30 13:18:42  marco
+  Revision 1.26  2002-09-07 15:40:31  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.25  2002/07/30 13:18:42  marco
    * OpenBSD fixes
 
   Revision 1.24  2002/06/01 18:39:15  marco
@@ -1509,69 +1512,5 @@ end.
   Revision 1.19  2002/01/06 21:50:04  peter
     * lcl updates
     * small optimizes for package check
-
-  Revision 1.18  2001/12/26 21:02:00  peter
-    * little support for lcl and lazarus, but not yet working
-
-  Revision 1.17  2001/12/15 04:16:57  carl
-  + clean support for QNX / BeOS and SunOS targets
-
-  Revision 1.16  2001/12/11 23:01:56  carl
-  + Added SunOS and QNX targets
-
-  Revision 1.15  2001/10/14 21:38:32  peter
-    * cross compiling support
-
-  Revision 1.14  2001/09/29 19:47:50  carl
-  * make it work for BeOS
-
-  Revision 1.13  2001/08/22 20:45:19  peter
-    * firstword added
-    * pathexist fix to include sysfile
-
-  Revision 1.12  2001/08/10 10:28:55  pierre
-   + netbsd target added
-
-  Revision 1.11  2001/08/02 20:50:29  peter
-    * -T<target> support
-    * better error reporting for not found dirs
-    * some cleanups and nicer strings
-
-  Revision 1.10  2001/07/31 22:02:32  peter
-    * install Package.fpc
-
-  Revision 1.9  2001/07/24 09:06:40  pierre
-   + added amiga and atari targets
-
-  Revision 1.8  2001/07/13 21:01:59  peter
-    * cygdrive support
-    * fixed cygwin detection
-    * fixed some duplicate and extraeous spaces
-
-  Revision 1.7  2001/06/04 21:42:57  peter
-    * Arguments added
-    * Start of Package.fpc creation
-
-  Revision 1.6  2001/06/02 19:20:24  peter
-    * beos target added
-
-  Revision 1.5  2001/02/22 21:11:24  peter
-    * fpcdir detection added
-    * fixed loading of variables in fpcmake itself
-
-  Revision 1.4  2001/02/05 20:44:56  peter
-    * variable substition like GNU Make. wildcard,addprefix,addsuffix
-      already implemented
-
-  Revision 1.3  2001/02/01 22:00:10  peter
-    * default.fpcdir is back
-    * subdir requirement checking works, but not very optimal yet as
-      it can load the same Makefile.fpc multiple times
-
-  Revision 1.2  2001/01/29 21:49:10  peter
-    * lot of updates
-
-  Revision 1.1  2001/01/24 21:59:36  peter
-    * first commit of new fpcmake
 
 }

@@ -4,7 +4,7 @@
     the Free Pascal development team
 
     gdbm database routines header translations.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -84,16 +84,16 @@ type
         dsize : longint;
      end;
   PDatum = ^TDatum;
-    
+
   TGDBM_FILE = record
     dummy : array[0..9] of longint;
   end;
   PGDBM_FILE = ^TGDBM_FILE;
-  
+
   TGDBMErrorCallBack = Procedure;
 
 
-    
+
 var
   gdbm_version : Pchar;cvar; external; {name 'gdbm_version' not accepted ??}
 
@@ -158,7 +158,7 @@ end;
 
 function gdbm_store(para1:PGDBM_FILE; Const para2:string; Const para3:string; para4:longint):Boolean;
 
-Var 
+Var
   Data,Key : TDatum;
 
 begin
@@ -182,13 +182,13 @@ end;
 Procedure gdbm_firstkey(para1:PGDBM_FILE; var key : String);
 
 begin
-  Key:=DatumToString(gdbm_firstkey(para1));  
+  Key:=DatumToString(gdbm_firstkey(para1));
 end;
 
 function gdbm_nextkey(para1:PGDBM_FILE; Const Para2 :string):string;
 
 begin
-  gdbm_nextkey:=DatumToString(gdbm_nextkey(para1,StringToDatum(para2)));  
+  gdbm_nextkey:=DatumToString(gdbm_nextkey(para1,StringToDatum(para2)));
 end;
 
 function gdbm_exists(para1:PGDBM_FILE; const para2:string):boolean;
@@ -201,13 +201,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:03  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:03  peter
     * splitted to base and extra
-
-  Revision 1.2  2001/03/02 11:54:02  michael
-  + Merged from fixbranch
-
-  Revision 1.1.2.1  2001/03/02 11:49:44  michael
-  + Initial implementation
 
 }

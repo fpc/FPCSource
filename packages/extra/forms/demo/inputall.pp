@@ -3,9 +3,9 @@ program inputall;
 uses forms;
 
 type TFD_INPUT = record
-	input : PFL_FORM;
-	vdata : pointer;
-	norminput,multiinput,report : PFL_OBJECT;
+        input : PFL_FORM;
+        vdata : pointer;
+        norminput,multiinput,report : PFL_OBJECT;
    end;
 PFD_INPUT = ^TFD_input;
 
@@ -17,7 +17,7 @@ end;
 
 procedure input_cb( ob : PFL_OBJECT; data : longint);export;
 
-var 
+var
    cx, cy, pos : Longint;
    buf,temp : string[128];
 
@@ -33,7 +33,7 @@ procedure hide_show_cb(ob : PFL_OBJECT; data : longint);export;
 
 var  fd: PFD_input;
 
-begin  
+begin
     fd := ob^.form^.fdui;
     if (fd^.multiinput^.visible<>0) then
        fl_hide_object(fd^.multiinput)
@@ -53,7 +53,7 @@ begin
   fdui^.input := fl_bgn_form(FL_NO_BOX, 441, 441);
   obj := fl_add_box(FL_UP_BOX,0,0,441,441,'');
   obj := fl_add_input(FL_NORMAL_INPUT,40,40,340,30,'NormalInput');
-  fdui^.norminput := obj;    
+  fdui^.norminput := obj;
   fl_set_object_lalign(obj,FL_ALIGN_TOP_LEFT);
     fl_set_object_callback(obj,PFL_CALLBACKPTR(@input_cb),0);
   obj := fl_add_input(FL_INT_INPUT,40,100,160,30,'IntInput');
@@ -65,7 +65,7 @@ begin
   obj := fl_add_input(FL_SECRET_INPUT,230,150,160,30,'Secretinput');
     fl_set_object_lalign(obj,FL_ALIGN_TOP_LEFT);
   obj:= fl_add_input(FL_MULTILINE_INPUT,40,210,360,180,'MMM');
-  fdui^.multiinput := obj;    
+  fdui^.multiinput := obj;
   fl_set_object_callback(obj,PFL_CALLBACKPTR(@input_cb),0);
   obj := fl_add_text(FL_NORMAL_TEXT,30,400,210,30,'');
   fdui^.report := obj;
@@ -97,10 +97,10 @@ begin
 end.
 
   $Log$
-  Revision 1.1  2002-01-29 17:55:01  peter
+  Revision 1.2  2002-09-07 15:42:57  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/01/29 17:55:01  peter
     * splitted to base and extra
 
-  Revision 1.2  2000/07/13 11:33:14  michael
-  + removed logs
- 
 }
