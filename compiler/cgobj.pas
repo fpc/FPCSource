@@ -1186,7 +1186,10 @@ unit cgobj;
         if is_class(procinfo^._class) then
           begin
             procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
-            { parameter 2 : self pointer  }
+            { parameter 2 : self pointer / flag }
+            {!! this is a terrible hack, normally the helper should get three params : }
+            {    one with self register, one with flag and one with VMT pointer        }
+            {reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);}
             a_param_reg(list, OS_ADDR, SELF_POINTER_REG, 2);
             { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
@@ -1278,14 +1281,20 @@ unit cgobj;
       begin
         if is_class(procinfo^._class) then
           begin
-{$warning todo}
-   { Should simply casll FPC_DISPOSE_CLASS and then set the
-     SELF_POINTER_REGISTER to NIL
-   }
-             internalerror(20020523);
-{            reference_reset_base(href,procinfo^.framepointer,8);
-            a_load_ref_reg(list,OS_ADDR,href,R_ESI);
-            a_call_name(list,'FPC_HELP_FAIL_CLASS');}
+            { 
+              Dispose of the class then set self_pointer to nil 
+              both in stack and in self register.
+            }
+            { 2nd parameter  : flag }
+            a_param_const(list,OS_32,1,2);
+            { 1st parameter to destructor : self }
+            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            a_param_ref(list, OS_ADDR,href,1);
+            a_call_name(list,'FPC_DISPOSE_CLASS');
+            { SET SELF TO NIL }
+            a_load_const_reg(list,OS_ADDR,0,SELF_POINTER_REG);
+            { set the self pointer in the stack to nil }
+            a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
           end
         else if is_object(procinfo^._class) then
           begin
@@ -1333,7 +1342,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2002-07-02 11:40:00  jonas
+  Revision 1.32  2002-07-06 20:09:10  carl
+  * updated generic constructor / destructor calling
+
+  Revision 1.31  2002/07/02 11:40:00  jonas
     * fixed cg64 memory leak
 
   Revision 1.30  2002/07/01 18:46:22  peter
