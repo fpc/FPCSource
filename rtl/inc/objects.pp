@@ -980,6 +980,10 @@ END;
 
 CONSTRUCTOR TStream.Init;
 BEGIN
+  Status := StOK;
+  ErrorInfo := 0;
+  StreamSize := 0;
+  Position := 0;
   TPCompatible := DefaultTPCompatible;
 END;
 
@@ -1073,7 +1077,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TStream.Reset;
 BEGIN
-   Status := 0;                                       { Clear status }
+   Status := stOK;                                       { Clear status }
    ErrorInfo := 0;                                    { Clear error info }
 END;
 
@@ -1390,23 +1394,29 @@ PROCEDURE TDosStream.Read (Var Buf; Count: Sw_Word);
 VAR BytesMoved: Sw_Word; 
     DosStreamError : Word;
 BEGIN
-   { Assume status is StOK }
-   Status := StOk;
-   If (Position + Count > StreamSize) Then            { Insufficient data }
-     Error(stReadError, 0);                           { Read beyond end!!! }
-   If (Handle = InvalidHandle) Then 
-     Error(stReadError, 103);                         { File not open }
-   BlockRead(FileInfo, Buf, Count, BytesMoved);       { Read from file }
-   DosStreamError := IOResult;
-   If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then 
-    Begin  { Error was detected }
-      BytesMoved := 0;                                { Clear bytes moved }
-      If (DosStreamError <> 0) Then
-         Error(stReadError, DosStreamError)           { Specific read error }
-      Else Error(stReadError, 0);                     { Non specific error }
+   If Status = StOK then
+     Begin
+        If (Position + Count > StreamSize) Then            { Insufficient data }
+          Error(stReadError, 0);                           { Read beyond end!!! }
+        If (Handle = InvalidHandle) Then 
+          Error(stReadError, 103);                         { File not open }
+        BlockRead(FileInfo, Buf, Count, BytesMoved);       { Read from file }
+        DosStreamError := IOResult;
+        If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then 
+           Begin  { Error was detected }
+             BytesMoved := 0;                              { Clear bytes moved }
+             If (DosStreamError <> 0) Then
+                Error(stReadError, DosStreamError)         { Specific read error }
+             Else 
+                Error(stReadError, 0);                     { Non specific error }
+           End;
+        Inc(Position, BytesMoved);                         { Adjust position }
+     End;
+   { If there was already an error, or an error was just 
+     generated, fill the vuffer with NULL
+   }
+   If Status <> StOK then
      FillChar(Buf, Count, #0);                        { Error clear buffer }
-    End;
-   Inc(Position, BytesMoved);                         { Adjust position }
 END;
 
 {--TDosStream---------------------------------------------------------------}
@@ -1416,8 +1426,9 @@ PROCEDURE TDosStream.Write (Var Buf; Count: Sw_Word);
 VAR BytesMoved: Sw_Word; 
     DosStreamError : Word;
 BEGIN
-   { Assume status is StOk }
-   Status := StOK;
+   { If status is not OK, simply exit }
+   if Status <> StOK then
+     exit;
    If (Handle = InvalidHandle) Then 
     Error(stWriteError, 103);                    { File not open }
    BlockWrite(FileInfo, Buf, Count, BytesMoved); { Write to file }
@@ -1478,8 +1489,8 @@ PROCEDURE TBufStream.Flush;
 VAR W: Sw_Word;
     DosStreamError : Word;
 BEGIN
-   { Assume status is StOK }
-   Status := StOK;
+   If Status <> StOK then
+      exit;
    If (LastMode=2) AND (BufPtr<>0) Then Begin         { Must update file }
      If (Handle = InvalidHandle) Then DosStreamError := 103  { File is not open }
        Else 
@@ -1536,8 +1547,11 @@ PROCEDURE TBufStream.Read (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W, Bw: Sw_Word; P: PByteArray;
     DosStreamError : Word;
 BEGIN
-   { Assume status is StOK }
-   Status := StOK;
+   If Status <> StOk then
+     begin
+       FillChar(P^, Count, #0);                       { Error clear buffer }
+       exit;
+     end;
    If (Position + Count > StreamSize) Then            { Read pas stream end }
      Error(stReadError, 0);                           { Call stream error }
    If (Handle = InvalidHandle) Then Error(stReadError, 103);     { File not open }
@@ -1581,8 +1595,7 @@ PROCEDURE TBufStream.Write (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W: Sw_Word; P: PByteArray;
     DosStreamError : Word;
 BEGIN
-   { Assume status is StOK }
-   Status := StOK;
+   if Status <> StOK then exit;                       { Exit if error     }
    If (Handle = InvalidHandle) Then Error(stWriteError, 103);    { File not open }
    If (LastMode=1) Then Flush;                        { Flush read buffer }
    LastMode := 2;                                     { Now set write mode }
@@ -2888,7 +2901,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.14  2002-10-30 22:44:44  carl
+  Revision 1.15  2002-10-31 12:47:30  carl
+    * more compatibility fixes for objects unit
+
+  Revision 1.14  2002/10/30 22:44:44  carl
     * Bugfix for error checking
     - DosStreamError is no longer global (bugfix 2043)
 
