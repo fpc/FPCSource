@@ -111,7 +111,7 @@ implementation
              compares,maxcompares:word;
              i:byte;
            begin
-             if byteset(Aset^)=[] then
+             if tnormalset(Aset^)=[] then
                 {The expression...
                     if expr in []
                  ...is allways false. It should be optimized away in the
@@ -134,7 +134,7 @@ implementation
              if is_small then
               maxcompares:=3;
              for i:=0 to 255 do
-              if i in byteset(Aset^) then
+              if i in tnormalset(Aset^) then
                begin
                  if (numparts=0) or (i<>setparts[numparts].stop+1) then
                   begin
@@ -689,7 +689,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-09-03 15:55:01  peter
+  Revision 1.64  2003-09-05 11:21:39  marco
+   * applied Peter's patch. Now cycles.
+
+  Revision 1.63  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.62.2.1  2003/08/29 17:29:00  peter
