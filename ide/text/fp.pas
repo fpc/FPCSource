@@ -16,9 +16,9 @@
 program FP;
 
 uses
-{$ifdef HeapTrc}
+{$ifdef IDEHeapTrc}
   HeapTrc,
-{$endif HeapTrc}
+{$endif IDEHeapTrc}
   Dos,
   BrowCol,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
@@ -109,7 +109,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  1999-02-10 09:55:43  pierre
+  Revision 1.10  1999-02-15 09:07:10  pierre
+   * HEAPTRC conditionnal renamed IDEHEAPTRC
+
+  Revision 1.9  1999/02/10 09:55:43  pierre
      + Memory tracing if compiled with -dHEAPTRC
      * Many memory leaks removed
 
