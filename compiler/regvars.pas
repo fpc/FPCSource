@@ -149,6 +149,22 @@ implementation
            end;
       end;
 
+{$ifdef i386}
+    function reg32(reg: tregister): tregister;
+      begin
+        case regsize(reg) of
+          S_B: reg32 := reg8toreg32(reg);
+          S_W: reg32 := reg16toreg32(reg);
+          S_L: reg32 := reg;
+        end;
+      end;
+{$else i386}
+    function reg32(reg: tregister): tregister;
+      begin
+        reg32 := reg;
+      end;
+{$endif i386}
+
     procedure assign_regvars(var p: ptree);
           { register variables }
     var
@@ -302,7 +318,7 @@ implementation
               if regvarinfo^.regvars_para[i] then
                 begin
 {$ifdef i386}
-                  asml^.concat(new(pairegalloc,alloc(varregs[i])));
+                  asml^.concat(new(pairegalloc,alloc(reg32(regvars[i]^.reg))));
 {$endif i386}
                   { procinfo is there actual,    }
                   { because we can't never be in a }
@@ -326,6 +342,9 @@ implementation
             begin
              if assigned(regvarinfo^.regvars[i]) then
                begin
+{$ifdef i386}
+                asml^.concat(new(pairegalloc,alloc(reg32(regvars[i]^.reg))));
+{$endif i386}
                 if cs_asm_source in aktglobalswitches then
                 asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.regvars[i]^.name+
                   ' with weight '+tostr(regvarinfo^.regvars[i]^.refs)+' assigned to register '+
@@ -410,7 +429,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-08-03 13:17:25  jonas
+  Revision 1.2  2000-08-03 14:36:47  jonas
+    * fixed inserting of allocated register for regvars (only those for
+      parameters were done, and sometimes even the wrong ones)
+
+  Revision 1.1  2000/08/03 13:17:25  jonas
     + allow regvars to be used inside inlined procs, which required  the
       following changes:
         + load regvars in genentrycode/free them in genexitcode (cgai386)
