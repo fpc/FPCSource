@@ -196,6 +196,7 @@ implementation
         srsym : tsym;
         srsymtable : tsymtable;
       begin
+        result:=nil;
         srsymtable:=vs.owner;
         if vo_is_local_copy in vs.varoptions then
          begin
@@ -1268,7 +1269,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2002-12-17 22:19:33  peter
+  Revision 1.73  2002-12-20 18:14:53  peter
+    * fix result of high_tree when high was not available
+
+  Revision 1.72  2002/12/17 22:19:33  peter
     * fixed pushing of records>8 bytes with stdcall
     * simplified hightree loading
 
