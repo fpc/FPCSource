@@ -170,7 +170,7 @@ end;
 procedure Toption.WriteInfo;
 var
   p : pchar;
-  hs,s : string;
+  hs,hs1,s : string;
   target : ttarget;
 begin
   p:=MessagePchar(option_info);
@@ -184,7 +184,10 @@ begin
          if assigned(targetinfos[target]) then
           begin
             hs:=s;
-            Replace(hs,'$OSTARGETS',targetinfos[target]^.name);
+            hs1:=targetinfos[target]^.name;
+            if tf_under_development in targetinfos[target]^.flags then
+             hs1:=hs1+' (under development)';
+            Replace(hs,'$OSTARGETS',hs1);
             Comment(V_Normal,hs);
           end;
       end
@@ -1581,7 +1584,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.53  2001-08-07 18:42:46  peter
+  Revision 1.54  2001-08-12 17:57:06  peter
+    * under development flag for targets
+
+  Revision 1.53  2001/08/07 18:42:46  peter
     * list targets with -i
 
   Revision 1.52  2001/08/01 15:07:29  jonas

@@ -150,7 +150,8 @@ interface
        end;
 
        ttargetflags = (tf_none,
-            tf_supports_stack_checking,tf_need_export,tf_needs_isconsole
+            tf_under_development,tf_supports_stack_checking,
+            tf_need_export,tf_needs_isconsole
        );
 
        ptargetinfo = ^ttargetinfo;
@@ -636,7 +637,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2001-08-07 18:47:13  peter
+  Revision 1.23  2001-08-12 17:57:07  peter
+    * under development flag for targets
+
+  Revision 1.22  2001/08/07 18:47:13  peter
     * merged netbsd start
     * profile for win32
 

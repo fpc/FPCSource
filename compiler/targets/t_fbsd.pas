@@ -516,7 +516,7 @@ end;
             target       : target_i386_NetBSD;
             name         : 'NetBSD for i386';
             shortname    : 'NetBSD';
-            flags        : [];
+            flags        : [tf_under_development];
             cpu          : i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD';
@@ -580,7 +580,7 @@ end;
             target       : target_i386_NetBSD;
             name         : 'NetBSD for i386';
             shortname    : 'NetBSD';
-            flags        : [];
+            flags        : [tf_under_development];
             cpu          : i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD';
@@ -656,7 +656,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-08-07 18:47:15  peter
+  Revision 1.10  2001-08-12 17:57:07  peter
+    * under development flag for targets
+
+  Revision 1.9  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

@@ -790,6 +790,7 @@ var
   sym : tsym;
   srsymtable : tsymtable;
   harrdef : tarraydef;
+  l : longint;
 Begin
   SetupVar:=false;
   asmsearchsym(s,sym,srsymtable);
@@ -979,8 +980,10 @@ Begin
       begin
         if assigned(tprocsym(sym).definition.nextoverloaded) then
           Message(asmr_w_calling_overload_func);
+        l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
         opr.symbol:=newasmsymbol(tprocsym(sym).definition.mangledname);
+        opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
         Exit;
@@ -1582,7 +1585,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2001-08-06 21:40:48  peter
+  Revision 1.22  2001-08-12 17:57:07  peter
+    * under development flag for targets
+
+  Revision 1.21  2001/08/06 21:40:48  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.20  2001/04/18 22:01:58  peter

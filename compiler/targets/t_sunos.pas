@@ -484,7 +484,7 @@ end;
             target       : target_i386_sunos;
             name         : 'SunOS/ELF for i386';
             shortname    : 'SunOS';
-            flags        : [];
+            flags        : [tf_under_development];
             cpu          : i386;
             unit_env     : 'SUNOSUNITS';
             extradefines : 'UNIX;SOLARIS;LIBC';
@@ -549,7 +549,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-08-07 18:47:15  peter
+  Revision 1.10  2001-08-12 17:57:07  peter
+    * under development flag for targets
+
+  Revision 1.9  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

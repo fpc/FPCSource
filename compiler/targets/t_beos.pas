@@ -444,7 +444,7 @@ end;
             target       : target_i386_BeOS;
             name         : 'Beos for i386';
             shortname    : 'Beos';
-            flags        : [];
+            flags        : [tf_under_development];
             cpu          : i386;
             unit_env     : 'BEOSUNITS';
             extradefines : '';
@@ -511,7 +511,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-08-07 18:47:15  peter
+  Revision 1.6  2001-08-12 17:57:07  peter
+    * under development flag for targets
+
+  Revision 1.5  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 
