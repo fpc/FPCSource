@@ -24,6 +24,7 @@ Unit nCrt;
   2.04 | 01/04/00 | kjw | See ncrt.inc
   2.05 | 01/06/00 | kjw | See ncrt.inc, ocrt.pp
   2.06 | 01/11/00 | kjw | See ncrt.inc.
+  2.07 | 01/31/00 | kjw | See ncrt.inc, ocrt.pp
 ------------------------------------------------------------------------------
 }
 Interface

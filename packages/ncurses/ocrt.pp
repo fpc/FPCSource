@@ -63,6 +63,9 @@ Unit oCrt;
                         | 3) nSEdit was not handling tec.firsttime correctly
                         | when a tec.special was processed.
   2.06 | 01/11/00 | kjw | See ncrt.inc.
+  2.07 | 01/31/00 | kjw | 1) See ncrt.inc.
+                        | 2) Added getcolor, getframecolor, getheadercolor
+                        | methods to tnWindow.
 ------------------------------------------------------------------------------
 }
 Interface
@@ -176,6 +179,9 @@ Type
           Function GetHeader : string;
          Procedure PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
          Procedure SetColor(att : integer);
+          Function GetColor : integer;
+          Function GetFrameColor : integer;
+          Function GetHeaderColor : integer;
          Procedure PutFrame(att : integer);
          Procedure Move(x,y : integer);
          Procedure Scroll(ln : integer; dir : tnUpDown);
@@ -431,6 +437,24 @@ Begin
    If isbold(att) then wattr_set(wn,A_BOLD);
    wincolor := att;
    If visible Then wrefresh(wn);
+End;
+
+{ get the writeable window color }
+Function tnWindow.GetColor : integer;
+Begin
+   GetColor := wincolor;
+End;
+
+{ get the frame color }
+Function tnWindow.GetFrameColor : integer;
+Begin
+   GetFrameColor := framecolor;
+End;
+
+{ get the header color }
+Function tnWindow.GetHeaderColor : integer;
+Begin
+   GetHeaderColor := hdrcolor;
 End;
 
 { frame an un-framed window, or update the frame color of a framed window }

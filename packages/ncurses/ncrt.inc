@@ -32,6 +32,10 @@
   2.06 | 01/11/00 | kjw | 1) Oops! 2.04 change went back to stdscr vs. ActiveWn.
                         | Keypressed works correctly with windows again.
                         | 2) ClrEol works correctly now with color.
+  2.07 | 01/31/00 | kjw | 1) Added NCRT_VERSION constants.
+                        | 2) Added prev_textattr to detect a change in
+                        | TextAttr value so current color gets updated.
+                        | 3) See ocrt.pp
 ------------------------------------------------------------------------------
 }
 
@@ -58,6 +62,11 @@ Procedure TextMode(mode : word);
 Procedure Window(x,y,x1,y1 : integer);
 
 Const
+
+   NCRT_VERSION_MAJOR = 2;
+   NCRT_VERSION_MINOR = 7;
+   NCRT_VERSION_PATCH = 0;
+   NCRT_VERSION = '2.07.00';
 
  { CRT modes }
    BW40          = 0;            { 40x25 B/W on Color Adapter }
@@ -165,6 +174,7 @@ Var
    MaxRows,                           { set at startup to terminal values }
    MaxCols : longint;                 { for columns and rows }
    tios : TermIOS;                    { saves the term settings at startup }
+   prev_textattr : integer;           { detect change in TextAttr }
 
 {==========================================================================
    This code chunk is from the FPC source tree in rtl/inc/textrec.inc.
@@ -335,6 +345,7 @@ End;
 Procedure nWinColor(win : pWindow; att : integer);
 Begin
    wattr_set(win,CursesAtts(att));
+   prev_textattr := att;
 End;
 
 { clear the specified window }
@@ -523,6 +534,8 @@ End;
 { write a string to a window at the current cursor position }
 Procedure nWrite(win : pWindow; s : string);
 Begin
+   If TextAttr <> prev_textattr Then
+      nWinColor(win,TextAttr);
    waddstr(win,StrPCopy(ps,s));
    If doRefresh Then wrefresh(win);
 End;
@@ -742,6 +755,7 @@ End;
 function  Keypressed : boolean;
 var
    l : longint;
+   fd : fdSet;
 Begin
    Keypressed := FALSE;
    nodelay(ActiveWn,bool(TRUE));
