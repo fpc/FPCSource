@@ -638,8 +638,12 @@ implementation
                      Message(parser_e_range_check_error)
                    else
                      Message(parser_w_range_check_error);
-                   { Fix the value to be in range }
-                   l:=lv+(l mod (hv-lv+1));
+                   { Fix the value to fit in the allocated space for this type of variable }
+                     case def^.size of
+                       1: l := l and $ff;
+                       2: l := l and $ffff;
+                     end
+{                   l:=lv+(l mod (hv-lv+1));}
                 end;
            end;
       end;
@@ -937,9 +941,9 @@ implementation
 
     function is_subequal(def1, def2: pdef): boolean;
       Begin
+        is_subequal := false;
         if assigned(def1) and assigned(def2) then
         Begin
-          is_subequal := FALSE;
           if (def1^.deftype = orddef) and (def2^.deftype = orddef) then
             Begin
               { see p.47 of Turbo Pascal 7.01 manual for the separation of types }
@@ -996,7 +1000,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  1999-12-31 14:26:28  peter
+  Revision 1.94  2000-01-04 16:35:58  jonas
+    * when range checking is off, constants that are out of bound are no longer
+      truncated to their max/min legal value but left alone (jsut an "and" is done to
+      make sure they fit in the allocated space if necessary)
+
+  Revision 1.93  1999/12/31 14:26:28  peter
     * fixed crash with empty array constructors
 
   Revision 1.92  1999/11/30 10:40:59  peter
