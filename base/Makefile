@@ -30,6 +30,10 @@ ifndef GDBDIR
 GDBDIR=gdbint
 endif
 
+ifndef FPINSTDIR
+FPINSTDIR=fpinst
+endif
+
 ifndef IDEDIR
 IDEDIR=ide/text
 endif
@@ -188,6 +192,25 @@ gdb_sharedinstall:
 	$(MAKE) -C $(GDBDIR) sharedlibinstall
 
 
+#######################################
+# FPC fpinst
+#######################################
+
+fpinst_all: rtl_all api_all fv_all
+	$(MAKE) -C $(FPINSTDIR) all
+
+fpinst_clean:
+	$(MAKE) -C $(FPINSTDIR) clean
+
+fpinst_install:
+	$(MAKE) -C $(FPINSTDIR) install
+
+fpinst_staticinstall:
+	$(MAKE) -C $(FPINSTDIR) staticlibinstall
+
+fpinst_sharedinstall:
+	$(MAKE) -C $(FPINSTDIR) sharedlibinstall
+
 
 #######################################
 # IDE
@@ -258,7 +281,10 @@ idezips: clean
 
 #
 # $Log$
-# Revision 1.4  1999-02-19 15:33:01  peter
+# Revision 1.5  1999-02-19 16:46:07  peter
+#   + fpinst_ targets for the isntaller
+#
+# Revision 1.4  1999/02/19 15:33:01  peter
 #   + idezips target
 #
 # Revision 1.3	1999/02/16 00:50:12  peter
