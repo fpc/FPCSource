@@ -1112,6 +1112,10 @@ As of version 0.9.8, the \fpc compiler supports also the \var{cdecl} and
 \var{stdcall} modifiers, as found in Delphi. The \var{cdecl} modifier does
 the same as the \var{export} modifier, and \var{stdcall} does nothing, since
 \fpc pushes the paramaters from right to left by default.
+In addition to the Delphi \var{cdecl} construct, \fpc also supports the
+\var{popstack} directive; it is nearly the same a the \var{cdecl} directive,
+only it still mangles the name, i.e. makes it into a name such as the
+compiler uses internally.
 
 All this is summarized in \seet{Calling}. The first column lists the
 modifier you specify for a procedure declaration. The second one lists the
@@ -1126,7 +1130,8 @@ Modifier & Pushing order & Stack cleaned by & Parameters in registers \\
 (none)  & Right-to-left & Function & No \\
 cdecl   & Right-to-left & Caller   & No \\
 export  & Right-to-left & Caller   & No \\
-stdcall & Right-to-left & Function & No \\ \hline
+stdcall & Right-to-left & Function & No \\ 
+popstack & Right-to-left & Caller  & No \\ \hline
 \end{FPCltable}
 
 More about this can be found in \seec{Linking} on linking.
@@ -1273,6 +1278,7 @@ However, the \var{[ C ]} directive is no longer supoerted as of version
 % Linking an object file in your program
 \section{Explicitly linking an object file in your program}
 \label{se:LinkIn}
+
 Having declared the external function that resides in an object file, 
 you can use it as if it was defined in your own program or unit. 
 To produce an executable, you must still link the object file in. 
@@ -2247,104 +2253,14 @@ definition in that unit. A \var{nil} reference is stored as \var{\$ffffffff}.
 After this follows again a \var{\$ff} byte terminated list of filenames: The
 names of the units in the \var{uses} clause of the implementation section.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{List of compiler source files}
-\label{ch:AppB}
-What follows is a list of all compiler files, with a short description 
-of what they contain. If you're looking for something in the compiler, this
-list may give you a hint on where to find it.
+%\chapter{Compiler and RTL source tree structure}
+%\label{ch:AppB}
 
-The first list is a list of processor dependent files.
-\begin{description}
-\item [aasm.pas] This unit defines some abstract assembler objects and
-routines. It is used by the processor-specific assembly routines.
-\item [alpha.pas, i386.pas, m68k.pas]
-These units describe a processor, its registers, flags etc. 
-The basis for every generated instruction. Currently the DEC alpha, Intel
-386 or higher and Motorola 68000 processors are supported.
-\item [tgen68k.pas, tgeni386.pas]
-These units export help functions for the code generator, which are
-processor specific, they form a buffer between the code generator and the
-machine-specific stuff. 
-\item [cg68k.pas, cgi386.pas, cgi3862.pas] These units contain the code
-generators for the different processor types. For the I386 there are 2
-files.
-\item [cga68k.pas cgai386.pas]
-These units contain frequently-used helper functions for the 
-processor-specific code generators.
-\item [aopt386.pas]
-These units contain the code optimizers for the different processor-types.
-\item [asmalpha.pas]
-This unit defines some DEC alpha assembly constructs.
-\item [attasmi3.pas, gasasm6.pas, intasmi3.pas]
-These units define processor-specific assembly output classes.
-\item [opts386.pas, opts68k.pas]
-These units process command-line options that are processor specific.
-\item [radi386.pas rai386.pas ratti386.pas]
-These units process inline assembly in different styles (AT\&T style, Intel
-style, and direct style) for the Intel 386 processor.
-\item [rasm386.pas]
-This unit provides some helper routines for the assembly readers.
-\end{description}
 
-The second list is a list with processor-independent files.
-\begin{description}
-\item [catch.pas]
-This is a \linux specific call. It intercepts a segmentation fault, and lets
-the compiler exit gracefully.
-\item [cobjects.pas]
-This unit provides some basic objects for the compiler: buffered files,
-linked lists, string containers, etc.
-\item [compiler.pas]
-This unit contains the actual compile function. 
-\item [errors.pas]
-This unit takes care of error-handling: displaying of error messages,
-reading of error-definitions etc.
-\item [files.pas]
-This unit contains file management routines, such as finding of files etc.
-It is highly OS dependent.
-\item [gdb.pas]
-This unit implements the debugging information generation for the \gnu
-\var{GDB} debugger.
-\item [globals.pas]
-This unit defines some help routines that are used throughout the entire 
-compiler, and it does some initializations.
-\item [hcodegen.pas]
-This unit contains processor-independent helper routines for the code
-generator.
-\item [options.pas]
-This unit processes the processor-independent command-line options.
-\item [scanner.pas]
-This unit contains the scanner routines. Here the input file is read and
-split in tokens.
-\item [parser.pas, pass\_1.pas]
-These units contain the actual Pascal parser.
-\item [pp.pas]
-This is the main program. It does some initializations and sets the ball
-rolling.
-\item [symtable.pas]
-This unit contains the code that keeps the symbol tables for the parser. It
-also contains the code to read a unit file.
-\item [systems.pas]
-This unit defines the different operating systems: names, specifications of
-file systems, places where to look for things etc.
-\item [sysutils.pas]
-This unit keeps routines for exception handling.
-\item [tree.pas]
-The main structure for the code generator is a tree of operators and operands,
-and this unit defines the tree structure.
-\item [types.pas]
-This unit contains some helper routines for handling of different Pascal
-types.
-\item [verbose.pas]
-This unit provides the verbosity support. All messages from the compiler are
-put on screen with this unit.
-\end{description}
- 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix C
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1167,7 +1167,18 @@ object filebrary (see \ref{se:external}).
 {\em Remark} The parameters in our declaration of the \var{C} function should 
 match exactly the ones in the declaration in \var{C}. Since \var{C} is case 
 sensitive, this means also that the name of the
-function must be exactly the same.
+function must be exactly the same. the \fpc compiler will use the name {\em
+exactly} as it is typed in the declaration.
+
+\subsection{popstack}
+\label{se:popstack}
+Popstack does the same as \var{cdecl}, namely it tells the \fpc compiler
+that a function uses the C calling convention. In difference with the
+\var{cdecl} modifier, it still mangles the name of the function as it would 
+for a normal pascal function.
+
+With \var{popstack} you could access functions by their pascal names in a
+library.
 
 \subsection{external}
 \label{se:external}
