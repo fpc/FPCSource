@@ -87,6 +87,9 @@ Type
   PAnsiChar           = ^TAnsiChar;
   PPAnsiChar          = ^PAnsiChar;
 
+  UCS4Char            = Cardinal;
+  PUCS4Char           = ^UCS4Char;
+
   Currency            = Int64;
   HRESULT             = Longint;
   TDateTime           = Double;
@@ -494,7 +497,10 @@ const
 
 {
   $Log$
-  Revision 1.22  2001-05-16 17:44:25  jonas
+  Revision 1.23  2001-06-03 20:17:06  peter
+    * ucs4char added
+
+  Revision 1.22  2001/05/16 17:44:25  jonas
     + odd() for cardinal, int64 and qword (merged)
 
   Revision 1.21  2001/05/09 19:57:07  peter
