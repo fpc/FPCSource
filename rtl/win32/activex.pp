@@ -1471,7 +1471,7 @@ TYPE
 
 //  CURRENCY                       = CY;
 
-{$IFDEF HAS_INTF}
+{$IFDEF HASINTF}
 
 // Forward interfaces.
 
@@ -1594,7 +1594,7 @@ TYPE
         ['{00000100-0000-0000-C000-000000000046}']
         //    pointer_default(unique)
      Function Next(Celt:Ulong;out rgelt:IUnknown;out pCeltFetched:pulong):HRESULT;StdCall;
-//    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is(*pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
+//    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
      Function Reset():HResult;
      Function Close(Out ppenum: IEnumUnknown):HResult;
@@ -2619,11 +2619,14 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-02-28 13:52:59  marco
+  Revision 1.4  2002-03-01 12:42:42  peter
+    * fixed HASINTF
+
+  Revision 1.3  2002/02/28 13:52:59  marco
    * has_intf and oaidl
 
   Revision 1.2  2002/02/26 10:30:01  marco
-   * Merged objidl.idl translation. Most of wtypes.idl also included. Size slightly 	increased.
+   * Merged objidl.idl translation. Most of wtypes.idl also included. Size slightly     increased.
 
   Revision 1.1  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
