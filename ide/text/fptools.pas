@@ -105,7 +105,7 @@ type
     PMessagesWindow = ^TMessagesWindow;
     TMessagesWindow = object(TFPWindow)
       constructor Init;
-      procedure   Update; virtual;
+      procedure   Update; {virtual;}
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
       constructor Load(var S: TStream);
@@ -1338,8 +1338,10 @@ end;
 
 procedure ClearToolMessages;
 begin
-  if ToolMessages<>nil then Dispose(ToolMessages,Done); ToolMessages:=nil;
-  if ToolModuleNames<>nil then Dispose(ToolModuleNames, Done); ToolModuleNames:=nil;
+  If assigned(ToolMessages) then
+    ToolMessages^.FreeAll;
+  If assigned(ToolModuleNames) then
+    ToolModuleNames^.FreeAll;
   LastToolMessageFocused:=nil;
 end;
 
@@ -1505,7 +1507,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-08-03 20:22:37  peter
+  Revision 1.14  1999-10-27 10:43:06  pierre
+   * avoid dispose problems for ToolMessages
+
+  Revision 1.13  1999/08/03 20:22:37  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
