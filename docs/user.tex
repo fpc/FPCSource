@@ -1091,7 +1091,10 @@ to conditionally compile parts of your code.
 \file{gdb}
 \item [-gg] idem as \var{-g}.
 \item [-gd] \olabel{gd} generate debugging info for \file{dbx}.
-\item [-gh] use the heaptrc unit (see \unitsref).
+\item [-gh] use the heaptrc unit (see \unitsref). (produces a report
+about heap usage after the program exits)
+\item [-gl] use the lineinfo unit (see \unitsref). (produces file
+name/line number information if the program exits due to an error.)
 \item [-gc] generate checks for pointers. This must be used with the
 \var{-gh} command-line option. When this options is enabled, it will verify 
 that all pointer accesses are within the heap.
@@ -3581,4 +3584,3 @@ end
 \end{verbatim}
 
 \end{document}
-
