@@ -1759,6 +1759,11 @@ const
          begin
            hd:=aprocsym.procdef[i];
 
+           { Skip overloaded definitions that are declared in other
+             units }
+           if hd.procsym<>aprocsym then
+             continue;
+
            { check the parameters, for delphi/tp it is possible to
              leave the parameters away in the implementation (forwarddef=false).
              But for an overload declared function this is not allowed }
@@ -1991,7 +1996,10 @@ const
 end.
 {
   $Log$
-  Revision 1.76  2002-09-27 21:13:29  carl
+  Revision 1.77  2002-10-06 15:09:12  peter
+    * variant:=nil supported
+
+  Revision 1.76  2002/09/27 21:13:29  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.75  2002/09/16 14:11:13  peter
