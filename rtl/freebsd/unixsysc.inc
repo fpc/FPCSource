@@ -37,7 +37,7 @@ END;
 
   if (pointer(func)=nil) or (sp=nil) then
    begin
-     LinuxError:=Sys_EInval;
+     LinuxError:=EsysEInval;
      exit(-1);
    end;
   asm
@@ -170,7 +170,7 @@ begin
    begin
      { We can save an interrupt here }
      getpriority:=0;
-     linuxerror:=Sys_einval;
+     linuxerror:=ESysEinval;
    end
   else
    begin
@@ -197,7 +197,7 @@ Procedure SetPriority(Which,Who,What:longint);
 begin
   errno:=0;
   if ((which<prio_process) or (which>prio_user)) or ((what<-20) or (what>20)) then
-   linuxerror:=Sys_einval  { We can save an interrupt here }
+   linuxerror:=ESyseinval  { We can save an interrupt here }
   else
    begin
      do_syscall(Syscall_nr_Setpriority,which,who,what);
@@ -785,7 +785,10 @@ End;
 
 {
   $Log$
-  Revision 1.6  2002-10-18 12:19:59  marco
+  Revision 1.7  2003-01-05 19:02:29  marco
+   * Should now work with baseunx. (gmake all works)
+
+  Revision 1.6  2002/10/18 12:19:59  marco
    * Fixes to get the generic *BSD RTL compiling again + fixes for thread
      support. Still problems left in fexpand. (inoutres?) Therefore fixed
      sysposix not yet commited

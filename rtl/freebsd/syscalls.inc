@@ -319,7 +319,7 @@ begin
 { Is it a dir ? }
   if not((st.mode and $f000)=$4000)then
    begin
-     errno:=sys_enotdir;
+     errno:=Esysenotdir;
      exit
    end;
 { Open it}
@@ -514,7 +514,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:17  peter
+  Revision 1.10  2003-01-05 19:02:29  marco
+   * Should now work with baseunx. (gmake all works)
+
+  Revision 1.9  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/05/06 07:27:39  marco

@@ -127,8 +127,9 @@ type sigset_t = array[0..3] of Longint;
   PSignalRestorer = ^SignalRestorer;
   TSigAction = procedure(Sig: Longint; SigContext: SigContextRec;someptr:pointer);cdecl;
 
-  Sigset=sigset_t;
-  PSigSet = ^SigSet;
+  TSigset=sigset_t;
+  sigset=tsigset;
+  PSigSet = ^TSigSet;
 
   SigActionRec = packed record
 {    Handler  : record
@@ -138,7 +139,7 @@ type sigset_t = array[0..3] of Longint;
       end;}
     sa_handler  : signalhandler;
     Sa_Flags    : Longint;
-    Sa_Mask     : SigSet;
+    Sa_Mask     : TSigSet;
   end;
   PSigActionRec = ^SigActionRec;
 
@@ -152,7 +153,10 @@ type sigset_t = array[0..3] of Longint;
 
 {
   $Log$
-  Revision 1.6  2002-10-26 18:27:52  marco
+  Revision 1.7  2003-01-05 19:02:29  marco
+   * Should now work with baseunx. (gmake all works)
+
+  Revision 1.6  2002/10/26 18:27:52  marco
    * First series POSIX calls commits. Including getcwd.
 
   Revision 1.5  2002/10/18 12:19:59  marco

@@ -10,13 +10,13 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0
-units=$(SYSTEMUNIT) objpas strings \
+units=$(SYSTEMUNIT) objpas strings baseunix \
       $(LINUXUNIT) unix initc \
       dos crt objects printer \
       sysutils typinfo math varutils \
       cpu mmx charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types systhrds sysctl posix
+      video mouse keyboard console serial variants types systhrds sysctl
 rsts=math varutils typinfo
 
 [require]
@@ -30,8 +30,8 @@ fpcdir=../..
 target=freebsd
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(POSIXINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(POSIXINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) 
 targetdir=.
 
 [lib]
@@ -50,7 +50,6 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
-POSIXINC=$(RTL)/posix
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 
@@ -131,10 +130,18 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 unixsysc.inc
+baseunix$(PPUEXT) : $(UNIXINC)/errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
+	signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
+	$(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
+	$(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
+	$(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
+
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+                 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
+                 unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
@@ -213,4 +220,3 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
 
-posix$(PPUEXT) : $(POSIXINC)/posix.pp sysctl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
