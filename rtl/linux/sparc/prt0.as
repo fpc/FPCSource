@@ -35,12 +35,12 @@ _start:
 	ld	[%sp+22*4], %o2
 	sethi	%hi(operatingsystem_parameter_argc),%o1
 	or	%o1,%lo(operatingsystem_parameter_argc),%o1
-	st	%o2, [%o1]	
+	st	%o2, [%o1]
 
 	add	%sp, 23*4, %o0
 	sethi	%hi(operatingsystem_parameter_argv),%o1
 	or	%o1,%lo(operatingsystem_parameter_argv),%o1
-	st	%o0, [%o1]	
+	st	%o0, [%o1]
 
 	/* envp=(argc+1)*4+argv */
 	inc     %o2
@@ -48,18 +48,18 @@ _start:
 	add	%o2, %o0, %o2
 	sethi	%hi(operatingsystem_parameter_envp),%o1
 	or	%o1,%lo(operatingsystem_parameter_envp),%o1
-	st	%o2, [%o1]	
-	
+	st	%o2, [%o1]
+
   	/* Call the user program entry point.  */
   	call	PASCALMAIN
   	nop
-  
+
 .globl  _haltproc
 .type   _haltproc,@function
 _haltproc:
 	mov	1, %g1			/* "exit" system call */
-	sethi	%hi(U_SYSTEM_EXITCODE),%o0
-	or	%o0,%lo(U_SYSTEM_EXITCODE),%o0
+	sethi	%hi(operatingsystem_result),%o0
+	or	%o0,%lo(operatingsystem_result),%o0
 	ldsh	[%o0], %o0			/* give exit status to parent process*/
 	ta	0x10			/* dot the system call */
 	nop				/* delay slot */
@@ -68,14 +68,17 @@ _haltproc:
 
 	.size _start, .-_start
 
-.bss
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
 #
 # $Log$
-# Revision 1.8  2004-07-03 21:50:31  daniel
+# Revision 1.9  2004-07-05 21:07:38  florian
+#   * remade makefile (too old fpcmake)
+#   * fixed sparc startup code
+#
+# Revision 1.8  2004/07/03 21:50:31  daniel
 #   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
 #     longer necessary
 #
@@ -97,3 +100,4 @@ _haltproc:
 # Revision 1.3  2002/11/18 19:03:46  mazen
 # * start code of gcc adapted for FPC
 #
+
