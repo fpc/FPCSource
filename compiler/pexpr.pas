@@ -1933,11 +1933,14 @@ implementation
                        not from self }
                      if sym.typ in [procsym,propertysym] then
                       begin
-                        htype.setdef(classh);
-                        if (po_classmethod in current_procinfo.procdef.procoptions) or
-                           (po_staticmethod in current_procinfo.procdef.procoptions) then
-                          htype.setdef(tclassrefdef.create(htype));
-                        p1:=ctypenode.create(htype);
+                        if (sym.typ = procsym) then
+                          begin
+                            htype.setdef(classh);
+                            if (po_classmethod in current_procinfo.procdef.procoptions) or
+                               (po_staticmethod in current_procinfo.procdef.procoptions) then
+                              htype.setdef(tclassrefdef.create(htype));
+                            p1:=ctypenode.create(htype);
+                          end;
                       end
                      else
                       begin
@@ -2532,7 +2535,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.183  2005-03-04 07:46:36  jonas
+  Revision 1.184  2005-03-04 09:56:35  jonas
+    * fixed Lazarus compilation
+
+  Revision 1.183  2005/03/04 07:46:36  jonas
     * properties can also be inherited/overridden
 
   Revision 1.182  2005/03/03 19:58:14  jonas
