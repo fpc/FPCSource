@@ -189,12 +189,11 @@ Begin {CheckSequence}
 { hp2 now containts the last instruction of the sequence }
 { get the writestate at this point of the register in TmpState }
           TmpState := PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState;
-{ hp3 := first instruction after the sequence }
-          GetNextInstruction(hp2, hp2);
 { now, even though reg is in RegsLoadedForRef, sometimes it's still used  }
 { afterwards. It is not if either it is not in usedregs anymore after the }
 { sequence, or if it is loaded with a new value right after the sequence  }
-          If (TmpState = PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState) And
+          If GetNextInstruction(hp2, hp2) and
+             (TmpState = PPaiProp(hp2^.OptInfo)^.Regs[RegCounter].WState) And
              (RegCounter in PPaiProp(hp2^.OptInfo)^.UsedRegs) Then
 { it is still used, so remove it from RegsLoadedForRef }
             Begin
@@ -430,24 +429,6 @@ begin
     end
 end;
 
-function regLoadedWithNewValue(reg: tregister; hp: pai): boolean;
-{ assumes reg is a 32bit register }
-var p: paicpu;
-begin
-  p := paicpu(hp);
-  regLoadedWithNewValue :=
-    assigned(hp) and
-    ((hp^.typ = ait_instruction) and
-     (((p^.opcode = A_MOV) or
-       (p^.opcode = A_MOVZX) or
-       (p^.opcode = A_MOVSX) or
-       (p^.opcode = A_LEA)) and
-      (p^.oper[1].typ = top_reg) and
-      (Reg32(p^.oper[1].reg) = reg)) or
-     ((p^.opcode = A_POP) and
-      (Reg32(p^.oper[0].reg) = reg)));
-end;
-
 Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p, endP: pai);
 var
 {$ifdef replaceregdebug}
@@ -526,19 +507,20 @@ end;
 function NoHardCodedRegs(p: paicpu): boolean;
 var chCount: byte;
 begin
-  if (p^.opcode = A_IMUL) then
-    noHardCodedRegs := p^.ops <> 1
-  else
-    begin
-      NoHardCodedRegs := true;
-      with InsProp[p^.opcode] do
-      for chCount := 1 to MaxCh do
-        if Ch[chCount] in ([Ch_REAX..Ch_MEDI,Ch_WMemEDI,Ch_All]-[Ch_RESP,Ch_WESP,Ch_RWESP]) then
-          begin
-            NoHardCodedRegs := false;
-            break
-          end;
-    end;
+  case p^.opcode of
+    A_IMUL: noHardCodedRegs := p^.ops <> 1;
+    else
+      begin
+        NoHardCodedRegs := true;
+        with InsProp[p^.opcode] do
+          for chCount := 1 to MaxCh do
+            if Ch[chCount] in ([Ch_REAX..Ch_MEDI,Ch_WMemEDI,Ch_All]-[Ch_RESP,Ch_WESP,Ch_RWESP]) then
+              begin
+                NoHardCodedRegs := false;
+                break
+              end;
+      end;
+  end;
 end;
 
 Procedure ChangeReg(var Reg: TRegister; orgReg, newReg: TRegister);
@@ -575,7 +557,8 @@ function RegSizesOK(oldReg,newReg: TRegister; p: paicpu): boolean;
 var opCount: byte;
 begin
   RegSizesOK := true;
-  if not(IsGP32reg(oldReg) and IsGP32Reg(newReg)) then
+  { if only one of them is a general purpose register ... }
+  if (IsGP32reg(oldReg) xor IsGP32Reg(newReg)) then
     begin
       for opCount := 0 to 2 do
         if (p^.oper[opCount].typ = top_reg) and
@@ -690,7 +673,7 @@ begin
 end;
 
 function ReplaceReg(orgReg, newReg: TRegister; p: pai;
-           const c: TContent): Boolean;
+           const c: TContent; orgRegCanBeModified: Boolean): Boolean;
 { Tries to replace orgreg with newreg in all instructions coming after p }
 { until orgreg gets loaded with a new value. Returns true if successful, }
 { false otherwise. If successful, the contents of newReg are set to c,   }
@@ -709,23 +692,42 @@ begin
     begin
       tmpResult :=
         getNextInstruction(endP,endP);
+      if tmpresult and not assigned(endP^.optInfo) then
+        begin
+          hp := new(pai_asm_comment,init(strpnew('next no optinfo')));
+          hp^.next := endp;
+          hp^.previous := endp^.previous;
+          endp^.previous := hp;
+          if assigned(hp^.previous) then
+            hp^.previous^.next := hp;
+          exit;
+        end;
       If tmpResult and
 { don't take into account instructions that will be removed }
          Not (PPaiProp(endP^.optInfo)^.canBeRemoved) then
         begin
           sequenceEnd :=
             noHardCodedRegs(paicpu(endP)) and
-            (RegLoadedWithNewValue(newReg,paicpu(endP)) or
-             (GetNextInstruction(endp,hp) and
-              FindRegDealloc(newReg,hp)));
+            RegLoadedWithNewValue(newReg,true,paicpu(endP)) or
+            (GetNextInstruction(endp,hp) and
+             FindRegDealloc(newReg,hp));
           newRegModified :=
             newRegModified or
             (not(sequenceEnd) and
              RegModifiedByInstruction(newReg,endP));
           orgRegRead := newRegModified and RegReadByInstruction(orgReg,endP);
-          sequenceEnd := SequenceEnd and not(newRegModified and orgRegRead);
+          sequenceEnd := SequenceEnd and
+    { since newReg will be replaced by orgReg, we can't allow that newReg }
+    { gets modified if orgReg is still read afterwards (since after       }
+    { replacing, this would mean that orgReg first gets modified and then }
+    { gets read in the assumption it still contains the unmodified value) }
+                         not(newRegModified and orgRegRead) and
+    { since newReg will be replaced by orgReg, we can't allow that newReg }
+    { gets modified if orgRegCanBeModified = false                        }
+                         (orgRegCanBeModified or not(newRegModified));
           tmpResult :=
             not(newRegModified and orgRegRead) and
+            (orgRegCanBeModified or not(newRegModified)) and
             (endP^.typ = ait_instruction) and
             not(paicpu(endP)^.is_jmp) and
             NoHardCodedRegs(paicpu(endP)) and
@@ -734,9 +736,10 @@ begin
         end;
     end;
   sequenceEnd := sequenceEnd and
+     RegSizesOk(orgReg,newReg,paicpu(endP)) and
      not(newRegModified and
          (orgReg in PPaiProp(endP^.optInfo)^.usedRegs) and
-         not(RegLoadedWithNewValue(orgReg,paicpu(endP))));
+         not(RegLoadedWithNewValue(orgReg,true,paicpu(endP))));
 
   if SequenceEnd then
     begin
@@ -777,11 +780,11 @@ begin
 {     isn't used anymore                                                    }
 { In case b, the newreg was completely replaced by oldreg, so it's contents }
 { are unchanged compared the start of this sequence, so restore them        }
-      If RegLoadedWithNewValue(newReg,endP) then
+      If RegLoadedWithNewValue(newReg,true,endP) then
          GetLastInstruction(endP,hp)
       else hp := endP;
       if (p <> endp) or
-         not RegLoadedWithNewValue(newReg,endP) then
+         not RegLoadedWithNewValue(newReg,true,endP) then
         RestoreRegContentsTo(newReg, c ,p, hp);
 { In both case a and b, it is possible that the new register was modified   }
 { (e.g. an add/sub), so if it was replaced by oldreg in that instruction,   }
@@ -956,7 +959,7 @@ Begin
                                              getLastInstruction(p,hp3);
                                              If not ReplaceReg(RegInfo.New2OldReg[RegCounter],
                                                       regCounter,hp3,
-                                                      PPaiProp(hp4^.optInfo)^.Regs[regCounter]) then
+                                                      PPaiProp(hp4^.optInfo)^.Regs[regCounter],true) then
                                                begin
 {$endif replacereg}
                                                  hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
@@ -1064,6 +1067,21 @@ Begin
                                    End;
                           End;
                       End;
+{$ifdef replacereg}
+                    top_Reg:
+                      { try to replace the new reg with the old reg }
+                      if (paicpu(p)^.opcode = A_MOV) and
+                         getLastInstruction(p,hp4) then
+                        begin
+                          Case paicpu(p)^.oper[1].typ of
+                            top_Reg:
+                              if ReplaceReg(paicpu(p)^.oper[0].reg,
+                                   paicpu(p)^.oper[1].reg,p,
+                                   PPaiProp(hp4^.optInfo)^.Regs[regCounter],false) then
+                                PPaiProp(p^.optInfo)^.canBeRemoved := true;
+                          end
+                        end;
+{$endif replacereg}
                     Top_Const:
                       Begin
                         Case Paicpu(p)^.oper[1].typ Of
@@ -1149,7 +1167,13 @@ End.
 
 {
  $Log$
- Revision 1.39  2000-01-13 13:07:05  jonas
+ Revision 1.40  2000-01-22 16:10:06  jonas
+   + all code generator generated "mov reg1,reg2" instructions are now
+     attempted to be removed using the replacereg code
+     (-dnewoptimizations)
+   * small fixes to -dreplacereg code
+
+ Revision 1.39  2000/01/13 13:07:05  jonas
    * released -dalignreg
    * some small fixes to -dnewOptimizations helper procedures
 
