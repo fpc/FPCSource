@@ -43,34 +43,40 @@ Type
 {$endif}
 
     cuchar = byte;
+    cchar  = shortint;
     cInt   = longint;           { minimum range is : 32-bit    }
     cUInt  = Cardinal;          { minimum range is : 32-bit    }
-  {$ifdef CPU64}
+{$ifdef cpu64}
     cLong  = int64;
   {$ifdef VER1_0}
     cuLong = int64;
   {$else}
     cuLong = qword;
    {$endif}
-  {$else}
+{$else}
     cLong  = longint;
     cuLong = Cardinal;
-  {$endif}
+{$endif}
     clonglong = int64;
 {$ifndef VER1_0}
     culonglong = qword;
 {$else VER1_0}
     culonglong = int64;
 {$endif VER1_0}
-    cshort = integer;
-    cushort= word;
+    cshort   = smallint;
+    cushort  = word;
 
-    pcInt   = ^cInt;
-    pcUInt  = ^cUInt;
-    pcLong  = ^cLong;
-    pculong = ^cuLong;
-    pcshort = ^cshort;
-    pcushort= ^cushort;
+    pcInt    = ^cInt;
+    pcUInt   = ^cUInt;
+    pcLong   = ^cLong;
+    pculong  = ^cuLong;
+    pcshort  = ^cshort;
+    pcushort = ^cushort;
+    pcchar   = ^cchar;
+    pcuchar  = ^cuchar;
+
+    cunsigned = cuint;
+    pcunsigned = ^cunsigned;
 {$endif}
 
 // Kylix compat types
@@ -84,8 +90,11 @@ end.
 
 {
  $Log$
- Revision 1.3  2005-02-14 17:13:22  peter
-   * truncate log
+ Revision 1.4  2005-03-01 22:45:09  hajny
+   * Florian's changes from ctypes.inc merged in to make xlib compilable under non-Unix again
+
+ Revision 1.3  2005/02/14 17:13:22  peter
+     * truncate log
 
  Revision 1.2  2005/02/12 17:35:18  marco
   * some kylix stuf
