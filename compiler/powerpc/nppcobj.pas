@@ -89,24 +89,32 @@ virtual(2):      OK     OK    OK(3)  OK       OK          OK(4)
 
 procedure tppcclassheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
 
-  procedure loadvmttor0;
+  procedure loadvmttor11;
   var
     href : treference;
   begin
-    reference_reset_base(href,NR_R0,0);
-    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_R0);
+    reference_reset_base(href,NR_R3,0);
+    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_R11);
   end;
 
-  procedure op_onr0methodaddr;
+  procedure op_onr11methodaddr;
   var
     href : treference;
   begin
     if (procdef.extnumber=$ffff) then
       Internalerror(200006139);
     { call/jmp  vmtoffs(%eax) ; method offs }
-    reference_reset_base(href,NR_R0,procdef._class.vmtmethodoffset(procdef.extnumber));
-    {$warning FIX ME}
-    //!!!! cg.a_jmp_ref(asmlist,href);
+    reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber));
+    if not((longint(href.offset) >= low(smallint)) and
+           (longint(href.offset) <= high(smallint))) then
+      begin
+        asmlist.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
+          smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
+        href.offset := smallint(href.offset and $ffff);
+      end;
+    asmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R11,href));
+    asmlist.concat(taicpu.op_reg(A_MTCTR,NR_R11));
+    asmlist.concat(taicpu.op_none(A_BCTR));
   end;
 
 var
@@ -144,8 +152,8 @@ begin
   { case 4 }
   if po_virtualmethod in procdef.procoptions then
     begin
-      loadvmttor0;
-      op_onr0methodaddr;
+      loadvmttor11;
+      op_onr11methodaddr;
     end
   { case 0 }
   else
@@ -159,7 +167,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-12-23 23:12:44  peter
+  Revision 1.3  2003-12-28 15:14:14  jonas
+    * hopefully fixed interfaces (untested)
+
+  Revision 1.2  2003/12/23 23:12:44  peter
     * extnumber failure is $ffff instead of -1
     * fix non-vmt call for register calling on i386
 
