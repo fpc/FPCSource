@@ -10,7 +10,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard
+      video mouse keyboard console
 
 rst=math
 
