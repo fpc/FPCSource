@@ -752,7 +752,7 @@ begin
   BackTraceStrFunc:=@SysBackTraceStr;
   GetLineInfo(dword(addr),func,source,line);
 { create string }
-  StabBackTraceStr:='  0x'+HexStr(Longint(addr),8);
+  StabBackTraceStr:='  $'+HexStr(Longint(addr),8);
   if func<>'' then
    StabBackTraceStr:=StabBackTraceStr+'  '+func;
   if source<>'' then
@@ -781,7 +781,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2003-10-17 20:52:12  olle
+  Revision 1.20  2004-02-06 20:17:12  daniel
+    * Use $ for hex numbers instead of alien 0x
+
+  Revision 1.19  2003/10/17 20:52:12  olle
     * Changed m68k to cpum68k, i386 to cpui386
 
   Revision 1.18  2003/03/25 19:27:45  peter

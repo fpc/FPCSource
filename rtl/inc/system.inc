@@ -654,7 +654,7 @@ Begin
   { Show runtime error and exit }
   If erroraddr<>nil Then
    Begin
-     Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
+     Writeln(stdout,'Runtime error ',Errorcode,' at $',hexstr(Longint(Erroraddr),8));
      { to get a nice symify }
      Writeln(stdout,BackTraceStrFunc(Erroraddr));
      dump_stack(stdout,ErrorBase);
@@ -685,7 +685,7 @@ end;
 
 function SysBackTraceStr (Addr: Pointer): ShortString;
 begin
-  SysBackTraceStr:='  0x'+HexStr(Longint(addr),8);
+  SysBackTraceStr:='  $'+HexStr(Longint(addr),8);
 end;
 
 
@@ -864,7 +864,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  2004-01-22 20:12:37  florian
+  Revision 1.53  2004-02-06 20:17:13  daniel
+    * Use $ for hex numbers instead of alien 0x
+
+  Revision 1.52  2004/01/22 20:12:37  florian
     * fixed syscall number
 
   Revision 1.51  2004/01/11 12:21:06  jonas
