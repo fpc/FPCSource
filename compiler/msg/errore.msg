@@ -1151,6 +1151,11 @@ type_h_in_range_check=04047_H_The left operand of the IN operator should be byte
 % currently only supports a left operand which fits within a byte. In the case of 
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
+type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of data / range check error
+type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of data / range check error
+% There is an assignment to a smaller type than the source type. This means that
+% this may cause a range-check error, or may lead to possible loss of data.
+%
 % \end{description}
 #
 # Symtable
