@@ -599,9 +599,9 @@ endif
 ifeq ($(OS_TARGET),os2)
 PPUEXT=.ppo
 ASMEXT=.so2
-OEXT=.o2
+OEXT=.oo2
 SMARTEXT=.so
-STATICLIBEXT=.ao
+STATICLIBEXT=.ao2
 SHAREDLIBEXT=.dll
 PACKAGESUFFIX=os2
 endif
@@ -678,6 +678,7 @@ EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
 EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
 UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
+UNITAFILES=$(addsuffix $(STATICLIBEXT),$(UNITOBJECTS))
 
 .PHONY : fpc_all fpc_units fpc_loaders fpc_exes \
 	 fpc_staticlib fpc_sharedlib \
@@ -686,7 +687,7 @@ UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 	 fpc_info fpc_cfginfo fpc_objectinfo fpc_installinfo fpc_filesinfo\
 	 fpc_dirinfo
 
-.SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT) $(OEXT)
+.SUFFIXES : $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp 
 
 
 #####################################################################
@@ -705,12 +706,20 @@ fpc_units: $(UNITFILES)
 
 fpc_exes: $(EXEFILES)
 
-# General compile rules
-%$(PPUEXT): %$(PASEXT)
+# General compile rules, available for both possible PASEXT
+%$(PPUEXT): %.pp
 	$(COMPILER) $< $(REDIR)
 	$(EXECPASS)
 
-%$(EXEEXT): %$(PASEXT)
+%$(PPUEXT): %.pas
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(EXEEXT): %.pp
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(EXEEXT): %.pas
 	$(COMPILER) $< $(REDIR)
 	$(EXECPASS)
 
@@ -873,7 +882,7 @@ endif
 #####################################################################
 
 fpc_clean:
-	-$(DEL) $(UNITOFILES) $(UNITFILES) $(PPAS) link.res log
+	-$(DEL) $(UNITOFILES) $(UNITAFILES) $(UNITFILES) $(PPAS) link.res log
 ifeq ($(SMARTLINK),YES)
 	-$(DELTREE) *$(SMARTEXT)
 endif
@@ -1025,7 +1034,10 @@ endif
 
 #
 # $Log$
-# Revision 1.28  1999-05-30 11:33:04  peter
+# Revision 1.29  1999-06-01 13:27:24  peter
+#   * updates for linux
+#
+# Revision 1.28  1999/05/30 11:33:04  peter
 #   * releasever removed, fpc_version will be used
 #
 # Revision 1.27  1999/05/16 02:37:30  peter

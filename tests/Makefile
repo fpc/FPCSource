@@ -184,8 +184,8 @@ endif
 endif
 
 clean_fail :
-	-rm $(addsuffix .res,$(TS_FAIL_LIST)) 
-	-rm $(addsuffix .ref,$(TF_FAIL_LIST)) 
+	-rm -f $(addsuffix .res,$(TS_FAIL_LIST)) 
+	-rm -f $(addsuffix .ref,$(TF_FAIL_LIST)) 
 	-rm log 
 
 again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) $(addsuffix .ref,$(TF_FAIL_LIST)) 
@@ -210,7 +210,7 @@ alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs*.pp))
 alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp)) 
 
 clean :
-	-rm *.re* *.o *.ppu *.log *.elg *.exc t*.exe log faillist ts_fail tf_fail
+	-rm -f *.re* *.o *.ppu *.log *.elg *.exc t*.exe log faillist ts_fail tf_fail
 
 info :
 	@echo This Makefile allows to test the compiler
@@ -226,7 +226,10 @@ info :
 
 #
 # $Log$
-# Revision 1.2  1999-06-01 00:06:14  peter
+# Revision 1.3  1999-06-01 13:27:27  peter
+#   * updates for linux
+#
+# Revision 1.2  1999/06/01 00:06:14  peter
 #   * linux fixes
 #
 # Revision 1.1  1999/01/25 20:23:04  peter
