@@ -1,7 +1,50 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.2 aka 2.0.0-Beta2
+                        Version 1.9.4 aka 2.0.0-Beta3
+
+******************************************************************************
+                      Whats New in 1.9.4 aka 2.0.0-Beta3
+******************************************************************************
+
+Compiler:
+  + ARM (Linux) compiler
+  + Powerpc Darwin (MacOSX) support
+  + reintroduce keyword support
+  + added prefetch(const mem) support
+  + MacPas compile mode
+  + -gv to generate an executable that can be run under Valgrind >= 2.1
+  * register allocator fixes and tweaks
+  * better support for preprocessor $IF expressions
+  * better overloaded operator support
+  * Win32 DLL export table fixes
+  * stabs (debuginfo) generation cleanups
+  * enum names in RTTI are now in their original case
+  * record alignment fixes
+  * lots of bug fixes
+
+RTL:
+  + ARM Linux support
+  + Powerpc Darwin support
+  + Sysutils.RaiseLastOSError added
+  + Sysutils.GetLastOSError added
+  + Classes.TOwnedCollection added
+  + Sysutils.FileIsReadOnly added
+  * Better support for Libc based RTL (FPC_USE_LIBC)
+  * 64bit cleanup for future x86_64 port
+  * ExecuteProcess fixes
+  * Linux use getdents syscall instead of deprecated readdir
+
+FCL:
+  + SDF DB backend
+  + TGA support in fpImage
+  * Lot of fixes to fpImage classes
+
+Misc:
+  * Documentation updates
+  * Testsuite updates to store testrun results in a database
+  * Testsuite updates for cross platform testing, with remote rsh/ssh support
+
 
 ******************************************************************************
                       Whats New in 1.9.2 aka 2.0.0-Beta2
@@ -30,11 +73,11 @@ RTL:
   * ipv6 support
   * lots of bug fixes
 
-FCL: 
+FCL:
   + sqlite support
   * bug fixes
 
-Misc:  
+Misc:
   * improved docs
 
 ******************************************************************************
