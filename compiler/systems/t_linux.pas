@@ -229,7 +229,8 @@ begin
          FindNext(St);
       end;
      FindClose(St);
-{$else m68k}
+{$endif m68k}
+
 {$ifdef i386}
      { first try glibc2 }
      DynamicLinker:='/lib/ld-linux.so.2';
@@ -247,16 +248,22 @@ begin
          end
        else
          DynamicLinker:='/lib/ld-linux.so.1';
-{$else i386}
+{$endif i386}
+
 {$ifdef x86_64}
      DynamicLinker:='/lib/ld-linux-x86-64.so.2';
      libctype:=glibc2;
-{$else x86_64}
+{$endif x86_64}
+
+{$ifdef sparc}
+     DynamicLinker:='/lib/ld-linux.so.2';
+     libctype:=glibc2;
+{$endif sparc}
+
+{$ifdef powerpc}
      DynamicLinker:='/lib/ld.so.1';
      libctype:=glibc2;
-{$endif x86_64}
-{$endif i386}
-{$endif m68k}
+{$endif powerpc}
    end;
 end;
 
@@ -572,7 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2004-09-22 15:25:14  mazen
+  Revision 1.24  2004-09-25 18:44:12  florian
+    * fixed dyn. linker name for sparc
+
+  Revision 1.23  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.21  2004/09/21 17:25:13  peter
