@@ -43,7 +43,7 @@ uses
 
 const
 { Size of the instruction table converted by nasmconv.pas }
-  instabentries = 1303;
+  instabentries = {$i i386nop.inc}
   maxinfolen    = 8;
 
 { By default we want everything }
@@ -902,7 +902,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2000-04-11 11:21:44  jonas
+  Revision 1.27  2000-05-09 10:52:08  pierre
+   Use i386nop.inc file
+
+  Revision 1.26  2000/04/11 11:21:44  jonas
     * changed the order of the tinschange type enum
 
   Revision 1.25  2000/04/04 13:45:20  pierre
