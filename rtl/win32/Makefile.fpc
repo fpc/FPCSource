@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
-      windows ole2 activex opengl32 os_types winsock initc \
+      windows ole2 activex opengl32 winsock initc \
       dos crt objects graph messages \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
@@ -125,9 +125,7 @@ activex$(PPUEXT) : activex.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-os_types$(PPUEXT) : $(INC)/os_types.pp
-
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) os_types$(PPUEXT)
+winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc

@@ -99,7 +99,7 @@ interface
   type
      pexception_record = ^exception_record;
      EXCEPTION_RECORD  = record
-       ExceptionCode   : longint;
+       ExceptionCode   : cardinal;
        ExceptionFlags  : longint;
        ExceptionRecord : pexception_record;
        ExceptionAddress : pointer;

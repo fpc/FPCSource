@@ -32,7 +32,6 @@ unit winsock;
   interface
 
     uses
-       os_types,
        windows;
 
     const
@@ -45,6 +44,10 @@ unit winsock;
        FD_SETSIZE = 64;
 
     type
+       tOS_INT  = LongInt;
+       tOS_UINT = DWord;
+       ptOS_INT = ^tOS_INT;
+       ptOS_UINT = ^tOS_UINT;
        u_char = char;
        u_short = word;
        u_int = tOS_UINT;
@@ -882,7 +885,11 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:29  peter
+  Revision 1.10  2002-09-07 21:28:10  carl
+    - removed os_types
+    * fix range check errors
+
+  Revision 1.9  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/08/12 14:18:53  florian

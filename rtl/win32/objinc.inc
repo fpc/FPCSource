@@ -167,14 +167,14 @@ end;
 {  SetFileSize -> Platforms DOS          - Not Checked                      }
 {---------------------------------------------------------------------------}
 FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
-VAR Actual : dword;
+VAR Actual : Sw_word;
     Buf: LongInt;
 BEGIN
    SetFilePos(Handle,FileSize,0,longint(Actual));
    If (Actual = FileSize) Then
     Begin
       Actual := FileWrite(Handle, Buf, 0,Actual);   { Truncate the file }
-      If (Actual <> -1) Then
+      If (Actual <> longword(-1)) Then
        SetFileSize := 0
       Else
        SetFileSize := 103;                            { File truncate error }
@@ -185,7 +185,11 @@ END;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:29  peter
+  Revision 1.6  2002-09-07 21:28:10  carl
+    - removed os_types
+    * fix range check errors
+
+  Revision 1.5  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }

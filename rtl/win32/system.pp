@@ -1543,9 +1543,9 @@ begin
   InitExceptions;
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in and messagebox }
-  StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));
-  StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
-  StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));
+  StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
+  StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+  StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
   if not IsConsole then
    begin
      AssignError(stderr);
@@ -1573,7 +1573,11 @@ end.
 
 {
   $Log$
-  Revision 1.31  2002-09-07 16:01:29  peter
+  Revision 1.32  2002-09-07 21:28:10  carl
+    - removed os_types
+    * fix range check errors
+
+  Revision 1.31  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
   Revision 1.30  2002/08/26 13:49:18  pierre
