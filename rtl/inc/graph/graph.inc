@@ -2276,7 +2276,7 @@ end;
   procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;
     const PathToDriver:String);
   const
-    {$IFDEF Linux}
+    {$IFDEF Unix}
     dirchar = '/';
     {$ELSE}
     dirchar = '\';
@@ -2451,7 +2451,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  2001-04-14 16:06:03  jonas
+  Revision 1.7  2002-06-01 19:42:02  marco
+   * Renamefest
+
+  Revision 1.6  2001/04/14 16:06:03  jonas
     * fixed problem with new modes system (reported by Vladimir Ravodin) (merged)
 
   Revision 1.5  2000/12/07 17:19:47  jonas

@@ -106,7 +106,7 @@ program install;
      haside : boolean = false;
      hashtmlhelp : boolean = false;
 
-{$ifdef linux}
+{$ifdef Unix}
      DirSep='/';
 {$else}
      DirSep='\';
@@ -331,7 +331,7 @@ program install;
        err:=false;
        {$I-}
        getdir(0,start);
-{$ifndef linux}
+{$ifndef Unix}
        if (s[2]=':') and (s[3]=DirSep) then
         begin
           chdir(Copy(s,1,3));
@@ -1256,7 +1256,7 @@ end;
        c    : word;
        i,j  : longint;
        found : boolean;
-{$ifndef linux}
+{$ifndef Unix}
        DSize,Space,ASpace : longint;
        S: DirStr;
 {$endif}
@@ -1920,7 +1920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-04-11 13:20:27  pierre
+  Revision 1.10  2002-06-01 19:43:07  marco
+   * Renamefest
+
+  Revision 1.9  2002/04/11 13:20:27  pierre
    + several go32v2 related fixes
 
   Revision 1.8  2002/04/10 21:18:42  pierre
