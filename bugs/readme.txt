@@ -264,3 +264,4 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0200.pp   array of char overloading problem with strings
+bug0202.pp   flag results not supported with case
