@@ -246,7 +246,7 @@ begin
           W^.Editor^.SetCurPtr(0,Line);
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetHighlightRow(Line);
-          if Not assigned(GDBWindow) or not GDBWindow^.Focus then
+          if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
           InvalidSourceLine:=false;
         end
@@ -260,7 +260,7 @@ begin
         begin
           W^.Editor^.SetHighlightRow(Line);
           W^.Editor^.TrackCursor(true);
-          if Not assigned(GDBWindow) or not GDBWindow^.Focus then
+          if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
           LastSource:=W;
           InvalidSourceLine:=false;
@@ -282,7 +282,7 @@ begin
               W:=TryToOpenFile(nil,fn,0,Line);
               W^.Editor^.SetHighlightRow(Line);
               W^.Editor^.TrackCursor(true);
-              if Not assigned(GDBWindow) or not GDBWindow^.Focus then
+              if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
                 W^.Select;
               LastSource:=W;
               InvalidSourceLine:=false;
@@ -295,7 +295,7 @@ begin
     begin
       PB:=BreakpointCollection^.GetGDB(stop_breakpoint_number);
       { For watch we should get old and new value !! }
-      if (Not assigned(GDBWindow) or not GDBWindow^.Focus) and
+      if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
          (PB^.typ<>bt_file_line) then
         begin
            Command('p '+GetStr(PB^.Name));
@@ -676,7 +676,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1999-02-16 10:43:54  peter
+  Revision 1.14  1999-02-16 12:47:36  pierre
+   * GDBWindow does not popup on F7 or F8 anymore
+
+  Revision 1.13  1999/02/16 10:43:54  peter
     * use -dGDB for the compiler
     * only use gdb_file when -dDEBUG is used
     * profiler switch is now a toggle instead of radiobutton
