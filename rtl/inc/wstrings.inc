@@ -201,6 +201,7 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeWideString (S);        { Remove...}
+  s:=nil;
 end;
 
 {$ifdef hascompilerproc}
@@ -1041,7 +1042,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  2004-05-01 23:55:18  peter
+  Revision 1.38  2004-05-29 15:39:08  florian
+    * the decr functions set the data now to nil
+
+  Revision 1.37  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.36  2004/04/29 18:59:43  peter

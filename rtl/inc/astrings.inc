@@ -115,9 +115,7 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
-{$ifndef decrrefnotnil}
   s:=nil;
-{$endif}        
 end;
 
 {$ifdef hascompilerproc}
@@ -878,7 +876,10 @@ end;
 
 {
   $Log$
-  Revision 1.44  2004-05-16 16:52:28  peter
+  Revision 1.45  2004-05-29 15:39:08  florian
+    * the decr functions set the data now to nil
+
+  Revision 1.44  2004/05/16 16:52:28  peter
     * small fix for 1.0.x
 
   Revision 1.43  2004/05/01 23:55:18  peter
