@@ -30,7 +30,7 @@ interface
 var
   CRCFile : text;
 const
-  CRC_array_Size = 20000;
+  CRC_array_Size = 200000;
 type
   tcrc_array = array[0..crc_array_size] of longint;
   pcrc_array = ^tcrc_array;
@@ -313,7 +313,7 @@ begin
   if Crc32Tbl[1]=0 then
    MakeCrc32Tbl;
   p:=@InBuf;
-  for i:=1to InLen do
+  for i:=1 to InLen do
    begin
      InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
      inc(longint(p));
@@ -369,8 +369,6 @@ end;
 
 
 procedure tppufile.close;
-var
-  i : word;
 begin
   if Mode<>0 then
    begin
@@ -378,7 +376,7 @@ begin
      {$I-}
       system.close(f);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
      Mode:=0;
      closed:=true;
    end;
@@ -395,7 +393,6 @@ function tppufile.GetPPUVersion:longint;
 var
   l    : longint;
   code : integer;
-
 begin
   Val(header.ver[1]+header.ver[2]+header.ver[3],l,code);
   if code=0 then
@@ -437,7 +434,6 @@ var
 {$else delphi}
   i      : word;
 {$endif delphi}
-
 begin
   open:=false;
   assign(f,fname);
@@ -910,8 +906,8 @@ end;
 
 procedure tppufile.putbyte(b:byte);
 begin
-  writedata(b,1);
-  inc(entryidx);
+  putdata(b,1);
+{  inc(entryidx);}
 end;
 
 
@@ -958,8 +954,6 @@ end;
 
 
     procedure tppufile.tempclose;
-      var
-        i : word;
       begin
         if not closed then
          begin
@@ -967,7 +961,7 @@ end;
            {$I-}
             system.close(f);
            {$I+}
-           i:=ioresult;
+           if ioresult<>0 then;
            closed:=true;
            tempclosed:=true;
          end;
@@ -1000,8 +994,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-09-17 09:20:26  peter
+  Revision 1.7  1999-11-23 09:44:15  peter
     * updated
+
+  Revision 1.50  1999/11/21 01:42:37  pierre
+   * Nextoverloading ordering fix
+
+  Revision 1.49  1999/11/18 15:34:48  pierre
+    * Notes/Hints for local syms changed to
+      Set_varstate function
+
+  Revision 1.48  1999/11/17 17:05:02  pierre
+   * Notes/hints changes
+
+  Revision 1.47  1999/11/06 14:34:23  peter
+    * truncated log to 20 revs
+
+  Revision 1.46  1999/09/17 09:14:56  peter
+    * ppu header writting now uses currentppuversion
 
   Revision 1.45  1999/09/16 13:27:08  pierre
     + error if PPU modulename is different from what is searched
@@ -1070,132 +1080,5 @@ end.
 
   Revision 1.27  1999/04/17 13:16:20  peter
     * fixes for storenumber
-
-  Revision 1.26  1999/04/07 15:39:31  pierre
-    + double_checksum code added
-
-  Revision 1.25  1999/03/02 13:49:18  peter
-    * renamed loadunit_int -> loadunit
-
-  Revision 1.24  1999/02/22 13:07:00  pierre
-    + -b and -bl options work !
-    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
-      is not enabled when quitting global section
-    * local vars and procedures are not yet stored into PPU
-
-  Revision 1.23  1999/02/16 00:48:24  peter
-    * save in the ppu if linked with obj file instead of using the
-      library flag, so the .inc files are also checked
-
-  Revision 1.22  1999/02/05 08:54:29  pierre
-    + linkofiles splitted inot linkofiles and linkunitfiles
-      because linkofiles must be stored with directory
-      to enabled linking of different objects with same name
-      in a different directory
-
-  Revision 1.21  1998/12/30 22:15:50  peter
-    + farpointer type
-    * absolutesym now also stores if its far
-
-  Revision 1.20  1998/11/30 16:34:45  pierre
-    * corrected problems with rangecheck
-    + added needed code for no rangecheck  in CRC32 functions in ppu unit
-    * enumdef lso need its rangenr reset to zero
-      when calling reset_global_defs
-
-  Revision 1.19  1998/11/16 15:41:42  peter
-    * tp7 didn't like my ifopt H+ :(
-
-  Revision 1.18  1998/11/16 12:18:03  peter
-    * H+ fixes
-
-  Revision 1.17  1998/10/14 10:45:08  pierre
-    * ppu problems for m68k fixed (at least in cross compiling)
-    * one last memory leak for sysamiga fixed
-    * the amiga RTL compiles now completely !!
-
-  Revision 1.16  1998/09/24 23:49:14  peter
-    + aktmodeswitches
-
-  Revision 1.15  1998/09/23 15:39:10  pierre
-    * browser bugfixes
-      was adding a reference when looking for the symbol
-      if -bSYM_NAME was used
-
-  Revision 1.14  1998/09/21 10:00:07  peter
-    * store number of defs in ppu file
-
-  Revision 1.13  1998/09/21 08:45:18  pierre
-    + added vmt_offset in tobjectdef.write for fututre use
-      (first steps to have objects without vmt if no virtual !!)
-    + added fpu_used field for tabstractprocdef  :
-      sets this level to 2 if the functions return with value in FPU
-      (is then set to correct value at parsing of implementation)
-      THIS MIGHT refuse some code with FPU expression too complex
-      that were accepted before and even in some cases
-      that don't overflow in fact
-      ( like if f : float; is a forward that finally in implementation
-       only uses one fpu register !!)
-      Nevertheless I think that it will improve security on
-      FPU operations !!
-    * most other changes only for UseBrowser code
-      (added symtable references for record and objects)
-      local switch for refs to args and local of each function
-      (static symtable still missing)
-      UseBrowser still not stable and probably broken by
-      the definition hash array !!
-
-  Revision 1.12  1998/09/18 08:01:37  pierre
-    + improvement on the usebrowser part
-      (does not work correctly for now)
-
-  Revision 1.11  1998/09/11 15:16:47  peter
-    * merge fixes
-
-  Revision 1.10.2.1  1998/09/11 15:15:04  peter
-    * fixed not in [] bug
-
-  Revision 1.10  1998/08/31 12:26:30  peter
-    * m68k and palmos updates from surebugfixes
-
-  Revision 1.9  1998/08/17 09:17:51  peter
-    * static/shared linking updates
-
-  Revision 1.8  1998/08/11 15:31:40  peter
-    * write extended to ppu file
-    * new version 0.99.7
-
-  Revision 1.7  1998/06/25 10:51:01  pierre
-    * removed a remaining ifndef NEWPPU
-      replaced by ifdef OLDPPU
-    * added uf_finalize to ppu unit
-
-  Revision 1.6  1998/06/16 08:56:26  peter
-    + targetcpu
-    * cleaner pmodules for newppu
-
-  Revision 1.5  1998/06/13 00:10:12  peter
-    * working browser and newppu
-    * some small fixes against crashes which occured in bp7 (but not in
-      fpc?!)
-
-  Revision 1.4  1998/06/09 16:01:48  pierre
-    + added procedure directive parsing for procvars
-      (accepted are popstack cdecl and pascal)
-    + added C vars with the following syntax
-      var C calias 'true_c_name';(can be followed by external)
-      reason is that you must add the Cprefix
-
-      which is target dependent
-
-  Revision 1.3  1998/05/28 14:40:26  peter
-    * fixes for newppu, remake3 works now with it
-
-  Revision 1.2  1998/05/27 19:45:08  peter
-    * symtable.pas splitted into includefiles
-    * symtable adapted for $ifdef NEWPPU
-
-  Revision 1.1  1998/05/12 10:56:07  peter
-    + the ppufile object unit
 
 }

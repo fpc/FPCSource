@@ -19,8 +19,8 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-{$ifdef TP}
-  {$N+,E+}
+{$ifndef TP}
+  {$H+}
 {$endif}
 Program ppumove;
 uses
@@ -582,7 +582,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-07-29 01:40:21  peter
+  Revision 1.6  1999-11-23 09:44:15  peter
+    * updated
+
+  Revision 1.5  1999/07/29 01:40:21  peter
     * fsplit var type fixes
 
   Revision 1.4  1999/07/28 16:53:58  peter
