@@ -1218,9 +1218,7 @@ implementation
             if (oo_has_msgstr in _class.objectoptions) then
               strmessagetable:=genstrmsgtab;
             if (oo_has_msgint in _class.objectoptions) then
-              intmessagetable:=genintmsgtab
-            else
-              dataSegment.concat(Tai_const.Create_32bit(0));
+              intmessagetable:=genintmsgtab;
           end;
 
         { write debug info }
@@ -1330,7 +1328,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.34  2002-11-09 15:35:35  carl
+  Revision 1.35  2002-11-09 16:19:43  carl
+    - remove superfluous data in classname
+
+  Revision 1.34  2002/11/09 15:35:35  carl
     * major alignment updates for objects/class tables
 
   Revision 1.33  2002/10/20 15:33:36  peter
