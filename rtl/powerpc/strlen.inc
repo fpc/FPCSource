@@ -30,11 +30,15 @@ LStrLenLoop:
         bne     LStrLenLoop
         sub     r3,r29,r3
 LStrLenDone:
-end ['r3','r4','r29','r30','cr0'];
+end ['R3','R4','R29','R30','CR0'];
 
 {
   $Log$
-  Revision 1.1  2001-09-27 15:30:29  jonas
+  Revision 1.2  2002-08-10 17:14:36  jonas
+    * various fixes, mostly changing the names of the modifies registers to
+      upper case since that seems to be required by the compiler
+
+  Revision 1.1  2001/09/27 15:30:29  jonas
     * conversion to compilerproc and to structure used by i386 rtl
     * some bugfixes
     * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc

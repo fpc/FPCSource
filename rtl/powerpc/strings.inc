@@ -79,7 +79,7 @@ LStrCopyWrapUpLoop:
         bge     LStrCopyWrapUpLoop
 LStrCopyDone:
         {  r3 still contains dest here  }
-end ['r4','r7','r8','r0','r9','r10','cr0','ctr'];
+end ['R4','R7','R8','R0','R9','R10','CR0','CTR'];
 
 
 function strecopy(dest,source : pchar) : pchar;assembler;
@@ -136,7 +136,7 @@ LStrCopyWrapUpLoop:
         bge     LStrCopyWrapUpLoop
 LStrCopyDone:
         {  r3 contains new dest here  }
-end ['r3','r4','r8','r0','r3','r10','cr0','ctr'];
+end ['R3','R4','R8','R0','R3','R10','CR0','CTR'];
 
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
@@ -159,7 +159,7 @@ LStrlCopyLoop:
         li      r10,0
         stb     r10,1(r0)
 LStrlCopyDone:
-end ['r0','r4','r30','cr0'];
+end ['R0','R4','R10','CR0'];
 
 
 function strlen(p : pchar) : longint;assembler;
@@ -181,7 +181,7 @@ LStrEndLoop:
         cmpli   r0,0
         bne     LStrEndLoop
 LStrEndDone:
-end ['r0','r3','r4','cr0'];
+end ['R0','R3','R4','CR0'];
 
 
 function strcomp(str1,str2 : pchar) : longint;assembler;
@@ -207,7 +207,7 @@ LStrCompLoop:
         { otherwise loop                                                    }
         bne     cr1,LStrCompLoop
 LStrCompDone:
-end ['r0','r3','r4','r9','r10','cr0','cr1'];
+end ['R0','R3','R4','R9','R10','CR0','CR1'];
 
 
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -240,7 +240,7 @@ LStrlCompLoop:
         { otherwise loop (if ctr <> 0)                                      }
         bdnzf  cr1*4+eq,LStrlCompLoop
 LStrlCompDone:
-end ['r0','r3','r4','r9','r10','cr0','cr1','ctr'];
+end ['R0','R3','R4','R9','R10','CR0','CR1','CTR'];
 
 
 function stricomp(str1,str2 : pchar) : longint;assembler;
@@ -303,7 +303,7 @@ LStriCompEqual:
         { otherwise loop                                                    }
         bne     cr1,LStriCompLoop
 LStriCompDone:
-end ['r3','r4','r26','r27','r28','r29','r30','cr0','cr1'];
+end ['R3','R4','R26','R27','R28','R29','R30','CR0','CR1'];
 
 
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -361,7 +361,7 @@ LStriCompEqual:
         { otherwise loop (if ctr <> 0)                                      }
         bdnzf    cr1*4+eq,LStriCompLoop
 LStriCompDone:
-end ['r0','r3','r4','r5','r7','r8','r9','r10','cr0','cr1','ctr'];
+end ['R0','R3','R4','R5','R7','R8','R9','R10','CR0','CR1','CTR'];
 
 
 function strscan(p : pchar;c : char) : pchar;assembler;
@@ -378,7 +378,7 @@ LStrScanLoop:
         beq     cr1,LStrScanDone
         bne     LStrScanLoop
 LStrScanDone:
-end ['r0','r3','r4','cr0','cr1'];
+end ['R0','R3','R4','CR0','CR1'];
 
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
@@ -408,7 +408,7 @@ LStrrScanNotFound:
         and     r10,r10,r0  { r10 = (r0 >= r3) ? 0 : r0 - r3         }
         add     r3,r10,r3   { r3  = (r0 >= r3) ?  r3 : r0            }
 LStrrScanDone:
-end ['r0','r3','r4','r10','cr0','cr1'];
+end ['R0','R3','R4','R10','CR0','CR1'];
 
 
 function strupper(p : pchar) : pchar;assembler;
@@ -428,7 +428,7 @@ LStrUpperLoop:
 LStrUpper1:
         bne     cr1,LStrUpperLoop
 LStrUpperNil:
-end ['r0','r9','r10','cr0','cr1'];
+end ['R0','R9','R10','CR0','CR1'];
 
 
 function strlower(p : pchar) : pchar;assembler;
@@ -448,12 +448,16 @@ LStrLowerLoop:
 LStrLower1:
         bne     cr1,LStrLowerLoop
 LStrLowerNil:
-end ['r0','r9','r10','cr0','cr1'];
+end ['R0','R9','R10','CR0','CR1'];
 
 
 {
   $Log$
-  Revision 1.10  2001-09-28 13:25:04  jonas
+  Revision 1.11  2002-08-10 17:14:36  jonas
+    * various fixes, mostly changing the names of the modifies registers to
+      upper case since that seems to be required by the compiler
+
+  Revision 1.10  2001/09/28 13:25:04  jonas
     * fixed wrong alignment code (sometimes we aligned to multiple of 8
       instead of the desired multiple of 4)
 

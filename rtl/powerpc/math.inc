@@ -93,9 +93,9 @@
       asm
         fctiwz   fr1,fr1
         stfd     fr1,temp.d
-        lwz      r3,temp.l2
-        // !!!! fix int64 result
-      end ['r3','f1'];
+        lwz      r3,temp.l1
+        lwz      r4,temp.l2
+      end ['R3','F1'];
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
@@ -113,8 +113,9 @@
       asm
         fctiw    fr1,fr1
         stfd     fr1,temp.d
-        lwz      r3,temp.l2
-      end ['r3','f1'];
+        lwz      r3,temp.l1
+        lwz      r4,temp.l2
+      end ['R3','F1'];
 
 
    {$define FPC_SYSTEM_HAS_POWER}
@@ -207,8 +208,8 @@
  ****************************************************************************}
 
 const
-  longint_to_real_helper: int64 = 0x4330000080000000;
-  cardinal_to_real_helper: int64 = 0x430000000000000;
+  longint_to_real_helper: int64 = $4330000080000000;
+  cardinal_to_real_helper: int64 = $430000000000000;
   int_to_real_factor: double = double(high(cardinal))+1.0;
 
 function fpc_int64_to_double(i: int64): double; compilerproc;
@@ -239,7 +240,7 @@ asm
            lfd    fr2,int_to_real_factor@l(r3)
            fsub   fr3,fr3,fr1
            fmadd  fr1,fr0,fr2,fr3
-end ['r0','r3','r4','f0','f1','f2','f3'];
+end ['R0','R3','R4','F0','F1','F2','F3'];
 
 
 function fpc_qword_to_double(q: qword): double; compilerproc;
@@ -267,13 +268,17 @@ asm
            lfd    fr2,int_to_real_factor@l(r3)
            fsub   fr3,fr3,fr1
            fmadd  fr1,fr0,fr2,fr3
-end ['r0','r3','f0','f1','f2','f3'];
+end ['R0','R3','F0','F1','F2','F3'];
 
 
 
 {
   $Log$
-  Revision 1.7  2002-07-31 16:58:12  jonas
+  Revision 1.8  2002-08-10 17:14:36  jonas
+    * various fixes, mostly changing the names of the modifies registers to
+      upper case since that seems to be required by the compiler
+
+  Revision 1.7  2002/07/31 16:58:12  jonas
     * fixed conversion from int64/qword to double errors
 
   Revision 1.6  2002/07/29 21:28:17  florian

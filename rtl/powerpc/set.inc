@@ -15,6 +15,7 @@
 
  **********************************************************************}
 
+{$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_LOAD_SMALL']; compilerproc;
 {
   load a normal set p from a smallset l
@@ -31,9 +32,10 @@ asm
         stw     r0,20(r3)
         stw     r0,24(r3)
         stw     r0,28(r3)
-end ['r0'];
+end ['R0'];
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
 { checked 2001/09/28 (JM) }
 function fpc_set_create_element(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_CREATE_ELEMENT']; compilerproc;
 {
@@ -64,8 +66,10 @@ asm
 
         // store the result
         stwx    r0,r3,r4
-end ['r0','r4','r10'];
+end ['R0','R4','R10'];
 
+
+{$define FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
 function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set;assembler; compilerproc;
 {
   add the element b to the set pointed by p
@@ -91,14 +95,15 @@ Lset_set_byte_copy:
        li       r0,1
        // generate bit which has to be inserted
        // (can't use rlwimi, since that one only works for constants)
-       rlwnm    r5,r0,r5
+       slw      r5,r0,r5
        // insert it
        or       r5,r4,r5
        // store result
        stw      r5,(r3)
-end ['r0','r3','r4','r5','ctr'];
+end ['R0','R3','R4','R5','CTR'];
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
 function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set;assembler; compilerproc;
 {
   suppresses the element b to the set pointed by p
@@ -129,9 +134,10 @@ Lset_unset_byte_copy:
        andc     r5,r4,r5
        // store result
        stw      r4,(r3)
-end ['r0','r3','r4','r5','ctr'];
+end ['R0','R3','R4','R5','CTR'];
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
 function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set;assembler; compilerproc;
 {
   on entry: result in r3, l in r4, h in r5
@@ -182,7 +188,7 @@ Lset_range_loop:
 Lset_range_hi:                // in all cases, r3 here contains the address of
                               //  the longint which contains the hi bit and r4
                               //  contains this longint
-  slw    r9,r10,r6            // r7 := bitmask shl (31 - (hi mod 32)) =
+  slw    r9,r10,r6            // r9 := bitmask shl (31 - (hi mod 32)) =
                               //  bitmask with bits higher than hi cleared
                               //  (r8 = $0xffffffff unless the first beq was
                               //   taken)
@@ -190,7 +196,7 @@ Lset_range_hi:                // in all cases, r3 here contains the address of
   or     r5,r5,r10            // and combine with existing set
   stw    r5,(r3)              // store to set
 Lset_range_exit:
-end ['r0','r3','r4','r5','r6','r9','r10','cr0','ctr'];
+end ['R0','R3','R4','R5','R6','R9','R10','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
@@ -206,15 +212,17 @@ asm
        rlwinm   r0,r4,31-3+1,3,31-2
        // load dword in which the bit has to be tested
        lwzx     r3,r3,r0
+
        li       r0,1
        // generate bit which has to be tested
        rwlwnm   r4,r0,r4,0,31
        // test it
        and.     r3,r3,r4
-end ['r0','r3','r4','cr0'];
+end ['R0','R3','R4','CR0'];
 
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
 function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_ADD_SETS']; compilerproc;
 {
   adds set1 and set2 into set dest
@@ -234,10 +242,10 @@ asm
       or        r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMADDSETS1
-end ['r0','r3','r4','r5','r10','ctr'];
+end ['R0','R3','R4','R5','R10','CTR'];
 
 
-
+{$define FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
 function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_MUL_SETS']; compilerproc;
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
@@ -257,9 +265,10 @@ asm
       and       r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMMULSETS1
-end ['r0','r3','r4','r5','r10','ctr'];
+end ['R0','R3','R4','R5','R10','CTR'];
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
 function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_SUB_SETS']; compilerproc;
 {
   computes the diff from set1 to set2 result in dest
@@ -279,9 +288,10 @@ asm
       andc      r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMSUBSETS1
-end ['r0','r3','r4','r5','r10','ctr'];
+end ['R0','R3','R4','R5','R10','CTR'];
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
 function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_SYMDIF_SETS']; compilerproc;
 {
    computes the symetric diff from set1 to set2 result in dest
@@ -301,9 +311,10 @@ asm
       xor       r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMSYMDIFSETS1
-end ['r0','r3','r4','r5','r10','ctr'];
+end ['R0','R3','R4','R5','R10','CTR'];
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
 function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_COMP_SETS']; compilerproc;
 {
   compares set1 and set2 zeroflag is set if they are equal
@@ -321,8 +332,10 @@ asm
        bdnzt    cr0*4+eq,LMCOMPSETS1
        cntlzw   r3,r0
        srwi.    r3,r3,31
-end ['r0','r3','r4','r10','cr0','ctr'];
+end ['R0','R3','R4','R10','CR0','CTR'];
 
+
+{$define FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
 function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean;assembler;[public,alias:'FPC_SET_CONTAINS_SETS']; compilerproc;
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
@@ -341,7 +354,7 @@ asm
        bdnzt    cr0*4+eq,LMCONTAINSSETS1
        cntlzw   r3,r0
        srwi.    r3,r3,31
-end ['r0','r3','r4','r10','cr0','ctr'];
+end ['R0','R3','R4','R10','CR0','CTR'];
 
 
 
@@ -510,7 +523,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-07-28 20:43:49  florian
+  Revision 1.12  2002-08-10 17:14:36  jonas
+    * various fixes, mostly changing the names of the modifies registers to
+      upper case since that seems to be required by the compiler
+
+  Revision 1.11  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 

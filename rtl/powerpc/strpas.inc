@@ -46,11 +46,15 @@ LStrPasLoop:
 
         { store length }
         stb     r10,0(r3)
-end ['r0','r3','r4','r10','cr0','ctr'];
+end ['R0','R3','R4','R10','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.2  2001-09-28 13:23:44  jonas
+  Revision 1.3  2002-08-10 17:14:36  jonas
+    * various fixes, mostly changing the names of the modifies registers to
+      upper case since that seems to be required by the compiler
+
+  Revision 1.2  2001/09/28 13:23:44  jonas
     * small optimization
 
   Revision 1.1  2001/09/27 15:30:29  jonas
