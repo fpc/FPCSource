@@ -56,17 +56,17 @@
          count_leading_zeros:=r;
       end;
 
-    function divqword(z,n : qword) : qword;[public,alias: 'FPC_DIV_QWORD'];
+    function divqword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD'];
 
       var
          shift,lzz,lzn : longint;
          one : qword;
 
       begin
-         { we can't write qword direct currently }
-         divqword:=divqword xor divqword;
-         tqwordrec(one).high:=0;
-         tqwordrec(one).low:=1;
+         divqword:=0;
+         one:=1;
+         if n=divqword then
+           runerror(200);
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -77,13 +77,13 @@
          shift:=lzn-lzz;
          n:=n shl shift;
          repeat                                
-           if z>n then
+           if z>=n then
              begin
                 z:=z-n;
-                divqword:=divqword+(one shl shift);
+                divqword:=divqword+(one shl shift);                
              end;
            dec(shift);
-           n:=n shr one;
+           n:=n shr 1;
          until shift<=0;
       end;
 
@@ -261,7 +261,10 @@
 
 {
   $Log$
-  Revision 1.7  1999-06-25 12:24:44  pierre
+  Revision 1.8  1999-06-28 22:25:25  florian
+    * fixed qword division
+
+  Revision 1.7  1999/06/25 12:24:44  pierre
    * qword one was wrong !
 
   Revision 1.6  1999/06/02 10:13:16  florian
