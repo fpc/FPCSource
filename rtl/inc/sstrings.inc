@@ -545,21 +545,28 @@ begin
      case s[code] of
       '$' : begin
               base:=16;
-              repeat
-                inc(code);
-              until (code>=length(s)) or (s[code]<>'0');
+              inc(code);
             end;
       '%' : begin
               base:=2;
-              inc(code);
+              inc(code);              
             end;
       '&' : begin
               Base:=8;
-              repeat
-                inc(code);
-              until (code>=length(s)) or (s[code]<>'0');
+              inc(code);              
+            end;
+      '0' : begin
+              if (code < length(s)) and (s[code+1] in ['x', 'X']) then 
+              begin
+                inc(code, 2);
+                base := 16;
+              end;
             end;
      end;
+  end;
+  { strip leading zeros }
+  while ((code < length(s)) and (s[code] = '0')) do begin
+    inc(code);
   end;
   InitVal:=code;
 end;
@@ -881,7 +888,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2005-03-20 12:45:19  michael
+  Revision 1.36  2005-04-02 07:57:38  florian
+    + 0x is now recognized as hex prefix
+
+  Revision 1.35  2005/03/20 12:45:19  michael
   + Patch from Colin Western to fix uninitialized memory reads
 
   Revision 1.34  2005/02/25 12:34:46  peter
