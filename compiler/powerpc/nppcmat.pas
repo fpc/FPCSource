@@ -55,7 +55,7 @@ implementation
       cgbase,cgobj,temp_gen,pass_1,pass_2,
       ncon,
       cpubase,
-      cga,tgcpu,nppcutil,cgcpu;
+      cga,tgcpu,nppcutil,cgcpu,cg64f32;
 
 {*****************************************************************************
                              TPPCMODDIVNODE
@@ -118,7 +118,7 @@ implementation
              { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
              { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
              { the addze instruction, q = -3, the correct quotient.          }
-             cg.a_op_reg_reg_reg(OP_SAR,power,numerator,resultreg);
+             cg.a_op_const_reg_reg(list,OP_SAR,OS_32,aword(power),numerator,resultreg);
              exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE,resultreg,resultreg));
            end
          else
@@ -137,7 +137,8 @@ implementation
              end;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
-             { (JM)                                                         }
+             { And on PPC, the only way to catch a div-by-0 is by checking  }
+             { the overflow flag (JM)                                       }
              op := divops[is_signed(right.resulttype.def),
                           cs_check_overflow in aktlocalswitches];
              exprasmlist(taicpu.op_reg_reg_reg(op,resultreg,numerator,
@@ -163,9 +164,11 @@ implementation
 
     procedure tppcshlshrnode.pass_2;
       var
-         resultreg, hregister1,hregister2,hregister3,
+         resultreg, hregister1,hregister2,
          hregisterhigh,hregisterlow : tregister;
          op : topcg;
+         asmop1, asmop2: tasmop;
+         shiftval: aword;
          saved : boolean;
 
       begin
@@ -177,7 +180,135 @@ implementation
 
          if is_64bitint(left.resulttype.def) then
            begin
-             { see green book appendix E, still needs to be implemented }
+             case left.location.loc of
+               LOC_REGISTER, LOC_CREGISTER:
+                 begin
+                   hregisterhigh := left.location.registerhigh;
+                   hregisterlow := left.location.registerlow;
+                   if left.location.loc = LOC_REGISTER then
+                     begin
+                       location.registerhigh := hregisterhigh;
+                       location.registerlow := hregisterlow
+                     end
+                   else
+                     begin
+                       location.registerhigh := getregisterint;
+                       location.registerlow := getregisterint;
+                     end;
+                 end;
+               LOC_REFERENCE,LOC_MEM:
+                 begin
+                  { !!!!!!!! not good, registers are release too soon this way !!!! (JM) }
+                   del_reference(left.location.reference);
+                   hregisterhigh := getregisterint;
+                   location.registerhigh := hregisterhigh;
+                   hregisterlow := getregisterint;
+                   location.registerlow := hregisterlow;
+                   tcg64f32(cg).a_load64_ref_reg(list,left.location.reference,
+                     hregisterlow,hregisterhigh);
+                 end;
+             end;
+             if (right.nodetype = ordconstn) then
+               begin
+                 if tordconstnode(right).value > 31 then
+                   begin
+                     if nodetype = shln then
+                       begin
+                         if (value and 31) <> 0 then
+                           cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,value and 31,
+                             hregisterlow,location.registerhigh)
+                         cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                       end
+                     else
+                       begin
+                         if (value and 31) <> 0 then
+                           cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,value and 31,
+                             hregisterhigh,location.registerlow);
+                         cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerhigh);
+                       end;
+                   end
+                 else
+                   begin
+                     shiftval := aword(tordconstnode(right).value;
+                     if nodetype = shln then
+                       begin
+                         exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
+                           A_RLWINM,location.registerhigh,hregisterhigh,shiftval,
+                           0,31-shiftval));
+                         exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
+                           A_RLWIMI,location.registerhigh,hregisterlow,shiftval,
+                           32-shiftval,31));
+                         exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
+                           A_RLWINM,location.registerlow,hregisterlow,shiftval,
+                           0,31-shiftval));
+                       end
+                     else
+                       begin
+                         exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
+                           A_RLWINM,location.registerlow,hregisterlow,32-shiftval,
+                           shiftval,31));
+                         exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
+                           A_RLWIMI,location.registerlow,hregisterhigh,32-shiftval,
+                           0,shiftval-1));
+                         exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
+                           A_RLWINM,location.registerhigh,hregisterhigh,32-shiftval,
+                           shiftval,31));
+                       end;
+                   end;
+               end
+             else
+               { no constant shiftcount }
+               begin
+                 case right.location.loc of
+                   LOC_REGISTER,LOC_CREGISTER:
+                     begin
+                       hregister1 := right.location.register;
+                     end;
+                   LOC_REFERENCE,LOC_MEM:
+                     begin
+                       hregister1 := get_scratch_reg(exprasmlist);
+                       cg.a_load_ref_reg(exprasmlist,OS_S32,
+                         right.location.reference,hregister1);
+                     end;
+                 end;
+                 if nodetype = shln then
+                   begin
+                     asmop1 := A_SLW;
+                     asmop2 := A_SRW;
+                   end
+                 else
+                   begin
+                     asmop1 := A_SRW;
+                     asmop2 := A_SLW;
+                     resultreg := location.registerhigh;
+                     location.registerhigh := location.registerlow;
+                     location.registerlow := resultreg;
+                   end;
+
+                 getexplicitregisterint(R_0);
+                 exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
+                   R_0,hregister1,32));
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
+                   location.registerhigh,hregisterhigh,hregister1));
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,
+                   R_0,hregisterlow,R_0));
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
+                   location.registerhigh,location.registerhigh,R_0));
+                 exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBI,
+                   R_0,hregister1,32));
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
+                   R_0,hregisterlow,R_0));
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
+                   location.registerhigh,location.registerhigh,R_0));
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
+                   location.registerlow,hregisterlow,hregister1));
+                 ungetregister(R_0);
+                 
+                 if right.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                   free_scratch_reg(exprasmlist,hregister1)
+                 else
+                   ungetregister(hregister1);
+               end
            end
          else
            begin
@@ -480,7 +611,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-12-29 15:28:58  jonas
+  Revision 1.2  2002-01-03 14:57:52  jonas
+    * completed (not compilale yet though)
+
+  Revision 1.1  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit
