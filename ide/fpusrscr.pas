@@ -599,7 +599,7 @@ begin
   SecurityAttr.bInheritHandle:=true;
   DosScreenBufferHandle:=CreateConsoleScreenBuffer(
     GENERIC_READ or GENERIC_WRITE,
-    0,SecurityAttr,
+    FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
     CONSOLE_TEXTMODE_BUFFER,nil);
   IDEScreenBufferHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
@@ -834,7 +834,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-12 00:04:50  pierre
+  Revision 1.3  2001-09-09 20:44:53  carl
+  * bugfix of console sharing mode (on NT this would bug all
+  std_input access).
+
+  Revision 1.2  2001/08/12 00:04:50  pierre
    * some speed improvements for string operations
 
   Revision 1.1  2001/08/04 11:30:24  peter
