@@ -805,7 +805,8 @@ implementation
                                  (is_chararray(tcallparanode(hpp).left.resulttype.def)) then
                                 tcallparanode(hpp).gen_high_tree(true);
                               { read(ln) is call by reference (JM) }
-                              if not iswrite then
+                              { and so is the data param of FPC_TYPED_WRITE (JM) }
+                              if not iswrite or file_is_typed then
                                 make_not_regable(tcallparanode(hpp).left);
                               hpp:=tcallparanode(hpp).right;
                             end;
@@ -1792,7 +1793,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2001-08-06 09:44:10  jonas
+  Revision 1.46  2001-08-06 12:47:31  jonas
+    * parameters to FPC_TYPED_WRITE can't be regvars (merged)
+
+  Revision 1.45  2001/08/06 09:44:10  jonas
     + support for high(dynarray) using compilerproc (forgot to commit
       previously)
 
