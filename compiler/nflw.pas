@@ -590,7 +590,7 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
-											  											  
+											  											
          if left.nodetype<>assignn then
            begin
               CGMessage(cg_e_illegal_expression);
@@ -739,8 +739,8 @@ implementation
             begin
               inserttypeconv(left,aktprocdef.rettype);
               if paramanager.ret_in_param(aktprocdef.rettype.def) or
-                 (procinfo^.no_fast_exit) or
-                 ((procinfo^.flags and pi_uses_exceptions)<>0) then
+                 (procinfo.no_fast_exit) or
+                 ((procinfo.flags and pi_uses_exceptions)<>0) then
                begin
                  pt:=cfuncretnode.create(aktprocdef.funcretsym);
                  left:=cassignmentnode.create(pt,left);
@@ -1244,7 +1244,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-07-21 06:58:49  daniel
+  Revision 1.45  2002-08-17 09:23:37  florian
+    * first part of procinfo rewrite
+
+  Revision 1.44  2002/07/21 06:58:49  daniel
   * Changed booleans into flags
 
   Revision 1.43  2002/07/20 11:57:54  florian

@@ -288,11 +288,11 @@ implementation
                         { is this correct ???}
                         { retoffset can be negativ for results in eax !! }
                         { the value should be decreased only if positive }
-                         if procinfo^.retoffset>=0 then
-                           dec(procinfo^.retoffset,4);
+                         if procinfo.retoffset>=0 then
+                           dec(procinfo.retoffset,4);
 
-                         dec(procinfo^.para_offset,4);
-                         aktprocdef.parast.address_fixup:=procinfo^.para_offset;
+                         dec(procinfo.para_offset,4);
+                         aktprocdef.parast.address_fixup:=procinfo.para_offset;
                        end;
                    end;
                   *)
@@ -301,32 +301,38 @@ implementation
 
               { assign parameter locations }
 {$ifndef i386}
-              setparalocs(procinfo^.procdef);
+              setparalocs(procinfo.procdef);
 {$endif i386}
+
+              procinfo.after_pass1;
 
               { process register variable stuff (JM) }
               assign_regvars(p);
-              load_regvars(procinfo^.aktentrycode,p);
+              load_regvars(procinfo.aktentrycode,p);
 
               { for the i386 it must be done in genexitcode because it has  }
               { to add 'fstp' instructions when using fpu regvars and those }
               { must come after the "exitlabel" (JM)                        }
 {$ifndef i386}
-              cleanup_regvars(procinfo^.aktexitcode);
+              cleanup_regvars(procinfo.aktexitcode);
 {$endif i386}
+
               do_secondpass(p);
 
-              if assigned(procinfo^.procdef) then
-                procinfo^.procdef.fpu_used:=p.registersfpu;
+              if assigned(procinfo.procdef) then
+                procinfo.procdef.fpu_used:=p.registersfpu;
 
            end;
-         procinfo^.aktproccode.concatlist(exprasmlist);
+         procinfo.aktproccode.concatlist(exprasmlist);
       end;
 
 end.
 {
   $Log$
-  Revision 1.34  2002-08-15 19:10:35  peter
+  Revision 1.35  2002-08-17 09:23:38  florian
+    * first part of procinfo rewrite
+
+  Revision 1.34  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.33  2002/07/30 20:50:44  florian

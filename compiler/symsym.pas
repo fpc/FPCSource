@@ -344,6 +344,8 @@ interface
 
        generrorsym : tsym;
 
+       otsym : tvarsym;
+
     const
        current_object_option : tsymoptions = [sp_public];
 
@@ -1249,7 +1251,7 @@ implementation
          funcretstate:=vs_declared;
          { address valid for ret in param only }
          { otherwise set by insert             }
-         address:=pprocinfo(procinfo)^.return_offset;
+         address:=procinfo.return_offset;
       end;
 
     constructor tfuncretsym.load(ppufile:tcompilerppufile);
@@ -1292,8 +1294,8 @@ implementation
       begin
         { if retoffset is already set then reuse it, this is needed
           when inserting the result variable }
-        if procinfo^.return_offset<>0 then
-         address:=procinfo^.return_offset
+        if procinfo.return_offset<>0 then
+         address:=procinfo.return_offset
         else
          begin
            { allocate space in local if ret in register }
@@ -1304,7 +1306,7 @@ implementation
               varalign:=used_align(varalign,aktalignment.localalignmin,owner.dataalignment);
               address:=align(owner.datasize+l,varalign);
               owner.datasize:=address;
-              procinfo^.return_offset:=-address;
+              procinfo.return_offset:=-address;
             end;
          end;
       end;
@@ -2671,7 +2673,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-08-16 14:24:59  carl
+  Revision 1.52  2002-08-17 09:23:42  florian
+    * first part of procinfo rewrite
+
+  Revision 1.51  2002/08/16 14:24:59  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

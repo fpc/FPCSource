@@ -182,7 +182,7 @@ implementation
     function tloadnode.det_resulttype:tnode;
       var
         p1 : tnode;
-        p  : pprocinfo;
+        p  : tprocinfo;
       begin
          result:=nil;
          { optimize simple with loadings }
@@ -219,14 +219,14 @@ implementation
                 p:=procinfo;
                 while assigned(p) do
                  begin
-                   if assigned(p^.procdef.funcretsym) and
-                      ((tfuncretsym(symtableentry)=p^.procdef.resultfuncretsym) or
-                       (tfuncretsym(symtableentry)=p^.procdef.funcretsym)) then
+                   if assigned(p.procdef.funcretsym) and
+                      ((tfuncretsym(symtableentry)=p.procdef.resultfuncretsym) or
+                       (tfuncretsym(symtableentry)=p.procdef.funcretsym)) then
                      begin
-                       symtableentry:=p^.procdef.funcretsym;
+                       symtableentry:=p.procdef.funcretsym;
                        break;
                      end;
-                    p:=p^.parent;
+                    p:=p.parent;
                   end;
                 { generate funcretnode }
                 p1:=cfuncretnode.create(symtableentry);
@@ -330,7 +330,7 @@ implementation
                    begin
                       { we use ansistrings so no fast exit here }
                       if assigned(procinfo) then
-                        procinfo^.no_fast_exit:=true;
+                        procinfo.no_fast_exit:=true;
                       location.loc:=LOC_CREFERENCE;
                    end;
               end;
@@ -995,7 +995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-07-20 11:57:54  florian
+  Revision 1.50  2002-08-17 09:23:37  florian
+    * first part of procinfo rewrite
+
+  Revision 1.49  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

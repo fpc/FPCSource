@@ -170,7 +170,7 @@ implementation
                             if (symtabletype in [parasymtable,inlinelocalsymtable,
                                                  inlineparasymtable,localsymtable]) then
                               begin
-                                 location.reference.base:=procinfo^.framepointer;
+                                 location.reference.base:=procinfo.framepointer;
                                  if (symtabletype in [inlinelocalsymtable,
                                                       localsymtable])
 {$ifdef powerpc}
@@ -198,7 +198,7 @@ implementation
                                    begin
                                       hregister:=rg.getaddressregister(exprasmlist);
                                       { make a reference }
-                                      reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
+                                      reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                                       { walk parents }
                                       i:=lexlevel-1;
@@ -221,7 +221,7 @@ implementation
                                    end;
                                  stt_exceptsymtable:
                                    begin
-                                      location.reference.base:=procinfo^.framepointer;
+                                      location.reference.base:=procinfo.framepointer;
                                       location.reference.offset:=tvarsym(symtableentry).address;
                                    end;
                                  objectsymtable:
@@ -682,7 +682,7 @@ implementation
       var
          hreg : tregister;
          href : treference;
-         pp : pprocinfo;
+         pp : tprocinfo;
          hr_valid : boolean;
          i : integer;
       begin
@@ -693,26 +693,26 @@ implementation
            begin
               hreg:=rg.getaddressregister(exprasmlist);
               hr_valid:=true;
-              reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
+              reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hreg);
 
               { walk up the stack frame }
-              pp:=procinfo^.parent;
+              pp:=procinfo.parent;
               i:=lexlevel-1;
               while i>funcretsym.owner.symtablelevel do
                begin
-                 reference_reset_base(href,hreg,pp^.framepointer_offset);
+                 reference_reset_base(href,hreg,pp.framepointer_offset);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hreg);
-                 pp:=pp^.parent;
+                 pp:=pp.parent;
                  dec(i);
                end;
               location.reference.base:=hreg;
-              location.reference.offset:=pp^.return_offset;
+              location.reference.offset:=pp.return_offset;
            end
          else
            begin
-             location.reference.base:=procinfo^.framepointer;
-             location.reference.offset:=procinfo^.return_offset;
+             location.reference.base:=procinfo.framepointer;
+             location.reference.offset:=procinfo.return_offset;
            end;
          if paramanager.ret_in_param(resulttype.def) then
            begin
@@ -942,7 +942,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-08-14 18:13:28  jonas
+  Revision 1.24  2002-08-17 09:23:35  florian
+    * first part of procinfo rewrite
+
+  Revision 1.23  2002/08/14 18:13:28  jonas
     * adapted previous fix to Peter's asmsymbol patch
 
   Revision 1.22  2002/08/14 18:00:42  jonas

@@ -212,7 +212,7 @@ unit rgcpu;
           exit;
          r := makeregsize(r,OS_INT);
          if (r = R_EDI) or
-            ((not assigned(procinfo^._class)) and (r = R_ESI)) then
+            ((not assigned(procinfo._class)) and (r = R_ESI)) then
            begin
              list.concat(tai_regalloc.DeAlloc(r));
              exit;
@@ -429,7 +429,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-07-01 18:46:34  peter
+  Revision 1.9  2002-08-17 09:23:48  florian
+    * first part of procinfo rewrite
+
+  Revision 1.8  2002/07/01 18:46:34  peter
     * internal linker
     * reorganized aasm layer
 

@@ -352,8 +352,8 @@ Begin {CheckSequence}
   OrgRegResult := False;
   with startRegInfo do
     begin
-      newRegsEncountered := [procinfo^.FramePointer, STACK_POINTER_REG];
-      new2OldReg[procinfo^.FramePointer] := procinfo^.FramePointer;
+      newRegsEncountered := [procinfo.FramePointer, STACK_POINTER_REG];
+      new2OldReg[procinfo.FramePointer] := procinfo.FramePointer;
       new2OldReg[STACK_POINTER_REG] := STACK_POINTER_REG;
       oldRegsEncountered := newRegsEncountered;
     end;
@@ -399,11 +399,11 @@ Begin {CheckSequence}
                     if (found <> 0) and
                        ((base = R_NO) or
                         regModified[base] or
-                        (base = procinfo^.framepointer) or
-                        (assigned(procinfo^._class) and (base = R_ESI))) and
+                        (base = procinfo.framepointer) or
+                        (assigned(procinfo._class) and (base = R_ESI))) and
                        ((index = R_NO) or
                         regModified[index] or
-                        (assigned(procinfo^._class) and (index = R_ESI))) and
+                        (assigned(procinfo._class) and (index = R_ESI))) and
                         not(regInRef(tmpReg,Taicpu(hp3).oper[0].ref^)) then
                       with pTaiprop(hp3.optinfo)^.regs[tmpreg] do
                         if nrOfMods > (oldNrOfMods - found) then
@@ -1407,7 +1407,7 @@ begin
   for regcount := LoGPReg to HiGPReg do
     if assigned(pTaiProp(t1.optinfo)^.regs[regcount].memwrite) and
        (taicpu(pTaiProp(t1.optinfo)^.regs[regcount].memwrite).oper[1].ref^.base
-         = procinfo^.framepointer) then
+         = procinfo.framepointer) then
       begin
         pTaiProp(pTaiProp(t1.optinfo)^.regs[regcount].memwrite.optinfo)^.canberemoved := true;
         clearmemwrites(pTaiProp(t1.optinfo)^.regs[regcount].memwrite,regcount);
@@ -1553,7 +1553,7 @@ Begin
  { If some registers were different in the old and the new sequence, move }
  { the contents of those old registers to the new ones                    }
                                    For RegCounter := R_EAX To R_EDI Do
-                                     If Not(RegCounter in [R_ESP,procinfo^.framepointer]) And
+                                     If Not(RegCounter in [R_ESP,procinfo.framepointer]) And
                                         (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
                                        Begin
                                          AllocRegBetween(AsmL,RegInfo.New2OldReg[RegCounter],
@@ -1984,7 +1984,10 @@ End.
 
 {
   $Log$
-  Revision 1.36  2002-07-01 18:46:31  peter
+  Revision 1.37  2002-08-17 09:23:44  florian
+    * first part of procinfo rewrite
+
+  Revision 1.36  2002/07/01 18:46:31  peter
     * internal linker
     * reorganized aasm layer
 

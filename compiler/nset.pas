@@ -306,7 +306,7 @@ implementation
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if tsetdef(right.resulttype.def).settype<>smallset then
-           procinfo^.flags:=procinfo^.flags or pi_do_call
+           procinfo.flags:=procinfo.flags or pi_do_call
          else
            begin
               { a smallset needs maybe an misc. register }
@@ -597,7 +597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-07-23 13:19:40  jonas
+  Revision 1.31  2002-08-17 09:23:38  florian
+    * first part of procinfo rewrite
+
+  Revision 1.30  2002/07/23 13:19:40  jonas
     * fixed evaluation of expressions with empty sets that are calculated
       at compile time
 

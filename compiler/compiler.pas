@@ -125,6 +125,8 @@ uses
   ,cputarg
   { cpu parameter handling }
   ,cpupara
+  { procinfo stuff }
+  ,cpupi
   { system information for source system }
   { the information about the target os  }
   { are pulled in by the t_* units       }
@@ -391,7 +393,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2002-07-26 21:15:37  florian
+  Revision 1.34  2002-08-17 09:23:34  florian
+    * first part of procinfo rewrite
+
+  Revision 1.33  2002/07/26 21:15:37  florian
     * rewrote the system handling
 
   Revision 1.32  2002/07/11 14:41:27  florian

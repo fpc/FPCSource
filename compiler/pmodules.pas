@@ -645,7 +645,7 @@ implementation
         { and insert the procsym in symtable }
         st.insert(aktprocsym);
         { set some informations about the main program }
-        with procinfo^ do
+        with procinfo do
          begin
            _class:=nil;
            para_offset:=target_info.first_parm_offset;
@@ -1388,7 +1388,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-08-11 13:24:12  peter
+  Revision 1.72  2002-08-17 09:23:39  florian
+    * first part of procinfo rewrite
+
+  Revision 1.71  2002/08/11 13:24:12  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

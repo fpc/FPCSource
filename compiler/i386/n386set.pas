@@ -75,7 +75,7 @@ implementation
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if tsetdef(right.resulttype.def).settype<>smallset then
-           procinfo^.flags:=procinfo^.flags or pi_do_call
+           procinfo.flags:=procinfo.flags or pi_do_call
          else
            begin
               { a smallset needs maybe an misc. register }
@@ -853,7 +853,7 @@ implementation
          objectlibrary.getlabel(endlabel);
          objectlibrary.getlabel(elselabel);
          if (cs_create_smart in aktmoduleswitches) then
-           jumpsegment:=procinfo^.aktlocaldata
+           jumpsegment:=procinfo.aktlocaldata
          else
            jumpsegment:=datasegment;
          with_sign:=is_signed(left.resulttype.def);
@@ -1023,7 +1023,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-08-12 15:08:42  carl
+  Revision 1.40  2002-08-17 09:23:46  florian
+    * first part of procinfo rewrite
+
+  Revision 1.39  2002/08/12 15:08:42  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -1490,7 +1490,7 @@ implementation
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
-    
+
          if codegenerror then
            exit;
 
@@ -1567,7 +1567,7 @@ implementation
                     location.loc := LOC_REGISTER
                   else
                     location.loc := LOC_JUMP;
-                 calcregisters(self,2,0,0)
+                  calcregisters(self,2,0,0)
                end
              { is there a cardinal? }
              else if (torddef(ld).typ=u32bit) then
@@ -1614,7 +1614,7 @@ implementation
                  calcregisters(self,0,0,0);
                  { here we call SET... }
                  if assigned(procinfo) then
-                    procinfo^.flags:=procinfo^.flags or pi_do_call;
+                    procinfo.flags:=procinfo.flags or pi_do_call;
               end;
            end
 
@@ -1632,7 +1632,7 @@ implementation
                 begin
                    { we use reference counted widestrings so no fast exit here }
                    if assigned(procinfo) then
-                     procinfo^.no_fast_exit:=true;
+                     procinfo.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_REGISTER;
                 end
@@ -1640,7 +1640,7 @@ implementation
                 begin
                    { we use ansistrings so no fast exit here }
                    if assigned(procinfo) then
-                     procinfo^.no_fast_exit:=true;
+                     procinfo.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_REGISTER;
                 end
@@ -1814,7 +1814,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2002-08-15 15:15:55  carl
+  Revision 1.62  2002-08-17 09:23:34  florian
+    * first part of procinfo rewrite
+
+  Revision 1.61  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

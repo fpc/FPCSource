@@ -1104,7 +1104,7 @@ Begin
               end;
              if GotOffset then
               begin
-                if hasvar and (opr.ref.base=procinfo^.framepointer) then
+                if hasvar and (opr.ref.base=procinfo.framepointer) then
                  begin
                    opr.ref.base:=R_NO;
                    hasvar:=hadvar;
@@ -1122,7 +1122,7 @@ Begin
                 { check if we can move the old base to the index register }
                 if (opr.ref.index<>R_NO) then
                  Message(asmr_e_wrong_base_index)
-                else if assigned(procinfo^._class) and
+                else if assigned(procinfo._class) and
                   (oldbase=SELF_POINTER_REG) and
                   (opr.ref.base=SELF_POINTER_REG) then
                   begin
@@ -1959,7 +1959,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2002-08-13 18:01:52  carl
+  Revision 1.33  2002-08-17 09:23:47  florian
+    * first part of procinfo rewrite
+
+  Revision 1.32  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

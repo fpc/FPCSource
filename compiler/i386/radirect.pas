@@ -89,7 +89,7 @@ interface
           is_fpu(aktprocdef.rettype.def) then
          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
        if (not is_void(aktprocdef.rettype.def)) then
-         retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
+         retstr:=upper(tostr(procinfo.return_offset)+'('+gas_reg2str[procinfo.framepointer]+')')
        else
          retstr:='';
          c:=current_scanner.asmgetchar;
@@ -170,7 +170,7 @@ interface
                                                hs:=tvarsym(sym).mangledname
                                              else
                                                hs:='-'+tostr(tvarsym(sym).address)+
-                                                   '('+gas_reg2str[procinfo^.framepointer]+')';
+                                                   '('+gas_reg2str[procinfo.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
@@ -193,7 +193,7 @@ interface
                                                      l:=tvarsym(sym).address;
                                                      { set offset }
                                                      inc(l,aktprocdef.parast.address_fixup);
-                                                     hs:=tostr(l)+'('+gas_reg2str[procinfo^.framepointer]+')';
+                                                     hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer]+')';
                                                      if pos(',',s) > 0 then
                                                        tvarsym(sym).varstate:=vs_used;
                                                   end;
@@ -237,9 +237,9 @@ interface
                                              end
                                            else if upper(hs)='__SELF' then
                                              begin
-                                                if assigned(procinfo^._class) then
-                                                  hs:=tostr(procinfo^.selfpointer_offset)+
-                                                      '('+gas_reg2str[procinfo^.framepointer]+')'
+                                                if assigned(procinfo._class) then
+                                                  hs:=tostr(procinfo.selfpointer_offset)+
+                                                      '('+gas_reg2str[procinfo.framepointer]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
@@ -255,8 +255,8 @@ interface
                                                 { complicate to check there }
                                                 { we do it: }
                                                 if lexlevel>normal_function_level then
-                                                  hs:=tostr(procinfo^.framepointer_offset)+
-                                                    '('+gas_reg2str[procinfo^.framepointer]+')'
+                                                  hs:=tostr(procinfo.framepointer_offset)+
+                                                    '('+gas_reg2str[procinfo.framepointer]+')'
                                                 else
                                                   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                              end;
@@ -304,7 +304,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-08-10 14:47:50  carl
+  Revision 1.2  2002-08-17 09:23:47  florian
+    * first part of procinfo rewrite
+
+  Revision 1.1  2002/08/10 14:47:50  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

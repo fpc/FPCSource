@@ -151,18 +151,18 @@ implementation
           { self is only allowed in procvars and class methods }
           if (idtoken=_SELF) and
              (is_procvar or
-              (assigned(procinfo^._class) and is_class(procinfo^._class))) then
+              (assigned(procinfo._class) and is_class(procinfo._class))) then
             begin
               if varspez <> vs_value then
                  CGMessage(parser_e_self_call_by_value);
               if not is_procvar then
                begin
-                 htype.setdef(procinfo^._class);
+                 htype.setdef(procinfo._class);
                  vs:=tvarsym.create('@',htype);
                  vs.varspez:=vs_var;
                { insert the sym in the parasymtable }
                  tprocdef(aktprocdef).parast.insert(vs);
-                 inc(procinfo^.selfpointer_offset,vs.address);
+                 inc(procinfo.selfpointer_offset,vs.address);
                end
               else
                vs:=nil;
@@ -177,7 +177,7 @@ implementation
               aktprocdef.concatpara(tt,vs,varspez,nil);
               { check the types for procedures only }
               if not is_procvar then
-               CheckTypes(tt.def,procinfo^._class);
+               CheckTypes(tt.def,procinfo._class);
             end
           else
             begin
@@ -354,9 +354,9 @@ implementation
 
           { examine interface map: function/procedure iname.functionname=locfuncname }
           if parse_only and
-             assigned(procinfo^._class) and
-             assigned(procinfo^._class.implementedinterfaces) and
-             (procinfo^._class.implementedinterfaces.count>0) and
+             assigned(procinfo._class) and
+             assigned(procinfo._class.implementedinterfaces) and
+             (procinfo._class.implementedinterfaces.count>0) and
              try_to_consume(_POINT) then
             begin
                storepos:=akttokenpos;
@@ -371,7 +371,7 @@ implementation
                akttokenpos:=storepos;
                { load proc name }
                if sym.typ=typesym then
-                 i:=procinfo^._class.implementedinterfaces.searchintf(ttypesym(sym).restype.def);
+                 i:=procinfo._class.implementedinterfaces.searchintf(ttypesym(sym).restype.def);
                { qualifier is interface name? }
                if (sym.typ<>typesym) or (ttypesym(sym).restype.def.deftype<>objectdef) or
                   (i=-1) then
@@ -381,7 +381,7 @@ implementation
                  end
                else
                  begin
-                    aktprocsym:=tprocsym(procinfo^._class.implementedinterfaces.interfaces(i).symtable.search(sp));
+                    aktprocsym:=tprocsym(procinfo._class.implementedinterfaces.interfaces(i).symtable.search(sp));
                     { the method can be declared after the mapping FK
                       if not(assigned(aktprocsym)) then
                         Message(parser_e_methode_id_expected);
@@ -390,7 +390,7 @@ implementation
                consume(_ID);
                consume(_EQUAL);
                if (token=_ID) { and assigned(aktprocsym) } then
-                 procinfo^._class.implementedinterfaces.addmappings(i,sp,pattern);
+                 procinfo._class.implementedinterfaces.addmappings(i,sp,pattern);
                consume(_ID);
                exit;
           end;
@@ -427,11 +427,11 @@ implementation
              begin
                 { used to allow private syms to be seen }
                 aktobjectdef:=tobjectdef(ttypesym(sym).restype.def);
-                procinfo^._class:=tobjectdef(ttypesym(sym).restype.def);
-                aktprocsym:=tprocsym(procinfo^._class.symtable.search(sp));
+                procinfo._class:=tobjectdef(ttypesym(sym).restype.def);
+                aktprocsym:=tprocsym(procinfo._class.symtable.search(sp));
                 {The procedure has been found. So it is
                  a global one. Set the flags to mark this.}
-                procinfo^.flags:=procinfo^.flags or pi_is_global;
+                procinfo.flags:=procinfo.flags or pi_is_global;
                 aktobjectdef:=nil;
                 { we solve this below }
                 if not(assigned(aktprocsym)) then
@@ -471,7 +471,7 @@ implementation
                       DuplicateSym(aktprocsym);
                      {The procedure has been found. So it is
                       a global one. Set the flags to mark this.}
-                     procinfo^.flags:=procinfo^.flags or pi_is_global;
+                     procinfo.flags:=procinfo.flags or pi_is_global;
                    end;
                 end;
              end;
@@ -543,8 +543,8 @@ implementation
         aktprocdef:=tprocdef.create;
         aktprocdef.symtablelevel:=symtablestack.symtablelevel;
 
-        if assigned(procinfo^._class) then
-          aktprocdef._class := procinfo^._class;
+        if assigned(procinfo._class) then
+          aktprocdef._class := procinfo._class;
 
         { set the options from the caller (podestructor or poconstructor) }
         aktprocdef.proctypeoption:=options;
@@ -555,35 +555,35 @@ implementation
         { calculate frame pointer offset }
         if lexlevel>normal_function_level then
           begin
-            procinfo^.framepointer_offset:=paramoffset;
+            procinfo.framepointer_offset:=paramoffset;
             inc(paramoffset,pointer_size);
             { this is needed to get correct framepointer push for local
               forward functions !! }
             aktprocdef.parast.symtablelevel:=lexlevel;
           end;
 
-        if assigned (procinfo^._Class)  and
-           is_object(procinfo^._Class) and
+        if assigned (procinfo._Class)  and
+           is_object(procinfo._Class) and
            (aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) then
           inc(paramoffset,pointer_size);
 
         { self pointer offset                       }
         { self isn't pushed in nested procedure of methods }
-        if assigned(procinfo^._class) and (lexlevel=normal_function_level) then
+        if assigned(procinfo._class) and (lexlevel=normal_function_level) then
           begin
-            procinfo^.selfpointer_offset:=paramoffset;
+            procinfo.selfpointer_offset:=paramoffset;
             if assigned(aktprocdef) and
                not(po_containsself in aktprocdef.procoptions) then
               inc(paramoffset,pointer_size);
           end;
 
         { con/-destructor flag ? }
-        if assigned (procinfo^._Class) and
-           is_class(procinfo^._class) and
+        if assigned (procinfo._Class) and
+           is_class(procinfo._class) and
            (aktprocdef.proctypeoption in [potype_destructor,potype_constructor]) then
           inc(paramoffset,pointer_size);
 
-        procinfo^.para_offset:=paramoffset;
+        procinfo.para_offset:=paramoffset;
 
         aktprocdef.parast.datasize:=0;
 
@@ -654,11 +654,11 @@ implementation
         _CONSTRUCTOR : begin
                          consume(_CONSTRUCTOR);
                          parse_proc_head(potype_constructor);
-                         if assigned(procinfo^._class) and
-                            is_class(procinfo^._class) then
+                         if assigned(procinfo._class) and
+                            is_class(procinfo._class) then
                           begin
                             { CLASS constructors return the created instance }
-                            aktprocdef.rettype.setdef(procinfo^._class);
+                            aktprocdef.rettype.setdef(procinfo._class);
                           end
                          else
                           begin
@@ -677,7 +677,7 @@ implementation
                          consume(_OPERATOR);
                          if (token in [first_overloaded..last_overloaded]) then
                           begin
-                            procinfo^.flags:=procinfo^.flags or pi_operator;
+                            procinfo.flags:=procinfo.flags or pi_operator;
                             optoken:=token;
                           end
                          else
@@ -753,7 +753,7 @@ end;
 
 procedure pd_export;
 begin
-  if assigned(procinfo^._class) then
+  if assigned(procinfo._class) then
     Message(parser_e_methods_dont_be_export);
   if lexlevel<>normal_function_level then
     Message(parser_e_dont_nest_export);
@@ -761,7 +761,7 @@ begin
   if target_info.system=system_i386_os2 then
    begin
      aktprocdef.aliasnames.insert(aktprocsym.realname);
-     procinfo^.exported:=true;
+     procinfo.exported:=true;
      if cs_link_deffile in aktglobalswitches then
        deffile.AddExport(aktprocdef.mangledname);
    end;
@@ -1924,7 +1924,7 @@ const
          end;
 
         { insert otsym only in the right symtable }
-        if ((procinfo^.flags and pi_operator)<>0) and
+        if ((procinfo.flags and pi_operator)<>0) and
            assigned(otsym) then
          begin
            if not parse_only then
@@ -1957,7 +1957,10 @@ const
 end.
 {
   $Log$
-  Revision 1.63  2002-08-11 14:32:27  peter
+  Revision 1.64  2002-08-17 09:23:39  florian
+    * first part of procinfo rewrite
+
+  Revision 1.63  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.62  2002/08/11 13:24:12  peter

@@ -63,10 +63,9 @@ unit cgbase;
        {# This object gives information on the current routine being
           compiled.
        }
-       pprocinfo = ^tprocinfo;
-       tprocinfo = object
-          {# pointer to parent in nested procedures }
-          parent : pprocinfo;
+       tprocinfo = class
+          { pointer to parent in nested procedures }
+          parent : tprocinfo;
           {# current class, if we are in a method }
           _class : tobjectdef;
           {# the definition of the routine itself }
@@ -126,12 +125,6 @@ unit cgbase;
           }
           exception_result_ref :treference;
 
-          { overall size of allocated stack space, currently this is used for the PowerPC only }
-          localsize : aword;
-
-          { max. of space need for parameters, currently used by the PowerPC port only }
-          maxpushedparasize : aword;
-
           {# Holds the reference used to store alll saved registers.
 
              This is used on systems which do not have direct stack
@@ -151,8 +144,30 @@ unit cgbase;
           aktexitcode: taasmoutput;
           aktlocaldata : taasmoutput;
 
-          constructor init;
-          destructor done;
+          constructor create;virtual;
+          destructor destroy;override;
+
+          procedure allocate_interrupt_stackframe;virtual;
+
+          { Updates usedinproc depending on the resulttype }
+          procedure update_usedinproc_result;virtual;
+
+          { Does the necessary stuff before a procedure body is compiled }
+          procedure handle_body_start;virtual;
+
+          { This is called by parser, after the header of a subroutine is parsed.
+            If the local symtable offset depends on the para symtable size, the
+            necessary stuff must be done here.
+          }
+          procedure after_header;virtual;
+
+          { This procedure is called after the pass 1 of the subroutine body is done.
+            Here the address fix ups to generate code for the body must be done.
+          }
+          procedure after_pass1;virtual;
+
+          { sets the offset for a temp used by the result }
+          procedure set_result_offset;virtual;
        end;
 
        pregvarinfo = ^tregvarinfo;
@@ -169,7 +184,9 @@ unit cgbase;
 
     var
        {# information about the current sub routine being parsed (@var(pprocinfo))}
-       procinfo : pprocinfo;
+       procinfo : tprocinfo;
+
+       cprocinfo : class of tprocinfo;
 
        { labels for BREAK and CONTINUE }
        aktbreaklabel,aktcontinuelabel : tasmlabel;
@@ -237,7 +254,7 @@ implementation
 {$ifdef fixLeaksOnError}
         ,comphook
 {$endif fixLeaksOnError}
-
+        ,symbase,paramgr
         ;
 
 {$ifdef fixLeaksOnError}
@@ -351,7 +368,7 @@ implementation
                                  TProcInfo
 ****************************************************************************}
 
-    constructor tprocinfo.init;
+    constructor tprocinfo.create;
       begin
         parent:=nil;
         _class:=nil;
@@ -366,8 +383,6 @@ implementation
         globalsymbol:=false;
         exported:=false;
         no_fast_exit:=false;
-        maxpushedparasize:=0;
-        localsize:=0;
 
         aktentrycode:=Taasmoutput.Create;
         aktexitcode:=Taasmoutput.Create;
@@ -379,12 +394,70 @@ implementation
       end;
 
 
-    destructor tprocinfo.done;
+    destructor tprocinfo.destroy;
       begin
          aktentrycode.free;
          aktexitcode.free;
          aktproccode.free;
          aktlocaldata.free;
+      end;
+
+    procedure tprocinfo.allocate_interrupt_stackframe;
+      begin
+      end;
+
+
+    procedure tprocinfo.handle_body_start;
+      begin
+         { temporary space is set, while the BEGIN of the procedure }
+         if (symtablestack.symtabletype=localsymtable) then
+           procinfo.firsttemp_offset := -symtablestack.datasize
+         else
+           procinfo.firsttemp_offset := 0;
+         { space for the return value }
+         { !!!!!   this means that we can not set the return value
+         in a subfunction !!!!! }
+         { because we don't know yet where the address is }
+         if not is_void(aktprocdef.rettype.def) then
+           begin
+              if paramanager.ret_in_reg(aktprocdef) then
+                begin
+                   { the space has been set in the local symtable }
+                   procinfo.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
+                   if ((procinfo.flags and pi_operator)<>0) and
+                      assigned(otsym) then
+                     otsym.address:=-procinfo.return_offset;
+
+		   rg.usedinproc := rg.usedinproc +	
+                      getfuncretusedregisters(aktprocdef.rettype.def);
+                end;
+           end;
+
+      end;
+
+    { updates usedinproc depending on the resulttype }
+    procedure tprocinfo.update_usedinproc_result;
+      begin
+         if paramanager.ret_in_reg(procdef.rettype.def) then
+           begin
+              rg.usedinproc := rg.usedinproc +
+              getfuncretusedregisters(procdef.rettype.def);
+           end;
+      end;
+
+    procedure tprocinfo.set_result_offset;
+      begin
+         if paramanager.ret_in_reg(aktprocdef) then
+           procinfo.return_offset:=-tfuncretsym(procdef.funcretsym).address;
+      end;
+
+
+    procedure tprocinfo.after_header;
+      begin
+      end;
+
+    procedure tprocinfo.after_pass1;
+      begin
       end;
 
 
@@ -399,7 +472,7 @@ implementation
          { aktexitlabel:=0; is store in oldaktexitlabel
            so it must not be reset to zero before this storage !}
          { new procinfo }
-         new(procinfo,init);
+         procinfo:=cprocinfo.create;
 {$ifdef fixLeaksOnError}
          procinfoStack.push(procinfo);
 {$endif fixLeaksOnError}
@@ -413,7 +486,7 @@ implementation
          if procinfo <> procinfoStack.pop then
            writeln('problem with procinfoStack!');
 {$endif fixLeaksOnError}
-         dispose(procinfo,done);
+         procinfo.free;
          procinfo:=nil;
       end;
 
@@ -582,7 +655,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-08-11 14:32:26  peter
+  Revision 1.25  2002-08-17 09:23:33  florian
+    * first part of procinfo rewrite
+
+  Revision 1.24  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.23  2002/08/11 13:24:11  peter

@@ -1493,16 +1493,16 @@ unit cgx86;
 {$ifndef TEST_GENERIC}
     procedure tcgx86.g_call_constructor_helper(list : taasmoutput);
       begin
-        if is_class(procinfo^._class) then
+        if is_class(procinfo._class) then
           begin
-            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             a_call_name(list,'FPC_NEW_CLASS');
             list.concat(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
           end
-        else if is_object(procinfo^._class) then
+        else if is_object(procinfo._class) then
           begin
             rg.getexplicitregisterint(list,R_EDI);
-            a_load_const_reg(list,OS_ADDR,procinfo^._class.vmt_offset,R_EDI);
+            a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,R_EDI);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
             list.concat(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
           end
@@ -1515,24 +1515,24 @@ unit cgx86;
         nofinal : tasmlabel;
         href : treference;
       begin
-        if is_class(procinfo^._class) then
+        if is_class(procinfo._class) then
          begin
            a_call_name(list,'FPC_DISPOSE_CLASS')
          end
-        else if is_object(procinfo^._class) then
+        else if is_object(procinfo._class) then
          begin
            { must the object be finalized ? }
-           if procinfo^._class.needs_inittable then
+           if procinfo._class.needs_inittable then
             begin
               objectlibrary.getlabel(nofinal);
               reference_reset_base(href,R_EBP,8);
               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
               reference_reset_base(href,R_ESI,0);
-              g_finalize(list,procinfo^._class,href,false);
+              g_finalize(list,procinfo._class,href,false);
               a_label(list,nofinal);
             end;
            rg.getexplicitregisterint(list,R_EDI);
-           a_load_const_reg(list,OS_ADDR,procinfo^._class.vmt_offset,R_EDI);
+           a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,R_EDI);
            rg.ungetregisterint(list,R_EDI);
            a_call_name(list,'FPC_HELP_DESTRUCTOR')
          end
@@ -1544,18 +1544,18 @@ unit cgx86;
       var
         href : treference;
       begin
-        if is_class(procinfo^._class) then
+        if is_class(procinfo._class) then
           begin
-            reference_reset_base(href,procinfo^.framepointer,8);
+            reference_reset_base(href,procinfo.framepointer,8);
             a_load_ref_reg(list,OS_ADDR,href,R_ESI);
             a_call_name(list,'FPC_HELP_FAIL_CLASS');
           end
-        else if is_object(procinfo^._class) then
+        else if is_object(procinfo._class) then
           begin
-            reference_reset_base(href,procinfo^.framepointer,12);
+            reference_reset_base(href,procinfo.framepointer,12);
             a_load_ref_reg(list,OS_ADDR,href,R_ESI);
             rg.getexplicitregisterint(list,R_EDI);
-            a_load_const_reg(list,OS_ADDR,procinfo^._class.vmt_offset,R_EDI);
+            a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,R_EDI);
             a_call_name(list,'FPC_HELP_FAIL');
             rg.ungetregisterint(list,R_EDI);
           end
@@ -1644,7 +1644,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.11  2002-08-16 14:25:00  carl
+  Revision 1.12  2002-08-17 09:23:50  florian
+    * first part of procinfo rewrite
+
+  Revision 1.11  2002/08/16 14:25:00  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

@@ -1299,7 +1299,7 @@ Begin
           (Taicpu(p).opcode = A_LEA)) and
          (Taicpu(p).oper[0].typ = top_ref) Then
         With Taicpu(p).oper[0].ref^ Do
-          If ((Base = procinfo^.FramePointer) or
+          If ((Base = procinfo.FramePointer) or
               (assigned(symbol) and (base = R_NO))) And
              (Index = R_NO) Then
             Begin
@@ -1379,27 +1379,27 @@ Begin
     Begin
       Case Taicpu(p).oper[0].typ Of
         top_reg:
-          If Not(Taicpu(p).oper[0].reg in [R_NO,R_ESP,procinfo^.FramePointer]) Then
+          If Not(Taicpu(p).oper[0].reg in [R_NO,R_ESP,procinfo.FramePointer]) Then
             RegSet := RegSet + [Taicpu(p).oper[0].reg];
         top_ref:
           With TReference(Taicpu(p).oper[0]^) Do
             Begin
-              If Not(Base in [procinfo^.FramePointer,R_NO,R_ESP])
+              If Not(Base in [procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
-              If Not(Index in [procinfo^.FramePointer,R_NO,R_ESP])
+              If Not(Index in [procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Index];
             End;
       End;
       Case Taicpu(p).oper[1].typ Of
         top_reg:
-          If Not(Taicpu(p).oper[1].reg in [R_NO,R_ESP,procinfo^.FramePointer]) Then
+          If Not(Taicpu(p).oper[1].reg in [R_NO,R_ESP,procinfo.FramePointer]) Then
             If RegSet := RegSet + [TRegister(TwoWords(Taicpu(p).oper[1]).Word1];
         top_ref:
           With TReference(Taicpu(p).oper[1]^) Do
             Begin
-              If Not(Base in [procinfo^.FramePointer,R_NO,R_ESP])
+              If Not(Base in [procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
-              If Not(Index in [procinfo^.FramePointer,R_NO,R_ESP])
+              If Not(Index in [procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Index];
             End;
       End;
@@ -1501,9 +1501,9 @@ Begin {checks whether two Taicpu instructions are equal}
               Begin
                 With Taicpu(p2).oper[0].ref^ Do
                   Begin
-                    If Not(Base in [procinfo^.FramePointer, R_NO, R_ESP]) Then
+                    If Not(Base in [procinfo.FramePointer, R_NO, R_ESP]) Then
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
-                    If Not(Index in [procinfo^.FramePointer, R_NO, R_ESP]) Then
+                    If Not(Index in [procinfo.FramePointer, R_NO, R_ESP]) Then
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
                   End;
  {add the registers from the reference (.oper[0]) to the RegInfo, all registers
@@ -1524,7 +1524,7 @@ Begin {checks whether two Taicpu instructions are equal}
           Begin
             With Taicpu(p2).oper[0].ref^ Do
               Begin
-                If Not(Base in [procinfo^.FramePointer,
+                If Not(Base in [procinfo.FramePointer,
                      Reg32(Taicpu(p2).oper[1].reg),R_NO,R_ESP]) Then
  {it won't do any harm if the register is already in RegsLoadedForRef}
                   Begin
@@ -1533,7 +1533,7 @@ Begin {checks whether two Taicpu instructions are equal}
                     Writeln(std_reg2str[base], ' added');
 {$endif csdebug}
                   end;
-                If Not(Index in [procinfo^.FramePointer,
+                If Not(Index in [procinfo.FramePointer,
                      Reg32(Taicpu(p2).oper[1].reg),R_NO,R_ESP]) Then
                   Begin
                     RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
@@ -1543,7 +1543,7 @@ Begin {checks whether two Taicpu instructions are equal}
                   end;
 
               End;
-            If Not(Reg32(Taicpu(p2).oper[1].reg) In [procinfo^.FramePointer,R_NO,R_ESP])
+            If Not(Reg32(Taicpu(p2).oper[1].reg) In [procinfo.FramePointer,R_NO,R_ESP])
               Then
                 Begin
                   RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
@@ -1690,8 +1690,8 @@ function isSimpleRef(const ref: treference): boolean;
 begin
   isSimpleRef :=
     assigned(ref.symbol) or
-    (ref.base = procinfo^.framepointer) or
-    (assigned(procinfo^._class) and
+    (ref.base = procinfo.framepointer) or
+    (assigned(procinfo._class) and
      (ref.base = R_ESI));
 end;
 
@@ -2591,7 +2591,10 @@ End.
 
 {
   $Log$
-  Revision 1.41  2002-07-01 18:46:31  peter
+  Revision 1.42  2002-08-17 09:23:44  florian
+    * first part of procinfo rewrite
+
+  Revision 1.41  2002/07/01 18:46:31  peter
     * internal linker
     * reorganized aasm layer
 

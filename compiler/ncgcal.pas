@@ -62,7 +62,7 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,cpubase,cpupi,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
@@ -143,7 +143,7 @@ implementation
                 begin
                   if inlined then
                     begin
-                       reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                       reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                        cg.a_load_loc_ref(exprasmlist,left.location,href);
                     end
                   else
@@ -160,7 +160,7 @@ implementation
                          begin
                            tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                           reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                            cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                            cg.free_scratch_reg(exprasmlist,tmpreg);
                          end
@@ -192,7 +192,7 @@ implementation
                 begin
                    tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                   reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                   reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                    cg.free_scratch_reg(exprasmlist,tmpreg);
                 end
@@ -239,7 +239,7 @@ implementation
                      begin
                         tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                        reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
+                        reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
                         cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                         cg.free_scratch_reg(exprasmlist,tmpreg);
                      end
@@ -522,7 +522,7 @@ implementation
                  begin
                    reference_reset(funcretref);
                    funcretref.offset:=tg.gettempofsizepersistant(exprasmlist,resulttype.def.size);
-                   funcretref.base:=procinfo^.framepointer;
+                   funcretref.base:=procinfo.framepointer;
 {$ifdef extdebug}
                    Comment(V_debug,'function return value is at offset '
                                    +tostr(funcretref.offset));
@@ -545,7 +545,7 @@ implementation
                begin
                   hregister:=cg.get_scratch_reg_address(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,funcretref,hregister);
-                  reference_reset_base(href,procinfo^.framepointer,inlinecode.retoffset);
+                  reference_reset_base(href,procinfo.framepointer,inlinecode.retoffset);
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
                   cg.free_scratch_reg(exprasmlist,hregister);
                end
@@ -804,7 +804,7 @@ implementation
                              loadesi:=false;
                           end;
                         { direct call to destructor: don't remove data! }
-                        if is_class(procinfo^._class) then
+                        if is_class(procinfo._class) then
                           begin
                              if (procdefinition.proctypeoption=potype_destructor) then
                                begin
@@ -819,7 +819,7 @@ implementation
                              else
                                cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,1);
                           end
-                        else if is_object(procinfo^._class) then
+                        else if is_object(procinfo._class) then
                           begin
                              cg.a_param_reg(exprasmlist,OS_ADDR,R_ESI,1);
                              if is_con_or_destructor then
@@ -827,7 +827,7 @@ implementation
                                   if (procdefinition.proctypeoption=potype_constructor) then
                                     begin
                                       { it's no bad idea, to insert the VMT }
-                                      reference_reset_symbol(href,objectlibrary.newasmsymbol(procinfo^._class.vmt_mangledname),0);
+                                      reference_reset_symbol(href,objectlibrary.newasmsymbol(procinfo._class.vmt_mangledname),0);
                                       cg.a_paramaddr_ref(exprasmlist,href,1);
                                     end
                                   { destructors haven't to dispose the instance, if this is }
@@ -1052,7 +1052,7 @@ implementation
 {$ifdef i386}
                   (aktoptprocessor=ClassP5) and
 {$endif}
-                  (procinfo^._class=nil) then
+                  (procinfo._class=nil) then
                     begin
                        rg.getexplicitregisterint(exprasmlist,R_EDI);
                        emit_reg(A_POP,S_L,R_EDI);
@@ -1065,8 +1065,12 @@ implementation
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
 {$endif dummy}
-         if procinfo^.maxpushedparasize<pushedparasize then
-           procinfo^.maxpushedparasize:=pushedparasize;
+
+{$ifdef powerpc}
+         { this calculation must be done in pass_1 anyway, so don't worry }
+         if tppcprocinfo(procinfo).maxpushedparasize<pushedparasize then
+           tppcprocinfo(procinfo).maxpushedparasize:=pushedparasize;
+{$endif powerpc}
 {$ifdef OPTALIGN}
          if pop_esp then
            emit_reg(A_POP,S_L,R_ESP);
@@ -1301,7 +1305,7 @@ implementation
            oldprocdef : tprocdef;
            ps, i : longint;
            tmpreg: tregister;
-           oldprocinfo : pprocinfo;
+           oldprocinfo : tprocinfo;
            oldinlining_procedure,
            nostackframe,make_global : boolean;
            inlineentrycode,inlineexitcode : TAAsmoutput;
@@ -1343,15 +1347,21 @@ implementation
           objectlibrary.getlabel(aktexit2label);
           { we're inlining a procedure }
           inlining_procedure:=true;
-          { save old procinfo }
           oldprocdef:=aktprocdef;
-          getmem(oldprocinfo,sizeof(tprocinfo));
-          move(procinfo^,oldprocinfo^,sizeof(tprocinfo));
-          { set new procinfo }
+
           aktprocdef:=inlineprocdef;
-          procinfo^.return_offset:=retoffset;
-          procinfo^.para_offset:=para_offset;
-          procinfo^.no_fast_exit:=false;
+          { save old procinfo }
+          oldprocinfo:=procinfo;
+
+          { clone }
+          procinfo:=tprocinfo(cprocinfo.newinstance);
+          move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
+
+          { set new procinfo }
+          procinfo.return_offset:=retoffset;
+          procinfo.para_offset:=para_offset;
+          procinfo.no_fast_exit:=false;
+
           { arg space has been filled by the parent secondcall }
           st:=aktprocdef.localst;
           { set it to the same lexical level }
@@ -1425,8 +1435,8 @@ implementation
               st.address_fixup:=0;
             end;
           { restore procinfo }
-          move(oldprocinfo^,procinfo^,sizeof(tprocinfo));
-          freemem(oldprocinfo,sizeof(tprocinfo));
+          procinfo.free;
+          procinfo:=oldprocinfo;
 {$ifdef GDB}
           if (cs_debuginfo in aktmoduleswitches) then
             begin
@@ -1465,7 +1475,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-08-13 21:40:55  florian
+  Revision 1.10  2002-08-17 09:23:35  florian
+    * first part of procinfo rewrite
+
+  Revision 1.9  2002/08/13 21:40:55  florian
     * more fixes for ppc calling conventions
 
   Revision 1.8  2002/08/13 18:01:51  carl

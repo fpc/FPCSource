@@ -140,7 +140,7 @@ begin
   location.loc := LOC_CREFERENCE;
   calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
-  procinfo^.flags:=procinfo^.flags or pi_do_call;
+  procinfo.flags:=procinfo.flags or pi_do_call;
 end;
 
 function taddsstringoptnode.getcopy: tnode;
@@ -278,7 +278,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-07-20 11:57:55  florian
+  Revision 1.11  2002-08-17 09:23:37  florian
+    * first part of procinfo rewrite
+
+  Revision 1.10  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

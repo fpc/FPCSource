@@ -31,6 +31,7 @@ interface
 
     type
        tppccallnode = class(tcgcallnode)
+          function pass_1 : tnode;override;
           procedure load_framepointer;override;
        end;
 
@@ -51,7 +52,24 @@ implementation
       cginfo,cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
+      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpupi;
+
+  function tppccallnode.pass_1 : tnode;
+
+    begin
+       result:=inherited pass_1;
+       if assigned(result) then
+         exit;
+       if procdefinition is tprocdef then
+         begin
+            if tprocdef(procdefinition).parast.datasize>tppcprocinfo(procinfo).maxpushedparasize then
+              tppcprocinfo(procinfo).maxpushedparasize:=tprocdef(procdefinition).parast.datasize
+         end
+       else
+         begin
+            {!!!!}
+         end;
+    end;
 
   procedure tppccallnode.load_framepointer;
 
@@ -103,7 +121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-13 21:40:59  florian
+  Revision 1.2  2002-08-17 09:23:49  florian
+    * first part of procinfo rewrite
+
+  Revision 1.1  2002/08/13 21:40:59  florian
     * more fixes for ppc calling conventions
 }
 

@@ -941,7 +941,7 @@ implementation
         aprocdef:=assignment_overloaded(left.resulttype.def,resulttype.def);
         if assigned(aprocdef) then
           begin
-             procinfo^.flags:=procinfo^.flags or pi_do_call;
+             procinfo.flags:=procinfo.flags or pi_do_call;
              hp:=ccallnode.create(ccallparanode.create(left,nil),
                                   overloaded_operators[_assignment],nil,nil);
              { tell explicitly which def we must use !! (PM) }
@@ -1939,7 +1939,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2002-08-14 19:26:55  carl
+  Revision 1.70  2002-08-17 09:23:36  florian
+    * first part of procinfo rewrite
+
+  Revision 1.69  2002/08/14 19:26:55  carl
     + generic int_to_real type conversion
     + generic unaryminus node
 

@@ -106,11 +106,8 @@ implementation
               { insert in local symtable }
               symtablestack.insert(aktprocdef.funcretsym);
               akttokenpos:=storepos;
-              { the result will be returned in a register, then setup
-                the temp. memory for the result
-              }  
-              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
-                procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
+
+              procinfo.set_result_offset;
               { insert result also if support is on }
               if (m_result in aktmodeswitches) then
                begin
@@ -120,32 +117,7 @@ implementation
            end;
          read_declarations(islibrary);
 
-         { temporary space is set, while the BEGIN of the procedure }
-         if (symtablestack.symtabletype=localsymtable) then
-           procinfo^.firsttemp_offset := -symtablestack.datasize
-         else
-           procinfo^.firsttemp_offset := 0;
-
-         { space for the return value }
-         { !!!!!   this means that we can not set the return value
-         in a subfunction !!!!! }
-         { because we don't know yet where the address is }
-         if not is_void(aktprocdef.rettype.def) then
-           begin
-              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
-                begin
-                   { the space has been set in the local symtable }
-                   procinfo^.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
-                   if ((procinfo^.flags and pi_operator)<>0) and
-                      assigned(otsym) then
-                     otsym.address:=-procinfo^.return_offset;
-                   { is the return result in registers? The
-                     set them as used in the routine
-                   }  
-                   rg.usedinproc := rg.usedinproc + 
-                      getfuncusedregisters(aktprocdef.rettype.def);
-                end;
-           end;
+         procinfo.handle_body_start;
 
          {Unit initialization?.}
          if (lexlevel=unit_init_level) and (current_module.is_unit)
@@ -221,7 +193,7 @@ implementation
          { calculate the lexical level }
          inc(lexlevel);
          if lexlevel>32 then
-          Message(parser_e_too_much_lexlevel);
+           Message(parser_e_too_much_lexlevel);
 
          { static is also important for local procedures !! }
          if (po_staticmethod in aktprocdef.procoptions) then
@@ -252,18 +224,18 @@ implementation
     {$endif state_tracking}
 
          { insert symtables for the class, by only if it is no nested function }
-         if assigned(procinfo^._class) and not(parent_has_class) then
+         if assigned(procinfo._class) and not(parent_has_class) then
            begin
              { insert them in the reverse order ! }
              hp:=nil;
              repeat
-               _class:=procinfo^._class;
+               _class:=procinfo._class;
                while _class.childof<>hp do
                  _class:=_class.childof;
                hp:=_class;
                _class.symtable.next:=symtablestack;
                symtablestack:=_class.symtable;
-             until hp=procinfo^._class;
+             until hp=procinfo._class;
            end;
 
          { insert parasymtable in symtablestack}
@@ -308,7 +280,7 @@ implementation
           code=nil, when we use aktprocsym.}
 
          { set the start offset to the start of the temp area in the stack }
-         tg.setfirsttemp(procinfo^.firsttemp_offset);
+         tg.setfirsttemp(procinfo.firsttemp_offset);
 
          { ... and generate assembler }
          { but set the right switches for entry !! }
@@ -336,10 +308,10 @@ implementation
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
                 aktlocalswitches:=entryswitches;
-                genentrycode(procinfo^.aktentrycode,make_global,0,parasize,nostackframe,false);
+                genentrycode(procinfo.aktentrycode,make_global,0,parasize,nostackframe,false);
 
                 { FPC_POPADDRSTACK destroys all registers (JM) }
-                if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
+                if (procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
                  begin
                    rg.usedinproc := ALL_REGISTERS;
                  end;
@@ -347,33 +319,33 @@ implementation
                 { now generate exit code with the correct position and switches }
                 aktfilepos:=exitpos;
                 aktlocalswitches:=exitswitches;
-                genexitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
+                genexitcode(procinfo.aktexitcode,parasize,nostackframe,false);
 
                 { now all the registers used are known }
                 aktprocdef.usedregisters:=rg.usedinproc;
-                procinfo^.aktproccode.insertlist(procinfo^.aktentrycode);
-                procinfo^.aktproccode.concatlist(procinfo^.aktexitcode);
+                procinfo.aktproccode.insertlist(procinfo.aktentrycode);
+                procinfo.aktproccode.concatlist(procinfo.aktexitcode);
 {$ifdef i386}
    {$ifndef NoOpt}
                 if (cs_optimize in aktglobalswitches) and
                 { do not optimize pure assembler procedures }
-                   ((procinfo^.flags and pi_is_assembler)=0)  then
-                  Optimize(procinfo^.aktproccode);
+                   ((procinfo.flags and pi_is_assembler)=0)  then
+                  Optimize(procinfo.aktproccode);
    {$endif NoOpt}
 {$endif i386}
                 { save local data (casetable) also in the same file }
-                if assigned(procinfo^.aktlocaldata) and
-                   (not procinfo^.aktlocaldata.empty) then
+                if assigned(procinfo.aktlocaldata) and
+                   (not procinfo.aktlocaldata.empty) then
                  begin
-                   procinfo^.aktproccode.concat(Tai_section.Create(sec_data));
-                   procinfo^.aktproccode.concatlist(procinfo^.aktlocaldata);
-                   procinfo^.aktproccode.concat(Tai_section.Create(sec_code));
+                   procinfo.aktproccode.concat(Tai_section.Create(sec_data));
+                   procinfo.aktproccode.concatlist(procinfo.aktlocaldata);
+                   procinfo.aktproccode.concat(Tai_section.Create(sec_code));
                 end;
 
                 { add the procedure to the codesegment }
                 if (cs_create_smart in aktmoduleswitches) then
                  codeSegment.concat(Tai_cut.Create);
-                codeSegment.concatlist(procinfo^.aktproccode);
+                codeSegment.concatlist(procinfo.aktproccode);
               end
             else
               do_resulttypepass(code);
@@ -401,7 +373,7 @@ implementation
                  { remove cross unit overloads }
                  tstoredsymtable(aktprocdef.localst).unchain_overloaded;
                end;
-             if (procinfo^.flags and pi_uses_asm)=0 then
+             if (procinfo.flags and pi_uses_asm)=0 then
                begin
                   { not for unit init, becuase the var can be used in finalize,
                     it will be done in proc_unit }
@@ -507,7 +479,7 @@ implementation
       var
         oldprocsym       : tprocsym;
         oldprocdef       : tprocdef;
-        oldprocinfo      : pprocinfo;
+        oldprocinfo      : tprocinfo;
         oldconstsymtable : tsymtable;
         oldfilepos       : tfileposinfo;
         pdflags          : word;
@@ -519,7 +491,7 @@ implementation
          oldprocinfo:=procinfo;
       { create a new procedure }
          codegen_newprocedure;
-         with procinfo^ do
+         with procinfo do
           begin
             parent:=oldprocinfo;
           { clear flags }
@@ -528,12 +500,12 @@ implementation
             framepointer:=frame_pointer_reg;
           { is this a nested function of a method ? }
             if assigned(oldprocinfo) then
-              _class:=oldprocinfo^._class;
+              _class:=oldprocinfo._class;
           end;
 
          parse_proc_dec;
 
-         procinfo^.procdef:=aktprocdef;
+         procinfo.procdef:=aktprocdef;
 
          { set the default function options }
          if parse_only then
@@ -551,7 +523,7 @@ implementation
              pdflags:=pdflags or pd_implemen;
             if (not current_module.is_unit) or (cs_create_smart in aktmoduleswitches) then
              pdflags:=pdflags or pd_global;
-            procinfo^.exported:=false;
+            procinfo.exported:=false;
             aktprocdef.forwarddef:=false;
           end;
 
@@ -595,8 +567,8 @@ implementation
          if not proc_add_definition(aktprocsym,aktprocdef) then
            begin
              { A method must be forward defined (in the object declaration) }
-             if assigned(procinfo^._class) and
-                (not assigned(oldprocinfo^._class)) then
+             if assigned(procinfo._class) and
+                (not assigned(oldprocinfo._class)) then
               begin
                 Message1(parser_e_header_dont_match_any_member,aktprocdef.fullprocname);
                 aktprocsym.write_parameter_lists(aktprocdef);
@@ -619,7 +591,7 @@ implementation
                    { check the global flag, for delphi this is not
                      required }
                    if not(m_delphi in aktmodeswitches) and
-                      ((procinfo^.flags and pi_is_global)<>0) then
+                      ((procinfo.flags and pi_is_global)<>0) then
                      Message(parser_e_overloaded_must_be_all_global);
                  end;
               end;
@@ -627,27 +599,25 @@ implementation
 
          { update procinfo, because the aktprocdef can be
            changed by check_identical_proc (PFV) }
-         procinfo^.procdef:=aktprocdef;
+         procinfo.procdef:=aktprocdef;
+
 
 {$ifdef i386}
          { add implicit pushes for interrupt routines }
          if (po_interrupt in aktprocdef.procoptions) then
+           procinfo.allocate_interrupt_stackframe;
            begin
-             { we push Flags and CS as long
-               to cope with the IRETD
-               and we save 6 register + 4 selectors }
-             inc(procinfo^.para_offset,8+6*4+4*2);
            end;
 {$endif i386}
 
          { pointer to the return value ? }
          if paramanager.ret_in_param(aktprocdef.rettype.def) then
           begin
-            procinfo^.return_offset:=procinfo^.para_offset;
-            inc(procinfo^.para_offset,pointer_size);
+            procinfo.return_offset:=procinfo.para_offset;
+            inc(procinfo.para_offset,pointer_size);
           end;
          { allows to access the parameters of main functions in nested functions }
-         aktprocdef.parast.address_fixup:=procinfo^.para_offset;
+         aktprocdef.parast.address_fixup:=procinfo.para_offset;
 
          { when it is a value para and it needs a local copy then rename
            the parameter and insert a copy in the localst. This is not done
@@ -670,7 +640,7 @@ implementation
             if assigned(aktprocdef._class) then
               tokeninfo^[_SELF].keyword:=m_all;
 
-             compile_proc_body(((pdflags and pd_global)<>0),assigned(oldprocinfo^._class));
+             compile_proc_body(((pdflags and pd_global)<>0),assigned(oldprocinfo._class));
 
             { reset _FAIL as normal }
             if (aktprocdef.proctypeoption=potype_constructor) then
@@ -816,7 +786,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-08-16 14:24:59  carl
+  Revision 1.68  2002-08-17 09:23:41  florian
+    * first part of procinfo rewrite
+
+  Revision 1.67  2002/08/16 14:24:59  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

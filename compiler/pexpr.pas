@@ -954,40 +954,40 @@ implementation
 
         function is_func_ret(var p1:tnode;var sym : tsym;var srsymtable:tsymtable) : boolean;
         var
-           p : pprocinfo;
+           p : tprocinfo;
            storesymtablestack : tsymtable;
         begin
           is_func_ret:=false;
           if not assigned(procinfo) or
-             ((sym.typ<>funcretsym) and ((procinfo^.flags and pi_operator)=0)) then
+             ((sym.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0)) then
             exit;
           p:=procinfo;
           while assigned(p) do
             begin
                { is this an access to a function result? Accessing _RESULT is
                  always allowed and funcretn is generated }
-               if assigned(p^.procdef.funcretsym) and
-                  ((sym=tsym(p^.procdef.resultfuncretsym)) or
-                   ((sym=tsym(p^.procdef.funcretsym)) or
-                    ((sym=tsym(otsym)) and ((p^.flags and pi_operator)<>0))) and
-                   (not is_void(p^.procdef.rettype.def)) and
+               if assigned(p.procdef.funcretsym) and
+                  ((sym=tsym(p.procdef.resultfuncretsym)) or
+                   ((sym=tsym(p.procdef.funcretsym)) or
+                    ((sym=tsym(otsym)) and ((p.flags and pi_operator)<>0))) and
+                   (not is_void(p.procdef.rettype.def)) and
                    (token<>_LKLAMMER) and
                    (not (not(m_fpc in aktmodeswitches) and (afterassignment or in_args)))
                   ) then
                  begin
                     if ((sym=tsym(otsym)) and
-                       ((p^.flags and pi_operator)<>0)) then
+                       ((p.flags and pi_operator)<>0)) then
                       inc(otsym.refs);
-                    p1:=cfuncretnode.create(p^.procdef.funcretsym);
+                    p1:=cfuncretnode.create(p.procdef.funcretsym);
                     is_func_ret:=true;
-                    if tfuncretsym(p^.procdef.funcretsym).funcretstate=vs_declared then
+                    if tfuncretsym(p.procdef.funcretsym).funcretstate=vs_declared then
                       begin
-                        tfuncretsym(p^.procdef.funcretsym).funcretstate:=vs_declared_and_first_found;
+                        tfuncretsym(p.procdef.funcretsym).funcretstate:=vs_declared_and_first_found;
                         include(p1.flags,nf_is_first_funcret);
                       end;
                     exit;
                  end;
-               p:=p^.parent;
+               p:=p.parent;
             end;
           { we must use the function call, update the
             sym to be the procsym }
@@ -1092,10 +1092,10 @@ implementation
                          begin
                            consume(_POINT);
                            if assigned(procinfo) and
-                              assigned(procinfo^._class) and
+                              assigned(procinfo._class) and
                               not(getaddr) then
                             begin
-                              if procinfo^._class.is_related(tobjectdef(htype.def)) then
+                              if procinfo._class.is_related(tobjectdef(htype.def)) then
                                begin
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
@@ -1694,7 +1694,7 @@ implementation
              begin
                again:=true;
                consume(_SELF);
-               if not assigned(procinfo^._class) then
+               if not assigned(procinfo._class) then
                 begin
                   p1:=cerrornode.create;
                   again:=false;
@@ -1705,11 +1705,11 @@ implementation
                   if (po_classmethod in aktprocdef.procoptions) then
                    begin
                      { self in class methods is a class reference type }
-                     htype.setdef(procinfo^._class);
+                     htype.setdef(procinfo._class);
                      p1:=cselfnode.create(tclassrefdef.create(htype));
                    end
                   else
-                   p1:=cselfnode.create(procinfo^._class);
+                   p1:=cselfnode.create(procinfo._class);
                   postfixoperators(p1,again);
                 end;
              end;
@@ -1718,7 +1718,7 @@ implementation
              begin
                again:=true;
                consume(_INHERITED);
-               if assigned(procinfo^._class) then
+               if assigned(procinfo._class) then
                 begin
                   { if inherited; only then we need the method with
                     the same name }
@@ -1733,7 +1733,7 @@ implementation
                      consume(_ID);
                      auto_inherited:=false;
                    end;
-                  classh:=procinfo^._class.childof;
+                  classh:=procinfo._class.childof;
                   sym:=searchsym_in_class(classh,hs);
                   if assigned(sym) then
                    begin
@@ -2248,7 +2248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-08-01 16:37:47  jonas
+  Revision 1.76  2002-08-17 09:23:39  florian
+    * first part of procinfo rewrite
+
+  Revision 1.75  2002/08/01 16:37:47  jonas
     - removed some superfluous "in_paras := true" statements
 
   Revision 1.74  2002/07/26 21:15:41  florian

@@ -39,8 +39,8 @@ unit paramgr;
        tparamanager = class
           {# Returns true if the return value can be put in accumulator }
           function ret_in_acc(def : tdef) : boolean;virtual;
-          {# Returns true if the return value is put in a register 
-             
+          {# Returns true if the return value is put in a register
+
              Either a floating point register, or a general purpose
              register.
           }
@@ -66,7 +66,7 @@ unit paramgr;
           function getintparaloc(nr : longint) : tparalocation;virtual;abstract;
           procedure create_param_loc_info(p : tabstractprocdef);virtual;abstract;
 
-          {#
+          {
             Returns the location where the invisible parameter for structured
             function results will be passed.
           }
@@ -76,17 +76,19 @@ unit paramgr;
             generating the wrappers for implemented interfaces.
           }
           function getselflocation(p : tabstractprocdef) : tparalocation;virtual;abstract;
-          {# 
+
+          {
             Returns the location of the result if the result is in
             a register, the register(s) return depend on the type of
-            the result. 
-            
+            the result.
+
             @param(def The definition of the result type of the function)
           }
           function getfuncresultlocreg(def : tdef): tparalocation; virtual;
        end;
 
     procedure setparalocs(p : tprocdef);
+    function getfuncretusedregisters(def : tdef): tregisterset;
 
     var
        paralocdummy : tparalocation;
@@ -114,8 +116,6 @@ unit paramgr;
       begin
         ret_in_reg:=ret_in_acc(def) or (def.deftype=floatdef);
       end;
-    
-
 
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef) : boolean;
@@ -167,12 +167,13 @@ unit paramgr;
            end;
          end;
       end;
-      
-    function tparamanager.getfuncresultlocreg(def : tdef): tparalocation; 
+
+
+    function tparamanager.getfuncresultlocreg(def : tdef): tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
          if is_void(def) then exit;
-         
+
          result.size := def_cgsize(def);
          case aktprocdef.rettype.def.deftype of
            orddef,
@@ -206,7 +207,7 @@ unit paramgr;
                    begin
                      result.loc := LOC_REFERENCE;
                      internalerror(2002081602);
-(*                     
+(*
 {$ifdef EXTDEBUG}
                      { it is impossible to have the
                        return value with an index register
@@ -217,12 +218,47 @@ unit paramgr;
 {$endif}
                      result.reference.index := ref.base;
                      result.reference.offset := ref.offset;
-*)                     
+*)
                    end;
              end;
           end;
       end;
-      
+
+
+    function getfuncretusedregisters(def : tdef): tregisterset;
+      var
+        paramloc : tparalocation;
+        regset : tregisterset;
+      begin
+        regset:=[];
+        getfuncretusedregisters:=[];
+        { if nothing is returned in registers,
+          its useless to continue on in this
+          routine
+        }
+        if not paramanager.ret_in_reg(def) then
+          exit;
+        paramloc := paramanager.getfuncresultlocreg(def);
+        case paramloc.loc of
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER,
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER,
+          LOC_REGISTER,LOC_CREGISTER :
+              begin
+                regset := regset + [paramloc.register];
+                if ((paramloc.size in [OS_S64,OS_64]) and
+                   (sizeof(aword) < 8))
+                then
+                  begin
+                     regset := regset + [paramloc.registerhigh];
+                  end;
+              end;
+          else
+            internalerror(20020816);
+        end;
+        getfuncretusedregisters:=regset;
+      end;
 
     procedure setparalocs(p : tprocdef);
 
@@ -233,7 +269,7 @@ unit paramgr;
          hp:=tparaitem(p.para.first);
          while assigned(hp) do
            begin
-{$ifdef SUPPORT_MMX}           
+{$ifdef SUPPORT_MMX}
               if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
                  LOC_MMREGISTER]) and
 {$else}
@@ -248,10 +284,10 @@ unit paramgr;
                        hp.paraloc.loc := LOC_CREGISTER;
                      LOC_FPUREGISTER:
                        hp.paraloc.loc := LOC_CFPUREGISTER;
-{$ifdef SUPPORT_MMX}                       
+{$ifdef SUPPORT_MMX}
                      LOC_MMREGISTER:
                        hp.paraloc.loc := LOC_CMMREGISTER;
-{$endif}                       
+{$endif}
                    end;
                    tvarsym(hp.parasym).reg:=hp.paraloc.register;
                    rg.regvar_loaded[hp.paraloc.register]:=true;
@@ -266,7 +302,10 @@ end.
 
 {
    $Log$
-   Revision 1.12  2002-08-16 14:24:58  carl
+   Revision 1.13  2002-08-17 09:23:38  florian
+     * first part of procinfo rewrite
+
+   Revision 1.12  2002/08/16 14:24:58  carl
      * issameref() to test if two references are the same (then emit no opcodes)
      + ret_in_reg to replace ret_in_acc
        (fix some register allocation bugs at the same time)

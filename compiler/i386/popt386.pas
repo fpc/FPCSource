@@ -73,8 +73,8 @@ begin
          (hp2.typ = ait_instruction) and
          ((Taicpu(hp2).opcode = A_LEAVE) or
           (Taicpu(hp2).opcode = A_RET)) and
-         (Taicpu(p).oper[0].ref^.Base = procinfo^.FramePointer) and
-         (Taicpu(p).oper[0].ref^.Offset >= procinfo^.Return_Offset) and
+         (Taicpu(p).oper[0].ref^.Base = procinfo.FramePointer) and
+         (Taicpu(p).oper[0].ref^.Offset >= procinfo.Return_Offset) and
          (Taicpu(p).oper[0].ref^.Index = R_NO) then
         begin
           asml.remove(p);
@@ -990,8 +990,8 @@ Begin
                               If ((Taicpu(hp1).opcode = A_LEAVE) Or
                                   (Taicpu(hp1).opcode = A_RET)) And
                                  (Taicpu(p).oper[1].typ = top_ref) And
-                                 (Taicpu(p).oper[1].ref^.base = procinfo^.FramePointer) And
-                                 (Taicpu(p).oper[1].ref^.offset >= procinfo^.Return_Offset) And
+                                 (Taicpu(p).oper[1].ref^.base = procinfo.FramePointer) And
+                                 (Taicpu(p).oper[1].ref^.offset >= procinfo.Return_Offset) And
                                  (Taicpu(p).oper[1].ref^.index = R_NO) And
                                  (Taicpu(p).oper[0].typ = top_reg)
                                 Then
@@ -1552,9 +1552,9 @@ Begin
                      (hp2.typ = ait_instruction) And
                      ((Taicpu(hp2).opcode = A_LEAVE) or
                       (Taicpu(hp2).opcode = A_RET)) And
-                     (Taicpu(p).oper[0].ref^.Base = procinfo^.FramePointer) And
+                     (Taicpu(p).oper[0].ref^.Base = procinfo.FramePointer) And
                      (Taicpu(p).oper[0].ref^.Index = R_NO) And
-                     (Taicpu(p).oper[0].ref^.Offset >= procinfo^.Return_Offset) And
+                     (Taicpu(p).oper[0].ref^.Offset >= procinfo.Return_Offset) And
                      (hp1.typ = ait_instruction) And
                      (Taicpu(hp1).opcode = A_MOV) And
                      (Taicpu(hp1).opsize = S_B) And
@@ -2044,7 +2044,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  2002-08-11 14:32:30  peter
+  Revision 1.33  2002-08-17 09:23:46  florian
+    * first part of procinfo rewrite
+
+  Revision 1.32  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.31  2002/08/11 13:24:17  peter

@@ -588,7 +588,7 @@ implementation
          pcrd       : tclassrefdef;
          tt     : ttype;
          old_object_option : tsymoptions;
-         oldprocinfo : pprocinfo;
+         oldprocinfo : tprocinfo;
          oldprocsym : tprocsym;
          oldprocdef : tprocdef;
          oldparse_only : boolean;
@@ -959,8 +959,8 @@ implementation
 
          { new procinfo }
          oldprocinfo:=procinfo;
-         new(procinfo,init);
-         procinfo^._class:=aktclass;
+         procinfo:=cprocinfo.create;
+         procinfo._class:=aktclass;
 
          { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
@@ -1144,7 +1144,7 @@ implementation
          symtablestack:=symtablestack.next;
          aktobjectdef:=nil;
          {Restore procinfo}
-         dispose(procinfo,done);
+         procinfo.free;
          procinfo:=oldprocinfo;
          {Restore the aktprocsym.}
          aktprocsym:=oldprocsym;
@@ -1157,7 +1157,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-08-09 07:33:02  florian
+  Revision 1.49  2002-08-17 09:23:38  florian
+    * first part of procinfo rewrite
+
+  Revision 1.48  2002/08/09 07:33:02  florian
     * a couple of interface related fixes
 
   Revision 1.47  2002/07/20 11:57:55  florian

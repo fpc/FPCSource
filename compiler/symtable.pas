@@ -1264,24 +1264,24 @@ implementation
          hsym : tsym;
       begin
          { check for duplicate id in para symtable of methods }
-         if assigned(procinfo^._class) and
+         if assigned(procinfo._class) and
          { but not in nested procedures !}
-            (not(assigned(procinfo^.parent)) or
-             (assigned(procinfo^.parent) and
-              not(assigned(procinfo^.parent^._class)))
+            (not(assigned(procinfo.parent)) or
+             (assigned(procinfo.parent) and
+              not(assigned(procinfo.parent._class)))
             ) and
           { funcretsym is allowed !! }
            (sym.typ<>funcretsym) then
            begin
-              hsym:=search_class_member(procinfo^._class,sym.name);
+              hsym:=search_class_member(procinfo._class,sym.name);
               { private ids can be reused }
               if assigned(hsym) and
-                 tstoredsym(hsym).is_visible_for_object(procinfo^._class) then
+                 tstoredsym(hsym).is_visible_for_object(procinfo._class) then
                begin
                  { delphi allows to reuse the names in a class, but not
                    in object (tp7 compatible) }
                  if not((m_delphi in aktmodeswitches) and
-                        is_class_or_interface(procinfo^._class)) then
+                        is_class_or_interface(procinfo._class)) then
                   begin
                     DuplicateSym(hsym);
                     exit;
@@ -2072,7 +2072,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-08-11 13:24:15  peter
+  Revision 1.67  2002-08-17 09:23:43  florian
+    * first part of procinfo rewrite
+
+  Revision 1.66  2002/08/11 13:24:15  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

@@ -150,7 +150,7 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,symconst,symdef,rgobj;
+       globtype,globals,verbose,systems,cutils,symconst,symdef,rgobj,tgobj,cpupi;
 
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
@@ -254,14 +254,14 @@ const
          list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
          reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
          list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
-         procinfo^.flags:=procinfo^.flags or pi_do_call;
+         procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
     { calling a code fragment through a reference }
     procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
       begin
          {$warning FIX ME}
-         procinfo^.flags:=procinfo^.flags or pi_do_call;
+         procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
 {********************** load instructions ********************}
@@ -857,6 +857,8 @@ const
          parastart : aword;
 
       begin
+        { we do our own localsize calculation }
+        localsize:=0;
         { CR and LR only have to be saved in case they are modified by the current }
         { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
@@ -886,7 +888,7 @@ const
             end;
 
         { save link register? }
-        if (procinfo^.flags and pi_do_call)<>0 then
+        if (procinfo.flags and pi_do_call)<>0 then
           begin
              { save return address... }
              list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
@@ -910,19 +912,13 @@ const
           inc(localsize,(ord(R_F31)-ord(firstregfpu)+1)*8);
 
         { align to 16 bytes }
-        if (localsize mod 16)<>0 then
-          localsize:=(localsize and $fffffff0)+16;
+        localsize:=align(localsize,16);
 
-        parastart:=localsize;
-        inc(localsize,procinfo^.maxpushedparasize);
+        inc(localsize,tg.lasttemp);
 
-        { align to 16 bytes }
-        if (localsize mod 16)<>0 then
-          localsize:=(localsize and $fffffff0)+16;
+        localsize:=align(localsize,16);
 
-        procinfo^.procdef.localst.address_fixup:=localsize-parastart;
-
-        procinfo^.localsize:=localsize;
+        tppcprocinfo(procinfo).localsize:=localsize;
 
         reference_reset_base(href,R_1,-localsize);
         list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
@@ -931,7 +927,7 @@ const
         gotgot:=false;
         if usesfpr then
           begin
-             { save floating-point registers }
+             { save floating-point registers
              if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
                begin
                   list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'),0));
@@ -939,6 +935,12 @@ const
                end
              else
                list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)),0));
+             }
+             for regcounter:=firstreggpr to R_F31 do
+               if regcounter in rg.usedbyproc then
+                 begin
+                 end;
+
              { compute end of gpr save area }
              list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,-(ord(R_F31)-ord(firstregfpu)+1)*8));
           end;
@@ -1021,9 +1023,9 @@ const
           begin
              { address of gpr save area to r11 }
              if usesfpr then
-               list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_1,procinfo^.localsize-(ord(R_F31)-ord(firstregfpu)+1)*8))
+               list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_1,tppcprocinfo(procinfo).localsize-(ord(R_F31)-ord(firstregfpu)+1)*8))
              else
-               list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_1,procinfo^.localsize));
+               list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_1,tppcprocinfo(procinfo).localsize));
 
              { restore gprs }
              { at least for now we use LMW }
@@ -1039,7 +1041,7 @@ const
           begin
              { address of fpr save area to r11 }
              list.concat(taicpu.op_reg_reg_const(A_ADDI,R_11,R_11,(ord(R_F31)-ord(firstregfpu)+1)*8));
-             if (procinfo^.flags and pi_do_call)<>0 then
+             if (procinfo.flags and pi_do_call)<>0 then
                list.concat(taicpu.op_sym_ofs(A_BL,objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
                  '_x'),0))
              else
@@ -1052,10 +1054,10 @@ const
         if genret then
           begin
              { adjust r1 }
-             reference_reset_base(href,R_1,procinfo^.localsize);
+             reference_reset_base(href,R_1,tppcprocinfo(procinfo).localsize);
              list.concat(taicpu.op_reg_ref(A_STWU,R_1,href));
              { load link register? }
-             if (procinfo^.flags and pi_do_call)<>0 then
+             if (procinfo.flags and pi_do_call)<>0 then
                begin
                   reference_reset_base(href,STACK_POINTER_REG,4);
                   list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
@@ -1666,7 +1668,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-08-16 14:24:59  carl
+  Revision 1.43  2002-08-17 09:23:49  florian
+    * first part of procinfo rewrite
+
+  Revision 1.42  2002/08/16 14:24:59  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

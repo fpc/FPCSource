@@ -144,7 +144,7 @@ implementation
       { only if no asm is used }
       { and no try statement   }
       if (cs_regalloc in aktglobalswitches) and
-         ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+         ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         begin
           new(regvarinfo);
           fillchar(regvarinfo^,sizeof(regvarinfo^),0);
@@ -228,7 +228,7 @@ implementation
                 { with assigning registers                       }
                 if aktmaxfpuregisters=-1 then
                   begin
-                   if (procinfo^.flags and pi_do_call)<>0 then
+                   if (procinfo.flags and pi_do_call)<>0 then
                      begin
                       for i:=maxfpuvarregs downto 2 do
                         regvarinfo^.fpuregvars[i]:=nil;
@@ -288,7 +288,7 @@ implementation
                       hr.offset:=-vsym.address+vsym.owner.address_fixup
                     else
                       hr.offset:=vsym.address+vsym.owner.address_fixup;
-                    hr.base:=procinfo^.framepointer;
+                    hr.base:=procinfo.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
                 asml.concat(tai_regalloc.dealloc(rg.makeregsize(reg,OS_INT)));
@@ -313,7 +313,7 @@ implementation
             hr.offset:=-vsym.address+vsym.owner.address_fixup
           else
             hr.offset:=vsym.address+vsym.owner.address_fixup;
-          hr.base:=procinfo^.framepointer;
+          hr.base:=procinfo.framepointer;
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
                paramanager.push_addr_param(vsym.vartype.def)) then
@@ -362,7 +362,7 @@ implementation
       regvarinfo: pregvarinfo;
     begin
       if (cs_regalloc in aktglobalswitches) and
-         ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+         ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         begin
           regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
           { can happen when inlining assembler procedures (JM) }
@@ -444,7 +444,7 @@ implementation
       if not assigned(aktprocdef.regvarinfo) then
         exit;
       if (cs_regalloc in aktglobalswitches) and
-         ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+         ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         with pregvarinfo(aktprocdef.regvarinfo)^ do
           begin
 {$ifdef i386}
@@ -469,7 +469,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2002-08-06 20:55:22  florian
+  Revision 1.39  2002-08-17 09:23:41  florian
+    * first part of procinfo rewrite
+
+  Revision 1.38  2002/08/06 20:55:22  florian
     * first part of ppc calling conventions fix
 
   Revision 1.37  2002/07/20 11:57:57  florian

@@ -741,8 +741,8 @@ Begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
        end;
-     opr.ref.offset:=procinfo^.return_offset;
-     opr.ref.base:= procinfo^.framepointer;
+     opr.ref.offset:=procinfo.return_offset;
+     opr.ref.base:= procinfo.framepointer;
      opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
      tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
@@ -759,11 +759,11 @@ end;
 Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
-  if assigned(procinfo^._class) then
+  if assigned(procinfo._class) then
    Begin
      opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=procinfo^.selfpointer_offset;
-     opr.ref.base:=procinfo^.framepointer;
+     opr.ref.offset:=procinfo.selfpointer_offset;
+     opr.ref.base:=procinfo.framepointer;
      opr.ref.options:=ref_selffixup;
      SetupSelf:=true;
    end
@@ -778,8 +778,8 @@ Begin
   if lexlevel>normal_function_level then
    Begin
      opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=procinfo^.framepointer_offset;
-     opr.ref.base:=procinfo^.framepointer;
+     opr.ref.offset:=procinfo.framepointer_offset;
+     opr.ref.base:=procinfo.framepointer;
      opr.ref.options:=ref_parafixup;
      SetupOldEBP:=true;
    end
@@ -844,20 +844,20 @@ Begin
               { this below is wrong because there are two parast
                 for global functions one of interface the second of
                 implementation
-              if (tvarsym(sym).owner=procinfo^.def.parast) or }
+              if (tvarsym(sym).owner=procinfo.def.parast) or }
                 GetOffset then
                 begin
-                  opr.ref.base:=procinfo^.framepointer;
+                  opr.ref.base:=procinfo.framepointer;
                 end
               else
                 begin
                   if (aktprocdef.localst.datasize=0) and
-                     assigned(procinfo^.parent) and
+                     assigned(procinfo.parent) and
                      (lexlevel=tvarsym(sym).owner.symtablelevel+1) and
                      { same problem as above !!
-                     (procinfo^.parent^.sym.definition.parast=tvarsym(sym).owner) and }
+                     (procinfo.parent^.sym.definition.parast=tvarsym(sym).owner) and }
                      (lexlevel>normal_function_level) then
-                    opr.ref.base:=procinfo^.parent^.framepointer
+                    opr.ref.base:=procinfo.parent.framepointer
                   else
                     message1(asmr_e_local_para_unreachable,s);
                 end;
@@ -886,17 +886,17 @@ Begin
                   { if we only want the offset we don't have to care
                     the base will be zeroed after ! }
                   if (lexlevel=tvarsym(sym).owner.symtablelevel) or
-                  {if (tvarsym(sym).owner=procinfo^.def.localst) or}
+                  {if (tvarsym(sym).owner=procinfo.def.localst) or}
                     GetOffset then
-                    opr.ref.base:=procinfo^.framepointer
+                    opr.ref.base:=procinfo.framepointer
                   else
                     begin
                       if (aktprocdef.localst.datasize=0) and
-                         assigned(procinfo^.parent) and
+                         assigned(procinfo.parent) and
                          (lexlevel=tvarsym(sym).owner.symtablelevel+1) and
-                         {(procinfo^.parent^.sym.definition.localst=tvarsym(sym).owner) and}
+                         {(procinfo.parent^.sym.definition.localst=tvarsym(sym).owner) and}
                          (lexlevel>normal_function_level) then
-                        opr.ref.base:=procinfo^.parent^.framepointer
+                        opr.ref.base:=procinfo.parent.framepointer
                       else
                         message1(asmr_e_local_para_unreachable,s);
                     end;
@@ -1316,7 +1316,7 @@ Begin
   base:=Copy(s,1,i-1);
   delete(s,1,i);
   if base='SELF' then
-   st:=procinfo^._class.symtable
+   st:=procinfo._class.symtable
   else
    begin
      asmsearchsym(base,sym,srsymtable);
@@ -1592,7 +1592,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  2002-08-16 14:24:59  carl
+  Revision 1.44  2002-08-17 09:23:41  florian
+    * first part of procinfo rewrite
+
+  Revision 1.43  2002/08/16 14:24:59  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

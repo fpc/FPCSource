@@ -101,7 +101,7 @@ unit cgobj;
           {# Pass a parameter, which is located in a register, to a routine.
 
              This routine should push/send the parameter to the routine, as
-             required by the specific processor ABI and routine modifiers. 
+             required by the specific processor ABI and routine modifiers.
              This must be overriden for each CPU target.
 
              @param(size size of the operand in the register)
@@ -244,16 +244,16 @@ unit cgobj;
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
-          { 
+          {
              This routine tries to optimize the const_reg opcode, and should be
              called at the start of a_op_const_reg. It returns the actual opcode
              to emit, and the constant value to emit. If this routine returns
              FALSE, no instruction should be emitted (.eg : imul reg by 1 )
-             
+
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
                     be amitted)
-          }   
+          }
           function optimize_const_reg(var op: topcg; var a : aword): boolean;virtual;
 
          {#
@@ -385,28 +385,24 @@ unit cgobj;
           {# This routine is called when generating the code for the entry point
              of a routine. It should save all registers which are not used in this
              routine, and which should be declared as saved in the std_saved_registers
-             set. 
-             
+             set.
+
              This routine is mainly used when linking to code which is generated
              by ABI-compliant compilers (like GCC), to make sure that the reserved
              registers of that ABI are not clobbered.
-             
+
              @param(usedinproc Registers which are used in the code of this routine)
-          }             
+          }
           procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);virtual;abstract;
           {# This routine is called when generating the code for the exit point
-             of a routine. It should restore all registers which were previously 
+             of a routine. It should restore all registers which were previously
              saved in @var(g_save_standard_registers).
 
              @param(usedinproc Registers which are used in the code of this routine)
-          }             
+          }
           procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;abstract;
-          {# This routine verifies if two references are the same, and
-             if so, returns TRUE, otherwise returns false.
-          }
-          function issameref(const sref, dref : treference):boolean; 
        end;
 
     {# @abstract(Abstract code generator for 64 Bit operations)
@@ -639,7 +635,7 @@ unit cgobj;
 
       begin
         { verify if we have the same reference }
-        if issameref(sref,dref) then
+        if references_equal(sref,dref) then
           exit;
 {$ifdef i386}
         { the following is done with defines to avoid a speed penalty,  }
@@ -761,7 +757,7 @@ unit cgobj;
         powerval : longint;
       begin
         optimize_const_reg := true;
-        case op of 
+        case op of
           { or with zero returns same result }
           OP_OR : if a = 0 then optimize_const_reg := false;
           { and with max returns same result }
@@ -769,10 +765,10 @@ unit cgobj;
           { division by 1 returns result }
           OP_DIV :
             begin
-              if a = 1 then 
+              if a = 1 then
                 optimize_const_reg := false
               else if ispowerof2(int64(a), powerval) then
-                begin 
+                begin
                   a := powerval;
                   op:= OP_SHR;
                 end;
@@ -780,10 +776,10 @@ unit cgobj;
             end;
           OP_IDIV:
             begin
-              if a = 1 then 
+              if a = 1 then
                 optimize_const_reg := false
               else if ispowerof2(int64(a), powerval) then
-                begin 
+                begin
                   a := powerval;
                   op:= OP_SAR;
                 end;
@@ -791,22 +787,22 @@ unit cgobj;
             end;
         OP_MUL,OP_IMUL:
             begin
-               if a = 1 then 
+               if a = 1 then
                   optimize_const_reg := false
                else if ispowerof2(int64(a), powerval) then
-                 begin 
+                 begin
                    a := powerval;
                    op:= OP_SHL;
                  end;
-               exit;  
+               exit;
             end;
         OP_SAR,OP_SHL,OP_SHR:
            begin
-              if a = 1 then 
+              if a = 1 then
                  optimize_const_reg := false;
               exit;
            end;
-        end;    
+        end;
       end;
 
     procedure tcg.a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
@@ -1319,29 +1315,29 @@ unit cgobj;
     procedure tcg.g_maybe_loadself(list : taasmoutput);
       var
          hp : treference;
-         p : pprocinfo;
+         p : tprocinfo;
          i : longint;
       begin
-         if assigned(procinfo^._class) then
+         if assigned(procinfo._class) then
            begin
               list.concat(tai_regalloc.Alloc(SELF_POINTER_REG));
               if lexlevel>normal_function_level then
                 begin
-                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.framepointer_offset);
+                   reference_reset_base(hp,procinfo.framepointer,procinfo.framepointer_offset);
                    a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
-                   p:=procinfo^.parent;
+                   p:=procinfo.parent;
                    for i:=3 to lexlevel-1 do
                      begin
-                        reference_reset_base(hp,SELF_POINTER_REG,p^.framepointer_offset);
+                        reference_reset_base(hp,SELF_POINTER_REG,p.framepointer_offset);
                         a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
-                        p:=p^.parent;
+                        p:=p.parent;
                      end;
-                   reference_reset_base(hp,SELF_POINTER_REG,p^.selfpointer_offset);
+                   reference_reset_base(hp,SELF_POINTER_REG,p.selfpointer_offset);
                    a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
                 end
               else
                 begin
-                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.selfpointer_offset);
+                   reference_reset_base(hp,procinfo.framepointer,procinfo.selfpointer_offset);
                    a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
                 end;
            end;
@@ -1357,17 +1353,17 @@ unit cgobj;
       href : treference;
       hregister : tregister;
      begin
-        if is_class(procinfo^._class) then
+        if is_class(procinfo._class) then
           begin
-            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
+            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             { parameter 2 : self pointer / flag }
             {!! this is a terrible hack, normally the helper should get three params : }
             {    one with self register, one with flag and one with VMT pointer        }
-            {reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);}
+            {reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset+POINTER_SIZE);}
             a_param_reg(list, OS_ADDR, SELF_POINTER_REG, paramanager.getintparaloc(2));
 
             { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_NEW_CLASS');
             a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
@@ -1375,19 +1371,19 @@ unit cgobj;
             a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
           end
-        else if is_object(procinfo^._class) then
+        else if is_object(procinfo._class) then
           begin
             { parameter 3 :vmt_offset     }
-            a_param_const(list, OS_32, procinfo^._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : address of pointer to vmt }
             {  this is the first(?) parameter which was pushed to the constructor }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset-POINTER_SIZE);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(2));
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
@@ -1407,37 +1403,37 @@ unit cgobj;
         href : treference;
       hregister : tregister;
       begin
-        if is_class(procinfo^._class) then
+        if is_class(procinfo._class) then
          begin
            { 2nd parameter  : flag }
-           reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);
+           reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset+POINTER_SIZE);
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(2));
            { 1st parameter to destructor : self }
-           reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+           reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
            a_call_name(list,'FPC_DISPOSE_CLASS')
          end
-        else if is_object(procinfo^._class) then
+        else if is_object(procinfo._class) then
          begin
            { must the object be finalized ? }
-           if procinfo^._class.needs_inittable then
+           if procinfo._class.needs_inittable then
             begin
               objectlibrary.getlabel(nofinal);
-              reference_reset_base(href,procinfo^.framepointer,target_info.first_parm_offset);
+              reference_reset_base(href,procinfo.framepointer,target_info.first_parm_offset);
               a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
               reference_reset_base(href,SELF_POINTER_REG,0);
-              g_finalize(list,procinfo^._class,href,false);
+              g_finalize(list,procinfo._class,href,false);
               a_label(list,nofinal);
             end;
            { actually call destructor }
             { parameter 3 :vmt_offset     }
-            a_param_const(list, OS_32, procinfo^._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : pointer to vmt }
             {  this is the first parameter which was pushed to the destructor }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset-POINTER_SIZE);
             a_param_ref(list, OS_ADDR, href ,paramanager.getintparaloc(2));
             { parameter 1 : address of self pointer   }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
@@ -1454,7 +1450,7 @@ unit cgobj;
         href : treference;
         hregister : tregister;
       begin
-        if is_class(procinfo^._class) then
+        if is_class(procinfo._class) then
           begin
             {
               Dispose of the class then set self_pointer to nil
@@ -1463,7 +1459,7 @@ unit cgobj;
             { 2nd parameter  : flag }
             a_param_const(list,OS_32,1,paramanager.getintparaloc(2));
             { 1st parameter to destructor : self }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_DISPOSE_CLASS');
             { SET SELF TO NIL }
@@ -1471,19 +1467,19 @@ unit cgobj;
             { set the self pointer in the stack to nil }
             a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
           end
-        else if is_object(procinfo^._class) then
+        else if is_object(procinfo._class) then
           begin
             { parameter 3 :vmt_offset     }
-            a_param_const(list, OS_32, procinfo^._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, procinfo._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : address of pointer to vmt }
             {  this is the first(?) parameter which was pushed to the constructor }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset-POINTER_SIZE);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(2));
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
-            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
             a_param_reg(list, OS_ADDR,hregister,paramanager.getintparaloc(1));
@@ -1517,25 +1513,17 @@ unit cgobj;
        a_load_reg_ref(exprasmlist, OS_S32, accumulator, href);
      end;
 
+
     procedure tcg.g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);
      begin
        a_load_const_ref(list, OS_S32, a, href);
      end;
 
+
     procedure tcg.g_exception_reason_load(list : taasmoutput; const href : treference);
      begin
        a_load_ref_reg(list, OS_S32, href, accumulator);
      end;
-
-
-    function tcg.issameref(const sref, dref : treference):boolean; 
-      begin
-        if CompareByte(sref,dref,sizeof(treference))=0 then
-          issameref := true
-        else
-          issameref := false;
-      end;
-
 
 
     procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
@@ -1560,7 +1548,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.50  2002-08-16 14:24:57  carl
+  Revision 1.51  2002-08-17 09:23:33  florian
+    * first part of procinfo rewrite
+
+  Revision 1.50  2002/08/16 14:24:57  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

@@ -63,7 +63,6 @@ interface
 
        { for operators }
        optoken : ttoken;
-       otsym : tvarsym;
 
        { symtable were unit references are stored }
        refsymtable : tsymtable;
@@ -368,7 +367,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-05-18 13:34:11  peter
+  Revision 1.18  2002-08-17 09:23:38  florian
+    * first part of procinfo rewrite
+
+  Revision 1.17  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.16  2002/05/16 19:46:42  carl

@@ -381,7 +381,7 @@ unit tgobj;
          { do a reset, because the reference isn't used }
          FillChar(ref,sizeof(treference),0);
          ref.offset:=gettempofsize(list,l);
-         ref.base:=procinfo^.framepointer;
+         ref.base:=procinfo.framepointer;
       end;
 
     procedure ttgobj.gettempofsizereferencepersistant(list: taasmoutput; l : longint;var ref : treference);
@@ -389,7 +389,7 @@ unit tgobj;
          { do a reset, because the reference isn't used }
          FillChar(ref,sizeof(treference),0);
          ref.offset:=gettempofsizepersistant(list,l);
-         ref.base:=procinfo^.framepointer;
+         ref.base:=procinfo.framepointer;
       end;
 
 
@@ -399,7 +399,7 @@ unit tgobj;
       begin
          { do a reset, because the reference isn't used }
          FillChar(ref,sizeof(treference),0);
-         ref.base:=procinfo^.framepointer;
+         ref.base:=procinfo.framepointer;
          { Reuse old slot ? }
          foundslot:=nil;
          tl:=templist;
@@ -499,7 +499,7 @@ unit tgobj;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
-         istemp:=((ref.base=procinfo^.framepointer) and
+         istemp:=((ref.base=procinfo.framepointer) and
                   (ref.index=R_NO) and
                   (ref.offset<firsttemp));
       end;
@@ -679,7 +679,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2002-07-01 18:46:29  peter
+  Revision 1.11  2002-08-17 09:23:44  florian
+    * first part of procinfo rewrite
+
+  Revision 1.10  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

@@ -246,6 +246,10 @@ unit rgobj;
      procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
      procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
      procedure reference_release(list: taasmoutput; const ref : treference);
+     { This routine verifies if two references are the same, and
+        if so, returns TRUE, otherwise returns false.
+     }
+     function references_equal(sref : treference;dref : treference) : boolean;
 
      { tlocation handling }
      procedure location_reset(var l : tlocation;lt:TLoc;lsize:TCGSize);
@@ -887,6 +891,12 @@ unit rgobj;
         rg.ungetreference(list,ref);
       end;
 
+
+    function references_equal(sref : treference;dref : treference):boolean;
+      begin
+        references_equal:=CompareByte(sref,dref,sizeof(treference))=0;
+      end;
+
  { on most processors , this routine does nothing, overriden currently  }
  { only by 80x86 processor.                                             }
  function trgobj.makeregsize(reg: tregister; size: tcgsize): tregister;
@@ -953,7 +963,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-08-06 20:55:23  florian
+  Revision 1.17  2002-08-17 09:23:42  florian
+    * first part of procinfo rewrite
+
+  Revision 1.16  2002/08/06 20:55:23  florian
     * first part of ppc calling conventions fix
 
   Revision 1.15  2002/08/05 18:27:48  carl

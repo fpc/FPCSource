@@ -523,7 +523,7 @@ implementation
          oldaktexceptblock: integer;
 
       begin
-         procinfo^.flags:=procinfo^.flags or pi_uses_exceptions;
+         procinfo.flags:=procinfo.flags or pi_uses_exceptions;
 
          p_default:=nil;
          p_specific:=nil;
@@ -1012,10 +1012,10 @@ implementation
         i : longint;
       begin
         { replace framepointer with stackpointer }
-        procinfo^.framepointer:=STACK_POINTER_REG;
+        procinfo.framepointer:=STACK_POINTER_REG;
         { set the right value for parameters }
         dec(aktprocdef.parast.address_fixup,pointer_size);
-        dec(procinfo^.para_offset,pointer_size);
+        dec(procinfo.para_offset,pointer_size);
         { replace all references to parameters in the instructions,
           the parameters can be identified by the parafixup option
           that is set. For normal user coded [ebp+4] this field is not
@@ -1077,9 +1077,9 @@ implementation
 
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack.symtabletype=localsymtable then
-           procinfo^.firsttemp_offset := -symtablestack.datasize
+           procinfo.firsttemp_offset := -symtablestack.datasize
          else
-           procinfo^.firsttemp_offset := 0;
+           procinfo.firsttemp_offset := 0;
 
          { assembler code does not allocate }
          { space for the return value       }
@@ -1093,17 +1093,15 @@ implementation
               { update the symtablesize back to 0 if there were no locals }
               if not haslocals then
                symtablestack.datasize:=0;
+
               { set the used registers depending on the function result }
-              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
-                begin
-                  rg.usedinproc := rg.usedinproc + 
-                    getfuncusedregisters(aktprocdef.rettype.def);
-                end;
+              procinfo.update_usedinproc_result;
+              
             end;
          { force the asm statement }
          if token<>_ASM then
            consume(_ASM);
-         procinfo^.Flags := procinfo^.Flags Or pi_is_assembler;
+         procinfo.Flags := procinfo.Flags Or pi_is_assembler;
          p:=_asm_statement;
 
 
@@ -1131,7 +1129,7 @@ implementation
 
         { Flag the result as assigned when it is returned in a
           register.
-        }  
+        }
         if assigned(aktprocdef.funcretsym) and
            paramanager.ret_in_reg(aktprocdef.rettype.def) then
           tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
@@ -1146,7 +1144,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-08-16 14:24:58  carl
+  Revision 1.72  2002-08-17 09:23:40  florian
+    * first part of procinfo rewrite
+
+  Revision 1.71  2002/08/16 14:24:58  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)

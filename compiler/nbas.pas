@@ -494,7 +494,7 @@ implementation
     function tasmnode.pass_1 : tnode;
       begin
          result:=nil;
-         procinfo^.flags:=procinfo^.flags or pi_uses_asm;
+         procinfo.flags:=procinfo.flags or pi_uses_asm;
       end;
 
     function tasmnode.docompare(p: tnode): boolean;
@@ -694,7 +694,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-08-15 19:10:35  peter
+  Revision 1.32  2002-08-17 09:23:34  florian
+    * first part of procinfo rewrite
+
+  Revision 1.31  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.30  2002/07/20 11:57:53  florian

@@ -1518,7 +1518,7 @@ implementation
                  begin
                    { we use ansistrings so no fast exit here }
                    if assigned(procinfo) then
-                    procinfo^.no_fast_exit:=true;
+                    procinfo.no_fast_exit:=true;
                  end;
              end;
           end;
@@ -1599,7 +1599,7 @@ implementation
 
               { procedure does a call }
               if not (block_type in [bt_const,bt_type]) then
-                procinfo^.flags:=procinfo^.flags or pi_do_call;
+                procinfo.flags:=procinfo.flags or pi_do_call;
               rg.incrementregisterpushed(all_registers);
            end
          else
@@ -1633,7 +1633,7 @@ implementation
               else
                 begin
                   if not (block_type in [bt_const,bt_type]) then
-                    procinfo^.flags:=procinfo^.flags or pi_do_call;
+                    procinfo.flags:=procinfo.flags or pi_do_call;
                 end;
 
              { It doesn't hurt to calculate it already though :) (JM) }
@@ -1904,7 +1904,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2002-08-16 14:24:57  carl
+  Revision 1.85  2002-08-17 09:23:34  florian
+    * first part of procinfo rewrite
+
+  Revision 1.84  2002/08/16 14:24:57  carl
     * issameref() to test if two references are the same (then emit no opcodes)
     + ret_in_reg to replace ret_in_acc
       (fix some register allocation bugs at the same time)
