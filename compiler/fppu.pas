@@ -163,9 +163,9 @@ uses
       { check for allowed PPU versions }
         if not (ppufile.GetPPUVersion = CurrentPPUVersion) then
          begin
+           Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion));
            ppufile.free;
            ppufile:=nil;
-           Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion));
            exit;
          end;
       { check the target processor }
@@ -1143,7 +1143,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.4  2001-05-09 14:11:10  jonas
+  Revision 1.5  2001-05-19 13:22:47  peter
+    * fixed crash with invalid ppu version detected
+
+  Revision 1.4  2001/05/09 14:11:10  jonas
     * range check error fixes from Peter
 
   Revision 1.3  2001/05/08 21:06:30  florian
