@@ -61,9 +61,10 @@ ex57.pp contains an example of the SigAction function.
 ex58.pp contains an example of the Signal function.
 ex59.pp contains an example of the Alarm function.
 ex60.pp contains an example of the GetDateTime function.
-serial.pp contains an example of serial port programming in FPC.
 ex61.pp contains an example of the CreateShellArgV function.
 ex62.pp contains an example of the ReadLink function.
 ex63.pp contains an example of the FRename function.
 ex64.pp contains an example of the SysInfo function.
 ex64.pp contains an example of the SigRaise function.
+ex66.pp contains an example of the MMap function.
+serial.pp contains an example of serial port programming in FPC.
