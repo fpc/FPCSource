@@ -264,7 +264,7 @@ implementation
                    Consts.concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
                    Consts.concat(Tai_const.Create_32bit(0));
-                   Consts.concat(Tai_const.Create_32bit($80000000));
+                   Consts.concat(Tai_const.Create_32bit(longint ($80000000)));
                    Consts.concat(Tai_const.Create_32bit($0000403f));
                    reference_reset_symbol(href,l1,0);
                    exprasmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
@@ -292,7 +292,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2004-09-26 09:12:50  florian
+  Revision 1.16  2004-09-30 19:32:19  hajny
+    * explicit typecast added to avoid range check error
+
+  Revision 1.15  2004/09/26 09:12:50  florian
     * fixed qword -> float conversion for x86
 
   Revision 1.14  2004/09/25 14:23:55  peter
