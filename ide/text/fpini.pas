@@ -1,9 +1,5 @@
 {
-<<<<<<< fpini.pas
     $Id$
-=======
-    $Id$
->>>>>>> 1.1.2.3
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor
 
@@ -578,7 +574,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-10-06 22:58:59  pierre
+  Revision 1.4  2000-10-06 23:00:13  pierre
+   * remove comment conflit
+
+  Revision 1.3  2000/10/06 22:58:59  pierre
    * fixes for linux GDB tty command (merged)
 
   Revision 1.2  2000/08/22 09:41:39  pierre
