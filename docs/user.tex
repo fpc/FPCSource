@@ -23,32 +23,17 @@
 \usepackage{html}
 \makeindex
 \latex{\usepackage{multicol}}
-\latex{\usepackage{fpkman}}
-\html{\input{fpk-html.tex}}
-% define the version number here, and not in the fpk.sty !!! 
-\newcommand{\fpkversion}{0.9.5}
+\latex{\usepackage{fpcman}}
+\html{\input{fpc-html.tex}}
 \newcommand{\remark}[1]{\par$\rightarrow$\textbf{#1}\par}
-% define many-used references.
-%\newcommand{\progref}{\htmladdnormallink{Programmer's guide}{../prog/prog.html}\ }
-%\newcommand{\refref}{\htmladdnormallink{Reference guide}{../ref/ref.html}\ }
-%\newcommand{\seecrt}{\htmladdnormallink{CRT}{../crt/crt.html}}
-%\newcommand{\seelinux}{\htmladdnormallink{Linux}{../linux/linux.html}}
-%\newcommand{\seestrings}{\htmladdnormallink{strings}{../strings/strings.html}}
-%\newcommand{\seedos}{\htmladdnormallink{DOS}{../dos/dos.html}}
-%\newcommand{\seegetopts}{\htmladdnormallink{getopts}{../getopts/getopts.html}}
-%\newcommand{\seeobjects}{\htmladdnormallink{objects}{../objects/objects.html}}
-%\newcommand{\seegraph}{\htmladdnormallink{graph}{../graph/graph.html}}
-%\newcommand{\seeprinter}{\htmladdnormallink{printer}{../printer/printer.html}}
-%\newcommand{\seego}{\htmladdnormallink{GO32}{../go32/go32.html}}
-%
 \newcommand{\olabel}[1]{\label{option:#1}}
 % We should change this to something better. See \seef etc.
 \newcommand{\seeo}[1]{See \ref{option:#1}}
 \begin{document}
-\title{Free Pascal :\\ User's manual}
-\docdescription{User's manual for \fpk, version \fpkversion}
-\docversion{1.0}
-\date{July 1997}
+\title{Free Pascal :\\ Users' manual}
+\docdescription{Users' manual for \fpc, version \fpcversion}
+\docversion{1.2}
+\date{March 1998}
 \author{Micha\"el Van Canneyt\\Florian Kl\"ampfl}
 \maketitle
 \tableofcontents
@@ -60,8 +45,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About this document
 \section{About this document}
-This is the user's manual for \fpk . It describes the installation and use of
-the \fpk compiler on the different supported platforms. 
+This is the user's manual for \fpc . It describes the installation and use of
+the \fpc compiler on the different supported platforms. 
 It does not attempt to give an exhaustive list of all supported commands,
 nor a definition of the Pascal language. Look at the
 \refref for these things. 
@@ -81,7 +66,7 @@ The \file{README} files are, in case of conflict with this manual,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About the compiler
 \section{About the compiler}
-\fpk is a 32-bit compiler for the i386 processor\footnote{Work is being done
+\fpc is a 32-bit compiler for the i386 and m68k processors\footnote{Work is being done
 on a port to ALPHA Architecture}. Currently, it supports 2 operating systems:
 \begin{itemize}
 \item \dos
@@ -90,7 +75,7 @@ on a port to ALPHA Architecture}. Currently, it supports 2 operating systems:
 and work is in progress to port it to other platforms (notably, \ostwo and
 \windowsnt).
 
-\fpk is designed to be, as much as possible, source compatible with 
+\fpc is designed to be, as much as possible, source compatible with 
 Turbo Pascal 7.0 and Delphi II (although this goal is not yet attained), 
 but it also enhances these languages with elements like function overloading.
 And, unlike these ancestors, it supports multiple platforms.
@@ -99,9 +84,9 @@ It also differs from them in the sense that you cannot use compiled units
 from one system for the other.
 
 Also, at the time of writing, there is no Integrated Development Environment
-(IDE) available for \fpk. This gap will, hopefully, be filled in the future.
+(IDE) available for \fpc. This gap will, hopefully, be filled in the future.
 
-\fpk consists of three parts :
+\fpc consists of three parts :
 \begin{enumerate}
 \item The compiler program itself.
 \item The Run-Time Library (RTL).
@@ -123,11 +108,11 @@ you can obtain more information on the Internet, on the following addresses:
 on the \linux port of the compiler. It contains also useful mail addresses and
 links to other places.
 \item \htmladdnormallink{http://www.brain.uni-freiburg.de/\~klaus/fpk-pas}
-{http://www.brain.uni-freiburg.de/~klaus/fpk-pas} is the main \fpk information site. 
+{http://www.brain.uni-freiburg.de/~klaus/fpc-pas} is the main \fpc information site. 
 It also contains the instructions for inscribing to the \textit{mailing-list}, 
 another useful source of information.
 \end{itemize}
-Both places can be used to download the \fpk distribution, although you can 
+Both places can be used to download the \fpc distribution, although you can 
 probably find them on other places also.
 
 Finally, if you think something should be added to this manual 
@@ -142,21 +127,21 @@ Let's get on with something useful.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Installing the compiler}
+\label{ch:Installation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Before Installation : Requirements
 \section{Before Installation : Requirements}
 
 %
-%
-
 % System requirements
+%
 \subsection{System requirements}
 The compiler needs at least the following hardware:
 \begin{enumerate}
 \item An I386 or higher processor. A coprocessor is not required, although it
 will slow down your program's performance if you do floating point calculations.
-\item 4 Mb of free memory. Under \dos, if you use DPMI memory management,
+\item 2 Mb of free memory. Under \dos, if you use DPMI memory management,
 such as under Windows, you will need at least 8 Mb.
 \item At least 500 Kb. free disk space.
 \end{enumerate}
@@ -179,12 +164,12 @@ Under \linux you need to have the following programs installed :
 \item Optionally (but highly recommended) : \gnu \file{make}. For easy
 recompiling of the compiler and Run-Time Library, this is needed.
 \end{enumerate}
-Other than that, \fpk should run on almost any \linux system.
+Other than that, \fpc should run on almost any I386 \linux system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Installing the compiler.
 \section{Installing the compiler.}
-The installation of \fpk is easy, but is platform-dependent.
+The installation of \fpc is easy, but is platform-dependent.
 We discuss the process for each platform separately.
 
 
@@ -194,7 +179,7 @@ We discuss the process for each platform separately.
 % Installing under DOS
 \subsection{Installing under DOS}
 \subsubsection{Mandatory installation steps.}
-First, you must get the latest distribution files of \fpk. They come as zip
+First, you must get the latest distribution files of \fpc. They come as zip
 files, which you must unzip first. The distribution zip file contains an
 installation program \file{INSTALL.EXE}. You must run this program to install
 the compiler. It allows you to select:
@@ -205,8 +190,8 @@ not, do you want Free Vision etc.)
 \end{itemize}
 The installation program generates a batch file which sets some environment
 variables : \verb|SET_PP.BAT|. This file is located in the directory where
-you installed \fpk. The installation program doesn't modify the 
-\file{AUTOEXEC.BAT}, since many people (including the authors of \fpk) 
+you installed \fpc. The installation program doesn't modify the 
+\file{AUTOEXEC.BAT}, since many people (including the authors of \fpc) 
 don't like this.
 
 You can choose to insert a call to this batch file in your \file{AUTOEXEC.BAT}
@@ -214,8 +199,8 @@ file, like this :
 \begin{verbatim}
   CALL C:\PP\SET_PP.BAT
 \end{verbatim}
-(This is assuming that you installed \fpk in the default location.)
-In order to run \fpk from any directory on your system, you must extend 
+(This is assuming that you installed \fpc in the default location.)
+In order to run \fpc from any directory on your system, you must extend 
 your path variable to contain the \verb|C:\PP\BIN| directory.
 You can choose to do this in your \file{AUTOEXEC.BAT} file, but you can also
 insert a statement in the \verb|SET_PP.BAT| file. Whatever the location you
@@ -227,11 +212,11 @@ choose, It should look something like this :
  
 If you want to use the graphic drivers you must modify the
 environment variable \var{GO32}. Instructions for doing this can be found
-in the documentation of the Graph unit, at the InitGraph procedure.
+in the documentation of the Graph unit, at the \var{InitGraph} procedure.
 
 \subsubsection{Optional Installation: The coprocessor emulation}
 For people who have an older CPU type, without math coprocessor (i387)
-it is necessary to install a coprocessor emulation, since \fpk uses the
+it is necessary to install a coprocessor emulation, since \fpc uses the
 coprocessor to do all floating point operations.
 
 The installation of the coprocessor emulation is handled by the 
@@ -244,75 +229,79 @@ the \verb|SET_PP.BAT| file, as follows:
 SET GO32=emu C:\PP\DRIVERS\EMU387 
 \end{verbatim}
 
-
 %
-%
-
 % Installing under Linux
+%
 \subsection{Installing under Linux}
 \subsubsection{Mandatory installation steps.}
-The \linux distribution of \fpk comes in two flavors:
+The \linux distribution of \fpc comes in three forms:
 \begin{itemize}
-\item an \file{aout} version, and
-\item an \file{ELF} version.
+\item a \file{tar.gz} version,
+\item a \file{.rpm} (Red Hat Package Manager) version, and
+\item a \file{.deb} (debian) version.
 \end{itemize}
-If you don't know which of these flavors you must use, contact you system
-administrator, and he will tell you. When that doesn't get you further, try
-the \file{ELF} distribution. \file{aout} systems are outdated, and may not be
-supported any more in the future.
+All of these packages contain a \var{ELF} version of the compiler binaries and
+units. the older \var{aout} binaries are no longer distributed, although you
+still can use the comiler on an \var{aout} system if you recompile it.
 
-Both flavors are shipped in \file{tar} archive files.
-This means that you should untar them, in some directory where you have
-write permission, using the following command:
+If you use the \file{.rpm} format, installation is limited to
 \begin{verbatim}
-tar -xvf fpk.tar
+rpm -i fpc-pascal-XXX.rpm
 \end{verbatim}
-We supposed here that you downloaded the file \file{fpk.tar} somewhere
-from the Internet.
+(\var{XXX} is the version number of the \file{.rpm} file)
 
-When the files are untarred, you will be left with more archive files, and
-two install programs: an installation shell script, and a X-windows
-installation program. Both have the same functionality.
-To install \fpk, all that you need to do now is give the following command:
+If you use debian, installation is limited to 
+\begin{verbatim}
+???
+\end{verbatim}
+
+When downloading the \var{.tar} file, installation is more interactive:
+
+This means that you should first untar the file, in some directory where 
+you have write permission, using the following command:
+\begin{verbatim}
+tar -xvf fpc.tar
+\end{verbatim}
+We supposed here that you downloaded the file \file{fpc.tar} somewhere
+from the Internet. (The real filename will have some version number in it, 
+which we omit here for clarity.)
+
+When the file is untarred, you will be left with more archive files, and
+an install program: an installation shell script.
+To install \fpc, all that you need to do now is give the following command:
 \begin{verbatim}
 ./install.sh
 \end{verbatim}
-Or, if you have the XForms libraries, you can start the X-Windows based
-program.
-\begin{verbatim}
-./fpkinstall
-\end{verbatim}
 And then you must answer some questions. They're very simple, they're
-concerned with 2 things :
+mainly concerned with 2 things :
 \begin{enumerate}
 \item Places where you can install different things.
 \item Deciding if you want to install certain components (such as sources
 and demo programs).
 \end{enumerate}
-If you run the installation program/script  as \var{root}, you can just accept all installation
+If you run the installation script as the \var{root} user, you can just accept all installation
 defaults. If you don't run as \var{root}, you must take care to supply the
 installation program with directory names where you have write permission,
 as it will attempt to create the directories you specify.
 In principle, you can install it wherever you want, though.
 
-Whatever the installation program you used, 
-at the end of installation, the installation program will generate a
-configuration file for the \fpk compiler which reflects the settings
+At the end of installation, the installation program will generate a
+configuration file for the \fpc compiler which reflects the settings
 that you chose. It will install this file in the \file{/etc} directory, (if
-you are not installing as \var{root}, this will fail, and in the
+you are not installing as \var{root}, this will fail), and in the
 directory where you installed the libraries.
 
-If you want the \fpk compiler to use this configuration file, it must be
+If you want the \fpc compiler to use this configuration file, it must be
 present in \file{/etc}, or you can set the environment variable
 \var{PPC\_CONFIG\_PATH}. Under \file{csh}, you can do this by adding  a 
 \begin{verbatim}
-setenv PPC_CONFIG_PATH /usr/lib/ppc/0.9.1
+setenv PPC_CONFIG_PATH /usr/lib/ppc/0.99.1
 \end{verbatim}
 line to your \file{.login} file in your home directory. 
 (see also the next section) 
 
 \subsubsection{Optional configuration steps}
-You may wish to set some environment variables. The \linux version of \fpk
+You may wish to set some environment variables. The \linux version of \fpc
 recognizes the following variables :
 \begin{itemize}
 \item \verb|PPC_EXEC_PATH| contains the directory where '\file{as}' and
@@ -329,8 +318,8 @@ built at the end of the installation process, except for the
 \verb|PPC_CONFIG_PATH| variable, which you must set if you didn't install
 things in the default places.
 \subsubsection{finally}
-Also distributed in \fpk is a README file. It contains the latest
-instructions for installing \fpk, and should always be read first.
+Also distributed in \fpc is a README file. It contains the latest
+instructions for installing \fpc, and should always be read first.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -339,7 +328,7 @@ instructions for installing \fpk, and should always be read first.
 After the installation is completed and the environment variables are
 set as described above, your first program can be compiled. 
 
-Included in the \fpk distribution are some demonstration programs, 
+Included in the \fpc distribution are some demonstration programs, 
 showing what the compiler can do. 
 You can test if the compiler functions correctly by trying to compile 
 these programs.
@@ -351,12 +340,9 @@ The compiler is called
 \end{itemize}
 To compile a program (e.g \verb|demo\hello.pp|) simply type :
 \begin{verbatim}
-  ppc386 -a hello
+  ppc386 hello
 \end{verbatim}
-at the command prompt. The option -a is needed currently to call 
-the external assembler. 
-This needed option will disappear when the the internal assembler works stable.
-but at the moment it is a mandatory option.
+at the command prompt. 
 
 If you got no error messages, the compiler has generated an executable 
 called \file{hello}  (no extension) under \linux, and a file \file{hello.exe}
@@ -378,6 +364,8 @@ be switched off by setting the \file{GO32} environment variable.
 % Usage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Compiler usage}
+\label{ch:Usage}
+
 Here we describe the essentials to compile a program and a unit. 
 We also describe how to make a stand-alone executable of the 
 compiled program under \dos. For more advanced uses of the compiler, 
@@ -417,13 +405,11 @@ anything else. Under \dos,
 additional processing is required. See the section on creating an
 executable.
 
-You will notice that there are also other files in your directory, with
-extensions \file{.o} and \file{.s}. These contain, respectively, 
-the assembler sources and the object files for your program. You can
-safely delete the assembler file, you don't need it any 
-more\footnote{One day this will be done automatically.}. If you compiled a
-program, you can delete the object file (\file{.o}), but not if you compiled
-a unit. Then the object file contains the code of the unit, and will be
+You will notice that there is also anothe file in your directory, with
+extensions \file{.o}. This contains, the object file for your program. 
+If you compiled a program, you can delete the object file (\file{.o}), 
+but not if you compiled a unit. 
+Then the object file contains the code of the unit, and will be
 linked in any program that uses the unit you compiled, so you shpuldn't
 remove it.
 
@@ -453,22 +439,16 @@ So don't delete them. If you want to distribute the unit, you must
 provide both the \file{.ppu} and \file{.o} file. One is useless without the
 other.
 
-The file containing the assembler (extension \file{.s}) can safely be
-deleted. You don't need it anymore.
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creating an executable for GO32V1, PMODE/DJ targets
-\section{Creating an executable for GO32V1, PMODE/DJ targets}
+\section{Creating an executable for GO32V1 and PMODE/DJ targets}
 
 This section applies only to \dos users. \linux users can skip this
 section (unless they're cross-compiling)
 
-
 %
-%
-
 % GO32V1
+%
 \subsection{GO32V1}
 When compiling under \dos, GO32V2 is the default target. However, if you use
 go32V1 (using the \var{-TDOS} switch), the 
@@ -507,7 +487,7 @@ command prompt, type :
 \begin{verbatim}
 COPY /B GO32.EXE+PROG PROG.EXE
 \end{verbatim}
-(assuming \fpk created a file called \file{PROG}, of course.)
+(assuming \fpc created a file called \file{PROG}, of course.)
 This becomes then a stand-alone executable for \dos, which doesn't need the
 \file{GO32.EXE} on the machine where it should run.
 \end{enumerate}
@@ -517,7 +497,7 @@ This becomes then a stand-alone executable for \dos, which doesn't need the
 
 % PMODE/DJ
 \subsection{PMODE/DJ}
-You can also use the PMODE/DJ extender to run your \fpk applications.
+You can also use the PMODE/DJ extender to run your \fpc applications.
 To make an executable which works with the PMODE extender, you can simply
 create an GO32V2 executable (the default), and then convert it to a PMODE
 executable with the following two extra commands:
@@ -564,8 +544,7 @@ information from your program. This can lead to size reductions of up to
 30 \%.
 
 You can use the \var{-Xs} switch to let the compiler do this stripping
-automatically. Under \linux, you can set the \var{-k-s} option, which does
-the same.
+automatically. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problems
@@ -619,6 +598,8 @@ If you want to use the compiler with \var{DPMI} you must have at least
 % Configuration.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Compiler configuration}
+\label{ch:CompilerConfiguration}
+
 The output of the compiler can be controlled in many ways. This can be done
 essentially in two distinct ways:
 \begin{itemize}
@@ -642,18 +623,19 @@ isn't under \dos.
 The available options are listed by category:
 
 %
+% General options
 %
 
-% General options
 \subsection{General options}
 \begin{description}
 \item[-h] if you specify this option, the compiler outputs a list of all options, 
 and exits after that.
 \olabel{h}
+\item[-?] idem as \var{-h}.
 \item[-i] This option tells the compiler to print the copyright information.
 \olabel{i}
-\item[-l] This option tells the compiler to print the \fpk logo on standard
-output. It also gives you the \fpk version number.
+\item[-l] This option tells the compiler to print the \fpc logo on standard
+output. It also gives you the \fpc version number.
 \olabel{l}
 \item[-Lx] Set the language the compiler uses for its messages. 
 \olabel{L}
@@ -662,24 +644,15 @@ output. It also gives you the \fpk version number.
 \item \textbf{D} : Use German.
 \item \textbf{E} : Use English.
 \end{itemize}
+\item [-n] Tells the compiler not to read the configuration file.
+\olabel{n}
 \end{description}
 
 %
-%
-
 % Options for getting feedback
+%
 \subsection{Options for getting feedback}
 \begin{description}
-\item[-qxx] This option tells the compiler to print on stdout some
-information on what it is doing. xx can be one of the following:
-\olabel{q}
-\begin{itemize}
-\item \textbf{x is empty} : Be quiet. Don't output anything
-\item \textbf{-} : Give some information.
-\item \textbf{--} : Give a lot of information.
-\end{itemize}
-This is an obsolete option, and is kept only for backwards
-compatibility. It may disappear in the future.\\
 \item[-vxxx] Be verbose. \var{xxx} is a combination of the following :
 \olabel{v}
 \begin{itemize}
@@ -687,6 +660,7 @@ compatibility. It may disappear in the future.\\
 \item \var{i} : Tells the compiler to show some general information.
 \item \var{w} : Tells the compiler to issue warnings.
 \item \var{n} : Tells the compiler to issue notes.
+\item \var{h} : Tells the compiler to issue hints.
 \item \var{l} : Tells the compiler to show the line numbers as it processes a
 file. Numbers are shown per 100.
 \item \var{u} : Tells the compiler to print the names of the files it opens.
@@ -698,18 +672,16 @@ functions as it is processing them.
 conditional.
 \item \var{m} : Tells the compiler to write which macros are defined.
 \item \var{d} : Tells the compiler to write other debugging info.
+\item \var{a} : Tells the compiler to write all possible info. (this is the
+same as spcifying all options)
+\item \var{0} : Tells the compiler to write no messages. This is useful when
+you want to override the default setting in the configuration file.
 \end{itemize}
-\item[-w] When this option is specified, the compiler issues warning. To
-turn off warnings, specify \var{-w-}\\
-This option is obsolete. and is kept only for backwards compatibility. It
-may disappear in the future.
-\olabel{w}
 \end{description}
 
 %
-%
-
 % Options concerning files and directories
+%
 \subsection{Options concerning files and directories}
 \begin{description}
 \item [-exxx] (\linux only) \file{xxx} specifies the directory where the 
@@ -722,9 +694,20 @@ the file in \file{xxx}.
 \item [-Fgxxx] (\linux only) \file{xxx} specifies the path where the compiler
 can find the \gnu C library.
 \olabel{Fg}
+\item [-Fixxx] adds \var{xxx} to the path where the compiler searches for
+its include files.
+\olabel{Fi}
+\item [-Flxxx] Adds \var{xxx} to the library searching path, and is passed
+to the linker.
+\olabel{Fl}
 \item [-Frxxx] (\linux only) \file{xxx} specifies the path where the
 compiler can find the error-definitions file.
 \olabel{Fr}
+\item [-Fuxxx] Idem as \var{-Up}.
+\olabel{Fu}
+\item [-P] uses pipes instead of files when assembling. This may speed up
+the compiler on \ostwo and \linux. Only with assemblers (such as \gnu
+\file{as}) that support piping..
 \item [-Upxxx] \olabel{Up} Tells the compiler to add \file{xxx} to the path where to find
 units. \\
 By default, the compiler only searches for units in the current directory 
@@ -736,9 +719,8 @@ compiler also to look in the directory \file{xxx}.
 \subsection{Options controlling the kind of output.}
 for more information on these options, see also \progref
 \begin{description}
-\item [-a] \olabel{a} Tells the compiler to generate an assembler source file, and to
-call an external assembler (\file{as}) to assemble this file. The file will
-not be deleted.
+\item [-a] \olabel{a} Tells the compiler not to delete the assembler file.
+This also counts for the (possibly) generated batch script.
 \item [-Axxx] \olabel{A}specifies what kind of assembler should be generated . Here
 \var{xxx} is one of the following :
 \begin{itemize}
@@ -746,17 +728,23 @@ not be deleted.
 \item \textbf{o} : A unix .o (object) file.
 \item \textbf{obj} : A OMF file for using the NASM assembler.
 \item \textbf{nasm} : a coff file using the NASM assembler.
-\item \textbf{wasm} : An assembler file for the Microsoft/Borland/Watcom assembler.
+\item \textbf{masm} : An assembler file for the Microsoft/Borland/Watcom assembler.
 \end{itemize}
+\item [-CD] Force dynamic linking.
 \item [-Chxxx] \olabel {Ch} Reserves \var{xxx} bytes heap.
 \item [-Ci] \olabel{Ci} Generate Input/output checking code.
+\item [-Cn] \olabel{Cn} Omit the linking stage.
 \item [-Co] \olabel{Co} Generate Integer overflow checking code.
 \item [-Cr] \olabel{Cr} Generate Range checking code.
 \item [-Csxxx] \olabel{Cs} Set stack size to \var{xxx}. (\ostwo only).
+\item [CS] \olabel{CS} Statically link your program/unit.
+\item [-Ct] \olabel{Ct} generate stack checking code. 
 \item [-dxxx] \olabel{d} Define the symbol name \var{xxx}. This can be used
 to conditionally compile parts of your code.
+\item {-E} \olabel{E} Same as \var{-Cn}.
 \item [-g] \olabel{g} Generate debugging information for debugging with
 \file{gdb}.
+\item [-gp] \olabel{gp} Generate profiler code for \file{gprof}.
 \item[-On] \olabel{O} optimize the compiler's output; \var{n} can have one
 of the following values :
 \begin{description}
@@ -764,6 +752,7 @@ of the following values :
 \item[g] optimize for size
 \item[G] optimize for time
 \item[x] optimize maximum
+\item[z] uncertain optimizations
 \item[2] optimize for Pentium II (tm)
 \item[3] optimize for i386
 \item[4] optimize for i486
@@ -772,8 +761,13 @@ of the following values :
 \end{description}
 The exact effect of these effects can be found in the appendices of the 
 \progref.
+\item [-oxxx] Tells the compiler to use \var{xxx} as the name of the output
+file (executable). Only with programs.
+\item [-pg] Tells the compiler to issue code for profiling support.
 \item [-s] \olabel{s} Tells the compiler not to call the assembler and linker.
-You must specify also \var{-a} if you specify this.
+Instead, the compiler writes a script, \file{PPAS.BAT} under \dos, or
+\file{ppas.sh} under \linux, which can then be executed to produce an
+executable.
 \item[-Txxx] \olabel{T}Specifies the target operating system. \var{xxx} can be one of
 the following:
 \begin{itemize}
@@ -783,13 +777,16 @@ the following:
 \item \textbf{WIN32} : Windows 32 bit (this is still under development).
 \item \textbf{GO32V2} : \dos and version 2 of the DJ DELORIE extender.
 \end{itemize}
+\item [-Uld] \olabel{Uld} make dynamic library from unit.
+\item [-Uls] \olabel{Uls} make static library from unit.
+\item [-uxxx] \olabel{U} Undefine symbol \var{xxx}.
 \item [-Xx] \olabel{X} executable options. This tells the compiler what
 kind of \linux executable should be generated. the parameter \var{x}
 can be one of the following:
 \begin{itemize}
-\item \textbf{e} : (\linux only) Create an \file{ELF} executable (default).
+% \item \textbf{e} : (\linux only) Create an \file{ELF} executable (default).
 \item \textbf{c} : (\linux only) Link with the C library. You should only use this when
-you start to port \fpk to another operating system.
+you start to port \fpc to another operating system.
 \item \textbf{s} : (\dos only) Strip the symbols from the executable.
 \end{itemize}
 \end{description}
@@ -897,18 +894,18 @@ In short, the \var{\#define} keywords act as conditionals.
 
 \chapter{Porting Turbo Pascal Code}
 
-\fpk was designed to resemble Turbo Pascal as closely as possible. There
-are, of course, restrictions. Some of these are due to the fact that \fpk is
-a 32-bit compiler. Other restrictions result from the fact that \fpk works
+\fpc was designed to resemble Turbo Pascal as closely as possible. There
+are, of course, restrictions. Some of these are due to the fact that \fpc is
+a 32-bit compiler. Other restrictions result from the fact that \fpc works
 on more than one operating system.
 
 In general we can say that if you keep your program code close to ANSI
 Pascal, you will have no problems porting from Turbo Pascal, or even Delphi, to
-\fpk. To a large extent, the constructs defined by Turbo Pascal are
+\fpc. To a large extent, the constructs defined by Turbo Pascal are
 supported.
 
 In the following sections we will list the Turbo Pascal constructs which are
-not supported in \fpk, and we will list in what ways \fpk extends the Turbo
+not supported in \fpc, and we will list in what ways \fpc extends the Turbo
 Pascal language.
 
 
@@ -916,11 +913,11 @@ Pascal language.
 % Things that will not work
 \section{Things that will not work}
 Here we give a list of things which are defined/allowed in Turbo Pascal, but
-which are not supported by \fpk. Where possible, we indicate the reason. 
+which are not supported by \fpc. Where possible, we indicate the reason. 
 \begin{enumerate}
 \item Parameter lists of previously defined functions and procedures must
 match exactly. The reason for this is the function overloading mechanism of
-\fpk. (however, \seeo{So})
+\fpc. (however, \seeo{So})
 \item \var {(* ... *)} as comment delimiters are not allowed in versions
 older than 0.9.1. This can easily be remedied with a grown-up editor. 
 \item The \var{MEM, MEMW, MEML} and \var{PORT} variables for memory and port
@@ -930,15 +927,15 @@ access are not available. This is due to the operating system. Under
 This means you cannot create procedures or variables with the same name.
 While they are not reserved words in Turbo Pascal, they are in Delphi.
 \item The reserved words \var{FAR, NEAR} are ignored. This is
-because \fpk is a 32 bit compiler, so they're obsolete.
+because \fpc is a 32 bit compiler, so they're obsolete.
 \item \var{INTERRUPT} only will work on a DOS machine.
 \item Boolean expressions are only evaluated until their result is completely
 determined. The rest of the expression will be ignored.
-\item At the moment of writing, the assembler syntax used in \fpk is \var{AT\&T}
-assembler syntax. This is mainly because \fpk uses \gnu \var{as}.
+\item At the moment of writing, the assembler syntax used in \fpc is \var{AT\&T}
+assembler syntax. This is mainly because \fpc uses \gnu \var{as}.
 \item Turbo Vision is not available.
 \item The 'overlay' unit is not available. It also isn't necessary, since
-\fpk is a 32 bit compiler, so program size shouldn't be a point.
+\fpc is a 32 bit compiler, so program size shouldn't be a point.
 \item There are more reserved words. (see appendix \ref{ch:reserved} for a
 list of all reserved words.)
 \item The command-line parameters of the compiler are different.
@@ -951,7 +948,7 @@ list of all reserved words.)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Things which are extra
 \section{Things which are extra}
-Here we give a list of things which are possible in \fpk, but which
+Here we give a list of things which are possible in \fpc, but which
 didn't exist in Turbo Pascal or Delphi.
 \begin{enumerate}
 \item There are more reserved words. (see appendix \ref{ch:reserved} for a
@@ -999,7 +996,7 @@ begin
      end;
 end;
 \end{verbatim}
-\item \fpk supports function overloading. That is, you can define many
+\item \fpc supports function overloading. That is, you can define many
 functions with the same name, but with different arguments. For example:
 \begin{verbatim}
 procedure DoSomething (a : longint);
@@ -1045,12 +1042,12 @@ When you compile a program with the \var{-So} switch, the compiler will
 attempt to mimic the Turbo Pascal compiler in the following ways:
 \begin{itemize}
 \item Assigning a procedural variable doesn't require a @ operator. One of
-the differences between Turbo Pascal and \fpk is that the latter requires
+the differences between Turbo Pascal and \fpc is that the latter requires
 you to specify an address operator when assigning a value to a procedural
 variable. In Turbo Pascal compatibility mode, this is not required.
 \item Procedure overloading is disabled.
 \item Forward defined procedures don't need the full parameter list when
-they are defined. Due to the procedure overloading feature of \fpk, you must
+they are defined. Due to the procedure overloading feature of \fpc, you must
 always specify the parameter list of a function when you define it, even
 when it was declared earlier with \var{Forward}. In Turbo Pascal
 compatibility mode, there is no function overloading, hence you can omit the
@@ -1080,8 +1077,8 @@ begin
 end;
 \end{verbatim}
 In Turbo Pascal compatibility mode, the function will be called recursively 
-when the \var{writeln} statement is processed. In \fpk, the function result
-will be printed. In order to call the function recusively under \fpk, you
+when the \var{writeln} statement is processed. In \fpc, the function result
+will be printed. In order to call the function recusively under \fpc, you
 need to implement it as follows :
 \begin{verbatim}
 Function expr : Longint;
@@ -1105,7 +1102,7 @@ this text is processed too.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Utilities and units that come with Free Pascal}
-Besides the compiler and the Run-Time Library, \fpk comes with some utility
+Besides the compiler and the Run-Time Library, \fpc comes with some utility
 programs and units. Here we list these programs and units. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1113,7 +1110,7 @@ programs and units. Here we list these programs and units.
 \section{Supplied programs}
 
 \begin{itemize}
-\item \file{dumppu} is a program which shows the contents of a \fpk unit. It
+\item \file{dumppu} is a program which shows the contents of a \fpc unit. It
 comes in source form, and must be compiled before you can use it. Once
 compiled, you can just issue the following command
 \begin{verbatim}
@@ -1122,7 +1119,7 @@ compiled, you can just issue the following command
 to display the contents of the \file{foo.ppu} unit.
 \item Also distributed with Free Pascal comes a series of demonstration programs.
 These programs have no other purpose than demonstrating the capabilities of
-\fpk. They are located in the \file{demo} directory of the sources.
+\fpc. They are located in the \file{demo} directory of the sources.
 \item All example programs of the documentation are available. Check out the
 directories that end on \file{ex} in the documentation sources. There you
 wll find all example sources.
@@ -1132,7 +1129,7 @@ wll find all example sources.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied units
 \section{Supplied units}
-Here we list the units that come with the \fpk distribution. Since there is
+Here we list the units that come with the \fpc distribution. Since there is
 a difference in the supplied units per operating system, we list them
 separately per system.
 
@@ -1204,12 +1201,14 @@ It also supports long options.
 
 \chapter{Debugging your Programs}
 
-\fpk supports debug information for the \gnu debugger \var{gdb}. 
+\fpc supports debug information for the \gnu debugger \var{gdb}. 
 This chapter describes shortly how to use this feature. It doesn't attempt
 to describe completely the \gnu debugger, however.
 For more information on the workings of the \gnu debugger, see the \var{gdb}
 users' guide.
 
+\fpc also suports \var{gprof}, the \gnu profiler, see section \ref{se:gprof}
+for more information on profiling.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compiling your program with debugger support
@@ -1307,11 +1306,39 @@ read or written.
 
 for more information, see the \var{gdb} users' guide, or use the \var{'help'}
 function in \var{gdb}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using gprof
+\section{Support for \var{gprof}, the \gnu profiler}
+\label{se:gprof}
+
+You can compile your programs with profiling support. for this, you just
+have to use the compiler switch \var{-pg}. The compiler wil insert the
+necessary stuff for profiling. 
+
+When you have done this, you can run your program uder the gnu profiler,
+\var{gprof}, as follows :
+\begin{verbatim}
+gprog yourexe
+\end{verbatim}
+Where \file{yourexe} is the name of your executable.
+
+You may want to capture the outpus of the profiler in a file, since it can
+be quite a lot, as follows:
+\begin{verbatim}
+gprog yourexe >gprof.out
+\end{verbatim}
+
+For more information on the \gnu profiler \var{gprof}, see its manual.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CGI.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{CGI programming in Free Pascal}
+\label{ch:CGIProgramming}
+
 In these days of heavy WWW traffic on the Internet, CGI scripts have become
 an important topic in computer programming. While CGI programming can be
 done with almost any tool you wish, most languages aren't designed for it.
@@ -1325,7 +1352,7 @@ complex programming. The basic RTL routines in principle are enough to get
 the job done, but you can create, with relatively little effort, some units
 which can be used as a base for more complex CGI programming.
 
-That's why, in this chapter, we will discuss the basics of CGI in \fpk.
+That's why, in this chapter, we will discuss the basics of CGI in \fpc.
 In the subsequent, we will assume that the server for which the programs are 
 created, are based upon the NCSA \var{httpd} WWW server, as the examples
 will be based upon the NCSA method of CGI programming\footnote{... and it's 
@@ -1453,10 +1480,10 @@ this may be needed.
 If your form uses the \var{GET} method of passing it's data, the CGI script
 needs to read the \var{QUERY\_STRING} environment variable to get it's data. 
 Since this variable can, and probably will, be more than 255 characters long, 
-you will not be able to use normal string methods, present in pascal. \fpk
+you will not be able to use normal string methods, present in pascal. \fpc
 implements the \var{pchar} type, which is a pointer to a null-terminated
 array of characters.
-And, fortunately, \fpk has a
+And, fortunately, \fpc has a
 \seestrings\  unit, which eases the use of the
 \var{pchar} type.
 
@@ -1547,13 +1574,13 @@ You may have noticed the following unorthodox call :
 \begin{verbatim}
 inc(longint(p));
 \end{verbatim}
-\fpk doesn't give you pointer arithmetic as in C. However, \var{longints} and
+\fpc doesn't give you pointer arithmetic as in C. However, \var{longints} and
 \var{pointers} have the same length (namely 4 bytes). Doing a type-cast to a
 \var{longint} allows you to do arithmetic on the \var{pointer}.
 
 Note however, that this is a non-portable call. This may work on the I386
 processor, but not on a ALPHA processor (where a pointer is 8 bytes long). 
-This will be remedied in future releases of \fpk.
+This will be remedied in future releases of \fpc.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1581,7 +1608,7 @@ And that's all there is to it !
 % I'm under Windows, what now ?
 \section{I'm under Windows, what now ?}
 Under Windows the system of writing CGI scripts is totally different. If you
-use \fpk under Windows then you also should be able to do CGI programming,
+use \fpc under Windows then you also should be able to do CGI programming,
 but the above instructions will not work. 
 
 If some kind soul is willing to write a section on CGI programming under
@@ -1597,105 +1624,103 @@ Windows, I'd be willing to include it here.
 The following is alphabetical listing of all command-line options, as
 generated by the compiler:
 \begin{verbatim}
-PPC386 [options] <inputfile> [options]
-  + switch option on, - off
-  with * marked options have no effect
-  with ! marked options are only partial implemented
-  -a     the compiler doesn't delete the generated assembler file
-  -B     build
++ switch option on, - off
+  -a     the compiler doesn''t delete the generated assembler file
+  -B+    build
   -C     code generation options
-           * -Ca 
-           * -Ce 
-                 
-             -Chxxxx  xxxx bytes heap 
-                 (must be less than 67107840 und greater than 1023
-             -Ci IO-checking
-             -Co check overflow of integer operations
-             -Cr range checking
-             -Csxxxx stack size (only OS/2)
-             
-  -dxxx  defines the symbol xxx
-  -D     controlls the generation of DEF file (only OS/2)
-             -Ddxxxx xxxx is the description
-             -Do generate DEF file
-             -Dw PM application
-  -exxxx xxxx path to executables (only LINUX)
-  -g     generate debugger informations
-  -F     set file names and pathes
-             -Fexxxx redirect error output to xxxx
-             -Fgxxxx xxxxx search path for the GNU C lib (LINUX only)
-             -Frxxxx xxxxx search path for the error message file (only LINUX)
+           -Ca      not implemented
+           -Ce      not implemented
+           -CD      Dynamic linking
+           -Ch<n>   <n> bytes heap (between 1023 and 67107840)
+           -Ci      IO-checking
+           -Cn      omit linking stage
+           -Co      check overflow of integer operations
+           -Cr      range checking
+           -Ct      stack checking
+           -CS      static linking
+  -d<x>  defines the symbol <x>
+  -e<x>  set path to executables
+  -E     same as -Cn
+  -g     generate debugger information
+           -gp      generate also profile code for gprof
+  -F     set file names and paths
+           -Fe<x>   redirect error output to <x>
+           -Fg<x>   <x> search path for the GNU C lib
+           -Fr<x>   <x> search path for the error message file
+           -Fi<x>   adds <x> to include path
+           -Fl<x>   adds <x> to library path
+           -Fu<x>   adds <x> to unit path
+  -k<x>  Pass <x> to the linker
   -L     set language
-             -LD german
-             -LE english
+           -LD      german
+           -LE      english
   -l     write logo
   -i     information
-  -Ixxx  adds xxx to include path
   -n     don't read the default config file
-  -oxxx  change the name of the executable produced to xxx
-  -q-    write information when compiling  (obsolete, see -v)
+  -o<x>  change the name of the executable produced to <x>
+  -pg    generate profile code for gprof
+  -P     use pipes instead of creating temporary assembler files
   -S     syntax options
-             -S2 switch some Delphi 2 extension on
-             -Sa semantic check of expressions
-                 a higher level includes the lower
-                 -Sa0 only ANSI pascal expressions are allowed
-                 -Sa1 functions results havn't to be assigned to variables
-                 -Sa2 @-operator returns typed pointer
-                 -Sa4 assigment results are typed (allows a:=b:=0)
-                 -Sa9 allows expressions with no side effect
-             -Sc supports operators like C (*=,+=,/= and -=)
-             -Sg allows LABEL and GOTO
-             -Si support C++ stlyed INLINE
-             -Sm support macros like C (global)
-             -So tries to be TP/BP 7.0 compatible
-             -Ss the name of constructors must be init
-                 the name of destructors must be done
-             -St allows static keyword in objects
+           -S2      switch some Delphi 2 extension on
+           -Sa      semantic check of expressions (higher level includes lower)
+                     -Sa4  assigment results are typed (allows a:=b:=0)
+                     -Sa9  allows expressions with no side effect
+           -Sc      supports operators like C (*=,+=,/= and -=)
+           -Sg      allows LABEL and GOTO
+           -Si      support C++ stlyed INLINE
+           -Sm      support macros like C (global)
+           -So      tries to be TP/BP 7.0 compatible
+           -Ss      constructor name must be init (destructor must be done)
+           -St      allows static keyword in objects
   -s     don't call assembler and linker (only with -a)
-  -T     target operating system
-             -TDOS DOS extender by DJ Delorie
-             -TOS2 OS/2 2.x
-             -TLINUX Linux
-          !  -TWin32 Windows 32 Bit
-             -TGO32V2 version 2 of DJ Delorie DOS extender
-  -uxxx  undefines the symbol xxx
+  -T<x>  Target operating system
+           -TDOS    DOS extender by DJ Delorie
+           -TOS2    OS/2 2.x
+           -TLINUX  Linux
+           -TWin32  Windows 32 Bit
+           -TGO32V2 version 2 of DJ Delorie DOS extender
+  -u<x>  undefines the symbol <x>
   -U     unit options
-             -Un don't check the unit name
-             -Us compile a system unit
-             -Upxxxx adds xxxx to the unit path
-  -vxxx  Be verbose. xxx is a combination of the following letters :
-          e : Show errors (default)       i : Show general info
-          w : Show warnings               l : Show linenumbers
-          u : Show used files             t : Show tried files
-          p : Show compiled procedures    c : Show conditionals
-          d : Show debug info             m : Show defined macros
-  -w-    turns warnings off (Obsolete, see -v) 
+           -Uls     make static library from unit
+           -Uld     make dynamic library from unit
+           -Un      don't check the unit name
+           -Up<x>   same as -Fu<x>
+           -Us      compile a system unit
+  -v<x>  Be verbose. <x> is a combination of the following letters :
+           e : Show errors (default)       d : Show debug info
+           w : Show warnings               u : Show used files
+           n : Show notes                  t : Show tried files
+           h : Show hints                  m : Show defined macros
+           i : Show general info           p : Show compiled procedures
+           l : Show linenumbers            c : Show conditionals
+           a : Show everything             0 : Show nothing (except errors)
   -X     executable options
-             -Xc link with the c library
-             -Xe create ELF executable
+           -Xc      link with the c library
+           -Xs      strip all symbols from executable
 
 Processor specific options:
   -A     output format
-             -Aatt  AT&T assembler
-             -Ao    coff file using GNU AS
-             -Aobj  OMF file using NASM
-             -Anasm coff file using NASM
-             -Amasm assembler for the Microsoft/Borland/Watcom assembler
+           -Aatt    AT&T assembler
+           -Ao      coff file using GNU AS
+           -Aobj    OMF file using NASM
+           -Anasm   coff file using NASM
+           -Amasm   assembler for the Microsoft/Borland/Watcom assembler
   -R     assembler reading style
-             -Ratt  read AT&T style assembler
-             -Rintel read Intel style assembler
-             -Rdirect copy assembler text directly to assembler file
+           -Ratt    read AT&T style assembler
+           -Rintel  read Intel style assembler
+           -Rdirect copy assembler text directly to assembler file
   -O     optimizations
-             -Oa simple optimizations
-             -Og optimize for size
-             -OG optimize for time
-             -Ox optimize maximum
-             -O2 optimize for Pentium II (tm)
-             -O3 optimize for i386
-             -O4 optimize for i486
-             -O5 optimize for Pentium (tm)
-             -O6 optimizations for PentiumPro (tm)
-  -h,-?  shows this help
+           -Oa      simple optimizations
+           -Og      optimize for size
+           -OG      optimize for time
+           -Ox      optimize maximum
+           -Oz      uncertain optimizes (see docs)
+           -O2      optimize for Pentium II (tm)
+           -O3      optimize for i386
+           -O4      optimize for i486
+           -O5      optimize for Pentium (tm)
+           -O6      optimizations for PentiumPro (tm)
+  
 \end{verbatim}
 
 
@@ -1802,6 +1827,14 @@ xor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Compiler error messages}
+\label{ch:ErrorMessages}
+This appendix is meant to list all the compiler errors. the list of compiler
+errors is fairly complete, the assembler errors are less complete.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compiler errors.
+\section{Compiler errors}
+The following is a list of general compiler errors. 
 \begin{description}
 \item [unexpected end of file]
 this typically happens in on of the following cases :
@@ -1815,6 +1848,9 @@ balanced;
 \item [duplicate identifier:]
 The identifier was already declared in the current scope.
 \item [syntax error:]
+An error against the Turbo Pascal language was encountered. This happens
+typically when an illegal character is found in the sources file.
+\item [Parser - syntax error] 
 An error against the Turbo Pascal language was encountered. This happens
 typically when an illegal character is found in the sources file.
 \item [out of memory]
@@ -1835,21 +1871,21 @@ scope where it's defined.
 An illegal character was encountered in the input file. 
 \item [source too long]
 The compiler cannot cope with source files longer than (???)
-\item [INLINE not supported (use option -Si for C++ styled inlining)]
+\item [procedure type INLINE not supported]
 You tried to compile a program with C++ style inlining, and forgot to
 specify the \var{-Si} option (\seeo{Si}). The compiler doesn't support C++
 styled inlining by default. 
-\item [NEAR ignored]
+\item [procedure type NEAR ignored]
 This is a warning. \var{NEAR} is a construct for 8 or 16 bit programs. Since
 the compile generates 32 bit programs, it ignores this directive.
-\item [FAR ignored]
+\item [procedure type FAR ignored]
 This is a warning. \var{FAR} is a construct for 8 or 16 bit programs. Since
 the compile generates 32 bit programs, it ignores this directive.
 \item [INTERRUPT ignored]
 Interrupt procedures aren't possible on operating systems, other than DOS, 
 it isn't allowed to take over an interrupt at the user level. (versions
 older than 0.9.2 didn't have \var{INTERRUPT} support.
-\item [private methods can't be VIRTUAL]
+\item [private methods shouldn't be VIRTUAL]
 You declared a method in the private part of a object (class) as
 \var{virtual}. This is not allowed. Private methods cannot be overridden
 anyway.
@@ -1878,19 +1914,16 @@ incompatible with the parameters in the function or procedure definition.
 \item [statement expected]
 
 \item [illegal integer constant]
-
+You made an exression which isn't an integer, and the compiler expects the
+result to be an integer.
 \item [illegal expression]
 \item [expression too complicated - FPU stack overflow]
 Your expression is too long for the compiler. You should try dividing the
 construct over multiple assignments.
-\item [CONTINUE not possible]
+\item [CONTINUE not allowed]
 You're trying to use \var{continue} outside a loop construction.
-\item [BREAK not possible]
+\item [BREAK not allowed]
 You're trying to use \var{break} outside a loop construction.
-\item [exception handling needed to compile this (command line -Se)]
-Older (less than 0.6.6) versions of \fpk only. Your statement needs exception handling. 
-Exception handling isn't supported by default in the compiler. 
-Use the \var{-Se} option to turn on exception handling.% (\seeo{Se})
 \item [illegal qualifier]
 One of the following is appending :
 \begin{itemize}
@@ -1898,30 +1931,36 @@ One of the following is appending :
 \item You're indexing a variable that is not an array.
 \item You're dereferencing a variable that is not a pointer. 
 \end{itemize}
-\item [illegal count variable] The type of a \var{for} loop must be ordinal.
-
-\item [ordinal type expected]
+\item [illegal counter variable]
+The type of a \var{for} loop must be ordinal.
+\item [ordinal value expected]
 The expression must be of ordinal type (i.e. maximum a Longint)
 \item [high range limit < low range limit]
 You are declaring a subrange, and the lower limit is higher than the high
 limit of the range.
-\item [illegal unit identifier]
+\item [illegal unit name]
 The name of the unit doesn't match the file name.
 \item [unknown format of unit file]
 The unit the compiler is trying to read is corrupted, or generated with a
 newer version of the compiler.
-\item [error when reading unit]
+\item [Reading PPU-File]
+The unit the compiler is trying to read is corrupted, or generated with a
+newer version of the compiler.
+\item [Invalid PPU-File entry]
 The unit the compiler is trying to read is corrupted, or generated with a
 newer version of the compiler.
 \item [circular unit use]
 Two units are using each other in the interface part. This is only allowed
 in the implementation part.
 \item [too many units]
-\fpk has a limit of 1024 units in a program. You can change this behavior
+\fpc has a limit of 1024 units in a program. You can change this behavior
 by changing the \var{maxunits} constant in the \file{files.pas} file of the
 compiler, and recompiling the compiler. 
 \item [illegal char constant]
+The compiler expects a character constant, but finds something else.
 \item [overloaded identifier isn't a function identifier]
+The compiler encountered a symbol with the same name a s an overloaded
+function, but it isn't a function it can overload.
 \item [overloaded functions have the same parameter list]
 You're declaring overloaded functions, but with the same parameter list.
 Overloaded function must have at least 1 different parameter in their
@@ -1934,8 +1973,6 @@ You're calling overloaded functions with a parameter that doesn't correspond
 to any of the declared function parameter lists. e.g. when you have declared
 a function with parameters \var{word} and \var{longint}, and then you call
 it with a parameter which is of type \var{integer}.
-\item [exception handling not used, however needed by function]
-This message is no longer used.
 \item [forward declaration not solved:]
 This can happen in two cases:
 \begin{itemize}
@@ -1945,7 +1982,7 @@ with a \var{forward} directive, but do not implement it.
 block.
 \end{itemize}
 \item [input file not found]
-\fpk cannot find the program or unit source file, or the included file isn't
+\fpc cannot find the program or unit source file, or the included file isn't
 found.
 \item [function header doesn't match the forward declaration]
 You declared the function in the \var{interface} part, or with the
@@ -1965,10 +2002,8 @@ You want to include (i.e \var{\{\$i file\}}) which the compiler doesn't
 find. Check if the filename is correct.
 \item [record or class type expected]
 The variable or expression isn't of the type \var{record} or \var{class}.
-\item [not found:]
-An unknown symbol was encountered.
 \item [only values can be jumped over in enumeration types]
-\fpk allows enumeration constructions as in C. Given the following
+\fpc allows enumeration constructions as in C. Given the following
 declaration two declarations:
 \begin{verbatim}
 type a = (A_A,A_B,A_E=:6,A_UAS:=200);
@@ -1985,7 +2020,7 @@ you're compiling now. (see the option \var{-T} \seeo{T}).
 You cannot declare a constant of type class or object.
 \item [duplicate case label]
 You are specifying the same label 2 times in a \var{case} statement.
-\item [range check error while Eva luting constants]
+\item [range check error while evaluating constants]
 The constants are out of their allowed range.
 \item [illegal type conversion]
 When doing a type-cast, you must take care that the sizes of the variable and
@@ -1995,7 +2030,7 @@ The variable of expression isn't of the type \var{class}.
 \item [functions variables of overloaded functions are not allowed]
 You are trying to assign an overloaded function to a procedural variable.
 This isn't allowed.
-\item [can't open assembler output file]
+\item [can't create assembler file]
 The assembler output file cannot be opened. This can have many causes, but
 'disk full' is a reasonable guess.
 \item [string length must be a value from 1 to 255]
@@ -2017,10 +2052,11 @@ constructor of the class.
 \item [file types must be var parameters]
 You cannot specify files as value parameters, i.e. they must always be
 declared \var{var} parameters.
-\item [string constant exceeds line end]
-You forgot probably to include the closing ' in a string. 
+\item [string exceeds line]
+You forgot probably to include the closing ' in a string, so it occupies
+multiple lines. 
 \item [illegal version of the unit:]
-This unit was compiled with an earlier version of \fpk.
+This unit was compiled with an earlier version of \fpc.
 \item [illegal floating point constant]
 \item [destructors can't have parameters]
 You are declaring a destructor with a parameter list. Destructor methods
@@ -2048,7 +2084,7 @@ If you declare overloaded virtual methods in a class, then they should either
 all support exceptions, or none. You cannot mix them.
 \item [EXPORT declared functions can't be called]
 You are trying to call a procedure you declared as \var{export}. Due to the
-different calling scheme of \fpk and C, you cannot call such a function from
+different calling scheme of \fpc and C, you cannot call such a function from
 within your Pascal program. 
 \item [EXPORT declared functions can't be nested]
 You cannot declare a function or procedure within a function or procedure
@@ -2056,14 +2092,13 @@ that was declared as an export procedure.
 \item [methods can't be EXPORTed]
 You cannot declare a procedure that is a method for an object as
 \var{export}ed. That is, you methods cannot be called from a C program.
-\item [SELF is allowed in methods only]
+\item [SELF is only allowed in methods]
 You are trying to use the \var{self} parameter outside an object's method.
 Only methods get passed the \var{self} parameters.
 \item [call by var parameters have to match exactly]
 When calling a function declared with \var{var} parameters, the variables in
 the function call must be of exactly the same type. There is no automatic
 type conversion. 
-\item [type identifiers are not allowed in this context]
 \item [class identifier expected]
 The variable isn't of type \var{class}.
 \item [class isn't a super class of the current class]
@@ -2071,9 +2106,6 @@ When calling inherited methods, you are trying to call a method of a strange
 class. You can only call an inherited method of a parent class.
 \item [methods can be only in other methods called direct with type identifier of the class]
 A construction like \var{sometype.somemethod} is only allowed in a method.
-\item [illegal INHERITED: class has no super class]
-You specified an \var{INHERITED} keyword in a method of a class which has no
-parent class, i.e. which isn't derived from another class.
 \item [illegal type: pointer to class expected]
 You specified an illegal type.
 \item [possible illegal call of constructor or destructor (doesn't match to this context)]
@@ -2091,9 +2123,9 @@ does not exist.
 When using the extended syntax of \var{dispose}, you must specify the
 destructor method of the class you are trying to dispose of. 
 The procedure you specified is not a destructor.
-
-\item [assembler: illegal constant]
-\item [illegal type declaration of set elements]
+\item [type conflict between set elements]
+There is at least one set element which is of the wrong type, i.e. not of
+the set type.
 \item [illegal expression in set constructor]
 \item [type conflict between set elements]
 You are specifying elements of a different type for a set.
@@ -2101,7 +2133,7 @@ You are specifying elements of a different type for a set.
 \item [expression type must be class or record type]
 The expression isn't of type class or record.
 \item [the operator / isn't defined for integer, the result will be real, use DIV instead]
-When using the '/' operator in \fpk the result will be of type real, when
+When using the '/' operator in \fpc the result will be of type real, when
 used with integers.
 \item [can't write PPU file]
 There is a problem when writing to the unit file.
@@ -2141,7 +2173,7 @@ An error occurred when assembling. This can have many causes.
 This is a warning. The identifier was declared (locally or globally) but
 wasn't used (locally or globally).
 \item [functions with void return value can't return any value]
-In \fpk, you can specify a return value for a function when using 
+In \fpc, you can specify a return value for a function when using 
 the \var{exit} statement. This error occurs when you try to do this with a
 procedure. Procedures  cannot return a value.
 \item [Hmmm..., this code can't be much efficient]
@@ -2160,7 +2192,7 @@ but there is no corresponding declaration in the interface part of the unit.
 \item [It's not possible to overload this operator]
 You are trying to overload an operator which cannot be overloaded.
 \item [Abstract methods can't be called direct]
-\fpk understands the \var{abstract} keyword.
+\fpc understands the \var{abstract} keyword.
 \item [the mix of CLASSES and OBJECTS are not allowed]
 You cannot use \var{object} and \var{class} intertwined.
 \item [macro buffer overflow while reading or expanding a macro]
@@ -2221,7 +2253,7 @@ raise exceptions in an \var{except} block.
 \end{description}
 
 \chapter{Run time errors}
-The \fpk Run-tim library generates the following errors at run-time
+The \fpc Run-tim library generates the following errors at run-time
 \footnote{The \linux port will generate only a subset of these.}:
 
 \begin{description}
@@ -2309,7 +2341,7 @@ The stack has grown beyond itss maximum size. This error can easily occur if
 you have recursive functions. 
 \item [203  Heap overflow error]
 The heap has grown beyond its boundaries, ad you are rying to get more
-memory. Please note that \fpk provides a growing heap, i.e. the heap will
+memory. Please note that \fpc provides a growing heap, i.e. the heap will
 try to allocate more memory if needed. However, if the heap has reached the
 maximum size allowed by the operating system or hardware, then you will get
 this error.
@@ -2340,4 +2372,346 @@ another element. (objects unit)
 \item [216  General Protection fault]
 You are trying to access memory outside your appointed memory.
 \end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Assembler reader errors
+\section{Assembler reader errors.}
+
+This section lists the errors that are generated by the inline assembler reader.
+They are {\em not} the messages of the assembler itself.
+
+% General assembler errors.
+\subsection{General assembler errors}
+\begin{description}
+\item [Divide by zero in asm evaluator]
+This fatal error is reported when a constant assembler expressions
+does a division by zero.
+
+\item [Evaluator stack overflow, Evaluator stack underflow]
+These fatal errors are reported when a constant assembler expression
+is too big to evaluate by the constant parser. Try reducing the
+number of terms.
+
+\item [Invalid numeric format in asm evaluator]
+This fatal error is reported when a non-numeric value is detected
+by the constant parser. Normally this error should never occur.
+
+\item [Invalid Operator in asm evaluator]
+This fatal error is reported when a mathematical operator is detected
+by the constant parser. Normally this error should never occur.
+
+\item [Unknown error in asm evaluator]
+This fatal error is reported when an internal error is detected
+by the constant parser. Normally this error should never occur.
+
+\item [Invalid numeric value]
+This warning is emitted when a conversion from octal,binary or hexadecimal
+to decimal is outside of the supported range.
+
+\item [Escape sequence ignored]
+This error is emitted when a non ANSI C escape sequence is detected in
+a C string.
+
+\item [Asm syntax error - Prefix not found]
+This occurs when trying to use a non-valid prefix instruction
+
+\item [Asm syntax error - Trying to add more than one prefix]
+This occurs when you try to add more than one prefix instruction
+
+\item [Asm syntax error - Opcode not found]
+You have tried to use an unsupported or unknown opcode
+
+\item [Constant value out of bounds]
+This error is reported when the constant parser determines that the
+value you are using is out of bounds, either with the opcode or with
+the constant declaration used.
+
+\item [Non-label pattern contains @]
+This only applied to the m68k and Intel styled assembler, this is reported
+when you try to use a non-label identifier with a '@' prefix.
+\item [Internal error in Findtype()]
+\item [Internal Error in ConcatOpcode()]
+\item [Internal Errror converting binary]
+\item [Internal Errror converting hexadecimal]
+\item [Internal Errror converting octal]
+\item [Internal Error in BuildScaling()]
+\item [Internal Error in BuildConstant()]
+\item [internal error in BuildReference()]
+\item [internal error in HandleExtend()]
+\item [Internal error in ConcatLabeledInstr()]
+\label{InternalError}
+These errors should never occur, if they do then you have found
+a new bug in the assembler parsers. Please contact one of the
+developers.
+\item [Opcode not in table, operands not checked]
+This warning only occurs when compiling the system unit, or related
+files. No checking is performed on the operands of the opcodes.
+
+\item [@CODE and @DATA not supported]
+This Turbo Pascal construct is not supported.
+\item [SEG and OFFSET not supported]
+This Turbo Pascal construct is not supported.
+\item [Modulo not supported]
+Modulo constant operation is not supported.
+\item [Floating point binary representation ignored]
+\item [Floating point hexadecimal representation ignored]
+\item [Floating point octal representation ignored]
+These warnings occur when a floating point constant are declared in
+a base other then decimal. No conversion can be done on these formats.
+You should use a decimal representation instead.
+\item [Identifier supposed external]
+This warning occurs when a symbol is not found in the symolb table, it
+is therefore considered external.
+\item [Functions with void return value can't return any value in asm code]
+Only routines with a return value can have a return value set.
+
+\item [Error in binary constant]
+\item [Error in octal constant]
+\item [Error in hexadecimal constant]
+\item [Error in integer constant]
+\label{ErrorConst}
+These errors are reported when you tried using an invalid constant expression,
+or that the value is out of range.
+
+\item [Invalid labeled opcode]
+\item [Asm syntax error - error in reference]
+\item [Invalid Opcode]
+\item [Invalid combination of opcode and operands]
+\item [Invalid size in reference]
+\item [Invalid middle sized operand]
+\item [Invalid three operand opcode]
+\item [Assembler syntax error]
+\item [Invalid operand type]
+You tried using an invalid combination of opcode and operands, check the syntax
+and if you are sure it is correct, please contact one of the developers.
+
+\item [Unknown identifier]
+The identifier you are trying to access does not exist, or is not within the
+current scope.
+
+\item [Trying to define an index register more than once]
+\item [Trying to define a segment register twice]
+\item [Trying to define a base register twice]
+You are trying to define an index/segment register more then once.
+
+\item [Invalid field specifier]
+The record or object field you are trying to access does not exist, or
+is incorrect.
+
+\item [Invalid scaling factor]
+\item [Invalid scaling value]
+\item [Scaling value only allowed with index]
+Allowed scaling values are 1,2,4 or 8.
+
+
+\item [Cannot use SELF outside a method]
+You are trying to access the SELF identifier for objects outside a method.
+
+
+\item [Invalid combination of prefix and opcode]
+This opcode cannot be prefixed by this instruction
+
+\item [Invalid combination of override and opcode]
+This opcode cannot be overriden by this combination
+
+\item [Too many operands on line]
+At most three operand instructions exist on the m68k, and i386, you
+are probably trying to use an invalid syntax for this opcode.
+
+\item [Duplicate local symbol]
+You are trying to redefine a local symbol, such as a local label.
+
+\item [Unknown label identifer]
+\item [Undefined local symbol]
+\item [local symbol not found inside asm statement]
+This label does not seem to have been defined in the current scope
+
+
+\item [Assemble node syntax error]
+\item [Not a directive or local symbol]
+The assembler statement is invalid, or you are not using a recognized
+directive.
+
+\end{description}
+
+% I386 specific errors
+\subsection{I386 specific errors}
+
+\begin{description}
+\item [repeat prefix and a segment override on <= i386 may result in errors if an interrupt occurs]
+A problem with interrupts and a prefix instruction may occur and may cause
+false results on 386 and earlier computers.
+
+\item [Fwait can cause emulation problems with emu387]
+This warning is reported when using the FWAIT instruction, it can
+cause emulation problems on systems which use the em387.dxe emulator.
+
+\item [You need GNU as version >= 2.81 to compile this MMX code]
+MMX assembler code can only be compiled using GAS v2.8.1 or later.
+
+\item [NEAR ignored]
+\item [FAR ignored]
+\label{FarIgnored}
+\var{NEAR} and \var{FAR} are ignored in the intel assemblers, but are still accepted
+for compatiblity with the 16-bit code model.
+
+\item [Invalid size for MOVSX/MOVZX]
+
+\item [16-bit base in 32-bit segment]
+\item [16-bit index in 32-bit segment]
+16-bit addressing is not supported, you must use 32-bit addressing.
+
+
+\item [Constant reference not allowed]
+It is not allowed to try to address a constant memory address in protected
+mode.
+
+\item [Segment overrides not supported]
+Intel style (eg: rep ds stosb) segment overrides are not support by
+the assembler parser.
+
+\item [Expressions of the form [sreg:reg...] are currently not supported]
+To access a memory operand in a different segment, you should use the
+sreg:[reg...] snytax instead of [sreg:reg...]
+
+\item [Size suffix and destination register do not match]
+In intel AT\&T syntax, you are using a register size which does
+not concord with the operand size specified.
+
+\item [Invalid assembler syntax. No ref with brackets]
+\item [ Trying to use a negative index register ]
+\item [ Local symbols not allowed as references ]
+\item [ Invalid operand in bracket expression ]
+\item [ Invalid symbol name:  ]
+\item [ Invalid Reference syntax ]
+\item [ Invalid string as opcode operand: ]
+\item [ Null label references are not allowed ]
+\item [ Using a defined name as a local label ]
+\item [ Invalid constant symbol  ]
+\item [ Invalid constant expression ]
+\item [ / at beginning of line not allowed ]
+\item [ NOR not supported ]
+\item [ Invalid floating point register name ]
+\item [ Invalid floating point constant:  ]
+\item [ Asm syntax error - Should start with bracket ]
+\item [ Asm syntax error - register:  ]
+\item [ Asm syntax error - in opcode operand ]
+\item [ Invalid String expression ]
+\item [ Constant expression out of bounds ]
+\item [ Invalid or missing opcode ]
+\item [ Invalid real constant expression ]
+\item [ Parenthesis are not allowed ]
+\item [ Invalid Reference ]
+\item [ Cannot use \_\_SELF outside a method ]
+\item [ Cannot use \_\_OLDEBP outside a nested procedure ]
+\item [ Invalid segment override expression ]
+\item [ Strings not allowed as constants ]
+\item [ Switching sections is not allowed in an assembler block ]
+\item [ Invalid global definition ]
+\item [ Line separator expected ]
+\item [ Invalid local common definition ]
+\item [ Invalid global common definition ]
+\item [ assembler code not returned to text ]
+\item [ invalid opcode size ]
+\item [ Invalid character: < ]
+\item [ Invalid character: > ]
+\item [ Unsupported opcode ]
+\item [ Invalid suffix for intel assembler ]
+\item [ Extended not supported in this mode ]
+\item [ Comp not supported in this mode ]
+\item [ Invalid Operand: ]
+\item [ Override operator not supported ]
+\end{description}
+
+% m68k specific errors
+\subsection{m68k specific errors.}
+\begin{description}
+\item [Increment and Decrement mode not allowed together]
+You are trying to use dec/inc mode together.
+
+\item [Invalid Register list in movem/fmovem]
+The register list is invalid, normally a range of registers should
+be separated by - and individual registers should be separated by
+a slash.
+\item [Invalid Register list for opcode]
+\item [68020+ mode required to assemble]
+\end{description}
+
+
+\chapter{The Floating Point Coprocessor emulator}
+
+In this appendix we note some caveats when using the floating point 
+emulator on GO32V2 systems. Under GO32V1 systems, all is as described in
+the installation section.
+
+{\em Q: I don't have an 80387. How do I compile and run floating point
+   programs under GO32V2?
+
+     Q: What shall I install on a target machine which lacks hardware
+   floating-point support?
+}
+
+{\em A :}
+ Programs which use floating point computations and could be run on
+   machines without an 80387 should be allowed to dynamically load the
+\file{emu387.dxe}
+   file at run-time if needed. To do this you must link the \var{emu387} unit to your
+   exectuable program, for example:
+
+\begin{verbatim}
+      Program MyFloat;
+
+      Uses emu387;
+
+      var
+       r: real;
+      Begin
+       r:=1.0;
+       WriteLn(r);
+      end.
+\end{verbatim}
+
+   \var{Emu387} takes care of loading the dynamic emulation point library.
+
+   You should always add emulation when you distribute floating-point
+   programs.
+
+   A few users reported that the emulation won't work for them unless
+   they explicitly tell \var{DJGPP} there is no \var{x87} hardware, like this:
+
+\begin{verbatim}
+       set 387=N
+       set emu387=c:/djgpp/bin/emu387.dxe
+\end{verbatim}
+
+   There is an alternative FP emulator called WMEMU. It mimics a real
+   coprocessor more closely.
+
+   {\em WARNING:} We strongly suggest that you use WMEMU as FPU emulator, since
+   \file{emu387.dxe} does not emulate all the instructions which are used by the
+   Run-Time Libary such as \var{FWAIT}.
+
+
+{\em   Q: I have an 80387 emulator installed in my AUTOEXEC.BAT, but
+   DJGPP-compiled floating point programs still doesn't work. Why?
+}
+
+
+{\em   A :} DJGPP switches the CPU to protected mode, and the information
+   needed to emulate the 80387 is different. Not to mention that the
+   exceptions never get to the real-mode handler. You must use emulators
+   which are designed for DJGPP. Apart of emu387 and WMEMU, the only
+   other emulator known to work with DJGPP is Q87 from QuickWare. Q87 is
+   shareware and is available from the QuickWare Web site.
+
+
+{\em   Q: I run DJGPP in an \ostwo DOS box, and I'm told that \ostwo will install
+   its own emulator library if the CPU has no FPU, and will transparently
+   execute FPU instructions. So why won't DJGPP run floating-point code
+   under \ostwo on my machine?
+}
+
+{\em   A} : \ostwo installs an emulator for native \ostwo images, but does not
+   provide FPU emulation for DOS sessions.
+
 \end{document}

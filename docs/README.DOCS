@@ -1,14 +1,14 @@
-This is the README for the FPK linux documentation.
+This is the README for the Free Pascal documentation.
 
 All documentation is stored here, in LaTeX format. 
-it uses special style files (fpk*.sty) which are also in the directory.
+it uses special style files (fpc*.sty) which are also in the directory.
 
 do a 'make dvi' to produce the dvi format of the docs.
 a 'make html' will produce the html version (using latex2html).
 a 'make ps' will produce PostScript documents.
 
 If you want to produce dos docs, you can do a 'make htm' this will convert
-the .htl files to .htm files (including all references), suitable for a 8:3
+the .html files to .htm files (including all references), suitable for a 8:3
 format.
 
 The rest of this document is only interesting if you want to write docs.
@@ -23,28 +23,28 @@ Why LaTeX ?
 - many other reasons.
 
 In order to translate the things to HTML, I use latex2html, since it is the
-most powerful and flexible. 
-For it to be able to use the fpk.sty, I had to write a fpk.perl script
+most powerful and flexible, although sluggish... 
+For it to be able to use the fpc.sty, I had to write a fpc.perl script
 which it loads. The script seems to run fine when used standalone, but in
 conjunction with latex2html, I get a out of memory... ??
 I'm not familiar with perl, so if someone is, and can fix the thing, please
 do. (and let me know :) )
 
 Then how to proceed ?
-If you just want to write latex docs, just use fpk.sty. (you don't need
+If you just want to write latex docs, just use fpc.sty. (you don't need
 html.sty)
 If you want to be able to convert to html, (you need html.sty) the following 
 fixes the perl-problem :
 In the preamble of  your document, type :
 
 \usepackage{html}
-\latex{\usepackage{fpk}}
-\html{\input{fpk-html.tex}}
+\latex{\usepackage{fpc}}
+\html{\input{fpc-html.tex}}
 
-The fpk-html.tex defines the same commands as fpk.sty, only in a language
+The fpc-html.tex defines the same commands as fpc.sty, only in a language
 that latex2html understands.
 
-fpk.sty.doc describes what fpk.sty does. (one day I'll integrate them using
+fpc.sty.doc describes what fpc.sty does. (one day I'll integrate them using
 the doc package, but I need some time for it)
 
 Happy TeXing,

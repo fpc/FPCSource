@@ -129,7 +129,7 @@ help:
 
 clean:
 	-rm -rf $(HTML)
-	-rm -f *.aux *.log *.dvi *.ps *.toc *.i* *.lot *.pdf *.txt
+	-rm -f *.aux *.log *.dvi *.ps *.toc *.i* *.lot *.pdf *.txt *.chk
 	-$(MAKE) -C refex clean
 	-$(MAKE) -C linuxex clean
 	-$(MAKE) -C crtex clean
@@ -139,7 +139,7 @@ clean:
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C sockex clean
 
-unitex:
+unitex.chk:
 	$(MAKE) -C crtex tex
 	$(MAKE) -C linuxex tex
 	$(MAKE) -C dosex tex
@@ -147,13 +147,15 @@ unitex:
 	$(MAKE) -C printex tex
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sockex tex
+	touch unitex.chk
 
-refex:
+refex.chk:
 	$(MAKE) -C refex tex
+	touch refex.chk
 
-units.dvi: units.tex $(CHAPTERS) unitex
+units.dvi: units.tex $(CHAPTERS) unitex.chk
 
-ref.dvi: ref.tex refex
+ref.dvi: ref.tex refex.chk
 
 dvi : $(DVI)
 
@@ -171,14 +173,14 @@ user:
 	rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 	rm -f user/images.* user/*.log
 	
-units: unitex
+units: unitex.chk
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Unit reference for Free Pascal" units.tex
 	sed -f foot.sed <units/footnode.html >units/footnote.html
 	mv units/footnote.html units/footnode.html
 	rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 
-ref: refex
+ref: refex.chk
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Free Pascal reference guide" ref.tex
 	sed -f foot.sed <ref/footnode.html >ref/footnote.html

@@ -25,8 +25,8 @@
 \usepackage{a4}
 \usepackage{makeidx}
 \usepackage{html}
-\latex{\usepackage{fpk}}
-\html{\input{fpk-html.tex}}
+\latex{\usepackage{fpc}}
+\html{\input{fpc-html.tex}}
 \makeindex
 %
 % start of document.
@@ -48,10 +48,10 @@
 This document describes all constants, types, variables, functions and
 procedures as they are declared in the system unit.
 
-Furthermore, it describes all pascal constructs supported by \fpk, and lists
+Furthermore, it describes all pascal constructs supported by \fpc, and lists
 all supported data types. It does not, however, give a detailed explanation
 of the pascal language. The aim is to list which Pascal constructs are
-supported, and to show where the \fpk implementation differs from the
+supported, and to show where the \fpc implementation differs from the
 Turbo Pascal implementation.
 
 Throughout this document, we will refer to functions, types and variables
@@ -78,20 +78,20 @@ manual section.
 % The Pascal language
 %
 \chapter{Supported Pascal language constructs}
-In this chapter we describe the pascal constructs supported by \fpk, as well
+In this chapter we describe the pascal constructs supported by \fpc, as well
 as the supported data types.
 
 This is not intended as an introduction to the Pascal language, although all
 language constructs will be covered. The main goal is to explain what is
-supported by \fpk, and where the Free implementation differs from the Turbo
+supported by \fpc, and where the Free implementation differs from the Turbo
 Pascal one.
 \section{Data types}
-\fpk supports the same data types as Turbo Pascal, with some extensions from
+\fpc supports the same data types as Turbo Pascal, with some extensions from
 Delphi.
 \subsection{Integer types}
-The integer types predefined in \fpk are listed in \seet{integers}.
+The integer types predefined in \fpc are listed in \seet{integers}.
 
-\begin{FPKltable}{lcr}{Predefined integer types}{integers}
+\begin{FPCltable}{lcr}{Predefined integer types}{integers}
 Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
 Shortint & -127 .. 127 & 1\\
@@ -99,33 +99,33 @@ Integer & -32768 .. 32767 & 2 \\
 Word & 0 .. 65535 & 2 \\
 Longint & -2147483648 .. 2147483648 & 4\\
 Cardinal\footnote{The cardinal type support is buggy until version 0.9.3} & 0..4294967296 & 4 \\ \hline
-\end{FPKltable}
+\end{FPCltable}
 
-\fpk does automatic type conversion in expressions where different kinds of
+\fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
 
-\fpk supports hexadecimal format the same way as Turbo Pascal does. To
+\fpc supports hexadecimal format the same way as Turbo Pascal does. To
 specify a constant value in hexadecimal format, prepend it with a dollar
 sign (\var{\$}). Thus, the hexadecimal \var{\$FF} equals 255 decimal.
 
-In addition to the support for hexadecimal notation, \fpk also supports
+In addition to the support for hexadecimal notation, \fpc also supports
 binary notation. You can specify a binary number by preceding it with a
 percent sign (\var{\%}). Thus, \var{255} can be specified in binary notation
 as \var{\%11111111}.
 
 \subsection{Real types}
-\fpk uses the math coprocessor (or an emulation) for al its floating-point 
+\fpc uses the math coprocessor (or an emulation) for al its floating-point 
 calculations. The native type for the coprocessor is \var{Double}. Other
 than that, all Turbo Pascal real types are supported. They're listed in
 \seet{Reals}.
- \begin{FPKltable}{lccr}{Supported Real types}{Reals}
+ \begin{FPCltable}{lccr}{Supported Real types}{Reals}
 Type & Range & Significant digits & Size\footnote{In Turbo Pascal.} \\ \hline
 Real & 2.9E-39 .. 1.7E38 & 11-12 & 6 \\
 Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
 Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
 %Comp\footnote{\var{Comp} only holds integer values.} & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
-\end{FPKltable}
+\end{FPCltable}
 
 Until version 0.9.1 of the compiler, all the real types are mapped to type
 \var{Double}, meaning that they all have size 8. From version 0.9.3, the
@@ -134,7 +134,7 @@ Turbo Pascal. The \seef{SizeOf} function is your friend here.
 
 \subsection{Character types}
 \subsubsection{Char}
-\fpk supports the type \var{Char}. A \var{Char} is exactly 1 byte in
+\fpc supports the type \var{Char}. A \var{Char} is exactly 1 byte in
 size, and contains one character. 
 
 You can specify a character constant by enclosing the character in single 
@@ -153,7 +153,7 @@ successively, thus \var{''''} represents the single quote character.
 
 \subsubsection{Strings}
 
-\fpk supports the \var{String} type as it is defined in Turbo Pascal.
+\fpc supports the \var{String} type as it is defined in Turbo Pascal.
 To declare a variable as a string, use the following declaration:
 \begin{verbatim}
 Var
@@ -162,7 +162,7 @@ Var
 This will declare \var{S} as a variable of type \var{String}, with maximum
 length \var{Size}. \var{Size} can be any value from \var{1} to \var{255}.
 
-\fpk reserves \var{Size+1} bytes for the string \var{S}, and in the zeroeth
+\fpc reserves \var{Size+1} bytes for the string \var{S}, and in the zeroeth
 element of the string (\var{S[0]}) it will store the length of the variable.
 
 If you don't specify the size of the string, \var{255} is taken as a
@@ -187,7 +187,7 @@ between them. Strings can not be substracted, however.
 
 \subsubsection{PChar}
 
-\fpk supports the Delphi implementation of the \var{PChar} type. \var{PChar}
+\fpc supports the Delphi implementation of the \var{PChar} type. \var{PChar}
 is defined as a pointer to a \var{Char} type, but allows additional
 operations. 
 
@@ -196,7 +196,7 @@ C-style null-terminated string, i.e. a variable of type \var{PChar} is a pointer
 that points to an array of type \var{Char}, which is ended by a
 null-character (\var{\#0}).
 
-\fpk supports initializing of \var{PChar} typed constants, or a direct
+\fpc supports initializing of \var{PChar} typed constants, or a direct
 assignment. For example, the following pieces of code are equivalent:
 
 \begin{CodEx}
@@ -255,7 +255,7 @@ However, it is possible to do some pointer arithmetic. You can use the
 operators \var{+} and \var{-} to do operations on \var{PChar} pointers.
 In \seet{PCharMath}, \var{P} and \var{Q} are of type \var{PChar}, and
 \var{I} is of type \var{Longint}.
-\begin{FPKltable}{lr}{\var{PChar} pointer arithmetic}{PCharMath}
+\begin{FPCltable}{lr}{\var{PChar} pointer arithmetic}{PCharMath}
 Operation & Result \\ \hline
 \var{P + I} & Adds \var{I} to the address pointed to by \var{P}. \\
 \var{I + P} & Adds \var{I} to the address pointed to by \var{P}. \\
@@ -263,10 +263,10 @@ Operation & Result \\ \hline
 \var{P - Q} & Returns, as an integer, the distance between 2 addresses \\
  & (or the number of characters between \var{P} and \var{Q}) \\
 \hline
-\end{FPKltable}
+\end{FPCltable}
 
 \subsection{Booleans}
-\fpk supports the \var{Boolean} type, with its two pre-defined possible
+\fpc supports the \var{Boolean} type, with its two pre-defined possible
 values \var{True} and \var{False}. These are the only two values that can be
 assigned to a \var{Boolean} type. Of course, any expression that resolves
 to a \var{boolean} value, can also be assigned to a boolean type.
@@ -280,7 +280,7 @@ assignments:
 \end{verbatim}
 Boolean expressions are also used in conditions.
 
-{\em Remark:} In \fpk, boolean expressions are always evaluated in such a
+{\em Remark:} In \fpc, boolean expressions are always evaluated in such a
 way that when the result is known, the rest of the expression will no longer
 be evaluated (Called short-cut evaluation). In the following example, the function \var{Func} will never
 be called, which may have strange side-effects.
@@ -292,13 +292,13 @@ be called, which may have strange side-effects.
 Here \var{Func} is a function which returns a \var{Boolean} type.
 
 \subsection{Arrays}
-\fpk supports arrays as in Turbo Pascal, except that packed arrays are not
+\fpc supports arrays as in Turbo Pascal, except that packed arrays are not
 supported. 
 
 Multi-dimensional arrays are also supported.
 
 \subsection{Pointers}
-\fpk supports the use of pointers. A variable of the type \var{Pointer}
+\fpc supports the use of pointers. A variable of the type \var{Pointer}
 contains an address in memory, where the data of another variable may be 
 stored.
 
@@ -326,7 +326,7 @@ In this example, \var{BP} {\em is a pointer to} a \var{Buffer} type; while \var{
 and \var{BP} only takes 4 bytes of memory (enough to keep an adress in
 memory).
 
-{\em Remark:} \fpk treats pointers much the same way as C does. This means
+{\em Remark:} \fpc treats pointers much the same way as C does. This means
 that you can treat a pointer to some type as being an array of this type.  
 The pointer then points to the zeroeth element of this array. Thus the
 following pointer declaration 
@@ -354,10 +354,10 @@ begin
 end.
 \end{verbatim}
 \end{CodEx}
-\fpk doesn't support pointer arithmetic as C does, however.
+\fpc doesn't support pointer arithmetic as C does, however.
 
 \subsection{Procedural types}
-\fpk has support for procedural types, although it differs from the Turbo
+\fpc has support for procedural types, although it differs from the Turbo
 Pascal implementation of them.
 
 The type declaration remains the same. The two following examples are valid
@@ -383,11 +383,11 @@ Func:=@Pi;
 \end{verbatim}
 From this example, the difference with Turbo Pascal is clear: In Turbo
 Pascal it isn't necessary to use the address operator (\var{@}) 
-when assigning a procedural type variable, whereas in \fpk it is required.
+when assigning a procedural type variable, whereas in \fpc it is required.
 
 \subsection{Records}
 
-\fpk supports records. The prototype type definition of a record is:
+\fpc supports records. The prototype type definition of a record is:
 \begin{verbatim}
 Type
   RecType = Record
@@ -451,7 +451,7 @@ And this is as expected. In \var{Trec1}, each of the elements \var{A} and
 \var{B} takes 2 bytes of memory, and in  \var{Trec1}, \var{A} takes only 1
 byte of memory.
 
-As from version 0.9.3 (a developers' version), \fpk supports also the
+As from version 0.9.3 (a developers' version), \fpc supports also the
 'packed record', this is a record where all the elements are byte-aligned.
 
 Thus the two following declarations are equivalent:
@@ -474,7 +474,7 @@ Note the \var{\{\$PACKRECORDS 2\}} after the first declaration !
 
 \subsection{Set types}
 
-\fpk supports the set types as in Turbo Pascal. The prototype of a set
+\fpc supports the set types as in Turbo Pascal. The prototype of a set
 declaration is: 
 \begin{verbatim}
 SetType = Set of TargetType;
@@ -495,12 +495,12 @@ Given this set declaration, the follwing assignment is legal:
 WeekDays := [ Mon, Tue, Wed, Thu, Fri];
 \end{verbatim}
 The operators for manipulations of sets are listed in \seet{SetOps}.
-\begin{FPKltable}{lr}{Set Manipulation operators}{SetOps}
+\begin{FPCltable}{lr}{Set Manipulation operators}{SetOps}
 Operation & Operator \\ \hline
 Union & + \\
 Difference & - \\
 Intersection & * \\ \hline
-\end{FPKltable}
+\end{FPCltable}
 
 You can compare two sets with the \var{<>} and \var{=} operators, but not
 (yet) with the \var{<} and \var{>} operators. 
@@ -511,8 +511,8 @@ processing and decreases program size.
 
 \subsection{Enumeration types}
 
-Enumeration types are supported in \fpk. On top of the Turbo Pascal
-implementation, \fpk allows the following C-style extension of the
+Enumeration types are supported in \fpc. On top of the Turbo Pascal
+implementation, \fpc allows the following C-style extension of the
 enumeration type.
 \begin{verbatim}
 Type
@@ -536,7 +536,7 @@ error.
 
 \section{Constants}
 
-Just as in Turbo Pascal, \fpk supports both normal and typed constants.
+Just as in Turbo Pascal, \fpc supports both normal and typed constants.
 \subsection{Ordinary constants}
 Ordinary constants declarations are no different from the TP implementation. 
 You can only declare constants of the following types: \var{Ordinal types},
@@ -611,11 +611,11 @@ The order of the fields in a constant record needs to be the same as in the type
 otherwise you'll get a compile-time error.
 
 \section{Objects}
-\fpk supports object oriented programming. In fact, part of the compiler is
+\fpc supports object oriented programming. In fact, part of the compiler is
 written using objects. Here we present some technical questions regarding
-object oriented programming in \fpk.
+object oriented programming in \fpc.
 
-\fpk supports 2 programming models for object-oriented programming.
+\fpc supports 2 programming models for object-oriented programming.
 You can choose to program object oriented using the Turbo Pascal approach,
 or you can prefer the Delphi approach.
 
@@ -666,11 +666,11 @@ TObj = Object [(ParentObjectType)]
 You can repeat as many \var{private} and \var{public} blocks as you want.
 \var{Method}s are normal function or procedure declarations. 
 
-As can be seen in the prototype object declaration, \fpk supports
+As can be seen in the prototype object declaration, \fpc supports
 constructors and destructors. You are responsible for calling the 
 destructor and constructor explicitly when using objects.
 
-\fpk supports also the extended syntax of the \var{New} and \var{Dispose}
+\fpc supports also the extended syntax of the \var{New} and \var{Dispose}
 procedures. In case you want to allocate a dynamic varible of an object
 type, you can specify the constructor's name in the call to \var{New}.
 The \var{New} is implemented as a function which returns a pointer to the
@@ -757,15 +757,15 @@ So, to initialize an instance of some class, you do the following :
   ClassVar:=ClassType.ConstructorName;
 \end{verbatim}
 
-{\em Remark :} \fpk doesn't support the concept of properties yet.
+{\em Remark :} \fpc doesn't support the concept of properties yet.
 
 \section{Statements controlling program flow.}
 
 \subsection{Assignments}
-In addition to the standard Pascal assignment operator (\var{:=}), \fpk
+In addition to the standard Pascal assignment operator (\var{:=}), \fpc
 supports some c-style constructions. All available constructs are listed in
 \seet{assignments}.
-\begin{FPKltable}{lr}{Allowed C constructs in \fpk}{assignments}
+\begin{FPCltable}{lr}{Allowed C constructs in \fpc}{assignments}
 Assignment & Result \\ \hline
 a += b & Adds \var{b} to \var{a}, and stores the result in \var{a}.\\
 a -= b & Substracts \var{b} from \var{a}, and stores the result in
@@ -774,14 +774,14 @@ a *= b & Multiplies \var{a} with \var{b}, and stores the result in
 \var{a}. \\
 a /= b & Divides \var{a} through \var{b}, and stores the result in
 \var{a}. \\ \hline
-\end{FPKltable}
+\end{FPCltable}
 For these connstructs to work, you should specify the \var{-Sc} 
 command-line switch. 
 
 {\em Remark:} These constructions are just for typing convenience, they
 don't generate different code.
 
-\fpk also supports typed assignments. This means that an assignment
+\fpc also supports typed assignments. This means that an assignment
 statement has a definite type, and hence can be assigned to another
 variable. The type of the assignment \var{a:=b} is the type of \var{a}
 (or, in this case, of \var{b}), and this can be assigned to another
@@ -797,7 +797,7 @@ For this construct to be allowed, it is necessary to specify the \var{-Sa4}
 switch on the command line.
 
 \subsection{The \var{Case} statement}
-\fpk supports the \var{case} statement. Its prototype is
+\fpc supports the \var{case} statement. Its prototype is
 \begin{verbatim}
 Case Pivot of
   Label1 : Statement1;
@@ -816,7 +816,7 @@ The statements \var{Statement1} etc., can be compound statements (i.e. a
 \var{begin..End} block).
 
 {\em Remark:} Contrary to Turbo Pascal, duplicate case labels are not
-allowed in \fpk, so the following code will generate an error when
+allowed in \fpc, so the following code will generate an error when
 compiling:
 
 \begin{verbatim}
@@ -842,7 +842,7 @@ Else
   Statement2
   end;
 \end{verbatim}
-You needed to do the following in \fpk :
+You needed to do the following in \fpc :
 \begin{verbatim}
 case Pivot of
   ...
@@ -856,7 +856,7 @@ end;
 So there's an extra \var{end} keyword at the end. But from version 0.9.7
 this has been fixed.
 \subsection{The \var{For..to/downto..do} statement}
-\fpk supports the \var{For} loop construction. The prototypes are:
+\fpc supports the \var{For} loop construction. The prototypes are:
 \begin{verbatim}
 For Counter:=Lowerbound to Upperbound Do Statement;
 
@@ -868,7 +868,7 @@ For Counter:=Upperbound downto Lowerbound Do Statement;
 \var{Lowerbound} is larger than \var{Upperbound} then \var{Statement} will
 never be executed.
 \subsection{The \var{Goto} statement}
-\fpk supports the \var{goto} jump statement. Its prototype is
+\fpc supports the \var{goto} jump statement. Its prototype is
 \begin{verbatim}
 
 var
@@ -968,7 +968,7 @@ Last statement doesn't need to be followed by a semicolon, although it is
 allowed.
 
 \section{Using functions and procedures}
-\fpk supports the use of functions and procedures, but with some extras:
+\fpc supports the use of functions and procedures, but with some extras:
 Function overloading is supported, as well as \var{Const} parameters and
 open arrays.
 
@@ -1002,7 +1002,7 @@ generated.
 
 \subsection{\var{Const} parameters}
 In addition to \var{var} parameters and normal parameters (call by value,
-call by reference), \fpk also supports \var{Const} parameters. You can
+call by reference), \fpc also supports \var{Const} parameters. You can
 specify a \var{Const} parameter as follows:
 \begin{verbatim}
 Function Name (Const S: Type_Of_S) : ResultType
@@ -1015,7 +1015,7 @@ The main use for this is reducing the stack size, hence improving
 performance.
 
 \subsection{Open array parameters}
-\fpk supports the passing of open arrays, i.e. You can declare a procedure
+\fpc supports the passing of open arrays, i.e. You can declare a procedure
 with an array of unspecified length as a parameter, as in Delphi.
 
 The prototype declaration for open array parameters is:
@@ -1032,19 +1032,19 @@ are also declared with open arrays as parameters, {\em not} to functions or
 procedures which accept arrays of fixed length.
 
 \section{Using assembler in your code}
-\fpk supports the use of assembler in your code, but not inline
+\fpc supports the use of assembler in your code, but not inline
 assembler. assembly functions (i.e. functions declared with the
 \var{Assembler} keyword) are supported as of version 0.9.7.
 
 {\em Remark :}
-\fpk issues AT\&T assembly language, as understood by most
+\fpc issues AT\&T assembly language, as understood by most
 unix assemblers (most notably : GNU \var{as}). 
 Intel assembler syntax is available as of version 0.9.8 but the Intel
 support isn't complete in the sense that it is converted to AT\&T syntax,
 and some constructions aren't supported by the conversion mechanism (see
 \progref for more information about this).
 Therefore all examples of assembly language will be given in AT\&T syntax,
-as it is the 'native' assembly from \fpk.
+as it is the 'native' assembly from \fpc.
 
 The following is an example of assembler inclusion in your code.
 \begin{verbatim}
@@ -1068,7 +1068,7 @@ Contrary to Turbo Pascal, it isn't possible (yet) to reference variables by
 their names in the assembler parts of your code.
 
 \section{Modifiers}
-\fpk doesn't support all Turbo Pascal modifiers, but
+\fpc doesn't support all Turbo Pascal modifiers, but
 does support a number of additional modifiers. They are used mainly for assembler and
 reference to C object files. 
 
@@ -1137,9 +1137,9 @@ function must be exactly the same.
 
 \subsection{Export}
 Sometimes you must provide a callback function for a C library, or you want
-your routines to be callable from a C program. Since \fpk and C use
+your routines to be callable from a C program. Since \fpc and C use
 different calling schemes for functions and procedures\footnote{More
-techically: In C the calling procedure must clear the stack. In \fpk, the
+techically: In C the calling procedure must clear the stack. In \fpc, the
 subroutine clears the stack.}, the compiler must be told to generate code
 that can be called from a C routine. This is where the \var{Export} modifier
 comes in. Contrary to the other modifiers, it must be specified separately,
@@ -1153,7 +1153,7 @@ end;
 \end{verbatim} 
 The square brackets around the modifier are not allowed in this case.
 
-{\em Remark:} You cannot call an exported function from within \fpk programs.
+{\em Remark:} You cannot call an exported function from within \fpc programs.
 If you try to do so, the compiler will complain when compiling your source
 code.
 
@@ -1171,20 +1171,20 @@ begin
   RealDoSomething;
 end; 
 \end{verbatim}
-In this example, from your \fpk code, you can call the \var{RealDoSomething}
+In this example, from your \fpc code, you can call the \var{RealDoSomething}
 procedure. If someone wants to link to your code from a C program, he can
 call the \var{DoSomething} procedure. Both calls will have the same effect.
 
 {\em Remark:}
-as of version 0.9.8, \fpk supports the Delphi \var{cdecl} modifier. 
+as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier. 
 This modifier works in the same way as the \var{export} modifier.
 
 More information about these modifiers can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
 
 \subsection{StdCall}
-As of version 0.9.8, \fpk supports the Delphi \var{stdcall} modifier.
-This modifier does actually nothing, since the \fpk compiler by default 
+As of version 0.9.8, \fpc supports the Delphi \var{stdcall} modifier.
+This modifier does actually nothing, since the \fpc compiler by default 
 pushes parameters from right to left on the stack, which is what the 
 modifier does under Delphi (which pushes parameters on the stack from left to 
 right).
@@ -1236,21 +1236,21 @@ Where \var{'register'} is one of \var{'EAX',EBX',ECX','EDX'} etc.
 
 
 \subsection{Unsupported Turbo Pascal modifiers}
-The modifiers that exist in Turbo pascal, but aren't supported by \fpk, are
+The modifiers that exist in Turbo pascal, but aren't supported by \fpc, are
 listed in \seet{Modifs}.
-\begin{FPKltable}{lr}{Unsupported modifiers}{Modifs}
+\begin{FPCltable}{lr}{Unsupported modifiers}{Modifs}
 Modifier & Why not supported ? \\ \hline
-Near & \fpk is a 32-bit compiler.\\
-Far & \fpk is a 32-bit compiler. \\
+Near & \fpc is a 32-bit compiler.\\
+Far & \fpc is a 32-bit compiler. \\
 External & Replaced by \var{C} modifier. \\ \hline
-\end{FPKltable}
+\end{FPCltable}
 
 %
 % System unit reference guide.
 %
 
 \chapter{Reference : The system unit}
-The system unit contains the standard supported functions of \fpk. It is the
+The system unit contains the standard supported functions of \fpc. It is the
 same for all platforms. Basically it is the same as the system unit provided
 with Borland or Turbo Pascal. 
 
@@ -1319,7 +1319,7 @@ var
   stackbottom : longint;
   loweststack : longint;
 \end{verbatim}
-The variables \var{ExitProc}, \var{exitcode} are used in the \fpk exit
+The variables \var{ExitProc}, \var{exitcode} are used in the \fpc exit
 scheme. It works similarly to the on in Turbo Pascal:
 
 When a program halts (be it through the call of the \var{Halt} function or
@@ -1475,8 +1475,8 @@ empty string is returned.}
 \input{refex/ex12.tex}
 
 \Function{CSeg}{Word}
-{\var{CSeg} returns the Code segment register. In \fpk, it returns always a
-zero, since \fpk is a 32 bit compiler.}
+{\var{CSeg} returns the Code segment register. In \fpc, it returns always a
+zero, since \fpc is a 32 bit compiler.}
 {None.}
 {\seef{DSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}}
 
@@ -1512,8 +1512,8 @@ heap.}
 \input{refex/ex16.tex}
 
 \Function{DSeg}{Word}
-{\var{DSeg} returns the data segment register. In \fpk, it returns always a
-zero, since \fpk is a 32 bit compiler.}
+{\var{DSeg} returns the data segment register. In \fpc, it returns always a
+zero, since \fpc is a 32 bit compiler.}
 {None.}
 {\seef{CSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}}
 
@@ -1862,8 +1862,8 @@ For an example, see \seep{Dispose}.
 \function{Ofs}{Var X}{Longint}
 {\var{Ofs} returns the offset of the address of a variable. 
 
-This function is only supported for compatibility. In \fpk, it 
-returns always the complete address of the variable, since \fpk is a 32 bit 
+This function is only supported for compatibility. In \fpc, it 
+returns always the complete address of the variable, since \fpc is a 32 bit 
 compiler.
 }
 {None.}
@@ -1928,7 +1928,7 @@ The search is case-sensitive.
 {\var{Ptr} returns a pointer, pointing to the address specified by
 segment{Sel} and offset \var{Off}.
 
-{\em Remark 1:} In the 32-bit flat-memory model supported by \fpk, this
+{\em Remark 1:} In the 32-bit flat-memory model supported by \fpc, this
 function is obsolete.}
 
 {\em Remark 2:} The returned address is simply the offset. If you recompile
@@ -1952,7 +1952,7 @@ If the argument \var{L} is omitted, a real number between 0 and 1 is returned.
 \input{refex/ex49.tex}
 
 \Procedure{Randomize}
-{\var{Randomize} initializes the random number generator of \fpk, by giving
+{\var{Randomize} initializes the random number generator of \fpc, by giving
 a value to \var{Randseed}, calculated with the system clock.
 }
 {None.}
@@ -2116,8 +2116,8 @@ If the parameter \var{F} is omitted, standard \var{Input} is assumed.}
 \function{Seg}{Var X}{Longint}
 {\var{Seg} returns the segment of the address of a variable. 
 
-This function is only supported for compatibility. In \fpk, it 
-returns always 0, since \fpk is a 32 bit compiler, segments have no meaning.
+This function is only supported for compatibility. In \fpc, it 
+returns always 0, since \fpc is a 32 bit compiler, segments have no meaning.
 }
 {None.}
 {\seef{DSeg}, \seef{CSeg}, \seef{Ofs}, \seef{Ptr}}
