@@ -9,5 +9,11 @@ dirs_linux=uncgi gtk opengl gdbint ibase mysql zlib \
 dirs_win32=uncgi gtk opengl gdbint ibase mysql zlib
 dirs_go32v2=uncgi gdbint
 
+[install]
+packagename=pkgs
+
 [sections]
 none=1
+tools=1
+zipinstall=1
+

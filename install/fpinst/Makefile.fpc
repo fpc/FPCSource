@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal API (used by Free Vision) for win32
+#   Makefile.fpc for Free Pascal installer
 #
 
 [targets]
@@ -8,6 +8,9 @@ programs=install
 [clean]
 units=ziptypes unzip
 units_os2=unzipdll
+
+[require]
+packages=api fv
 
 [dirs]
 fpcdir=../../..

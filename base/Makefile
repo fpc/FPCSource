@@ -191,140 +191,6 @@ override PACKAGES+=rtl
 
 export RELEASE=1
 
-
-# Package/component dirs
-
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
-
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-
-#####################################################################
-# Default Directories
-#####################################################################
-
-# set the prefix directory where to install everything
-ifndef PREFIXINSTALLDIR
-ifdef inlinux
-PREFIXINSTALLDIR=/usr
-else
-PREFIXINSTALLDIR=/pp
-endif
-endif
-export PREFIXINSTALLDIR
-
-#####################################################################
-# Install Directories
-#####################################################################
-
-# set the base directory where to install everything
-ifndef BASEINSTALLDIR
-ifdef inlinux
-BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(FPC_VERSION)
-else
-BASEINSTALLDIR=$(PREFIXINSTALLDIR)
-endif
-endif
-
-# set the directory where to install the binaries
-ifndef BININSTALLDIR
-ifdef inlinux
-BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
-else
-BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
-endif
-endif
-
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-UNITINSTALLDIR=$(BASEINSTALLDIR)/units/$(OS_TARGET)
-ifdef UNITSUBDIR
-UNITINSTALLDIR:=$(UNITINSTALLDIR)/$(UNITSUBDIR)
-endif
-endif
-
-# Where to install shared libraries
-ifndef LIBINSTALLDIR
-ifdef inlinux
-LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
-else
-LIBINSTALLDIR=$(UNITINSTALLDIR)
-endif
-endif
-
-# Where the source files will be stored
-ifndef SOURCEINSTALLDIR
-ifdef inlinux
-SOURCEINSTALLDIR=$(PREFIXINSTALLDIR)/src/fpc-$(FPC_VERSION)
-else
-SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
-endif
-endif
-
-# Where the doc files will be stored
-ifndef DOCINSTALLDIR
-ifdef inlinux
-DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-$(FPC_VERSION)
-else
-DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
-endif
-endif
-
-# Where the some extra (data)files will be stored
-ifndef DATAINSTALLDIR
-DATAINSTALLDIR=$(BASEINSTALLDIR)
-endif
-
-#####################################################################
-# Redirection
-#####################################################################
-
-# Release ? Then force OPT and don't use extra opts via commandline
-ifndef REDIRFILE
-REDIRFILE=log
-endif
-
-ifdef REDIR
-ifndef inlinux
-override FPC=redir -eo $(FPC)
-endif
-# set the verbosity to max
-override FPCOPT+=-va
-override REDIR:= >> $(REDIRFILE)
-endif
-
 #####################################################################
 # Shell tools
 #####################################################################
@@ -617,6 +483,151 @@ PASEXT=.pas
 endif
 endif
 
+
+# Check if the dirs really exists, else turn it off
+ifeq ($(wildcard $(UNITSDIR)),)
+UNITSDIR=
+endif
+ifeq ($(wildcard $(TOOLKITSDIR)),)
+TOOLKITSDIR=
+endif
+ifeq ($(wildcard $(PACKAGESDIR)),)
+PACKAGESDIR=
+endif
+ifeq ($(wildcard $(COMPONENTSDIR)),)
+COMPONENTSDIR=
+endif
+
+
+# PACKAGESDIR packages
+
+PACKAGERTL=1
+
+ifdef PACKAGERTL
+ifneq ($(wildcard $(FPCDIR)/rtl),)
+ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
+PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+else
+PACKAGEDIR_RTL=$(FPCDIR)/rtl
+endif
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_rtl
+package_rtl:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
+endif
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+else
+PACKAGEDIR_RTL=
+ifneq ($(wildcard $(UNITSDIR)/rtl),)
+ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
+UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
+else
+UNITDIR_RTL=$(UNITSDIR)/rtl
+endif
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+
+
+#####################################################################
+# Default Directories
+#####################################################################
+
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
+else
+PREFIXINSTALLDIR=/pp
+endif
+endif
+export PREFIXINSTALLDIR
+
+#####################################################################
+# Install Directories
+#####################################################################
+
+# set the base directory where to install everything
+ifndef BASEINSTALLDIR
+ifdef inlinux
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(FPC_VERSION)
+else
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)
+endif
+endif
+
+# set the directory where to install the binaries
+ifndef BININSTALLDIR
+ifdef inlinux
+BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
+else
+BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
+endif
+endif
+
+# set the directory where to install the units.
+ifndef UNITINSTALLDIR
+UNITINSTALLDIR=$(BASEINSTALLDIR)/units/$(OS_TARGET)
+ifdef UNITSUBDIR
+UNITINSTALLDIR:=$(UNITINSTALLDIR)/$(UNITSUBDIR)
+endif
+endif
+
+# Where to install shared libraries
+ifndef LIBINSTALLDIR
+ifdef inlinux
+LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
+else
+LIBINSTALLDIR=$(UNITINSTALLDIR)
+endif
+endif
+
+# Where the source files will be stored
+ifndef SOURCEINSTALLDIR
+ifdef inlinux
+SOURCEINSTALLDIR=$(PREFIXINSTALLDIR)/src/fpc-$(FPC_VERSION)
+else
+SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
+endif
+endif
+
+# Where the doc files will be stored
+ifndef DOCINSTALLDIR
+ifdef inlinux
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-$(FPC_VERSION)
+else
+DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
+endif
+endif
+
+# Where the some extra (data)files will be stored
+ifndef DATAINSTALLDIR
+DATAINSTALLDIR=$(BASEINSTALLDIR)
+endif
+
+#####################################################################
+# Redirection
+#####################################################################
+
+# Release ? Then force OPT and don't use extra opts via commandline
+ifndef REDIRFILE
+REDIRFILE=log
+endif
+
+ifdef REDIR
+ifndef inlinux
+override FPC=redir -eo $(FPC)
+endif
+# set the verbosity to max
+override FPCOPT+=-va
+override REDIR:= >> $(REDIRFILE)
+endif
+
 #####################################################################
 # Standard rules
 #####################################################################
@@ -646,19 +657,6 @@ cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
 require: $(addsuffix _require,$(DIROBJECTS))
 
 .PHONY:  all debug examples test smart shared showinstall install sourceinstall clean cleanall require
-
-
-PACKAGERTL=1
-ifdef PACKAGERTL
-ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
-override COMPILEPACKAGES+=rtl
-rtl_package: $(PACKAGEDIR_RTL)/$(FPCMADE)
-$(PACKAGEDIR_RTL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-endif
-
-.PHONY:  rtl_package
 
 
 # Target Dirs

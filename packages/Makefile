@@ -171,6 +171,7 @@ endif
 
 # Install
 
+PACKAGENAME=pkgs
 ZIPTARGET=install
 
 # Defaults
@@ -186,8 +187,210 @@ override PACKAGES+=rtl
 # Libraries
 
 
+#####################################################################
+# Shell tools
+#####################################################################
 
-# Package/component dirs
+# echo
+ifndef ECHO
+ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ECHO),)
+ECHO:=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ECHO),)
+ECHO:=echo
+else
+ECHO:=$(firstword $(ECHO))
+endif
+else
+ECHO:=$(firstword $(ECHO))
+endif
+endif
+
+# To copy pograms
+ifndef COPY
+COPY:=cp -fp
+endif
+
+# Copy a whole tree
+ifndef COPYTREE
+COPYTREE:=cp -rfp
+endif
+
+# To move pograms
+ifndef MOVE
+MOVE:=mv -f
+endif
+
+# Check delete program
+ifndef DEL
+DEL:=rm -f
+endif
+
+# Check deltree program
+ifndef DELTREE
+DELTREE:=rm -rf
+endif
+
+# To install files
+ifndef INSTALL
+ifdef inlinux
+INSTALL:=install -m 644
+else
+INSTALL:=$(COPY)
+endif
+endif
+
+# To install programs
+ifndef INSTALLEXE
+ifdef inlinux
+INSTALLEXE:=install -m 755
+else
+INSTALLEXE:=$(COPY)
+endif
+endif
+
+# To make a directory.
+ifndef MKDIR
+ifdef inlinux
+MKDIR:=install -m 755 -d
+else
+MKDIR:=ginstall -m 755 -d
+endif
+endif
+
+export ECHO COPY COPYTREE MOVE DEL DELTREE INSTALL INSTALLEXE MKDIR
+
+#####################################################################
+# Default Tools
+#####################################################################
+
+# assembler, redefine it if cross compiling
+ifndef AS
+AS=as
+endif
+
+# linker, but probably not used
+ifndef LD
+LD=ld
+endif
+
+# ppas.bat / ppas.sh
+ifdef inlinux
+PPAS=ppas.sh
+else
+ifdef inOS2
+PPAS=ppas.cmd
+else
+PPAS=ppas.bat
+endif
+endif
+
+# also call ppas if with command option -s
+ifeq (,$(findstring -s ,$(COMPILER)))
+EXECPPAS=
+else
+EXECPPAS:=@$(PPAS)
+endif
+
+# ldconfig to rebuild .so cache
+ifdef inlinux
+LDCONFIG=ldconfig
+else
+LDCONFIG=
+endif
+
+# ppdep
+ifndef PPDEP
+PPDEP:=$(strip $(wildcard $(addsuffix /ppdep$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PPDEP),)
+PPDEP=
+else
+PPDEP:=$(firstword $(PPDEP))
+endif
+endif
+export PPDEP
+
+# ppumove
+ifndef PPUMOVE
+PPUMOVE:=$(strip $(wildcard $(addsuffix /ppumove$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PPUMOVE),)
+PPUMOVE=
+else
+PPUMOVE:=$(firstword $(PPUMOVE))
+endif
+endif
+export PPUMOVE
+
+# ppufiles
+ifndef PPUFILES
+PPUFILES:=$(strip $(wildcard $(addsuffix /ppufiles$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(PPUFILES),)
+PPUFILES=
+else
+PPUFILES:=$(firstword $(PPUFILES))
+endif
+endif
+export PPUFILES
+
+# Look if UPX is found for go32v2 and win32. We can't use $UPX becuase
+# upx uses that one itself (PFV)
+ifndef UPXPROG
+ifeq ($(OS_TARGET),go32v2)
+UPXPROG:=1
+endif
+ifeq ($(OS_TARGET),win32)
+UPXPROG:=1
+endif
+ifdef UPXPROG
+UPXPROG:=$(strip $(wildcard $(addsuffix /upx$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(UPXPROG),)
+UPXPROG=
+else
+UPXPROG:=$(firstword $(UPXPROG))
+endif
+else
+UPXPROG=
+endif
+endif
+export UPXPROG
+
+# gdate/date
+ifndef DATE
+DATE:=$(strip $(wildcard $(addsuffix /date$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(DATE),)
+DATE:=$(strip $(wildcard $(addsuffix /gdate$(EXEEXT),$(SEACHPATH))))
+ifeq ($(DATE),)
+DATE=
+else
+DATE:=$(firstword $(DATE))
+endif
+else
+DATE:=$(firstword $(DATE))
+endif
+endif
+export DATE
+
+ifdef DATE
+DATESTR:=$(shell $(DATE) +%Y%m%d)
+else
+DATESTR=
+endif
+
+# ZipProg, you can't use Zip as the var name (PFV)
+ifndef ZIPPROG
+ZIPPROG:=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ZIPPROG),)
+ZIPPROG=
+else
+ZIPPROG:=$(firstword $(ZIPPROG)) -D9 -r
+endif
+endif
+export ZIPPROG
+
+ifndef ZIPEXT
+ZIPEXT=.zip
+endif
+
 
 # Check if the dirs really exists, else turn it off
 ifeq ($(wildcard $(UNITSDIR)),)
@@ -203,11 +406,22 @@ ifeq ($(wildcard $(COMPONENTSDIR)),)
 COMPONENTSDIR=
 endif
 
+
+# PACKAGESDIR packages
+
+PACKAGERTL=1
+
+ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
 ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
 PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
 else
 PACKAGEDIR_RTL=$(FPCDIR)/rtl
+endif
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_rtl
+package_rtl:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
 endif
 UNITDIR_RTL=$(PACKAGEDIR_RTL)
 else
@@ -225,6 +439,8 @@ endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
 endif
+endif
+
 
 #####################################################################
 # Redirection
@@ -266,26 +482,84 @@ install: $(addsuffix _install,$(DIROBJECTS))
 
 sourceinstall: $(addsuffix _sourceinstall,$(DIROBJECTS))
 
+zipinstall: fpc_zipinstall
+
+zipinstalladd: fpc_zipinstalladd
+
 clean: $(addsuffix _clean,$(DIROBJECTS))
 
 cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
 
 require: $(addsuffix _require,$(DIROBJECTS))
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall clean cleanall require
+.PHONY:  all debug examples test smart shared showinstall install sourceinstall zipinstall zipinstalladd clean cleanall require
 
+#####################################################################
+# Zip
+#####################################################################
 
-PACKAGERTL=1
-ifdef PACKAGERTL
-ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
-override COMPILEPACKAGES+=rtl
-rtl_package: $(PACKAGEDIR_RTL)/$(FPCMADE)
-$(PACKAGEDIR_RTL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
+.PHONY: fpc_zipinstall fpc_zipinstalladd
+
+# Temporary path to pack a file
+ifndef PACKDIR
+ifndef inlinux
+PACKDIR=$(BASEDIR)/pack_tmp
+else
+PACKDIR=/tmp/fpc-pack
 endif
 endif
 
-.PHONY:  rtl_package
+# Test dir if none specified
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+
+# Maybe create default zipname from packagename
+ifndef ZIPNAME
+ifdef PACKAGENAME
+ZIPNAME=$(PACKAGENAME)$(PACKAGESUFFIX)
+endif
+endif
+
+# Add .zip/.tar.gz extension
+ifdef ZIPNAME
+ifndef inlinux
+override ZIPNAME:=$(ZIPNAME)$(ZIPEXT)
+endif
+endif
+
+# Note: This will not remove the zipfile first
+fpc_zipinstalladd:
+ifndef ZIPNAME
+	@$(ECHO) "Please specify ZIPNAME!"
+	@exit 1
+else
+	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
+ifdef inlinux
+	gzip -d $(DESTZIPDIR)/$(ZIPNAME).tar.gz
+	cd $(PACKDIR) ; tar rv --file $(DESTZIPDIR)/$(ZIPNAME).tar * ; cd $(BASEDIR)
+	gzip $(DESTZIPDIR)/$(ZIPNAME).tar
+else
+	cd $(PACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+endif
+	$(DELTREE) $(PACKDIR)
+endif
+
+# First remove the zip and then install
+fpc_zipinstall:
+ifndef ZIPNAME
+	@$(ECHO) "Please specify ZIPNAME!"
+	@exit 1
+else
+	$(DEL) $(DESTZIPDIR)/$(ZIPNAME)
+	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
+ifdef inlinux
+	cd $(PACKDIR) ; tar cvz --file $(DESTZIPDIR)/$(ZIPNAME).tar.gz * ; cd $(BASEDIR)
+else
+	cd $(PACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+endif
+	$(DELTREE) $(PACKDIR)
+endif
 
 
 # Target Dirs

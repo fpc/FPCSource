@@ -178,8 +178,6 @@ override PACKAGES+=rtl
 
 
 
-# Package/component dirs
-
 # Check if the dirs really exists, else turn it off
 ifeq ($(wildcard $(UNITSDIR)),)
 UNITSDIR=
@@ -194,11 +192,22 @@ ifeq ($(wildcard $(COMPONENTSDIR)),)
 COMPONENTSDIR=
 endif
 
+
+# PACKAGESDIR packages
+
+PACKAGERTL=1
+
+ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
 ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
 PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
 else
 PACKAGEDIR_RTL=$(FPCDIR)/rtl
+endif
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_rtl
+package_rtl:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
 endif
 UNITDIR_RTL=$(PACKAGEDIR_RTL)
 else
@@ -216,6 +225,8 @@ endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
 endif
+endif
+
 
 #####################################################################
 # Redirection
@@ -264,19 +275,6 @@ cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
 require: $(addsuffix _require,$(DIROBJECTS))
 
 .PHONY:  all debug examples test smart shared showinstall install sourceinstall clean cleanall require
-
-
-PACKAGERTL=1
-ifdef PACKAGERTL
-ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
-override COMPILEPACKAGES+=rtl
-rtl_package: $(PACKAGEDIR_RTL)/$(FPCMADE)
-$(PACKAGEDIR_RTL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-endif
-
-.PHONY:  rtl_package
 
 
 # Target Dirs

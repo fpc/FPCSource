@@ -23,6 +23,11 @@ ifdef OLDFPCDIR
         @exit 1
 endif
 
+# All target
+ifndef ALLTARGET
+ALLTARGET=smart
+endif
+
 # Test dir if none specified
 ifndef PREFIXINSTALLDIR
 PREFIXINSTALLDIR=/pptest
@@ -83,13 +88,15 @@ build: checkfpcdir
         -$(MAKE) -C $(CVSBASE) compiler_cycle
 # clean
         $(MAKE) -C $(CVSBASE) rtl_clean
+        $(MAKE) -C $(CVSBASE) api_clean
         $(MAKE) -C $(CVSBASE) fcl_clean
         $(MAKE) -C $(CVSBASE) packages_clean
         $(MAKE) -C $(CVSBASE) utils_clean
 # build everything
-        $(MAKE) -C $(CVSBASE) rtl_smart $(BUILDOPTS)
-        $(MAKE) -C $(CVSBASE) fcl_smart $(BUILDOPTS)
-        $(MAKE) -C $(CVSBASE) packages_smart $(BUILDOPTS)
+        $(MAKE) -C $(CVSBASE) rtl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) -C $(CVSBASE) api_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) -C $(CVSBASE) fcl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) -C $(CVSBASE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) -C $(CVSBASE) utils_all $(BUILDOPTS)
 
 

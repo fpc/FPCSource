@@ -190,140 +190,6 @@ override PACKAGES+=rtl
 
 INFOTARGET=fpc_infocfg fpc_infoobjects fpc_infoinstall 
 
-
-# Package/component dirs
-
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
-
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-
-#####################################################################
-# Default Directories
-#####################################################################
-
-# set the prefix directory where to install everything
-ifndef PREFIXINSTALLDIR
-ifdef inlinux
-PREFIXINSTALLDIR=/usr
-else
-PREFIXINSTALLDIR=/pp
-endif
-endif
-export PREFIXINSTALLDIR
-
-#####################################################################
-# Install Directories
-#####################################################################
-
-# set the base directory where to install everything
-ifndef BASEINSTALLDIR
-ifdef inlinux
-BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(FPC_VERSION)
-else
-BASEINSTALLDIR=$(PREFIXINSTALLDIR)
-endif
-endif
-
-# set the directory where to install the binaries
-ifndef BININSTALLDIR
-ifdef inlinux
-BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
-else
-BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
-endif
-endif
-
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-UNITINSTALLDIR=$(BASEINSTALLDIR)/units/$(OS_TARGET)
-ifdef UNITSUBDIR
-UNITINSTALLDIR:=$(UNITINSTALLDIR)/$(UNITSUBDIR)
-endif
-endif
-
-# Where to install shared libraries
-ifndef LIBINSTALLDIR
-ifdef inlinux
-LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
-else
-LIBINSTALLDIR=$(UNITINSTALLDIR)
-endif
-endif
-
-# Where the source files will be stored
-ifndef SOURCEINSTALLDIR
-ifdef inlinux
-SOURCEINSTALLDIR=$(PREFIXINSTALLDIR)/src/fpc-$(FPC_VERSION)
-else
-SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
-endif
-endif
-
-# Where the doc files will be stored
-ifndef DOCINSTALLDIR
-ifdef inlinux
-DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-$(FPC_VERSION)
-else
-DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
-endif
-endif
-
-# Where the some extra (data)files will be stored
-ifndef DATAINSTALLDIR
-DATAINSTALLDIR=$(BASEINSTALLDIR)
-endif
-
-#####################################################################
-# Redirection
-#####################################################################
-
-# Release ? Then force OPT and don't use extra opts via commandline
-ifndef REDIRFILE
-REDIRFILE=log
-endif
-
-ifdef REDIR
-ifndef inlinux
-override FPC=redir -eo $(FPC)
-endif
-# set the verbosity to max
-override FPCOPT+=-va
-override REDIR:= >> $(REDIRFILE)
-endif
-
 #####################################################################
 # Shell tools
 #####################################################################
@@ -396,92 +262,6 @@ endif
 endif
 
 export ECHO COPY COPYTREE MOVE DEL DELTREE INSTALL INSTALLEXE MKDIR
-
-
-#####################################################################
-# Compiler Command Line
-#####################################################################
-
-# Load commandline OPTDEF and add FPC_CPU define
-override FPCOPTDEF:=-d$(CPU_TARGET)
-
-# Load commandline OPT and add target and unit dir to be sure
-ifneq ($(OS_TARGET),$(OS_SOURCE))
-override FPCOPT+=-T$(OS_TARGET)
-endif
-
-ifdef NEEDUNITDIR
-override FPCOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
-endif
-
-ifdef UNITSDIR
-override FPCOPT+=-Fu$(UNITSDIR)
-endif
-
-# Smartlinking
-ifdef SMARTLINK
-override FPCOPT+=-CX
-endif
-
-# Debug
-ifdef DEBUG
-override FPCOPT+=-g -dDEBUG
-endif
-
-# Release mode (strip, optimize and don't load ppc386.cfg)
-ifdef RELEASE
-override FPCOPT+=-Xs -OG2p3 -n
-endif
-
-# Verbose settings (warning,note,info)
-ifdef VERBOSE
-override FPCOPT+=-vwni
-endif
-
-# Add commandline options
-ifdef OPT
-override FPCOPT+=$(OPT)
-endif
-ifdef UNITDIR
-override FPCOPT+=$(addprefix -Fu,$(UNITDIR))
-endif
-ifdef LIBDIR
-override FPCOPT+=$(addprefix -Fl,$(LIBDIR))
-endif
-ifdef OBJDIR
-override FPCOPT+=$(addprefix -Fo,$(OBJDIR))
-endif
-ifdef INCDIR
-override FPCOPT+=$(addprefix -Fi,$(INCDIR))
-endif
-
-# Add defines from FPCOPTDEF to FPCOPT
-ifdef FPCOPTDEF
-override FPCOPT+=$(FPCOPTDEF)
-endif
-
-# Error file ?
-ifdef ERRORFILE
-override FPCOPT+=-Fr$(ERRORFILE)
-endif
-
-# Was a config file specified ?
-ifdef CFGFILE
-override FPCOPT+=@$(CFGFILE)
-endif
-
-# For win32 the options are passed using the file fpcext.cmd
-ifndef FPCEXTCMD
-FPCEXTCMD=fpcext.cmd
-endif
-ifeq ($(OS_SOURCE),win32)
-override TMPVAR:=$(shell "$(DEL) $(FPCEXTCMD)")
-override TMPVAR:=$(foreach A,$(FPCOPT),$(shell "$(ECHO) $(A) >> $(FPCEXTCMD)"))
-override FPCOPT:=@$(FPCEXTCMD)
-endif
-
-# Compiler commandline
-override COMPILER:=$(FPC) $(FPCOPT)
 
 #####################################################################
 # Default Tools
@@ -702,6 +482,237 @@ PASEXT=.pas
 endif
 endif
 
+
+# Check if the dirs really exists, else turn it off
+ifeq ($(wildcard $(UNITSDIR)),)
+UNITSDIR=
+endif
+ifeq ($(wildcard $(TOOLKITSDIR)),)
+TOOLKITSDIR=
+endif
+ifeq ($(wildcard $(PACKAGESDIR)),)
+PACKAGESDIR=
+endif
+ifeq ($(wildcard $(COMPONENTSDIR)),)
+COMPONENTSDIR=
+endif
+
+
+# PACKAGESDIR packages
+
+PACKAGERTL=1
+
+ifdef PACKAGERTL
+ifneq ($(wildcard $(FPCDIR)/rtl),)
+ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
+PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+else
+PACKAGEDIR_RTL=$(FPCDIR)/rtl
+endif
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_rtl
+package_rtl:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
+endif
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+else
+PACKAGEDIR_RTL=
+ifneq ($(wildcard $(UNITSDIR)/rtl),)
+ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
+UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
+else
+UNITDIR_RTL=$(UNITSDIR)/rtl
+endif
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+
+
+#####################################################################
+# Default Directories
+#####################################################################
+
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
+else
+PREFIXINSTALLDIR=/pp
+endif
+endif
+export PREFIXINSTALLDIR
+
+#####################################################################
+# Install Directories
+#####################################################################
+
+# set the base directory where to install everything
+ifndef BASEINSTALLDIR
+ifdef inlinux
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(FPC_VERSION)
+else
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)
+endif
+endif
+
+# set the directory where to install the binaries
+ifndef BININSTALLDIR
+ifdef inlinux
+BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
+else
+BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
+endif
+endif
+
+# set the directory where to install the units.
+ifndef UNITINSTALLDIR
+UNITINSTALLDIR=$(BASEINSTALLDIR)/units/$(OS_TARGET)
+ifdef UNITSUBDIR
+UNITINSTALLDIR:=$(UNITINSTALLDIR)/$(UNITSUBDIR)
+endif
+endif
+
+# Where to install shared libraries
+ifndef LIBINSTALLDIR
+ifdef inlinux
+LIBINSTALLDIR=$(PREFIXINSTALLDIR)/lib
+else
+LIBINSTALLDIR=$(UNITINSTALLDIR)
+endif
+endif
+
+# Where the source files will be stored
+ifndef SOURCEINSTALLDIR
+ifdef inlinux
+SOURCEINSTALLDIR=$(PREFIXINSTALLDIR)/src/fpc-$(FPC_VERSION)
+else
+SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
+endif
+endif
+
+# Where the doc files will be stored
+ifndef DOCINSTALLDIR
+ifdef inlinux
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-$(FPC_VERSION)
+else
+DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
+endif
+endif
+
+# Where the some extra (data)files will be stored
+ifndef DATAINSTALLDIR
+DATAINSTALLDIR=$(BASEINSTALLDIR)
+endif
+
+#####################################################################
+# Redirection
+#####################################################################
+
+# Release ? Then force OPT and don't use extra opts via commandline
+ifndef REDIRFILE
+REDIRFILE=log
+endif
+
+ifdef REDIR
+ifndef inlinux
+override FPC=redir -eo $(FPC)
+endif
+# set the verbosity to max
+override FPCOPT+=-va
+override REDIR:= >> $(REDIRFILE)
+endif
+
+
+#####################################################################
+# Compiler Command Line
+#####################################################################
+
+# Load commandline OPTDEF and add FPC_CPU define
+override FPCOPTDEF:=-d$(CPU_TARGET)
+
+# Load commandline OPT and add target and unit dir to be sure
+ifneq ($(OS_TARGET),$(OS_SOURCE))
+override FPCOPT+=-T$(OS_TARGET)
+endif
+
+ifdef NEEDUNITDIR
+override FPCOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
+endif
+
+ifdef UNITSDIR
+override FPCOPT+=-Fu$(UNITSDIR)
+endif
+
+# Smartlinking
+ifdef SMARTLINK
+override FPCOPT+=-CX
+endif
+
+# Debug
+ifdef DEBUG
+override FPCOPT+=-g -dDEBUG
+endif
+
+# Release mode (strip, optimize and don't load ppc386.cfg)
+ifdef RELEASE
+override FPCOPT+=-Xs -OG2p3 -n
+endif
+
+# Verbose settings (warning,note,info)
+ifdef VERBOSE
+override FPCOPT+=-vwni
+endif
+
+# Add commandline options
+ifdef OPT
+override FPCOPT+=$(OPT)
+endif
+ifdef UNITDIR
+override FPCOPT+=$(addprefix -Fu,$(UNITDIR))
+endif
+ifdef LIBDIR
+override FPCOPT+=$(addprefix -Fl,$(LIBDIR))
+endif
+ifdef OBJDIR
+override FPCOPT+=$(addprefix -Fo,$(OBJDIR))
+endif
+ifdef INCDIR
+override FPCOPT+=$(addprefix -Fi,$(INCDIR))
+endif
+
+# Add defines from FPCOPTDEF to FPCOPT
+ifdef FPCOPTDEF
+override FPCOPT+=$(FPCOPTDEF)
+endif
+
+# Error file ?
+ifdef ERRORFILE
+override FPCOPT+=-Fr$(ERRORFILE)
+endif
+
+# Was a config file specified ?
+ifdef CFGFILE
+override FPCOPT+=@$(CFGFILE)
+endif
+
+# For win32 the options are passed using the file fpcext.cmd
+ifndef FPCEXTCMD
+FPCEXTCMD=fpcext.cmd
+endif
+ifeq ($(OS_SOURCE),win32)
+override TMPVAR:=$(shell "$(DEL) $(FPCEXTCMD)")
+override TMPVAR:=$(foreach A,$(FPCOPT),$(shell "$(ECHO) $(A) >> $(FPCEXTCMD)"))
+override FPCOPT:=@$(FPCEXTCMD)
+endif
+
+# Compiler commandline
+override COMPILER:=$(FPC) $(FPCOPT)
+
 #####################################################################
 # Standard rules
 #####################################################################
@@ -732,19 +743,6 @@ info: fpc_info
 
 .PHONY:  all debug smart shared showinstall install sourceinstall zipinstall zipinstalladd clean cleanall info
 
-
-PACKAGERTL=1
-ifdef PACKAGERTL
-ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
-override COMPILEPACKAGES+=rtl
-rtl_package: $(PACKAGEDIR_RTL)/$(FPCMADE)
-$(PACKAGEDIR_RTL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-endif
-
-.PHONY:  rtl_package
-
 #####################################################################
 # Exes
 #####################################################################
@@ -769,7 +767,7 @@ fpc_exes: $(EXEFILES)
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)
 
-fpc_packages: $(addsuffix _package,$(COMPILEPACKAGES))
+fpc_packages: $(COMPILEPACKAGES)
 
 fpc_all: fpc_packages $(FPCMADE)
 
@@ -906,7 +904,7 @@ fpc_sourceinstall: clean
 # Temporary path to pack a file
 ifndef PACKDIR
 ifndef inlinux
-PACKDIR=pack_tmp
+PACKDIR=$(BASEDIR)/pack_tmp
 else
 PACKDIR=/tmp/fpc-pack
 endif
