@@ -191,6 +191,7 @@ type
 
   TIBQuery = class (TDBDataset)
   private
+    FOpen                : Boolean;
     FTransaction         : TIBTransaction;
     FDatabase            : TIBDatabase;
     FStatus              : array [0..19] of ISC_STATUS;
@@ -1023,6 +1024,7 @@ begin
   FBufferSize := 0;
   FRecordSize := 0;
   FRecordCount:= 0;
+  FOpen:=False;
 end;
 
 procedure TIBQuery.InternalDelete;
@@ -1093,6 +1095,7 @@ begin
       DescribeStatement;
       AllocFldBuffers;
       Execute;
+      FOpen:=True;
       InternalInitFieldDefs;
       if DefaultFields then
         CreateFields;
@@ -1118,7 +1121,7 @@ end;
 
 function TIBQuery.IsCursorOpen: Boolean;
 begin
-  Result := False;
+  Result := FOpen;
 end;
 
 procedure TIBQuery.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
