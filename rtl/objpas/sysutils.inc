@@ -180,8 +180,8 @@ begin
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
   { to get a nice symify }
-  Writeln(stdout,BackTraceStrFunc(Longint(Addr)));
-  Dump_Stack(stdout,longint(frame));
+  Writeln(stdout,BackTraceStrFunc(Addr));
+  Dump_Stack(stdout,frame);
   Writeln(stdout,'');
   Halt(217);
 end;
@@ -254,7 +254,7 @@ begin
 end;
 
 
-Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo,TheAddr : Longint);
+Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo:longint; TheAddr : pointer);
 Var
   S : String;
 begin
@@ -375,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2003-01-01 20:58:07  florian
+  Revision 1.14  2003-03-17 15:11:51  armin
+  + someone AssertErrorHandler, BackTraceFunc and Dump_Stack so that pointer instead of longint is needed
+
+  Revision 1.13  2003/01/01 20:58:07  florian
     + added invalid instruction exception
 
   Revision 1.12  2002/10/07 19:43:24  florian
