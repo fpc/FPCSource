@@ -302,7 +302,7 @@ begin
                end;
          '3' : begin
                  ident:=9;
-                 outline:=6;
+                 outline:=11;
                end;
         end;
         j:=pos('_',s);
@@ -1685,7 +1685,7 @@ begin
 {$else}
       if CfgFileExists('/etc/'+fn) then
        foundfn:='/etc/'+fn
-     else     
+     else
 {$endif}
       check_configfile:=false;
    end;
@@ -2101,7 +2101,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.157  2004-12-28 20:43:01  hajny
+  Revision 1.158  2005-01-03 20:27:47  peter
+  fix outline of 3rd level of options (-SI option mainly)
+
+  Revision 1.157  2004/12/28 20:43:01  hajny
     * 8.3 fixes (short target name in paths)
 
   Revision 1.156  2004/12/16 08:06:42  marco
