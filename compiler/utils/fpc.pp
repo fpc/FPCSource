@@ -88,6 +88,7 @@ program fpc;
      s,
      processorname,
      ppcbin,
+     versionStr,
      processorstr   : shortstring;
      ppccommandline : ansistring;
      i : longint;
@@ -109,45 +110,53 @@ program fpc;
      ppcbin:='ppcppc';
      processorname:='powerpc';
 {$endif powerpc}
+     versionstr:='';			  { Default is just the name }  
      for i:=1 to paramcount do
        begin
           s:=paramstr(i);
-          if pos('-P',s)=1 then
-            begin
-               processorstr:=copy(s,3,length(s)-2);
-               { -PB is a special code that will show the
-                 default compiler and exit immediatly. It's
-                 main usage is for Makefile }
-               if processorstr='B' then
-                begin
-                  { report the full name of the ppcbin }
-                  findexe(ppcbin);
-                  writeln(ppcbin);
-                  halt(0);
-                end
-               { -PP is a special code that will show the
-                 processor and exit immediatly. It's
-                 main usage is for Makefile }
-               else if processorstr='P' then
-                begin
-                  { report the processor }
-                  writeln(processorname);
-                  halt(0);
-                end
-               else if processorstr='i386' then
-                 ppcbin:='ppc386'
-               else if processorstr='m68k' then
-                 ppcbin:='ppc68k'
-               else if processorstr='alpha' then
-                 ppcbin:='ppcapx'
-               else if processorstr='powerpc' then
-                 ppcbin:='ppcppc'
-               else error('Illegal processor type "'+processorstr+'"');
-            end
+          if pos('-V',s)=1 then
+              versionstr:=copy(s,3,length(s)-2)
           else
-            ppccommandline:=ppccommandline+s+' ';
+            begin
+              if pos('-P',s)=1 then
+                 begin
+                   processorstr:=copy(s,3,length(s)-2);
+                  { -PB is a special code that will show the
+                    default compiler and exit immediatly. It's
+                     main usage is for Makefile }
+                   if processorstr='B' then
+                     begin
+                       { report the full name of the ppcbin }
+                       findexe(ppcbin);
+                       writeln(ppcbin);
+                       halt(0);
+                     end
+                     { -PP is a special code that will show the                 
+                       processor and exit immediatly. It's                      
+                       main usage is for Makefile }                             
+                     else if processorstr='P' then                              
+                      begin                                                     
+                        { report the processor }                                
+                        writeln(processorname);                                 
+                        halt(0);                                                
+                      end                                                       
+                     else if processorstr='i386' then                           
+                       ppcbin:='ppc386'                                         
+                     else if processorstr='m68k' then                           
+                       ppcbin:='ppc68k'                                         
+                     else if processorstr='alpha' then                          
+                       ppcbin:='ppcapx'                                         
+                     else if processorstr='powerpc' then                        
+                       ppcbin:='ppcppc'                                         
+                     else error('Illegal processor type "'+processorstr+'"');   
+                     end                                                        
+                   else                                                          
+                    ppccommandline:=ppccommandline+s+' ';                         
+            end;                                                            
        end;
 
+     if versionstr<>'' then
+       ppcbin:=ppcbin+'-'+versionstr;   
      { find the full path to the specified exe }
      findexe(ppcbin);
 
@@ -161,7 +170,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.5  2003-04-08 16:01:40  peter
+  Revision 1.6  2003-09-30 11:24:59  marco
+   * -V support
+
+  Revision 1.5  2003/04/08 16:01:40  peter
     * amiga has also no .exe
 
   Revision 1.4  2002/05/18 13:34:27  peter
