@@ -89,6 +89,10 @@ procedure TSHTextEdit.DrawContent(x1, y1, x2, y2: Integer);
     // Erase free space below the text area
     if py < y2 then
       Renderer.ClearRect(0, py, x2, y2);
+
+    if (FCursorX >= x1) and (FCursorY >= y1) and
+      (FCursorX <= x2) and (FCursorY <= y2) then
+      ShowCursor;
   end;
 
 var
@@ -102,6 +106,10 @@ var
   RequestedColor, LastCol: Char;
 
 begin
+
+  if (FCursorX >= x1) and (FCursorY >= y1) and
+    (FCursorX <= x2) and (FCursorY <= y2) then
+    HideCursor;
 
   if (FDoc = nil) or (FDoc.LineCount <= y1) then begin
     PostprocessOutput(y1);
@@ -216,7 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-10-29 15:59:04  peter
+  Revision 1.2  1999-12-08 00:42:54  sg
+  * The cursor should be displayed correctly now
+
+  Revision 1.1  1999/10/29 15:59:04  peter
     * inserted in fcl
 
 }

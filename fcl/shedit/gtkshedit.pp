@@ -352,7 +352,7 @@ var
      begin
        SetGCColor(CurColor);
        gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
-                          x1 * CharW + LeftIndent, y * CharH, (rx2 - rx1 + 1) * CharW + LeftIndent, CharH);
+                          x1 * CharW + LeftIndent, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
        rx1:=rx2;
      end;
   end;
@@ -465,10 +465,10 @@ var
   px,py : integer;
 begin
   writeln('Showcursor ',x,',',y);
-    px:=x*CharW + LeftIndent;
-    py:=y*CharH;
-    SetGCColor(colBlack);
-    gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, px, py, px+2, py+CharH);
+  px := x * CharW + LeftIndent;
+  py := y * CharH;
+  SetGCColor(colBlack);
+  gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, px, py, 2, CharH);
 
 {  r.x:=x * CharW;
   r.y:=y * CharH;
@@ -483,10 +483,10 @@ var
   r : TGdkRectangle;
 begin
   writeln('Hidecursor ',x,',',y);
-  r.x:=x * CharW + LeftIndent;
-  r.y:=y * CharH;
-  r.Width:=CharW;
-  r.Height:=CharH;
+  r.x := x * CharW + LeftIndent;
+  r.y := y * CharH;
+  r.Width := 2;
+  r.Height := CharH;
   gtk_widget_draw(PGtkWidget(PaintBox), @r);
 end;
 
@@ -519,7 +519,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-12-06 21:27:27  peter
+  Revision 1.3  1999-12-08 00:42:54  sg
+  * The cursor should be displayed correctly now
+
+  Revision 1.2  1999/12/06 21:27:27  peter
     * gtk updates, redrawing works now much better and clears only between
       x1 and x2
 
