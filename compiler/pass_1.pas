@@ -4079,6 +4079,8 @@ unit pass_1;
                               hpp:=p^.left;
                               while (hpp<>hp) do
                                begin
+                                 if (hpp^.left^.treetype=typen) then
+                                   Message(type_e_cant_read_write_type);
                                  if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
                                    Message(type_e_mismatch);
                                  hpp:=hpp^.right;
@@ -4093,6 +4095,8 @@ unit pass_1;
                             hp:=p^.left;
                             while assigned(hp) do
                               begin
+                                if (hp^.left^.treetype=typen) then
+                                  Message(type_e_cant_read_write_type);
                                 if assigned(hp^.left^.resulttype) then
                                   begin
                                     isreal:=false;
@@ -5484,7 +5488,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.79  1998-09-08 13:50:17  peter
+  Revision 1.80  1998-09-08 14:10:11  pierre
+    * typen check in read write
+      there are probably other inline function that have the same bug !!
+
+  Revision 1.79  1998/09/08 13:50:17  peter
     * removed last fix becasue it was not 100%
 
   Revision 1.78  1998/09/08 13:36:24  peter
