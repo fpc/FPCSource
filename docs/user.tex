@@ -877,12 +877,22 @@ You can specify comments in the configuration file with the \var{\#} sign.
 Everything from the \var{\#} on will be ignored.
 
 The compiler looks for the \file{ppc386.cfg} file in the following places :
+\begin{itemize} 
+\item Under \linux
 \begin{enumerate}
 \item The current directory.
-\item Under \dos, the directory where the compiler is. Under \linux, 
-       the compiler looks in the \file{/etc} directory
-\item if specified, the directory in the \var{PPC\_CONFIG\_PATH} environment variable.
+\item In your home directory, it looks for \file{.ppc386.cfg}.
+\item The directory specified in the environment variable 
+\var{PPC\_CONFIG\_PATH}, and if it's not set under \file{/etc}.
 \end{enumerate}
+\item Under all other OSes:
+\begin{enumerate}
+\item The current directory.
+\item If it is set, the directory specified in the environment variable.
+\var{PPC\_CONFIG\_PATH}.
+\item The directory where the compiler is. 
+\end{enumerate}
+\end{itemize}
 When the compiler has finished reading the configuration file, it continues
 to treat the command line options.
 
@@ -891,35 +901,165 @@ file: Specifying \file{@foo} on the command line will open file \file{foo},
 and read further options from there. When the compiler has finished reading
 this file, it continues to process the command line.
 
-An important feature in the configuration file is that you can specify
-sections. They behave much like conditional defines. 
-Suppose the following configuration file (named \file{myconf})
-\begin{verbatim}
--a
-#section first
--Up/some_path
-#section second
--Up/other_path.
-\end{verbatim}
-When you invoke the compiler as follows:
-\begin{verbatim}
-  ppc386 -dfirst @myconf foo.pp
-\end{verbatim}
-then the compiler will read the part of the configuration file coming before
-the line containing \var{\#section second}. As a result the unit search path will be set
-to \file{/some\_path}.
-If, on the other hand, you invoke the compiler as 
-\begin{verbatim}
-  ppc386 -dsecond @myconf foo.pp
-\end{verbatim}
-Then the configuration file will be read as if the part between
-\var{\#section first} and \var{\#section second} didn't exist, resulting
-in a unit search path of \file{/other\_path}.
-If you put a \var{\#section common} on a line, everything that follows this
-keyword will be read, whatever the defined constants.
+The configuration file allows some kind of preprocessing. It understands the
+following directives, which you should place on the first column of a line :
+\begin{description}
+\item [\#IFDEF]
+\item [\#IFNDEF]
+\item [\#ELSE]
+\item [\#ENDIF]
+\item [\#DEFINE]
+\item [\#UNDEF]
+\item [\#WRITE]
+\item [\#INCLUDE]
+\item [\#SECTION]
+\end{description}
+They work the same way as their \{\$...\}  counterparts in Pascal.
 
-In short, the \var{\#define} keywords act as conditionals.
+What follows is a description of the different directives.
 
+\subsection{\#IFDEF}
+Syntax:
+\begin{verbatim}
+#IFDEF name
+\end{verbatim} 
+Lines following \var{\#IFDEF} are skipped read if the keyword \var{name}
+following it is not defined.
+
+They are read until the keywords \var{\#ELSE} or \var{\#ENDIF} are
+encountered, after which normal processing is resumed.
+
+Example :
+\begin{verbatim}
+#IFDEF VER0_99_5
+-Up/usr/lib/fpc/0.99.5/linuxunits
+#ENDIF
+\end{verbatim}
+In the above example, \file{/usr/lib/fpc/0.99.5/linuxunits} will be added to
+the path if you're compiling with version 0.99.5 of the compiler.
+
+\subsection{\#IFNDEF}
+Syntax:
+\begin{verbatim}
+#IFNDEF name
+\end{verbatim} 
+Lines following \var{\#IFDEF} are skipped read if the keyword \var{name}
+following it is defined.
+
+They are read until the keywords \var{\#ELSE} or \var{\#ENDIF} are
+encountered, after which normal processing is resumed.
+
+Example :
+\begin{verbatim}
+#IFNDEF VER0_99_5
+-Up/usr/lib/fpc/0.99.6/linuxunits
+#ENDIF
+\end{verbatim}
+In the above example, \file{/usr/lib/fpc/0.99.6/linuxunits} will be added to
+the path if you're NOT compiling with version 0.99.5 of the compiler.
+
+\subsection{\#ELSE}
+Syntax:
+\begin{verbatim}
+#ELSE
+\end{verbatim} 
+\var{\#ELSE} can be specified after a \var{\#IFDEF} or \var{\#IFNDEF}
+directive as an alternative.
+Lines following \var{\#ELSE} are skipped read if the preceding \var{\#IFDEF}
+\var{\#IFNDEF} was accepted.
+
+They are skipped until the keyword \var{\#ENDIF} is
+encountered, after which normal processing is resumed.
+
+Example :
+\begin{verbatim}
+#IFDEF VER0_99_5
+-Up/usr/lib/fpc/0.99.6/linuxunits
+#ELSE
+-Up/usr/lib/fpc/0.99.5/linuxunits
+#ENDIF
+\end{verbatim}
+In the above example, \file{/usr/lib/fpc/0.99.5/linuxunits} will be added to
+the path if you're compiling with version 0.99.5 of the compiler,
+otherwise \file{/usr/lib/fpc/0.99.6/linuxunits} will be added to the path.
+
+\subsection{\#ENDIF}
+Syntax:
+\begin{verbatim}
+#ENDIF
+\end{verbatim} 
+\var{\#ENDIF} marks the end of a block that started with \var{\#IF(N)DEF},
+possibly with an \var{\#ELSE} between it.
+
+\subsection{\#DEFINE}
+Syntax:
+\begin{verbatim}
+#DEFINE name
+\end{verbatim}
+\var{\#DEFINE} defines a new keyword. This has the same effect as a 
+\var{-dname}  command-line option.
+
+\subsection{\#UNDEF}
+Syntax:
+\begin{verbatim}
+#UNDEF name
+\end{verbatim}
+\var{\#UNDEF} un-defines a keyword if it existed. 
+This has the same effect as a \var{-uname}  command-line option.
+
+\subsection{\#WRITE}
+Syntax:
+\begin{verbatim}
+#WRITE Message Text
+\end{verbatim}
+\var{\#WRITE} writes \var{Message Text} to the screen.
+This can be useful to display warnings if certain options are set.
+
+Example:
+\begin{verbatim}
+#IFDEF DEBUG
+#WRITE Setting debugging ON...
+-g
+#ENDIF
+\end{verbatim}
+if \var{DEBUG} is defined, this will produce a line
+\begin{verbatim}
+Setting debugging ON...
+\end{verbatim}
+and will then switch on debugging information in the compiler.
+
+\subsection{\#INCLUDE}
+Syntax:
+\begin{verbatim}
+#INCLUDE filename
+\end{verbatim}
+\var{\#INCLUDE} instructs the compiler to read the contents of
+\file{filename} before continuing to process the current file.
+
+This can be useful if you want to have a particular configuration file
+for a project (or, under \linux, in your home directory), but still want to
+have the global options that are set in a global configuration file.
+
+Example:
+\begin{verbatim}
+#IFDEF LINUX
+#INCLUDE /etc/ppc386.cfg
+#IFDEF DOS
+#INCLUDE c:\pp\bin\ppc386.cfg
+#ENDIF
+\end{erbatim}
+This will include \file{/etc/ppc386.cfg} if you're on a linux machine,
+and will include \file{c:\backslash pp\backslash bin\backslash ppc386.cfg}
+on a dos machine.
+
+\subsection{\#SECTION}
+Syntax:
+\begin{verbatim}
+#SECTION name
+\end{verbatim}
+The \var{\#SECTION} directive acts as a \var{\#IFDEF} directive, only
+it doesn't require an \var{\#ENDIF} directive. the special name \var{COMMON}
+always exists, i.e. lines following \var{\#SECTION COMMON} are always read.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Porting.
