@@ -47,9 +47,7 @@ interface
           function  getcopy : tnode;override;
           function  pass_1 : tnode;override;
           function  det_resulttype:tnode;override;
-       {$ifdef var_notification}
           procedure mark_write;override;
-       {$endif}
           function  docompare(p: tnode): boolean; override;
        {$ifdef extdebug}
           procedure _dowrite;override;
@@ -84,9 +82,7 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-       {$ifdef var_notification}
           procedure mark_write;override;
-       {$endif}
           function docompare(p: tnode): boolean; override;
        end;
        tfuncretnodeclass = class of tfuncretnode;
@@ -158,9 +154,7 @@ implementation
       symtable,paramgr,defutil,defcmp,
       htypechk,pass_1,
       ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
-{$ifdef var_notification}
       ,symnot
-{$endif}
       ;
 
 {*****************************************************************************
@@ -366,17 +360,7 @@ implementation
                 if nf_absolute in flags then
                   tvarsym(symtableentry).varstate:=vs_used
                 else
-                  begin
-                    resulttype:=tvarsym(symtableentry).vartype;
-(*
-{$ifdef var_notification}                   
-                    if nf_write in flags then
-                      Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
-                    else
-                      Tvarsym(symtableentry).trigger_notifications(vn_onread);
-{$endif}
-*)
-                  end;
+                  resulttype:=tvarsym(symtableentry).vartype;
               end;
             typedconstsym :
                 if not(nf_absolute in flags) then
@@ -430,14 +414,11 @@ implementation
          end;
       end;
 
-{$ifdef var_notification}
     procedure Tloadnode.mark_write;
 
     begin
       include(flags,nf_write);
     end;
-{$endif}
-
 
     function tloadnode.pass_1 : tnode;
       begin
@@ -492,12 +473,10 @@ implementation
 
                    if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                      registers32:=1;
-{$ifdef var_notification}                   
                     if nf_write in flags then
                       Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
                     else
                       Tvarsym(symtableentry).trigger_notifications(vn_onread);
-{$endif}
                    { count variable references }
 
                      { this will create problem with local var set by
@@ -558,9 +537,7 @@ implementation
 
       begin
          inherited create(assignn,l,r);
-      {$ifdef var_notification}
          l.mark_write;
-      {$endif}
          assigntype:=at_normal;
       end;
 
@@ -875,13 +852,11 @@ implementation
         resulttype:=funcretsym.returntype;
       end;
 
-{$ifdef var_notification}
     procedure Tfuncretnode.mark_write;
 
     begin
       include(flags,nf_write);
     end;
-{$endif}
 
     function tfuncretnode.pass_1 : tnode;
       begin
@@ -1297,7 +1272,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2002-12-31 09:55:58  daniel
+  Revision 1.78  2003-01-03 12:15:56  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.77  2002/12/31 09:55:58  daniel
    + Notification implementation complete
    + Add for loop code optimization using notifications
      results in 1.5-1.9% speed improvement in nestloop benchmark

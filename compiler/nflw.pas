@@ -29,10 +29,7 @@ interface
 
     uses
        node,cpubase,
-       aasmbase,aasmtai,aasmcpu,
-    {$ifdef var_notification}
-       symnot,
-    {$endif}
+       aasmbase,aasmtai,aasmcpu,symnot,
        symppu,symtype,symbase,symdef,symsym;
 
     type
@@ -87,13 +84,9 @@ interface
        tifnodeclass = class of tifnode;
 
        tfornode = class(tloopnode)
-       {$ifdef var_notification}
           loopvar_notid:cardinal;
-       {$endif}
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
-       {$ifdef var_notification}
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
-       {$endif}
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -658,7 +651,6 @@ implementation
          include(loopflags,lnf_testatbegin);
       end;
 
-{$ifdef var_notification}
     procedure Tfornode.loop_var_access(not_type:Tnotification_flag;
                                        symbol:Tsym);
 
@@ -677,7 +669,6 @@ implementation
         end;
       Tvarsym(symbol).unregister_notification(loopvar_notid);
     end;
-{$endif}
 
     function tfornode.det_resulttype:tnode;
       var
@@ -757,14 +748,6 @@ implementation
          resulttypepass(right);
          set_varstate(right,true);
          inserttypeconv(right,t2.resulttype);
-(*
-      {$ifdef var_notification}
-         include(loopflags,lnf_dont_mind_loopvar_on_exit);
-         if (hp.nodetype=loadn) and (Tloadnode(hp).symtableentry.typ=varsym) then
-            loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
-             register_notification([vn_onread,vn_onwrite],@loop_var_access);
-      {$endif}
-*)
       end;
 
 
@@ -819,7 +802,7 @@ implementation
 
          rg.cleartempgen;
          firstpass(right);
-      {$ifdef var_notification}
+      {$ifdef loopvar_dont_mind}
          { Check count var, record fields are also allowed in tp7 }
          include(loopflags,lnf_dont_mind_loopvar_on_exit);
          hp:=t2;
@@ -1468,7 +1451,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-12-31 09:55:58  daniel
+  Revision 1.61  2003-01-03 12:15:56  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.60  2002/12/31 09:55:58  daniel
    + Notification implementation complete
    + Add for loop code optimization using notifications
      results in 1.5-1.9% speed improvement in nestloop benchmark

@@ -48,9 +48,7 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-       {$ifdef var_notification}
           procedure mark_write;override;
-       {$endif}
           function docompare(p: tnode) : boolean; override;
        private
           function resulttype_cord_to_pointer : tnode;
@@ -1293,14 +1291,11 @@ implementation
         result:=resulttype_call_helper(convtype);
       end;
 
-    {$ifdef var_notification}
       procedure Ttypeconvnode.mark_write;
 
       begin
         left.mark_write;
       end;
-    {$endif}
-
 
     function ttypeconvnode.first_cord_to_pointer : tnode;
 
@@ -2022,7 +2017,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2002-12-22 16:34:49  peter
+  Revision 1.97  2003-01-03 12:15:56  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.96  2002/12/22 16:34:49  peter
     * proc-procvar crash fixed (tw2277)
 
   Revision 1.95  2002/12/20 16:01:26  peter

@@ -34,9 +34,7 @@ interface
        symconst,symbase,symtype,symdef,
        { ppu }
        ppu,symppu,
-{$ifdef var_notification}
        cclasses,symnot,
-{$endif}
        { aasm }
        aasmbase,aasmtai,cpubase,
        globals
@@ -182,9 +180,7 @@ interface
           varspez       : tvarspez;  { sets the type of access }
           varstate      : tvarstate;
           paraitem      : tparaitem;
-{$ifdef var_notification}
           notifications : Tlinkedlist;
-{$endif}
           constructor create(const n : string;const tt : ttype);
           constructor create_dll(const n : string;const tt : ttype);
           constructor create_C(const n,mangled : string;const tt : ttype);
@@ -196,12 +192,10 @@ interface
           procedure set_mangledname(const s:string);
           function  getsize : longint;
           function  getvaluesize : longint;
-{$ifdef var_notification}
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
-{$endif}
 {$ifdef GDB}
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -1653,10 +1647,8 @@ implementation
 
     destructor tvarsym.destroy;
       begin
-      {$ifdef var_notification}
         if assigned(notifications) then
           notifications.destroy;
-      {$endif}
         inherited destroy;
       end;
 
@@ -1720,7 +1712,6 @@ implementation
       end;
 
 
-{$ifdef var_notification}
     procedure Tvarsym.trigger_notifications(what:Tnotification_flag);
 
     var n:Tnotification;
@@ -1774,7 +1765,6 @@ implementation
             internalerror(200212311)
         end;
     end;
-{$endif}
 
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
@@ -2569,7 +2559,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2003-01-02 11:14:02  michael
+  Revision 1.90  2003-01-03 12:15:56  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.89  2003/01/02 11:14:02  michael
   + Patch from peter to support initial values for local variables
 
   Revision 1.88  2003/01/01 22:51:03  peter

@@ -80,9 +80,7 @@ interface
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-       {$ifdef var_notification}
           procedure mark_write;override;
-       {$endif}
        end;
        tderefnodeclass = class of tderefnode;
 
@@ -96,9 +94,7 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
           function det_resulttype:tnode;override;
-       {$ifdef var_notification}
           procedure mark_write;override;
-       {$endif}
        end;
        tsubscriptnodeclass = class of tsubscriptnode;
 
@@ -106,9 +102,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-       {$ifdef var_notification}
           procedure mark_write;override;
-       {$endif}
        end;
        tvecnodeclass = class of tvecnode;
 
@@ -578,13 +572,11 @@ implementation
           CGMessage(cg_e_invalid_qualifier);
       end;
 
-{$ifdef var_notification}
     procedure Tderefnode.mark_write;
 
     begin
       include(flags,nf_write);
     end;
-{$endif}
 
     function tderefnode.pass_1 : tnode;
       begin
@@ -655,13 +647,11 @@ implementation
         resulttype:=vs.vartype;
       end;
 
-{$ifdef var_notification}
     procedure Tsubscriptnode.mark_write;
 
     begin
       include(flags,nf_write);
     end;
-{$endif}
 
     function tsubscriptnode.pass_1 : tnode;
       begin
@@ -780,13 +770,11 @@ implementation
         end;
       end;
 
-{$ifdef var_notification}
     procedure Tvecnode.mark_write;
 
     begin
       include(flags,nf_write);
     end;
-{$endif}
 
     function tvecnode.pass_1 : tnode;
 {$ifdef consteval}
@@ -1055,7 +1043,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-11-25 17:43:20  peter
+  Revision 1.42  2003-01-03 12:15:56  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.41  2002/11/25 17:43:20  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -117,17 +117,12 @@ interface
 
         { a node which is a reference to a certain temp }
         ttemprefnode = class(tnode)
-        {$ifdef var_notification}
-          writeaccess:boolean;
-        {$endif}
           constructor create(const temp: ttempcreatenode); virtual;
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype : tnode; override;
-        {$ifdef var_notification}
           procedure mark_write;override;
-        {$endif}
           function docompare(p: tnode): boolean; override;
          protected
           tempinfo: ptempinfo;
@@ -679,13 +674,11 @@ implementation
           (ttemprefnode(p).tempinfo = tempinfo);
       end;
 
-{$ifdef var_notification}
     procedure Ttemprefnode.mark_write;
 
     begin
-      writeaccess:=true;
+      include(flags,nf_write);
     end;
-{$endif}
 
 
 {*****************************************************************************
@@ -766,7 +759,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-11-27 02:37:12  peter
+  Revision 1.39  2003-01-03 12:15:55  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.38  2002/11/27 02:37:12  peter
     * case statement inlining added
     * fixed inlining of write()
     * switched statementnode left and right parts so the statements are

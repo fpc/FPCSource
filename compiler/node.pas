@@ -335,11 +335,9 @@ interface
             in a procedure }
           function track_state_pass(exec_known:boolean):boolean;virtual;
 {$endif}
-{$ifdef var_notification}
           { For a t1:=t2 tree, mark the part of the tree t1 that gets
             written to (normally the loadnode) as write access. }
           procedure mark_write;virtual;abstract;
-{$endif}
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -974,7 +972,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-12-26 18:24:33  jonas
+  Revision 1.47  2003-01-03 12:15:56  daniel
+    * Removed ifdefs around notifications
+      ifdefs around for loop optimizations remain
+
+  Revision 1.46  2002/12/26 18:24:33  jonas
   * fixed check for whether or not a high parameter was already generated
   * no type checking/conversions for invisible parameters
 
