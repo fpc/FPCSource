@@ -1,5 +1,10 @@
 Program ansitest;
 
+{$ifdef GO32V2}
+uses
+   dpmiexcp;
+{$endif GO32V2}
+
 {$ifndef fpc}
 Function Memavail : Longint;
 
@@ -240,10 +245,8 @@ begin
    Write ('Added tail to S ! : ',S);DoRef(Pointer(S));
    S4:=' This is a shortstring';
    //!! This crashes the program...
-{
    S:=S1+S4;
    Write ('Adding S1+S4 : ',S,' '); DoRef(Pointer(S));
-}
    S:=S1+'@';
    Write ('Adding S1+''@'' : ',S,' '); DoRef(Pointer(S));
 end;
@@ -326,10 +329,8 @@ begin
  S3 := 'ABCDEF';
  Write ('S1+S2=S3 :'); 
  If S1+S2=S3 then writeln (ok) else writeln (nok);
- domem(mem);
  Write ('S1+S2=ABCDEF');
  If S1+S2='ABCDEF' then writeln (ok) else writeln (nok);
- domem(mem);
  Write ('Testing repeat');
  I:=0;
  S3:='';
@@ -338,7 +339,6 @@ begin
    If I=10 then s3:='ABCDEF';
  until S1+S2=S3;
  Writeln (' Done.');
- domem(mem);
  I:=2;
  S3:='';
  Write ('Testing While');
@@ -348,7 +348,6 @@ begin
    If I=10 then s3:='ABCDEF';
    end;
  Writeln (' Done');
- domem(mem);
 end;
 
 Procedure TestStdFunc;
@@ -411,7 +410,6 @@ begin
   Write ('S = "',S,'"');Doref(Pointer(S));
   Writeln ('Pos ''D'' in S is : ',Pos('D',S));
   Write ('S = "',S,'"');Doref(Pointer(S));
-  domem(tempmem);
   Write ('str(Ca,S)= ');
   ca:=1;
   str(Ca,S);
@@ -448,7 +446,6 @@ begin
   Si:=5.0;
   str(Si,S);
   Writeln (S);
-  Domem(tempmem);
 end;
 
 Var GlobalStartMem,StartMem : Longint;
@@ -459,27 +456,35 @@ begin
   Writeln ('Testing Initialize/Finalize.');
   TestInitFinal;
   Write ('End of Initialize/finalize test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing parameter passing.');
   TestParams;
   Write ('End of Parameter passing test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing comparision operators');
   TestCompare;
   Write ('End of compare test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing setlength of AnsiStrings');
   TestSetLength;
   Write ('End of setlength test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing Adding of AnsiStrings');
   TestAdd;
   Write ('End of adding test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing Adding of AnsiStrings in expressions');
   TestAddExpr;
   Write ('End of adding in expressions test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing type conversion.');
   TestConversion;
   Write ('End of typeconversion test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing indexed access.');
   TestIndex;
   Write ('End of index access test : ');DoMem(StartMem);
+
   Writeln;Writeln ('Testing standard functions.');
   TestStdfunc;
   Write ('End of standard functions: ');DoMem(StartMem);
