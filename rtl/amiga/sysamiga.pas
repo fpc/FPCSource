@@ -1,10 +1,12 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1993,98 by Carl Eric Codere
     Some parts taken from
        Marcel Timmermans - Modula 2 Compiler
        Nils Sjoholm - Amiga porter
+       Matthew Dillon - Dice C (with his kind permission)
+          dillon@backplane.com
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,8 +21,6 @@ unit sysamiga;
 {--------------------------------------------------------------------}
 { LEFT TO DO:                                                        }
 {--------------------------------------------------------------------}
-{ o ChDir('..')                                                      }
-{ o SBrk                                                             }
 { o GetDir with different drive numbers                              }
 {--------------------------------------------------------------------}
 
@@ -43,13 +43,9 @@ const
   StdInputHandle  : longint = 0;
   StdOutputHandle : longint = 0;
   StdErrorHandle  : longint = 0;
-  argc : longint = 0;
 
  _ExecBase:longint = $4;
  _WorkbenchMsg : longint = 0;
- intuitionname : pchar = 'intuition.library';
- dosname : pchar = 'dos.library';
- utilityname : pchar = 'utility.library';
 
  _IntuitionBase : pointer = nil;       { intuition library pointer }
  _DosBase       : pointer = nil;       { DOS library pointer       }
@@ -60,12 +56,24 @@ const
   function do_write(h,addr,len : longint) : longint;
 
 
- var
-  OrigDir : Longint;
 
 
 
   implementation
+
+ const
+
+   intuitionname : pchar = 'intuition.library';
+   dosname : pchar = 'dos.library';
+   utilityname : pchar = 'utility.library';
+   argc : longint = 0;
+   { AmigaOS does not autoamtically deallocate memory on program termination }
+   { therefore we have to handle this manually. This is a list of allocated  }
+   { pointers from the OS, we cannot use a linked list, because the linked   }
+   { list itself uses the HEAP!                                              }
+   pointerlist : array[1..8] of longint =
+    (0,0,0,0,0,0,0,0);
+
 
     {$I exec.inc}
 
@@ -129,10 +137,22 @@ const
     end;
     PProcess = ^TProcess;
 
+  { AmigaOS does not automatically close opened files on exit back to  }
+  { the operating system, therefore as a precuation we close all files }
+  { manually on exit.                                                  }
+  PFileList = ^TFileList;
+  TFileList = record { no packed, must be correctly aligned }
+   Handle: longint;      { Handle to file    }
+   next: pfilelist;      { Next file in list }
+   closed: boolean;      { TRUE=file already closed }
+  end;
+
 
 
 
     Const
+     CTRL_C               = 20;      { Error code on CTRL-C press }
+     SIGBREAKF_CTRL_C     = $1000;   { CTRL-C signal flags }
 
     _LVOFindTask          = -294;
     _LVOWaitPort          = -384;
@@ -164,6 +184,10 @@ const
     _LVOExamine           = -102;
     _LVOParentDir         = -210;
     _LVOSetFileSize       = -456;
+    _LVOSetSignal         = -306;
+    _LVOAllocVec          = -684;
+    _LVOFreeVec           = -690;
+
 
       { Errors from IoErr(), etc. }
       ERROR_NO_FREE_STORE              = 103;
@@ -216,8 +240,12 @@ const
 
 
     var
-      Initial: boolean;
-      errno : word;
+      Initial: boolean;           { Have successfully opened Std I/O   }
+      errno : word;               { AmigaOS IO Error number            }
+      FileList : pFileList;       { Linked list of opened files        }
+      old_exit: Pointer;
+      FromHalt : boolean;
+      OrigDir : Longint;   { Current lock on original startup directory }
 
     {$I system.inc}
     {$I lowmath.inc}
@@ -367,6 +395,50 @@ const
    end;
 
 
+   { This routine from EXEC determines if the Ctrl-C key has }
+   { been used since the last call to I/O routines.          }
+   { Use to halt the program.                                }
+   { Returns the state of the old signals.                   }
+   Function SetSignal(newSignal: longint; SignalMask: longint): longint;
+   Begin
+     asm
+       move.l  newSignal,d0
+       move.l  SignalMask,d1
+       move.l  a6,d6          { save Base pointer into scratch register }
+       move.l  _ExecBase,a6
+       jsr     _LVOSetSignal(a6)
+       move.l  d6,a6
+       move.l  d0,@Result
+     end;
+   end;
+
+
+   Function AllocVec(bytesize: longint; attributes: longint):longint;
+   Begin
+     asm
+       move.l  bytesize,d0
+       move.l  attributes,d1
+       move.l  a6,d6          { save Base pointer into scratch register }
+       move.l  _ExecBase,a6
+       jsr     _LVOAllocVec(a6)
+       move.l  d6,a6
+       move.l  d0,@Result
+     end;
+   end;
+
+
+   Procedure FreeVec(p: longint);
+   Begin
+     asm
+       move.l  p,a1
+       move.l  a6,d6          { save Base pointer into scratch register }
+       move.l  _ExecBase,a6
+       jsr     _LVOFreeVec(a6)
+       move.l  d6,a6
+     end;
+   end;
+
+
    { Converts an AMIGAOS error code to a TP compatible error code }
    Procedure Error2InOut;
    Begin
@@ -439,8 +511,153 @@ const
      move.w  20(a0), d0          { Return version - version at this offset }
    end;
 
+
+  { ************************ AMIGAOS SUPP ROUTINES ************************* }
+
+(*  Procedure CloseList(p: pFileList);*)
+  (***********************************************************************)
+  (* PROCEDURE CloseList                                                 *)
+  (*  Description: This routine each time the program is about to        *)
+  (*  terminate, it closes all opened file handles, as this is not       *)
+  (*  handled by the operating system.                                   *)
+  (*   p -> Start of linked list of opened files                         *)
+  (***********************************************************************)
+(*  var
+   hp: pFileList;
+   hp1: pFileList;
+   h: longint;
+  Begin
+   hp:=p;
+   while Assigned(hp) do
+    Begin
+      if NOT hp^.closed then
+       Begin
+        h:=hp^.handle;
+        if (h <> StdInputHandle) and (h <> StdOutputHandle) and (h <> StdErrorHandle) then
+        Begin
+          { directly close file here, it is faster then doing }
+          { it do_close.                                      }
+          asm
+            move.l  h,d1
+            move.l  a6,d6              { save a6 }
+            move.l  _DOSBase,a6
+            jsr     _LVOClose(a6)
+            move.l  d6,a6              { restore a6 }
+          end;
+        end;
+       end;
+      hp1:=hp;
+      hp:=hp^.next;
+      dispose(hp1);
+    end;
+  end;*)
+
+
+(* Procedure AddToList(var p: pFileList; h: longint);*)
+  (***********************************************************************)
+  (* PROCEDURE AddToList                                                 *)
+  (*  Description: Adds a node to the linked list of files.              *)
+  (*                                                                     *)
+  (*   p -> Start of File list linked list, if not allocated allocates   *)
+  (*        it for you.                                                  *)
+  (*   h -> handle of file to add                                        *)
+  (***********************************************************************)
+(*  var
+   hp: pFileList;
+   hp1: pFileList;
+  Begin
+    if p = nil then
+     Begin
+       new(p);
+       p^.handle:=h;
+       p^.closed := FALSE;
+       p^.next := nil;
+       exit;
+     end;
+     hp:=p;
+    { Find last list in entry }
+    while assigned(hp) do
+     Begin
+        if hp^.next = nil then break;
+        hp:=hp^.next;
+     end;
+    { Found last list in entry then add it to the list }
+    new(hp1);
+    hp^.next:=hp1;
+    hp1^.next:=nil;
+    hp1^.handle:=h;
+    hp1^.closed:=FALSE;
+  end;
+
+
+  Procedure SetClosedList(var p: pFileList; h: longint);
+  { Set the file flag to closed if the file is being closed }
+  var
+   hp: pFileList;
+  Begin
+    hp:=p;
+    while assigned(hp) do
+     Begin
+        if hp^.handle = h then
+         Begin
+           hp^.closed:=TRUE;
+           break;
+         end;
+        hp:=hp^.next;
+     end;
+  end;*)
+
+
+    Procedure ExitCall;
+    var
+     i: byte;
+    Begin
+        { We must remove the CTRL-C FALG here because halt }
+        { may call I/O routines, which in turn might call  }
+        { halt, so a recursive stack crash                 }
+        IF (SetSignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 THEN
+           SetSignal(0,SIGBREAKF_CTRL_C);
+         { Close remaining opened files }
+{         CloseList(FileList); }
+        if (OrigDir <> 0) then
+         Begin
+            Unlock(CurrentDir(OrigDir));
+            OrigDir := 0;
+         end;
+         { Is this a normal exit - YES, close libs }
+         IF NOT FromHalt then
+           Begin
+             { close the libraries }
+             If _UtilityBase <> nil then
+                 CloseLibrary(_UtilityBase);
+             If _DosBase <> nil then
+                 CloseLibrary(_DosBase);
+             If _IntuitionBase <> nil then
+                 CloseLibrary(_IntuitionBase);
+             _UtilityBase := nil;
+             _DosBase := nil;
+             _IntuitionBase := nil;
+           end;
+         { Dispose of extraneous allocated pointers }
+         for I:=1 to 8 do
+           Begin
+             if pointerlist[i] <> 0 then FreeVec(pointerlist[i]);
+           end;
+         exitproc:=old_exit;
+    end;
+
+
     procedure halt(errnum : byte);
       begin
+        { Indicate to the SYSTEM EXIT procedure that we are calling it }
+        { from halt, and that its library will be closed HERE and not  }
+        { in the exit procedure.                                       }
+        FromHalt:=TRUE;
+        { We must remove the CTRL-C FALG here because halt }
+        { may call I/O routines, which in turn might call  }
+        { halt, so a recursive stack crash                 }
+        IF (SetSignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 THEN
+           SetSignal(0,SIGBREAKF_CTRL_C);
         { WE can only FLUSH the stdio   }
         { if the handles have correctly }
         { been set.                     }
@@ -451,24 +668,16 @@ const
           do_exit;
           flush(stderr);
         end;
-        if (OrigDir <> 0) then
-         Begin
-            Unlock(CurrentDir(OrigDir));
-            OrigDir := 0;
-         end;
-         { close the libraries }
-         If _UtilityBase <> nil then
-         Begin
+        { close the libraries }
+        If _UtilityBase <> nil then
            CloseLibrary(_UtilityBase);
-         end;
-         If _DosBase <> nil then
-         Begin
+        If _DosBase <> nil then
            CloseLibrary(_DosBase);
-         end;
-         If _IntuitionBase <> nil then
-         Begin
+        If _IntuitionBase <> nil then
            CloseLibrary(_IntuitionBase);
-         end;
+        _UtilityBase := nil;
+        _DosBase := nil;
+        _IntuitionBase := nil;
          asm
             clr.l   d0
             move.b  errnum,d0
@@ -476,6 +685,7 @@ const
             rts
          end;
       end;
+
 
 
   { ************************ PARAMCOUNT/PARAMSTR *************************** }
@@ -679,9 +889,33 @@ const
   { But here we do a trick, we say that the }
   { heap cannot be regrown!                 }
   function sbrk( size: longint): longint;
+  var
   { on exit -1 = if fails.               }
+   p: longint;
+   i: byte;
   Begin
-   sbrk:=-1;
+    p:=0;
+    { Is the pointer list full }
+    if pointerlist[8] <> 0 then
+    begin
+     { yes, then don't allocate and simply exit }
+     sbrk:=-1;
+     exit;
+    end;
+    { Allocate best available memory }
+    p:=AllocVec(size,0);
+    if p = 0 then
+     sbrk:=-1
+    else
+    Begin
+       i:=1;
+       { add it to the list of allocated pointers }
+       { first find the last pointer in the list  }
+       while (i < 8) and (pointerlist[i] <> 0) do
+         i:=i+1;
+       pointerlist[i]:=p;
+       sbrk:=p;
+    end;
   end;
 
 
@@ -694,13 +928,40 @@ const
  ****************************************************************************}
 
 procedure do_close(h : longint);
+{ We cannot check for CTRL-C because this routine will be called }
+{ on HALT to close all remaining opened files. Therefore no      }
+{ CTRL-C checking otherwise a recursive call might result!       }
+{$ifdef debug}
+var
+  buffer: array[0..255] of char;
+{$endif}
 begin
+  { check if the file handle is in the list }
+  { if so the put its field to closed       }
+{  SetClosedList(FileList,h);}
+{$ifdef debug}
   asm
-            move.l  h,d1
-            move.l  a6,d6              { save a6 }
-            move.l  _DOSBase,a6
-            jsr     _LVOClose(a6)
-            move.l  d6,a6              { restore a6 }
+     move.l  h,d1
+     move.l  a6,d6
+     move.l  d2,-(sp)
+     move.l  d3,-(sp)
+     lea     buffer,a0
+     move.l  a0,d2
+     move.l  #255,d3
+     move.l  _DosBase,a6
+     jsr     _LVONameFromFH(a6)
+     move.l  d6,a6
+     move.l  (sp)+,d3
+     move.l  (sp)+,d2
+  end;
+  WriteLn(Buffer);
+{$endif debug}
+  asm
+     move.l  h,d1
+     move.l  a6,d6              { save a6 }
+     move.l  _DOSBase,a6
+     jsr     _LVOClose(a6)
+     move.l  d6,a6              { restore a6 }
   end;
 end;
 
@@ -718,6 +979,11 @@ end;
 
 procedure do_erase(p : pchar);
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   asm
            move.l  a6,d6               { save a6 }
 
@@ -740,6 +1006,11 @@ end;
 
 procedure do_rename(p1,p2 : pchar);
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   asm
            move.l  a6,d6                  { save a6 }
            move.l  d2,-(sp)               { save d2 }
@@ -763,6 +1034,11 @@ end;
 
 function do_write(h,addr,len : longint) : longint;
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   if len <= 0 then
    Begin
     do_write:=0;
@@ -800,6 +1076,11 @@ end;
 
 function do_read(h,addr,len : longint) : longint;
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   if len <= 0 then
   Begin
      do_read:=0;
@@ -839,6 +1120,12 @@ end;
 
 function do_filepos(handle : longint) : longint;
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   asm
              move.l  a6,d6
 
@@ -873,6 +1160,12 @@ end;
 
 procedure do_seek(handle,pos : longint);
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   asm
              move.l  a6,d6
 
@@ -904,6 +1197,12 @@ end;
 
 function do_seekend(handle:longint):longint;
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   asm
              { seek from end of file }
              move.l  a6,d6
@@ -941,6 +1240,12 @@ function do_filesize(handle : longint) : longint;
 var
   aktfilepos : longint;
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+    Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+    end;
    aktfilepos:=do_filepos(handle);
    { We have to do this two times, because seek returns the }
    { OLD position                                           }
@@ -990,9 +1295,42 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
 var
-  i : longint;
+  i,j : longint;
   oflags: longint;
+  path : string;
+  buffer : array[0..255] of char;
+  index : integer;
+  s : string;
 begin
+ path:=strpas(p);
+ for index:=1 to length(path) do
+   if path[index]='\' then path[index]:='/';
+ { remove any dot characters and replace by their current }
+ { directory equivalent.                                  }
+ if pos('../',path) = 1 then
+ { look for parent directory }
+    Begin
+       delete(path,1,3);
+       getdir(0,s);
+       j:=length(s);
+       while (s[j] <> '/') AND (s[j] <> ':') AND (j > 0 ) do
+         dec(j);
+       if j > 0 then
+         s:=copy(s,1,j);
+       path:=s+path;
+    end
+ else
+ if pos('./',path) = 1 then
+ { look for current directory }
+    Begin
+       delete(path,1,2);
+       getdir(0,s);
+       if (s[length(s)] <> '/') and (s[length(s)] <> ':') then
+          s:=s+'/';
+       path:=s+path;
+    end;
+  move(path[1],buffer,length(path));
+  buffer[length(path)]:=#0;
  { close first if opened }
   if ((flags and $1000)=0) then
    begin
@@ -1049,8 +1387,9 @@ begin
    end;
          asm
              move.l  a6,d6                  { save a6 }
-
-             move.l  p,d1
+             move.l  d2,-(sp)
+             lea     buffer,a0
+             move.l  a0,d1
              move.l  oflags,d2               { MODE_READWRITE }
              move.l  _DOSBase,a6
              jsr     _LVOOpen(a6)
@@ -1060,15 +1399,23 @@ begin
              move.w  d0,errno
              bra     @openend
           @noopenerror:
+             move.l  (sp)+,d2
              move.l  d6,a6                 { restore a6 }
              move.l  d0,i                  { we need the base pointer to access this variable }
              bra     @end
           @openend:
              move.l  d6,a6                 { restore a6 }
+             move.l  (sp)+,d2
           @end:
          end;
+(*    if Errno = 0 then*)
+    { No error, add file handle to linked list }
+    { this must be checked before the call to  }
+    { Error2InIOut since it resets Errno to 0  }
+(*      AddToList(FileList,i);*)
     If Errno <> 0 then
        Error2InOut;
+
     filerec(f).handle:=i;
     if (flags and $10)<>0 then
        do_seekend(filerec(f).handle);
@@ -1100,10 +1447,22 @@ end;
 procedure mkdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
+  j: Integer;
+  temp : string;
 begin
+  { We must check the Ctrl-C before IOChecking of course! }
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   If InOutRes <> 0 then exit;
-  move(s[1],buffer,length(s));
-  buffer[length(s)]:=#0;
+  temp:=s;
+  for j:=1 to length(temp) do
+    if temp[j] = '\' then temp[j] := '/';
+  move(temp[1],buffer,length(temp));
+  buffer[length(temp)]:=#0;
   asm
         move.l  a6,d6
         { we must load the parameters BEFORE setting up the }
@@ -1134,10 +1493,22 @@ end;
 procedure rmdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
+  j : Integer;
+  temp : string;
 begin
+  { We must check the Ctrl-C before IOChecking of course! }
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+   Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
+   end;
   If InOutRes <> 0 then exit;
-  move(s[1],buffer,length(s));
-  buffer[length(s)]:=#0;
+  temp:=s;
+  for j:=1 to length(temp) do
+    if temp[j] = '\' then temp[j] := '/';
+  move(temp[1],buffer,length(temp));
+  buffer[length(temp)]:=#0;
   do_erase(buffer);
 end;
 
@@ -1148,17 +1519,36 @@ var
   buffer : array[0..255] of char;
   alock : longint;
   FIB :pFileInfoBlock;
+  j: integer;
+  temp : string;
 begin
-  If InOutRes <> 0 then exit;
-  if s = '..' then
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
    Begin
+     { Clear CTRL-C signal }
+     SetSignal(0,SIGBREAKF_CTRL_C);
+     Halt(CTRL_C);
    end;
+  If InOutRes <> 0 then exit;
+  temp:=s;
+  for j:=1 to length(temp) do
+    if temp[j] = '\' then temp[j] := '/';
+  { Return parent directory }
+  if s = '..' then
+  Begin
+       getdir(0,temp);
+       j:=length(temp);
+       { Look through the previous paths }
+       while (temp[j] <> '/') AND (temp[j] <> ':') AND (j > 0 ) do
+         dec(j);
+       if j > 0 then
+         temp:=copy(temp,1,j);
+  end;
   alock := 0;
   fib:=nil;
   new(fib);
 
-  move(s[1],buffer,length(s));
-  buffer[length(s)]:=#0;
+  move(temp[1],buffer,length(temp));
+  buffer[length(temp)]:=#0;
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
@@ -1271,6 +1661,12 @@ end;
 
 procedure getdir(drivenr : byte;var dir : string);
 begin
+  if (Setsignal(0,0) AND SIGBREAKF_CTRL_C) <> 0 then
+    Begin
+      { Clear CTRL-C signal }
+      SetSignal(0,SIGBREAKF_CTRL_C);
+      Halt(CTRL_C);
+    end;
   GetCwd(dir);
   If errno <> 0 then
      Error2InOut;
@@ -1361,9 +1757,9 @@ end;
 
 
 
-
 begin
   errno:= 0;
+  FromHalt := FALSE;
 {  Initial state is on -- in case of RunErrors before the i/o handles are }
 {  ok.                                                                    }
   Initial:=TRUE;
@@ -1396,12 +1792,22 @@ begin
    end;
    argc:=GetParamCount(args);
    OrigDir := 0;
+   FileList := nil;
+   old_Exit:=exitproc;
+   Exitproc:=@ExitCall;
 end.
 
 
 {
   $Log$
-  Revision 1.8  1998-07-13 12:32:18  carl
+  Revision 1.9  1998-08-17 12:34:22  carl
+    * chdir accepts .. characters
+    + added ctrl-c checking
+    + implemented sbrk
+    * exit code was never called if no error was found on exit!
+    * register was not saved in do_open
+
+  Revision 1.8  1998/07/13 12:32:18  carl
     * do_truncate works, some cleanup
 
   Revision 1.6  1998/07/02 12:37:52  carl
