@@ -32,6 +32,7 @@ end;
 procedure require_error(num : longint);
 begin
    required_error_num:=num;
+   accepted_error_num:=num;
 end;
 
 procedure error_unit_exit;
@@ -42,14 +43,14 @@ begin
         if (required_error_num<>0) and (exitcode<>required_error_num) then
           begin
              Write('Program ',paramstr(0));
-             Write('exited with error ',exitcode,' whereas error ');
+             Write(' exited with error ',exitcode,' whereas error ');
              Writeln(required_error_num,' was expected');
              Halt(1);
           end
         else if exitcode<>accepted_error_num then
           begin
              Write('Program ',paramstr(0));
-             Write('exited with error ',exitcode,' whereas only error ');
+             Write(' exited with error ',exitcode,' whereas only error ');
              Writeln(accepted_error_num,' was expected');
              Halt(1);
           end;
@@ -57,12 +58,17 @@ begin
    else if required_error_num<>0 then
      begin
         Write('Program ',paramstr(0));
-        Write('exited without error whereas error ');
+        Write(' exited without error whereas error ');
         Writeln(required_error_num,' was expected');
         Halt(1);
      end;
    if program_has_error then
-     Halt(1);
+     Halt(1)
+   else
+     begin
+        exitcode:=0;
+        erroraddr:=nil;
+     end;
 end;
 
 begin
