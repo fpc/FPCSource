@@ -406,6 +406,10 @@ Var LoLab, HiLab, LabDif: Longint;
                              TmpRef^.offset := 0;
                              Case Longint(Pai386(p)^.op1) Of
                                3: Begin
+                                  {imul 3, reg1, reg2 to
+                                     lea (reg1,reg1,2), reg2
+                                   imul 3, reg1 to
+                                     lea (reg1,reg1,2), reg1}
                                     TmpRef^.base := TRegister(Pai386(p)^.op2);
                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
                                     TmpRef^.ScaleFactor := 2;
@@ -419,6 +423,10 @@ Var LoLab, HiLab, LabDif: Longint;
                                     p := hp1;
                                  End;
                                5: Begin
+                                  {imul 5, reg1, reg2 to
+                                     lea (reg1,reg1,4), reg2
+                                   imul 5, reg1 to
+                                     lea (reg1,reg1,4), reg1}
                                     TmpRef^.base := TRegister(Pai386(p)^.op2);
                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
                                     TmpRef^.ScaleFactor := 4;
@@ -432,6 +440,12 @@ Var LoLab, HiLab, LabDif: Longint;
                                     p := hp1;
                                   End;
                                6: Begin
+                                  {imul 6, reg1, reg2 to
+                                     lea (,reg1,2), reg2
+                                     lea (reg2,reg1,4), reg2
+                                   imul 6, reg1 to
+                                     lea (reg1,reg1,2), reg1
+                                     add reg1, reg1}
                                     If (Opt_Processors <= i486) Then
                                       Begin
                                         TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -445,10 +459,9 @@ Var LoLab, HiLab, LabDif: Longint;
                                             End
                                           Else
                                             Begin
-                                              TmpRef^.base := R_NO;
-                                              TmpRef^.ScaleFactor := 2;
-                                              hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-                                               TRegister(Pai386(p)^.op2)));
+                                              Dispose(TmpRef);
+                                              hp1 :=  New(Pai386, op_reg_reg(A_ADD, S_L,
+                                               TRegister(Pai386(p)^.op2),TRegister(Pai386(p)^.op2)));
                                             End;
                                         hp1^.line := p^.line;
                                         InsertLLItem(p, p^.next, hp1);
@@ -479,6 +492,10 @@ Var LoLab, HiLab, LabDif: Longint;
                                      Else Dispose(TmpRef);
                                   End;
                                9: Begin
+                                  {imul 9, reg1, reg2 to
+                                     lea (reg1,reg1,8), reg2
+                                   imul 9, reg1 to
+                                     lea (reg1,reg1,8), reg1}
                                     TmpRef^.base := TRegister(Pai386(p)^.op2);
                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
                                     TmpRef^.ScaleFactor := 8;
@@ -492,47 +509,33 @@ Var LoLab, HiLab, LabDif: Longint;
                                     p := hp1;
                                   End;
                                10: Begin
+                                  {imul 10, reg1, reg2 to
+                                     lea (reg1,reg1,4), reg2
+                                     add reg2, reg2
+                                   imul 10, reg1 to
+                                     lea (reg1,reg1,4), reg1
+                                     add reg1, reg1}
                                      If (Opt_Processors <= i486) Then
                                        Begin
-                                         TmpRef^.Index := TRegister(Pai386(p)^.op2);
                                          If (Pai386(p)^.op3t = Top_Reg)
                                            Then
-                                             Begin
-                                               TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).word2);
-                                               TmpRef^.ScaleFactor := 8;
-                                               hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-                                                Tregister(twowords(Pai386(p)^.op2).word2)));
-                                             End
-                                           Else
-                                             Begin
-                                               TmpRef^.base := R_NO;
-                                               TmpRef^.ScaleFactor := 2;
-                                               hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-                                                TRegister(Pai386(p)^.op2)));
-                                            End;
+                                             hp1 :=  New(Pai386, op_reg_reg(A_ADD, S_L,
+                                                Tregister(twowords(Pai386(p)^.op2).word2),
+                                                Tregister(twowords(Pai386(p)^.op2).word2)))
+                                           Else hp1 := New(Pai386, op_reg_reg(A_ADD, S_L,
+                                                    TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
                                          hp1^.line := p^.line;
                                          InsertLLItem(p, p^.next, hp1);
-                                         New(TmpRef);
-                                         TmpRef^.segment := R_DEFAULT_SEG;
-                                         TmpRef^.symbol := nil;
-                                         TmpRef^.isintvalue := false;
-                                         TmpRef^.offset := 0;
+                                         TmpRef^.base := TRegister(Pai386(p)^.op2);
                                          TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                                         TmpRef^.ScaleFactor := 4;
                                          If (Pai386(p)^.op3t = Top_Reg)
                                            Then
-                                             Begin
-                                               TmpRef^.ScaleFactor := 2;
-                                               TmpRef^.base := R_NO;
-                                               hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
-                                                TRegister(twowords(Pai386(p)^.op2).word2)));
-                                             End
+                                             hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
+                                                TRegister(twowords(Pai386(p)^.op2).word2)))
                                            Else
-                                             Begin
-                                               TmpRef^.ScaleFactor := 4;
-                                               TmpRef^.base := TRegister(Pai386(p)^.op2);
                                                hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                 TRegister(Pai386(p)^.op2)));
-                                             End;
                                          hp1^.line := p^.line;
                                          InsertLLItem(p^.last, p^.next, hp1);
                                          Dispose(p, Done);
@@ -541,6 +544,12 @@ Var LoLab, HiLab, LabDif: Longint;
                                      Else Dispose(TmpRef);
                                    End;
                                12: Begin
+                                  {imul 12, reg1, reg2 to
+                                     lea (,reg1,4), reg2
+                                     lea (,reg1,8) reg2
+                                   imul 12, reg1 to
+                                     lea (reg1,reg1,2), reg1
+                                     lea (,reg1,4), reg1}
                                      If (Opt_Processors <= i486) Then
                                        Begin
                                          TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -567,17 +576,18 @@ Var LoLab, HiLab, LabDif: Longint;
                                          TmpRef^.isintvalue := false;
                                          TmpRef^.offset := 0;
                                          TmpRef^.Index := TRegister(Pai386(p)^.op2);
-                                         TmpRef^.ScaleFactor := 4;
                                          If (Pai386(p)^.op3t = Top_Reg)
                                            Then
                                               Begin
                                                 TmpRef^.base := R_NO;
+                                                TmpRef^.ScaleFactor := 4;
                                                 hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                  TRegister(twowords(Pai386(p)^.op2).word2)));
                                              End
                                            Else
                                              Begin
                                                TmpRef^.base := TRegister(Pai386(p)^.op2);
+                                               TmpRef^.ScaleFactor := 2;
                                                hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                 TRegister(Pai386(p)^.op2)));
                                              End;
@@ -1478,7 +1488,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.3  1998-03-29 17:27:58  florian
+  Revision 1.4  1998-04-08 19:12:28  jonas
+    * fixed bug where "imul 12,reg" was replaced with a wrong lea sequence
+
+  Revision 1.3  1998/03/29 17:27:58  florian
     * aopt386 compiles with TP
     * correct line number is displayed, if a #0 is in the input
 
