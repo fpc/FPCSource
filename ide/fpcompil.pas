@@ -400,7 +400,7 @@ begin
 {$ifdef COMPILER_1_0}
   if AClass>=V_Info then
 {$else}
-  if (AClass and V_LineInfo)=V_LineInfo then
+  if (AClass and V_LineInfo)<>V_LineInfo then
 {$endif}
     Line:=0;
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
@@ -1330,7 +1330,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2003-03-27 14:11:53  pierre
+  Revision 1.22  2003-03-28 09:55:46  armin
+  * Fixed TCompilerMessageWindow.AddMessage to see line numbers with 1.1
+
+  Revision 1.21  2003/03/27 14:11:53  pierre
    * fix problem in CompilerComment procedure
 
   Revision 1.20  2003/01/13 09:05:18  pierre
