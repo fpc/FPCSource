@@ -36,7 +36,6 @@ type
 
    tfilename = string;
 
-   tsyscharset = set of char;
    tintegerset = set of 0..sizeof(integer)*8-1;
 
    longrec = packed record
@@ -166,6 +165,14 @@ type
    procedure Beep;
    function SysErrorMessage(ErrorCode: Integer): String;
 
+type
+  TTerminateProc = function: Boolean;
+  
+  procedure AddTerminateProc(TermProc: TTerminateProc);
+  function CallTerminateProcs: Boolean;
+
+
+
 Var
    OnShowException : Procedure (Msg : ShortString);
 
@@ -219,7 +226,10 @@ Type
 
 {
   $Log$
-  Revision 1.4  2003-11-26 20:12:08  michael
+  Revision 1.5  2003-11-26 22:17:42  michael
+  + Merged fixbranch fixes, missing in main branch
+
+  Revision 1.4  2003/11/26 20:12:08  michael
   + New runerror 231 (exception stack error) and 232 (nothread support)
 
   Revision 1.3  2003/11/26 20:00:19  florian

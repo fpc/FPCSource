@@ -19,37 +19,63 @@
     *********************************************************************
 }
 
-function AnsiCompareFileName(const S1, S2 : Ansistring) : Longint;
-  begin
-  end;
+Function AnsiCompareFileName(const S1, S2: string): Integer;
 
-function AnsiLowerCaseFileName(const s : string) : Ansistring;
-  begin
-  end;
+begin
+  If FileNameCaseSensitive then
+    Result:=AnsiCompareStr(S1,S2) // Compare case sensitive
+  else  
+    Result:=AnsiCompareText(S1,S2); // Compare case insensitive. No MBCS yet.
+end;
 
-function AnsiUpperCaseFileName(const s : string) : Ansistring;
-  begin
-  end;
+Function SameFileName(const S1, S2: string): Boolean;
 
-function AnsiPos(const substr,s : string) : Longint;
-  begin
-  end;
+begin
+  Result:=AnsiCompareFileName(S1,S2)=0;
+end;
 
-function AnsiStrPos(str,substr : PChar) : PChar;
-  begin
-  end;
+Function AnsiLowerCaseFileName(const S: string): string;
 
-function AnsiStrRScan(Str : PChar;Chr : Char) : PChar;
-  begin
-  end;
+begin
+  Result:=AnsiLowerCase(S); // No locale support or MBCS yet.
+end;
 
-function AnsiStrScan(Str : PChar;Chr: Char) : PChar;
-  begin
-  end;
+Function AnsiUpperCaseFileName(const S: string): string;
+
+begin
+  Result:=AnsiUpperCase(S); // No locale support or MBCS yet.
+end;
+
+Function AnsiPos(const Substr, S: string): Integer;
+
+begin
+  Result:=Pos(Substr,S); // No MBCS yet.
+end;
+
+Function AnsiStrPos(Str, SubStr: PChar): PChar;
+
+begin
+  Result:=StrPos(Str,Substr);
+end;
+
+Function AnsiStrRScan(Str: PChar; Chr: Char): PChar;
+
+begin
+  Result:=StrRScan(Str,Chr);
+end;
+
+Function AnsiStrScan(Str: PChar; Chr: Char): PChar;
+
+begin
+  Result:=StrScan(Str,Chr);
+end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-26 22:17:42  michael
+  + Merged fixbranch fixes, missing in main branch
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.1  2002/10/07 19:43:24  florian

@@ -44,7 +44,13 @@ const
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
 
+Type
+  TTextLineBreakStyle = (tlbsLF, tlbsCRLF);   // Must move to system unit, and add Mac tlbsCR too ?
 
+Const
+  DefaultTextLineBreakStyle: TTextLineBreakStyle = {$ifdef unix} tlbsLF {$else} tlbsCRLF {$endif};
+
+               
 Const
   LeadBytes: set of Char = [];
   EmptyStr : string = '';
@@ -91,6 +97,7 @@ function QuotedStr(const S: string): string;
 function AnsiQuotedStr(const S: string; Quote: char): string;
 function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
+function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
 function IsValidIdent(const Ident: string): boolean;
 function IntToStr(Value: integer): string;
 {$IFNDEF VIRTUALPASCAL}
@@ -134,24 +141,32 @@ Procedure FloatToDecimal(Var Result: TFloatRec; Value: Extended; Precision, Deci
 Function FormatFloat(Const Format : String; Value : Extended) : String;
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 
-{// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.
+{// MBCS Functions. No MBCS yet, so mostly these are calls to the regular counterparts.}
 Type
   TMbcsByteType = (mbSingleByte, mbLeadByte, mbTrailByte);
 
-Function AnsiCompareFileName(const S1, S2: string): Integer;
-Function SameFileName(const S1, S2: string): Boolean;
-Function AnsiLowerCaseFileName(const S: string): string;
-Function AnsiUpperCaseFileName(const S: string): string;
-Function AnsiPos(const Substr, S: string): Integer;
-Function AnsiStrPos(Str, SubStr: PChar): PChar;
-Function AnsiStrRScan(Str: PChar; Chr: Char): PChar;
-Function AnsiStrScan(Str: PChar; Chr: Char): PChar;
 Function ByteType(const S: string; Index: Integer): TMbcsByteType;
 Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
 Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
 Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
 Function ByteToCharIndex(const S: string; Index: Integer): Integer;
-}
+
+const
+{$ifndef unix}
+  SwitchChars = ['/','-']; 
+{$else}
+  SwitchChars = ['-'];
+{$endif}
+
+Type
+  TSysCharSet = Set of char;
+
+Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
+Function FindCmdLineSwitch(const Switch: string; IgnoreCase: Boolean): Boolean;
+Function FindCmdLineSwitch(const Switch: string): Boolean;
+                          
+                          
+
 {==============================================================================}
 {   extra functions                                                            }
 {==============================================================================}
@@ -162,7 +177,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.2  2003-10-07 12:02:47  marco
+  Revision 1.3  2003-11-26 22:17:42  michael
+  + Merged fixbranch fixes, missing in main branch
+
+  Revision 1.2  2003/10/07 12:02:47  marco
    * sametext and ansisametext added. (simple (ansi)comparetext wrappers)
 
   Revision 1.1  2003/10/06 21:01:06  peter

@@ -381,14 +381,51 @@ begin
   Raise OutOfMemory;
 end;
 
+{ ---------------------------------------------------------------------
+    Initialization/Finalization/exit code
+  ---------------------------------------------------------------------}
+  
+Type
+  PPRecord = ^TPRecord;
+  TPRecord = Record
+    Func : TTerminateProc;
+    NextFunc : PPRecord;
+  end;
+
+Const
+  TPList : PPRecord = Nil;
+
+procedure AddTerminateProc(TermProc: TTerminateProc);
+
+Var 
+  TPR : PPRecord;
+
+begin
+  New(TPR);
+  With TPR^ do
+    begin
+    NextFunc:=TPList;
+    Func:=TermProc;
+    end; 
+  TPList:=TPR;   
+end;
+
+function CallTerminateProcs: Boolean;
+
+Var
+  TPR : PPRecord;
+
+begin
+  Result:=True;
+  TPR:=TPList;
+  While Result and (TPR<>Nil) do
+    begin
+    Result:=TPR^.Func();
+    TPR:=TPR^.NextFunc;
+    end; 
+end;
+
 {
-  $Log$
-  Revision 1.3  2003-11-26 20:12:08  michael
-  + New runerror 231 (exception stack error) and 232 (nothread support)
-
-  Revision 1.2  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
   Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 

@@ -499,33 +499,78 @@ end ;
 //  under Linux all CR characters or CR/LF combinations should be replaced with LF
 
 function AdjustLineBreaks(const S: string): string;
-var i, j, count: integer;
+
 begin
-result := '';
-i := 0;
-j := 0;
-count := Length(S);
-while i < count do begin
-   i := i + 1;
-{$ifndef Unix}
-   if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then
-     begin
-     result := result + Copy(S, 1 + j, i - j) + #10;
-     j := i;
-     end;
-{$else}
-   If S[i]=#13 then
-     begin
-     Result:= Result+Copy(S,J+1,i-j-1)+#10;
-     If I<>Count Then
-       If S[I+1]=#10 then inc(i);
-     J :=I;
-     end;
-{$endif}
-   end ;
-if j <> i then
-   result := result + copy(S, 1 + j, i - j);
-end ;
+  Result:=AdjustLineBreaks(S,DefaultTextLineBreakStyle);
+end;
+
+function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
+var
+  Source,Dest: PChar;
+  DestLen: Integer;
+  I,J,L: Longint;
+
+begin
+  Source:=Pointer(S);
+  L:=Length(S);
+  DestLen:=L;
+  I:=1;
+  while (I<=L) do
+    begin
+    case S[i] of
+      #10: if (Style=tlbsCRLF) then
+               Inc(DestLen);
+      #13: if (Style=tlbsCRLF) then
+             if (I<L) and (S[i+1]=#10) then
+               Inc(I)
+             else
+               Inc(DestLen)
+             else if (I<L) and (S[I+1]=#10) then
+               Dec(DestLen);
+    end;
+    Inc(I);
+    end;
+  if (DestLen=L) then
+    Result:=S
+  else
+    begin
+    SetLength(Result, DestLen);
+    FillChar(Result[1],DestLen,0);
+    Dest := Pointer(Result);
+    J:=0;
+    I:=0;
+    While I<L do
+      case Source[I] of
+        #10: begin
+             if Style=tlbsCRLF then
+               begin
+               Dest[j]:=#13;
+               Inc(J);
+              end;
+             Dest[J] := #10;
+             Inc(J);
+             Inc(I);
+             end;
+        #13: begin
+             if Style=tlbsCRLF then
+               begin
+               Dest[j] := #13;
+               Inc(J);
+               end;
+             Dest[j]:=#10;
+             Inc(J);
+             Inc(I);
+             if Source[I]=#10 then 
+               Inc(I);
+             end;
+      else
+        Dest[j]:=Source[i];
+        Inc(J);
+        Inc(I);
+      end;
+    end;
+end;
+
 
 {   IsValidIdent returns true if the first character of Ident is in:
     'A' to 'Z', 'a' to 'z' or '_' and the following characters are
@@ -1898,16 +1943,6 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
    end ;
 end ;
 
-Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
-
-begin
-  Result:=False;
-  If Index<=Length(S) then
-    Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
-end;
-
-
-
 Function LastDelimiter(const Delimiters, S: string): Integer;
 
 begin
@@ -1916,7 +1951,7 @@ begin
     Dec(Result);
 end;
 
-function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 
 var
   Srch,OldP,RemS: string; // Srch and Oldp can contain uppercase versions of S,OldPattern
@@ -1956,6 +1991,92 @@ begin
     end;
 end;
 
+Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+
+begin
+  Result:=False;
+  If Index<=Length(S) then
+    Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
+end;
+
+Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
+
+begin
+  Result:=Length(S);
+  If Result>MaxLen then
+    Result:=MaxLen;
+end;
+
+Function ByteToCharIndex(const S: string; Index: Integer): Integer;
+
+begin
+  Result:=Index;
+end;
+
+
+Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
+
+begin
+  Result:=Length(S);
+  If Result>MaxLen then
+    Result:=MaxLen;
+end;
+
+Function CharToByteIndex(const S: string; Index: Integer): Integer;
+
+begin
+  Result:=Index;
+end;
+
+Function ByteType(const S: string; Index: Integer): TMbcsByteType;
+
+begin
+  Result:=mbSingleByte;
+end;
+
+Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
+
+begin
+  Result:=mbSingleByte;
+end;
+
+Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
+
+Var 
+  I,L : Integer;
+  S,T : String;
+  
+begin
+  Result:=False;
+  S:=Switch;
+  If IgnoreCase then
+    S:=UpperCase(S);
+  I:=ParamCount;
+  While (Not Result) and (I>0) do
+    begin
+    L:=Length(Paramstr(I));
+    If (L>0) and (ParamStr(I)[1] in Chars) then
+      begin
+      T:=Copy(ParamStr(I),2,L-1);
+      If IgnoreCase then
+        T:=UpperCase(T);
+      Result:=S=T;
+      end;
+    Dec(i);  
+    end;
+end;
+
+Function FindCmdLineSwitch(const Switch: string; IgnoreCase: Boolean): Boolean;
+
+begin
+  Result:=FindCmdLineSwitch(Switch,SwitchChars,IgnoreCase);
+end;
+
+Function FindCmdLineSwitch(const Switch: string): Boolean;
+
+begin
+  Result:=FindCmdLineSwitch(Switch,SwitchChars,False);
+end;
 
 {
    Case Translation Tables
@@ -2017,7 +2138,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2003-11-22 17:18:53  marco
+  Revision 1.8  2003-11-26 22:17:42  michael
+  + Merged fixbranch fixes, missing in main branch
+
+  Revision 1.7  2003/11/22 17:18:53  marco
    * johill patch applied
 
   Revision 1.6  2003/11/22 16:17:26  michael
