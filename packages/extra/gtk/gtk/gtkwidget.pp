@@ -269,9 +269,9 @@
 *************************************}
 
 
-function  GTK_WIDGET_STATE(wid : PGtkwidget) : longint;
-function  GTK_WIDGET_SAVED_STATE(wid : PGtkwidget) : longint;
-function  GTK_WIDGET_FLAGS(wid : PGtkwidget) : longint;
+function  GTK_WIDGET_STATE(wid : PGtkwidget) : ptrint;
+function  GTK_WIDGET_SAVED_STATE(wid : PGtkwidget) : ptrint;
+function  GTK_WIDGET_FLAGS(wid : PGtkwidget) : ptrint;
 function  GTK_WIDGET_TOPLEVEL(wid : PGtkwidget) : boolean;
 function  GTK_WIDGET_NO_WINDOW(wid : PGtkwidget) : boolean;
 function  GTK_WIDGET_REALIZED(wid : PGtkwidget) : boolean;
@@ -290,8 +290,8 @@ function  GTK_WIDGET_RC_STYLE(wid : PGtkwidget) : boolean;
 function  GTK_WIDGET_COMPOSITE_CHILD(wid : PGtkWidget) : boolean;
 function  GTK_WIDGET_APP_PAINTABLE(wid : PGtkWidget) : boolean;
 function  GTK_WIDGET_RECEIVES_DEFAULT(wid : PGtkWidget) : boolean;
-procedure GTK_WIDGET_SET_FLAGS(wid : PGtkwidget;flag:longint);
-procedure GTK_WIDGET_UNSET_FLAGS(wid : PGtkwidget;flag:longint);
+procedure GTK_WIDGET_SET_FLAGS(wid : PGtkwidget;flag:ptrint);
+procedure GTK_WIDGET_UNSET_FLAGS(wid : PGtkwidget;flag:ptrint);
 
 Type
   GTK_WIDGET=PGtkWidget;
@@ -406,44 +406,44 @@ procedure gtk_widget_shape_combine_mask(widget:PGtkWidget; shape_mask:PGdkBitmap
 
 {$ifdef read_implementation}
 
-function  GTK_WIDGET_STATE(wid : PGtkwidget) : longint;
+function  GTK_WIDGET_STATE(wid : PGtkwidget) : ptrint;
       begin
          GTK_WIDGET_STATE:=wid^.state;
       end;
 
-function  GTK_WIDGET_SAVED_STATE(wid : PGtkwidget) : longint;
+function  GTK_WIDGET_SAVED_STATE(wid : PGtkwidget) : ptrint;
       begin
          GTK_WIDGET_SAVED_STATE:=wid^.saved_state;
       end;
 
-function  GTK_WIDGET_FLAGS(wid : PGtkwidget) : longint;
+function  GTK_WIDGET_FLAGS(wid : PGtkwidget) : ptrint;
       begin
          GTK_WIDGET_FLAGS:=PGtkobject(wid)^.flags;
       end;
 
 function  GTK_WIDGET_TOPLEVEL(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_TOPLEVEL:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_TOPLEVEL)) <> 0;
+         GTK_WIDGET_TOPLEVEL:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_TOPLEVEL)) <> 0;
       end;
 
 function  GTK_WIDGET_NO_WINDOW(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_NO_WINDOW:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_NO_WINDOW)) <> 0;
+         GTK_WIDGET_NO_WINDOW:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_NO_WINDOW)) <> 0;
       end;
 
 function  GTK_WIDGET_REALIZED(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_REALIZED:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_REALIZED)) <> 0;
+         GTK_WIDGET_REALIZED:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_REALIZED)) <> 0;
       end;
 
 function  GTK_WIDGET_MAPPED(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_MAPPED:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_MAPPED)) <> 0;
+         GTK_WIDGET_MAPPED:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_MAPPED)) <> 0;
       end;
 
 function  GTK_WIDGET_VISIBLE(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_VISIBLE:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_VISIBLE)) <> 0;
+         GTK_WIDGET_VISIBLE:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_VISIBLE)) <> 0;
       end;
 
 function  GTK_WIDGET_DRAWABLE(wid : PGtkwidget) : boolean;
@@ -453,13 +453,13 @@ function  GTK_WIDGET_DRAWABLE(wid : PGtkwidget) : boolean;
 
 function  GTK_WIDGET_SENSITIVE(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_SENSITIVE:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_SENSITIVE)) <> 0;
+         GTK_WIDGET_SENSITIVE:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_SENSITIVE)) <> 0;
       end;
 
 function  GTK_WIDGET_PARENT_SENSITIVE(wid : PGtkwidget) : boolean;
       begin
          GTK_WIDGET_PARENT_SENSITIVE:=((GTK_WIDGET_FLAGS(wid)) and
-                                        longint(GTK_PARENT_SENSITIVE)) <> 0;
+                                        ptrint(GTK_PARENT_SENSITIVE)) <> 0;
       end;
 
 function  GTK_WIDGET_IS_SENSITIVE(wid : PGtkwidget) : boolean;
@@ -470,55 +470,55 @@ function  GTK_WIDGET_IS_SENSITIVE(wid : PGtkwidget) : boolean;
 
 function  GTK_WIDGET_CAN_FOCUS(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_CAN_FOCUS:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_CAN_FOCUS)) <> 0;
+         GTK_WIDGET_CAN_FOCUS:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_CAN_FOCUS)) <> 0;
       end;
 
 function  GTK_WIDGET_HAS_FOCUS(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_HAS_FOCUS:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_HAS_FOCUS)) <> 0;
+         GTK_WIDGET_HAS_FOCUS:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_HAS_FOCUS)) <> 0;
       end;
 
 function  GTK_WIDGET_CAN_DEFAULT(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_CAN_DEFAULT:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_CAN_DEFAULT)) <> 0;
+         GTK_WIDGET_CAN_DEFAULT:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_CAN_DEFAULT)) <> 0;
       end;
 
 function  GTK_WIDGET_HAS_DEFAULT(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_HAS_DEFAULT:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_HAS_DEFAULT)) <> 0;
+         GTK_WIDGET_HAS_DEFAULT:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_HAS_DEFAULT)) <> 0;
       end;
 
 function  GTK_WIDGET_HAS_GRAB(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_HAS_GRAB:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_HAS_GRAB)) <> 0;
+         GTK_WIDGET_HAS_GRAB:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_HAS_GRAB)) <> 0;
       end;
 
 function  GTK_WIDGET_RC_STYLE(wid : PGtkwidget) : boolean;
       begin
-         GTK_WIDGET_RC_STYLE:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_RC_STYLE)) <> 0;
+         GTK_WIDGET_RC_STYLE:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_RC_STYLE)) <> 0;
       end;
 
 function  GTK_WIDGET_COMPOSITE_CHILD(wid : PGtkWidget) : boolean;
     begin
-       GTK_WIDGET_COMPOSITE_CHILD:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_COMPOSITE_CHILD)) <> 0;
+       GTK_WIDGET_COMPOSITE_CHILD:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_COMPOSITE_CHILD)) <> 0;
     end;
 
 function  GTK_WIDGET_APP_PAINTABLE(wid : PGtkWidget) : boolean;
     begin
-       GTK_WIDGET_APP_PAINTABLE:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_APP_PAINTABLE)) <> 0;
+       GTK_WIDGET_APP_PAINTABLE:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_APP_PAINTABLE)) <> 0;
     end;
 
 function  GTK_WIDGET_RECEIVES_DEFAULT(wid : PGtkWidget) : boolean;
     begin
-       GTK_WIDGET_RECEIVES_DEFAULT:=((GTK_WIDGET_FLAGS(wid)) and longint(GTK_RECEIVES_DEFAULT)) <> 0;
+       GTK_WIDGET_RECEIVES_DEFAULT:=((GTK_WIDGET_FLAGS(wid)) and ptrint(GTK_RECEIVES_DEFAULT)) <> 0;
     end;
 
-procedure GTK_WIDGET_SET_FLAGS(wid : PGtkwidget;flag:longint);
+procedure GTK_WIDGET_SET_FLAGS(wid : PGtkwidget;flag:ptrint);
 begin
   PGtkobject(wid)^.flags:=PGtkobject(wid)^.flags or flag;
 end;
 
-procedure GTK_WIDGET_UNSET_FLAGS(wid : PGtkwidget;flag:longint);
+procedure GTK_WIDGET_UNSET_FLAGS(wid : PGtkwidget;flag:ptrint);
 begin
   PGtkobject(wid)^.flags:=PGtkobject(wid)^.flags and (not flag);
 end;
@@ -538,7 +538,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-08-06 07:28:21  michael
+  Revision 1.5  2005-02-06 19:51:53  peter
+    * 64bit fixes
+
+  Revision 1.4  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.3  2002/10/31 08:03:39  michael

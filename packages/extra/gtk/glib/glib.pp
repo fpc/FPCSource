@@ -65,13 +65,6 @@ interface
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type
-  PLongint  = ^Longint;
-  PByte     = ^Byte;
-  PWord     = ^Word;
-  PINteger  = ^Integer;
-  PCardinal = ^Cardinal;
-  PReal     = ^Real;
-  PDouble   = ^Double;
   FLoat     = Single;
 
   const
@@ -87,9 +80,9 @@ type
    Pgchar = ^gchar;
    gchar = char;
    Pgshort = ^gshort;
-   gshort = system.integer;
+   gshort = smallint;
    Pglong = ^glong;
-   glong = longint;
+   glong = ptrint;
    Pgint = ^gint;
    gint = longint;
    Pgboolean = ^gboolean;
@@ -99,7 +92,7 @@ type
    Pgushort = ^gushort;
    gushort = word;
    Pgulong = ^gulong;
-   gulong = cardinal;
+   gulong = ptruint;
    Pguint = ^guint;
    guint = cardinal;
    Pgfloat = ^gfloat;
@@ -111,14 +104,14 @@ type
 
    gint8 = ShortInt;
    guint8 = byte;
-   gint16 = system.integer;
+   gint16 = smallint;
    guint16 = word;
    gint32 = longint;
    guint32 = cardinal;
 
    Pgint8 = ^ShortInt;
    Pguint8 = ^byte;
-   Pgint16 = ^integer;
+   Pgint16 = ^smallint;
    Pguint16 = ^word;
    Pgint32 = ^longint;
    Pguint32 = ^cardinal;
@@ -1663,7 +1656,10 @@ procedure set_year(var a : TGDate; __year : guint);
 end.
 {
   $Log$
-  Revision 1.8  2004-12-28 14:42:12  marco
+  Revision 1.9  2005-02-06 19:51:53  peter
+    * 64bit fixes
+
+  Revision 1.8  2004/12/28 14:42:12  marco
    * some constants added that were more recently added to glib. Submitted patch by neli
 
   Revision 1.7  2004/05/02 19:14:47  jonas
