@@ -226,6 +226,22 @@
          exit;
        end;
 
+     if assigned(modeinfo^.SetRGBPalette) then
+         SetRGBPalette := modeinfo^.SetRGBPalette
+     else
+        begin
+         _Graphresult := grInvalidMode;
+         exit;
+       end;
+
+     if assigned(modeinfo^.GetRGBPalette) then
+         GetRGBPalette := modeinfo^.GetRGBPalette
+     else
+        begin
+         _Graphresult := grInvalidMode;
+         exit;
+       end;
+
       { optional hooks. }
       if assigned(modeinfo^.ClearViewPort) then
          ClearViewPort := modeinfo^.ClearViewPort;
@@ -260,6 +276,7 @@
       MaxX := modeinfo^.MaxX;
       MaxY := modeinfo^.MaxY;
       MaxColor := modeinfo^.MaxColor;
+      PaletteSize := modeinfo^.PaletteSize;
       { now actually initialize the video mode...}
       { check first if the routine exists        }
       if not assigned(modeinfo^.InitMode) then
