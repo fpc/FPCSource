@@ -33,7 +33,7 @@ unit i_beos;
             system       : system_i386_BeOS;
             name         : 'Beos for i386';
             shortname    : 'Beos';
-            flags        : [tf_under_development];
+            flags        : [tf_under_development,tf_needs_symbol_size];
             cpu          : cpu_i386;
             unit_env     : 'BEOSUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-11-11 21:48:10  florian
+  Revision 1.4  2004-02-22 16:51:50  peter
+    * tf_need_symbol_size added
+
+  Revision 1.3  2003/11/11 21:48:10  florian
     * define UNIX and HASUNIX
 
   Revision 1.2  2003/10/03 22:09:49  peter

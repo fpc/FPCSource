@@ -697,7 +697,7 @@ var
 
            ait_symbol_end :
              begin
-               if target_info.system in [system_i386_linux,system_i386_beos] then
+               if tf_needs_symbol_size in target_info.flags then
                 begin
                   s:=target_asm.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
@@ -868,7 +868,10 @@ var
 end.
 {
   $Log$
-  Revision 1.45  2004-01-24 18:12:40  florian
+  Revision 1.46  2004-02-22 16:51:50  peter
+    * tf_need_symbol_size added
+
+  Revision 1.45  2004/01/24 18:12:40  florian
     * fixed several arm floating point issues
 
   Revision 1.44  2004/01/20 21:02:54  florian

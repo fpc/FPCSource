@@ -33,7 +33,7 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -96,7 +96,7 @@ unit i_linux;
             system       : system_m68k_linux;
             name         : 'Linux for m68k';
             shortname    : 'linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -159,7 +159,7 @@ unit i_linux;
             system       : system_powerpc_LINUX;
             name         : 'Linux for PowerPC';
             shortname    : 'linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -223,7 +223,7 @@ unit i_linux;
             system       : system_alpha_LINUX;
             name         : 'Linux for Alpha';
             shortname    : 'linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_alpha;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -286,7 +286,7 @@ unit i_linux;
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -349,7 +349,7 @@ unit i_linux;
             system       : system_SPARC_Linux;
             name         : 'Linux for SPARC';
             shortname    : 'linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -412,7 +412,7 @@ unit i_linux;
             system       : system_arm_Linux;
             name         : 'Linux for ARM';
             shortname    : 'linux';
-            flags        : [];
+            flags        : [tf_needs_symbol_size];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2004-02-05 18:28:37  peter
+  Revision 1.25  2004-02-22 16:51:51  peter
+    * tf_need_symbol_size added
+
+  Revision 1.24  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.23  2004/01/28 22:16:31  peter

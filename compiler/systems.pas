@@ -227,8 +227,9 @@ interface
 
        tsystemflags = (tf_none,
             tf_under_development,
-            tf_need_export,tf_needs_isconsole
-            ,tf_code_small,tf_static_reg_based
+            tf_need_export,tf_needs_isconsole,
+            tf_code_small,tf_static_reg_based,
+            tf_needs_symbol_size
        );
 
        psysteminfo = ^tsysteminfo;
@@ -689,7 +690,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.85  2004-02-19 20:40:15  olle
+  Revision 1.86  2004-02-22 16:51:50  peter
+    * tf_need_symbol_size added
+
+  Revision 1.85  2004/02/19 20:40:15  olle
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW
