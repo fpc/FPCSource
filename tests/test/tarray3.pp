@@ -1,3 +1,5 @@
+{ %KNOWN }
+
 {$P+}
 
 type
