@@ -341,8 +341,10 @@ implementation
       var
         def1,def2 : TParaItem;
       begin
-         def1:=TParaItem(paralist1.first);
-         def2:=TParaItem(paralist2.first);
+         { we need to parse the list from left-right so the
+           not-default parameters are checked first }
+         def1:=TParaItem(paralist1.last);
+         def2:=TParaItem(paralist2.last);
          while (assigned(def1)) and (assigned(def2)) do
            begin
              case acp of
@@ -362,7 +364,7 @@ implementation
               cp_all :
                 begin
                    if not(is_equal(def1.paratype.def,def2.paratype.def)) or
-                     (def1.paratyp<>def2.paratyp) then
+                      (def1.paratyp<>def2.paratyp) then
                      begin
                         equal_paras:=false;
                         exit;
@@ -387,8 +389,8 @@ implementation
                     end;
                 end;
               end;
-              def1:=TParaItem(def1.next);
-              def2:=TParaItem(def2.next);
+              def1:=TParaItem(def1.previous);
+              def2:=TParaItem(def2.previous);
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
@@ -1960,7 +1962,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-09-30 07:00:44  florian
+  Revision 1.15  2002-10-05 00:50:01  peter
+    * check parameters from left to right in equal_paras, so default
+      parameters are checked at the end
+
+  Revision 1.14  2002/09/30 07:00:44  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.13  2002/09/22 14:02:34  carl
