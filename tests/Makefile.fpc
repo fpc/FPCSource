@@ -19,15 +19,15 @@ tests : clean all_compilations
 cont_tests : all_compilations
 
 getret$(EXEEXT) : getret.pp
-        $(FPC) getret
+	$(FPC) getret
 
 getreturncode : getret$(EXEEXT)
 ifndef inlinux
-        redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
-        cp retcode $(FILE).$(RESEXT)
+	redir -ea $(FILE).log -oa $(FILE).log getret $(COMMAND)
+	cp retcode $(FILE).$(RESEXT)
 else
-        getret $(COMMAND) > $(FILE).log 2>$(FILE).log
-        cp retcode $(FILE).$(RESEXT)
+	getret $(COMMAND) > $(FILE).log 2>$(FILE).log
+	cp retcode $(FILE).$(RESEXT)
 #       @echo "Return code of $(FILE) is $(cat retcode)"
 endif
 
@@ -49,14 +49,14 @@ endif
 
 ifeq ($(RETVAL),0)
 testsuccess:
-        @echo "Test for $(FILE) success (compiles)"
-        @echo "Test for $(FILE) success (compiles)" >>log
+	@echo "Test for $(FILE) success (compiles)"
+	@echo "Test for $(FILE) success (compiles)" >>log
 else
 testsuccess:
-        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)"
-        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >>log
-        @echo $(FILE) >> ts_fail
-        @echo $(FILE) >> faillist
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)"
+	@echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >>log
+	@echo $(FILE) >> ts_fail
+	@echo $(FILE) >> faillist
 endif
 
 ifdef EXCFILE
@@ -71,53 +71,53 @@ endif
 
 ifeq ($(EXERETVAL),0)
 testexecsuccess:
-        @echo "Test for exec $(FILE) success (runs without error)"
-        @echo "Test for $(FILE) success (runs without error)" >>log
+	@echo "Test for exec $(FILE) success (runs without error)"
+	@echo "Test for $(FILE) success (runs without error)" >>log
 else
 testexecsuccess:
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
-        @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >>log
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
+	@echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >>log
 endif
 
 ifeq ($(wildcard $(FILE)$(EXEEXT)),$(FILE)$(EXEEXT))
 testexec:
-        @echo "Testing $(FILE)$(EXEEXT)"
+	@echo "Testing $(FILE)$(EXEEXT)"
 ifdef NOREDIR
-        getret $(FILE)$(EXEEXT)
+	getret $(FILE)$(EXEEXT)
 else
 ifndef inlinux
-        redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT)
+	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT)
 else
-        getret $(FILE)$(EXEEXT) > $(FILE).elg 2>$(FILE).elg
+	getret $(FILE)$(EXEEXT) > $(FILE).elg 2>$(FILE).elg
 endif
 endif
-        cp -f retcode $(FILE).exc
-        $(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc'
+	cp -f retcode $(FILE).exc
+	$(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc'
 else
 testexec:
 ifeq ($(wildcard $(FILE)$(PPUEXT)),$(FILE)$(PPUEXT))
-        @echo "file is a unit $(FILE)$(PPUEXT)"
+	@echo "file is a unit $(FILE)$(PPUEXT)"
 else
-        @echo "No exefile $(FILE)$(EXEEXT)"
-        @echo $(FILE) >> faillist
+	@echo "No exefile $(FILE)$(EXEEXT)"
+	@echo $(FILE) >> faillist
 endif
 endif
 
 test_exc :
-        @echo $(wildcard $(FILE).exc*)
-        @echo xx$(wildcard $(EXCFILE)*)xx xx$(EXCFILE)xx
-        cat $(FILE).exc
+	@echo $(wildcard $(FILE).exc*)
+	@echo xx$(wildcard $(EXCFILE)*)xx xx$(EXCFILE)xx
+	cat $(FILE).exc
 
 ifneq ($(RETVAL),0)
 testfail:
-        @echo "Test for $(FILE) success (does not compile) error $(RETVAL)"
-        @echo "Test for $(FILE) success (does not compile) error $(RETVAL)" >> log
+	@echo "Test for $(FILE) success (does not compile) error $(RETVAL)"
+	@echo "Test for $(FILE) success (does not compile) error $(RETVAL)" >> log
 else
 testfail:
-        @echo "Test for $(FILE) fails (does compile and should not)"
-        @echo "Test for $(FILE) fails (does compile and should not)" >> log
-        @echo $(FILE) >> tf_fail
-        @echo $(FILE) >> faillist
+	@echo "Test for $(FILE) fails (does compile and should not)"
+	@echo "Test for $(FILE) fails (does compile and should not)" >> log
+	@echo $(FILE) >> tf_fail
+	@echo $(FILE) >> faillist
 endif
 
 ifdef FILE
@@ -133,30 +133,32 @@ FILE=ts00001.pp
 endif
 
 testone :
-        $(MAKE) getreturncode 'COMMAND=$(FPC) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
+	$(MAKE) getreturncode 'COMMAND=$(FPC) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
 
 
 %.res : %.pp
-        $(MAKE) testone 'FILE=$*' 'RESEXT=res'
-        $(MAKE) testsuccess 'FILE=$*' 'RESFILE=$*.res'
+	$(MAKE) testone 'FILE=$*' 'RESEXT=res'
+	$(MAKE) testsuccess 'FILE=$*' 'RESFILE=$*.res'
 
 %.ref : %.pp
-        $(MAKE) testone 'FILE=$*' 'RESEXT=ref'
-        $(MAKE) testfail 'FILE=$*' 'RESFILE=$*.ref'
+	$(MAKE) testone 'FILE=$*' 'RESEXT=ref'
+	$(MAKE) testfail 'FILE=$*' 'RESFILE=$*.ref'
 
 # exec log files
 # creates two files
 # *.elg log file
 # *.exc exicode of program
 %.elg : %.res
-        $(MAKE) testexec 'FILE=$*'
+	$(MAKE) testexec 'FILE=$*'
 
 %.eli : %.res
-        $(MAKE) testexec 'FILE=$*' 'NOREDIR=YES'
+	$(MAKE) testexec 'FILE=$*' 'NOREDIR=YES'
 
 allts : $(patsubst %.pp,%.res,$(wildcard ts/ts*.pp))
 
 alltbs : $(patsubst %.pp,%.res,$(wildcard tbs/tbs*.pp))
+
+allwebtbs : $(patsubst %.pp,%.res,$(wildcard webtbs/tbug*.pp))
 
 tbs0to99 : $(patsubst %.pp,%.res,$(wildcard tbs00*.pp))
 tbs100to199 : $(patsubst %.pp,%.res,$(wildcard tbs/tbs01*.pp))
@@ -172,6 +174,8 @@ alltis : $(patsubst %.pp,%.res,$(wildcard tis/tis*.pp))
 alltf : $(patsubst %.pp,%.ref,$(wildcard tf/tf*.pp))
 
 alltbf : $(patsubst %.pp,%.ref,$(wildcard tbf/tbf*.pp))
+
+allwebtbf : $(patsubst %.pp,%.ref,$(wildcard webtbf/tbug*.pp))
 
 allto : $(patsubst %.pp,%.res,$(wildcard to/to*.pp))
 
@@ -190,18 +194,18 @@ endif
 endif
 
 clean_fail :
-        -rm -f $(addsuffix .res,$(TS_FAIL_LIST))
-        -rm -f $(addsuffix .ref,$(TF_FAIL_LIST))
-        -rm log
+	-rm -f $(addsuffix .res,$(TS_FAIL_LIST))
+	-rm -f $(addsuffix .ref,$(TF_FAIL_LIST))
+	-rm log
 
 again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) $(addsuffix .ref,$(TF_FAIL_LIST))
-        grep fails log
+	grep fails log
 
-all_compilations : allts alltbs alltf alltbf allto alltest alltesi alltis
-        grep fails log
+all_compilations : allts alltbs allwebtbs alltf alltbf allwebtbf allto alltest alltesi alltis
+	grep fails log
 
-allexec : alltsexec alltbsexec alltestexec
-        grep "fails exec" log
+allexec : alltsexec alltbsexec allwebtbsexec alltestexec 
+	grep "fails exec" log
 
 alltestexec: $(patsubst %.pp,%.elg,$(wildcard test/test*.pp))
 
@@ -213,6 +217,8 @@ alltsexec: $(patsubst %.pp,%.elg,$(wildcard ts/ts*.pp))
 
 alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs/tbs*.pp))
 
+allwebtbsexec: $(patsubst %.pp,%.elg,$(wildcard webtbs/tbug*.pp))
+
 tbsexec0to99 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs00*.pp))
 tbsexec100to199 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs01*.pp))
 tbsexec200to299 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs02*.pp))
@@ -221,28 +227,28 @@ tbsexec300to399 : $(patsubst %.pp,%.elg,$(wildcard tbs/tbs03*.pp))
 alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis/tis*.pp))
 
 clean:
-        -rm -f $(addsuffix /*.re*,$(DIRS))
-        -rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
-        -rm -f $(addsuffix /*$(OEXT),$(DIRS))
-        -rm -f $(addsuffix /*.log,$(DIRS))
-        -rm -f $(addsuffix /*.elg,$(DIRS))
-        -rm -f $(addsuffix /*.exc,$(DIRS))
+	-rm -f $(addsuffix /*.re*,$(DIRS))
+	-rm -f $(addsuffix /*$(PPUEXT),$(DIRS))
+	-rm -f $(addsuffix /*$(OEXT),$(DIRS))
+	-rm -f $(addsuffix /*.log,$(DIRS))
+	-rm -f $(addsuffix /*.elg,$(DIRS))
+	-rm -f $(addsuffix /*.exc,$(DIRS))
 ifdef inlinux
-        -rm -f $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS))))
+	-rm -f $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS))))
 else
-        -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
+	-rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
-        -rm -f log faillist ts_fail tf_fail
-        -rm -f fpcmaked ppas.sh ppas.bat retcode
+	-rm -f log faillist ts_fail tf_fail
+	-rm -f fpcmaked ppas.sh ppas.bat retcode
 
 info :
-        @echo This Makefile allows to test the compiler
-        @echo compilation of 'ts*.pp' should succeed
-        @echo compilation of 'tf*.pp' should fail
-        @echo compilation of 'test*.pp' should succeed
-        @echo 'to*.pp' files should also compile
-        @echo simply run \'make tests\' to test all compilation
-        @echo run \'make allexec\' to test also if the executables
-        @echo created behave like the should
-        @echo run \'make tesiexec\' to test executables
-        @echo that require interactive mode
+	@echo This Makefile allows to test the compiler
+	@echo compilation of 'ts*.pp' should succeed
+	@echo compilation of 'tf*.pp' should fail
+	@echo compilation of 'test*.pp' should succeed
+	@echo 'to*.pp' files should also compile
+	@echo simply run \'make tests\' to test all compilation
+	@echo run \'make allexec\' to test also if the executables
+	@echo created behave like the should
+	@echo run \'make tesiexec\' to test executables
+	@echo that require interactive mode
