@@ -671,7 +671,7 @@ implementation
     constructor ttempcreatenode.create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype);
       begin
         create(_restype,_size,_temptype);
-        may_be_in_reg:=true;
+//        may_be_in_reg:=true;
       end;
 
     constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype);
@@ -1002,7 +1002,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2004-02-03 16:46:51  jonas
+  Revision 1.77  2004-02-03 17:56:14  jonas
+    * disabled temps in registers for now, because the register allocator
+      can't handle it yet in some cases
+
+  Revision 1.76  2004/02/03 16:46:51  jonas
     + support to store ttempcreate/ref/deletenodes in registers
     * put temps for withnodes and some newnodes in registers
      Note: this currently only works because calling ungetregister()
