@@ -38,9 +38,18 @@ const
       ctNone         = $00;
       ctNibble       = $02;
 
+      hscLineBreak   = #0;
+      hscLink        = #2;
+      hscLineStart   = #3;
+      hscCode        = #5;
+      hscCenter      = #10;
+      hscRight       = #11;
+
 type
       FileStamp      = array [0..32] of char; {+ null terminator + $1A }
       FileSignature  = array [0..12] of char; {+ null terminator }
+
+      THelpCtx = longint;
 
       THLPVersion = packed record
         FormatVersion : byte;
@@ -107,25 +116,25 @@ type
       PIndexEntry = ^TIndexEntry;
       TIndexEntry = packed record
         Tag        : PString;
-        HelpCtx    : word;
+        HelpCtx    : THelpCtx;
         FileID     : word;
       end;
 
       PKeywordDescriptor = ^TKeywordDescriptor;
       TKeywordDescriptor = packed record
         FileID     : word;
-        Context    : word;
+        Context    : THelpCtx;
       end;
 
       PKeywordDescriptors = ^TKeywordDescriptors;
-      TKeywordDescriptors = array[0..16382] of TKeywordDescriptor;
+      TKeywordDescriptors = array[0..10900] of TKeywordDescriptor;
 
       PTopic = ^TTopic;
       TTopic = record
-        HelpCtx       : word;
+        HelpCtx       : THelpCtx;
         FileOfs       : longint;
         TextSize      : word;
-        Text          : pointer;
+        Text          : PByteArray;
         LinkCount     : word;
         LinkSize      : word;
         Links         : PKeywordDescriptors;
@@ -143,7 +152,7 @@ type
       TTopicCollection = object(TCollection)
         function   At(Index: Integer): PTopic;
         procedure  FreeItem(Item: Pointer); virtual;
-        function   SearchTopic(AHelpCtx: word): PTopic;
+        function   SearchTopic(AHelpCtx: THelpCtx): PTopic;
       end;
 
       PIndexEntryCollection = ^TIndexEntryCollection;
@@ -155,15 +164,30 @@ type
 
       PHelpFile = ^THelpFile;
       THelpFile = object(TObject)
+        ID           : word;
+        Topics       : PTopicCollection;
+        IndexEntries : PIndexEntryCollection;
+        constructor Init(AID: word);
+        function    LoadTopic(HelpCtx: THelpCtx): PTopic; virtual;
+        destructor  Done; virtual;
+      public
+        function    LoadIndex: boolean; virtual;
+        function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
+        function    ReadTopic(T: PTopic): boolean; virtual;
+      private
+        procedure MaintainTopicCache;
+      end;
+
+      POAHelpFile = ^TOAHelpFile;
+      TOAHelpFile = object(THelpFile)
         Version      : THLPVersion;
         Header       : THLPFileHeader;
         Compression  : THLPCompression;
-        Topics       : PTopicCollection;
-        IndexEntries : PIndexEntryCollection;
-        ID           : word;
         constructor Init(AFileName: string; AID: word);
-        function    LoadTopic(HelpCtx: word): PTopic; virtual;
         destructor  Done; virtual;
+      public
+        function    LoadIndex: boolean; virtual;
+        function    ReadTopic(T: PTopic): boolean; virtual;
       private
         F: PBufStream;
         TopicsRead     : boolean;
@@ -178,8 +202,6 @@ type
         function  ReadCompression: boolean;
         function  ReadIndexTags: boolean;
         function  ReadRecord(var R: TRecord; ReadData: boolean): boolean;
-        function  ReadTopic(T: PTopic): boolean;
-        procedure MaintainTopicCache;
       end;
 
       PHelpFileCollection = PCollection;
@@ -189,16 +211,18 @@ type
         HelpFiles: PHelpFileCollection;
         IndexTabSize: integer;
         constructor Init;
-        function    AddHelpFile(FileName: string): boolean; virtual;
-        function    LoadTopic(SourceFileID: word; Context: word): PTopic; virtual;
-        function    TopicSearch(Keyword: string; var FileID, Context: word): boolean; virtual;
+        function    AddOAHelpFile(FileName: string): boolean;
+        function    AddHTMLHelpFile(FileName, TOCEntry: string): boolean;
+        function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
+        function    TopicSearch(Keyword: string; var FileID: word; Context: THelpCtx): boolean; virtual;
         function    BuildIndexTopic: PTopic; virtual;
         destructor  Done; virtual;
       private
         LastID: word;
         function  SearchFile(ID: byte): PHelpFile;
-        function  SearchTopicInHelpFile(F: PHelpFile; Context: word): PTopic;
-        function  SearchTopicOwner(SourceFileID: word; Context: word): PHelpFile;
+        function  SearchTopicInHelpFile(F: PHelpFile; Context: THelpCtx): PTopic;
+        function  SearchTopicOwner(SourceFileID: word; Context: THelpCtx): PHelpFile;
+        function  AddFile(H: PHelpFile): boolean;
       end;
 
 const TopicCacheSize    : integer = 10;
@@ -206,12 +230,18 @@ const TopicCacheSize    : integer = 10;
       HelpFacility      : PHelpFacility = nil;
       MaxHelpTopicSize  : word = 65520;
 
+function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint): PTopic;
 procedure DisposeTopic(P: PTopic);
+
+function  NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
+procedure DisposeIndexEntry(P: PIndexEntry);
 
 implementation
 
 uses
-  drivers;
+  Dos,
+  WHTMLHlp,
+  Drivers;
 
 type
      PByteArray = ^TByteArray;
@@ -247,7 +277,7 @@ begin
   FillChar(R, SizeOf(R), 0);
 end;
 
-function NewTopic(FileID: byte; HelpCtx: word; Pos: longint): PTopic;
+function NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint): PTopic;
 var P: PTopic;
 begin
   New(P); FillChar(P^,SizeOf(P^), 0);
@@ -280,7 +310,7 @@ begin
   CloneTopic:=NT;
 end;
 
-function NewIndexEntry(Tag: string; FileID, HelpCtx: word): PIndexEntry;
+function NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
 var P: PIndexEntry;
 begin
   New(P); FillChar(P^,SizeOf(P^), 0);
@@ -317,7 +347,7 @@ begin
   if Item<>nil then DisposeTopic(Item);
 end;
 
-function TTopicCollection.SearchTopic(AHelpCtx: word): PTopic;
+function TTopicCollection.SearchTopic(AHelpCtx: THelpCtx): PTopic;
 function Match(P: PTopic): boolean;{$ifndef FPC}far;{$endif}
 begin Match:=(P^.HelpCtx=AHelpCtx); end;
 begin
@@ -347,15 +377,82 @@ begin
   Compare:=R;
 end;
 
-constructor THelpFile.Init(AFileName: string; AID: word);
-var OK: boolean;
-    FS,L: longint;
-    R: TRecord;
+constructor THelpFile.Init(AID: word);
 begin
   inherited Init;
   ID:=AID;
   New(Topics, Init(500,500));
   New(IndexEntries, Init(200,100));
+end;
+
+function THelpFile.LoadTopic(HelpCtx: THelpCtx): PTopic;
+var T: PTopic;
+begin
+  T:=SearchTopic(HelpCtx);
+  if (T<>nil) then
+     if T^.Text=nil then
+     begin
+       MaintainTopicCache;
+       if ReadTopic(T)=false then T:=nil;
+       if (T<>nil) and (T^.Text=nil) then T:=nil;
+     end;
+  if T<>nil then
+     begin T^.LastAccess:=GetDosTicks; T:=CloneTopic(T); end;
+  LoadTopic:=T;
+end;
+
+function THelpFile.LoadIndex: boolean;
+begin
+  Abstract;
+end;
+
+function THelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
+var T: PTopic;
+begin
+  T:=Topics^.SearchTopic(HelpCtx);
+  SearchTopic:=T;
+end;
+
+function THelpFile.ReadTopic(T: PTopic): boolean;
+begin
+  Abstract;
+end;
+
+procedure THelpFile.MaintainTopicCache;
+var Count: integer;
+    MinP: PTopic;
+    MinLRU: longint;
+procedure CountThem(P: PTopic); {$ifndef FPC}far;{$endif}
+begin if (P^.Text<>nil) or (P^.Links<>nil) then Inc(Count); end;
+procedure SearchLRU(P: PTopic); {$ifndef FPC}far;{$endif}
+begin if P^.LastAccess<MinLRU then begin MinLRU:=P^.LastAccess; MinP:=P; end; end;
+var P: PTopic;
+begin
+  Count:=0; Topics^.ForEach(@CountThem);
+  if (Count>=TopicCacheSize) then
+  begin
+    MinLRU:=MaxLongint; P:=nil; Topics^.ForEach(@SearchLRU);
+    if P<>nil then
+    begin
+      FreeMem(P^.Text,P^.TextSize); P^.TextSize:=0; P^.Text:=nil;
+      FreeMem(P^.Links,P^.LinkSize); P^.LinkSize:=0; P^.LinkCount:=0; P^.Links:=nil;
+    end;
+  end;
+end;
+
+destructor THelpFile.Done;
+begin
+  if Topics<>nil then Dispose(Topics, Done);
+  if IndexEntries<>nil then Dispose(IndexEntries, Done);
+  inherited Done;
+end;
+
+constructor TOAHelpFile.Init(AFileName: string; AID: word);
+var OK: boolean;
+    FS,L: longint;
+    R: TRecord;
+begin
+  inherited Init(AID);
   New(F, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
@@ -382,7 +479,12 @@ begin
   if OK=false then Fail;
 end;
 
-function THelpFile.ReadHeader: boolean;
+function TOAHelpFile.LoadIndex: boolean;
+begin
+  LoadIndex:=ReadIndexTable;
+end;
+
+function TOAHelpFile.ReadHeader: boolean;
 var S: string;
     P: longint;
     R: TRecord;
@@ -405,7 +507,7 @@ begin
   ReadHeader:=OK;
 end;
 
-function THelpFile.ReadTopics: boolean;
+function TOAHelpFile.ReadTopics: boolean;
 var OK: boolean;
     R: TRecord;
     L,I: longint;
@@ -432,7 +534,7 @@ begin
   ReadTopics:=OK;
 end;
 
-function THelpFile.ReadIndexTable: boolean;
+function TOAHelpFile.ReadIndexTable: boolean;
 var OK: boolean;
     R: TRecord;
     I: longint;
@@ -464,7 +566,7 @@ begin
   ReadIndexTable:=OK;
 end;
 
-function THelpFile.ReadCompression: boolean;
+function TOAHelpFile.ReadCompression: boolean;
 var OK: boolean;
     R: TRecord;
 begin
@@ -476,7 +578,7 @@ begin
   ReadCompression:=OK;
 end;
 
-function THelpFile.ReadIndexTags: boolean;
+function TOAHelpFile.ReadIndexTags: boolean;
 var OK: boolean;
 begin
   OK:={ReadRecord(R, true)}true;
@@ -484,7 +586,7 @@ begin
   ReadIndexTags:=OK;
 end;
 
-function THelpFile.ReadRecord(var R: TRecord; ReadData: boolean): boolean;
+function TOAHelpFile.ReadRecord(var R: TRecord; ReadData: boolean): boolean;
 var OK: boolean;
     H: THLPRecordHeader;
 begin
@@ -505,7 +607,7 @@ begin
   ReadRecord:=OK;
 end;
 
-function THelpFile.ReadTopic(T: PTopic): boolean;
+function TOAHelpFile.ReadTopic(T: PTopic): boolean;
 var SrcPtr,DestPtr: word;
     NewR: TRecord;
 function ExtractTextRec(var R: TRecord): boolean;
@@ -610,48 +712,8 @@ begin
   ReadTopic:=OK;
 end;
 
-function THelpFile.LoadTopic(HelpCtx: word): PTopic;
-var T: PTopic;
+destructor TOAHelpFile.Done;
 begin
-  T:=Topics^.SearchTopic(HelpCtx);
-  if (T<>nil) then
-     if T^.Text=nil then
-     begin
-       MaintainTopicCache;
-       if ReadTopic(T)=false then T:=nil;
-       if (T<>nil) and (T^.Text=nil) then T:=nil;
-     end;
-  if T<>nil then
-     begin T^.LastAccess:=GetDosTicks; T:=CloneTopic(T); end;
-  LoadTopic:=T;
-end;
-
-procedure THelpFile.MaintainTopicCache;
-var Count: integer;
-    MinP: PTopic;
-    MinLRU: longint;
-procedure CountThem(P: PTopic); {$ifndef FPC}far;{$endif}
-begin if (P^.Text<>nil) or (P^.Links<>nil) then Inc(Count); end;
-procedure SearchLRU(P: PTopic); {$ifndef FPC}far;{$endif}
-begin if P^.LastAccess<MinLRU then begin MinLRU:=P^.LastAccess; MinP:=P; end; end;
-var P: PTopic;
-begin
-  Count:=0; Topics^.ForEach(@CountThem);
-  if (Count>=TopicCacheSize) then
-  begin
-    MinLRU:=MaxLongint; P:=nil; Topics^.ForEach(@SearchLRU);
-    if P<>nil then
-    begin
-      FreeMem(P^.Text,P^.TextSize); P^.TextSize:=0; P^.Text:=nil;
-      FreeMem(P^.Links,P^.LinkSize); P^.LinkSize:=0; P^.LinkCount:=0; P^.Links:=nil;
-    end;
-  end;
-end;
-
-destructor THelpFile.Done;
-begin
-  if Topics<>nil then Dispose(Topics, Done);
-  if IndexEntries<>nil then Dispose(IndexEntries, Done);
   if F<>nil then Dispose(F, Done);
   inherited Done;
 end;
@@ -663,18 +725,32 @@ begin
   IndexTabSize:=40;
 end;
 
-function THelpFacility.AddHelpFile(FileName: string): boolean;
+
+function THelpFacility.AddOAHelpFile(FileName: string): boolean;
 var H: PHelpFile;
 begin
-  New(H, Init(FileName, LastID+1));
-  if H<>nil then
-     begin
-       HelpFiles^.Insert(H); Inc(LastID);
-     end;
-  AddHelpFile:=true;
+  H:=New(POAHelpFile, Init(FileName, LastID+1));
+  AddOAHelpFile:=AddFile(H);
 end;
 
-function THelpFacility.SearchTopicOwner(SourceFileID: word; Context: word): PHelpFile;
+function THelpFacility.AddHTMLHelpFile(FileName, TOCEntry: string): boolean;
+var H: PHelpFile;
+begin
+  H:=New(PHTMLHelpFile, Init(FileName, LastID+1, TOCEntry));
+  AddHTMLHelpFile:=AddFile(H);;
+end;
+
+function THelpFacility.AddFile(H: PHelpFile): boolean;
+begin
+  if H<>nil then
+    begin
+      HelpFiles^.Insert(H);
+      Inc(LastID);
+    end;
+  AddFile:=H<>nil;
+end;
+
+function THelpFacility.SearchTopicOwner(SourceFileID: word; Context: THelpCtx): PHelpFile;
 var P: PTopic;
     HelpFile: PHelpFile;
 function Search(F: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
@@ -694,7 +770,7 @@ begin
   SearchTopicOwner:=HelpFile;
 end;
 
-function THelpFacility.LoadTopic(SourceFileID: word; Context: word): PTopic;
+function THelpFacility.LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic;
 var P: PTopic;
     H: PHelpFile;
 begin
@@ -708,7 +784,7 @@ begin
   LoadTopic:=P;
 end;
 
-function THelpFacility.TopicSearch(Keyword: string; var FileID, Context: word): boolean;
+function THelpFacility.TopicSearch(Keyword: string; var FileID: word; Context: THelpCtx): boolean;
 function ScanHelpFile(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
 function Search(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -716,7 +792,7 @@ begin
 end;
 var P: PIndexEntry;
 begin
-  H^.ReadIndexTable;
+  H^.LoadIndex;
   P:=H^.IndexEntries^.FirstThat(@Search);
   if P<>nil then begin FileID:=H^.ID; Context:=P^.HelpCtx; end;
   ScanHelpFile:=P<>nil;
@@ -737,7 +813,7 @@ begin
   InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
 end;
 begin
-  H^.ReadIndexTable;
+  H^.LoadIndex;
   if Keywords^.Count<MaxCollectionSize then
   H^.IndexEntries^.FirstThat(@InsertKeywords);
 end;
@@ -757,7 +833,7 @@ begin
   for I:=0 to Lines^.Count-1 do
   begin
     S:=Lines^.At(I)^;
-    Size:=length(S)+1; S[Size]:=#0;
+    Size:=length(S)+1; S[Size]:=hscLineBreak;
     Move(S[1],PByteArray(T^.Text)^[CurPtr],Size);
     Inc(CurPtr,Size);
     if CurPtr>=T^.TextSize then Break;
@@ -837,11 +913,11 @@ begin
   SearchFile:=HelpFiles^.FirstThat(@Match);
 end;
 
-function THelpFacility.SearchTopicInHelpFile(F: PHelpFile; Context: word): PTopic;
+function THelpFacility.SearchTopicInHelpFile(F: PHelpFile; Context: THelpCtx): PTopic;
 var P: PTopic;
 begin
   if F=nil then P:=nil else
-  P:=F^.Topics^.SearchTopic(Context);
+  P:=F^.SearchTopic(Context);
   SearchTopicInHelpFile:=P;
 end;
 
@@ -854,7 +930,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:56  peter
+  Revision 1.3  1999-02-08 10:37:46  peter
+    + html helpviewer
+
+  Revision 1.2  1998/12/28 15:47:56  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

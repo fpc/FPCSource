@@ -42,7 +42,8 @@ type
       PHelpLink = ^THelpLink;
       THelpLink = record
         Bounds   : TRect;
-        Context  : word;
+        FileID   : longint;
+        Context  : THelpCtx;
       end;
 
       PHelpColorArea = ^THelpColorArea;
@@ -93,7 +94,8 @@ type
         function    GetLineText(Line: integer): string; virtual;
         function    GetLinkCount: integer; virtual;
         procedure   GetLinkBounds(Index: integer; var R: TRect); virtual;
-        function    GetLinkContext(Index: integer): word; virtual;
+        function    GetLinkFileID(Index: integer): word; virtual;
+        function    GetLinkContext(Index: integer): THelpCtx; virtual;
         function    GetColorAreaCount: integer; virtual;
         procedure   GetColorAreaBounds(Index: integer; var R: TRect); virtual;
         function    GetColorAreaColor(Index: integer): word; virtual;
@@ -105,7 +107,7 @@ type
       end;
 
       THelpHistoryEntry = record
-        Context_     : word;
+        Context_     : THelpCtx;
         Delta_       : TPoint;
         CurPos_      : TPoint;
         CurLink_     : integer;
@@ -126,14 +128,15 @@ type
         function    GetLineText(Line: integer): string; virtual;
         function    GetLinkCount: integer; virtual;
         procedure   GetLinkBounds(Index: integer; var R: TRect); virtual;
-        function    GetLinkContext(Index: integer): word; virtual;
+        function    GetLinkFileID(Index: integer): word; virtual;
+        function    GetLinkContext(Index: integer): THelpCtx; virtual;
         function    GetLinkText(Index: integer): string; virtual;
         function    GetColorAreaCount: integer; virtual;
         procedure   GetColorAreaBounds(Index: integer; var R: TRect); virtual;
         function    GetColorAreaColor(Index: integer): word; virtual;
         procedure   SelectNextLink(ANext: boolean); virtual;
         procedure   SwitchToIndex; virtual;
-        procedure   SwitchToTopic(SourceFileID: word; Context: word); virtual;
+        procedure   SwitchToTopic(SourceFileID: word; Context: THelpCtx); virtual;
         procedure   SetTopic(Topic: PTopic); virtual;
         procedure   SetCurLink(Link: integer); virtual;
         procedure   SelectLink(Index: integer); virtual;
@@ -151,7 +154,7 @@ type
         IndexTopic : PTopic;
         IndexHelpTopic: PHelpTopic;
         function    LinkContainsPoint(var R: TRect; var P: TPoint): boolean;
-        procedure   ISwitchToTopic(SourceFileID: word; Context: word; RecordInHistory: boolean);
+        procedure   ISwitchToTopic(SourceFileID: word; Context: THelpCtx; RecordInHistory: boolean);
         procedure   ISwitchToTopicPtr(P: PTopic; RecordInHistory: boolean);
         procedure   BuildTopicWordList;
       end;
@@ -165,10 +168,10 @@ type
       THelpWindow = object(TWindow)
         HelpView: PHelpViewer;
         HideOnClose: boolean;
-        constructor Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: word; ANumber: Integer);
+        constructor Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
         procedure   InitFrame; virtual;
         procedure   ShowIndex; virtual;
-        procedure   ShowTopic(SourceFileID: word; Context: word); virtual;
+        procedure   ShowTopic(SourceFileID: word; Context: THelpCtx); virtual;
         procedure   HandleEvent(var Event: TEvent); virtual;
         procedure   Close; virtual;
         function    GetPalette: PPalette; virtual; { needs to be overriden }
@@ -203,10 +206,11 @@ begin
   UpcaseStr:=S;
 end;
 
-function NewLink(Topic: word; StartP, EndP: TPoint): PHelpLink;
+function NewLink(FileID: longint; Topic: THelpCtx; StartP, EndP: TPoint): PHelpLink;
 var P: PHelpLink;
 begin
   New(P); FillChar(P^, SizeOf(P^), 0);
+  P^.FileID:=FileID;
   P^.Context:=Topic; P^.Bounds.A:=StartP; P^.Bounds.B:=EndP;
   NewLink:=P;
 end;
@@ -339,20 +343,50 @@ var TextPos,LinkNo: word;
     LinkStart,LinkEnd,ColorAreaStart,ColorAreaEnd: TPoint;
     CurPos: TPoint;
     ZeroLevel: integer;
+    LineStart,NextLineStart: integer;
+    LineAlign : (laLeft,laCenter,laRight);
+    FirstLink,LastLink: integer;
 procedure ClearLine;
 begin
   Line:='';
 end;
 procedure AddWord(TheWord: string); forward;
 procedure NextLine;
+var P: sw_integer;
+    I,Delta: integer;
 begin
   Line:=CharStr(' ',Margin)+Line;
+  repeat
+    P:=Pos(#255,Line);
+    if P>0 then Line[P]:=#32;
+  until P=0;
   while copy(Line,length(Line),1)=' ' do Delete(Line,length(Line),1);
+  Delta:=0;
+  if Line<>'' then
+  case LineAlign of
+    laLeft    : ;
+    laCenter  : if Margin+length(Line)+Margin<Width then
+                  begin
+                    Delta:=(Width-(Margin+length(Line)+Margin)) div 2;
+                    Line:=CharStr(' ',Delta)+Line;
+                  end;
+    laRight   : if Margin+length(Line)+Margin<Width then
+                  begin
+                    Delta:=Width-(Margin+length(Line)+Margin);
+                    Line:=CharStr(' ',Delta)+Line;
+                  end;
+  end;
+  if (Delta>0) and (FirstLink<>LastLink) then
+  for I:=FirstLink to LastLink-1 do
+    with PHelpLink(Links^.At(I))^ do
+      Bounds.Move(Delta,0);
   if Line='' then Line:=' ';
   Lines^.Insert(NewStr(Line));
   ClearLine;
-  CurPos.X:=Margin; Inc(CurPos.Y);
+  LineStart:=NextLineStart;
+  CurPos.X:=Margin+LineStart; Line:=CharStr(#255,LineStart); Inc(CurPos.Y);
   if InLink then LinkStart:=CurPos;
+  FirstLink:=LastLink;
 end;
 procedure FlushLine;
 var W: string;
@@ -363,7 +397,9 @@ end;
 procedure AddWord(TheWord: string);
 var W: string;
 begin
-  W:=TheWord; while copy(W,length(W),1)=' ' do Delete(W,length(W),1);
+  W:=TheWord;
+  while (length(W)>0) and (W[length(W)] in [' ',#255]) do
+     Delete(W,length(W),1);
   if (copy(Line+TheWord,1,1)<>' ') then
     if (Line<>'') and (Margin+length(Line)+length(W)+Margin>Width) then
        NextLine;
@@ -373,36 +409,63 @@ end;
 procedure CheckZeroLevel;
 begin
   if ZeroLevel<>0 then
-     begin if CurWord<>'' then AddWord(CurWord+' '); CurWord:=''; ZeroLevel:=0; end;
+     begin
+       if CurWord<>'' then AddWord(CurWord+' ');
+       CurWord:='';
+       ZeroLevel:=0;
+     end;
 end;
+var Diff: integer;
 begin
   Lines^.FreeAll; Links^.FreeAll;
   if Topic=nil then Lines^.Insert(NewStr('No help available for this topic.')) else
   begin
-    TextPos:=0; ClearLine; CurWord:=''; CurPos.X:=Margin; CurPos.Y:=0; LinkNo:=0;
+    LineStart:=0; NextLineStart:=0;
+    TextPos:=0; ClearLine; CurWord:=''; Line:='';
+    CurPos.X:=Margin+LineStart; CurPos.Y:=0; LinkNo:=0;
     InLink:=false; InColorArea:=false; ZeroLevel:=0;
+    LineAlign:=laLeft;
+    FirstLink:=0; LastLink:=0;
     while (TextPos<Topic^.TextSize) do
     begin
       C:=chr(PByteArray(Topic^.Text)^[TextPos]);
       case C of
-        #0 : {if ZeroLevel=0 then ZeroLevel:=1 else
+        hscLineBreak :
+            {if ZeroLevel=0 then ZeroLevel:=1 else
                 begin FlushLine; FlushLine; ZeroLevel:=0; end;}
              if InLink then CurWord:=CurWord+' ' else
-                FlushLine;
+               begin
+                 NextLineStart:=0;
+                 FlushLine;
+                 LineStart:=0;
+                 LineAlign:=laLeft;
+               end;
         #1 : Break;
-        #2 : begin
+        hscLink :
+             begin
                CheckZeroLevel;
                if InLink=false then
                   begin LinkStart:=CurPos; InLink:=true; end else
                 begin
                   if CurWord<>'' then AddWord(CurWord); CurWord:='';
                   LinkEnd:=CurPos; Dec(LinkEnd.X);
-                  Links^.Insert(NewLink(Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
-                  Inc(LinkNo);
+                  if Topic^.Links<>nil then
+                    begin
+                      Inc(LastLink);
+                      Links^.Insert(NewLink(Topic^.Links^[LinkNo].FileID,
+                        Topic^.Links^[LinkNo].Context,LinkStart,LinkEnd));
+                      Inc(LinkNo);
+                    end;
                   InLink:=false;
                 end;
               end;
-        #5 : begin
+        hscLineStart :
+             begin
+               NextLineStart:=length(Line)+length(CurWord);
+{               LineStart:=LineStart+(NextLineStart-LineStart);}
+             end;
+        hscCode :
+             begin
                if InColorArea=false then
                   ColorAreaStart:=CurPos else
                 begin
@@ -412,6 +475,10 @@ begin
                 end;
                InColorArea:=not InColorArea;
              end;
+        hscCenter :
+             LineAlign:=laCenter;
+        hscRight  :
+             LineAlign:=laCenter;
         #32: if InLink then CurWord:=CurWord+C else
                 begin CheckZeroLevel; AddWord(CurWord+C); CurWord:=''; end;
       else begin CheckZeroLevel; CurWord:=CurWord+C; end;
@@ -447,7 +514,14 @@ begin
   R:=P^.Bounds;
 end;
 
-function THelpTopic.GetLinkContext(Index: integer): word;
+function THelpTopic.GetLinkFileID(Index: integer): word;
+var P: PHelpLink;
+begin
+  P:=Links^.At(Index);
+  GetLinkFileID:=P^.FileID;
+end;
+
+function THelpTopic.GetLinkContext(Index: integer): THelpCtx;
 var P: PHelpLink;
 begin
   P:=Links^.At(Index);
@@ -566,7 +640,12 @@ begin
   HelpTopic^.GetLinkBounds(Index,R);
 end;
 
-function THelpViewer.GetLinkContext(Index: integer): word;
+function THelpViewer.GetLinkFileID(Index: integer): word;
+begin
+  GetLinkFileID:=HelpTopic^.GetLinkFileID(Index);
+end;
+
+function THelpViewer.GetLinkContext(Index: integer): THelpCtx;
 begin
   GetLinkContext:=HelpTopic^.GetLinkContext(Index);
 end;
@@ -648,12 +727,12 @@ begin
   ISwitchToTopicPtr(IndexTopic,true);
 end;
 
-procedure THelpViewer.SwitchToTopic(SourceFileID: word; Context: word);
+procedure THelpViewer.SwitchToTopic(SourceFileID: word; Context: THelpCtx);
 begin
   ISwitchToTopic(SourceFileID,Context,true);
 end;
 
-procedure THelpViewer.ISwitchToTopic(SourceFileID: word; Context: word; RecordInHistory: boolean);
+procedure THelpViewer.ISwitchToTopic(SourceFileID: word; Context: THelpCtx; RecordInHistory: boolean);
 var P: PTopic;
 begin
   if HelpFacility=nil then P:=nil else
@@ -763,8 +842,12 @@ begin
   begin
     while (Index=-1) and (I<WordList^.Count) do
       begin
-        W:=UpcaseStr(Trim(WordList^.At(I)^.KWord^));
-        if copy(W,1,length(S))=S then Index:=I else
+        P:=WordList^.At(I);
+        if P^.KWord<>nil then
+          begin
+            W:=UpcaseStr(Trim(P^.KWord^));
+            if copy(W,1,length(S))=S then Index:=I;
+          end;
 {        if W>S then Break else}
         Inc(I);
       end;
@@ -795,12 +878,12 @@ end;
 
 procedure THelpViewer.SelectLink(Index: integer);
 var ID: word;
-    Ctx: word;
+    Ctx: THelpCtx;
 begin
   if Index=-1 then Exit;
   if HelpTopic=nil then begin ID:=0; Ctx:=0; end else
      begin
-       ID:=HelpTopic^.Topic^.FileID;
+       ID:=GetLinkFileID(Index);
        Ctx:=GetLinkContext(Index);
      end;
   SwitchToTopic(ID,Ctx);
@@ -885,6 +968,7 @@ begin
     if Y<GetLineCount then
     begin
       S:=copy(GetLineText(Y),Delta.X+1,255);
+      S:=copy(S,1,MaxViewWidth);
       MoveStr(B,S,NormalColor);
 
       for I:=LastColorAreaDrawn to GetColorAreaCount-1 do
@@ -972,7 +1056,7 @@ begin
   GetPalette:=@P;
 end;
 
-constructor THelpWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: word; ANumber: Integer);
+constructor THelpWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
 var R: TRect;
     VSB,HSB: PScrollBar;
 begin
@@ -1001,7 +1085,7 @@ begin
   HelpView^.SwitchToIndex;
 end;
 
-procedure THelpWindow.ShowTopic(SourceFileID: word; Context: word);
+procedure THelpWindow.ShowTopic(SourceFileID: word; Context: THelpCtx);
 begin
   HelpView^.SwitchToTopic(SourceFileID, Context);
 end;
@@ -1033,7 +1117,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-21 11:54:32  peter
+  Revision 1.4  1999-02-08 10:37:47  peter
+    + html helpviewer
+
+  Revision 1.3  1999/01/21 11:54:32  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

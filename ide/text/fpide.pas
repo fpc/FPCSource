@@ -31,7 +31,7 @@ type
       function    OpenSearch(FileName: string) : boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
-      procedure   DosShell; {virtual;}
+      procedure   DosShell; virtual;
       destructor  Done; virtual;
     public
       procedure ShowUserScreen;
@@ -182,10 +182,10 @@ begin
       nil))))))))))),
     NewSubMenu('~R~un',hcRunMenu, NewMenu(
       NewItem('~R~un','Ctrl+F9', kbCtrlF9, cmRun, hcRun,
-      NewItem('~S~tep Over','F8', kbF8, cmStepOver, hcRun,
-      NewItem('~T~race Into','F7', kbF7, cmTraceInto, hcRun,
+      NewItem('~S~tep over','F8', kbF8, cmStepOver, hcRun,
+      NewItem('~T~race into','F7', kbF7, cmTraceInto, hcRun,
       NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
-      NewItem('Reset ~P~rog','Ctrl+F2', kbCtrlF2, cmResetDebugger, hcResetDebugger,
+      NewItem('~P~rogram reset','Ctrl+F2', kbCtrlF2, cmResetDebugger, hcResetDebugger,
       nil)))))),
     NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
       NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
@@ -636,8 +636,6 @@ end;
 
 destructor TIDEApp.Done;
 begin
-  { Close debugging session if active }
-  DoResetDebugger;
   inherited Done;
   DoneHelpSystem;
   DoneTemplates;
@@ -646,21 +644,8 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-02-05 13:51:40  peter
-    * unit name of FPSwitches -> FPSwitch which is easier to use
-    * some fixes for tp7 compiling
-
-  Revision 1.9  1999/02/05 13:03:54  pierre
-   * DosShell is not virtual in app !
-
-  Revision 1.8  1999/02/05 12:11:54  pierre
-    + SourceDir that stores directories for sources that the
-      compiler should not know about
-      Automatically asked for addition when a new file that
-      needed filedialog to be found is in an unknown directory
-      Stored and retrieved from INIFile
-    + Breakpoints conditions added to INIFile
-    * Breakpoints insterted and removed at debin and end of debug session
+  Revision 1.11  1999-02-08 10:37:44  peter
+    + html helpviewer
 
   Revision 1.7  1999/02/04 13:32:03  pierre
     * Several things added (I cannot commit them independently !)

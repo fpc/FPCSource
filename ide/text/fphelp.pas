@@ -18,7 +18,7 @@ unit FPHelp;
 interface
 
 uses
-  Drivers,HelpCtx,WHlpView,
+  Drivers,HelpCtx,WHlpView,WHTML,
 {$ifdef EDITORS}
   Editors,
 {$else}
@@ -56,12 +56,12 @@ const
 implementation
 
 uses Objects,Views,App,MsgBox,
-     WHelp,
+     WHelp,WHTMLHlp,
      FPConst,FPVars,FPUtils;
 
 const
     MaxStatusLevel = 10;
-    
+
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
 const
@@ -142,7 +142,7 @@ begin
 
     hcDebugMenu     : S:='';
     hcToggleBreakpoint : S:='Toggles Breakpoint';
-    
+
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
     hcGrep          : S:='Run grep';
@@ -199,18 +199,32 @@ begin
 end;
 
 procedure InitHelpSystem;
-procedure AddFile(HelpFile: string);
+procedure AddOAFile(HelpFile: string);
 begin
   {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
-  HelpFacility^.AddHelpFile(HelpFile);
+  HelpFacility^.AddOAHelpFile(HelpFile);
+  {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
+end;
+procedure AddHTMLFile(TOCEntry,HelpFile: string);
+begin
+  {$IFDEF DEBUG}SetStatus(strLoadingHelp+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+  HelpFacility^.AddHTMLHelpFile(HelpFile, TOCEntry);
   {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
 end;
 var I: integer;
+    S: string;
 begin
   New(HelpFacility, Init);
   PushStatus(strLoadingHelp);
+{  AddHTMLFile('User''s guide','C:\FP\USER\USER.HTM');}
   for I:=0 to HelpFiles^.Count-1 do
-    AddFile(HelpFiles^.At(I)^);
+    begin
+      S:=HelpFiles^.At(I)^;
+      if copy(UpcaseStr(ExtOf(S)),1,4)='.HTM' then
+        AddHTMLFile(S,S)
+      else
+        AddOAFile(S);
+    end;
   PopStatus;
 end;
 
@@ -341,7 +355,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-02-04 12:23:44  pierre
+  Revision 1.6  1999-02-08 10:37:43  peter
+    + html helpviewer
+
+  Revision 1.5  1999/02/04 12:23:44  pierre
     + cmResetDebugger and cmGrep
     * Avoid StatusStack overflow
 

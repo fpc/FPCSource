@@ -394,22 +394,8 @@ var R,R2: TRect;
     Count,I : integer;
 const
   LW = 25;
-   procedure Add(i : integer;Data,Name : string);
-     begin
-       R2.Copy(R);
-       R2.A.X:=LW;
-       New(IL[i], Init(R2, 255));
-       IL[i]^.Data^:=Data;
-       D^.Insert(IL[i]);
-       R2.Copy(R);
-       R2.B.X:=LW;
-       D^.Insert(New(PLabel, Init(R2, Name, IL[i])));
-       R.Move(0,2);
-     end;
-
 begin
-  { add SourceDirs }
-  Count:=DirectorySwitches^.ItemCount+1;
+  Count:=DirectorySwitches^.ItemCount;
   R.Assign(0,0,64,2+Count*2);
   New(D, Init(R, 'Directories'));
   with D^ do
@@ -418,17 +404,25 @@ begin
     R.Grow(-2,-2);
     Dec(R.B.X);
     R.B.Y:=R.A.Y+1;
-    Add(Count-1,SourceDirs,'Path to ~S~ources');
-    for i:=Count-2 downto 0 do
-      Add(i,DirectorySwitches^.GetStringItem(i),DirectorySwitches^.ItemName(i));
+    for i:=Count-1 downto 0 do
+     begin
+       R2.Copy(R);
+       R2.A.X:=LW;
+       New(IL[i], Init(R2, 255));
+       IL[i]^.Data^:=DirectorySwitches^.GetStringItem(i);
+       Insert(IL[i]);
+       R2.Copy(R);
+       R2.B.X:=LW;
+       Insert(New(PLabel, Init(R2, DirectorySwitches^.ItemName(i), IL[i])));
+       R.Move(0,2);
+     end;
   end;
   InsertButtons(D);
   IL[Count-1]^.Select;
   if Desktop^.ExecView(D)=cmOK then
    begin
-     for i:=Count-2 downto 0 do
+     for i:=Count-1 downto 0 do
       DirectorySwitches^.SetStringItem(i,IL[i]^.Data^);
-     SourceDirs:=IL[Count-1]^.Data^;
    end;
   Dispose(D, Done);
 end;
@@ -443,7 +437,7 @@ var D: PCenterDialog;
     R,R2,R3: TRect;
     CB: PCheckBoxes;
     IL: PIntegerLine;
-    ExtIL: PInputLine;
+    ExtIL,TabExtIL: PInputLine;
     TabSize: Integer;
     EFlags: Longint;
 begin
@@ -494,11 +488,11 @@ begin
 
     R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+2;
     R2.Copy(R); Inc(R2.A.Y);
-    New(ExtIL, Init(R2, 128));
-    ExtIL^.SetData(TabsPattern);
-    Insert(ExtIL);
+    New(TabExtIL, Init(R2, 128));
+    TabExtIL^.SetData(TabsPattern);
+    Insert(TabExtIL);
     R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2, 'File ~p~atterns needing tabs', ExtIL)));
+    Insert(New(PLabel, Init(R2, 'File ~p~atterns needing tabs', TabExtIL)));
   end;
   InsertButtons(D);
   CB^.Select;
@@ -516,6 +510,7 @@ begin
          Editor^.SetFlags(EFlags);
        end;
     ExtIL^.GetData(HighlightExts);
+    TabExtIL^.GetData(TabsPattern);
   end;
   Dispose(D, Done);
 end;
@@ -705,7 +700,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-02-06 00:07:47  florian
+  Revision 1.11  1999-02-08 10:37:45  peter
+    + html helpviewer
+
+  Revision 1.10  1999/02/06 00:07:47  florian
     * speed/size optimization is now a radio button
 
   Revision 1.9  1999/02/05 12:11:58  pierre
