@@ -620,7 +620,10 @@ function power(base,exponent : float) : float;
 
   begin
     if Exponent=0.0 then
-      result:=1.0
+      if base <> 0.0 then
+        result:=1.0
+      else
+        InvalidArgument
     else if (base=0.0) and (exponent>0.0) then
       result:=0.0
     else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
@@ -1339,7 +1342,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-12-04 23:38:59  florian
+  Revision 1.25  2004-12-05 16:43:57  jonas
+    * fixed power() in genmath.inc (code duplication from math.pp for **
+      support!)
+    * fixed power() in math.pp to give an error from 0^0
+
+  Revision 1.24  2004/12/04 23:38:59  florian
     * fixed power(float,float) for negative exponents
 
   Revision 1.23  2004/07/25 16:46:08  michael

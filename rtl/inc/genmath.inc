@@ -1198,7 +1198,30 @@ type
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_POWER}
+function intpower(base : real;const exponent: longint) : real;
+  var
+     i : longint;
+  begin
+     i:=abs(exponent);
+     intpower:=1.0;
+     while i>0 do
+       begin
+          while (i and 1)=0 do
+            begin
+               i:=i shr 1;
+               base:=sqr(base);
+            end;
+          dec(i);
+          intpower:=intpower*base;
+       end;
+     if exponent<0 then
+       intpower:=1.0/intpower;
+  end;
+
+
     function power(bas,expo : real) : real;
+     var
+       sign: real;
      begin
         if bas=0.0 then
           begin
@@ -1209,10 +1232,11 @@ type
           end
         else if expo=0.0 then
          power:=1
-        else
+        else if (abs(expo)<=high(longint)) and (frac(expo)=0.0) then
+          power := intpower(bas,trunc(expo))
         { bas < 0 is not allowed }
-         if bas<0.0 then
-          handleerror(207)
+        else if bas<0.0 then
+          HandleError(207)
          else
           power:=exp(ln(bas)*expo);
      end;
@@ -1307,7 +1331,12 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.29  2004-11-21 15:35:23  peter
+  Revision 1.30  2004-12-05 16:43:57  jonas
+    * fixed power() in genmath.inc (code duplication from math.pp for **
+      support!)
+    * fixed power() in math.pp to give an error from 0^0
+
+  Revision 1.29  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.28  2004/11/20 15:49:21  jonas
