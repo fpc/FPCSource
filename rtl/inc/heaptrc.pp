@@ -1051,6 +1051,35 @@ begin
      end;
 end;
 
+{$ifdef win32}
+   function GetEnvironmentStrings : pchar;
+     external 'kernel32' name 'GetEnvironmentStringsA';
+   function FreeEnvironmentStrings(p : pchar) : longbool;
+     external 'kernel32' name 'FreeEnvironmentStringsA';
+Function  GetEnv(envvar: string): string;
+var
+   s : string;
+   i : longint;
+   hp,p : pchar;
+begin
+   getenv:='';
+   p:=GetEnvironmentStrings;
+   hp:=p;
+   while hp^<>#0 do
+     begin
+        s:=strpas(hp);
+        i:=pos('=',s);
+        if upcase(copy(s,1,i-1))=upcase(envvar) then
+          begin
+             getenv:=copy(s,i+1,length(s)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
+   FreeEnvironmentStrings(p);
+end;
+{$else}
 Function GetEnv(P:string):Pchar;
 {
   Searches the environment for a string with name p and
@@ -1085,7 +1114,7 @@ Begin
   else
    getenv:=nil;
 end;
-
+{$endif}
 
 procedure LoadEnvironment;
 var
@@ -1123,7 +1152,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2001-04-13 01:18:08  peter
+  Revision 1.11  2001-04-13 18:05:34  peter
+    * win32 getenv version
+
+  Revision 1.10  2001/04/13 01:18:08  peter
     * always clear memory in getmem and freemem
 
   Revision 1.8  2001/04/11 14:08:31  peter
