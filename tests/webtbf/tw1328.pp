@@ -1,3 +1,4 @@
+{ %FAIL }
 { %CPU=i386 }
 {$asmmode intel}
 begin

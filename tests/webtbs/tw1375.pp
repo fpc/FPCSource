@@ -10,7 +10,11 @@ Does not compile in FPC:
 *)
 
 program test1;
+{$ifdef win32}
 uses windows;
+{$endif}
 begin
+{$ifdef win32}
   InvalidateRect (HWND(0), pointer(0), TRUE);
+{$endif}
 end.
