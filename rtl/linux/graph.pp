@@ -312,7 +312,7 @@ uses Objects, Linux;
 
 {  Link with VGA, gl and c libraries }
 {$linklib vga}
-{$linklib gl}
+{$linklib vgagl}
 {$linklib c}
 
  { Constants }
@@ -1489,7 +1489,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-08-12 14:01:08  michael
+  Revision 1.6  1998-08-14 09:20:36  michael
+  Typo fixed. linklib gl to linklib vgagl
+
+  Revision 1.5  1998/08/12 14:01:08  michael
   small fix in sector, pieslice replaced by call to sector
 
   Revision 1.4  1998/08/12 13:25:33  michael
