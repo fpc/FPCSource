@@ -52,14 +52,14 @@ interface
        protected
           _mangledname : pstring;
        public
-{$ifdef GDB}
-          isstabwritten : boolean;
-{$endif GDB}
           refs          : longint;
           lastref,
           defref,
           lastwritten : tref;
           refcount    : longint;
+{$ifdef GDB}
+          isstabwritten : boolean;
+{$endif GDB}
           constructor create(const n : string);
           constructor loadsym(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -2460,7 +2460,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-12-06 17:51:11  peter
+  Revision 1.81  2002-12-07 14:27:10  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.80  2002/12/06 17:51:11  peter
     * merged cdecl and array fixes
 
   Revision 1.79  2002/11/27 20:04:10  peter

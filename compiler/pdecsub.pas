@@ -2056,6 +2056,8 @@ const
                end
               else
                begin
+                 if not assigned(aprocdef.localst) then
+                  aprocdef.insert_localst;
                  aprocdef.localst.insert(otsym);
                  aprocdef.localst.insertvardata(otsym);
                end;
@@ -2074,7 +2076,13 @@ const
 end.
 {
   $Log$
-  Revision 1.86  2002-12-06 17:51:10  peter
+  Revision 1.87  2002-12-07 14:27:07  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.86  2002/12/06 17:51:10  peter
     * merged cdecl and array fixes
 
   Revision 1.85  2002/12/01 22:06:14  carl

@@ -687,7 +687,7 @@ implementation
         else
           begin
            { get the size before the type conversion - check for all nodes }
-           if assigned(right.resulttype.def) and (right.nodetype in [loadn,vecn]) then
+           if assigned(right.resulttype.def) and (right.nodetype in [loadn,vecn,calln]) then
               original_size := right.resulttype.def.size;
            inserttypeconv(right,left.resulttype);
           end;
@@ -1244,7 +1244,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2002-12-02 19:38:06  carl
+  Revision 1.71  2002-12-07 14:27:07  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.70  2002/12/02 19:38:06  carl
     * fix some errors
 
   Revision 1.69  2002/11/29 20:02:44  carl

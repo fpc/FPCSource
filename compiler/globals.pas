@@ -72,11 +72,17 @@ interface
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
-
+        
+          
        { maximum number of locals in bytes before warning is emitted }
        maxlocalsize = high(smallint);
        { maximum number of paras in bytes before warning is emitted }
        maxparasize = high(word);
+       { maximum nesting of routines }
+       maxnesting = 32;
+       { maximum of units which are supported for a compilation }
+       maxunits = 1024;
+
 
 
     type
@@ -1279,12 +1285,13 @@ implementation
            ishexstr(copy(s,16,4)) and ishexstr(copy(s,21,4)) and
            ishexstr(copy(s,26,12)) then begin
           GUID.D1:=dword(hexstr2longint(copy(s,2,8)));
-          GUID.D2:=hexstr2longint(copy(s,11,4));
-          GUID.D3:=hexstr2longint(copy(s,16,4));
+          { these values are arealdy in the correct range (4 chars = word) }
+          GUID.D2:=word(hexstr2longint(copy(s,11,4)));
+          GUID.D3:=word(hexstr2longint(copy(s,16,4)));
           for i:=0 to 1 do
-            GUID.D4[i]:=hexstr2longint(copy(s,21+i*2,2));
+            GUID.D4[i]:=byte(hexstr2longint(copy(s,21+i*2,2)));
           for i:=2 to 7 do
-            GUID.D4[i]:=hexstr2longint(copy(s,22+i*2,2));
+            GUID.D4[i]:=byte(hexstr2longint(copy(s,22+i*2,2)));
           string2guid:=true;
         end
         else
@@ -1533,7 +1540,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-12-06 17:50:00  peter
+  Revision 1.78  2002-12-07 14:27:07  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.77  2002/12/06 17:50:00  peter
     * amiga fixes merged
 
   Revision 1.76  2002/12/01 22:07:41  carl

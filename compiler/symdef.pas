@@ -522,6 +522,11 @@ interface
           procedure setmangledname(const s : string);
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
+          { inserts the local symbol table, if this is not 
+            no local symbol table is built. Should be called only
+            when we are sure that a local symbol table will be required.
+          }
+          procedure insert_localst;
           function  fullprocname:string;
           function fullprocnamewithret:string;
           function  cplusplusmangledname : string;
@@ -1273,7 +1278,12 @@ implementation
       begin
          inherited ppuwritedef(ppufile);
          if string_typ=st_shortstring then
-           ppufile.putbyte(len)
+           begin
+{$ifdef extdebug}
+            if len > 255 then internalerror(12122002);
+{$endif}
+            ppufile.putbyte(byte(len))
+           end
          else
            ppufile.putlongint(len);
          case string_typ of
@@ -3041,6 +3051,8 @@ implementation
       end;
 
 
+
+
     { all functions returning in FPU are
       assume to use 2 FPU registers
       until the function implementation
@@ -3266,14 +3278,10 @@ implementation
          fileinfo:=aktfilepos;
          extnumber:=$ffff;
          aliasnames:=tstringlist.create;
-         localst:=tlocalsymtable.create;
          parast:=tparasymtable.create;
          funcretsym:=nil;
-         localst.defowner:=self;
+         localst := nil;
          parast.defowner:=self;
-         { this is used by insert
-           to check same names in parast and localst }
-         localst.next:=parast;
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
@@ -3480,6 +3488,17 @@ implementation
       end;
 
 
+    procedure tprocdef.insert_localst;
+     begin
+         localst:=tlocalsymtable.create;
+         localst.defowner:=self;
+         { this is used by insert
+           to check same names in parast and localst }
+         localst.next:=parast;
+     end;
+
+
+
     function tprocdef.fullprocname:string;
       var
         s : string;
@@ -3543,7 +3562,7 @@ implementation
 
 
     Const
-      local_symtable_index : longint = $8001;
+      local_symtable_index : word = $8001;
 
     function tprocdef.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
       var
@@ -4048,11 +4067,6 @@ implementation
                               TOBJECTDEF
 ***************************************************************************}
 
-{$ifdef GDB}
-    const
-       vtabletype : word = 0;
-       vtableassigned : boolean = false;
-{$endif GDB}
 
    constructor tobjectdef.create(ot : tobjectdeftype;const n : string;c : tobjectdef);
      begin
@@ -5500,7 +5514,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2002-12-01 22:05:27  carl
+  Revision 1.115  2002-12-07 14:27:09  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.114  2002/12/01 22:05:27  carl
     * no more warnings for structures over 32K since this is
       handled correctly in this version of the compiler.
 

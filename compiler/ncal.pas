@@ -198,7 +198,6 @@ type
         speedvalue : cardinal;
         srsym      : tprocsym;
         s          : string;
-        srpdl      : pprocdeflist;
         objdef     : tobjectdef;
       begin
         if aprocsym.overloadchecked then
@@ -494,6 +493,19 @@ type
                end
               else
                begin
+                 { for ordinals, floats and enums, verify if we might cause
+                   some range-check errors. }
+                 if (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and 
+                    (left.nodetype in [vecn,loadn,calln]) then
+                   begin
+                      if (left.resulttype.def.size > defcoll.paratype.def.size) then
+                        begin 
+                          if (cs_check_range in aktlocalswitches) then
+                             Message(type_w_smaller_possible_range_check)
+                          else
+                             Message(type_h_smaller_possible_range_check);
+                        end;
+                   end;
                  inserttypeconv(left,defcoll.paratype);
                end;
               if codegenerror then
@@ -2845,7 +2857,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2002-12-06 17:51:10  peter
+  Revision 1.116  2002-12-07 14:27:07  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.115  2002/12/06 17:51:10  peter
     * merged cdecl and array fixes
 
   Revision 1.114  2002/12/06 16:56:58  peter

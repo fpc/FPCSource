@@ -194,7 +194,7 @@ implementation
       begin
          { calculate the lexical level }
          inc(lexlevel);
-         if lexlevel>32 then
+         if lexlevel>maxnesting then
            Message(parser_e_too_much_lexlevel);
 
          { static is also important for local procedures !! }
@@ -249,6 +249,9 @@ implementation
               symtablestack:=aktprocdef.parast;
               symtablestack.symtablelevel:=lexlevel;
            end;
+         { create a local symbol table for this routine }
+         if not assigned(aktprocdef.localst) then
+            aktprocdef.insert_localst;
          { insert localsymtable in symtablestack}
          aktprocdef.localst.next:=symtablestack;
          symtablestack:=aktprocdef.localst;
@@ -462,6 +465,8 @@ implementation
                  vs:=tvarsym.create(s,vartype);
                  vs.fileinfo:=fileinfo;
                  vs.varspez:=varspez;
+                 if not assigned(aktprocdef.localst) then
+                    aktprocdef.insert_localst;
                  aktprocdef.localst.insert(vs);
                  aktprocdef.localst.insertvardata(vs);
                  include(vs.varoptions,vo_is_local_copy);
@@ -799,7 +804,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-11-25 18:43:32  carl
+  Revision 1.80  2002-12-07 14:27:09  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.79  2002/11/25 18:43:32  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.

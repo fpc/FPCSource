@@ -97,11 +97,7 @@ interface
        public
           name      : pstring;
           realname  : pstring;
-          symtabletype : tsymtabletype;
-          { each symtable gets a number }
-          unitid    : word{integer give range check errors PM};
           datasize  : longint;
-          dataalignment : longint;
           symindex,
           defindex  : TIndexArray;
           symsearch : Tdictionary;
@@ -110,9 +106,13 @@ interface
           { only used for parameter symtable to determine the offset relative }
           { to the frame pointer and for local inline }
           address_fixup : longint;
+          symtabletype : tsymtabletype;
+          { each symtable gets a number }
+          unitid    : word;
           { this saves all definition to allow a proper clean up }
           { separate lexlevel from symtable type }
           symtablelevel : byte;
+          dataalignment : byte;
           constructor Create(const s:string);
           destructor  destroy;override;
           procedure clear;virtual;
@@ -348,7 +348,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-10-02 20:51:59  peter
+  Revision 1.10  2002-12-07 14:27:09  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.9  2002/10/02 20:51:59  peter
     * tsymtable.dump to dump the names in a symtable to stdout
 
   Revision 1.8  2002/09/09 17:34:15  peter

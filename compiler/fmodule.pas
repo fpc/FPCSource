@@ -44,8 +44,6 @@ interface
        globals,finput,
        symbase,aasmbase;
 
-    const
-       maxunits = 1024;
 
     type
        trecompile_reason = (rr_unknown,
@@ -578,7 +576,7 @@ uses
 
     procedure tmodule.numberunits;
       var
-        counter : longint;
+        counter : word;
         hp      : tused_unit;
         hp1     : tmodule;
       begin
@@ -609,7 +607,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.30  2002-11-24 18:19:56  carl
+  Revision 1.31  2002-12-07 14:27:07  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.30  2002/11/24 18:19:56  carl
     + tos also has short filenames
 
   Revision 1.29  2002/11/20 12:36:23  mazen

@@ -154,8 +154,8 @@ interface
 
        tglobalsymtable = class(tabstractunitsymtable)
        public
-          unittypecount : word;
           unitsym       : tunitsym;
+          unittypecount : word;
           constructor create(const n : string);
           destructor  destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
@@ -203,7 +203,7 @@ interface
        systemunit     : tglobalsymtable; { pointer to the system unit }
        read_member    : boolean;        { reading members of an symtable }
 
-       lexlevel       : longint;       { level of code }
+       lexlevel       : byte;          { level of code }
                                        { 1 for main procedure }
                                        { 2 for normal function or proc }
                                        { higher for locals }
@@ -368,7 +368,7 @@ implementation
          ppufile.getlongint;
          { load datasize,dataalignment of this symboltable }
          datasize:=ppufile.getlongint;
-         dataalignment:=ppufile.getlongint;
+         dataalignment:=byte(ppufile.getlongint);
       { now read the symbols }
          repeat
            b:=ppufile.readentry;
@@ -2338,7 +2338,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2002-12-06 17:51:11  peter
+  Revision 1.85  2002-12-07 14:27:10  carl
+    * 3% memory optimization
+    * changed some types
+    + added type checking with different size for call node and for
+       parameters
+
+  Revision 1.84  2002/12/06 17:51:11  peter
     * merged cdecl and array fixes
 
   Revision 1.83  2002/11/30 11:12:48  carl

@@ -1103,8 +1103,7 @@ type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of
 % this may cause a range-check error, or may lead to possible loss of data.
 type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of data / range check error
 % There is an assignment to a smaller type than the source type. This means that
-% this may cause a range-check error, or may lead to possible loss of data.
-%
+% this may cause a range-check error, or may lead to possible loss of data. 
 % \end{description}
 #
 # Symtable
@@ -1287,7 +1286,7 @@ cg_e_parasize_too_big=06009_E_Parameter list size exceeds 65535 bytes
 cg_e_illegal_type_conversion=06010_E_Illegal type conversion
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-cg_h_pointer_to_longint_conv_not_portable=06011_H_Conversion between ordinals and pointers is not portable
+cg_h_pointer_to_longint_conv_not_portable=06011_H_Conversion between ordinals and pointers are not portable
 % If you typecast a pointer to a longint (or vice-versa), this code will not compile
 % on a machine using 64-bit for pointer storage.
 cg_e_file_must_call_by_reference=06012_E_File types must be var parameters
