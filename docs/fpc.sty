@@ -94,6 +94,9 @@
 \index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
 \newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
+\newenvironment{typel}[2]{\subsection{#1}%
+\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{type}[1]{\begin{typel}{#1}{#1}}{\end{typel}}
 % Now the referencing commands.
 %
 % First, the ones with alternate label (second argument}
@@ -102,11 +105,14 @@
 \textsf{#1} (\pageref{fu:#2})}
 \newcommand{\seepl}[2]{
 \textsf{#1} (\pageref{pro:#2})}
+\newcommand{\seetyl}[2]{
+\textsf{#1} (\pageref{ty:#2})}
 %
 % Now the ones with label.
 %
 \newcommand{\seef}[1]{\seefl{#1}{#1}}
 \newcommand{\seep}[1]{\seepl{#1}{#1}}
+\newcommand{\seety}[1]{\seetyl{#1}{#1}}
 %
 % man page references don't need labels.
 %
