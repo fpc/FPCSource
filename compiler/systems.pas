@@ -929,7 +929,7 @@ implementation
             assemsrc    : as_i386_as;
             ar    : ar_i386_ar;
             res  : res_none;
-            heapsize    : 256*1024;
+            heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
@@ -954,14 +954,14 @@ implementation
             assemsrc    : as_i386_as;
             ar    : ar_i386_ar;
             res  : res_none;
-            heapsize    : 256*1024;
+            heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
           (
             target      : target_i386_LINUX;
             flags       : [];
-            cpu  : i386;
+            cpu         : i386;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
             system_unit : 'syslinux';
@@ -973,12 +973,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os    : os_i386_Linux;
+            os          : os_i386_Linux;
             link        : link_i386_ld;
             assem       : as_i386_as;
             assemsrc    : as_i386_as;
-            ar    : ar_i386_ar;
-            res  : res_none;
+            ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -998,12 +998,12 @@ implementation
             resext      : '.res';
             resobjext   : '.oor';
             exeext      : ''; { The linker produces a.out }
-            os    : os_i386_OS2;
+            os          : os_i386_OS2;
             link        : link_i386_ldos2;
             assem       : as_i386_as_aout;
             assemsrc    : as_i386_as_aout;
-            ar    : ar_i386_ar;
-            res  : res_none;
+            ar          : ar_i386_ar;
+            res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
@@ -1023,12 +1023,12 @@ implementation
             resext      : '.rc';
             resobjext   : '.owr';
             exeext      : '.exe';
-            os    : os_i386_Win32;
+            os          : os_i386_Win32;
             link        : link_i386_ldw;
             assem       : as_i386_pecoff;
             assemsrc    : as_i386_asw;
-            ar    : ar_i386_arw;
-            res  : res_i386_windres;
+            ar          : ar_i386_arw;
+            res         : res_i386_windres;
             heapsize    : 256*1024;
             maxheapsize : 32*1024*1024;
             stacksize   : 32*1024*1024
@@ -1050,12 +1050,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os    : os_m68k_Amiga;
+            os          : os_m68k_Amiga;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            ar    : ar_m68k_ar;
-            res  : res_none;
+            ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1075,12 +1075,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '.ttp';
-            os    : os_m68k_Atari;
+            os          : os_m68k_Atari;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
             assemsrc    : as_m68k_as;
-            ar    : ar_m68k_ar;
-            res  : res_none;
+            ar          : ar_m68k_ar;
+            res         : res_none;
             heapsize    : 16*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1500,7 +1500,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  1999-06-02 20:46:39  peter
+  Revision 1.82  1999-06-08 11:50:28  peter
+    * 2mb again for go32v2/v1
+
+  Revision 1.81  1999/06/02 20:46:39  peter
     * fixed os2 bindcmd which was double
 
   Revision 1.80  1999/06/02 14:20:31  hajny
