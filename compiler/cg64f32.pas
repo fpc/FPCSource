@@ -326,9 +326,9 @@ unit cg64f32;
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_op64_const_reg(list,op,value,l.register64);
-          LOC_REGISTER,LOC_CREGISTER:
             a_op64_const_ref(list,op,value,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_const_reg(list,op,value,l.register64);
           else
             internalerror(200203292);
         end;
@@ -591,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-07-07 09:52:32  florian
+  Revision 1.18  2002-07-10 11:12:44  jonas
+    * fixed a_op64_const_loc()
+
+  Revision 1.17  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 
