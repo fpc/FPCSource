@@ -37,7 +37,7 @@
           resize_count : guint8;
           window_type : guint8;
           ref_count : guint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           extension_events : gint;
           filters : PGList;
           colormap : PGdkColormap;
@@ -315,7 +315,10 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:19  michael
+  Revision 1.3  2000-09-09 18:41:38  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:19  michael
   + removed logs
  
 }

@@ -39,7 +39,7 @@ uses
     gtkdll='gtk-1.3';
   {$define gtkwin}
 
-  {$packrecords 4}
+  {$packrecords c}
 {$else}
   const
     gtkdll='gtk';
@@ -78,7 +78,10 @@ Type
 end.
 {
   $Log$
-  Revision 1.4  2000-09-06 21:13:55  peter
+  Revision 1.5  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.4  2000/09/06 21:13:55  peter
     * packrecords 4 for win32, packrecords c for linux
 
   Revision 1.3  2000/08/06 10:46:23  peter

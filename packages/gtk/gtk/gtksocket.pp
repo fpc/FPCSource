@@ -17,7 +17,7 @@
           current_width : guint16;
           current_height : guint16;
           plug_window : PGdkWindow;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -108,7 +108,10 @@ procedure set_need_map(var a : TGtkSocket; __need_map : guint);
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:24  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:24  michael
   + removed logs
  
 }

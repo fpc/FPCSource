@@ -30,6 +30,14 @@
        GTK_RECEIVES_DEFAULT = 1 shl 20;
 
     type
+       TGtkRcFlags = longint;
+    const
+       GTK_RC_FG = 1;
+       GTK_RC_BG = 2;
+       GTK_RC_TEXT = 4;
+       GTK_RC_BASE = 8;
+
+    type
        PGtkRequisition = ^TGtkRequisition;
        TGtkRequisition = record
             width : gint16;
@@ -160,9 +168,6 @@
 
      PGtkThemeEngine = ^TGtkThemeEngine;
 
-     TGtkRcFlags = (GTK_RC_FG := 1 shl 0,GTK_RC_BG := 1 shl 1,GTK_RC_TEXT := 1 shl 2,
-       GTK_RC_BASE := 1 shl 3);
-
      PGtkRcStyle = ^TGtkRcStyle;
      TGtkRcStyle = record
           name : Pgchar;
@@ -177,6 +182,7 @@
           engine : PGtkThemeEngine;
           engine_data : gpointer;
        end;
+
 
 {*************************************
       Insertion from gtktheme
@@ -546,7 +552,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:25  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:25  michael
   + removed logs
  
 }

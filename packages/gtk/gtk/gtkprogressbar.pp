@@ -26,7 +26,7 @@
           activity_pos : gint;
           activity_step : guint;
           activity_blocks : guint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -93,7 +93,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:23  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:23  michael
   + removed logs
  
 }

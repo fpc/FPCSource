@@ -16,7 +16,7 @@
           current_pos : guint;
           selection_start_pos : guint;
           selection_end_pos : guint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           ic : PGdkIC;
           ic_attr : PGdkICAttr;
           clipboard_text : Pgchar;
@@ -140,7 +140,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:21  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:21  michael
   + removed logs
  
 }

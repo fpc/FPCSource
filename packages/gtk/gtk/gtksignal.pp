@@ -19,7 +19,7 @@
             object_type : TGtkType;
             signal_id : guint;
             signal_name : Pgchar;
-            flag0 : word;
+            flag0 : {$ifdef win32}longint{$else}word{$endif};
             signal_flags : TGtkSignalRunType;
             return_val : TGtkType;
             nparams : guint;
@@ -97,7 +97,10 @@ procedure set_is_user_signal(var a : TGtkSignalQuery; __is_user_signal : guint);
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:24  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:24  michael
   + removed logs
  
 }

@@ -4,7 +4,7 @@
   Converted from C to Pascal by Frank Loemker
   <floemker@techfak.uni-bielefeld.de>
 }
-program scribblesimple;
+program scribble;
 uses
   glib,Gdk,Gtk;
 
@@ -148,7 +148,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:18  michael
-  + removed logs
- 
+  Revision 1.1  2000-09-09 18:41:38  peter
+    * fixes for gtk win32
+
 }

@@ -16,7 +16,7 @@
             accelerator_signal : guint;
             toggle_size : guint16;
             accelerator_width : guint16;
-            flag0 : word;
+            flag0 : {$ifdef win32}longint{$else}word{$endif};
             timer : guint;
          end;
 
@@ -47,7 +47,7 @@ procedure set_right_justify(var a : TGtkMenuItem; __right_justify : guint);
        TGtkMenuItemClass = record
           parent_class : TGtkItemClass;
           toggle_size : guint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           activate : procedure (menu_item:PGtkMenuItem);cdecl;
           activate_item : procedure (menu_item:PGtkMenuItem);cdecl;
         end;
@@ -146,7 +146,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:22  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:22  michael
   + removed logs
  
 }

@@ -22,7 +22,7 @@
           ncols : guint16;
           column_spacing : guint16;
           row_spacing : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
      TGtkTableClass = record
@@ -37,14 +37,14 @@
           bottom_attach : guint16;
           xpadding : guint16;
           ypadding : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
      TGtkTableRowCol = record
           requisition : guint16;
           allocation : guint16;
           spacing : guint16;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -265,7 +265,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:24  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:24  michael
   + removed logs
  
 }

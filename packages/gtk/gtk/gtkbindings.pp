@@ -45,7 +45,7 @@ function  gtk_pattern_match_simple(pattern:Pgchar; thestring:Pgchar):gboolean;cd
           keyval : guint;
           modifiers : guint;
           binding_set : PGtkBindingSet;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           set_next : PGtkBindingEntry;
           hash_next : PGtkBindingEntry;
           signals : PGtkBindingSignal;
@@ -129,7 +129,10 @@ procedure set_in_emission(var a : TGtkBindingEntry; __in_emission : guint);
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:21  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:21  michael
   + removed logs
  
 }

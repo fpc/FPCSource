@@ -20,12 +20,12 @@
           text_length : guint16;
           text_max_length : guint16;
           scroll_offset : gint;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           timer : guint32;
           button : guint;
           char_offset : Pgint;
           text_mb : Pgchar;
-          flag1 : word;
+          flag1 : {$ifdef win32}longint{$else}word{$endif};
        end;
 
   const
@@ -123,7 +123,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:21  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:21  michael
   + removed logs
  
 }

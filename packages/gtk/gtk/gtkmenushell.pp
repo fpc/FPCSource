@@ -15,7 +15,7 @@
           children : PGList;
           active_menu_item : PGtkWidget;
           parent_menu_shell : PGtkWidget;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           activate_time : guint32;
        end;
 
@@ -53,7 +53,7 @@ procedure set_ignore_enter(var a : TGtkMenuShell; __ignore_enter : guint);
      PGtkMenuShellClass = ^TGtkMenuShellClass;
      TGtkMenuShellClass = record
           parent_class : TGtkContainerClass;
-          flag0 : word;
+          flag0 : {$ifdef win32}longint{$else}word{$endif};
           deactivate : procedure (menu_shell:PGtkMenuShell); cdecl;
           selection_done : procedure (menu_shell:PGtkMenuShell);cdecl;
           move_current : procedure (menu_shell:PGtkMenuShell; direction:TGtkMenuDirectionType);cdecl;
@@ -190,7 +190,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:22  michael
+  Revision 1.3  2000-09-09 18:41:39  peter
+    * fixes for gtk win32
+
+  Revision 1.2  2000/07/13 11:33:22  michael
   + removed logs
  
 }
