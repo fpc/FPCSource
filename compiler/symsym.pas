@@ -628,7 +628,7 @@ implementation
 
       begin
         tprocdef(pd).forwarddef:=false;
-        tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
+        tprocdef(pd).setmangledname(target_info.CPrefix+tprocdef(pd).procsym.realname);
       end;
 
 
@@ -2215,7 +2215,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.174  2004-06-20 08:55:30  florian
+  Revision 1.175  2004-08-15 12:06:03  jonas
+    * add cprefix to procedures which are autoamtically marked as external in
+      macpas mode
+
+  Revision 1.174  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.173  2004/06/16 20:07:09  florian
