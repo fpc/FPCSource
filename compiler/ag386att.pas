@@ -704,7 +704,7 @@ unit ag386att;
                    (paicpu(hp)^.oper[0].typ=top_reg) and
                    (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
                   ) then
-                s:=s+att_opsize2str[paicpu(hp)^.opsize];
+                  s:=s+att_opsize2str[paicpu(hp)^.opsize];
              { process operands }
                if paicpu(hp)^.ops<>0 then
                 begin
@@ -871,7 +871,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.21  1999-12-08 10:39:59  pierre
+  Revision 1.22  1999-12-18 20:00:33  florian
+    * Bug reported by Marco fixed: Intel assembler reader: fld qword ptr x
+      was read as fldq x but it must be fldl x
+
+  Revision 1.21  1999/12/08 10:39:59  pierre
     + allow use of unit var in exports of DLL for win32
       by using direct export writing by default instead of use of DEFFILE
       that does not allow assembler labels that do not

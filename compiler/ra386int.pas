@@ -1441,7 +1441,7 @@ procedure T386IntelInstruction.InitOperands;
 var
   i : longint;
 begin
-  for i:=1to 3 do
+  for i:=1 to 3 do
    Operands[i]:=new(P386IntelOperand,Init);
 end;
 
@@ -1535,7 +1535,13 @@ Begin
             AS_DWORD : size:=S_L;
             AS_WORD  : size:=S_W;
             AS_BYTE  : size:=S_B;
-            AS_QWORD : size:=S_IQ;
+            AS_QWORD : begin
+                          if opcode in [A_FCOM,A_FCOMP,A_FDIV,
+                           A_FDIVR,A_FMUL,A_FSUB,A_FSUBR,A_FLD,A_FST,A_FSTP,A_FADD] then
+                            size:=S_FL
+                          else
+                            size:=S_IQ;
+                       end;
             AS_TBYTE : size:=S_FX;
           end;
           Consume(actasmtoken);
@@ -1768,7 +1774,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  1999-12-01 12:42:32  peter
+  Revision 1.56  1999-12-18 20:00:33  florian
+    * Bug reported by Marco fixed: Intel assembler reader: fld qword ptr x
+      was read as fldq x but it must be fldl x
+
+  Revision 1.55  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 
