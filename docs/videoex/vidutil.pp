@@ -5,11 +5,6 @@ Interface
 uses
   video;
 
-{ $ifndef cpu86}
-{ $error This example only works on intel 80x86 machines}
-{ $endif}
-  
-
 Procedure TextOut(X,Y : Word;Const S : String);
 
 Implementation
