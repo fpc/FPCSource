@@ -731,7 +731,8 @@ var
   procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
-  paraloc  : array[0..15] of byte;
+  paraloclen : byte;
+  paraloc  : array[0..127] of byte;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -785,7 +786,8 @@ begin
      readsymref;
      write  (space,'   Location : ');
      writeln('<not yet implemented>');
-     ppufile.getdata(paraloc,sizeof(paraloc));
+     paraloclen:=ppufile.getbyte;
+     ppufile.getdata(paraloc,paraloclen);
    end;
 end;
 
@@ -1345,6 +1347,11 @@ begin
            begin
              readcommondef('Procedural type (ProcVar) definition');
              read_abstract_proc_def;
+             space:='    '+space;
+             { parast }
+             readdefinitions(false);
+             readsymbols;
+             delete(space,1,4);
            end;
 
          ibshortstringdef :
@@ -1930,7 +1937,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-04-25 20:59:35  peter
+  Revision 1.40  2003-04-26 09:56:24  peter
+    * length of tparalocation is now stored in ppu
+
+  Revision 1.39  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
