@@ -80,7 +80,7 @@ OBJECTS=strings go32 initc \
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
         objpas sysutils \
-	cpu mmx msmouse getopts heaptrc graph
+        cpu mmx msmouse getopts heaptrc graph typinfo
 
 LOADERS=prt0 exceptn fpu
 
@@ -260,7 +260,11 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1999-01-21 11:54:35  peter
+# Revision 1.6  1999-02-09 17:16:58  florian
+#   + typinfo is now also in the makefile for go32v2
+#   + sysutils.filetruncate for go32v2
+#
+# Revision 1.5  1999/01/21 11:54:35  peter
 #   * renamed mouse->msmouse to resolve conflict with the api mouse unit
 #
 # Revision 1.4  1999/01/15 11:47:16  peter

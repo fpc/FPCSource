@@ -123,7 +123,17 @@ RealIntr($21, Regs);
 end;
 
 Function FileTruncate (Handle,Size: Longint) : boolean;
+var
+  regs : trealregs;
 begin
+  FileSeek(Handle,Size,0);
+  Regs.realecx := 0;
+  Regs.realedx := tb_offset;
+  Regs.ds := tb_segment;
+  Regs.ebx := Handle;
+  Regs.eax:=$4000;
+  RealIntr($21, Regs);
+  FileTruncate:=(regs.realflags and carryflag)=0;
 end;
 
 Function FileAge (Const FileName : String): Longint;
@@ -324,7 +334,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-02-03 11:42:31  michael
+  Revision 1.3  1999-02-09 17:16:59  florian
+    + typinfo is now also in the makefile for go32v2
+    + sysutils.filetruncate for go32v2
+
+  Revision 1.2  1999/02/03 11:42:31  michael
   + Added filetruncate
 
   Revision 1.1  1998/12/21 13:07:02  peter
