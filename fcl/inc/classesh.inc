@@ -49,8 +49,10 @@ const
 
 { TFileStream create mode }
 
-  fmCreate = $FFFF;
-  fmOpenRead = fmInput;
+  fmCreate        = $FFFF;
+  fmOpenRead      = 0;
+  fmOpenWrite     = 1;
+  fmOpenReadWrite = 2;
 
 { TParser special tokens }
 
@@ -1047,7 +1049,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.5  1998-06-10 21:53:06  michael
+  Revision 1.6  1998-06-11 13:46:32  michael
+  + Fixed some functions. TFileStream OK.
+
+  Revision 1.5  1998/06/10 21:53:06  michael
   + Implemented Handle/FileStreams
 
   Revision 1.4  1998/05/27 11:41:43  michael

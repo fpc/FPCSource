@@ -18,13 +18,13 @@
   function TStream.GetPosition: Longint;
 
     begin
-       GetPosition:=Seek(0,soFromCurrent);
+       Result:=Seek(0,soFromCurrent);
     end;
 
   procedure TStream.SetPosition(Pos: Longint);
 
     begin
-       Seek(soFromBeginning,Pos);
+       Seek(pos,soFromBeginning);
     end;
 
   function TStream.GetSize: Longint;
@@ -34,8 +34,8 @@
 
     begin
        p:=GetPosition;
-       GetSize:=Seek(soFromEnd,0);
-       Seek(soFromBeginning,p);
+       GetSize:=Seek(0,soFromEnd);
+       Seek(p,soFromBeginning);
     end;
 
   procedure TStream.SetSize(NewSize: Longint);
@@ -330,7 +330,7 @@ end;
 function TFileStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
-  OSSeekHandle (FHandle,OffSet,Origin);
+  Result:=OSSeekHandle (FHandle,OffSet,Origin);
 end;
 
 
@@ -504,7 +504,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-06-10 21:53:07  michael
+  Revision 1.5  1998-06-11 13:46:33  michael
+  + Fixed some functions. TFileStream OK.
+
+  Revision 1.4  1998/06/10 21:53:07  michael
   + Implemented Handle/FileStreams
 
   Revision 1.3  1998/05/06 12:58:35  michael

@@ -50,7 +50,6 @@ Begin
   regs.reg4:=438;        { 666 octal }
   Do_SysCall(SysCall_nr_open,regs);
   Result:=regs.reg1;
-  Writeln ('Create result : ', regs.reg1);
   If Result<0 then Result:=-1;
 End;
 
@@ -129,6 +128,7 @@ begin
   sr.reg4:=Origin;
   Do_Syscall(Syscall_nr_lseek,sr);
   Result:=sr.reg1;
+
   If Result<-1 then Result:=-1;
 end;
 
