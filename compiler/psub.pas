@@ -234,88 +234,91 @@ implementation
       begin
         generate_entry_block:=internalstatements(newstatement,true);
 
-        { a constructor needs a help procedure }
-        if (current_procdef.proctypeoption=potype_constructor) then
+        if assigned(current_procdef._class) then
           begin
-            if is_class(current_procdef._class) then
+            { a constructor needs a help procedure }
+            if (current_procdef.proctypeoption=potype_constructor) then
               begin
-                if (cs_implicit_exceptions in aktmoduleswitches) then
-                  include(current_procinfo.flags,pi_needs_implicit_finally);
-                srsym:=search_class_member(current_procdef._class,'NEWINSTANCE');
+                if is_class(current_procdef._class) then
+                  begin
+                    if (cs_implicit_exceptions in aktmoduleswitches) then
+                      include(current_procinfo.flags,pi_needs_implicit_finally);
+                    srsym:=search_class_member(current_procdef._class,'NEWINSTANCE');
+                    if assigned(srsym) and
+                       (srsym.typ=procsym) then
+                      begin
+                        { if vmt<>0 then newinstance }
+                        addstatement(newstatement,cifnode.create(
+                            caddnode.create(unequaln,
+                                load_vmt_pointer_node,
+                                cnilnode.create),
+                            cassignmentnode.create(
+                                ctypeconvnode.create_explicit(
+                                    load_self_pointer_node,
+                                    voidpointertype),
+                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node)),
+                            nil));
+                      end
+                    else
+                      internalerror(200305108);
+                  end
+                else
+                  if is_object(current_procdef._class) then
+                    begin
+                      htype.setdef(current_procdef._class);
+                      htype.setdef(tpointerdef.create(htype));
+                      { parameter 3 : vmt_offset }
+                      { parameter 2 : address of pointer to vmt,
+                        this is required to allow setting the vmt to -1 to indicate
+                        that memory was allocated }
+                      { parameter 1 : self pointer }
+                      para:=ccallparanode.create(
+                                cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                            ccallparanode.create(
+                                ctypeconvnode.create_explicit(
+                                    load_vmt_pointer_node,
+                                    voidpointertype),
+                            ccallparanode.create(
+                                ctypeconvnode.create_explicit(
+                                    load_self_pointer_node,
+                                    voidpointertype),
+                            nil)));
+                      addstatement(newstatement,cassignmentnode.create(
+                          ctypeconvnode.create_explicit(
+                              load_self_pointer_node,
+                              voidpointertype),
+                          ccallnode.createintern('fpc_help_constructor',para)));
+                    end
+                else
+                  internalerror(200305103);
+                { if self=nil then fail }
+                addstatement(newstatement,cifnode.create(
+                    caddnode.create(equaln,
+                        load_self_pointer_node,
+                        cnilnode.create),
+                    cfailnode.create,
+                    nil));
+              end;
+
+            { maybe call BeforeDestruction for classes }
+            if (current_procdef.proctypeoption=potype_destructor) and
+               is_class(current_procdef._class) then
+              begin
+                srsym:=search_class_member(current_procdef._class,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    { if vmt<>0 then newinstance }
+                    { if vmt<>0 then beforedestruction }
                     addstatement(newstatement,cifnode.create(
                         caddnode.create(unequaln,
                             load_vmt_pointer_node,
                             cnilnode.create),
-                        cassignmentnode.create(
-                            ctypeconvnode.create_explicit(
-                                load_self_pointer_node,
-                                voidpointertype),
-                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node)),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
                         nil));
                   end
                 else
-                  internalerror(200305108);
-              end
-            else
-              if is_object(current_procdef._class) then
-                begin
-                  htype.setdef(current_procdef._class);
-                  htype.setdef(tpointerdef.create(htype));
-                  { parameter 3 : vmt_offset }
-                  { parameter 2 : address of pointer to vmt,
-                    this is required to allow setting the vmt to -1 to indicate
-                    that memory was allocated }
-                  { parameter 1 : self pointer }
-                  para:=ccallparanode.create(
-                            cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
-                        ccallparanode.create(
-                            ctypeconvnode.create_explicit(
-                                load_vmt_pointer_node,
-                                voidpointertype),
-                        ccallparanode.create(
-                            ctypeconvnode.create_explicit(
-                                load_self_pointer_node,
-                                voidpointertype),
-                        nil)));
-                  addstatement(newstatement,cassignmentnode.create(
-                      ctypeconvnode.create_explicit(
-                          load_self_pointer_node,
-                          voidpointertype),
-                      ccallnode.createintern('fpc_help_constructor',para)));
-                end
-            else
-              internalerror(200305103);
-            { if self=nil then fail }
-            addstatement(newstatement,cifnode.create(
-                caddnode.create(equaln,
-                    load_self_pointer_node,
-                    cnilnode.create),
-                cfailnode.create,
-                nil));
-          end;
-
-        { maybe call BeforeDestruction for classes }
-        if (current_procdef.proctypeoption=potype_destructor) and
-           is_class(current_procdef._class) then
-          begin
-            srsym:=search_class_member(current_procdef._class,'BEFOREDESTRUCTION');
-            if assigned(srsym) and
-               (srsym.typ=procsym) then
-              begin
-                { if vmt<>0 then beforedestruction }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(unequaln,
-                        load_vmt_pointer_node,
-                        cnilnode.create),
-                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
-                    nil));
-              end
-            else
-              internalerror(200305104);
+                  internalerror(200305104);
+              end;
           end;
       end;
 
@@ -328,74 +331,77 @@ implementation
       begin
         generate_exit_block:=internalstatements(newstatement,true);
 
-        { maybe call AfterConstruction for classes }
-        if (current_procdef.proctypeoption=potype_constructor) and
-           is_class(current_procdef._class) then
+        if assigned(current_procdef._class) then
           begin
-            srsym:=search_class_member(current_procdef._class,'AFTERCONSTRUCTION');
-            if assigned(srsym) and
-               (srsym.typ=procsym) then
+            { maybe call AfterConstruction for classes }
+            if (current_procdef.proctypeoption=potype_constructor) and
+               is_class(current_procdef._class) then
               begin
-                { if vmt<>0 then afterconstruction }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(unequaln,
-                        load_vmt_pointer_node,
-                        cnilnode.create),
-                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
-                    nil));
-              end
-            else
-              internalerror(200305106);
-          end;
-
-        { a destructor needs a help procedure }
-        if (current_procdef.proctypeoption=potype_destructor) then
-          begin
-            if is_class(current_procdef._class) then
-              begin
-                srsym:=search_class_member(current_procdef._class,'FREEINSTANCE');
+                srsym:=search_class_member(current_procdef._class,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    { if self<>0 and vmt=1 then freeinstance }
+                    { if vmt<>0 then afterconstruction }
                     addstatement(newstatement,cifnode.create(
-                        caddnode.create(andn,
-                            caddnode.create(unequaln,
-                                load_self_pointer_node,
-                                cnilnode.create),
-                            caddnode.create(equaln,
-                                ctypeconvnode.create(
-                                    load_vmt_pointer_node,
-                                    voidpointertype),
-                                cpointerconstnode.create(1,voidpointertype))),
+                        caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create),
                         ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
                         nil));
                   end
                 else
-                  internalerror(200305108);
-              end
-            else
-              if is_object(current_procdef._class) then
-                begin
-                  { parameter 3 : vmt_offset }
-                  { parameter 2 : pointer to vmt }
-                  { parameter 1 : self pointer }
-                  para:=ccallparanode.create(
-                            cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
-                        ccallparanode.create(
-                            ctypeconvnode.create_explicit(
-                                load_vmt_pointer_node,
-                                voidpointertype),
-                        ccallparanode.create(
-                            ctypeconvnode.create_explicit(
-                                load_self_pointer_node,
-                                voidpointertype),
-                        nil)));
-                  addstatement(newstatement,
-                      ccallnode.createintern('fpc_help_destructor',para));
-                end
-            else
-              internalerror(200305105);
+                  internalerror(200305106);
+              end;
+
+            { a destructor needs a help procedure }
+            if (current_procdef.proctypeoption=potype_destructor) then
+              begin
+                if is_class(current_procdef._class) then
+                  begin
+                    srsym:=search_class_member(current_procdef._class,'FREEINSTANCE');
+                    if assigned(srsym) and
+                       (srsym.typ=procsym) then
+                      begin
+                        { if self<>0 and vmt=1 then freeinstance }
+                        addstatement(newstatement,cifnode.create(
+                            caddnode.create(andn,
+                                caddnode.create(unequaln,
+                                    load_self_pointer_node,
+                                    cnilnode.create),
+                                caddnode.create(equaln,
+                                    ctypeconvnode.create(
+                                        load_vmt_pointer_node,
+                                        voidpointertype),
+                                    cpointerconstnode.create(1,voidpointertype))),
+                            ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node),
+                            nil));
+                      end
+                    else
+                      internalerror(200305108);
+                  end
+                else
+                  if is_object(current_procdef._class) then
+                    begin
+                      { parameter 3 : vmt_offset }
+                      { parameter 2 : pointer to vmt }
+                      { parameter 1 : self pointer }
+                      para:=ccallparanode.create(
+                                cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                            ccallparanode.create(
+                                ctypeconvnode.create_explicit(
+                                    load_vmt_pointer_node,
+                                    voidpointertype),
+                            ccallparanode.create(
+                                ctypeconvnode.create_explicit(
+                                    load_self_pointer_node,
+                                    voidpointertype),
+                            nil)));
+                      addstatement(newstatement,
+                          ccallnode.createintern('fpc_help_destructor',para));
+                    end
+                else
+                  internalerror(200305105);
+              end;
           end;
       end;
 
@@ -1098,7 +1104,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-05-11 21:37:03  peter
+  Revision 1.110  2003-05-13 15:18:49  peter
+    * fixed various crashes
+
+  Revision 1.109  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

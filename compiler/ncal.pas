@@ -2163,7 +2163,8 @@ type
          else
           begin
             { When this is method the methodpointer must be available }
-            if procdefinition.owner.symtabletype=objectsymtable then
+            if (right=nil) and
+               (procdefinition.owner.symtabletype=objectsymtable) then
               internalerror(200305061);
           end;
 
@@ -2729,7 +2730,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.151  2003-05-11 21:37:03  peter
+  Revision 1.152  2003-05-13 15:18:49  peter
+    * fixed various crashes
+
+  Revision 1.151  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

@@ -796,61 +796,75 @@ implementation
             begin
               consume(_FUNCTION);
               pd:=parse_proc_head(aclass,potype_none);
-              if token<>_COLON then
-               begin
-                  if (
-                      not(is_interface(pd._class)) and
-                      not(pd.forwarddef)
-                     ) or
-                     (m_repeat_forward in aktmodeswitches) then
-                  begin
-                    consume(_COLON);
-                    consume_all_until(_SEMICOLON);
-                  end;
-               end
+              if assigned(pd) then
+                begin
+                  if try_to_consume(_COLON) then
+                   begin
+                     inc(testcurobject);
+                     single_type(pd.rettype,hs,false);
+                     pd.test_if_fpu_result;
+                     if (pd.rettype.def.deftype=stringdef) and
+                        (tstringdef(pd.rettype.def).string_typ<>st_shortstring) then
+                       include(current_procinfo.flags,pi_needs_implicit_finally);
+                     dec(testcurobject);
+                   end
+                  else
+                   begin
+                      if (
+                          not(is_interface(pd._class)) and
+                          not(pd.forwarddef)
+                         ) or
+                         (m_repeat_forward in aktmodeswitches) then
+                      begin
+                        consume(_COLON);
+                        consume_all_until(_SEMICOLON);
+                      end;
+                   end;
+                  if isclassmethod then
+                   include(pd.procoptions,po_classmethod);
+                end
               else
-               begin
-                 consume(_COLON);
-                 inc(testcurobject);
-                 single_type(pd.rettype,hs,false);
-                 pd.test_if_fpu_result;
-                 if (pd.rettype.def.deftype=stringdef) and
-                    (tstringdef(pd.rettype.def).string_typ<>st_shortstring) then
-                   include(current_procinfo.flags,pi_needs_implicit_finally);
-                 dec(testcurobject);
-               end;
-              if isclassmethod then
-               include(pd.procoptions,po_classmethod);
+                begin
+                  { recover }
+                  consume(_COLON);
+                  consume_all_until(_SEMICOLON);
+                end;
             end;
 
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
               pd:=parse_proc_head(aclass,potype_none);
-              pd.rettype:=voidtype;
-              if isclassmethod then
-               include(pd.procoptions,po_classmethod);
+              if assigned(pd) then
+                begin
+                  pd.rettype:=voidtype;
+                  if isclassmethod then
+                    include(pd.procoptions,po_classmethod);
+                end;
             end;
 
           _CONSTRUCTOR :
             begin
               consume(_CONSTRUCTOR);
               pd:=parse_proc_head(aclass,potype_constructor);
-              if not assigned(pd._class) then
-               internalerror(200304263);
-              { Set return type, class constructors return the
-                created instance, object constructors return boolean }
-              if is_class(pd._class) then
-               pd.rettype.setdef(pd._class)
-              else
-               pd.rettype:=booltype;
+              if assigned(pd) and
+                 assigned(pd._class) then
+                begin
+                  { Set return type, class constructors return the
+                    created instance, object constructors return boolean }
+                  if is_class(pd._class) then
+                   pd.rettype.setdef(pd._class)
+                  else
+                   pd.rettype:=booltype;
+                end;
             end;
 
           _DESTRUCTOR :
             begin
               consume(_DESTRUCTOR);
               pd:=parse_proc_head(aclass,potype_destructor);
-              pd.rettype:=voidtype;
+              if assigned(pd) then
+                pd.rettype:=voidtype;
             end;
 
           _OPERATOR :
@@ -869,39 +883,49 @@ implementation
                end;
               consume(token);
               pd:=parse_proc_head(aclass,potype_operator);
-              if pd.parast.symtablelevel>normal_function_level then
-                Message(parser_e_no_local_operator);
-              if token<>_ID then
+              if assigned(pd) then
                 begin
-                   if not(m_result in aktmodeswitches) then
-                     consume(_ID);
+                  if pd.parast.symtablelevel>normal_function_level then
+                    Message(parser_e_no_local_operator);
+                  if token<>_ID then
+                    begin
+                       if not(m_result in aktmodeswitches) then
+                         consume(_ID);
+                    end
+                  else
+                    begin
+                      pd.resultname:=orgpattern;
+                      consume(_ID);
+                    end;
+                  if not try_to_consume(_COLON) then
+                    begin
+                      consume(_COLON);
+                      pd.rettype:=generrortype;
+                      consume_all_until(_SEMICOLON);
+                    end
+                  else
+                   begin
+                     single_type(pd.rettype,hs,false);
+                     pd.test_if_fpu_result;
+                     if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
+                        ((pd.rettype.def.deftype<>orddef) or
+                         (torddef(pd.rettype.def).typ<>bool8bit)) then
+                        Message(parser_e_comparative_operator_return_boolean);
+                     if (optoken=_ASSIGNMENT) and
+                        equal_defs(pd.rettype.def,
+                           tvarsym(pd.parast.symindex.first).vartype.def) then
+                       message(parser_e_no_such_assignment)
+                     else if not isoperatoracceptable(pd,optoken) then
+                       Message(parser_e_overload_impossible);
+                   end;
                 end
               else
                 begin
-                  pd.resultname:=orgpattern;
-                  consume(_ID);
-                end;
-              if not try_to_consume(_COLON) then
-                begin
+                  { recover }
+                  try_to_consume(_ID);
                   consume(_COLON);
-                  pd.rettype:=generrortype;
                   consume_all_until(_SEMICOLON);
-                end
-              else
-               begin
-                 single_type(pd.rettype,hs,false);
-                 pd.test_if_fpu_result;
-                 if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
-                    ((pd.rettype.def.deftype<>orddef) or
-                     (torddef(pd.rettype.def).typ<>bool8bit)) then
-                    Message(parser_e_comparative_operator_return_boolean);
-                 if (optoken=_ASSIGNMENT) and
-                    equal_defs(pd.rettype.def,
-                       tvarsym(pd.parast.symindex.first).vartype.def) then
-                   message(parser_e_no_such_assignment)
-                 else if not isoperatoracceptable(pd,optoken) then
-                   Message(parser_e_overload_impossible);
-               end;
+                end;
             end;
         end;
         { support procedure proc;stdcall export; in Delphi mode only }
@@ -2200,7 +2224,10 @@ const
 end.
 {
   $Log$
-  Revision 1.122  2003-05-09 17:47:03  peter
+  Revision 1.123  2003-05-13 15:18:49  peter
+    * fixed various crashes
+
+  Revision 1.122  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
