@@ -54,7 +54,6 @@ unit cgcpu;
           size: tcgsize; src1, src2, dst: tregister); override;
 
         { move instructions }
-        procedure handle_load_store(list:taasmoutput;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference);
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
         procedure a_load_reg_ref(list : taasmoutput; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
@@ -92,6 +91,8 @@ unit cgcpu;
         procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+        procedure fixref(list : taasmoutput;var ref : treference);
+        procedure handle_load_store(list:taasmoutput;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference);
       end;
 
       tcg64farm = class(tcg64f32)
@@ -267,7 +268,7 @@ unit cgcpu;
                   if a>32 then
                     internalerror(200308291);
                   shifterop_reset(so);
-                  so.shiftertype:=SO_LSL;
+                  so.shiftmode:=SM_LSL;
                   so.shiftimm:=a;
                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
                 end;
@@ -276,7 +277,7 @@ unit cgcpu;
                   if a>32 then
                     internalerror(200308292);
                   shifterop_reset(so);
-                  so.shiftertype:=SO_LSR;
+                  so.shiftmode:=SM_LSR;
                   so.shiftimm:=a;
                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
                 end;
@@ -285,7 +286,7 @@ unit cgcpu;
                   if a>32 then
                     internalerror(200308291);
                   shifterop_reset(so);
-                  so.shiftertype:=SO_LSL;
+                  so.shiftmode:=SM_LSL;
                   so.shiftimm:=a;
                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
                 end;
@@ -326,21 +327,21 @@ unit cgcpu;
              begin
                shifterop_reset(so);
                so.rs:=src1;
-               so.shiftertype:=SO_LSL;
+               so.shiftmode:=SM_LSL;
                list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
              end;
            OP_SHR:
              begin
                shifterop_reset(so);
                so.rs:=src1;
-               so.shiftertype:=SO_LSR;
+               so.shiftmode:=SM_LSR;
                list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
              end;
            OP_SAR:
              begin
                shifterop_reset(so);
                so.rs:=src1;
-               so.shiftertype:=SO_ASR;
+               so.shiftmode:=SM_ASR;
                list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
              end;
            OP_IMUL,
@@ -562,28 +563,28 @@ unit cgcpu;
                    reg2,reg1,$ff);
                OS_S8:
                  begin
-                   so.shiftertype:=SO_LSL;
+                   so.shiftmode:=SM_LSL;
                    so.shiftimm:=24;
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
-                   so.shiftertype:=SO_ASR;
+                   so.shiftmode:=SM_ASR;
                    so.shiftimm:=24;
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
                  end;
                OS_16:
                  begin
-                   so.shiftertype:=SO_LSL;
+                   so.shiftmode:=SM_LSL;
                    so.shiftimm:=16;
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
-                   so.shiftertype:=SO_LSR;
+                   so.shiftmode:=SM_LSR;
                    so.shiftimm:=16;
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
                  end;
                OS_S16:
                  begin
-                   so.shiftertype:=SO_LSL;
+                   so.shiftmode:=SM_LSL;
                    so.shiftimm:=16;
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
-                   so.shiftertype:=SO_ASR;
+                   so.shiftmode:=SM_ASR;
                    so.shiftimm:=16;
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
                  end;
@@ -773,24 +774,39 @@ unit cgcpu;
 
     procedure tcgarm.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
       var
-        tmpreg : tregister;
+        b : byte;
         tmpref : treference;
-        instr : taicpu;
-        l : tasmlabel;
       begin
-        {
-        tmpreg.enum:=R_INTREGISTER;
-        tmpreg.number:=NR_NO;
-
+        tmpref:=ref;
         { Be sure to have a base register }
-        if (ref.base.number=NR_NO) then
+        if (tmpref.base.number=NR_NO) then
           begin
-            if ref.shiftmode<>SM_None then
+            if tmpref.shiftmode<>SM_None then
               internalerror(200308294);
-            ref.base:=ref.index;
-            ref.index.number:=NR_NO;
+            tmpref.base:=tmpref.index;
+            tmpref.index.number:=NR_NO;
           end;
 
+        if assigned(tmpref.symbol) or
+           not(is_shifter_const(tmpref.offset,b)) or
+           ((tmpref.base.number<>NR_NO) and tmpref.index.number<>NR_NO)) then
+          fixref(list,tmpref);
+
+        if ref.index.number<>NR_NO then
+          begin
+          end
+        else
+          list.concat(taicpu.op_reg_reg(A_MOV,r,));
+          ref.signindex<0 then
+      end;
+
+
+    procedure tcgarm.fixref(list : taasmoutput;var ref : treference);
+      var
+        tmpreg : tregister;
+        tmpref : treference;
+        l : tasmlabel;
+      begin
         { absolute symbols can't be handled directly, we've to store the symbol reference
           in the text segment and access it pc relative
 
@@ -802,57 +818,47 @@ unit cgcpu;
           if the symbol is absolute or relative there.
         }
 
-        if (assigned(ref.symbol) and
-            not(is_pc(ref.base)) and
-            not(is_pc(ref.index))
-           ) or
-           (ref.offset<-4095) or
-           (ref.offset>4095) then
+        { check consts distance }
+        {!!!!!}
+
+        { create consts entry }
+        objectlibrary.getdatalabel(l);
+        current_procinfo.aktlocaldata.concat(Tai_symbol.Create(l,0));
+        if assigned(ref.symbol) then
+          current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
+        else
+          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+
+        { load consts entry }
+        tmpreg:=rg.getregisterint(list,OS_INT);
+        reference_reset(tmpref);
+        tmpref.symbol:=l;
+        tmpref.base.enum:=R_INTREGISTER;
+        tmpref.base.number:=NR_R15;
+        list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+        if (ref.base.number<>NR_NO) then
           begin
-            { check consts distance }
-
-            { create consts entry }
-            objectlibrary.getdatalabel(l);
-            current_procinfo.aktlocaldata.concat(Tai_symbol.Create(l,0));
-            if assigned(ref.symbol) then
-              current_procinfo.aktlocaldata.concat(tai_const_symbol.Create_offset(ref.symbol,ref.offset))
-            else
-              current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
-
-            { load consts entry }
-            tmpreg:=rg.getregisterint(list,OS_INT);
-            reference_reset(tmpref);
-            tmpref.symbol:=l;
-            tmpref.base.enum:=R_INTREGISTER;
-            tmpref.base.number:=NR_R15;
-            list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
-
-            if (ref.base.number<>NR_NO) then
+            if ref.index.number<>NR_NO then
               begin
-                if ref.index.number<>NR_NO then
-                  begin
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                    rg.ungetregister(list,ref.base);
-                    ref.base:=tmpreg;
-                  end
-                else
-                  begin
-                    ref.index:=tmpreg;
-                    ref.shiftimm:=0;
-                    ref.signindex:=1;
-                    ref.shiftmode:=SM_None;
-                  end;
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                rg.ungetregister(list,ref.base);
+                ref.base:=tmpreg;
               end
             else
-              ref.base:=tmpreg;
-            ref.offset:=0;
-            ref.symbol:=nil;
-          end;
-        list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix);
-        if (tmpreg.number<>NR_NO) then
-          rg.ungetregisterint(list,tmpreg);
-        }
+              begin
+                ref.index:=tmpreg;
+                ref.shiftimm:=0;
+                ref.signindex:=1;
+                ref.shiftmode:=SM_None;
+              end;
+          end
+        else
+          ref.base:=tmpreg;
+        ref.offset:=0;
+        ref.symbol:=nil;
       end;
+
 
 
     procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
@@ -886,12 +892,12 @@ unit cgcpu;
 
       begin
         helpsize:=12;
+        dstref:=dest;
+        srcref:=source;
         if cs_littlesize in aktglobalswitches then
           helpsize:=8;
         if not loadref and (len<=helpsize) then
           begin
-            dstref:=dest;
-            srcref:=source;
             copysize:=4;
             cgsize:=OS_32;
             while len<>0 do
@@ -1121,7 +1127,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-09-03 11:18:37  florian
+  Revision 1.12  2003-09-03 19:10:30  florian
+    * initial revision of new register naming
+
+  Revision 1.11  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

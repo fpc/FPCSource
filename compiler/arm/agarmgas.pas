@@ -187,7 +187,7 @@ unit agarmgas;
     end;
 
     const
-      shifterop2str: array[tshiftertype] of string[3] = ('','asr','lsl','lsr','ror','rrx');
+      shiftmode2str: array[tshiftmode] of string[3] = ('','lsl','lsr','asr','ror','rrx');
 
     function getopstr(const o:toper) : string;
     var
@@ -208,12 +208,12 @@ unit agarmgas;
             if (o.shifterop^.rs.enum<>R_NO) and (o.shifterop^.shiftimm=0) then
               begin
                 if o.shifterop^.rs.enum=R_INTREGISTER then
-                  getopstr:=shifterop2str[o.shifterop^.shiftertype]+' '+gas_regname(o.shifterop^.rs.number)
+                  getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' '+gas_regname(o.shifterop^.rs.number)
                 else
-                  getopstr:=shifterop2str[o.shifterop^.shiftertype]+' '+gas_reg2str[o.shifterop^.rs.enum];
+                  getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' '+gas_reg2str[o.shifterop^.rs.enum];
               end
             else if (o.shifterop^.rs.enum=R_NO) then
-              getopstr:=shifterop2str[o.shifterop^.shiftertype]+' #'+tostr(o.shifterop^.shiftimm)
+              getopstr:=shiftmode2str[o.shifterop^.shiftmode]+' #'+tostr(o.shifterop^.shiftimm)
             else internalerror(200308282);
           end;
         top_const:
@@ -330,7 +330,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-09-01 15:11:16  florian
+  Revision 1.8  2003-09-03 19:10:30  florian
+    * initial revision of new register naming
+
+  Revision 1.7  2003/09/01 15:11:16  florian
     * fixed reference handling
     * fixed operand postfix for floating point instructions
     * fixed wrong shifter constant handling

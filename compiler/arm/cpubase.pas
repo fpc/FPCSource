@@ -79,47 +79,7 @@ uses
                                   Registers
 *****************************************************************************}
 
-    type
-      {# Enumeration for all possible registers for cpu. It
-        is to note that all registers of the same type
-        (for example all FPU registers), should be grouped
-        together.
-      }
-      { don't change the order }
-      { it's used by the register size conversions        }
-      toldregister = (R_NO,
-        R_R0,R_R1,R_R2,R_R3,R_R4,R_R5,R_R6,R_R7,
-        R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_PC,
-        R_CPSR,
-        { FPA registers }
-        R_F0,R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,
-        R_F8,R_F9,R_F10,R_F11,R_F12,R_F13,R_F14,R_F15,
-        { VPA registers }
-        R_S0,R_S1,R_S2,R_S3,R_S4,R_S5,R_S6,R_S7,
-        R_S8,R_S9,R_S10,R_S11,R_S12,R_S13,R_S14,R_S15,
-        R_S16,R_S17,R_S18,R_S19,R_S20,R_S21,R_S22,R_S23,
-        R_S24,R_S25,R_S26,R_S27,R_S28,R_S29,R_S30,R_S31,
-        R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
-        R_D8,R_D9,R_D10,R_D11,R_D12,R_D13,R_D14,R_D15,
-        R_INTREGISTER,R_FLOATREGISTER,R_MMXREGISTER,R_KNIREGISTER
-      );
-
     const
-      { special registers }
-      { Invalid register }
-      NR_NO    = $0000;
-
-      { Normal registers:}
-
-      { General purpose registers }
-      NR_R0 = $0100; NR_R1 = $0200; NR_R2 = $0300;
-      NR_R3 = $0400; NR_R4 = $0500; NR_R5 = $0600;
-      NR_R6 = $0700; NR_R7 = $0800; NR_R8 = $0900;
-      NR_R9 = $0A00; NR_R10 = $0B00; NR_R11 = $0C00;
-      NR_R12 = $0D00; NR_R13 = $0E00; NR_R14 = $0F00;
-      NR_R15 = $1000;
-      NR_PC  = NR_R15;
-
       { Super registers: }
       RS_NONE=$00;
       RS_R0 = $01;  RS_R1 = $02; RS_R2 = $03;
@@ -130,59 +90,47 @@ uses
       RS_R15 = $10;
       RS_PC = RS_R15;
 
-      first_supreg = RS_R0;
-      last_supreg = RS_R15;
+      RS_F0=$00;
+      RS_F1=$01;
+      RS_F2=$02;
+      RS_F3=$03;
+      RS_F4=$04;
+      RS_F5=$05;
+      RS_F6=$06;
+      RS_F7=$07;
+
+      RS_D0 = $01;  RS_D1 = $02; RS_D2 = $03;
+      RS_D3 = $04;  RS_D4 = $05; RS_D5 = $06;
+      RS_D6 = $07;  RS_D7 = $08; RS_D8 = $09;
+      RS_D9 = $0A;  RS_D10 = $0B; RS_D11 = $0C;
+      RS_D12 = $0D; RS_D13 = $0E; RS_D14 = $0F;
+      RS_D15 = $10;
+
+      { No Subregisters }
+      R_SUBWHOLE = R_SUBNONE;
+
+      { Available Registers }
+      {$i rarmcon.inc}
+
+    type
+      { Number of registers used for indexing in tables }
+      tregisterindex=0..{$i rarmnor.inc}-1;
+
+    const
+      regnumber_table : array[tregisterindex] of tregister = (
+        {$i rarmnum.inc}
+      );
+
+      regstabs_table : array[tregisterindex] of tregister = (
+        {$i rarmsta.inc}
+      );
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R15];
-      VOLATILE_FPUREGISTERS = [R_F0..R_F3];
-
-      { Number of first and last imaginary register. }
-      first_imreg     = $21;
-      last_imreg      = $ff;
-
-      { Subregisters, situation unknown!!.}
-      R_SUBWHOLE=$00;
-      R_SUBL=$00;
+      VOLATILE_FPUREGISTERS = [RS_F0..RS_F3];
 
     type
-      tnewregister=word;
-
-      Tregister = packed record
-        enum : Toldregister;
-        { This is a word for now, change to cardinal
-          when the old register coding is away.}
-        number : Tnewregister;
-      end;
-
-      Tsuperregister = byte;
-      Tsubregister = byte;
-
-      { A type to store register locations for 64 Bit values. }
-      tregister64 = packed record
-        reglo,reghi : tregister;
-      end;
-
-      { alias for compact code }
-      treg64 = tregister64;
-
-      { Set type definition for registers }
-      tregisterset = set of toldregister;
-      tsupregset = set of tsuperregister;
-
-    const
-      { First register in the tregister enumeration }
-      firstreg = low(toldregister);
-      { Last register in the tregister enumeration }
-      lastreg  = R_D15;
-
-    type
-      { Type definition for the array of string of register names }
-      reg2strtable = array[firstreg..lastreg] of string[6];
-      regname2regnumrec = record
-        name:string[6];
-        number:Tnewregister;
-      end;
+      totherregisterset = set of tregisterindex;
 
 {*****************************************************************************
                           Instruction post fixes
@@ -291,13 +239,10 @@ uses
 
       tupdatereg = (UR_None,UR_Update);
 
-
-      tshiftertype = (SO_None,SO_ASR,SO_LSL,SO_LSR,SO_ROR,SO_RRX);
-
       pshifterop = ^tshifterop;
 
       tshifterop = record
-        shiftertype : tshiftertype;
+        shiftmode : tshiftmode;
         rs : tregister;
         shiftimm : byte;
       end;
@@ -309,7 +254,7 @@ uses
          top_ref    : (ref:preference);
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
-         top_regset : (regset:tsupregset);
+         top_regset : (regset:set of RS_R0..RS_R15);
          top_shifterop : (shifterop : pshifterop);
       end;
 
@@ -384,20 +329,9 @@ uses
       max_operands = 3;
 
       {# Constant defining possibly all registers which might require saving }
-      ALL_REGISTERS = [firstreg..lastreg];
+      ALL_OTHERREGISTERS = [];
 
-      general_registers = [R_R0..R_PC];
       general_superregisters = [RS_R0..RS_PC];
-
-      {# low and high of the available maximum width integer general purpose }
-      { registers                                                            }
-      LoGPReg = R_R0;
-      HiGPReg = R_R14;
-
-      {# low and high of every possible width general purpose register (same as }
-      { above on most architctures apart from the 80x86)                        }
-      LoReg = R_R0;
-      HiReg = R_R14;
 
       {# Table of registers which can be allocated by the code generator
          internally, when generating the code.
@@ -412,19 +346,22 @@ uses
       { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
 
       maxintregs = 15;
-      maxintscratchregs = 2;
-      intregs = [R_R0..R_R14];
       usableregsint = [RS_R4..RS_R10];
       c_countusableregsint = 7;
 
       maxfpuregs = 8;
-      fpuregs = [R_F0..R_F7];
-      usableregsfpu = [R_F4..R_F7];
+      fpuregs = [RS_F0..RS_F7];
+      usableregsfpu = [RS_F4..RS_F7];
       c_countusableregsfpu = 4;
 
-      mmregs = [R_S0..R_D7];
-      usableregsmm = [R_S16..R_S31];
-      c_countusableregsmm  = 16;
+      mmregs = [RS_D0..RS_D15];
+      usableregsmm = [RS_D8..RS_D15];
+      c_countusableregsmm  = 8;
+
+      maxaddrregs = 0;
+      addrregs    = [];
+      usableregsaddr = [];
+      c_countusableregsaddr = 0;
 
 {*****************************************************************************
                                 Operand Sizes
@@ -465,67 +402,24 @@ uses
                 { VPA coprocessor codes }
                 );
 
-        { Standard register table (for each tregister enumeration). The
-          register strings should conform to the the names as defined
-          by the processor manufacturer
-        }
-        std_reg2str : reg2strtable = ('',
-          'r0','r1','r2','r3','r4','r5','r6','r7',
-          'r8','r9','r10','r11','r12','r13','r14','pc',
-          'cpsr',
-          { FPA registers }
-          'f0','f1','f2','f3','f4','f5','f6','f7',
-          'f8','f9','f10','f11','f12','f13','f14','f15',
-          { VPA registers }
-          's0','s1','s2','s3','s4','s5','s6','s7',
-          's8','s9','s10','s11','s12','s13','s14','s15',
-          's16','s17','s18','s19','s20','s21','s22','s23',
-          's24','s25','s26','s27','s28','s29','s30','s31',
-          'd0','d1','d2','d3','d4','d5','d6','d7',
-          'd8','d9','d10','d11','d12','d13','d14','d15'
-        );
-
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
 
       firstsaveintreg = RS_R4;
       lastsaveintreg  = RS_R10;
-      firstsavefpureg = R_F4;
-      lastsavefpureg  = R_F7;
-      firstsavemmreg  = R_S16;
-      lastsavemmreg   = R_S31;
-
-//!!!      general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
-//!!!      general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
-
-
-//!!!      usableregsint = [first_imreg..last_imreg];
-//!!!      c_countusableregsint = 4;
-
-      maxaddrregs = 0;
-      addrregs    = [];
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
+      firstsavefpureg = RS_F4;
+      lastsavefpureg  = RS_F7;
+      firstsavemmreg  = RS_D8;
+      lastsavemmreg   = RS_D15;
 
       maxvarregs = 7;
-      varregs : Array [1..maxvarregs] of Tnewregister =
+      varregs : Array [1..maxvarregs] of tsuperregister =
                 (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
 
       maxfpuvarregs = 4;
-      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
-                (R_F4,R_F5,R_F6,R_F7);
-
-{*****************************************************************************
-                               GDB Information
-*****************************************************************************}
-
-      {
-        I don't know where I could get this information for the arm
-      }
-      stab_regindex : array[0..0] of shortint =
-        (0
-      );
+      fpuvarregs : Array [1..maxfpuvarregs] of tsuperregister =
+                (RS_F4,RS_F5,RS_F6,RS_F7);
 
 {*****************************************************************************
                           Default generic sizes
@@ -548,7 +442,6 @@ uses
       NR_STACK_POINTER_REG = NR_R13;
       RS_STACK_POINTER_REG = RS_R13;
       { Frame pointer register }
-      frame_pointer_reg = R_R11;
       RS_FRAME_POINTER_REG = RS_R11;
       NR_FRAME_POINTER_REG = NR_R11;
       { Register for addressing absolute data in a position independant way,
@@ -575,8 +468,9 @@ uses
       NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
       RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
 
-      fpu_result_reg = R_F0;
-//!!!      mmresultreg = R_MM0;
+      NR_FPU_RESULT_REG = NR_F0;
+
+      NR_MM_RESULT_REG  = NR_NO;
 
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 0;
@@ -593,7 +487,7 @@ uses
         This value can be deduced from the CALLED_USED_REGISTERS array in the
         GCC source.
       }
-      std_saved_registers = [R_R4..R_R10];
+      std_saved_registers = [RS_R4..RS_R10];
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -703,7 +597,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  2003-09-01 15:11:16  florian
+  Revision 1.11  2003-09-03 19:10:30  florian
+    * initial revision of new register naming
+
+  Revision 1.10  2003/09/01 15:11:16  florian
     * fixed reference handling
     * fixed operand postfix for floating point instructions
     * fixed wrong shifter constant handling
