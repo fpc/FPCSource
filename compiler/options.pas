@@ -1823,6 +1823,14 @@ begin
       end;
   end;
 
+  { abi define }
+  case target_info.abi of
+    abi_powerpc_sysv :
+      def_symbol('FPC_ABI_SYSV');
+    abi_powerpc_aix :
+      def_symbol('FPC_ABI_AIX');
+  end;
+
 {$ifdef m68k}
   if initoptprocessor=MC68020 then
     def_symbol('CPUM68020');
@@ -1956,7 +1964,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.103  2003-09-05 17:41:12  florian
+  Revision 1.104  2003-09-06 10:41:54  olle
+    + compiler now define abi macros for powerpc FPC_ABI_AIX or FPC_ABI_SYSV
+
+  Revision 1.103  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.102  2003/09/03 21:06:05  peter
