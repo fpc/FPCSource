@@ -904,17 +904,28 @@ interface
                         end;
 
                       if (aword(right.location.valueqword) <> 0) then
-                        begin
+                        { negative values can be handled using SUB, }
+                        { positive values < 65535 using XOR.        }
+                        if (longint(right.location.valueqword) >= -32767) and
+                           (longint(right.location.valueqword) < 0) then
+                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                            aword(right.location.valueqword),
+                            left.location.registerlow,tempreg64.reglo)
+                        else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
                             aword(right.location.valueqword),
                             left.location.registerlow,tempreg64.reglo);
-                        end;
+
                       if ((right.location.valueqword shr 32) <> 0) then
-                        begin
+                        if (longint(right.location.valueqword shr 32) >= -32767) and
+                           (longint(right.location.valueqword shr 32) < 0) then
+                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                            aword(right.location.valueqword shr 32),
+                            left.location.registerhigh,tempreg64.reghi)
+                        else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            (right.location.valueqword shr 32),
+                            aword(right.location.valueqword shr 32),
                             left.location.registerhigh,tempreg64.reghi);
-                        end;
                     end
                   else
                     begin
@@ -1453,7 +1464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-09-07 22:15:48  jonas
+  Revision 1.18  2002-09-08 14:14:49  jonas
+    * more optimizations for 64bit compares
+
+  Revision 1.17  2002/09/07 22:15:48  jonas
     * fixed optimized 64 compares
 
   Revision 1.16  2002/09/04 19:42:45  jonas
