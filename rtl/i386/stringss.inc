@@ -27,7 +27,6 @@ asm
         incl    %edi
         subl    %esi,%edx
         jz      .LStrPasAligned
-        movl    p,%esi
         // align source to multiple of 4 (not dest, because we can't read past
         // the end of the source, since that may be past the end of the heap
         // -> sigsegv!!)
@@ -43,26 +42,35 @@ asm
         jne     .LStrPasAlignLoop
         .balign  16
 .LStrPasAligned:
-        movl    (%esi),%eax
+        movl    (%esi),%ebx
+        addl    $4,%edi
+        leal    0x0fefefeff(%ebx),%eax
+        movl    %ebx,%edx
         addl    $4,%esi
+        notl    %edx
+        andl    %edx,%eax
+        addl    $4,%ecx
+        andl    $0x080808080,%eax
+        movl    %ebx,-4(%edi)
+        jnz     .LStrPasEndFound
+        cmpl    $252,%ecx
+        ja      .LStrPasPreEndLoop
+        jmp     .LStrPasAligned
+.LStrPasEndFound:
+        subl    $4,%ecx
         // this won't overwrite data since the result = 255 char string
         // and we never process more than the first 255 chars of p
-        movl    %eax,(%edi)
-        testl   $0x0ff,%eax
+        shrl    $8,%eax
         jz      .LStrPasDone
         incl    %ecx
-        testl   $0x0ff00,%eax
+        shrl    $8,%eax
         jz      .LStrPasDone
         incl    %ecx
-        testl   $0x0ff0000,%eax
+        shrl    $8,%eax
         jz      .LStrPasDone
         incl    %ecx
-        testl   $0x0ff000000,%eax
-        jz      .LStrPasDone
-        incl    %ecx
-        addl    $4,%edi
-        cmpl    $252,%ecx
-        jbe     .LStrPasAligned
+        jmp     .LStrPasDone
+.LStrPasPreEndLoop:
         testb   %cl,%cl
         jz      .LStrPasDone
         movl    (%esi),%eax
@@ -78,7 +86,7 @@ asm
         movl    __RESULT,%edi
         addb    $255,%cl
         movb    %cl,(%edi)
-end ['EAX','ECX','EDX','ESI','EDI'];
+end ['EAX','EBX','ECX','EDX','ESI','EDI'];
 end;
 
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
@@ -98,7 +106,10 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.3  2001-02-10 16:08:46  jonas
+  Revision 1.4  2001-03-04 12:42:18  jonas
+    * fixed strpas (was limited to 254 chars) and made it overall slightly faster
+
+  Revision 1.3  2001/02/10 16:08:46  jonas
     * fixed non-working alignment code
 
   Revision 1.2  2000/07/13 11:33:42  michael
