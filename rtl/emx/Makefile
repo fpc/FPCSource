@@ -259,7 +259,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
@@ -286,7 +286,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer matrix sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil strutils convutil ctypes
@@ -457,7 +457,7 @@ ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
+override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil systhrds
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
@@ -484,7 +484,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
+override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil systhrds
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 override TARGET_RSTS+=math varutils typinfo variants pmhelp classes sysconst dateutil
@@ -1960,6 +1960,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 doscalls$(PPUEXT) : $(OS2INC)/doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 kbdcalls$(PPUEXT) : $(OS2INC)/kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
