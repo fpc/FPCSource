@@ -52,7 +52,8 @@ Var
   ExceptObjectStack : PExceptObject;
 
 
-Function PushExceptAddr (Ft: Longint): PJmp_buf ;[Public, Alias : 'FPC_PUSHEXCEPTADDR'];
+Function PushExceptAddr (Ft: Longint): PJmp_buf ;
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
 var
   Buf : PJmp_buf;
   NewAddr : PExceptAddr;
@@ -78,7 +79,8 @@ begin
 end;
 
 
-Procedure PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];
+Procedure PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
+  [Public, Alias : 'FPC_PUSHEXCEPTOBJECT'];saveregisters;
 var
   Newobj : PExceptObject;
 begin
@@ -244,7 +246,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.18  2000-04-24 11:11:50  peter
+  Revision 1.19  2000-05-04 12:25:53  pierre
+   * Use saveregisters for PushExcept..
+
+  Revision 1.18  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
