@@ -80,6 +80,7 @@ const
   ibdefref               = 13;
   ibendsymtablebrowser   = 14;
   ibbeginsymtablebrowser = 15;
+  ibusedmacros           = 16;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -126,6 +127,7 @@ const
   uf_local_browser = $200;
   uf_no_link       = $400; { unit has no .o generated, but can still have
                              external linking! }
+  uf_has_resources = $800; { unit has resource section }
 
 type
 {$ifdef m68k}
@@ -168,7 +170,10 @@ type
 {$ifdef Test_Double_checksum}
     crcindex : longint;
     crc_index : longint;
-    crc_test : pcrc_array;
+    crcindex2 : longint;
+    crc_index2 : longint;
+    crc_test,crc_test2 : pcrc_array;
+
 {$endif def Test_Double_checksum}
     interface_crc : longint;
     do_interface_crc : boolean;
@@ -185,7 +190,9 @@ type
     entryidx : longint;
     entry    : tppuentry;
     entrytyp : byte;
-
+    closed,
+    tempclosed : boolean;
+    closepos : longint;
     constructor init(fn:string);
     destructor  done;
     procedure flush;
@@ -225,6 +232,8 @@ type
     procedure putstring(s:string);
     procedure putnormalset(var b);
     procedure putsmallset(var b);
+    procedure tempclose;
+    function  tempopen:boolean;
   end;
 
 implementation
@@ -330,6 +339,8 @@ begin
   Mode:=0;
   NewHeader;
   Error:=false;
+  closed:=true;
+  tempclosed:=false;
   getmem(buf,ppubufsize);
 end;
 
@@ -360,6 +371,7 @@ begin
      {$I+}
      i:=ioresult;
      Mode:=0;
+     closed:=true;
    end;
 end;
 
@@ -423,6 +435,7 @@ begin
   filemode:=ofmode;
   if ioresult<>0 then
    exit;
+  closed:=false;
 {read ppuheader}
   fsize:=filesize(f);
   if fsize<sizeof(tppuheader) then
@@ -690,15 +703,18 @@ end;
 function tppufile.create:boolean;
 begin
   create:=false;
-  assign(f,fname);
-  {$I-}
-   rewrite(f,1);
-  {$I+}
-  if ioresult<>0 then
-   exit;
-  Mode:=2;
-{write header for sure}
-  blockwrite(f,header,sizeof(tppuheader));
+  if not crc_only then
+    begin
+      assign(f,fname);
+      {$I-}
+       rewrite(f,1);
+      {$I+}
+      if ioresult<>0 then
+       exit;
+      Mode:=2;
+    {write header for sure}
+      blockwrite(f,header,sizeof(tppuheader));
+    end;
   bufsize:=ppubufsize;
   bufstart:=sizeof(tppuheader);
   bufidx:=0;
@@ -734,7 +750,8 @@ end;
 
 procedure tppufile.writebuf;
 begin
-  blockwrite(f,buf^,bufidx);
+  if not crc_only then
+    blockwrite(f,buf^,bufidx);
   inc(bufstart,bufidx);
   bufidx:=0;
 end;
@@ -746,6 +763,8 @@ var
   left,
   idx : longint;
 begin
+  if crc_only then
+    exit;
   p:=pchar(@b);
   idx:=0;
   while len>0 do
@@ -797,13 +816,16 @@ begin
 {it's already been sent to disk ?}
   if entrybufstart<>bufstart then
    begin
-   {flush to be sure}
-     WriteBuf;
-   {write entry}
-     opos:=filepos(f);
-     seek(f,entrystart);
-     blockwrite(f,entry,sizeof(tppuentry));
-     seek(f,opos);
+    if not crc_only then
+      begin
+      {flush to be sure}
+        WriteBuf;
+      {write entry}
+        opos:=filepos(f);
+        seek(f,entrystart);
+        blockwrite(f,entry,sizeof(tppuentry));
+        seek(f,opos);
+      end;
      entrybufstart:=bufstart;
    end
   else
@@ -819,6 +841,27 @@ begin
   if do_crc then
    begin
      crc:=UpdateCrc32(crc,b,len);
+{$ifdef Test_Double_checksum}
+     if crc_only then
+       begin
+         crc_test2^[crc_index2]:=crc;
+{$ifdef Test_Double_checksum_write}
+         Writeln(CRCFile,crc);
+{$endif Test_Double_checksum_write}
+         if crc_index2<crc_array_size then
+          inc(crc_index2);
+       end
+     else
+       begin
+         if (crcindex2<crc_array_size) and (crcindex2<crc_index2) and
+            (crc_test2^[crcindex2]<>crc) then
+           Do_comment(V_Warning,'impl CRC changed');
+{$ifdef Test_Double_checksum_write}
+         Writeln(CRCFile,crc);
+{$endif Test_Double_checksum_write}
+         inc(crcindex2);
+       end;
+{$endif def Test_Double_checksum}
      if do_interface_crc then
        begin
          interface_crc:=UpdateCrc32(interface_crc,b,len);
@@ -836,7 +879,7 @@ begin
           begin
             if (crcindex<crc_array_size) and (crcindex<crc_index) and
                (crc_test^[crcindex]<>interface_crc) then
-              Def_comment(V_Warning,'CRC changed');
+              Do_comment(V_Warning,'CRC changed');
 {$ifdef Test_Double_checksum_write}
             Writeln(CRCFile,interface_crc);
 {$endif Test_Double_checksum_write}
@@ -900,10 +943,70 @@ begin
 end;
 
 
+    procedure tppufile.tempclose;
+      var
+        i : word;
+      begin
+        if not closed then
+         begin
+            closepos:=filepos(f);
+           {$I-}
+            system.close(f);
+           {$I+}
+           i:=ioresult;
+           closed:=true;
+           tempclosed:=true;
+         end;
+      end;
+
+
+    function tppufile.tempopen:boolean;
+      var
+        ofm : byte;
+      begin
+        tempopen:=false;
+        if not closed or not tempclosed then
+         exit;
+        ofm:=filemode;
+        filemode:=0;
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        if ioresult<>0 then
+         exit;
+        closed:=false;
+        tempclosed:=false;
+        
+      { restore state }
+        seek(f,closepos);
+        tempopen:=true;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.4  1999-08-15 10:47:12  peter
+  Revision 1.5  1999-08-31 16:06:47  pierre
+   updated to v1.42 of compiler unit
+
+  Revision 1.42  1999/08/31 15:47:56  pierre
+   + startup conditionnals stored in PPU file for debug info
+
+  Revision 1.41  1999/08/30 16:21:40  pierre
+   * tempclosing of ppufiles under dos was wrong
+
+  Revision 1.40  1999/08/27 10:48:40  pierre
+    + tppufile.tempclose and tempopen added
+    * some changes so that nothing is writtedn to disk while
+      calculating CRC only
+
+  Revision 1.39  1999/08/24 12:01:36  michael
+  + changes for resourcestrings
+
+  Revision 1.38  1999/08/15 10:47:48  peter
+    + normalset,smallset writing
+
+  Revision 1.4  1999/08/15 10:47:12  peter
     * updates for new options
 
   Revision 1.37  1999/08/02 23:13:20  florian
