@@ -308,9 +308,6 @@ implementation
 {$ifndef i386}
               cleanup_regvars(procinfo^.aktexitcode);
 {$endif i386}
-              if assigned(aktprocsym) and
-                 (aktprocdef.proccalloption=pocall_inline) then
-                make_const_global:=true;
               do_secondpass(p);
 
               if assigned(procinfo^.procdef) then
@@ -318,13 +315,15 @@ implementation
 
            end;
          procinfo^.aktproccode.concatlist(exprasmlist);
-         make_const_global:=false;
       end;
 
 end.
 {
   $Log$
-  Revision 1.23  2002-04-02 17:11:29  peter
+  Revision 1.24  2002-04-07 13:30:13  carl
+  - removed unused variable
+
+  Revision 1.23  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
