@@ -76,13 +76,17 @@ begin
   writeln('**************');
   write('Press Enter for an Exec of ''hello -good -day''');
   Readln;
+{$ifndef FPC}
   SwapVectors;
+{$endif FPC}
 {$ifdef noexesuffix}
   Exec('hello','-good -day');
 {$else}
   Exec('hello.exe','-good -day');
 {$endif}
+{$ifndef FPC}
   SwapVectors;
+{$endif FPC}
   writeln('Exit should be 213 : ',DosExitCode);
   writeln('Error code should be 0 : ',DosError);
   write('Press Enter');
@@ -197,7 +201,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-18 09:49:49  pierre
+  Revision 1.2  2003-05-15 20:35:57  florian
+    * ifdef'd SwapVectors
+
+  Revision 1.1  2002/11/18 09:49:49  pierre
    * tried to make as many as possible tests non interactive
 
   Revision 1.7  2002/10/20 11:47:39  carl
