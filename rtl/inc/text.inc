@@ -525,14 +525,26 @@ Begin
 End;
 
 
-Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public,alias:'FPC_WRITE_TEXT_ANSISTR'];
+Procedure Write_Text_AnsiString (Len : Longint; Var f : TextRec; S : AnsiString);[Public,alias:'FPC_WRITE_TEXT_ANSISTR'];
 {
  Writes a AnsiString to the Text file T
 }
+var
+  SLen : longint;
 begin
-  If S=Nil then
+  If (pointer(S)=nil) or (InOutRes<>0) then
    exit;
-  Write_pchar (Len,t,PChar(S));
+  case f.mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        SLen:=Length(s);
+        If Len>SLen Then
+          WriteBlanks(f,Len-SLen);
+        WriteBuffer(f,PChar(S)^,SLen);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
 end;
 
 
@@ -1027,7 +1039,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-11-23 13:14:02  jonas
+    * fix for web bug 1210 from Peter (merged)
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:46  michael
