@@ -280,6 +280,7 @@ begin
     libname:=FixFileName(s+'.ao2');
     seq_no:=1;
     current_module.linkunitstaticlibs.add(libname,link_allways);
+    current_module.flags:=current_module.flags or uf_static_linked;
     assign(out_file,current_module.outputpath^+libname);
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
@@ -516,7 +517,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:50  carl
+  Revision 1.2  2002-12-01 13:20:33  hajny
+    * fix for not linked import libraries for units with no code
+
+  Revision 1.1  2002/09/06 15:03:50  carl
     * moved files to systems directory
 
   Revision 1.24  2002/08/12 15:08:44  carl
