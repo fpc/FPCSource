@@ -2,7 +2,7 @@ Program Mouse1;
 
 {example for InitMouse and MouseFound}
 
-Uses Mouse;
+Uses MsMouse;
 
 Begin
   If MouseFound Then

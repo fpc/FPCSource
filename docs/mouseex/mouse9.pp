@@ -10,7 +10,7 @@
 
  Note: the mouse functions are zero-based, GotoXY is 1-based}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Var x, y, buttons: Longint;
     MouseOn: Boolean;

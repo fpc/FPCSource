@@ -1,6 +1,6 @@
 {example for SetMouseXRange, SetMouseYRange and SetMouseWindow}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Begin
   If MouseFound Then

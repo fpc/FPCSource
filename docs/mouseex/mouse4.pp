@@ -1,6 +1,6 @@
 {example for SetMousePos}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Begin
   If MouseFound Then

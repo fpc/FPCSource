@@ -2,7 +2,7 @@
 
 {warning: no error checking is performed on the input}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Var ascii: Byte;
     x,y: Longint;

@@ -1,6 +1,6 @@
 {example for GetLastButtonPress and GetLastButtonRelease}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Var x, y, times: Longint;
     c: Char;

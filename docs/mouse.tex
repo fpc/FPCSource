@@ -1,6 +1,6 @@
-\chapter{The Mouse unit}
-The mouse unit provides basic Mouse handling under Dos (Go32v1 and Go32v2)
-Some general remarks about the mouse unit:
+\chapter{The MsMouse unit}
+The msmouse unit provides basic mouse handling under Dos (Go32v1 and Go32v2)
+Some general remarks about the msmouse unit:
 \begin{itemize}
 \item The mouse driver does not know when the text screen scrolls. This results
 in unerased mouse cursors on the screen when the screen scrolls while the
@@ -15,7 +15,7 @@ both x and y by 8 (and add 1 if you want to have it 1 based).
 differ. For example, mode 13h (320*200 pixels) is handled by the mouse driver
 as 640*200, so you will have to multiply the X coordinates you give to the
 driver and divide the ones you get from it by 2 in that mode.
-\item By default the mouse unit is compiled with the conditional define
+\item By default the msmouse unit is compiled with the conditional define
 MouseCheck. This causes every procedure/function of the unit to check the
 MouseFound variable prior to doing anything. Of course this is not necessary,
 so if you are sure you are not calling any mouse unit procedures when no
@@ -222,6 +222,9 @@ call \var{SetMouseHideWindow} again to redefine the hide window...
 This may be annoying, but it's the way it's implemented in the mouse driver.
 While \var{xmin, ymin, xmax} and \var{ymax} are Longint parameters, 
 only the lower 16 bits are used.
+
+Warning: it seems Win98 SE doesn't (properly) support this function,
+maybe this already the case with earlier versions too!
 
 \Errors
 None.

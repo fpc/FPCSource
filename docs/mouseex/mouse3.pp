@@ -1,6 +1,6 @@
 {example for GetMouseState, IsLPressed, IsRPressed and IsMPressed}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Var X, Y, State: Longint;
 

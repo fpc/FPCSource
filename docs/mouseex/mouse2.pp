@@ -1,6 +1,6 @@
 {example for ShowMouse and HideMouse}
 
-Uses Mouse;
+Uses MsMouse;
 
 Begin
   ClrScr;

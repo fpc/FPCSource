@@ -6,7 +6,7 @@
  on the screen over which you move the cursor. To get a "transparent" cursor,
  use the Ascii value 0}
 
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Var ascii, fc, bc: Byte;
     x,y: Longint;

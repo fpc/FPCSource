@@ -1,4 +1,4 @@
-Uses Mouse, Crt;
+Uses MsMouse, Crt;
 
 Var hor, vert: Longint;
     x, y: Longint;
