@@ -14,8 +14,11 @@
  **********************************************************************}
 
 type
-  { See symdefh.inc tfloattyp }
-  treal_type = (rt_s32real,rt_s64real,rt_s80real,rt_c64bit,rt_f16bit,rt_f32bit);
+  { See symconst.pas tfloattype }
+  treal_type = (
+    rt_s32real,rt_s64real,rt_s80real,
+    rt_c64bit,rt_currency,rt_s128real
+  );
   { corresponding to single   double   extended   fixed      comp for i386 }
 
 Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
@@ -168,7 +171,7 @@ const
         (stackPtr < maxDigits+1)) then
       begin
         { we didn't use all available digits of the whole part -> make sure }
-        { the fractional part is not used for rounding later                }         
+        { the fractional part is not used for rounding later                }
         currprec := -1;
         { instead, round based on the next whole digit }
         if (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
@@ -226,21 +229,23 @@ begin
          { correction used with comparing to avoid rounding/precision errors }
          roundCorr := (1/exp((23-6-3)*ln(10)));
       end;
-    rt_f16bit  :
+    rt_currency :
       begin
-         maxlen:=16;
-         minlen:=8;
-         explen:=4;
+         { Different in TP help, but this way the output is the same (JM) }
+         maxlen:=25;
+         minlen:=10;
+         explen:=0;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((16-4-3)*ln(10)));
+         roundCorr := (1/exp((25-6-3)*ln(10)));
       end;
-    rt_f32bit  :
+    rt_s128real  :
       begin
-         maxlen:=16;
-         minlen:=8;
-         explen:=4;
+         { Different in TP help, but this way the output is the same (JM) }
+         maxlen:=25;
+         minlen:=10;
+         explen:=6;
          { correction used with comparing to avoid rounding/precision errors }
-         roundCorr := (1/exp((16-4-3)*ln(10)));
+         roundCorr := (1/exp((25-6-3)*ln(10)));
       end;
     end;
   { check parameters }
@@ -448,7 +453,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  2003-10-26 16:56:44  jonas
+  Revision 1.12  2003-12-08 17:45:00  peter
+    * currency support
+    * dropped fixed16/32 support
+
+  Revision 1.11  2003/10/26 16:56:44  jonas
     * fixed web bug 2643
 
   Revision 1.10  2003/09/06 17:06:59  florian
