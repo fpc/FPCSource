@@ -32,13 +32,32 @@ interface
 implementation
 
   uses
+{$ifdef gdb}
+    gdb,
+{$endif gdb}
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_bsd;
+    import,export,link,i_bsd,
+    cgobj;
 
   type
+    tdarwinimported_item = class(timported_item)
+       procdef : tprocdef;
+    end;
+
+    timportlibdarwin=class(timportlib)
+      procedure preparelib(const s:string);override;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
+      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure generatelib;override;
+      procedure generatesmartlib;override;
+     private
+      procedure darwinimportproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
+      procedure importvariable_str(const s:string;const name,module:string);
+    end;
+
     timportlibbsd=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
@@ -68,8 +87,193 @@ implementation
     end;
 
 
+
 {*****************************************************************************
-                               TIMPORTLIBLINUX
+                             TIMPORTLIBDARWIN
+*****************************************************************************}
+
+    procedure timportlibdarwin.preparelib(const s : string);
+      begin
+         if not(assigned(importssection)) then
+           importssection:=TAAsmoutput.create;
+      end;
+
+
+    procedure timportlibdarwin.darwinimportproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
+      var
+         hp1 : timportlist;
+         hp2 : tdarwinimported_item;
+      begin
+         { force the current mangledname }
+         if assigned(aprocdef) then
+           aprocdef.has_mangledname:=true;
+         { search for the module }
+         hp1:=timportlist(current_module.imports.first);
+         { generate a new item ? }
+         if not(assigned(hp1)) then
+           begin
+              { we don't need an import section per library }
+              hp1:=timportlist.create('imports');
+              current_module.imports.concat(hp1);
+           end;
+         { search for reuse of old import item }
+         hp2:=tdarwinimported_item(hp1.imported_items.first);
+         while assigned(hp2) do
+          begin
+            if hp2.func^=func then
+             break;
+            { there's already another declaration refering to this imported symbol }
+            { -> make this declaration refer to that entry as well                 }
+            if (hp2.name^ = name) then
+              begin
+                if not assigned(aprocdef) then
+                  internalerror(2004010306);
+                if assigned(aprocdef) then
+                  aprocdef.setmangledname(hp2.func^);
+                break;
+              end;
+            hp2:=tdarwinimported_item(hp2.next);
+          end;
+         if not assigned(hp2) then
+          begin
+            hp2:=tdarwinimported_item.create(func,name,index);
+            hp2.procdef:=aprocdef;
+            hp1.imported_items.concat(hp2);
+          end;
+      end;
+
+
+    procedure timportlibdarwin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
+      begin
+        darwinimportproc(aprocdef,aprocdef.mangledname,module,index,name);
+      end;
+
+
+    procedure timportlibdarwin.importvariable(vs:tvarsym;const name,module:string);
+      begin
+        importvariable_str(vs.mangledname,name,module);
+      end;
+
+
+    procedure timportlibdarwin.importvariable_str(const s:string;const name,module:string);
+      var
+         hp1 : timportlist;
+         hp2 : tdarwinimported_item;
+      begin
+         { search for the module }
+         hp1:=timportlist(current_module.imports.first);
+         { generate a new item ? }
+         if not(assigned(hp1)) then
+           begin
+              hp1:=timportlist.create('imports');
+              current_module.imports.concat(hp1);
+           end;
+         hp2:=tdarwinimported_item.create_var(s,name);
+         hp2.procdef:=nil;
+         hp1.imported_items.concat(hp2);
+      end;
+
+
+    procedure timportlibdarwin.generatesmartlib;
+      begin
+         generatelib;
+       end;
+
+
+    procedure timportlibdarwin.generatelib;
+      var
+         hp1 : timportlist;
+         hp2 : tdarwinimported_item;
+         l1  : tasmsymbol;
+         symname: string;
+         mangledstring : string;
+{$ifdef GDB}
+         importname : string;
+         suffix : integer;
+{$endif GDB}
+         href : treference;
+      begin
+         hp1:=timportlist(current_module.imports.first);
+         while assigned(hp1) do
+           begin
+              hp2:=tdarwinimported_item(hp1.imported_items.first);
+              while assigned(hp2) do
+                begin
+                   if not assigned(hp2.name) then
+                     internalerror(2004010302);
+                   symname := hp2.name^;
+                   if assigned(tdarwinimported_item(hp2).procdef) and
+                      (tdarwinimported_item(hp2).procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                     symname := target_info.Cprefix+symname;
+                   if not hp2.is_var then
+                    begin
+{$IfDef GDB}
+                      if (cs_debuginfo in aktmoduleswitches) then
+                        importssection.concat(tai_stab_function_name.create(nil));
+{$EndIf GDB}
+                      if not assigned(hp2.procdef) then
+                        internalerror(2004010306);
+                      mangledstring := hp2.func^;
+                      if (po_public in hp2.procdef.procoptions) then
+                        begin
+                          importsSection.concat(Tai_section.Create(sec_code));
+                          importsSection.concat(Tai_symbol.createname_global(mangledstring,0));
+                          mangledstring := '_$'+mangledstring;
+                          importsSection.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(mangledstring)));
+                        end;
+                        
+                      
+                      importsSection.concat(Tai_section.Create(sec_data));
+                      importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
+                      importsSection.concat(Tai_align.Create(4));
+                      importsSection.concat(Tai_symbol.Createname(mangledstring,0));
+                      importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
+                      l1 := objectlibrary.newasmsymbol(mangledstring+'$lazy_ptr');
+                      reference_reset_symbol(href,l1,0);
+{$IfDef GDB}
+                      if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
+                       begin
+                         mangledstring:=hp2.procdef.mangledname;
+                         hp2.procdef.setmangledname(mangledstring);
+                         hp2.procdef.concatstabto(importssection);
+                         hp2.procdef.setmangledname(mangledstring);
+                       end;
+{$EndIf GDB}
+{$ifdef CPUPOWERPC}
+                      href.symaddr := refs_ha;
+                      importsSection.concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
+                      href.symaddr := refs_l;
+                      href.base := NR_R11;
+                      importsSection.concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
+                      importsSection.concat(taicpu.op_reg(A_MTCTR,NR_R12));
+                      importsSection.concat(taicpu.op_none(A_BCTR));
+{$else CPUPOWERPC}
+{$error fixme for darwin x86}
+{$endif CPUPOWERPC}
+                      importsSection.concat(Tai_section.Create(sec_data));
+                      importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
+                      importsSection.concat(Tai_symbol.Create(l1,0));
+                      importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+symname)));
+                      importsSection.concat(tai_const_symbol.createname(strpnew('dyld_stub_binding_helper')));
+                     
+                    end
+                   else
+                    begin
+                      importsSection.concat(Tai_section.Create(sec_data));
+                      importsSection.concat(Tai_direct.create(strpnew('.non_lazy_symbol_pointer')));
+                      importsSection.concat(Tai_symbol.Createname(hp2.func^,0));
+                      importsSection.concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+hp2.name^)));
+                      importsSection.concat(Tai_const.create_32bit(0));
+                    end;
+                   hp2:=tdarwinimported_item(hp2.next);
+                end;
+              hp1:=timportlist(hp1.next);
+           end;
+      end;
+
+
+{*****************************************************************************
+                               TIMPORTLIBBSD
 *****************************************************************************}
 
 procedure timportlibbsd.preparelib(const s : string);
@@ -107,7 +311,7 @@ end;
 
 
 {*****************************************************************************
-                               TEXPORTLIBLINUX
+                               TEXPORTLIBBSD
 *****************************************************************************}
 
 procedure texportlibbsd.preparelib(const s:string);
@@ -196,8 +400,12 @@ end;
 Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
-  IF NOT Dontlinkstdlibpath Then
-   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+  if not Dontlinkstdlibpath Then
+   if (target_info.system <> system_powerpc_darwin) then
+     LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true)
+   else
+     { Mac OS X doesn't have a /lib }
+     LibrarySearchPath.AddPath('/usr/lib',true)
 end;
 
 
@@ -207,22 +415,12 @@ procedure TLinkerBSD.SetDefaultInfo;
 }
 begin
   LibrarySuffix:=' ';
-{$ifdef NETBSD}
-{$ifdef M68K}
-  LdSupportsNoResponseFile:=true;
-{$else : not M68K}
-  LdSupportsNoResponseFile:=false;
-{$endif M68K}
-{$else : not NETBSD}
-  LdSupportsNoResponseFile:=false;
-{$endif NETBSD}
+  LdSupportsNoResponseFile := (target_info.system in [system_m68k_netbsd,system_powerpc_darwin]);
   with Info do
    begin
      if LdSupportsNoResponseFile then
        begin
          ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE `cat $RES`';
-         { We need external linking to interpret the `cat $RES` PM }
-         include(aktglobalswitches,cs_link_extern);
        end
      else
        ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
@@ -266,32 +464,44 @@ Var
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
-  linkdynamic:=not(SharedLibFiles.empty);
-  linklibc:=(SharedLibFiles.Find('c')<>nil);
-  prtobj:='prt0';
-  cprtobj:='cprt0';
-  gprtobj:='gprt0';
-  if glibc21 then
-   begin
-     cprtobj:='cprt21';
-     gprtobj:='gprt21';
-   end;
-  if cs_profile in aktmoduleswitches then
-   begin
-     prtobj:=gprtobj;
-{
-     if not glibc2 then
-      AddSharedLibrary('gmon');
-}
-     AddSharedLibrary('c');
-     LibrarySuffix:='p';
-     linklibc:=true;
-   end
+  if target_info.system <> system_powerpc_darwin then
+    begin
+      linkdynamic:=not(SharedLibFiles.empty);
+      linklibc:=(SharedLibFiles.Find('c')<>nil);
+      prtobj:='prt0';
+      cprtobj:='cprt0';
+      gprtobj:='gprt0';
+      if glibc21 then
+       begin
+         cprtobj:='cprt21';
+         gprtobj:='gprt21';
+       end;
+      if cs_profile in aktmoduleswitches then
+       begin
+         prtobj:=gprtobj;
+    {
+         if not glibc2 then
+          AddSharedLibrary('gmon');
+    }
+         AddSharedLibrary('c');
+         LibrarySuffix:='p';
+         linklibc:=true;
+       end
+      else
+       begin
+         if linklibc then
+          prtobj:=cprtobj;
+       end;
+    end
   else
-   begin
-     if linklibc then
-      prtobj:=cprtobj;
-   end;
+    begin
+      { for darwin: always link dynamically against libc }
+      linklibc := true;
+      if not(cs_profile in aktmoduleswitches) then
+        prtobj:='/usr/lib/crt1.o'
+      else
+        prtobj:='/usr/lib/gcrt1.o';
+    end;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -322,7 +532,8 @@ begin
   if prtobj<>'' then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
-  if linklibc then
+  if linklibc and
+     (target_info.system <> system_powerpc_darwin) then
    begin
      if librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);
@@ -392,7 +603,8 @@ begin
        LinkRes.Add(')');
    end;
   { objects which must be at the end }
-  if linklibc then
+  if linklibc and
+     (target_info.system <> system_powerpc_darwin) then
    begin
      Fl1:=librarysearchpath.FindFile('crtend.o',s1);
      Fl2:=librarysearchpath.FindFile('crtn.o',s2);
@@ -458,7 +670,7 @@ begin
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,LdSupportsNoResponseFile);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -529,7 +741,7 @@ initialization
 {$ifdef powerpc}
 //  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
   RegisterExternalLinker(system_powerpc_darwin_info,TLinkerBSD);
-  RegisterImport(system_powerpc_darwin,timportlibbsd);
+  RegisterImport(system_powerpc_darwin,timportlibdarwin);
   RegisterExport(system_powerpc_darwin,texportlibbsd);
   RegisterTarget(system_powerpc_darwin_info);
   RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
@@ -540,7 +752,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-10-30 18:35:30  marco
+  Revision 1.6  2004-01-04 21:26:31  jonas
+    + Darwin support for routines imported from external libraries (not yet
+      ideal, we should generate stubs in all files where the routines are
+      used -> these are automatically merged by the linker; now we generate
+      one global symbol with a jump to a stub in unit where the routine is
+      declared)
+    + (not yet working) Darwin support for imported variables
+    + Darwin support for linking
+
+  Revision 1.5  2003/10/30 18:35:30  marco
    * librarysuffix + profiling
 
   Revision 1.4  2003/10/11 19:32:04  marco
