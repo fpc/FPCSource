@@ -80,7 +80,7 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(right,true);
+         set_varstate(left,true);
          firstpass(right);
          set_varstate(right,true);
          if codegenerror then
@@ -528,7 +528,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-01-05 17:36:57  florian
+  Revision 1.13  2001-01-06 18:28:39  peter
+    * fixed wrong notes about locals
+
+  Revision 1.12  2001/01/05 17:36:57  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 

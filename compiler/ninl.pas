@@ -678,7 +678,7 @@ implementation
                         exit;
                        { last param must be var }
                        valid_for_assign(ppn.left,false);
-                       set_varstate(ppn.left,true);
+                       set_varstate(ppn.left,false);
                        { first param must be a string or dynamic array ...}
                        if not((ppn.left.resulttype^.deftype=stringdef) or
                           (is_dynamic_array(ppn.left.resulttype))) then
@@ -1495,7 +1495,7 @@ implementation
           inherited docompare(p) and
           (inlinenumber = tinlinenode(p).inlinenumber);
       end;
-      
+
 
 
 begin
@@ -1503,7 +1503,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2000-12-31 11:14:10  jonas
+  Revision 1.23  2001-01-06 18:28:39  peter
+    * fixed wrong notes about locals
+
+  Revision 1.22  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together
