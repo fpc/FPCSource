@@ -67,7 +67,7 @@ begin
       begin
       if (VType and varByRef) = 0 then
         case VType of
-          varEmpty, varNull, varSmallint, varInteger, varSingle, varDouble,
+          varEmpty, varNull, varSmallint, varInteger, varSingle, varDouble, varWord,
           varCurrency, varDate, varError, varBoolean, varByte,VarShortInt,
           varInt64, VarLongWord,VarQWord:
             ;
@@ -101,7 +101,7 @@ begin
       else
         case (VType and varTypeMask) of
           varEmpty, varNull:;
-          varSmallint, varInteger, varSingle, varDouble, varCurrency,
+          varSmallint, varInteger, varSingle, varDouble, varCurrency, varWord,
           varDate, varError, varBoolean, varByte,VarShortInt,
           varInt64, VarLongWord,VarQWord:
             Move(VBytes, VargDest.VBytes, SizeOf(VargDest.VBytes));
@@ -138,6 +138,7 @@ begin
       varBoolean  : VargDest.VBoolean:=PWordBool(VPointer)^;
       varError    : VargDest.VError:=PError(VPointer)^;
       varByte     : VargDest.VByte:=PByte(VPointer)^;
+      varWord     : VargDest.VWord:=PWord(VPointer)^;
       VarShortInt : VargDest.VShortInt:=PShortInt(VPointer)^;
       VarInt64    : VargDest.VInt64:=PInt64(VPointer)^;
       VarLongWord : VargDest.VLongWord:=PCardinal(VPointer)^;
@@ -710,7 +711,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.14  2005-01-16 16:15:30  florian
+  Revision 1.15  2005-01-16 16:56:32  florian
+    + some missing word handling added
+
+  Revision 1.14  2005/01/16 16:15:30  florian
     * olestring copying fixed
 
   Revision 1.13  2005/01/15 18:47:26  florian
