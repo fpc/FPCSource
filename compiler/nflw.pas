@@ -679,6 +679,11 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
+         { process the loopvar, from and to, varstates are already set }
+         resulttypepass(left);
+         resulttypepass(right);
+         resulttypepass(t1);
+
          {Can we spare the first comparision?}
          if (t1.nodetype=ordconstn) and
             (right.nodetype=ordconstn) and
@@ -693,18 +698,6 @@ implementation
              )
             ) then
            exclude(loopflags,lnf_testatbegin);
-
-         { process the loopvar, from and to }
-         resulttypepass(left);
-         resulttypepass(right);
-         resulttypepass(t1);
-
-         { first set the varstate for from and to, so
-           uses of loopvar in those expressions will also
-           trigger a warning when it is not used yet }
-         set_varstate(right,vs_used,true);
-         set_varstate(t1,vs_used,true);
-         set_varstate(left,vs_used,false);
 
          { Make sure that the loop var and the
            from and to values are compatible types }
@@ -1401,7 +1394,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2005-01-31 16:16:21  peter
+  Revision 1.108  2005-01-31 20:23:53  peter
+    * set varstate before parsing the instruction block in for statements
+
+  Revision 1.107  2005/01/31 16:16:21  peter
     * for-node cleanup, checking for uninitialzed from and to values
       is now supported
 
