@@ -63,7 +63,7 @@ Var
 {$endif foropt}
   TmpBool1, TmpBool2: Boolean;
 
-  TmpRef: PReference;
+  TmpRef: TReference;
 
   UsedRegs, TmpUsedRegs: TRegSet;
 
@@ -562,21 +562,20 @@ Begin
                             (paicpu(hp1)^.condition in [C_O,C_NO]))))
                     Then
                       Begin
-                        New(TmpRef);
-                        Reset_reference(tmpref^);
+                        Reset_reference(tmpref);
                         Case Paicpu(p)^.oper[0].val Of
                           3: Begin
                              {imul 3, reg1, reg2 to
                                 lea (reg1,reg1,2), reg2
                               imul 3, reg1 to
                                 lea (reg1,reg1,2), reg1}
-                               TmpRef^.base := Paicpu(p)^.oper[1].reg;
-                               TmpRef^.Index := Paicpu(p)^.oper[1].reg;
-                               TmpRef^.ScaleFactor := 2;
+                               TmpRef.base := Paicpu(p)^.oper[1].reg;
+                               TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                               TmpRef.ScaleFactor := 2;
                                If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg))
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
                                Else
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[2].reg));
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
                                hp1^.fileinfo := p^.fileinfo;
                                InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                Dispose(p, Done);
@@ -587,13 +586,13 @@ Begin
                                lea (reg1,reg1,4), reg2
                              imul 5, reg1 to
                                lea (reg1,reg1,4), reg1}
-                              TmpRef^.base := Paicpu(p)^.oper[1].reg;
-                              TmpRef^.Index := Paicpu(p)^.oper[1].reg;
-                              TmpRef^.ScaleFactor := 4;
+                              TmpRef.base := Paicpu(p)^.oper[1].reg;
+                              TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                              TmpRef.ScaleFactor := 4;
                               If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg))
+                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
                               Else
-                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[2].reg));
+                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
                               hp1^.fileinfo:= p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                               Dispose(p, Done);
@@ -609,57 +608,54 @@ Begin
                               If (aktoptprocessor <= Class386)
                                 Then
                                   Begin
-                                    TmpRef^.Index := Paicpu(p)^.oper[1].reg;
+                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
                                     If (Paicpu(p)^.oper[2].typ = Top_Reg)
                                       Then
                                         Begin
-                                          TmpRef^.base := Paicpu(p)^.oper[2].reg;
-                                          TmpRef^.ScaleFactor := 4;
-                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg));
+                                          TmpRef.base := Paicpu(p)^.oper[2].reg;
+                                          TmpRef.ScaleFactor := 4;
+                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                         End
                                       Else
                                         Begin
-                                          Dispose(TmpRef);
                                           hp1 :=  New(Paicpu, op_reg_reg(A_ADD, S_L,
                                             Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
                                         End;
                                     hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p, p^.next, hp1);
-                                    New(TmpRef);
-                                    Reset_reference(tmpref^);
-                                    TmpRef^.Index := Paicpu(p)^.oper[1].reg;
-                                    TmpRef^.ScaleFactor := 2;
+                                    Reset_reference(tmpref);
+                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                    TmpRef.ScaleFactor := 2;
                                     If (Paicpu(p)^.oper[2].typ = Top_Reg)
                                       Then
                                         Begin
-                                          TmpRef^.base := R_NO;
-                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef,
+                                          TmpRef.base := R_NO;
+                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef),
                                             Paicpu(p)^.oper[2].reg));
                                         End
                                       Else
                                         Begin
-                                          TmpRef^.base := Paicpu(p)^.oper[1].reg;
-                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg));
+                                          TmpRef.base := Paicpu(p)^.oper[1].reg;
+                                          hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                         End;
                                     hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                     Dispose(p, Done);
                                     p := Pai(hp1^.next);
                                   End
-                                Else Dispose(TmpRef);
                             End;
                           9: Begin
                              {imul 9, reg1, reg2 to
                                 lea (reg1,reg1,8), reg2
                               imul 9, reg1 to
                                 lea (reg1,reg1,8), reg1}
-                               TmpRef^.base := Paicpu(p)^.oper[1].reg;
-                               TmpRef^.Index := Paicpu(p)^.oper[1].reg;
-                               TmpRef^.ScaleFactor := 8;
+                               TmpRef.base := Paicpu(p)^.oper[1].reg;
+                               TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                               TmpRef.ScaleFactor := 8;
                                If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg))
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
                                Else
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[2].reg));
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
                                hp1^.fileinfo := p^.fileinfo;
                                InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                Dispose(p, Done);
@@ -682,20 +678,19 @@ Begin
                                        Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
                                    hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p, p^.next, hp1);
-                                   TmpRef^.base := Paicpu(p)^.oper[1].reg;
-                                   TmpRef^.Index := Paicpu(p)^.oper[1].reg;
-                                   TmpRef^.ScaleFactor := 4;
+                                   TmpRef.base := Paicpu(p)^.oper[1].reg;
+                                   TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                   TmpRef.ScaleFactor := 4;
                                    If (Paicpu(p)^.oper[2].typ = Top_Reg)
                                      Then
-                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[2].reg))
+                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg))
                                      Else
-                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg));
+                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                    hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                    Dispose(p, Done);
                                    p := Pai(hp1^.next);
                                  End
-                               Else Dispose(TmpRef);
                              End;
                          12: Begin
                             {imul 12, reg1, reg2 to
@@ -707,44 +702,41 @@ Begin
                                If (aktoptprocessor <= Class386)
                                  Then
                                    Begin
-                                     TmpRef^.Index := Paicpu(p)^.oper[1].reg;
+                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
                                      If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
                                        Begin
-                                         TmpRef^.base := Paicpu(p)^.oper[2].reg;
-                                         TmpRef^.ScaleFactor := 8;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[2].reg));
+                                         TmpRef.base := Paicpu(p)^.oper[2].reg;
+                                         TmpRef.ScaleFactor := 8;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
                                        End
                                      Else
                                        Begin
-                                         TmpRef^.base := R_NO;
-                                         TmpRef^.ScaleFactor := 4;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg));
+                                         TmpRef.base := R_NO;
+                                         TmpRef.ScaleFactor := 4;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                        End;
                                      hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(AsmL,p, p^.next, hp1);
-                                     New(TmpRef);
-                                     Reset_reference(tmpref^);
-                                     TmpRef^.Index := Paicpu(p)^.oper[1].reg;
+                                     Reset_reference(tmpref);
+                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
                                      If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
                                        Begin
-                                         TmpRef^.base := R_NO;
-                                         TmpRef^.ScaleFactor := 4;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[2].reg));
+                                         TmpRef.base := R_NO;
+                                         TmpRef.ScaleFactor := 4;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
                                        End
                                      Else
                                        Begin
-                                         TmpRef^.base := Paicpu(p)^.oper[1].reg;
-                                         TmpRef^.ScaleFactor := 2;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef, Paicpu(p)^.oper[1].reg));
+                                         TmpRef.base := Paicpu(p)^.oper[1].reg;
+                                         TmpRef.ScaleFactor := 2;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                        End;
                                      hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                      Dispose(p, Done);
                                      p := Pai(hp1^.next);
                                    End
-                                 Else Dispose(TmpRef);
                              End
-                          Else Dispose(TmpRef);
                         End;
                       End;
                 End;
@@ -1222,10 +1214,9 @@ Begin
                          Paicpu(p)^.ops:=2;
                          Paicpu(p)^.opcode := A_MOV;
                          Paicpu(p)^.Loadoper(1,Paicpu(p)^.oper[0]);
-                         New(TmpRef);
-                         Reset_reference(tmpref^);
-                         TmpRef^.base := R_ESP;
-                         Paicpu(p)^.LoadRef(0,TmpRef);
+                         Reset_reference(tmpref);
+                         TmpRef.base := R_ESP;
+                         Paicpu(p)^.LoadRef(0,newReference(TmpRef));
                          AsmL^.Remove(hp1);
                          Dispose(hp1, Done)
                        End;
@@ -1258,10 +1249,9 @@ Begin
                         TmpBool1 := True; {should we check the next instruction?}
                         TmpBool2 := False; {have we found an add/sub which could be
                                             integrated in the lea?}
-                        New(TmpRef);
-                        Reset_reference(tmpref^);
-                        TmpRef^.index := Paicpu(p)^.oper[1].reg;
-                        TmpRef^.scalefactor := 1 shl Paicpu(p)^.oper[0].val;
+                        Reset_reference(tmpref);
+                        TmpRef.index := Paicpu(p)^.oper[1].reg;
+                        TmpRef.scalefactor := 1 shl Paicpu(p)^.oper[0].val;
                         While TmpBool1 And
                               GetNextInstruction(p, hp1) And
                               (Pai(hp1)^.typ = ait_instruction) And
@@ -1277,20 +1267,20 @@ Begin
                                   TmpBool1 := True;
                                   TmpBool2 := True;
                                   If Paicpu(hp1)^.opcode = A_ADD Then
-                                    Inc(TmpRef^.offset, Paicpu(hp1)^.oper[0].val)
+                                    Inc(TmpRef.offset, Paicpu(hp1)^.oper[0].val)
                                   Else
-                                    Dec(TmpRef^.offset, Paicpu(hp1)^.oper[0].val);
+                                    Dec(TmpRef.offset, Paicpu(hp1)^.oper[0].val);
                                   AsmL^.Remove(hp1);
                                   Dispose(hp1, Done);
                                 End
                               Else
                                 If (Paicpu(hp1)^.oper[0].typ = Top_Reg) And
                                    (Paicpu(hp1)^.opcode = A_ADD) And
-                                   (TmpRef^.base = R_NO) Then
+                                   (TmpRef.base = R_NO) Then
                                   Begin
                                     TmpBool1 := True;
                                     TmpBool2 := True;
-                                    TmpRef^.base := Paicpu(hp1)^.oper[0].reg;
+                                    TmpRef.base := Paicpu(hp1)^.oper[0].reg;
                                     AsmL^.Remove(hp1);
                                     Dispose(hp1, Done);
                                   End;
@@ -1305,11 +1295,10 @@ Begin
                                  (Paicpu(p)^.oper[0].val = 1)
                                 Then
                                   Begin
-                                    Dispose(TmpRef);
                                     hp1 := new(Paicpu,op_reg_reg(A_ADD,Paicpu(p)^.opsize,
                                                Paicpu(p)^.oper[1].reg, Paicpu(p)^.oper[1].reg))
                                   End
-                                Else hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, TmpRef,
+                                Else hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef),
                                                 Paicpu(p)^.oper[1].reg));
                               hp1^.fileinfo := p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
@@ -1339,11 +1328,10 @@ Begin
                     {changes "shl $2, %reg" to "lea (,%reg,4), %reg"
                              "shl $3, %reg" to "lea (,%reg,8), %reg}
                                  Begin
-                                   New(TmpRef);
-                                   Reset_reference(tmpref^);
-                                   TmpRef^.index := Paicpu(p)^.oper[1].reg;
-                                   TmpRef^.scalefactor := 1 shl Paicpu(p)^.oper[0].val;
-                                   hp1 := new(Paicpu,op_ref_reg(A_LEA,S_L,TmpRef, Paicpu(p)^.oper[1].reg));
+                                   Reset_reference(tmpref);
+                                   TmpRef.index := Paicpu(p)^.oper[1].reg;
+                                   TmpRef.scalefactor := 1 shl Paicpu(p)^.oper[0].val;
+                                   hp1 := new(Paicpu,op_ref_reg(A_LEA,S_L,newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                    hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                    Dispose(p, done);
@@ -1729,7 +1717,10 @@ End.
 
 {
  $Log$
- Revision 1.77  2000-01-09 12:35:02  jonas
+ Revision 1.78  2000-01-11 17:14:49  jonas
+   * fixed a serious memory leak
+
+ Revision 1.77  2000/01/09 12:35:02  jonas
    * changed edi allocation to use getexplicitregister32/ungetregister
      (adapted tgeni386 a bit for this) and enabled it by default
    * fixed very big and stupid bug of mine in cg386mat that broke the
