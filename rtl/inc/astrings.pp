@@ -42,7 +42,7 @@ Procedure DisposeAnsiString (Var S : Pointer); forward;
 Procedure Decr_Ansi_Ref (Var S : Pointer); forward;
 Procedure Incr_Ansi_Ref (Var S : Pointer); forward;
 Procedure AssignAnsiString (Var S1 : Pointer; S2 : Pointer); forward;
-Procedure Ansi_String_Concat (Var S1 : Pointer; Var S2 : Pointer); forward;
+Function Ansi_String_Concat (S1,S2 : Pointer): Pointer; forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
 Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString); forward;
@@ -204,7 +204,7 @@ begin
   S1:=Temp;
 end;
 
-function Ansi_String_Concat (S1 : Pointer;S2 : Pointer) : pointer;
+function Ansi_String_Concat (S1,S2 : Pointer) : pointer;
   [Public, alias: 'FPC_ANSICAT'];
 {
   Concatenates 2 AnsiStrings : S1+S2.
@@ -225,7 +225,7 @@ begin
        { Setlength takes case of uniqueness
          and allocated memory. We need to use length,
          to take into account possibility of S1=Nil }
-       SetLength (S3,Size+Location);
+       SetLength (AnsiString(S3),Size+Location);
        Move (S1^,S3^,PAnsiRec(S1-FirstOff)^.Len);
        Move (S2^,(S3+location)^,Size+1);
     end;
@@ -713,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  1998-10-21 08:56:58  michael
+  Revision 1.22  1998-10-21 09:03:11  michael
+  + more fixes so it compiles
+
+  Revision 1.21  1998/10/21 08:56:58  michael
   + Fix so it compiles
 
   Revision 1.20  1998/10/21 08:38:46  florian
