@@ -911,12 +911,28 @@ CONST
       end;
 
 
+{$ifdef UNIX}
+const
+  MouseUsesVideoBuf = true;
+{$else not UNIX}
+const
+  MouseUsesVideoBuf = false;
+{$endif not UNIX}
+
 procedure DrawScreenBuf;
 begin
 {$ifdef USE_VIDEO_API}
   if (GetLockScreenCount=0) then
    begin
-     HideMouse;
+     If MouseUsesVideoBuf then
+       begin
+         LockScreenUpdate;
+         HideMouse;
+         ShowMouse;
+         UnlockScreenUpdate;
+       end
+     else
+       HideMouse;
      if TextModeGFV then
        UpdateScreen(false)
 {$IFDEF GRAPH_API}
@@ -924,7 +940,8 @@ begin
        GraphUpdateScreen(false)
 {$ENDIF GRAPH_API}
        ;
-     ShowMouse;
+     If not MouseUsesVideoBuf then
+       ShowMouse;
    end;
 {$endif USE_VIDEO_API}
 end;
@@ -5783,7 +5800,10 @@ END.
 
 {
  $Log$
- Revision 1.37  2002-09-09 08:06:33  pierre
+ Revision 1.38  2002-09-12 12:03:13  pierre
+  * handle unix mouse differently as it uses video buffer
+
+ Revision 1.37  2002/09/09 08:06:33  pierre
   * remove other warnings
 
  Revision 1.36  2002/09/09 08:04:06  pierre
