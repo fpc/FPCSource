@@ -366,9 +366,9 @@ begin
   Writeln('Writing constant: ',constname,' to file '#39,outname,#39);
 {Open textfile}
   writeln(t,'{$ifdef Delphi}');
-  writeln(t,'const '+constname+' : array[0..',msgsize div maxslen,'] of string[',maxslen,']=(');
+  writeln(t,'const '+constname+' : array[0..',(msgsize-1) div maxslen,'] of string[',maxslen,']=(');
   writeln(t,'{$else Delphi}');
-  writeln(t,'const '+constname+' : array[0..',msgsize div maxslen,',1..',maxslen,'] of char=(');
+  writeln(t,'const '+constname+' : array[0..',(msgsize-1) div maxslen,',1..',maxslen,'] of char=(');
   write(t,'{$endif Delphi}');
 {Parse buffer in msgbuf and create indexs}
   p:=msgtxt;
@@ -491,7 +491,7 @@ var
   { Reads decimal value starting at S1[1].
        Value in I3, number of digits found in I1}
        var I1,I2,i3 : longint;
-       
+
   BEGIN
    I1:=1;
    WHILE ((S1[I1]>#47) AND (S1[I1]<#58)) AND (I1<=Length(S1)) DO
@@ -892,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-01-07 16:46:01  daniel
+  Revision 1.5  2000-01-18 20:54:56  peter
+    * fixed array calc when size is multiple of maxlen
+
+  Revision 1.4  2000/01/07 16:46:01  daniel
     * copyright 2000
 
   Revision 1.3  1999/12/03 10:49:31  michael
