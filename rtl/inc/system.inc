@@ -563,13 +563,16 @@ Procedure dump_stack(var f : text;bp : Longint);
 var
   i, prevbp : Longint;
   is_dev : boolean;
+  caller_addr : longint;
 Begin
   prevbp:=bp-1;
   i:=0;
   is_dev:=do_isdevice(textrec(f).Handle);
   while bp > prevbp Do
    Begin
-     Writeln(f,BackTraceStrFunc(get_caller_addr(bp)));
+     caller_addr := get_caller_addr(bp);
+     if caller_addr <> 0 then
+         Writeln(f,BackTraceStrFunc(caller_addr));
      Inc(i);
      If ((i>max_frame_dump) and is_dev) or (i>256) Then
       exit;
@@ -673,7 +676,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2001-08-19 21:02:01  florian
+  Revision 1.23  2001-11-19 02:40:24  carl
+  + don't print stack information if previous frame = 0
+
+  Revision 1.22  2001/08/19 21:02:01  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 
