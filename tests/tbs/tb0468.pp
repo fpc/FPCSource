@@ -1,5 +1,5 @@
 { %OPT=-Sg }
-program jumptab;
+program tb0468;
 
 {$asmmode intel}
 
