@@ -1,6 +1,6 @@
 { $Id$ }
 
-unit mysql;
+unit mysql3;
 
 {$undef use_mysql_321} { if undefined, use mysql 3.23 interface }
 
@@ -17,7 +17,7 @@ unit mysql;
 
 interface
 
-uses mysql_com, mysql_version;
+uses mysql3_com, mysql3_version;
 {$ifdef win32}
 Const mysqllib = 'libmysql';
 {$else}
@@ -378,7 +378,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-09-30 19:34:47  michael
+  Revision 1.1  2004-09-30 19:34:47  michael
   + Split everything in version 3 and version 4
 
   Revision 1.1  2004/09/28 18:38:23  michael

@@ -6,6 +6,11 @@ To Compile under Linux
 - You must know where the mysql libraries are.
 - You must know where libgcc is.
 
+The units come in 2 flavours:
+- mysql3*.pp  : version 3.23 of mysql.
+- mysql4*.pp  : version 4.0 of mysql.
+These versions are substantially different.
+
 Both these things must be set in the Makefile. After that a simple 'make'
 and 'make install' should compile and install everything.
 
@@ -16,15 +21,13 @@ database available. If not, you must run
   rmdb databasename
 manually. You need create permission on the database for this to work.
 
-Redhat 5.1 and later users: You must ADD to the path the location of the
-libc5 libraries. It will NOT work with glibc 6. I hope to fix this in the
-future.
-
 Win32 users: There are multiple .dll files circulating around. 
 you should fix the statement
 mysqllib = 'libmysql'
 in the mysql unit, so it matches the version you have.
 
 Enjoy !
+
+
 
 Michael.

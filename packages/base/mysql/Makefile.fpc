@@ -7,8 +7,8 @@ name=mysql
 version=1.9.4
 
 [target]
-units=mysql_com mysql_version mysql
-examples=testdb
+units=mysql4_com mysql4_version mysql4 mysql3_com mysql3_version mysql3
+examples=testdb4 testdb3
 
 [require]
 libc=y

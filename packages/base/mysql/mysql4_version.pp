@@ -1,4 +1,4 @@
-unit mysql_version;
+unit mysql4_version;
 interface
 
 {
