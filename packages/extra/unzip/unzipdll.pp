@@ -20,7 +20,7 @@ const
  UnzipErr: longint = 0;
 
 type
- TArgV = array [1..1024] of PChar;
+ TArgV = array [0..1023] of PChar;
  PArgV = ^TArgV;
  TCharArray = array [1..1024*1024] of char;
  PCharArray = ^TCharArray;
@@ -74,7 +74,7 @@ const
  UzpMainOrd = 4;
  DLLName: string [8] = 'UNZIP32'#0;
  UzpMain: UzpMainFunc = nil;
- QuiteOpt: array [1..4] of char = '-qq'#0;
+ QuietOpt: array [1..4] of char = '-qq'#0;
  OverOpt: array [1..3] of char = '-o'#0;
  CaseInsOpt: array [1..3] of char = '-C'#0;
  ExDirOpt: array [1..3] of char = '-d'#0;
@@ -147,10 +147,10 @@ var
  I, FCount, ArgC: longint;
  ArgV: TArgV;
  P: PChar;
- StrLen: array [Succ (OptCount)..1024] of longint;
+ StrLen: array [Succ (OptCount)..1023] of longint;
 begin
  ArgV [0] := @DLLName;
- ArgV [1] := @QuiteOpt;
+ ArgV [1] := @QuietOpt;
  ArgV [2] := @OverOpt;
  ArgV [3] := @CaseInsOpt;
  ArgV [4] := SourceZipFile;
@@ -245,9 +245,13 @@ begin
   if UpCase (C) = 'Y' then FileUnzipEx := TFileUnzipEx (@Unzip.FileUnzipEx) else Halt (255);
  end;
 end.
+
 {
   $Log$
-  Revision 1.6  2004-02-22 16:09:38  hajny
+  Revision 1.7  2004-12-26 22:32:21  hajny
+    * quiet unzipping
+
+  Revision 1.6  2004/02/22 16:09:38  hajny
     + unzipdll enabled for emx target
 
   Revision 1.5  2003/08/03 22:25:55  hajny
