@@ -125,15 +125,21 @@ end;
   i:=-99.9;
   j:=10.0;
   i:=i / j;
-  if trunc(i) <> trunc(-9.9) then
+  if trunc(i) <> trunc(-9.99) then
     result := false;
-  WriteLn('Result (-9.9) :',i);
+  if frac(i) <> frac(-9.99) then
+    result := false;
+  WriteLn('Result (-9.99) :',i);
   i:=j / i;
-  if trunc(i) <> trunc(-1.01) then
+  if trunc(i) <> trunc(-1.001) then
     result := false;
-  WriteLN('Result (-1.01) :',i);
+  if frac(i) <> frac(-1.001) then
+    result := false;
+  WriteLN('Result (-1.001) :',i);
   j:=i / 10.0;
   if trunc(j) <> trunc(-0.1001) then
+    result := false;
+  if frac(j) <> frac(-0.1001) then
     result := false;
   WriteLn('Result (-0.1001) :',j);
   if not result then
@@ -267,7 +273,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-18 18:29:07  carl
+  Revision 1.2  2004-01-02 14:41:30  jonas
+    * expanded and corrected test
+
+  Revision 1.1  2002/09/18 18:29:07  carl
     * currency cg tests (tested againt Delphi 3)
 
 }
