@@ -702,7 +702,7 @@ uses
   { was #define dname(params) def_expr }
   function DialogBoxIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
-  function CreateDC(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC;
+  function CreateDC(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODE):HDC;
 
   function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
@@ -1597,7 +1597,7 @@ uses
        DialogBoxIndirect:=DialogBoxIndirectParam(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
     end;
 
-  function CreateDC(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateDCW';
+  function CreateDC(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODE):HDC; external 'gdi32' name 'CreateDCW';
 
   function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
@@ -1837,11 +1837,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:24  peter
-    * windows unit include moved to wininc/
+  Revision 1.2  1999-09-28 22:30:00  peter
+    * fixed createdc to be D4 compatible
 
-  Revision 1.13  1999/07/14 08:46:29  florian
-    * some fixes (KEY_EVENT_STRUCT was wrong)
+  Revision 1.1  1999/09/16 13:38:24  peter
+    * windows unit include moved to wininc/
 
   Revision 1.10  1999/07/06 22:44:17  florian
     * some fixes to compile ddraw units from the jedi project

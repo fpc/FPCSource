@@ -690,7 +690,7 @@ uses
   { was #define dname(params) def_expr }
   function DialogBoxIndirect(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
-  function CreateDC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC;
+  function CreateDC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:pDEVMODE):HDC;
 
   function VerInstallFile(uFlags:DWORD; szSrcFileName:LPSTR; szDestFileName:LPSTR; szSrcDir:LPSTR; szDestDir:LPSTR;
              szCurDir:LPSTR; szTmpFile:LPSTR; lpuTmpFileLen:PUINT):DWORD;
@@ -1578,7 +1578,7 @@ uses
        DialogBoxIndirect:=DialogBoxIndirectParam(hInstance,hDialogTemplate,hWndParent,lpDialogFunc,0);
     end;
 
-  function CreateDC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateDCA';
+  function CreateDC(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:pDEVMODE):HDC; external 'gdi32' name 'CreateDCA';
 
   function VerInstallFile(uFlags:DWORD; szSrcFileName:LPSTR; szDestFileName:LPSTR; szSrcDir:LPSTR; szDestDir:LPSTR;
              szCurDir:LPSTR; szTmpFile:LPSTR; lpuTmpFileLen:PUINT):DWORD; external 'version' name 'VerInstallFileA';
@@ -1822,11 +1822,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:22  peter
-    * windows unit include moved to wininc/
+  Revision 1.2  1999-09-28 22:29:59  peter
+    * fixed createdc to be D4 compatible
 
-  Revision 1.14  1999/07/14 08:46:26  florian
-    * some fixes (KEY_EVENT_STRUCT was wrong)
+  Revision 1.1  1999/09/16 13:38:22  peter
+    * windows unit include moved to wininc/
 
   Revision 1.11  1999/07/06 22:44:10  florian
     * some fixes to compile ddraw units from the jedi project

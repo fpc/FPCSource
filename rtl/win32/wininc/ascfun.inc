@@ -690,7 +690,7 @@ uses
   { was #define dname(params) def_expr }
   function DialogBoxIndirectA(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
-  function CreateDCA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC;
+  function CreateDCA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:pDEVMODE):HDC;
 
   function VerInstallFileA(uFlags:DWORD; szSrcFileName:LPSTR; szDestFileName:LPSTR; szSrcDir:LPSTR; szDestDir:LPSTR;
              szCurDir:LPSTR; szTmpFile:LPSTR; lpuTmpFileLen:PUINT):DWORD;
@@ -1578,7 +1578,7 @@ uses
        DialogBoxIndirectA:=DialogBoxIndirectParamA(hInstance,hDialogTemplate,hWndParent,lpDialogFunc,0);
     end;
 
-  function CreateDCA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateDCA';
+  function CreateDCA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:pDEVMODE):HDC; external 'gdi32' name 'CreateDCA';
 
   function VerInstallFileA(uFlags:DWORD; szSrcFileName:LPSTR; szDestFileName:LPSTR; szSrcDir:LPSTR; szDestDir:LPSTR;
              szCurDir:LPSTR; szTmpFile:LPSTR; lpuTmpFileLen:PUINT):DWORD; external 'version' name 'VerInstallFileA';
@@ -1822,7 +1822,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:22  peter
+  Revision 1.2  1999-09-28 22:30:00  peter
+    * fixed createdc to be D4 compatible
+
+  Revision 1.1  1999/09/16 13:38:22  peter
     * windows unit include moved to wininc/
 
   Revision 1.11  1999/07/06 22:44:10  florian
