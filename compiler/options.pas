@@ -688,6 +688,7 @@ begin
                       for j:=1 to length(more) do
                        case more[j] of
                         '2' : initmodeswitches:=objfpcmodeswitches;
+                        'a' : initlocalswitches:=InitLocalswitches+[cs_do_assertion];
                         'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
                         'd' : initmodeswitches:=delphimodeswitches;
                         'e' : begin
@@ -1435,7 +1436,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.61  2000-02-15 14:36:45  florian
+  Revision 1.62  2000-03-13 20:06:59  michael
+  + Added switch to swicth on assertions.
+
+  Revision 1.61  2000/02/15 14:36:45  florian
     * disable FIXED data type per default
 
   Revision 1.60  2000/02/10 11:45:48  peter
