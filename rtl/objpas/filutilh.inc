@@ -45,6 +45,7 @@ Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
 Procedure FileClose (Handle : Longint);
+Function FileTruncate (Handle,Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
 Function FileExists (Const FileName : String) : Boolean;
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
@@ -61,7 +62,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.2  1998-10-11 13:47:45  michael
+  Revision 1.3  1999-02-02 21:21:37  michael
+  + Added filetruncate
+
+  Revision 1.2  1998/10/11 13:47:45  michael
   + Added disk functions
 
   Revision 1.1  1998/10/11 12:21:01  michael
