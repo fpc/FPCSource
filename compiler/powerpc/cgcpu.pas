@@ -309,6 +309,8 @@ const
      procedure tcgppc.a_load_const_reg(list : taasmoutput; size: TCGSize; a : aword; reg : TRegister);
 
        begin
+          if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
+            internalerror(2002090902);
           if (longint(a) >= low(smallint)) and
              (longint(a) <= high(smallint)) then
             list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a)))
@@ -374,6 +376,8 @@ const
          freereg: boolean;
 
        begin
+          if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
+            internalerror(2002090902);
           ref2 := ref;
           freereg := fixref(list,ref2);
           op := loadinstr[size,ref2.index<>R_NO,false];
@@ -406,6 +410,7 @@ const
                  list.concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));
                OS_32,OS_S32:
                  list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
+               else internalerror(2002090901);
              end;
            end;
        end;
@@ -416,6 +421,7 @@ const
        begin
          list.concat(taicpu.op_reg_reg(A_FMR,reg2,reg1));
        end;
+
 
      procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister);
 
@@ -447,6 +453,7 @@ const
          if freereg then
            cg.free_scratch_reg(list,ref2.base);
        end;
+
 
      procedure tcgppc.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference);
 
@@ -1100,8 +1107,7 @@ const
         if genret then
           begin
              { adjust r1 }
-             reference_reset_base(href,R_1,tppcprocinfo(procinfo).localsize);
-             a_load_store(list,A_STWU,R_1,href);
+             a_op_const_reg(list,OP_ADD,tppcprocinfo(procinfo).localsize,R_1);
              { load link register? }
              if (procinfo.flags and pi_do_call)<>0 then
                begin
@@ -1719,7 +1725,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2002-09-08 20:11:56  jonas
+  Revision 1.57  2002-09-10 21:22:25  jonas
+    + added some internal errors
+    * fixed bug in sysv exit code
+
+  Revision 1.56  2002/09/08 20:11:56  jonas
     * fixed TOpCmp2AsmCond array (some unsigned equivalents were wrong)
 
   Revision 1.55  2002/09/08 13:03:26  jonas
