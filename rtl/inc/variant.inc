@@ -395,7 +395,6 @@ end;
 
 { Misc. }
 { FIXME !!!!!!!
-
 operator :=(const source : variant) dest : currency;
 
 begin
@@ -411,7 +410,7 @@ end;
 }
 
 {**********************************************************************
-                              or operator
+                               Operators
  **********************************************************************}
 
 operator or(const op1,op2 : variant) dest : variant;
@@ -420,284 +419,11 @@ operator or(const op1,op2 : variant) dest : variant;
      variantmanager.varop(dest,op2,opor);
   end;
 
-operator or(const op1 : byte;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : byte) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : shortint;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : shortint) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : word;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : word) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : integer;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : integer) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : longint;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : longint) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : cardinal;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : cardinal) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : int64;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : int64) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : qword;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : qword) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : boolean;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : boolean) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : wordbool;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : wordbool) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-operator or(const op1 : longbool;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opor);
-  end;
-
-operator or(const op1 : variant;const op2 : longbool) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opor);
-  end;
-
-{**********************************************************************
-                              and-operator
- **********************************************************************}
-
 operator and(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
      variantmanager.varop(dest,op2,opand);
   end;
-
-operator and(const op1 : byte;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : byte) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : shortint;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : shortint) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : word;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : word) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : integer;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : integer) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : longint;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : longint) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : cardinal;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : cardinal) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : int64;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : int64) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : qword;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : qword) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : boolean;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : boolean) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : wordbool;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : wordbool) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-operator and(const op1 : longbool;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opand);
-  end;
-
-operator and(const op1 : variant;const op2 : longbool) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opand);
-  end;
-
-
-{**********************************************************************
-                              xor operator
- **********************************************************************}
 
 operator xor(const op1,op2 : variant) dest : variant;
   begin
@@ -705,144 +431,70 @@ operator xor(const op1,op2 : variant) dest : variant;
      variantmanager.varop(dest,op2,opxor);
   end;
 
-operator xor(const op1 : byte;const op2 : variant) dest : variant;
+operator not(const op : variant) dest : variant;
   begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
+     dest:=op;
+     variantmanager.varnot(dest);
   end;
 
-operator xor(const op1 : variant;const op2 : byte) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
-  end;
-
-operator xor(const op1 : shortint;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : shortint) dest : variant;
+operator shl(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opshiftleft);
   end;
 
-operator xor(const op1 : word;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : word) dest : variant;
+operator shr(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opshiftright);
   end;
 
-operator xor(const op1 : integer;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : integer) dest : variant;
+operator +(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opadd);
   end;
 
-operator xor(const op1 : longint;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : longint) dest : variant;
+operator -(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opsubtract);
   end;
 
-operator xor(const op1 : cardinal;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : cardinal) dest : variant;
+operator *(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opmultiply);
   end;
 
-operator xor(const op1 : int64;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : int64) dest : variant;
+operator /(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opdivide);
   end;
 
-operator xor(const op1 : qword;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : qword) dest : variant;
+operator div(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opintdivide);
   end;
 
-operator xor(const op1 : boolean;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : boolean) dest : variant;
+operator mod(const op1,op2 : variant) dest : variant;
   begin
      dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     variantmanager.varop(dest,op2,opmodulus);
   end;
 
-operator xor(const op1 : wordbool;const op2 : variant) dest : variant;
+operator -(const op : variant) dest : variant;
   begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : wordbool) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
-  end;
-
-operator xor(const op1 : longbool;const op2 : variant) dest : variant;
-  begin
-     dest:=variant(op1);
-     variantmanager.varop(dest,op2,opxor);
-  end;
-
-operator xor(const op1 : variant;const op2 : longbool) dest : variant;
-  begin
-     dest:=op1;
-     variantmanager.varop(dest,variant(op2),opxor);
+     dest:=op;
+     variantmanager.varneg(dest);
   end;
 
 
-{ ---------------------------------------------------------------------
-    Variant manager functions
-  ---------------------------------------------------------------------}
-
-
+{**********************************************************************
+                      Variant manager functions
+ **********************************************************************}
 
 procedure GetVariantManager(var VarMgr: TVariantManager);
 
@@ -885,7 +537,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.6  2002-10-06 22:13:55  florian
+  Revision 1.7  2002-10-07 10:27:45  florian
+    + more variant wrappers added
+
+  Revision 1.6  2002/10/06 22:13:55  florian
     * wrappers for xor, or and and operator with variants added
 
   Revision 1.5  2002/09/07 15:07:46  peter
