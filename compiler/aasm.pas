@@ -29,7 +29,11 @@ unit aasm;
 
     type
 {$ifdef i386}
-       bestreal = extended;
+     {$ifndef VER0_99_5}
+       bestreal = extended; 
+     {$else} 
+       bestreal = double; 
+     {$endif}  
 {$endif}
 {$ifdef m68k}
        bestreal = real;
@@ -832,7 +836,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.13  1998-08-10 14:49:33  peter
+  Revision 1.14  1998-08-10 23:56:03  peter
+    * fixed extended writing
+
+  Revision 1.13  1998/08/10 14:49:33  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.12  1998/07/14 14:46:36  peter
