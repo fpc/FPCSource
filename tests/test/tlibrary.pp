@@ -1,4 +1,8 @@
+{ %OPT=-FE. }
 { %NORUN }
+
+{ The .so of the library needs to be in the current dir when
+  testing the loading at runtime }
 
 {$ifdef win32}
  {$define supported}
@@ -7,6 +11,9 @@
 {$ifdef Unix}
  {$define supported}
 {$endif Unix}
+{$ifndef fpc}
+   {$define supported}
+{$endif}
 
 {$ifdef supported}
 
@@ -19,6 +26,7 @@ const
 procedure Test;export;
 
  begin
+   writeln('Hoi');
  end;
 
 exports
