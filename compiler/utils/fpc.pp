@@ -123,4 +123,8 @@ program fpc;
      halt(dosexitcode);
   end.
 {
+  $Log$
+  Revision 1.1  2001-04-25 22:40:07  peter
+    * compiler dependent utils in utils/ subdir
+
 }

@@ -6,6 +6,9 @@
 name=fpcompiler
 version=1.1
 
+[target]
+dirs=utils
+
 [compiler]
 targetdir=.
 unitdir=$(CPU_TARGET) targets
@@ -139,7 +142,6 @@ endif
 # Setup os-independent filenames
 #####################################################################
 
-FPCEXE=fpc$(EXEEXT)
 PPEXENAME=pp$(EXEEXT)
 EXENAME=ppc$(CPUSUF)$(EXEEXT)
 TEMPNAME=ppc$(EXEEXT)
@@ -171,9 +173,7 @@ powerpc:
 # Default makefile
 #####################################################################
 
-all: $(EXENAME)
-
-fpcexe: $(FPCEXE)
+all: $(EXENAME) $(addsuffix _all,$(TARGET_DIRS))
 
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
@@ -210,15 +210,15 @@ next :
         $(MAKE) echotime
 endif
 
-clean : execlean fpc_cleanall
-
 ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 execlean :
         -$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
 
-distclean: clean
+clean : execlean fpc_cleanall $(addsuffix _clean,$(TARGET_DIRS))
+
+distclean: execlean fpc_cleanall $(addsuffix _distclean,$(TARGET_DIRS))
         -$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
 
 
@@ -307,6 +307,7 @@ cycle:
         $(MAKE) -C $(UNITDIR_RTL) clean
         $(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
         $(MAKE) remake3
+        $(MAKE) $(addsuffix _all,$(TARGET_DIRS))
         $(MAKE) echotime
 
 cycledep:
@@ -323,19 +324,10 @@ cvstest:
 .PHONY: quickinstall install installsym
 
 MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
-override FPCEXEFILE:=$(wildcard $(FPCEXE))
 override PPEXEFILE:=$(wildcard $(EXENAME))
 
 # This will only install the ppc386.exe, not the message files etc.
-quickinstall:
-# Install fpc.exe
-ifneq ($(FPCEXEFILE),)
-ifdef UPXPROG
-        -$(UPXPROG) $(FPCEXEFILE)
-endif
-        $(MKDIR) $(INSTALL_BINDIR)
-        $(INSTALLEXE) $(FPCEXEFILE) $(INSTALL_BINDIR)
-endif
+quickinstall: $(addsuffix _install,$(TARGET_DIRS))
 # Install ppc386.exe
 ifneq ($(PPEXEFILE),)
 ifdef UPXPROG

@@ -91,6 +91,14 @@ else
 override FPCDIR=wrong
 endif
 ifeq ($(FPCDIR),wrong)
+override FPCDIR=../..
+ifeq ($(wildcard $(FPCDIR)/rtl),)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR=wrong
+endif
+endif
+endif
+ifeq ($(FPCDIR),wrong)
 ifdef inUnix
 override FPCDIR=/usr/local/lib/fpc/$(FPC_VERSION)
 ifeq ($(wildcard $(FPCDIR)/units),)
@@ -109,68 +117,10 @@ endif
 endif
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
-override PACKAGE_NAME=fpcompiler
-override PACKAGE_VERSION=1.1
-unexport OS_SOURCE FPC_VERSION
-OLDDIR=..
-ifdef ALPHA
-CPU_TARGET=alpha
-endif
-ifdef POWERPC
-CPU_TARGET=powerpc
-endif
-ifdef M68K
-CPU_TARGET=m68k
-endif
-ifdef I386
-CPU_TARGET=i386
-endif
-UTILSDIR=$(OLDDIR)/../utils
-COMPILERUTILSDIR=$(OLDDIR)/utils
-ifndef FPCLANG
-FPCLANG=e
-endif
-ifndef LOCALDEF
-LOCALDEF=
-endif
-ifndef LOCALOPT
-LOCALOPT=$(OPT)
-endif
-ifndef RTLOPTS
-RTLOPTS=$(OPT)
-endif
-MSGFILES=$(wildcard $(OLDDIR)/error*.msg)
-ifeq ($(CPU_TARGET),i386)
-CPUSUF=386
-endif
-ifeq ($(CPU_TARGET),alpha)
-CPUSUF=axp
-endif
-ifeq ($(CPU_TARGET),m68k)
-CPUSUF=68k
-endif
-ifeq ($(CPU_TARGET),powerpc)
-CPUSUF=ppc
-endif
-ifeq ($(OS_TARGET),linux)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALDEF+=-dUNIX
-endif
-endif
-ifeq ($(OS_TARGET),freebsd)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALDEF+=-dUNIX
-endif
-endif
-MSGFILE=$(OLDDIR)/error$(FPCLANG).msg
-override LOCALDEF+=-dGDB -dBROWSERLOG -dNEWCG
-ifeq ($(CPU_TARGET),i386)
-override LOCALDEF+=-dSUPPORT_MMX
-endif
-override LOCALOPT+=$(LOCALDEF)
-override FPCOPT:=$(LOCALOPT)
-override COMPILER_INCLUDEDIR+=$(OLDDIR)/$(CPU_TARGET) $(OLDDIR)
-override COMPILER_UNITDIR+=$(OLDDIR)/$(CPU_TARGET)
+override TARGET_PROGRAMS+=fpc ppufiles ppudump ppumove
+override CLEAN_UNITS+=ppu crc
+override COMPILER_UNITDIR+=..
+override COMPILER_SOURCEDIR+=..
 override COMPILER_TARGETDIR+=.
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
@@ -614,6 +564,18 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_exes
+ifdef TARGET_PROGRAMS
+override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
+override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(LIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
+override ALLTARGET+=fpc_exes
+override INSTALLEXEFILES+=$(EXEFILES)
+override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
+ifeq ($(OS_TARGET),os2)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
+endif
+endif
+fpc_exes: $(EXEFILES)
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)
@@ -696,77 +658,6 @@ ifdef TARGET_EXAMPLEDIRS
 	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
 fpc_distinstall: fpc_install fpc_exampleinstall
-.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
-ifndef PACKDIR
-ifndef inUnix
-PACKDIR=$(BASEDIR)/../pack_tmp/$(PACKAGE_NAME)
-else
-PACKDIR=/tmp/fpc-pack/$(PACKAGE_NAME)
-endif
-endif
-ifndef ZIPNAME
-ifdef DIST_ZIPNAME
-ZIPNAME=$(DIST_ZIPNAME)
-else
-ZIPNAME=$(ZIPPREFIX)$(PACKAGE_NAME)$(ZIPSUFFIX)
-endif
-endif
-ifndef ZIPTARGET
-ifdef DIST_ZIPTARGET
-ZIPTARGET=DIST_ZIPTARGET
-else
-ZIPTARGET=install
-endif
-endif
-ifndef USEZIP
-ifdef inUnix
-USETAR=1
-endif
-endif
-ifdef inOS2
-USEZIPWRAPPER=1
-endif
-ZIPWRAPPER=$(DIST_DESTDIR)/fpczip$(BATCHEXT)
-ZIPCMD_CDPACK:=cd $(subst /,$(PATHSEP),$(PACKDIR))
-ZIPCMD_CDBASE:=cd $(subst /,$(PATHSEP),$(BASEDIR))
-ifdef USETAR
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(TAREXT)
-ZIPCMD_ZIP:=$(TARPROG) cf$(TAROPT) $(ZIPDESTFILE) *
-else
-ZIPDESTFILE:=$(DIST_DESTDIR)/$(ZIPNAME)$(ZIPEXT)
-ZIPCMD_ZIP:=$(subst /,$(PATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
-endif
-fpc_zipinstall:
-	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
-	$(DEL) $(ZIPDESTFILE)
-ifdef USEZIPWRAPPER
-ifneq ($(ECHO),echo)
-	$(ECHO) "$(ZIPCMD_CDPACK)" > $(ZIPWRAPPER)
-	$(ECHO) "$(ZIPCMD_ZIP)" >> $(ZIPWRAPPER)
-	$(ECHO) "$(ZIPCMD_CDBASE)" >> $(ZIPWRAPPER)
-else
-	$(ECHO) $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
-	$(ECHO) $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
-	$(ECHO) $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
-endif
-ifdef inUnix
-	/bin/sh $(ZIPWRAPPER)
-else
-	$(ZIPWRAPPER)
-endif
-	$(DEL) $(ZIPWRAPPER)
-else
-	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
-endif
-	$(DELTREE) $(PACKDIR)
-fpc_zipsourceinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=src
-fpc_zipexampleinstall:
-ifdef HASEXAMPLES
-	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=exm
-endif
-fpc_zipdistinstall:
-	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -885,218 +776,29 @@ fpc_info:
 	@$(ECHO)  DIST_DESTDIR......... $(DIST_DESTDIR)
 	@$(ECHO)  DIST_ZIPNAME......... $(DIST_ZIPNAME)
 	@$(ECHO)
-ifndef DIFF
-DIFF:=$(strip $(wildcard $(addsuffix /diff$(SRCEXEEXT),$(SEARCHPATH))))
-ifeq ($(DIFF),)
-DIFF=
-else
-DIFF:=$(firstword $(DIFF))
-endif
-endif
-export DIFF
-ifndef CMP
-CMP:=$(strip $(wildcard $(addsuffix /cmp$(SRCEXEEXT),$(SEARCHPATH))))
-ifeq ($(CMP),)
-CMP=
-else
-CMP:=$(firstword $(CMP))
-endif
-endif
-export CMP
+all: fpc_all
 debug: fpc_debug
 examples: fpc_examples
 smart: fpc_smart
 shared: fpc_shared
+install: fpc_install
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall
 distinstall: fpc_distinstall
-zipinstall: fpc_zipinstall
-zipsourceinstall: fpc_zipsourceinstall
-zipexampleinstall: fpc_zipexampleinstall
-zipdistinstall: fpc_zipdistinstall
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
+clean: fpc_clean
+distclean: fpc_distclean
 cleanall: fpc_cleanall
 info: fpc_info
-.PHONY: debug examples smart shared sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall info
+.PHONY: all debug examples smart shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-ifeq ($(OS_TARGET),win32)
-ifdef CMP
-override DIFF:=$(CMP) -i138
-endif
-override COMPILER+=-XX
-endif
-ifdef DIFF
-ifdef OLDFPC
-DIFFRESULT:=$(shell $(DIFF) $(OLDFPC) $(FPC))
-else
-DIFFRESULT=Not equal
-endif
-else
-DIFFRESULT=No diff program
-endif
-FPCEXE=fpc$(EXEEXT)
-PPEXENAME=pp$(EXEEXT)
-EXENAME=ppc$(CPUSUF)$(EXEEXT)
-TEMPNAME=ppc$(EXEEXT)
-TEMPNAME1=ppc1$(EXEEXT)
-TEMPNAME2=ppc2$(EXEEXT)
-TEMPNAME3=ppc3$(EXEEXT)
-MAKEDEP=ppdep$(EXEEXT)
-MSG2INC=msg2inc$(EXEEXT)
-alpha:
-	$(MAKE) ALPHA=1 all
-i386:
-	$(MAKE) I386=1 all
-m68k:
-	$(MAKE) M68K=1 all
-powerpc:
-	$(MAKE) POWERPC=1 all
-all: $(EXENAME)
-fpcexe: $(FPCEXE)
-ifeq ($(MAKELEVEL),0)
-ifndef STARTTIME
-ifdef DATE
-STARTTIME:=$(shell $(DATE) +%T)
-else
-STARTTIME:=unknown
-endif
-endif
-endif
-export STARTTIME
-ifdef DATE
-ENDTIME=$(shell $(DATE) +%T)
-else
-ENDTIME:=unknown
-endif
-echotime:
-	@echo Start $(STARTTIME) now $(ENDTIME)
-ifndef DIFFRESULT
-next :
-	@echo $(OLDFPC) and $(FPC) are equal
-	$(COPY) $(FPC) $(EXENAME)
-else
-next :
-	$(MAKE) execlean
-	$(MAKE) -C $(UNITDIR_RTL) clean
-	$(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
-	$(MAKE) clean
-	$(MAKE) $(EXENAME)
-	$(MAKE) echotime
-endif
-clean : execlean fpc_cleanall
-ppuclean:
-	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-execlean :
-	-$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
-distclean: clean
-	-$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
-$(MAKEDEP): $(UTILSDIR)/ppdep.pp
-	$(COMPILER) $(UTILSDIR)/ppdep.pp
-	$(COPY) $(UTILSDIR)/$(MAKEDEP) $(MAKEDEP)
-dependencies : $(MAKEDEP)
-	$(MAKEDEP) pp.pas $(FPCOPTDEF) $(LOCALDEF) '-F$$(COMPILER) $$(LOCALOPT)' > depend
-ifdef USEDEPEND
-include depend
-endif
-$(MSG2INC): $(COMPILERUTILSDIR)/msg2inc.pp
-	$(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
-msgtxt.inc: $(MSGFILE)
-	$(MAKE) $(MSG2INC)
-	$(MSG2INC) $(MSGFILE) msg msg
-msg: msgtxt.inc
-ifndef COMPLETE
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
-	$(COMPILER) pp.pas
-	$(EXECPPAS)
-	$(MOVE) $(PPEXENAME) $(EXENAME)
-else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
-	$(COMPILER) pp.pas
-	$(EXECPPAS)
-	$(COMPILER) pp.pas
-	$(EXECPPAS)
-	$(COMPILER) pp.pas
-	$(EXECPPAS)
-	$(MOVE) $(PPEXENAME) $(EXENAME)
-endif
-tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
-	$(COMPILER) tokendat.pas
-	./tokendat
-remake: $(EXENAME)
-	$(MOVE) $(EXENAME) $(TEMPNAME)
-	$(MAKE) execlean
-	$(MAKE) -C $(UNITDIR_RTL) clean
-	$(MAKE) clean
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
-remake3: $(TEMPNAME3)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
-	$(DIFF) $(TEMPNAME3) $(EXENAME)
-$(TEMPNAME1) : $(EXENAME)
-	-$(DEL) $(TEMPNAME1)
-	$(MOVE) $(EXENAME) $(TEMPNAME1)
-$(TEMPNAME2) : $(TEMPNAME1)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1)' 'OLDFPC=' next
-	-$(DEL) $(TEMPNAME2)
-	$(MOVE) $(EXENAME) $(TEMPNAME2)
-$(TEMPNAME3) : $(TEMPNAME2)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next
-	-$(DEL) $(TEMPNAME3)
-	$(MOVE) $(EXENAME) $(TEMPNAME3)
-cycle:
-	$(MAKE) clean
-	$(MAKE) -C $(UNITDIR_RTL) clean
-	$(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
-	$(MAKE) remake3
-	$(MAKE) echotime
-cycledep:
-	$(MAKE) cycle USEDEPEND=1
-cvstest:
-	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPTS=-n -Se'
-.PHONY: quickinstall install installsym
-MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
-override FPCEXEFILE:=$(wildcard $(FPCEXE))
-override PPEXEFILE:=$(wildcard $(EXENAME))
-quickinstall:
-ifneq ($(FPCEXEFILE),)
-ifdef UPXPROG
-	-$(UPXPROG) $(FPCEXEFILE)
-endif
-	$(MKDIR) $(INSTALL_BINDIR)
-	$(INSTALLEXE) $(FPCEXEFILE) $(INSTALL_BINDIR)
-endif
-ifneq ($(PPEXEFILE),)
-ifdef UPXPROG
-	-$(UPXPROG) $(EXENAME)
-endif
-ifdef UNIXINSTALLDIR
-	$(MKDIR) $(INSTALL_BASEDIR)
-	$(INSTALLEXE) $(EXENAME) $(INSTALL_BASEDIR)
-else
-	$(MKDIR) $(INSTALL_BINDIR)
-	$(INSTALLEXE) $(EXENAME) $(INSTALL_BINDIR)
-endif
-endif
-install: quickinstall
-ifdef UNIXINSTALLDIR
-	$(MKDIR) $(INSTALL_BASEDIR)
-	$(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(INSTALL_BASEDIR)/samplecfg
-endif
-	$(MKDIR) $(MSGINSTALLDIR)
-	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
-installsymlink: install
-ifdef UNIXINSTALLDIR
-	$(MKDIR) $(INSTALL_BINDIR)
-	ln -sf $(INSTALL_BASEDIR)/ppc386 $(INSTALL_BINDIR)/ppc386
-endif
-.PHONY: rtl rtlclean rtlinstall
-rtl:
-	$(MAKE) -C $(UNITDIR_RTL) all
-rtlclean:
-	$(MAKE) -C $(UNITDIR_RTL) clean
-rtlinstall:
-	$(MAKE) -C $(UNITDIR_RTL) install
-localmake:=$(strip $(wildcard makefile.loc))
-ifdef localmake
-include ./$(localmake)
-endif
+ppu$(PPUEXT): ppu.pas
+ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
+ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
+ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+unexport PPUFILES PPUMOVE

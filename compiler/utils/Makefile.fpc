@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for Free Pascal Compiler Utils
+#
+
+[target]
+programs=fpc ppufiles ppudump ppumove
+
+[clean]
+units=ppu crc
+
+[compiler]
+targetdir=.
+unitdir=..
+sourcedir=..
+
+[default]
+fpcdir=../..
+
+
+[rules]
+#
+# PPU Tools
+#
+ppu$(PPUEXT): ppu.pas
+
+ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
+
+ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
+
+ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+
+#
+# Don't export some tools, which are found in the current dir if it's in
+# the path, so are not valid for the subdirs
+#
+
+unexport PPUFILES PPUMOVE
