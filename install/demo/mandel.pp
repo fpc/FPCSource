@@ -216,7 +216,11 @@ END ;
                 {-----------------------}
 
 BEGIN
+{$ifndef linux}
 gm:=$103;
+{$else}
+gm:=G800x600x256;
+{$endif}
 gd:=$ff;
 {$IFDEF TURBO}
 gd:=detect;
