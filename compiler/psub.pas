@@ -660,8 +660,10 @@ implementation
                  end
                 else
                  begin
-                 { check the global flag }
-                   if (procinfo^.flags and pi_is_global)<>0 then
+                   { check the global flag, for delphi this is not
+                     required }
+                   if not(m_delphi in aktmodeswitches) and
+                      ((procinfo^.flags and pi_is_global)<>0) then
                      Message(parser_e_overloaded_must_be_all_global);
                  end;
               end;
@@ -841,7 +843,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-10-01 13:38:45  jonas
+  Revision 1.39  2001-10-22 21:20:46  peter
+    * overloaded functions don't need to be global in kylix
+
+  Revision 1.38  2001/10/01 13:38:45  jonas
     * allow self parameter for normal procedures again (because Kylix allows
       it too) ("merged")
 
