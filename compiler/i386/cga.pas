@@ -1727,7 +1727,10 @@ implementation
 
                reset_reference(hrv);
                hrv.base:=procinfo^.framepointer;
-               hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
+               if assigned(tvarsym(p).localvarsym) then
+                hrv.offset:=-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup
+               else
+                hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
 
                if is_ansistring(tvarsym(p).vartype.def) or
                   is_widestring(tvarsym(p).vartype.def) then
@@ -1779,7 +1782,10 @@ implementation
 
                reset_reference(hrv);
                hrv.base:=procinfo^.framepointer;
-               hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
+               if assigned(tvarsym(p).localvarsym) then
+                hrv.offset:=-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup
+               else
+                hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
 
                if is_ansistring(tvarsym(p).vartype.def) or
                   is_widestring(tvarsym(p).vartype.def) then
@@ -2976,8 +2982,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-12-30 17:24:45  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.14  2002-01-19 14:21:17  peter
+    * fixed init/final for value parameters
+
+  Revision 1.13  2001/12/30 17:24:45  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
 
   Revision 1.12  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
