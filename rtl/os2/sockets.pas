@@ -1,8 +1,18 @@
 {
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2002 Yuri Prokushev
 
-                   (C) 2002 Yuri Prokushev
+    Sockets implementation for OS/2
 
-}
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 
 {$MODE ObjFPC}
 unit Sockets;
@@ -295,3 +305,11 @@ end;
 Begin
   so32dll.sock_init;
 End.
+
+{
+  $Log$
+  Revision 1.2  2004-07-17 10:13:09  hajny
+    + missing CVS logs added
+
+
+}

@@ -1,7 +1,12 @@
 {
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2000, 2001 by madded2 (madded@vao.udmnet.ru).
+    Copyright (c) 2002, 2004 Yuri Prokushev (prokushev@freemail.ru).
 
-            /c/ 2000, 2001 by madded2 (madded@vao.udmnet.ru).
-            (C) 2002, 2004 Yuri Prokushev (prokushev@freemail.ru
+    Interface to OS/2 32-bit sockets library
+
+ **********************************************************************
 
   Inet & Sockets Unit v1.04.
   /c/ 2000, 2001 by madded2 (madded@vao.udmnet.ru).
@@ -10,13 +15,12 @@
   for help use tcppr.inf and C samples from toolkit.
 
   without res_* and dh_* funcs, and have very
-  bad suppot for select() and ioctl() funcs
+  bad support for select() and ioctl() funcs
 
   new in ver 1.04 : little ioctl() & iptrace support + errors SOCE* constants
   new in ver 1.03 : used inet_lib.lib file for fixing VP linker bug
   new in ver 1.02 : $saves sections, need for correct registers operations
   new in ver 1.01 : ip header struct
-
 }
 {
 @abstract(a unit to handle sockets)
@@ -1574,3 +1578,11 @@ const
 ³ 00039 ³ GETSOCKETFROMLIST
 À´Done
 *)
+
+{
+  $Log$
+  Revision 1.2  2004-07-17 10:13:09  hajny
+    + missing CVS logs added
+
+
+}
