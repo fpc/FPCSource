@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
@@ -22,13 +22,15 @@
 }
 unit cgcpu;
 
+{$i defines.inc}
+
   interface
 
     uses
-       cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo;
+       cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo,cg64f32;
 
     type
-      tcgppc = class(tcg)
+      tcgppc = class(tcg64f32)
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
         { left to right), this allows to move the parameter to    }
@@ -55,11 +57,11 @@ unit cgcpu;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-          l : pasmlabel);override;
-        procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+          l : tasmlabel);override;
+        procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
-        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
-        procedure g_flags2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister); override;
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); override;
+        procedure g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister); override;
 
 
         procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
@@ -72,21 +74,25 @@ unit cgcpu;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
+        { find out whether a is of the form 11..00..11b or 00..11...00. If }
+        { that's the case, we can use rlwinm to do an AND operation        }
+        function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
+
+        procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+          a: aword; src, dst: tregister);
+
+        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; src1, src2,
+          dst: tregister);
 
         private
 
         procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
-        procedure a_op_reg_reg_const32(list: taasmoutput; op: TOpCg;
-          dst, src: tregister; a: aword);
-
-        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; dst, src1,
-          src2: tregister);
 
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
-        procedure fixref(var ref: treference);
+        procedure fixref(list: taasmoutput; var ref: treference);
 
         { contains the common code of a_load_reg_ref and a_load_ref_reg }
         procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
@@ -95,7 +101,7 @@ unit cgcpu;
         { creates the correct branch instruction for a given combination }
         { of asmcondflags and destination addressing mode                }
         procedure a_jmp(list: taasmoutput; op: tasmop;
-                        c: tasmcondflags; l: pasmlabel);
+                        c: tasmcondflag; l: tasmlabel);
 
      end;
 
@@ -113,8 +119,8 @@ const
                         A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
                         A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
-  TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlags = (CF_NONE,CF_EQ,CF_GT,
-                       CF_LT,CF_GE,CF_LE,CF_NE,CF_LE,CF_NG,CF_GE,CF_NL);
+  TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
+                       C_LT,C_GE,C_LE,C_NE,C_LE,C_NG,C_GE,C_NL);
 
   LoadInstr: Array[OS_8..OS_S32,boolean, boolean] of TAsmOp =
                          { indexed? updating?}
@@ -138,7 +144,7 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils;
+       globtype,globals,verbose,systems,cutils, tgcpu;
 
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
@@ -271,7 +277,7 @@ const
 
        begin
          ref2 := ref;
-         FixRef(ref2);
+         FixRef(list,ref2);
          if size in [OS_S8..OS_S16] then
            { storing is the same for signed and unsigned values }
            size := tcgsize(ord(size)-(ord(OS_S8)-ord(OS_8)));
@@ -296,7 +302,7 @@ const
          else
            begin
              ref2 := ref;
-             fixref(ref2);
+             fixref(list,ref2);
              op := loadinstr[size,ref2.index<>R_NO,false];
              a_load_store(list,op,reg,ref2);
              { sign extend shortint if necessary, since there is no }
@@ -313,6 +319,12 @@ const
          list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
        end;
 
+     procedure tcgppc.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
+
+       begin
+         { can't use op_sym_ofs_reg because sym+ofs can be > 32767!! }
+         internalerror(200112293);
+       end;
 
      procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
@@ -334,7 +346,7 @@ const
                  free_scratch_reg(list,scratch_register);
                End;
            OP_ADD, OP_AND, OP_OR, OP_SUB,OP_XOR:
-             a_op_reg_reg_const32(list,op,reg,reg,a)
+             a_op_const_reg_reg(list,op,a,reg,reg);
            OP_SHL,OP_SHR,OP_SAR:
              Begin
                if (a and 31) <> 0 Then
@@ -351,13 +363,13 @@ const
       procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
 
          begin
-           a_op_reg_reg_reg(list,op,dst,src,dst);
+           a_op_reg_reg_reg(list,op,src,dst,dst);
          end;
 
 {*************** compare instructructions ****************}
 
       procedure tcgppc.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-        l : pasmlabel);
+        l : tasmlabel);
 
         var
           p: taicpu;
@@ -391,9 +403,10 @@ const
 
 
       procedure tcgppc.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;
-        reg1,reg2 : tregister;l : pasmlabel);
+        reg1,reg2 : tregister;l : tasmlabel);
 
-        var p: paicpu;
+        var
+          p: taicpu;
             op: tasmop;
 
         begin
@@ -405,13 +418,53 @@ const
         end;
 
 
-     procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: pasmlabel);
+     procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
        begin
          a_jmp(list,A_BC,TOpCmp2AsmCond[cond],l);
        end;
 
 
+     procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister);
+
+       var
+         testbit: byte;
+         bitvalue: boolean;
+
+       begin
+         { get the bit to extract from the conditional register + its }
+         { requested value (0 or 1)                                   }
+         testbit := (f.cr * 4);
+         case f.flag of
+           F_EQ,F_NE:
+             bitvalue := f.flag = F_EQ;
+           F_LT,F_GE:
+             begin
+               inc(testbit);
+               bitvalue := f.flag = F_LT;
+             end;
+           F_GT,F_LE:
+             begin
+               inc(testbit,2);
+               bitvalue := f.flag = F_GT;
+             end;
+           else
+             internalerror(200112261);
+         end;
+         { load the conditional register in the destination reg }
+         list.concat(taicpu.op_reg(A_MFCR,reg));
+         { we will move the bit that has to be tested to bit 31 -> rotate }
+         { left by bitpos+1 (remember, this is big-endian!)               }
+         testbit := (testbit + 1) and 31;
+         { extract bit }
+         list.concat(taicpu.op_reg_reg_const_const_const(
+           A_RLWINM,reg,reg,testbit,31,31));
+         { if we need the inverse, xor with 1 }
+         if not bitvalue then
+           list.concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
+       end;
+
+(*
      procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister);
 
        var
@@ -421,7 +474,7 @@ const
        begin
          { get the bit to extract from the conditional register + its }
          { requested value (0 or 1)                                   }
-         case simple of
+         case f.simple of
            false:
              begin
                { we don't generate this in the compiler }
@@ -447,7 +500,7 @@ const
              end;
          end;
          { load the conditional register in the destination reg }
-         list.concat(taicpu.create(op_reg_reg(A_MFCR,reg)));
+         list.concat(taicpu.op_reg_reg(A_MFCR,reg));
          { we will move the bit that has to be tested to bit 31 -> rotate }
          { left by bitpos+1 (remember, this is big-endian!)               }
          if bitpos <> 31 then
@@ -455,23 +508,23 @@ const
          else
            bitpos := 0;
          { extract bit }
-         list.concat(taicpu.create(op_reg_reg_const_const_const(
-           A_RLWINM,reg,reg,bitpos,31,31)));
+         list.concat(taicpu.op_reg_reg_const_const_const(
+           A_RLWINM,reg,reg,bitpos,31,31));
          { if we need the inverse, xor with 1 }
          if not bitvalue then
-           list.concat(taicpu.create(op_reg_reg_const(A_XORI,reg,reg,1)));
+           list.concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
        end;
-
+*)
 
 { *********** entry/exit code and address loading ************ }
 
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
 
       begin
-        case target_os.id of
-          os_powerpc_macos:
+        case target_info.target of
+          target_powerpc_macos:
             g_stackframe_entry_mac(list,localsize);
-          os_powerpc_linux:
+          target_powerpc_linux:
             g_stackframe_entry_sysv(list,localsize)
           else
             internalerror(2204001);
@@ -600,10 +653,10 @@ const
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
-        case target_os.id of
-          os_powerpc_macos:
+        case target_info.target of
+          target_powerpc_macos:
             g_return_from_proc_mac(list,parasize);
-          os_powerpc_linux:
+          target_powerpc_linux:
             g_return_from_proc_sysv(list,parasize)
           else
             internalerror(2204001);
@@ -618,7 +671,7 @@ const
 
        begin
          ref := ref2;
-         FixRef(ref);
+         FixRef(list,ref);
          if assigned(ref.symbol) then
            { add the symbol's value to the base of the reference, and if the }
            { reference doesn't have a base, create one                       }
@@ -643,7 +696,7 @@ const
            end;
          if ref.offset <> 0 Then
            if ref.base <> R_NO then
-             a_op_reg_reg_const32(list,OP_ADD,r,ref.base,ref.offset)
+             a_op_const_reg_reg(list,OP_ADD,ref.offset,ref.base,r)
   { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
   { occurs, so now only ref.offset has to be loaded                         }
            else a_load_const_reg(list, OS_32, ref.offset, r)
@@ -662,18 +715,18 @@ const
     procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
 
       var
-        p: paicpu;
+        t: taicpu;
         countreg, tempreg: TRegister;
         src, dst: TReference;
-        lab: PAsmLabel;
+        lab: tasmlabel;
         count, count2: aword;
 
       begin
         { make sure source and dest are valid }
         src := source;
-        fixref(src);
+        fixref(list,src);
         dst := dest;
-        fixref(dst);
+        fixref(list,dst);
         reset_reference(src);
         reset_reference(dst);
         { load the address of source into src.base }
@@ -682,7 +735,7 @@ const
           a_load_ref_reg(list,OS_32,source,src.base)
         else a_loadaddress_ref_reg(list,source,src.base);
         if delsource then
-          del_reference(list,source);
+          del_reference(source);
         { load the address of dest into dst.base }
         dst.base := get_scratch_reg(list);
         a_loadaddress_ref_reg(list,dest,dst.base);
@@ -711,7 +764,7 @@ const
             list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,countreg,0));
             list.concat(taicpu.op_reg_ref(A_STWU,tempreg,newreference(dst)));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
-            a_jmp(list,A_BC,CF_NE,lab);
+            a_jmp(list,A_BC,C_NE,lab);
             free_scratch_reg(list,countreg);
           end
         else
@@ -802,12 +855,14 @@ const
                     (cardinal(ref.offset-low(smallint)) <=
                       high(smallint)-low(smallint)) then
                    begin
-                     list.concat(A_ADDI,ref.base,ref.base,ref.offset);
+                     list.concat(taicpu.op_reg_reg_const(
+                       A_ADDI,ref.base,ref.base,ref.offset));
                      ref.offset := 0;
                    end
                  else
                    begin
-                     list.concat(A_ADD,ref.base,ref.base,ref.index);
+                     list.concat(taicpu.op_reg_reg_reg(
+                       A_ADD,ref.base,ref.base,ref.index));
                      ref.index := R_NO;
                    end;
                end
@@ -820,74 +875,74 @@ const
        end;
 
 
-    procedure tcgppc.a_op_reg_reg_const32(list: taasmoutput; op: TOpCg;
-                       dst, src: tregister; a: aword): boolean;
+    { find out whether a is of the form 11..00..11b or 00..11...00. If }
+    { that's the case, we can use rlwinm to do an AND operation        }
+    function tcgppc.get_rlwi_const(a: longint; var l1, l2: longint): boolean;
+
+      var
+        temp, testbit: longint;
+        compare: boolean;
+
+      begin
+        get_rlwi_const := false;
+        { start with the lowest bit }
+        testbit := 1;
+        { check its value }
+        compare := boolean(a and testbit);
+        { find out how long the run of bits with this value is            }
+        { (it's impossible that all bits are 1 or 0, because in that case }
+        { this function wouldn't have been called)                        }
+        l1 := 31;
+        while (((a and testbit) <> 0) = compare) do
+          begin
+            testbit := testbit shl 1;
+            dec(l1);
+          end;
+
+        { check the length of the run of bits that comes next }
+        compare := not compare;
+        l2 := l1;
+        while (((a and testbit) <> 0) = compare) and
+               (l2 >= 0) do
+          begin
+            testbit := testbit shl 1;
+            dec(l2);
+          end;
+
+        { and finally the check whether the rest of the bits all have the }
+        { same value                                                      }
+        compare := not compare;
+        temp := l2;
+        if temp >= 0 then
+          if (a shr (31-temp)) <> ((-ord(compare)) shr (31-temp)) then
+            exit;
+
+        { we have done "not(not(compare))", so compare is back to its   }
+        { initial value. If the lowest bit was 0, a is of the form      }
+        { 00..11..00 and we need "rlwinm reg,reg,0,l2+1,l1", (+1        }
+        { because l2 now contains the position of the last zero of the  }
+        { first run instead of that of the first 1) so switch l1 and l2 }
+        { in that case (we will generate "rlwinm reg,reg,0,l1,l2")      }
+        if not compare then
+          begin
+            temp := l1;
+            l1 := l2+1;
+            l2 := temp;
+          end
+        else
+          { otherwise, l1 currently contains the position of the last   }
+          { zero instead of that of the first 1 of the second run -> +1 }
+          inc(l1);
+        { the following is the same as "if l1 = -1 then l1 := 31;" }
+        l1 := l1 and 31;
+        l2 := l2 and 31;
+        get_rlwi_const := true;
+      end;
+
+    procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+                       a: aword; src, dst: tregister);
       var
         l1,l2: longint;
-
-      { find out whether a is of the form 11..00..11b or 00..11...00. If }
-      { that's the case, we can use rlwinm to do an AND operation        }
-      function get_rlwi_const: boolean;
-
-        var
-          temp, testbit: longint;
-          compare: boolean;
-
-        begin
-          get_rlwi_const := false;
-          { start with the lowest bit }
-          testbit := 1;
-          { check its value }
-          compare := boolean(a and testbit);
-          { find out how long the run of bits with this value is            }
-          { (it's impossible that all bits are 1 or 0, because in that case }
-          { this function wouldn't have been called)                        }
-          l1 := 31;
-          while (((a and testbit) <> 0) = compare) do
-            begin
-              testbit := testbit shl 1;
-              dec(l1);
-            end;
-
-          { check the length of the run of bits that comes next }
-          compare := not compare;
-          l2 := l1;
-          while (((a and testbit) <> 0) = compare) and
-                 (l2 >= 0) do
-            begin
-              testbit := testbit shl 1;
-              dec(l2);
-            end;
-
-          { and finally the check whether the rest of the bits all have the }
-          { same value                                                      }
-          compare := not compare;
-          temp := l2;
-          if temp >= 0 then
-            if (a shr (31-temp)) <> ((-ord(compare)) shr (31-temp)) then
-              exit;
-
-          { we have done "not(not(compare))", so compare is back to its   }
-          { initial value. If the lowest bit was 0, a is of the form      }
-          { 00..11..00 and we need "rlwinm reg,reg,0,l2+1,l1", (+1        }
-          { because l2 now contains the position of the last zero of the  }
-          { first run instead of that of the first 1) so switch l1 and l2 }
-          { in that case (we will generate "rlwinm reg,reg,0,l1,l2")      }
-          if not compare then
-            begin
-              temp := l1;
-              l1 := l2+1;
-              l2 := temp;
-            end
-          else
-            { otherwise, l1 currently contains the position of the last   }
-            { zero instead of that of the first 1 of the second run -> +1 }
-            inc(l1);
-          { the following is the same as "if l1 = -1 then l1 := 31;" }
-          l1 := l1 and 31;
-          l2 := l2 and 31;
-          get_rlwi_const := true;
-        end;
 
       var
         oplo, ophi: tasmop;
@@ -903,15 +958,15 @@ const
         if (longint(a) >= low(smallint)) and
            (longint(a) <= high(smallint)) then
           begin
-            list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,a));
+            list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
             exit;
           end;
         { all basic constant instructions also have a shifted form that }
         { works only on the highest 16bits, so if low(a) is 0, we can   }
         { use that one                                                  }
-        if (low(a) = 0) then
+        if (lo(a) = 0) then
           begin
-            list.concat(taicpu.op_reg_reg(ophi,reg1,reg2,high(a)));
+            list.concat(taicpu.op_reg_reg_const(ophi,dst,src,hi(a)));
             exit;
           end;
         { otherwise, the instructions we can generate depend on the }
@@ -920,29 +975,29 @@ const
         case op of
           OP_ADD,OP_SUB:
             begin
-              list.concat(taicpu.op_reg_reg_const(oplo,reg1,reg2,low(a)));
-              list.concat(taicpu.op_reg_reg_const(ophi,reg1,reg1,
+              list.concat(taicpu.op_reg_reg_const(oplo,dst,src,low(a)));
+              list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,
                 high(a) + ord(smallint(a) < 0)));
             end;
           OP_OR:
             { try to use rlwimi }
-            if get_rlwi_const then
+            if get_rlwi_const(a,l1,l2) then
               begin
-                if reg1 <> reg2 then
-                  list.concat(taicpu.op_reg_reg(A_MR,reg1,reg2));
-                scratch_reg := get_scratch_reg(list);
-                list.concat(taicpu.op_reg_const(A_LI,scratch_reg,-1));
-                list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,reg1,
-                  reg2,0,l1,l2));
-                free_scratch_reg(list,scratch_reg);
+                if src <> dst then
+                  list.concat(taicpu.op_reg_reg(A_MR,dst,src));
+                scratchreg := get_scratch_reg(list);
+                list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
+                list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
+                  scratchreg,0,l1,l2));
+                free_scratch_reg(list,scratchreg);
               end
             else
               useReg := true;
           OP_AND:
             { try to use rlwinm }
-            if get_rlwi_const then
-              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg1,
-                reg2,0,l1,l2))
+            if get_rlwi_const(a,l1,l2) then
+              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,dst,
+                src,0,l1,l2))
             else
               useReg := true;
           OP_XOR:
@@ -956,26 +1011,27 @@ const
           begin
             scratchreg := get_scratch_reg(list);
             a_load_const_reg(list,OS_32,a,scratchreg);
-            a_op_reg_reg_reg(list,op,reg1,scratchreg,reg2);
+            a_op_reg_reg_reg(list,op,scratchreg,src,dst);
             free_scratch_reg(list,scratchreg);
           end;
       end;
 
 
     procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
-      dst, src1, src2: tregister);
+      src1, src2, dst: tregister);
 
       const
         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
           (A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
-           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR)
+           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
 
        begin
-         Case Op of
+         case op of
            OP_NEG,OP_NOT:
-             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],size,dst,dst));
+             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,dst));
            else
-             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],size,dst,src1,src2));
+             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
+         end;
        end;
 
 
@@ -1009,10 +1065,10 @@ const
       end;
 
 
-    procedure tcgppc.a_jmp(list: taasmoutput; op: tasmop; c: tasmcondflags;
-                l: pasmlabel);
+    procedure tcgppc.a_jmp(list: taasmoutput; op: tasmop; c: tasmcondflag;
+                l: tasmlabel);
       var
-        p: paicpu;
+        p: taicpu;
 
       begin
         p := taicpu.op_sym(op,newasmsymbol(l.name));
@@ -1020,10 +1076,18 @@ const
         list.concat(p)
       end;
 
+begin
+  cg := tcgppc.create;
 end.
 {
   $Log$
-  Revision 1.8  2001-10-28 14:16:49  jonas
+  Revision 1.9  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.8  2001/10/28 14:16:49  jonas
     * small fixes
 
   Revision 1.7  2001/09/29 21:33:30  jonas

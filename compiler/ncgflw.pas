@@ -75,7 +75,7 @@ implementation
 {$ifdef i386}
       n386util,
 {$endif}
-      regvars,cgobj,cgcpu;
+      tainst,regvars,cgobj,cgcpu;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -651,8 +651,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-12-02 16:19:17  jonas
-    * less unnecessary regvar loading with if-statements
+  Revision 1.6  2001-12-29 15:28:57  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
 
   Revision 1.4  2001/11/02 22:58:01  peter
     * procsym definition rewrite

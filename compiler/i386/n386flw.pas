@@ -59,7 +59,7 @@ implementation
       cgbase,temp_gen,pass_2,
       cpubase,cpuasm,
       nld,ncon,
-      cga,tgcpu;
+      tainst,cga,tgcpu;
 
 {*****************************************************************************
                              SecondRaise
@@ -737,8 +737,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-09-30 16:16:28  jonas
-    - removed unused units form uses-clause and unused local vars
+  Revision 1.19  2001-12-29 15:29:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
 
   Revision 1.17  2001/09/29 21:34:04  jonas
     - removed unused code (replaced by processor independent code)

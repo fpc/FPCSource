@@ -109,7 +109,7 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,cga;
+       globtype,globals,verbose,systems,cutils,cga,tgcpu;
 
 
     { we implement the following routines because otherwise we can't }
@@ -395,19 +395,73 @@ unit cgcpu;
      procedure tcg386.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
 
         var
+          regloadsize: tcgsize;
           dstsize: topsize;
+          tmpreg : tregister;
+          popecx : boolean;
 
         begin
           dstsize := makeregsize(dst,size);
           case op of
             OP_NEG,OP_NOT:
               begin
+                if src <> R_NO then
+                  internalerror(200112291);
                 list.concat(taicpu.op_reg(TOpCG2AsmOp[op],dstsize,dst));
               end;
             OP_MUL,OP_DIV,OP_IDIV:
               { special stuff, needs separate handling inside code }
               { generator                                          }
               internalerror(200109233);
+            OP_SHR,OP_SHL,OP_SAR:
+              begin
+                tmpreg := R_NO;
+                { we need cl to hold the shift count, so if the destination }
+                { is ecx, save it to a temp for now                         }
+                if dst in [R_ECX,R_CX,R_CL] then
+                  begin
+                    case regsize(dst) of
+                      S_B: regloadsize := OS_8;
+                      S_W: regloadsize := OS_16;
+                      else regloadsize := OS_32;
+                    end;
+                    tmpreg := get_scratch_reg(list);
+                    a_load_reg_reg(list,regloadsize,src,tmpreg);
+                  end;
+                if not(src in [R_ECX,R_CX,R_CL]) then
+                  begin
+                    { is ecx still free (it's also free if it was allocated }
+                    { to dst, since we've moved dst somewhere else already) }
+                    if not((dst = R_ECX) or
+                           ((R_ECX in unused) and
+                            { this will always be true, it's just here to }
+                            { allocate ecx                                }
+                            (getexplicitregister32(R_ECX) = R_ECX))) then
+                      begin
+                        list.concat(taicpu.op_reg(A_PUSH,S_L,R_ECX));
+                        popecx := true;
+                      end;
+                    a_load_reg_reg(list,OS_8,makereg8(src),R_CL);
+                  end
+                else
+                  src := R_CL;
+                { do the shift }
+                if tmpreg = R_NO then
+                  list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
+                    R_CL,dst))
+                else
+                  begin
+                    list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],S_L,
+                      R_CL,tmpreg));
+                    { move result back to the destination }
+                    a_load_reg_reg(list,OS_32,tmpreg,R_ECX);
+                    free_scratch_reg(list,tmpreg);
+                  end;
+                if popecx then
+                  list.concat(taicpu.op_reg(A_POP,S_L,R_ECX))
+                else if not (dst in [R_ECX,R_CX,R_CL]) then
+                  ungetregister32(R_ECX);
+              end;
             else
               begin
                 if regsize(src) <> dstsize then
@@ -708,7 +762,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-10-04 14:33:28  jonas
+  Revision 1.5  2001-12-29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.4  2001/10/04 14:33:28  jonas
     * fixed range check errors
 
   Revision 1.3  2001/09/30 16:17:18  jonas

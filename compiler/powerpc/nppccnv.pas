@@ -129,7 +129,7 @@ implementation
                   if location = LOC_REGISTER then
                     location.register:= left.location.register
                   else
-                    location.register := getregister32;
+                    location.register := getregisterint;
                   case opsize of
                     OS_8:
                       exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
@@ -172,7 +172,7 @@ implementation
               LOC_REFERENCE,LOC_MEM:
                 begin
                   del_reference(left.location.reference);
-                  location.register := getregister32;
+                  location.register := getregisterint;
                   if not (opsize in [OS_64,OS_S64]) then
                     tempsize := pred(opsize)
                   else
@@ -188,7 +188,7 @@ implementation
                 { instructions as appropriate, the source will contain }
                 { the correct value already, so simply copy it         }
                 begin
-                  location.register := getregister32;
+                  location.register := getregisterint;
                   exprasmlist.concat(taicpu.op_reg_reg(A_MR,location.register,
                     left.location.register));
                 end;
@@ -198,7 +198,7 @@ implementation
             { sign extend even further if necessary }
             if opsize in [OS_64,OS_S64] then
               begin
-                location.registerhigh := getregister32;
+                location.registerhigh := getregisterint;
                 if (opsize = OS_64) or
                    not (is_signed(left.resulttype.def)) then
                   cg.a_load_const_reg(exprasmlist,OS_32,0,
@@ -349,13 +349,13 @@ implementation
                 if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
                   begin
                     del_reference(left.location);
-                    hreg2:=getregister32;
+                    hreg2:=getregisterint;
                     cg.a_load_ref_reg(exprasmlist,opsize,
                       left.location.reference,hreg2);
                   end
                 else
                   hreg2 := left.location.register;
-                hreg1 := getregister32;
+                hreg1 := getregisterint;
                 exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg1,
                   hreg2,1);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg1,
@@ -364,7 +364,7 @@ implementation
               end;
             LOC_FLAGS :
               begin
-                hreg1:=getregister32;
+                hreg1:=getregisterint;
                 resflags:=left.location.resflags;
                 emit_flag2reg(resflags,hreg1);
               end;
@@ -379,7 +379,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-10-28 14:17:10  jonas
+  Revision 1.4  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.3  2001/10/28 14:17:10  jonas
     + second_int_to_real for cardinal, int64 and qword
 
   Revision 1.2  2001/10/01 12:17:26  jonas

@@ -49,7 +49,7 @@ interface
       cgbase,temp_gen,pass_2,regvars,
       cpuasm,
       ncon,nset,
-      cga,n386util,tgcpu;
+      tainst,cga,n386util,tgcpu;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
@@ -1863,8 +1863,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-12-02 16:19:17  jonas
-    * less unnecessary regvar loading with if-statements
+  Revision 1.27  2001-12-29 15:29:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
 
   Revision 1.25  2001/10/12 13:51:51  jonas
     * fixed internalerror(10) due to previous fpu overflow fixes ("merged")

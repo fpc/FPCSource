@@ -209,7 +209,7 @@ type
 {$ifndef tp}
 {$minenumsize 1}
 {$endif tp}
-  TAsmCondFlags = (C_None { unconditional junps },
+  TAsmCondFlag = (C_None { unconditional junps },
     { conditions when not using ctr decrement etc }
     C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU,
     { conditions when using ctr decrement etc }
@@ -222,28 +222,28 @@ type
                case simple: boolean of
                  false: (BO, BI: byte);
                  true: (
-                   case cond: TAsmCondFlags of
-                     C_None: ();
+                   cond: TAsmCondFlag;
+                   case byte of
+                     0: ();
                      { specifies in which part of the cr the bit has to be }
-                     { tested for blt,bgt,beq etc.                         }
-                     C_LT..C_NU: (cr: R_CR0..R_CR7);
-                     { specifies the bit to test for bt,bf,bdz etc. }
-                     C_T..C_DZF:
-                       (crbit: byte)
+                     { tested for blt,bgt,beq,..,bnu                       }
+                     1: (cr: R_CR0..R_CR7);
+                     { specifies the bit to test for bt,bf,bdz,..,bdzf }
+                     2: (crbit: byte)
                    );
              end;
 
 const
   AsmCondFlag2BO: Array[C_T..C_DZF] of Byte =
     (12,4,16,8,0,18,10,2);
-  AsmCondFlag2BI: Array[C_LR..C_NU] of Byte =
+  AsmCondFlag2BI: Array[C_LT..C_NU] of Byte =
     (0,1,2,0,1,0,2,1,3,3,3,3);
-  AsmCondFlagTF: Array[TAsmCondFlags] of Boolean =
+  AsmCondFlagTF: Array[TAsmCondFlag] of Boolean =
     (false,true,false,true,false,true,false,false,false,true,false,true,false,
      true,false,false,true,false,false,true,false);
 
 
-  AsmCondFlag2Str: Array[tasmcondflags] of string[2] = ({cf_none}'',
+  AsmCondFlag2Str: Array[TAsmCondFlag] of string[4] = ({cf_none}'',
      { conditions when not using ctr decrement etc}
      'lt','le','eq','ge','gt','nl','ne','ng','so','ns','un','nu',
      't','f','dnz','dzt','dnzf','dz','dzt','dzf');
@@ -266,12 +266,13 @@ type
     flag: TResFlagsEnum;
   end;
 
+(*
 const
   { arrays for boolean location conversions }
-{
+
   flag_2_cond : array[TResFlags] of TAsmCond =
      (C_E,C_NE,C_LT,C_LE,C_GT,C_GE,???????????????);
-}
+*)
 
 {*****************************************************************************
                                 Reference
@@ -459,9 +460,10 @@ const
 
     function is_calljmp(o:tasmop):boolean;
 
+    procedure inverse_flags(var f: TResFlags);
     procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
-    procedure create_cond_norm(cond: TAsmCondFlags; cr: byte;var r : TasmCond);
+    procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
 
     procedure clear_location(var loc : tlocation);
     procedure set_location(var destloc,sourceloc : tlocation);
@@ -533,10 +535,17 @@ implementation
       new_reference:=r;
     end;
 
+    procedure inverse_flags(var f: TResFlags);
+      const
+        flagsinvers : array[F_EQ..F_GE] of tresflagsenum =
+          (F_NE,F_EQ,F_GE,F_GT,F_LE,F_LT);
+      begin
+        f.flag := flagsinvers[f.flag];
+      end;
 
     procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
     const
-      inv_condflags:array[TAsmCondFlags] of TAsmCondFlags=(C_None,
+      inv_condflags:array[TAsmCondFlag] of TAsmCondFlag=(C_None,
         C_GE,C_GT,C_NE,C_LT,C_LE,C_LT,C_EQ,C_GT,C_NS,C_SO,C_NU,C_UN,
         C_F,C_T,C_DNZ,C_DNZF,C_DNZT,C_DZ,C_DZF,C_DZT);
     begin
@@ -545,27 +554,23 @@ implementation
     end;
 
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
-    var c: tasmcond;
     begin
-      c.simple := false;
-      c.bo := bo;
-      c.bi := bi;
-      r := c
+      r.simple := false;
+      r.bo := bo;
+      r.bi := bi;
     end;
 
-    procedure create_cond_norm(cond: TAsmCondFlags; cr: byte;var r : TasmCond);
+    procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
     const cr2reg: array[0..7] of tregister =
             (R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7);
-    var c: tasmcond;
     begin
-      c.simple := true;
-      c.cond := cond;
+      r.simple := true;
+      r.cond := cond;
       case cond of
         C_NONE:;
-        C_T..C_DZF: c.crbit := cr
-        else c.cr := cr2reg[cr];
+        C_T..C_DZF: r.crbit := cr
+        else r.cr := cr2reg[cr];
       end;
-      r := c;
     end;
 
     procedure clear_location(var loc : tlocation);
@@ -607,7 +612,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2001-09-28 20:40:05  jonas
+  Revision 1.5  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.4  2001/09/28 20:40:05  jonas
     * several additions, almost complete (only some problems with resflags left)
 
   Revision 1.3  2001/09/06 15:25:56  jonas

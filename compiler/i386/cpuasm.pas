@@ -40,7 +40,7 @@ unit cpuasm;
 interface
 
 uses
-  cclasses,
+  cclasses,tainst,
   aasm,globals,verbose,
   cpubase;
 
@@ -50,13 +50,6 @@ const
 type
   TOperandOrder = (op_intel,op_att);
 
-  tairegalloc = class(tai)
-     allocation : boolean;
-     reg        : tregister;
-     constructor alloc(r : tregister);
-     constructor dealloc(r : tregister);
-  end;
-
   { alignment for operator }
   tai_align = class(tai_align_abstract)
      reg       : tregister;
@@ -65,13 +58,8 @@ type
      function getfillbuf:pchar;
   end;
 
-  taicpu = class(tai)
-     is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
-     opcode    : tasmop;
+  taicpu = class(tainstruction)
      opsize    : topsize;
-     condition : TAsmCond;
-     ops       : longint;
-     oper      : array[0..2] of toper;
      constructor op_none(op : tasmop;_size : topsize);
 
      constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
@@ -104,22 +92,13 @@ type
      constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
      constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
 
-     procedure loadconst(opidx:longint;l:longint);
-     procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-     procedure loadref(opidx:longint;p:preference);
-     procedure loadreg(opidx:longint;r:tregister);
-     procedure loadoper(opidx:longint;o:toper);
      procedure changeopsize(siz:topsize);
-     procedure SetCondition(c:TAsmCond);
 
-     destructor destroy;override;
-     function  getcopy:tlinkedlistitem;override;
      function  GetString:string;
      procedure CheckNonCommutativeOpcodes;
   private
-     segprefix : tregister;
      FOperandOrder : TOperandOrder;
-     procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
+     procedure init(_size : topsize); { this need to be called by all constructor }
 {$ifndef NOAG386BIN}
   public
      { the next will reset all instructions that can change in pass 2 }
@@ -150,27 +129,6 @@ implementation
 uses
   cutils,
   ogbase;
-
-{*****************************************************************************
-                                 TaiRegAlloc
-*****************************************************************************}
-
-    constructor tairegalloc.alloc(r : tregister);
-      begin
-        inherited create;
-        typ:=ait_regalloc;
-        allocation:=true;
-        reg:=r;
-      end;
-
-
-    constructor tairegalloc.dealloc(r : tregister);
-      begin
-        inherited create;
-        typ:=ait_regalloc;
-        allocation:=false;
-        reg:=r;
-      end;
 
 
 {****************************************************************************
@@ -226,113 +184,18 @@ uses
                                  Taicpu Constructors
 *****************************************************************************}
 
-    procedure taicpu.loadconst(opidx:longint;l:longint);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           val:=l;
-           typ:=top_const;
-         end;
-      end;
-
-
-    procedure taicpu.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           sym:=s;
-           symofs:=sofs;
-           typ:=top_symbol;
-         end;
-        { Mark the symbol as used }
-        if assigned(s) then
-         inc(s.refs);
-      end;
-
-
-    procedure taicpu.loadref(opidx:longint;p:preference);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           if p^.is_immediate then
-             begin
-{$ifdef REF_IMMEDIATE_WARN}
-               Comment(V_Warning,'Reference immediate');
-{$endif}
-               val:=p^.offset;
-               disposereference(p);
-               typ:=top_const;
-             end
-           else
-             begin
-               ref:=p;
-               if not(ref^.segment in [R_DS,R_NO]) then
-                 segprefix:=ref^.segment;
-               typ:=top_ref;
-               { mark symbol as used }
-               if assigned(ref^.symbol) then
-                 inc(ref^.symbol.refs);
-             end;
-         end;
-      end;
-
-
-    procedure taicpu.loadreg(opidx:longint;r:tregister);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
-         begin
-           if typ=top_ref then
-            disposereference(ref);
-           reg:=r;
-           typ:=top_reg;
-         end;
-      end;
-
-    procedure taicpu.loadoper(opidx:longint;o:toper);
-      begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        if oper[opidx].typ=top_ref then
-          disposereference(oper[opidx].ref);
-        oper[opidx]:=o;
-        { copy also the reference }
-        if oper[opidx].typ=top_ref then
-         oper[opidx].ref:=newreference(o.ref^);
-      end;
-
-
     procedure taicpu.changeopsize(siz:topsize);
       begin
         opsize:=siz;
       end;
 
 
-    procedure taicpu.init(op : tasmop;_size : topsize);
+    procedure taicpu.init(_size : topsize);
       begin
-         typ:=ait_instruction;
-         is_jmp:=false;
          { default order is att }
          FOperandOrder:=op_att;
          segprefix:=R_NO;
-         opcode:=op;
          opsize:=_size;
-         ops:=0;
-         condition:=c_none;
-         fillchar(oper,sizeof(oper),0);
 {$ifndef NOAG386BIN}
          insentry:=nil;
          LastInsOffset:=-1;
@@ -344,15 +207,15 @@ uses
 
     constructor taicpu.op_none(op : tasmop;_size : topsize);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
       end;
 
 
     constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=1;
          loadreg(0,_op1);
       end;
@@ -360,8 +223,8 @@ uses
 
     constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : longint);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=1;
          loadconst(0,_op1);
       end;
@@ -369,8 +232,8 @@ uses
 
     constructor taicpu.op_ref(op : tasmop;_size : topsize;_op1 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=1;
          loadref(0,_op1);
       end;
@@ -378,8 +241,8 @@ uses
 
     constructor taicpu.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadreg(0,_op1);
          loadreg(1,_op2);
@@ -388,8 +251,8 @@ uses
 
     constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadreg(0,_op1);
          loadconst(1,_op2);
@@ -398,8 +261,8 @@ uses
 
     constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadreg(0,_op1);
          loadref(1,_op2);
@@ -408,8 +271,8 @@ uses
 
     constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadconst(0,_op1);
          loadreg(1,_op2);
@@ -418,8 +281,8 @@ uses
 
     constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadconst(0,_op1);
          loadconst(1,_op2);
@@ -428,8 +291,8 @@ uses
 
     constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadconst(0,_op1);
          loadref(1,_op2);
@@ -438,8 +301,8 @@ uses
 
     constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadref(0,_op1);
          loadreg(1,_op2);
@@ -448,8 +311,8 @@ uses
 
     constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadref(0,_op1);
          loadref(1,_op2);
@@ -458,8 +321,8 @@ uses
 
     constructor taicpu.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
@@ -468,8 +331,8 @@ uses
 
     constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=3;
          loadconst(0,_op1);
          loadreg(1,_op2);
@@ -478,8 +341,8 @@ uses
 
     constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
@@ -489,8 +352,8 @@ uses
 
     constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=3;
          loadconst(0,_op1);
          loadref(1,_op2);
@@ -500,8 +363,8 @@ uses
 
     constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=3;
          loadconst(0,_op1);
          loadreg(1,_op2);
@@ -511,8 +374,8 @@ uses
 
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          condition:=cond;
          ops:=1;
          loadsymbol(0,_op1,0);
@@ -521,8 +384,8 @@ uses
 
     constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=1;
          loadsymbol(0,_op1,0);
       end;
@@ -530,8 +393,8 @@ uses
 
     constructor taicpu.op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=1;
          loadsymbol(0,_op1,_op1ofs);
       end;
@@ -539,8 +402,8 @@ uses
 
     constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadsymbol(0,_op1,_op1ofs);
          loadreg(1,_op2);
@@ -549,73 +412,12 @@ uses
 
     constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
-         inherited create;
-         init(op,_size);
+         inherited create(op);
+         init(_size);
          ops:=2;
          loadsymbol(0,_op1,_op1ofs);
          loadref(1,_op2);
       end;
-
-
-    destructor taicpu.destroy;
-      begin
-        { unrolled for speed }
-        if (ops>0) then
-         begin
-           case oper[0].typ of
-             top_ref:
-               dispose(oper[0].ref);
-             top_symbol:
-               dec(tasmsymbol(oper[0].sym).refs);
-           end;
-           if (ops>1) then
-            begin
-              if (oper[1].typ=top_ref) then
-               dispose(oper[1].ref);
-              if (ops>2) and (oper[2].typ=top_ref) then
-               dispose(oper[2].ref);
-            end;
-         end;
-        inherited destroy;
-      end;
-
-
-    function taicpu.getcopy:tlinkedlistitem;
-      var
-        p : taicpu;
-      begin
-        p:=taicpu(inherited getcopy);
-        { make a copy of the references, unrolled for speed }
-        if ops>0 then
-         begin
-           if (p.oper[0].typ=top_ref) then
-            begin
-              new(p.oper[0].ref);
-              p.oper[0].ref^:=oper[0].ref^;
-            end;
-           if ops>1 then
-            begin
-              if (p.oper[1].typ=top_ref) then
-               begin
-                 new(p.oper[1].ref);
-                 p.oper[1].ref^:=oper[1].ref^;
-               end;
-              if (ops>2) and (p.oper[2].typ=top_ref) then
-               begin
-                 new(p.oper[2].ref);
-                 p.oper[2].ref^:=oper[2].ref^;
-               end;
-            end;
-         end;
-        getcopy:=p;
-      end;
-
-
-    procedure taicpu.SetCondition(c:TAsmCond);
-      begin
-         condition:=c;
-      end;
-
 
     function taicpu.GetString:string;
       var
@@ -1773,7 +1575,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-04-21 12:13:15  peter
+  Revision 1.16  2001-12-29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.15  2001/04/21 12:13:15  peter
     * restore correct pass2 handling bug 1425 (merged)
 
   Revision 1.14  2001/04/13 01:22:18  peter

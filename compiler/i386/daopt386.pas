@@ -226,7 +226,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, tgcpu;
+  globals, systems, verbose, cgbase, symconst, symsym, tainst, tgcpu;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -2591,7 +2591,13 @@ End.
 
 {
   $Log$
-  Revision 1.24  2001-11-02 22:58:09  peter
+  Revision 1.25  2001-12-29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.24  2001/11/02 22:58:09  peter
     * procsym definition rewrite
 
   Revision 1.23  2001/10/27 10:20:43  jonas

@@ -63,7 +63,7 @@ implementation
       cgbase,temp_gen,pass_2,
       cpubase,cpuasm,
       nmem,nld,
-      cga,tgcpu,n386ld,n386util,regvars;
+      tainst,cga,tgcpu,n386ld,n386util,regvars;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -1498,7 +1498,7 @@ implementation
               inlineprocdef.parast.symtabletype:=inlineparasymtable;
 
               { Here we must include the para and local symtable info }
-              tprocsym(inlineprocdef.procsym).concatstabto(withdebuglist);
+              inlineprocdef.concatstabto(withdebuglist);
 
               { set it back for safety }
               inlineprocdef.localst.symtabletype:=localsymtable;
@@ -1593,7 +1593,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2001-11-18 00:00:34  florian
+  Revision 1.39  2001-12-29 15:32:13  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.38  2001/11/18 00:00:34  florian
     * handling of ansi- and widestring results improved
 
   Revision 1.37  2001/11/02 23:24:40  peter

@@ -22,11 +22,13 @@
 }
 unit cpuasm;
 
+{$i defines.inc}
+
 interface
 
 uses
-  cclasses,
-  aasm,globals,verbose,tainst,
+  cclasses,tainst,
+  aasm,globals,verbose,
   cpubase;
 
 type
@@ -411,7 +413,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-08-26 13:31:04  florian
+  Revision 1.3  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.2  2001/08/26 13:31:04  florian
     * some cg reorganisation
     * some PPC updates
 

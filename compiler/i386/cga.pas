@@ -162,7 +162,7 @@ implementation
        globtype,systems,globals,verbose,
        fmodule,
        symbase,symsym,symtable,types,
-       tgcpu,temp_gen,cgbase,regvars
+       tainst,tgcpu,temp_gen,cgbase,regvars
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -2976,7 +2976,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-11-18 18:59:59  peter
+  Revision 1.12  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.11  2001/11/18 18:59:59  peter
     * changed aktprocsym to aktprocdef for stabs generation
 
   Revision 1.10  2001/11/06 16:39:02  jonas

@@ -129,7 +129,7 @@ interface
 implementation
 
     uses
-      globtype,temp_gen,regvars;
+      globtype,temp_gen,tainst,regvars;
 
     procedure incrementregisterpushed(b : byte);
 
@@ -488,7 +488,7 @@ implementation
       begin
         isaddressregister := true;
       end;
-      
+
     procedure del_reference(const ref : treference);
 
       begin
@@ -690,8 +690,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-09-30 16:17:18  jonas
-    * made most constant and mem handling processor independent
+  Revision 1.7  2001-12-29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
 
   Revision 1.5  2001/08/26 13:37:03  florian
     * some cg reorganisation

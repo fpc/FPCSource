@@ -47,6 +47,9 @@ unit tgcpu;
     { tries to allocate the passed register, if possible }
     function getexplicitregisterint(r : tregister) : tregister;
 
+    function getregisterfpu : tregister;
+    function ungetregisterfpu : tregister;
+
     procedure ungetregister(r : tregister);
 
     procedure cleartempgen;
@@ -76,8 +79,7 @@ unit tgcpu;
     var
        unused,usableregs : tregisterset;
 
-       { uses only 1 byte while a set uses in FPC 32 bytes }
-       usedinproc : byte;
+       usedinproc : set of TREGISTER;
 
        { count, how much a register must be pushed if it is used as register }
        { variable                                                           }
@@ -101,6 +103,14 @@ implementation
 
     { tries to allocate the passed register, if possible }
     function getexplicitregisterint(r : tregister) : tregister;
+      begin
+      end;
+
+    function getregisterfpu : tregister;
+      begin
+      end;
+
+    function ungetregisterfpu : tregister;
       begin
       end;
 
@@ -160,7 +170,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-08-26 13:31:04  florian
+  Revision 1.2  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.1  2001/08/26 13:31:04  florian
     * some cg reorganisation
     * some PPC updates
 

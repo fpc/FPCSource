@@ -43,7 +43,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      fmodule,finput,verbose,cpubase,cpuasm
+      fmodule,finput,verbose,cpubase,cpuasm,tainst
       ;
 
     const
@@ -867,7 +867,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-05-06 17:13:23  jonas
+  Revision 1.12  2001-12-29 15:29:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.11  2001/05/06 17:13:23  jonas
     * completed incomplete typed constant records
 
   Revision 1.10  2001/04/21 15:33:03  peter

@@ -706,6 +706,7 @@ const
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
 
+    procedure inverse_flags(var f: TResFlags);
 
 implementation
 
@@ -933,6 +934,15 @@ begin
 {$endif NOAG386BIN}
 end;
 
+    procedure inverse_flags(var f: TResFlags);
+      const
+         flagsinvers : array[F_E..F_BE] of tresflags =
+            (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
+             F_BE,F_B,F_AE,F_A);
+      begin
+        f := flagsinvers[f];
+      end;
+
 
 procedure InitCpu;
 begin
@@ -945,7 +955,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-12-06 17:57:40  florian
+  Revision 1.8  2001-12-29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.7  2001/12/06 17:57:40  florian
     + parasym to tparaitem added
 
   Revision 1.6  2001/09/28 20:39:33  jonas

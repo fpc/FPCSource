@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpubase,cpuasm,DAOpt386,tgcpu;
+  tainst,cpubase,cpuasm,DAOpt386,tgcpu;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -2025,7 +2025,13 @@ End.
 
 {
   $Log$
-  Revision 1.16  2001-10-12 13:53:24  jonas
+  Revision 1.17  2001-12-29 15:29:59  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.16  2001/10/12 13:53:24  jonas
     * fixed small crashing bug ("merged")
     * some more optimizations are now only done once at the end of the optimizing
       cycle instead of every iteration

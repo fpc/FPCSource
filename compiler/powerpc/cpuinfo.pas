@@ -34,7 +34,7 @@ Type
    { pointer(-1) will result in a pointer with the value          }
    { $fffffffffffffff on a 32bit machine if the compiler uses     }
    { int64 constants internally (JM)                              }
-   TPointerOrd = DWord;
+   TConstPtrUInt = DWord;
 
 Const
    { Size of native extended type }
@@ -45,7 +45,13 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-08-26 13:31:04  florian
+  Revision 1.2  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.1  2001/08/26 13:31:04  florian
     * some cg reorganisation
     * some PPC updates
 

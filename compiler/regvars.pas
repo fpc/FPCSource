@@ -49,7 +49,7 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      cgbase,cpuasm,cgobj,cgcpu,cga;
+      tainst,cgbase,cpuasm,cgobj,cgcpu,cga;
 
     var
       parasym : boolean;
@@ -463,7 +463,13 @@ end.
 
 {
   $Log$
-  Revision 1.21  2001-12-03 12:17:02  jonas
+  Revision 1.22  2001-12-29 15:32:13  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.21  2001/12/03 12:17:02  jonas
     * forgot to commit yesterday :( (less unnecessary loading of regvars with
       if-statements)
 

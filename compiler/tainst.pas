@@ -22,34 +22,39 @@
 }
 Unit tainst;
 
+{$i defines.inc}
+
 interface
 
   Uses aasm,cpubase,cpuinfo,cclasses;
 
 Type
 
-tairegalloc = class(tai)
-   allocation : boolean;
-   reg        : tregister;
-   constructor alloc(r : tregister);
-   constructor dealloc(r : tregister);
-end;
+  tairegalloc = class(tai)
+     allocation : boolean;
+     reg        : tregister;
+     constructor alloc(r : tregister);
+     constructor dealloc(r : tregister);
+  end;
 
-tainstruction = class(tai)
-  is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
-  opcode    : tasmop;
-  condition : TAsmCond;
-  ops       : longint;
-  oper      : array[0..max_operands-1] of toper;
-  Constructor Create(op : tasmop);
-  Destructor Destroy;override;
-  function getcopy:tlinkedlistitem;virtual;
-  procedure loadconst(opidx:longint;l:longint);
-  procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-  procedure loadref(opidx:longint;p:preference);
-  procedure loadreg(opidx:longint;r:tregister);
-  procedure loadoper(opidx:longint;o:toper);
-  procedure SetCondition(c:TAsmCond);
+  tainstruction = class(tai)
+    condition : TAsmCond;
+    ops       : longint;
+    oper      : array[0..max_operands-1] of toper;
+    opcode    : tasmop;
+{$ifdef i386}
+    segprefix : tregister;
+{$endif i386}
+    is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
+    Constructor Create(op : tasmop);
+    Destructor Destroy;override;
+    function getcopy:tlinkedlistitem;override;
+    procedure loadconst(opidx:longint;l:longint);
+    procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+    procedure loadref(opidx:longint;p:preference);
+    procedure loadreg(opidx:longint;r:tregister);
+    procedure loadoper(opidx:longint;o:toper);
+    procedure SetCondition(const c:TAsmCond);
   end;
 
 implementation
@@ -58,22 +63,22 @@ implementation
                                  TaiRegAlloc
 *****************************************************************************}
 
-constructor tairegalloc.alloc(r : tregister);
-  begin
-    inherited create;
-    typ:=ait_regalloc;
-    allocation:=true;
-    reg:=r;
-  end;
+    constructor tairegalloc.alloc(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        allocation:=true;
+        reg:=r;
+      end;
 
 
-constructor tairegalloc.dealloc(r : tregister);
-  begin
-    inherited create;
-    typ:=ait_regalloc;
-    allocation:=false;
-    reg:=r;
-  end;
+    constructor tairegalloc.dealloc(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        allocation:=false;
+        reg:=r;
+      end;
 
 { ---------------------------------------------------------------------
     TaInstruction Constructor/Destructor
@@ -81,30 +86,34 @@ constructor tairegalloc.dealloc(r : tregister);
 
 
 
-Constructor tainstruction.Create(op : tasmop);
+    constructor Tainstruction.Create(op : tasmop);
 
-begin
-   inherited create;
-   typ:=ait_instruction;
-   is_jmp:=false;
-   opcode:=op;
-   ops:=0;
-   fillchar(condition,sizeof(condition),0);
-   fillchar(oper,sizeof(oper),0);
-end;
+      begin
+         inherited create;
+         typ:=ait_instruction;
+         is_jmp:=false;
+         opcode:=op;
+         ops:=0;
+         fillchar(condition,sizeof(condition),0);
+         fillchar(oper,sizeof(oper),0);
+      end;
 
 
 
-Destructor Tainstruction.Destroy;
+    destructor Tainstruction.Destroy;
 
-Var i : longint;
-
-begin
-  for i:=1 to ops do
-  if (oper[i-1].typ=top_ref) then
-    dispose(oper[i-1].ref);
-  inherited destroy;
-end;
+      var
+        i : longint;
+      begin
+        for i:=0 to ops-1 do
+        case oper[i].typ of
+          top_ref:
+            dispose(oper[i].ref);
+          top_symbol:
+            dec(tasmsymbol(oper[0].sym).refs);
+        end;
+        inherited destroy;
+      end;
 
 
 
@@ -114,134 +123,141 @@ end;
 
 
 
-procedure tainstruction.loadconst(opidx:longint;l:longint);
-
-begin
-  if opidx>=ops then
-   ops:=opidx+1;
-  with oper[opidx] do
-   begin
-     if typ=top_ref then
-      disposereference(ref);
-     val:=l;
-     typ:=top_const;
-   end;
-end;
-
-
-
-procedure tainstruction.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-begin
-  if opidx>=ops then
-   ops:=opidx+1;
-  with oper[opidx] do
-   begin
-     if typ=top_ref then
-      disposereference(ref);
-     sym:=s;
-     symofs:=sofs;
-     typ:=top_symbol;
-   end;
-  { Mark the symbol as used }
-  if assigned(s) then
-   inc(s.refs);
-end;
+    procedure tainstruction.loadconst(opidx:longint;l:longint);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ=top_ref then
+            disposereference(ref);
+           val:=l;
+           typ:=top_const;
+         end;
+      end;
 
 
 
-procedure tainstruction.loadref(opidx:longint;p:preference);
-begin
-  if opidx>=ops then
-   ops:=opidx+1;
-  with oper[opidx] do
-   begin
-     if typ=top_ref then
-      disposereference(ref);
-     if p^.is_immediate then
-       begin
-         val:=p^.offset;
-         disposereference(p);
-         typ:=top_const;
-       end
-     else
-       begin
-         ref:=p;
-{ We allow this exception for i386, since overloading this would be
-  too much of a a speed penalty}
-{$ifdef i386}
-         if not(ref^.segment in [R_DS,R_NO]) then
-           segprefix:=ref^.segment;
+    procedure tainstruction.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ=top_ref then
+            disposereference(ref);
+           sym:=s;
+           symofs:=sofs;
+           typ:=top_symbol;
+         end;
+        { Mark the symbol as used }
+        if assigned(s) then
+         inc(s.refs);
+      end;
+
+
+
+    procedure tainstruction.loadref(opidx:longint;p:preference);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ=top_ref then
+            disposereference(ref);
+           if p^.is_immediate then
+             begin
+{$ifdef REF_IMMEDIATE_WARN}
+               Comment(V_Warning,'Reference immediate');
 {$endif}
-         typ:=top_ref;
-         { mark symbol as used }
-         if assigned(ref^.symbol) then
-           inc(ref^.symbol.refs);
-       end;
-   end;
-end;
+               val:=p^.offset;
+               disposereference(p);
+               typ:=top_const;
+             end
+           else
+             begin
+               ref:=p;
+      { We allow this exception for i386, since overloading this would be
+        too much of a a speed penalty}
+{$ifdef i386}
+               if not(ref^.segment in [R_DS,R_NO]) then
+                 segprefix:=ref^.segment;
+{$endif}
+               typ:=top_ref;
+               { mark symbol as used }
+               if assigned(ref^.symbol) then
+                 inc(ref^.symbol.refs);
+             end;
+         end;
+      end;
 
 
 
-procedure tainstruction.loadreg(opidx:longint;r:tregister);
-begin
-  if opidx>=ops then
-   ops:=opidx+1;
-  with oper[opidx] do
-   begin
-     if typ=top_ref then
-      disposereference(ref);
-     reg:=r;
-     typ:=top_reg;
-   end;
-end;
+    procedure tainstruction.loadreg(opidx:longint;r:tregister);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ=top_ref then
+            disposereference(ref);
+           reg:=r;
+           typ:=top_reg;
+         end;
+      end;
 
 
 
-procedure tainstruction.loadoper(opidx:longint;o:toper);
-begin
-  if opidx>=ops then
-   ops:=opidx+1;
-  if oper[opidx].typ=top_ref then
-    disposereference(oper[opidx].ref);
-  oper[opidx]:=o;
-  { copy also the reference }
-  if oper[opidx].typ=top_ref then
-   oper[opidx].ref:=newreference(o.ref^);
-end;
+    procedure tainstruction.loadoper(opidx:longint;o:toper);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        if oper[opidx].typ=top_ref then
+          disposereference(oper[opidx].ref);
+        oper[opidx]:=o;
+        { copy also the reference }
+        if oper[opidx].typ=top_ref then
+         oper[opidx].ref:=newreference(o.ref^);
+      end;
 
 
 { ---------------------------------------------------------------------
     Miscellaneous methods.
   ---------------------------------------------------------------------}
 
-procedure tainstruction.SetCondition(c:TAsmCond);
-  begin
-     condition:=c;
-  end;
+    procedure tainstruction.SetCondition(const c:TAsmCond);
+      begin
+         condition:=c;
+      end;
 
 
-Function tainstruction.getcopy:tlinkedlistitem;
-
-var
-  i : longint;
-  p : tlinkedlistitem;
-begin
-  p:=inherited getcopy;
-  { make a copy of the references }
-  for i:=1 to ops do
-   if (tainstruction(p).oper[i-1].typ=top_ref) then
-    begin
-      new(tainstruction(p).oper[i-1].ref);
-      tainstruction(p).oper[i-1].ref^:=oper[i-1].ref^;
-    end;
-  getcopy:=p;
-end;
+    Function tainstruction.getcopy:tlinkedlistitem;
+      var
+        i : longint;
+        p : tlinkedlistitem;
+      begin
+        p:=inherited getcopy;
+        { make a copy of the references }
+        for i:=1 to ops do
+         if (tainstruction(p).oper[i-1].typ=top_ref) then
+          begin
+            new(tainstruction(p).oper[i-1].ref);
+            tainstruction(p).oper[i-1].ref^:=oper[i-1].ref^;
+          end;
+        getcopy:=p;
+      end;
 
 end.
 
 {
   $Log$
-  Revision 1.1  2001-08-26 13:36:52  florian
+  Revision 1.2  2001-12-29 15:28:57  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.1  2001/08/26 13:36:52  florian
     * some cg reorganisation
     * some PPC updates
 
@@ -256,7 +272,8 @@ end.
     * most things for stored properties fixed
 
   Revision 1.4  1999/09/03 13:10:11  jonas
-    * condition is now zeroed using fillchar\n    because on powerpc it's a record now
+    * condition is now zeroed using fillchar
+      because on powerpc it's a record now
 
   Revision 1.3  1999/08/26 14:52:59  jonas
     * added segprefix field for i386 in tainstruction object

@@ -209,7 +209,7 @@ unit cgobj;
 
     uses
        strings,globals,globtype,options,{files,}gdb,systems,
-       ppu,verbose,types,{tgobj,}tgcpu,symdef,symsym,cga;
+       ppu,verbose,types,{tgobj,}tgcpu,symdef,symsym,cga,tainst;
 
     const
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
@@ -275,7 +275,11 @@ unit cgobj;
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
+{$ifdef i386}
          include(unusedscratchregisters,makereg32(r));
+{$else i386}
+         include(unusedscratchregisters,r);
+{$endif i386}
          a_reg_dealloc(list,r);
       end;
 
@@ -1280,7 +1284,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2001-09-30 21:26:42  peter
+  Revision 1.5  2001-12-29 15:28:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.4  2001/09/30 21:26:42  peter
     * removed obsolete newst defines
 
   Revision 1.3  2001/09/30 16:17:17  jonas

@@ -52,7 +52,7 @@ interface
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase,cpuasm
+      fmodule,finput,verbose,cpubase,cpuasm,tainst
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -949,7 +949,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-09-17 21:29:13  peter
+  Revision 1.12  2001-12-29 15:29:58  jonas
+    * powerpc/cgcpu.pas compiles :)
+    * several powerpc-related fixes
+    * cpuasm unit is now based on common tainst unit
+    + nppcmat unit for powerpc (almost complete)
+
+  Revision 1.11  2001/09/17 21:29:13  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.10  2001/08/30 20:57:10  peter
