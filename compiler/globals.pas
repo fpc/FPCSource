@@ -84,19 +84,19 @@ interface
        MathNegInf : tdoublearray = (0,0,240,255,0,0,0,0);
        MathPi : tdoublearray =  (251,33,9,64,24,45,68,84);
 {$else}
-{$ifdef CPU_LITTLE_ENDIAN}
+{$ifdef FPC_LITTLE_ENDIAN}
        MathQNaN : tdoublearray = (0,0,0,0,0,0,252,255);
        MathInf : tdoublearray = (0,0,0,0,0,0,240,127);
        MathNegInf : tdoublearray = (0,0,0,0,0,0,240,255);
        MathPi : tdoublearray =  (24,45,68,84,251,33,9,64);
        MathPiExtended : textendedarray = (53,194,104,33,162,218,15,201,0,64);
-{$else CPU_LITTLE_ENDIAN}
+{$else FPC_LITTLE_ENDIAN}
        MathQNaN : tdoublearray = (255,252,0,0,0,0,0,0);
        MathInf : tdoublearray = (127,240,0,0,0,0,0,0);
        MathNegInf : tdoublearray = (255,240,0,0,0,0,0,0);
        MathPi : tdoublearray =  (64,9,33,251,84,68,45,24);
        MathPiExtended : textendedarray = (64,0,201,15,218,162,33,104,194,53);
-{$endif CPU_LITTLE_ENDIAN}
+{$endif FPC_LITTLE_ENDIAN}
 {$endif}
 
     type
@@ -2291,7 +2291,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.169  2005-02-06 21:33:28  peter
+  Revision 1.170  2005-02-07 21:30:25  florian
+    * fixed typo in define
+
+  Revision 1.169  2005/02/06 21:33:28  peter
     * -Fa option added, it'll load the units before the uses
       line is parsed. Can be used to load cthreads from the commandline.
       Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
