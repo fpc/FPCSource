@@ -16,7 +16,7 @@
 unit FPIni;
 interface
 
-{$globdir.inc}
+{$i globdir.inc}
 
 uses
   FPUtils;
@@ -624,7 +624,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-10-18 17:58:48  hajny
+  Revision 1.8  2002-10-23 18:01:50  hajny
+    * mistyping fixed
+
+  Revision 1.7  2002/10/18 17:58:48  hajny
     * added missing include
 
   Revision 1.6  2002/09/07 15:40:43  peter
