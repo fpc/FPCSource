@@ -41,7 +41,6 @@ unit cpupi;
           maxpushedparasize : aword;
 
           constructor create(aparent:tprocinfo);override;
-          procedure after_header;override;
           procedure after_pass1;override;
        end;
 
@@ -63,26 +62,12 @@ unit cpupi;
          localsize:=0;
       end;
 
-    procedure tppcprocinfo.after_header;
-      begin
-         { this value is necessary for nested procedures }
-         procdef.parast.address_fixup:=0;
-         inherited after_header;
-
-         if assigned(procdef.localst) then
-           procdef.localst.address_fixup:=0;
-         procdef.parast.address_fixup:= -procdef.parast.datasize;
-     end;
-
     procedure tppcprocinfo.after_pass1;
       var
          ofs : aword;
       begin
          if not(po_assembler in procdef.procoptions) then
            begin
-             procdef.parast.address_fixup := 0;
-             allocate_implicit_parameter;
-             procdef.localst.address_fixup := procdef.parast.address_fixup + procdef.parast.datasize;
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
              inc(framepointer_offset,ofs);
@@ -91,17 +76,9 @@ unit cpupi;
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
-//             Already done with an "inc" above now, not sure if it's correct (JM)
              procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
              if assigned(procdef.funcretsym) then
                return_offset:=tvarsym(procdef.funcretsym).address+tvarsym(procdef.funcretsym).owner.address_fixup;
-
-{
-             Already done with an "inc" above, should be correct (JM)
-             if assigned(procdef.funcretsym) and
-               not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
-               return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address+procdef.localst.address_fixup;
-}
 
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
@@ -122,7 +99,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-05-22 21:34:11  peter
+  Revision 1.20  2003-05-23 18:51:26  jonas
+    * fixed support for nested procedures and more parameters than those
+      which fit in registers (untested/probably not working: calling a
+      nested procedure from a deeper nested procedure)
+
+  Revision 1.19  2003/05/22 21:34:11  peter
     * inherite from tcgprocinfo
 
   Revision 1.18  2003/05/17 14:05:30  jonas

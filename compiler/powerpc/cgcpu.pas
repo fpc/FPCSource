@@ -963,12 +963,13 @@ const
      { combined size of ALL the parameters of a procedure called by the current }
      { one                                                                      }
      var regcounter,firstregfpu,firstreggpr: TRegister;
-         href : treference;
+         href,href2 : treference;
          usesfpr,usesgpr,gotgot : boolean;
          parastart : aword;
          offset : aword;
          r,r2,rsp:Tregister;
          regcounter2: Tsuperregister;
+         hp: tparaitem;
 
       begin
         { we do our own localsize calculation }
@@ -997,6 +998,7 @@ const
             r.number:=regcounter2 shl 8;
             a_reg_alloc(list,r);
           end;
+
 
         usesfpr:=false;
         if not (po_assembler in current_procdef.procoptions) then
@@ -1035,7 +1037,9 @@ const
                a_reg_dealloc(list,r);
             end;
 
-        if usesfpr or usesgpr then
+        { !!! always allocate space for all registers for now !!! }
+        if not (po_assembler in current_procdef.procoptions) then
+{        if usesfpr or usesgpr then }
           begin
              r.enum:=R_INTREGISTER;
              r.number:=NR_R12;
@@ -1045,10 +1049,15 @@ const
           end;
 
         { calculate the size of the locals }
+{
         if usesgpr then
           inc(localsize,((NR_R31-firstreggpr.number) shr 8+1)*4);
         if usesfpr then
           inc(localsize,(ord(R_F31)-ord(firstregfpu.enum)+1)*8);
+}
+        { !!! always allocate space for all registers for now !!! }
+        if not (po_assembler in current_procdef.procoptions) then
+          inc(localsize,(31-13+1)*4+(31-14+1)*8);
 
         { align to 16 bytes }
         localsize:=align(localsize,16);
@@ -1121,6 +1130,27 @@ const
              r.number:=NR_R12;
              reference_reset_base(href,r,-((NR_R31-firstreggpr.number) shr 8+1)*4);
              list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
+          end;
+
+        if assigned(current_procdef.parast) then
+          begin
+            if not (po_assembler in current_procdef.procoptions) then
+              begin
+                { copy memory parameters to local parast }
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_R12;
+                hp:=tparaitem(current_procdef.para.first);
+                while assigned(hp) do
+                  begin
+                    if (hp.paraloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                      begin
+                        reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
+                        reference_reset_base(href2,r,hp.paraloc.reference.offset);
+                        cg.a_load_ref_ref(list,hp.paraloc.size,href2,href);
+                      end;
+                    hp := tparaitem(hp.next);
+                  end;
+              end;
           end;
 
         r.enum:=R_INTREGISTER;
@@ -1899,6 +1929,7 @@ const
         r,r2,rsp:Tregister;
       begin
          {$warning !!!! FIX ME !!!!}
+         internalerror(200305231);
 {!!!!
         lenref:=ref;
         inc(lenref.offset,4);
@@ -2411,7 +2442,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2003-05-20 23:54:00  florian
+  Revision 1.95  2003-05-23 18:51:26  jonas
+    * fixed support for nested procedures and more parameters than those
+      which fit in registers (untested/probably not working: calling a
+      nested procedure from a deeper nested procedure)
+
+  Revision 1.94  2003/05/20 23:54:00  florian
     + basic darwin support added
 
   Revision 1.93  2003/05/15 22:14:42  florian

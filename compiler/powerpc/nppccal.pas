@@ -95,8 +95,11 @@ implementation
             hregister1.number:=NR_R1;
             hregister2.enum:=R_INTREGISTER;
             hregister2.number:=NR_R11;
+            cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,hregister1,hregister2);
+{
             if assigned(current_procinfo.procdef.localst) then
-              exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.localst.address_fixup));
+              exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,hregister2,hregister1,current_procinfo.procdef.parast.address_fixup));
+}
          end
        else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
@@ -128,7 +131,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-05-18 15:15:59  florian
+  Revision 1.14  2003-05-23 18:51:26  jonas
+    * fixed support for nested procedures and more parameters than those
+      which fit in registers (untested/probably not working: calling a
+      nested procedure from a deeper nested procedure)
+
+  Revision 1.13  2003/05/18 15:15:59  florian
     + added abi field to tsysteminfo
 
   Revision 1.12  2003/05/16 23:15:51  jonas
