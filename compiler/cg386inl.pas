@@ -1224,10 +1224,10 @@ implementation
                              end;
                           if (p^.left^.left^.location.loc=LOC_REFERENCE) then
                             exprasmlist^.concat(new(pai386,op_reg_ref(asmop,S_L,hregister,
-                              newreference(p^.left^.right^.left^.location.reference))))
+                              newreference(p^.left^.left^.location.reference))))
                           else
                             exprasmlist^.concat(new(pai386,op_reg_reg(asmop,S_L,hregister,
-                              p^.left^.right^.left^.location.register)));
+                              p^.left^.left^.location.register)));
                         end
                       else
                         begin
@@ -1251,7 +1251,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-06-11 11:44:56  peter
+  Revision 1.59  1999-06-21 16:33:27  jonas
+    * fixed include() with smallsets
+
+  Revision 1.58  1999/06/11 11:44:56  peter
   *** empty log message ***
 
   Revision 1.57  1999/06/02 10:11:43  florian
