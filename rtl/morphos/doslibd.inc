@@ -656,6 +656,8 @@ type
            dol_AssignName: PChar;
            dol_List      : PAssignList;    
          end;
+       );
+    3: ( dol_Misc: array[0..23] of Byte;
          dol_Name: DWord;    { BPTR }
        );
   end;
@@ -1379,7 +1381,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2004-08-09 00:10:19  karoly
+  Revision 1.3  2005-01-10 04:58:52  karoly
+    * fixed alignment problem in TDosList
+
+  Revision 1.2  2004/08/09 00:10:19  karoly
     + added most of missing stuff
 
   Revision 1.1  2004/06/26 20:46:17  karoly
