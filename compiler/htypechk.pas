@@ -653,7 +653,8 @@ implementation
            case p.nodetype of
              funcretn:
                begin
-                 if (nf_is_first_funcret in p.flags) then
+                 if (nf_is_first_funcret in p.flags) or
+                    (tfuncretnode(p).funcretsym.funcretstate=vs_declared_and_first_found) then
                    tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                  break;
                end;
@@ -938,7 +939,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-07-20 11:57:53  florian
+  Revision 1.47  2002-09-16 18:09:34  peter
+    * set_funcret_valid fixed when result was already used in a nested
+      procedure
+
+  Revision 1.46  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
