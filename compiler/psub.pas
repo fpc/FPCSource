@@ -1654,7 +1654,8 @@ begin
   dec(lexlevel);
   dispose(anames,done);
   if ((aktprocsym^.definition^.options and pocontainsself)<>0) and
-    ((aktprocsym^.definition^.options and pomsgstr)=0) then
+    ((aktprocsym^.definition^.options and pomsgstr)=0) and
+    ((aktprocsym^.definition^.options and pomsgint)=0) then
     message(parser_e_self_in_non_message_handler);
 end;
 
@@ -1835,7 +1836,11 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.3  1999-07-11 20:04:05  pierre
+  Revision 1.1.2.4  1999-07-11 20:07:39  peter
+    * message crash fixed
+    * no error if self is used with non-string message
+
+  Revision 1.1.2.3  1999/07/11 20:04:05  pierre
    * fix for problem with external without parameters in Delphi mode
 
   Revision 1.1.2.2  1999/07/02 12:59:52  peter
