@@ -61,7 +61,7 @@ uses
         a_lfd, a_lfdu, a_lfdux, a_lfdx, a_lfs, a_lfsu, a_lfsux, a_lfsx, a_lha,
         a_lhau, a_lhaux, a_lhax, a_hbrx, a_lhz, a_lhzu, a_lhzux, a_lhzx, a_lmw,
         a_lswi, a_lswx, a_lwarx, a_lwbrx, a_lwz, a_lwzu, a_lwzux, a_lwzx, a_mcrf,
-        a_mcrfs, a_mcrxr, a_lcrxe, a_mfcr, a_mffs, a_maffs_, a_mfmsr, a_mfspr, a_mfsr,
+        a_mcrfs, a_mcrxr, a_mfcr, a_mffs, a_mffs_, a_mfmsr, a_mfspr, a_mfsr,
         a_mfsrin, a_mftb, a_mtcrf, a_mtfsb0, a_mtfsb1, a_mtfsf, a_mtfsf_,
         a_mtfsfi, a_mtfsfi_, a_mtmsr, a_mtspr, a_mtsr, a_mtsrin, a_mulhw,
         a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
@@ -544,7 +544,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2005-02-14 17:13:10  peter
+  Revision 1.97  2005-02-18 23:05:47  jonas
+    - removed a non-existing instruction (lcrxe)
+    * fixed an instruction (maffs_ -> mffs)
+
+  Revision 1.96  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.95  2005/01/20 16:38:45  peter

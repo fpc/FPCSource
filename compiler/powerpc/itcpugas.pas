@@ -52,7 +52,7 @@ interface
         'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha',
         'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
         'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
-        'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
+        'mcrfs','mcrxr','mfcr','mffs','mffs.','mfmsr','mfspr','mfsr',
         'mfsrin','mftb','mtcrf','mtfsb0','mtfsb1','mtfsf','mtfsf.',
         'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
@@ -144,7 +144,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:10  peter
+  Revision 1.8  2005-02-18 23:05:47  jonas
+    - removed a non-existing instruction (lcrxe)
+    * fixed an instruction (maffs_ -> mffs)
+
+  Revision 1.7  2005/02/14 17:13:10  peter
     * truncate log
 
 }
