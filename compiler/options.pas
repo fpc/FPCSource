@@ -1684,6 +1684,10 @@ begin
   def_symbol('HASVARIANT');
   def_symbol('FPC_MTFSB0_CORRECTED');
 {$endif powerpc}
+{$ifdef arm}
+  def_symbol('HASINTF');
+  def_symbol('HASVARIANT');
+{$endif arm}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
   def_symbol('INTERNCOPY');
@@ -1769,6 +1773,7 @@ begin
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
   def_symbol('FPC_CURRENCY_IS_INT64');
+  def_symbol('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif arm}
 
 { get default messagefile }
@@ -2029,7 +2034,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.128  2004-03-20 22:57:07  florian
+  Revision 1.129  2004-03-21 22:40:15  florian
+    + added interface support for the arm
+    * added  FPC_REQUIRES_PROPER_ALIGNMENT define for targets which require proper alignment
+
+  Revision 1.128  2004/03/20 22:57:07  florian
     + cross compilation dir search added
 
   Revision 1.127  2004/03/10 22:52:57  peter

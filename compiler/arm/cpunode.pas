@@ -35,6 +35,7 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
+       narmobj,
        narmadd,
        narmcal,
        narmmat,
@@ -45,7 +46,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.7  2003-08-28 00:05:29  florian
+  Revision 1.8  2004-03-21 22:40:15  florian
+    + added interface support for the arm
+    * added  FPC_REQUIRES_PROPER_ALIGNMENT define for targets which require proper alignment
+
+  Revision 1.7  2003/08/28 00:05:29  florian
     * today's arm patches
 
   Revision 1.6  2003/08/27 00:27:56  florian
