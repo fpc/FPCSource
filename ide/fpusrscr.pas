@@ -783,7 +783,7 @@ begin
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
                 FName:='/dev/vcsa' + ThisTTY[9];
-                TTYFd:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(FName, Octal(666), Open_RdWr); { open console }
+                TTYFd:={$ifdef ver1_0}fdOpen{$else}fpOpen{$endif}(FName, &666, Open_RdWr); { open console }
                 If TTYFd <>-1 Then
                   Console:=ttyLinux;
               end;
@@ -1441,7 +1441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2003-09-27 14:03:45  peter
+  Revision 1.29  2003-11-14 21:52:58  marco
+   * octal() is not necessary anymore. Use &xxx
+
+  Revision 1.28  2003/09/27 14:03:45  peter
     * fixed for unix
 
   Revision 1.27  2003/02/04 22:05:56  pierre
