@@ -34,7 +34,7 @@ unit sysutils;
        end;
 
        { exceptions }
-
+{$ifndef VER0_99_5}
        exception = class(tobject)
         private
           fmessage : string;
@@ -58,7 +58,7 @@ unit sysutils;
        eintoverflow = class(einterror);
 
        ematherror = class(exception);
-
+{$endif}
 
   { Read date & Time function declarations }
   {$i datih.inc}
@@ -87,6 +87,7 @@ unit sysutils;
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
+{$ifndef VER0_99_5}
     constructor exception.create(const msg : string);
 
       begin
@@ -109,12 +110,16 @@ unit sysutils;
          inherited create;
          {!!!!!}
       end;
+{$endif}
 
 end.
 
 {
     $Log$
-    Revision 1.3  1998-07-29 15:44:32  michael
+    Revision 1.4  1998-08-10 15:52:27  peter
+      * fixed so 0.99.5 compiles it, but no exception class
+
+    Revision 1.3  1998/07/29 15:44:32  michael
      included sysutils and math.pp as target. They compile now.
 
     Revision 1.2  1998/04/10 15:18:21  michael
