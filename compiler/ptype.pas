@@ -78,8 +78,10 @@ implementation
         pos : tfileposinfo;
         srsym : tsym;
         srsymtable : tsymtable;
+        sorg : stringid;
       begin
          s:=pattern;
+         sorg:=orgpattern;
          pos:=akttokenpos;
          { classes can be used also in classes }
          if (curobjectname=pattern) and is_class_or_interface(aktobjectdef) then
@@ -124,7 +126,7 @@ implementation
          { unknown sym ? }
          if not assigned(srsym) then
           begin
-            Message1(sym_e_id_not_found,s);
+            Message1(sym_e_id_not_found,sorg);
             tt:=generrortype;
             exit;
           end;
@@ -600,7 +602,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-07-09 21:15:41  peter
+  Revision 1.29  2001-08-12 22:10:16  peter
+    * write name in original case when type not found
+
+  Revision 1.28  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 
