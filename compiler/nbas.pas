@@ -172,7 +172,7 @@ implementation
       verbose,globals,globtype,systems,
       symconst,symdef,symsym,defutil,defcmp,
       pass_1,
-      nld,ncal,nflw,rgobj,cgbase
+      nld,ncal,nflw,rgobj,cginfo,cgbase
       ;
 
 
@@ -203,18 +203,21 @@ implementation
 
     constructor tnothingnode.create;
       begin
-         inherited create(nothingn);
+        inherited create(nothingn);
       end;
+
 
     function tnothingnode.det_resulttype:tnode;
       begin
-         result:=nil;
-         resulttype:=voidtype;
+        result:=nil;
+        resulttype:=voidtype;
       end;
+
 
     function tnothingnode.pass_1 : tnode;
       begin
-         result:=nil;
+        result:=nil;
+        expectloc:=LOC_VOID;
       end;
 
 
@@ -228,6 +231,7 @@ implementation
          inherited create(errorn);
       end;
 
+
     function terrornode.det_resulttype:tnode;
       begin
          result:=nil;
@@ -236,11 +240,14 @@ implementation
          resulttype:=generrortype;
       end;
 
+
     function terrornode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          codegenerror:=true;
       end;
+
 
     procedure terrornode.mark_write;
       begin
@@ -282,6 +289,7 @@ implementation
            exit;
       end;
 
+
     function tstatementnode.pass_1 : tnode;
       begin
          result:=nil;
@@ -293,7 +301,7 @@ implementation
          firstpass(left);
          if codegenerror then
            exit;
-         location.loc:=left.location.loc;
+         expectloc:=left.expectloc;
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -367,12 +375,14 @@ implementation
            end;
       end;
 
+
     function tblocknode.pass_1 : tnode;
       var
          hp : tstatementnode;
          count : longint;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          count:=0;
          hp:=tstatementnode(left);
          while assigned(hp) do
@@ -430,6 +440,7 @@ implementation
                    codegenerror:=false;
                    firstpass(hp.left);
 
+                   hp.expectloc:=hp.left.expectloc;
                    hp.registers32:=hp.left.registers32;
                    hp.registersfpu:=hp.left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -447,7 +458,7 @@ implementation
               if hp.registersmmx>registersmmx then
                 registersmmx:=hp.registersmmx;
 {$endif}
-              location.loc:=hp.location.loc;
+              expectloc:=hp.expectloc;
               inc(count);
               hp:=tstatementnode(hp.right);
            end;
@@ -557,14 +568,17 @@ implementation
     function tasmnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          procinfo.flags:=procinfo.flags or pi_uses_asm;
       end;
+
 
     function tasmnode.docompare(p: tnode): boolean;
       begin
         { comparing of asmlists is not implemented (JM) }
         docompare := false;
       end;
+
 
 {*****************************************************************************
                           TEMPCREATENODE
@@ -607,7 +621,8 @@ implementation
 
     function ttempcreatenode.pass_1 : tnode;
       begin
-        result := nil;
+         result := nil;
+         expectloc:=LOC_VOID;
       end;
 
     function ttempcreatenode.det_resulttype: tnode;
@@ -673,7 +688,7 @@ implementation
 
     function ttemprefnode.pass_1 : tnode;
       begin
-        location.loc:=LOC_REFERENCE;
+        expectloc:=LOC_REFERENCE;
         result := nil;
       end;
 
@@ -751,7 +766,8 @@ implementation
 
     function ttempdeletenode.pass_1 : tnode;
       begin
-        result := nil;
+         expectloc:=LOC_VOID;
+         result := nil;
       end;
 
     function ttempdeletenode.det_resulttype: tnode;
@@ -784,7 +800,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-04-21 15:00:22  jonas
+  Revision 1.44  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.43  2003/04/21 15:00:22  jonas
     * fixed tstatementnode.det_resulttype and tststatementnode.pass_1
     * fixed some getcopy issues with ttemp*nodes
 

@@ -29,7 +29,7 @@ interface
     uses
        cclasses,
        globtype,globals,
-       cpubase,
+       cpubase,cginfo,
        aasmbase,
        symtype,symppu;
 
@@ -213,15 +213,19 @@ interface
     type
        { all boolean field of ttree are now collected in flags }
        tnodeflags = (
-         nf_needs_truefalselabel,
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
+
+         { general }
          nf_write,       { Node is written to            }
+         nf_first_use,   { First node that uses a variable after declared }
+         nf_varstateset,
+         nf_isproperty,
+         nf_allow_multi_pass2, { allow multiple secondpass }
 
          { flags used by tcallnode }
          nf_return_value_used,
-         nf_static_call,
          nf_anon_inherited,
 
          { flags used by tcallparanode }
@@ -240,32 +244,25 @@ interface
 
          { tloadnode }
          nf_absolute,
-         nf_first,
+
+         { taddnode }
+         nf_is_currency,
 
          { tassignmentnode }
          nf_concat_string,
-
-         { tfuncretnode }
-         nf_is_first_funcret,
+         nf_use_strconcat,
 
          { tarrayconstructnode }
-         nf_cargs,             { 20th }
+         nf_cargs,
          nf_cargswap,
          nf_forcevaria,
          nf_novariaallowed,
 
          { ttypeconvnode }
-         nf_explizit,
+         nf_explicit,
 
          { tinlinenode }
-         nf_inlineconst,
-
-         { general }
-         nf_isproperty,
-         nf_varstateset,
-
-         { taddnode }
-         nf_use_strconcat
+         nf_inlineconst
        );
 
        tnodeflagset = set of tnodeflags;
@@ -273,7 +270,7 @@ interface
     const
        { contains the flags which must be equal for the equality }
        { of nodes                                                }
-       flagsequal : tnodeflagset = [nf_error,nf_static_call];
+       flagsequal : tnodeflagset = [nf_error];
 
     type
        tnodelist = class
@@ -286,7 +283,9 @@ interface
           nodetype : tnodetype;
           { type of the current code block, general/const/type }
           blocktype : tblock_type;
-          { the location of the result of this node }
+          { expected location of the result of this node (pass1) }
+          expectloc : tcgloc;
+          { the location of the result of this node (pass2) }
           location : tlocation;
           { the parent node of this is node    }
           { this field is set by concattolist  }
@@ -511,7 +510,9 @@ implementation
          inherited create;
          nodetype:=t;
          blocktype:=block_type;
-         { this allows easier error tracing }
+         { updated by firstpass }
+         expectloc:=LOC_INVALID;
+         { updated by secondpass }
          location.loc:=LOC_INVALID;
          { save local info }
          fileinfo:=aktfilepos;
@@ -545,6 +546,8 @@ implementation
         ppufile.gettype(resulttype);
         ppufile.getsmallset(flags);
         { updated by firstpass }
+        expectloc:=LOC_INVALID;
+        { updated by secondpass }
         location.loc:=LOC_INVALID;
         registers32:=0;
         registersfpu:=0;
@@ -981,7 +984,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-04-22 09:52:00  peter
+  Revision 1.54  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.53  2003/04/22 09:52:00  peter
     * mark_write implemented for default with a warning in EXTDEBUG, this
       is required for error recovery where the left node can be also a non
       writable node

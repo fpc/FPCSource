@@ -70,7 +70,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symtype,symdef,symsym,symtable,defutil,defcmp,
-      cgbase,
+      cginfo,cgbase,
       htypechk,pass_1,
       nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,
       {$ifdef state_tracking}
@@ -165,8 +165,7 @@ implementation
                (right.resulttype.def.deftype=orddef) then
              begin
                { insert explicit typecast to s32bit }
-               left:=ctypeconvnode.create(left,s32bittype);
-               left.toggleflag(nf_explizit);
+               left:=ctypeconvnode.create_explicit(left,s32bittype);
                resulttypepass(left);
              end
             else
@@ -174,8 +173,7 @@ implementation
                 (right.resulttype.def.deftype=enumdef) then
               begin
                 { insert explicit typecast to s32bit }
-                right:=ctypeconvnode.create(right,s32bittype);
-                include(right.flags,nf_explizit);
+                right:=ctypeconvnode.create_explicit(right,s32bittype);
                 resulttypepass(right);
               end;
           end;
@@ -688,16 +686,14 @@ implementation
               begin
                 if torddef(left.resulttype.def).size>torddef(right.resulttype.def).size then
                  begin
-                   right:=ctypeconvnode.create(right,left.resulttype);
+                   right:=ctypeconvnode.create_explicit(right,left.resulttype);
                    ttypeconvnode(right).convtype:=tc_bool_2_int;
-                   right.toggleflag(nf_explizit);
                    resulttypepass(right);
                  end
                 else if torddef(left.resulttype.def).size<torddef(right.resulttype.def).size then
                  begin
-                   left:=ctypeconvnode.create(left,right.resulttype);
+                   left:=ctypeconvnode.create_explicit(left,right.resulttype);
                    ttypeconvnode(left).convtype:=tc_bool_2_int;
-                   left.toggleflag(nf_explizit);
                    resulttypepass(left);
                  end;
                 case nodetype of
@@ -1049,7 +1045,6 @@ implementation
                    inserttypeconv(right,clongstringtype);
                  if not(is_longstring(ld)) then
                    inserttypeconv(left,clongstringtype);
-                 location.loc:=LOC_CREFERENCE;
               end
             else
               begin
@@ -1239,25 +1234,24 @@ implementation
          { when the result is currency we need some extra code for
            multiplication and division. this should not be done when
            the muln or slashn node is created internally }
-         if not(nf_explizit in flags) and
+         if not(nf_is_currency in flags) and
             is_currency(resulttype.def) then
           begin
             case nodetype of
               slashn :
                 begin
                   hp:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultrealtype));
-                  include(hp.flags,nf_explizit);
+                  include(hp.flags,nf_is_currency);
                   result:=hp;
                 end;
               muln :
                 begin
                   hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultrealtype));
-                  include(hp.flags,nf_explizit);
+                  include(hp.flags,nf_is_currency);
                   result:=hp
                 end;
             end;
           end;
-
       end;
 
 
@@ -1282,7 +1276,6 @@ implementation
               { we reused the arguments }
               left := nil;
               right := nil;
-              firstpass(result);
             end;
           ltn,lten,gtn,gten,equaln,unequaln :
             begin
@@ -1308,16 +1301,14 @@ implementation
                       { compare the pointer with nil (for ansistrings etc), }
                       { faster than getting the length (JM)                 }
                       result:= caddnode.create(nodetype,
-                        ctypeconvnode.create(left,voidpointertype),
+                        ctypeconvnode.create_explicit(left,voidpointertype),
                         cpointerconstnode.create(0,voidpointertype));
-                      taddnode(result).left.toggleflag(nf_explizit);
                     end;
                   { left is reused }
                   left := nil;
                   { right isn't }
                   right.free;
                   right := nil;
-                  firstpass(result);
                   exit;
                 end;
               { no string constant -> call compare routine }
@@ -1329,7 +1320,6 @@ implementation
                 cordconstnode.create(0,s32bittype,false));
               left := nil;
               right := nil;
-              firstpass(result);
             end;
         end;
       end;
@@ -1386,8 +1376,7 @@ implementation
                   { type cast the value to pass as argument to a byte, }
                   { since that's what the helper expects               }
                   tsetelementnode(right).left :=
-                    ctypeconvnode.create(tsetelementnode(right).left,u8bittype);
-                  tsetelementnode(right).left.toggleflag(nf_explizit);
+                    ctypeconvnode.create_explicit(tsetelementnode(right).left,u8bittype);
                   { set the resulttype to the actual one (otherwise it's }
                   { "fpc_normal_set")                                    }
                   result := ccallnode.createinternres('fpc_set_create_element',
@@ -1403,22 +1392,19 @@ implementation
                      { convert the arguments to bytes, since that's what }
                      { the helper expects                               }
                      tsetelementnode(right).left :=
-                       ctypeconvnode.create(tsetelementnode(right).left,
+                       ctypeconvnode.create_explicit(tsetelementnode(right).left,
                        u8bittype);
-                     tsetelementnode(right).left.toggleflag(nf_explizit);
 
                      { convert the original set (explicitely) to an   }
                      { fpc_normal_set so we can pass it to the helper }
-                     left := ctypeconvnode.create(left,srsym.restype);
-                     left.toggleflag(nf_explizit);
+                     left := ctypeconvnode.create_explicit(left,srsym.restype);
 
                      { add a range or a single element? }
                      if assigned(tsetelementnode(right).right) then
                        begin
                          tsetelementnode(right).right :=
-                           ctypeconvnode.create(tsetelementnode(right).right,
+                           ctypeconvnode.create_explicit(tsetelementnode(right).right,
                            u8bittype);
-                         tsetelementnode(right).right.toggleflag(nf_explizit);
 
                          { create the call }
                          result := ccallnode.createinternres('fpc_set_set_range',
@@ -1442,13 +1428,11 @@ implementation
                      { add two sets }
 
                      { convert the sets to fpc_normal_set's }
-                     left := ctypeconvnode.create(left,srsym.restype);
-                     left.toggleflag(nf_explizit);
-                     right := ctypeconvnode.create(right,srsym.restype);
-                     right.toggleflag(nf_explizit);
                      result := ccallnode.createinternres('fpc_set_add_sets',
-                       ccallparanode.create(right,
-                       ccallparanode.create(left,nil)),resulttype);
+                       ccallparanode.create(
+                         ctypeconvnode.create_explicit(right,srsym.restype),
+                       ccallparanode.create(
+                         ctypeconvnode.create_explicit(left,srsym.restype),nil)),resulttype);
                      { remove reused parts from original node }
                      left := nil;
                      right := nil;
@@ -1458,12 +1442,8 @@ implementation
           subn,symdifn,muln:
             begin
               { convert the sets to fpc_normal_set's }
-              left := ctypeconvnode.create(left,srsym.restype);
-              left.toggleflag(nf_explizit);
-              right := ctypeconvnode.create(right,srsym.restype);
-              right.toggleflag(nf_explizit);
-              paras := ccallparanode.create(right,
-                ccallparanode.create(left,nil));
+              paras := ccallparanode.create(ctypeconvnode.create_explicit(right,srsym.restype),
+                ccallparanode.create(ctypeconvnode.create_explicit(left,srsym.restype),nil));
               case nodetype of
                 subn:
                   result := ccallnode.createinternres('fpc_set_sub_sets',
@@ -1482,7 +1462,6 @@ implementation
           else
             internalerror(200108311);
         end;
-        firstpass(result);
       end;
 
 
@@ -1515,7 +1494,6 @@ implementation
             left := nil;
             right := nil;
             { return firstpassed new node }
-            firstpass(result);
             exit;
           end;
 
@@ -1530,7 +1508,6 @@ implementation
           procname := 'fpc_mul_qword';
         result := ccallnode.createintern(procname,right);
         right := nil;
-        firstpass(result);
       end;
 
 
@@ -1582,11 +1559,10 @@ implementation
            ccallparanode.create(left,nil)));
         left:=nil;
         right:=nil;
-        
+
         { do we need to reverse the result }
         if notnode then
            result := cnotnode.create(result);
-        firstpass(result);
       end;
 {$endif cpufpemu}
 
@@ -1619,11 +1595,11 @@ implementation
              if assigned(result) then
                exit;
 {$endif cpufpemu}
-             location.loc:=LOC_FPUREGISTER;
+             expectloc:=LOC_FPUREGISTER;
              { maybe we need an integer register to save }
              { a reference                               }
-             if ((left.location.loc<>LOC_FPUREGISTER) or
-                 (right.location.loc<>LOC_FPUREGISTER)) and
+             if ((left.expectloc<>LOC_FPUREGISTER) or
+                 (right.expectloc<>LOC_FPUREGISTER)) and
                 (left.registers32=right.registers32) then
                calcregisters(self,1,1,0)
              else
@@ -1633,8 +1609,8 @@ implementation
               { calcregisters(0,2,0) will overestimate the number of    }
               { necessary registers (it will make it 3 in case one of   }
               { the operands is already in the fpu) (JM)                }
-              if ((left.location.loc <> LOC_FPUREGISTER) or
-                  (right.location.loc <> LOC_FPUREGISTER)) and
+              if ((left.expectloc<>LOC_FPUREGISTER) or
+                  (right.expectloc<>LOC_FPUREGISTER)) and
                  (registersfpu < 2) then
                 inc(registersfpu);
            end
@@ -1648,14 +1624,14 @@ implementation
                 if not(cs_full_boolean_eval in aktlocalswitches) and
                    (nodetype in [andn,orn]) then
                  begin
-                   location.loc:=LOC_JUMP;
+                   expectloc:=LOC_JUMP;
                    calcregisters(self,0,0,0);
                  end
                 else
                  begin
-                   location.loc := LOC_FLAGS;
-                   if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                      (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                   expectloc:=LOC_FLAGS;
+                   if (left.expectloc in [LOC_JUMP,LOC_FLAGS]) and
+                      (left.expectloc in [LOC_JUMP,LOC_FLAGS]) then
                      calcregisters(self,2,0,0)
                    else
                      calcregisters(self,1,0,0);
@@ -1667,7 +1643,7 @@ implementation
                begin
                  if nodetype=addn then
                   internalerror(200103291);
-                 location.loc := LOC_FLAGS;
+                 expectloc:=LOC_FLAGS;
                  calcregisters(self,1,0,0);
                end
               { is there a 64 bit type ? }
@@ -1677,18 +1653,18 @@ implementation
                  if assigned(result) then
                    exit;
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                    location.loc := LOC_REGISTER
+                    expectloc:=LOC_REGISTER
                   else
-                    location.loc := LOC_JUMP;
+                    expectloc:=LOC_JUMP;
                   calcregisters(self,2,0,0)
                end
              { is there a cardinal? }
              else if (torddef(ld).typ=u32bit) then
                begin
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                    location.loc := LOC_REGISTER
+                    expectloc:=LOC_REGISTER
                   else
-                    location.loc := LOC_FLAGS;
+                    expectloc:=LOC_FLAGS;
                  calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
                  if nodetype=muln then
@@ -1698,9 +1674,9 @@ implementation
              else
                begin
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                    location.loc := LOC_REGISTER
+                    expectloc:=LOC_REGISTER
                   else
-                    location.loc := LOC_FLAGS;
+                    expectloc:=LOC_FLAGS;
                  calcregisters(self,1,0,0);
                end;
            end
@@ -1711,7 +1687,7 @@ implementation
            begin
              if tsetdef(ld).settype=smallset then
               begin
-                 location.loc:=LOC_REGISTER;
+                 expectloc:=LOC_REGISTER;
                  { are we adding set elements ? }
                  if right.nodetype=setelementn then
                    calcregisters(self,2,0,0)
@@ -1723,7 +1699,7 @@ implementation
                  result := first_addset;
                  if assigned(result) then
                    exit;
-                 location.loc:=LOC_CREFERENCE;
+                 expectloc:=LOC_CREFERENCE;
                  calcregisters(self,0,0,0);
                  { here we call SET... }
                  if assigned(procinfo) then
@@ -1734,7 +1710,10 @@ implementation
          { compare pchar by addresses like BP/Delphi }
          else if is_pchar(ld) then
            begin
-             location.loc:=LOC_REGISTER;
+             if nodetype in [addn,subn,muln,andn,orn,xorn] then
+               expectloc:=LOC_REGISTER
+             else
+               expectloc:=LOC_FLAGS;
              calcregisters(self,1,0,0);
            end
 
@@ -1747,7 +1726,7 @@ implementation
                    if assigned(procinfo) then
                      procinfo.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
-                   location.loc:=LOC_REGISTER;
+                   expectloc:=LOC_REGISTER;
                 end
               else if is_ansistring(ld) then
                 begin
@@ -1755,19 +1734,18 @@ implementation
                    if assigned(procinfo) then
                      procinfo.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
-                   location.loc:=LOC_REGISTER;
+                   expectloc:=LOC_REGISTER;
                 end
               else if is_longstring(ld) then
                 begin
                    { this is only for add, the comparisaion is handled later }
-                   location.loc:=LOC_CREFERENCE;
+                   expectloc:=LOC_CREFERENCE;
                 end
               else
                 begin
                    if canbeaddsstringcharoptnode(self) then
                      begin
                        hp := genaddsstringcharoptnode(self);
-                       firstpass(hp);
                        pass_1 := hp;
                        exit;
                      end
@@ -1783,7 +1761,6 @@ implementation
                    if canbeaddsstringcsstringoptnode(self) then
                      begin
                        hp := genaddsstringcsstringoptnode(self);
-                       firstpass(hp);
                        pass_1 := hp;
                        exit;
                      end;
@@ -1801,15 +1778,18 @@ implementation
               if assigned(result) then
                 exit;
 {$endif cpufpemu}
-              location.loc:=LOC_FPUREGISTER;
+              if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                expectloc:=LOC_FPUREGISTER
+              else
+                expectloc:=LOC_FLAGS;
               calcregisters(self,0,1,0);
               { an add node always first loads both the left and the    }
               { right in the fpu before doing the calculation. However, }
               { calcregisters(0,2,0) will overestimate the number of    }
               { necessary registers (it will make it 3 in case one of   }
               { the operands is already in the fpu) (JM)                }
-              if ((left.location.loc <> LOC_FPUREGISTER) or
-                  (right.location.loc <> LOC_FPUREGISTER)) and
+              if ((left.expectloc<>LOC_FPUREGISTER) or
+                  (right.expectloc<>LOC_FPUREGISTER)) and
                  (registersfpu < 2) then
                 inc(registersfpu);
             end
@@ -1817,19 +1797,22 @@ implementation
          { pointer comperation and subtraction }
          else if (ld.deftype=pointerdef) then
             begin
-              location.loc:=LOC_REGISTER;
+              if nodetype in [addn,subn,muln,andn,orn,xorn] then
+                expectloc:=LOC_REGISTER
+              else
+                expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
            end
 
          else if is_class_or_interface(ld) then
             begin
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
             end
 
          else if (ld.deftype=classrefdef) then
             begin
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
             end
 
@@ -1837,7 +1820,7 @@ implementation
          else if ((ld.deftype=procvardef) and (rt=niln)) or
                  ((rd.deftype=procvardef) and (lt=niln)) then
             begin
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
             end
 
@@ -1847,14 +1830,14 @@ implementation
          else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) then
             begin
-              location.loc:=LOC_MMXREGISTER;
+              expectloc:=LOC_MMXREGISTER;
               calcregisters(self,0,0,1);
             end
 {$endif SUPPORT_MMX}
 
          else if (rd.deftype=pointerdef) or (ld.deftype=pointerdef) then
             begin
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
               calcregisters(self,1,0,0);
             end
 
@@ -1862,13 +1845,13 @@ implementation
                   (ld.deftype=procvardef) and
                   equal_defs(rd,ld) then
            begin
-             location.loc:=LOC_REGISTER;
+             expectloc:=LOC_FLAGS;
              calcregisters(self,1,0,0);
            end
 
          else if (ld.deftype=enumdef) then
            begin
-              location.loc := LOC_FLAGS;
+              expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
            end
 
@@ -1877,7 +1860,7 @@ implementation
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) then
             begin
-              location.loc:=LOC_MMXREGISTER;
+              expectloc:=LOC_MMXREGISTER;
               calcregisters(self,0,0,1);
             end
 {$endif SUPPORT_MMX}
@@ -1885,7 +1868,7 @@ implementation
          { the general solution is to convert to 32 bit int }
          else
            begin
-             location.loc:=LOC_REGISTER;
+             expectloc:=LOC_REGISTER;
              calcregisters(self,1,0,0);
            end;
       end;
@@ -1898,11 +1881,11 @@ implementation
     begin
     track_state_pass:=false;
     if left.track_state_pass(exec_known) then
-        begin
+      begin
         track_state_pass:=true;
         left.resulttype.def:=nil;
         do_resulttypepass(left);
-        end;
+      end;
     factval:=aktstate.find_fact(left);
     if factval<>nil then
         begin
@@ -1931,7 +1914,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-02-15 22:20:14  carl
+  Revision 1.82  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.81  2003/02/15 22:20:14  carl
    * bugfix for generic calls to FPU emulation code
 
   Revision 1.80  2003/02/12 22:10:07  carl

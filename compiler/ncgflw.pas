@@ -115,6 +115,8 @@ implementation
          otlabel,oflabel : tasmlabel;
 
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          objectlibrary.getlabel(lloop);
          objectlibrary.getlabel(lcont);
          objectlibrary.getlabel(lbreak);
@@ -190,6 +192,8 @@ implementation
          else_list : taasmoutput;
 
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          otlabel:=truelabel;
          oflabel:=falselabel;
          objectlibrary.getlabel(truelabel);
@@ -322,6 +326,8 @@ implementation
          cmp_const:Tconstexprint;
 
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
          objectlibrary.getlabel(aktcontinuelabel);
@@ -341,7 +347,7 @@ implementation
       {$ifndef newra}
          rg.cleartempgen;
       {$endif}
-         
+
          do_loopvar_at_end:=lnf_dont_mind_loopvar_on_exit in loopflags;
 
          secondpass(right);
@@ -679,8 +685,6 @@ implementation
     procedure tcgexitnode.pass_2;
 
       var
-         {op : tasmop;
-         s : topsize;}
          otlabel,oflabel : tasmlabel;
          cgsize : tcgsize;
          r,hreg : tregister;
@@ -689,6 +693,8 @@ implementation
       label
          do_jmp;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          include(flowcontrol,fc_exit);
          if assigned(left) then
            begin
@@ -829,6 +835,8 @@ implementation
 
     procedure tcgbreaknode.pass_2;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          include(flowcontrol,fc_break);
          if aktbreaklabel<>nil then
            begin
@@ -846,6 +854,8 @@ implementation
 
     procedure tcgcontinuenode.pass_2;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          include(flowcontrol,fc_continue);
          if aktcontinuelabel<>nil then
            begin
@@ -864,6 +874,8 @@ implementation
     procedure tcggotonode.pass_2;
 
        begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          load_all_regvars(exprasmlist);
          cg.a_jmp_always(exprasmlist,labsym.lab)
        end;
@@ -875,6 +887,8 @@ implementation
 
     procedure tcglabelnode.pass_2;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          load_all_regvars(exprasmlist);
          cg.a_label(exprasmlist,labelnr);
       {$ifndef newra}
@@ -890,6 +904,8 @@ implementation
 
     procedure tcgfailnode.pass_2;
       begin
+        location_reset(location,LOC_VOID,OS_NO);
+
         cg.a_jmp_always(exprasmlist,faillabel);
       end;
 
@@ -905,6 +921,8 @@ implementation
          href2: treference;
          r:Tregister;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          if assigned(left) then
            begin
               { multiple parameters? }
@@ -1024,6 +1042,8 @@ implementation
       label
          errorexit;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
          { this can be called recursivly }
@@ -1240,6 +1260,8 @@ implementation
          r:Tregister;
 
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          r.enum:=R_INTREGISTER;
          r.number:=NR_ACCUMULATOR;
          oldflowcontrol:=flowcontrol;
@@ -1374,6 +1396,8 @@ implementation
          r:Tregister;
 
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          { check if child nodes do a break/continue/exit }
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
@@ -1507,7 +1531,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-04-17 07:50:24  daniel
+  Revision 1.55  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.54  2003/04/17 07:50:24  daniel
     * Some work on interference graph construction
 
   Revision 1.53  2003/04/06 21:11:23  olle

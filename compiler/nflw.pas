@@ -223,7 +223,7 @@ implementation
     {$ifdef state_tracking}
       nstate,
     {$endif}
-      cgbase
+      cginfo,cgbase
       ;
 
     function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
@@ -394,6 +394,7 @@ implementation
          old_t_times : longint;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          old_t_times:=rg.t_times;
 
          { calc register weight }
@@ -557,6 +558,7 @@ implementation
          hp : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          old_t_times:=rg.t_times;
          rg.cleartempgen;
          firstpass(left);
@@ -760,6 +762,7 @@ implementation
       {$endif loopvar_dont_mind}
      begin
          result:=nil;
+         expectloc:=LOC_VOID;
          { Calc register weight }
          old_t_times:=rg.t_times;
          if not(cs_littlesize in aktglobalswitches) then
@@ -891,6 +894,7 @@ implementation
     function texitnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          if assigned(left) then
            begin
               firstpass(left);
@@ -926,6 +930,7 @@ implementation
     function tbreaknode.pass_1 : tnode;
       begin
         result:=nil;
+        expectloc:=LOC_VOID;
       end;
 
 
@@ -949,6 +954,7 @@ implementation
     function tcontinuenode.pass_1 : tnode;
       begin
         result:=nil;
+        expectloc:=LOC_VOID;
       end;
 
 
@@ -997,6 +1003,7 @@ implementation
     function tgotonode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          { check if }
          if assigned(labsym) and
             assigned(labsym.code) and
@@ -1090,6 +1097,7 @@ implementation
     function tlabelnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          if assigned(left) then
           begin
             rg.cleartempgen;
@@ -1205,6 +1213,7 @@ implementation
     function traisenode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          if assigned(left) then
            begin
               { first para must be a _class_ }
@@ -1256,6 +1265,7 @@ implementation
     function ttryexceptnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          rg.cleartempgen;
          firstpass(left);
          { on statements }
@@ -1308,6 +1318,7 @@ implementation
     function ttryfinallynode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          rg.cleartempgen;
          firstpass(left);
 
@@ -1372,6 +1383,7 @@ implementation
     function tonnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          rg.cleartempgen;
          registers32:=0;
          registersfpu:=0;
@@ -1427,7 +1439,8 @@ implementation
 
     function tfailnode.pass_1 : tnode;
       begin
-         result:=nil;
+        result:=nil;
+        expectloc:=LOC_VOID;
       end;
 
 
@@ -1453,7 +1466,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-03-20 15:54:46  peter
+  Revision 1.66  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.65  2003/03/20 15:54:46  peter
     * don't allow var and out parameters as for loop counter
 
   Revision 1.64  2003/01/09 21:52:37  peter

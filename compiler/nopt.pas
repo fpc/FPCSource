@@ -85,7 +85,7 @@ var
 implementation
 
 uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,
-     verbose, symdef, cgbase;
+     verbose, symdef, cginfo,cgbase;
 
 
 {*****************************************************************************
@@ -137,7 +137,7 @@ end;
 function taddsstringoptnode.pass_1: tnode;
 begin
   pass_1 := nil;
-  location.loc := LOC_CREFERENCE;
+  expectloc:= LOC_CREFERENCE;
   calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
   procinfo.flags:=procinfo.flags or pi_do_call;
@@ -278,7 +278,12 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-11-25 17:43:20  peter
+  Revision 1.13  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.12  2002/11/25 17:43:20  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -164,31 +164,27 @@ implementation
               else
                 begin
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                     internalerror(200304235);
+
+                   if calloption=pocall_inline then
                      begin
-                        CGMessage(type_e_mismatch)
+                     {$ifdef newra}
+                       tmpreg:=rg.getaddressregister(exprasmlist);
+                     {$else}
+                       tmpreg:=cg.get_scratch_reg_address(exprasmlist);
+                     {$endif newra}
+                       cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
+                       reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                     {$ifdef newra}
+                       rg.ungetregisterint(exprasmlist,tmpreg);
+                     {$else}
+                       cg.free_scratch_reg(exprasmlist,tmpreg);
+                     {$endif}
                      end
                    else
-                     begin
-                       if calloption=pocall_inline then
-                         begin
-                         {$ifdef newra}
-                           tmpreg:=rg.getaddressregister(exprasmlist);
-                         {$else}
-                           tmpreg:=cg.get_scratch_reg_address(exprasmlist);
-                         {$endif newra}
-                           cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
-                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
-                         {$ifdef newra}
-                           rg.ungetregisterint(exprasmlist,tmpreg);
-                         {$else}
-                           cg.free_scratch_reg(exprasmlist,tmpreg);
-                         {$endif}
-                         end
-                       else
-                         cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
-                       location_release(exprasmlist,left.location);
-                     end;
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                   location_release(exprasmlist,left.location);
                 end;
            end
          { handle call by reference parameter }
@@ -231,8 +227,6 @@ implementation
          else
            begin
               tempdeftype:=resulttype.def.deftype;
-              if tempdeftype=filedef then
-               CGMessage(cg_e_file_must_call_by_reference);
               { open array must always push the address, this is needed to
                 also push addr of small open arrays and with cdecl functions (PFV) }
               if (
@@ -410,15 +404,6 @@ implementation
                     begin
                       if is_object(methodpointer.resulttype.def) then
                        begin
-                         { object }
-                         { if an inherited con- or destructor should be  }
-                         { called in a con- or destructor then a warning }
-                         { will be made                                  }
-                         { con- and destructors need a pointer to the vmt }
-                         if not(aktprocdef.proctypeoption in
-                                [potype_constructor,potype_destructor]) then
-                           CGMessage(cg_w_member_cd_call_from_method);
-
                          { reset self when calling constructor from destructor }
                          if (procdefinition.proctypeoption=potype_constructor) and
                             assigned(aktprocdef) and
@@ -837,7 +822,9 @@ implementation
                   cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                 end;
             end;
-         end;
+         end
+        else
+         location_reset(location,LOC_VOID,OS_NO);
       end;
 
 
@@ -1213,7 +1200,9 @@ implementation
 
          { handle function results }
          if (not is_void(resulttype.def)) then
-          handle_return_value(inlined);
+          handle_return_value(inlined)
+         else
+          location_reset(location,LOC_VOID,OS_NO);
 
          { perhaps i/o check ? }
          if iolabel<>nil then
@@ -1476,7 +1465,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-04-22 14:33:38  peter
+  Revision 1.51  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.50  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.49  2003/04/22 13:47:08  peter

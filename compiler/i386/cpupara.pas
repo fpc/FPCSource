@@ -51,9 +51,9 @@ unit cpupara;
   implementation
 
     uses
-       systems,
+       systems,verbose,
        symconst,
-       verbose;
+       cginfo;
 
     function ti386paramanager.ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;
       begin
@@ -133,7 +133,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-22 14:33:38  peter
+  Revision 1.10  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.9  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.8  2003/01/08 18:43:57  daniel

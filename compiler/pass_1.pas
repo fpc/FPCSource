@@ -46,6 +46,7 @@ implementation
       cutils,globals,
       cgbase,symdef,
 {$ifdef extdebug}
+      cginfo,verbose,
       htypechk,
 {$endif extdebug}
 {$ifdef state_tracking}
@@ -168,7 +169,14 @@ implementation
                     p:=hp;
                   end;
                  if codegenerror then
-                  include(p.flags,nf_error);
+                  include(p.flags,nf_error)
+                 else
+                  begin
+{$ifdef EXTDEBUG}
+                    if (p.expectloc=LOC_INVALID) then
+                      Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
+{$endif EXTDEBUG}
+                  end;
                end;
               codegenerror:=codegenerror or oldcodegenerror;
               aktlocalswitches:=oldlocalswitches;
@@ -208,7 +216,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-12-17 22:19:33  peter
+  Revision 1.30  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.29  2002/12/17 22:19:33  peter
     * fixed pushing of records>8 bytes with stdcall
     * simplified hightree loading
 

@@ -85,7 +85,7 @@ implementation
       globtype,
       symconst,symtype,symtable,symdef,defutil,
       htypechk,pass_1,cpubase,
-      cgbase,
+      cginfo,cgbase,
       ncon,ncnv,ncal,nadd;
 
 {****************************************************************************
@@ -301,7 +301,7 @@ implementation
              result := first_moddiv64bitint;
              if assigned(result) then
                exit;
-             location.loc:=LOC_REGISTER;
+             expectloc:=LOC_REGISTER;
              calcregisters(self,2,0,0);
            end
          else
@@ -310,7 +310,7 @@ implementation
              if left.registers32<=right.registers32 then
               inc(registers32);
            end;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -414,7 +414,7 @@ implementation
 
          if (right.nodetype<>ordconstn) then
           inc(regs);
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
          calcregisters(self,regs,0,0);
       end;
 
@@ -515,33 +515,33 @@ implementation
 
          if (left.resulttype.def.deftype=floatdef) then
            begin
-              if (left.location.loc<>LOC_REGISTER) and
+              if (left.expectloc<>LOC_REGISTER) and
                  (registersfpu<1) then
                 registersfpu:=1;
-              location.loc:=LOC_FPUREGISTER;
+              expectloc:=LOC_FPUREGISTER;
            end
 {$ifdef SUPPORT_MMX}
          else if (cs_mmx in aktlocalswitches) and
            is_mmx_able_array(left.resulttype.def) then
              begin
-               if (left.location.loc<>LOC_MMXREGISTER) and
+               if (left.expectloc<>LOC_MMXREGISTER) and
                   (registersmmx<1) then
                  registersmmx:=1;
              end
 {$endif SUPPORT_MMX}
          else if is_64bitint(left.resulttype.def) then
            begin
-              if (left.location.loc<>LOC_REGISTER) and
+              if (left.expectloc<>LOC_REGISTER) and
                  (registers32<2) then
                 registers32:=2;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
            end
          else if (left.resulttype.def.deftype=orddef) then
            begin
-              if (left.location.loc<>LOC_REGISTER) and
+              if (left.expectloc<>LOC_REGISTER) and
                  (registers32<1) then
                 registers32:=1;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
            end;
       end;
 
@@ -678,24 +678,24 @@ implementation
          if codegenerror then
            exit;
 
-         location.loc:=left.location.loc;
+         expectloc:=left.expectloc;
          registers32:=left.registers32;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
          if is_boolean(resulttype.def) then
            begin
-             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+             if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
               begin
-                location.loc:=LOC_REGISTER;
+                expectloc:=LOC_REGISTER;
                 if (registers32<1) then
                  registers32:=1;
               end;
             { before loading it into flags we need to load it into
               a register thus 1 register is need PM }
 {$ifdef i386}
-             if left.location.loc<>LOC_JUMP then
-               location.loc:=LOC_FLAGS;
+             if left.expectloc<>LOC_JUMP then
+               expectloc:=LOC_FLAGS;
 {$endif def i386}
            end
          else
@@ -703,7 +703,7 @@ implementation
            if (cs_mmx in aktlocalswitches) and
              is_mmx_able_array(left.resulttype.def) then
              begin
-               if (left.location.loc<>LOC_MMXREGISTER) and
+               if (left.expectloc<>LOC_MMXREGISTER) and
                  (registersmmx<1) then
                  registersmmx:=1;
              end
@@ -711,19 +711,19 @@ implementation
 {$endif SUPPORT_MMX}
            if is_64bitint(left.resulttype.def) then
              begin
-                if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+                if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                  begin
-                   location.loc:=LOC_REGISTER;
+                   expectloc:=LOC_REGISTER;
                    if (registers32<2) then
                     registers32:=2;
                  end;
              end
          else if is_integer(left.resulttype.def) then
            begin
-              if (left.location.loc<>LOC_REGISTER) and
+              if (left.expectloc<>LOC_REGISTER) and
                  (registers32<1) then
                 registers32:=1;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
            end
       end;
 
@@ -748,7 +748,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-11-25 17:43:20  peter
+  Revision 1.45  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.44  2002/11/25 17:43:20  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

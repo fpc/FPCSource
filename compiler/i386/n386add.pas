@@ -324,17 +324,21 @@ interface
         { special cases for shortstrings, handled in pass_2 (JM) }
         { can't handle fpc_shortstr_compare with compilerproc either because it }
         { returns its results in the flags instead of in eax                    }
-        if (((nodetype = addn) and
-             is_shortstring(resulttype.def)) or
-            ((nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
-              not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
-                  ((right.nodetype=stringconstn) and (str_length(right)=0))) and
-             is_shortstring(left.resulttype.def))) then
+        if (nodetype = addn) and
+           is_shortstring(resulttype.def) then
+         begin
+           expectloc:=LOC_CREFERENCE;
+           calcregisters(self,0,0,0);
+           result := nil;
+           exit;
+         end
+        else
+         if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
+            is_shortstring(left.resulttype.def) and
+            not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
+               ((right.nodetype=stringconstn) and (str_length(right)=0))) then
           begin
-            if nodetype = addn then
-              location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def))
-            else
-              location_reset(location,LOC_FLAGS,OS_NO);
+            expectloc:=LOC_FLAGS;
             calcregisters(self,0,0,0);
             result := nil;
             exit;
@@ -403,7 +407,6 @@ interface
                         cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
                         tg.ungetiftemp(exprasmlist,right.location.reference);
                         rg.restoreusedintregisters(exprasmlist,pushed);
-                        location_copy(location,left.location);
                      end;
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
@@ -1650,7 +1653,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-04-22 10:09:35  daniel
+  Revision 1.63  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.62  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

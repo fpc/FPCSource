@@ -133,6 +133,7 @@ implementation
 
     procedure tcghnewnode.pass_2;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
          { completely resolved in first pass now }
       end;
 
@@ -381,6 +382,8 @@ implementation
         withlevel : longint = 0;
 {$endif GDB}
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          if assigned(left) then
             begin
                secondpass(left);
@@ -647,10 +650,12 @@ implementation
          pushedregs : tmaybesave;
       begin
          newsize:=def_cgsize(resulttype.def);
-         location_reset(location,LOC_REFERENCE,newsize);
-
          secondpass(left);
-         { we load the array reference to location }
+         if left.location.loc=LOC_CREFERENCE then
+           location_reset(location,LOC_CREFERENCE,newsize)
+         else
+           location_reset(location,LOC_REFERENCE,newsize);
+
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resulttype.def) or
@@ -659,10 +664,7 @@ implementation
               if nf_callunique in flags then
                 begin
                    if left.location.loc<>LOC_REFERENCE then
-                     begin
-                        CGMessage(cg_e_illegal_expression);
-                        exit;
-                     end;
+                     internalerror(200304236);
                    rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(1));
                    rg.saveintregvars(exprasmlist,all_intregisters);
@@ -855,8 +857,7 @@ implementation
                 end;
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                { should be internalerror! (JM) }
-                CGMessage(cg_e_illegal_expression);
+                internalerror(200304237);
               isjump:=(right.location.loc=LOC_JUMP);
               if isjump then
                begin
@@ -945,7 +946,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-22 13:47:08  peter
+  Revision 1.48  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.47  2003/04/22 13:47:08  peter
     * fixed C style array of const
     * fixed C array passing
     * fixed left to right with high parameters

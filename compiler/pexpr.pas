@@ -1048,7 +1048,7 @@ implementation
                     if tfuncretsym(p.procdef.funcretsym).funcretstate=vs_declared then
                       begin
                         tfuncretsym(p.procdef.funcretsym).funcretstate:=vs_declared_and_first_found;
-                        include(p1.flags,nf_is_first_funcret);
+                        include(p1.flags,nf_first_use);
                       end;
                     exit;
                  end;
@@ -1123,7 +1123,7 @@ implementation
                     p1:=cloadnode.create(srsym,srsymtable);
                     if tvarsym(srsym).varstate=vs_declared then
                      begin
-                       include(p1.flags,nf_first);
+                       include(p1.flags,nf_first_use);
                        { set special between first loaded until checked in resulttypepass }
                        tvarsym(srsym).varstate:=vs_declared_and_first_found;
                      end;
@@ -1153,8 +1153,7 @@ implementation
                           consume(_LKLAMMER);
                           p1:=comp_expr(true);
                           consume(_RKLAMMER);
-                          p1:=ctypeconvnode.create(p1,htype);
-                          include(p1.flags,nf_explizit);
+                          p1:=ctypeconvnode.create_explicit(p1,htype);
                         end
                        else { not LKLAMMER }
                         if (token=_POINT) and
@@ -1935,8 +1934,7 @@ implementation
                   consume(_LKLAMMER);
                   p1:=comp_expr(true);
                   consume(_RKLAMMER);
-                  p1:=ctypeconvnode.create(p1,htype);
-                  include(p1.flags,nf_explizit);
+                  p1:=ctypeconvnode.create_explicit(p1,htype);
                   { handle postfix operators here e.g. string(a)[10] }
                   again:=true;
                   postfixoperators(p1,again);
@@ -1955,8 +1953,7 @@ implementation
                   consume(_LKLAMMER);
                   p1:=comp_expr(true);
                   consume(_RKLAMMER);
-                  p1:=ctypeconvnode.create(p1,htype);
-                  include(p1.flags,nf_explizit);
+                  p1:=ctypeconvnode.create_explicit(p1,htype);
                   { handle postfix operators here e.g. string(a)[10] }
                   again:=true;
                   postfixoperators(p1,again);
@@ -2351,7 +2348,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-04-11 15:49:01  peter
+  Revision 1.108  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.107  2003/04/11 15:49:01  peter
     * default property also increased the reference count for the
       property symbol
 

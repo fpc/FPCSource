@@ -118,7 +118,7 @@ implementation
       verbose,
       symconst,symdef,symsym,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,cpubase,nld,rgobj,cgbase;
+      nbas,ncnv,ncon,cpubase,nld,rgobj,cginfo,cgbase;
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -165,7 +165,7 @@ implementation
          if codegenerror then
           exit;
 
-         location_copy(location,left.location);
+         expectloc:=left.expectloc;
          calcregisters(self,0,0,0);
       end;
 
@@ -321,7 +321,7 @@ implementation
     function tinnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
 
          firstpass(right);
          firstpass(left);
@@ -337,7 +337,7 @@ implementation
            begin
               { a smallset needs maybe an misc. register }
               if (left.nodetype<>ordconstn) and
-                not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
+                not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
                 (right.registers32<1) then
                 inc(registers32);
            end;
@@ -387,7 +387,7 @@ implementation
          if codegenerror then
            exit;
         left_right_max;
-        location_copy(location,left.location);
+        expectloc:=left.expectloc;
       end;
 
 
@@ -588,6 +588,7 @@ implementation
          hp : tstatementnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          { evalutes the case expression }
          rg.cleartempgen;
          firstpass(left);
@@ -707,7 +708,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-12-07 14:12:56  carl
+  Revision 1.39  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.38  2002/12/07 14:12:56  carl
     - removed unused variable
 
   Revision 1.37  2002/11/27 02:37:14  peter

@@ -886,7 +886,7 @@ implementation
            begin
              if (registersfpu < 1) then
                registersfpu := 1;
-             location.loc:=LOC_FPUREGISTER;
+             expectloc:=LOC_FPUREGISTER;
            end
 {$ifdef SUPPORT_MMX}
          else if (cs_mmx in aktlocalswitches) and
@@ -902,14 +902,14 @@ implementation
               if (left.location.loc<>LOC_REGISTER) and
                  (registers32<2) then
                 registers32:=2;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
            end
          else if (left.resulttype.def.deftype=orddef) then
            begin
               if (left.location.loc<>LOC_REGISTER) and
                  (registers32<1) then
                 registers32:=1;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
            end;
       end;
 
@@ -1071,46 +1071,48 @@ implementation
          if is_boolean(resulttype.def) then
           begin
             opsize:=def_opsize(resulttype.def);
-            { the second pass could change the location of left }
-            { if it is a register variable, so we've to do      }
-            { this before the case statement                    }
-            if left.location.loc<>LOC_JUMP then
-             secondpass(left);
 
-            case left.location.loc of
-              LOC_JUMP :
-                begin
-                  location_reset(location,LOC_JUMP,OS_NO);
-                  hl:=truelabel;
-                  truelabel:=falselabel;
-                  falselabel:=hl;
-                  secondpass(left);
-                  maketojumpbool(exprasmlist,left,lr_load_regvars);
-                  hl:=truelabel;
-                  truelabel:=falselabel;
-                  falselabel:=hl;
-                end;
-              LOC_FLAGS :
-                begin
-                  location_release(exprasmlist,left.location);
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags:=flagsinvers[left.location.resflags];
-                end;
-              LOC_CONSTANT,
-              LOC_REGISTER,
-              LOC_CREGISTER,
-              LOC_REFERENCE,
-              LOC_CREFERENCE :
-                begin
-                  location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
-                  emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
-                  location_release(exprasmlist,left.location);
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags:=F_E;
-                end;
-             else
-                internalerror(200203224);
-            end;
+            if left.expectloc=LOC_JUMP then
+             begin
+               location_reset(location,LOC_JUMP,OS_NO);
+               hl:=truelabel;
+               truelabel:=falselabel;
+               falselabel:=hl;
+               secondpass(left);
+               maketojumpbool(exprasmlist,left,lr_load_regvars);
+               hl:=truelabel;
+               truelabel:=falselabel;
+               falselabel:=hl;
+             end
+            else
+             begin
+               { the second pass could change the location of left }
+               { if it is a register variable, so we've to do      }
+               { this before the case statement                    }
+               secondpass(left);
+               case left.expectloc of
+                 LOC_FLAGS :
+                   begin
+                     location_release(exprasmlist,left.location);
+                     location_reset(location,LOC_FLAGS,OS_NO);
+                     location.resflags:=flagsinvers[left.location.resflags];
+                   end;
+                 LOC_CONSTANT,
+                 LOC_REGISTER,
+                 LOC_CREGISTER,
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
+                   begin
+                     location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
+                     emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
+                     location_release(exprasmlist,left.location);
+                     location_reset(location,LOC_FLAGS,OS_NO);
+                     location.resflags:=F_E;
+                   end;
+                else
+                   internalerror(200203224);
+               end;
+             end;
           end
 {$ifdef SUPPORT_MMX}
          else
@@ -1181,7 +1183,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-04-22 14:33:38  peter
+  Revision 1.53  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.52  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.51  2003/04/22 10:09:35  daniel

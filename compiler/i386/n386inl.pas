@@ -60,7 +60,7 @@ interface
 implementation
 
     uses
-      systems,
+      systems,globtype,
       cutils,verbose,
       aasmtai,
       cginfo,cgbase,pass_2,
@@ -75,7 +75,7 @@ implementation
 
      function ti386inlinenode.first_pi : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registersfpu:=1;
         first_pi := nil;
       end;
@@ -83,7 +83,7 @@ implementation
 
      function ti386inlinenode.first_arctan_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
@@ -94,7 +94,7 @@ implementation
 
      function ti386inlinenode.first_abs_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -105,7 +105,7 @@ implementation
 
      function ti386inlinenode.first_sqr_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -116,7 +116,7 @@ implementation
 
      function ti386inlinenode.first_sqrt_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -127,7 +127,7 @@ implementation
 
      function ti386inlinenode.first_ln_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
@@ -138,7 +138,7 @@ implementation
 
      function ti386inlinenode.first_cos_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -149,7 +149,7 @@ implementation
 
      function ti386inlinenode.first_sin_real : tnode;
       begin
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
         registers32:=left.registers32;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -346,7 +346,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-04-22 14:33:38  peter
+  Revision 1.59  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.58  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.57  2003/04/22 10:09:35  daniel

@@ -172,7 +172,7 @@ implementation
 
     uses
       cutils,verbose,systems,
-      defutil,cpubase,nld;
+      defutil,cpubase,cginfo,nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -398,7 +398,7 @@ implementation
     function trealconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_CREFERENCE;
+         expectloc:=LOC_CREFERENCE;
          { needs to be loaded into an FPU register }
          registersfpu:=1;
       end;
@@ -476,10 +476,7 @@ implementation
     function tordconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if is_64bitint(resulttype.def) then
-          location.loc:=LOC_CREFERENCE
-         else
-          location.loc:=LOC_CONSTANT;
+         expectloc:=LOC_CONSTANT;
       end;
 
     function tordconstnode.docompare(p: tnode): boolean;
@@ -555,7 +552,7 @@ implementation
     function tpointerconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_CONSTANT;
+         expectloc:=LOC_CONSTANT;
       end;
 
     function tpointerconstnode.docompare(p: tnode): boolean;
@@ -698,7 +695,11 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        location.loc:=LOC_CREFERENCE;
+        if (st_type in [st_ansistring,st_widestring]) and
+           (len=0) then
+         expectloc:=LOC_CONSTANT
+        else
+         expectloc:=LOC_CREFERENCE;
       end;
 
     function tstringconstnode.getpcharcopy : pchar;
@@ -803,9 +804,9 @@ implementation
       begin
          result:=nil;
          if tsetdef(resulttype.def).settype=smallset then
-          location.loc:=LOC_CONSTANT
+          expectloc:=LOC_CONSTANT
          else
-          location.loc:=LOC_CREFERENCE;
+          expectloc:=LOC_CREFERENCE;
       end;
 
 {$ifdef oldset}
@@ -854,7 +855,7 @@ implementation
     function tnilnode.pass_1 : tnode;
       begin
         result:=nil;
-        location.loc:=LOC_CONSTANT;
+        expectloc:=LOC_CONSTANT;
       end;
 
 {*****************************************************************************
@@ -902,7 +903,7 @@ implementation
     function tguidconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_CREFERENCE;
+         expectloc:=LOC_CREFERENCE;
       end;
 
     function tguidconstnode.docompare(p: tnode): boolean;
@@ -924,7 +925,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-11-25 17:43:18  peter
+  Revision 1.46  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.45  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -107,6 +107,8 @@ implementation
               end;
             varsym :
                begin
+                  if (tvarsym(symtableentry).varspez=vs_const) then
+                    location_reset(location,LOC_CREFERENCE,newsize);
                   symtabletype:=symtable.symtabletype;
                   hregister.enum:=R_NO;
                   { C variable }
@@ -285,7 +287,10 @@ implementation
                            { we need to load only an address }
                            location.size:=OS_ADDR;
                            cg.a_load_loc_reg(exprasmlist,location,hregister);
-                           location_reset(location,LOC_REFERENCE,newsize);
+                           if tvarsym(symtableentry).varspez=vs_const then
+                            location_reset(location,LOC_CREFERENCE,newsize)
+                           else
+                            location_reset(location,LOC_REFERENCE,newsize);
                            location.reference.base:=hregister;
                        end;
                     end;
@@ -312,9 +317,10 @@ implementation
                          LOC_CREGISTER,
                          LOC_REGISTER:
                            begin
-                              hregister:=left.location.register;
+                              { this is not possible for objects }
                               if is_object(left.resulttype.def) then
-                                CGMessage(cg_e_illegal_expression);
+                                internalerror(200304234);
+                              hregister:=left.location.register;
                            end;
                          LOC_CREFERENCE,
                          LOC_REFERENCE:
@@ -407,6 +413,8 @@ implementation
          r:Tregister;
 
       begin
+        location_reset(location,LOC_VOID,OS_NO);
+
         otlabel:=truelabel;
         oflabel:=falselabel;
         objectlibrary.getlabel(truelabel);
@@ -430,8 +438,8 @@ implementation
         }
 
         { Try to determine which side to calculate first,  }
-        if (right.location.loc<>LOC_FLAGS) and
-           ((right.location.loc=LOC_JUMP) or
+        if (right.expectloc<>LOC_FLAGS) and
+           ((right.expectloc=LOC_JUMP) or
             (right.nodetype=calln) or
             (right.registers32>=left.registers32)) then
          begin
@@ -497,14 +505,6 @@ implementation
            if codegenerror then
              exit;
          end;
-
-        if not(left.location.loc in [LOC_REFERENCE,LOC_CFPUREGISTER,
-                                     {$ifdef SUPPORT_MMX}LOC_CMMXREGISTER,{$endif}
-                                     LOC_CREGISTER]) then
-          begin
-             CGMessage(cg_e_illegal_expression);
-             exit;
-          end;
 
         releaseright:=true;
 
@@ -666,6 +666,7 @@ implementation
                 {$ifndef newra}
                   maybe_save(exprasmlist,left.registers32,right.location,pushedregs);
                 {$endif}
+                  include(left.flags,nf_allow_multi_pass2);
                   secondpass(left);
                 {$ifndef newra}
                   maybe_restore(exprasmlist,right.location,pushedregs);
@@ -794,7 +795,10 @@ implementation
          elesize:=8
         else
          elesize:=tarraydef(resulttype.def).elesize;
-        location_reset(location,LOC_REFERENCE,OS_NO);
+        if nf_cargs in flags then
+         location_reset(location,LOC_VOID,OS_NO)
+        else
+         location_reset(location,LOC_CREFERENCE,OS_NO);
         if not(nf_cargs in flags) then
          begin
            { Allocate always a temp, also if no elements are required, to
@@ -1002,7 +1006,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-04-22 10:09:35  daniel
+  Revision 1.49  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.48  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

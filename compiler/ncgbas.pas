@@ -66,7 +66,7 @@ interface
       aasmbase,aasmtai,aasmcpu,symsym,
       cpubase,
       nflw,pass_2,
-      cgbase,cgobj,tgobj,rgobj
+      cgbase,cginfo,cgobj,tgobj,rgobj
       ;
 
 {*****************************************************************************
@@ -75,6 +75,8 @@ interface
 
     procedure tcgnothingnode.pass_2;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          { avoid an abstract rte }
       end;
 
@@ -85,21 +87,23 @@ interface
 
     procedure tcgstatementnode.pass_2;
       var
-         hp : tnode;
+         hp : tstatementnode;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          hp:=self;
          while assigned(hp) do
           begin
-            if assigned(tstatementnode(hp).left) then
+            if assigned(hp.left) then
              begin
              {$ifndef newra}
                rg.cleartempgen;
              {$endif newra}
-               secondpass(tstatementnode(hp).left);
+               secondpass(hp.left);
                { Compiler inserted blocks can return values }
-               location_copy(location,tstatementnode(hp).left.location);
+               location_copy(hp.location,hp.left.location);
              end;
-            hp:=tstatementnode(hp).right;
+            hp:=tstatementnode(hp.right);
           end;
       end;
 
@@ -129,6 +133,8 @@ interface
         i : longint;
         skipnode : boolean;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          if inlining_procedure then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
@@ -219,13 +225,28 @@ interface
 *****************************************************************************}
 
     procedure tcgblocknode.pass_2;
+      var
+        hp : tstatementnode;
       begin
+        location_reset(location,LOC_VOID,OS_NO);
+
         { do second pass on left node }
         if assigned(left) then
          begin
-           secondpass(left);
-           { Compiler inserted blocks can return values }
-           location_copy(location,left.location);
+           hp:=tstatementnode(left);
+           while assigned(hp) do
+            begin
+              if assigned(hp.left) then
+               begin
+               {$ifndef newra}
+                 rg.cleartempgen;
+               {$endif newra}
+                 secondpass(hp.left);
+                 location_copy(hp.location,hp.left.location);
+               end;
+              location_copy(location,hp.location);
+              hp:=tstatementnode(hp.right);
+            end;
          end;
       end;
 
@@ -237,6 +258,8 @@ interface
       var
         temptype : ttemptype;
       begin
+        location_reset(location,LOC_VOID,OS_NO);
+
         { if we're secondpassing the same tcgtempcreatenode twice, we have a bug }
         if tempinfo^.valid then
           internalerror(200108222);
@@ -272,6 +295,8 @@ interface
 
     procedure tcgtempdeletenode.pass_2;
       begin
+        location_reset(location,LOC_VOID,OS_NO);
+
         if release_to_normal then
           tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal)
         else
@@ -290,7 +315,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-04-17 07:50:24  daniel
+  Revision 1.31  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.30  2003/04/17 07:50:24  daniel
     * Some work on interference graph construction
 
   Revision 1.29  2003/03/28 19:16:56  peter

@@ -65,7 +65,7 @@ implementation
       begin
          result:=nil;
          { this is the only difference from the generic version }
-         location.loc:=LOC_FLAGS;
+         expectloc:=LOC_FLAGS;
 
          firstpass(right);
          firstpass(left);
@@ -443,7 +443,6 @@ implementation
                   end;
                   { simply to indicate EDI is deallocated here too (JM) }
                   rg.ungetregisterint(exprasmlist,hr);
-                  location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
                 end;
              end
@@ -455,15 +454,10 @@ implementation
                   objectlibrary.getlabel(l);
                   objectlibrary.getlabel(l2);
 
-                  { Is this treated in firstpass ?? }
+                  { load constants to a register }
                   if left.nodetype=ordconstn then
-                    begin
-                      hr:=rg.getregisterint(exprasmlist,OS_INT);
-                      left.location.loc:=LOC_REGISTER;
-                      left.location.register:=hr;
-                      emit_const_reg(A_MOV,S_L,
-                            tordconstnode(left).value,hr);
-                    end;
+                    location_force_reg(exprasmlist,left.location,OS_INT,true);
+
                   case left.location.loc of
                      LOC_REGISTER,
                      LOC_CREGISTER:
@@ -724,7 +718,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-04-22 14:33:38  peter
+  Revision 1.54  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.53  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.52  2003/04/22 10:09:35  daniel

@@ -401,7 +401,7 @@ implementation
     function tloadnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_REFERENCE;
+         expectloc:=LOC_REFERENCE;
          registers32:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -419,7 +419,7 @@ implementation
                       { we use ansistrings so no fast exit here }
                       if assigned(procinfo) then
                         procinfo.no_fast_exit:=true;
-                      location.loc:=LOC_CREFERENCE;
+                      expectloc:=LOC_CREFERENCE;
                    end;
               end;
             varsym :
@@ -438,7 +438,7 @@ implementation
                         end;
                      end;
                    if (tvarsym(symtableentry).varspez=vs_const) then
-                     location.loc:=LOC_CREFERENCE;
+                     expectloc:=LOC_CREFERENCE;
                    { we need a register for call by reference parameters }
                    if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                       ((tvarsym(symtableentry).varspez=vs_const) and
@@ -706,7 +706,7 @@ implementation
         { if its not explicit, and only if the values are       }
         { ordinals, enumdef and floatdef                        }
         if (right.nodetype = typeconvn) and
-           not (nf_explizit in ttypeconvnode(right).flags) then
+           not (nf_explicit in ttypeconvnode(right).flags) then
          begin
             if assigned(left.resulttype.def) and
               (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) then
@@ -745,6 +745,7 @@ implementation
 
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
 
          firstpass(left);
          firstpass(right);
@@ -846,7 +847,7 @@ implementation
     function tfuncretnode.pass_1 : tnode;
       begin
          result:=nil;
-         location.loc:=LOC_REFERENCE;
+         expectloc:=LOC_REFERENCE;
          if paramanager.ret_in_param(resulttype.def,tprocdef(funcretsym.owner.defowner).proccalloption) or
             (lexlevel<>funcretsym.owner.symtablelevel) then
            registers32:=1;
@@ -888,7 +889,7 @@ implementation
       begin
         firstpass(left);
         firstpass(right);
-        location.loc := LOC_CREFERENCE;
+        expectloc:=LOC_CREFERENCE;
         calcregisters(self,0,0,0);
         result:=nil;
       end;
@@ -1079,21 +1080,21 @@ implementation
               chp.flags := chp.flags+orgflags;
               include(chp.flags,nf_cargs);
               include(chp.flags,nf_cargswap);
-              chp.location.loc:=LOC_CREFERENCE;
+              chp.expectloc:=LOC_CREFERENCE;
               calcregisters(chp,0,0,0);
               chp.resulttype:=htype;
               result:=chp;
               exit;
             end;
          end;
-        { Calculate registers }
-        location.loc:=LOC_CREFERENCE;
-        calcregisters(self,0,0,0);
-        { C Arguments are pushed on the stack and
-          are not accesible after the push. This must be done
-          after calcregisters, because that needs a valid location }
+        { C style has pushed everything on the stack, so
+          there is no return value }
         if (nf_cargs in flags) then
-          location.loc:=LOC_INVALID;
+         expectloc:=LOC_VOID
+        else
+         expectloc:=LOC_CREFERENCE;
+        { Calculate registers }
+        calcregisters(self,0,0,0);
       end;
 
 
@@ -1152,6 +1153,7 @@ implementation
     function ttypenode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          { a typenode can't generate code, so we give here
            an error. Else it'll be an abstract error in pass_2.
            Only when the allowed flag is set we don't generate
@@ -1226,7 +1228,7 @@ implementation
     function trttinode.pass_1 : tnode;
       begin
         result:=nil;
-        location.loc:=LOC_CREFERENCE;
+        expectloc:=LOC_CREFERENCE;
       end;
 
 
@@ -1257,7 +1259,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-04-11 15:01:23  peter
+  Revision 1.84  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.83  2003/04/11 15:01:23  peter
     * fix bug 2438
 
   Revision 1.82  2003/03/28 19:16:56  peter

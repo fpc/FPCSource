@@ -180,7 +180,7 @@ implementation
       symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,cpubase,
       nbas,ncnv,nld,ninl,nadd,ncon,nmem,
-      rgobj,cgbase
+      rgobj,cginfo,cgbase
       ;
 
 type
@@ -720,6 +720,11 @@ type
                  aktfilepos:=left.fileinfo;
                  CGMessage(type_e_strict_var_string_violation);
                end;
+
+             { File types are only allowed for var parameters }
+             if (paraitem.paratype.def.deftype=filedef) and
+                (paraitem.paratyp<>vs_var) then
+               CGMessage(cg_e_file_must_call_by_reference);
 
              { Handle formal parameters separate }
              if (paraitem.paratype.def.deftype=formaldef) then
@@ -1889,12 +1894,24 @@ type
                while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                 hpt:=tunarynode(hpt).left;
 
-               if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
-                  assigned(symtableproc) and (symtableproc.symtabletype=withsymtable) and
-                  not twithsymtable(symtableproc).direct_with then
-                 begin
-                    CGmessage(cg_e_cannot_call_cons_dest_inside_with);
-                 end; { Is accepted by Delphi !! }
+               if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
+                begin
+                  { if an inherited con- or destructor should be  }
+                  { called in a con- or destructor then a warning }
+                  { will be made                                  }
+                  { con- and destructors need a pointer to the vmt }
+                  if is_object(methodpointer.resulttype.def) and
+                     not(aktprocdef.proctypeoption in
+                         [potype_constructor,potype_destructor]) then
+                    CGMessage(cg_w_member_cd_call_from_method);
+
+                  if assigned(symtableproc) and
+                     (symtableproc.symtabletype=withsymtable) and
+                     (not twithsymtable(symtableproc).direct_with) then
+                    begin
+                       CGmessage(cg_e_cannot_call_cons_dest_inside_with);
+                    end; { Is accepted by Delphi !! }
+                end;
 
                { R.Init then R will be initialized by the constructor,
                  Also allow it for simple loads }
@@ -1951,9 +1968,6 @@ type
       label
         errorexit;
       begin
-         { the default is nothing to return }
-         location.loc:=LOC_INVALID;
-
          result:=nil;
          inlined:=false;
          inlinecode := nil;
@@ -2032,19 +2046,19 @@ type
                move them to memory after ... }
              if (resulttype.def.deftype=recorddef) then
               begin
-                location.loc:=LOC_CREFERENCE;
+                expectloc:=LOC_CREFERENCE;
               end
              else
               if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
                begin
-                 location.loc:=LOC_CREFERENCE;
+                 expectloc:=LOC_CREFERENCE;
                end
              else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resulttype.def) or
                  is_widestring(resulttype.def) then
                begin
-                 location.loc:=LOC_CREFERENCE;
+                 expectloc:=LOC_CREFERENCE;
                  registers32:=1;
                end
              else
@@ -2060,15 +2074,15 @@ type
                           if assigned(methodpointer) and
                              (methodpointer.resulttype.def.deftype=classrefdef) then
                            begin
-                             location.loc:=LOC_REGISTER;
+                             expectloc:=LOC_REGISTER;
                              registers32:=1;
                            end
                           else
-                           location.loc:=LOC_FLAGS;
+                           expectloc:=LOC_FLAGS;
                         end
                        else
                         begin
-                          location.loc:=LOC_REGISTER;
+                          expectloc:=LOC_REGISTER;
                           if is_64bitint(resulttype.def) then
                             registers32:=2
                           else
@@ -2077,7 +2091,7 @@ type
                      end;
                    floatdef :
                      begin
-                       location.loc:=LOC_FPUREGISTER;
+                       expectloc:=LOC_FPUREGISTER;
 {$ifdef cpufpemu}
                        if (cs_fp_emulation in aktmoduleswitches) then
                          registers32:=1
@@ -2092,12 +2106,17 @@ type
                      end;
                    else
                      begin
-                       location.loc:=LOC_REGISTER;
+                       expectloc:=LOC_REGISTER;
                        registers32:=1;
                      end;
                  end;
-               end;
-           end;
+               end
+             else
+               expectloc:=LOC_VOID;
+           end
+         else
+           expectloc:=LOC_VOID;
+
 {$ifdef m68k}
          { we need one more address register for virtual calls on m68k }
          if (po_virtualmethod in procdefinition.procoptions) then
@@ -2372,7 +2391,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2003-04-22 09:53:33  peter
+  Revision 1.139  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.138  2003/04/22 09:53:33  peter
     * fix insert_typeconv to handle new varargs which don't have a
       paraitem set
 

@@ -62,7 +62,7 @@ interface
 implementation
 
    uses
-      verbose,systems,
+      verbose,systems,globtype,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       ncon,ncal,ncnv,
@@ -80,7 +80,7 @@ implementation
         first_int_to_real:=nil;
          if registersfpu<1 then
           registersfpu:=1;
-        location.loc:=LOC_FPUREGISTER;
+        expectloc:=LOC_FPUREGISTER;
       end;
 
 
@@ -242,7 +242,7 @@ implementation
           exit;
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
-         if (nf_explizit in flags) and
+         if (nf_explicit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
@@ -453,7 +453,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-04-22 10:09:35  daniel
+  Revision 1.59  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.58  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

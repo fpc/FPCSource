@@ -116,8 +116,8 @@ unit rgobj;
       {In the register allocator we keep track of move instructions.
        These instructions are moved between five linked lists. There
        is also a linked list per register to keep track about the moves
-       it is associated with. Because we need to determine quickly in 
-       which of the five lists it is we add anu enumeradtion to each 
+       it is associated with. Because we need to determine quickly in
+       which of the five lists it is we add anu enumeradtion to each
        move instruction.}
 
       Tmoveset=(ms_coalesced_moves,ms_constrained_moves,ms_frozen_moves,
@@ -412,7 +412,7 @@ unit rgobj;
      function references_equal(sref : treference;dref : treference) : boolean;
 
      { tlocation handling }
-     procedure location_reset(var l : tlocation;lt:TLoc;lsize:TCGSize);
+     procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
      procedure location_release(list: taasmoutput; const l : tlocation);
      procedure location_freetemp(list: taasmoutput; const l : tlocation);
      procedure location_copy(var destloc,sourceloc : tlocation);
@@ -1429,7 +1429,7 @@ unit rgobj;
     begin
       if movelist[n]<>nil then
         for i:=0 to movelist[n]^.count-1 do
-          begin 
+          begin
             m:=movelist[n]^.data[i];
             if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
               begin
@@ -1714,7 +1714,7 @@ unit rgobj;
                 worklist_moves.remove(m);
               Tmoveins(m).moveset:=ms_frozen_moves;
               frozen_moves.insert(m);
-        
+
               if not(move_related(v)) and (degree[v]<cpu_registers) then
                 begin
                   delete(freezeworklist,pos(char(v),freezeworklist),1);
@@ -1900,7 +1900,7 @@ unit rgobj;
                                   TLocation
 ****************************************************************************}
 
-    procedure location_reset(var l : tlocation;lt:TLoc;lsize:TCGSize);
+    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
       begin
         FillChar(l,sizeof(tlocation),0);
         l.loc:=lt;
@@ -1969,7 +1969,12 @@ end.
 
 {
   $Log$
-  Revision 1.36  2003-04-22 10:09:35  daniel
+  Revision 1.37  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.36  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

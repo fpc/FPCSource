@@ -42,6 +42,7 @@ type
 implementation
 
 uses
+  globtype,
   pass_1,defutil,htypechk,
   symdef,paramgr,
   aasmbase,aasmtai,
@@ -76,7 +77,7 @@ begin
   firstpass(right);
   if codegenerror then
     exit;
-  location.loc := LOC_CREFERENCE;
+  expectloc:=LOC_CREFERENCE;
   if not is_constcharnode(right) then
     { it's not sure we need the register, but we can't know it here yet }
     calcregisters(self,2,0,0)
@@ -249,7 +250,12 @@ end.
 
 {
   $Log$
-  Revision 1.30  2003-04-22 14:33:38  peter
+  Revision 1.31  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.30  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.29  2003/03/28 19:16:57  peter

@@ -36,7 +36,7 @@ interface
 
 uses
   cutils,cclasses,
-  globals,
+  globtype,globals,
   cpuinfo,
   aasmbase,
   cginfo
@@ -396,32 +396,15 @@ uses
 *****************************************************************************}
 
     type
-      TLoc=(
-        LOC_INVALID,      { added for tracking problems}
-        LOC_CONSTANT,     { constant value }
-        LOC_JUMP,         { boolean results only, jump to false or true label }
-        LOC_FLAGS,        { boolean results only, flags are set }
-        LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
-        LOC_REFERENCE,    { in memory value }
-        LOC_REGISTER,     { in a processor register }
-        LOC_CREGISTER,    { Constant register which shouldn't be modified }
-        LOC_FPUREGISTER,  { FPU stack }
-        LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
-        LOC_MMXREGISTER,  { MMX register }
-        LOC_CMMXREGISTER, { MMX register variable }
-        LOC_SSEREGISTER,
-        LOC_CSSEREGISTER
-      );
-
       { tparamlocation describes where a parameter for a procedure is stored.
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
       tparalocation = packed record
          size : TCGSize;
-         loc  : TLoc;
+         loc  : TCGLoc;
          sp_fixup : longint;
-         case TLoc of
+         case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
             LOC_REGISTER,LOC_CREGISTER : (
@@ -438,9 +421,9 @@ uses
       end;
 
       tlocation = packed record
-         loc  : TLoc;
+         loc  : TCGLoc;
          size : TCGSize;
-         case TLoc of
+         case TCGLoc of
             LOC_FLAGS : (resflags : tresflags);
             LOC_CONSTANT : (
               case longint of
@@ -815,7 +798,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-04-22 14:33:38  peter
+  Revision 1.49  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.48  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.47  2003/04/22 10:09:35  daniel

@@ -38,9 +38,9 @@ interface
 implementation
 
     uses
-      systems,
+      systems,globtype,
       cpubase,
-      cga,cgbase,rgobj,rgcpu;
+      cga,cginfo,cgbase,rgobj,rgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -51,11 +51,11 @@ implementation
          result:=nil;
          if (value_real=1.0) or (value_real=0.0) then
            begin
-              location.loc:=LOC_FPUREGISTER;
+              expectloc:=LOC_FPUREGISTER;
               registersfpu:=1;
            end
          else
-           location.loc:=LOC_CREFERENCE;
+           expectloc:=LOC_CREFERENCE;
       end;
 
     procedure ti386realconstnode.pass_2;
@@ -85,7 +85,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-04-22 09:54:18  peter
+  Revision 1.19  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.18  2003/04/22 09:54:18  peter
     * use location_reset
 
   Revision 1.17  2003/01/08 18:43:57  daniel

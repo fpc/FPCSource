@@ -126,7 +126,7 @@ implementation
        defutil,defcmp,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
-       cgbase
+       cginfo,cgbase
        ;
 
     type
@@ -503,11 +503,11 @@ implementation
             begin
               { the location must be already filled in because we need it to }
               { calculate the necessary number of registers (JM)             }
-              if p.location.loc = LOC_INVALID then
+              if p.expectloc = LOC_INVALID then
                 internalerror(200110101);
 
               if (abs(p.left.registers32-p.right.registers32)<r32) or
-                 ((p.location.loc = LOC_FPUREGISTER) and
+                 ((p.expectloc = LOC_FPUREGISTER) and
                   (p.right.registersfpu <= p.left.registersfpu) and
                   ((p.right.registersfpu <> 0) or (p.left.registersfpu <> 0)) and
                   (p.left.registers32   < p.right.registers32)) then
@@ -527,8 +527,8 @@ implementation
               if (p.left.registers32=p.right.registers32) and
                  (p.registers32=p.left.registers32) and
                  (p.registers32>0) and
-                (p.left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-                (p.right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                (p.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+                (p.right.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 inc(p.registers32);
             end
            else
@@ -627,7 +627,7 @@ implementation
                  if (tloadnode(p).symtableentry.typ=varsym) then
                   begin
                     hsym:=tvarsym(tloadnode(p).symtableentry);
-                    if must_be_valid and (nf_first in p.flags) then
+                    if must_be_valid and (nf_first_use in p.flags) then
                      begin
                        if (hsym.varstate=vs_declared_and_first_found) or
                           (hsym.varstate=vs_set_but_first_not_passed) then
@@ -643,7 +643,7 @@ implementation
                            end;
                         end;
                      end;
-                    if (nf_first in p.flags) then
+                    if (nf_first_use in p.flags) then
                      begin
                        if hsym.varstate=vs_declared_and_first_found then
                         begin
@@ -656,7 +656,7 @@ implementation
                        else
                         if hsym.varstate=vs_set_but_first_not_passed then
                          hsym.varstate:=vs_used;
-                       exclude(p.flags,nf_first);
+                       exclude(p.flags,nf_first_use);
                      end
                     else
                       begin
@@ -678,14 +678,14 @@ implementation
                  if must_be_valid and
                     (lexlevel=tfuncretnode(p).funcretsym.owner.symtablelevel) and
                     ((tfuncretnode(p).funcretsym.funcretstate=vs_declared) or
-                    ((nf_is_first_funcret in p.flags) and
+                    ((nf_first_use in p.flags) and
                      (tfuncretnode(p).funcretsym.funcretstate=vs_declared_and_first_found))) then
                    begin
                      CGMessage(sym_w_function_result_not_set);
                      { avoid multiple warnings }
                      tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                    end;
-                 if (nf_is_first_funcret in p.flags) and not must_be_valid then
+                 if (nf_first_use in p.flags) and not must_be_valid then
                    tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                  break;
                end;
@@ -741,7 +741,7 @@ implementation
            case p.nodetype of
              funcretn:
                begin
-                 if (nf_is_first_funcret in p.flags) or
+                 if (nf_first_use in p.flags) or
                     (tfuncretnode(p).funcretsym.funcretstate=vs_declared_and_first_found) then
                    tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                  break;
@@ -1044,7 +1044,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-01-03 17:17:26  peter
+  Revision 1.59  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.58  2003/01/03 17:17:26  peter
     * use compare_def_ext to test if assignn operator is allowed
 
   Revision 1.57  2003/01/02 22:21:19  peter

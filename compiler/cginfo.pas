@@ -30,6 +30,25 @@ interface
   uses cpuinfo,symconst;
 
     type
+       { Location types where value can be stored }
+       TCGLoc=(
+         LOC_INVALID,      { added for tracking problems}
+         LOC_VOID,         { no value is available }
+         LOC_CONSTANT,     { constant value }
+         LOC_JUMP,         { boolean results only, jump to false or true label }
+         LOC_FLAGS,        { boolean results only, flags are set }
+         LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
+         LOC_REFERENCE,    { in memory value }
+         LOC_REGISTER,     { in a processor register }
+         LOC_CREGISTER,    { Constant register which shouldn't be modified }
+         LOC_FPUREGISTER,  { FPU stack }
+         LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
+         LOC_MMXREGISTER,  { MMX register }
+         LOC_CMMXREGISTER, { MMX register variable }
+         LOC_SSEREGISTER,
+         LOC_CSSEREGISTER
+       );
+
        {# Generic opcodes, which must be supported by all processors
        }
        topcg =
@@ -107,7 +126,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-01-09 22:00:53  florian
+  Revision 1.19  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.18  2003/01/09 22:00:53  florian
     * fixed some PowerPC issues
 
   Revision 1.17  2003/01/05 13:36:53  florian

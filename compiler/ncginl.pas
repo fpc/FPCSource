@@ -75,6 +75,8 @@ implementation
        var
          oldpushedparasize : longint;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          { save & reset pushedparasize }
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
@@ -300,25 +302,24 @@ implementation
         href : treference;
       begin
         secondpass(left);
-        { length in ansi strings is at offset -8 }
-        if is_ansistring(left.resulttype.def) or
-           is_widestring(left.resulttype.def) then
-            begin
-              location_force_reg(exprasmlist,left.location,OS_ADDR,false);
-              hregister:=left.location.register;
-              objectlibrary.getlabel(lengthlab);
-              cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
-              reference_reset_base(href,hregister,-8);
-              cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
-              cg.a_label(exprasmlist,lengthlab);
-              location_reset(location,LOC_REGISTER,OS_32);
-              location.register:=hregister;
-            end
-         else
-            begin
-              location_copy(location,left.location);
-              location.size:=OS_8;
-            end;
+        if is_shortstring(left.resulttype.def) then
+         begin
+           location_copy(location,left.location);
+           location.size:=OS_8;
+         end
+        else
+         begin
+           { length in ansi strings is at offset -8 }
+           location_force_reg(exprasmlist,left.location,OS_ADDR,false);
+           hregister:=left.location.register;
+           objectlibrary.getlabel(lengthlab);
+           cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
+           reference_reset_base(href,hregister,-8);
+           cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
+           cg.a_label(exprasmlist,lengthlab);
+           location_reset(location,LOC_REGISTER,OS_32);
+           location.register:=hregister;
+         end;
       end;
 
 
@@ -669,7 +670,12 @@ end.
 
 {
   $Log$
-  Revision 1.24  2003-04-22 10:09:35  daniel
+  Revision 1.25  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.24  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

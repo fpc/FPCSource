@@ -924,6 +924,8 @@ implementation
          dist : cardinal;
          hp : tstatementnode;
       begin
+         location_reset(location,LOC_VOID,OS_NO);
+
          { Relabel for inlining? }
          if inlining_procedure and assigned(nodes) then
           begin
@@ -1113,7 +1115,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-04-22 14:33:38  peter
+  Revision 1.30  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.29  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.28  2003/04/22 12:45:58  florian

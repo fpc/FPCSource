@@ -152,7 +152,7 @@ implementation
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
       nbas,
-      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase
+      htypechk,pass_1,ncal,nld,ncon,ncnv,cginfo,cgbase
       ;
 
 {*****************************************************************************
@@ -178,7 +178,7 @@ implementation
       begin
          result:=nil;
          registers32:=1;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 {*****************************************************************************
@@ -225,6 +225,7 @@ implementation
     function thnewnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
       end;
 
 
@@ -264,13 +265,9 @@ implementation
 {$endif SUPPORT_MMX}
          if registers32<1 then
            registers32:=1;
-         {
-         if left.location.loc<>LOC_REFERENCE then
-           CGMessage(cg_e_illegal_expression);
-         }
-         if left.location.loc=LOC_CREGISTER then
+         if left.expectloc=LOC_CREGISTER then
            inc(registers32);
-         location.loc:=LOC_REFERENCE;
+         expectloc:=LOC_REFERENCE;
       end;
 
 
@@ -485,12 +482,12 @@ implementation
 {$endif SUPPORT_MMX}
             if registers32<1 then
              registers32:=1;
-            location.loc:=left.location.loc;
+            expectloc:=left.expectloc;
             exit;
           end;
 
          { we should allow loc_mem for @string }
-         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+         if not(left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) then
            begin
              aktfilepos:=left.fileinfo;
              CGMessage(cg_e_illegal_expression);
@@ -504,7 +501,7 @@ implementation
          if registers32<1 then
            registers32:=1;
          { is this right for object of methods ?? }
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -544,7 +541,7 @@ implementation
          if codegenerror then
            exit;
 
-         if (left.location.loc<>LOC_REFERENCE) then
+         if (left.expectloc<>LOC_REFERENCE) then
            CGMessage(cg_e_illegal_expression);
 
          registers32:=left.registers32;
@@ -554,7 +551,7 @@ implementation
 {$endif SUPPORT_MMX}
          if registers32<1 then
            registers32:=1;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -602,7 +599,7 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-         location.loc:=LOC_REFERENCE;
+         expectloc:=LOC_REFERENCE;
       end;
 
 
@@ -681,14 +678,14 @@ implementation
            begin
               if registers32=0 then
                 registers32:=1;
-              location.loc:=LOC_REFERENCE;
+              expectloc:=LOC_REFERENCE;
            end
          else
            begin
-              if (left.location.loc<>LOC_CREFERENCE) and
-                 (left.location.loc<>LOC_REFERENCE) then
+              if (left.expectloc<>LOC_CREFERENCE) and
+                 (left.expectloc<>LOC_REFERENCE) then
                 CGMessage(cg_e_illegal_expression);
-              location.loc:=left.location.loc;
+              expectloc:=left.expectloc;
            end;
       end;
 
@@ -844,7 +841,7 @@ implementation
                 inc(registers32);
 
               { need we an extra register for the index ? }
-              if (right.location.loc<>LOC_REGISTER)
+              if (right.expectloc<>LOC_REGISTER)
               { only if the right node doesn't need a register }
                 and (right.registers32<1) then
                 inc(registers32);
@@ -861,10 +858,10 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=max(left.registersmmx,right.registersmmx);
 {$endif SUPPORT_MMX}
-         if left.location.loc in [LOC_CREGISTER,LOC_REFERENCE] then
-           location.loc:=LOC_REFERENCE
+         if left.expectloc=LOC_CREFERENCE then
+           expectloc:=LOC_CREFERENCE
          else
-           location.loc:=LOC_CREFERENCE;
+           expectloc:=LOC_REFERENCE;
       end;
 
 
@@ -912,9 +909,9 @@ implementation
          if (resulttype.def.deftype=classrefdef) or
             is_class(resulttype.def) or
             (po_staticmethod in aktprocdef.procoptions) then
-           location.loc:=LOC_CREGISTER
+           expectloc:=LOC_REGISTER
          else
-           location.loc:=LOC_REFERENCE;
+           expectloc:=LOC_CREFERENCE;
       end;
 
 
@@ -1016,6 +1013,7 @@ implementation
     function twithnode.pass_1 : tnode;
       begin
          result:=nil;
+         expectloc:=LOC_VOID;
          if assigned(left) and assigned(right) then
             begin
                firstpass(left);
@@ -1054,7 +1052,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-10 17:57:52  peter
+  Revision 1.48  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.47  2003/04/10 17:57:52  peter
     * vs_hidden released
 
   Revision 1.46  2003/01/30 21:46:57  peter

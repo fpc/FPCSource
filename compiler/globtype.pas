@@ -144,7 +144,6 @@ interface
        );
        tproccalloptions = set of tproccalloption;
 
-
      const
        proccalloptionStr : array[tproccalloption] of string[14]=('',
            'CDecl',
@@ -211,7 +210,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-03-08 08:59:07  daniel
+  Revision 1.36  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.35  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see

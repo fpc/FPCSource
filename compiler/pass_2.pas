@@ -54,7 +54,7 @@ implementation
      cclasses,globals,
      symconst,symbase,symtype,symsym,paramgr,
      aasmbase,aasmtai,
-     pass_1,cpubase,cgbase,
+     pass_1,cpubase,cginfo,cgbase,
 {$ifdef EXTDEBUG}
      cgobj,
 {$endif EXTDEBUG}
@@ -169,7 +169,6 @@ implementation
          prevp : pptree;
 {$endif TEMPREGDEBUG}
 {$ifdef EXTDEBUG}
-         oldloc : tloc;
          i : longint;
 {$endif EXTDEBUG}
       begin
@@ -190,8 +189,11 @@ implementation
             aktlocalswitches:=p.localswitches;
             codegenerror:=false;
 {$ifdef EXTDEBUG}
-            oldloc:=p.location.loc;
-            p.location.loc:=LOC_INVALID;
+            if (p.expectloc=LOC_INVALID) then
+              Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
+            if not(nf_allow_multi_pass2 in p.flags) and
+               (p.location.loc<>LOC_INVALID) then
+              Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
             if (cs_asm_nodes in aktglobalswitches) then
               logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
@@ -199,10 +201,13 @@ implementation
 {$ifdef EXTDEBUG}
             if (cs_asm_nodes in aktglobalswitches) then
               logsecond(p.nodetype,false);
-            if (not codegenerror) and
-               (oldloc<>LOC_INVALID) and
-               (p.location.loc=LOC_INVALID) then
-             Comment(V_Fatal,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
+            if (not codegenerror) then
+             begin
+               if (p.location.loc=LOC_INVALID) then
+                 Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype])
+               else if (p.location.loc<>p.expectloc) then
+                 Comment(V_Warning,'Location is different in secondpass: '+nodetype2str[p.nodetype]);
+             end;
 
             { check if all scratch registers are freed }
             for i:=1 to max_scratch_regs do
@@ -345,7 +350,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-04-22 12:45:58  florian
+  Revision 1.45  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.44  2003/04/22 12:45:58  florian
     * fixed generic in operator code
     + added debug code to check if all scratch registers are released
 

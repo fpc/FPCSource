@@ -180,7 +180,7 @@ interface
       begin
         cmpop := false;
         pass_left_and_right;
-        
+
         { when a setdef is passed, it has to be a smallset }
         if ((left.resulttype.def.deftype=setdef) and
             (tsetdef(left.resulttype.def).settype<>smallset)) or
@@ -201,9 +201,9 @@ interface
 
         clear_left_right(cmpop);
       end;
-      
-      
-     
+
+
+
 
     procedure tcgaddnode.second_addsmallset;
       var
@@ -321,7 +321,7 @@ interface
 *****************************************************************************}
 
     procedure tcgaddnode.second_opboolean;
-      var 
+      var
        cmpop : boolean;
       begin
         cmpop := false;
@@ -454,8 +454,6 @@ interface
                         cg.a_label(exprasmlist,falselabel);
                         falselabel:=ofl;
                      end;
-                   else
-                     CGMessage(type_e_mismatch);
                  end;
                  secondpass(right);
                  maketojumpbool(exprasmlist,right,lr_load_regvars);
@@ -479,7 +477,7 @@ interface
         firstcomplex(self);
 
         pass_left_and_right;
- 
+
         if nodetype in [equaln,unequaln,gtn,gten,ltn,lten] then
           cmpop := true;
 
@@ -516,7 +514,7 @@ interface
                 checkoverflow := true;
              end;
           subn :
-             begin 
+             begin
                 op:=OP_SUB;
                 checkoverflow := true;
              end;
@@ -602,7 +600,7 @@ interface
                 internalerror(2002072803);
             end;
 
-        { emit overflow check if enabled }        
+        { emit overflow check if enabled }
         if checkoverflow then
            cg.g_overflowcheck(exprasmlist,self);
 
@@ -622,7 +620,7 @@ interface
 
     procedure tcgaddnode.second_addordinal;
      var
-      unsigned : boolean; 
+      unsigned : boolean;
       checkoverflow : boolean;
       cgop : topcg;
       tmpreg : tregister;
@@ -660,7 +658,7 @@ interface
            begin
              cgop := OP_OR;
            end;
-         andn: 
+         andn:
            begin
              cgop := OP_AND;
            end;
@@ -676,7 +674,7 @@ interface
            begin
              checkoverflow := true;
              cgop := OP_SUB;
-           end;          
+           end;
        end;
 
       if nodetype <> subn then
@@ -718,10 +716,10 @@ interface
            end;
        end;
 
-       { emit overflow check if required }        
+       { emit overflow check if required }
        if checkoverflow then
         cg.g_overflowcheck(exprasmlist,self);
-     end; 
+     end;
 
 {*****************************************************************************
                                 pass_2
@@ -818,7 +816,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-02-19 22:00:14  daniel
+  Revision 1.7  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.6  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

@@ -61,7 +61,7 @@ interface
   implementation
 
     uses
-      cutils,verbose,
+      cutils,verbose,globtype,
       aasmbase,aasmtai,aasmcpu,symconst,symdef,paramgr,
       ncon,ncal,
       cpubase,cpuinfo,cpupara,systems,
@@ -82,7 +82,7 @@ interface
         newsize:=def_cgsize(resulttype.def);
 
         { insert range check if not explicit conversion }
-        if not(nf_explizit in flags) then
+        if not(nf_explicit in flags) then
           cg.g_rangecheck(exprasmlist,left,resulttype.def);
 
         { is the result size smaller? when typecasting from void
@@ -328,7 +328,7 @@ interface
          location_copy(location,left.location);
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
-         if not((nf_explizit in flags) and
+         if not((nf_explicit in flags) and
                 (left.resulttype.def.size=resulttype.def.size) and
                 (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])) then
            location_force_reg(exprasmlist,location,def_cgsize(resulttype.def),false);
@@ -511,7 +511,12 @@ end.
 
 {
   $Log$
-  Revision 1.38  2003-04-06 21:11:23  olle
+  Revision 1.39  2003-04-22 23:50:22  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.38  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.37  2003/03/28 19:16:56  peter

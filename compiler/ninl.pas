@@ -75,7 +75,7 @@ implementation
       symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
-      cpubase,tgobj,cgbase
+      cpubase,tgobj,cginfo,cgbase
       ;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
@@ -934,11 +934,10 @@ implementation
           { and cardinals are fine. Since the formal code para type is      }
           { longint, insert a typecoversion to longint for cardinal para's  }
           begin
-            codepara.left := ctypeconvnode.create(codepara.left,s32bittype);
+            codepara.left := ctypeconvnode.create_explicit(codepara.left,s32bittype);
             { make it explicit, oterwise you may get a nonsense range }
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
-            codepara.left.toggleflag(nf_explizit);
             codepara.get_paratype;
           end;
 
@@ -1418,26 +1417,23 @@ implementation
                            uchar:
                              begin
                                { change to byte() }
-                               hp:=ctypeconvnode.create(left,u8bittype);
+                               hp:=ctypeconvnode.create_explicit(left,u8bittype);
                                left:=nil;
-                               include(hp.flags,nf_explizit);
                                result:=hp;
                              end;
                            bool16bit,
                            uwidechar :
                              begin
                                { change to word() }
-                               hp:=ctypeconvnode.create(left,u16bittype);
+                               hp:=ctypeconvnode.create_explicit(left,u16bittype);
                                left:=nil;
-                               include(hp.flags,nf_explizit);
                                result:=hp;
                              end;
                            bool32bit :
                              begin
                                { change to dword() }
-                               hp:=ctypeconvnode.create(left,u32bittype);
+                               hp:=ctypeconvnode.create_explicit(left,u32bittype);
                                left:=nil;
-                               include(hp.flags,nf_explizit);
                                result:=hp;
                              end;
                            uvoid :
@@ -1453,9 +1449,8 @@ implementation
                        end;
                      enumdef :
                        begin
-                         hp:=ctypeconvnode.create(left,s32bittype);
+                         hp:=ctypeconvnode.create_explicit(left,s32bittype);
                          left:=nil;
-                         include(hp.flags,nf_explizit);
                          result:=hp;
                        end;
                      else
@@ -1467,8 +1462,7 @@ implementation
                 begin
                    { convert to explicit char() }
                    set_varstate(left,true);
-                   hp:=ctypeconvnode.create(left,cchartype);
-                   include(hp.flags,nf_explizit);
+                   hp:=ctypeconvnode.create_explicit(left,cchartype);
                    left:=nil;
                    result:=hp;
                 end;
@@ -1787,9 +1781,7 @@ implementation
                               begin
                                 { can't use inserttypeconv because we need }
                                 { an explicit type conversion (JM)         }
-                                hp := ctypeconvnode.create(left,voidpointertype);
-                                hp.toggleflag(nf_explizit);
-                                hp := ccallparanode.create(hp,nil);
+                                hp := ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil);
                                 result := ccallnode.createintern('fpc_dynarray_high',hp);
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
@@ -1995,8 +1987,8 @@ implementation
               else
                 firstpass(left);
               left_max;
-              location.loc:=left.location.loc;
            end;
+
          inc(parsing_para_level);
          { intern const should already be handled }
          if nf_inlineconst in flags then
@@ -2019,12 +2011,11 @@ implementation
                   shiftconst := 8;
               end;
               if shiftconst <> 0 then
-                result := ctypeconvnode.create(cshlshrnode.create(shrn,left,
+                result := ctypeconvnode.create_explicit(cshlshrnode.create(shrn,left,
                     cordconstnode.create(shiftconst,u32bittype,false)),resulttype)
               else
-                result := ctypeconvnode.create(left,resulttype);
+                result := ctypeconvnode.create_explicit(left,resulttype);
               left := nil;
-              include(result.flags,nf_explizit);
               firstpass(result);
             end;
 
@@ -2032,40 +2023,32 @@ implementation
             begin
               if registers32<1 then
                  registers32:=1;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
             end;
 
           in_typeof_x:
             begin
                if registers32<1 then
                  registers32:=1;
-               location.loc:=LOC_REGISTER;
+               expectloc:=LOC_REGISTER;
             end;
-
-          in_ord_x,
-          in_chr_byte:
-            begin
-               { should not happend as it's converted to typeconv }
-               internalerror(200104045);
-            end;
-
 
           in_length_x:
             begin
                if is_shortstring(left.resulttype.def) then
-                location.loc:=LOC_REFERENCE
+                expectloc:=left.expectloc
                else
                 begin
                   { ansi/wide string }
                   if registers32<1 then
                    registers32:=1;
-                  location.loc:=LOC_REGISTER;
+                  expectloc:=LOC_REGISTER;
                 end;
             end;
 
           in_typeinfo_x:
             begin
-               location.loc:=LOC_REGISTER;
+               expectloc:=LOC_REGISTER;
                registers32:=1;
             end;
 
@@ -2074,12 +2057,6 @@ implementation
                { should be removed in resulttype pass }
                internalerror(2002080201);
             end;
-
-          in_ofs_x :
-            internalerror(2000101001);
-
-          in_seg_x :
-            internalerror(200104046);
 
           in_pred_x,
           in_succ_x:
@@ -2094,20 +2071,24 @@ implementation
                  if (registers32<1) then
                   registers32:=1;
                end;
-              location.loc:=LOC_REGISTER;
+              expectloc:=LOC_REGISTER;
             end;
 
           in_setlength_x:
             begin
+              expectloc:=LOC_VOID;
             end;
 
           in_finalize_x:
             begin
+              expectloc:=LOC_VOID;
             end;
 
           in_inc_x,
           in_dec_x:
             begin
+               expectloc:=LOC_VOID;
+
                { check type }
                if is_64bitint(left.resulttype.def) or
                   { range/overflow checking doesn't work properly }
@@ -2152,7 +2133,7 @@ implementation
                       begin
                          { need we an additional register ? }
                          if not(is_constintnode(tcallparanode(tcallparanode(left).right).left)) and
-                           (tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
+                           (tcallparanode(tcallparanode(left).right).left.expectloc in [LOC_CREFERENCE,LOC_REFERENCE]) and
                            (tcallparanode(tcallparanode(left).right).left.registers32<=1) then
                            inc(registers32);
 
@@ -2163,49 +2144,17 @@ implementation
                  end;
             end;
 
-          in_read_x,
-          in_readln_x,
-          in_write_x,
-          in_writeln_x :
-            begin
-               { should be handled by det_resulttype }
-               internalerror(200108234);
-            end;
-         in_settextbuf_file_x :
-           internalerror(200104262);
-
-         in_reset_typedfile,
-         in_rewrite_typedfile :
-           begin
-              { should already be removed in det_resulttype (JM) }
-              internalerror(200108236);
-           end;
-
-         in_str_x_string :
-           begin
-              { should already be removed in det_resulttype (JM) }
-              internalerror(200108235);
-           end;
-
-         in_val_x :
-           begin
-              { should already be removed in det_resulttype (JM) }
-              internalerror(200108242);
-           end;
-
          in_include_x_y,
          in_exclude_x_y:
            begin
+              expectloc:=LOC_VOID;
+
               registers32:=left.registers32;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
            end;
-
-         in_low_x,
-         in_high_x:
-          internalerror(200104047);
 
          in_cos_extended:
            begin
@@ -2255,11 +2204,43 @@ implementation
 
          in_assert_x_y :
             begin
+              expectloc:=LOC_VOID;
               registers32:=left.registers32;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
               registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
+            end;
+
+         in_low_x,
+         in_high_x:
+          internalerror(200104047);
+
+          in_ord_x,
+          in_chr_byte:
+            begin
+               { should not happend as it's converted to typeconv }
+               internalerror(200104045);
+            end;
+
+          in_ofs_x :
+            internalerror(2000101001);
+
+          in_seg_x :
+            internalerror(200104046);
+
+          in_settextbuf_file_x,
+          in_reset_typedfile,
+          in_rewrite_typedfile,
+          in_str_x_string,
+          in_val_x,
+          in_read_x,
+          in_readln_x,
+          in_write_x,
+          in_writeln_x :
+            begin
+              { should be handled by det_resulttype }
+              internalerror(200108234);
             end;
 
           else
@@ -2354,7 +2335,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2002-12-30 12:54:45  jonas
+  Revision 1.106  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.105  2002/12/30 12:54:45  jonas
     * don't allow erroneuos read(typedfile,...) statements
 
   Revision 1.104  2002/12/30 12:48:07  jonas

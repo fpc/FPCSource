@@ -176,7 +176,7 @@ implementation
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,
-      cgbase,
+      cginfo,cgbase,
       htypechk,pass_1,cpubase,cpuinfo;
 
 
@@ -496,7 +496,7 @@ implementation
 
       begin
          self.create(node,t);
-         toggleflag(nf_explizit);
+         include(flags,nf_explicit);
       end;
 
 
@@ -705,8 +705,7 @@ implementation
              begin
                { create word(byte(char) shl 8 or 1) for litte endian machines }
                { and word(byte(char) or 256) for big endian machines          }
-               left := ctypeconvnode.create(left,u8bittype);
-               left.toggleflag(nf_explizit);
+               left := ctypeconvnode.create_explicit(left,u8bittype);
                if (target_info.endian = endian_little) then
                  left := caddnode.create(orn,
                    cshlshrnode.create(shln,left,cordconstnode.create(8,s32bittype,false)),
@@ -714,8 +713,7 @@ implementation
                else
                  left := caddnode.create(orn,left,
                    cordconstnode.create(1 shl 8,s32bittype,false));
-               left := ctypeconvnode.create(left,u16bittype);
-               left.toggleflag(nf_explizit);
+               left := ctypeconvnode.create_explicit(left,u16bittype);
                resulttypepass(left);
              end;
       end;
@@ -793,7 +791,7 @@ implementation
            if is_currency(resulttype.def) then
             begin
               result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resulttype));
-              include(result.flags,nf_explizit);
+              include(result.flags,nf_is_currency);
             end;
          end;
       end;
@@ -809,14 +807,14 @@ implementation
          if is_currency(left.resulttype.def) and not(is_currency(resulttype.def)) then
            begin
              left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resulttype));
-             include(left.flags,nf_explizit);
+             include(left.flags,nf_is_currency);
              resulttypepass(left);
            end
          else
            if is_currency(resulttype.def) and not(is_currency(left.resulttype.def)) then
              begin
                left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resulttype));
-               include(left.flags,nf_explizit);
+               include(left.flags,nf_is_currency);
                resulttypepass(left);
              end;
          if left.nodetype=realconstn then
@@ -892,10 +890,9 @@ implementation
       begin
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
-        result := ctypeconvnode.create(left,voidpointertype);
+        result := ctypeconvnode.create_explicit(left,voidpointertype);
         { left is reused }
         left := nil;
-        result.toggleflag(nf_explizit);
         result := cderefnode.create(result);
         result.resulttype := resulttype;
       end;
@@ -1025,7 +1022,7 @@ implementation
          exit;
 
         eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,
-                             nf_explizit in flags,true,convtype,aprocdef);
+                             nf_explicit in flags,true,convtype,aprocdef);
         case eq of
           te_exact,
           te_equal :
@@ -1141,7 +1138,7 @@ implementation
                end;
 
               { Handle explicit type conversions }
-              if nf_explizit in flags then
+              if nf_explicit in flags then
                begin
                  { do common tc_equal cast }
                  convtype:=tc_equal;
@@ -1273,7 +1270,7 @@ implementation
                 begin
                    { replace the resulttype and recheck the range }
                    left.resulttype:=resulttype;
-                   testrange(left.resulttype.def,tordconstnode(left).value,(nf_explizit in flags));
+                   testrange(left.resulttype.def,tordconstnode(left).value,(nf_explicit in flags));
                    result:=left;
                    left:=nil;
                    exit;
@@ -1323,9 +1320,11 @@ implementation
 
       begin
         first_int_to_int:=nil;
-        if (left.location.loc<>LOC_REGISTER) and
+        if (left.expectloc<>LOC_REGISTER) and
            (resulttype.def.size>left.resulttype.def.size) then
-           location.loc:=LOC_REGISTER;
+           expectloc:=LOC_REGISTER
+        else
+           expectloc:=left.expectloc;
         if is_64bitint(resulttype.def) then
           registers32:=max(registers32,2)
         else
@@ -1338,7 +1337,7 @@ implementation
       begin
          first_cstring_to_pchar:=nil;
          registers32:=1;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -1347,7 +1346,7 @@ implementation
       begin
          first_string_to_chararray:=nil;
          registers32:=1;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -1355,7 +1354,7 @@ implementation
 
       begin
          first_char_to_string:=nil;
-         location.loc:=LOC_CREFERENCE;
+         expectloc:=LOC_REFERENCE;
       end;
 
 
@@ -1371,7 +1370,7 @@ implementation
          first_array_to_pointer:=nil;
          if registers32<1 then
            registers32:=1;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -1425,12 +1424,12 @@ implementation
 {$ifdef i386}
          if (tfloatdef(resulttype.def).typ=s64comp) and
             (tfloatdef(left.resulttype.def).typ<>s64comp) and
-            not (nf_explizit in flags) then
+            not (nf_explicit in flags) then
            CGMessage(type_w_convert_real_2_comp);
 {$endif}
          if registersfpu<1 then
            registersfpu:=1;
-         location.loc:=LOC_FPUREGISTER;
+         expectloc:=LOC_FPUREGISTER;
       end;
 
 
@@ -1440,7 +1439,7 @@ implementation
          first_pointer_to_array:=nil;
          if registers32<1 then
            registers32:=1;
-         location.loc:=LOC_REFERENCE;
+         expectloc:=LOC_REFERENCE;
       end;
 
 
@@ -1458,22 +1457,21 @@ implementation
          first_bool_to_int:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
-         if (nf_explizit in flags) and
+         if (nf_explicit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+            (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
          { when converting to 64bit, first convert to a 32bit int and then   }
          { convert to a 64bit int (only necessary for 32bit processors) (JM) }
          if resulttype.def.size > sizeof(aword) then
            begin
-             result := ctypeconvnode.create(left,u32bittype);
-             result.toggleflag(nf_explizit);
+             result := ctypeconvnode.create_explicit(left,u32bittype);
              result := ctypeconvnode.create(result,resulttype);
              left := nil;
              firstpass(result);
              exit;
            end;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
       end;
@@ -1485,11 +1483,11 @@ implementation
          first_int_to_bool:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
-         if (nf_explizit in flags) and
+         if (nf_explicit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+            (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
          { need if bool to bool !!
            not very nice !!
          insertypeconv(left,s32bittype);
@@ -1503,7 +1501,7 @@ implementation
     function ttypeconvnode.first_bool_to_bool : tnode;
       begin
          first_bool_to_bool:=nil;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
       end;
@@ -1512,22 +1510,19 @@ implementation
     function ttypeconvnode.first_char_to_char : tnode;
 
       begin
-         first_char_to_char:=nil;
-         location.loc:=LOC_REGISTER;
-         if registers32<1 then
-           registers32:=1;
+         first_char_to_char:=first_int_to_int;
       end;
 
 
     function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
          first_proc_to_procvar:=nil;
-         if (left.location.loc<>LOC_REFERENCE) then
+         if (left.expectloc<>LOC_REFERENCE) then
            CGMessage(cg_e_illegal_expression);
          registers32:=left.registers32;
          if registers32<1 then
            registers32:=1;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
       end;
 
 
@@ -1544,8 +1539,7 @@ implementation
         { reused }
         left := nil;
         { convert parameter explicitely to fpc_small_set }
-        p.left := ctypeconvnode.create(p.left,srsym.restype);
-        p.left.toggleflag(nf_explizit);
+        p.left := ctypeconvnode.create_explicit(p.left,srsym.restype);
         { create call, adjust resulttype }
         result :=
           ccallnode.createinternres('fpc_set_load_small',p,resulttype);
@@ -1557,7 +1551,7 @@ implementation
 
       begin
          first_ansistring_to_pchar:=nil;
-         location.loc:=LOC_REGISTER;
+         expectloc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
       end;
@@ -1573,7 +1567,7 @@ implementation
 
       begin
          first_class_to_intf:=nil;
-         location.loc:=LOC_REFERENCE;
+         expectloc:=LOC_REFERENCE;
          if registers32<1 then
            registers32:=1;
       end;
@@ -1746,9 +1740,9 @@ implementation
 {$ifdef SUPPORT_MMX}
         registersmmx:=left.registersmmx;
 {$endif}
-        location.loc:=left.location.loc;
+        expectloc:=left.expectloc;
 
-        if nf_explizit in flags then
+        if nf_explicit in flags then
          begin
            { check if the result could be in a register }
            if not(tstoreddef(resulttype.def).is_intregable) and
@@ -2016,7 +2010,7 @@ implementation
             firstpass(call);
             if codegenerror then
               exit;
-           location.loc:=call.location.loc;
+           expectloc:=call.expectloc;
            registers32:=call.registers32;
            registersfpu:=call.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -2033,7 +2027,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2003-04-22 09:52:30  peter
+  Revision 1.105  2003-04-22 23:50:23  peter
+    * firstpass uses expectloc
+    * checks if there are differences between the expectloc and
+      location.loc from secondpass in EXTDEBUG
+
+  Revision 1.104  2003/04/22 09:52:30  peter
     * do not convert procvars with void return to callnode
 
   Revision 1.103  2003/03/17 18:54:23  peter
