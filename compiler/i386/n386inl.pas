@@ -670,6 +670,7 @@ implementation
                        end;
                     end;
                   popusedregisters(pushed);
+                  maybe_loadself;
                end;
               in_read_x,
               in_readln_x,
@@ -870,7 +871,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-09-04 14:32:45  jonas
+  Revision 1.25  2001-09-27 13:03:18  jonas
+    * fixed bug reported by sg about self not being restored after calling
+      setlength
+
+  Revision 1.24  2001/09/04 14:32:45  jonas
     * simplified det_resulttype code for include/exclude
     * include/exclude doesn't use any helpers anymore in the i386 secondpass
 
@@ -882,7 +887,7 @@ end.
   Revision 1.22  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using ($ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.21  2001/08/26 13:36:58  florian
