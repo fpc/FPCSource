@@ -196,11 +196,14 @@ program fpc;
      end;
      if errorvalue<>0 then
        error(ppcbin+' can''t be executed');
-     halt(dosexitcode);
+     halt(errorvalue);
   end.
 {
   $Log$
-  Revision 1.13  2004-03-20 22:29:37  florian
+  Revision 1.14  2004-06-05 10:14:42  marco
+   * fix for bug 3127
+
+  Revision 1.13  2004/03/20 22:29:37  florian
     + arm, ia64, x86_64 and sparc supported added
 
   Revision 1.12  2004/01/26 20:34:24  florian
