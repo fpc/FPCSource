@@ -503,6 +503,17 @@ const
   lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
 
+{*****************************************************************************
+                          Default generic sizes 
+*****************************************************************************}
+   {# Defines the default address size for a processor, }
+   OS_ADDR = OS_32;
+   {# the natural int size for a processor,             }
+   OS_INT = OS_32;
+   {# the maximum float size for a processor,           }
+   OS_FLOAT = OS_F80;
+   {# the size of a vector register for a processor     }
+   OS_VECTOR = OS_M64;
 
 {*****************************************************************************
                           Generic Register names
@@ -574,11 +585,9 @@ const
        maxintregs = maxvarregs;
        maxfpuregs = maxfpuvarregs;
 
-    function changeregsize(r:tregister;size:topsize):tregister;
 
     function is_calljmp(o:tasmop):boolean;
 
-    procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
 
 
@@ -590,43 +599,6 @@ implementation
 {$endif heaptrc}
       verbose;
 
-  const
-    reg2reg32 : array[tregister] of tregister = (R_NO,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-    reg2reg16 : array[tregister] of tregister = (R_NO,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-    reg2reg8 : array[tregister] of tregister = (R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
 
 {*****************************************************************************
                                   Helpers
@@ -653,34 +625,7 @@ implementation
       end;
 
 
-    function changeregsize(r:tregister;size:topsize):tregister;
-      var
-        reg : tregister;
-      begin
-        case size of
-          S_B :
-            reg:=reg2reg8[r];
-          S_W :
-            reg:=reg2reg16[r];
-          S_L :
-            reg:=reg2reg32[r];
-          else
-            internalerror(200204101);
-        end;
-        if reg=R_NO then
-         internalerror(200204102);
-        changeregsize:=reg;
-      end;
 
-
-    procedure inverse_flags(var f: TResFlags);
-      const
-         flagsinvers : array[F_E..F_BE] of tresflags =
-            (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
-             F_BE,F_B,F_AE,F_A);
-      begin
-        f := flagsinvers[f];
-      end;
 
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
@@ -695,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2002-04-20 21:37:07  carl
+  Revision 1.18  2002-04-21 15:31:40  carl
+  - removed some other stuff to their units
+
+  Revision 1.17  2002/04/20 21:37:07  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
