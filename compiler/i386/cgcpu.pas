@@ -49,7 +49,7 @@ unit cgcpu;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tcgpara);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);override;
 
         procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);override;
@@ -299,7 +299,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);
+    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
       var
         power,len  : longint;
         opsize : topsize;
@@ -309,7 +309,7 @@ unit cgcpu;
       begin
         { get stack space }
         getcpuregister(list,NR_EDI);
-        list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,NR_EDI));
+        a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
         if (elesize<>1) then
          begin
@@ -338,7 +338,7 @@ unit cgcpu;
              ungetcpuregister(list,NR_EDI);
              { now reload EDI }
              getcpuregister(list,NR_EDI);
-             list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,NR_EDI));
+             a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
              list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
 
              if (elesize<>1) then
@@ -362,7 +362,7 @@ unit cgcpu;
         getcpuregister(list,NR_ESI);
 
         { load count }
-        a_load_ref_reg(list,OS_INT,OS_INT,lenref,NR_ECX);
+        a_load_loc_reg(list,OS_INT,lenloc,NR_ECX);
 
         { load source }
         a_load_ref_reg(list,OS_INT,OS_INT,ref,NR_ESI);
@@ -556,7 +556,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2004-10-05 20:41:01  peter
+  Revision 1.55  2004-10-11 15:46:45  peter
+    * length parameter for copyvaluearray changed to tlocation
+
+  Revision 1.54  2004/10/05 20:41:01  peter
     * more spilling rewrites
 
   Revision 1.53  2004/09/25 14:23:54  peter

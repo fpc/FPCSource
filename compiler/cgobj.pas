@@ -384,7 +384,7 @@ unit cgobj;
           procedure g_overflowcheck(list: taasmoutput; const Loc:tlocation; def:tdef); virtual;abstract;
           procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);virtual;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);virtual;
           procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
 
           {# Emits instructions when compilation is done in profile
@@ -1888,7 +1888,7 @@ implementation
                             Entry/Exit Code Functions
 *****************************************************************************}
 
-    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);
+    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
       var
         sizereg,sourcereg,destreg : tregister;
         paraloc1,paraloc2,paraloc3 : TCGPara;
@@ -1902,7 +1902,7 @@ implementation
         destreg:=getintregister(list,OS_ADDR);
 
         { calculate necessary memory }
-        a_load_ref_reg(list,OS_INT,OS_INT,lenref,sizereg);
+        a_load_loc_reg(list,OS_INT,lenloc,sizereg);
         a_op_const_reg(list,OP_ADD,OS_INT,1,sizereg);
         a_op_const_reg(list,OP_IMUL,OS_INT,elesize,sizereg);
         { load source }
@@ -2084,7 +2084,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.176  2004-10-10 20:31:48  peter
+  Revision 1.177  2004-10-11 15:46:45  peter
+    * length parameter for copyvaluearray changed to tlocation
+
+  Revision 1.176  2004/10/10 20:31:48  peter
     * concatcopy_unaligned maps by default to concatcopy, sparc will
       override it with call to fpc_move
 

@@ -79,7 +79,7 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean); override;
 
@@ -837,7 +837,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);
+    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint);
       begin
       end;
 
@@ -1324,7 +1324,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2004-07-03 19:29:14  florian
+  Revision 1.55  2004-10-11 15:46:45  peter
+    * length parameter for copyvaluearray changed to tlocation
+
+  Revision 1.54  2004/07/03 19:29:14  florian
     * fixed problem with cpu interferences
 
   Revision 1.53  2004/06/20 08:55:31  florian
