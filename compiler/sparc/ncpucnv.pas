@@ -192,11 +192,11 @@ implementation
                   cg.a_load_ref_reg(exprasmlist,OpSize,OpSize,left.location.reference,hreg2);
                 end
               else
-                hreg2 := left.location.register;
-                hreg1 := cg.GetIntRegister(exprasmlist,opsize);
-                exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
-                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
+                hreg2:=left.location.register;
+                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
                 cg.UnGetRegister(exprasmlist,hreg2);
+                hreg1:=cg.GetIntRegister(exprasmlist,opsize);
+                exprasmlist.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
             end;
           LOC_FLAGS :
             begin
@@ -235,7 +235,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-08-22 20:11:38  florian
+  Revision 1.29  2004-08-23 20:45:52  florian
+    * fixed boolean(<int>) on sparc
+
+  Revision 1.28  2004/08/22 20:11:38  florian
     * morphos now takes any pointer var. as libbase
     * alignment for sparc fixed
     * int -> double conversion on sparc fixed
