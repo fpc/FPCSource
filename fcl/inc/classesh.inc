@@ -978,16 +978,14 @@ type
 
   TActiveXRegType = (axrComponentOnly, axrIncludeDescendants);
 
-{!!!!!!!
 var
   RegisterComponentsProc: procedure(const Page: string;
-    ComponentClasses: array of TComponentClass) = nil;
-  RegisterNoIconProc: procedure(ComponentClasses: array of TComponentClass) = nil;
-  RegisterNonActiveXProc: procedure(ComponentClasses: array of TComponentClass;
+    ComponentClasses: array of TComponentClass);
+  RegisterNoIconProc: procedure(ComponentClasses: array of TComponentClass);
+{!!!!  RegisterNonActiveXProc: procedure(ComponentClasses: array of TComponentClass;
     AxRegType: TActiveXRegType) = nil;
   CurrentGroup: Integer = -1;
-  CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
-}
+  CreateVCLComObjectProc: procedure(Component: TComponent) = nil;}
 
 { Point and rectangle constructors }
 
@@ -1073,7 +1071,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.14  1999-08-26 21:11:25  peter
+  Revision 1.15  1999-09-11 22:01:03  fcl
+  * Activated component registration callbacks  (sg)
+
+  Revision 1.14  1999/08/26 21:11:25  peter
     * ShiftState extended
 
   Revision 1.13  1999/05/31 12:43:10  peter
