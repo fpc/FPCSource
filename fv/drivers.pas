@@ -5,9 +5,10 @@
 {                                                          }
 {    Interface Copyright (c) 1992 Borland International    }
 {                                                          }
-{    Copyright (c) 1996, 1997, 1998, 1999 by Leon de Boer  }
+{    Copyright (c) 1996, 1997, 1998, 1999, 2000            }
+{    by Leon de Boer                                       }
 {    ldeboer@attglobal.net  - primary e-mail addr          }
-{    ldeboer@starwon.com.au - backup e-mail addr           }
+{    ldeboer@projectent.com.au - backup e-mail addr        }
 {                                                          }
 {    Original FormatStr kindly donated by Marco Schmidt    }
 {                                                          }
@@ -62,6 +63,7 @@
 {  1.98     09 Sep 99   GetMouseEvent fixed for OS2.       }
 {  1.99     03 Nov 99   FPC windows support added.         }
 {  2.00     26 Nov 99   Graphics stuff moved to GFVGraph   }
+{  2.01     21 May 00   DOS fixed to use std GRAPH unit    }
 {**********************************************************}
 
 UNIT Drivers;
@@ -101,10 +103,13 @@ USES
        {$IFDEF PPC_FPC}                               { FPC WINDOWS COMPILER }
          Windows,                                     { Standard unit }
        {$ELSE}                                        { OTHER COMPILERS }
-         WinTypes, WinProcs,                          { Standard units }
+         WinTypes, WinProcs, Strings,                 { Standard units }
+         {$IFDEF BIT_16}                              { 16 BIT WINDOWS COMPILER }
+         Win31,                                       { Standard unit }
+         {$ENDIF}
        {$ENDIF}
        {$IFDEF PPC_DELPHI}                            { DELPHI3+ COMPILER }
-       SysUtils, Messages,                            { Standard unit }
+         SysUtils, Messages,                          { Standard unit }
        {$ENDIF}
      {$ELSE}                                          { SYBIL2+ COMPILER }
        WinBase, WinDef, WinUser, WinGDI,              { Standard units }
@@ -120,7 +125,11 @@ USES
      {$ENDIF}
    {$ENDIF}
 
-   Common, GFVGraph, Objects;                         { GFV standard units }
+   GFVGraph,                                          { GFV graphics unit }
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   Graph,                                             { Standard bp unit }
+   {$ENDIF}
+   Common, Objects;                                   { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -578,6 +587,7 @@ PROCEDURE ShowMouseCursor;
 {---------------------------------------------------------------------------}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 CONST
+   RawHandler   : Boolean = False;
    AppWindow    : HWnd = 0;                           { Application window }
    DefGfvFont   : HFont = 0;                          { Default GFV font }
    DefFontWeight: Integer = fw_Normal;                { Default font weight }
@@ -624,6 +634,7 @@ CONST
 {          >>> NEW INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES <<<            }
 {---------------------------------------------------------------------------}
 CONST
+   TextModeGFV    : Boolean = False;                  { DOS/DPMI textmode op }
    DefLineNum     : Integer = 25;                     { Default line number }
    DefFontHeight  : Integer = 0;                      { Default font height }
    SysFontWidth   : Integer = 8;                      { System font width }
@@ -662,7 +673,7 @@ VAR
 {---------------------------------------------------------------------------}
 {                 DOS/DPMI MOUSE INTERRUPT EVENT QUEUE SIZE                 }
 {---------------------------------------------------------------------------}
-CONST EventQSize = 16;                                { Default irq bufsize }
+CONST EventQSize = 16;                                { Default int bufsize }
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -1279,6 +1290,16 @@ ASSEMBLER;
      CMP DL, 25;                                      { Check screen ht }
      SBB AH, AH;                                      { Subtract borrow }
      INC AH;                                          { Make #1 if in high }
+     MOV CL, 1;                                       { Preset value of 1 }
+     OR DL, DL;                                       { Test for zero }
+     JNZ @@1;                                         { Branch if not zero }
+     MOV CL, 0                                        { Set value to zero }
+     MOV DL, 24;                                      { Zero = 24 lines }
+   @@1:
+     INC DL;                                          { Add one line }
+     MOV ScreenWidth, DH;                             { Hold screen width }
+     MOV ScreenHeight, DL;                            { Hold screen height }
+     MOV HiResScreen, CL;                             { Set hires mask }
      CMP AL, smMono;                                  { Is screen mono }
      JZ @@Exit1;                                      { Exit of mono }
      CMP AL, smBW80;                                  { Is screen B&W }
@@ -1306,6 +1327,16 @@ ASSEMBLER;
      CMPB $25, %DL;                                   { Check screen ht }
      SBB %AH, %AH;                                    { Subtract borrow }
      INCB %AH;                                        { Make #1 if in high }
+     MOVB $1, %CL;                                    { Preset value of 1 }
+     ORB %DL, %DL;                                    { Test for zero }
+     JNZ .L_JMP1;                                     { Branch if not zero }
+     MOVB $0, %CL;                                    { Set value to zero }
+     MOVB $24, %DL;                                   { Zero = 24 lines }
+   .L_JMP1:
+     INCB %DL;                                        { Add one line }
+     MOVB %DH, SCREENWIDTH;                           { Hold screen width }
+     MOVB %DL, SCREENHEIGHT;                          { Hold screen height }
+     MOVB %CL, HIRESSCREEN;                           { Set hires mask }
      CMPB $07, %AL;                                   { Is screen mono }
      JZ .L_Exit1;                                     { Exit of mono }
      CMPB $02, %AL;                                   { Is screen B&W }
@@ -1700,7 +1731,16 @@ BEGIN
        WM_SysKeyDown: Begin                           { SYSTEM KEY DOWN }
          If (NumPos > 0) Then Begin                   { Numerics entry op }
            Case Msg.wParam Of
-             VK_Insert: B := 0;                       { Key value = 0 }
+             VK_Insert: Begin                         { Insert key }
+               If (GetShiftState AND kbAltShift <> 0) { Alt key down }
+               Then Begin
+                 Event.What := evKeyDown;             { Key down event }
+                 Event.KeyCode := kbAltIns;           { Alt + Ins key }
+                 Handled := True;                     { Set key handled }
+                 Exit;                                { Now exit }
+               End;
+               B := 0;                                { Key value = 0 }
+             End;
              VK_End: B := 1;                          { Key value = 1 }
              VK_Down: B := 2;                         { Key value = 2 }
              VK_Next: B := 3;                         { Key value = 3 }
@@ -1862,7 +1902,7 @@ BEGIN
 END;
 
 {---------------------------------------------------------------------------}
-{  GetMouseEvent -> Platforms DOS/DPMI/WINDOWS/OS2 - Updated 09Sep98 LdB    }
+{  GetMouseEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 09Sep98 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE GetMouseEvent (Var Event: TEvent);
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
@@ -2121,10 +2161,10 @@ BEGIN
    Event.What := evNothing;                           { Preset no event }
    {$IFDEF PPC_FPC}                                   { FPC WINDOWS COMPILER }
    If PeekMessage(@Msg, 0, WM_MouseFirst,
-   WM_MouseLast, pm_Remove) Then Begin                { Fetch mouse message }
+     WM_MouseLast, pm_Remove) Then Begin              { Fetch mouse message }
    {$ELSE}                                            { OTHER COMPILERS }
    If PeekMessage(Msg, 0, WM_MouseFirst,
-   WM_MouseLast, pm_Remove) Then Begin                { Fetch mouse message }
+     WM_MouseLast, pm_Remove) Then Begin              { Fetch mouse message }
    {$ENDIF}
      TranslateMessage(Msg);                           { Translate message }
      DispatchMessage(Msg);                            { Dispatch message }
@@ -2242,12 +2282,19 @@ VAR {$IFDEF OS_DOS} I, J: Integer; Ts: TextSettingsType; {$ENDIF}
     {$IFDEF OS_OS2} Ts, Fs: Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-   I := Detect;                                       { Detect video card }
-   J := 0;                                            { Zero select mode }
-   InitGraph(I, J, '');                               { Initialize graphics }
-   I := GetMaxX;                                      { Fetch max x size }
-   J := GetMaxY;                                      { Fetch max y size }
-   {$IFDEF PPC_FPC}                                   { FPC DOS COMPILER }
+     If (TextModeGFV = True) Then Begin               { TEXT MODE GFV }
+       I := ScreenWidth*8 -1;                         { Mouse width }
+       J := ScreenHeight*8 -1;                        { Mouse height }
+       SysScreenWidth := I + 1;
+       SysScreenHeight := J + 1;
+     End Else Begin                                   { GRAPHICS MODE GFV }
+       I := Detect;                                   { Detect video card }
+       J := 0;                                        { Zero select mode }
+       InitGraph(I, J, '');                           { Initialize graphics }
+       I := GetMaxX;                                  { Fetch max x size }
+       J := GetMaxY;                                  { Fetch max y size }
+     End;
+     {$IFDEF PPC_FPC}                                 { FPC DOS COMPILER }
      ASM
        MOVW $7, %AX;                                  { Set function  id }
        MOVW $0, %CX;                                  { Clear register }
@@ -2259,10 +2306,12 @@ BEGIN
        INT $0x33;                                     { Set mouse y movement }
      END;
      Lock_Code(Pointer(@ShowTheMouse), 400);          { Lock cursor code }
-     MouseMoveProc := ShowTheMouse;                   { Set move function }
-     ShowMouseProc := ShowTheMouse;                   { Set show function }
-     HideMouseProc := ShowTheMouse;                   { Set hide function }
-   {$ELSE}                                            { OTHER DOS COMPILERS }
+     If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
+       MouseMoveProc := ShowTheMouse;                 { Set move function }
+       ShowMouseProc := ShowTheMouse;                 { Set show function }
+       HideMouseProc := ShowTheMouse;                 { Set hide function }
+     End;
+     {$ELSE}                                          { OTHER DOS COMPILERS }
      ASM
        MOV AX, 7;                                     { Set function  id }
        XOR CX, CX;                                    { Clear register }
@@ -2273,25 +2322,33 @@ BEGIN
        MOV DX, J;                                     { Maximum y size }
        INT 33H;                                       { Set mouse y movement }
      END;
-   {$ENDIF}
-     SysScreenWidth := GetMaxX+1;                     { Max screen width }
-     SysScreenHeight := GetMaxY+1;                    { Max screen height }
-
-     If (DefFontHeight = 0) Then                      { Font height not set }
-       J := SysScreenHeight DIV DefLineNum            { Approx font height }
-       Else J := DefFontHeight;                       { Use set font height }
-     I := J DIV (TextHeight('H')+4);                  { Approx magnification }
-     If (I < 1) Then I := 1;                          { Must be 1 or above }
-     GetTextSettings(Ts);                             { Get text style }
-     SetTextStyle(Ts.Font, Ts.Direction, I);          { Set new font settings }
-     SysFontWidth := TextWidth('H');                  { Transfer font width }
-     SysFontHeight := TextHeight('H')+4;              { Transfer font height }
+     {$ENDIF}
+     If (TextModeGFV = True) Then Begin               { TEXT MODE GFV }
+       SysFontWidth := 8;                             { Font width }
+       SysFontHeight := 8;                            { Font height }
+     End Else Begin                                   { GRAPHICS MODE GFV }
+       If (DefFontHeight = 0) Then                    { Font height not set }
+         J := (GetMaxY+1) DIV DefLineNum              { Approx font height }
+         Else J := DefFontHeight;                     { Use set font height }
+       I := J DIV (TextHeight('H')+4);                { Approx magnification }
+       If (I < 1) Then I := 1;                        { Must be 1 or above }
+       GetTextSettings(Ts);                           { Get text style }
+       SetTextStyle(Ts.Font, Ts.Direction, I);        { Set new font settings }
+       SysFontWidth := TextWidth('H');                { Transfer font width }
+       SysFontHeight := TextHeight('H')+4;            { Transfer font height }
+       ScreenWidth := (SysScreenWidth+1) DIV
+         SysFontWidth;                                { Calc screen width }
+       ScreenHeight := (SysScreenHeight+1) DIV
+         SysFontHeight;                               { Calc screen height }
+     End;
    {$ENDIF}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
      SysScreenWidth := GetSystemMetrics(
        SM_CXFullScreen)-GetSystemMetrics(SM_CXFrame); { Max screen width }
      SysScreenHeight := GetSystemMetrics(
        SM_CYFullScreen);                              { Max screen height }
+     SystemParametersInfo(SPI_GETICONTITLELOGFONT,
+       SizeOf(TLogFont), @TempFont, 0);               { Get system font }
      With TempFont Do Begin
        If (DefFontHeight = 0) Then Begin              { Font height not set }
          lfHeight := SysScreenHeight DIV DefLineNum;  { Best guess height }
@@ -2309,11 +2366,20 @@ BEGIN
        lfQuality       := Proof_Quality;              { Proof quality }
        lfPitchAndFamily:= Variable_Pitch OR
          Fixed_Pitch;                                 { Either fitch format }
+(*       {$IFDEF WESTERNS}
        FillChar(lfFaceName, SizeOf(lfFaceName), #0);  { Clear memory area }
        Move(DefFontStyle[1], lfFacename,
          Length(DefFontStyle));                       { Transfer style name }
+       {$ELSE}
+       DefFontStyle[0] := Chr(StrLen(lfFacename));
+       Move(lfFacename, DefFontStyle[1], Ord(DefFontStyle[0]));
+       {$ENDIF}*)
      End;
-     DefGFVFont := CreateFontIndirect(TempFont);      { Create a default font }
+     {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }
+       DefGFVFont := CreateFontIndirect(@TempFont);   { Create a default font }
+     {$ELSE}
+       DefGFVFont := CreateFontIndirect(TempFont);    { Create a default font }
+     {$ENDIF}
      Dc := GetDc(0);                                  { Get screen context }
      Mem := CreateCompatibleDC(Dc);                   { Compatable context }
      SelectObject(Mem, DefGFVFont);                   { Select the font }
@@ -2358,23 +2424,24 @@ BEGIN
      GpiQueryFontMetrics(Ps, SizeOf(Tm), Tm);         { Get text metrics }
      SysFontWidth := Tm.lAveCharWidth+1;              { Transfer font width }
      SysFontHeight := Tm.lMaxBaselineExt;             { Transfer font height }
-    { SysFontheight := SysScreenheight DIV DefLineNum;}
      WinReleasePS(Ps);                                { Release desktop PS }
      DefPointer := WinQuerySysPointer(HWND_DESKTOP,
        SPTR_ARROW, False);                            { Hold default pointer }
    {$ENDIF}
-   ScreenWidth := SysScreenWidth DIV SysFontWidth;    { Calc screen width }
-   ScreenHeight := SysScreenHeight DIV SysFontHeight; { Calc screen height }
-   SysScreenWidth := ScreenWidth * SysFontWidth;      { Actual width }
-   SysScreenHeight := ScreenHeight * SysFontHeight;   { Actual height }
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   Inc(SysScreenWidth, 2*GetSystemMetrics(SM_CXFrame)); { Max screen width }
-   Inc(SysScreenHeight, GetSystemMetrics(SM_CYCaption)
-     + GetSystemMetrics(SM_CYFrame));                 { Max screen height }
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   Inc(SysScreenWidth, Fs);                           { Max screen width }
-   Inc(SysScreenHeight, Ts);                          { Max screen height }
+   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 ONLY }
+     ScreenWidth := SysScreenWidth DIV SysFontWidth;  { Calc screen width }
+     ScreenHeight := SysScreenHeight DIV SysFontHeight;{ Calc screen height }
+     SysScreenWidth := ScreenWidth * SysFontWidth;    { Actual width }
+     SysScreenHeight := ScreenHeight * SysFontHeight; { Actual height }
+     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
+     Inc(SysScreenWidth, 2*GetSystemMetrics(SM_CXFrame));{ Max screen width }
+     Inc(SysScreenHeight, GetSystemMetrics(SM_CYCaption)
+       + GetSystemMetrics(SM_CYFrame));               { Max screen height }
+     {$ENDIF}
+     {$IFDEF OS_OS2}                                  { OS2 CODE }
+     Inc(SysScreenWidth, Fs);                         { Max screen width }
+     Inc(SysScreenHeight, Ts);                        { Max screen height }
+     {$ENDIF}
    {$ENDIF}
 END;
 
@@ -2390,7 +2457,24 @@ BEGIN
      HideMouseProc := Nil;                            { Clr hide mouse ptr }
      UnLock_Code(Pointer(@ShowTheMouse), 400);        { Unlock cursor code }
      {$ENDIF}
-     CloseGraph;                                      { Close down graphics }
+     If (TextModeGFV <> True) Then CloseGraph         { Close down graphics }
+     Else Begin                                       { Text mode gfv }
+       {$IFDEF PPC_FPC}                               { FPC DOS COMPILER }
+       ASM
+         MOVW SCREENMODE, %AX;                        { Original screen mode }
+         PUSH %EBP;                                   { Save register }
+         INT $0x10;                                   { Reset video }
+         POP %EBP;                                    { Restore register }
+       END;
+       {$ELSE}                                        { OTHER DOS COMPILERS }
+       ASM
+         MOV AX, ScreenMode;                          { Original screen mode }
+         PUSH BP;                                     { Save register }
+         INT 10H;                                     { Reset video }
+         POP BP;                                      { Restore register }
+       END;
+       {$ENDIF}
+     End;
    {$ENDIF}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
      If (DefGFVFont <> 0) Then                        { Check font created }
@@ -2625,7 +2709,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:21  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
 	
 

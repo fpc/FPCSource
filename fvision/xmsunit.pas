@@ -7,7 +7,7 @@
 {                                                          }
 {        Copyright (c) 1998 by Leon de Boer                }
 {       ldeboer@attglobal.net  - primary e-mail address    }
-{       ldeboer@starwon.com.au - backup e-mail address     }
+{       ldeboer@projectent.com.au - backup e-mail address  }
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
@@ -510,7 +510,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:23  marco
+ Revision 1.3  2001-04-10 21:29:56  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:23  marco
   * CVS log and ID tags
 
 

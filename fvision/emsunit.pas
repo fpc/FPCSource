@@ -5,9 +5,9 @@
 {                                                          }
 {       Extracted from my original OBJECTS.PAS unit.       }
 {                                                          }
-{        Copyright (c) 1998 by Leon de Boer                }
+{        Copyright (c) 1998, 2000 by Leon de Boer          }
 {       ldeboer@attglobal.net  - primary e-mail address    }
-{       ldeboer@starwon.com.au - backup e-mail address     }
+{       ldeboer@projectent.com.au - backup e-mail address  }
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
@@ -29,6 +29,8 @@
 {  -------  ---------   ---------------------------------  }
 {  1.00     31 Aug 98   First release moved from original  }
 {                       objects unit.                      }
+{  1.10     14 Nov 00   Fixed EMS_MemAvail & EMS_MaxAvail  }
+{                       Fixed EMS_MoveMem                  }
 {**********************************************************}
 
 UNIT EMSUnit;
@@ -64,6 +66,8 @@ UNIT EMSUnit;
 {$IFNDEF PROC_Real}
 THis UNIT can only compile under DOS REAL MODE!!!!
 {$ENDIF}
+
+USES Common;
 
 {***************************************************************************}
 {                             PUBLIC CONSTANTS                              }
@@ -105,14 +109,14 @@ FUNCTION EMS_Version: Word;
 {-EMS_MaxAvail-------------------------------------------------------
 If EMS functions are available returns the maximum EMS memory available
 if none was in use. No EMS support or error will return zero.
-31Aug98 LdB
+14Nov00 LdB
 ---------------------------------------------------------------------}
 FUNCTION EMS_MaxAvail: LongInt;
 
 {-EMS_MemAvail-------------------------------------------------------
 If EMS functions are available returns the EMS memory that is currently
 available. No EMS support or error will return zero.
-31Aug98 LdB
+14Nov00 LdB
 ---------------------------------------------------------------------}
 FUNCTION EMS_MemAvail: LongInt;
 
@@ -148,7 +152,7 @@ is transfered to the ToAddress. The handles can be EMS handles if the
 associated address is an EMS offset or zero if the address refers to
 a real mode address. No EMS support or error will return an EMS error
 state while successful operations will return zero.
-31Aug98 LdB
+14Nov00 LdB
 ---------------------------------------------------------------------}
 FUNCTION EMS_MoveMem (ToAddr: LongInt; ToHandle: Word; FromAddr: LongInt;
 FromHandle: Word; Size: LongInt): Byte;
@@ -262,7 +266,7 @@ ASM
 END;
 
 {---------------------------------------------------------------------------}
-{  EMS_MaxAvail -> Platforms DOS - Checked 28Jan97 LdB                      }
+{  EMS_MaxAvail -> Platforms DOS - Checked 14Nov00 LdB                      }
 {---------------------------------------------------------------------------}
 FUNCTION EMS_MaxAvail: LongInt; ASSEMBLER;
 ASM
@@ -270,7 +274,7 @@ ASM
    JZ @@EMSInitialized;                               { Jump if initialized }
    CALL InitializeEMS;                                { Initialize EMS }
 @@EMSInitialized:
-   XOR AX, AX;                                        { Preset zero return }
+   XOR BX, BX;                                        { Preset zero return }
    CMP EMSPresent, True;                              { Check EMS present }
    JNZ @@Exit;                                        { Exit if no EMS }
    MOV AH, 42H;                                       { Set EMS function id }
@@ -290,7 +294,7 @@ ASM
 END;
 
 {---------------------------------------------------------------------------}
-{  EMS_MemAvail -> Platforms DOS - Checked 28Jan97 LdB                      }
+{  EMS_MemAvail -> Platforms DOS - Checked 14Nov00 LdB                      }
 {---------------------------------------------------------------------------}
 FUNCTION EMS_MemAvail: LongInt; ASSEMBLER;
 ASM
@@ -298,7 +302,7 @@ ASM
    JZ @@EMSInitialized;                               { Jump if initialized }
    CALL InitializeEMS;                                { Initialize EMS }
 @@EMSInitialized:
-   XOR AX, AX;                                        { Preset zero return }
+   XOR BX, BX;                                        { Preset zero return }
    CMP EMSPresent, True;                              { Check EMS present }
    JNZ @@Exit;                                        { Exit if no EMS }
    MOV AH, 42H;                                       { Set EMS function id }
@@ -382,6 +386,9 @@ ASM
 @@Exit:
 END;
 
+{---------------------------------------------------------------------------}
+{  EMS_MoveMem -> Platforms DOS - Checked 14Nov00 LdB                       }
+{---------------------------------------------------------------------------}
 FUNCTION EMS_MoveMem (ToAddr: LongInt; ToHandle: Word; FromAddr: LongInt;
 FromHandle: Word; Size: LongInt): Byte;
 VAR Er: Byte; W, EMSPage, EMSPos, EMSPage1, EMSPos1: Word;
@@ -393,7 +400,7 @@ BEGIN
          Else W := Size;                              { Size to move }
        If (ToHandle = 0) AND (FromHandle = 0)
        Then Begin                                     { Standard memory }
-         Move(Pointer(ToAddr)^, Pointer(FromAddr)^,
+         Move(Pointer(ToAddr), Pointer(FromAddr),
            W);                                        { Move the data }
        End Else If (ToHandle <> 0) AND (FromHandle <> 0)
        Then Begin                                     { EMS to EMS move }
@@ -421,8 +428,8 @@ BEGIN
            Er := EMS_MapPage(FromHandle, EMSPage+2, 2);{ Map to page 2 }
          If (Er = 0) AND (W > $BFFF) Then
            Er := EMS_MapPage(FromHandle, EMSPage+3, 3);{ Map to page 3 }
-         If (Er = 0) Then Move(Pointer(ToAddr)^,
-           Ptr(EMSFrame, EMSPos)^, W);                { Move data from EMS }
+         If (Er = 0) Then Move(PByteArray(Ptr(EMSFrame, EMSPos))^,
+           PByteArray(ToAddr)^, W);                   { Move data from EMS }
        End Else If (FromHandle = 0) Then Begin        { Put data in EMS }
          EMSPage := (ToAddr AND $FFFFC000) SHR 14;    { Current to page }
          EMSPos := ToAddr AND $00003FFF;              { Current to position }
@@ -433,8 +440,8 @@ BEGIN
            Er := EMS_MapPage(ToHandle, EMSPage+2, 2); { Map to page 2 }
          If (Er = 0) AND (W > $BFFF) Then
            Er := EMS_MapPage(ToHandle, EMSPage+3, 3); { Map to page 3 }
-         If (Er = 0) Then Move(Ptr(EMSFrame, EMSPos)^,
-          Pointer(FromAddr)^, W);                     { Move data to EMS }
+         If (Er = 0) Then Move(PByteArray(FromAddr)^,
+           PByteArray(Ptr(EMSFrame, EMSPos))^, W);    { Move data to EMS }
        End;
        If (Er = 0) Then Begin
          Size := Size - W;                            { Subtract moved size }
@@ -449,7 +456,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:21  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
 
 

@@ -93,7 +93,9 @@ USES
        WinBase, WinDef,                               { Standard units }
      {$ENDIF}
    {$ENDIF}
-   GFVGraph, Objects, Drivers, Views;                 { GFV standard units }
+
+   GFVGraph,                                          { GFV standard unit }
+   Objects, Drivers, Views;                           { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }

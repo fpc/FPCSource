@@ -3,9 +3,9 @@
 {                                                          }
 {          System independent GFV GRAPHICS UNIT            }
 {                                                          }
-{   Copyright (c) 1999 by Leon de Boer                     }
+{   Copyright (c) 1999, 2000 by Leon de Boer               }
 {   ldeboer@attglobal.net  - primary e-mail address        }
-{   ldeboer@starwon.com.au - backup e-mail address         }
+{   ldeboer@projectent.com.au - backup e-mail address      }
 {                                                          }
 {   This unit provides the interlink between the graphics  }
 {   used in GFV and the graphics API for the different     }
@@ -24,9 +24,6 @@
 {                                                          }
 {*****************[ SUPPORTED PLATFORMS ]******************}
 {     16 and 32 Bit compilers                              }
-{        DOS      - Turbo Pascal 7.0 +      (16 Bit)       }
-{        DPMI     - Turbo Pascal 7.0 +      (16 Bit)       }
-{                 - FPC 0.9912+ (GO32V2)    (32 Bit)       }
 {        WINDOWS  - Turbo Pascal 7.0 +      (16 Bit)       }
 {                 - Delphi 1.0+             (16 Bit)       }
 {        WIN95/NT - Delphi 2.0+             (32 Bit)       }
@@ -41,6 +38,8 @@
 {  -------  ---------   ---------------------------------- }
 {  1.00     26 Nov 99   Unit started from relocated code   }
 {                       originally from views.pas          }
+{  1.01     21 May 00   GetMaxX and GetMaxY added.         }
+{  1.02     05 Dec 00   Fixed DOS/DPMI implementation.     }
 {**********************************************************}
 
 UNIT GFVGraph;
@@ -72,6 +71,10 @@ UNIT GFVGraph;
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
+
+{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
+USES Graph;                                           { Standard unit }
+{$ENDIF}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -122,33 +125,13 @@ CONST
 CONST
    Detect = 0;                                        { Detect video }
 
+{$IFDEF OS_DOS}                                       { DOS CODE ONLY }
 {---------------------------------------------------------------------------}
-{                        TEXT JUSTIFICATION CONSTANTS                       }
-{---------------------------------------------------------------------------}
-CONST
-   LeftText   = 0;                                    { Left justify }
-   CenterText = 1;                                    { Centre justify }
-   RightText  = 2;                                    { Right justify }
-   BottomText = 0;                                    { Bottom justify }
-   TopText    = 2;                                    { Top justify }
-
-{---------------------------------------------------------------------------}
-{                           FILL PATTERN CONSTANTS                          }
+{                 DOS GRAPHICS SOLID FILL BAR AREA CONSTANT                 }
 {---------------------------------------------------------------------------}
 CONST
-   EmptyFill      = 0;                                { No fill pattern }
-   SolidFill      = 1;                                { Solid colour }
-   LineFill       = 2;                                { Line fill }
-   LtSlashFill    = 3;                                { Fwd slash line type }
-   SlashFill      = 4;                                { Fwd slash pattern }
-   BkSlashFill    = 5;                                { Back slash pattern }
-   LtBkSlashFill  = 6;                                { Back slash line type }
-   HatchFill      = 7;                                { Hatch pattern }
-   XHatchFill     = 8;                                { Cross hatch pattern }
-   InterleaveFill = 9;                                { Interleaved pattern }
-   WideDotFill    = 10;                               { Wide dot pattern }
-   CloseDotFill   = 11;                               { Close dot pattern }
-   UserFill       = 12;                               { User defined fill }
+   SolidFill = Graph.SolidFill;
+{$ENDIF}
 
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 {---------------------------------------------------------------------------}
@@ -199,7 +182,7 @@ Sets the current write mode constant all subsequent draws etc. are
 then via the set mode.
 26Nov99 LdB
 ---------------------------------------------------------------------}
-PROCEDURE SetWriteMode (Mode: Byte);
+PROCEDURE SetWriteMode (Mode: Byte; TextMode: Boolean);
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                         VIEWPORT CONTROL ROUTINES                         }
@@ -209,13 +192,41 @@ PROCEDURE SetWriteMode (Mode: Byte);
 Returns the current viewport and clip parameters in the variable.
 26Nov99 LdB
 ---------------------------------------------------------------------}
-PROCEDURE GetViewSettings (Var CurrentViewPort: ViewPortType);
+PROCEDURE GetViewSettings (Var CurrentViewPort: ViewPortType; TextMode: Boolean);
 
 {-SetViewPort--------------------------------------------------------
 Set the current viewport and clip parameters to that requested.
 26Nov99 LdB
 ---------------------------------------------------------------------}
-PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip: Boolean);
+PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip, TextMode: Boolean);
+
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                    GRAPHICS DEVICE CAPACITY ROUTINES                      }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{-GetMaxX------------------------------------------------------------
+Returns X coordinate of maximum value that can be entered in any
+graphics routine, that is the actual screen width in pixels - 1.
+21May2000 LdB
+---------------------------------------------------------------------}
+FUNCTION GetMaxX (TextMode: Boolean): Integer;
+
+{-GetMaxY------------------------------------------------------------
+Returns Y coordinate of maximum value that can be entered in any
+graphics routine, that is the actual screen height in pixels - 1.
+21May2000 LdB
+---------------------------------------------------------------------}
+FUNCTION GetMaxY (TextMode: Boolean): Integer;
+
+{$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+PROCEDURE SetColor(Color: Word);
+PROCEDURE SetFillStyle (Pattern: Word; Color: Word);
+PROCEDURE Bar (X1, Y1, X2, Y2: Integer);
+PROCEDURE Line(X1, Y1, X2, Y2: Integer);
+PROCEDURE Rectangle(X1, Y1, X2, Y2: Integer);
+PROCEDURE OutTextXY(X,Y: Integer; TextString: String);
+{$ENDIF}
 
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
@@ -241,6 +252,7 @@ CONST
 {               DOS/DPMI/WIN/NT/OS2 INITIALIZED VARIABLES                   }
 {---------------------------------------------------------------------------}
 CONST
+   FillCol : Integer = 0;
    Cxp     : Integer = 0;                             { Current x position }
    Cyp     : Integer = 0;                             { Current y position }
    ViewPort: ViewPortType = (X1:0; Y1:0; X2: 639;
@@ -256,11 +268,16 @@ CONST
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
 {---------------------------------------------------------------------------}
-{  SetWriteMode -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 09Aug99 LdB      }
+{  SetWriteMode -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE SetWriteMode (Mode: Byte);
+PROCEDURE SetWriteMode (Mode: Byte; TextMode: Boolean);
 BEGIN
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   If TextMode Then WriteMode := Mode                 { Hold write mode }
+     Else Graph.SetWriteMode(Mode);                   { Call graph proc }
+   {$ELSE}                                            { WIN/NT/OS2 CODE }
    WriteMode := Mode;                                 { Hold writemode value }
+   {$ENDIF}
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -268,43 +285,130 @@ END;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
 {---------------------------------------------------------------------------}
-{  GetViewSettings -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 09Aug99 LdB   }
+{  GetViewSettings -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB }
 {---------------------------------------------------------------------------}
-PROCEDURE GetViewSettings (Var CurrentViewPort: ViewPortType);
+PROCEDURE GetViewSettings (Var CurrentViewPort: ViewPortType; TextMode: Boolean);
+{$IFDEF OS_DOS} VAR Ts: Graph.ViewPortType;{$ENDIF}   { DOS/DPMI CODE }
 BEGIN
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   If TextMode Then CurrentViewPort := ViewPort       { Textmode viewport }
+     Else Begin
+       Graph.GetViewSettings(Ts);                     { Get graph settings }
+       CurrentViewPort.X1 := Ts.X1;                   { Transfer X1 }
+       CurrentViewPort.Y1 := Ts.Y1;                   { Transfer Y1 }
+       CurrentViewPort.X2 := Ts.X2;                   { Transfer X2 }
+       CurrentViewPort.Y2 := Ts.Y2;                   { Transfer Y2 }
+       CurrentViewPort.Clip := Ts.Clip;               { Transfer clip mask }
+     End;
+   {$ELSE}                                            { WIN/NT/OS2 CODE }
    CurrentViewPort := ViewPort;                       { Return view port }
+   {$ENDIF}
 END;
 
 {---------------------------------------------------------------------------}
-{  SetViewPort -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 09Aug99 LdB       }
+{  SetViewPort -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB     }
 {---------------------------------------------------------------------------}
-PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip: Boolean);
+PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip, TextMode: Boolean);
 BEGIN
-   If (X1 < 0) Then X1 := 0;                          { X1 negative fix }
-   If (X1 > SysScreenWidth) Then
-     X1 := SysScreenWidth;                            { X1 off screen fix }
-   If (Y1 < 0) Then Y1 := 0;                          { Y1 negative fix }
-   If (Y1 > SysScreenHeight) Then
-     Y1 := SysScreenHeight;                           { Y1 off screen fix }
-   If (X2 < 0) Then X2 := 0;                          { X2 negative fix }
-   If (X2 > SysScreenWidth) Then X2 := SysScreenWidth;{ X2 off screen fix }
-   If (Y2 < 0) Then Y2 := 0;                          { Y2 negative fix }
-   If (Y2 > SysScreenHeight) Then
-     Y2 := SysScreenHeight;                           { Y2 off screen fix }
-   ViewPort.X1 := X1;                                 { Set X1 port value }
-   ViewPort.Y1 := Y1;                                 { Set Y1 port value }
-   ViewPort.X2 := X2;                                 { Set X2 port value }
-   ViewPort.Y2 := Y2;                                 { Set Y2 port value }
-   ViewPort.Clip := Clip;                             { Set port clip value }
-   Cxp := X1;                                         { Set current x pos }
-   Cyp := Y1;                                         { Set current y pos }
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   If (TextMode = TRUE) Then Begin                    { TEXT MODE GFV }
+   {$ENDIF}
+     If (X1 < 0) Then X1 := 0;                        { X1 negative fix }
+     If (X1 > SysScreenWidth) Then
+       X1 := SysScreenWidth;                          { X1 off screen fix }
+     If (Y1 < 0) Then Y1 := 0;                        { Y1 negative fix }
+     If (Y1 > SysScreenHeight) Then
+       Y1 := SysScreenHeight;                         { Y1 off screen fix }
+     If (X2 < 0) Then X2 := 0;                        { X2 negative fix }
+     If (X2 > SysScreenWidth) Then
+       X2 := SysScreenWidth;                          { X2 off screen fix }
+     If (Y2 < 0) Then Y2 := 0;                        { Y2 negative fix }
+     If (Y2 > SysScreenHeight) Then
+       Y2 := SysScreenHeight;                         { Y2 off screen fix }
+     ViewPort.X1 := X1;                               { Set X1 port value }
+     ViewPort.Y1 := Y1;                               { Set Y1 port value }
+     ViewPort.X2 := X2;                               { Set X2 port value }
+     ViewPort.Y2 := Y2;                               { Set Y2 port value }
+     ViewPort.Clip := Clip;                           { Set port clip value }
+     Cxp := X1;                                       { Set current x pos }
+     Cyp := Y1;                                       { Set current y pos }
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   End Else Begin                                     { GRAPHICS MODE GFV }
+     Graph.SetViewPort(X1, Y1, X2, Y2, Clip);         { Call graph proc }
+   End;
+   {$ENDIF}
 END;
+
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                    GRAPHICS DEVICE CAPACITY ROUTINES                      }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
+{---------------------------------------------------------------------------}
+{  GetMaxX - Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB          }
+{---------------------------------------------------------------------------}
+FUNCTION GetMaxX (TextMode: Boolean): Integer;
+BEGIN
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   If TextMode Then GetMaxX := SysScreenWidth-1       { Screen width }
+     Else GetMaxX := Graph.GetMaxX;                   { Call graph func }
+   {$ELSE}                                            { WIN/NT/OS2 CODE }
+   GetMaxX := SysScreenWidth-1;                       { Screen width }
+   {$ENDIF}
+END;
+
+{---------------------------------------------------------------------------}
+{  GetMaxY - Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB          }
+{---------------------------------------------------------------------------}
+FUNCTION GetMaxY (TextMode: Boolean): Integer;
+BEGIN
+   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   If TextMode Then GetMaxY := SysScreenHeight-1      { Screen height }
+     Else GetMaxY := Graph.GetMaxY;                   { Call graph func }
+   {$ELSE}                                            { WIN/NT/OS2 CODE }
+   GetMaxY := SysScreenHeight-1;                      { Screen height }
+   {$ENDIF}
+END;
+
+{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
+PROCEDURE SetColor(Color: Word);
+BEGIN
+   Graph.SetColor(Color);                             { Call graph proc }
+END;
+
+PROCEDURE SetFillStyle (Pattern: Word; Color: Word);
+BEGIN
+   Graph.SetFillStyle(Pattern, Color);                { Call graph proc }
+END;
+
+PROCEDURE Bar (X1, Y1, X2, Y2: Integer);
+BEGIN
+   Graph.Bar(X1, Y1, X2, Y2);                         { Call graph proc }
+END;
+
+PROCEDURE Line(X1, Y1, X2, Y2: Integer);
+BEGIN
+   Graph.Line(X1, Y1, X2, Y2);                        { Call graph proc }
+END;
+
+PROCEDURE Rectangle(X1, Y1, X2, Y2: Integer);
+BEGIN
+   Graph.Rectangle(X1, Y1, X2, Y2);                  { Call graph proc }
+END;
+
+PROCEDURE OutTextXY(X,Y: Integer; TextString: string);
+BEGIN
+   Graph.OutTextXY(X, Y, TextString);                 { Call graph proc }
+END;
+{$ENDIF}
 
 END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:21  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
 
 

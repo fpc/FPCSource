@@ -5,7 +5,7 @@
 {                                                          }
 {   Copyright (c) 1996, 1997, 1998, 1999 by Leon de Boer   }
 {   ldeboer@attglobal.net  - primary e-mail address        }
-{   ldeboer@starwon.com.au - backup e-mail address         }
+{   ldeboer@projectent.com.au - backup e-mail address      }
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
@@ -32,6 +32,7 @@
 {        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
 {                 - Speed Pascal 1.0+       (32 Bit)       }
 {                 - C'T patch to BP         (16 Bit)       }
+{        LINUX    - FPC 1.0.2+              (32 Bit)       }
 {                                                          }
 {******************[ REVISION HISTORY ]********************}
 {  Version  Date        Fix                                }
@@ -46,6 +47,7 @@
 {  1.60     14 Jun 99   References to Common.pas added.    }
 {  1.61     07 Jul 99   Speedsoft SYBIL 2.0 code added.    }
 {  1.62     03 Nov 99   FPC windows support added.         }
+{  1.70     10 Nov 00   Revamp using changed common unit   }
 {**********************************************************}
 
 UNIT FileIO;
@@ -87,7 +89,9 @@ UNIT FileIO;
   {$ENDIF}
 {$ENDIF}
 
-USES Common;                                          { Standard GFV unit }
+USES
+  {$IFDEF WIN16} WinTypes, WinProcs, {$ENDIF}         { Stardard BP units }
+  Common;                                             { Standard GFV unit }
 
 {***************************************************************************}
 {                             PUBLIC CONSTANTS                              }
@@ -138,9 +142,9 @@ TYPE
 The file opened by the handle is closed. If close action is successful
 true is returned but if the handle is invalid or a file error occurs
 false will be returned.
-20Oct98 LdB
+14Nov00 LdB
 ---------------------------------------------------------------------}
-FUNCTION FileClose (Handle: Word): Boolean;
+FUNCTION FileClose (Handle: THandle): Boolean;
 
 {-FileOpen-----------------------------------------------------------
 Given a valid filename to file that exists, is not locked with a valid
@@ -148,7 +152,7 @@ access mode the file is opened and the file handle returned. If the
 name or mode is invalid or an error occurs the return will be zero.
 27Oct98 LdB
 ---------------------------------------------------------------------}
-FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): Word;
+FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 
 {-SetFileSize--------------------------------------------------------
 The file opened by the handle is set the given size. If the action is
@@ -156,7 +160,7 @@ successful zero is returned but if the handle is invalid or a file error
 occurs a standard file error value will be returned.
 21Oct98 LdB
 ---------------------------------------------------------------------}
-FUNCTION SetFileSize (Handle: Word; FileSize: LongInt): Word;
+FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
 
 {-SetFilePos---------------------------------------------------------
 The file opened by the handle is set the given position in the file.
@@ -165,7 +169,7 @@ the position is beyond the file size or a file error occurs a standard
 file error value will be returned.
 21Oct98 LdB
 ---------------------------------------------------------------------}
-FUNCTION SetFilePos (Handle: Word; Pos: LongInt; MoveType: Word;
+FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
 Var Actual: LongInt): Word;
 
 {-FileRead-----------------------------------------------------------
@@ -176,7 +180,7 @@ error occurs the function will return a file error constant and actual
 will contain the bytes transfered before the error if any.
 22Oct98 LdB
 ---------------------------------------------------------------------}
-FUNCTION FileRead (Handle: Word; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 
 {-FileWrite----------------------------------------------------------
 The file opened by the handle has count bytes written to it from the
@@ -186,7 +190,7 @@ error occurs the function will return a file error constant and actual
 will contain the bytes transfered before the error if any.
 22Oct98 LdB
 ---------------------------------------------------------------------}
-FUNCTION FileWrite (Handle: Word; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                IMPLEMENTATION
@@ -195,10 +199,8 @@ FUNCTION FileWrite (Handle: Word; Var Buf; Count: Sw_Word; Var Actual: Sw_Word):
 {$IFDEF OS_WINDOWS}                                   { WIN/NT UNITS }
 
   {$IFNDEF PPC_SPEED}                                 { NON SPEED COMPILER }
-    {$IFDEF PPC_FPC}                                  { FPC WINDOWS COMPILER }
+    {$IFDEF WIN32}                                    { WIN32 COMPILER }
     USES Windows;                                     { Standard unit }
-    {$ELSE}                                           { NON FPC COMPILER }
-    USES WinTypes, WinProcs;                          { Stardard units }
     {$ENDIF}
   TYPE LongWord = LongInt;                            { Type fixup }
   {$ELSE}                                             { SPEEDSOFT COMPILER }
@@ -228,9 +230,9 @@ FUNCTION FileWrite (Handle: Word; Var Buf; Count: Sw_Word; Var Actual: Sw_Word):
 {***************************************************************************}
 
 {---------------------------------------------------------------------------}
-{  FileClose -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20Oct98 LdB         }
+{  FileClose -> Platforms DOS/DPMI/WIN/NT/OS2/LINUX - Updated 14Nov00 LdB   }
 {---------------------------------------------------------------------------}
-FUNCTION FileClose (Handle: Word): Boolean;
+FUNCTION FileClose (Handle: THandle): Boolean;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
    ASSEMBLER;
@@ -274,11 +276,18 @@ BEGIN
      Else FileClose := False;                         { Closure failed }
 END;
 {$ENDIF}
+{$IFDEF OS_LINUX}                                     { LINUX CODE }
+BEGIN
+   fdClose(Handle);                                   { Close the file }
+   If (LinuxError <= 0) Then FileClosed := True       { Close succesful }
+     Else FileClosed := False;                        { Close failed }
+END;
+{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  FileOpen -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): Word;
+FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
    ASSEMBLER;
@@ -370,7 +379,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SetFileSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Feb97 LdB       }
 {---------------------------------------------------------------------------}
-FUNCTION SetFileSize (Handle: Word; FileSize: LongInt): Word;
+FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
    ASSEMBLER;
@@ -441,7 +450,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SetFilePos -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Feb97 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION SetFilePos (Handle: Word; Pos: LongInt; MoveType: Word;
+FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
 Var Actual: LongInt): Word;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
@@ -509,7 +518,7 @@ END;
 {---------------------------------------------------------------------------}
 {  FileRead -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION FileRead (Handle: Word; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
    ASSEMBLER;
@@ -567,7 +576,7 @@ END;
 {---------------------------------------------------------------------------}
 {  FileWrite -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct98 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION FileWrite (Handle: Word; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
    ASSEMBLER;
@@ -624,7 +633,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:21  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
 
 

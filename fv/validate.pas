@@ -1001,7 +1001,7 @@ END;
 {  Lookup -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB            }
 {---------------------------------------------------------------------------}
 FUNCTION TStringLookUpValidator.Lookup (Const S: String): Boolean;
-VAR Index: Integer;
+{$IFDEF PPC_VIRTUAL} VAR Index: LongInt; {$ELSE} VAR Index: Integer; {$ENDIF}
 BEGIN
    Lookup := False;                                   { Preset false return }
    If (Strings <> Nil) Then
@@ -1058,7 +1058,10 @@ END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

@@ -97,7 +97,8 @@ USES
      OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
    {$ENDIF}
 
-   Common, GFVGraph, Objects, Drivers, Views, Validate; { Standard GFV units }
+   GFVGraph,                                          { GFV standard unit }
+   Common, Objects, Drivers, Views, Validate;         { Standard GFV units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -3215,7 +3216,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:20  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:20  marco
   * CVS log and ID tags
 
 

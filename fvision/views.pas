@@ -95,7 +95,8 @@ USES
      OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
    {$ENDIF}
 
-   Common, GFVGraph, Objects, Drivers;                { GFV standard units }
+   GFVGraph,                                          { GFV standard unit }
+   Common, Objects, Drivers;                          { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -310,7 +311,7 @@ CONST
 
 {$IFDEF BIT_16}                                       { WINDOWS 16 BIT CODE }
 {---------------------------------------------------------------------------}
-{              WIN16 LABEL CONSTANTS FOR WINDOW PROPERTY CALLS              }
+{             WIN16 LABEL CONSTANTS FOR WINDOW PROPERTY CALLS               }
 {---------------------------------------------------------------------------}
 CONST
    ViewSeg = 'TVWINSEG'+#0;                           { View segment label }
@@ -319,7 +320,7 @@ CONST
 
 {$IFDEF BIT_32}                                       { WINDOWS 32 BIT CODE }
 {---------------------------------------------------------------------------}
-{             WIN32/NT LABEL CONSTANTS FOR WINDOW PROPERTY CALLS            }
+{            WIN32/NT LABEL CONSTANTS FOR WINDOW PROPERTY CALLS             }
 {---------------------------------------------------------------------------}
 CONST
    ViewPtr = 'TVWINPTR'+#0;                           { View ptr label }
@@ -388,37 +389,40 @@ TYPE
 {---------------------------------------------------------------------------}
    PView = ^TView;
    TView = OBJECT (TObject)
-         GrowMode  : Byte;                            { View grow mode }
-         DragMode  : Byte;                            { View drag mode }
-         DrawMask  : Byte;                            { Draw masks }
-         TabMask   : Byte;                            { Tab move masks }
-         ColourOfs : Integer;                         { View palette offset }
-         HelpCtx   : Word;                            { View help context }
-         State     : Word;                            { View state masks }
-         Options   : Word;                            { View options masks }
-         EventMask : Word;                            { View event masks }
-         GOptions  : Word;                            { Graphics options }
-         Origin    : TPoint;                          { View origin }
-         Size      : TPoint;                          { View size }
-         Cursor    : TPoint;                          { Cursor position }
-         RawOrigin : TPoint;                          { View raw origin }
-         RawSize   : TPoint;                          { View raw size }
-         Next      : PView;                           { Next peerview }
-         Owner     : PGroup;                          { Owner group }
-         HoldLimit : PComplexArea;                    { Hold limit values }
+         GrowMode : Byte;                             { View grow mode }
+         DragMode : Byte;                             { View drag mode }
+         DrawMask : Byte;                             { Draw masks }
+         TabMask  : Byte;                             { Tab move masks }
+         ColourOfs: Integer;                          { View palette offset }
+         HelpCtx  : Word;                             { View help context }
+         State    : Word;                             { View state masks }
+         Options  : Word;                             { View options masks }
+         EventMask: Word;                             { View event masks }
+         GOptions : Word;                             { Graphics options }
+         Origin   : TPoint;                           { View origin }
+         Size     : TPoint;                           { View size }
+         Cursor   : TPoint;                           { Cursor position }
+         RawOrigin: TPoint;                           { View raw origin }
+         RawSize  : TPoint;                           { View raw size }
+         Next     : PView;                            { Next peerview }
+         Owner    : PGroup;                           { Owner group }
+         HoldLimit: PComplexArea;                     { Hold limit values }
+
+         RevCol    : Boolean;
+
          {$IFDEF OS_WINDOWS}                          { WIN/NT DATA ONLY }
-         ExStyle   : LongInt;                         { Extended style }
-         Dc        : HDc;                             { Device context }
+         ExStyle  : LongInt;                          { Extended style }
+         Dc       : HDc;                              { Device context }
          {$ENDIF}
          {$IFDEF OS_OS2}                              { OS2 DATA ONLY }
-         lStyle    : LongInt;                         { Style }
-         Client    : HWnd;                            { Client handle }
-         Ps        : HPs;                             { Paint structure }
+         lStyle   : LongInt;                          { Style }
+         Client   : HWnd;                             { Client handle }
+         Ps       : HPs;                              { Paint structure }
          {$ENDIF}
          {$IFNDEF OS_DOS}                             { WIN/NT/OS2 DATA ONLY }
-         FrameSize : Integer;                         { Frame size (X) }
-         CaptSize  : Integer;                         { Caption size (Y) }
-         HWindow   : HWnd;                            { Window handle }
+         FrameSize: Integer;                          { Frame size (X) }
+         CaptSize : Integer;                          { Caption size (Y) }
+         HWindow  : HWnd;                             { Window handle }
          {$ENDIF}
       CONSTRUCTOR Init (Var Bounds: TRect);
       CONSTRUCTOR Load (Var S: TStream);
@@ -823,11 +827,12 @@ TYPE TColorRef = LongInt;                             { TColorRef defined }
 {$ENDIF}
 
 {$IFDEF PPC_SPEED}                                    { SPEEDSOFT SYBIL2+ }
-TYPE TColorRef = LongInt;                             { TColorRef defined }
-     TPaintStruct = PaintStruct;
-     TWindowPos = WindowPos;
-     TSize = Size;
-     TWndClass = WndClass;
+TYPE
+   TColorRef = LongInt;                               { TColorRef defined }
+   TPaintStruct = PaintStruct;                        { TPaintStruct define }
+   TWindowPos = WindowPos;                            { TWindowPos defined }
+   TSize = Size;                                      { TSize defined }
+   TWndClass = WndClass;                              { TWndClass defined }
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -1088,7 +1093,7 @@ BEGIN
          Event.What := evMouseDown;                   { Mouse down event }
          Event.Double := True;                        { Double click }
          MouseButtons := MouseButtons OR
-           mbLeftButton;                              { Set button mask }
+           mbRightButton;                             { Set button mask }
        End;
        WM_MButtonDown: Begin                          { MIDDLE MOUSE DOWN }
          Event.What := evMouseDown;                   { Mouse down event }
@@ -1122,11 +1127,6 @@ BEGIN
            MouseButtons := MouseButtons OR
              mbRightButton;                           { Set right button mask }
        End;
-       {$IFDEF BIT_32}
-       WM_Notify: Begin
-         I := 0;
-       End;
-       {$ENDIF}
        WM_EraseBkGnd: TvViewMsgHandler := 1;          { BACKGROUND MESSAGE }
        WM_Paint: If (P^.Dc = 0) Then Begin            { PAINT MESSAGE }
          P^.Dc := BeginPaint(Wnd, Ps);                { Fetch structure }
@@ -1929,7 +1929,7 @@ BEGIN
    (State AND sfExposed <> 0) AND                     { View is exposed }
    (State AND sfIconised = 0) Then Begin              { View not iconised }
      SetViewLimits;                                   { Set view limits }
-     GetViewSettings(ViewPort);                       { Get set viewport }
+     GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
        {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
@@ -2028,15 +2028,18 @@ END;
 PROCEDURE TView.DrawBorder;
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE ONLY }
-   BiColorRectangle(0, 0, RawSize.X, RawSize.Y, White,
-     DarkGray, False);                                { Draw 3d effect }
-   If (GOptions AND goThickFramed <> 0) Then Begin    { Thick frame at work }
-     GraphRectangle(1, 1, RawSize.X-1, RawSize.Y-1,
-       LightGray);                                    { Draw frame part 1 }
-     GraphRectangle(2, 2, RawSize.X-2, RawSize.Y-2,
-       LightGray);                                    { Fraw frame part 2 }
-     BiColorRectangle(3, 3, RawSize.X-3, RawSize.Y-3,
-       White, DarkGray, True);                        { Draw highlights }
+   If (TextModeGFV = FALSE) Then Begin                { GRAPHICS GFV MODE }
+     BiColorRectangle(0, 0, RawSize.X, RawSize.Y,
+       White, DarkGray, False);                       { Draw 3d effect }
+     If (GOptions AND goThickFramed <> 0) Then Begin  { Thick frame at work }
+       GraphRectangle(1, 1, RawSize.X-1, RawSize.Y-1,
+         LightGray);                                  { Draw frame part 1 }
+       GraphRectangle(2, 2, RawSize.X-2, RawSize.Y-2,
+         LightGray);                                  { Fraw frame part 2 }
+       BiColorRectangle(3, 3, RawSize.X-3, RawSize.Y-3,
+         White, DarkGray, True);                      { Draw highlights }
+     End;
+   End Else Begin                                     { TEXT GFV MODE }
    End;
    {$ENDIF}
 END;
@@ -2093,7 +2096,7 @@ VAR X1, Y1, X2, Y2: Integer; P: PGroup; ViewPort: ViewPortType; Ca: PComplexArea
 BEGIN
    If (MaxAvail >= SizeOf(TComplexArea)) Then Begin   { Check enough memory }
      GetMem(Ca, SizeOf(TComplexArea));                { Allocate memory }
-     GetViewSettings(ViewPort);                       { Fetch view port }
+     GetViewSettings(ViewPort, TextModeGFV);          { Fetch view port }
      Ca^.X1 := ViewPort.X1;                           { Hold current X1 }
      Ca^.Y1 := ViewPort.Y1;                           { Hold current Y1 }
      Ca^.X2 := ViewPort.X2;                           { Hold current X2 }
@@ -2126,7 +2129,7 @@ BEGIN
        If (X2 > ViewPort.X2) Then X2 := ViewPort.X2;  { Adjust x2 to locked }
        If (Y2 > ViewPort.Y2) Then Y2 := ViewPort.Y2;  { Adjust y2 to locked }
      End;
-     SetViewPort(X1, Y1, X2, Y2, ClipOn);             { Set new clip limits }
+     SetViewPort(X1, Y1, X2, Y2, ClipOn, TextModeGFV);{ Set new clip limits }
    End;
 END;
 
@@ -2135,13 +2138,14 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawBackGround;
 VAR Bc: Byte; X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
+{$IFDEF OS_DOS} X, Y: Integer; {$ENDIF}
 {$IFDEF OS_OS2} Ptl: PointL; {$ENDIF}
 BEGIN
    If (GOptions AND goNoDrawView = 0) Then Begin      { Non draw views exit }
      If (State AND sfDisabled = 0) Then
        Bc := GetColor(1) AND $F0 SHR 4 Else           { Select back colour }
        Bc := GetColor(4) AND $F0 SHR 4;               { Disabled back colour }
-     GetViewSettings(ViewPort);                       { Get view settings }
+     GetViewSettings(ViewPort, TextModeGFV);          { Get view settings }
      If (ViewPort.X1 <= RawOrigin.X) Then X1 := 0     { Right to left edge }
        Else X1 := ViewPort.X1-RawOrigin.X;            { Offset from left }
      If (ViewPort.Y1 <= RawOrigin.Y) Then Y1 := 0     { Right to top edge }
@@ -2153,8 +2157,23 @@ BEGIN
        Y2 := RawSize.Y Else                           { Right to bottom edge }
        Y2 := ViewPort.Y2-RawOrigin.Y;                 { Offset from bottom }
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-       SetFillStyle(SolidFill, Bc);                   { Set fill colour }
-       Bar(0, 0, X2-X1, Y2-Y1);                       { Clear the area }
+       If (TextModeGFV <> True) Then Begin            { GRAPHICS MODE GFV }
+         SetFillStyle(SolidFill, Bc);                 { Set fill colour }
+         Bar(0, 0, X2-X1, Y2-Y1);                     { Clear the area }
+       End Else Begin                                 { TEXT MODE GFV }
+         X1 := (RawOrigin.X+X1) DIV SysFontWidth;
+         Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
+         X2 := (RawOrigin.X+X2) DIV SysFontWidth;
+         Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
+         If (State AND sfDisabled = 0) Then
+           Bc := GetColor(1) Else           { Select back colour }
+           Bc := GetColor(4);               { Disabled back colour }
+         For Y := Y1 To Y2 Do
+           For X := X1 To X2 Do Begin
+             Mem[$B800:$0+(Y*ScreenWidth+X)*2] := $20;
+             Mem[$B800:$0+(Y*ScreenWidth+X)*2+1] := Bc;
+           End;
+       End;
      {$ENDIF}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
      If (Dc <> 0) Then Begin                          { Valid device context }
@@ -2186,7 +2205,8 @@ BEGIN
    P := HoldLimit;                                    { Transfer pointer }
    If (P <> Nil) Then Begin                           { Valid complex area }
      HoldLimit := P^.NextArea;                        { Move to prior area }
-     SetViewPort(P^.X1, P^.Y1, P^.X2, P^.Y2, ClipOn); { Restore clip limits }
+     SetViewPort(P^.X1, P^.Y1, P^.X2, P^.Y2, ClipOn,
+       TextModeGFV);                                  { Restore clip limits }
      FreeMem(P, SizeOf(TComplexArea));                { Release memory }
    End;
 END;
@@ -2317,14 +2337,14 @@ END;
 PROCEDURE TView.ReDrawArea (X1, Y1, X2, Y2: Integer);
 VAR HLimit: PView; ViewPort: ViewPortType;
 BEGIN
-   GetViewSettings(ViewPort);                         { Hold view port }
-   SetViewPort(X1, Y1, X2, Y2, ClipOn);               { Set new clip limits }
+   GetViewSettings(ViewPort, TextModeGFV);            { Hold view port }
+   SetViewPort(X1, Y1, X2, Y2, ClipOn, TextModeGFV);  { Set new clip limits }
    HLimit := LimitsLocked;                            { Hold lock limits }
    LimitsLocked := @Self;                             { We are the lock view }
    DrawView;                                          { Redraw the area }
    LimitsLocked := HLimit;                            { Release our lock }
    SetViewPort(ViewPort.X1, ViewPort.Y1,
-     ViewPort.X2, ViewPort.Y2, ClipOn);               { Reset old limits }
+     ViewPort.X2, ViewPort.Y2, ClipOn, TextModeGFV);  { Reset old limits }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -4329,7 +4349,7 @@ BEGIN
    (State AND sfExposed <> 0) AND                     { View is exposed }
    (Max <> Min) Then Begin                            { View has some size }
      SetViewLimits;                                   { Set view limits }
-     GetViewSettings(ViewPort);                       { Get set viewport }
+     GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
        {$IFDEF OS_DOS}
@@ -4369,7 +4389,7 @@ BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) Then Begin              { View is exposed }
      SetViewLimits;                                   { Set view limits }
-     GetViewSettings(ViewPort);                       { Get set viewport }
+     GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
        {$IFDEF OS_DOS}
@@ -4584,13 +4604,14 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TListViewer.GetText (Item: Integer; MaxLen: Integer): String;
 BEGIN                                                 { Abstract method }
+   GetText := '';                                     { Return empty }
 END;
 
 {--TListViewer--------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.DrawBackGround;
-VAR SCOff: Byte; I, J, ColWidth, Item, Indent, CurCol: Integer; Color: Word;
+VAR  I, J, ColWidth, Item, Indent, CurCol: Integer; Color: Word;
     Text: String; B: TDrawBuffer;
     {$IFDEF OS_WINDOWS} S: String; {$ENDIF}           { WIN/NT CODE }
 
@@ -4643,9 +4664,9 @@ BEGIN
          MoveStr(B[CurCol+1], Text, Color);           { Transfer to buffer }
          If ShowMarkers Then Begin
            WordRec(B[CurCol]).Lo := Byte(
-             SpecialChars[SCOff]);                    { Set marker character }
+             SpecialChars[4]);                        { Set marker character }
            WordRec(B[CurCol+ColWidth-2]).Lo := Byte(
-             SpecialChars[SCOff+1]);                  { Set marker character }
+             SpecialChars[5]);                        { Set marker character }
          End;
        End;
        MoveChar(B[CurCol+ColWidth-1], #179,
@@ -4659,13 +4680,12 @@ END;
 {  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.DrawFocus;
-VAR DrawIt: Boolean; I, J, Item, CurCol, ColWidth: Integer;
+VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Integer;
     Color: Word;
 
   Indent: Integer;
   B: TDrawBuffer;
-  Text,S: String;
-  SCOff: Byte;
+  Text: String;
 BEGIN
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (GOptions AND goNativeClass <> 0) Then Exit;    { Native class exits }
@@ -5462,7 +5482,7 @@ END;
 FUNCTION TView.Exposed: Boolean;
 VAR ViewPort: ViewPortType;
 BEGIN
-   GetViewSettings(ViewPort);                         { Fetch viewport }
+   GetViewSettings(ViewPort, TextModeGFV);            { Fetch viewport }
    If (State AND sfVisible<>0) AND                    { View visible }
      (State AND sfExposed<>0) AND                     { View exposed }
      OverlapsArea(ViewPort.X1, ViewPort.Y1,
@@ -5479,11 +5499,14 @@ VAR {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}  { DOS/DPMI VARIABLES }
     {$IFDEF OS_OS2} I: LongInt; Lp: PointL; OPs: HPs; {$ENDIF}{ OS2 VARIABLES }
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-   GetViewSettings(ViewPort);                         { Get viewport settings }
-   SetColor(Colour);                                  { Set line colour }
-   Line(RawOrigin.X + X1 - ViewPort.X1,
-     RawOrigin.Y + Y1 - ViewPort.Y1, RawOrigin.X + X2
-     - ViewPort.X1, RawOrigin.Y + Y2-ViewPort.Y1);    { Draw the line }
+   GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
+   If (TextModeGFV <> TRUE) Then Begin
+     SetColor(Colour);                                { Set line colour }
+     Line(RawOrigin.X + X1 - ViewPort.X1,
+       RawOrigin.Y + Y1 - ViewPort.Y1, RawOrigin.X + X2
+       - ViewPort.X1, RawOrigin.Y + Y2-ViewPort.Y1);  { Draw the line }
+   End Else Begin                                     { LEON???? }
+   End;
    {$ENDIF}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (HWindow <> 0) Then Begin                       { Valid window }
@@ -5549,11 +5572,14 @@ VAR {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}
     {$IFDEF OS_OS2} Lp: PointL; OPs: HPs; {$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-   SetColor(Colour);                                  { Set line colour }
-   GetViewSettings(ViewPort);
-   Rectangle(RawOrigin.X + X1 - ViewPort.X1, RawOrigin.Y + Y1
-     - ViewPort.Y1, RawOrigin.X + X2 - ViewPort.X1,
-     RawOrigin.Y+Y2-ViewPort.Y1);                     { Draw a rectangle }
+   If (TextModeGFV <> TRUE) Then Begin                { GRAPHICS MODE GFV }
+     SetColor(Colour);                                { Set line colour }
+     GetViewSettings(ViewPort, TextModeGFV);
+     Rectangle(RawOrigin.X + X1 - ViewPort.X1, RawOrigin.Y + Y1
+       - ViewPort.Y1, RawOrigin.X + X2 - ViewPort.X1,
+       RawOrigin.Y+Y2-ViewPort.Y1);                   { Draw a rectangle }
+   End Else Begin                                     { LEON???? }
+   End;
    {$ENDIF}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (HWindow <> 0) Then Begin                       { Valid window }
@@ -5619,16 +5645,28 @@ END;
 {  ClearArea -> Platforms DOS/DPMI/WIN/OS2 - Checked 19Sep97 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.ClearArea (X1, Y1, X2, Y2: Integer; Colour: Byte);
-VAR {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}
+VAR {$IFDEF OS_DOS} X, Y: Integer; ViewPort: ViewPortType; {$ENDIF}
     {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
     {$IFDEF OS_OS2} Lp: PointL; OPs: HPs; {$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-   GetViewSettings(ViewPort);                         { Get viewport }
-   SetFillStyle(SolidFill, Colour);                   { Set colour up }
-   Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
-     ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
-     RawOrigin.Y+Y2-ViewPort.Y1);                     { Clear the area }
+   GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
+   If (TextModeGFV <> TRUE) Then Begin                { GRAPHICAL GFV MODE }
+     SetFillStyle(SolidFill, Colour);                 { Set colour up }
+     Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
+       ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
+       RawOrigin.Y+Y2-ViewPort.Y1);                   { Clear the area }
+   End Else Begin                                     { TEXT MODE GFV }
+     X1 := (RawOrigin.X+X1) DIV SysFontWidth;
+     Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
+     X2 := (RawOrigin.X+X2) DIV SysFontWidth;
+     Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
+     For Y := Y1 To Y2 Do
+       For X := X1 To X2 Do Begin
+         Mem[$B800:$0+(Y*ScreenWidth+X)*2] := $20;
+         Mem[$B800:$0+(Y*ScreenWidth+X)*2+1] := Colour SHL 4;
+       End;
+   End;
    {$ENDIF}
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
    If (HWindow <> 0) Then Begin                       { Valid window }
@@ -5674,7 +5712,7 @@ END;
 PROCEDURE TView.GraphArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad: Integer;
 Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
-VAR X1, Y1, X2, Y2: Integer; {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
+VAR X1, Y1, X2, Y2, X3, Y3: Integer; {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
 BEGIN
    {$IFDEF OS_WINDOWS}
    Xc := Xc - FrameSize;
@@ -5688,16 +5726,23 @@ BEGIN
    Y1 := Yc - Round(Cos(Sa)*YRad);                    { Calc 1st y value }
    X2 := Xc + Round(Sin(Sa+Ea)*XRad);                 { Calc 2nd x value }
    Y2 := Yc - Round(Cos(Sa+Ea)*YRad);                 { Calc 2nd y value }
+   X3 := X2;                                          { Use X2 value }
+   Y3 := Y2;                                          { Use Y2 value }
+   If (Abs(Ea) > Pi) Then Begin
+     X3 := Xc + Round(Sin(Sa+Pi)*XRad);               { Calc 3rd x value }
+     Y3 := Yc - Round(Cos(Sa+Pi)*YRad);               { Calc 3rd y value }
+   End;
    {$IFDEF OS_WINDOWS}
    If (HWindow <> 0) Then Begin                       { Valid window }
      ODc := Dc;                                       { Hold device context }
      If (Dc = 0) Then Dc := GetDC(HWindow);           { Create a context }
      SelectObject(Dc, ColPen[Colour]);                { Pen colour }
-     If (XRad > 2 ) AND (YRAd > 2) Then Begin         { Must exceed 2x2 arc }
+     If (Abs(X1-X3) > 1) OR (Abs(Y1-Y3) > 1)          { Must exceed 2x2 arc }
+     Then Begin
        If (Ea < 0) Then
          Arc(Dc, Xc-XRad, Yc-YRad, Xc+XRad, Yc+YRad,
            X1, Y1, X2, Y2) Else                       { Draw c/clkwise arc }
-         Arc(Dc, Xc-XRad, Yc+YRad, Xc+XRad, Yc-YRad,
+         Arc(Dc, Xc-XRad, Yc-YRad, Xc+XRad, Yc+YRad,
            X2, Y2, X1, Y1);                           { Draw clockwise arc }
      End;
      If (ODc = 0) Then ReleaseDC(HWindow, Dc);        { Release context }
@@ -5779,7 +5824,7 @@ END;
 
 PROCEDURE TView.WriteBuf (X, Y, W, H: Integer; Var Buf);
 VAR I, J, K, L, CW: Integer; P: PDrawBuffer;
-    {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}
+    {$IFDEF OS_DOS} Tix, Tiy: Integer; ViewPort: ViewPortType; {$ENDIF}
     {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}
     {$IFDEF OS_OS2} OPs: HPs; Pt: PointL; {$ENDIF}
 BEGIN
@@ -5795,9 +5840,9 @@ BEGIN
        Y := Y * SysFontHeight;                        { Y graphical adjust }
      End;
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-       GetViewSettings(ViewPort);                     { Get current viewport }
-       X := X + RawOrigin.X - ViewPort.X;             { Calc x position }
-       Y := Y + RawOrigin.Y - ViewPort.Y;             { Calc y position }
+       GetViewSettings(ViewPort, TextModeGFV);        { Get current viewport }
+       X := X + RawOrigin.X - ViewPort.X1;            { Calc x position }
+       Y := Y + RawOrigin.Y - ViewPort.Y1;            { Calc y position }
      {$ENDIF}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
        ODc := Dc;                                     { Hold device context }
@@ -5815,11 +5860,18 @@ BEGIN
        For I := 0 To (W-1) Do Begin                   { For each character }
          Cw := TextWidth(Chr(Lo(P^[L])));             { Width of this char }
          {$IFDEF OS_DOS}                              { DOS/DPMI CODE }
-           SetFillStyle(SolidFill, Hi(P^[L]) AND $F0
-             SHR 4);                                  { Set back colour }
-           SetColor(Hi(P^[L]) AND $0F);               { Set text colour }
-           Bar(K, Y, K+Cw, Y+FontHeight-1);           { Clear text backing }
-           OutTextXY(K, Y+2, Chr(Lo(P^[L])));         { Write text char }
+           If (TextModeGFV <> TRUE) Then Begin        { GRAPHICAL MODE GFV }
+             SetFillStyle(SolidFill, Hi(P^[L]) AND
+               $F0 SHR 4);                            { Set back colour }
+             SetColor(Hi(P^[L]) AND $0F);             { Set text colour }
+             Bar(K, Y, K+Cw, Y+FontHeight-1);         { Clear text backing }
+             OutTextXY(K, Y+2, Chr(Lo(P^[L])));       { Write text char }
+           End Else Begin                             { TEXT MODE GFV }
+             Tix := (K + ViewPort.X1) DIV SysFontWidth;
+             Tiy := (Y + 2 + ViewPort.Y1) DIV SysFontHeight;
+             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Lo(P^[L]);
+             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := Hi(P^[L]);
+           End;
          {$ENDIF}
          {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
            SetBkColor(Dc, ColRef[Hi(P^[L]) AND $F0
@@ -5855,7 +5907,7 @@ END;
 
 PROCEDURE TView.WriteLine (X, Y, W, H: Integer; Var Buf);
 VAR I, J, K, Cw: Integer; P: PDrawBuffer;
-    {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}
+    {$IFDEF OS_DOS} Tix, Tiy: Integer; ViewPort: ViewPortType; {$ENDIF}
     {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}
     {$IFDEF OS_OS2} OPs: HPs; Pt: PointL; {$ENDIF}
 BEGIN
@@ -5870,9 +5922,9 @@ BEGIN
        Y := Y * SysFontHeight;                        { Y graphical adjust }
      End;
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-       GetViewSettings(ViewPort);                     { Get current viewport }
-       X := X + RawOrigin.X - ViewPort.X;             { Calc x position }
-       Y := Y + RawOrigin.Y - ViewPort.Y;             { Calc y position }
+       GetViewSettings(ViewPort, TextModeGFV);        { Get current viewport }
+       X := X + RawOrigin.X - ViewPort.X1;            { Calc x position }
+       Y := Y + RawOrigin.Y - ViewPort.Y1;            { Calc y position }
      {$ENDIF}
      {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
        ODc := Dc;                                     { Hold device context }
@@ -5890,11 +5942,18 @@ BEGIN
        For I := 0 To (W-1) Do Begin                   { For each character }
          Cw := TextWidth(Chr(Lo(P^[I])));             { Width of this char }
          {$IFDEF OS_DOS}                              { DOS/DPMI CODE }
-           SetFillStyle(SolidFill, Hi(P^[I]) AND $F0
-             SHR 4);                                  { Set back colour }
-           SetColor(Hi(P^[I]) AND $0F);               { Set text colour }
-           Bar(K, Y, K+Cw, Y+FontHeight-1);           { Clear text backing }
-           OutTextXY(K, Y+2, Chr(Lo(P^[I])));         { Write text char }
+           If (TextModeGFV <> TRUE) Then Begin        { GRAPHICAL MODE GFV }
+             SetFillStyle(SolidFill, Hi(P^[I]) AND
+               $F0 SHR 4);                            { Set back colour }
+             SetColor(Hi(P^[I]) AND $0F);             { Set text colour }
+             Bar(K, Y, K+Cw, Y+FontHeight-1);         { Clear text backing }
+             OutTextXY(K, Y+2, Chr(Lo(P^[I])));       { Write text char }
+           End Else Begin                             { TEXT MODE GFV }
+             Tix := (K + ViewPort.X1) DIV SysFontWidth;
+             Tiy := (Y + ViewPort.Y1 + 2) DIV SysFontHeight;
+             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Lo(P^[I]);
+             Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := Hi(P^[I]);
+           End;
          {$ENDIF}
          {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
            SetBkColor(Dc, ColRef[Hi(P^[I]) AND $F0
@@ -5956,8 +6015,8 @@ BEGIN
 END;
 
 PROCEDURE TView.WriteStr (X, Y: Integer; Str: String; Color: Byte);
-VAR Fc, Bc: Byte; X1, Y1, X2, Y2: Integer;
-    {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}
+VAR Fc, Bc, B: Byte; X1, Y1, X2, Y2: Integer;
+    {$IFDEF OS_DOS} Tix, Tiy, Ti: Integer; ViewPort: ViewPortType; {$ENDIF}
     {$IFDEF OS_WINDOWS} ODc: HDc; P: Pointer; {$ENDIF}
     {$IFDEF OS_OS2} OPs: HPs; P: Pointer; Pt: PointL; {$ENDIF}
 BEGIN
@@ -5969,6 +6028,14 @@ BEGIN
      Fc := GetColor(Color);                           { Get view color }
      Bc := Fc AND $F0 SHR 4;                          { Calc back colour }
      Fc := Fc AND $0F;                                { Calc text colour }
+
+     If RevCol Then Begin
+       B := Bc;
+       Bc := Fc;
+       Fc := B;
+     End;
+
+
      {$IFDEF OS_DOS}
      If (X >= 0) AND (Y >= 0) Then Begin
        X := RawOrigin.X+X*FontWidth;                    { X position }
@@ -5977,12 +6044,23 @@ BEGIN
        X := RawOrigin.X + Abs(X);
        Y := RawOrigin.Y + Abs(Y);
      End;
-     GetViewSettings(ViewPort);
-     SetFillStyle(SolidFill, Bc);                     { Set fill style }
-     Bar(X-ViewPort.X1, Y-ViewPort.Y1,
-       X-ViewPort.X1+Length(Str)*FontWidth, Y-ViewPort.Y1+FontHeight-1);
-     SetColor(Fc);
-     OutTextXY(X-ViewPort.X1, Y-ViewPort.Y1+2, Str);    { Write text char }
+     GetViewSettings(ViewPort, TextModeGFV);
+     If (TextModeGFV <> TRUE) Then Begin              { GRAPHICAL MODE GFV }
+       SetFillStyle(SolidFill, Bc);                   { Set fill style }
+       Bar(X-ViewPort.X1, Y-ViewPort.Y1,
+         X-ViewPort.X1+Length(Str)*FontWidth,
+         Y-ViewPort.Y1+FontHeight-1);
+       SetColor(Fc);
+       OutTextXY(X-ViewPort.X1, Y-ViewPort.Y1+2, Str);{ Write text char }
+     End Else Begin                                   { TEXT MODE GFV }
+       Tix := X DIV SysFontWidth;
+       Tiy := Y DIV SysFontHeight;
+       For Ti := 1 To length(Str) Do Begin
+         Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Ord(Str[Ti]);
+         Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := GetColor(Color);
+         Tix := Tix + SysFontWidth;
+       End;
+     End;
      {$ENDIF}
      {$IFDEF OS_WINDOWS}
      If (HWindow <> 0) Then Begin
@@ -6062,12 +6140,14 @@ END;
 
 PROCEDURE TView.WriteChar (X, Y: Integer; C: Char; Color: Byte;
   Count: Integer);
-VAR Fc, Bc: Byte; I: Integer; Col: Word; S: String; ViewPort: ViewPortType;
+{$IFDEF OS_DOS}
+VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Integer; Col: Word; S: String; ViewPort: ViewPortType;
+{$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}
    If (State AND sfVisible <> 0) AND                  { View visible }
    (State AND sfExposed <> 0) Then Begin              { View exposed }
-     GetViewSettings(ViewPort);
+     GetViewSettings(ViewPort, TextModeGFV);
      Col := GetColor(Color);                          { Get view color }
      Fc := Col AND $0F;                               { Foreground colour }
      Bc := Col AND $F0 SHR 4;                         { Background colour }
@@ -6077,11 +6157,22 @@ BEGIN
      While (Count>0) Do Begin
        If (Count>255) Then I := 255 Else I := Count;  { Size to make }
        S[0] := Chr(I);                                { Set string length }
-       SetFillStyle(SolidFill, Bc);                   { Set fill style }
-       Bar(X-ViewPort.X1, Y-ViewPort.Y1,
-         X-ViewPort.X1+Length(S)*FontWidth, Y-ViewPort.Y1+FontHeight-1);
-       SetColor(Fc);
-       OutTextXY(X-ViewPort.X1, Y-ViewPort.Y1, S);    { Write text char }
+       If (TextModeGFV <> TRUE) Then Begin            { GRAPHICAL MODE GFV }
+         SetFillStyle(SolidFill, Bc);                 { Set fill style }
+         Bar(X-ViewPort.X1, Y-ViewPort.Y1,
+           X-ViewPort.X1+Length(S)*FontWidth,
+           Y-ViewPort.Y1+FontHeight-1);
+         SetColor(Fc);
+         OutTextXY(X-ViewPort.X1, Y-ViewPort.Y1, S);  { Write text char }
+       End Else Begin                                 { TEXT MODE GFV }
+         Tix := X DIV SysFontWidth;
+         Tiy := Y DIV SysFontHeight;
+         For Ti := 1 To length(S) Do Begin
+           Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2] := Ord(S[Ti]);
+           Mem[$B800:$0+((Tiy * ScreenWidth)+Tix)*2+1] := GetColor(Color);
+           Tix := Tix + SysFontWidth;
+         End;
+       End;
        Count := Count - I;                            { Subtract count }
        X := X + I*FontWidth;                          { Move x position }
      End;
@@ -6155,9 +6246,9 @@ BEGIN
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      HideMouseCursor;                                 { Hide the mouse }
      {$ENDIF}
-     SetWriteMode(XORPut);
+     SetWriteMode(XORPut, TextModeGFV);
      GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
-     SetWriteMode(NormalPut);
+     SetWriteMode(NormalPut, TextModeGFV);
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      ShowMouseCursor;                                 { Show the mouse }
      {$ENDIF}
@@ -6182,13 +6273,13 @@ BEGIN
        {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
        HideMouseCursor;                               { Hide the mouse }
        {$ENDIF}
-       SetWriteMode(XORPut);
+       SetWriteMode(XORPut, TextModeGFV);
        GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
-       SetWriteMode(NormalPut);
+       SetWriteMode(NormalPut, TextModeGFV);
        MoveGrow(R, Mouse);                            { Resize the view }
-       SetWriteMode(XORPut);
+       SetWriteMode(XORPut, TextModeGFV);
        GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
-       SetWriteMode(NormalPut);
+       SetWriteMode(NormalPut, TextModeGFV);
        {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
        ShowMouseCursor;                               { Show the mouse }
        {$ENDIF}
@@ -6495,7 +6586,8 @@ BEGIN
 END;
 
 PROCEDURE TWindow.DrawBorder;
-VAR Fc, Bc: Byte; X, Y: Integer; S: String; ViewPort: ViewPortType;
+{$IFDEF OS_DOS} VAR Fc, Bc: Byte; X, Y: Integer; S: String;
+ViewPort: ViewPortType; {$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}
    Fc := GetColor(2) AND $0F;                        { Foreground colour }
@@ -6506,28 +6598,40 @@ BEGIN
    ClearArea(0, Y, RawSize.X, Y+FontHeight, Bc);      { Clear background }
    If (Title<>Nil) AND (GOptions AND goTitled<>0)
    Then Begin                                         { View has a title }
-     GetViewSettings(ViewPort);
+     GetViewSettings(ViewPort, TextModeGFV);
      X := (RawSize.X DIV 2);                          { Half way point }
      X := X - (Length(Title^)*FontWidth) DIV 2;       { Calc start point }
-     SetColor(Fc);
-     OutTextXY(RawOrigin.X+X-ViewPort.X1,
-       RawOrigin.Y+Y+1-ViewPort.Y1+2, Title^);          { Write the title }
+     If (TextModeGFV <> TRUE) Then Begin              { GRAPHICS MODE GFV }
+       SetColor(Fc);
+       OutTextXY(RawOrigin.X+X-ViewPort.X1,
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, Title^);      { Write the title }
+     End Else Begin                                   { LEON??? }
+     End;
    End;
    If (Number>0) AND (Number<10) Then Begin           { Valid number }
      Str(Number, S);                                  { Make number string }
-     SetColor(GetColor(2) AND $0F);
-     OutTextXY(RawOrigin.X+RawSize.X-2*FontWidth-ViewPort.X1,
-       RawOrigin.Y+Y+1-ViewPort.Y1+2, S);               { Write number }
+     If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
+       SetColor(GetColor(2) AND $0F);
+       OutTextXY(RawOrigin.X+RawSize.X-2*FontWidth-ViewPort.X1,
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, S);           { Write number }
+     End Else Begin                                   { LEON ????? }
+     End;
    End;
    If (Flags AND wfClose<>0) Then Begin               { Close icon request }
-     SetColor(Fc);
-     OutTextXY(RawOrigin.X+Y+FontWidth-ViewPort.X1,
-       RawOrigin.Y+Y+1-ViewPort.Y1+2, '[*]');           { Write close icon }
+     If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
+       SetColor(Fc);
+       OutTextXY(RawOrigin.X+Y+FontWidth-ViewPort.X1,
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, '[*]');       { Write close icon }
+     End Else Begin                                   { LEON??? }
+     End;
    End;
    If (Flags AND wfZoom<>0) Then Begin
-     SetColor(GetColor(2) AND $0F);
-     OutTextXY(RawOrigin.X+RawSize.X-4*FontWidth-Y-ViewPort.X1,
-       RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+#24+']');     { Write zoom icon }
+     If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
+       SetColor(GetColor(2) AND $0F);
+       OutTextXY(RawOrigin.X+RawSize.X-4*FontWidth-Y-ViewPort.X1,
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+#24+']'); { Write zoom icon }
+     End Else Begin                                   { LEON??? }
+     End;
    End;
    BiColorRectangle(Y+1, Y+1, RawSize.X-Y-1, Y+FontHeight,
      White, DarkGray, False);                         { Draw 3d effect }
@@ -6628,7 +6732,10 @@ END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

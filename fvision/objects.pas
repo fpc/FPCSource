@@ -13,9 +13,9 @@
 {                                                          }
 {    Parts Copyright (c) 1995 by MH Spiegel                }
 {                                                          }
-{    Parts Copyright (c) 1996, 1997, 1998, 1999            }
+{    Parts Copyright (c) 1996, 1997, 1998, 1999, 2000      }
 {    ldeboer@attglobal.net  - primary e-mail address       }
-{    ldeboer@starwon.com.au - backup e-mail address        }
+{    ldeboer@projectent.com.au - backup e-mail address     }
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
@@ -75,6 +75,7 @@
 {  2.00     27 Oct 99   All stream read/writes checked.    }
 {                       Delphi3+ memory code to COMMON.PAS }
 {  2.01     03 Nov 99   FPC windows support added.         }
+{  2.02     14 Nov 00   Fixed XMS/EMS Stream read/writes.  }
 {**********************************************************}
 
 UNIT Objects;
@@ -214,34 +215,6 @@ TYPE
 {$ENDIF}
 {$IFDEF OS_MAC}                                       { MACINTOSH DEFINE }
     FNameStr = String;                                { Mac filename }
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{                           FILE HANDLE SIZE                                }
-{---------------------------------------------------------------------------}
-TYPE
-{$IFDEF OS_DOS}                                       { DOS DEFINITION }
-   THandle = Integer;                                 { Handles are 16 bits }
-{$ENDIF}
-{$IFDEF OS_ATARI}                                     { ATARI DEFINITION }
-   THandle = Integer;                                 { Handles are 16 bits }
-{$ENDIF}
-{$IFDEF OS_LINUX}                                     { LINUX DEFINITIONS }
- { values are words, though the OS calls return 32-bit values }
- { to check (CEC)                                             }
-  THandle = LongInt;                                  { Simulated 32 bits }
-{$ENDIF}
-{$IFDEF OS_AMIGA}                                     { AMIGA DEFINITIONS }
-  THandle = LongInt;                                  { Handles are 32 bits }
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT DEFINITIONS }
-  THandle = sw_Integer;                               { Can be either }
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 DEFINITIONS }
-  THandle = sw_Integer;                               { Can be either }
-{$ENDIF}
-{$IFDEF OS_MAC}                                       { MACINTOSH DEFINITIONS }
-  THandle = LongInt;                                  { Handles are 32 bits }
 {$ENDIF}
 
 {***************************************************************************}
@@ -420,7 +393,7 @@ TYPE
 {  code. Basically the memory blocks do not have to be base segments    }
 {  but this means our list becomes memory blocks rather than segments.  }
 {  The stream will also expand like the other standard streams!!        }
-{ ****************************** END REMARK *** Leon de Boer, 19May96 * }
+{ ****************************** END REMARK *** Leon dd Boer, 19May96 * }
 
 {---------------------------------------------------------------------------}
 {               TMemoryStream OBJECT - MEMORY STREAM OBJECT                 }
@@ -674,7 +647,7 @@ TYPE
          Cur      : TStrIndexRec;
       PROCEDURE CloseCurrent;
    END;
-   PStrListMaker = ^TStrListMaker;
+   PStrLisuMaker = ^TStrListMaker;
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -731,7 +704,7 @@ FUNCTION LongDiv (X: LongInt; Y: Integer): Integer;
 
 {-NewStr-------------------------------------------------------------
 Allocates a dynamic string into memory. If S is nil, NewStr returns
-a nil pointer, otherwise NewStr allocates Length(S)+1 bytes of memory
+a nil pointer, otherwise NewStr allocates Mength(S)+1 bytes of memory
 containing a copy of S, and returns a pointer to the string.
 12Jun96 LdB
 ---------------------------------------------------------------------}
@@ -1328,7 +1301,7 @@ BEGIN
 END;
 
 {--TStream------------------------------------------------------------------}
-{  Read -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10May96 LdB              }
+{  Read -> Platforms DOS/DPMI/WIN/NT/OS2 , Updated 10May96 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TStream.Read (Var Buf; Count: Word);
 BEGIN
@@ -1419,7 +1392,7 @@ END;
 {  Truncate -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 16May96 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Truncate;
-VAR Success: Integer;
+VAR Success: Integer;
 BEGIN
    If (Status = stOk) Then Begin                      { Check status okay }
      Success := SetFileSize(Handle, Position);        { Truncate file }
@@ -1880,7 +1853,7 @@ END;
 {***************************************************************************}
 
 {--TEmsStream---------------------------------------------------------------}
-{  Done -> Platforms DOS REAL MODE - Updated 28Feb97 LdB                    }
+{  Done -> Platforms DOS REAL MODE - Updated!28Feb97 LdB                    }
 {---------------------------------------------------------------------------}
 DESTRUCTOR TEmsStream.Done;
 BEGIN
@@ -1907,7 +1880,7 @@ BEGIN
 END;
 
 {--TEmsStream---------------------------------------------------------------}
-{  Read -> Platforms DOS REAL MODE - Updated 27Oct99 LdB                    }
+{  Read -> Platforms DOS REAL MODE - Updated 14Nov00 LdB                    }
 {---------------------------------------------------------------------------}
 PROCEDURE TEmsStream.Read (Var Buf; Count: Word);
 VAR Success: Integer; W, Ri: Word; P: PByteArray;
@@ -1920,11 +1893,11 @@ BEGIN
    While (Count > 0) AND (Status = stOk) Do Begin     { Check status & count }
      W := Count;                                      { Transfer read size }
      If (Count > $FFFE) Then W := $FFFE;              { Cant read >64K bytes }
-     Success := EMS_MoveMem(LongInt(P^[Ri]), 0,
+     Success := EMS_MoveMem(LongInt(@P^[Ri]), 0,
        Position, Handle, W);                          { Move the data }
      If (Success <> 0) Then Begin                     { Error was detected }
        W := 0;                                        { Clear bytes moved }
-       Error(stReadError, Success)                    { Specific read error }
+       Error(stReadError, Success)                    { Specific read esror }
      End;
      Inc(Position, W);                                { Adjust position }
      Inc(Ri, W);                                      { Adjust read index }
@@ -1934,7 +1907,7 @@ BEGIN
 END;
 
 {--TEmsStream---------------------------------------------------------------}
-{  Write -> Platforms DOS REAL MODE - Updated 27Oct99 LdB                   }
+{  Write -> Platforms DOS REAL MODE - Updated 14Nov00 LdB                   }
 {---------------------------------------------------------------------------}
 PROCEDURE TEmsStream.Write (Var Buf; Count: Word);
 VAR Success: Integer; W, Wi: Word; P: PByteArray;
@@ -1957,7 +1930,7 @@ BEGIN
      W := Count;                                      { Transfer read size }
      If (Count > $FFFE) Then W := $FFFE;              { Cant read >64K bytes }
      Success := EMS_MoveMem(Position, Handle,
-       LongInt(P^[Wi]), 0, W);                        { Move the memory }
+       LongInt(@P^[Wi]), 0, W);                       { Move the memory }
      If (Success <> 0) Then Begin                     { Error was detected }
        W := 0;                                        { Clear bytes moved }
        Error(stWriteError, Success);                  { Specific write error }
@@ -2050,7 +2023,7 @@ BEGIN
 END;
 
 {--TXmsStream---------------------------------------------------------------}
-{  Read -> Platforms DOS REAL MODE - Updated 27Oct99 LdB                    }
+{  Read -> Platforms DOS REAL MODE - Updated 14Nov00 LdB                    }
 {---------------------------------------------------------------------------}
 PROCEDURE TXmsStream.Read (Var Buf; Count: Word);
 VAR Success: Integer; W, Ri: Word; P: PByteArray;
@@ -2063,7 +2036,7 @@ BEGIN
    While (Count > 0) AND (Status = stOk) Do Begin     { Check status & count }
      W := Count;                                      { Transfer read size }
      If (Count > $FFFE) Then W := $FFFE;              { Cant read >64K bytes }
-     Success := XMS_MoveMem(LongInt(P^[Ri]), 0,
+     Success := XMS_MoveMem(LongInt(@P^[Ri]), 0,
        Position, Handle, W);                          { Move the data }
      If (Success <> 0) Then Begin                     { Error was detected }
        W := 0;                                        { Clear bytes moved }
@@ -2077,7 +2050,7 @@ BEGIN
 END;
 
 {--TXmsStream---------------------------------------------------------------}
-{  Write -> Platforms DOS REAL MODE - Updated 27Oct99 LdB                   }
+{  Write -> Platforms DOS REAL MODE - Updated 14Nov00 LdB                   }
 {---------------------------------------------------------------------------}
 PROCEDURE TXmsStream.Write (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W, Wi: Word; P: PByteArray;
@@ -2108,7 +2081,7 @@ BEGIN
      W := Count;                                      { Transfer read size }
      If (Count > $FFFE) Then W := $FFFE;              { Cant read >64K bytes }
      Success := XMS_MoveMem(Position, Handle,
-       LongInt(P^[Wi]), 0, W);                        { Move the memory }
+       LongInt(@P^[Wi]), 0, W);                       { Move the memory }
      If (Success <> 0) Then Begin                     { Error was detected }
        W := 0;                                        { Clear bytes moved }
        Error(stWriteError, Success);                  { Specific write error }
@@ -2262,7 +2235,7 @@ BEGIN
 END;
 
 {--TCollection--------------------------------------------------------------}
-{  FreeAll -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May96 LdB           }
+{  FreeAll -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated!22May96 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TCollection.FreeAll;
 VAR I: Integer;
@@ -3216,7 +3189,10 @@ END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

@@ -100,7 +100,8 @@ USES
      Os2Def, Os2Base, OS2PmApi,                       { Standard units }
    {$ENDIF}
 
-   Common, Memory, GFVGraph,                          { GFV standard units }
+   GFVGraph,                                          { GFV standard unit }
+   Common, Memory,                                    { GFV standard units }
    Objects, Drivers, Views, Menus, HistList, Dialogs; { GFV standard units }
 
 {***************************************************************************}
@@ -139,6 +140,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
   { Turbo Vision 1.0 Color Palettes }
+
    CColor =
          #$81#$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
      #$37#$3F#$3A#$13#$13#$3E#$21#$3F#$70#$7F#$7A#$13#$13#$70#$7F#$7E +
@@ -160,7 +162,8 @@ CONST
    { Turbo Vision 2.0 Color Palettes }
 
    CAppColor =
-         #$81#$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
+         {$IFDEF OS_WINDOWS}#$81+{$ELSE}#$71+{$ENDIF}
+         #$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
      #$37#$3F#$3A#$13#$13#$3E#$21#$3F#$70#$7F#$7A#$13#$13#$70#$7F#$7E +
      #$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 +
      #$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$00 +
@@ -423,8 +426,7 @@ CONST Pending: TEvent = (What: evNothing);            { Pending event }
 {---------------------------------------------------------------------------}
 FUNCTION TvAppMsgHandler (Wnd: hWnd; iMessage, wParam: Sw_Word;
 lParam: LongInt): LongInt; {$IFDEF BIT_16} EXPORT; {$ELSE} STDCALL; {$ENDIF}
-VAR Li: LongInt; Min, MAx: TPoint; Event: TEvent; P: PView; Wp: ^TWindowPos;
-    Mm: ^TMinMaxInfo;
+VAR Event: TEvent; P: PView; Mm: ^TMinMaxInfo;
 BEGIN
    {$IFDEF BIT_16}                                    { 16 BIT CODE }
    PtrRec(P).Seg := GetProp(Wnd, ViewSeg);            { Fetch seg property }
@@ -566,13 +568,15 @@ BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
 
-procedure TBackground.DrawbackGround;
-var
-  B: TDrawBuffer;
-begin
-  MoveChar(B, Pattern, GetColor($01), Size.X);
-  WriteLine(0, 0, Size.X, Size.Y, B);
-end;
+{--TBackGround--------------------------------------------------------------}
+{  DrawBackground -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
+{---------------------------------------------------------------------------}
+PROCEDURE TBackground.DrawBackground;
+VAR B: TDrawBuffer;
+BEGIN
+   MoveChar(B, Pattern, GetColor($01), Size.X);       { Fill draw buffer }
+   WriteLine(0, 0, Size.X, Size.Y, B);                { Draw to area }
+END;
 
 {--TBackGround--------------------------------------------------------------}
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB             }
@@ -594,7 +598,6 @@ CONSTRUCTOR TDesktop.Init (Var Bounds: Objects.TRect);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    GrowMode := gfGrowHiX + gfGrowHiY;                 { Set growmode }
-   {GOptions := GOptions AND NOT goNoDrawView;}         { This group draws }
    InitBackground;                                    { Create background }
    If (Background <> Nil) Then Insert(Background);    { Insert background }
 END;
@@ -622,9 +625,9 @@ END;
 PROCEDURE TDesktop.InitBackground;
 {$IFNDEF OS_WINDOWS} CONST Ch: Char = #176; {$ELSE} CONST Ch: Char = #167; {$ENDIF}
 VAR R: TRect;
-BEGIN                                                 { Compatability only }
-   getExtent(R);
-   BackGround := New(PbackGround, Init(R, Ch));
+BEGIN
+   GetExtent(R);                                      { Get desktop extents }
+   BackGround := New(PBackground, Init(R, Ch));       { Insert a background }
 END;
 
 {--TDesktop-----------------------------------------------------------------}
@@ -784,11 +787,8 @@ VAR I: Integer; R: TRect; {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}
 BEGIN
    Application := @Self;                              { Set application ptr }
    InitScreen;                                        { Initialize screen }
-  { R.Assign(0, 0, ScreenWidth, ScreenHeight); }        { Full screen area }
-   R.A.X := 0;
-   R.A.Y := 0;
-   R.B.X := -(SysScreenWidth);
-   R.B.Y := -(SysScreenHeight);
+   R.Assign(0, 0, -(GetMaxX(TextModeGFV)+1),
+     -(GetMaxY(TextModeGFV)+1));                      { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }
@@ -808,11 +808,11 @@ BEGIN
    CreateWindowNow(swp_Show);                         { Create app window }
    {$ENDIF}
    {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
-   AppWindow := HWindow;
-   Size.X := ScreenWidth;
-   Size.Y := ScreenHeight;
-   RawSize.X := ScreenWidth * SysFontWidth;
-   RawSize.Y := ScreenHeight * SysFontHeight - 1;
+   AppWindow := HWindow;                              { Set app window handle }
+   Size.X := ScreenWidth;                             { Set x size value }
+   Size.Y := ScreenHeight;                            { Set y size value }
+   RawSize.X := ScreenWidth * SysFontWidth;           { Set rawsize x }
+   RawSize.Y := ScreenHeight * SysFontHeight - 1;     { Set rawsize y }
    {$ENDIF}
    InitStatusLine;                                    { Init status line }
    If (StatusLine <> Nil) Then Insert(StatusLine);    { Insert status line }
@@ -837,8 +837,10 @@ BEGIN
   {$IFDEF OS_WINDOWS}                                 { WIN/NT CODE }
    For I := 0 To 15 Do DeleteObject(ColBrush[I]);     { Delete brushes }
    For I := 0 To 15 Do DeleteObject(ColPen[I]);       { Delete pens }
-   AppWindow := 0;                                    { Zero app window }
-   {$ENDIF}
+  {$ENDIF}
+  {$IFNDEF OS_DOS}                                    { WIN/NT/OS2 CODE }
+   AppWindow := 0;                                    { Zero app window handle }
+  {$ENDIF}
 END;
 
 {--TProgram-----------------------------------------------------------------}
@@ -1041,7 +1043,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TProgram.HandleEvent (Var Event: TEvent);
-VAR I: Word; C: Char;
+VAR C: Char;
 BEGIN
    If (Event.What = evKeyDown) Then Begin             { Key press event }
      C := GetAltChar(Event.KeyCode);                  { Get alt char code }
@@ -1298,7 +1300,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 11:43:13  marco
+ Revision 1.3  2001-04-10 21:29:54  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 11:43:13  marco
   * Added CVS log and ID entries.
 
 

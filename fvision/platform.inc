@@ -6,9 +6,9 @@
 {    Parts Copyright (c) 1997 by Balazs Scheidler          }
 {    bazsi@tas.vein.hu                                     }
 {                                                          }
-{    Parts Copyright (c) 1999 by Leon de Boer              }
+{    Parts Copyright (c) 1999, 2000 by Leon de Boer        }
 {    ldeboer@attglobal.net  - primary e-mail address       }
-{    ldeboer@starwon.com.au - backup e-mail address        }
+{    ldeboer@projectent.com.au - backup e-mail address     }
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
@@ -54,6 +54,7 @@
 {  1.3     13 Jun 99  LdB    Sybil 2.0 undef BP_VMT link   }
 {  1.31    03 Nov 99  LdB    FPC windows defines WIN32     }
 {  1.32    04 Nov 99  LdB    Delphi 5 definitions added    }
+{  1.33    16 Oct 00  LdB    WIN32/WIN16 defines added     }
 {**********************************************************}
 
 { ****************************************************************************
@@ -341,10 +342,25 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
 {$ENDIF}
 
+{---------------------------------------------------------------------------}
+{  WIN16 AND WIN32 set if in windows - Updated 16Oct2000 LdB                }
+{---------------------------------------------------------------------------}
+{$IFDEF OS_WINDOWS}                                   { WINDOWS SYSTEM }
+  {$IFDEF BIT_16}
+    {$DEFINE WIN16}                                   { 16 BIT WINDOWS }
+  {$ENDIF}
+  {$IFDEF BIT_32}
+    {$DEFINE WIN32}                                   { 32 BIT WINDOWS }
+  {$ENDIF}
+{$ENDIF}
+
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

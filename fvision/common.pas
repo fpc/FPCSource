@@ -6,9 +6,9 @@
 {    Parts Copyright (c) 1997 by Balazs Scheidler          }
 {    bazsi@balabit.hu                                      }
 {                                                          }
-{    Parts Copyright (c) 1999 by Leon de Boer              }
+{    Parts Copyright (c) 1999, 2000 by Leon de Boer        }
 {    ldeboer@attglobal.net  - primary e-mail address       }
-{    ldeboer@starwon.com.au - backup e-mail address        }
+{    ldeboer@projectent.com.au - backup e-mail address     }
 {                                                          }
 {****************[ THIS CODE IS FREEWARE ]*****************}
 {                                                          }
@@ -49,6 +49,7 @@
 {  0.2.8   21 Jan 99  LdB    Max data sizes added.         }
 {  0.2.9   22 Jan 99  LdB    General array types added.    }
 {  0.3.0   27 Oct 99  LdB    Delphi3+ MaxAvail, MemAvail   }
+{  0.4.0   14 Nov 00  LdB    Revamp of whole unit          }
 {**********************************************************}
 
 UNIT Common;
@@ -75,9 +76,6 @@ UNIT Common;
 {        0 -  1000    OS dependant error codes                              }
 {     1000 - 10000    API reserved error codes                              }
 {    10000 -          Add-On unit error codes                               }
-{---------------------------------------------------------------------------}
-{  Before anyone adding a unit, contact bazsi@tas.vein.hu to assign a base  }
-{  error code, to avoid collisions.                                         }
 {---------------------------------------------------------------------------}
 
 {---------------------------------------------------------------------------}
@@ -137,6 +135,34 @@ TYPE
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
+{                           FILE HANDLE SIZE                                }
+{---------------------------------------------------------------------------}
+TYPE
+{$IFDEF OS_DOS}                                       { DOS DEFINITION }
+   THandle = Integer;                                 { Handles are 16 bits }
+{$ENDIF}
+{$IFDEF OS_ATARI}                                     { ATARI DEFINITION }
+   THandle = Integer;                                 { Handles are 16 bits }
+{$ENDIF}
+{$IFDEF OS_LINUX}                                     { LINUX DEFINITIONS }
+ { values are words, though the OS calls return 32-bit values }
+ { to check (CEC)                                             }
+  THandle = LongInt;                                  { Simulated 32 bits }
+{$ENDIF}
+{$IFDEF OS_AMIGA}                                     { AMIGA DEFINITIONS }
+  THandle = LongInt;                                  { Handles are 32 bits }
+{$ENDIF}
+{$IFDEF OS_WINDOWS}                                   { WIN/NT DEFINITIONS }
+  THandle = sw_Integer;                               { Can be either }
+{$ENDIF}
+{$IFDEF OS_OS2}                                       { OS2 DEFINITIONS }
+  THandle = sw_Integer;                               { Can be either }
+{$ENDIF}
+{$IFDEF OS_MAC}                                       { MACINTOSH DEFINITIONS }
+  THandle = LongInt;                                  { Handles are 32 bits }
+{$ENDIF}
+
+{---------------------------------------------------------------------------}
 {                      POINTERS TO STANDARD DATA TYPES                      }
 {---------------------------------------------------------------------------}
 TYPE
@@ -187,22 +213,6 @@ value to nil. Would usually only be called if ErrorCode <> errOk.
 FUNCTION GetErrorInfo: Pointer;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                           MASK CONTROL ROUTINES                           }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{-SetWordMask--------------------------------------------------------
-Sets the bits provided in the mask word in the passed word variable.
-20Sep99 LdB
----------------------------------------------------------------------}
-PROCEDURE SetWordMask (Var WordVar: Word; Mask: Word);
-
-{-SetWordMask--------------------------------------------------------
-Clears the bits provided in the mask word in the passed word variable.
-20Sep99 LdB
----------------------------------------------------------------------}
-PROCEDURE ClrWordMask (Var WordVar: Word; Mask: Word);
-
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        MINIMUM AND MAXIMUM ROUTINES                       }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
@@ -243,9 +253,13 @@ Given two long integers returns the maximum longint of the two.
 FUNCTION MaxLongIntOf (A, B: LongInt): LongInt;
 
 {$IFDEF PPC_DELPHI3}                                  { DELPHI 3+ CODE }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                          MISSING DELPHI3 ROUTINES                         }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+
 { ******************************* REMARK ****************************** }
 {  Delphi 3+ does not define these standard routines so I have made     }
-{  some private functions here to complete compatability.               }
+{  some public functions here to complete compatability.                }
 { ****************************** END REMARK *** Leon de Boer, 14Aug98 * }
 
 {-MemAvail-----------------------------------------------------------
@@ -299,26 +313,6 @@ END;
 FUNCTION GetErrorInfo: Pointer;
 BEGIN
    GetErrorInfo := ErrorInfo;                         { Return errorinfo ptr }
-END;
-
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                           MASK CONTROL ROUTINES                           }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{---------------------------------------------------------------------------}
-{  SetWordMask -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20Sep99 LdB       }
-{---------------------------------------------------------------------------}
-PROCEDURE SetWordMask (Var WordVar: Word; Mask: Word);
-BEGIN
-   WordVar := WordVar OR Mask;                        { Set the mask bits }
-END;
-
-{---------------------------------------------------------------------------}
-{  ClrWordMask -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20Sep99 LdB       }
-{---------------------------------------------------------------------------}
-PROCEDURE ClrWordMask (Var WordVar: Word; Mask: Word);
-BEGIN
-   WordVar := WordVar AND NOT Mask;                  { Clr the mask bits }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -380,6 +374,9 @@ BEGIN
 END;
 
 {$IFDEF PPC_DELPHI3}                                  { DELPHI 3+ CODE }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
+{                          MISSING DELPHI3 ROUTINES                         }
+{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
 {---------------------------------------------------------------------------}
 {  MemAvail -> Platforms WIN/NT - Updated 14Aug98 LdB                       }
@@ -405,7 +402,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:20  marco
+ Revision 1.3  2001-04-10 21:29:55  pierre
+  * import of Leon de Boer's files
+
+ Revision 1.2  2000/08/24 12:00:20  marco
   * CVS log and ID tags
 
 
