@@ -539,7 +539,8 @@ do_jmp:
 
               case p^.left^.location.loc of
                  LOC_MEM,LOC_REFERENCE:
-                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                       newreference(p^.left^.location.reference))));
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
                        p^.left^.location.register)));
                  else CGMessage(type_e_mismatch);
@@ -734,7 +735,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.17  1998-09-17 09:42:14  peter
+  Revision 1.18  1998-09-26 15:03:04  florian
+    * small problems with DOM and excpetions fixed (code generation
+      of raise was wrong and self was sometimes destroyed :()
+
+  Revision 1.17  1998/09/17 09:42:14  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

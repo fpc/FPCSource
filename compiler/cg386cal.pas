@@ -895,6 +895,7 @@ implementation
                                       begin
                                          secondpass(p^.methodpointer);
                                          case p^.methodpointer^.location.loc of
+                                            LOC_CREGISTER,
                                             LOC_REGISTER:
                                               begin
                                                  ungetregister32(p^.methodpointer^.location.register);
@@ -1436,7 +1437,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1998-09-25 00:04:00  florian
+  Revision 1.30  1998-09-26 15:03:02  florian
+    * small problems with DOM and excpetions fixed (code generation
+      of raise was wrong and self was sometimes destroyed :()
+
+  Revision 1.29  1998/09/25 00:04:00  florian
     * problems when calling class methods fixed
 
   Revision 1.28  1998/09/24 14:27:37  peter

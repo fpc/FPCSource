@@ -463,7 +463,7 @@ implementation
            ((p^.resulttype^.deftype=objectdef)
              and pobjectdef(p^.resulttype)^.isclass
            ) then
-           p^.location.loc:=LOC_REGISTER
+           p^.location.loc:=LOC_CREGISTER
          else
            p^.location.loc:=LOC_REFERENCE;
       end;
@@ -500,7 +500,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-24 23:49:24  peter
+  Revision 1.3  1998-09-26 15:03:05  florian
+    * small problems with DOM and excpetions fixed (code generation
+      of raise was wrong and self was sometimes destroyed :()
+
+  Revision 1.2  1998/09/24 23:49:24  peter
     + aktmodeswitches
 
   Revision 1.1  1998/09/23 20:42:24  peter
