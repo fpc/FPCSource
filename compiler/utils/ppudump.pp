@@ -32,7 +32,7 @@ uses
 const
   Version   = 'Version 1.10';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2001 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2002 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -150,7 +150,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=14;
+  flagopts=15;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -165,7 +165,8 @@ const
     (mask: $400  ;str:'no_link'),
     (mask: $800  ;str:'has_resources'),
     (mask: $1000  ;str:'little_endian'),
-    (mask: $2000  ;str:'release')
+    (mask: $2000  ;str:'release'),
+    (mask: $4000  ;str:'local_threadvars')
   );
 var
   i : longint;
@@ -1646,7 +1647,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-03-01 14:08:47  peter
+  Revision 1.13  2002-03-28 16:44:59  armin
+  + new flag if unit has local threadvars
+
+  Revision 1.12  2002/03/01 14:08:47  peter
     * parasym added
 
   Revision 1.11  2002/01/06 12:08:16  peter
