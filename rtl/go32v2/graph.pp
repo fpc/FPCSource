@@ -133,9 +133,9 @@ const
 
     NUM_MODES       =   $8       ; { # of Mode X Variations           }
 
-    { in 16 color modes, the actual colors used are no 0..15, but: }
+    { in 16 color modes, the actual colors used are not 0..15, but: }
     ToRealCols16: Array[0..15] of word =
-      (0,1,2,3,4,5,7,20,56,57,58,59,60,61,62,63);
+      (0,1,2,3,4,5,20,7,56,57,58,59,60,61,62,63);
 
   var
      ScrWidth : word absolute $40:$4a;
@@ -2653,7 +2653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-08-12 12:27:13  jonas
+  Revision 1.4  2000-11-11 15:57:54  jonas
+    * fixed web bug 1166 (merged)
+
+  Revision 1.3  2000/08/12 12:27:13  jonas
     + setallpalette hook
     + setallpalette implemented for standard vga and VESA 2.0+
 
