@@ -142,6 +142,7 @@ implementation
          lastlabel   : plabel;
          pc          : pchar;
          same_string : boolean;
+         l,
          i,mylength  : longint;
       begin
          lastlabel:=nil;
@@ -237,14 +238,19 @@ implementation
                             consts^.concat(new(pai_const,init_16bit(0)))
                            else
                             begin
+                              { truncate strings larger than 255 chars }
+                              if p^.length>255 then
+                               l:=255
+                              else
+                               l:=p^.length;
                               { also length and terminating zero }
-                              getmem(pc,p^.length+3);
-                              move(p^.value_str^,pc[1],p^.length+1);
-                              pc[0]:=chr(p^.length);
+                              getmem(pc,l+3);
+                              move(p^.value_str^,pc[1],l+1);
+                              pc[0]:=chr(l);
                               { to overcome this problem we set the length explicitly }
                               { with the ending null char }
-                              pc[p^.length+1]:=#0;
-                              consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
+                              pc[l+1]:=#0;
+                              consts^.concat(new(pai_string,init_length_pchar(pc,l+2)));
                             end;
                         end;
                    end;
@@ -373,7 +379,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1998-12-11 00:02:49  peter
+  Revision 1.27  1999-01-19 14:21:59  peter
+    * shortstring truncated after 255 chars
+
+  Revision 1.26  1998/12/11 00:02:49  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.25  1998/12/10 14:39:30  florian
