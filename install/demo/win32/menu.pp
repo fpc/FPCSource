@@ -4,7 +4,7 @@
 
   Win32 menu creation example.
 }
-program menu;
+program menudemo;
 {$APPTYPE GUI}
 {$MODE DELPHI}
 
@@ -168,7 +168,10 @@ Halt (AMessage.wParam);
 end.
 {
   $Log$
-  Revision 1.2  1999-05-03 18:04:39  peter
+  Revision 1.3  1999-06-28 16:15:11  peter
+    * fixed dup id
+
+  Revision 1.2  1999/05/03 18:04:39  peter
     * updates
 
 }
