@@ -650,62 +650,6 @@ implementation
       end;
 
 
-    Function FixPath(s:string;allowdot:boolean):string;
-      var
-        i : longint;
-      begin
-        { Fix separator }
-        for i:=1 to length(s) do
-         if s[i] in ['/','\'] then
-          s[i]:=source_info.DirSep;
-        { Fix ending / }
-        if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
-           (s[length(s)]<>':') then
-         s:=s+source_info.DirSep;
-        { Remove ./ }
-        if (not allowdot) and (s='.'+source_info.DirSep) then
-         s:='';
-        { return }
-        if source_info.files_case_relevent then
-         FixPath:=s
-        else
-         FixPath:=Lower(s);
-      end;
-
-
-   function FixFileName(const s:string):string;
-     var
-       i      : longint;
-     begin
-       if source_info.files_case_relevent then
-        begin
-          for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                 FixFileName[i]:=source_info.dirsep;
-               else
-                 FixFileName[i]:=s[i];
-             end;
-           end;
-        end
-       else
-        begin
-          for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                  FixFileName[i]:=source_info.dirsep;
-               'A'..'Z' :
-                  FixFileName[i]:=char(byte(s[i])+32);
-                else
-                  FixFileName[i]:=s[i];
-             end;
-           end;
-        end;
-       FixFileName[0]:=s[0];
-     end;
-
    {Translates a unix or dos path to a mac path for use in MPW.
    If already a mac path, it does nothing. The origin of this
    algorithm will be put in macos/dos.pp, please update this
@@ -797,6 +741,69 @@ implementation
           SetLength(path,newpos);
         end;
     end;
+
+    Function FixPath(s:string;allowdot:boolean):string;
+      var
+        i : longint;
+      begin
+        { Fix separator }
+        for i:=1 to length(s) do
+         if s[i] in ['/','\'] then
+          s[i]:=source_info.DirSep;
+        { Fix ending / }
+        if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
+           (s[length(s)]<>':') then
+         s:=s+source_info.DirSep;
+        { Remove ./ }
+        if (not allowdot) and (s='.'+source_info.DirSep) then
+         s:='';
+        { return }
+        if source_info.files_case_relevent then
+         FixPath:=s
+        else
+         FixPath:=Lower(s);
+      end;
+
+
+   function FixFileName(const s:string):string;
+     var
+       i      : longint;
+     begin
+       if source_info.system = system_powerpc_MACOS then
+         begin
+           FixFileName:= s;
+           TranslatePathToMac(FixFileName);
+         end
+       else if source_info.files_case_relevent then
+        begin
+          for i:=1 to length(s) do
+           begin
+             case s[i] of
+               '/','\' :
+                 FixFileName[i]:=source_info.dirsep;
+               else
+                 FixFileName[i]:=s[i];
+             end;
+           end;
+          FixFileName[0]:=s[0];
+        end
+       else
+        begin
+          for i:=1 to length(s) do
+           begin
+             case s[i] of
+               '/','\' :
+                  FixFileName[i]:=source_info.dirsep;
+               'A'..'Z' :
+                  FixFileName[i]:=char(byte(s[i])+32);
+                else
+                  FixFileName[i]:=s[i];
+             end;
+           end;
+          FixFileName[0]:=s[0];
+        end;
+     end;
+
 
     Function TargetFixPath(s:string;allowdot:boolean):string;
       var
@@ -1898,7 +1905,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2004-06-20 08:55:29  florian
+  Revision 1.132  2004-07-05 23:28:24  olle
+    + FixFileName now handles Mac OS paths
+
+  Revision 1.131  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.130  2004/06/16 20:07:07  florian
