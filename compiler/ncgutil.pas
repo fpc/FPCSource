@@ -31,7 +31,7 @@ interface
       globtype,
       cpubase,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,symbase,symdef,symtype,
+      cginfo,symconst,symbase,symdef,symtype,
 {$ifndef cpu64bit}
       cg64f32,
 {$endif cpu64bit}
@@ -50,8 +50,11 @@ interface
 
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
-    procedure push_value_para(list:taasmoutput;p:tnode;calloption:tproccalloption;
-                              para_offset:longint;alignment : longint;
+    procedure push_value_para(list:taasmoutput;p:tnode;
+                              varspez:tvarspez;
+                              calloption:tproccalloption;
+                              para_offset:longint;
+                              alignment:longint;
                               const locpara : tparalocation);
 
     procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
@@ -100,7 +103,7 @@ implementation
 {$endif}
     cutils,cclasses,
     globals,systems,verbose,
-    symconst,symsym,symtable,defutil,
+    symsym,symtable,defutil,
     paramgr,fmodule,
     cgbase,regvars,
 {$ifdef GDB}
@@ -661,8 +664,11 @@ implementation
                                 Push Value Para
 *****************************************************************************}
 
-    procedure push_value_para(list:taasmoutput;p:tnode;calloption:tproccalloption;
-                              para_offset:longint;alignment : longint;
+    procedure push_value_para(list:taasmoutput;p:tnode;
+                              varspez:tvarspez;
+                              calloption:tproccalloption;
+                              para_offset:longint;
+                              alignment:longint;
                               const locpara : tparalocation);
       var
         href : treference;
@@ -759,7 +765,7 @@ implementation
         else
          begin
            { copy the value on the stack or use normal parameter push? }
-           if paramanager.copy_value_on_stack(p.resulttype.def,calloption) then
+           if paramanager.copy_value_on_stack(varspez,p.resulttype.def,calloption) then
             begin
 {$ifdef i386}
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -856,7 +862,7 @@ implementation
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
+           (paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
            loadref := (tvarsym(p).reg=NR_NO);
            if (loadref) then
@@ -1767,7 +1773,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2003-09-14 21:33:37  peter
+  Revision 1.145  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.144  2003/09/14 21:33:37  peter
     * location_force_reg gives IE when size=OS_NO
 
   Revision 1.143  2003/09/14 19:18:10  peter

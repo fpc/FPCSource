@@ -223,10 +223,7 @@ implementation
                     when we need to load the self pointer for objects }
                   if (symtabletype in [parasymtable,inlineparasymtable]) and
                      not(nf_load_self_pointer in flags) and
-                     (
-                      (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption)
-                     ) then
+                     paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
                     begin
                       if hregister=NR_NO then
                         hregister:=rg.getaddressregister(exprasmlist);
@@ -811,7 +808,7 @@ implementation
                      end
                     else
                       if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value_para(exprasmlist,hp.left,pocall_cdecl,0,4,paraloc)
+                        push_value_para(exprasmlist,hp.left,vs_value,pocall_cdecl,0,4,paraloc)
                     else
                       begin
                         cg.a_param_loc(exprasmlist,hp.left.location,paraloc);
@@ -888,7 +885,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-09-14 12:57:10  peter
+  Revision 1.82  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.81  2003/09/14 12:57:10  peter
     * save destroyed registers when calling threadvar helper
 
   Revision 1.80  2003/09/10 08:31:47  marco

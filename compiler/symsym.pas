@@ -1851,15 +1851,10 @@ implementation
          end
        else if (owner.symtabletype in [parasymtable,inlineparasymtable]) then
          begin
-            case varspez of
-               vs_out,
-               vs_var   : st := 'v'+st;
-               vs_value,
-               vs_const : if paramanager.push_addr_param(vartype.def,tprocdef(owner.defowner).proccalloption) then
-                            st := 'v'+st { should be 'i' but 'i' doesn't work }
-                          else
-                            st := 'p'+st;
-              end;
+            if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) then
+              st := 'v'+st { should be 'i' but 'i' doesn't work }
+            else
+              st := 'p'+st;
             stabstring := strpnew('"'+name+':'+st+'",'+
                   tostr(N_tsym)+',0,'+tostr(fileinfo.line)+','+
                   tostr(adjusted_address));
@@ -2662,7 +2657,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-09-14 13:20:12  peter
+  Revision 1.118  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.117  2003/09/14 13:20:12  peter
     * fix previous commit, also include objectsymtable
 
   Revision 1.116  2003/09/14 12:58:00  peter

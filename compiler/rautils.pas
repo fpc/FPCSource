@@ -838,9 +838,7 @@ Begin
                   opr.ref.offsetfixup:=0;
                   opr.ref.options:=ref_none;
                 end;
-              if (tvarsym(sym).varspez=vs_var) or
-                 ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption)) then
+              if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
                 SetSize(pointer_size,false);
             end;
           localsymtable :
@@ -876,9 +874,7 @@ Begin
                       opr.ref.options:=ref_none;
                     end;
                 end;
-              if (tvarsym(sym).varspez in [vs_var,vs_out]) or
-                 ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption)) then
+              if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
                 SetSize(pointer_size,false);
             end;
         end;
@@ -1555,7 +1551,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.65  2003-09-03 15:55:01  peter
+  Revision 1.66  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.65  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.64.2.1  2003/08/27 19:55:54  peter

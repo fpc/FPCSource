@@ -195,7 +195,7 @@ unit rgobj;
           t_times: longint;
 
           constructor create(Acpu_registers:byte;const Ausable:string);
-          destructor destroy;virtual;
+          destructor destroy;override;
 
           {# Allocate a general purpose register
 
@@ -2225,7 +2225,10 @@ end.
 
 {
   $Log$
-  Revision 1.75  2003-09-12 19:07:42  daniel
+  Revision 1.76  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.75  2003/09/12 19:07:42  daniel
     * Fixed fast spilling functionality by re-adding the code that initializes
       precoloured nodes to degree 255. I would like to play hangman on the one
       who removed that code.

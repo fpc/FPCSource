@@ -255,7 +255,7 @@ implementation
         while assigned(currpara) do
          begin
            { needs high parameter ? }
-           if paramanager.push_high_param(currpara.paratype.def,pd.proccalloption) then
+           if paramanager.push_high_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) then
             begin
               if assigned(currpara.parasym) then
                begin
@@ -273,7 +273,7 @@ implementation
               { Give a warning that cdecl routines does not include high()
                 support }
               if (pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                 paramanager.push_high_param(currpara.paratype.def,pocall_default) then
+                 paramanager.push_high_param(currpara.paratyp,currpara.paratype.def,pocall_default) then
                begin
                  if is_open_string(currpara.paratype.def) then
                     Message(parser_w_cdecl_no_openstring);
@@ -302,7 +302,7 @@ implementation
              array of const and open array do not need this, the local copy routine
              will patch the pushed value to point to the local copy }
            if (varspez=vs_value) and
-              paramanager.push_addr_param(vartype.def,pd.proccalloption) and
+              paramanager.push_addr_param(varspez,vartype.def,pd.proccalloption) and
               not(is_array_of_const(vartype.def) or
                   is_open_array(vartype.def)) then
             pd.parast.symsearch.rename(name,'val'+name);
@@ -488,7 +488,7 @@ implementation
              if not is_procvar then
               begin
                 if (varspez in [vs_var,vs_const,vs_out]) and
-                   paramanager.push_addr_param(tt.def,pd.proccalloption) then
+                   paramanager.push_addr_param(varspez,tt.def,pd.proccalloption) then
                   include(vs.varoptions,vo_regable);
               end;
              pd.concatpara(nil,tt,vs,tdefaultvalue,false);
@@ -1775,7 +1775,11 @@ const
 {$ifdef i386}
         { Move first 3 register parameters in localst }
         if (pd.deftype=procdef) and
-           (pd.proccalloption=pocall_register) and
+           (
+            (pd.proccalloption=pocall_register) or
+            ((pocall_default=pocall_register) and
+             (pd.proccalloption in [pocall_compilerproc,pocall_internproc]))
+           ) and
            not(po_assembler in pd.procoptions) and
            assigned(pd.para.first) then
           begin
@@ -1930,6 +1934,7 @@ const
       var
         hd    : tprocdef;
         ad,fd : tsym;
+        s1,s2 : stringid;
         i     : cardinal;
         forwardfound : boolean;
         po_comp : tprocoptions;
@@ -2074,10 +2079,20 @@ const
                         { stop when one of the two lists is at the end }
                         if not assigned(ad) or not assigned(fd) then
                          break;
-                        if (ad.name<>fd.name) then
+                        { retrieve names, remove reg for register parameters }
+                        s1:=ad.name;
+                        s2:=fd.name;
+{$ifdef i386}
+                        if copy(s1,1,3)='reg' then
+                          delete(s1,1,3);
+                        if copy(s2,1,3)='reg' then
+                          delete(s2,1,3);
+{$endif i386}
+                        { compare names }
+                        if (s1<>s2) then
                          begin
                            MessagePos3(pd.fileinfo,parser_e_header_different_var_names,
-                                       aprocsym.name,ad.name,fd.name);
+                                       aprocsym.name,s1,s2);
                            break;
                          end;
                         ad:=tsym(ad.indexnext);
@@ -2190,7 +2205,10 @@ const
 end.
 {
   $Log$
-  Revision 1.133  2003-09-09 21:03:17  peter
+  Revision 1.134  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.133  2003/09/09 21:03:17  peter
     * basics for x86 register calling
 
   Revision 1.132  2003/09/09 15:54:10  peter

@@ -138,14 +138,14 @@ implementation
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
-             if paramanager.push_addr_param(left.resulttype.def,calloption) then
+             if paramanager.push_addr_param(vs_value,left.resulttype.def,calloption) then
                begin
                  inc(pushedparasize,POINTER_SIZE);
                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,tempparaloc);
+               push_value_para(exprasmlist,left,vs_value,calloption,para_offset,para_alignment,tempparaloc);
            end
          { hidden parameters }
          else if paraitem.is_hidden then
@@ -154,7 +154,7 @@ implementation
                by address for implicit hidden parameters }
              if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
                 (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
-                 paramanager.push_addr_param(paraitem.paratype.def,calloption)) then
+                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
                begin
                   if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                     internalerror(200305071);
@@ -174,7 +174,7 @@ implementation
                end
              else
                begin
-                  push_value_para(exprasmlist,left,calloption,
+                  push_value_para(exprasmlist,left,paraitem.paratyp,calloption,
                     para_offset,para_alignment,tempparaloc);
                end;
            end
@@ -224,8 +224,14 @@ implementation
                    location_release(exprasmlist,left.location);
                 end;
            end
+(*
          { handle call by reference parameter }
-         else if (paraitem.paratyp in [vs_var,vs_out]) then
+         else if (paraitem.paratyp in [vs_var,vs_out]) or
+                 { win32 stdcall const parameters are also
+                   call by reference, Delphi compatible }
+                 (paraitem.paratyp=vs_const) and
+                 (calloption=pocall_stdcall) and
+                 (target_info.target=target_i386_win32) then
            begin
               if (left.location.loc<>LOC_REFERENCE) then
                begin
@@ -253,16 +259,26 @@ implementation
                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
               location_release(exprasmlist,left.location);
            end
+*)
          else
-           begin
               { don't push a node that already generated a pointer type
                 by address for implicit hidden parameters }
               if (not(
                       paraitem.is_hidden and
                       (left.resulttype.def.deftype in [pointerdef,classrefdef])
                      ) and
-                  paramanager.push_addr_param(paraitem.paratype.def,calloption)) then
+                  paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
                 begin
+                   { Check for passing a constant to var,out parameter }
+                   if (paraitem.paratyp in [vs_var,vs_out]) and
+                      (left.location.loc<>LOC_REFERENCE) then
+                    begin
+                      { passing self to a var parameter is allowed in
+                        TP and delphi }
+                      if not((left.location.loc=LOC_CREFERENCE) and
+                             is_self_node(left)) then
+                       internalerror(200106041);
+                    end;
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                     begin
                       { allow passing nil to a procvardef (methodpointer) }
@@ -297,10 +313,9 @@ implementation
                 end
               else
                 begin
-                   push_value_para(exprasmlist,left,calloption,
+                   push_value_para(exprasmlist,left,paraitem.paratyp,calloption,
                      para_offset,para_alignment,tempparaloc);
                 end;
-           end;
          truelabel:=otlabel;
          falselabel:=oflabel;
 
@@ -1299,7 +1314,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2003-09-14 19:17:39  peter
+  Revision 1.115  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.114  2003/09/14 19:17:39  peter
     * don't use a_call_ref because it can use a parameter register
       as temp
 

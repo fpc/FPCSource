@@ -1406,7 +1406,7 @@ implementation
               in_sizeof_x:
                 begin
                   set_varstate(left,false);
-                  if paramanager.push_high_param(left.resulttype.def,current_procinfo.procdef.proccalloption) then
+                  if paramanager.push_high_param(vs_value,left.resulttype.def,current_procinfo.procdef.proccalloption) then
                    begin
                      hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
@@ -2363,7 +2363,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2003-09-06 16:47:24  florian
+  Revision 1.116  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.115  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.114  2003/06/13 21:19:30  peter

@@ -486,13 +486,8 @@ implementation
                 if (tvarsym(symtableentry).varspez=vs_const) then
                   expectloc:=LOC_CREFERENCE;
                 { we need a register for call by reference parameters }
-                if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
-                   ((tvarsym(symtableentry).varspez=vs_const) and
-                    paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,pocall_default)) or
-                    { call by value open arrays are also indirect addressed }
-                    is_open_array(tvarsym(symtableentry).vartype.def) then
+                if paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,pocall_default) then
                   registers32:=1;
-
                 if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                   registers32:=1;
                 { call to get address of threadvar }
@@ -1287,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2003-09-07 22:09:35  peter
+  Revision 1.105  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.104  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

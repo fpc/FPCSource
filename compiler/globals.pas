@@ -975,7 +975,7 @@ implementation
      {$ifdef hasunix}
        {$IFDEF VER1_0}
         FStat (F,Info);
-        L:=Info.st_Mtime;
+        L:=Info.Mtime;
        {$ELSE}
         FPFStat (F,Info);
 	L:=Info.st_Mtime;
@@ -1679,7 +1679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2003-09-15 20:11:06  marco
+  Revision 1.101  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.100  2003/09/15 20:11:06  marco
    * fixed
 
   Revision 1.99  2003/09/14 20:26:18  marco

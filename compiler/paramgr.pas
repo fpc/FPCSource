@@ -44,18 +44,18 @@ unit paramgr;
           }
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
-          function push_high_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
+          function push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
 
           { Returns true if a parameter is too large to copy and only
             the address is pushed
           }
-          function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
+          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           { return the size of a push }
           function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
           { Returns true if a parameter needs to be copied on the stack, this
             is required for cdecl procedures
           }
-          function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;virtual;
+          function copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           {# Returns a structure giving the information on
             the storage of the parameter (which must be
             an integer parameter). This is only used when calling
@@ -130,7 +130,7 @@ implementation
       end;
 
 
-    function tparamanager.push_high_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tparamanager.push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
          push_high_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and
                           (
@@ -142,52 +142,62 @@ implementation
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        push_addr_param:=false;
+        result:=false;
+        { var,out always require address }
+        if varspez in [vs_var,vs_out] then
+          begin
+            result:=true;
+            exit;
+          end;
+        { Only vs_const, vs_value here }
         case def.deftype of
           variantdef,
           formaldef :
-            push_addr_param:=true;
+            result:=true;
           recorddef :
-            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
           arraydef :
             begin
               if (calloption in [pocall_cdecl,pocall_cppdecl]) then
                begin
                  { array of const values are pushed on the stack }
-                 push_addr_param:=not is_array_of_const(def);
+                 result:=not is_array_of_const(def);
                end
               else
                begin
-                 push_addr_param:=(
-                                   (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                                   (def.size>pointer_size)
-                                  ) or
-                                  is_open_array(def) or
-                                  is_array_of_const(def) or
-                                  is_array_constructor(def);
+                 result:=(
+                          (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                          (def.size>pointer_size)
+                         ) or
+                         is_open_array(def) or
+                         is_array_of_const(def) or
+                         is_array_constructor(def);
                end;
             end;
           objectdef :
-            push_addr_param:=is_object(def);
+            result:=is_object(def);
           stringdef :
-            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
           procvardef :
-            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
           setdef :
-            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
         end;
       end;
 
 
     { true if a parameter is too large to push and needs a concatcopy to get the value on the stack }
-    function tparamanager.copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
+    function tparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         copy_value_on_stack:=false;
-        { this is only for cdecl procedures }
-        if not(calloption in [pocall_cdecl,pocall_cppdecl]) then
-         exit;
+        { this is only for cdecl procedures with vs_const,vs_value }
+        if not(
+               (calloption in [pocall_cdecl,pocall_cppdecl]) and
+               (varspez in [vs_value,vs_const])
+              ) then
+          exit;
         case def.deftype of
           variantdef,
           formaldef :
@@ -220,7 +230,7 @@ implementation
           vs_value,
           vs_const :
             begin
-                if push_addr_param(def,calloption) then
+                if push_addr_param(varspez,def,calloption) then
                   push_size:=pointer_size
                 else
                   begin
@@ -353,7 +363,10 @@ end.
 
 {
    $Log$
-   Revision 1.54  2003-09-10 08:31:47  marco
+   Revision 1.55  2003-09-16 16:17:01  peter
+     * varspez in calls to push_addr_param
+
+   Revision 1.54  2003/09/10 08:31:47  marco
     * Patch from Peter for paraloc
 
    Revision 1.53  2003/09/07 22:09:35  peter

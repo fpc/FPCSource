@@ -43,7 +43,7 @@ unit cpupara;
        }
        ti386paramanager = class(tparamanager)
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
@@ -73,11 +73,13 @@ unit cpupara;
         case target_info.system of
           system_i386_win32 :
             begin
-              { Win32 returns small records in the FUNCTION_RETURN_REG }
               case def.deftype of
                 recorddef :
                   begin
-                    if (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and (def.size<=8) then
+                    { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
+                      For stdcall we follow delphi instead of GCC }
+                    if (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                       (def.size<=8) then
                      begin
                        result:=false;
                        exit;
@@ -90,7 +92,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+    function ti386paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         case target_info.system of
           system_i386_win32 :
@@ -98,17 +100,23 @@ unit cpupara;
               case def.deftype of
                 recorddef :
                   begin
-                    { This is not true for the WinAPI expects (PFV)
-                     if (calloption=pocall_stdcall) and (def.size<=8) then
+                    { Win32 passes small records on the stack for call by
+                      value }
+                    if (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
+                       (varspez=vs_value) and
+                       (def.size<=8) then
                      begin
                        result:=false;
                        exit;
-                     end; }
+                     end;
                   end;
                 arraydef :
                   begin
-                    if (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                       (calloption in [pocall_cdecl,pocall_cppdecl]) then
+                    { Win32 passes arrays on the stack for call by
+                      value }
+                    if (calloption in [pocall_stdcall,pocall_cdecl,pocall_cppdecl]) and
+                       (varspez=vs_value) and
+                       (tarraydef(def).highrange>=tarraydef(def).lowrange) then
                      begin
                        result:=true;
                        exit;
@@ -117,7 +125,17 @@ unit cpupara;
               end;
             end;
         end;
-        result:=inherited push_addr_param(def,calloption);
+        if calloption=pocall_register then
+          begin
+            case def.deftype of
+              floatdef :
+                begin
+                  result:=true;
+                  exit;
+                end;
+            end;
+          end;
+        result:=inherited push_addr_param(varspez,def,calloption);
       end;
 
 
@@ -255,7 +273,7 @@ unit cpupara;
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
-            if hp.paratyp in [vs_var,vs_out] then
+            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
               paraloc.size:=OS_ADDR
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
@@ -294,7 +312,9 @@ unit cpupara;
 
     procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       begin
-        if p.proccalloption=pocall_register then
+        if (p.proccalloption=pocall_register) or
+           ((pocall_default=pocall_register) and
+            (p.proccalloption in [pocall_compilerproc,pocall_internproc])) then
           create_register_paraloc_info(p,side)
         else
           create_stdcall_paraloc_info(p,side);
@@ -321,7 +341,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-09-10 08:31:47  marco
+  Revision 1.29  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.28  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.27  2003/09/09 21:03:17  peter

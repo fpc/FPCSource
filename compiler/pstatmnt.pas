@@ -1130,6 +1130,11 @@ implementation
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
+         { assembler routines use stdcall instead of register }
+         if (po_assembler in current_procinfo.procdef.procoptions) and
+            (current_procinfo.procdef.proccalloption=pocall_register) then
+           current_procinfo.procdef.proccalloption:=pocall_stdcall;
+
 {$ifndef sparc}
          { set the framepointer to esp for assembler functions when the
            following conditions are met:
@@ -1181,7 +1186,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-09-07 22:09:35  peter
+  Revision 1.109  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.108  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

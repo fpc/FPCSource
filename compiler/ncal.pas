@@ -690,7 +690,7 @@ type
                 (paraitem.paratype.def.deftype<>formaldef) then
                begin
                   { Process open parameters }
-                  if paramanager.push_high_param(paraitem.paratype.def,aktcallnode.procdefinition.proccalloption) then
+                  if paramanager.push_high_param(paraitem.paratyp,paraitem.paratype.def,aktcallnode.procdefinition.proccalloption) then
                    begin
                      { insert type conv but hold the ranges of the array }
                      oldtype:=left.resulttype;
@@ -2514,7 +2514,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.179  2003-09-07 22:09:35  peter
+  Revision 1.180  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.179  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

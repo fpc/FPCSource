@@ -194,9 +194,7 @@ implementation
                       { unused                                }
 
                       { call by reference/const ? }
-                      if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
-                         ((regvarinfo^.regvars[i].varspez=vs_const) and
-                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,current_procinfo.procdef.proccalloption)) then
+                      if paramanager.push_addr_param(regvarinfo^.regvars[i].varspez,regvarinfo^.regvars[i].vartype.def,current_procinfo.procdef.proccalloption) then
                         siz:=OS_32
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
@@ -364,9 +362,7 @@ implementation
             begin
               asml.concat(tai_regalloc.alloc(reg));
               reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-              if (vsym.varspez in [vs_var,vs_out]) or
-                 ((vsym.varspez=vs_const) and
-                   paramanager.push_addr_param(vsym.vartype.def,current_procinfo.procdef.proccalloption)) then
+              if paramanager.push_addr_param(vsym.varspez,vsym.vartype.def,current_procinfo.procdef.proccalloption) then
                 opsize := OS_ADDR
               else
                 opsize := def_cgsize(vsym.vartype.def);
@@ -382,9 +378,7 @@ implementation
             begin
               asml.concat(tai_regalloc.alloc(reg));
               reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-              if (vsym.varspez in [vs_var,vs_out]) or
-                 ((vsym.varspez=vs_const) and
-                   paramanager.push_addr_param(vsym.vartype.def,current_procinfo.procdef.proccalloption)) then
+              if paramanager.push_addr_param(vsym.varspez,vsym.vartype.def,current_procinfo.procdef.proccalloption) then
                 opsize := OS_ADDR
               else
                 opsize := def_cgsize(vsym.vartype.def);
@@ -610,7 +604,10 @@ end.
 
 {
   $Log$
-  Revision 1.64  2003-09-07 22:09:35  peter
+  Revision 1.65  2003-09-16 16:17:01  peter
+    * varspez in calls to push_addr_param
+
+  Revision 1.64  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 
