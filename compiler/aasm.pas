@@ -37,6 +37,7 @@ unit aasm;
           ait_instruction,
           ait_datablock,
           ait_symbol,
+          ait_symbol_end, { needed to calc the size of a symbol }
           ait_const_32bit,
           ait_const_16bit,
           ait_const_8bit,
@@ -124,9 +125,17 @@ unit aasm;
        tai_symbol = object(tai)
           sym : pasmsymbol;
           is_global : boolean;
+          size : longint;
+          constructor init(_sym:PAsmSymbol;siz:longint);
+          constructor initname(const _name : string;siz:longint);
+          constructor initname_global(const _name : string;siz:longint);
+       end;
+
+       pai_symbol_end = ^tai_symbol_end;
+       tai_symbol_end = object(tai)
+          sym : pasmsymbol;
           constructor init(_sym:PAsmSymbol);
           constructor initname(const _name : string);
-          constructor initname_global(const _name : string);
        end;
 
        pai_label = ^tai_label;
@@ -364,27 +373,50 @@ uses
                                TAI_SYMBOL
  ****************************************************************************}
 
-    constructor tai_symbol.init(_sym:PAsmSymbol);
+    constructor tai_symbol.init(_sym:PAsmSymbol;siz:longint);
       begin
          inherited init;
          typ:=ait_symbol;
          sym:=_sym;
+         size:=siz;
+         is_global:=(sym^.typ=AS_GLOBAL);
       end;
 
-    constructor tai_symbol.initname(const _name : string);
+    constructor tai_symbol.initname(const _name : string;siz:longint);
       begin
          inherited init;
          typ:=ait_symbol;
          sym:=newasmsymboltyp(_name,AS_LOCAL);
+         size:=siz;
          is_global:=false;
       end;
 
-    constructor tai_symbol.initname_global(const _name : string);
+    constructor tai_symbol.initname_global(const _name : string;siz:longint);
       begin
          inherited init;
          typ:=ait_symbol;
          sym:=newasmsymboltyp(_name,AS_GLOBAL);
+         size:=siz;
          is_global:=true;
+      end;
+
+
+{****************************************************************************
+                               TAI_SYMBOL
+ ****************************************************************************}
+
+    constructor tai_symbol_end.init(_sym:PAsmSymbol);
+      begin
+         inherited init;
+         typ:=ait_symbol_end;
+         sym:=_sym;
+      end;
+
+    constructor tai_symbol_end.initname(const _name : string);
+      begin
+         inherited init;
+         typ:=ait_symbol_end;
+         sym:=newasmsymboltyp(_name,AS_GLOBAL);
       end;
 
 
@@ -901,7 +933,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.53  1999-07-22 09:37:28  florian
+  Revision 1.54  1999-07-29 20:53:55  peter
+    * write .size also
+
+  Revision 1.53  1999/07/22 09:37:28  florian
     + resourcestring implemented
     + start of longstring support
 

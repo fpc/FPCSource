@@ -392,8 +392,9 @@
          has_rtti:=true;
          getdatalabel(rtti_label);
          write_child_rtti_data;
-         rttilist^.concat(new(pai_symbol,init(rtti_label)));
+         rttilist^.concat(new(pai_symbol,init(rtti_label,0)));
          write_rtti_data;
+         rttilist^.concat(new(pai_symbol_end,init(rtti_label)));
       end;
 
 
@@ -820,9 +821,9 @@
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
               else
-                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
               datasegment^.concat(new(pai_const,init_32bit(min)));
               datasegment^.concat(new(pai_const,init_32bit(max)));
            end;
@@ -1014,15 +1015,21 @@
       end;
 
     procedure torddef.genrangecheck;
+      var
+        rangechecksize : longint;
       begin
          if rangenr=0 then
            begin
+              if low<=high then
+               rangechecksize:=8
+              else
+               rangechecksize:=16;
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,rangechecksize)))
               else
-                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,rangechecksize)));
               if low<=high then
                 begin
                    datasegment^.concat(new(pai_const,init_32bit(low)));
@@ -1721,9 +1728,9 @@
               { generates the data for range checking }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring,8)))
               else
-                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring,8)));
               datasegment^.concat(new(pai_const,init_32bit(lowrange)));
               datasegment^.concat(new(pai_const,init_32bit(highrange)));
            end;
@@ -3409,9 +3416,10 @@ Const local_symtable_index : longint = $8001;
          has_rtti:=true;
          getdatalabel(rtti_label);
          write_child_rtti_data;
-         rttilist^.concat(new(pai_symbol,initname_global(rtti_name)));
+         rttilist^.concat(new(pai_symbol,initname_global(rtti_name,0)));
          rttilist^.concat(new(pai_label,init(rtti_label)));
          write_rtti_data;
+         rttilist^.concat(new(pai_symbol_end,initname(rtti_name)));
       end;
 
 
@@ -3522,7 +3530,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.135  1999-07-27 23:42:18  peter
+  Revision 1.136  1999-07-29 20:54:07  peter
+    * write .size also
+
+  Revision 1.135  1999/07/27 23:42:18  peter
     * indirect type referencing is now allowed
 
   Revision 1.134  1999/07/23 23:07:03  peter

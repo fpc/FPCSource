@@ -1494,15 +1494,15 @@
 {$endif GDB}
         if owner^.symtabletype=globalsymtable then
           begin
-             curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)));
+             curconstsegment^.concat(new(pai_symbol,initname_global(mangledname,getsize)));
           end
         else
           if owner^.symtabletype<>unitsymtable then
             begin
               if (cs_smartlink in aktmoduleswitches) then
-                curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)))
+                curconstsegment^.concat(new(pai_symbol,initname_global(mangledname,getsize)))
               else
-                curconstsegment^.concat(new(pai_symbol,initname(mangledname)));
+                curconstsegment^.concat(new(pai_symbol,initname(mangledname,getsize)));
             end;
         aktfilepos:=storefilepos;
       end;
@@ -2056,7 +2056,10 @@
 
 {
   $Log$
-  Revision 1.104  1999-07-27 23:42:21  peter
+  Revision 1.105  1999-07-29 20:54:10  peter
+    * write .size also
+
+  Revision 1.104  1999/07/27 23:42:21  peter
     * indirect type referencing is now allowed
 
   Revision 1.103  1999/07/24 15:12:59  michael

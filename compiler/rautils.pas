@@ -1347,7 +1347,7 @@ end;
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p^.concat(new(pai_symbol,initname_global(s)));
+       p^.concat(new(pai_symbol,initname_global(s,0)));
    end;
 
    procedure ConcatLocal(p:paasmoutput;const s : string);
@@ -1357,7 +1357,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p^.concat(new(pai_symbol,initname(s)));
+       p^.concat(new(pai_symbol,initname(s,0)));
    end;
 
   Procedure ConcatGlobalBss(const s : string;size : longint);
@@ -1383,7 +1383,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-06-02 22:44:17  pierre
+  Revision 1.20  1999-07-29 20:54:06  peter
+    * write .size also
+
+  Revision 1.19  1999/06/02 22:44:17  pierre
    * previous wrong log corrected
 
   Revision 1.18  1999/06/02 22:25:47  pierre

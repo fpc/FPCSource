@@ -1553,6 +1553,8 @@ unit pdecl;
 
               { pointer to class name string }
               datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
+
+              datasegment^.concat(new(pai_symbol_end,init(classnamelabel)));
            end;
 {$ifdef GDB}
          { generate the VMT }
@@ -1567,7 +1569,7 @@ unit pdecl;
 {$endif GDB}
          if ((aktclass^.options and oo_hasvmt)<>0) then
            begin
-              datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname)));
+              datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname,0)));
 
               { determine the size with publicsyms^.datasize, because }
               { size gives back 4 for classes                    }
@@ -1588,6 +1590,9 @@ unit pdecl;
 
               { this generates the entries }
               genvmt(aktclass);
+
+              { write the size of the VMT }
+              datasegment^.concat(new(pai_symbol_end,initname(aktclass^.vmt_mangledname)));
            end;
 
          { restore old state }
@@ -2286,7 +2291,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.136  1999-07-27 23:42:11  peter
+  Revision 1.137  1999-07-29 20:54:02  peter
+    * write .size also
+
+  Revision 1.136  1999/07/27 23:42:11  peter
     * indirect type referencing is now allowed
 
   Revision 1.135  1999/07/23 16:05:23  peter

@@ -33,7 +33,7 @@ unit cresstr;
     uses
        globals,aasm,verbose,files;
 
-    Type 
+    Type
       PResourcestring = ^TResourceString;
       TResourceString = record
         Name : String;
@@ -48,14 +48,14 @@ unit cresstr;
        resstrcount : longint = 0;
        resourcefilename = 'resource.rst';
 
-    Var        
+    Var
       ResourceListRoot : PResourceString;
-       
+
     { calcs the hash value for a give resourcestring, len is }
     { necessary because the resourcestring can contain #0    }
 
     function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
-    
+
       Var hash,g,I : longint;
 
       begin
@@ -69,7 +69,7 @@ unit cresstr;
              begin
              hash:=hash xor (g shr 24);
              hash:=hash xor g;
-             end; 
+             end;
            end;
          If Hash=0 then
            Calc_resstring_hashvalue:=Not(0)
@@ -83,14 +83,15 @@ unit cresstr;
          if not(assigned(resourcestringlist)) then
            resourcestringlist:=new(paasmoutput,init);
          resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
-         resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST')));
+         resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST',0)));
+         resourcestringlist^.concat(new(pai_symbol_end,initname('RESOURCESTRINGLIST')));
       end;
 
 
     Procedure AppendToResourceList(const name : string;p : pchar;len,hash : longint);
-    
+
     Var R : PResourceString;
-    
+
     begin
       inc(resstrcount);
       New(R);
@@ -117,8 +118,8 @@ unit cresstr;
          if not(assigned(resourcestringlist)) then
            resourcestringlist:=new(paasmoutput,init);
 
-         AppendToResourceList(current_module^.modulename^+'.'+Name,P,Len,Hash);  
-         
+         AppendToResourceList(current_module^.modulename^+'.'+Name,P,Len,Hash);
+
          { an empty ansi string is nil! }
          if (p=nil) or (len=0) then
            resourcestringlist^.concat(new(pai_const,init_32bit(0)))
@@ -145,25 +146,25 @@ unit cresstr;
       end;
 
     Procedure WriteResourceFile(Filename : String);
-    
+
     Type
        TMode = (quoted,unquoted);
-    
+
     Var F : Text;
         Mode : TMode;
         old : PresourceString;
         C : char;
         Col,i : longint;
-        
+
        Procedure Add(Const S : String);
-       
+
        begin
          Write(F,S);
          Col:=Col+length(s);
        end;
-        
+
     begin
-      If resstrCount=0 then 
+      If resstrCount=0 then
         exit;
       FileName:=ForceExtension(lower(FileName),'.rst');
       message1 (general_i_writingresourcefile,filename);
@@ -189,7 +190,7 @@ unit cresstr;
            C:=Value[i];
            If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
              begin
-             If mode=Quoted then 
+             If mode=Quoted then
                Add(c)
              else
                begin
@@ -204,10 +205,10 @@ unit cresstr;
                Add('''');
                mode:=unquoted;
                end;
-             Add('#'+tostr(ord(c)));  
+             Add('#'+tostr(ord(c)));
              end;
            If Col>72 then
-             begin 
+             begin
              if mode=quoted then
                Write (F,'''');
              Writeln(F,'+');
@@ -215,7 +216,7 @@ unit cresstr;
              Mode:=unQuoted;
              end;
            end;
-         if mode=quoted then writeln (f,'''');  
+         if mode=quoted then writeln (f,'''');
          Writeln(f);
          Old :=ResourceListRoot;
          ResourceListRoot:=old^.Next;
@@ -228,7 +229,10 @@ unit cresstr;
 end.
 {
   $Log$
-  Revision 1.7  1999-07-26 09:42:00  florian
+  Revision 1.8  1999-07-29 20:54:01  peter
+    * write .size also
+
+  Revision 1.7  1999/07/26 09:42:00  florian
     * bugs 494-496 fixed
 
   Revision 1.6  1999/07/25 19:27:15  michael

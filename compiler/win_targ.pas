@@ -284,7 +284,7 @@ unit win_targ;
                       importssection^.concat(new(pai_stab_function_name,init(nil)));
 {$EndIf GDB}
                      importssection^.concat(new(pai_align,init_op(4,$90)));
-                     importssection^.concat(new(pai_symbol,initname_global(hp2^.func^)));
+                     importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
                      importssection^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
                    end;
                   { create head link }
@@ -297,7 +297,7 @@ unit win_targ;
                   { add jump field to importsection }
                   importssection^.concat(new(pai_section,init(sec_idata5)));
                   if hp2^.is_var then
-                   importssection^.concat(new(pai_symbol,initname_global(hp2^.func^)))
+                   importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)))
                   else
                    importssection^.concat(new(pai_label,init(lcode)));
                    if hp2^.name^<>'' then
@@ -394,14 +394,14 @@ unit win_targ;
                       r^.symbol:=l4;
                       { place jump in codesegment }
                       codesegment^.concat(new(pai_align,init_op(4,$90)));
-                      codesegment^.concat(new(pai_symbol,initname_global(hp2^.func^)));
+                      codesegment^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
                       codesegment^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
                       { add jump field to importsection }
                       importssection^.concat(new(pai_label,init(l4)));
                     end
                    else
                     begin
-                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^)));
+                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
                     end;
                    importssection^.concat(new(pai_const_symbol,init_rva(hp2^.lab)));
                    hp2:=pimported_item(hp2^.next);
@@ -728,7 +728,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.29  1999-07-22 16:12:28  peter
+  Revision 1.30  1999-07-29 20:54:11  peter
+    * write .size also
+
+  Revision 1.29  1999/07/22 16:12:28  peter
     * merged
 
   Revision 1.28  1999/07/18 10:20:03  florian

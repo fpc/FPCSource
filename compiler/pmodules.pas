@@ -150,7 +150,8 @@ unit pmodules;
         { TableCount,InitCount }
         unitinits.insert(new(pai_const,init_32bit(0)));
         unitinits.insert(new(pai_const,init_32bit(count)));
-        unitinits.insert(new(pai_symbol,initname_global('INITFINAL')));
+        unitinits.insert(new(pai_symbol,initname_global('INITFINAL',0)));
+        unitinits.concat(new(pai_symbol_end,initname('INITFINAL')));
         { insert in data segment }
         if (cs_smartlink in aktmoduleswitches) then
           datasegment^.concat(new(pai_cut,init));
@@ -187,7 +188,7 @@ unit pmodules;
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
 {$ifdef i386}
-         datasegment^.concat(new(pai_symbol,initname_global('HEAPSIZE')));
+         datasegment^.concat(new(pai_symbol,initname_global('HEAPSIZE',4)));
          datasegment^.concat(new(pai_const,init_32bit(heapsize)));
 {$endif i386}
 {$ifdef m68k}
@@ -207,7 +208,7 @@ unit pmodules;
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,initname_global('__stklen')));
+              datasegment^.concat(new(pai_symbol,initname_global('__stklen',4)));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
           target_i386_WIN32 :
@@ -240,7 +241,7 @@ unit pmodules;
           target_m68k_Atari :
             begin
               { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,init_global('__stklen')));
+              datasegment^.concat(new(pai_symbol,init_global('__stklen',4)));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
 {$endif m68k}
@@ -1351,7 +1352,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.134  1999-07-26 09:42:11  florian
+  Revision 1.135  1999-07-29 20:54:04  peter
+    * write .size also
+
+  Revision 1.134  1999/07/26 09:42:11  florian
     * bugs 494-496 fixed
 
   Revision 1.133  1999/07/24 00:13:25  peter

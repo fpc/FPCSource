@@ -45,7 +45,7 @@ unit ag386att;
 {$ifdef Delphi}
       dmisc,
 {$else Delphi}
-      dos, 
+      dos,
 {$endif Delphi}
       strings,
       globtype,globals,systems,
@@ -71,6 +71,7 @@ unit ag386att;
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : pinputfile;
+      symendcount  : longint;
 
    function fixline(s:string):string;
    {
@@ -640,8 +641,18 @@ unit ag386att;
                     AsmWriteLn(',@object')
                    else
                     AsmWriteLn(',@function');
+                   if pai_symbol(hp)^.sym^.size>0 then
+                    AsmWriteLn(#9'.size'#9+pai_symbol(hp)^.sym^.name+', '+tostr(pai_symbol(hp)^.sym^.size));
                 end;
                AsmWriteLn(pai_symbol(hp)^.sym^.name+':');
+             end;
+
+           ait_symbol_end :
+             begin
+               s:=target_asm.labelprefix+'e'+tostr(symendcount);
+               inc(symendcount);
+               AsmWriteLn(s+':');
+               AsmWriteLn(#9'.size'#9+pai_symbol(hp)^.sym^.name+', '+s+' - '+pai_symbol(hp)^.sym^.name);
              end;
 
            ait_instruction :
@@ -791,6 +802,7 @@ unit ag386att;
       WriteFileLineInfo(fileinfo);
 {$endif GDB}
       AsmStartSize:=AsmSize;
+      symendcount:=0;
 
       countlabelref:=false;
       If (cs_debuginfo in aktmoduleswitches) then
@@ -817,7 +829,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.5  1999-07-22 09:37:29  florian
+  Revision 1.6  1999-07-29 20:53:56  peter
+    * write .size also
+
+  Revision 1.5  1999/07/22 09:37:29  florian
     + resourcestring implemented
     + start of longstring support
 

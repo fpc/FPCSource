@@ -2816,9 +2816,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          while hs<>'' do
           begin
             if make_global then
-              exprasmlist^.insert(new(pai_symbol,initname_global(hs)))
+              exprasmlist^.insert(new(pai_symbol,initname_global(hs,0)))
             else
-              exprasmlist^.insert(new(pai_symbol,initname(hs)));
+              exprasmlist^.insert(new(pai_symbol,initname(hs,0)));
 
 {$ifdef GDB}
             if (cs_debuginfo in aktmoduleswitches) and
@@ -3044,6 +3044,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           exprasmlist^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
        end;
 
+      exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
+
 {$ifdef GDB}
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
@@ -3116,7 +3118,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.18  1999-07-26 12:13:46  florian
+  Revision 1.19  1999-07-29 20:53:58  peter
+    * write .size also
+
+  Revision 1.18  1999/07/26 12:13:46  florian
     * exit in try..finally blocks needed a second fix
     * a raise in a try..finally lead into a endless loop, fixed
 
