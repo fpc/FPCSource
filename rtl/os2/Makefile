@@ -220,7 +220,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl dos crt objects printer sysutils math typinfo varutils charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl dos crt objects printer sysutils math typinfo varutils charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types
 override TARGET_LOADERS+=prt0 prt1
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y

@@ -25,8 +25,17 @@ finish PM support                             high
           - PMHelp..................................................YP
           - PMDev...................................................YP
           - PMSpl...................................................TH
+          - PMShl...................................................YP
+    - PMBidi
+    - PMDdi
+    - PMdjp.h (PMWin?)
+    - PMFont.h (PMWin?)
+    - PMMle.h (PMWin?)
+    - PMSei.h (PMWin?)
+    - PMWP
+    - PMWSock
 
-RTL
+RTL                                           high
     - sockets
     - winsock
     - graph
@@ -34,20 +43,19 @@ RTL
     - exception handler
     - WriteLn support for PM apps (message boxes)
 
-? enhance ld linker                           high
-
 libgdb                                        medium
 
-OS/2 native rtl                               medium
+OS/2 native rtl                               high
   - System
   - CRT
   - DOS
   - sysutils.pp
-  - linker (LINK386, ...)
+  - linker (LINK386, Internal, ...)
   - loaders (prt*) for EXEs and DLLs
   - autothunking for 16-bit calls
   - smartlinking
   - {$linklib dllname} (autolinking like for win32/linux)
+  - interfaces support (SOM/DSOM)
 
 FCL                                           medium
           - disk.inc................................................TH
@@ -58,24 +66,23 @@ FCL                                           medium
   - ? unit HTTPApp
 
 other OS/2 APIs                               low
-  - NetAPI (NetBIOS)
-  - Unicode
-  - OpenGL/MesaGL/Mesa3D/WarpMesaGL
-  - EPM
-  - LVM
   - SOM (SOM2/SOM3?)
+    - Base API
     - Base classes
     - WPS
       - Base classes
-      - IBM MM classes
-      - CW MM classes
-    - XWorkplace classes
+      - IBM MM classes (seems to be obsolete in eCS 1.1+)
+      - CW MM classes (seems to be replacement for IBM MM classes in eCS 1.1+)
+    - XWorkplace classes (seems to be a part of future eCS)
+    - OpenDoc classes (obsolete since OS/2 4.5)
 
-packages                                      low
-  - SVGAlib
-  - Xlib (Everblue, XFreeOS/2)
-    - GTK
-    - Gnome
+native packages                               medium
+  - NetAPI (NetBIOS)
+  - Unicode
+  - LAN Manager
+  - Web Explorer (obsolete since OS/2 4.5)
+  - EPM
+  - LVM (new since OS/2 4.5)
   - MMOS/2
           - mmbase.pas..............................................AS/YP
           - mci.pas.................................................AS/YP
@@ -86,13 +93,34 @@ packages                                      low
           - sw.pas..................................................YP
   - WarpOverlay!
           - hwvideo.pas.............................................YP
-  - REXX
-    - rxstrings.pp (overloaded functions like len, pos, etc.)
-          - rexxsaa.pp..............................................YP
   - TCP/IP
     - Sockets (so32dll)
     - tcp32dll
           - FTP API.................................................YP
+
+cross-platform packages                       low
+  - SVGAlib
+  - Xlib (Everblue, XFreeOS/2)
+          - Base....................................................YP
+    - GTK
+          - glib....................................................YP
+          - gdk.....................................................YP
+          - gtk.....................................................YP
+      - gtkgl
+          - fpgtk...................................................YP
+    - Gnome
+      - art
+      - gnome
+      - gnomeui
+  - tcl
+  - ncurses
+  - libpng
+  - gd
+  - syslog
+  - REXX
+    - rxstrings.pp (overloaded functions like len, pos, etc.)
+          - rexxsaa.pp..............................................YP
+  - OpenGL/MesaGL/Mesa3D/WarpMesaGL
 
 documentation (pasdoc/fpdoc?)                 low
   - CPI
