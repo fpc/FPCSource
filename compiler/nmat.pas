@@ -44,6 +44,12 @@ interface
        tshlshrnode = class(tbinopnode)
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          { override the following if you want to implement }
+          { parts explicitely in the code generator (CEC)   
+            Should return nil, if everything will be handled
+            in the code generator
+          }
+          function first_shlshr64bitint: tnode; virtual;
        end;
        tshlshrnodeclass = class of tshlshrnode;
 
@@ -312,6 +318,30 @@ implementation
                               TSHLSHRNODE
  ****************************************************************************}
 
+
+    function tshlshrnode.first_shlshr64bitint: tnode;
+      var
+        procname: string[31];
+      begin
+        result := nil;
+        { otherwise create a call to a helper }
+        if nodetype = shln then
+          procname := 'fpc_shl_int64'
+        else
+          procname := 'fpc_shr_int64';
+{        if is_signed(resulttype.def) then
+          procname := procname + 'int64'
+        else
+          procname := procname + 'qword';
+}
+        result := ccallnode.createintern(procname,ccallparanode.create(left,
+          ccallparanode.create(right,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+      
+
     function tshlshrnode.det_resulttype:tnode;
       var
          t : tnode;
@@ -370,9 +400,16 @@ implementation
 
          { 64 bit ints have their own shift handling }
          if not(is_64bitint(left.resulttype.def)) then
-          regs:=1
+           begin
+            regs:=1
+           end
          else
-          regs:=2;
+           begin 
+             result := first_shlshr64bitint;
+             if assigned(result) then
+               exit;
+              regs:=2;
+           end;
 
          if (right.nodetype<>ordconstn) then
           inc(regs);
@@ -718,7 +755,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-08-14 19:26:55  carl
+  Revision 1.38  2002-08-15 15:09:42  carl
+    + fpu emulation helpers (ppu checking also)
+
+  Revision 1.37  2002/08/14 19:26:55  carl
     + generic int_to_real type conversion
     + generic unaryminus node
 

@@ -181,6 +181,16 @@ uses
            Message(unit_u_ppu_invalid_target);
            exit;
          end;
+       { check if floating point emulation is on?}
+        if ((ppufile.header.flags and uf_fpu_emulation)<>0) and 
+            (cs_fp_emulation in aktmoduleswitches) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_invalid_fpumode);
+           exit;
+         end;
+       
       { Load values to be access easier }
         flags:=ppufile.header.flags;
         crc:=ppufile.header.checksum;
@@ -800,7 +810,8 @@ uses
           flags:=flags or uf_local_browser;
          if do_release then
           flags:=flags or uf_release;
-
+         if (cs_fp_emulation in aktmoduleswitches) then
+           flags:=flags or uf_fpu_emulation;
 {$ifdef Test_Double_checksum_write}
          Assign(CRCFile,s+'.IMP');
          Rewrite(CRCFile);
@@ -1259,7 +1270,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  2002-08-12 16:46:04  peter
+  Revision 1.21  2002-08-15 15:09:41  carl
+    + fpu emulation helpers (ppu checking also)
+
+  Revision 1.20  2002/08/12 16:46:04  peter
     * tscannerfile is now destroyed in tmodule.reset and current_scanner
       is updated accordingly. This removes all the loading and saving of
       the old scanner and the invalid flag marking

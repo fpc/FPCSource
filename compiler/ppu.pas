@@ -130,6 +130,7 @@ const
   uf_little_endian = $1000;
   uf_release       = $2000;{ unit was compiled with -Ur option }
   uf_local_threadvars = $4000;  { unit has local threadvars }
+  uf_fpu_emulation = $8000; { this unit was compiled with fpu emulation on }
 
 type
   ppureal=extended;
@@ -982,7 +983,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2002-08-13 21:40:56  florian
+  Revision 1.24  2002-08-15 15:09:42  carl
+    + fpu emulation helpers (ppu checking also)
+
+  Revision 1.23  2002/08/13 21:40:56  florian
     * more fixes for ppc calling conventions
 
   Revision 1.22  2002/08/11 13:24:12  peter
