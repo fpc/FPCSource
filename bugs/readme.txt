@@ -314,3 +314,5 @@ bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)
 bug0230.pp   several strange happen on the ln function: ln(0): no
              FPE and writeln can't write non numeric values
 bug0231.pp   Problem with comments
+bug0232.pp   const. procedure variables need a special syntax
+             if they use calling specification modifiers
