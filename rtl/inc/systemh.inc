@@ -106,7 +106,8 @@ const
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
   Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
-  FPUInt64 : boolean = true; { set this to false if you don't want that }
+  { code to use comps in int64mul and div code is commented out! (JM) }
+  FPUInt64 : boolean = false; { set this to false if you don't want that }
                              { the fpu does int64*int64 and             }
                              { int64 div int64, if the * is overflow    }
                              { checked, it is done in software          }
@@ -424,7 +425,11 @@ const
 
 {
   $Log$
-  Revision 1.75  2000-01-10 09:54:30  peter
+  Revision 1.76  2000-01-21 15:32:07  jonas
+    * set FPUInt64 to false for i386, because comp mul and div code for int64 is
+      commented out in int64.inc
+
+  Revision 1.75  2000/01/10 09:54:30  peter
     * primitives added
 
   Revision 1.74  2000/01/07 16:41:36  daniel
