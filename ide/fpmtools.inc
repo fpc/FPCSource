@@ -50,11 +50,12 @@ var Title,ProgramPath,Params: string;
     Wo: word;
     Err: integer;
     CaptureFile: string;
-    ErrText : Text;
+    TextFile : Text;
     ExecMode: TExecType;
     Executed: boolean;
 begin
   if (Idx<1) or (Idx>GetToolCount) then Exit;
+  InitToolProcessing;
   GetToolParams(Idx-1,Title,ProgramPath,Params,Wo);
   InitToolTempFiles;
   Err:=ParseToolParams(Params,false);
@@ -83,10 +84,13 @@ begin
 
   EraseFile(CaptureFile);
   EraseFile(FilterCaptureName);
+  EraseFile(ToolCaptureErr);
 
   if CaptureToolTo=capMessageWindow then
     begin
+      Messages;
       AddToolCommand(ProgramPath+' '+Params);
+      UpdateToolMessages;
       ToFocus:=ToolMessages^.count-1;
     end
   else
@@ -115,23 +119,43 @@ begin
                       ErrorBox(msg_errorreadingoutput,nil);
                 end;
             end
-          else if ToolFilter<>'' then
+          else if (ToolFilter<>'') or (CaptureToolTo=capMessageWindow) then
             begin
-              ShowMessage(FormatStrStr(msg_executingfilterfor,KillTilde(Title)));
-              DoExecute(ToolFilter,'',CaptureFile,FilterCaptureName,'',exNoSwap);
-              HideMessage;
-              if (DosError=0) and (DosExitCode=0) then
+              if ToolFilter<>'' then
                 begin
-                  if ExistsFile(FilterCaptureName)=false then
-                    ErrorBox(msg_cantfindfilteredoutput,nil)
-                  else
-                    if ProcessMessageFile(FilterCaptureName)=false then
-                      ErrorBox(msg_errorprocessingfilteredoutput,nil);
+                  ShowMessage(FormatStrStr(msg_executingfilterfor,KillTilde(Title)));
+                  DoExecute(ToolFilter,'',CaptureFile,FilterCaptureName,'',exNoSwap);
+                  HideMessage;
+                  if (DosError=0) and (DosExitCode=0) then
+                    begin
+                      if ExistsFile(FilterCaptureName)=false then
+                        ErrorBox(msg_cantfindfilteredoutput,nil)
+                      else
+                        if ProcessMessageFile(FilterCaptureName)=false then
+                          ErrorBox(msg_errorprocessingfilteredoutput,nil);
+                    end;
+                  if (DosError<>0) then
+                    ErrorBox(FormatStrStr(msg_errorexecutingfilter,KillTilde(GetToolName(Idx-1))),nil) else
+                  if DosExitCode<>0 then
+                    ErrorBox(FormatStrInt(msg_filterexecutionsuccessfulexitcodeis,DosExitCode),nil);
+                end
+              else
+                begin
+                  if ExistsFile(CaptureFile) then
+                    begin
+                      Assign(TextFile,CaptureFile);
+                      Reset(TextFile);
+                      while not eof(TextFile) do
+                        begin
+                          Readln(TextFile,Params);
+                          AddToolCommand(Params);
+                        end;
+                      Close(TextFile);
+                      UpdateToolMessages;
+                      if Assigned(MessagesWindow) then
+                        MessagesWindow^.MakeFirst;
+                    end;
                 end;
-              if (DosError<>0) then
-                ErrorBox(FormatStrStr(msg_errorexecutingfilter,KillTilde(GetToolName(Idx-1))),nil) else
-              if DosExitCode<>0 then
-                ErrorBox(FormatStrInt(msg_filterexecutionsuccessfulexitcodeis,DosExitCode),nil);
               UpdateToolMessages;
               if (ToFocus<>-1) then
                 if Assigned(MessagesWindow) then
@@ -141,19 +165,27 @@ begin
             end;
         end;
     end;
-  if (DosError<>0) or (DosExitCode<>0) then
+  if (DosError<>0) or (DosExitCode<>0) or (SizeOfFile(ToolCaptureErr)>0) then
     begin
       if (DosError<>0) then
         ErrorBox(FormatStrStr(msg_errorexecutingtool,KillTilde(GetToolName(Idx-1))),nil) else
       if DosExitCode<>0 then
         ErrorBox(FormatStrInt(msg_toolexecutionsuccessfulexitcodeis,DosExitCode),nil);
 {$i-}
-      Assign(ErrText,ToolCaptureErr);
-      Reset(ErrText);
-      while not eof(ErrText) do
+      Assign(TextFile,ToolCaptureErr);
+      Reset(TextFile);
+      while not eof(TextFile) do
         begin
-          Readln(ErrText,Params);
+          Readln(TextFile,Params);
           AddToolCommand(Params);
+        end;
+      Close(TextFile);
+      UpdateToolMessages;
+      if Assigned(MessagesWindow) then
+        begin
+          MessagesWindow^.MakeFirst;
+          if (ToFocus<>-1) then
+            MessagesWindow^.FocusItem(ToFocus);
         end;
     end;
 {$ifndef DEBUG}
@@ -352,7 +384,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-05-29 22:38:13  pierre
+  Revision 1.4  2002-08-29 10:06:33  pierre
+   * adapt to changes in fptools.pas unit
+   + support $CAP_MSG() without filter
+
+  Revision 1.3  2002/05/29 22:38:13  pierre
    Asciitab now in fvision
 
   Revision 1.2  2001/08/05 12:23:00  peter
