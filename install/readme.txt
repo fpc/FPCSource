@@ -185,7 +185,7 @@ Optional source package src09912.zip:
 -------------------------------------
   pp09912s.zip    contains the compiler sources
   rl09912s.zip    contains the runtime library sources
-  doc120s.zip     contains the TeX sources of the doc
+  doc160s.zip     contains the TeX sources of the doc
 
 
 ****************************************************************************

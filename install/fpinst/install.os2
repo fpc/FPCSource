@@ -18,7 +18,7 @@ package=demos.zip,D~e~mos
 package=docs-htm.zip,Documentation (~H~TML)
 package=rl09912s.zip,~R~un time library sources
 package=pp09912s.zip,~C~ompiler sources
-package=doc120s.zip,Documentation sources (La~T~eX)
+package=doc160s.zip,Documentation sources (La~T~eX)
 
 cfgfile=ppc386.cfg
 defaultcfg=
