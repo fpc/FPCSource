@@ -3,14 +3,15 @@
 { e-mail: werner.bochtler@zkrd.de }
 program scope;
 
-{$mode delphi}
+{$ifdef fpc}{$mode delphi}{$endif}
 
-uses classes;
+uses Classes;
 
 var
   error: string;
 begin
   with TStringList.Create do try
+    { TStringList.Error is protected and is not visible }
     error := 'some text';
     WriteLn( error );
   finally
