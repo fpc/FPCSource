@@ -542,6 +542,7 @@ program install;
       r : trect;
     begin
       inherited init(bounds,atitle);
+      Options:=Options or ofCentered;
       R.Assign (4, 2,bounds.B.X-Bounds.A.X-2, 4);
       text:=new(pstatictext,init(r,'Please wait ...'));
       insert(text);
@@ -708,6 +709,7 @@ program install;
       r : trect;
     begin
       inherited init(bounds,atitle);
+      Options:=Options or ofCentered;
 (*      R.Assign (11, 4, 38, 6);*)
       R.Assign (1, 4,bounds.B.X-Bounds.A.X-2, 6);
       filetext:=new(pstatictext,init(r,#3'File: '));
@@ -896,6 +898,7 @@ program install;
 
       R.Assign(6, 6, 74, YB);
       inherited init(r,'Installation Successful.');
+      Options:=Options or ofCentered;
 
 {$IFNDEF UNIX}
       if WPath then
@@ -1141,6 +1144,7 @@ program install;
 
        r.assign(x1,y1,x2,y2);
        inherited init(r,'');
+       Options:=Options or ofCentered;
        GetExtent(R);
        R.Grow(-2,-1);
        Dec(R.B.Y,2);
@@ -1949,7 +1953,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-01-22 13:42:35  pierre
+  Revision 1.15  2003-01-22 14:15:13  pierre
+   * center all dialogs
+
+  Revision 1.14  2003/01/22 13:42:35  pierre
    * fix problem with Alt-X (webbug 1959)
    + use fpusrscr unit to restore console at exit.
 
