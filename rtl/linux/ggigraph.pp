@@ -90,6 +90,23 @@ implementation
 uses
   linux;
 
+var
+  OldIO : TermIos;
+Procedure SetRawMode(b:boolean);
+Var
+  Tio : Termios;
+Begin
+  if b then
+   begin
+     TCGetAttr(1,Tio);
+     OldIO:=Tio;
+     CFMakeRaw(Tio);
+   end
+  else
+   Tio:=OldIO;
+  TCSetAttr(1,TCSANOW,Tio);
+End;
+
 const
   InternalDriverName = 'LinuxGGI';
 
@@ -509,12 +526,18 @@ begin
   end;
 end;
 
-begin
+initialization
   InitializeGraph;
+  SetRawMode(True);
+finalization
+  SetRawMode(False);
 end.
 {
   $Log$
-  Revision 1.2  2000-05-26 18:21:04  peter
+  Revision 1.3  2000-07-08 21:22:16  peter
+    * finalization added with setrawmode(false)
+
+  Revision 1.2  2000/05/26 18:21:04  peter
     * fixed @ with var parameters
 
   Revision 1.1  2000/03/19 11:20:14  peter

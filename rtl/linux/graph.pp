@@ -589,13 +589,18 @@ end;
        end;
    end;
 
-begin
+initialization
   InitializeGraph;
   SetRawMode(True);
+finalization
+  SetRawMode(False);
 end.
 {
   $Log$
-  Revision 1.17  2000-06-30 22:14:44  peter
+  Revision 1.18  2000-07-08 21:22:16  peter
+    * finalization added with setrawmode(false)
+
+  Revision 1.17  2000/06/30 22:14:44  peter
     * removed unused var
 
   Revision 1.16  2000/06/25 13:38:30  jonas
