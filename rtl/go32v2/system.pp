@@ -810,7 +810,7 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-procedure ___exit(exitcode:longint);cdecl;external name '__exit';
+procedure __exit(exitcode:longint);cdecl;external;
 
 procedure do_close(handle : longint);forward;
 
@@ -833,7 +833,7 @@ begin
 {$ifndef EXCEPTIONS_IN_SYSTEM}
   set_pm_interrupt($75,old_int75);
 {$endif EXCEPTIONS_IN_SYSTEM}
-  ___exit(exitcode);
+  __exit(exitcode);
 end;
 
 
@@ -897,7 +897,7 @@ end;
                               Heap Management
 *****************************************************************************}
 
-function ___sbrk(size:longint):longint;cdecl;external name '__sbrk';
+function __sbrk(size:longint):longint;cdecl;external;
 
 function SysOSAlloc (size: PtrInt): pointer; assembler;
 asm
@@ -910,7 +910,7 @@ asm
 {$endif}
         movl    size,%eax
         pushl   %eax
-        call    ___sbrk
+        call    __sbrk
         addl    $4,%esp
 {$ifdef SYSTEMDEBUG}
       .Lsbrk_fail:
@@ -1602,7 +1602,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.45  2004-12-05 14:36:37  hajny
+  Revision 1.46  2004-12-07 14:02:24  jonas
+    * fix cdecl name problems (patch from Tomas)
+
+  Revision 1.45  2004/12/05 14:36:37  hajny
     + GetProcessID added
 
   Revision 1.44  2004/11/25 17:37:59  jonas

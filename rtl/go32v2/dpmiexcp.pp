@@ -175,19 +175,19 @@ function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
-external name '___djgpp_set_sigint_key';
+external;
 {$endif CREATE_C_FUNCTIONS}
 
 function __djgpp_set_sigquit_key(new_key : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
-external name '___djgpp_set_sigquit_key';
+external;
 {$endif CREATE_C_FUNCTIONS}
 
 function __djgpp__traceback_exit(sig : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
-external name '__djgpp__traceback_exit';
+external;
 {$endif CREATE_C_FUNCTIONS}
 
 {$ifndef IN_SYSTEM}
@@ -759,13 +759,13 @@ end;
 ****************************************************************************}
 
 var
-  __djgpp_selector_limit: cardinal; external name '__djgpp_selector_limit';
+  ___djgpp_selector_limit: cardinal; external name '___djgpp_selector_limit';
 
 
 {$ifdef CREATE_C_FUNCTIONS}
 
 {$ifdef IN_DPMIEXCP_UNIT}
-procedure ___exit(c:longint);cdecl;external name '___exit';
+procedure __exit(c:longint);cdecl;external;
 {$endif}
 
 function except_to_sig(excep : longint) : longint;
@@ -920,15 +920,13 @@ begin
          err('Exception ');
        itox(signum, 2);
        err(' at eip=');
-{
-  ( * For fake exceptions like SIGABRT report where `raise' was called.  * )
+  (* For fake exceptions like SIGABRT report where `raise' was called.  *)
   if fake and (djgpp_exception_state_ptr^.__cs = _my_cs)
      and (djgpp_exception_state_ptr^.__ebp >= djgpp_exception_state_ptr^.__esp)
-     and (djgpp_exception_state_ptr^.__ebp >= &end)
-     and (djgpp_exception_state_ptr^.__ebp < __djgpp_selector_limit) then
-       itox(djgpp_exception_state_ptr^.__ebp + 1), 8);
+     and (djgpp_exception_state_ptr^.__ebp >= endtext)
+     and (djgpp_exception_state_ptr^.__ebp < ___djgpp_selector_limit) then
+       itox(djgpp_exception_state_ptr^.__ebp + 1, 8)
      else
-}
        itox(djgpp_exception_state_ptr^.__eip, 8);
     end
   else
@@ -998,7 +996,7 @@ begin
 simple_exit:
   if exceptions_on then
     djgpp_exception_toggle;
-  ___exit(-1);
+  __exit(-1);
 end;
 {$endif CREATE_C_FUNCTIONS}
 
@@ -1047,7 +1045,7 @@ begin
               errln('FPC triple exception, exiting !!! ');
             if (exceptions_on) then
               djgpp_exception_toggle;
-            ___exit(1);
+            __exit(1);
          end;
        err('FPC double exception, exiting due to signal ');
        itox(sig, 4);
@@ -1382,7 +1380,7 @@ begin
   if assigned(djgpp_exception_state_ptr) then
     { This exits, does not return.  }
     do_faulting_finish_message(djgpp_exception_state_ptr=@fake_exception);
-  ___exit(-1);
+  __exit(-1);
   __djgpp__traceback_exit:=0;
 end;
 
@@ -1618,7 +1616,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.16  2004-11-29 20:39:36  peter
+  Revision 1.17  2004-12-07 14:02:24  jonas
+    * fix cdecl name problems (patch from Tomas)
+
+  Revision 1.16  2004/11/29 20:39:36  peter
   fixed compilation
 
   Revision 1.15  2004/11/25 20:06:55  jonas
