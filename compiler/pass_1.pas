@@ -137,27 +137,47 @@ implementation
               { determine the resulttype if not done }
               if (p.resulttype.def=nil) then
                begin
+                 aktfilepos:=p.fileinfo;
+                 aktlocalswitches:=p.localswitches;
                  hp:=p.det_resulttype;
                  { should the node be replaced? }
                  if assigned(hp) then
                   begin
                      p.free;
+                     { run resulttypepass }
+                     resulttypepass(hp);
+                     { switch to new node }
                      p:=hp;
                   end;
+                 if codegenerror then
+                  begin
+                    include(p.flags,nf_error);
+                    { default to errortype if no type is set yet }
+                    if p.resulttype.def=nil then
+                     p.resulttype:=generrortype;
+                  end;
+                 aktlocalswitches:=oldlocalswitches;
+                 aktfilepos:=oldpos;
+                 codegenerror:=codegenerror or oldcodegenerror;
                end;
               { first pass }
-              hp:=p.pass_1;
-              { should the node be replaced? }
-              if assigned(hp) then
-                begin
-                   p.free;
-                   p:=hp;
-                end;
+              if not(nf_error in p.flags) then
+               begin
+                 aktfilepos:=p.fileinfo;
+                 aktlocalswitches:=p.localswitches;
+                 hp:=p.pass_1;
+                 { should the node be replaced? }
+                 if assigned(hp) then
+                  begin
+                    p.free;
+                    p:=hp;
+                  end;
+                 if codegenerror then
+                  include(p.flags,nf_error);
+               end;
+              codegenerror:=codegenerror or oldcodegenerror;
               aktlocalswitches:=oldlocalswitches;
               aktfilepos:=oldpos;
-              if codegenerror then
-                include(p.flags,nf_error);
-              codegenerror:=codegenerror or oldcodegenerror;
            end
          else
            codegenerror:=true;
@@ -178,7 +198,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-09-02 21:18:28  peter
+  Revision 1.18  2001-10-20 17:23:43  peter
+    * fixed firstpass when det_resulttype returns an error
+
+  Revision 1.17  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.
