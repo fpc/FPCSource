@@ -32,12 +32,14 @@ unit cpupi;
        cgbase;
 
     type
-       tm68kprocinfo = class(tprocinfo);
+       tm68kprocinfo = class(tprocinfo)
           procedure allocate_interrupt_stackframe;override;
        end;
 
-
   implementation
+
+    uses
+       verbose;
 
     procedure tm68kprocinfo.allocate_interrupt_stackframe;
 
@@ -54,7 +56,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-17 09:23:48  florian
+  Revision 1.2  2002-08-18 09:02:12  florian
+    * fixed compilation problems
+
+  Revision 1.1  2002/08/17 09:23:48  florian
     * first part of procinfo rewrite
 }
 

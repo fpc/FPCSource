@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Contains the base types for the PowerPC
+    Contains the base types for the m68k
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-{ This Unit contains the base types for the PowerPC
+{ This Unit contains the base types for the m68k
 }
 unit cpubase;
 
@@ -85,7 +85,7 @@ uses
          { and 68030/68851 common mmu instructions            }
          { (this may include 68040 mmu instructions)          }
          a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
-         { useful for assembly langage output }
+         { useful for assembly language output }
          a_label,a_none,a_dbxx,a_sxx,a_bxx,a_fbxx);
 
       {# This should define the array of instructions as string }
@@ -241,7 +241,14 @@ uses
         LOC_REGISTER,     { in a processor register }
         LOC_CREGISTER,    { Constant register which shouldn't be modified }
         LOC_FPUREGISTER,  { FPU stack }
-        LOC_CFPUREGISTER  { if it is a FPU register variable on the fpu stack }
+        LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
+
+        { The m68k doesn't know multi media registers but this is for easier porting
+          because several generic parts of the compiler use it. }
+        LOC_MMREGISTER,
+        { The m68k doesn't know multi media registers but this is for easier porting
+          because several generic parts of the compiler use it. }
+        LOC_CMMREGISTER
       );
 
       { tparamlocation describes where a parameter for a procedure is stored.
@@ -275,7 +282,7 @@ uses
               case longint of
                 1 : (value : AWord);
                 { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }     
+                { lo(valueqword)/hi(valueqword) instead (JM)              }
                 { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
                 3 : (valueqword : qword);
@@ -563,7 +570,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-08-15 08:13:54  carl
+  Revision 1.10  2002-08-18 09:02:12  florian
+    * fixed compilation problems
+
+  Revision 1.9  2002/08/15 08:13:54  carl
     - a_load_sym_ofs_reg removed
     * loadvmt now calls loadaddr_ref_reg instead
 
@@ -588,6 +598,4 @@ end.
 
   Revision 1.3  2002/07/29 17:51:32  carl
     + restart m68k support
-
-
 }
