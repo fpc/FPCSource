@@ -108,7 +108,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-12-23 12:40:48  daniel
+  Revision 1.3  1999-01-27 13:51:44  pierre
+   * dos end of line problem
+
+  Revision 1.2  1998/12/23 12:40:48  daniel
   * Added begin to globtype and version to avoid empty object files.
   * Fileexists no longer finds volume labels.
 
