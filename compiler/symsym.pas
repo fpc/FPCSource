@@ -1014,29 +1014,29 @@ implementation
                                             allowconvert,
                                             allowdefault:boolean):Tprocdef;
 
-    var pd:Pprocdeflist;
-
-    begin
+      var
+        pd:Pprocdeflist;
+      begin
         search_procdef_bypara:=nil;
         pd:=defs;
         while assigned(pd) do
-            begin
-                if equal_paras(pd^.def.para,params,cp_value_equal_const,allowdefault) or
-                   (allowconvert and convertable_paras(pd^.def.para,params,
-                                                       cp_value_equal_const)) then
-                    begin
-                        search_procdef_bypara:=pd^.def;
-                        break;
-                    end;
-                pd:=pd^.next;
-            end;
-    end;
+          begin
+            if equal_paras(pd^.def.para,params,cp_value_equal_const,allowdefault) or
+               (allowconvert and
+                convertable_paras(pd^.def.para,params,cp_value_equal_const)) then
+              begin
+                search_procdef_bypara:=pd^.def;
+                break;
+              end;
+            pd:=pd^.next;
+          end;
+      end;
+
 
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-
-    var pd:Pprocdeflist;
-
-    begin
+      var
+        pd:Pprocdeflist;
+      begin
         {This function will return the pprocdef of pprocsym that
          is the best match for procvardef. When there are multiple
          matches it returns nil.}
@@ -1044,99 +1044,95 @@ implementation
         search_procdef_byprocvardef:=nil;
         pd:=defs;
         while assigned(pd) do
-            begin
-                if proc_to_procvar_equal(pd^.def,d,true) then
-                    begin
-                        { already found a match ? Then stop and return nil }
-                        if assigned(search_procdef_byprocvardef) then
-                            begin
-                                search_procdef_byprocvardef:=nil;
-                                break;
-                            end;
-                        search_procdef_byprocvardef:=pd^.def;
-                    end;
-                pd:=pd^.next;
-            end;
+          begin
+            if proc_to_procvar_equal(pd^.def,d,true) then
+              begin
+                { already found a match ? Then stop and return nil }
+                if assigned(search_procdef_byprocvardef) then
+                  begin
+                    search_procdef_byprocvardef:=nil;
+                    break;
+                  end;
+                search_procdef_byprocvardef:=pd^.def;
+              end;
+            pd:=pd^.next;
+          end;
         {Try a convertable match, if no exact match was found.}
         if not assigned(search_procdef_byprocvardef) and not assigned(pd) then
-            begin
-                pd:=defs;
-                while assigned(pd) do
-                    begin
-                        if proc_to_procvar_equal(pd^.def,d,false) then
-                            begin
-                                { already found a match ? Then stop and return nil }
-                                if assigned(search_procdef_byprocvardef) then
-                                    begin
-                                        search_procdef_byprocvardef:=nil;
-                                        break;
-                                    end;
-                                search_procdef_byprocvardef:=pd^.def;
-                            end;
-                        pd:=pd^.next;
-                    end;
-            end;
-    end;
+          begin
+            pd:=defs;
+            while assigned(pd) do
+              begin
+                if proc_to_procvar_equal(pd^.def,d,false) then
+                  begin
+                    { already found a match ? Then stop and return nil }
+                    if assigned(search_procdef_byprocvardef) then
+                      begin
+                        search_procdef_byprocvardef:=nil;
+                        break;
+                      end;
+                    search_procdef_byprocvardef:=pd^.def;
+                  end;
+                pd:=pd^.next;
+              end;
+          end;
+      end;
 
     function Tprocsym.search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
-
-    var pd:Pprocdeflist;
-
-    begin
+      var
+        pd:Pprocdeflist;
+      begin
         search_procdef_by1paradef:=nil;
         pd:=defs;
         while assigned(pd) do
-            begin
-                if is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
-                 (Tparaitem(pd^.def.para.first).next=nil) then
-                    begin
-                        search_procdef_by1paradef:=pd^.def;
-                        break;
-                    end;
-                pd:=pd^.next;
-            end;
-    end;
+          begin
+            if is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
+               (Tparaitem(pd^.def.para.first).next=nil) then
+              begin
+                search_procdef_by1paradef:=pd^.def;
+                break;
+              end;
+            pd:=pd^.next;
+          end;
+      end;
+
 
     function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
                                                          matchtype:Tdefmatch; var pd : pprocdeflist):Tprocdef;
 
-    var
+      var
         convtyp:tconverttype;
         a,b:boolean;
         oldpd : pprocdeflist;
-
-    begin
+      begin
         search_procdef_byretdef_by1paradef:=nil;
         if not assigned(pd) then
-           pd:=defs;
+          pd:=defs;
         while assigned(pd) do
-            begin
-                oldpd := pd;
-                a:=is_equal(retdef,pd^.def.rettype.def);
-                {Alert alert alert alert alert alert alert!!!
+          begin
+            oldpd := pd;
+            a:=is_equal(retdef,pd^.def.rettype.def);
+            if a then
+              begin
+                case matchtype of
+                  dm_exact:
+                        b:=TParaItem(pd^.def.para.first).paratype.def=firstpara;
+                    dm_equal:
+                        b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
+                    dm_convertl1:
+                        b:=overloaded_assignment_isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
+                            convtyp,ordconstn,false,oldpd)=1;
+                end;
+              end;
+            if a and b then
+              begin
+                search_procdef_byretdef_by1paradef:=pd^.def;
+                break;
+              end;
+            pd:=pd^.next;
+          end;
+      end;
 
-                 Make sure you never call isconvertable when a=false. You get
-                 endless recursion then.  Originally a and b were placed in a
-                 single if statement. There was only one reason that it worked:
-                 short circuit boolean eval.}
-                if a then
-                    case matchtype of
-                        dm_exact:
-                            b:=TParaItem(pd^.def.para.first).paratype.def=firstpara;
-                        dm_equal:
-                            b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
-                        dm_convertl1:
-                            b:=overloaded_assignment_isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
-                                convtyp,ordconstn,false,oldpd)=1;
-                    end;
-                if a and b then
-                    begin
-                        search_procdef_byretdef_by1paradef:=pd^.def;
-                        break;
-                    end;
-                pd:=pd^.next;
-            end;
-    end;
 
     procedure tprocsym.ppuwrite(ppufile:tcompilerppufile);
       var
@@ -2506,7 +2502,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-09-26 12:04:53  florian
+  Revision 1.68  2002-10-05 00:52:20  peter
+    * split boolean check in two lines for easier debugging
+
+  Revision 1.67  2002/09/26 12:04:53  florian
     + constsym with type=constguid can be written to ppu now,
       fixes web bug 1820
 
