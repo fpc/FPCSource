@@ -27,7 +27,7 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,cg64f64,cgx86,
+       cgbase,cgobj,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,cpupara,parabase,
        node,symconst,rgx86,procinfo;
@@ -95,7 +95,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-10-24 20:01:08  peter
+  Revision 1.19  2004-11-01 17:44:27  florian
+    * cg64f64 isn't used anymore
+
+  Revision 1.18  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.17  2004/10/05 20:41:02  peter
