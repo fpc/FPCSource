@@ -48,6 +48,7 @@ interface
           procedure second_cos_real; virtual;
           procedure second_sin_real; virtual;
           procedure second_assigned; virtual;
+          procedure second_prefetch; virtual;
        end;
 
 implementation
@@ -140,6 +141,10 @@ implementation
             in_cos_extended:
               begin
                  second_cos_real;
+              end;
+            in_prefetch_var:
+              begin
+                second_prefetch;
               end;
             in_assigned_x:
               begin
@@ -644,6 +649,12 @@ implementation
         internalerror(20020718);
       end;
 
+
+    procedure tcginlinenode.second_prefetch;
+      begin
+      end;
+
+
 {*****************************************************************************
                          ASSIGNED GENERIC HANDLING
 *****************************************************************************}
@@ -665,7 +676,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2004-01-31 17:45:17  peter
+  Revision 1.52  2004-02-02 20:41:59  florian
+    + added prefetch(const mem) support
+
+  Revision 1.51  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

@@ -52,7 +52,7 @@ implementation
       verbose,globtype,globals,
       symconst,symtype,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       procinfo,
       cpubase,cpuinfo,
@@ -573,7 +573,7 @@ implementation
                     LOC_CREFERENCE :
                       begin
                         cg.g_concatcopy(exprasmlist,right.location.reference,
-                                        left.location.reference,left.resulttype.def.size,true,false);
+                                    left.location.reference,left.resulttype.def.size,true,false);
                         { right.location is already released by concatcopy }
                         releaseright:=false;
                       end;
@@ -906,7 +906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2003-12-25 01:07:09  florian
+  Revision 1.105  2004-02-02 20:41:59  florian
+    + added prefetch(const mem) support
+
+  Revision 1.104  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

@@ -1958,7 +1958,10 @@ implementation
                 begin
                 end;
  {$endif SUPPORT_MMX}
-
+              in_prefetch_var:
+                begin
+                  resulttype:=voidtype;
+                end;
               in_assert_x_y :
                 begin
                   resulttype:=voidtype;
@@ -2243,9 +2246,9 @@ implementation
 {$endif SUPPORT_MMX}
             end;
 
-         in_low_x,
-         in_high_x:
-          internalerror(200104047);
+          in_low_x,
+          in_high_x:
+            internalerror(200104047);
 
           in_ord_x,
           in_chr_byte:
@@ -2273,6 +2276,11 @@ implementation
               { should be handled by det_resulttype }
               internalerror(200108234);
             end;
+
+         in_prefetch_var:
+           begin
+             expectloc:=LOC_VOID;
+           end;
 
           else
             internalerror(8);
@@ -2366,7 +2374,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2004-01-26 16:12:28  daniel
+  Revision 1.128  2004-02-02 20:41:59  florian
+    + added prefetch(const mem) support
+
+  Revision 1.127  2004/01/26 16:12:28  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

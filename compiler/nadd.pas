@@ -119,7 +119,6 @@ implementation
 
       begin
          result:=nil;
-
          { first do the two subtrees }
          resulttypepass(left);
          resulttypepass(right);
@@ -1906,7 +1905,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2004-01-20 12:59:36  florian
+  Revision 1.108  2004-02-02 20:41:59  florian
+    + added prefetch(const mem) support
+
+  Revision 1.107  2004/01/20 12:59:36  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.106  2004/01/14 17:19:04  peter

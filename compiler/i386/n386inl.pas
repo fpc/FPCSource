@@ -53,6 +53,8 @@ interface
           procedure second_ln_real; override;
           procedure second_cos_real; override;
           procedure second_sin_real; override;
+
+          procedure second_prefetch;override;
        private
           procedure load_fpu_location;
        end;
@@ -61,11 +63,12 @@ implementation
 
     uses
       systems,
+      globals,
       cutils,verbose,
       defutil,
-      aasmtai,
+      aasmtai,aasmcpu,
       cgbase,pass_2,
-      cpubase,paramgr,
+      cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       cga,cgx86,cgobj;
 
@@ -242,6 +245,32 @@ implementation
          emit_none(A_FSIN,S_NO)
        end;
 
+     procedure ti386inlinenode.second_prefetch;
+       var
+         ref : treference;
+         r : tregister;
+       begin
+         if aktspecificoptprocessor>=ClassPentium3 then
+           begin
+             secondpass(left);
+             case left.location.loc of
+               LOC_CREFERENCE,
+               LOC_REFERENCE:
+                 begin
+                   r:=cg.getintregister(exprasmlist,OS_ADDR);
+                   cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,r);
+                   location_release(exprasmlist,left.location);
+                   reference_reset(ref);
+                   ref.base:=r;
+                   exprasmlist.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
+                   cg.ungetregister(exprasmlist,r);
+                 end;
+               else
+                 internalerror(200402021);
+             end;
+           end;
+       end;
+
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
@@ -324,7 +353,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-10-10 17:48:14  peter
+  Revision 1.71  2004-02-02 20:41:59  florian
+    + added prefetch(const mem) support
+
+  Revision 1.70  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
