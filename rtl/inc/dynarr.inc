@@ -34,6 +34,12 @@ type
       eletype : pdynarraytypeinfo;
    end;
 
+function fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  begin
+     if not(assigned(p)) or (i<0) or (i>pdynarray(p-sizeof(tdynarray))^.high) then
+       HandleErrorFrame(201,get_frame);
+  end;
+
 
 function fpc_dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
@@ -268,7 +274,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer);{$i
 
 {
   $Log$
-  Revision 1.19  2002-10-02 18:21:51  peter
+  Revision 1.20  2002-10-09 20:24:30  florian
+    + range checking for dyn. arrays
+
+  Revision 1.19  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions
@@ -286,5 +295,4 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer);{$i
 
   Revision 1.15  2002/01/21 20:16:08  peter
     * updated for dynarr:=nil
-
 }

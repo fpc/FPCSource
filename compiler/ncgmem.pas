@@ -526,6 +526,8 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
+         href : treference;
+         pushed : tpushedsaved;
        begin
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
@@ -550,10 +552,9 @@ implementation
             objectlibrary.getlabel(poslabel);
             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
             cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-            cg.a_label(exprasmlist,poslabel);
-            { !!! should happen right after the compare (JM) }
             if freereg then
               cg.free_scratch_reg(exprasmlist,hreg);
+            cg.a_label(exprasmlist,poslabel);
             cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
             cg.a_label(exprasmlist,neglabel);
             { release hightree }
@@ -562,12 +563,15 @@ implementation
           end
          else
           if is_dynamic_array(left.resulttype.def) then
-           begin
-{$ifdef fpc}
-  {$warning Rangecheck for dynamic array}
-{$endif fpc}
-             internalerror(200210074);
-           end
+            begin
+               rg.saveusedregisters(exprasmlist,pushed,all_registers);
+               cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(2));
+               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(1));
+               rg.saveregvars(exprasmlist,all_registers);
+               cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
+               rg.restoreusedregisters(exprasmlist,pushed);
+               cg.g_maybe_loadself(exprasmlist);
+            end
          else
            cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
        end;
@@ -644,7 +648,6 @@ implementation
                 dec(location.reference.offset,2);
            end
          else if is_dynamic_array(left.resulttype.def) then
-         { ... also a dynamic string }
            begin
               case left.location.loc of
                 LOC_REGISTER,
@@ -661,20 +664,6 @@ implementation
                 else
                   internalerror(2002032219);
               end;
-{$ifdef fpc}
-{$warning FIXME}
-{$endif}
-              { check for a zero length string,
-                we can use the ansistring routine here }
-              if (cs_check_range in aktlocalswitches) then
-                begin
-                   rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
-                   rg.saveregvars(exprasmlist,all_registers);
-                   cg.a_call_name(exprasmlist,'FPC_ANSISTR_CHECKZERO');
-                   cg.g_maybe_loadself(exprasmlist);
-                   rg.restoreusedregisters(exprasmlist,pushed);
-                end;
            end
          else
            location_copy(location,left.location);
@@ -824,10 +813,6 @@ implementation
               maybe_save(exprasmlist,right.registers32,location,pushedregs);
               secondpass(right);
               maybe_restore(exprasmlist,location,pushedregs);
-              { here we change the location of right
-                and the update was forgotten so it
-                led to wrong code in emitrangecheck later PM
-                so make range check before }
 
               if cs_check_range in aktlocalswitches then
                begin
@@ -902,7 +887,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-10-07 21:30:45  peter
+  Revision 1.31  2002-10-09 20:24:47  florian
+    + range checking for dyn. arrays
+
+  Revision 1.30  2002/10/07 21:30:45  peter
     * rangecheck for open arrays added
 
   Revision 1.29  2002/10/05 12:43:25  carl
