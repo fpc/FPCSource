@@ -15,6 +15,59 @@
 
  **********************************************************************}
 
+{$ifdef INTERNCONSTINTF}
+    {$define FPC_SYSTEM_HAS_ABS}
+    function fpc_abs_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_SQR}
+    function fpc_sqr_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_SQRT}
+    function fpc_sqrt_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_ARCTAN}
+    function fpc_arctan_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    { lgn isn't supported by the linux fpe it seems
+    {$define FPC_SYSTEM_HAS_LN}
+    function fpc_ln_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    }
+    {$define FPC_SYSTEM_HAS_SIN}
+    function fpc_sin_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+    {$define FPC_SYSTEM_HAS_COS}
+    function fpc_cos_real(d : extended) : extended;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+{$else INTERNCONSTINTF}
     {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
     {$define FPC_SYSTEM_HAS_SQR}
@@ -31,10 +84,13 @@
     function sin(d : extended) : extended;[internproc:in_sin_extended];
     {$define FPC_SYSTEM_HAS_COS}
     function cos(d : extended) : extended;[internproc:in_cos_extended];
-
+{$endif INTERNCONSTINTF}
 {
   $Log$
-  Revision 1.4  2004-03-16 22:02:26  florian
+  Revision 1.5  2005-01-01 18:34:24  florian
+    * fixed building
+
+  Revision 1.4  2004/03/16 22:02:26  florian
     * disabled internal ln
 
   Revision 1.3  2004/01/27 15:04:49  florian
