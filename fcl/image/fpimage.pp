@@ -39,7 +39,7 @@ type
                   cfRGBA8,cfRGBA16,cfRGBA32,cfRGBA64,
                   cfBGR15,cfBGR16,cfBGR24,cfBGR32,cfBGR48,
                   cfABGR8,cfABGR16,cfABGR32,cfABGR64);
-  TColorData = int64;
+  TColorData = qword;
   PColorData = ^TColorData;
 
   TDeviceColor = record
@@ -256,6 +256,7 @@ function ConvertColorToData (const From : TDeviceColor; Fmt : TColorFormat) : TC
 function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 function FPColor (r,g,b,a:word) : TFPColor;
+{$ifdef debug}function MakeHex (n:TColordata;nr:byte): string;{$endif}
 
 operator = (const c,d:TFPColor) : boolean;
 operator or (const c,d:TFPColor) : TFPColor;
@@ -361,20 +362,32 @@ begin
   result := SetFullColorData(GetFullColorData(c) XOR GetFullColorData(d));
 end;
 
-var x,h,l : int64;
+{$ifdef debug}
+function MakeHex (n:TColordata;nr:byte): string;
+const hexnums : array[0..15] of char =
+              ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
+var r : integer;
+begin
+  result := '';
+  for r := 0 to nr-1 do
+    begin
+    result := hexnums[n and $F] + result;
+    n := n shr 4;
+    if ((r+1) mod 4) = 0 then
+      result := ' ' + result;
+    end;
+end;
+{$endif}
 
 initialization
   ImageHandlers := TImageHandlersManager.Create;
+  ColorBits [cfRGB48,1] := ColorBits [cfRGB48,1] shl 16;
   ColorBits [cfRGBA64,1] := ColorBits [cfRGBA64,1] shl 32;
   ColorBits [cfRGBA64,2] := ColorBits [cfRGBA64,2] shl 16;
-  ColorBits [cfRGB48,1] := ColorBits [cfRGB48,1] shl 16;
   ColorBits [cfABGR64,0] := ColorBits [cfABGR64,0] shl 32;
   ColorBits [cfABGR64,3] := ColorBits [cfABGR64,3] shl 16;
   ColorBits [cfBGR48,3] := ColorBits [cfBGR48,3] shl 16;
-  x := 1 shl 32;
-  writeln ('1:(',ColorBits[cfBGR48,1] div x,',',ColorBits[cfBGR48,1] mod x,'),(',
-                   ColorBits[cfBGR48,2] div x,',',ColorBits[cfBGR48,2] mod x,'),(',
-                   ColorBits[cfBGR48,3] div x,',',ColorBits[cfBGR48,3] mod x,'),');
+
 finalization
   ImageHandlers.Free;
 
