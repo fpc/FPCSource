@@ -124,7 +124,7 @@ implementation
 
         begin
            { check for a class }
-           if not(is_class(aktclass)) then
+           if not(is_class_or_interface(aktclass)) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
            new(propertyparas,init);
@@ -1170,7 +1170,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-11-17 08:21:07  florian
+  Revision 1.13  2000-11-17 17:32:58  florian
+    * properties can now be used in interfaces
+
+  Revision 1.12  2000/11/17 08:21:07  florian
   *** empty log message ***
 
   Revision 1.11  2000/11/12 23:24:11  florian
