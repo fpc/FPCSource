@@ -85,7 +85,7 @@ Type
     Procedure SetWindowWidth (Value : Cardinal);
     Procedure CreateStreams(InHandle,OutHandle,Errhandle : Longint);
     procedure SetApplicationname(const Value: String);
-    procedure SetPRocessOptions(const Value: TProcessOptions);
+    procedure SetProcessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
     function  PeekExitStatus: Boolean;
@@ -307,7 +307,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2004-09-08 18:17:23  michael
+  Revision 1.23  2004-09-09 13:47:38  michael
+  + Patch from Vincent Snijders to correctly handle PeekExitStatus
+
+  Revision 1.22  2004/09/08 18:17:23  michael
   + Removed extra handle on process.
 
   Revision 1.21  2004/08/12 14:33:55  michael

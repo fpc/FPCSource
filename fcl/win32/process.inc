@@ -21,7 +21,7 @@ Function TProcess.PeekExitStatus : Boolean;
 
 begin
   GetExitCodeProcess(ProcessHandle,FExitCode);
-  Result:=(FExitCode=Still_Active);
+  Result:=(FExitCode<>Still_Active);
 end;
 
 Function GetStartupFlags (P : TProcess): Cardinal;
