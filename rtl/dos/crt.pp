@@ -654,10 +654,11 @@ var
   fil : word;
 begin
   fil:=32 or (textattr shl 8);
+  y:=WinMinY+y-1;
   While (y<WinMaxY) do
    begin
-     dosmemmove($b800,(((WinMinY+y)-1)*ScreenWidth+(WinMinX-1))*2,
-                $b800,(((WinMinY+y-1)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
+     dosmemmove($b800,(y*ScreenWidth+(WinMinX-1))*2,
+                $b800,((y-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
      inc(y);
    end;
   dosmemfillword($b800,((WinMaxY-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
@@ -981,7 +982,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-08-18 13:32:46  carl
+  Revision 1.11  1998-08-19 14:55:44  peter
+    * fixed removeline which scrolled too much lines
+
+  Revision 1.10  1998/08/18 13:32:46  carl
     * bugfix to make it work with FPC 0.99.5 (Delayloop is not correctly
   converted by ATT parser)
 
