@@ -119,7 +119,7 @@ dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMPPU)
 #
 
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               $(SYSTEMPPU)
+               doscalls$(PPUEXT) $(SYSTEMPPU)
 
 crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMPPU)
 
@@ -133,9 +133,9 @@ printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMPPU)
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    filutil.inc disk.inc objpas$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) doscalls$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)

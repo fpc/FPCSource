@@ -101,12 +101,14 @@ function StrToDateTime(const S: string): TDateTime;
 function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
 procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
-Function FileDateToDateTime (Filedate : Longint) : TDateTime;
+Function FileDateToDateTime (Filedate : Longint) :TDateTime;
+
+{ FPC Extra }
+Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
-
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
-  + removed logs
- 
+  Revision 1.3  2000-08-20 15:46:46  peter
+    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+
 }

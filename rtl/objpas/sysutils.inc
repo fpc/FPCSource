@@ -12,147 +12,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit sysutils;
-interface
-
-{$MODE objfpc}
-{ force ansistrings }
-{$H+}
-
-    uses
-    {$ifdef linux}
-       linux
-    {$endif}
-    {$ifdef win32}
-       dos,windows
-    {$endif}
-    {$ifdef go32v1}
-       go32,dos
-    {$endif}
-    {$ifdef go32v2}
-       go32,dos
-    {$endif}
-    {$ifdef os2}
-       doscalls,dos
-    {$endif}
-       ;
-
-
-  { Read String Handling functions declaration }
-  {$i sysstrh.inc}
-
-type
-   { some helpful data types }
-
-   tprocedure = procedure;
-
-   tfilename = string;
-
-   tsyscharset = set of char;
-
-   longrec = packed record
-      lo,hi : word;
-   end;
-
-   wordrec = packed record
-      lo,hi : byte;
-   end;
-
-   TMethod = packed record
-     Code, Data: Pointer;
-   end;
-
-   { exceptions }
-   Exception = class(TObject)
-    private
-      fmessage : string;
-      fhelpcontext : longint;
-    public
-      constructor Create(const msg : string);
-      constructor CreateFmt(const msg : string; const args : array of const);
-      constructor CreateRes(ResString: PString);
-      constructor CreateResFmt(ResString: PString; const Args: array of const);
-      constructor CreateHelp(const Msg: string; AHelpContext: Integer);
-      constructor CreateFmtHelp(const Msg: string; const Args: array of const;
-        AHelpContext: Integer);
-      constructor CreateResHelp(ResString: PString; AHelpContext: Integer);
-      constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
-        AHelpContext: Integer);
-      { !!!! }
-      property helpcontext : longint read fhelpcontext write fhelpcontext;
-      property message : string read fmessage write fmessage;
-   end;
-
-   ExceptClass = class of Exception;
-
-   { integer math exceptions }
-   EInterror    = Class(Exception);
-   EDivByZero   = Class(EIntError);
-   ERangeError  = Class(EIntError);
-   EIntOverflow = Class(EIntError);
-
-   { General math errors }
-   EMathError  = Class(Exception);
-   EInvalidOp  = Class(EMathError);
-   EZeroDivide = Class(EMathError);
-   EOverflow   = Class(EMathError);
-   EUnderflow  = Class(EMathError);
-
-   { Run-time and I/O Errors }
-   EInOutError = class(Exception)
-     public
-     ErrorCode : Longint;
-     end;
-   EInvalidPointer  = Class(Exception);
-   EOutOfMemory     = Class(Exception);
-   EAccessViolation = Class(Exception);
-   EInvalidCast = Class(Exception);
-
-
-   { String conversion errors }
-   EConvertError = class(Exception);
-
-   { Other errors }
-   EAbort           = Class(Exception);
-   EAbstractError   = Class(Exception);
-   EAssertionFailed = Class(Exception);
-
-   { Exception handling routines }
-   function ExceptObject: TObject;
-   function ExceptAddr: Pointer;
-   function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                                  Buffer: PChar; Size: Integer): Integer;
-   procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
-   procedure Abort;
-   procedure OutOfMemoryError;
-   procedure Beep;
-
-Var
-   OnShowException : Procedure (Msg : ShortString);
-
-  { FileRec/TextRec }
-  {$i filerec.inc}
-  {$i textrec.inc}
-
-  { Read internationalization settings }
-  {$i sysinth.inc}
-
-  { Read date & Time function declarations }
-  {$i datih.inc}
-
-  { Read pchar handling functions declration }
-  {$i syspchh.inc}
-
-  { Read filename handling functions declaration }
-  {$i finah.inc}
-
-  { Read other file handling function declarations }
-  {$i filutilh.inc}
-
-  { Read disk function declarations }
-  {$i diskh.inc}
-
-  implementation
 
   { Read message string definitions }
   {
@@ -171,12 +30,6 @@ Var
 
   { Read String Handling functions implementation }
   {$i sysstr.inc}
-
-  { Read other file handling function implementations }
-  {$i filutil.inc}
-
-  { Read disk function implementations }
-  {$i disk.inc}
 
   { Read date & Time function implementations }
   {$i dati.inc}
@@ -328,7 +181,7 @@ begin
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
-  Raise E at longint(Address),longint(Frame);
+  Raise E at longint(Address){$ifdef ENHANCEDRAISE},longint(Frame){$endif};
 end;
 
 
@@ -434,39 +287,9 @@ begin
   Raise OutOfMemory;
 end;
 
-procedure Beep;
-
-begin
-  {$ifdef win32}
-  MessageBeep(0);
-  {$else}
-
-  {$endif}
-end;
-
-{  Initialization code. }
-
-Initialization
-  InitExceptions;       { Initialize exceptions. OS independent }
-  InitInternational;    { Initialize internationalization settings }
-Finalization
-  OutOfMemory.Free;
-  InValidPointer.Free;
-end.
 {
   $Log$
-  Revision 1.5  2000-08-06 14:19:06  peter
-    * overload directives removed (merged)
-
-  Revision 1.4  2000/07/27 16:20:52  sg
-  * Applied patch by Markus Kaemmerer with minor modifications: More methods
-    of the Exception class are now implemented (in a manner so that they can
-    be used as in Delphi, although the declarations are somewhat different)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
+  Revision 1.2  2000-08-20 15:46:46  peter
+    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 
 }

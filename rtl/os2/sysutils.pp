@@ -1,9 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2000 by Florian Klaempfl
+    member of the Free Pascal development team
 
-    File utility calls
+    Sysutils unit for OS/2
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,7 +14,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit sysutils;
+interface
 
+{$MODE objfpc}
+{ force ansistrings }
+{$H+}
+
+uses
+  doscalls,dos;
+
+{ Include platform independent interface part }
+{$i sysutilh.inc}
+
+
+implementation
+
+{ Include platform independent implementation part }
+{$i sysutils.inc}
+
+
+{****************************************************************************
+                              File Functions
+****************************************************************************}
 
 {This is the correct way to call external assembler procedures.}
 procedure syscall;external name '___SYSCALL';
@@ -488,6 +511,128 @@ begin
 end;
 
 
+{****************************************************************************
+                              Disk Functions
+****************************************************************************}
+
+{$ASMMODE ATT}
+
+function DiskFree (Drive: byte): int64;
+
+var FI: TFSinfo;
+    RC: longint;
+
+begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+    {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            cmpw $-1,%ax
+            je .LDISKFREE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+         .LDISKFREE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskFree := int64 (FI.Free_Clusters) *
+                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
+            else
+                DiskFree := -1;
+        end;
+end;
+
+function DiskSize (Drive: byte): int64;
+
+var FI: TFSinfo;
+    RC: longint;
+
+begin
+    if (os_mode = osDOS) or (os_mode = osDPMI) then
+        {Function 36 is not supported in OS/2.}
+        asm
+            movb 8(%ebp),%dl
+            movb $0x36,%ah
+            call syscall
+            movw %dx,%bx
+            cmpw $-1,%ax
+            je .LDISKSIZE1
+            mulw %cx
+            mulw %bx
+            shll $16,%edx
+            movw %ax,%dx
+            xchgl %edx,%eax
+            leave
+            ret
+        .LDISKSIZE1:
+            cltd
+            leave
+            ret
+        end
+    else
+        {In OS/2, we use the filesystem information.}
+        begin
+            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+            if RC = 0 then
+                DiskSize := int64 (FI.Total_Clusters) *
+                   int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
+            else
+                DiskSize := -1;
+        end;
+end;
+
+
+function GetCurrentDir: string;
+begin
+ GetDir (0, Result);
+end;
+
+
+function SetCurrentDir (const NewDir: string): boolean;
+begin
+{$I-}
+ ChDir (NewDir);
+ Result := (IOResult = 0);
+{$I+}
+end;
+
+
+function CreateDir (const NewDir: string): boolean;
+begin
+{$I-}
+ MkDir (NewDir);
+ Result := (IOResult = 0);
+{$I+}
+end;
+
+
+function RemoveDir (const Dir: string): boolean;
+begin
+{$I-}
+ RmDir (Dir);
+ Result := (IOResult = 0);
+ {$I+}
+end;
+
+
+{****************************************************************************
+                              Time Functions
+****************************************************************************}
+
+{$asmmode intel}
 procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
 (* Expects the default record alignment (DWord)!!! *)
@@ -516,6 +661,21 @@ asm
     mov al, dl
     stosd
 end;
+{$asmmode default}
+
+
+{****************************************************************************
+                              Misc Functions
+****************************************************************************}
+
+procedure Beep;
+begin
+end;
+
+
+{****************************************************************************
+                              Locale Functions
+****************************************************************************}
 
 procedure InitAnsi;
 var I: byte;
@@ -537,6 +697,7 @@ begin
         if UpperCaseTable [I] <> Chr (I) then
             LowerCaseTable [Ord (UpperCaseTable [I])] := Chr (I);
 end;
+
 
 procedure InitInternational;
 var Country: TCountryCode;
@@ -575,9 +736,20 @@ begin
 end;
 
 
+{****************************************************************************
+                              Initialization code
+****************************************************************************}
+
+Initialization
+  InitExceptions;       { Initialize exceptions. OS independent }
+  InitInternational;    { Initialize internationalization settings }
+Finalization
+  OutOfMemory.Free;
+  InValidPointer.Free;
+end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:52  michael
-  + removed logs
- 
+  Revision 1.2  2000-08-20 15:46:46  peter
+    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+
 }

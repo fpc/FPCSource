@@ -143,9 +143,9 @@ graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) $(SYSTEMPPU) \
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-                    filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
