@@ -88,7 +88,7 @@ this:
 \htmladdimg{../pics/idestart.gif}
 \end{htmlonly}
 \begin{latexonly}
-figure \ref{fig:idestart}.
+\seefig{idestart}.
 \begin{figure}
 \caption{The IDE screen immediatly after startup}
 \label{fig:idestart}
@@ -114,8 +114,8 @@ runs out of memory.
 The menu provides access to all of the IDE's functionality, and
 at the right edge of the menu, a clock is displayed.
 
-The IDE can be left by selecting \var{File|Exit} in the menu
-\footnote{\var{File|Exit} means select the item Exit in the menu File}
+The IDE can be left by selecting \menu{File|Exit} in the menu
+\footnote{\menu{File|Exit} means select the item 'Exit' in the menu 'File'.}
 or by pressing \key{Alt-X}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -193,7 +193,7 @@ A common IDE window is displayed  below:
 \htmladdimg{../pics/idewin.gif}
 \end{htmlonly}
 \begin{latexonly}
-A common IDE window is displayed in figure \ref{fig:idewin}.
+A common IDE window is displayed in \seefig{idewin}.
 \begin{figure}
 \caption{A common IDE window}
 \label{fig:idewin}
@@ -212,15 +212,16 @@ At the top of the window 3 things are displayed:
 \item 
 At the upper left corner of the window, a \emph{close icon} is shown. 
 When clicked, the window will be closed. It can be also closed by
- pressing \key{Alt-F3} or selecting the menu item \var{Window|Close}. 
+ pressing \key{Alt-F3} or selecting the menu item \menu{Window|Close}. 
 All open windows can be closed by selecting the menu item 
-\var{Window|Close all}.
+\menu{Window|Close all}.
 \item In the middle, the title of the window is displayed.
 \item At the upper right corner, a small green arrow is visible.
 Clicking this arrow zooms the window so it covers the whole desktop. 
 Clicking this arrow on a zoomed window will restore old size of the 
 window. Pressing the key \key{F5} has the same effect as clicking 
-that arrow. The same effect can be achieved with the menu item \var{Window|Zoom}.
+that arrow. The same effect can be achieved with the menu item 
+\menu{Window|Zoom}. 
 Windows and dialogs which aren't resizeable can't be zoomed, either.
 \end{itemize}
 
@@ -248,7 +249,7 @@ To move a window, either:
 with the mouse.
 \item using the keyboard, go into the size/move mode
 by pressing \key{Ctrl-F5} or selecting the menu item
-\var{Window|Size/Move}. . Using the cursor keys the window can be moved. 
+\menu{Window|Size/Move}. . Using the cursor keys the window can be moved. 
 The size/move mode can be left by pressing \key{Enter}. 
 In this case, the window will keep its size and position. 
 Alternativly, pressing \key{Esc} will restore the old position.
@@ -259,7 +260,7 @@ To resize a window, either:
 and drag it.
 \item using the keyboard, go into the size/move mode
 by pressing \key{Ctrl-F5} or selecting the menu item
-\var{Window|Size/Move}. The window frame will be green to indicate that
+\menu{Window|Size/Move}. The window frame will be green to indicate that
 the IDE is in size/move mode. 
 By pressing shift and the cursor keys simultaneously, the window can 
 be resized.  The size/move mode can be left by pressing
@@ -270,7 +271,7 @@ Not all windows can be resized. This applies, for example, to
 \emph{dialog windows} (\sees{dialogwindow}).
 
 A window can also be hidden. To hide a window, the \key{Ctrl-F6} key
-combination can be used, or the \var{Window|Hide} menu may be selected.
+combination can be used, or the \menu{Window|Hide} menu may be selected.
 To restore a Hidden window, it is necessary to select it from the window
 list. More information about the window list can be found in the next
 section.   
@@ -290,7 +291,7 @@ be made active in one of several ways:
 \item using the keyboard, pressing \key{F6} will step trough all open 
 windows. To activate the previously activated window, \key{Shift-F6} can
 be used.
-\item the menu item \var{Window|Next} can be used to activate the next 
+\item the menu item \menu{Window|Next} can be used to activate the next 
 window in the list of windows, while \var{Window|Previous} will select
 the previous window.
 \item If the window has a number in the upper right corner, it can be
@@ -303,7 +304,7 @@ don't have a number.
 The windows can be ordered and placed on the IDE desktop by zooming and
 resizing them with the mouse or keyboard. This is a tyime-consuming task, 
 and particularly difficult with the keyboard. Instead, the menu items
-\var{Window|Tile} and \var{Window|Cascade} can be used:
+\menu{Window|Tile} and \menu{Window|Cascade} can be used:
 \begin{description}
 \item[Tile] will divide whole desktop space evenly between all resizable 
 windows. 
@@ -312,7 +313,7 @@ windows.
 
 In very rare cases the screen of the IDE may be mixed up. In this
 case the whole IDE screen can be refreshed by selecting the menu item 
-\var{Window|Refresh display}.
+\menu{Window|Refresh display}.
 %
 % Dialog windows
 %
@@ -329,7 +330,7 @@ A typical dialog window looks like:
 \htmladdimg{../pics/idedlg.gif}
 \end{htmlonly}
 \begin{latexonly}
-Figure \ref{fig:idedlg} shows a typical dialog window.
+A typical dialog window is shown in \seefig{idedlg}.
 \begin{figure}
 \caption{A typical dialog window}
 \label{fig:idedlg}
@@ -711,7 +712,7 @@ not including graphics, since it is only designed to display the \fpc help
 files \footnote{...but feel free to improve it and send patches to the 
 \fpc development team...}.
 
-The menu item \var{Help|Files} permits you to add and delete
+The menu item \menu{Help|Files} permits you to add and delete
 help files.
 
 A new file can be added with the \emph{new} button. The IDE will display
@@ -725,7 +726,7 @@ from the hard disk) using the \emph{delete} button.
 
 \subsection{The about dialog}
 \label{se:about}
-The \emph{about dialog} (\var{Help|About...}) shows some information
+The \emph{about dialog} (\menu{Help|About...}) shows some information
 about the IDE, such as the version number, the date it was built, what
 compiler and debugger it uses. When reporting bugs about the IDE, please 
 It also contains copyright information.
@@ -814,7 +815,7 @@ change in future implementations of the IDE.
 The IDE allows to search for text in the active editor window. 
 To search for text, one  of the following can be done:
 \begin{enumerate}
-\item Select "Search|Find" in the menu.
+\item Select \menu{Search|Find} in the menu.
 \item Press \key{Ctrl-Q F}.
 \end{enumerate}
 After that, a dialog will pop up in which you can enter the following
@@ -836,14 +837,14 @@ After the dialog is closed, the search is performed using the given options.
 
 A search can be repeated (using the same options) in one of 2 ways:
 \begin{enumerate}
-\item Select "Search|Find again" from the menu.
+\item Select \menu{Search|Find again} from the menu.
 \item Press \key{Ctrl-L}.
 \end{enumerate}
 
 It is also possible to replace occurences of a text with another text. 
 This can be done in a similar manner to searching for a text:
 \begin{enumerate}
-\item Select "Search|Replace" from the menu.
+\item Select \menu{Search|Replace} from the menu.
 \item Press \key{Ctrl-Q A}.
 \end{enumerate}
 A dialog, similar to the search dialog will pop up.
@@ -896,19 +897,18 @@ with the usual commands.
 A compiled program can be run straight from the IDE. This can be done
 in one of several ways:
 \begin{enumerate}
-\item select the "Run|Run" menu, or
+\item select the \menu{Run|Run} menu, or
 \item press \key{Ctrl-F9}.
 \end{enumerate}
 If command-line parameters should be passed to the program, then these
-can be set through the "Run|Parameters" menu. 
+can be set through the \menu{Run|Parameters} menu. 
 \begin{htmlonly}
 The Parameters dialog.
 \htmladdimg{../pics/ide/params.png}
 \end{htmlonly}
 \begin{latexonly}
 \begin{figure}[h]
-\caption{The program parameters dialog.}
-\label{fig:ides}
+\caption{The program parameters dialog.}\label{fig:params}
 \ifpdf
 \epsfig{file=pics/ide/params.png,width=\textwidth}
 \else
@@ -930,7 +930,7 @@ Alternatively, it is possible to position the cursor somewhere in a
 source file, and run the program till the execution reaches the
 source-line where the cursor is located. This can be done by
 \begin{enumerate}
-\item selecting "Run|Goto Cursor" in the menu,
+\item selecting \menu{Run|Goto Cursor} in the menu,
 \item pressing \key{F4}.
 \end{enumerate}
 Again, this is only possible if the program was compiled with debug
@@ -946,13 +946,13 @@ control returns to the IDE. If the code of the subroutine should be stepped
 through as well, then \key{F7} should be used instead. Using \key{F7} will
 cause the IDE to execute line by line of any subroutine that is encountered.
 
-If a subroutine is being stepped through, then the "Run|Until return" menu
+If a subroutine is being stepped through, then the \menu{Run|Until return} menu
 will execute the program till the current subroutine ends. 
 
 If the program should be stopped before it quits by itself, then this can be
 done by
 \begin{enumerate}
-\item selecting "Run|Program reset" from the menu, or
+\item selecting \menu{Run|Program reset} from the menu, or
 \item pressing \key{Ctrl-F2}.
 \end{enumerate}
 The running program will then be aborted.
@@ -969,14 +969,172 @@ program with debug information allows to:
 \item Inspect the contents of variables or memory locations while the
 program is running.
 \end{enumerate}
-
+%
+% Using breakpoints
+%
 \subsection{Using breakpoints}
 Breakpoints will cause a running program to stop when the execution
 reaches the line where the breakpoint was set. At that moment, control
 is returned to the IDE, and it is possible to continue execution.
 
-To set a breakpoint,
+To set a breakpoint on the current source line, use the 
+\menu{Debug|BreakPoint} menu entry, or press \key{Ctrl-F8}.
 
+A list of current breakpoints can be obtained through the
+\menu{Debu|Breakpoint list} menu. 
+\begin{htmlonly}
+The breakpoint list window looks as follows:
+\htmladdimg{../pics/ide/brklist.png}
+\end{htmlonly}
+\begin{latexonly}
+The breakpoint list window is shown in \seefig{brklist}
+\begin{figure}[ht]
+\caption{The breakpoint list window.}\label{fig:brklist}
+\ifpdf
+\epsfig{file=pics/ide/brklist.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/brklist.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+In the breakpoint list window, the following things can be done:
+\begin{description}
+\item[New] Shows the breakpoint property dialog where the properties
+for a new breakpoint can be entered. 
+\item[Edit] Shows the breakpoint property dialog where the properties of
+the highlighted breakpoint can be changed. 
+\item[Delete] Deletes the highlighted breakpoint.
+\end{description}
+The dialog can be closed with the 'Close' button.
+
+\begin{htmlonly}
+The breakpoint properties dialog looks as follows:
+\htmladdimg{../pics/ide/brkprop.png}
+\end{htmlonly}
+\begin{latexonly}
+The breakpoint properties dialog is shown in \seefig{brkprop}
+\begin{figure}[ht]
+\caption{The breakpoint properties dialog.}\label{fig:brkprop}
+\ifpdf
+\epsfig{file=pics/ide/brkprop.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/brkprop.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+The following properties can be set:
+\begin{description}
+\item[type]
+\begin{description}
+\item[function] function breakpoint. The program will stop when the function
+with the given name is reached.
+\item[file-line] Source line breakpoint. The program will stop when the
+source file with given name and line is reached;
+\item[watch] Expression breakpoint. An expression may be entered, and the
+program will stop as soon as the expression changes.
+\item[awatch] Expression breakpoint. An expression may be entered, and the
+program will stop as soon as the expression changes.
+\item[rwatch] Expression breakpoint. An expression may be entered, and the
+program will stop as soon as the expression changes.
+\end{description}
+\item[name] Name of the function or file where to stop.
+\item[line] Line number in the file where too stop. Only for breakpoints of
+type file-line.
+\item[Conditions] Here an expression can be entered which must evaluate 
+\var{True} for the program to stop at the breakpoint.
+\item[Ignore count] The number of times the breakpoint will be ignored
+before the program stops.
+\end{description}
+\begin{remark}
+Because the IDE uses GDB to do its debugging, it is necessary to enter all
+expressions in {\em uppercase}. 
+\end{remark}
+%
+% Using watches
+%
+\subsection{Using watches}
+When debugging information is compiled in the program, watches can be used.
+Watches are expressions which can be avaluated by the IDE and shown in a
+separate window. When program execution stops (e.g. at a breakpoint) all
+watches will be evaluated and their current values will be shown.
+
+Setting a new watch can be done with the \menu{Debug|Add watch} menu 
+command or by pressing \key{Ctrl-F7}. When this is done, the watch
+property dialog appears, and a new expression can be entered.
+\begin{htmlonly}
+The watch property dialog looks as follows:
+\htmladdimg{../pics/ide/watch.png}
+\end{htmlonly}
+\begin{latexonly}
+The watch property dialog is shown in \seefig{brklist}
+\begin{figure}[ht]
+\caption{The watch property dialog.}\label{fig:watch}
+\ifpdf
+\epsfig{file=pics/ide/watch.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/watch.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+In the dialog, the expression can be entered, any possible previous value
+and current value are shown.
+\begin{remark}
+Because the IDE uses GDB to do it's debugging, it is necessary to enter all
+expressions in {\em uppercase}. 
+\end{remark}
+A list of watches and their present value is available in the watches
+window, which can be opened with the \menu{Debug|Watches} menu.
+\begin{htmlonly}
+The watch list window looks as follows:
+\htmladdimg{../pics/ide/watch.png}
+\end{htmlonly}
+\begin{latexonly}
+The watch list window is shown in \seefig{brklist}
+\begin{figure}[ht]
+\caption{The watch list window.}\label{fig:watchlst}
+\ifpdf
+\epsfig{file=pics/ide/watchlst.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/watchlst.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+
+Pressing \key{Enter} or the space bar will show the watch property dialog
+for the currently highlighted watch in the watches window.
+
+The list of watches is updated whenever the IDE resumes control when
+debugging a program.
+%
+% The call stack
+%
+\subsection{The call stack}
+\label{se:callstack}
+The call stack helps in showing the program flow. It shows the list of
+procedures that are being called at this moment, in reverse order.
+The call stack window can be shown using the \menu{Debug|Call Stack}
+It will show the address or procedure name of all currently active 
+procedures with their filename and addresses. If parameters were passed
+they will be shown as well.
+\begin{htmlonly}
+
+The call stack window looks as follows:
+\htmladdimg{../pics/ide/watch.png}
+\end{htmlonly}
+\begin{latexonly}
+The call stack is shown in \seefig{callstack}.
+\begin{figure}[ht]
+\caption{The call stack window.}\label{fig:callstack}
+\ifpdf
+\epsfig{file=pics/ide/callstck.png}
+\else
+\epsfig{file=pics/ide/callstck.eps}
+\fi
+\end{figure}
+\end{latexonly}
+
+By pressing the space bar in the call stack window, the line curresponding
+to the call will be highlighted in the edit window.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
@@ -1372,7 +1530,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.4  2000-11-15 18:58:35  michael
+%  Revision 1.1.2.5  2000-11-15 23:43:32  michael
+%  + Debugging finished
+%
+%  Revision 1.1.2.4  2000/11/15 18:58:35  michael
 %  + Debug continued
 %
 %  Revision 1.1.2.3  2000/11/14 23:24:09  michael
