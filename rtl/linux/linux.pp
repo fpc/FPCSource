@@ -478,16 +478,24 @@ Function SysCall(callnr:longint;var regs:SysCallregs):longint;
      Time/Date Handling
 ***************************}
 
-Function  GetEpochTime:longint;
-Procedure GetTimeOfDay(var tv:timeval;var tz:timezone);
-Procedure SetTimeOfDay(Const tv:timeval;const tz:timezone);
-Function  GetTimeOfDay: longint;
+var
+  tzdaylight : boolean;
+  tzseconds  : longint;
+  tzname     : array[boolean] of pchar;
+
+{ timezone support }
+procedure GetLocalTimezone(timer:longint;var leap_correct,leap_hit:longint);
+procedure GetLocalTimezone(timer:longint);
+procedure ReadTimezoneFile(fn:string);
+function  GetTimezoneFile:string;
+
+Procedure GetTimeOfDay(var tv:timeval);
+Function  GetTimeOfDay:longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 Procedure GetTime(Var Hour,Minute,Second:Word);
 Procedure GetDate(Var Year,Month,Day:Word);
-Procedure GetTime(Var Hour,Minute,Second:Integer);
-Procedure GetDate(Var Year,Month,Day:Integer);
+Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
 
 {**************************
      Process Handling
@@ -734,9 +742,6 @@ Function S_ISSOCK(m:word):boolean;
 Implementation
 
 Uses Strings;
-
-var
-  LocalTZ:TimeZone;
 
 
 { Get the definitions of textrec and filerec }
@@ -1275,29 +1280,17 @@ end;
 
 
 
-Procedure GetTimeOfDay(var tv:timeval;var tz:timezone);
+Procedure GetTimeOfDay(var tv:timeval);
 {
- Get the time of day and timezone.
+  Get the number of seconds since 00:00, January 1 1970, GMT
+  the time NOT corrected any way
 }
 var
   regs : SysCallregs;
 begin
   regs.reg2:=longint(@tv);
-  regs.reg3:=longint(@tz);
+  regs.reg3:=0;
   SysCall(SysCall_nr_gettimeofday,regs);
-  LinuxError:=Errno;
-end;
-
-Procedure SetTimeOfDay(Const tv:timeval;Const tz:timezone);
-{
- Get the time of day and timezone.
-}
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=longint(@tv);
-  regs.reg3:=longint(@tz);
-  SysCall(SysCall_nr_settimeofday,regs);
   LinuxError:=Errno;
 end;
 
@@ -1308,47 +1301,25 @@ Function GetTimeOfDay: longint;
   the time NOT corrected any way
 }
 var
-  t  : timeval ;
-  tz : timezone ;
+  regs : SysCallregs;
+  tv   : timeval;
 begin
-  gettimeofday(t,tz);{Sets LinuxError also}
-  GetTimeOfDay:=t.sec;
-end;
-
-
-Function GetEpochTime:longint;
-{
-  Get the number of seconds since 00:00, January 1 1970, GMT
-  the time is corrected according to the time zone, but NOT
-  DST corrected.
-}
-var
-  t : timeval ;
-  tz : timezone ;
-begin
-  gettimeofday(t,tz);{Sets LinuxError also}
-  Getepochtime:=t.sec-tz.minuteswest*60;
-end;
-
-
-
-Procedure InitEpochToLocal;
-var
-  tv:TimeVal;
-begin
-  GetTimeOfDay(tv,LocalTZ);
+  regs.reg2:=longint(@tv);
+  regs.reg3:=0;
+  SysCall(SysCall_nr_gettimeofday,regs);
+  LinuxError:=Errno;
+  GetTimeOfDay:=tv.sec;
 end;
 
 
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 {
-  Transforms Epoch time(seconds since 00:00, january 1 1970, corrected for
-  local time zone) into local time (hour, minute,seconds)
+  Transforms Epoch time into local time (hour, minute,seconds)
 }
 Var
   DateNum: LongInt;
-Begin { Beginning of Localtime }
-//  dec(Epoch,LocalTZ.minuteswest*60);
+Begin
+  inc(Epoch,TZSeconds);
   Datenum:=(Epoch Div 86400) + c1970;
   JulianToGregorian(DateNum,Year,Month,day);
   Epoch:=Epoch Mod 86400;
@@ -1366,14 +1337,13 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 }
 Begin
   LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
-               (LongInt(Hour)*3600)+(Minute*60)+Second+(LocalTZ.minuteswest*60);
+                (LongInt(Hour)*3600)+(Minute*60)+Second-TZSeconds;
 End;
 
 
 Procedure GetTime(Var Hour,Minute,Second:Word);
 {
-  Gets the current time, adjusted to local time, but not DST,
-  in hours, minutes and seconds.
+  Gets the current time, adjusted to local time
 }
 var
   year,day,month:Word;
@@ -1385,8 +1355,7 @@ End;
 
 Procedure GetDate(Var Year,Month,Day:Word);
 {
-  Gets the current date, adjusted to local time, but not DST,
-  in year,month,day.
+  Gets the current date, adjusted to local time
 }
 var
   hour,minute,second : Word;
@@ -1395,16 +1364,16 @@ Begin
 End;
 
 
-Procedure GetTime(Var Hour,Minute,Second:Integer);
-begin
- GetTime(Word(Hour),Word(Minute),Word(Second));
-end;
+Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
+{
+  Gets the current date, adjusted to local time
+}
+Begin
+  EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
+End;
 
-
-Procedure GetDate(Var Year,Month,Day:Integer);
-begin
-  GetDate(Word(Year),Word(Month),Word(Day));
-end;
+{ Include timezone handling routines which use /usr/share/timezone info }
+{$i timezone.inc}
 
 
 {******************************************************************************
@@ -3808,13 +3777,20 @@ end;
 {$ENDIF}
 
 
-Begin
-  InitEpochToLocal;
+Initialization
+  InitLocalTime;
+
+finalization
+  DoneLocalTime;
+
 End.
 
 {
   $Log$
-  Revision 1.53  1999-11-14 21:35:04  peter
+  Revision 1.54  1999-12-01 22:46:59  peter
+    + timezone support
+
+  Revision 1.53  1999/11/14 21:35:04  peter
     * removed warnings
 
   Revision 1.52  1999/11/14 11:11:15  michael
