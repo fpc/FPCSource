@@ -122,6 +122,8 @@ unit paramgr;
 
           procedure alloctempregs(list: taasmoutput;var locpara:tparalocation);virtual;
           procedure alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);virtual;
+
+          function parseparaloc(paraitem : tparaitem;const s : string) : boolean;virtual;abstract;
        end;
 
 
@@ -532,7 +534,10 @@ end.
 
 {
    $Log$
-   Revision 1.73  2004-03-07 00:16:59  florian
+   Revision 1.74  2004-04-18 15:22:24  florian
+     + location support for arguments, currently PowerPC/MorphOS only
+
+   Revision 1.73  2004/03/07 00:16:59  florian
      * compilation of arm rtl fixed
 
    Revision 1.72  2004/03/06 20:35:19  florian

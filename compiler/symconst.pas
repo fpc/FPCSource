@@ -213,7 +213,10 @@ type
     { calling convention is specified explicitly }
     po_hascallingconvention,
     { reintroduce flag }
-    po_reintroduce
+    po_reintroduce,
+    { location of parameters is given explicitly as it is necessary for some syscall
+      conventions like that one of MorphOS }
+    po_explicitparaloc
   );
   tprocoptions=set of tprocoption;
 
@@ -404,7 +407,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.78  2004-03-23 22:34:49  peter
+  Revision 1.79  2004-04-18 15:22:24  florian
+    + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.78  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

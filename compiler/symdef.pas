@@ -3423,6 +3423,12 @@ implementation
             ppufile.getderef(hp.parasymderef);
             hp.parasym:=nil;
             hp.is_hidden:=boolean(ppufile.getbyte);
+            if po_explicitparaloc in procoptions then
+              begin
+                if po_explicitparaloc in procoptions then
+                  ppufile.getdata(hp.paraloc,sizeof(hp.paraloc));
+                has_paraloc_info:=true;
+              end;
             { Parameters are stored left to right in both ppu and memory }
             Para.concat(hp);
           end;
@@ -3462,6 +3468,9 @@ implementation
             ppufile.putderef(hp.defaultvaluederef);
             ppufile.putderef(hp.parasymderef);
             ppufile.putbyte(byte(hp.is_hidden));
+            if po_explicitparaloc in procoptions then
+              ppufile.putdata(hp.paraloc,sizeof(hp.paraloc));
+
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -6064,7 +6073,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.233  2004-03-23 22:34:49  peter
+  Revision 1.234  2004-04-18 15:22:24  florian
+    + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.233  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

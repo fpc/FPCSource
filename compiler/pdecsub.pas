@@ -358,7 +358,10 @@ implementation
         defaultrequired : boolean;
         old_object_option : tsymoptions;
         currparast : tparasymtable;
+        explicit_paraloc : boolean;
+        locationstr : string;
       begin
+        explicit_paraloc:=false;
         consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
@@ -419,7 +422,7 @@ implementation
                    consume(_CONST);
                    srsym:=searchsymonlyin(systemunit,'TVARREC');
                    if not assigned(srsym) then
-                    InternalError(1234124);
+                     InternalError(200404181);
                    tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
                    tarraydef(tt.def).IsArrayOfConst:=true;
                  end
@@ -451,6 +454,21 @@ implementation
                    { everything else }
                    single_type(tt,hs1,false);
                  end;
+
+                if (target_info.system in [system_powerpc_morphos]) then
+                  begin
+                    if (token=_LOCATION) then
+                      begin
+                        consume(_LOCATION);
+                        locationstr:=pattern;
+                        consume(_CSTRING);
+                      end
+                    else
+                      if explicit_paraloc then
+                        Message(parser_e_paraloc_all_paras);
+                  end
+                else
+                  locationstr:='';
 
                 { default parameter }
                 if (m_default_para in aktmodeswitches) then
@@ -503,9 +521,32 @@ implementation
                   include(vs.varoptions,vo_regable);
               end;
              pd.concatpara(nil,tt,vs,defaultvalue,false);
+
+             if (target_info.system in [system_powerpc_morphos]) then
+               begin
+                 if locationstr<>'' then
+                   begin
+                     if assigned(sc.first.listnext) then
+                       Message(parser_e_paraloc_only_one_para);
+                     if (pd.para.first<>pd.para.last) and not(explicit_paraloc) then
+                       Message(parser_e_paraloc_all_paras);
+                     explicit_paraloc:=true;
+                     if not(paramanager.parseparaloc(tparaitem(pd.para.last),upper(locationstr))) then
+                       message(parser_e_illegal_explicit_paraloc);
+                   end
+                 else
+                   if explicit_paraloc then
+                     Message(parser_e_paraloc_all_paras);
+               end;
              vs:=tvarsym(vs.listnext);
            end;
         until not try_to_consume(_SEMICOLON);
+
+        if explicit_paraloc then
+          begin
+            pd.has_paraloc_info:=true;
+            include(pd.procoptions,po_explicitparaloc);
+          end;
         { remove parasymtable from stack }
         sc.free;
         { reset object options }
@@ -2149,7 +2190,10 @@ const
 end.
 {
   $Log$
-  Revision 1.164  2004-02-26 16:13:25  peter
+  Revision 1.165  2004-04-18 15:22:24  florian
+    + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.164  2004/02/26 16:13:25  peter
     * fix crash when method is not declared in object declaration
     * fix parsing of mapped interface functions
 

@@ -914,6 +914,15 @@ parser_e_illegal_calling_convention=03195_W_Calling convention directive ignored
 % only the standard ABI calling convention of the CPU.
 parser_e_no_object_reintroduce=03196_E_REINTRODUCE can't be used in objects
 % \var{reintroduce} is not supported for objects.
+parser_e_paraloc_only_one_para=03197_E_Each argument must have it's own location
+% If locations for arguments are specified explicitly as it is required by
+% some syscall conventions, each argument must have it's only location, things
+% like \var{procedure p(i,j : longint 'r1');} aren't allowed
+parser_e_paraloc_all_paras=03198_E_Each argument must have an explicit location
+% If one argument has an explicit argument location, all arguments of a procedure
+% must have one.
+parser_e_illegal_explicit_paraloc=03199_E_Unknown argument location
+% The location specified for an argument isn't recognized by the compiler
 % \end{description}
 #
 # Type Checking

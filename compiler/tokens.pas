@@ -184,6 +184,7 @@ type
     _CPPCLASS,
     _EXTERNAL,
     _FUNCTION,
+    _LOCATION,
     _OPERATOR,
     _OVERLOAD,
     _OVERRIDE,
@@ -407,6 +408,7 @@ const
       (str:'CPPCLASS'      ;special:false;keyword:m_fpc;op:NOTOKEN),
       (str:'EXTERNAL'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FUNCTION'      ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'LOCATION'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OPERATOR'      ;special:false;keyword:m_fpc;op:NOTOKEN),
       (str:'OVERLOAD'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OVERRIDE'      ;special:false;keyword:m_none;op:NOTOKEN),
@@ -504,7 +506,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2004-02-17 17:38:11  daniel
+  Revision 1.27  2004-04-18 15:22:24  florian
+    + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.26  2004/02/17 17:38:11  daniel
     * Enable threadvars for all modes
 
   Revision 1.25  2003/11/07 15:58:32  florian

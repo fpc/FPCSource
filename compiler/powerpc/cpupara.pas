@@ -46,6 +46,7 @@ unit cpupara;
            procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
            function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+           function parseparaloc(p : tparaitem;const s : string) : boolean;override;
        end;
 
   implementation
@@ -449,12 +450,42 @@ unit cpupara;
       end;
 
 
+    function tppcparamanager.parseparaloc(p : tparaitem;const s : string) : boolean;
+      begin
+        result:=false;
+        case target_info.system of
+          system_powerpc_morphos:
+            begin
+              p.paraloc[callerside].loc:=LOC_REFERENCE;
+              p.paraloc[callerside].lochigh:=LOC_INVALID;
+              p.paraloc[callerside].size:=def_cgsize(p.paratype.def);
+              p.paraloc[callerside].alignment:=4;
+              p.paraloc[callerside].reference.index:=NR_R2;
+              { pattern is always uppercase'd }
+              if s='A1' then
+                p.paraloc[callerside].reference.offset:=24
+              else if s='D1' then
+                p.paraloc[callerside].reference.offset:=4
+              else
+                exit;
+              p.paraloc[calleeside]:=p.paraloc[callerside];
+            end;
+          else
+            internalerror(200404182);
+        end;
+        result:=true;
+      end;
+
+
 begin
    paramanager:=tppcparamanager.create;
 end.
 {
   $Log$
-  Revision 1.59  2004-02-19 17:07:42  florian
+  Revision 1.60  2004-04-18 15:22:24  florian
+    + location support for arguments, currently PowerPC/MorphOS only
+
+  Revision 1.59  2004/02/19 17:07:42  florian
     * fixed arg. area calculation
 
   Revision 1.58  2004/02/11 23:18:59  florian
