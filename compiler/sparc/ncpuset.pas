@@ -36,7 +36,7 @@ unit ncpuset;
          protected
            procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
            function has_jumptable : boolean;override;
-           procedure genjumptable(hp : pcaserecord;min_,max_ : aint);override;
+           procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
        end;
 
 
@@ -63,7 +63,7 @@ unit ncpuset;
       end;
 
 
-    procedure tcpucasenode.genjumptable(hp : pcaserecord;min_,max_ : aint);
+    procedure tcpucasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -71,7 +71,7 @@ unit ncpuset;
         href : treference;
         jumpsegment : TAAsmOutput;
 
-        procedure genitem(t : pcaserecord);
+        procedure genitem(t : pcaselabel);
           var
             i : aint;
           begin
@@ -81,7 +81,7 @@ unit ncpuset;
             for i:=last+1 to t^._low-1 do
               jumpSegment.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low to t^._high do
-              jumpSegment.concat(Tai_const.Create_sym(t^.statement));
+              jumpSegment.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
             last:=t^._high;
             if assigned(t^.greater) then
               genitem(t^.greater);
@@ -134,7 +134,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-10-31 14:24:47  florian
+  Revision 1.4  2004-12-04 15:23:00  florian
+    * fixed compilation
+
+  Revision 1.3  2004/10/31 14:24:47  florian
     * fixed jump table for sparc
 
   Revision 1.2  2004/10/30 22:01:11  florian
