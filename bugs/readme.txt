@@ -220,6 +220,8 @@ Fixed bugs:
                function. Not a bug : wrong syntax !! See source (PM)
   bug0189.pp   cant compare adresses of function variables !!
                As bug0188 FPC syntax problem see source (PM)
+  bug0192.pp   can't compare boolean result with true/false, because the
+               boolean result is already in the flags             OK 0.99.11 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -256,7 +258,5 @@ bug0185.pp   missing range checking for Val and subrange types
 bug0187.pp   constructor in a WIth statement isn't called correct.
 bug0190.pp   can't have typecast for var params ??
 bug0191.pp   missing vecn constant evaluation
-bug0192.pp   can't compare boolean result with true/false, because the
-             boolean result is already in the flags
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0194.pp   @procedure var returns value in it instead of address !!
