@@ -35,6 +35,7 @@ const
   );
 
 { Sections in Makefile.fpc }
+  sec_sections='sections';
   sec_install='install';
   sec_clean='clean';
   sec_dirs='dirs';
@@ -74,6 +75,8 @@ type
     InfoInstall,
     InfoObjects,
     InfoFiles      : boolean;
+    SectionTools,
+    SectionInfo    : boolean;
     ToolsSed,
     ToolsDiff,
     ToolsCmp,
@@ -173,6 +176,9 @@ begin
      ToolsUpx:=ReadBool(sec_tools,'toolupx',true);
      ToolsDate:=ReadBool(sec_tools,'tooldate',true);
      ToolsZip:=ReadBool(sec_tools,'toolzip',true);
+   { sections }
+     SectionInfo:=ReadBool(sec_sections,'info',true);
+     SectionTools:=ReadBool(sec_sections,'tools',true);
    { info }
      InfoCfg:=ReadBool(sec_info,'infoconfig',true);
      InfoDirs:=ReadBool(sec_info,'infodirs',false);
@@ -438,21 +444,24 @@ begin
       Add('override NEEDOTHERLIB=1');
 
    { Info }
-     AddHead('Info');
-     hs:='';
-     if userini.infocfg then
-      hs:=hs+'fpc_infocfg ';
-     if userini.infodirs then
-      hs:=hs+'fpc_infodirs ';
-     if userini.infotools then
-      hs:=hs+'fpc_infotools ';
-     if userini.infoobjects then
-      hs:=hs+'fpc_infoobjects ';
-     if userini.infoinstall then
-      hs:=hs+'fpc_infoinstall ';
-     if userini.infofiles then
-      hs:=hs+'fpc_infofiles ';
-     Add('FPCINFO='+hs);
+     if userini.SectionInfo then
+      begin
+        AddHead('Info');
+        hs:='';
+        if userini.infocfg then
+         hs:=hs+'fpc_infocfg ';
+        if userini.infodirs then
+         hs:=hs+'fpc_infodirs ';
+        if userini.infotools then
+         hs:=hs+'fpc_infotools ';
+        if userini.infoobjects then
+         hs:=hs+'fpc_infoobjects ';
+        if userini.infoinstall then
+         hs:=hs+'fpc_infoinstall ';
+        if userini.infofiles then
+         hs:=hs+'fpc_infofiles ';
+        Add('FPCINFO='+hs);
+      end;
 
    { Post Settings }
      if userini.PostSettings.count>0 then
@@ -480,14 +489,17 @@ begin
      AddSection(true,'command_end');
 
    { write tools }
-     AddSection(true,'shelltools');
-     AddSection(true,'tool_default');
-     AddSection(userini.toolsupx,'tool_upx');
-     AddSection(userini.toolssed,'tool_sed');
-     AddSection(userini.toolsdate,'tool_date');
-     AddSection(userini.toolszip,'tool_zip');
-     AddSection(userini.toolscmp,'tool_cmp');
-     AddSection(userini.toolsdiff,'tool_diff');
+     if userini.sectiontools then
+      begin
+        AddSection(true,'shelltools');
+        AddSection(true,'tool_default');
+        AddSection(userini.toolsupx,'tool_upx');
+        AddSection(userini.toolssed,'tool_sed');
+        AddSection(userini.toolsdate,'tool_date');
+        AddSection(userini.toolszip,'tool_zip');
+        AddSection(userini.toolscmp,'tool_cmp');
+        AddSection(userini.toolsdiff,'tool_diff');
+      end;
 
    { write dirs }
      AddSection(true,'dir_default');
@@ -524,13 +536,16 @@ begin
      AddSection(true,'zipinstallrules');
      AddSection(true,'cleanrules');
      AddSection(true,'dependrules');
-     AddSection(true,'inforules');
-     AddSection(userini.infocfg,'info_cfg');
-     AddSection(userini.infodirs,'info_dirs');
-     AddSection(userini.infotools,'info_tools');
-     AddSection(userini.infoobjects,'info_objects');
-     AddSection(userini.infoinstall,'info_install');
-     AddSection(userini.infofiles,'info_files');
+     if userini.SectionInfo then
+      begin
+        AddSection(true,'inforules');
+        AddSection(userini.infocfg,'info_cfg');
+        AddSection(userini.infodirs,'info_dirs');
+        AddSection(userini.infotools,'info_tools');
+        AddSection(userini.infoobjects,'info_objects');
+        AddSection(userini.infoinstall,'info_install');
+        AddSection(userini.infofiles,'info_files');
+      end;
 
    { insert users rules }
      if userini.rules.count>0 then
@@ -568,7 +583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-11-08 15:01:39  peter
+  Revision 1.5  1999-11-09 14:38:32  peter
+    * sections section to leave out whole info/tools
+
+  Revision 1.4  1999/11/08 15:01:39  peter
     * fpcmake support
 
   Revision 1.3  1999/11/04 12:07:13  michael
