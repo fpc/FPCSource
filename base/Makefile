@@ -34,7 +34,6 @@ ifndef IDEDIR
 IDEDIR=ide/text
 endif
 
-
 #####################################################################
 # Defaults
 #####################################################################
@@ -233,6 +232,25 @@ staticinstall: $(addsuffix _staticinstall,$(MODULES))
 
 sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
 
+#######################################
+# Special targets
+#######################################
+
+export PACKAGEDIR=$(BASEDIR)
+
+idezips: clean
+	$(MAKE) ide_all
+	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_fake
+	$(MAKE) ide_clean
+	$(MAKE) ide_gdb
+	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_gdb
+	$(MAKE) ide_clean
+	$(MAKE) ide_full
+	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_comp
+	$(MAKE) ide_clean
+	$(MAKE) ide_fullgdb
+	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_full
+
 
 #######################################
 # Defaults
@@ -240,13 +258,16 @@ sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
 
 #
 # $Log$
-# Revision 1.3  1999-02-16 00:50:12  peter
+# Revision 1.4  1999-02-19 15:33:01  peter
+#   + idezips target
+#
+# Revision 1.3	1999/02/16 00:50:12  peter
 #   + ide_all,ide_gdb,ide_full,ide_fullgdb targets
 #
-# Revision 1.2  1999/01/28 19:58:19  peter
+# Revision 1.2	1999/01/28 19:58:19  peter
 #   * makefile updates
 #
-# Revision 1.1  1999/01/21 11:48:39  peter
+# Revision 1.1	1999/01/21 11:48:39  peter
 #   * initial version
 #
 #
