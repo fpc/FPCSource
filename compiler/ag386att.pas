@@ -688,7 +688,7 @@ unit ag386att;
              begin
                op:=paicpu(hp)^.opcode;
                calljmp:=is_calljmp(op);
-             { call maybe not translated to calll }
+             { call maybe not translated to call }
                s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
                if (not calljmp) and
                   (not att_nosuffix[op]) and
@@ -701,9 +701,13 @@ unit ag386att;
                if paicpu(hp)^.ops<>0 then
                 begin
                 { call and jmp need an extra handling                          }
-                { this code is only called if jmp isn't a labeled instruction }
+                { this code is only called if jmp isn't a labeled instruction  }
+                { quick hack to overcome a problem with manglednames=255 chars }
                   if calljmp then
-                   s:=s+#9+getopstr_jmp(paicpu(hp)^.oper[0])
+                    begin
+                       AsmWrite(s+#9);
+                       s:=+getopstr_jmp(paicpu(hp)^.oper[0]);
+                    end
                   else
                    begin
                      for i:=0to paicpu(hp)^.ops-1 do
@@ -861,7 +865,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.14  1999-09-10 18:48:00  florian
+  Revision 1.15  1999-09-19 20:55:11  florian
+    * fixed calls to procedures with manglednames=255 chars
+      (taking the address of such a procedure would still cause a problem!)
+
+  Revision 1.14  1999/09/10 18:48:00  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
