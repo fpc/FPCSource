@@ -108,7 +108,7 @@ function gnome_client_new:PGnomeClient;cdecl;external libgnomeuidll name 'gnome_
 function gnome_client_new_without_connection:PGnomeClient;cdecl;external libgnomeuidll name 'gnome_client_new_without_connection';
 procedure gnome_client_connect(client:PGnomeClient);cdecl;external libgnomeuidll name 'gnome_client_connect';
 procedure gnome_client_disconnect(client:PGnomeClient);cdecl;external libgnomeuidll name 'gnome_client_disconnect';
-procedure gnome_client_set_id(client:PGnomeClient; client_id:Pgchar);cdecl;external libgnomeuidll name '';
+procedure gnome_client_set_id(client:PGnomeClient; client_id:Pgchar);cdecl;external libgnomeuidll name 'gnome_client_set_id';
 function gnome_client_get_id(client:PGnomeClient):Pgchar;cdecl;external libgnomeuidll name 'gnome_client_get_id';
 function gnome_client_get_previous_id(client:PGnomeClient):Pgchar;cdecl;external libgnomeuidll name 'gnome_client_get_previous_id';
 function gnome_cloned_client:PGnomeClient;cdecl;external libgnomeuidll name 'gnome_cloned_client';

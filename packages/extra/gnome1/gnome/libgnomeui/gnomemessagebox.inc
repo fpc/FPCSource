@@ -23,7 +23,7 @@ function GNOME_TYPE_MESSAGE_BOX : TGTKType;
 function GNOME_IS_MESSAGE_BOX(obj : Pointer) : Boolean;
 function GNOME_IS_MESSAGE_BOX_CLASS(klass : Pointer) : Boolean;
 
-function gnome_message_box_get_type:TGTKType;cdecl;external libgnomeuidll name '';
+function gnome_message_box_get_type:TGTKType;cdecl;external libgnomeuidll name 'gnome_message_box_get_type';
 function gnome_message_box_new(message:Pgchar; messagebox_type:Pgchar; args:array of const):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_message_box_new';
 function gnome_message_box_newv(message:Pgchar; messagebox_type:Pgchar; buttons:PPgchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_message_box_newv';
 
