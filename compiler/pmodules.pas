@@ -314,36 +314,11 @@ implementation
       end;
 
 
-    procedure inserttargetspecific;
+    procedure insertstacklength;
       begin
-        case target_info.target of
-{$ifdef alpha}
-          target_alpha_linux:
-            ;
-{$endif alpha}
-{$ifdef powerpc}
-          target_powerpc_linux:
-            ;
-{$endif powerpc}
-{$ifdef i386}
-          target_i386_BeOS,
-          target_i386_SunOS,
-          target_i386_GO32V2 :
-            begin
-              { stacksize can be specified }
-              dataSegment.concat(Tai_symbol.Createdataname_global('__stklen',4));
-              dataSegment.concat(Tai_const.Create_32bit(stacksize));
-            end;
-{$endif i386}
-{$ifdef m68k}
-          target_m68k_Atari :
-            begin
-              { stacksize can be specified }
-              dataSegment.concat(Tai_symbol.Createdataname_global('__stklen',4));
-              dataSegment.concat(Tai_const.Create_32bit(stacksize));
-            end;
-{$endif m68k}
-        end;
+        { stacksize can be specified and is now simulated }
+        dataSegment.concat(Tai_symbol.Createdataname_global('__stklen',4));
+        dataSegment.concat(Tai_const.Create_32bit(stacksize));
       end;
 
 
@@ -1380,7 +1355,7 @@ implementation
 
          insertinitfinaltable;
          insertheap;
-         inserttargetspecific;
+         insertstacklength;
 
          datasize:=symtablestack.datasize;
 
@@ -1428,7 +1403,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-04-04 19:06:03  peter
+  Revision 1.59  2002-04-07 17:58:38  carl
+  + generic stack checking
+
+  Revision 1.58  2002/04/04 19:06:03  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
