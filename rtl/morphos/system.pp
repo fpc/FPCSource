@@ -117,7 +117,7 @@ type
   end;
 
 var
-  MOS_fileList: PFileList; { List pointer to opened files }
+  MOS_fileList: PFileList; public name 'MOS_FILELIST'; { List pointer to opened files }
 
 { Function to be called at program shutdown, to close all opened files }
 procedure CloseList(l: PFileList);
@@ -147,7 +147,7 @@ begin
 end;
 
 { Function to be called to add a file to the opened file list }
-procedure AddToList(var l: PFileList; h: LongInt);
+procedure AddToList(var l: PFileList; h: LongInt); alias: 'ADDTOLIST'; [public];
 var
   p     : PFileList;
   inList: Boolean;
@@ -176,7 +176,7 @@ begin
 end;
 
 { Function to be called to remove a file from the list }
-procedure RemoveFromList(var l: PFileList; h: longint);
+procedure RemoveFromList(var l: PFileList; h: longint); alias: 'REMOVEFROMLIST'; [public];
 var
   p     : PFileList;
   inList: Boolean;
@@ -499,7 +499,7 @@ begin
   checkCTRLC;
   if (s='') or (InOutRes<>0) then exit;
   tmpStr:=PathConv(s)+#0;
-  tmpLock:=CreateDir(@tmpStr);
+  tmpLock:=dosCreateDir(@tmpStr);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
     exit;
@@ -515,7 +515,7 @@ begin
   if (s='.') then InOutRes:=16;
   If (s='') or (InOutRes<>0) then exit;
   tmpStr:=PathConv(s)+#0;
-  if not DeleteFile(@tmpStr) then
+  if not dosDeleteFile(@tmpStr) then
     dosError2InOut(IoErr);
 end;
 
@@ -574,6 +574,8 @@ end;
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
+  if (handle<=0) then exit;
+
   RemoveFromList(MOS_fileList,handle);
   { Do _NOT_ check CTRL_C on Close, because it will conflict
     with System_Exit! }
@@ -584,7 +586,7 @@ end;
 procedure do_erase(p : pchar);
 begin
   checkCTRLC;
-  if not DeleteFile(p) then
+  if not dosDeleteFile(p) then
     dosError2InOut(IoErr);
 end;
 
@@ -600,7 +602,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_write:=0;
-  if len<=0 then exit;
+  if (len<=0) or (h<=0) then exit;
 
   dosResult:=dosWrite(h,addr,len);
   if dosResult<0 then begin
@@ -615,7 +617,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_read:=0;
-  if len<=0 then exit;
+  if (len<=0) or (h<=0) then exit;
 
   dosResult:=dosRead(h,addr,len);
   if dosResult<0 then begin
@@ -629,7 +631,8 @@ function do_filepos(handle : longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
-  do_filepos:=0;
+  do_filepos:=-1; 
+  if (handle<=0) then exit;
 
   { Seeking zero from OFFSET_CURRENT to find out where we are }
   dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
@@ -643,6 +646,8 @@ end;
 procedure do_seek(handle,pos : longint);
 begin
   checkCTRLC;
+  if (handle<=0) then exit;
+
   { Seeking from OFFSET_BEGINNING }
   if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
     dosError2InOut(IoErr);
@@ -652,7 +657,8 @@ function do_seekend(handle:longint):longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
-  do_seekend:=0;
+  do_seekend:=-1;
+  if (handle<=0) then exit;
 
   { Seeking to OFFSET_END }
   dosResult:=dosSeek(handle,0,OFFSET_END);
@@ -667,6 +673,9 @@ function do_filesize(handle : longint) : longint;
 var currfilepos: longint;
 begin
   checkCTRLC;
+  do_filesize:=-1;
+  if (handle<=0) then exit;  
+
   currfilepos:=do_filepos(handle);
   { We have to do this twice, because seek returns the OLD position }
   do_filesize:=do_seekend(handle);
@@ -678,6 +687,8 @@ end;
 procedure do_truncate (handle,pos:longint);
 begin
   checkCTRLC;
+  if (handle<=0) then exit;
+
   { Seeking from OFFSET_BEGINNING }
   if SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
     dosError2InOut(IoErr);
@@ -716,7 +727,7 @@ begin
   { convert filemode to filerec modes }
   { READ/WRITE on existing file }
   { RESET/APPEND                }
-  openflags := 1005;
+  openflags:=MODE_OLDFILE;
   case (flags and 3) of
     0 : filerec(f).mode:=fminput;
     1 : filerec(f).mode:=fmoutput;
@@ -724,7 +735,7 @@ begin
   end;
 
   { rewrite (create a new file) }
-  if (flags and $1000)<>0 then openflags := 1006;
+  if (flags and $1000)<>0 then openflags:=MODE_NEWFILE;
 
   { empty name is special }
   if p[0]=#0 then begin
@@ -808,7 +819,7 @@ begin
    StdInputHandle:=dosInput;
    StdOutputHandle:=dosOutput;
  end else begin
-   MOS_ConHandle:=Open(MOS_ConName,1005);
+   MOS_ConHandle:=Open(MOS_ConName,MODE_OLDFILE);
    if MOS_ConHandle<>0 then begin
      StdInputHandle:=MOS_ConHandle;
      StdOutputHandle:=MOS_ConHandle;
@@ -868,7 +879,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2004-12-14 21:01:16  karoly
+  Revision 1.28  2005-01-11 17:43:14  karoly
+    * some cleanup, more sanity checks and updates for sysutils
+
+  Revision 1.27  2004/12/14 21:01:16  karoly
     * GetProcessID implemented
 
   Revision 1.26  2004/12/07 10:07:50  karoly
