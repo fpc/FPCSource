@@ -1,0 +1,69 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble.
+\input{preamble.inc}
+\ifpdf
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(FCL reference guide)
+           /Subject(Free Component library reference guide)
+           /Keywords(Free Pascal)
+           }
+\fi
+%
+% Settings
+%
+\makeindex
+\usepackage{tabularx}
+%
+% Start document
+%
+\begin{document}
+\title{Free Component Library (FCL) : \\ Reference guide.}
+\docdescription{Reference guide for FCL units.}
+\docversion{1.9}
+\input{date.inc}
+\author{Micha\"el Van Canneyt}
+\maketitle
+\tableofcontents
+\newpage
+
+\section*{About this guide}
+This document describes all constants, types, variables, functions and
+procedures as they are declared in the units that come standard with the FCL
+(Free Component Library).
+
+Throughout this document, we will refer to functions, types and variables
+with \var{typewriter} font. Functions and procedures gave their own
+subsections, and for each function or procedure we have the following
+topics:
+\begin{description}
+\item [Declaration] The exact declaration of the function.
+\item [Description] What does the procedure exactly do ?
+\item [Errors] What errors can occur.
+\item [See Also] Cross references to other related functions/commands.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input generated .tex file(s)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{fcl.inc}
+\end{document}
