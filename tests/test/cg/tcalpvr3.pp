@@ -1,4 +1,3 @@
-{ %version=1.1 }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -33,13 +32,13 @@ type
   troutineresult = function (x: longint; y: byte): int64;cdecl;
 
   tsimpleobject = object
-    constructor init;cdecl;
+    constructor init;
     procedure test_normal(x: byte);cdecl;
     procedure test_static(x: byte);static;cdecl;
   end;
 
   tsimpleclass = class
-    constructor create;cdecl;
+    constructor create;
     procedure test_normal(x: byte);cdecl;
     class procedure test_static(x: byte);cdecl;
     procedure test_normal_self(self : tsimpleclass; x: byte); message 0;cdecl;
@@ -155,7 +154,7 @@ var
 
  {****************************************************************************************************}
 
-  constructor tsimpleobject.init;cdecl;
+  constructor tsimpleobject.init;
    begin
    end;
 
@@ -170,7 +169,7 @@ var
    end;
 
  {****************************************************************************************************}
-  constructor tsimpleclass.create;cdecl;
+  constructor tsimpleclass.create;
    begin
     inherited create;
    end;
@@ -467,7 +466,10 @@ end.
 
 {
    $Log$
-   Revision 1.5  2002-10-21 19:21:28  carl
+   Revision 1.6  2002-10-29 20:44:31  carl
+     * updated with corrects testing (removed cdecl in constructors)
+
+   Revision 1.5  2002/10/21 19:21:28  carl
      * only test on version 1.1 +
 
    Revision 1.4  2002/10/21 19:07:08  carl
