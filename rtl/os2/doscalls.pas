@@ -847,10 +847,10 @@ function DosOpen(FileName:PChar;var Handle:longint;var Action:cardinal;
                  EA:PEAOp2):longint; cdecl;
 {This variant of DosOpen always creates or overwrites a file.}
 function DosCreate(FileName:PChar;var Handle:longint;
-                   Attrib,OpenMode:longint):longint;
+                   Attrib,OpenMode:cardinal):longint;
 {This variant of DosOpen always opens an existing file.}
 function DosOpen(FileName:PChar;var Handle:longint;
-                 Attrib,OpenMode:longint):longint;
+                 Attrib,OpenMode:cardinal):longint;
 {There are also string variants.}
 function DosOpen(const FileName:string;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,OpenMode:longint;
@@ -859,9 +859,9 @@ function DosOpen(const FileName:string;var Handle:longint;var Action:cardinal;
                  InitSize,Attrib,OpenFlags,OpenMode:cardinal;
                  ea:PEAOp2):longint;
 function DosCreate(const FileName:string;var Handle:longint;
-                   Attrib,OpenMode:longint):longint;
+                   Attrib,OpenMode:cardinal):longint;
 function DosOpen(const FileName:string;var Handle:longint;
-                 Attrib,OpenMode:longint):longint;
+                 Attrib,OpenMode:cardinal):longint;
 
 
 {Close a file.
@@ -2920,7 +2920,7 @@ function DosOpen(FileName:PChar;var Handle:longint;var Action:cardinal;
 external 'DOSCALLS' index 273;
 
 function DosCreate(FileName:PChar;var Handle:longint;
-                   Attrib,OpenMode:longint):longint;
+                   Attrib,OpenMode:cardinal):longint;
 
 var Action:cardinal;
 
@@ -2929,9 +2929,9 @@ begin
 end;
 
 function DosOpen(FileName:PChar;var Handle:longint;
-                 Attrib,OpenMode:longint):longint;
+                 Attrib,OpenMode:cardinal):longint;
 
-var Action:longint;
+var Action:cardinal;
 
 begin
     DosOpen:=DosOpen(FileName,Handle,Action,0,Attrib,1,OpenMode,nil);
@@ -2960,10 +2960,10 @@ begin
 end;
 
 function DosCreate(const FileName:string;var Handle:longint;
-                   Attrib,OpenMode:longint):longint;
+                   Attrib,OpenMode:cardinal):longint;
 
 var T:array[0..255] of char;
-    Action:longint;
+    Action:cardinal;
 
 begin
     StrPCopy(@T,FileName);
@@ -2971,10 +2971,10 @@ begin
 end;
 
 function DosOpen(const FileName:string;var Handle:longint;
-                 Attrib,OpenMode:longint):longint;
+                 Attrib,OpenMode:cardinal):longint;
 
 var T:array[0..255] of char;
-    Action:longint;
+    Action:cardinal;
 
 begin
     StrPCopy(@T,FileName);
@@ -4318,7 +4318,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.15  2002-10-12 19:36:08  hajny
+  Revision 1.16  2002-10-13 15:25:27  hajny
+    * More DosOpen fixes
+
+  Revision 1.15  2002/10/12 19:36:08  hajny
     * compatibility updates and corrections
 
   Revision 1.14  2002/10/05 19:09:57  hajny
