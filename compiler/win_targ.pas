@@ -275,13 +275,16 @@ unit win_targ;
                    importssection^.concat(new(pai_symbol,init_global(hp2^.func^)))
                   else
                    importssection^.concat(new(pai_label,init(lcode)));
-                  importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
+                   if hp2^.name^<>'' then
+                     importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))))
+                   else
+                     importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
                   { finally the import information }
                   importssection^.concat(new(pai_section,init_idata(6)));
                   importssection^.concat(new(pai_label,init(hp2^.lab)));
                   importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
                   importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
-
+                  importssection^.concat(new(pai_align,init_op(2,0)));
                   hp2:=pimported_item(hp2^.next);
                 end;
               hp1:=pimportlist(hp1^.next);
@@ -342,7 +345,10 @@ unit win_targ;
               while assigned(hp2) do
                 begin
                    getlabel(plabel(hp2^.lab));
-                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
+                   if hp2^.name^<>'' then
+                     importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))))
+                   else
+                     importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
                    hp2:=pimported_item(hp2^.next);
                 end;
               { finalize the names ... }
@@ -387,6 +393,7 @@ unit win_targ;
                    { the ordinal number }
                    importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
                    importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
+                   importssection^.concat(new(pai_align,init_op(2,0)));
                    hp2:=pimported_item(hp2^.next);
                 end;
               { create import dll name }
@@ -521,6 +528,8 @@ unit win_targ;
          { no support for higher ordinal base yet !! }
          ordinal_base:=1;
          current_index:=ordinal_base;
+         { we must also count the holes !! }
+         entries:=ordinal_max-ordinal_base+1;
          
          exportssection^.concat(new(pai_section,init(sec_edata)));
          { export flags }
@@ -687,7 +696,11 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.17  1998-12-01 23:35:43  pierre
+  Revision 1.18  1998-12-02 10:26:13  pierre
+    * writing of .edata was wrong for indexes above number of exported items
+    * importing by index only did not work !
+
+  Revision 1.17  1998/12/01 23:35:43  pierre
    * alignment fixes
 
   Revision 1.16  1998/11/30 13:26:26  pierre
