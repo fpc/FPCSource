@@ -798,12 +798,14 @@ asm
       lbz     r10, 0(r5)
       { length 0? }
       cmplwi  r10,0
+      cmplw   cr1,r6,r4
 
       { calculate min(length(s2),high(result)-length(result)) }
       sub     r9,r4,r6
       subc    r8,r9,r10    { r8 := r9 - r10                                }
       subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1     }
       and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r10 }
+      cror    4*7+2,4*0+2,4*1+2
       add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9   }
 
       { calculate new length }
@@ -816,7 +818,7 @@ asm
       add     r3,r6,r3
 
       { if nothing to do, exit }
-      beq     .LShortStrAppendDone
+      beq    cr7, .LShortStrAppendDone
       { and concatenate }
 .LShortStrAppendLoop:
       lbzu    r10,1(r5)
@@ -1004,7 +1006,11 @@ end;
 
 {
   $Log$
-  Revision 1.58  2003-12-07 14:27:45  jonas
+  Revision 1.59  2003-12-09 20:08:30  jonas
+    * fixed buffer overflow bug in fpc_shortstr_append_shortstr in case
+      the result was already 255 characters long
+
+  Revision 1.58  2003/12/07 14:27:45  jonas
     * fixed buffer overrun error in fillchar
 
   Revision 1.57  2003/12/07 13:29:02  jonas
