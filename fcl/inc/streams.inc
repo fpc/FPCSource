@@ -631,8 +631,8 @@ procedure TMemoryStream.LoadFromFile(const FileName: string);
 Var S : TFileStream;
 
 begin
+  S:=TFileStream.Create (FileName,fmOpenRead);
   Try
-    S:=TFileStream.Create (FileName,fmOpenRead);
     LoadFromStream(S);
   finally
     S.free;
@@ -784,8 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:15:25  peter
+  Revision 1.8  2002-10-22 09:38:39  michael
+  + Fixed TmemoryStream.LoadFromStream, reported by Mattias Gaertner
+
+  Revision 1.7  2002/09/07 15:15:25  peter
     * old logs removed and tabs fixed
 
  }
-
