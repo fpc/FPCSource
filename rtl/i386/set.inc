@@ -227,19 +227,43 @@ asm
         movl set2,%edi
         movl $8,%ecx
     .LMCOMPSETS1:
-        lodsl
+        movl (%esi),%eax
         movl (%edi),%edx
         cmpl %edx,%eax
         jne  .LMCOMPSETEND
+        addl $4,%esi
         addl $4,%edi
         decl %ecx
         jnz .LMCOMPSETS1
         { we are here only if the two sets are equal
           we have zero flag set, and that what is expected }
-        cmpl %eax,%eax
     .LMCOMPSETEND:
 end;
 
+{$IfNDef NoSetInclusion}
+procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
+{
+  on exit, zero flag is set if set1 <= set2 (set2 contains set1)
+}
+asm
+        movl set1,%esi
+        movl set2,%edi
+        movl $8,%ecx
+    .LMCONTAINSSETS1:
+        movl (%esi),%eax
+        movl (%edi),%edx
+        andl %eax,%edx
+        cmpl %edx,%eax  {set1 and set2 = set1?}
+        jne  .LMCONTAINSSETEND
+        addl $4,%esi
+        addl $4,%edi
+        decl %ecx
+        jnz .LMCONTAINSSETS1
+        { we are here only if set2 contains set1
+          we have zero flag set, and that what is expected }
+    .LMCONTAINSSETEND:
+end;
+{$EndIf SetInclusion}
 
 {$ifdef LARGESETS}
 
@@ -373,15 +397,43 @@ asm
       jnz .LMCOMPSETSIZES1
       { we are here only if the two sets are equal
         we have zero flag set, and that what is expected }
-      cmpl %eax,%eax
   .LMCOMPSETSIZEEND:
 end;
+
+{$IfNDef NoSetInclusion}
+procedure contains_sets(set1,set2 : pointer; size: longint);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
+{
+  on exit, zero flag is set if set1 <= set2 (set2 contains set1)
+}
+asm
+        movl set1,%esi
+        movl set2,%edi
+        movl size,%ecx
+    .LMCONTAINSSETS2:
+        movl (%esi),%eax
+        movl (%edi),%edx
+        andl %eax,%edx
+        cmpl %edx,%eax  {set1 and set2 = set1?}
+        jne  .LMCONTAINSSETEND2
+        addl $4,%esi
+        addl $4,%edi
+        decl %ecx
+        jnz .LMCONTAINSSETS2
+        { we are here only if set2 contains set1
+          we have zero flag set, and that what is expected }
+    .LMCONTAINSSETEND2:
+end;
+{$EndIf NoSetInclusion}
+
 
 {$endif LARGESET}
 
 {
   $Log$
-  Revision 1.8  1998-12-15 22:43:00  peter
+  Revision 1.9  1999-01-20 17:48:02  jonas
+    + fixed bug0163 (set1 <= set2 support)
+
+  Revision 1.8  1998/12/15 22:43:00  peter
     * removed temp symbols
 
   Revision 1.7  1998/11/24 12:54:01  peter
