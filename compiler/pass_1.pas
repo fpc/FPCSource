@@ -729,6 +729,7 @@ unit pass_1;
          rv,lv   : longint;
          rvd,lvd : bestreal;
          rd,ld   : pdef;
+         tempdef : pdef;
          concatstrings : boolean;
 
          { to evalute const sets }
@@ -1088,8 +1089,21 @@ unit pass_1;
                   Message(sym_e_type_mismatch);
 
                 if ((rd^.deftype=setdef) and not(is_equal(rd,ld))) and
-                   not((rt in [rangen,setelen]) and is_equal(psetdef(ld)^.setof,rd)) then
+                   not((rt=setelementn) and is_equal(psetdef(ld)^.setof,rd)) then
                   Message(sym_e_set_element_are_not_comp);
+
+                { ranges require normsets }
+                if (psetdef(ld)^.settype=smallset) and
+                   (rt=setelementn) and
+                   assigned(p^.right^.right) then
+                 begin
+                   { generate a temporary normset def }
+                   tempdef:=new(psetdef,init(psetdef(ld)^.setof,255));
+                   p^.left:=gentypeconvnode(p^.left,tempdef);
+                   firstpass(p^.left);
+                   dispose(tempdef,done);
+                   ld:=p^.left^.resulttype;
+                 end;
 
                 { if the destination is not a smallset then insert a typeconv
                   which loads a smallset into a normal set }
@@ -1158,7 +1172,7 @@ unit pass_1;
                      exit;
                   end
                 else
-                 if psetdef(rd)^.settype=smallset then
+                 if psetdef(ld)^.settype=smallset then
                   begin
                      calcregisters(p,1,0,0);
                      p^.location.loc:=LOC_REGISTER;
@@ -2554,7 +2568,10 @@ unit pass_1;
             begin
             { try to define the set as a normalset if it's a constant set }
               if p^.left^.treetype=setconstrn then
-               psetdef(p^.left^.resulttype)^.settype:=normset
+               begin
+                 p^.resulttype:=p^.left^.resulttype;
+                 psetdef(p^.resulttype)^.settype:=normset
+               end
               else
                p^.convtyp:=tc_load_smallset;
               exit;
@@ -4328,6 +4345,16 @@ unit pass_1;
     procedure firstsetele(var p : ptree);
       begin
          firstpass(p^.left);
+         if codegenerror then
+          exit;
+
+         if assigned(p^.right) then
+          begin
+            firstpass(p^.right);
+            if codegenerror then
+             exit;
+          end;
+
          calcregisters(p,0,0,0);
          p^.resulttype:=p^.left^.resulttype;
          set_location(p^.location,p^.left^.location);
@@ -5253,7 +5280,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.63  1998-08-24 10:05:39  florian
+  Revision 1.64  1998-08-28 10:54:22  peter
+    * fixed smallset generation from elements, it has never worked before!
+
+  Revision 1.63  1998/08/24 10:05:39  florian
     + class types and class reference types are now compatible with void
       pointers
     + class can be stored now registers, even if a type conversation is applied

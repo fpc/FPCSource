@@ -1075,7 +1075,7 @@ unit pexpr;
                                      else
                                       begin
                                         update_constsethi(p3^.resulttype);
-                                        p4:=gennode(rangen,p2,p3);
+                                        p4:=gennode(setelementn,p2,p3);
                                       end;
                                    end;
                                end
@@ -1090,7 +1090,7 @@ unit pexpr;
                                  else
                                   begin
                                     update_constsethi(p2^.resulttype);
-                                    p4:=gensinglenode(setelen,p2);
+                                    p4:=gennode(setelementn,p2,nil);
                                   end;
                                end;
                             end;
@@ -1856,7 +1856,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.43  1998-08-23 16:07:24  florian
+  Revision 1.44  1998-08-28 10:54:24  peter
+    * fixed smallset generation from elements, it has never worked before!
+
+  Revision 1.43  1998/08/23 16:07:24  florian
     * internalerror with mod/div fixed
 
   Revision 1.42  1998/08/21 14:08:50  pierre

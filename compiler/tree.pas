@@ -93,7 +93,7 @@ unit tree;
                    hdisposen,       {The dispose operation with destructor call.}
                    newn,            {The new operation, constructor call.}
                    simpledisposen,  {The dispose operation.}
-                   setelen,         {A set element (i.e. [a,b]).}
+                   setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
                    setconstrn,      {A set constant (i.e. [1,2]).}
                    blockn,          {A block of statements.}
                    statementn,      {One statement in a block of nodes.}
@@ -719,6 +719,7 @@ unit tree;
          p^.value:=v^.value;
          genenumnode:=p;
       end;
+
 
     function genrealconstnode(v : bestreal) : ptree;
 
@@ -1553,7 +1554,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.31  1998-08-21 14:08:58  pierre
+  Revision 1.32  1998-08-28 10:54:25  peter
+    * fixed smallset generation from elements, it has never worked before!
+
+  Revision 1.31  1998/08/21 14:08:58  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

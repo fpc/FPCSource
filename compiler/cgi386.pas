@@ -207,7 +207,7 @@ implementation
        const
          procedures : array[ttreetyp] of secondpassproc =
             (secondadd,secondadd,secondadd,secondmoddiv,secondadd,
-             secondmoddiv,secondassignment,secondload,secondrange,
+             secondmoddiv,secondassignment,secondload,secondnothing,
              secondadd,secondadd,secondadd,secondadd,
              secondadd,secondadd,secondin,secondadd,
              secondadd,secondshlshr,secondshlshr,secondadd,
@@ -219,7 +219,7 @@ implementation
              secondstringconst,secondfuncret,secondselfn,
              secondnot,secondinline,secondniln,seconderror,
              secondnothing,secondhnewn,secondhdisposen,secondnewn,
-             secondsimplenewdispose,secondsetele,secondsetcons,secondblockn,
+             secondsimplenewdispose,secondsetelement,secondsetcons,secondblockn,
              secondstatement,secondnothing,secondifn,secondbreakn,
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
@@ -506,7 +506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1998-08-19 16:07:42  jonas
+  Revision 1.50  1998-08-28 10:54:20  peter
+    * fixed smallset generation from elements, it has never worked before!
+
+  Revision 1.49  1998/08/19 16:07:42  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.48  1998/08/14 18:18:43  peter

@@ -26,8 +26,7 @@ interface
     uses
       tree;
 
-    procedure secondrange(var p : ptree);
-    procedure secondsetele(var p : ptree);
+    procedure secondsetelement(var p : ptree);
     procedure secondin(var p : ptree);
     procedure secondcase(var p : ptree);
 
@@ -43,31 +42,26 @@ implementation
        bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
 
 {*****************************************************************************
-                              SecondRange
+                              SecondSetElement
 *****************************************************************************}
 
-    procedure secondrange(var p : ptree);
+    procedure secondsetelement(var p : ptree);
        begin
+       { load first value in 32bit register }
          secondpass(p^.left);
-         secondpass(p^.right);
-         { we doesn't modifiy the left side, we check only the type }
+         if p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+           emit_to_reg32(p^.left^.location.register);
+
+       { also a second value ? }
+         if assigned(p^.right) then
+           begin
+             secondpass(p^.right);
+             if p^.right^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+              emit_to_reg32(p^.right^.location.register);
+           end;
+
+         { we doesn't modify the left side, we check only the type }
          set_location(p^.location,p^.left^.location);
-       end;
-
-
-{*****************************************************************************
-                              SecondSetEle
-*****************************************************************************}
-
-    procedure secondsetele(var p : ptree);
-       begin
-         secondpass(p^.left);
-         { we doesn't modifiy the left side, we check only the type }
-         set_location(p^.location,p^.left^.location);
-         { return always in 32bit becuase set operations are done with
-           S_L opsize }
-         if p^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          emit_to_reg32(p^.location.register);
        end;
 
 
@@ -782,7 +776,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-08-25 11:51:46  peter
+  Revision 1.9  1998-08-28 10:54:19  peter
+    * fixed smallset generation from elements, it has never worked before!
+
+  Revision 1.8  1998/08/25 11:51:46  peter
     * fixed -15 seen as byte in case
 
   Revision 1.7  1998/08/19 16:07:38  jonas

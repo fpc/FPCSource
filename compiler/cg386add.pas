@@ -281,12 +281,9 @@ implementation
 
     procedure addset(var p : ptree);
       var
-        right_small,
         cmpop,
         pushed : boolean;
-        href2,
         href   : treference;
-        swapp  : ptree;
         pushedregs : tpushed;
       begin
         cmpop:=false;
@@ -305,7 +302,6 @@ implementation
           restore(p);
 
         set_location(p^.location,p^.left^.location);
-        right_small:=(p^.right^.resulttype^.deftype=setdef) and (psetdef(p^.right^.resulttype)^.settype=smallset);
 
         { handle operations }
         case p^.treetype of
@@ -330,20 +326,24 @@ implementation
                      pushusedregisters(pushedregs,$ff);
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
-                     case p^.right^.treetype of
-                    setelen : begin
-                                concatcopy(p^.left^.location.reference,href,32,false);
-                                pushsetelement(p^.right^.left);
-                                emitpushreferenceaddr(exprasmlist,href);
-                                emitcall('SET_SET_BYTE',true);
-                              end;
-                     rangen : begin
-                                concatcopy(p^.left^.location.reference,href,32,false);
-                                pushsetelement(p^.right^.right);
-                                pushsetelement(p^.right^.left);
-                                emitpushreferenceaddr(exprasmlist,href);
-                                emitcall('SET_SET_RANGE',true);
-                              end;
+                   { add a range or a single element? }
+                     if p^.right^.treetype=setelementn then
+                      begin
+                        concatcopy(p^.left^.location.reference,href,32,false);
+                        if assigned(p^.right^.right) then
+                         begin
+                           pushsetelement(p^.right^.right);
+                           pushsetelement(p^.right^.left);
+                           emitpushreferenceaddr(exprasmlist,href);
+                           emitcall('SET_SET_RANGE',true);
+                         end
+                        else
+                         begin
+                           pushsetelement(p^.right^.left);
+                           emitpushreferenceaddr(exprasmlist,href);
+                           emitcall('SET_SET_BYTE',true);
+                         end;
+                      end
                      else
                       begin
                       { must be an other set }
@@ -352,7 +352,6 @@ implementation
                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                         emitcall('SET_ADD_SETS',true);
                       end;
-                     end;
                      maybe_loadesi;
                      popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
@@ -364,8 +363,6 @@ implementation
             subn,
          symdifn,
             muln : begin
-                     if p^.right^.treetype in [rangen,setelen] then
-                      internalerror(45362);
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
                      href.symbol:=nil;
@@ -405,25 +402,22 @@ implementation
       label do_normal;
 
       var
-         swapp : ptree;
          hregister : tregister;
+         noswap,
          pushed,mboverflow,cmpop : boolean;
          op : tasmop;
-         pushedregs : tpushed;
          flags : tresflags;
          otl,ofl : plabel;
          power : longint;
-         href : treference;
          opsize : topsize;
          hl4: plabel;
 
          { true, if unsigned types are compared }
          unsigned : boolean;
-
-         { is_in_dest if the result is put directly into }
-         { the resulting refernce or varregister }
          { true, if a small set is handled with the longint code }
          is_set : boolean;
+         { is_in_dest if the result is put directly into }
+         { the resulting refernce or varregister }
          is_in_dest : boolean;
          { true, if for sets subtractions the extra not should generated }
          extra_not : boolean;
@@ -435,29 +429,35 @@ implementation
       begin
       { to make it more readable, string and set (not smallset!) have their
         own procedures }
-        case p^.left^.resulttype^.deftype of
+         case p^.left^.resulttype^.deftype of
          stringdef : begin
                        addstring(p);
                        exit;
                      end;
             setdef : begin
-                     { not for smallsets }
+                     { normalsets are handled separate }
                        if not(psetdef(p^.left^.resulttype)^.settype=smallset) then
                         begin
                           addset(p);
                           exit;
                         end;
                      end;
-        end;
+         end;
 
+         { defaults }
          unsigned:=false;
          is_in_dest:=false;
          extra_not:=false;
-
+         noswap:=false;
          opsize:=S_L;
+
+         { are we a (small)set, must be set here because the side can be
+           swapped ! (PFV) }
+         is_set:=(p^.left^.resulttype^.deftype=setdef);
 
          { calculate the operator which is more difficult }
          firstcomplex(p);
+
          { handling boolean expressions extra: }
          if ((p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) or
@@ -520,7 +520,7 @@ implementation
          else
            begin
               { in case of constant put it to the left }
-              if p^.left^.treetype=ordconstn then
+              if (p^.left^.treetype=ordconstn) then
                swaptree(p);
               secondpass(p^.left);
               { this will be complicated as
@@ -572,89 +572,119 @@ implementation
                  (porddef(p^.right^.resulttype)^.typ=u32bit)) or
 
                 { as well as small sets }
-                ((p^.left^.resulttype^.deftype=setdef) and
-                 (psetdef(p^.left^.resulttype)^.settype=smallset)
-                ) then
+                 is_set then
                 begin
-           do_normal:
+          do_normal:
                    mboverflow:=false;
                    cmpop:=false;
                    if (p^.left^.resulttype^.deftype=pointerdef) or
                       (p^.right^.resulttype^.deftype=pointerdef) or
                       ((p^.left^.resulttype^.deftype=orddef) and
-                      (porddef(p^.left^.resulttype)^.typ=u32bit)) or
+                       (porddef(p^.left^.resulttype)^.typ=u32bit)) or
                       ((p^.right^.resulttype^.deftype=orddef) and
-                      (porddef(p^.right^.resulttype)^.typ=u32bit)) then
+                       (porddef(p^.right^.resulttype)^.typ=u32bit)) then
                      unsigned:=true;
-                   is_set:=p^.resulttype^.deftype=setdef;
                    case p^.treetype of
                       addn : begin
-                                if is_set then
-                                  begin
-                                     op:=A_OR;
-                                     mboverflow:=false;
-                                     unsigned:=false;
-                                  end
-                                else
-                                  begin
-                                     op:=A_ADD;
-                                     mboverflow:=true;
-                                  end;
+                               if is_set then
+                                begin
+                                { adding elements is not commutative }
+                                  if p^.swaped and (p^.left^.treetype=setelementn) then
+                                   swaptree(p);
+                                { are we adding set elements ? }
+                                  if p^.right^.treetype=setelementn then
+                                   begin
+                                   { no range support for smallsets! }
+                                     if assigned(p^.right^.right) then
+                                      internalerror(43244);
+                                   { bts requires both elements to be registers }
+                                     if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                                      begin
+                                        del_reference(p^.left^.location.reference);
+                                        hregister:=getregister32;
+                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                          newreference(p^.left^.location.reference),hregister)));
+                                        p^.left^.location.loc:=LOC_REGISTER;
+                                        p^.left^.location.register:=hregister;
+                                        set_location(p^.location,p^.left^.location);
+                                      end;
+                                     if p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                                      begin
+                                        del_reference(p^.right^.location.reference);
+                                        hregister:=getregister32;
+                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                          newreference(p^.right^.location.reference),hregister)));
+                                        p^.right^.location.loc:=LOC_REGISTER;
+                                        p^.right^.location.register:=hregister;
+                                      end;
+                                     op:=A_BTS;
+                                     noswap:=true;
+                                   end
+                                  else
+                                   op:=A_OR;
+                                  mboverflow:=false;
+                                  unsigned:=false;
+                                end
+                               else
+                                begin
+                                  op:=A_ADD;
+                                  mboverflow:=true;
+                                end;
                              end;
-                      symdifn : begin
-                                { the symetric diff is only for sets }
-                                if is_set then
-                                  begin
-                                     op:=A_XOR;
-                                     mboverflow:=false;
-                                     unsigned:=false;
-                                  end
-                                else
-                                  begin
-                                     Message(sym_e_type_mismatch);
-                                  end;
+                   symdifn : begin
+                               { the symetric diff is only for sets }
+                               if is_set then
+                                begin
+                                  op:=A_XOR;
+                                  mboverflow:=false;
+                                  unsigned:=false;
+                                end
+                               else
+                                Message(sym_e_type_mismatch);
                              end;
                       muln : begin
-                                if is_set then
-                                  begin
-                                     op:=A_AND;
-                                     mboverflow:=false;
-                                     unsigned:=false;
-                                  end
-                                else
-                                  begin
-                                     if unsigned then
-                                       op:=A_MUL
-                                     else
-                                       op:=A_IMUL;
-                                     mboverflow:=true;
-                                  end;
+                               if is_set then
+                                begin
+                                  op:=A_AND;
+                                  mboverflow:=false;
+                                  unsigned:=false;
+                                end
+                               else
+                                begin
+                                  if unsigned then
+                                   op:=A_MUL
+                                  else
+                                   op:=A_IMUL;
+                                  mboverflow:=true;
+                                end;
                              end;
                       subn : begin
-                                if is_set then
-                                  begin
-                                     op:=A_AND;
-                                     mboverflow:=false;
-                                     unsigned:=false;
-                                     extra_not:=true;
-                                  end
-                                else
-                                  begin
-                                     op:=A_SUB;
-                                     mboverflow:=true;
-                                  end;
+                               if is_set then
+                                begin
+                                  op:=A_AND;
+                                  mboverflow:=false;
+                                  unsigned:=false;
+                                  extra_not:=true;
+                                end
+                               else
+                                begin
+                                  op:=A_SUB;
+                                  mboverflow:=true;
+                                end;
                              end;
-                      ltn,lten,gtn,gten,
-                      equaln,unequaln :
-                             begin
-                                op:=A_CMP;
-                                cmpop:=true;
+                  ltn,lten,
+                  gtn,gten,
+           equaln,unequaln : begin
+                               op:=A_CMP;
+                               cmpop:=true;
                              end;
                       xorn : op:=A_XOR;
-                      orn : op:=A_OR;
+                       orn : op:=A_OR;
                       andn : op:=A_AND;
-                      else Message(sym_e_type_mismatch);
+                   else
+                     Message(sym_e_type_mismatch);
                    end;
+
                    { left and right no register?  }
                    { then one must be demanded    }
                    if (p^.left^.location.loc<>LOC_REGISTER) and
@@ -712,7 +742,7 @@ implementation
                      end
                    else
                      { if on the right the register then swap }
-                     if (p^.right^.location.loc=LOC_REGISTER) then
+                     if not(noswap) and (p^.right^.location.loc=LOC_REGISTER) then
                        begin
                           swap_location(p^.location,p^.right^.location);
 
@@ -851,25 +881,28 @@ implementation
 
                    { only in case of overflow operations }
                    { produce overflow code }
-                   if mboverflow then
                    { we must put it here directly, because sign of operation }
                    { is in unsigned VAR!!                                    }
-                   begin
-                     if cs_check_overflow in aktlocalswitches  then
-                     begin
-                       getlabel(hl4);
-                       if unsigned then
-                        emitl(A_JNB,hl4)
-                       else
-                        emitl(A_JNO,hl4);
-                       emitcall('RE_OVERFLOW',true);
-                       emitl(A_LABEL,hl4);
-                     end;
-                   end;
+                   if mboverflow then
+                    begin
+                      if cs_check_overflow in aktlocalswitches  then
+                       begin
+                         getlabel(hl4);
+                         if unsigned then
+                          emitl(A_JNB,hl4)
+                         else
+                          emitl(A_JNO,hl4);
+                         emitcall('RE_OVERFLOW',true);
+                         emitl(A_LABEL,hl4);
+                       end;
+                    end;
                 end
-              else if ((p^.left^.resulttype^.deftype=orddef) and
-                 (porddef(p^.left^.resulttype)^.typ=uchar)) then
-                begin
+              else
+
+              { Char type }
+                if ((p^.left^.resulttype^.deftype=orddef) and
+                    (porddef(p^.left^.resulttype)^.typ=uchar)) then
+                 begin
                    case p^.treetype of
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
@@ -913,10 +946,10 @@ implementation
                       (p^.location.loc<>LOC_REGISTER) then
                      begin
                        swap_location(p^.location,p^.right^.location);
-
-                        { newly swapped also set swapped flag }
-                        p^.swaped:=not(p^.swaped);
+                       { newly swapped also set swapped flag }
+                       p^.swaped:=not(p^.swaped);
                      end;
+
                    if p^.right^.location.loc<>LOC_REGISTER then
                      begin
                         if p^.right^.location.loc=LOC_CREGISTER then
@@ -939,7 +972,10 @@ implementation
                      end;
                    ungetregister32(reg8toreg32(p^.location.register));
                 end
-              else if (p^.left^.resulttype^.deftype=floatdef) and
+              else
+
+              { Floating point }
+               if (p^.left^.resulttype^.deftype=floatdef) and
                   (pfloatdef(p^.left^.resulttype)^.typ<>f32bit) then
                  begin
                     { real constants to the left }
@@ -1000,42 +1036,50 @@ implementation
                        exprasmlist^.concat(new(pai386,op_reg_reg(op,S_NO,R_ST,R_ST1)))
                     else
                       exprasmlist^.concat(new(pai386,op_none(op,S_NO)));
+
                     { on comparison load flags }
                     if cmpop then
-                      begin
-                         if not(R_EAX in unused) then
-                           emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
-                         exprasmlist^.concat(new(pai386,op_reg(A_FNSTSW,S_NO,R_AX)));
-                         exprasmlist^.concat(new(pai386,op_none(A_SAHF,S_NO)));
-                         if not(R_EAX in unused) then
-                           emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-                         if p^.swaped then
-                           case p^.treetype of
+                     begin
+                       if not(R_EAX in unused) then
+                         emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
+                       exprasmlist^.concat(new(pai386,op_reg(A_FNSTSW,S_NO,R_AX)));
+                       exprasmlist^.concat(new(pai386,op_none(A_SAHF,S_NO)));
+                       if not(R_EAX in unused) then
+                         emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
+                       if p^.swaped then
+                        begin
+                          case p^.treetype of
                               equaln : flags:=F_E;
-                              unequaln : flags:=F_NE;
-                              ltn : flags:=F_A;
-                              lten : flags:=F_AE;
-                              gtn : flags:=F_B;
-                              gten : flags:=F_BE;
-                           end
-                         else
-                           case p^.treetype of
+                            unequaln : flags:=F_NE;
+                                 ltn : flags:=F_A;
+                                lten : flags:=F_AE;
+                                 gtn : flags:=F_B;
+                                gten : flags:=F_BE;
+                          end;
+                        end
+                       else
+                        begin
+                          case p^.treetype of
                               equaln : flags:=F_E;
-                              unequaln : flags:=F_NE;
-                              ltn : flags:=F_B;
-                              lten : flags:=F_BE;
-                              gtn : flags:=F_A;
-                              gten : flags:=F_AE;
-                           end;
-                         p^.location.loc:=LOC_FLAGS;
-                         p^.location.resflags:=flags;
-                         cmpop:=false;
-                      end
+                            unequaln : flags:=F_NE;
+                                 ltn : flags:=F_B;
+                                lten : flags:=F_BE;
+                                 gtn : flags:=F_A;
+                                gten : flags:=F_AE;
+                          end;
+                        end;
+                       p^.location.loc:=LOC_FLAGS;
+                       p^.location.resflags:=flags;
+                       cmpop:=false;
+                     end
                     else
-                      p^.location.loc:=LOC_FPU;
+                     p^.location.loc:=LOC_FPU;
                  end
 {$ifdef SUPPORT_MMX}
-               else if is_mmx_able_array(p^.left^.resulttype) then
+               else
+
+               { MMX Arrays }
+                if is_mmx_able_array(p^.left^.resulttype) then
                  begin
                    cmpop:=false;
                    mmxbase:=mmx_type(p^.left^.resulttype);
@@ -1236,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-08-19 14:56:59  peter
+  Revision 1.8  1998-08-28 10:54:18  peter
+    * fixed smallset generation from elements, it has never worked before!
+
+  Revision 1.7  1998/08/19 14:56:59  peter
     * forgot to removed some unused code in addset for set<>set
 
   Revision 1.6  1998/08/18 09:24:35  pierre
