@@ -120,9 +120,6 @@ implementation
 
     procedure insertint(p : pprocdeftree;var at : pprocdeftree);
 
-      var
-         i : longint;
-
       begin
          if at=nil then
            begin
@@ -131,7 +128,6 @@ implementation
            end
          else
            begin
-              i:=strcomp(p^.p^.messageinf.str,at^.p^.messageinf.str);
               if p^.p^.messageinf.i<at^.p^.messageinf.i then
                 insertstr(p,at^.l)
               else if p^.p^.messageinf.i>at^.p^.messageinf.i then
@@ -562,8 +558,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1999-06-15 13:27:06  pierre
+  Revision 1.12  1999-07-08 10:40:37  peter
+    * merged
+
+  Revision 1.11  1999/06/15 13:27:06  pierre
    * bug0260 fixed
+
+  Revision 1.10.2.1  1999/07/08 10:38:32  peter
+    * fixed insertint
 
   Revision 1.10  1999/06/02 22:44:07  pierre
    * previous wrong log corrected
