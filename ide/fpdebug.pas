@@ -1524,7 +1524,7 @@ begin
                   ClearFormatParams;
                   AddFormatParamStr(NameAndExtOf(FileName^));
                   AddFormatParamInt(Line);
-                  if ChoiceBox(msg_couldnotsetbreakpointat,@FormatParams,[btn_ok,btn_disableallbreakpoints],false)=cmUserBtn2 then
+                  if ChoiceBox(msg_couldnotsetbreakpointat,@FormatParams,[btn_ok,button_DisableAllBreakpoints],false)=cmUserBtn2 then
                     Debugger^.Disableallinvalidbreakpoints:=true;
                 end
               else
@@ -1532,7 +1532,7 @@ begin
                   ClearFormatParams;
                   AddFormatParamStr(BreakpointTypeStr[typ]);
                   AddFormatParamStr(GetStr(Name));
-                  if ChoiceBox(msg_couldnotsetbreakpointtype,@FormatParams,[btn_ok,btn_disableallbreakpoints],false)=cmUserBtn2 then
+                  if ChoiceBox(msg_couldnotsetbreakpointtype,@FormatParams,[btn_ok,button_DisableAllBreakpoints],false)=cmUserBtn2 then
                     Debugger^.Disableallinvalidbreakpoints:=true;
                 end;
             end;
@@ -2145,6 +2145,8 @@ var R,R2: TRect;
     S: String;
     X,X1 : Sw_integer;
     Btn: PButton;
+const
+  NumButtons = 5;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
   inherited Init(R, dialog_breakpointlist, wnNoNumber);
@@ -2174,7 +2176,7 @@ begin
   GetExtent(R);R.Grow(-1,-1);
   Dec(R.B.Y);
   R.A.Y:=R.B.Y-2;
-  X:=(R.B.X-R.A.X) div 4;
+  X:=(R.B.X-R.A.X) div NumButtons;
   X1:=R.A.X+(X div 2);
   R.A.X:=X1-3;R.B.X:=X1+7;
   New(Btn, Init(R, button_Close, cmClose, bfDefault));
@@ -2188,6 +2190,11 @@ begin
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
   New(Btn, Init(R, button_Edit, cmEditBreakpoint, bfNormal));
+  Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  Insert(Btn);
+  X1:=X1+X;
+  R.A.X:=X1-3;R.B.X:=X1+7;
+  New(Btn, Init(R, button_ToggleButton, cmToggleBreakInList, bfNormal));
   Btn^.GrowMode:=gfGrowLoY+gfGrowHiY;
   Insert(Btn);
   X1:=X1+X;
@@ -2268,6 +2275,8 @@ begin
            BreakLB^.EditCurrent;
          cmDeleteBreakpoint :
            BreakLB^.DeleteCurrent;
+         cmToggleBreakInList :
+           BreakLB^.ToggleCurrent;
          cmClose :
            Hide;
           else
@@ -2286,9 +2295,14 @@ begin
 end;
 
 procedure TBreakpointsWindow.Update;
+var
+  StoreFocus : longint;
 begin
+  StoreFocus:=BreakLB^.Focused;
   ClearBreakpoints;
   ReloadBreakpoints;
+  If StoreFocus<BreakLB^.Range then
+    BreakLB^.FocusItem(StoreFocus);
 end;
 
 destructor TBreakpointsWindow.Done;
@@ -4144,7 +4158,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2002-08-13 08:59:12  pierre
+  Revision 1.24  2002-09-02 10:18:09  pierre
+   * fix problems with breakpoint lists
+
+  Revision 1.23  2002/08/13 08:59:12  pierre
    + Run menu changes depending on wether the debuggee is running or not
 
   Revision 1.22  2002/08/13 07:15:02  pierre

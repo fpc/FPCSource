@@ -851,7 +851,6 @@ const
                                     #3+'%s:%d';
       msg_couldnotsetbreakpointtype = #3'Could not set Breakpoint'#13+
                                       #3+'%s %s';
-      btn_disableallbreakpoints = 'Disable all invalid';
 
       { standard button texts }
       button_OK          = 'O~K~';
@@ -862,6 +861,10 @@ const
       button_Close       = '~C~lose';
       button_Show        = '~S~how';
       button_Hide        = '~H~ide';
+      button_DisableAllBreakpoints = 'Dis. ~a~ll invalid';
+
+      { Specific Button }
+      button_ToggleButton = '~T~oggle';
 
       { Compiler message classes }
       msg_class_normal   = '';
@@ -1034,7 +1037,10 @@ const
 
 {
   $Log$
-  Revision 1.11  2002-08-13 08:57:03  pierre
+  Revision 1.12  2002-09-02 10:18:10  pierre
+   * fix problems with breakpoint lists
+
+  Revision 1.11  2002/08/13 08:57:03  pierre
    + Continue string added, to support Run submenu changes
 
   Revision 1.10  2002/08/13 07:15:02  pierre

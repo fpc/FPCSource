@@ -65,7 +65,7 @@ const
 
 {$ifdef UNIX}
      EnterSign            = '<'+#196#217;
-{$else}     
+{$else}
      EnterSign            = #17#196#217;
 {$endif}
 
@@ -231,6 +231,8 @@ const
      cmNewBreakpoint     = 2401;
      cmDeleteBreakpoint  = 2402;
      cmToggleBreakpoint  = 2403;
+     cmToggleBreakInList = 2404;
+
 
      cmDumpUndo          = 2500;
      cmUndoAll           = 2501;
@@ -442,7 +444,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.6  2002-03-28 16:25:16  peter
+  Revision 1.7  2002-09-02 10:18:09  pierre
+   * fix problems with breakpoint lists
+
+  Revision 1.6  2002/03/28 16:25:16  peter
     * use < for left arrow under unix
 
   Revision 1.5  2002/01/24 09:21:41  pierre
