@@ -2089,6 +2089,20 @@ END;
 PROCEDURE TView.SetBounds (Var Bounds: TRect);
 VAR D, COrigin: TPoint;
 BEGIN
+   { Remove shadow first }
+   if (State and (sfShadow or sfVisible or sfExposed) =
+        (sfShadow or sfVisible or sfExposed)) and
+      assigned(Owner) then
+     begin
+       State:= State and not sfShadow;
+       Owner^.ReDrawArea(RawOrigin.X + RawSize.X, RawOrigin.Y,
+         RawOrigin.X + RawSize.X + ShadowSize.X*SysFontWidth,
+         RawOrigin.Y + RawSize.Y + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
+       Owner^.ReDrawArea(RawOrigin.X, RawOrigin.Y + RawSize.Y,
+         RawOrigin.X + RawSize.X + ShadowSize.X*SysFontWidth,
+         RawOrigin.Y + RawSize.Y + ShadowSize.Y*SysFontHeight);         { Owner redraws area }
+       State:= State or sfShadow;
+     end;
    If (Bounds.B.X > 0) AND (Bounds.B.Y > 0)           { Normal text co-ords }
    AND (GOptions AND goGraphView = 0) Then Begin      { Normal text view }
      If (Owner <> Nil) Then Begin                     { Owner is valid }
@@ -5539,7 +5553,10 @@ END.
 
 {
  $Log$
- Revision 1.21  2002-05-23 09:06:01  pierre
+ Revision 1.22  2002-05-23 10:27:12  pierre
+  * avoid problems with shadows when moving or resizing a window
+
+ Revision 1.21  2002/05/23 09:06:01  pierre
   * force views to have raworigin multiples of cell width and height
 
  Revision 1.20  2002/05/21 11:47:36  pierre
