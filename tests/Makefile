@@ -268,8 +268,8 @@ tests : clean all_compilations
 
 cont_tests : all_compilations
 
-getret$(EXTEXT) : getret.pp
-	$(COMPILER) getret
+getret$(EXEEXT) : getret.pp
+	$(FPC) getret
 	
 ifndef inlinux
 
