@@ -48,6 +48,7 @@ CONST
 {$IFDEF TP}
   DirectorySeparator = '\';
 {$ENDIF}
+  has_errors : boolean = false;
 
 
 { verifies that the DOSError variable is equal to }
@@ -74,14 +75,14 @@ Procedure CheckDosError(err: Integer);
   if err <> x then
     Begin
       WriteLn('FAILURE. (Value of DOSError should be ',err,' '+s+')');
-      Halt(1);
+      has_errors:=true;
     end;
  end;
 
 procedure fail;
 Begin
   WriteLn('Failed!');
-  Halt(1);
+  has_errors:=true;
 End;
 
 Procedure TestFAttr1;
@@ -114,7 +115,7 @@ Begin
  else
    WriteLn('Success!');
  CheckDosError(0);
-{ This is completely platform dependent 
+{ This is completely platform dependent
  Write('Trying to open the parent directory file when in root...');
  Getdir(0,s);
  ChDir(RootPath);
@@ -165,7 +166,7 @@ Begin
  else
   Begin
     WriteLn(s+'FAILURE. Read-only attribute not set.');
-    halt(1);
+    has_errors:=true;
   end;
  { file should no longer be read only }
  s:='Removing read-only attribute...';
@@ -176,7 +177,7 @@ Begin
  if Attr and ReadOnly<> 0 then
   Begin
     WriteLn(s+'FAILURE. Read-only attribute still set.');
-    halt(1);
+    has_errors:=true;
   end
  else
    WriteLn(s+'Success.');
@@ -193,7 +194,7 @@ Begin
  else
   Begin
     WriteLn(s+'FAILURE. Hidden attribute not set.');
-    halt(1);
+    has_errors:=true;
   end;
 
  { file should no longer be read only }
@@ -205,7 +206,7 @@ Begin
  if Attr and Hidden<> 0 then
   Begin
     WriteLn(s+'FAILURE. Hidden attribute still set.');
-    halt(1);
+    has_errors:=true;
   end
  else
    WriteLn(s+'Success.');
@@ -223,7 +224,7 @@ Begin
  else
   Begin
     WriteLn(s+'FAILURE. SysFile attribute not set.');
-    halt(1);
+    has_errors:=true;
   end;
  { file should no longer be read only }
  s:='Removing Sysfile attribute...';
@@ -234,7 +235,7 @@ Begin
  if Attr and Sysfile<> 0 then
   Begin
     WriteLn(s+'FAILURE. SysFile attribute still set.');
-    halt(1);
+    has_errors:=true;
   end
  else
    WriteLn(s+'Success.');
@@ -248,7 +249,7 @@ Begin
  if Attr and Directory<> 0 then
   Begin
     WriteLn(s+'FAILURE. Directory Attribute set.');
-    halt(1);
+    has_errors:=true;
   end
  else
    WriteLn(s+'Success.');
@@ -271,7 +272,7 @@ Begin
  if Attr and VolumeID<> 0 then
   Begin
     WriteLn(s+'FAILURE. Volume Attribute set.');
-    halt(1);
+    has_errors:=true;
   end
  else
    WriteLn(s+'Success.');
@@ -309,11 +310,16 @@ Begin
   MkDir(TestDir);
   testfattr1;
   testfattr;
+  if has_errors then
+    halt(1);
 end.
 {
   $Log$
-  Revision 1.1  2002-11-08 21:01:18  carl
+  Revision 1.2  2002-11-18 09:49:49  pierre
+   * tried to make as many as possible tests non interactive
+
+  Revision 1.1  2002/11/08 21:01:18  carl
     * separated some tests
     * make tfexpand more portable
 
-}  
+}

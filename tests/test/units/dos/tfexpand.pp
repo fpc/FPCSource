@@ -182,7 +182,14 @@ begin
  Check (TestDrive + '.' + DirSep + '.', CurDir);
  Check (TestDrive + '.' + DirSep + '..', TestDir + 'TESTDIR1');
 {$I-}
+{$ifndef unix}
+ { avoid a and b drives for
+   no unix systems to reduce the
+   probablility of getting an alert message box }
+ I := 3;
+{$else unix}
  I := 1;
+{$endif unix}
  repeat
   S := '';
   GetDir (I, S);

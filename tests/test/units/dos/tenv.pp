@@ -8,6 +8,10 @@ Program tenv;
 uses dos;
 
 
+const
+  has_errors : boolean = false;
+
+
 { verifies that the DOSError variable is equal to }
 { the value requested.                            }
 Procedure CheckDosError(err: Integer);
@@ -33,7 +37,7 @@ Procedure CheckDosError(err: Integer);
   if err <> x then
     Begin
       WriteLn('FAILURE. (Value should be ',err,' '+s+')');
-      Halt(1);
+      has_errors:=true;
     end
   else
     WriteLn('Success.');
@@ -74,12 +78,17 @@ end;
 
 Begin
   TestEnvCount;
+  if has_errors then
+    Halt(1);
 end.
 
 {
   $Log$
-  Revision 1.1  2002-11-08 21:01:18  carl
+  Revision 1.2  2002-11-18 09:49:49  pierre
+   * tried to make as many as possible tests non interactive
+
+  Revision 1.1  2002/11/08 21:01:18  carl
     * separated some tests
     * make tfexpand more portable
 
-}  
+}

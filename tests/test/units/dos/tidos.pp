@@ -1,3 +1,4 @@
+{ %INTERACTIVE }
 {
   $Id$
 
@@ -22,9 +23,6 @@ uses dos;
 {$DEFINE NOEXESUFFIX}
 {$endif}
 
-const
-  exedir : string = '';
-
 procedure TestInfo;
 var
   dt    : DateTime;
@@ -45,6 +43,8 @@ begin
   UnpackTime(ptime,DT);
   writeln('Unpacked again (MM-DD-YYYY) ',Dt.Month,'-',Dt.Day,'-',Dt.Year,'  ',Dt.Hour,':',Dt.Min,':',Dt.Sec);
   writeln;
+  write('Press Enter');
+  Readln;
 end;
 
 
@@ -60,9 +60,12 @@ begin
   writeln('GetEnv HOST : ',GetEnv('HOST'));
   writeln('GetEnv PATH : ',GetEnv('PATH'));
   writeln('GetEnv SHELL: ',GetEnv('SHELL'));
-  write(' all Environment Strings using EnvStr()');
+  write('Press Enter for all Environment Strings using EnvStr()');
+  Readln;
   for i:=1 to EnvCount do
    writeln(EnvStr(i));
+  write('Press Enter');
+  Readln;
 end;
 
 
@@ -71,16 +74,19 @@ begin
   writeln;
   writeln('Exec Functions');
   writeln('**************');
-  write('Going to Exec of ''hello -good -day''');
+  write('Press Enter for an Exec of ''hello -good -day''');
+  Readln;
   SwapVectors;
 {$ifdef noexesuffix}
-  Exec(exedir+'hello','-good -day');
+  Exec('hello','-good -day');
 {$else}
-  Exec(exedir+'hello.exe','-good -day');
+  Exec('hello.exe','-good -day');
 {$endif}
   SwapVectors;
   writeln('Exit should be 213 : ',DosExitCode);
   writeln('Error code should be 0 : ',DosError);
+  write('Press Enter');
+  Readln;
 end;
 
 
@@ -95,13 +101,14 @@ begin
   writeln('**************');
   writeln('DiskFree 0 : ',DiskFree(0));
   writeln('DiskSize 0 : ',DiskSize(0));
-  {writeln('DiskSize 1 : ',DiskSize(1)); this is a: on dos  ??! }
+  writeln('DiskSize 1 : ',DiskSize(1)); { this is a: on dos  ??! }
   writeln('DiskSize 3 : ',DiskSize(3)); { this is c: on dos }
 {$IFDEF Unix}
   AddDisk('/fd0');
   writeln('DiskSize 4 : ',DiskSize(4));
 {$ENDIF}
-  write('FindFirst/FindNext Test');
+  write('Press Enter for FindFirst/FindNext Test');
+  Readln;
 
   FindFirst('*.*',$20,Dir);
   while (DosError=0) do
@@ -110,6 +117,8 @@ begin
      Writeln(dir.Name,' ',dir.Size,' ',DT.Year,'-',DT.Month,'-',DT.Day);
      FindNext(Dir);
    end;
+  write('Press Enter');
+  Readln;
 end;
 
 
@@ -172,15 +181,13 @@ begin
 
   Writeln('Empty FSearch (should return empty string):',FSearch('',test));
 
+  write('Press Enter');
+  Readln;
 end;
 
 
-var
-  name,dir,ext : string;
 
 begin
-  FSplit(paramstr(0),dir,name,ext);
-  exedir:=dir;
   TestInfo;
   TestEnvironment;
   TestExec;
@@ -190,7 +197,7 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-11-18 09:49:49  pierre
+  Revision 1.1  2002-11-18 09:49:49  pierre
    * tried to make as many as possible tests non interactive
 
   Revision 1.7  2002/10/20 11:47:39  carl

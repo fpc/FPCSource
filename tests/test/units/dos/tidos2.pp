@@ -1,3 +1,4 @@
+{ %INTERACTIVE }
 {******************************************}
 {  Used to check the DOS unit              }
 {------------------------------------------}
@@ -78,17 +79,14 @@ CONST
  TestFName1 = 'TESTFILE';    { CASE SENSITIVE DON'T TOUCH! }
  TestDir = 'MYDIR';          { CASE SENSITIVE DON'T TOUCH! }
  TestExt   = 'DAT';
- has_errors : boolean = false;
 
 
 Procedure PauseScreen;
 var
  ch: char;
 Begin
- { this is the non-interacting version
-   so we disable this
  WriteLn('-- Press any key --');
- ReadLn;}
+ ReadLn;
 end;
 
 { verifies that the DOSError variable is equal to }
@@ -116,7 +114,6 @@ Procedure CheckDosError(err: Integer);
   if err <> x then
     Begin
       WriteLn('FAILURE. (Value should be ',err,' '+s+')');
-      has_errors:=true;
     end
   else
     WriteLn('Success.');
@@ -681,13 +678,11 @@ Begin
  TestSplit;
  RmDir(TestDir);
  PauseScreen;
- if has_errors then
-   halt(1);
 end.
 
 {
   $Log$
-  Revision 1.9  2002-11-18 09:49:49  pierre
+  Revision 1.1  2002-11-18 09:49:49  pierre
    * tried to make as many as possible tests non interactive
 
   Revision 1.8  2002/11/08 21:01:18  carl
