@@ -72,7 +72,6 @@ var
   HInstance,
   MainInstance,
   cmdshow     : longint;
-  IsLibrary,IsMultiThreaded,IsConsole : boolean;
   DLLreason,DLLparam:longint;
   Win32StackTop : Dword;
 { Thread count for DLL }
@@ -1325,7 +1324,11 @@ end.
 
 {
   $Log$
-  Revision 1.64  2000-05-08 13:25:34  peter
+  Revision 1.65  2000-06-22 18:39:14  peter
+    * moved islibrary,isconsole,ismulithread to systemh as they are
+      os independent
+
+  Revision 1.64  2000/05/08 13:25:34  peter
     * defined filemode constants in windows unit
 
   Revision 1.63  2000/03/31 23:21:19  pierre

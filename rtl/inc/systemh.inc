@@ -157,6 +157,8 @@ var
   StackBottom,
   LowestStack,
   RandSeed    : Cardinal;
+{ Delphi compatible }
+  IsLibrary,IsMultiThreaded,IsConsole : boolean;
 
 
 {****************************************************************************
@@ -443,7 +445,11 @@ const
 
 {
   $Log$
-  Revision 1.84  2000-06-22 18:05:56  michael
+  Revision 1.85  2000-06-22 18:41:25  peter
+    * moved islibrary,isconsole,ismulithread to systemh as they are
+      os independent
+
+  Revision 1.84  2000/06/22 18:05:56  michael
   + Modifications for exception support in sysutils. Mainly added
      RaiseList function.
 
