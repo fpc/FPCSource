@@ -1621,8 +1621,7 @@ Begin
       else
         Begin
           Message(asmr_e_syntax_error);
-          { error recovery }
-          Consume(actasmtoken);
+          RecoverConsume(false);
         end;
     end; { end case }
   until false;
@@ -1658,7 +1657,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37.2.2  1999-06-22 14:20:22  peter
+  Revision 1.37.2.3  1999-06-28 15:52:36  peter
+    * better recovery in main loop
+
+  Revision 1.37.2.2  1999/06/22 14:20:22  peter
     * fixed parsing and writing of fpureg
 
   Revision 1.37.2.1  1999/06/21 16:43:00  peter
