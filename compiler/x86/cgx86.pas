@@ -1477,22 +1477,21 @@ unit cgx86;
 
 
     procedure tcgx86.g_exception_reason_save(list : taasmoutput; const href : treference);
+      begin
+        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG));
+      end;
 
-    begin
-        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FUNCTION_RESULT_REG));
-    end;
 
     procedure tcgx86.g_exception_reason_save_const(list : taasmoutput;const href : treference; a: aword);
+      begin
+        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a));
+      end;
 
-    begin
-        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_ADDR],a));
-    end;
 
     procedure tcgx86.g_exception_reason_load(list : taasmoutput; const href : treference);
-
-    begin
-        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FUNCTION_RESULT_REG));
-    end;
+      begin
+        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG));
+      end;
 
 
 {****************************************************************************
@@ -1781,7 +1780,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.113  2004-02-22 16:48:10  florian
+  Revision 1.114  2004-02-22 18:27:21  florian
+    * fixed exception reason size for 64 bit systems
+
+  Revision 1.113  2004/02/22 16:48:10  florian
     * x86_64 uses generic concatcopy_valueopenarray for now
 
   Revision 1.112  2004/02/21 19:46:37  florian

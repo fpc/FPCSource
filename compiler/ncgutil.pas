@@ -321,7 +321,7 @@ implementation
          if not onlyfree then
           begin
             cg.g_exception_reason_load(list, href);
-            cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
+            cg.a_cmp_const_reg_label(list,OS_INT,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
           end;
      end;
 
@@ -2141,7 +2141,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.192  2004-02-08 17:48:59  jonas
+  Revision 1.193  2004-02-22 18:27:21  florian
+    * fixed exception reason size for 64 bit systems
+
+  Revision 1.192  2004/02/08 17:48:59  jonas
     * fixed regvars
 
   Revision 1.191  2004/02/05 19:35:27  florian

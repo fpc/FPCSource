@@ -321,39 +321,7 @@ uses
       LOC_CSSEREGISTER = LOC_CMMREGISTER;
 
       max_operands = 3;
-
       maxfpuregs = 8;
-
-(*
-      { low and high of the available maximum width integer general purpose }
-      { registers                                                            }
-      LoGPReg = RS_EAX;
-      HiGPReg = RS_EDX;
-
-      { Table of registers which can be allocated by the code generator
-        internally, when generating the code.
-      }
-      { legend:                                                                }
-      { xxxregs = set of all possibly used registers of that type in the code  }
-      {           generator                                                    }
-      { usableregsxxx = set of all 32bit components of registers that can be   }
-      {           possible allocated to a regvar or using getregisterxxx (this }
-      {           excludes registers which can be only used for parameter      }
-      {           passing on ABI's that define this)                           }
-      { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
-//      maxintregs = 4;
-//      intregs = [R_EAX..R_BL]-[R_ESI,R_SI];
-      { to determine how many registers to use for regvars }
-      maxintscratchregs = 1;
-
-      maxfpuregs = 8;
-      usableregsfpu = [];
-      c_countusableregsfpu = 0;
-
-      usableregsmm = [RS_MM0..RS_MM7];
-      c_countusableregsmm  = 8;
-*)
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -539,7 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2004-02-05 18:28:37  peter
+  Revision 1.41  2004-02-22 18:27:21  florian
+    * fixed exception reason size for 64 bit systems
+
+  Revision 1.40  2004/02/05 18:28:37  peter
     * x86_64 fixes for opsize
 
   Revision 1.39  2004/02/04 22:01:13  peter
