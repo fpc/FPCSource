@@ -105,9 +105,9 @@ general_f_no_memory_left=F_No queda memoria disponible
 % conditional compiling handling.
 % \begin{description}
 scan_f_end_of_file=F_Inesperado fin de fichero
-% this typically happens in on of the following cases :
+% this typically happens in one of the following cases :
 % \begin{itemize}
-% \item The source file ends befor then final \var{end.} statement. This
+% \item The source file ends before the final \var{end.} statement. This
 % happens mostly when the \var{begin} and \var{end} statements aren't
 % balanced;
 % \item An include file ends in the middle of a statement.
@@ -150,8 +150,8 @@ scan_f_cannot_open_input=F_No se puede abrir el fichero $1
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
 scan_f_cannot_open_includefile=F_No se puede abrir el fichero incluido $1
-% \fpc cannot find the source file you specified in a \var{\{\$include \}}
-% stateent.
+% \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
+% statement.
 scan_e_too_much_endifs=E_Demasiados $ENDIFs o $ELSEs
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_w_only_pack_records=W_Los campos de los Records pueden ser alinieados solo a 1,2,4 o 16 bytes
@@ -163,10 +163,10 @@ scan_w_only_pack_enum=W_Los enumerados solo pueden ser salvados en 1,2 o 4 bytes
 scan_e_endif_expected=E_$1 esperado para $2 definido en la l¡nea $3
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=E_Error de sintaxis mientras se procesaba una expresi¢n de compilaci¢n condicional
-% There is an error in the expression following the \var{\{\$if \}} compiler
+% There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
 scan_e_error_in_preproc_expr=E_Evaluando una expresi¢n de compilaci¢n condicional
-% There is an error in the expression following the \var{\{\$if \}} compiler
+% There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
 scan_w_marco_cut_after_255_chars=W_Los contenidos de la macro son cortados despu‚s del caracter 255 para evaluar la expresi¢n
 % The contents of macros canno be longer than 255 characters. This is a
@@ -237,9 +237,9 @@ scan_t_back_in=T_Vuelve en $1
 % reading an include file.
 scan_w_unsupported_app_type=W_Tipo de aplicaci¢n no soportada: $1
 % You get this warning, ff you specify an unknown application type
-% with the directive $APPTYPE
-scan_w_app_type_not_support=W_$APPTYPE no es soportado por el OS de destino
-% The $APPTYPE directive is supported by win32 applications only
+% with the directive \var{\{\$APPTYPE\}}
+scan_w_app_type_not_support=W_APPTYPE no es soportado por el OS de destino
+% The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
 scan_w_unsupported_asmmode_specifier=W_El estilo de asamblador especificado $1 no es soportado
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
@@ -281,7 +281,7 @@ parser_e_export_name_double=E_Los nombre de funciones exportadas de DLL no puede
 parser_e_export_ordinal_double=E_Los indices de funciones exportadas de DLL no pueden ser dobles $1
 % Exported function names inside a specific DLL must all be different
 parser_e_export_invalid_index=E_Indice no v lido para la funcion exportada de DLL
-% DLL function index must be in the range 1..$FFFF
+% DLL function index must be in the range \var{1..\$FFFF}
 parser_e_constructorname_must_be_init=E_El nombre del constructor tiene que ser INIT
 % You are declaring a constructor with a name which isn't \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
@@ -321,7 +321,7 @@ parser_object_has_no_vmt=E_El objeto $1 no tiene VMT
 parser_e_illegal_parameter_list=E_Lista de par metros ilegal
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_type=E_Tipo de par metro err¢neo especificado para el arg #$1
+parser_e_wrong_parameter_type=E_Tipo de par metro err¢neo especificado para el arg num. $1
 % There is an error in the parameter list of the function or procedure.
 % The compiler cannot determine the error more accurate than this.
 parser_e_wrong_parameter_size=E_Cantidad err¢nea de par metros
@@ -386,7 +386,7 @@ parser_w_no_new_dispose_on_void_pointers=W_el uso de NEW o DISPOSE para punteros
 parser_e_no_new_dispose_on_void_pointers=E_el uso de NEW o DISPOSE no es posible con punteros sin tipo
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
 % because no size is associated to an untyped pointer.
-% Accepted for compatibility in \var{tp} and \vat{delphi} modes.
+% Accepted for compatibility in \var{tp} and \var{delphi} modes.
 parser_e_class_id_expected=E_identificador de clase esperado
 % This happens when the compiler scans a procedure declaration that contains
 % a dot,
@@ -732,7 +732,7 @@ parser_e_ill_msg_param=E_Manejadores de mensajes solo pueden tomar una llamada p
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=E_Etiqueta de mensaje duplicada: %1
+parser_e_duplicate_message_label=E_Etiqueta de mensaje duplicada: $1
 % A label for a message is used twice in one object/class
 parser_e_self_in_non_message_handler=E_Self solo puede ser un par metro explicito en manejadores de mensajes
 % The self parameter can be passed only explicit if it is a method which
@@ -748,7 +748,8 @@ parser_f_direct_assembler_not_allowed=F_Ensamblador directo no soportado para fo
 % \end{description}
 parser_w_no_objpas_use_mode=W_No carges manuamente la unidad OBJPAS, usa {$mode objfpc} o {$mode delphi}
 % You're trying to load the ObjPas unit manual from a uses clause. This is
-% not a good idea to do, you can better use the {$mode objfpc} or {$mode delphi}
+% not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or
+% \var{\{\$mode delphi\}}
 % directives which load the unit automaticly
 parser_e_no_object_override=E_OVERRIDE no puede ser usado en objetos
 % Override isn't support for objects, use VIRTUAL instead to override
@@ -782,6 +783,7 @@ type_e_incompatible_types=E_Tipos incompatibles: cogi¢ "$1" esperado "$2"
 %    A1:=A2; { This statement gives also this error, it
 %              is due the strict type checking of pascal }
 % End.
+% \end{verbatim}
 type_e_not_equal_types=E_Desconcuerdo de tipos entre $1 y $2
 % The types are not equal
 type_e_integer_expr_expected=E_espression entera esperada
@@ -828,7 +830,7 @@ type_h_use_div_for_int=H_usa DIV para tener un resultado entero
 % When hints are on, then an integer division with the '/' operator will
 % procuce this message, because the result will then be of type real
 type_e_strict_var_string_violation=E_tipos string no concuerdan, a cause del modo $V+
-% When compiling in \var{\{\$V+ \}} mode, the string you pass as a parameter
+% When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
 type_e_succ_and_pred_enums_with_assign_not_possible=E_succ o pred en enumeraciones con asignaciones no es posible
 % When you declared an enumeration type which has assignments in it, as in C,
@@ -855,7 +857,7 @@ type_e_integer_or_real_expr_expected=E_Espresi¢n entera o real esperada
 type_e_wrong_type_in_array_constructor=E_Tipo err¢neo en constructor de array
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=E_Tipo incompatible para el arg. #$1: Cogi¢ $2, esperado $3
+type_e_wrong_parameter_type=E_Tipo incompatible para el arg. num. $1: Cogi¢ $2, esperado $3
 % You are trying to pass an invalid type for the specified parameter.
 % \end{description}
 type_e_no_method_and_procedure_not_compatible=E_M‚todo (variable) y Procedure (variable) no son compatibles
@@ -1004,6 +1006,9 @@ cg_e_parasize_too_big=E_La lista de par metros excede los 65535 bytes
 cg_e_illegal_type_conversion=E_Conversi¢n de tipos ilegal
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
+cg_d_pointer_to_longint_conv_not_portable=D_Conversiones entre ordinales y punteros no son portables entre plataformas
+% If you typecast a pointer to a longint, this code will not compile
+% on a machine using 64bit for pointer storage.
 cg_e_file_must_call_by_reference=E_Los tipos File tienen que ser par metros variables
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
@@ -1347,7 +1352,7 @@ option_only_one_source_support=W_Solo es soportado un fichero fuente
 option_def_only_for_os2=W_Fichero DEF solo puede ser creado para OS/2
 % This option can only be specified when you're compiling for OS/2
 option_no_nested_response_file=E_Ficheros de respuesta anidados no son soportados
-% you cannot nest response files with the \var {@file} command-line option.
+% you cannot nest response files with the \var{@file} command-line option.
 option_no_source_found=F_No hay fichero fuente en l¡nea de comandos
 % The compiler expects a source file name on the command line.
 option_illegal_para=E_Par metro ilegal: $1
@@ -1395,6 +1400,7 @@ option_obsolete_switch_use_new=E_Est s usando el conmutador obsoleto $1, porfavo
 option_switch_bin_to_src_assembler=N_Cambi ndo a ensamblador de escritura de c¢digo fuente por defecto
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
+%\end{description}
 # EndOfTeX
 #
 # Logo (option -l)
