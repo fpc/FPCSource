@@ -877,6 +877,17 @@ begin
     end;
     exitproc:=nil;
 
+{$ifdef MT}
+    if os_mode = os_OS2 then
+        begin
+            { allocate one ThreadVar entry from the OS, we use this entry }
+            { for a pointer to our threadvars                             }
+            DataIndex := TlsAlloc;
+            { the exceptions use threadvars so do this _before_ initexceptions }
+            AllocateThreadVars;
+        end;
+{$endif MT}
+
     {Initialize the heap.}
     initheap;
 
@@ -896,7 +907,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-13 21:23:38  hajny
+  Revision 1.5  2001-01-23 20:38:59  hajny
+    + beginning of the OS/2 version
+
+  Revision 1.4  2000/11/13 21:23:38  hajny
     * ParamStr (0) fixed
 
   Revision 1.3  2000/11/11 23:12:39  hajny
