@@ -20,14 +20,27 @@
 procedure SignalToRunerror(Sig: longint; SigContext: PSigContextRec); cdecl;
 
 var
-  res,fpustate : word;
+  res : word;
+{  fpustate: longint; }
 begin
   res:=0;
+  { exception flags are turned off by kernel }
+  fpc_enable_ppc_fpu_exceptions;
   case sig of
     SIGFPE :
         begin
-          { don't know how to find the different causes, maybe via xer? }
-          res := 207;
+{
+         fpscr is cleared by the kernel -> can't find out cause :(
+          fpustate := fpc_get_ppc_fpscr;
+          if (fpustate and ppc_fpu_underflow) <> 0 then
+            res := 206
+          else if (fpustate and ppc_fpu_overflow) <> 0 then
+            res := 205
+          else if (fpustate and ppc_fpu_divbyzero) <> 0 then
+            res := 200
+          else
+}
+            res := 207;
         end;
     SIGILL,
     SIGBUS,
@@ -41,7 +54,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-01-01 16:28:16  jonas
+  Revision 1.4  2004-01-02 17:57:16  jonas
+    * re-enable fpu exceptions in signal handler, they're turned off by the
+      kernel
+
+  Revision 1.3  2004/01/01 16:28:16  jonas
     * fixed signal handling
 
   Revision 1.2  2003/11/21 00:40:06  florian
