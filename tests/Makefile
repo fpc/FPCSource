@@ -804,7 +804,7 @@ endif
 units : units/$(FPCMADE)
 units/$(FPCMADE):
 	$(MAKE) -C units
-DOTEST=dotest$(EXEEXT)
+DOTEST=./dotest$(EXEEXT)
 $(DOTEST) : units utils/dotest.pp utils/redir.pp
 	$(FPC) -Fuunits -FE. utils/dotest
 testcheck: units $(DOTEST)
