@@ -1,0 +1,7 @@
+This unit contains the run time library for the PalmOS.
+
+Currently, no makefile is available, so you have to create
+the system unit by hand.
+
+The system unit contains only the really necessary declarations
+and the startup code.
