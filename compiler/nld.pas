@@ -560,6 +560,45 @@ implementation
         set_unique(left);
 
         resulttypepass(left);
+
+        if is_ansistring(left.resulttype.def) then
+          begin
+            { fold <ansistring>:=<ansistring>+<char|shortstring|ansistring> }
+            if (right.nodetype=addn) and
+               left.isequal(tbinarynode(right).left) and
+               { don't fold multiple concatenations else we could get trouble
+                 with multiple uses of s
+               }
+               (tbinarynode(right).left.nodetype<>addn) and
+               (tbinarynode(right).right.nodetype<>addn) then
+              begin
+                { don't do a resulttypepass(right), since then the addnode }
+                { may insert typeconversions that make this optimization   }
+                { opportunity quite difficult to detect (JM)               }
+                resulttypepass(tbinarynode(right).left);
+                resulttypepass(tbinarynode(right).right);
+                if (is_char(tbinarynode(right).right.resulttype.def) or
+                   is_shortstring(tbinarynode(right).right.resulttype.def) or
+                   is_ansistring(tbinarynode(right).right.resulttype.def)) then
+                  begin
+                    { remove property flag so it'll not trigger an error }
+                    exclude(left.flags,nf_isproperty);
+                    { generate call to helper }
+                    hp:=ccallparanode.create(tbinarynode(right).right,
+                      ccallparanode.create(left,nil));
+                    if is_char(tbinarynode(right).right.resulttype.def) then
+                      result:=ccallnode.createintern('fpc_ansistr_append_char',hp)
+                    else if is_shortstring(tbinarynode(right).right.resulttype.def) then
+                      result:=ccallnode.createintern('fpc_ansistr_append_shortstring',hp)
+                    else if is_ansistring(tbinarynode(right).right.resulttype.def) then
+                      result:=ccallnode.createintern('fpc_ansistr_append_ansistring',hp);
+                    tbinarynode(right).right:=nil;
+                    left:=nil;
+                    exit;
+                 end;
+              end;
+          end;
+
         resulttypepass(right);
         set_varstate(left,false);
         set_varstate(right,true);
@@ -585,38 +624,6 @@ implementation
            left:=nil;
            exit;
          end;
-
-         if is_ansistring(left.resulttype.def) then
-           begin
-              { fold <ansistring>:=<ansistring>+<char|shortstring|ansistring> }
-              if (right.nodetype=addn) and
-                left.isequal(tbinarynode(right).left) and
-                { don't fold multiple concatenations else we could get trouble
-                  with multiple uses of s
-                }
-                (tbinarynode(right).left.nodetype<>addn) and
-                (tbinarynode(right).right.nodetype<>addn) and
-                (is_char(tbinarynode(right).right.resulttype.def) or
-                 is_shortstring(tbinarynode(right).right.resulttype.def) or
-                 is_ansistring(tbinarynode(right).right.resulttype.def)
-                ) then
-                begin
-                   { remove property flag so it'll not trigger an error }
-                   exclude(left.flags,nf_isproperty);
-                   { generate call to helper }
-                   hp:=ccallparanode.create(tbinarynode(right).right,
-                     ccallparanode.create(left,nil));
-                   if is_char(tbinarynode(right).right.resulttype.def) then
-                     result:=ccallnode.createintern('fpc_ansistr_append_char',hp)
-                   else if is_shortstring(tbinarynode(right).right.resulttype.def) then
-                     result:=ccallnode.createintern('fpc_ansistr_append_shortstring',hp)
-                   else if is_ansistring(tbinarynode(right).right.resulttype.def) then
-                     result:=ccallnode.createintern('fpc_ansistr_append_ansistring',hp);
-                   tbinarynode(right).right:=nil;
-                   left:=nil;
-                   exit;
-                end;
-           end;
 
         { shortstring helpers can do the conversion directly,
           so treat them separatly }
@@ -1250,7 +1257,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-01-05 22:44:14  peter
+  Revision 1.80  2003-01-07 16:52:58  jonas
+    * fixed ansistring+char and ansistring+shortstring optimizations (those
+      cases were always handled as ansistring+ansistring due to
+      typeconversions inserted by the add-node)
+
+  Revision 1.79  2003/01/05 22:44:14  peter
     * remove a lot of code to support typen in loadn-procsym
 
   Revision 1.78  2003/01/03 12:15:56  daniel
