@@ -128,7 +128,9 @@ type
       procedure   SwitchBackToIDEScreen; virtual;
     private
       DosScreenBufferHandle,
-      IDEScreenBufferHandle : THandle;
+      IDEScreenBufferHandle,
+      StartScreenBufferHandle,
+      NewScreenBufferHandle : THandle;
       IDEActive : boolean;
       ConsoleMode,IdeMode      : Dword;
       procedure BufferCopy(src,dest : THandle);
@@ -583,6 +585,16 @@ end;
 
 {$ifdef win32}
 
+procedure UpdateFileHandles;
+begin
+  {StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));}
+  StdOutputHandle:=longint(GetStdHandle(STD_OUTPUT_HANDLE));
+  {StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));}
+  TextRec(Output).Handle:=StdOutputHandle;
+  TextRec(StdOut).Handle:=StdOutputHandle;
+  {TextRec(StdErr).Handle:=StdErrorHandle;}
+end;
+
 constructor TWin32Screen.Init;
 var
   SecurityAttr : Security_attributes;
@@ -597,36 +609,38 @@ begin
   SecurityAttr.nLength:=SizeOf(Security_attributes);
   SecurityAttr.lpSecurityDescriptor:=nil;
   SecurityAttr.bInheritHandle:=true;
-  DosScreenBufferHandle:=CreateConsoleScreenBuffer(
+  NewScreenBufferHandle:=CreateConsoleScreenBuffer(
     GENERIC_READ or GENERIC_WRITE,
     FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
     CONSOLE_TEXTMODE_BUFFER,nil);
-  IDEScreenBufferHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
+  StartScreenBufferHandle:=GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
   IdeMode:=ConsoleMode;
 {$ifdef debug}
 {define win32bigwin}
 {$endif debug}
 {$ifdef win32bigwin}
-  GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
+  GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
   BigWin.Y:=200;
   { Try to allow to store more info }
-  res:=SetConsoleScreenBufferSize(DosScreenBufferHandle,BigWin);
+  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,BigWin);
   if not res then
     error:=GetLastError;
-  res:=SetConsoleScreenBufferSize(IDEScreenBufferHandle,BigWin);
+  res:=SetConsoleScreenBufferSize(StartScreenBufferHandle,BigWin);
   if not res then
     error:=GetLastError;
 {$endif win32bigwin}
   { make sure that both Screen Handle have the sme buffer }
-  GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
+  GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
-  res:=SetConsoleScreenBufferSize(DosScreenBufferHandle,
+  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
          ConsoleScreenBufferInfo.dwSize);
   if not res then
     error:=GetLastError;
+  IDEScreenBufferHandle:=NewScreenBufferHandle;
+  DosScreenBufferHandle:=StartScreenBufferHandle;
   Capture;
   SwitchBackToIDEScreen;
 end;
@@ -635,10 +649,12 @@ destructor TWin32Screen.Done;
 begin
   { copy the Dos buffer content into the original ScreenBuffer
     which remains the startup std_output_handle PM }
-  BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle);
-  SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
-  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
-  CloseHandle(DosScreenBufferHandle);
+  {if StartScreenBufferHandle=IDEScreenBufferHandle then}
+    BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle);
+  SetConsoleActiveScreenBuffer(StartScreenBufferHandle);
+  SetStdHandle(Std_Output_Handle,StartScreenBufferHandle);
+  UpdateFileHandles;
+  CloseHandle(NewScreenBufferHandle);
   inherited Done;
 end;
 
@@ -813,7 +829,11 @@ end;
 
 procedure TWin32Screen.Capture;
 begin
-  BufferCopy(IDEScreenBufferHandle,DosScreenBufferHandle);
+  {if StartScreenBufferHandle=IdeScreenBufferHandle then
+    BufferCopy(IDEScreenBufferHandle,DosScreenBufferHandle)
+  else
+    BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle);}
+  SaveConsoleScreen;
 end;
 
 { dummy for win32 as the Buffer screen
@@ -828,6 +848,9 @@ end;
 procedure TWin32Screen.SaveConsoleScreen;
 begin
   GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
+  { set the IDE buffer as active already now PM }
+  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
+  UpdateFileHandles;
 end;
 
 procedure TWin32Screen.SwitchToConsoleScreen;
@@ -836,6 +859,7 @@ begin
   SetStdHandle(Std_Output_Handle,DosScreenBufferHandle);
   IDEActive:=false;
   SetConsoleMode(GetStdHandle(Std_Input_Handle), ConsoleMode);
+  UpdateFileHandles;
 end;
 
 procedure TWin32Screen.SwitchBackToIDEScreen;
@@ -848,7 +872,6 @@ begin
   GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
-  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
   IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT;
   SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
   WindowPos.left:=0;
@@ -909,7 +932,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-11-08 17:06:22  pierre
+  Revision 1.8  2002-01-22 16:29:52  pierre
+    * try to fix win32 problem with Dos program ouptut in command shell
+      Warning, to debug under win32 with GDB you must use "set new-console on"
+
+  Revision 1.7  2001/11/08 17:06:22  pierre
    * impose the correct size for win32 console window
 
   Revision 1.6  2001/11/08 16:38:25  pierre
