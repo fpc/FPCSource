@@ -64,7 +64,10 @@ implementation
         location_force_fpureg(exprasmlist,left.location,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
-          location.register:=rg.getregisterfpu(exprasmlist,location.size);
+          begin
+           location.register:=rg.getregisterfpu(exprasmlist,location.size);
+           location.loc := LOC_FPUREGISTER;
+         end;
       end;
 
 
@@ -120,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-06-01 21:38:07  peter
+  Revision 1.5  2003-06-13 17:05:24  jonas
+    * fixed small LOC_(C)FPUREGISTER bug
+
+  Revision 1.4  2003/06/01 21:38:07  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
