@@ -167,6 +167,7 @@ type
     TSourceWindow = object(TFPWindow)
       Editor    : PSourceEditor;
       Indicator : PIndicator;
+      NoNameCount : longint;
       constructor Init(var Bounds: TRect; AFileName: string);
       function    GetTitle(MaxSize: sw_Integer): TTitleStr; virtual;
       procedure   SetTitle(ATitle: string); virtual;
@@ -605,7 +606,7 @@ const
      Store:   @TDisassemblyWindow.Store
   );
 const
-  NoNameCount    : integer = 0;
+  GlobalNoNameCount : integer = 0;
 var
   ReservedWords  : array[1..ReservedWordMaxLen] of PStringCollection;
   AsmReservedWords  : array[1..ReservedWordMaxLen] of PStringCollection;
@@ -1692,7 +1693,12 @@ begin
   GetExtent(R); R.Grow(-1,-1);
   LoadFile:=AFileName<>'';
   if not LoadFile then
-     begin SetTitle('noname'+IntToStrZ(NonameCount,2)+'.pas'); Inc(NonameCount); end;
+    begin
+      Inc(GlobalNoNameCount);
+      NoNameCount:=GlobalNoNameCount;
+    end
+  else
+    NoNameCount:=0;
   New(Editor, Init(R, HSB, VSB, Indicator,AFileName));
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   if LoadFile then
@@ -1719,15 +1725,19 @@ var Name: string;
     Count: sw_integer;
 begin
   if Editor^.FileName<>'' then
-  begin
-    Name:=SmartPath(Editor^.FileName);
-    Count:=Editor^.Core^.GetBindingCount;
-    if Count>1 then
     begin
-      Name:=Name+':'+IntToStr(Editor^.Core^.GetBindingIndex(Editor)+1);
+      Name:=SmartPath(Editor^.FileName);
+      Count:=Editor^.Core^.GetBindingCount;
+      if Count>1 then
+      begin
+        Name:=Name+':'+IntToStr(Editor^.Core^.GetBindingIndex(Editor)+1);
+      end;
+      SetTitle(Name);
+    end
+  else if NoNameCount>0 then
+    begin
+      SetTitle('noname'+IntToStrZ(NonameCount,2)+'.pas');
     end;
-    SetTitle(Name);
-  end;
 end;
 
 function TSourceWindow.GetTitle(MaxSize: sw_Integer): TTitleStr;
@@ -2393,6 +2403,8 @@ var R: TRect;
 begin
   Desktop^.GetExtent(R);
   inherited Init(R, '');
+  NoNameCount:=0;
+  Dec(GlobalNoNameCount);
   SetTitle(dialog_clipboard);
   HelpCtx:=hcClipboardWindow;
   Number:=wnNoNumber;
@@ -4218,7 +4230,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2002-06-13 11:52:01  pierre
+  Revision 1.24  2002-08-26 13:00:08  pierre
+   * fix bug report 2094 by restoring nonamexx.pas name if file name is incorrect
+
+  Revision 1.23  2002/06/13 11:52:01  pierre
    * try to avoid crash with fvision library
 
   Revision 1.22  2002/06/13 10:54:54  pierre
