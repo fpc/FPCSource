@@ -356,17 +356,6 @@ type
                         parms : pchar;
                        end;
 
-{
-int i386_get_ldt __P((int, union descriptor *, int));
-int i386_set_ldt __P((int, union descriptor *, int));
-int i386_get_ioperm __P((unsigned int, unsigned int *, int *));
-int i386_set_ioperm __P((unsigned int, unsigned int, int));
-int i386_vm86 __P((int, void *));
-int i386_set_watch __P((int watchnum, unsigned int watchaddr, int size,
-                        int access, struct dbreg * d));
-int i386_clr_watch __P((int watchnum, struct dbreg * d));
-}
-
 Function fpIOPerm(From,Num:CARDINAL;Value:cint):cint;
 
 var sg : i386_ioperm_args;
@@ -395,7 +384,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2005-02-05 10:44:01  marco
+  Revision 1.6  2005-02-05 20:07:19  michael
+  + Fix for compilation with version 1.0.10
+
+  Revision 1.5  2005/02/05 10:44:01  marco
    * FreeBSD ioperm fixes backported from 1.0
 
   Revision 1.4  2005/02/05 08:42:24  marco
