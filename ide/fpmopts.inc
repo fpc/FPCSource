@@ -441,23 +441,16 @@ var R,R2,R3: TRect;
     D: PCenterDialog;
     RB,RB2 : PRadioButtons;
     CBStrip: PCheckBoxes;
-{$ifdef CrossGDB}
-    IL: PInputLine;
-{$else not CrossGDB}
 {$ifdef win32}
     CB2: PCheckBoxes;
 {$endif win32}
 {$ifdef Unix}
     IL: PInputLine;
 {$endif Unix}
-{$endif not CrossGDB}
     IL2: PInputLine;
     L,I: longint;
     Items: PSItem;
 const
-{$ifdef CrossGDB}
-  OtherFieldLines = 3;
-{$else not CrossGDB}
 {$ifdef win32}
   OtherFieldLines = 3;
 {$else not win32}
@@ -467,7 +460,6 @@ const
   OtherFieldLines = 0;
 {$endif Unix}
 {$endif win32}
-{$endif not CrossGDB}
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+1+2
       +ProfileInfoSwitches^.ItemCount+2+2+1+OtherFieldLines);
@@ -517,14 +509,6 @@ begin
     Insert(New(PHistory, Init(R3, IL2, hidCompilerArgs)));
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
-{$ifdef CrossGDB}
-    R2.Move(0,4);
-    New(IL, Init(R2, 255));
-    IL^.Data^:=RemoteMachine;
-    Insert(IL);
-    R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2,label_debugger_remote_machine, IL)));
-{$else not CrossGDB}
 {$ifdef win32}
     R2.Move(0,4);
     New(CB2,Init(R2,NewSItem(label_debugger_useanotherconsole, nil)));
@@ -545,7 +529,6 @@ begin
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_useanothertty, IL)));
 {$endif win32}
-{$endif CrossGDB}
   end;
   InsertButtons(D);
   RB^.Select;
@@ -555,9 +538,6 @@ begin
     ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
     OtherLinkerSwitches^.SetBooleanItem(0,CBStrip^.Mark(0));
     CustomArg[SwitchesMode]:=IL2^.Data^;
-{$ifdef CrossGDB}
-    RemoteMachine:=IL^.Data^;
-{$else not CrossGDB}
 {$ifdef win32}
     if CB2^.value<>0 then
       DebuggeeTTY:='on'
@@ -567,12 +547,93 @@ begin
 {$ifdef Unix}
     DebuggeeTTY:=IL^.Data^;
 {$endif Unix}
-{$endif CrossGDB}
   end;
   Dispose(D, Done);
 end;
 
 
+{$ifdef SUPPORT_REMOTE}
+procedure TIDEApp.DoRemote;
+
+var R,R2: TRect;
+    IL1,IL2,IL3,IL4,IL5,IL6: PInputLine;
+    D: PCenterDialog;
+const
+  FieldLines = 6;
+begin
+{
+     RemoteMachine : string = '';
+     RemotePort : string = '2345';
+     RemoteConfig : string = '';
+     RemoteIdent : string = '';
+     RemoteDir : string = '';
+     RemoteSendCommand : string = 'scp $CONFIG $IDENT $LOCALFILE $REMOTEMACHINE:$REMOTEDIR';
+
+}
+  R.Assign(0,0,60,2+2*FieldLines+2);
+  New(D, Init(R, dialog_remote));
+  with D^ do
+    begin
+      HelpCtx:=hcremotedialog;
+      GetExtent(R); R.Grow(-3,-1);
+      R2.Copy(R);
+      R2.B.Y:=R2.A.Y+1;
+      { remote machine name }
+      R2.Move(0,3);
+      New(IL1, Init(R2, 255));
+      IL1^.Data^:=RemoteMachine;
+      Insert(IL1);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_machine, IL1)));
+      { remote machine port }
+      R2.Move(0,3);
+      New(IL2, Init(R2, 255));
+      IL2^.Data^:=RemotePort;
+      Insert(IL2);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_port, IL2)));
+      { remote machine dir }
+      R2.Move(0,3);
+      New(IL3, Init(R2, 255));
+      IL3^.Data^:=RemoteDir;
+      Insert(IL3);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_dir, IL3)));
+      { remote machine config }
+      R2.Move(0,3);
+      New(IL4, Init(R2, 255));
+      IL4^.Data^:=RemoteConfig;
+      Insert(IL4);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_config, IL4)));
+      { remote machine ident }
+      R2.Move(0,3);
+      New(IL5, Init(R2, 255));
+      IL5^.Data^:=RemoteIdent;
+      Insert(IL5);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_ident, IL5)));
+      { remote machine command  }
+      R2.Move(0,3);
+      New(IL6, Init(R2, 255));
+      IL6^.Data^:=RemoteSendCommand;
+      Insert(IL6);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_command, IL6)));
+    end;
+  InsertButtons(D);
+  if Desktop^.ExecView(D)=cmOK then
+  begin
+    RemoteMachine:=IL1^.Data^;
+    RemotePort:=IL2^.Data^;
+    RemoteDir:=IL3^.Data^;
+    RemoteConfig:=IL4^.Data^;
+    RemoteIdent:=IL5^.Data^;
+    RemoteSendCommand:=IL6^.Data^;
+  end;
+  Dispose(D, Done);
+end;
+{$endif SUPPORT_REMOTE}
 
 procedure TIDEApp.Directories;
 var R,R2: TRect;
@@ -1306,7 +1367,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-11-21 00:37:56  pierre
+  Revision 1.10  2002-11-28 12:56:23  pierre
+   + Remote dialog added
+
+  Revision 1.9  2002/11/21 00:37:56  pierre
    + some cross gdb enhancements
 
   Revision 1.8  2002/09/07 15:40:44  peter
