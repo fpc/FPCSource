@@ -173,11 +173,16 @@ implementation
          counter   : longint;
          ppn       : tcallparanode;
          dummycoll : tparaitem;
-         isreal    : boolean;
          vl,vl2    : longint;
          vr        : bestreal;
-         hp        :  tnode;
+         hp        : tnode;
          srsym     : tsym;
+         p1,hpp    : tnode;
+         frac_para,
+         length_para : tnode;
+         isreal,
+         iswrite,
+         file_is_typed : boolean;
       label
          myexit;
       begin
@@ -725,11 +730,189 @@ implementation
               in_writeln_x :
                 begin
                   resulttype:=voidtype;
+               { we must know if it is a typed file or not }
+               { but we must first do the firstpass for it }
+               file_is_typed:=false;
+               if assigned(left) then
+                 begin
+                    iswrite:=(inlinenumber in [in_write_x,in_writeln_x]);
+                    set_varstate(left,iswrite);
+                    { now we can check }
+                    hp:=left;
+                    while assigned(tcallparanode(hp).right) do
+                      hp:=tcallparanode(hp).right;
+                    { if resulttype.def is not assigned, then automatically }
+                    { file is not typed.                             }
+                    if assigned(hp) and assigned(hp.resulttype.def) then
+                      Begin
+                        if (hp.resulttype.def.deftype=filedef) then
+                        if (tfiledef(hp.resulttype.def).filetyp=ft_untyped) then
+                          begin
+                           if (inlinenumber in [in_readln_x,in_writeln_x]) then
+                             CGMessage(type_e_no_readln_writeln_for_typed_file)
+                           else
+                             CGMessage(type_e_no_read_write_for_untyped_file);
+                          end
+                        else if (tfiledef(hp.resulttype.def).filetyp=ft_typed) then
+                         begin
+                           file_is_typed:=true;
+                           { test the type }
+                           if (inlinenumber in [in_readln_x,in_writeln_x]) then
+                             CGMessage(type_e_no_readln_writeln_for_typed_file);
+                           hpp:=left;
+                           while (hpp<>hp) do
+                            begin
+                              if (tcallparanode(hpp).left.nodetype=typen) then
+                                CGMessage(type_e_cant_read_write_type);
+                              if not is_equal(hpp.resulttype.def,tfiledef(hp.resulttype.def).typedfiletype.def) then
+                                CGMessage(type_e_mismatch);
+                              { generate the high() value for the shortstring }
+                              if ((not iswrite) and is_shortstring(tcallparanode(hpp).left.resulttype.def)) or
+                                 (is_chararray(tcallparanode(hpp).left.resulttype.def)) then
+                                tcallparanode(hpp).gen_high_tree(true);
+                              { read(ln) is call by reference (JM) }
+                              if not iswrite then
+                                make_not_regable(tcallparanode(hpp).left);
+                              hpp:=tcallparanode(hpp).right;
+                            end;
+                         end;
+                      end; { endif assigned(hp) }
+
+                    { insert type conversions for write(ln) }
+                    if (not file_is_typed) then
+                      begin
+                         hp:=left;
+                         while assigned(hp) do
+                           begin
+                             if (tcallparanode(hp).left.nodetype=typen) then
+                               CGMessage(type_e_cant_read_write_type);
+                             if assigned(tcallparanode(hp).left.resulttype.def) then
+                               begin
+                                 isreal:=false;
+                                 { support writeln(procvar) }
+                                 if (tcallparanode(hp).left.resulttype.def.deftype=procvardef) then
+                                  begin
+                                    p1:=ccallnode.create(nil,nil,nil,nil);
+                                    tcallnode(p1).set_procvar(tcallparanode(hp).left);
+                                    resulttypepass(p1);
+                                    tcallparanode(hp).left:=p1;
+                                  end;
+                                 case tcallparanode(hp).left.resulttype.def.deftype of
+                                   filedef :
+                                     begin
+                                       { only allowed as first parameter }
+                                       if assigned(tcallparanode(hp).right) then
+                                         CGMessage(type_e_cant_read_write_type);
+                                     end;
+                                   stringdef :
+                                     begin
+                                       { generate the high() value for the shortstring }
+                                       if (not iswrite) and
+                                          is_shortstring(tcallparanode(hp).left.resulttype.def) then
+                                         tcallparanode(hp).gen_high_tree(true);
+                                     end;
+                                   pointerdef :
+                                     begin
+                                       if not is_pchar(tcallparanode(hp).left.resulttype.def) then
+                                         CGMessage(type_e_cant_read_write_type);
+                                     end;
+                                   floatdef :
+                                     begin
+                                       isreal:=true;
+                                     end;
+                                   orddef :
+                                     begin
+                                       case torddef(tcallparanode(hp).left.resulttype.def).typ of
+                                         uchar,
+                                         u32bit,s32bit,
+                                         u64bit,s64bit:
+                                           ;
+                                         u8bit,s8bit,
+                                         u16bit,s16bit :
+                                           if iswrite then
+                                             inserttypeconv(tcallparanode(hp).left,s32bittype);
+                                         bool8bit,
+                                         bool16bit,
+                                         bool32bit :
+                                           if iswrite then
+                                             inserttypeconv(tcallparanode(hp).left,booltype)
+                                           else
+                                             CGMessage(type_e_cant_read_write_type);
+                                         else
+                                           CGMessage(type_e_cant_read_write_type);
+                                       end;
+                                     end;
+                                   arraydef :
+                                     begin
+                                       if is_chararray(tcallparanode(hp).left.resulttype.def) then
+                                         tcallparanode(hp).gen_high_tree(true)
+                                       else
+                                         CGMessage(type_e_cant_read_write_type);
+                                     end;
+                                   else
+                                     CGMessage(type_e_cant_read_write_type);
+                                 end;
+
+                                 { some format options ? }
+                                 if cpf_is_colon_para in tcallparanode(hp).callparaflags then
+                                   begin
+                                      if cpf_is_colon_para in tcallparanode(tcallparanode(hp).right).callparaflags then
+                                        begin
+                                           frac_para:=hp;
+                                           length_para:=tcallparanode(hp).right;
+                                           hp:=tcallparanode(hp).right;
+                                           hpp:=tcallparanode(hp).right;
+                                        end
+                                      else
+                                        begin
+                                           length_para:=hp;
+                                           frac_para:=nil;
+                                           hpp:=tcallparanode(hp).right;
+                                        end;
+                                      { can be nil if you use "write(e:0:6)" while e is undeclared (JM) }
+                                      if assigned(tcallparanode(hpp).left.resulttype.def) then
+                                        isreal:=(tcallparanode(hpp).left.resulttype.def.deftype=floatdef)
+                                      else
+                                        exit;
+                                      if (not is_integer(tcallparanode(length_para).left.resulttype.def)) then
+                                       CGMessage1(type_e_integer_expr_expected,tcallparanode(length_para).left.resulttype.def.typename)
+                                     else
+                                       inserttypeconv(tcallparanode(length_para).left,s32bittype);
+                                     if assigned(frac_para) then
+                                       begin
+                                         if isreal then
+                                          begin
+                                            if (not is_integer(tcallparanode(frac_para).left.resulttype.def)) then
+                                              CGMessage1(type_e_integer_expr_expected,tcallparanode(frac_para).left.resulttype.def.typename)
+                                            else
+                                              inserttypeconv(tcallparanode(frac_para).left,s32bittype);
+                                          end
+                                         else
+                                          CGMessage(parser_e_illegal_colon_qualifier);
+                                       end;
+                                     { do the checking for the colon'd arg }
+                                     hp:=length_para;
+                                   end;
+                               end;
+                              hp:=tcallparanode(hp).right;
+                           end;
+                      end;
+                    if codegenerror then
+                      exit;
+                    set_varstate(left,true);
+                 end;
                 end;
 
               in_settextbuf_file_x :
                 begin
                   resulttype:=voidtype;
+                  { now we know the type of buffer }
+                  srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
+                  hp:=ccallparanode.create(cordconstnode.create(tcallparanode(left).left.resulttype.def.size,s32bittype),left);
+                  hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
+                  left:=nil;
+                  resulttypepass(hp);
+                  result:=hp;
                 end;
 
               { the firstpass of the arg has been done in firstcalln ? }
@@ -744,11 +927,137 @@ implementation
                 begin
                   resulttype:=voidtype;
                   set_varstate(left,false);
+              { remove warning when result is passed }
+              set_funcret_is_valid(tcallparanode(left).left);
+              set_varstate(tcallparanode(tcallparanode(left).right).left,true);
+              hp:=left;
+              { valid string ? }
+              if not assigned(hp) or
+                 (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) or
+                 (tcallparanode(hp).right=nil) then
+                CGMessage(cg_e_illegal_expression);
+              { we need a var parameter }
+              valid_for_assign(tcallparanode(hp).left,false);
+              { generate the high() value for the shortstring }
+              if is_shortstring(tcallparanode(hp).left.resulttype.def) then
+                tcallparanode(hp).gen_high_tree(true);
+              { !!!! check length of string }
+              while assigned(tcallparanode(hp).right) do
+                hp:=tcallparanode(hp).right;
+              if not assigned(tcallparanode(hp).resulttype.def) then
+                exit;
+              { check and convert the first param }
+              if (cpf_is_colon_para in tcallparanode(hp).callparaflags) or
+                 not assigned(hp.resulttype.def) then
+                CGMessage(cg_e_illegal_expression);
+
+              isreal:=false;
+              case hp.resulttype.def.deftype of
+                orddef :
+                  begin
+                    case torddef(tcallparanode(hp).left.resulttype.def).typ of
+                      u32bit,s32bit,
+                      s64bit,u64bit:
+                        ;
+                      u8bit,s8bit,
+                      u16bit,s16bit:
+                        inserttypeconv(tcallparanode(hp).left,s32bittype);
+                      else
+                        CGMessage(type_e_integer_or_real_expr_expected);
+                    end;
+                  end;
+                floatdef :
+                  begin
+                    isreal:=true;
+                  end;
+                else
+                  CGMessage(type_e_integer_or_real_expr_expected);
+              end;
+
+              { some format options ? }
+              hpp:=tcallparanode(left).right;
+              if assigned(hpp) and (cpf_is_colon_para in tcallparanode(hpp).callparaflags) then
+                begin
+                  set_varstate(tcallparanode(hpp).left,true);
+                  if (not is_integer(tcallparanode(hpp).left.resulttype.def)) then
+                    CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def.typename)
+                  else
+                    inserttypeconv(tcallparanode(hpp).left,s32bittype);
+                  hpp:=tcallparanode(hpp).right;
+                  if assigned(hpp) and (cpf_is_colon_para in tcallparanode(hpp).callparaflags) then
+                    begin
+                      if isreal then
+                       begin
+                         if (not is_integer(tcallparanode(hpp).left.resulttype.def)) then
+                           CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def.typename)
+                         else
+                           begin
+                             set_varstate(tcallparanode(hpp).left,true);
+                             inserttypeconv(tcallparanode(hpp).left,s32bittype);
+                           end;
+                       end
+                      else
+                       CGMessage(parser_e_illegal_colon_qualifier);
+                    end;
+                end;
                 end;
 
               in_val_x :
                 begin
                   resulttype:=voidtype;
+              { check the amount of parameters }
+              if not(assigned(left)) or
+                 not(assigned(tcallparanode(left).right)) then
+               begin
+                 CGMessage(parser_e_wrong_parameter_size);
+                 exit;
+               end;
+              { there is a "code" parameter }
+              If Assigned(tcallparanode(tcallparanode(left).right).right) Then
+                Begin
+                   { first pass just the code parameter for first local use}
+                   hp := tcallparanode(left).right;
+                   tcallparanode(left).right := nil;
+                   make_not_regable(tcallparanode(left).left);
+                   set_varstate(left,false);
+                   if codegenerror then
+                    exit;
+                   tcallparanode(left).right := hp;
+                   { code has to be a var parameter }
+                   if valid_for_assign(tcallparanode(left).left,false) then
+                    begin
+                      if (tcallparanode(left).left.resulttype.def.deftype <> orddef) or
+                         not(torddef(tcallparanode(left).left.resulttype.def).typ in [u16bit,s16bit,u32bit,s32bit]) then
+                       CGMessage(type_e_mismatch);
+                    end;
+                   hpp := tcallparanode(left).right
+                End
+              Else
+                hpp := left;
+              { now hpp = the destination value tree }
+              { first pass just the destination parameter for first local use }
+              hp:=tcallparanode(hpp).right;
+              tcallparanode(hpp).right:=nil;
+              { hpp = destination }
+              make_not_regable(tcallparanode(hpp).left);
+              set_varstate(hpp,false);
+              if codegenerror then
+                exit;
+              { remove warning when result is passed }
+              set_funcret_is_valid(tcallparanode(hpp).left);
+              tcallparanode(hpp).right := hp;
+              if valid_for_assign(tcallparanode(hpp).left,false) then
+               begin
+                 If Not((tcallparanode(hpp).left.resulttype.def.deftype = floatdef) or
+                        is_integer(tcallparanode(hpp).left.resulttype.def)) then
+                   CGMessage(type_e_mismatch);
+               end;
+              { hp = source (String) }
+              { if not a stringdef then insert a type conv which
+                does the other type checking }
+              If (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) then
+               inserttypeconv(tcallparanode(hp).left,cshortstringtype);
+              set_varstate(hp,true);
                 end;
 
               in_include_x_y,
@@ -1000,6 +1309,13 @@ implementation
           end;
 
       myexit:
+        { Run get_paratype again to update maybe inserted typeconvs }
+        if not codegenerror then
+         begin
+           if assigned(left) and
+              (left.nodetype=callparan) then
+            tcallparanode(left).get_paratype;
+         end;
         dec(parsing_para_level);
       end;
 
@@ -1009,13 +1325,9 @@ implementation
 {$endif fpc}
     function tinlinenode.pass_1 : tnode;
       var
-         p1,hp,hpp  :  tnode;
-         srsym : tsym;
-{$ifndef NOCOLONCHECK}
-         frac_para,length_para : tnode;
-{$endif ndef NOCOLONCHECK}
+         srsym   : tsym;
+         hp,hpp  : tnode;
          extra_register,
-         isreal,
          iswrite,
          file_is_typed : boolean;
 
@@ -1202,50 +1514,18 @@ implementation
                if assigned(left) then
                  begin
                     iswrite:=(inlinenumber in [in_write_x,in_writeln_x]);
-                    tcallparanode(left).firstcallparan(nil,true);
-                    set_varstate(left,iswrite);
                     { now we can check }
                     hp:=left;
                     while assigned(tcallparanode(hp).right) do
                       hp:=tcallparanode(hp).right;
                     { if resulttype.def is not assigned, then automatically }
                     { file is not typed.                             }
-                    if assigned(hp) and assigned(hp.resulttype.def) then
+                    if assigned(hp) then
                       Begin
-                        if (hp.resulttype.def.deftype=filedef) then
-                        if (tfiledef(hp.resulttype.def).filetyp=ft_untyped) then
-                          begin
-                           if (inlinenumber in [in_readln_x,in_writeln_x]) then
-                             CGMessage(type_e_no_readln_writeln_for_typed_file)
-                           else
-                             CGMessage(type_e_no_read_write_for_untyped_file);
-                          end
-                        else if (tfiledef(hp.resulttype.def).filetyp=ft_typed) then
-                         begin
-                           file_is_typed:=true;
-                           { test the type }
-                           if (inlinenumber in [in_readln_x,in_writeln_x]) then
-                             CGMessage(type_e_no_readln_writeln_for_typed_file);
-                           hpp:=left;
-                           while (hpp<>hp) do
-                            begin
-                              if (tcallparanode(hpp).left.nodetype=typen) then
-                                CGMessage(type_e_cant_read_write_type);
-                              if not is_equal(hpp.resulttype.def,tfiledef(hp.resulttype.def).typedfiletype.def) then
-                                CGMessage(type_e_mismatch);
-                              { generate the high() value for the shortstring }
-                              if ((not iswrite) and is_shortstring(tcallparanode(hpp).left.resulttype.def)) or
-                                 (is_chararray(tcallparanode(hpp).left.resulttype.def)) then
-                                tcallparanode(hpp).gen_high_tree(true);
-                              { read(ln) is call by reference (JM) }
-                              if not iswrite then
-                                make_not_regable(tcallparanode(hpp).left);
-                              hpp:=tcallparanode(hpp).right;
-                            end;
-                         end;
+                        if (hp.resulttype.def.deftype=filedef) and
+                           (tfiledef(hp.resulttype.def).filetyp=ft_typed) then
+                          file_is_typed:=true;
                       end; { endif assigned(hp) }
-
-                    { insert type conversions for write(ln) }
                     if (not file_is_typed) then
                       begin
                          hp:=left;
@@ -1256,126 +1536,20 @@ implementation
 {$else}
                              incrementregisterpushed(ALL_REGISTERS);
 {$endif}
-                             if (tcallparanode(hp).left.nodetype=typen) then
-                               CGMessage(type_e_cant_read_write_type);
                              if assigned(tcallparanode(hp).left.resulttype.def) then
                                begin
-                                 isreal:=false;
-                                 { support writeln(procvar) }
-                                 if (tcallparanode(hp).left.resulttype.def.deftype=procvardef) then
-                                  begin
-                                    p1:=ccallnode.create(nil,nil,nil,nil);
-                                    tcallnode(p1).set_procvar(tcallparanode(hp).left);
-                                    firstpass(p1);
-                                    tcallparanode(hp).left:=p1;
-                                  end;
                                  case tcallparanode(hp).left.resulttype.def.deftype of
-                                   filedef :
-                                     begin
-                                       { only allowed as first parameter }
-                                       if assigned(tcallparanode(hp).right) then
-                                         CGMessage(type_e_cant_read_write_type);
-                                     end;
-                                   stringdef :
-                                     begin
-                                       { generate the high() value for the shortstring }
-                                       if (not iswrite) and
-                                          is_shortstring(tcallparanode(hp).left.resulttype.def) then
-                                         tcallparanode(hp).gen_high_tree(true);
-                                     end;
-                                   pointerdef :
-                                     begin
-                                       if not is_pchar(tcallparanode(hp).left.resulttype.def) then
-                                         CGMessage(type_e_cant_read_write_type);
-                                     end;
-                                   floatdef :
-                                     begin
-                                       isreal:=true;
-                                     end;
                                    orddef :
                                      begin
-                                       case torddef(tcallparanode(hp).left.resulttype.def).typ of
-                                         uchar,
-                                         u32bit,s32bit,
-                                         u64bit,s64bit:
-                                           ;
-                                         u8bit,s8bit,
-                                         u16bit,s16bit :
-                                           if iswrite then
-                                             tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,s32bittype);
-                                         bool8bit,
-                                         bool16bit,
-                                         bool32bit :
-                                           if iswrite then
-                                             tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,booltype)
-                                           else
-                                             CGMessage(type_e_cant_read_write_type);
-                                         else
-                                           CGMessage(type_e_cant_read_write_type);
-                                       end;
                                        if not(iswrite) and
-                                         not(is_64bitint(tcallparanode(hp).left.resulttype.def)) then
+                                          not(is_64bitint(tcallparanode(hp).left.resulttype.def)) then
                                          extra_register:=true;
                                      end;
-                                   arraydef :
-                                     begin
-                                       if is_chararray(tcallparanode(hp).left.resulttype.def) then
-                                         tcallparanode(hp).gen_high_tree(true)
-                                       else
-                                         CGMessage(type_e_cant_read_write_type);
-                                     end;
-                                   else
-                                     CGMessage(type_e_cant_read_write_type);
                                  end;
-
-                                 { some format options ? }
-                                 if cpf_is_colon_para in tcallparanode(hp).callparaflags then
-                                   begin
-                                      if cpf_is_colon_para in tcallparanode(tcallparanode(hp).right).callparaflags then
-                                        begin
-                                           frac_para:=hp;
-                                           length_para:=tcallparanode(hp).right;
-                                           hp:=tcallparanode(hp).right;
-                                           hpp:=tcallparanode(hp).right;
-                                        end
-                                      else
-                                        begin
-                                           length_para:=hp;
-                                           frac_para:=nil;
-                                           hpp:=tcallparanode(hp).right;
-                                        end;
-                                      { can be nil if you use "write(e:0:6)" while e is undeclared (JM) }
-                                      if assigned(tcallparanode(hpp).left.resulttype.def) then
-                                        isreal:=(tcallparanode(hpp).left.resulttype.def.deftype=floatdef)
-                                      else exit;
-                                      if (not is_integer(tcallparanode(length_para).left.resulttype.def)) then
-                                       CGMessage1(type_e_integer_expr_expected,tcallparanode(length_para).left.resulttype.def.typename)
-                                     else
-                                       tcallparanode(length_para).left:=ctypeconvnode.create(tcallparanode(length_para).left,s32bittype);
-                                     if assigned(frac_para) then
-                                       begin
-                                         if isreal then
-                                          begin
-                                            if (not is_integer(tcallparanode(frac_para).left.resulttype.def)) then
-                                              CGMessage1(type_e_integer_expr_expected,tcallparanode(frac_para).left.resulttype.def.typename)
-                                            else
-                                              tcallparanode(frac_para).left:=ctypeconvnode.create(tcallparanode(frac_para).left,s32bittype);
-                                          end
-                                         else
-                                          CGMessage(parser_e_illegal_colon_qualifier);
-                                       end;
-                                     { do the checking for the colon'd arg }
-                                     hp:=length_para;
-                                   end;
                                end;
                               hp:=tcallparanode(hp).right;
                            end;
                       end;
-                    { pass all parameters again for the typeconversions }
-                    if codegenerror then
-                      exit;
-                    tcallparanode(left).firstcallparan(nil,true);
-                    set_varstate(left,true);
                     { calc registers }
                     left_max;
                     if extra_register then
@@ -1384,21 +1558,7 @@ implementation
             end;
 
          in_settextbuf_file_x :
-           begin
-              { warning here left is the callparannode
-                not the argument directly }
-              { left.left is text var }
-              { left.right.left is the buffer var }
-              { firstcallparan(left,nil);
-                already done in firstcalln }
-              { now we know the type of buffer }
-              srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
-              hp:=ccallparanode.create(cordconstnode.create(tcallparanode(left).left.resulttype.def.size,s32bittype),left);
-              hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
-              left:=nil;
-              firstpass(hp);
-              result:=hp;
-           end;
+           internalerror(200104262);
 
          in_reset_typedfile,
          in_rewrite_typedfile :
@@ -1409,95 +1569,6 @@ implementation
          in_str_x_string :
            begin
               procinfo^.flags:=procinfo^.flags or pi_do_call;
-              { first pass just the string for first local use }
-              hp:=tcallparanode(left).right;
-              tcallparanode(left).right:=nil;
-              tcallparanode(left).firstcallparan(nil,true);
-              { remove warning when result is passed }
-              set_funcret_is_valid(tcallparanode(left).left);
-              tcallparanode(left).right:=hp;
-              tcallparanode(tcallparanode(left).right).firstcallparan(nil,true);
-              set_varstate(tcallparanode(left).right,true);
-              hp:=left;
-              { valid string ? }
-              if not assigned(hp) or
-                 (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) or
-                 (tcallparanode(hp).right=nil) then
-                CGMessage(cg_e_illegal_expression);
-              { we need a var parameter }
-              valid_for_assign(tcallparanode(hp).left,false);
-              { generate the high() value for the shortstring }
-              if is_shortstring(tcallparanode(hp).left.resulttype.def) then
-                tcallparanode(hp).gen_high_tree(true);
-
-              { !!!! check length of string }
-
-              while assigned(tcallparanode(hp).right) do
-                hp:=tcallparanode(hp).right;
-
-              if not assigned(tcallparanode(hp).resulttype.def) then
-                exit;
-              { check and convert the first param }
-              if (cpf_is_colon_para in tcallparanode(hp).callparaflags) or
-                 not assigned(hp.resulttype.def) then
-                CGMessage(cg_e_illegal_expression);
-
-              isreal:=false;
-              case hp.resulttype.def.deftype of
-                orddef :
-                  begin
-                    case torddef(tcallparanode(hp).left.resulttype.def).typ of
-                      u32bit,s32bit,
-                      s64bit,u64bit:
-                        ;
-                      u8bit,s8bit,
-                      u16bit,s16bit:
-                        tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,s32bittype);
-                      else
-                        CGMessage(type_e_integer_or_real_expr_expected);
-                    end;
-                  end;
-                floatdef :
-                  begin
-                    isreal:=true;
-                  end;
-                else
-                  CGMessage(type_e_integer_or_real_expr_expected);
-              end;
-
-              { some format options ? }
-              hpp:=tcallparanode(left).right;
-              if assigned(hpp) and (cpf_is_colon_para in tcallparanode(hpp).callparaflags) then
-                begin
-                  firstpass(tcallparanode(hpp).left);
-                  set_varstate(tcallparanode(hpp).left,true);
-                  if (not is_integer(tcallparanode(hpp).left.resulttype.def)) then
-                    CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def.typename)
-                  else
-                    tcallparanode(hpp).left:=ctypeconvnode.create(tcallparanode(hpp).left,s32bittype);
-                  hpp:=tcallparanode(hpp).right;
-                  if assigned(hpp) and (cpf_is_colon_para in tcallparanode(hpp).callparaflags) then
-                    begin
-                      if isreal then
-                       begin
-                         if (not is_integer(tcallparanode(hpp).left.resulttype.def)) then
-                           CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def.typename)
-                         else
-                           begin
-                             firstpass(tcallparanode(hpp).left);
-                             set_varstate(tcallparanode(hpp).left,true);
-                             tcallparanode(hpp).left:=ctypeconvnode.create(tcallparanode(hpp).left,s32bittype);
-                           end;
-                       end
-                      else
-                       CGMessage(parser_e_illegal_colon_qualifier);
-                    end;
-                end;
-
-              { pass all parameters again for the typeconversions }
-              if codegenerror then
-                exit;
-              tcallparanode(left).firstcallparan(nil,true);
               { calc registers }
               left_max;
            end;
@@ -1505,77 +1576,16 @@ implementation
          in_val_x :
            begin
               procinfo^.flags:=procinfo^.flags or pi_do_call;
-              resulttype:=voidtype;
-              { check the amount of parameters }
-              if not(assigned(left)) or
-                 not(assigned(tcallparanode(left).right)) then
-               begin
-                 CGMessage(parser_e_wrong_parameter_size);
-                 exit;
-               end;
-              If Assigned(tcallparanode(tcallparanode(left).right).right) Then
-               {there is a "code" parameter}
-                 Begin
-              { first pass just the code parameter for first local use}
-                   hp := tcallparanode(left).right;
-                   tcallparanode(left).right := nil;
-                   make_not_regable(tcallparanode(left).left);
-                   tcallparanode(left).firstcallparan(nil,true);
-                   set_varstate(left,false);
-                   if codegenerror then exit;
-                   tcallparanode(left).right := hp;
-                 {code has to be a var parameter}
-                   if valid_for_assign(tcallparanode(left).left,false) then
-                    begin
-                      if (tcallparanode(left).left.resulttype.def.deftype <> orddef) or
-                        not(torddef(tcallparanode(left).left.resulttype.def).typ in
-                            [u16bit,s16bit,u32bit,s32bit]) then
-                       CGMessage(type_e_mismatch);
-                    end;
-                   hpp := tcallparanode(left).right
-                 End
-              Else hpp := left;
-              {now hpp = the destination value tree}
-              { first pass just the destination parameter for first local use}
-              hp:=tcallparanode(hpp).right;
-              tcallparanode(hpp).right:=nil;
-              {hpp = destination}
-              make_not_regable(tcallparanode(hpp).left);
-              tcallparanode(hpp).firstcallparan(nil,true);
-              set_varstate(hpp,false);
-
-              if codegenerror then
-                exit;
-              { remove warning when result is passed }
-              set_funcret_is_valid(tcallparanode(hpp).left);
-              tcallparanode(hpp).right := hp;
-              if valid_for_assign(tcallparanode(hpp).left,false) then
-               begin
-                 If Not((tcallparanode(hpp).left.resulttype.def.deftype = floatdef) or
-                        ((tcallparanode(hpp).left.resulttype.def.deftype = orddef) And
-                         (torddef(tcallparanode(hpp).left.resulttype.def).typ in
-                          [u32bit,s32bit,
-                           u8bit,s8bit,u16bit,s16bit,s64bit,u64bit]))) Then
-                   CGMessage(type_e_mismatch);
-               end;
-             {hp = source (String)}
-              { count_ref := false; WHY ?? }
-              tcallparanode(hp).firstcallparan(nil,true);
-              set_varstate(hp,true);
-              if codegenerror then
-                exit;
-              { if not a stringdef then insert a type conv which
-                does the other type checking }
-              If (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) then
-               begin
-                 tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,cshortstringtype);
-                 firstpass(tcallparanode(hp).left);
-               end;
               { calc registers }
               left_max;
-
               { val doesn't calculate the registers really }
               { correct, we need one register extra   (FK) }
+              { there is a "code" parameter }
+              If Assigned(tcallparanode(tcallparanode(left).right).right) Then
+                hpp := tcallparanode(left).right
+              Else
+                hpp := left;
+              { now hpp = the destination value tree }
               if is_64bitint(tcallparanode(hpp).left.resulttype.def) then
                 inc(registers32,2)
               else
@@ -1719,7 +1729,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2001-04-21 12:03:11  peter
+  Revision 1.39  2001-04-26 21:57:05  peter
+    * moved code from firstpass to det_resulttype and remove extraneous
+      calls to firstcallparan for in_str,in_write,in_val
+
+  Revision 1.38  2001/04/21 12:03:11  peter
     * m68k updates merged from fixes branch
 
   Revision 1.37  2001/04/13 22:22:30  peter
