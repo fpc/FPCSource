@@ -1,3 +1,5 @@
+{ %FAIL }
+
 procedure p(a:array of char);
 begin
 end;

@@ -1,3 +1,5 @@
+{ %FAIL }
+
 {$mode fpc}
 program test_const_objects;
 
