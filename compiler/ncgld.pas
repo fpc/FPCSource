@@ -65,7 +65,6 @@ implementation
     procedure tcgloadnode.pass_2;
       var
         hregister : tregister;
-        supreg:Tsuperregister;
         symtabletype : tsymtabletype;
         href : treference;
         newsize : tcgsize;
@@ -190,32 +189,26 @@ implementation
                   { normal variable }
                   else
                     begin
-                       {$warning fixme regvars}
                        { in case it is a register variable: }
-{                       if tvarsym(symtableentry).localloc.loc=LOC_REGISTER then
+                       if tvarsym(symtableentry).localloc.loc in [LOC_REGISTER,LOC_FPUREGISTER] then
                          begin
                             case getregtype(tvarsym(symtableentry).localloc.register) of
                               R_FPUREGISTER :
                                 begin
-                                   location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
-                                   location.register:=tvarsym(symtableentry).localloc.register;
+                                  location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
+                                  location.register:=tvarsym(symtableentry).localloc.register;
                                 end;
                               R_INTREGISTER :
                                 begin
-                                  supreg:=getsupreg(Tvarsym(symtableentry).localloc.register);
-                                  if (supreg in general_superregisters) and
-                                     not (supreg in rg.regvar_loaded_int) then
-                                    load_regvar(exprasmlist,tvarsym(symtableentry));
                                   location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
                                   location.register:=tvarsym(symtableentry).localloc.register;
-                                  exclude(rg.unusedregsint,supreg);
                                   hregister := location.register;
                                 end;
                               else
                                 internalerror(200301172);
                             end;
                          end
-                       else}
+                       else
                          begin
                            case symtabletype of
                               localsymtable,
@@ -906,7 +899,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2004-02-05 01:24:08  florian
+  Revision 1.108  2004-02-08 17:45:53  jonas
+    * fixed regvars
+
+  Revision 1.107  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.106  2004/02/03 22:32:54  peter

@@ -979,16 +979,20 @@ implementation
             ressym:=tvarsym(current_procinfo.procdef.parast.search('self'));
             if not assigned(ressym) then
               internalerror(200305058);
-            case ressym.localloc.loc of
-              LOC_REFERENCE :
-                reference_reset_base(href,ressym.localloc.reference.index,ressym.localloc.reference.offset);
-              else
-                internalerror(2003091810);
-            end;
             cg.ungetregister(list,NR_FUNCTION_RETURN_REG);
             // for the optimizer
             cg.a_reg_alloc(list,NR_FUNCTION_RETURN_REG);
-            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_FUNCTION_RETURN_REG);
+            case ressym.localloc.loc of
+              LOC_REFERENCE :
+                begin
+                  reference_reset_base(href,ressym.localloc.reference.index,ressym.localloc.reference.offset);
+                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_FUNCTION_RETURN_REG);
+                end;
+              LOC_REGISTER:
+                cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,ressym.localloc.register,NR_FUNCTION_RETURN_REG);
+              else
+                internalerror(2004020409);
+            end;
             uses_acc:=true;
             exit;
           end;
@@ -2137,7 +2141,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.191  2004-02-05 19:35:27  florian
+  Revision 1.192  2004-02-08 17:48:59  jonas
+    * fixed regvars
+
+  Revision 1.191  2004/02/05 19:35:27  florian
     * more x86-64 fixes
 
   Revision 1.190  2004/02/05 01:24:08  florian
