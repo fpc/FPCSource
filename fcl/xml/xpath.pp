@@ -1200,7 +1200,7 @@ begin
   Result := 0;
 end;
 
-function TXPathVariable.AsText: String;
+function TXPathVariable.AsText: DOMString;
 begin
   Error(SVarNoConversion, [TypeName, TXPathStringVariable.TypeName]);
   SetLength(Result, 0);
@@ -2501,7 +2501,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-16 22:10:57  sg
+  Revision 1.2  2003-03-17 14:32:15  peter
+    * Change ASText return to DOMString in implementation
+
+  Revision 1.1  2003/03/16 22:10:57  sg
   * Added XPath unit
 
 }
