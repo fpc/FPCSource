@@ -59,6 +59,7 @@ var
 {$i systypes.inc }  { Types needed for system calls }
 
 { Read actual system call definitions. }
+{$i signal.inc}
 {$i syscalls.inc }
 
 {*****************************************************************************
@@ -605,40 +606,14 @@ begin
 {$endif I386}
 end;
 
-{$ifndef BSD}
 
-{$ifndef newSignal}
-Procedure SignalToRunError(Sig:longint);
-begin
-  case sig of
-    8 : begin
-    { this is not allways necessary but I don't know yet
-      how to tell if it is or not PM }
-          ResetFPU;
-          HandleError(200);
-        end;
-   11 : HandleError(216);
-  end;
-end;
-
-Procedure InstallSignals;
-var
-  sr : syscallregs;
-begin
-  sr.reg3:=longint(@SignalToRunError);
-  { sigsegv }
-  sr.reg2:=11;
-  syscall(syscall_nr_signal,sr);
-  { sigfpe }
-  sr.reg2:=8;
-  syscall(syscall_nr_signal,sr);
-end;
-{$else newSignal}
-
-{$i i386/signal.inc}
-
+{$ifdef BSD}
+procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec;someptr:pointer); cdecl;
+{$else}
 procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
+{$ENDIF}
 var
+
   res,fpustate : word;
 begin
   res:=0;
@@ -649,11 +624,13 @@ begin
 {$ifdef I386}
           fpustate:=0;
           res:=200;
-          if assigned(SigContext.fpstate) then
-            fpuState:=SigContext.fpstate^.sw;
-{$ifdef SYSTEMDEBUG}
-          Writeln(stderr,'FpuState = ',Hexstr(FpuState,4));
-{$endif SYSTEMDEBUG}
+          {$ifndef BSD}
+           if assigned(SigContext.fpstate) then
+             fpuState:=SigContext.fpstate^.sw;
+          {$else}
+            fpustate:=SigContext.en_sw;
+	   writeln('xx:',sigcontext.en_tw,' ',sigcontext.en_cw);
+          {$endif}
           if (FpuState and $7f) <> 0 then
             begin
               { first check te more precise options }
@@ -681,26 +658,36 @@ begin
   if res<>0 then
    begin
 {$ifdef I386}
-     HandleErrorAddrFrame(res,SigContext.eip,SigContext.ebp);
+     {$ifdef BSD}
+      HandleErrorAddrFrame(res,SigContext.sc_eip,SigContext.sc_ebp); 
+     {$else}
+      HandleErrorAddrFrame(res,SigContext.eip,SigContext.ebp);
+     {$endif}
 {$else}
      HandleError(res);
 {$endif}
    end;
 end;
 
+
 Procedure InstallSignals;
 const
+{$Ifndef BSD}
   act: SigActionRec = (handler:(Sa:@SignalToRunError);sa_mask:0;sa_flags:0;
                        Sa_restorer: NIL);
-  oldact: PSigActionRec = Nil;
+{$ELSE}
+   act: SigActionRec = (handler:(Sa:@SignalToRunError);sa_flags:SA_SIGINFO;
+    sa_mask:0);
+{$endif}
+
+  oldact: PSigActionRec = Nil;          {Probably not necessary anymore, now
+                                         VAR is removed}
 begin
   ResetFPU;
   SigAction(8,@act,oldact);
   SigAction(11,@act,oldact);
 end;
-{$endif newSignal}
 
-{$endif bsd}
 
 procedure SetupCmdLine;
 var
@@ -761,9 +748,7 @@ end;
 
 Begin
 { Set up signals handlers }
-  {$ifndef bsd}
    InstallSignals;
-  {$endif}
 { Setup heap }
   InitHeap;
   InitExceptions;
@@ -780,7 +765,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-08-13 08:43:45  peter
+  Revision 1.6  2000-09-11 13:48:08  marco
+   * FreeBSD support and removal of old sighandler
+
+  Revision 1.5  2000/08/13 08:43:45  peter
     * don't check for directory in do_open (merged)
 
   Revision 1.4  2000/08/05 18:33:51  peter
