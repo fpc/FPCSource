@@ -359,6 +359,8 @@ implementation
               ;
             system_powerpc_macos:
               ;
+            system_i386_watcom:
+              ;
             system_alpha_linux:
               ;
             system_m68k_Mac:
@@ -1441,7 +1443,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2003-09-23 18:03:08  peter
+  Revision 1.127  2003-09-30 08:39:50  michael
+  + Patch from Wiktor Sywula for watcom support
+
+  Revision 1.126  2003/09/23 18:03:08  peter
     * add missing release of main_proc
 
   Revision 1.125  2003/09/23 17:56:05  peter

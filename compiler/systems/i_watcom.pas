@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Peter Vreman
 
-    This unit implements support information structures for go32v2
+    This unit implements support information structures for Watcom
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for go32v2. }
+{ This unit implements support information structures for Watcom. }
 unit i_watcom;
 
 {$i fpcdefs.inc}
@@ -63,7 +63,7 @@ unit i_watcom;
             newline      : #13#10;
             dirsep       : '\';
             files_case_relevent : false;
-            assem        : as_i386_coff;
+            assem        : as_i386_wasm;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
@@ -105,6 +105,9 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-09-06 10:01:11  florian
+  Revision 1.2  2003-09-30 08:39:50  michael
+  + Patch from Wiktor Sywula for watcom support
+
+  Revision 1.1  2003/09/06 10:01:11  florian
     + added *_watcom units
 }

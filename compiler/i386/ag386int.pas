@@ -169,21 +169,6 @@ implementation
               AsmWrite(symbol.name);
               first:=false;
             end;
-           if (aktoutputformat = as_i386_wasm) then
-            begin
-              if offset<0 then
-              begin
-                AsmWrite(tostr(offset));
-                first:=false;
-              end
-              else if (offset>0) then
-              begin
-                if not first then
-                  AsmWrite('+');
-                AsmWrite(tostr(offset));
-                first:=false;
-              end;
-            end;
            if (base<>NR_NO) then
             begin
               if not(first) then
@@ -202,8 +187,6 @@ implementation
               if scalefactor<>0 then
                AsmWrite('*'+tostr(scalefactor));
             end;
-           if (aktoutputformat <> as_i386_wasm) then
-             begin
                if offset<0 then
                 begin
                   AsmWrite(tostr(offset));
@@ -214,7 +197,6 @@ implementation
                   AsmWrite('+'+tostr(offset));
                   first:=false;
                 end;
-             end;
            if first then
              AsmWrite('0');
            AsmWrite(']');
@@ -617,7 +599,6 @@ implementation
                          word prefix to get selectors
                          to be pushed in 2 bytes  PM }
                        if (taicpu(hp).opsize=S_W) and
-                          (
                            (
                             (
                              (taicpu(hp).opcode=A_PUSH) or
@@ -625,12 +606,7 @@ implementation
                             ) and
                             (taicpu(hp).oper[0].typ=top_reg) and
                             is_segment_reg(taicpu(hp).oper[0].reg)
-                           ) or
-                           (
-                            (taicpu(hp).opcode=A_PUSH) and
-                            (taicpu(hp).oper[0].typ=top_const)
-                           )
-                          ) then
+                           ) then
                          AsmWriteln(#9#9'DB'#9'066h');
 
                        { added prefix instructions, must be on same line as opcode }
@@ -661,7 +637,16 @@ implementation
                         end
                        else
                         prefix:= '';
-                       AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
+                       if (aktoutputformat = as_i386_wasm) and
+                        (taicpu(hp).opsize=S_W) and
+                        (taicpu(hp).opcode=A_PUSH) and
+                        (taicpu(hp).oper[0].typ=top_const) then
+                        begin
+                          AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
+                          AsmWrite(#9#9'DW');
+                        end
+                       else  
+                         AsmWrite(#9#9+prefix+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]+suffix);
                        if taicpu(hp).ops<>0 then
                         begin
                           if is_calljmp(taicpu(hp).opcode) then
@@ -890,7 +875,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.39  2003-09-23 17:56:06  peter
+  Revision 1.40  2003-09-30 08:39:50  michael
+  + Patch from Wiktor Sywula for watcom support
+
+  Revision 1.39  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

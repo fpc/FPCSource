@@ -25,28 +25,27 @@ unit t_watcom;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
-  uses
-    link;
+
+implementation
+
+    uses
+       link,
+       cclasses,cutils,strings,globtype,globals,
+       systems,verbose,script,fmodule,i_watcom;
+
 
   type
-    plinkerwatcom=^tlinkerwatcom;
     tlinkerwatcom=class(texternallinker)
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor create;override;
-       procedure SetDefaultInfo;virtual;
-       function  MakeExecutable:boolean;virtual;
-{       function  MakeSharedLibrary:boolean;virtual;}
+       constructor Create;override;
+       procedure SetDefaultInfo;override;
+       function  MakeExecutable:boolean;override;
+{       function  MakeSharedLibrary:boolean;override;}
     end;
-
-
-  implementation
-
-    uses
-       cclasses,cutils,strings,globtype,globals,systems,verbose,script,fmodule,i_watcom;
 
 
 {****************************************************************************
@@ -64,7 +63,7 @@ end;
 procedure TLinkerWatcom.SetDefaultInfo;
 begin
   with Info do
-     ExeCmd[1]:='wlink system causeway option quiet $OPT $STRIP name $EXE @$RES';
+     ExeCmd[1]:='wlink system causeway option quiet option nocaseexact $OPT $STRIP name $EXE @$RES';
 end;
 
 Function TLinkerWatcom.WriteResponseFile(isdll:boolean) : Boolean;
@@ -79,12 +78,21 @@ begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
+  { Write object files, start with prt0 }
+  LinkRes.Add('file '+GetShortName(FindObjectFile('prt0','',false)));
+  if not ObjectFiles.Empty then
+     While not ObjectFiles.Empty do
+      begin
+        S:=ObjectFiles.GetFirst;
+        LinkRes.AddFileName('file '+GetShortName(s));
+      end;
+
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName('file '+GetShortName(s))
+        LinkRes.AddFileName('file '+GetShortName(s));
       end;
 
 (*
@@ -143,12 +151,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  if pos(' ',current_module.exefilename^)>0 then
-    Replace(cmdstr,'$EXE','"'+current_module.exefilename^+'"')
-  else
-    Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
@@ -164,12 +169,19 @@ begin
   MakeSharedLibrary:=false;
 end;}
 
+{*****************************************************************************
+                                     Initialize
+*****************************************************************************}
+
 initialization
   RegisterExternalLinker(system_i386_watcom_info,TLinkerWatcom);
   RegisterTarget(system_i386_watcom_info);
 end.
 {
   $Log$
-  Revision 1.1  2003-09-06 10:01:11  florian
+  Revision 1.2  2003-09-30 08:39:50  michael
+  + Patch from Wiktor Sywula for watcom support
+
+  Revision 1.1  2003/09/06 10:01:11  florian
     + added *_watcom units
 }
