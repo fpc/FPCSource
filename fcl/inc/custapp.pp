@@ -396,8 +396,9 @@ begin
             OV:=Paramstr(I+1);
           If Not CaseSensitiveOptions then
             O:=LowerCase(O);
-          L:=Length(O);  
-          For J:=2 to L do
+          L:=Length(O);
+          J:=2;
+          While (result='') and (J<=L) do
             begin
             P:=Pos(O[J],ShortOptions);
             If (P=0) or (O[j]=':') then
@@ -407,12 +408,14 @@ begin
               If (P<Length(ShortOptions)) and (Shortoptions[P+1]=':') then
                 begin
                 // Required argument
+                Writeln('P ',P,' J ',J,' ',O[J],' ',l,' Havearg ',HaveArg);
                 If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     Result:=Format(SErrOptionNeeded,[I,O[J]]);
                 O:=O[j]; // O is added to arguments.  
                 end;
               end;  
+            Inc(J);
             end;
           If HaveArg then
             begin
