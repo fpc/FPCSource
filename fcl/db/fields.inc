@@ -406,7 +406,7 @@ begin
       FDataset.DataEvent(deDatasetchange,0);
 end;
 
-procedure TField.ReadState(Reader: TAbstractReader); 
+procedure TField.ReadState(Reader: TReader); 
 
 begin
   //!! To be implemented
@@ -1752,7 +1752,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
+  Revision 1.3  2000-09-02 09:36:36  sg
+  * Changed all occurences of TAbstractReader to TReader, as FCL streaming
+    is source compatible to VCL streaming now (for quite a while, BTW)
+
+  Revision 1.2  2000/07/13 11:32:56  michael
   + removed logs
  
 }

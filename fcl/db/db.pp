@@ -198,7 +198,7 @@ type
     function HasParent: Boolean; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PropertyChanged(LayoutAffected: Boolean);
-    procedure ReadState(Reader: TAbstractReader); override;
+    procedure ReadState(Reader: TReader); override;
     procedure SetAsBoolean(AValue: Boolean); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Extended); virtual;
@@ -1260,7 +1260,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
+  Revision 1.3  2000-09-02 09:36:36  sg
+  * Changed all occurences of TAbstractReader to TReader, as FCL streaming
+    is source compatible to VCL streaming now (for quite a while, BTW)
+
+  Revision 1.2  2000/07/13 11:32:56  michael
   + removed logs
  
 }
