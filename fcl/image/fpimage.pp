@@ -25,6 +25,7 @@ type
                   cfBGR15,cfBGR16,cfBGR24,cfBGR32,cfBGR48,
                   cfABGR8,cfABGR16,cfABGR32,cfABGR64);
   TColorData = int64;
+  PColorData = ^TColorData;
 
   TDeviceColor = record
     Fmt : TColorFormat;
@@ -221,6 +222,9 @@ function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 
 operator = (const c,d:TFPColor) : boolean;
+operator or (const c,d:TFPColor) : TFPColor; 
+operator and (const c,d:TFPColor) : TFPColor; 
+operator xor (const c,d:TFPColor) : TFPColor; 
 
 var ImageHandlers : TImageHandlersManager;
 
@@ -282,6 +286,31 @@ begin
             (c.Green = d.Green) and
             (c.Blue = d.Blue) and
             (c.Alpha = d.Alpha);
+end;
+
+function GetFullColorData (color:TFPColor) : TColorData;
+begin
+  result := PColorData(@color)^;
+end;
+
+function SetFullColorData (color:TColorData) : TFPColor;
+begin
+  result := PFPColor (@color)^;
+end;
+
+operator or (const c,d:TFPColor) : TFPColor; 
+begin
+  result := SetFullColorData(GetFullColorData(c) OR GetFullColorData(d));
+end;
+
+operator and (const c,d:TFPColor) : TFPColor; 
+begin
+  result := SetFullColorData(GetFullColorData(c) AND GetFullColorData(d));
+end;
+
+operator xor (const c,d:TFPColor) : TFPColor; 
+begin
+  result := SetFullColorData(GetFullColorData(c) XOR GetFullColorData(d));
 end;
 
 initialization
