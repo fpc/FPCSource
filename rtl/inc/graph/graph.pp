@@ -706,12 +706,23 @@ var
     Col: word;
     xtmp: integer;
    Begin
+
     { must we swap the values? }
     if x >= x2 then
       Begin
 	xtmp := x2;
 	x2 := x;
 	x:= xtmp;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
       end;
     for x:= x to x2 do
       DirectPutPixel(X,Y);
@@ -731,6 +742,16 @@ var
        y2 := y;
        y:= ytmp;
      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    Y2  := Y2 + StartYViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x,y2,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
     for y := y to y2 do Directputpixel(x,y)
   End;
 
@@ -773,10 +794,10 @@ var
 	       hline(x1,x2,y2-1);
 	       hline(x1,x2,y2);
 	       hline(x2,x2,y2+1);
-	    end; 
+	    end;
 	end
-      else
-       if x1 = x2 then
+    else
+    if x1 = x2 then
 	Begin
      {******************************************}
      {  SOLID LINES VERTICAL                    }
@@ -791,8 +812,20 @@ var
 	      vline(x1+1,y1,y2);
 	    end;
 	end
-      else
+    else
+    begin
+     { Convert to global coordinates. }
+     x1 := x1 + StartXViewPort;
+     x2 := x2 + StartXViewPort;
+     y1 := y1 + StartYViewPort;
+     y2 := y2 + StartYViewPort;
+     { if fully clipped then exit... }
+     if ClipPixels then
        begin
+       if LineClipped(x1,y1,x2,y2,StartXViewPort, StartYViewPort,
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+              exit;
+       end;
      {******************************************}
      {  SLOPED SOLID LINES                      }
      {******************************************}
@@ -883,7 +916,7 @@ var
 		  Begin
 		    DirectPutPixel(x-1,y);
 		    DirectPutPixel(x,y);
-		    DirectPutPixel(x+1,y); 
+		    DirectPutPixel(x+1,y);
 		  end
 		else
 		  Begin
@@ -907,176 +940,189 @@ var
 	       end;
 	  end;
 	end;
-     end
-     else
+  end
+   else
 {******************************************}
 {  begin patterned lines                   }
 {******************************************}
     Begin
-       OldCurrentColor := CurrentColor;
-       PixelCount:=0;
-       if y1 = y2 then
-	Begin
-	  { Check if we must swap }
-	  if x1 >= x2 then
+      { Convert to global coordinates. }
+      x1 := x1 + StartXViewPort;
+      x2 := x2 + StartXViewPort;
+      y1 := y1 + StartYViewPort;
+      y2 := y2 + StartYViewPort;
+      { if fully clipped then exit... }
+      if ClipPixels then
+       begin
+       if LineClipped(x1,y1,x2,y2,StartXViewPort, StartYViewPort,
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+              exit;
+       end;
+
+      OldCurrentColor := CurrentColor;
+      PixelCount:=0;
+      if y1 = y2 then
 	    Begin
-	     swtmp := x1;
-	     x1 := x2;
-	     x2 := swtmp;
-	    end;
-	  if LineInfo.Thickness = NormWidth then
-	     Begin
+	     { Check if we must swap }
+         if x1 >= x2 then
+	       Begin
+	         swtmp := x1;
+	         x1 := x2;
+	         x2 := swtmp;
+	       end;
+         if LineInfo.Thickness = NormWidth then
+	      Begin
 	       for PixelCount:=x1 to x2 do
-		  { optimization: PixelCount mod 16 }
-		  if LinePatterns[PixelCount and 15] = TRUE then
-		   begin
-		      DirectPutPixel(PixelCount,y2);
-		   end;
-	    end
-	  else
-	    Begin
-	      for i:=-1 to 1 do
-		Begin
-		 for PixelCount:=x1 to x2 do
-		    { Optimization from Thomas - mod 16 = and 15 }
-		    if LinePatterns[PixelCount and 15] = TRUE then
-		     begin
-   			   DirectPutPixel(PixelCount,y2+i);
+		     { optimization: PixelCount mod 16 }
+  		     if LinePatterns[PixelCount and 15] = TRUE then
+		      begin
+		        DirectPutPixel(PixelCount,y2);
+		      end;
+	      end
+	     else
+	      Begin
+	       for i:=-1 to 1 do
+		     Begin
+		       for PixelCount:=x1 to x2 do
+		        { Optimization from Thomas - mod 16 = and 15 }
+		         if LinePatterns[PixelCount and 15] = TRUE then
+		           begin
+   			         DirectPutPixel(PixelCount,y2+i);
+		           end;
 		     end;
-		end;
-	    end;
-	end
-       else
-       if x1 = x2 then
-	Begin
-	  { Check if we must swap }
-	  if y1 >= y2 then
-	    Begin
-	     swtmp := y1;
-	     y1 := y2;
-	     y2 := swtmp;
-	    end;
-	  if LineInfo.Thickness = NormWidth then
-	     Begin
-	       for PixelCount:=y1 to y2 do
-		  { compare if we should plot a pixel here , compare }
-		  { with predefined line patterns...                 }
-		  if LinePatterns[PixelCount and 15] = TRUE then
-		    begin
-		      DirectPutPixel(x1,PixelCount);
-		    end;
-	    end
-	  else
-	    Begin
-	      for i:=-1 to 1 do
-		Begin
-		 for PixelCount:=y1 to y2 do
-		  { compare if we should plot a pixel here , compare }
-		  { with predefined line patterns...                 }
-		    if LinePatterns[PixelCount and 15] = TRUE then
-		     begin
-     			DirectPutPixel(x1+i,PixelCount);
-		     end;
-		end;
-	    end;
-	end
-       else
-	Begin
-	  oldCurrentColor := CurrentColor;
-	  { Calculate deltax and deltay for initialisation }
-	  deltax := abs(x2 - x1);
-	  deltay := abs(y2 - y1);
-
-	  { Initialize all vars based on which is the independent variable }
-	  if deltax >= deltay then
-	    begin
-
-	      Flag := FALSE;
-	      { x is independent variable }
-	      numpixels := deltax + 1;
-	      d := (2 * deltay) - deltax;
-	      dinc1 := deltay Shl 1;
-	      dinc2 := (deltay - deltax) shl 1;
-	      xinc1 := 1;
-	      xinc2 := 1;
-	      yinc1 := 0;
-	      yinc2 := 1;
-	    end
-	  else
-	    begin
-
-	      Flag := TRUE;
-	      { y is independent variable }
-	      numpixels := deltay + 1;
-	      d := (2 * deltax) - deltay;
-	      dinc1 := deltax Shl 1;
-	      dinc2 := (deltax - deltay) shl 1;
-	      xinc1 := 0;
-	      xinc2 := 1;
-	      yinc1 := 1;
-	      yinc2 := 1;
-	    end;
-
-	  { Make sure x and y move in the right directions }
-	  if x1 > x2 then
-	    begin
-	      xinc1 := - xinc1;
-	      xinc2 := - xinc2;
-	    end;
-	  if y1 > y2 then
-	    begin
-	      yinc1 := - yinc1;
-	      yinc2 := - yinc2;
-	    end;
-
-	  { Start drawing at <x1, y1> }
-	  x := x1;
-	  y := y1;
-
-	  If LineInfo.Thickness=ThickWidth then
-
-	   Begin
-	    TmpNumPixels := NumPixels-1;
-	    { Draw the pixels }
-	    for i := 0 to TmpNumPixels do
-	      begin
-		{ all depending on the slope, we can determine         }
-		{ in what direction the extra width pixels will be put }
-		If Flag then
-		  Begin
-		  { compare if we should plot a pixel here , compare }
-		  { with predefined line patterns...                 }
-		  if LinePatterns[i and 15] = TRUE then
-		    begin
-		      DirectPutPixel(x-1,y);
-		      DirectPutPixel(x,y);
-		      DirectPutPixel(x+1,y);
-		    end;
-		  end
-		else
-		  Begin
-		  { compare if we should plot a pixel here , compare }
-		  { with predefined line patterns...                 }
-		  if LinePatterns[i and 15] = TRUE then
-		    begin
-		      DirectPutPixel(x,y-1);
-		      DirectPutPixel(x,y);
-		      DirectPutPixel(x,y+1);
-		    end;
-		  end;
-	       if d < 0 then
-		 begin
-		   d := d + dinc1;
-		   x := x + xinc1;
-		   y := y + yinc1;
-		 end
-	       else
-		 begin
-		   d := d + dinc2;
-		   x := x + xinc2;
-		   y := y + yinc2;
-		 end;
 	      end;
+        end
+      else
+      if x1 = x2 then
+	   Begin
+	    { Check if we must swap }
+	    if y1 >= y2 then
+	      Begin
+	        swtmp := y1;
+	        y1 := y2;
+	        y2 := swtmp;
+	      end;
+	    if LineInfo.Thickness = NormWidth then
+	      Begin
+	        for PixelCount:=y1 to y2 do
+		    { compare if we should plot a pixel here , compare }
+		    { with predefined line patterns...                 }
+		    if LinePatterns[PixelCount and 15] = TRUE then
+		      begin
+	            DirectPutPixel(x1,PixelCount);
+		      end;
+	      end
+	    else
+	      Begin
+	        for i:=-1 to 1 do
+		     Begin
+		       for PixelCount:=y1 to y2 do
+		       { compare if we should plot a pixel here , compare }
+		       { with predefined line patterns...                 }
+		         if LinePatterns[PixelCount and 15] = TRUE then
+		           begin
+     			     DirectPutPixel(x1+i,PixelCount);
+		           end;
+		     end;
+	      end;
+	   end
+      else
+	   Begin
+	     oldCurrentColor := CurrentColor;
+	     { Calculate deltax and deltay for initialisation }
+	     deltax := abs(x2 - x1);
+	     deltay := abs(y2 - y1);
+
+	     { Initialize all vars based on which is the independent variable }
+	     if deltax >= deltay then
+	       begin
+
+	         Flag := FALSE;
+	         { x is independent variable }
+	         numpixels := deltax + 1;
+	         d := (2 * deltay) - deltax;
+	         dinc1 := deltay Shl 1;
+	         dinc2 := (deltay - deltax) shl 1;
+	         xinc1 := 1;
+	         xinc2 := 1;
+	         yinc1 := 0;
+	         yinc2 := 1;
+	      end
+	    else
+	      begin
+
+	        Flag := TRUE;
+	        { y is independent variable }
+	        numpixels := deltay + 1;
+	        d := (2 * deltax) - deltay;
+	        dinc1 := deltax Shl 1;
+	        dinc2 := (deltax - deltay) shl 1;
+	        xinc1 := 0;
+	        xinc2 := 1;
+	        yinc1 := 1;
+	        yinc2 := 1;
+	      end;
+
+	    { Make sure x and y move in the right directions }
+	    if x1 > x2 then
+	      begin
+	        xinc1 := - xinc1;
+	        xinc2 := - xinc2;
+	      end;
+	    if y1 > y2 then
+	      begin
+	        yinc1 := - yinc1;
+	        yinc2 := - yinc2;
+	      end;
+
+	    { Start drawing at <x1, y1> }
+	    x := x1;
+	    y := y1;
+
+	    If LineInfo.Thickness=ThickWidth then
+
+	     Begin
+	       TmpNumPixels := NumPixels-1;
+	       { Draw the pixels }
+	       for i := 0 to TmpNumPixels do
+	         begin
+		     { all depending on the slope, we can determine         }
+		     { in what direction the extra width pixels will be put }
+		       If Flag then
+		          Begin
+		            { compare if we should plot a pixel here , compare }
+		            { with predefined line patterns...                 }
+		            if LinePatterns[i and 15] = TRUE then
+		              begin
+		                DirectPutPixel(x-1,y);
+		                DirectPutPixel(x,y);
+		                DirectPutPixel(x+1,y);
+		              end;
+		          end
+		       else
+		          Begin
+		            { compare if we should plot a pixel here , compare }
+	                { with predefined line patterns...                 }
+		            if LinePatterns[i and 15] = TRUE then
+		             begin
+		               DirectPutPixel(x,y-1);
+		               DirectPutPixel(x,y);
+		               DirectPutPixel(x,y+1);
+		             end;
+		          end;
+	           if d < 0 then
+		         begin
+		           d := d + dinc1;
+		           x := x + xinc1;
+		           y := y + yinc1;
+		         end
+	           else
+		         begin
+                   d := d + dinc2;
+                   x := x + xinc2;
+                   y := y + yinc2;
+		         end;
+	        end;
 	    end
 	   else
 	    Begin
@@ -1084,24 +1130,24 @@ var
 	     TmpNumPixels := NumPixels-1;
 	    { NormWidth }
 	     for i := 0 to TmpNumPixels do
-	      begin
+	     begin
 		  if LinePatterns[i and 15] = TRUE then
 		    begin
 			  DirectPutPixel(x,y);
 		    end;
-	       if d < 0 then
+	     if d < 0 then
 		 begin
 		   d := d + dinc1;
 		   x := x + xinc1;
 		   y := y + yinc1;
 		 end
-	       else
+	     else
 		 begin
 		   d := d + dinc2;
 		   x := x + xinc2;
 		   y := y + yinc2;
 		 end;
-	      end;
+	     end;
 	    end
 	end;
 {******************************************}
@@ -1274,6 +1320,15 @@ var
     OldWriteMode : word;
     OldCurrentColor : word;
    begin
+     { convert to global coordinates ... }
+     x1 := x1 + StartXViewPort;
+     x2 := x2 + StartXViewPort;
+     y  := y + StartYViewPort;
+     { if line was fully clipped then exit...}
+     if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
+        StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+         exit;
+
      OldWriteMode := CurrentWriteMode;
      CurrentWriteMode := NormalPut;
 
@@ -1287,31 +1342,46 @@ var
 {       [FillSettings.Pattern][(((y+viewport.x1) and $7)+1];}
        [FillSettings.Pattern][(y and $7)+1];
 
-     For i:= 0 to NrIterations do
-       Begin
-	  for j:=0 to 7 do
-	   Begin
+     if FillSettings.Pattern = EmptyFill then
+       begin
+         OldCurrentColor := CurrentColor;
+         CurrentColor := CurrentBkColor;
+         HLine(x1,x2,y);
+         CurrentColor := OldCurrentColor;
+       end
+     else
+     if  FillSettings.Pattern = SolidFill then
+       begin
+         HLine(x1,x2,y);
+       end
+     else
+       begin
+         For i:= 0 to NrIterations do
+           Begin
+      	     for j:=0 to 7 do
+	          Begin
 			  { x1 mod 8 }
-	     if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
-   	        DirectPutpixel(x1,y)
-	     else
-	       begin
-		 { According to the TP graph manual, we overwrite everything }
-		 { which is filled up - checked against VGA and CGA drivers  }
-		 { of TP.                                                    }
-		 OldCurrentColor := CurrentColor;
-		 CurrentColor := CurrentBkColor;
-		 DirectPutPixel(x1,y);
-		 CurrentColor := OldCurrentColor;
-	       end;
-	     Inc(x1);
-	     if x1 > x2 then
-	       begin
-		  CurrentWriteMode := OldWriteMode;
-		  exit;
-	       end;
-	   end;
-       end;
+	          if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
+   	             DirectPutpixel(x1,y)
+	          else
+	            begin
+ 		          { According to the TP graph manual, we overwrite everything }
+		          { which is filled up - checked against VGA and CGA drivers  }
+		          { of TP.                                                    }
+		          OldCurrentColor := CurrentColor;
+		          CurrentColor := CurrentBkColor;
+		          DirectPutPixel(x1,y);
+		          CurrentColor := OldCurrentColor;
+	            end;
+	          Inc(x1);
+	          if x1 > x2 then
+	           begin
+		         CurrentWriteMode := OldWriteMode;
+		         exit;
+	           end;
+	         end;
+           end;
+        end;
      CurrentWriteMode := OldWriteMode;
    end;
 
