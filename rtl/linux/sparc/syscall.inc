@@ -267,89 +267,12 @@ asm
 end;
 
 
-// Old style syscall:
-// Better use ktrace/strace/gdb for debugging.
-
-Procedure FpSysCall( callnr:longint;var regs : SysCallregs );assembler;
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-asm
-  or   %i0,%g0,%g1
-  ld   [%i1],%o0
-  ld   [%i1+4],%o1
-  ld   [%i1+8],%o2
-  ld   [%i1+12],%o3
-  ld   [%i1+16],%o4
-{ Go ! }
-  ta   0x10
-{ Put back the registers... }
-  st   %o0,[%i1]
-  st   %o1,[%i1+4]
-  st   %o2,[%i1+8]
-  st   %o3,[%i1+12]
-  st   %o4,[%i1+16]
-end;
-
-
-{$IFDEF SYSCALL_DEBUG}
-Const
-  DoSysCallDebug : Boolean = False;
-
-var
-  LastCnt,
-  LastEax,
-  LastCall : longint;
-  DebugTxt : string[20];
-{$ENDIF}
-
-Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
-{
-  This function serves as an interface to do_SysCall.
-  If the SysCall returned a negative number, it returns -1, and puts the
-  SysCall result in errno. Otherwise, it returns the SysCall return value
-}
-begin
-  FpSysCall(callnr,regs);
-  if regs.reg1<0 then
-   begin
-{$IFDEF SYSCALL_DEBUG}
-     If DoSysCallDebug then
-       debugtxt:=' syscall error: ';
-{$endif}
-     ErrNo:=-regs.reg1;
-     SysCall:=-1;
-   end
-  else
-   begin
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-       debugtxt:=' syscall returned: ';
-{$endif}
-     SysCall:=regs.reg1;
-     errno:=0
-   end;
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-    begin
-    inc(lastcnt);
-    if (callnr<>lastcall) or (regs.reg1<>lasteax) then
-      begin
-      if lastcnt>1 then
-        writeln(sys_nr_txt[lastcall],debugtxt,lasteax,' (',lastcnt,'x)');
-      lastcall:=callnr;
-      lasteax:=regs.reg1;
-      lastcnt:=0;
-      writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
-      end;
-    end;
-{$endif}
-end;
-
 {
   $Log$
-  Revision 1.10  2004-01-05 17:22:03  peter
+  Revision 1.11  2004-02-06 23:06:16  florian
+    - killed tsyscallregs
+
+  Revision 1.10  2004/01/05 17:22:03  peter
     * removed asmmode direct
 
   Revision 1.9  2003/08/11 13:19:08  mazen

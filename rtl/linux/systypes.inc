@@ -25,15 +25,6 @@
    %esi    %d3     r6      fourth argument
    %edi    %d4     r7      fifth argument
 
-  That is why we define a special type, with only these arguments
-  To make it processor independent, we don't give any system dependent
-  names, but the rather abstract reg1,reg2 etc;
-
-  SysCallRegs=record
-    reg1,reg2,reg3,reg4,reg5,reg6 : longint;
-  end;
-  PSysCallRegs=^SysCallRegs;
-  TSysCallRegs=SysCallRegs;
 }
 
 {
@@ -141,7 +132,10 @@
 }
 {
   $Log$
-  Revision 1.13  2004-01-11 09:56:20  jonas
+  Revision 1.14  2004-02-06 23:06:16  florian
+    - killed tsyscallregs
+
+  Revision 1.13  2004/01/11 09:56:20  jonas
     * moved tstatfs from systypes.inc to ptypes.inc to fix make cycle with
       -dFPC_USE_LIBC (systypes.inc is now completely commented out)
 

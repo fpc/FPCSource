@@ -175,92 +175,12 @@ asm
 end;
 
 
-// Old style syscall:
-// Better use ktrace/strace/gdb for debugging.
-Procedure FpSysCall(callnr:longint;var regs : SysCallregs);assembler;
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-asm
-  stmfd r13!,{r4-r6}
-  ldr  r2,[r1,#4]
-  ldr  r3,[r1,#8]
-  ldr  r4,[r1,#12]
-  ldr  r5,[r1,#16]
-  ldr  r6,[r1,#20]
-  ldr  r1,[r1]
-  swi  #0x900071
-  cmn  r0,#126
-  bls  .LDone
-  ldr  r1,.LErrno
-  rsb  r0,r0,#0
-  str  r0,[r1]
-  mvn  r0,#0
-  b    .LDone
-.LErrno:
-  .word Errno
-.LDone:
-  ldmfd r13!,{r4-r6}
-end;
-
-{$IFDEF SYSCALL_DEBUG}
-Const
-  DoSysCallDebug : Boolean = False;
-
-var
-  LastCnt,
-  LastEax,
-  LastCall : longint;
-  DebugTxt : string[20];
-{$ENDIF}
-
-Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
-{
-  This function serves as an interface to do_SysCall.
-  If the SysCall returned a negative number, it returns -1, and puts the
-  SysCall result in errno. Otherwise, it returns the SysCall return value
-}
-begin
-  FpSysCall(callnr,regs);
-  if regs.reg1<0 then
-   begin
-{$IFDEF SYSCALL_DEBUG}
-     If DoSysCallDebug then
-       debugtxt:=' syscall error: ';
-{$endif}
-     ErrNo:=-regs.reg1;
-     SysCall:=-1;
-   end
-  else
-   begin
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-       debugtxt:=' syscall returned: ';
-{$endif}
-     SysCall:=regs.reg1;
-     errno:=0
-   end;
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-    begin
-    inc(lastcnt);
-    if (callnr<>lastcall) or (regs.reg1<>lasteax) then
-      begin
-      if lastcnt>1 then
-        writeln(sys_nr_txt[lastcall],debugtxt,lasteax,' (',lastcnt,'x)');
-      lastcall:=callnr;
-      lasteax:=regs.reg1;
-      lastcnt:=0;
-      writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
-      end;
-    end;
-{$endif}
-end;
-
 {
   $Log$
-  Revision 1.4  2004-01-20 21:01:57  florian
+  Revision 1.5  2004-02-06 23:06:16  florian
+    - killed tsyscallregs
+
+  Revision 1.4  2004/01/20 21:01:57  florian
     * fixed setjump
     * fixed syscalls
 

@@ -260,16 +260,8 @@ Const
 
 function ipccall(Call,First,Second,Third : Longint; P : Pointer) : longint;
 
-{$ifndef bsd}
-//Var SR : SysCallRegs;
-{$endif}
 begin
  {$IFNDEF bsd}
-{  SR.Reg2:=Call;
-  SR.reg3:=first;
-  SR.reg4:=second;
-  SR.Reg5:=third;
-  SR.Reg6:=Longint(P); }
   ipccall:=do_syscall(syscall_nr_ipc,call,first,second,third,longint(P));
   {$Endif}
  ipcerror:=fpgetErrno;
@@ -372,7 +364,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2003-11-16 14:09:25  marco
+  Revision 1.7  2004-02-06 23:06:16  florian
+    - killed tsyscallregs
+
+  Revision 1.6  2003/11/16 14:09:25  marco
    * few things renamed
 
   Revision 1.5  2003/09/14 20:15:01  marco

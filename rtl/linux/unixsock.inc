@@ -40,7 +40,6 @@ Const
 
 Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:longint):longint;
 var
-//  Regs:SysCallRegs;
   Args:array[1..6] of longint;
 begin
 {$IFNDEF BSD}
@@ -272,7 +271,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-09-14 20:15:01  marco
+  Revision 1.9  2004-02-06 23:06:16  florian
+    - killed tsyscallregs
+
+  Revision 1.8  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.7  2003/03/23 17:47:15  armin

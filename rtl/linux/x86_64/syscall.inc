@@ -232,79 +232,13 @@ end;
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
 
-{*****************************************************************************
-                     --- Main:The System Call Self ---
-*****************************************************************************}
-
-Procedure FpSysCall( callnr:TSysParam;var regs : SysCallregs );assembler;
-{
-  This function puts the registers in place, does the call, and then
-  copies back the registers as they are after the SysCall.
-}
-{$define fpc_syscall_ok}
-asm
-  pushq %rdi
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq 8(%rdi),%rsi       { load paras }
-  movq 16(%rdi),%rdx
-  movq 24(%rdi),%r10
-  movq 32(%rdi),%r8
-  movq (%rdi),%rdi
-  syscall                 { Do the system call. }
-  popq %rdi
-  movq %rax,(%rdi)
-end;
-
-{$ASMMODE DEFAULT}
-
-Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
-{
-  This function serves as an interface to do_SysCall.
-  If the SysCall returned a negative number, it returns -1, and puts the
-  SysCall result in errno. Otherwise, it returns the SysCall return value
-}
-begin
-  FpSysCall(callnr,regs);
-  if regs.reg1>=$fffffffffffff001 then
-   begin
-{$IFDEF SYSCALL_DEBUG}
-     If DoSysCallDebug then
-       debugtxt:=' syscall error: ';
-{$endif}
-     setErrNo(-regs.reg1);
-     SysCall:=-1;
-   end
-  else
-   begin
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-       debugtxt:=' syscall returned: ';
-{$endif}
-     SysCall:=regs.reg1;
-     seterrno(0);
-   end;
-{$IFDEF SYSCALL_DEBUG}
-  if DoSysCallDebug then
-    begin
-    inc(lastcnt);
-    if (callnr<>lastcall) or (regs.reg1<>lasteax) then
-      begin
-      if lastcnt>1 then
-        writeln(sys_nr_txt[lastcall],debugtxt,lasteax,' (',lastcnt,'x)');
-      lastcall:=callnr;
-      lasteax:=regs.reg1;
-      lastcnt:=0;
-      writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
-      end;
-    end;
-{$endif}
-end;
-
-
 
 {
   $Log$
-  Revision 1.3  2004-02-06 15:58:21  florian
+  Revision 1.4  2004-02-06 23:06:16  florian
+    - killed tsyscallregs
+
+  Revision 1.3  2004/02/06 15:58:21  florian
     * fixed x86-64 assembler problems
 
   Revision 1.2  2004/02/05 01:16:12  florian
