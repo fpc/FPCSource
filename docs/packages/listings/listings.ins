@@ -1,59 +1,77 @@
 %%
 %% Installation file: Listings package for LaTeX2e
-%% (w)(c) 1996-1997 by Carsten Heinz
+%% (w)(c) 1996-1998 Carsten Heinz
 %%
 \def\batchfile{listings.ins}
+%
+% just do these things
+%
 \input{docstrip}
 \keepsilent
+\askforoverwritefalse
 
+
+%
+% define the preamble
+%
 \preamble
 
-(w)(c) 1996-1997 by Carsten Heinz
+(w)(c) 1996-1998 Carsten Heinz
 
-This file is distributed freely. You are not allowed to take money
-for the distribution or use of this file, except for a nominal charge
-for copying etc.
+Please read the software license in listings.dtx or listings.dvi.
 
-This file is distributed without any warranty; without even the implied
-warranty of merchantability or fitness for a particular purpose.
+This file is distributed freely. You are not allowed to take money for
+the distribution of this file, except for a nominal charge for copying
+etc..
 
-You are not allowed to change this file.
+This file is free for any non-commercial use. Commercial use needs (i)
+explicit permission of the author of this package and (ii) the payment
+of a license fee. This fee is to be determined in each instance by the
+commercial user and the package author and is to be payed as donation
+to the LaTeX3 project.
+
+This file is distributed without any warranty, express or implied, as
+to merchantability or fitness for any particular purpose.
+
+Permission is granted to change this file. You are not allowed to
+distribute any changed version this file, neither under the same name
+nor under a different one.
 
 \endpreamble
 
-\askforoverwritefalse
 
-\generate{%
-  \file{listings.sty}{\from{listings.dtx}{package}}
-  \file{lstblank.sty}{\from{listings.dtx}{blank}}
-  \file{lstada.sty}{\from{listings.dtx}{ada}}
-  \file{lstalgol.sty}{\from{listings.dtx}{algol}}
-  \file{lstc.sty}{\from{listings.dtx}{c}}
-  \file{lstcpp.sty}{\from{listings.dtx}{cpp}}
-  \file{lstcobol.sty}{\from{listings.dtx}{cobol}}
-  \file{lstcomal.sty}{\from{listings.dtx}{comal}}
-  \file{lsteiffel.sty}{\from{listings.dtx}{eiffel}}
-  \file{lstelan.sty}{\from{listings.dtx}{elan}}
-  \file{lstfortran.sty}{\from{listings.dtx}{fortran}}
-  \file{lstjava.sty}{\from{listings.dtx}{java}}
-  \file{lstlisp.sty}{\from{listings.dtx}{lisp}}
-  \file{lstlogo.sty}{\from{listings.dtx}{logo}}
-  \file{lstmatlab.sty}{\from{listings.dtx}{matlab}}
-  \file{lstmodula.sty}{\from{listings.dtx}{modula}}}
-\generate{%
-  \file{lstoberon.sty}{\from{listings.dtx}{oberon}}
-  \file{lstpascal.sty}{\from{listings.dtx}{pascal}}
-  \file{lstpxsc.sty}{\from{listings.dtx}{pxsc}}
-  \file{lsttp.sty}{\from{listings.dtx}{tp}}
-  \file{lstperl.sty}{\from{listings.dtx}{perl}}
-  \file{lstpli.sty}{\from{listings.dtx}{pli}}
-  \file{lstsimula.sty}{\from{listings.dtx}{simula}}
-  \file{lstsql.sty}{\from{listings.dtx}{sql}}
-  \file{lsttex.sty}{\from{listings.dtx}{tex}}}
+%
+% unpack the listings package
+%
+\generate{
+    \file{listings.sty} {\from{listings.dtx}{kernel}}
+    \file{lst017.sty}  {\from{listings.dtx}{0.17}}
+    \file{lstfvrb.sty} {\from{listings.dtx}{fancyvrb}}
+}
 
 
+%
+% create installation and configuration file if lstdrvrs.dtx exists
+%
+\IfFileExists{lstdrvrs.dtx}{\generate{
+    \file{lstdrvrs.ins}{\from{lstdrvrs.dtx}{install}}
+    \file{listings.cfg}{\from{lstdrvrs.dtx}{config}}
+}}
+
+
+%
+% unpack drivers if possible
+%
+\InputIfFileExists{lstdrvrs.ins}{}{}
+
+
+%
+% print user's advice
+%
 \Msg{*}
-\Msg{* Move all `.sty' files into a directory searched by TeX.}
+\Msg{* Move all `.sty' and `.cfg' files into a folder searched by TeX.}
 \Msg{*}
 \Msg{* Run the `.dtx' file through LaTeX2e to get the documentation.}
 \Msg{*}
+
+\endinput

@@ -1,0 +1,1761 @@
+% \iffalse
+%
+% NOTE: This file contains very long lines (upto approx 250 characters).
+%       I haven't wrapped them since I won't do that by hand and haven't
+%       written any program doing the work.
+%
+%       If you want to read this .dtx file, you might get in trouble with
+%       such long lines!
+%
+%<*driver>
+\documentclass{ltxdoc}
+
+\EnableCrossrefs         
+\CodelineIndex
+\OldMakeindex
+
+\begin{document}
+    \DocInput{lstdrvrs.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+%
+% \providecommand\lsthelper[4]{#1\ifx\empty#2\empty\typeout{^^JWarning: #1 has unknown email^^J}\else\space\texttt{<#2>}{}\fi}
+% \ifx\TODO\undefined
+%    \newenvironment{TODO}{\begin{quote}\footnotesize To do:}{\end{quote}}
+% \fi
+%
+% \DoNotIndex{\[,\{,\},\],\1,\2,\3,\4,\5,\6,\7,\8,\9,\0}
+% \DoNotIndex{\`,\,,\!,\#,\$,\&,\',\(,\),\+,\.,\:,\;,\<,\=,\>,\?,\_}
+% \DoNotIndex{\askforoverwritefalse,\askforoverwritetrue,\batchfile}
+% \DoNotIndex{\begin,\def,\else,\@empty,\end,\endpreamble,\expandafter}
+% \DoNotIndex{\fi,\file,\from,\gdef,\generate,\ifnum,\ifx,\input}
+% \DoNotIndex{\keepsilent,\lccode,\let,\lowercase,\preamble,\relax}
+% \DoNotIndex{\undefined}
+%
+% \DoNotIndex{\lst@DriverLocation,\lst@SCmode,}
+% \DoNotIndex{\lst@eaten,\lst@EnterMode,\lst@ifmode,\lst@IfNextCharsArg}
+% \DoNotIndex{\lst@keywords,\lst@LeaveMode,\lst@mode,\lst@NewMode}
+% \DoNotIndex{\lst@PrintToken, alsodigit=,\lstalsoletter, alsoother=}
+% \DoNotIndex{\lstCC@@BeginComment,\lstCC@CommentE,\lstCC@TestCArg}
+% \DoNotIndex{\lstCC@Def,\lstCC@ProcessOther,\lstCC@ProcessPOD}
+% \DoNotIndex{\lstCC@SpecialUseAfter}
+% \DoNotIndex{\lstset,\lststorekeywords}
+%
+% \DoNotIndex{\lstkeys@cobol,\lstkeys@cobol@eightyfive,\lstkeys@fortran}
+% \DoNotIndex{\lstkeys@tex@commoncs,\lstkeys@tex@latexcs}
+% \DoNotIndex{\lstkeys@tex@primitives}
+%
+%
+% \title{Driver files for Listings.dtx 0.19\\ {\large by Carsten Heinz and individual authors:}}
+% \author{Kai Below\and Detlev Dr\"oge\and Christian Haul\and J\"urgen Heim\and Detlef Reimers\and Dominique de Waleffe\and Kai Wollenweber}
+% \date{}
+%
+% \maketitle
+%
+%
+% \section{Installation and configuration}
+%
+% \begingroup
+%    \begin{macrocode}
+%<*install>
+%
+% do these things if not already done
+%
+\ifx\keepsilent\undefined %
+    \input{docstrip}
+    \keepsilent
+    \askforoverwritefalse
+\fi
+\def\batchfile{lstdrvrs.ins}
+
+%
+% define preamble
+%
+\preamble
+
+(w)(c) 1996,1997,1998 Carsten Heinz and/or any other author mentioned
+elsewhere in this file.
+
+This file is distributed freely. You are not allowed to take money for
+the use or distribution of this file, except for a nominal charge for
+copying etc..
+
+This file is distributed without any warranty, express or implied, as
+to merchantability or fitness for any particular purpose.
+
+Permission is granted to change this file. You are not allowed to
+distribute any changed version this file, neither under the same name
+nor under a different one.
+
+\endpreamble
+
+%
+% generate all language drivers
+%
+\generate{
+    \file{lstalgol.sty}   {\from{listings.dtx}{keywordcomments}
+                           \from{lstdrvrs.dtx}{algol}}
+    \file{lstc.sty}       {\from{listings.dtx}{c}
+                           \from{lstdrvrs.dtx}{c,objective-c,c++}}
+    \file{lstperl.sty}    {\from{listings.dtx}{perl}
+                           \from{lstdrvrs.dtx}{perl}}
+    \file{lstsimula.sty}  {\from{listings.dtx}{keywordcomments}
+                           \from{lstdrvrs.dtx}{simula}}
+    \file{lsttex.sty}     {\from{listings.dtx}{tex}
+                           \from{lstdrvrs.dtx}{tex}}
+%
+    \file{lstada.sty}     {\from{lstdrvrs.dtx}{ada}}
+    \file{lstcobol.sty}   {\from{lstdrvrs.dtx}{cobol}}
+    \file{lstedu.sty}     {\from{lstdrvrs.dtx}{comal,elan,logo}}
+    \file{lstcsh.sty}     {\from{lstdrvrs.dtx}{csh}}
+    \file{lstdelphi.sty}  {\from{lstdrvrs.dtx}{delphi}}
+    \file{lsteiffel.sty}  {\from{lstdrvrs.dtx}{eiffel}}
+    \file{lsteuphoria.sty}{\from{lstdrvrs.dtx}{euphoria}}
+    \file{lstfortran.sty} {\from{lstdrvrs.dtx}{fortran}}
+    \file{lsthtml.sty}    {\from{lstdrvrs.dtx}{html}}
+    \file{lstidl.sty}     {\from{lstdrvrs.dtx}{idl}}
+    \file{lstjava.sty}    {\from{lstdrvrs.dtx}{java}}
+}
+
+\generate{
+    \file{lstlisp.sty}    {\from{lstdrvrs.dtx}{lisp}}
+    \file{lstmatlab.sty}  {\from{lstdrvrs.dtx}{matlab}}
+    \file{lstmercury.sty} {\from{lstdrvrs.dtx}{mercury}}
+    \file{lstmodula.sty}  {\from{lstdrvrs.dtx}{modula}}
+    \file{lstoberon.sty}  {\from{lstdrvrs.dtx}{oberon}}
+    \file{lstpascal.sty}  {\from{lstdrvrs.dtx}{pascal}}
+    \file{lstpli.sty}     {\from{lstdrvrs.dtx}{pli}}
+    \file{lstprolog.sty}  {\from{lstdrvrs.dtx}{prolog}}
+    \file{lstsql.sty}     {\from{lstdrvrs.dtx}{sql}}
+    \file{lstvhdl.sty}    {\from{lstdrvrs.dtx}{vhdl}}
+}
+\end
+%</install>
+%    \end{macrocode}
+%
+% \begingroup
+%    \begin{macrocode}
+%<*config>
+%    \end{macrocode}
+% \endgroup
+% Configuration starts with locations of some language drivers.
+%    \begin{macrocode}
+\lst@DriverLocation{C++}{lstc}
+\lst@DriverLocation{Modula-2}{lstmodula}
+\lst@DriverLocation{Oberon-2}{lstoberon}
+\lst@DriverLocation{PL/I}{lstpli}
+%    \end{macrocode}
+%    \begin{macrocode}
+\lst@DriverLocation{Comal 80}{lstedu}
+\lst@DriverLocation{Elan}{lstedu}
+\lst@DriverLocation{Logo}{lstedu}
+%    \end{macrocode}
+% Then we define default dialects.
+%    \begin{macrocode}
+\lstset{defaultdialect=[68]Algol}
+\lstset{defaultdialect=[ANSI]C}
+\lstset{defaultdialect=[1985]Cobol}
+\lstset{defaultdialect=[ANSI]C++}
+\lstset{defaultdialect=[95]Fortran}
+\lstset{defaultdialect=[Standard]Pascal}
+\lstset{defaultdialect=[67]Simula}
+\lstset{defaultdialect=[plain]TeX}
+%    \end{macrocode}
+% \begingroup
+%    \begin{macrocode}
+%</config>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \section{Language drivers}
+%
+% You should read section 'Overture' in the \texttt{listings.dtx} documentation.
+% |\lstPre@| and |\lstSCT| are explained there.
+% '\texttt{???}' still indicates things I don't know.
+%
+%
+% \subsection{Ada}
+%
+% Data come from
+% \begin{itemize}
+% \item
+%		\textsc{Barnes, John Gilbert Presslie}:
+%		\textbf{Programming in Ada plus language reference manual};
+%		{\copyright} 1991 Addison-Wesley Publishing Company, Inc.;
+%		ISBN 0-201-56539-0.
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*ada>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage{Ada}%
+  {keywords={abort,abs,accept,access,all,and,array,at,begin,body,%
+      case,constant,declare,delay,delta,digits,do,else,elsif,end,entry,%
+      exception,exit,for,function,generic,goto,if,in,is,limited,loop,%
+      mod,new,not,null,of,or,others,out,package,pragma,private,%
+      procedure,raise,range,record,rem,renames,return,reverse,select,%
+      separate,subtype,task,terminate,then,type,use,when,while,with,%
+      xor},%
+   sensitive=false,%
+   commentline={--},%
+   stringizer=[m]{"'}% percent not defined as stringizer so far
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</ada>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Algol}
+%
+% Data come from
+% \begin{itemize}
+% \item
+%		\textsc{Uwe Pape}:
+%		\textbf{Programmieren in ALGOL 60};
+%		{\copyright} 1973 Carl Hanser Verlag M\"unchen;
+%		ISBN 3-446-11605-2
+% \item
+%		\textsc{Frank G.\ Pagan}:
+%		\textbf{A practical guide to ALGOL 68};
+%		{\copyright} 1976 by John Wiley $\&$ Sohn Ltd.;
+%		ISBN 0-471-65746-8 (Cloth); ISBN 0-471-65747-6 (Pbk).
+% \end{itemize}
+% The definition of Algol 68 doesn't support comments enclosed by \rlap{/}c.
+% \begingroup
+%    \begin{macrocode}
+%<*algol>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[68]{Algol}%
+% ??? should 'i' be a keyword
+  {keywords={abs,and,arg,begin,bin,bits,bool,by,bytes,case,channel,%
+      char,co,comment,compl,conj,divab,do,down,elem,elif,else,empty,%
+      end,entier,eq,esac,exit,false,fi,file,flex,for,format,from,ge,%
+      goto,gt,heap,if,im,in,int,is,isnt,le,leng,level,loc,long,lt,lwb,%
+      minusab,mod,modab,mode,ne,nil,not,od,odd,of,op,or,ouse,out,over,%
+      overab,par,plusab,plusto,pr,pragmat,prio,proc,re,real,ref,repr,%
+      round,sema,shl,short,shorten,shr,sign,skip,string,struct,then,%
+      timesab,to,true,union,up,upb,void,while},%
+   sensitive=false,% ???
+   singlecomment={\#}{\#},%
+   keywordcomment={co,comment}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[60]{Algol}%
+  {keywords={array,begin,Boolean,code,comment,div,do,else,end,false,%
+      for,goto,if,integer,label,own,power,procedure,real,step,string,%
+      switch,then,true,until,value,while},%
+   sensitive=false,% ???
+   doublekeywordcommentsemicolon={end}{else,end}{comment}%
+  }%
+%</algol>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{C, C++ and Objective-C}
+%
+% \begingroup
+%    \begin{macrocode}
+%<*c>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage[ANSI]{C}%
+  {keywords={auto,break,case,char,const,continue,default,do,double,%
+      else,enum,extern,float,for,goto,if,int,long,register,return,%
+      short,signed,sizeof,static,struct,switch,typedef,union,unsigned,%
+      void,volatile,while},%
+   sensitive=true,%
+   singlecomment={/*}{*/},%
+   stringizer=[b]{"},%
+   cdirectives={define,elif,else,endif,error,if,ifdef,ifndef,line,%
+      include,pragma,undef,warning}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</c>
+%    \end{macrocode}
+% \endgroup
+%
+% \begingroup
+%    \begin{macrocode}
+%<*c++>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[ANSI]{C++}%
+  {language=[ANSI]C,%
+   morekeywords={asm,bad_cast,bad_typeid,bool,catch,class,const_cast,%
+      delete,dynamic_cast,false,friend,inline,namespace,new,operator,%
+      private,protected,public,reinterpret_cast,static_cast,template,%
+      this,throw,true,try,type_info,typeid,using,virtual,xalloc,%
+      __multiple_inheritance,__single_inheritance,%
+      __virtual_inheritance},%
+   commentline={//}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[Visual]{C++}%
+  {language=[ANSI]C++,%
+   morekeywords={__asm,__based,__cdecl,__declspec,dllexport,%
+      dllimport,__except,__fastcall,__finally,__inline,__int8,__int16,%
+      __int32,__int64,naked,__stdcall,thread,__try,__leave},%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</c++>
+%    \end{macrocode}
+% \endgroup
+%
+% Objective-C is due to \lsthelper{Detlev Dr\"oge}{droege@informatik.uni-koblenz.de}{1997/11/04}{Objective-C}.
+% I've only done some conversion.
+% \begingroup
+%    \begin{macrocode}
+%<*objective-c>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1997 Detlev Droege
+\lstdefinedrvlanguage[Objective]{C}%
+  {language=[ANSI]C,%
+   morekeywords={bycopy,id,in,inout,oneway,out,self,super,%
+      @class,@defs,@encode,@end,@implementation,@interface,@private,%
+      @protected,@protocol,@public,@selector},%
+   commentline={//},%
+   cdirectives={define,elif,else,endif,error,if,ifdef,ifndef,line,%
+      include,import,pragma,undef,warning}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</objective-c>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Cobol}
+%
+% Keywords are not marked if their names are broken by EOL, for example DEBUG- CONTENTS.
+% Sometimes portions of a string are not printed as a string.
+% This happens if the double quote is not doubled to insert a quote, e.g.\ |""bad" cobol"| won't be printed correctly.
+% \begingroup
+%    \begin{macrocode}
+%<*cobol>
+%    \end{macrocode}
+% We store some keywords:
+%    \begin{macrocode}
+\lststorekeywords\lstkeys@cobol{ACCEPT,ACCESS,ADD,ADVANCING,AFTER,ALL,%
+    ALPHABETIC,ALSO,ALTER,ALTERNATE,AND,ARE,AREA,AREAS,ASCENDING,%
+    ASSIGN,AT,AUTHOR,BEFORE,BINARY,BLANK,BLOCK,BOTTOM,BY,CALL,CANCEL,%
+    CD,CF,CH,CHARACTER,CHARACTERS,CLOCK-UNITS,CLOSE,COBOL,CODE,%
+    CODE-SET,COLLATING,COLUMN,COMMA,COMMUNICATION,COMP,COMPUTE,%
+    CONFIGURATION,CONTAINS,CONTROL,CONTROLS,CONVERTING,COPY,CORR,%
+    CORRESPONDING,COUNT,CURRENCY,DATA,DATE,DATE-COMPILED,DATE-WRITTEN,%
+    DAY,DE,DEBUG-CONTENTS,DEGUB-ITEM,DEBUG-LINE,DEBUG-NAME,DEBUG-SUB1,%
+    DEBUG-SUB2,DEBUG-SUB3,DEBUGGING,DECIMAL-POINT,DECLARATIVES,DELETE,%
+    DELIMITED,DELIMITER,DEPENDING,DESCENDING,DESTINATION,DETAIL,%
+    DISABLE,DISPLAY,DIVIDE,DIVISION,DOWN,DUPLICATES,DYNAMIC,EGI,ELSE,%
+    EMI,ENABLE,END,END-OF-PAGE,ENTER,ENVIRONMENT,EOP,EQUAL,ERROR,ESI,%
+    EVERY,EXCEPTION,EXIT,EXTEND,FD,FILE,FILE-CONTROL,FILLER,FINAL,%
+    FIRST,FOOTING,FOR,FROM,GENERATE,GIVING,GO,GREATER,GROUP,HEADING,%
+    HIGH-VALUE,HIGH-VALUES,I-O,I-O-CONTROL,IDENTIFICATION,IF,IN,INDEX,%
+    INDEXED,INDICATE,INITIAL,INITIATE,INPUT,INPUT-OUTPUT,INSPECT,%
+    INSTALLATION,INTO,INVALID,IS,JUST,JUSTIFIED,KEY,LABEL,LAST,LEADING,%
+    LEFT,LENGTH,LESS,LIMIT,LIMITS,LINAGE,LINAGE-COUNTER,LINE,%
+    LINE-COUNTER,LINES,LINKAGE,LOCK,LOW-VALUE,LOW-VALUES,MEMORY,MERGE,%
+    MESSAGE,MODE,MODULES,MOVE,MULTIPLE,MULTIPLY,NATIVE,NEGATIVE,NEXT,%
+    NO,NOT,NUMBER,NUMERIC,OBJECT-COMPUTER,OCCURS,OF,OFF,OMITTED,ON,%
+    OPEN,OPTIONAL,OR,ORGANIZATION,OUTPUT,OVERFLOW,PAGE,PAGE-COUNTER,%
+    PERFORM,PF,PH,PIC,PICTURE,PLUS,POINTER,POSITION,PRINTING,POSITIVE,%
+    PRINTING,PROCEDURE,PROCEDURES,PROCEED,PROGRAM,PROGRAM-ID,QUEUE,%
+    QUOTE,QUOTES,RANDOM,RD,READ,RECEIVE,RECORD,RECORDING,RECORDS,%
+    REDEFINES,REEL,REFERENCES,RELATIVE,RELEASE,REMAINDER,REMOVAL,%
+    RENAMES,REPLACING,REPORT,REPORTING,REPORTS,RERUN,RESERVE,RESET,%
+    RETURN,REVERSED,REWIND,REWRITE,RF,RH,RIGHT,ROUNDED,RUN,SAME,SD,%
+    SEARCH,SECTION,SECURITY,SEGMENT,SEGMENT-LIMIT,SELECT,SEND,SENTENCE,%
+    SEPARATE,SEQUENCE,SEQUENTIAL,SET,SIGN,SIZE,SORT,SORT-MERGE,SOURCE,%
+    SOURCE-COMPUTER,SPACE,SPACES,SPECIAL-NAMES,STANDARD,START,STATUS,%
+    STOP,STRING,SUB-QUEUE-1,SUB-QUEUE-2,SUB-QUEUE-3,SUBTRACT,SUM,%
+    SYMBOLIC,SYNC,SYNCHRONIZED,TABLE,TALLYING,TAPE,TERMINAL,TERMINATE,%
+    TEXT,THAN,THROUGH,THRU,TIME,TIMES,TO,TOP,TRAILING,TYPE,UNIT,%
+    UNSTRING,UNTIL,UP,UPON,USAGE,USE,USING,VALUE,VALUES,VARYING,WHEN,%
+    WITH,WORDS,WORKING-STORAGE,WRITE,ZERO,ZEROES,ZEROS}%
+\lststorekeywords\lstkeys@cobol@eightyfive{ALPHABET,ALPHABETIC-LOWER,%
+    ALPHABETIC-UPPER,ALPHANUMERIC,ALPHANUMERIC-EDITED,ANY,CLASS,COMMON,%
+    CONTENT,CONTINUE,DAY-OF-WEEK,END-ADD,END-CALL,END-COMPUTE,%
+    END-DELETE,END-DIVIDE,END-EVALUATE,END-IF,END-MULTIPLY,END-PERFORM,%
+    END-READ,END-RECEIVE,END-RETURN,END-REWRITE,END-SEARCH,END-START,%
+    END-STRING,END-SUBTRACT,END-UNSTRING,END-WRITE,EVALUATE,EXTERNAL,%
+    FALSE,GLOBAL,INITIALIZE,NUMERIC-EDITED,ORDER,OTHER,PACKED-DECIMAL,%
+    PADDING,PURGE,REFERENCE,RELOAD,REPLACE,STANDARD-1,STANDARD-2,TEST,%
+    THEN,TRUE}%
+%    \end{macrocode}
+% Now define the languages:
+%    \begin{macrocode}
+\lstdefinedrvlanguage[1985]{Cobol}%
+  {keywords={\lstkeys@cobol,\lstkeys@cobol@eightyfive},%
+   sensitive=false,% ???
+   fixedcommentline=[6]{*},%
+   stringizer=[d]{"}% ??? doubled
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[1974]{Cobol}%
+  {keywords={\lstkeys@cobol},%
+   sensitive=false,% ???
+   fixedcommentline=[6]{*},%
+   stringizer=[d]{"}% ??? doubled
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[ibm]{Cobol}%
+  {keywords={\lstkeys@cobol,\lstkeys@cobol@eightyfive,%
+      ADDRESS,BEGINNING,COMP-3,COMP-4,COMPUTATIONAL,COMPUTATIONAL-3,%
+      COMPUTATIONAL-4,DISPLAY-1,EGCS,EJECT,ENDING,ENTRY,GOBACK,ID,%
+      MORE-LABELS,NULL,NULLS,PASSWORD,RECORDING,RETURN-CODE,SERVICE,%
+      SKIP1,SKIP2,SKIP3,SORT-CONTROL,SORT-RETURN,SUPPRESS,TITLE,%
+      WHEN-COMPILED},%
+   sensitive=false,% ???
+   fixedcommentline=[6]{*},%
+   stringizer=[d]{"}% ??? doubled
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</cobol>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Comal 80}
+%
+% The data is from
+% \begin{itemize}
+% \item
+%		\textsc{Borge R. Christensen}:
+%		\textbf{Strukturierte Programmierung mit COMAL 80} [aus dem
+%		D\"anischen \"ubertragen und bearbeitet von Margarete Kragh];
+%		2., verb.\ Auflage -- M\"unchen; Wien: Oldenburg, 1985;
+%		ISBN 3-486-26902-X.
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*comal>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage{Comal 80}%
+  {keywords={AND,AUTO,CASE,DATA,DEL,DIM,DIV,DO,ELSE,ENDCASE,ENDIF,%
+      ENDPROC,ENDWHILE,EOD,EXEC,FALSE,FOR,GOTO,IF,INPUT,INT,LIST,LOAD,%
+      MOD,NEW,NEXT,NOT,OF,OR,PRINT,PROC,RANDOM,RENUM,REPEAT,RND,RUN,%
+      SAVE,SELECT,STOP,TAB,THEN,TRUE,UNTIL,WHILE,ZONE},%
+   sensitive=false,% ???
+   commentline={//},%
+   stringizer={"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</comal>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{C-Shell}
+%
+% This language is due to \lsthelper{Kai Below}{below@tu-harburg.de}{1998/09/21}{csh}, but he pointed out that some keywords are probably missing.
+% \begingroup
+%    \begin{macrocode}
+%<*csh>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1998 Kai Below
+\lstdefinelanguage{csh}
+  {keywords={alias,awk,cat,echo,else,end,endif,endsw,exec,exit,%
+      foreach,glob,goto,history,if,logout,nice,nohup,onintr,repeat,sed,%
+      set,setenv,shift,source,switch,then,time,while,umask,unalias,%
+      unset,wait,while,@,env,argv,child,home,ignoreeof,noclobber,%
+      noglob,nomatch,path,prompt,shell,status,verbose,print,printf,%
+      sqrt,BEGIN,END},%
+   commentline={\#},%
+   stringizer={"}%
+  }
+%    \end{macrocode}
+%    \begin{macrocode}
+%</csh>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Delphi}
+%
+% I took the data from Delphi 1.0 (?) online help.
+% \begingroup
+%    \begin{macrocode}
+%<*delphi>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{Delphi}%
+  {keywords={and,as,asm,array,begin,case,class,const,constructor,%
+      destructor,div,do,downto,else,end,except,exports,file,finally,%
+      for,function,goto,if,implementation,in,inherited,inline,%
+      initialization,interface,is,label,library,mod,nil,not,object,of,%
+      or,packed,procedure,program,property,raise,record,repeat,set,%
+      shl,shr,string,then,to,try,type,unit,until,uses,var,while,with,%
+      xor,%
+      absolute,abstract,assembler,at,cdecl,default,dynamic,export,%
+      external,far,forward,index,name,near,nodefault,on,override,%
+      private,protected,public,published,read,resident,storedDir,%
+      virtual,write,%
+      Abs,AddExitProc,Addr,AllocMem,AnsiCompareStr,AnsiCompareText,%
+      AnsiLowerCase,AnsiUpperCase,Append,AppendStr,ArcTan,AssignCrt,%
+      Assigned,AssignFile,BlockRead,BlockWrite,Break,ChangeFileExt,%
+      ChDir,Chr,CloseFile,ClrEol,ClrScr,Concat,Continue,Copy,Cos,CSeg,%
+      CursorTo,Date,DateTimeToFileDate,DateTimeToStr,DateTimeToString,%
+      DateToStr,DayOfWeek,Dec,DecodeDate,DecodeTime,Delete,DeleteFile,%
+      DiskFree,DiskSize,Dispose,DisposeStr,DoneWinCrt,DSeg,EncodeDate,%
+      EncodeTime,Eof,Eoln,Erase,Exclude,Exit,Exp,ExpandFileName,%
+      ExtractFileExt,ExtractFileName,ExtractFilePath,FileAge,FileClose,%
+      FileDateToDateTime,FileExists,FileGetAttr,FileGetDate,FileOpen,%
+      FilePos,FileRead,FileSearch,FileSeek,FileSetAttr,FileSetDate,%
+      FileSize,FillChar,FindClose,FindFirst,FindNext,FloatToDecimal,%
+      FloatToStrF,FloatToStr,FloatToText,FloatToTextFmt,Flush,%
+      FmtLoadStr,FmtStr,Format,FormatBuf,FormatDateTime,FormatFloat,%
+      Frac,Free,FreeMem,GetDir,GetMem,GotoXY,Halt,Hi,High,Inc,Include,%
+      InitWinCrt,Insert,Int,IntToHex,IntToStr,IOResult,IsValidIdent,%
+      KeyPressed,Length,Ln,Lo,LoadStr,Low,LowerCase,MaxAvail,MemAvail,%
+      MkDir,Move,New,NewStr,Now,Odd,Ofs,Ord,ParamCount,ParamStr,Pi,Pos,%
+      Pred,Ptr,Random,Randomize,Read,ReadBuf,ReadKey,Readln,ReAllocMem,%
+      Rename,RenameFile,Reset,Rewrite,RmDir,Round,RunError,ScrollTo,%
+      Seek,SeekEof,SeekEoln,Seg,SetTextBuf,Sin,SizeOf,SPtr,Sqr,Sqrt,%
+      SSeg,Str,StrCat,StrComp,StrCopy,StrDispose,StrECopy,StrEnd,%
+      StrFmt,StrLCat,StrIComp,StrLComp,StrLCopy,StrLen,StrLFmt,%
+      StrLIComp,StrLower,StrMove,StrNew,StrPas,StrPCopy,StrPos,StrScan,%
+      StrRScan,StrToDate,StrToDateTime,StrToFloat,StrToInt,StrToIntDef,%
+      StrToTime,StrUpper,Succ,Swap,TextToFloat,Time,TimeToStr,%
+      TrackCursor,Trunc,Truncate,TypeOf,UpCase,UpperCase,Val,WhereX,%
+      WhereY,Write,WriteBuf,WriteChar,Writeln},%
+   sensitive=false,%
+   doublecomment={(*}{*)}{\{}{\}},%
+   stringizer=[d]{'}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</delphi>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Eiffel}
+%
+% Data is from
+% \begin{itemize}
+% \item
+%       \textsc{Bertrand Meyer}: \textbf{Eiffel: the language};
+%       Prentice Hall International (UK) Ldt, 1992;
+%       ISBN 0-13-247925-7.
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*eiffel>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{Eiffel}%
+  {keywords={alias,all,and,as,BIT,BOOLEAN,CHARACTER,check,class,%
+      creation,Current,debug,deferred,do,DOUBLE,else,elseif,end,%
+      ensure,expanded,export,external,false,feature,from,frozen,if,%
+      implies,indexing,infix,inherit,inspect,INTEGER,invariant,is,%
+      like,local,loop,NONE,not,obsolete,old,once,or,POINTER,prefix,%
+      REAL,redefine,rename,require,rescue,Result,retry,select,%
+      separate,STRING,strip,then,true,undefine,unique,until,variant,%
+      when,xor},%
+   sensitive=true,%
+   commentline={--},%
+   stringizer={"},%
+   stringtest=false%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</eiffel>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Elan}
+%
+% The data come from
+% \begin{itemize}
+% \item
+%		\textsc{Leo~H.~Klingen, Jochen Liedtke}:
+%		\textbf{Programmieren mit ELAN};
+%		B.G.\ Teubner, Stuttgart 1983; ISBN 3-519-02507-8.
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*elan>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage{Elan}%
+  {keywords={ABS,AND,BOOL,CAND,CASE,CAT,COLUMNS,CONCR,CONJ,CONST,COR,%
+      DECR,DEFINES,DET,DIV,DOWNTO,ELIF,ELSE,END,ENDIF,ENDOP,ENDPACKET,%
+      ENDPROC,ENDREP,ENDSELECT,FALSE,FI,FILE,FOR,FROM,IF,INCR,INT,INV,%
+      LEAVE,LENGTH,LET,MOD,NOT,OF,OP,OR,OTHERWISE,PACKET,PROC,REAL,REP,%
+      REPEAT,ROW,ROWS,SELECT,SIGN,STRUCT,SUB,TEXT,THEN,TRANSP,TRUE,%
+      TYPE,UNTIL,UPTO,VAR,WHILE,WITH,XOR,%
+      maxint,sign,abs,min,max,random,initializerandom,subtext,code,%
+      replace,text,laenge,pos,compress,change,maxreal,smallreal,floor,%
+      pi,e,ln,log2,log10,sqrt,exp,tan,tand,sin,sind,cos,cosd,arctan,%
+      arctand,int,real,lastconversionok,put,putline,line,page,get,%
+      getline,input,output,sequentialfile,maxlinelaenge,reset,eof,%
+      close,complexzero,complexone,complexi,complex,realpart,imagpart,%
+      dphi,phi,vector,norm,replace,matrix,idn,row,column,sub,%
+      replacerow,replacecolumn,replaceelement,transp,errorsstop,stop},%
+   sensitive=true,%
+   stringizer=[d]{"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</elan>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Euphoria}
+%
+% \lsthelper{Detlef Reimers}{dreimers@aol.com}{1998/08/30}{Euphoria} sent me the language definition.
+% I've done the conversion to listings 0.19.
+% \begingroup
+%    \begin{macrocode}
+%<*euphoria>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1998 Detlef Reimers
+\lstdefinelanguage{Euphoria}%
+% for Euphoria 2.0, Rapid Deployment Software, Kanada
+  {keywords={abort,and,and_bits,append,arctan,atom,by,call,call_proc,%
+      call_func,c_proc,c_func,clear_screen,close,command_line,compare,%
+      constant,cos,do,date,else,elsif,end,exit,find,floor,for,function,%
+      getc,getenv,get_key,gets,global,get_pixel,if,include,integer,%
+      length,log,match,machine_func,machine_proc,mem_copy,mem_set,not,%
+      not_bits,or,object,open,or_bits,procedure,puts,position,prepend,%
+      print,printf,power,peek,poke,pixel,poke4,peek4s,peek4u,return,%
+      rand,repeat,remainder,routine_id,sequence,sqrt,sin,system,%
+      sprintf,then,type,to,time,trace,tan,while,with,without,xor,%
+      xor_bits},%
+   sensitive=true,%
+   commentline={--},%
+   stringizer=[d]{'"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</euphoria>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Fortran}
+%
+% Took things from
+% \begin{itemize}
+% \item
+%		\textsc{Karl Hans M\"uller}:
+%		\textbf{Fortran 77: Programmierungsanleitung};
+%		3., v\"ollig neu bearb.\ Aufl.\ -- Mannheim; Wien; Z\"urich:
+%		Bibliographisches Institut, 1984;
+%		ISBN 3-411-05804-8
+% \item
+%       \textsc{Thomas Michel}: \textbf{Fortran 90: Lehr-- und Handbuch};
+%       Mannheim; Leipzig; Wien; Z\"urich: BI-Wiss.-Verlag, 1994;
+%       ISBN 3-411-16861-7.
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*fortran>
+%    \end{macrocode}
+% The common Fortran 90 and 77 'keywords':
+%    \begin{macrocode}
+\lststorekeywords\lstkeys@fortran{ACCESS,ASSIGN,BACKSPACE,BLANK,%
+    BLOCK,CALL,CHARACTER,CLOSE,COMMON,COMPLEX,CONTINUE,DATA,DIMENSION,%
+    DIRECT,DO,DOUBLE,ELSE,END,ENTRY,EOF,EQUIVALENCE,ERR,EXIST,EXTERNAL,%
+    FILE,FMT,FORM,FORMAT,FORMATTED,FUNCTION,GO,TO,IF,IMPLICIT,INQUIRE,%
+    INTEGER,INTRINSIC,IOSTAT,LOGICAL,NAMED,NEXTREC,NUMBER,OPEN,OPENED,%
+    PARAMETER,PAUSE,PRECISION,PRINT,PROGRAM,READ,REAL,REC,RECL,%
+    RETURN,REWIND,SEQUENTIAL,STATUS,STOP,SUBROUTINE,THEN,TYPE,%
+    UNFORMATTED,UNIT,WRITE}%
+%    \end{macrocode}
+% As proposed by \lsthelper{J\"orn Wilms}{wilms@rocinante.colorado.edu}{1997/07/07}{Fortran with \lstsensitivefalse} keywords are \emph{not} case sensitive.
+% There is no \cs{lstfixedcommentline} in Fortran 90 since otherwise CONTAINS could start a comment.
+% This problem was reported by \lsthelper{Magne Rudshaug}{magne@ife.no}{1998/01/09}{no  fixedcommentline= in Fortran 90}.
+% Moreover the keyword INCLUDE is due to him.
+%    \begin{macrocode}
+\lstdefinedrvlanguage[95]{Fortran}%
+  {keywords={\lstkeys@fortran,ACTION,ADVANCE,ALLOCATE,ALLOCATABLE,%
+      ASSIGNMENT,CASE,CONTAINS,CYCLE,DEALLOCATE,DEFAULT,DELIM,EXIT,%
+      INCLUDE,IN,NONE,IN,OUT,INTENT,INTERFACE,IOLENGTH,KIND,LEN,MODULE,%
+      NAME,NAMELIST,NMT,NULLIFY,ONLY,OPERATOR,OPTIONAL,OUT,PAD,POINTER,%
+      POSITION,PRIVATE,PUBLIC,READWRITE,RECURSIVE,RESULT,SELECT,%
+      SEQUENCE,SIZE,STAT,TARGET,USE,WHERE,WHILE,BLOCKDATA,%
+      DOUBLEPRECISION,ELSEIF,ENDBLOCKDATA,ENDDO,ENDFILE,ENDFUNCTION,%
+      ENDIF,ENDINTERFACE,ENDMODULE,ENDPROGRAM,ENDSELECT,ENDSUBROUTINE,%
+      ENDTYPE,ENDWHERE,GOTO,INOUT,SELECTCASE},%
+   sensitive=false,%% not Fortran standard %% 1997 J\"orn Wilms
+   commentline={!},% no fixed comment line: 1998 Magne Rudshaug
+   stringizer={"}%
+  }%
+%    \end{macrocode}
+% \lsthelper{Denis Girou}{Denis.Girou@idris.fr}{1998/07/26}{Fortran 95=90} proposed to have Fortran 95 and Fortran 90 to be equivalent.
+%    \begin{macrocode}
+\lstdefinedrvlanguage[90]{Fortran}{language=[95]Fortran}
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[77]{Fortran}%
+  {keywords={\lstkeys@fortran,SAVE},%
+   sensitive=false,%% not Fortran standard %%
+   fixedcommentline={*Cc},%
+   stringizer={"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</fortran>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{IDL}
+%
+% The definition is due to \lsthelper{J\"urgen Heim}{heim@astro.uni-tuebingen.de}{1998/07/27}{IDL}.
+% I've done the conversion to version 0.19.
+% \begingroup
+%    \begin{macrocode}
+%<*idl>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1998 Juergen Heim
+\lstdefinelanguage{IDL}%
+  {keywords={and,begin,case,common,do,else,end,endcase,endelse,%
+      endfor,endif,endrep,endwhile,eq,for,function,ge,goto,gt,if,le,lt,%
+      mod,ne,not,of,on_ioerror,or,pro,repeat,return,then,until,while,%
+      xor,on_error,openw,openr,openu,print,printf,printu,plot,read,%
+      readf,readu,writeu,stop},%
+   sensitive=false,%
+   commentline={;},%
+   stringizer=[d]{'}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</idl>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{HTML}
+%
+% I'm quite the opposite of a HTML wizard.
+% In particular this is true for the defined keywords.
+% \begingroup
+%    \begin{macrocode}
+%<*html>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{HTML}%
+  {keywords={A,ADDRESS,APPLET,B,BASE,BASEFONT,BIG,BLOCKQUOTE,BODY,BR,%
+      CENTER,CITE,CODE,DFN,DIR,DIV,DOCTYPE,EM,FONT,FORM,HEAD,HR,%
+      H1,H2,H3,H4,H5,H6,HTML,I,IMG,INPUT,ISINDEX,KBD,LI,LINK,LISTING,%
+      MAP,META,MENU,P,PLAINTEXT,PRE,OL,SAMP,SCRIPT,SELECT,SMALL,STRIKE,%
+      STRING,SUB,SUP,STYLE,TABLE,TEXTAREA,TITLE,TT,U,UL,VAR,XMP,%
+      action,align,alink,alt,background,bgcolor,border,cellpadding,%
+      cellspacing,checked,code,codebase,color,cols,colspan,entype,%
+      height,href,hspace,ismap,link,maxlength,method,multiple,name,%
+      noshade,nowrap,rel,rev,rows,rowspan,selected,shape,size,src,text,%
+      title,type,usemap,valign,value,vlink,vspace,width},%
+   sensitive=false,%
+   stringizer={"}% ??? doubled
+  }%
+%    \end{macrocode}
+% \endgroup
+%
+% \begin{macro}{\lstPre@html}
+% We don't detect keywords all over a HTML document: we 'undefine' them first.
+%    \begin{macrocode}
+\gdef\lstPre@html{%
+    \let\lstkeys@html\lst@keywords %
+    \let\lst@keywords\@empty}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lst@HTMLmode}
+% They will be active (exactly) in HTML mode.
+%    \begin{macrocode}
+\lst@NewMode\lst@HTMLmode %
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\lstSCT@html}
+% Coming to the delimiter |<|, we define the keywords again and execute the old meaning of |<|.
+%    \begin{macrocode}
+\gdef\lstSCT@html{%
+    \lccode`\~=`\<\lowercase{\let\lsts@HTMLb~}%
+    \lstCC@Def{`\<}{%
+        \lst@ifmode\else %
+            \lst@EnterMode{\lst@HTMLmode}%
+            {\let\lst@keywords\lstkeys@html}%
+        \fi %
+        \lsts@HTMLb}
+%    \end{macrocode}
+% |>| undefines the keywords again (since we leave HTML mode including an |\egroup|).
+%    \begin{macrocode}
+    \lccode`\~=`\>\lowercase{\let\lsts@HTMLe~}%
+    \lstCC@Def{`\>}{%
+        \ifnum\lst@mode=\lst@HTMLmode %
+            \lsts@HTMLe \lst@PrintToken \lst@LeaveMode %
+        \else %
+            \expandafter\lsts@HTMLe %
+        \fi}%
+%    \end{macrocode}
+% \begin{TODO}
+% You shouldn't think that here's anything to do.
+% The definition shouldn't be changed to\vspace*{-\baselineskip}
+% \begin{verbatim}
+%\lstCC@Def{`\>}{%
+%    \lsts@HTMLe %
+%    \ifnum\lst@mode=\lst@HTMLmode %
+%        \lst@PrintToken \lst@LeaveMode %
+%    \fi}%\end{verbatim}
+% If |\lst@HTMLe| (= old |>|) gets any arguments, it's really not the same.
+% However, this is not true for HTML (I think), but in some time someone might need arguments \ldots
+% \end{TODO}
+% Now we take care of comments.
+% The minus is redefined to look ahead for another minus, but we enter comment mode only if we are in HTML mode.
+%    \begin{macrocode}
+    \lccode`\~=`\-\lowercase{\let\lsts@HTMLc~}%
+    \lstCC@Def{`\-}##1{%
+        \let\lstCC@bnext\relax %
+        \ifnum\lst@mode=\lst@HTMLmode \ifnum`##1=`\-%
+            \def\lstCC@bnext{\lstCC@@BeginComment\lst@SCmode}%
+        \fi \fi %
+        \lstCC@bnext \lsts@HTMLc ##1}%
+%    \end{macrocode}
+% Finally we define |--| to end the comment.
+%    \begin{macrocode}
+    \lstCC@TestCArg--\@empty\relax\lstCC@CommentE{SC}\lst@SCmode}
+%    \end{macrocode}
+% \end{macro}
+% \begingroup
+%    \begin{macrocode}
+%</html>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Java}
+%
+% Got data from \texttt{http://java.sun.com}.
+% \begingroup
+%    \begin{macrocode}
+%<*java>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{Java}%
+  {keywords={abstract,boolean,break,byte,case,catch,char,class,const,%
+      continue,default,do,double,else,extends,final,finally,float,for,%
+      goto,if,implements,import,instanceof,int,interface,long,native,%
+      new,null,package,private,protected,public,return,short,static,%
+      super,switch,synchronized,this,throw,throws,transient,try,void,%
+      volatile,while,true,false},%
+   sensitive=true,%
+   commentline={//},%
+   singlecomment={/*}{*/},%
+   stringizer=[b]{"}% ??? backslashed
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</java>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Lisp}
+%
+% Most data are from
+% \begin{itemize}
+% \item
+%		\textsc{Guy Steele}:
+%		\textbf{Common Lisp};
+%		Copyright 1990 by Digital Equipment Corporation;
+%		ISBN 1-55558-042-4.
+% \end{itemize}
+% Thanks to \lsthelper{Aslak Raanes}{araanes@ifi.ntnu.no}{1997/11/24}{single comment in Lisp} for the single comment.
+% The keywords are the 'one-word' functions and macros of Common Lisp, i.e.\ words not containing a minus.
+% But I left out the \texttt{caaaar}, \ldots{} functions.
+% If anyone types them in, I'd like to get them.
+% \begingroup
+%    \begin{macrocode}
+%<*lisp>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{Lisp}%
+  {keywords={abort,abs,acons,acos,acosh,adjoin,alphanumericp,alter,%
+      append,apply,apropos,aref,arrayp,ash,asin,asinh,assoc,atan,atanh,%
+      atom,bit,boole,boundp,break,butlast,byte,catenate,ceiling,cerror,%
+      char,character,characterp,choose,chunk,cis,close,clrhash,coerce,%
+      collect,commonp,compile,complement,complex,complexp,concatenate,%
+      conjugate,cons,consp,constantp,continue,cos,cosh,cotruncate,%
+      count,delete,denominator,describe,directory,disassemble,%
+      documentation,dpb,dribble,ed,eighth,elt,enclose,endp,eq,eql,%
+      equal,equalp,error,eval,evalhook,evenp,every,exp,expand,export,%
+      expt,fboundp,fceiling,fdefinition,ffloor,fifth,fill,find,first,%
+      float,floatp,floor,fmakunbound,format,fourth,fround,ftruncate,%
+      funcall,functionp,gatherer,gcd,generator,gensym,gentemp,get,getf,%
+      gethash,identity,imagpart,import,inspect,integerp,intern,%
+      intersection,tively,isqrt,keywordp,last,latch,lcm,ldb,ldiff,%
+      length,list,listen,listp,load,log,logand,logbitp,logcount,logeqv,%
+      logior,lognand,lognor,lognot,logtest,logxor,macroexpand,%
+      makunbound,map,mapc,mapcan,mapcar,mapcon,maphash,mapl,maplist,%
+      mask,max,member,merge,min,mingle,minusp,mismatch,mod,namestring,%
+      nbutlast,nconc,nintersection,ninth,not,notany,notevery,nreconc,%
+      nreverse,nsublis,nsubst,nth,nthcdr,null,numberp,numerator,nunion,%
+      oddp,open,packagep,pairlis,pathname,pathnamep,phase,plusp,%
+      position,positions,pprint,previous,princ,print,proclaim,provide,%
+      random,rassoc,rational,rationalize,rationalp,read,readtablep,%
+      realp,realpart,reduce,rem,remhash,remove,remprop,replace,require,%
+      rest,revappend,reverse,room,round,rplaca,rplacd,sbit,scan,schar,%
+      search,second,series,set,seventh,shadow,signal,signum,sin,sinh,%
+      sixth,sleep,some,sort,split,sqrt,streamp,string,stringp,sublis,%
+      subseq,subseries,subsetp,subst,substitute,subtypep,svref,sxhash,%
+      symbolp,tailp,tan,tanh,tenth,terpri,third,truename,truncate,%
+      typep,unexport,unintern,union,until,values,vector,vectorp,warn,%
+      write,zerop,and,assert,case,ccase,cond,ctypecase,decf,declaim,%
+      defclass,defconstant,defgeneric,defmacro,defmethod,defpackage,%
+      defparameter,defsetf,defstruct,deftype,defun,defvar,do,dolist,%
+      dotimes,ecase,encapsulated,etypecase,flet,formatter,gathering,%
+      incf,iterate,labels,let,locally,loop,macrolet,mapping,or,pop,%
+      producing,prog,psetf,psetq,push,pushnew,remf,return,rotatef,%
+      setf,shiftf,step,time,trace,typecase,unless,untrace,when},%
+   sensitive=true,% ???
+   alsodigit={-},%
+   commentline={;},%
+   singlecomment={\#|}{|\#},% 1997 Aslak Raanes
+   stringizer=[b]{"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</lisp>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Logo}
+%
+% I don't know where the keywords are from and what kind of Logo it is.
+% Help me!
+% \begingroup
+%    \begin{macrocode}
+%<*logo>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage{Logo}%
+% ??? {end,unix} also keywords
+  {keywords={and,atan,arctan,both,break,bf,bl,butfirst,butlast,%
+      cbreak, close,co,continue,cos,count,clearscreen,cs,debquit,%
+      describe,diff,difference,ed,edit,either,emptyp,equalp,er,erase,%
+      errpause,errquit,fifp,filefprint,fifty,fileftype,fip,fileprint,%
+      fird,fileread,fity,filetype,fiwd,fileword,f,first,or,fp,fprint,%
+      fput,fty,ftype,full,fullscreen,go,bye,goodbye,gprop,greaterp,%
+      help,if,iff,iffalse,ift,iftrue,nth,item,keyp,llast,lessp,list,%
+      local,lput,make,max,maximum,memberp,memtrace,min,minimum,namep,%
+      not,numberp,oflush,openr,openread,openw,openwrite,op,output,%
+      pause,plist,pots,pow,pprop,pps,pr,print,product,quotient,random,%
+      rc,readchar,rl,readlist,remprop,repcount,repeat,request,rnd,run,%
+      se,sentence,sentencep,setc,setcolor,setipause,setqpause,po,show,%
+      sin,split,splitscreen,sqrt,stop,sum,test,text,textscreen,thing,%
+      to,tone,top,toplevel,type,untrace,wait,word,wordp,yaccdebug,is,%
+      mod,remainder,trace,zerop,back,bk,bto,btouch,fd,forward,fto,%
+      ftouch,getpen,heading,hit,hitoot,ht,hideturtle,loff,lampoff,lon,%
+      lampon,lt,left,lot,lotoot,lto,ltouch,penc,pencolor,pd,pendown,pe,%
+      penerase,penmode,pu,penup,px,penreverse,rt,right,rto,rtouch,%
+      scrunch,seth,setheading,setscrun,setscrunch,setxy,shownp,st,%
+      showturtle,towardsxy,clean,wipeclean,xcor,ycor,tur,turtle,%
+      display,dpy},%
+   sensitive=false% ???
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</logo>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Matlab}
+%
+% I took the keywords from \texttt{http://www.utexas.edu/math/Matlab/Manual} , but I removed the keywords |i|, |j| and |tmp| --- the change was proposed by \lsthelper{Kai Below}{below@tu-harburg.de}{1998/09/21}{Matlab: keywords i,j,tmp removed}.
+% \begingroup
+%    \begin{macrocode}
+%<*matlab>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{matlab}%
+  {keywords={gt,lt,gt,lt,amp,abs,acos,acosh,acot,acoth,acsc,acsch,%
+      all,angle,ans,any,asec,asech,asin,asinh,atan,atan2,atanh,auread,%
+      auwrite,axes,axis,balance,bar,bessel,besselk,bessely,beta,%
+      betainc,betaln,blanks,bone,break,brighten,capture,cart2pol,%
+      cart2sph,caxis,cd,cdf2rdf,cedit,ceil,chol,cla,clabel,clc,clear,%
+      clf,clock,close,colmmd,Colon,colorbar,colormap,ColorSpec,colperm,%
+      comet,comet3,compan,compass,computer,cond,condest,conj,contour,%
+      contour3,contourc,contrast,conv,conv2,cool,copper,corrcoef,cos,%
+      cosh,cot,coth,cov,cplxpair,cputime,cross,csc,csch,csvread,%
+      csvwrite,cumprod,cumsum,cylinder,date,dbclear,dbcont,dbdown,%
+      dbquit,dbstack,dbstatus,dbstep,dbstop,dbtype,dbup,ddeadv,ddeexec,%
+      ddeinit,ddepoke,ddereq,ddeterm,ddeunadv,deblank,dec2hex,deconv,%
+      del2,delete,demo,det,diag,diary,diff,diffuse,dir,disp,dlmread,%
+      dlmwrite,dmperm,dot,drawnow,echo,eig,ellipj,ellipke,else,elseif,%
+      end,engClose,engEvalString,engGetFull,engGetMatrix,engOpen,%
+      engOutputBuffer,engPutFull,engPutMatrix,engSetEvalCallback,%
+      engSetEvalTimeout,engWinInit,eps,erf,erfc,erfcx,erfinv,error,%
+      errorbar,etime,etree,eval,exist,exp,expint,expm,expo,eye,fclose,%
+      feather,feof,ferror,feval,fft,fft2,fftshift,fgetl,fgets,figure,%
+      fill,fill3,filter,filter2,find,findstr,finite,fix,flag,fliplr,%
+      flipud,floor,flops,fmin,fmins,fopen,for,format,fplot,fprintf,%
+      fread,frewind,fscanf,fseek,ftell,full,function,funm,fwrite,fzero,%
+      gallery,gamma,gammainc,gammaln,gca,gcd,gcf,gco,get,getenv,%
+      getframe,ginput,global,gplot,gradient,gray,graymon,grid,griddata,%
+      gtext,hadamard,hankel,help,hess,hex2dec,hex2num,hidden,hilb,hist,%
+      hold,home,hostid,hot,hsv,hsv2rgb,if,ifft,ifft2,imag,image,%
+      imagesc,Inf,info,input,int2str,interp1,interp2,interpft,inv,%
+      invhilb,isempty,isglobal,ishold,isieee,isinf,isletter,isnan,%
+      isreal,isspace,issparse,isstr,jet,keyboard,kron,lasterr,lcm,%
+      legend,legendre,length,lin2mu,line,linspace,load,log,log10,log2,%
+      loglog,logm,logspace,lookfor,lower,ls,lscov,lu,magic,matClose,%
+      matDeleteMatrix,matGetDir,matGetFp,matGetFull,matGetMatrix,%
+      matGetNextMatrix,matGetString,matlabrc,matlabroot,matOpen,%
+      matPutFull,matPutMatrix,matPutString,max,mean,median,menu,mesh,%
+      meshc,meshgrid,meshz,mexAtExit,mexCallMATLAB,mexdebug,%
+      mexErrMsgTxt,mexEvalString,mexFunction,mexGetFull,mexGetMatrix,%
+      mexGetMatrixPtr,mexPrintf,mexPutFull,mexPutMatrix,mexSetTrapFlag,%
+      min,more,movie,moviein,mu2lin,mxCalloc,mxCopyCharacterToPtr,%
+      mxCopyComplex16ToPtr,mxCopyInteger4ToPtr,mxCopyPtrToCharacter,%
+      mxCopyPtrToComplex16,mxCopyPtrToInteger4,mxCopyPtrToReal8,%
+      mxCopyReal8ToPtr,mxCreateFull,mxCreateSparse,mxCreateString,%
+      mxFree,mxFreeMatrix,mxGetIr,mxGetJc,mxGetM,mxGetN,mxGetName,%
+      mxGetNzmax,mxGetPi,mxGetPr,mxGetScalar,mxGetString,mxIsComplex,%
+      mxIsFull,mxIsNumeric,mxIsSparse,mxIsString,mxIsTypeDouble,%
+      mxSetIr,mxSetJc,mxSetM,mxSetN,mxSetName,mxSetNzmax,mxSetPi,%
+      mxSetPr,NaN,nargchk,nargin,nargout,newplot,nextpow2,nnls,nnz,%
+      nonzeros,norm,normest,null,num2str,nzmax,ode23,ode45,orient,orth,%
+      pack,pascal,patch,path,pause,pcolor,pi,pink,pinv,plot,plot3,%
+      pol2cart,polar,poly,polyder,polyeig,polyfit,polyval,polyvalm,%
+      pow2,print,printopt,prism,prod,pwd,qr,qrdelete,qrinsert,quad,%
+      quad8,quit,quiver,qz,rand,randn,randperm,rank,rat,rats,rbbox,%
+      rcond,real,realmax,realmin,refresh,rem,reset,reshape,residue,%
+      return,rgb2hsv,rgbplot,rootobject,roots,rose,rosser,rot90,rotate,%
+      round,rref,rrefmovie,rsf2csf,save,saxis,schur,sec,sech,semilogx,%
+      semilogy,set,setstr,shading,sign,sin,sinh,size,slice,sort,sound,%
+      spalloc,sparse,spaugment,spconvert,spdiags,specular,speye,spfun,%
+      sph2cart,sphere,spinmap,spline,spones,spparms,sprandn,sprandsym,%
+      sprank,sprintf,spy,sqrt,sqrtm,sscanf,stairs,startup,std,stem,%
+      str2mat,str2num,strcmp,strings,strrep,strtok,subplot,subscribe,%
+      subspace,sum,surf,surface,surfc,surfl,surfnorm,svd,symbfact,%
+      symmmd,symrcm,tan,tanh,tempdir,tempname,terminal,text,tic,title,%
+      toc,toeplitz,trace,trapz,tril,triu,type,uicontrol,uigetfile,%
+      uimenu,uiputfile,unix,unwrap,upper,vander,ver,version,view,%
+      viewmtx,waitforbuttonpress,waterfall,wavread,wavwrite,what,%
+      whatsnew,which,while,white,whitebg,who,whos,wilkinson,wk1read,%
+      wk1write,xlabel,xor,ylabel,zeros,zlabel,zoom},%
+   sensitive=true,%
+   commentline={\%},%
+   stringizer=[m]{'}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</matlab>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Mercury}
+%
+% \lsthelper{Dominique de Waleffe}{ddw@miscrit.be}{1997/11/24}{Mercury} mailed me these data.
+% \begingroup
+%    \begin{macrocode}
+%<*mercury>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1997 Dominique de Waleffe
+\lstdefinelanguage{Mercury}%
+% ??? add :: -> --> ---> :- as keywords
+  {keywords={pred,type,module,end_module,import_module,mode,%
+      pragma,func,lambda,det,semidet,erroneous,multi,true,fail,is,in,%
+      out,di,uo,ui,interface,implementation},%
+   sensitive=false,%
+   commentline={\%},%
+   singlecomment={/*}{*/},%
+   stringizer=[bd]{"'}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</mercury>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Modula-2}
+%
+% Took data from
+% \begin{itemize}
+% \item
+%       \textsc{Niklaus Wirth}: \textbf{Programmieren in Modula-2},
+%       \"Ubers.\ Guido Pfeiffer;
+%       2.\ Auflage -- Berlin; Heidelberg; New York; London; Paris; Tokyo;
+%               Hong Kong: Springer, 1991;
+%       ISBN 3-540-51689-1.
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*modula>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{Modula-2}%
+  {keywords={AND,ARRAY,BEGIN,BY,CASE,CONST,DIV,DO,ELSE,ELSIF,END,EXIT,%
+      EXPORT,FOR,FROM,IF,IMPLEMENTATION,IMPORT,IN,MOD,MODULE,NOT,OF,%
+      OR,POINTER,PROCEDURE,QUALIFIED,RECORD,REPEAT,RETURN,SET,THEN,%
+      TYPE,UNTIL,VAR,WHILE,WITH,ABS,BITSET,BOOLEAN,CAP,CARDINAL,CHAR,%
+      CHR,DEC,EXCL,FALSE,FLOAT,HALT,HIGH,INC,INCL,INTEGER,LONGCARD,%
+      LONGINT,LONGREAL,MAX,MIN,NIL,ODD,ORD,PROC,REAL,SIZE,TRUE,TRUNC,%
+      VAL},%
+   sensitive=true,%
+   nestedcomment={(*}{*)},%
+   stringizer=[d]{'"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</modula>
+%    \end{macrocode}
+%
+%
+% \subsection{Oberon-2}
+%
+% \begingroup
+%    \begin{macrocode}
+%<*oberon>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage{Oberon-2}%
+  {keywords={ARRAY,BEGIN,BOOLEAN,BY,CASE,CHAR,CONST,DIV,DO,ELSE,%
+      ELSIF,END,EXIT,FALSE,FOR,IF,IMPORT,IN,INTEGER,IS,LONGINT,%
+      LONGREAL,LOOP,MOD,MODULE,NIL,OF,OR,POINTER,PROCEDURE,REAL,RECORD,%
+      REPEAT,RETURN,SET,SHORTINT,THEN,TO,TRUE,TYPE,UNTIL,VAR,WHILE,%
+      WITH,ABS,ASH,CAP,CHR,COPY,DEC,ENTIER,EXCL,HALT,INC,INCL,LEN,LONG,%
+      MAX,MIN,NEW,ODD,ORD,SHORT,SIZE},%
+   sensitive=true,%
+   nestedcomment={(*}{*)},%
+   stringizer=[d]{'"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</oberon>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Pascal}
+%
+% \begingroup
+%    \begin{macrocode}
+%<*pascal>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage[Standard]{Pascal}%
+  {keywords={alfa,and,array,begin,boolean,byte,case,char,const,div,do,%
+      downto,else,end,false,file,for,function,get,goto,if,in,integer,%
+      label,maxint,mod,new,not,of,or,pack,packed,page,program,put,%
+      procedure,read,readln,real,record,repeat,reset,rewrite,set,text,%
+      then,to,true,type,unpack,until,var,while,with,write,writeln},%
+   sensitive=false,%
+   doublecomment={(*}{*)}{\{}{\}},%
+   stringizer=[d]{'}%
+  }%
+%    \end{macrocode}
+% Thanks to \lsthelper{Andreas Stephan}{astepha@wmpi04.math.uni-wuppertal.de}{1998/04/07}{alpha, byte, pack, unpack} for reporting non-keywords alpha, byte, pack and unpack.
+%    \begin{macrocode}
+\lstdefinedrvlanguage[XSC]{Pascal}%
+  {language=[Standard]Pascal,%
+   deletekeywords={alfa,byte,pack,unpack},% 1998 Andreas Stephan
+   morekeywords={dynamic,external,forward,global,module,nil,operator,%
+      priority,sum,type,use,dispose,mark,page,release,cimatrix,%
+      cinterval,civector,cmatrix,complex,cvector,dotprecision,imatrix,%
+      interval,ivector,rmatrix,rvector,string,im,inf,re,sup,chr,comp,%
+      eof,eoln,expo,image,ival,lb,lbound,length,loc,mant,maxlength,odd,%
+      ord,pos,pred,round,rval,sign,substring,succ,trunc,ub,ubound}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[Borland6]{Pascal}%
+  {language=[Standard]Pascal,%
+   morekeywords={asm,constructor,destructor,implementation,inline,%
+      interface,nil,object,shl,shr,string,unit,uses,xor,%
+      Abs,Addr,ArcTan,Chr,Concat,Copy,Cos,CSeg,DiskFree,DiskSize,%
+      DosExitCode,DosVersion,DSeg,EnvCount,EnvStr,Eof,Eoln,Exp,%
+      FExpand,FilePos,FileSize,Frac,FSearch,GetBkColor,GetColor,%
+      GetDefaultPalette,GetDriverName,GetEnv,GetGraphMode,GetMaxMode,%
+      GetMaxX,GetMaxY,GetModeName,GetPaletteSize,GetPixel,GetX,GetY,%
+      GraphErrorMsg,GraphResult,Hi,ImageSize,InstallUserDriver,%
+      InstallUserFont,Int,IOResult,KeyPressed,Length,Lo,MaxAvail,%
+      MemAvail,MsDos,Odd,Ofs,Ord,OvrGetBuf,OvrGetRetry,ParamCount,%
+      ParamStr,Pi,Pos,Pred,Ptr,Random,ReadKey,Round,SeekEof,SeekEoln,%
+      Seg,SetAspectRatio,Sin,SizeOf,Sound,SPtr,Sqr,Sqrt,SSeg,Succ,%
+      Swap,TextHeight,TextWidth,Trunc,TypeOf,UpCase,WhereX,WhereY,%
+      Append,Arc,Assign,AssignCrt,Bar,Bar3D,BlockRead,BlockWrite,ChDir,%
+      Circle,ClearDevice,ClearViewPort,Close,CloseGraph,ClrEol,ClrScr,%
+      Dec,Delay,Delete,DelLine,DetectGraph,Dispose,DrawPoly,Ellipse,%
+      Erase,Exec,Exit,FillChar,FillEllipse,FillPoly,FindFirst,FindNext,%
+      FloodFill,Flush,FreeMem,FSplit,GetArcCoords,GetAspectRatio,%
+      GetDate,GetDefaultPalette,GetDir,GetCBreak,GetFAttr,%
+      GetFillSettings,GetFTime,GetImage,GetIntVec,GetLineSettings,%
+      GetMem,GetPalette,GetTextSettings,GetTime,GetVerify,%
+      GetViewSettings,GoToXY,Halt,HighVideo,Inc,InitGraph,Insert,%
+      InsLine,Intr,Keep,Line,LineRel,LineTo,LowVideo,Mark,MkDir,Move,%
+      MoveRel,MoveTo,MsDos,New,NormVideo,NoSound,OutText,OutTextXY,%
+      OvrClearBuf,OvrInit,OvrInitEMS,OvrSetBuf,PackTime,PieSlice,%
+      PutImage,PutPixel,Randomize,Rectangle,Release,Rename,%
+      RestoreCrtMode,RmDir,RunError,Sector,Seek,SetActivePage,%
+      SetAllPalette,SetBkColor,SetCBreak,SetColor,SetDate,SetFAttr,%
+      SetFillPattern,SetFillStyle,SetFTime,SetGraphBufSize,%
+      SetGraphMode,SetIntVec,SetLineStyle,SetPalette,SetRGBPalette,%
+      SetTextBuf,SetTextJustify,SetTextStyle,SetTime,SetUserCharSize,%
+      SetVerify,SetViewPort,SetVisualPage,SetWriteMode,Sound,Str,%
+      SwapVectors,TextBackground,TextColor,TextMode,Truncate,%
+      UnpackTime,Val,Window}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</pascal>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Perl}
+%
+% I got the data from \texttt{http://www.perl.com}.
+% But I wish to thank \lsthelper{Herbert~Weinhandl}{weinhand@grz08u.unileoben.ac.at}{}{} for the book 'Learning Perl'.
+% \begingroup
+%    \begin{macrocode}
+%<*perl>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage{Perl}%
+  {keywords={abs,accept,alarm,atan2,bind,binmode,bless,caller,chdir,%
+      chmod,chomp,chop,chown,chr,chroot,close,closedir,connect,%
+      continue,cos,crypt,dbmclose,dbmopen,defined,delete,die,do,dump,%
+      each,else,elsif,endgrent,endhostent,endnetent,endprotoent,%
+      endpwent,endservent,eof,eval,exec,exists,exit,exp,fcntl,fileno,%
+      flock,for,foreach,fork,format,formline,getc,getgrent,getgrgid,%
+      getgrnam,gethostbyaddr,gethostbyname,gethostent,getlogin,%
+      getnetbyaddr,getnetbyname,getnetent,getpeername,getpgrp,%
+      getppid,getpriority,getprotobyname,getprotobynumber,getprotoent,%
+      getpwent,getpwnam,getpwuid,getservbyname,getservbyport,%
+      getservent,getsockname,getsockopt,glob,gmtime,goto,grep,hex,if,%
+      import,index,int,ioctl,join,keys,kill,last,lc,lcfirst,length,%
+      link,listen,local,localtime,log,lstat,m,map,mkdir,msgctl,msgget,%
+      msgrcv,msgsnd,my,next,no,oct,open,opendir,ord,pack,package,pipe,%
+      pop,pos,print,printf,prototype,push,q,qq,quotemeta,qw,qx,rand,%
+      read,readdir,readlink,recv,redo,ref,rename,require,reset,return,%
+      reverse,rewinddir,rindex,rmdir,s,scalar,seek,seekdir,select,%
+      semctl,semget,semop,send,setgrent,sethostent,setnetent,setpgrp,%
+      setpriority,setprotoent,setpwent,setservent,setsockopt,shift,%
+      shmctl,shmget,shmread,shmwrite,shutdown,sin,sleep,socket,%
+      socketpair,sort,splice,split,sprintf,sqrt,srand,stat,study,sub,%
+      substr,symlink,syscall,sysopen,sysread,system,syswrite,tell,%
+      telldir,tie,tied,time,times,tr,truncate,uc,ucfirst,umask,undef,%
+      unless,unlink,unpack,unshift,untie,until,use,utime,values,vec,%
+      wait,waitpid,wantarray,warn,while,write,y},%
+   sensitive=true,%
+   commentline={\#},%
+   stringizer=[b]{"'}%
+  }%
+%    \end{macrocode}
+% \endgroup
+%
+% \begin{macro}{\lstSCT@perl}
+% We define the 'POD character' |=| and say that after a dollor sign the sharp is nothing else than |\lstCC@ProcessOther\#|.
+% In all other cases the comment line indicator is untouched!
+%    \begin{macrocode}
+\gdef\lstSCT@perl{%
+    \lccode`\~=`\=\lowercase{\let\lsts@POD~\let~}\lstCC@ProcessPOD %
+    \lstCC@SpecialUseAfter{$}{\#}{\lstCC@ProcessOther\#}}%
+%    \end{macrocode}
+% \end{macro}
+% \begingroup
+%    \begin{macrocode}
+%</perl>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{PL/I}
+%
+% Found the data in
+% \begin{itemize}
+% \item
+%		\textsc{Bernhard Fischer, Herman Fischer}:
+%		\textbf{Structured Programming in PL/I and PL/C};
+%		Copyright {\copyright} 1976 by Marcel Dekker, Inc.;
+%		ISBN 0-8247-6394-7
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*pli>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage{PL/I}%
+  {keywords={ABS,ATAN,AUTOMATIC,AUTO,ATAND,BEGIN,BINARY,BIN,BIT,%
+      BUILTIN,BY,CALL,CHARACTER,CHAR,CHECK,COLUMN,COL,COMPLEX,CPLX,%
+      COPY,COS,COSD,COSH,DATA,DATE,DECIMAL,DEC,DECLARE,DCL,DO,EDIT,%
+      ELSE,END,ENDFILE,ENDPAGE,ENTRY,EXP,EXTERNAL,EXT,FINISH,FIXED,%
+      FIXEDOVERFLOW,FOFL,FLOAT,FORMAT,GET,GO,GOTO,IF,IMAG,INDEX,%
+      INITIAL,INIT,INTERNAL,INT,LABEL,LENGTH,LIKE,LINE,LIST,LOG,LOG2,%
+      LOG10,MAIN,MAX,MIN,MOD,NOCHECK,NOFIXEDOVERFLOW,NOFOFL,NOOVERFLOW,%
+      NOOFL,NOSIZE,NOUNDERFLOW,NOUFL,NOZERODIVIDE,NOZDIV,ON,OPTIONS,%
+      OVERFLOW,OFL,PAGE,PICTURE,PROCEDURE,PROC,PUT,READ,REPEAT,RETURN,%
+      RETURNS,ROUND,SIN,SIND,SINH,SIZE,SKIP,SQRT,STATIC,STOP,STRING,%
+      SUBSTR,SUM,SYSIN,SYSPRINT,TAN,TAND,TANH,THEN,TO,UNDERFLOW,UFL,%
+      VARYING,WHILE,WRITE,ZERODIVIDE,ZDIV},%
+   sensitive=false,%
+   singlecomment={/*}{*/},%
+   stringizer={'}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</pli>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Prolog}
+%
+% \lsthelper{Dominique de Waleffe}{ddw@miscrit.be}{1997/11/24}{Prolog} mailed me the data for Prolog.
+% He took the keywords from the \textsf{LGrind} language definition file.
+% \begingroup
+%    \begin{macrocode}
+%<*prolog>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1997 Dominique de Waleffe
+\lstdefinelanguage{Prolog}%
+  {keywords={op,mod,abort,ancestors,arg,ascii,ask,assert,asserta,%
+      assertz,atom,atomic,char,clause,close,concat,consult,ed,ef,em,%
+      eof,fail,file,findall,write,functor,getc,integer,is,length,%
+      listing,load,name,nl,nonvar,not,numbervars,op,or,pp,prin,print,%
+      private,prompt,putc,ratom,read,read_from_this_file,rename,repeat,%
+      retract,retractall,save,see,seeing,seen,sh,skip,statistics,%
+      subgoal_of,system,tab,tell,telling,time,told,trace,true,unload,%
+      untrace,var,write},%
+   sensitive=false,%
+   commentline={\%},%
+   singlecomment={/*}{*/},%
+   stringizer=[bd]{"'}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</prolog>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{Simula}
+%
+% Took data from
+% \begin{itemize}
+% \item
+%		\textsc{G\"unther Lamprecht}:
+%		\textbf{Introduction to SIMULA 67};
+%		Braunschweig; Wiesbaden: Vieweg, 1981
+% \end{itemize}
+% \begingroup
+%    \begin{macrocode}
+%<*simula>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinelanguage[67]{Simula}%
+  {keywords={activate,after,array,at,before,begin,boolean,character,%
+      class,comment,delay,detach,do,else,end,external,false,for,go,%
+      goto,if,in,inner,inspect,integer,is,label,name,new,none,notext,%
+      otherwise,prior,procedure,qua,reactivate,real,ref,resume,simset,%
+      simulation,step,switch,text,then,this,to,true,until,value,%
+      virtual,when,while},%
+   sensitive=false,%
+   doublekeywordcommentsemicolon=%
+      {end}{else,end,otherwise,when}{comment},%
+   stringizer={"'}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[CII]{Simula}%
+  {language=[67]Simula,%
+   morekeywords={and,equiv,exit,impl,not,or,stop}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[DEC]{Simula}%
+  {language=[67]Simula,%
+   morekeywords={and,eq,eqv,ge,gt,hidden,imp,le,long,lt,ne,not,%
+      options,or,protected,short}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[IBM]{Simula}{language=[DEC]Simula}
+%    \end{macrocode}
+%    \begin{macrocode}
+%</simula>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{SQL}
+%
+% Data come from \lsthelper{Christian Haul}{haul@dvs1.informatik.tu-darmstadt.de}{1998/01/09}{SQL}.
+% \begingroup
+%    \begin{macrocode}
+%<*sql>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1998 by Christian Haul
+\lstdefinelanguage{sql}%
+  {keywords={ABSOLUTE,ACTION,ADD,ALLOCATE,ALTER,ARE,ASSERTION,AT,%
+      BETWEEN,BIT,BIT_LENGTH,BOTH,BY,CASCADE,CASCADED,CASE,CAST,%
+      CATALOG,CHAR,CHAR_LENGTH,CHARACTER_LENGTH,CLUSTER,COALESCE,%
+      COLLATE,COLLATION,COLUMN,CONNECT,CONNECTION,CONSTRAINT,%
+      CONSTRAINTS,CONVERT,CORRESPONDING,CREATE,CROSS,CURRENT_DATE,%
+      CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,DATE,DAY,DEALLOCATE,%
+      DEC,DECIMAL,DEFERRABLE,DEFERED,DESCRIBE,DESCRIPTOR,DIAGNOSTICS,%
+      DISCONNECT,DOMAIN,DROP,ELSE,END,EXEC,EXCEPT,EXCEPTION,EXECUTE,%
+      EXTERNAL,EXTRACT,FALSE,FIRST,FLOAT,FOREIGN,FROM,FULL,GET,GLOBAL,%
+      GRAPHIC,HAVING,HOUR,IDENTITY,IMMEDIATE,INDEX,INITIALLY,INNER,%
+      INPUT,INSENSITIVE,INT,INTEGER,INTERSECT,INTERVAL,ISOLATION,JOIN,%
+      KEY,LAST,LEADING,LEFT,LEVEL,LOCAL,LOWER,MATCH,MINUTE,MONTH,NAMES,%
+      NATIONAL,NATURAL,NCHAR,NEXT,NO,NOT,NULL,NULLIF,OCTET_LENGTH,ON,%
+      ONLY,ORDERED,OUTER,OUTPUT,OVERLAPS,PAD,PARTIAL,POSITION,PREPARE,%
+      PRESERVE,PRIMARY,PRIOR,READ,RELATIVE,RESTRICT,REVOKE,RIGHT,ROWS,%
+      SCROLL,SECOND,SELECT,SESSION,SESSION_USER,SIZE,SMALLINT,SPACE,%
+      SQLSTATE,SUBSTRING,SYSTEM_USER,TABLE,TEMPORARY,THEN,TIME,%
+      TIMESTAMP,TIMEZONE_HOUR,TIMEZONE_MINUTE,TRAILING,TRANSACTION,%
+      TRANSLATE,TRANSLATION,TRIM,TRUE,UNIQUE,UNKNOWN,UPPER,USAGE,USING,%
+      VALUE,VARCHAR,VARGRAPHIC,VARYING,WHEN,WHERE,WRITE,YEAR,ZONE},%
+   sensitive=true,%
+   commentline={--},%
+   singlecomment={/*}{*/},%
+   stringizer={'"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</sql>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{\TeX}
+%
+% I extracted the data from |plain.tex| and |latex.ltx|.
+% \begingroup
+%    \begin{macrocode}
+%<*tex>
+%    \end{macrocode}
+%    \begin{macrocode}
+\lstdefinedrvlanguage[plain]{tex}%
+  {texcs={\lstkeys@tex@primitives,\lstkeys@tex@commoncs,%
+      advancepageno,beginsection,bf,bffam,bye,cal,cleartabs,columns,%
+      dosupereject,endinsert,eqalign,eqalignno,fiverm,fivebf,fivei,%
+      fivesy,folio,footline,hang,headline,it,itemitem,itfam,leqalignno,%
+      magnification,makefootline,makeheadline,midinsert,mit,mscount,%
+      nopagenumbers,normalbottom,of,oldstyle,pagebody,pagecontents,%
+      pageinsert,pageno,plainoutput,preloaded,proclaim,rm,settabs,%
+      sevenbf,seveni,sevensy,sevenrm,sl,slfam,supereject,tabalign,tabs,%
+      tabsdone,tabsyet,tenbf,tenex,teni,tenit,tenrm,tensl,tensy,tentt,%
+      textindent,topglue,topins,topinsert,tt,ttfam,ttraggedright,%
+      vfootnote},%
+   sensitive=true,%
+   alsoother={0123456789},%
+   commentline={\%}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[primitive]{tex}%
+  {texcs={\lstkeys@tex@primitives},%
+   sensitive=true,%
+   alsoother={0123456789},%
+   commentline={\%}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[latex]{tex}%
+  {texcs={\lstkeys@tex@primitives,\lstkeys@tex@latexcs},%
+   sensitive=true,%
+   alsoother={0123456789},%
+   commentline={\%}%
+  }%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\lstdefinedrvlanguage[allatex]{tex}%
+  {texcs={\lstkeys@tex@primitives,\lstkeys@tex@latexcs,
+      AtBeginDocument,AtBeginDvi,AtEndDocument,AtEndOfClass,%
+      AtEndOfPackage,ClassError,ClassInfo,ClassWarning,%
+      ClassWarningNoLine,CurrentOption,DeclareErrorFont,%
+      DeclareFixedFont,DeclareFontEncoding,DeclareFontEncodingDefaults,%
+      DeclareFontFamily,DeclareFontShape,DeclareFontSubstitution,%
+      DeclareMathAccent,DeclareMathAlphabet,DeclareMathAlphabet,%
+      DeclareMathDelimiter,DeclareMathRadical,DeclareMathSizes,%
+      DeclareMathSymbol,DeclareMathVersion,DeclareOldFontCommand,%
+      DeclareOption,DeclarePreloadSizes,DeclareRobustCommand,%
+      DeclareSizeFunction,DeclareSymbolFont,DeclareSymbolFontAlphabet,%
+      DeclareTextAccent,DeclareTextAccentDefault,DeclareTextCommand,%
+      DeclareTextCommandDefault,DeclareTextComposite,%
+      DeclareTextCompositeCommand,DeclareTextFontCommand,%
+      DeclareTextSymbol,DeclareTextSymbolDefault,ExecuteOptions,%
+      GenericError,GenericInfo,GenericWarning,IfFileExists,%
+      InputIfFileExists,LoadClass,LoadClassWithOptions,MessageBreak,%
+      OptionNotUsed,PackageError,PackageInfo,PackageWarning,%
+      PackageWarningNoLine,PassOptionsToClass,PassOptionsToPackage,%
+      ProcessOptionsProvidesClass,ProvidesFile,ProvidesFile,%
+      ProvidesPackage,ProvideTextCommand,RequirePackage,%
+      RequirePackageWithOptions,SetMathAlphabet,SetSymbolFont,%
+      TextSymbolUnavailable,UseTextAccent,UseTextSymbol},%
+   keywords={array,center,displaymath,document,enumerate,eqnarray,%
+      equation,flushleft,flushright,itemize,list,lrbox,math,minipage,%
+      picture,sloppypar,tabbing,tabular,trivlist,verbatim},%
+   sensitive=true,%
+   alsoother={0123456789},%
+   commentline={\%}%
+  }%
+%    \end{macrocode}
+% \endgroup
+%
+% \begin{macro}{\lstkeys@tex@primitives}
+% \begin{macro}{\lstkeys@tex@commoncs}
+% \begin{macro}{\lstkeys@tex@latexcs}
+% Now come all control sequences.
+% The second macro holds the common control sequences of plain \TeX\ and \LaTeX.
+%    \begin{macrocode}
+\lststorekeywords\lstkeys@tex@primitives{above,abovedisplayshortskip,%
+    abovedisplayskip,abovewithdelims,accent,adjdemerits,advance,%
+    afterassignment,aftergroup,atop,atopwithdelims,badness,%
+    baselineskip,batchmode,begingroup,belowdisplayshortskip,%
+    belowdisplayskip,binoppenalty,botmark,box,boxmaxdepth,%
+    brokenpenalty,catcode,char,chardef,cleaders,closein,closeout,%
+    clubpenalty,copy,count,countdef,cr,crcr,csname,day,deadcycles,def,%
+    defaulthyphenchar,defaultskewchar,delcode,delimiter,%
+    delimiterfactor,delimitershortfall,dimen,dimendef,discretionary,%
+    displayindent,displaylimits,displaystyle,displaywidowpenalty,%
+    displaywidth,divide,doublehyphendemerits,dp,else,emergencystretch,%
+    end,endcsname,endgroup,endinput,endlinechar,eqno,errhelp,%
+    errmessage,errorcontextlines,errorstopmode,escapechar,everycr,%
+    everydisplay,everyhbox,everyjob,everymath,everypar,everyvbox,%
+    exhyphenpenalty,expandafter,fam,fi,finalhypendemerits,firstmark,%
+    floatingpenalty,font,fontdimen,fontname,futurelet,gdef,global,%
+    globaldefs,halign,hangafter,hangindent,hbadness,hbox,hfil,hfill,%
+    hfilneg,hfuzz,hoffset,holdinginserts,hrule,hsize,hskip,hss,ht,%
+    hyphenation,hyphenchar,hyphenpenalty,if,ifcase,ifcat,ifdim,ifeof,%
+    iffalse,ifhbox,ifhmode,ifinner,ifmmode,ifnum,ifodd,iftrue,ifvbox,%
+    ifvmode,ifvoid,ifx,ignorespaces,immediate,indent,input,insert,%
+    insertpenalties,interlinepenalty,jobname,kern,language,lastbox,%
+    lastkern,lastpenalty,lastskip,lccode,leaders,left,lefthyphenmin,%
+    leftskip,leqno,let,limits,linepenalty,lineskip,lineskiplimits,long,%
+    looseness,lower,lowercase,mag,mark,,mathaccent,mathbin,mathchar,%
+    mathchardef,mathchoice,mathclose,mathcode,mathinner,mathop,%
+    mathopen,mathord,mathpunct,mathrel,mathsurround,maxdeadcycles,%
+    maxdepth,meaning,medmuskip,message,mkern,month,moveleft,moveright,%
+    mskip,multiply,muskip,muskipdef,newlinechar,noalign,noboundary,%
+    noexpand,noindent,nolimits,nonscript,nonstopmode,%
+    nulldelimiterspace,nullfont,number,omit,openin,openout,or,outer,%
+    output,outputpenalty,over,overfullrule,overline,overwithdelims,%
+    pagedepth,pagefilllstretch,pagefillstretch,pagefilstretch,pagegoal,%
+    pageshrink,pagestretch,pagetotal,par,parfillskip,parindent,%
+    parshape,parskip,patterns,pausing,penalty,postdisplaypenalty,%
+    predisplaypenalty,predisplaysize,pretolerance,prevdepth,prevgraf,%
+    radical,raise,read,relax,relpenalty,right,righthyphenmin,rightskip,%
+    romannumeral,scriptfont,scriptscriptfont,scriptscriptstyle,%
+    scriptspace,scriptstyle,scrollmode,setbox,setlanguage,sfcode,%
+    shipout,show,showbox,showboxbreadth,showboxdepth,showlists,showthe,%
+    skewchar,skip,skipdef,spacefactor,spaceskip,span,special,%
+    splitbotmark,splitfirstmark,splitmaxdepth,splittopskip,string,%
+    tabskip,textfont,textstyle,the,thickmuskip,thinmuskip,time,toks,%
+    toksdef,tolerance,topmark,topskip,tracingcommands,tracinglostchars,%
+    tracingmacros,tracingonline,tracingoutput,tracingpages,%
+    tracingparagraphs,tracingrestores,tracingstats,uccode,uchyph,%
+    underline,unhbox,unhcopy,unkern,unpenalty,unskip,unvbox,unvcopy,%
+    uppercase,vadjust,valign,vbadness,vbox,vcenter,vfil,vfill,vfilneg,%
+    vfuzz,voffset,vrule,vsize,vskip,vsplit,vss,vtop,wd,widowpenalty,%
+    write,xdef,xleaders,xspaceskip,year}%
+%    \end{macrocode}
+%    \begin{macrocode}
+\lststorekeywords\lstkeys@tex@commoncs{active,acute,ae,AE,aleph,%
+    allocationnumber,allowbreak,alpha,amalg,angle,approx,arccos,arcsin,%
+    arctan,arg,arrowvert,Arrowvert,ast,asymp,b,backslash,bar,beta,%
+    bgroup,big,Big,bigbreak,bigcap,bigcirc,bigcup,bigg,Bigg,biggl,%
+    Biggl,biggm,Biggm,biggr,Biggr,bigl,Bigl,bigm,Bigm,bigodot,bigoplus,%
+    bigotimes,bigr,Bigr,bigskip,bigskipamount,bigsqcup,bigtriangledown,%
+    bigtriangleup,biguplus,bigvee,bigwedge,bmod,bordermatrix,bot,%
+    bowtie,brace,braceld,bracelu,bracerd,braceru,bracevert,brack,break,%
+    breve,buildrel,bullet,c,cap,cases,cdot,cdotp,cdots,centering,%
+    centerline,check,chi,choose,circ,clubsuit,colon,cong,coprod,%
+    copyright,cos,cosh,cot,coth,csc,cup,d,dag,dagger,dashv,ddag,%
+    ddagger,ddot,ddots,deg,delta,Delta,det,diamond,diamondsuit,dim,%
+    displaylines,div,do,dospecials,dot,doteq,dotfill,dots,downarrow,%
+    Downarrow,downbracefill,egroup,eject,ell,empty,emptyset,endgraf,%
+    endline,enskip,enspace,epsilon,equiv,eta,exists,exp,filbreak,flat,%
+    fmtname,fmtversion,footins,footnote,footnoterule,forall,%
+    frenchspacing,frown,gamma,Gamma,gcd,ge,geq,gets,gg,goodbreak,grave,%
+    H,hat,hbar,heartsuit,hglue,hideskip,hidewidth,hom,hookleftarrow,%
+    hookrightarrow,hphantom,hrulefill,i,ialign,iff,Im,imath,in,inf,%
+    infty,int,interdisplaylinepenalty,interfootnotelinepenalty,intop,%
+    iota,item,j,jmath,joinrel,jot,kappa,ker,l,L,lambda,Lambda,land,%
+    langle,lbrace,lbrack,lceil,ldotp,ldots,le,leavevmode,leftarrow,%
+    Leftarrow,leftarrowfill,leftharpoondown,leftharpoonup,leftline,%
+    leftrightarrow,Leftrightarrow,leq,lfloor,lg,lgroup,lhook,lim,%
+    liminf,limsup,line,ll,llap,lmoustache,ln,lnot,log,longleftarrow,%
+    Longleftarrow,longleftrightarrow,Longleftrightarrow,longmapsto,%
+    longrightarrow,Longrightarrow,loop,lor,lq,magstep,magstep,%
+    magstephalf,mapsto,mapstochar,mathhexbox,mathpalette,mathstrut,%
+    matrix,max,maxdimen,medbreak,medskip,medskipamount,mid,min,models,%
+    mp,mu,multispan,nabla,narrower,natural,ne,nearrow,neg,negthinspace,%
+    neq,newbox,newcount,newdimen,newfam,newif,newinsert,newlanguage,%
+    newmuskip,newread,newskip,newtoks,newwrite,next,ni,nobreak,%
+    nointerlineskip,nonfrenchspacing,normalbaselines,%
+    normalbaselineskip,normallineskip,normallineskiplimit,not,notin,nu,%
+    null,nwarrow,o,O,oalign,obeylines,obeyspaces,odot,oe,OE,%
+    offinterlineskip,oint,ointop,omega,Omega,ominus,ooalign,openup,%
+    oplus,oslash,otimes,overbrace,overleftarrow,overrightarrow,owns,P,%
+    parallel,partial,perp,phantom,phi,Phi,pi,Pi,pm,pmatrix,pmod,Pr,%
+    prec,preceq,prime,prod,propto,psi,Psi,qquad,quad,raggedbottom,%
+    raggedright,rangle,rbrace,rbrack,rceil,Re,relbar,Relbar,%
+    removelastskip,repeat,rfloor,rgroup,rho,rhook,rightarrow,%
+    Rightarrow,rightarrowfill,rightharpoondown,rightharpoonup,%
+    rightleftharpoons,rightline,rlap,rmoustache,root,rq,S,sb,searrow,%
+    sec,setminus,sharp,showhyphens,sigma,Sigma,sim,simeq,sin,sinh,skew,%
+    slash,smallbreak,smallint,smallskip,smallskipamount,smash,smile,sp,%
+    space,spadesuit,sqcap,sqcup,sqrt,sqsubseteq,sqsupseteq,ss,star,%
+    strut,strutbox,subset,subseteq,succ,succeq,sum,sup,supset,supseteq,%
+    surd,swarrow,t,tan,tanh,tau,TeX,theta,Theta,thinspace,tilde,times,%
+    to,top,tracingall,triangle,triangleleft,triangleright,u,underbar,%
+    underbrace,uparrow,Uparrow,upbracefill,updownarrow,Updownarrow,%
+    uplus,upsilon,Upsilon,v,varepsilon,varphi,varpi,varrho,varsigma,%
+    vartheta,vdash,vdots,vec,vee,vert,Vert,vglue,vphantom,wedge,%
+    widehat,widetilde,wlog,wp,wr,xi,Xi,zeta}%
+%    \end{macrocode}
+%    \begin{macrocode}
+\lststorekeywords\lstkeys@tex@latexcs{a,AA,aa,addcontentsline,%
+    addpenalty,addtocontents,addtocounter,addtolength,addtoversion,%
+    addvspace,alph,Alph,and,arabic,array,arraycolsep,arrayrulewidth,%
+    arraystretch,author,baselinestretch,begin,bezier,bfseries,bibcite,%
+    bibdata,bibitem,bibliography,bibliographystyle,bibstyle,boldmath,%
+    botfigrule,bottomfraction,Box,caption,center,CheckCommand,circle,%
+    citation,cite,cleardoublepage,clearpage,cline,columnsep,%
+    columnseprule,columnwidth,contentsline,dashbox,date,dblfigrule,%
+    dblfloatpagefraction,dblfloatsep,dbltextfloatsep,dbltopfraction,%
+    defaultscriptratio,defaultscriptscriptratio,depth,Diamond,%
+    displaymath,document,documentclass,documentstyle,doublerulesep,em,%
+    emph,endarray,endcenter,enddisplaymath,enddocument,endenumerate,%
+    endeqnarray,endequation,endflushleft,endflushright,enditemize,%
+    endlist,endlrbox,endmath,endminipage,endpicture,endsloppypar,%
+    endtabbing,endtabular,endtrivlist,endverbatim,enlargethispage,%
+    ensuremath,enumerate,eqnarray,equation,evensidemargin,extracolsep,%
+    fbox,fboxrule,fboxsep,filecontents,fill,floatpagefraction,floatsep,%
+    flushbottom,flushleft,flushright,fnsymbol,fontencoding,fontfamily,%
+    fontseries,fontshape,fontsize,fontsubfuzz,footnotemark,footnotesep,%
+    footnotetext,footskip,frac,frame,framebox,fussy,glossary,%
+    headheight,headsep,height,hline,hspace,I,include,includeonly,index,%
+    inputlineno,intextsep,itemindent,itemize,itemsep,iterate,itshape,%
+    Join,kill,label,labelsep,labelwidth,LaTeX,LaTeXe,leadsto,lefteqn,%
+    leftmargin,leftmargini,leftmarginii,leftmarginiii,leftmarginiv,%
+    leftmarginv,leftmarginvi,leftmark,lhd,linebreak,linespread,%
+    linethickness,linewidth,list,listfiles,listfiles,listparindent,%
+    lrbox,makeatletter,makeatother,makebox,makeglossary,makeindex,%
+    makelabel,MakeLowercase,MakeUppercase,marginpar,marginparpush,%
+    marginparsep,marginparwidth,markboth,markright,math,mathbf,%
+    mathellipsis,mathgroup,mathit,mathsf,mathsterling,mathtt,%
+    mathunderscore,mathversion,mbox,mdseries,mho,minipage,multicolumn,%
+    multiput,NeedsTeXFormat,newcommand,newcounter,newenvironment,%
+    newfont,newhelp,newlabel,newlength,newline,newmathalphabet,newpage,%
+    newsavebox,newtheorem,nobreakspace,nobreakspace,nocite,nocorr,%
+    nocorrlist,nofiles,nolinebreak,nonumber,nopagebreak,normalcolor,%
+    normalfont,normalmarginpar,numberline,obeycr,oddsidemargin,%
+    oldstylenums,onecolumn,oval,pagebreak,pagenumbering,pageref,%
+    pagestyle,paperheight,paperwidth,paragraphmark,parbox,parsep,%
+    partopsep,picture,poptabs,pounds,protect,pushtabs,put,qbezier,%
+    qbeziermax,r,raggedleft,raisebox,ref,refstepcounter,renewcommand,%
+    renewenvironment,restorecr,reversemarginpar,rhd,rightmargin,%
+    rightmark,rmfamily,roman,Roman,rootbox,rule,samepage,sbox,scshape,%
+    secdef,sectionmark,selectfont,setcounter,settodepth,settoheight,%
+    settowidth,sffamily,shortstack,showoutput,showoverfull,sloppy,%
+    sloppypar,slshape,sqsubset,sqsupset,SS,stackrel,stepcounter,stop,%
+    stretch,subparagraphmark,subsectionmark,subsubsectionmark,%
+    suppressfloats,symbol,tabbing,tabbingsep,tabcolsep,tabular,%
+    tabularnewline,textasciicircum,textasciitilde,textbackslash,%
+    textbar,textbf,textbraceleft,textbraceright,textbullet,textcircled,%
+    textcompwordmark,textdagger,textdaggerdbl,textdollar,textellipsis,%
+    textemdash,textendash,textexclamdown,textfloatsep,textfraction,%
+    textgreater,textheight,textit,textless,textmd,textnormal,%
+    textparagraph,textperiodcentered,textquestiondown,textquotedblleft,%
+    textquotedblright,textquoteleft,textquoteright,textregistered,%
+    textrm,textsc,textsection,textsf,textsl,textsterling,%
+    textsuperscript,texttrademark,texttt,textunderscore,textup,%
+    textvisiblespace,textwidth,thanks,thefootnote,thempfn,thempfn,%
+    thempfootnote,thepage,thepage,thicklines,thinlines,thispagestyle,%
+    title,today,topfigrule,topfraction,topmargin,topsep,totalheight,%
+    tracingfonts,trivlist,ttfamily,twocolumn,typein,typeout,unboldmath,%
+    unitlength,unlhd,unrhd,upshape,usebox,usecounter,usefont,%
+    usepackage,value,vector,verb,verbatim,vline,vspace,width}%
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+% \begingroup
+%    \begin{macrocode}
+%</tex>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \subsection{VHDL}
+%
+% This language is due to \lsthelper{Kai Wollenweber}{kai@ece.wpi.edu}{1997/11/04}{VHDL}.
+% I've done conversion to \textsf{listings} 0.19 only.
+% \lsthelper{Gaurav Aggarwal}{gaurav@ics.uci.edu}{1998/04/02}{\lstsensitivefalse} reported that VHDL is case insensitive.
+% \begingroup
+%    \begin{macrocode}
+%<*vhdl>
+%    \end{macrocode}
+%    \begin{macrocode}
+%% (c) 1997 Kai Wollenweber
+\lstdefinelanguage{VHDL}%
+  {keywords={ALL,ARCHITECTURE,ABS,AND,ASSERT,ARRAY,AFTER,ALIAS,%
+      ACCESS,ATTRIBUTE,BEGIN,BODY,BUS,BLOCK,BUFFER,CONSTANT,CASE,%
+      COMPONENT,CONFIGURATION,DOWNTO,ELSE,ELSIF,END,ENTITY,EXIT,%
+      FUNCTION,FOR,FILE,GENERIC,GENERATE,GUARDED,GROUP,IF,IN,INOUT,IS,%
+      INERTIAL,IMPURE,LIBRARY,LOOP,LABEL,LITERAL,LINKAGE,MAP,MOD,NOT,%
+      NOR,NAND,NULL,NEXT,NEW,OUT,OF,OR,OTHERS,ON,OPEN,PROCESS,PORT,%
+      PACKAGE,PURE,PROCEDURE,POSTPONED,RANGE,REM,ROL,ROR,REPORT,RECORD,%
+      RETURN,REGISTER,REJECT,SIGNAL,SUBTYPE,SLL,SRL,SLA,SRA,SEVERITY,%
+      SELECT,THEN,TYPE,TRANSPORT,TO,USE,UNITS,UNTIL,VARIABLE,WHEN,WAIT,%
+      WHILE,XOR,XNOR},%
+   sensitive=false,% 1998 Gaurav Aggarwal
+   commentline={--},%
+   stringizer=[d]{"}%
+  }%
+%    \end{macrocode}
+%    \begin{macrocode}
+%</vhdl>
+%    \end{macrocode}
+% \endgroup
+%
+%
+% \setcounter{IndexColumns}{2}
+% \PrintIndex
+%
+%
+% \Finale
+%
+\endinput

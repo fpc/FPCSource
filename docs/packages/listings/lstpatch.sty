@@ -1,0 +1,69 @@
+%%
+%% 1998/11/23: First patch for listings.sty
+%%
+%% (c) 1998 Carsten Heinz
+%%
+\def\lstlanguage@[#1]#2{%
+    \lst@LocateLanguage[#1]{#2}%
+    \@ifundefined{\lst@requested}%
+        {{\catcode`\^^M=9\catcode`\"=12\makeatletter %
+          \input{\lst@driver.sty}}}{}%
+    \@ifundefined{\lst@requested}%
+        {\PackageError{Listings}%
+         {\ifx\@empty\lst@dialect@\else \lst@dialect@\space of \fi %
+          \lst@language@\space undefined}{The driver file is not
+          loadable or doesn't support the language.^^J%
+         Type <RETURN> to proceed without changing the language.}}%
+        {\lsthk@SetLanguage %
+         \csname\lst@requested\endcsname %
+%% modification of
+%         \def\lst@language{#1}\lst@Normalize\lst@language %
+%         \def\lst@dialect{#2}\lst@Normalize\lst@dialect}}
+         \def\lst@language{#2}\lst@Normalize\lst@language %
+         \def\lst@dialect{#1}\lst@Normalize\lst@dialect}}
+%% end modification
+%
+%% load .fd files
+\lst@AddToHook{BeforeSelectCharTable}
+    {\setbox\@tempboxa\hbox{\lst@labelstyle \lst@loadfd}}
+%% end load .fd files
+%
+%% move \let\lst@lastother\relax to end of macros
+\def\lst@Output{%
+    \ifnum\lst@length=\z@\else %
+        \lst@NewLine \lst@UseLostSpace %
+        \hbox to \lst@length\lst@width{%
+            \lst@lefthss %
+            \lsthk@Output \lst@thestyle{%
+                \expandafter\lst@FillOutputBox\the\lst@token\relax}%
+            \lst@righthss}%
+        \global\advance\lst@pos -\lst@length %
+        \lst@token{}\lst@length\z@ %
+    \fi %
+    \let\lst@lastother\relax}
+\def\lst@OutputFlexible{%
+    \ifnum\lst@length=\z@\else %
+        \lst@NewLine \lst@UseLostSpace %
+        \setbox\@tempboxa\hbox{%
+            \lsthk@Output \lst@thestyle{\the\lst@token}}%
+        \lst@CalcLostSpaceAndOutput %
+    \fi %
+    \let\lst@lastother\relax}
+%% end move \let\lst@lastother\relax to end of macros
+%
+%% correct bug of \lst@Aspect{texcs}{\def\lst@texcs{#1}}
+\let\lstS@Aspect\lst@Aspect
+\def\lst@Aspect#1{\def\@tempa{#1}\def\@tempb{texcs}%
+    \ifx\@tempa\@tempb %
+        \expandafter\lst@AspectTeX %
+    \fi %
+    \lstS@Aspect{#1}}
+\def\lst@AspectTeX#1#2#3{%
+    \@ifundefined{KV@lst@#2}%
+        {\let\lst@ifnew\iftrue}{\let\lst@ifnew\iffalse}%
+    \lst@ifnew %
+    \else %
+        \expandafter\@gobblefour %
+    \fi %
+    \lstdefine@key{lst}{#2}{\edef\lst@texcs{##1}}}
+%% end correct bug of \lst@Aspect{texcs}{\def\lst@texcs{#1}}
