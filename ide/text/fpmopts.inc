@@ -230,56 +230,61 @@ end;
 procedure TIDEApp.MemorySizes;
 var R,R2,R3: TRect;
     D: PCenterDialog;
-    IL1,IL2: PIntegerLine;
+    ILs: array[0..10] of PIntegerLine;
+    I: integer;
 begin
-{$ifdef NOTYET}
-  R.Assign(0,0,40,7);
+  R.Assign(0,0,40,2+MemorySizeSwitches^.ItemCount*2);
   New(D, Init(R, 'Memory sizes'));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-    R3.Copy(R2); R3.A.X:=21; R3.B.X:=R3.A.X+10;
-    New(IL1, Init(R3, MinStackSize, MaxStackSize));
-    IL1^.Data^:=IntToStr(GetStackSize);
-    Insert(IL1);
-    R3.Copy(R2); R3.B.X:=21;
-    Insert(New(PLabel, Init(R3, '~S~tack size', IL1)));
+    for I:=0 to MemorySizeSwitches^.ItemCount-1 do
+     begin
+       R3.Copy(R2); R3.A.X:=21; R3.B.X:=R3.A.X+10;
+       New(ILs[I], Init(R3, MinMemSize, MaxMemSize));
+       ILs[I]^.Data^:=IntToStr(MemorySizeSwitches^.GetLongintItem(I));
+       Insert(ILs[I]);
+       R3.Copy(R2); R3.B.X:=21;
+       Insert(New(PLabel, Init(R3, MemorySizeSwitches^.ItemName(I), ILs[I])));
+       R2.Move(0,2);
+     end;
 
-    R2.Move(0,2);
-    R3.Copy(R2); R3.A.X:=21; R3.B.X:=R3.A.X+10;
+{    R3.Copy(R2); R3.A.X:=21; R3.B.X:=R3.A.X+10;
     New(IL2, Init(R3, MinHeapSize, MaxHeapSize));
     IL2^.Data^:=IntToStr(GetHeapSize);
     Insert(IL2);
     R3.Copy(R2); R3.B.X:=21;
-    Insert(New(PLabel, Init(R3, 'Local ~h~eap size', IL2)));
+    Insert(New(PLabel, Init(R3, 'Local ~h~eap size', IL2)));}
   end;
   InsertButtons(D);
-  IL1^.Select;
+  ILs[0]^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    SetStackSize(StrToInt(IL1^.Data^));
-    SetHeapSize(StrToInt(IL2^.Data^));
+    for I:=0 to MemorySizeSwitches^.ItemCount-1 do
+     begin
+       MemorySizeSwitches^.SetLongintItem(I,StrToInt(ILs[I]^.Data^));
+     end;
+{    SetStackSize(StrToInt(IL1^.Data^));
+    SetHeapSize(StrToInt(IL2^.Data^));}
   end;
   Dispose(D, Done);
-{$endif}
 end;
 
 procedure TIDEApp.Linker;
 var R,R2: TRect;
     D: PCenterDialog;
-    RB1,RB2: PRadioButtons;
-    Mask,V,I: longint;
+    RB2: PRadioButtons;
+    I: longint;
     Items: PSItem;
     L: longint;
 begin
-{$ifdef NOTYET}
   R.Assign(0,0,56,8);
   New(D, Init(R, 'Linker'));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
-    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+GetEXEFormatCount; R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+{    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+GetEXEFormatCount; R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
     Items:=nil;
     for I:=GetEXEFormatCount downto 1 do
       Items:=NewSItem(GetEXEFormatName(TEXEFormat(I)),Items);
@@ -297,14 +302,14 @@ begin
     RB1^.SetData(L);
     Insert(RB1);
     R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Output format', RB1)));
+    Insert(New(PLabel, Init(R2, 'Output format', RB1)));}
 
-    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+2; R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
-    New(RB2, Init(R2,
-      NewSItem('D~y~namic libraries',
-      NewSItem('S~t~atic libraries',
-      nil))));
-    L:=ord(GetLinkLibraryType)-1;
+    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+LibLinkerSwitches^.ItemCount; R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
+    Items:=nil;
+    for I:=LibLinkerSwitches^.ItemCount-1 downto 0 do
+      Items:=NewSItem(LibLinkerSwitches^.ItemName(I), Items);
+    New(RB2, Init(R2, Items));
+    L:=LibLinkerSwitches^.GetCurrSel;
     RB2^.SetData(L);
     Insert(RB2);
     R2.Copy(R); R2.B.Y:=R2.A.Y+1; R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
@@ -313,43 +318,41 @@ begin
   InsertButtons(D);
   if Desktop^.ExecView(D)=cmOK then
   begin
-    SetEXEFormat(TEXEFormat(RB1^.Value+1));
-    SetLinkLibraryType(TLibraryType(RB2^.Value+1));
+{    SetEXEFormat(TEXEFormat(RB1^.Value+1));}
+    LibLinkerSwitches^.SetCurrSel(RB2^.Value);
   end;
   Dispose(D, Done);
-{$endif}
 end;
 
 procedure TIDEApp.Debugger;
 var R,R2: TRect;
     D: PCenterDialog;
     RB1,RB2: PRadioButtons;
-    L: longint;
+    L,I: longint;
+    Items: PSItem;
 begin
-{$ifdef NOTYET}
-  R.Assign(0,0,46,11);
+  R.Assign(0,0,46,2+DebugInfoSwitches^.ItemCount+2+ProfileInfoSwitches^.ItemCount+2);
   New(D, Init(R, 'Debugging/Profiling'));
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
-    R2.Copy(R); Inc(R2.A.Y,2); R2.B.Y:=R2.A.Y+3;
-    New(RB1, Init(R2,
-      NewSItem('~S~trip all symbols from executable',
-      NewSItem('Generate g~s~ym symbol information',
-      NewSItem('Generate ~d~bx symbol information',
-      nil)))));
-    L:=ord(GetSymbolFormat);
+    R2.Copy(R); Inc(R2.A.Y,2); R2.B.Y:=R2.A.Y+DebugInfoSwitches^.ItemCount;
+    Items:=nil;
+    for I:=DebugInfoSwitches^.ItemCount-1 downto 0 do
+      Items:=NewSItem(DebugInfoSwitches^.ItemName(I), Items);
+    New(RB1, Init(R2, Items));
+    L:=DebugInfoSwitches^.GetCurrSel;
     RB1^.SetData(L);
     Insert(RB1);
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, 'Symbol information', RB1)));
 
-    R2.Copy(R); Inc(R2.A.Y,7); R2.B.Y:=R2.A.Y+2;
-    New(RB2, Init(R2,
-      NewSItem('N~o~ profile information',
-      NewSItem('Generate ~p~rofile code for gprof',
-      nil))));
-    L:=ord(GetProfileFormat);
+    R2.Copy(R); Inc(R2.A.Y,2+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+ProfileInfoSwitches^.ItemCount;
+    Items:=nil;
+    for I:=ProfileInfoSwitches^.ItemCount-1 downto 0 do
+      Items:=NewSItem(ProfileInfoSwitches^.ItemName(I), Items);
+    New(RB2, Init(R2, Items));
+    L:=ProfileInfoSwitches^.GetCurrSel;
     RB2^.SetData(L);
     Insert(RB2);
     R2.Copy(R); Inc(R2.A.Y,6); R2.B.Y:=R2.A.Y+1;
@@ -359,11 +362,10 @@ begin
   RB1^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    SetSymbolFormat(TSymbolFormat(RB1^.Value));
-    SetProfileFormat(TProfileFormat(RB2^.Value));
+    DebugInfoSwitches^.SetCurrSel(RB1^.Value);
+    ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
   end;
   Dispose(D, Done);
-{$endif}
 end;
 
 
@@ -483,7 +485,7 @@ begin
 end;
 
 procedure TIDEApp.Mouse;
-var R,R2,R3: TRect;
+var R,R2: TRect;
     D: PCenterDialog;
     SB: PScrollBar;
     CB: PCheckBoxes;
@@ -555,6 +557,20 @@ procedure TIDEApp.Colors;
 var D: PColorDialog;
 begin
   New(D, Init(AppPalette,
+    ColorGroup('Browser',
+      ColorItem('Frame passive'   , 215,
+      ColorItem('Frame active'    , 216,
+      ColorItem('Frame icon'      , 217,
+      ColorItem('Scroll bar page' , 218,
+      ColorItem('Scroll bar icons', 219,
+      ColorItem('Normal text'     , 220,
+      ColorItem('Selected text'   , 221,
+      ColorItem('Active item'     , 222,
+      ColorItem('Inactive item'   , 223,
+      ColorItem('Focused item'    , 224,
+      ColorItem('Selected item'   , 225,
+      ColorItem('Divider'         , 226,
+      nil)))))))))))),
     ColorGroup('Desktop', DesktopColorItems(nil),
     ColorGroup('Dialogs', DialogColorItems(dpGrayDialog,nil),
     ColorGroup('Editor',
@@ -592,8 +608,9 @@ begin
       ColorItem('Assembler'       , 206,
       ColorItem('Symbols'         , 207,
       ColorItem('Directives'      , 211,
-      nil)))))))))),
-    nil))))))));
+      ColorItem('Tabs'            , 213,
+      nil))))))))))),
+    nil)))))))));
   if ExecuteDialog(D, @AppPalette)=cmOK then
     begin
       DoneMemory;
@@ -652,7 +669,15 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-01-04 11:49:47  peter
+  Revision 1.5  1999-01-12 14:29:35  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.4  1999/01/04 11:49:47  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

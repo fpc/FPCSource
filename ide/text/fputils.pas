@@ -17,6 +17,8 @@ unit FPUtils;
 
 interface
 
+uses Objects;
+
 const
 {$ifdef linux}
   dirsep = '/';
@@ -59,6 +61,7 @@ function EatIO: integer;
 function ExistsFile(FileName: string): boolean;
 function CompleteDir(Path: string): string;
 function LocateFile(FileList: string): string;
+function GetStr(P: PString): string;
 
 const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
@@ -399,11 +402,25 @@ begin
   LocateFile:=FilePath;
 end;
 
+function GetStr(P: PString): string;
+begin
+  if P=nil then GetStr:='' else GetStr:=P^;
+end;
+
+
 
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:53  peter
+  Revision 1.3  1999-01-12 14:29:40  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.2  1998/12/28 15:47:53  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -52,7 +52,7 @@ type
     PSourceEditor = ^TSourceEditor;
     TSourceEditor = object(TFileEditor)
 {$ifndef EDITORS}
-      function  IsReservedWord(S: string): boolean; virtual;
+      function  IsReservedWord(const S: string): boolean; virtual;
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
 {$endif}
@@ -270,6 +270,7 @@ procedure InsertOK(ADialog: PDialog);
 procedure InsertButtons(ADialog: PDialog);
 
 procedure ErrorBox(S: string; Params: pointer);
+procedure WarningBox(S: string; Params: pointer);
 procedure InformationBox(S: string; Params: pointer);
 function  ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
 
@@ -324,11 +325,15 @@ uses
 
 const
   NoNameCount    : integer = 0;
-  ReservedWords  : PStringCollection = nil;
+  ReservedWords  : PUnsortedStringCollection = nil;
 
 function IsThereAnyEditor: boolean;
+function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
 begin
-  IsThereAnyEditor:=Message(Desktop,evBroadcast,cmSearchWindow,nil)<>nil;
+  EditorWindow:=(P^.HelpCtx=hcSourceWindow);
+end;
+begin
+  IsThereAnyEditor:=Desktop^.FirstThat(@EditorWindow)<>nil;
 end;
 
 function IsThereAnyHelpWindow: boolean;
@@ -337,8 +342,11 @@ begin
 end;
 
 function IsThereAnyWindow: boolean;
+var _Is: boolean;
 begin
-  IsThereAnyWindow:=IsThereAnyEditor or IsThereAnyHelpWindow;
+  _Is:=Message(Desktop,evBroadcast,cmSearchWindow,nil)<>nil;
+  _Is:=_Is or ( (ClipboardWindow<>nil) and ClipboardWindow^.GetState(sfVisible));
+  IsThereAnyWindow:=_Is;
 end;
 
 procedure InsertButtons(ADialog: PDialog);
@@ -497,13 +505,34 @@ begin
 end;
 
 procedure InitReservedWords;
-var
-  I,Count: integer;
+var S,WordS: string;
+    Idx,I: integer;
 begin
-  Count:=GetReservedWordCount;
-  New(ReservedWords, Init(Count,100));
-  for I:=1 to Count do
-    ReservedWords^.Insert(NewStr(UpcaseStr(GetReservedWord(I-1))));
+  New(ReservedWords, Init(50,10));
+  for I:=1 to GetReservedWordCount do
+    begin
+      WordS:=GetReservedWord(I-1); Idx:=length(WordS);
+      while ReservedWords^.Count<Idx do
+        ReservedWords^.Insert(NewStr(#0));
+      S:=ReservedWords^.At(Idx-1)^;
+      ReservedWords^.AtFree(Idx-1);
+      ReservedWords^.AtInsert(Idx-1,NewStr(S+WordS+#0));
+    end;
+end;
+
+function IsFPReservedWord(S: string): boolean;
+var _Is: boolean;
+    Idx: integer;
+    P: PString;
+begin
+  Idx:=length(S); _Is:=false;
+  if (Idx>0) and (ReservedWords<>nil) and (ReservedWords^.Count>=Idx) then
+    begin
+      S:=UpcaseStr(S);
+      P:=ReservedWords^.At(Idx-1);
+      _Is:=Pos(#0+S+#0,P^)>0;
+    end;
+  IsFPReservedWord:=_Is;
 end;
 
 
@@ -604,11 +633,9 @@ begin
   GetSpecSymbol:=S;
 end;
 
-function TSourceEditor.IsReservedWord(S: string): boolean;
-var I: Sw_integer;
+function TSourceEditor.IsReservedWord(const S: string): boolean;
 begin
-  S:=UpcaseStr(S);
-  IsReservedWord:=ReservedWords^.Search(@S,I);
+  IsReservedWord:=IsFPReservedWord(S);
 end;
 {$endif EDITORS}
 
@@ -780,13 +807,13 @@ begin
         cmUpdateTitle :
           UpdateTitle;
         cmSearchWindow :
-          if Editor^.IsClipboard=false then
-          ClearEvent(Event);
+          if @Self<>ClipboardWindow then
+            ClearEvent(Event);
         else
           begin
             if (Event.Command>cmSearchWindow) and (Event.Command<=cmSearchWindow+100) and
                (Event.Command-cmSearchWindow=Number) then
-            if Editor^.IsClipboard=false then
+{            if Editor^.IsClipboard=false then}
               ClearEvent(Event);
           end;
       end;
@@ -1665,6 +1692,11 @@ end;
 procedure ErrorBox(S: string; Params: pointer);
 begin
   MessageBox(S,Params,mfError+mfInsertInApp+mfOKButton);
+end;
+
+procedure WarningBox(S: string; Params: pointer);
+begin
+  MessageBox(S,Params,mfWarning+mfInsertInApp+mfOKButton);
 end;
 
 procedure InformationBox(S: string; Params: pointer);
@@ -2811,7 +2843,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-04 11:49:53  peter
+  Revision 1.4  1999-01-12 14:29:42  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.3  1999/01/04 11:49:53  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

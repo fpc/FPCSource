@@ -59,6 +59,7 @@ begin
     hcInfoWindow   : S:=PProgramInfoWindow(P)^.GetTitle(MaxLen);
     hcHelpWindow   : S:=PHelpWindow(P)^.GetTitle(MaxLen);
     hcCalcWindow   : S:=PCalculator(P)^.GetTitle(MaxLen);
+    hcBrowserWindow: S:=PBrowserWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
   end;
   GetText:=copy(S,1,MaxLen);
@@ -162,7 +163,15 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-01-04 11:49:49  peter
+  Revision 1.5  1999-01-12 14:29:37  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.4  1999/01/04 11:49:49  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

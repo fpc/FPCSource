@@ -127,6 +127,7 @@ const
      hcClipboardWindow   = 8002;
      hcCalcWindow        = 8003;
      hcInfoWindow        = 8004;
+     hcBrowserWindow     = 8005;
 
      hcShift             = 10000;
 
@@ -229,6 +230,15 @@ const
         #183#184#185#186#187#188#189#190#191#192#193#194#195#196#197#198 +
         #199#200#201#202#203#204#205#206#207#208#209#210#211#212#213#214 ;
 
+     CBrowserWindow =
+        #215#216#217#218#219#220#221#222#223#224#225#226;
+
+     CBrowserListBox =
+        #9#9#10#11#12;
+
+     CBrowserTab =
+        #6#12;
+
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -238,14 +248,24 @@ const
          { CSourceWindow }
 {167-182}#$17#$1F#$1A#$31#$31#$1E#$71#$1F#$00#$00#$00#$00#$00#$00#$00#$00 + { 1-16}
 {183-198}#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00 + {17-32}
-{199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$1F#$1C#$13#$00#$4E ; {33-48}
+{199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$1F#$1C#$13#$1F#$4E + {33-48}
+         { CBrowserWindow }
+{215-   }#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F ;
 
 implementation
 
 END.
 {
   $Log$
-  Revision 1.4  1999-01-04 11:49:43  peter
+  Revision 1.5  1999-01-12 14:29:33  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.4  1999/01/04 11:49:43  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

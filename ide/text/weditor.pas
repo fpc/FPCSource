@@ -27,6 +27,7 @@ uses
 
 const
       cmFileNameChanged      = 51234;
+      cmASCIIChar            = 51235;
 
 {$ifdef FPC}
       EditorTextBufSize = 32768;
@@ -215,9 +216,10 @@ type
      { Syntax highlight support }
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
-      function    IsReservedWord(S: string): boolean; virtual;
+      function    IsReservedWord(const S: string): boolean; virtual;
     public
       SearchRunCount: integer;
+      InASCIIMode: boolean;
       procedure Indent; virtual;
       procedure CharLeft; virtual;
       procedure CharRight; virtual;
@@ -330,9 +332,9 @@ const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 37;
+  FirstKeyCount = 38;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
-    Ord(^A), cmWordLeft, Ord(^C), cmPageDown,
+    Ord(^A), cmWordLeft, Ord(^B), cmASCIIChar, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
     Ord(^F), cmWordRight, Ord(^G), cmDelChar,
     Ord(^H), cmBackSpace, Ord(^J), cmJumpLine,
@@ -1152,7 +1154,8 @@ var DontClear : boolean;
 var
   StartP,P: TPoint;
 begin
-  ConvertEvent(Event);
+  if (InASCIIMode=false) or (Event.What<>evKeyDown) then
+    ConvertEvent(Event);
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) then
@@ -1173,24 +1176,30 @@ begin
       end;
     evKeyDown :
       begin
-        DontClear:=false;
-        case Event.CharCode of
-         #9,#32..#255 :
-           begin
-             NoSelect:=true;
-             AddChar(Event.CharCode);
-             NoSelect:=false;
-           end;
-        else
-          DontClear:=true;
+        if InASCIIMode and (Event.ScanCode=0) then
+          AddChar(Event.CharCode) else
+        begin
+          DontClear:=false;
+          case Event.CharCode of
+           #9,#32..#255 :
+             begin
+               NoSelect:=true;
+               AddChar(Event.CharCode);
+               NoSelect:=false;
+             end;
+          else
+            DontClear:=true;
+          end;
+          if not DontClear then
+           ClearEvent(Event);
         end;
-        if not DontClear then
-         ClearEvent(Event);
+        InASCIIMode:=false;
       end;
     evCommand :
       begin
         DontClear:=false;
         case Event.Command of
+          cmASCIIChar   : InASCIIMode:=not InASCIIMode;
           cmCharLeft    : CharLeft;
           cmCharRight   : CharRight;
           cmWordLeft    : WordLeft;
@@ -1383,16 +1392,9 @@ end;
 function TCodeEditor.GetLineTextPos(Line,X: integer): integer;
 var
   S: string;
-  L: PLine;
   rx,i : Sw_integer;
 begin
-  S:='';
-  if Line<Lines^.Count then
-   begin
-     L:=Lines^.At(Line);
-     if assigned(L^.Text) then
-      S:=L^.Text^;
-   end;
+  S:=GetLineText(Line);
   i:=0;
   rx:=0;
   while (RX<X) and (i<Length(s)) do
@@ -1402,6 +1404,7 @@ begin
      if s[i]=#9 then
       inc(rx,TabSize-(rx mod tabsize));
    end;
+  if RX<X then Inc(I,X-RX);
   GetLineTextPos:=i;
 end;
 
@@ -1553,7 +1556,7 @@ begin
   Abstract;
 end;
 
-function TCodeEditor.IsReservedWord(S: string): boolean;
+function TCodeEditor.IsReservedWord(const S: string): boolean;
 begin
   IsReservedWord:=false;
 end;
@@ -1584,8 +1587,6 @@ begin
 end;
 
 procedure TCodeEditor.CharLeft;
-var
-  X : Sw_integer;
 begin
   if CurPos.X>0 then
    begin
@@ -2039,15 +2040,16 @@ const OpenBrackets  : string[10] = '[({';
       CloseBrackets : string[10] = '])}';
 var S: string;
     BI: byte;
+  RX : Sw_integer;
 begin
   if IsReadOnly then Exit;
   S:=GetLineText(CurPos.Y);
-  RX:=GetLineTextPos(CurPos.X);
-  if
+  RX:=GetLineTextPos(CurPos.Y,CurPos.X);
   if Overwrite and (RX<length(S)) then
-    SetLineText(CurPos.Y,copy(S,1,CurPos.X)+C+copy(S,CurPos.X+2,255))
+    SetLineText(CurPos.Y,copy(S,1,RX)+C+copy(S,RX+2,255))
   else
-    SetLineText(CurPos.Y,RExpand(copy(S,1,CurPos.X),CurPos.X)+C+copy(S,CurPos.X+1,255));
+    SetLineText(CurPos.Y,RExpand(copy(S,1,RX),RX)+C+copy(S,RX+1,255));
+  Curpos.X:=GetDisplayTextPos(CurPos.Y,RX);
   if PointOfs(SelStart)<>PointOfs(SelEnd) then
     if (CurPos.Y=SelEnd.Y) and (CurPos.X<SelEnd.X) then
       Inc(SelEnd.X);
@@ -2478,7 +2480,7 @@ var
   end;
 
   procedure FormatWord(SClass: TCharClass; StartX:Sw_integer;EndX: Sw_integer);
-  var FX,i: Sw_integer;
+  var
       C: byte;
       WordS: string;
   begin
@@ -2492,13 +2494,7 @@ var
     if InAsm then C:=coAssemblerColor else
     case SClass of
       ccWhiteSpace : C:=coWhiteSpaceColor;
-      ccTab        : begin
-{                       i:=StartX;
-                       for FX:=StartX to EndX do
-                        inc(i,Tabsize-((i-1) mod Tabsize));
-                       EndX:=i;   }
-                       C:=coTabColor;
-                     end;
+      ccTab        : C:=coTabColor;
       ccNumber     : if copy(WordS,1,1)='$' then
                        C:=coHexNumberColor
                      else
@@ -2506,13 +2502,14 @@ var
       ccSymbol     : C:=coSymbolColor;
       ccAlpha      :
         begin
-  {        WordS:=copy(LineText,StartX,EndX-StartX+1);}
-          if IsReservedWord(WordS) then C:=coReservedWordColor
-                                   else C:=coIdentifierColor;
+          if IsReservedWord(WordS) then
+            C:=coReservedWordColor
+          else
+            C:=coIdentifierColor;
         end;
     end;
     if EndX>=StartX then
-     FillChar(Format[StartX],EndX+1-StartX,C);
+      FillChar(Format[StartX],EndX+1-StartX,C);
     if IsAsmPrefix(WordS) and
        (InAsm=false) and (InComment=false) and (InDirective=false) then
       InAsm:=true;
@@ -2577,7 +2574,6 @@ var
 
 var CurLine: Sw_integer;
     Line,NextLine,PrevLine,OldLine: PLine;
-    C: char;
 begin
   if ((Flags and efSyntaxHighlight)=0) or (FromLine>=GetLineCount) then
   begin
@@ -2615,6 +2611,7 @@ begin
      begin
        for X:=1 to length(LineText) do
         ProcessChar(LineText[X]);
+       inc(X);
        ProcessChar(' ');
      end;
     SetLineFormat(CurLine,Format);
@@ -3203,7 +3200,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-01-07 15:02:40  peter
+  Revision 1.6  1999-01-12 14:29:44  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.5  1999/01/07 15:02:40  peter
     * better tab support
 
   Revision 1.4  1999/01/04 11:49:55  peter

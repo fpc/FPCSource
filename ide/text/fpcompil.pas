@@ -84,7 +84,12 @@ begin
     cpDone      :
       begin
         StatusS:='Done.';
-        if Status.ErrorCount=0 then KeyS:=SuccessS else KeyS:=FailS;
+        KeyS:=SuccessS;
+      end;
+    cpFailed    :
+      begin
+        StatusS:='Failed to compile...';
+        KeyS:=FailS;
       end;
   end;
   ST^.SetText(
@@ -119,7 +124,9 @@ end;
 function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
 begin
   CompilerComment:=false;
+{$ifndef DEV}
   if (status.verbosity and Level)=Level then
+{$endif}
    begin
      ProgramInfoWindow^.AddMessage(Level,S,SmartPath(status.currentmodule),status.currentline);
      SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),status.currentline)));
@@ -215,7 +222,7 @@ begin
 
   Application^.Delete(SD);
   SD^.SetState(sfModal,false);
-  Dispose(SD, Done);
+  Dispose(SD, Done); SD:=nil;
 
 {  if (WasVisible=false) and (status.errorcount=0) then
    ProgramInfoWindow^.Hide;}
@@ -224,7 +231,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-01-04 11:49:42  peter
+  Revision 1.4  1999-01-12 14:29:32  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.3  1999/01/04 11:49:42  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

@@ -49,7 +49,7 @@ begin
 
   UserScreen^.SwitchTo;
 
-  Exec(ExeFile,GetRunParameters);
+//  Exec(ExeFile,GetRunParameters);
 
   UserScreen^.SwitchBack;
 
@@ -62,7 +62,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:52  peter
+  Revision 1.2  1999-01-12 14:29:38  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.1  1998/12/28 15:47:52  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

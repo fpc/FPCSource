@@ -40,14 +40,14 @@ begin
   DoneMouse;
   DoneVideo;
 
-  if Assigned(UserScreen) then
-    UserScreen^.SwitchTo;
+{  if Assigned(UserScreen) then
+    UserScreen^.SwitchTo; }
 
   Exec(ExeFile,GetRunParameters);
   LastExitCode:=DosExitCode;
 
-  if Assigned(UserScreen) then
-    UserScreen^.SwitchBack;
+{  if Assigned(UserScreen) then
+    UserScreen^.SwitchBack; }
 
   InitVideo;
   InitMouse;
@@ -83,7 +83,15 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-01-04 11:49:48  peter
+  Revision 1.3  1999-01-12 14:29:36  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.2  1999/01/04 11:49:48  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

@@ -161,7 +161,7 @@ procedure TIDEApp.About;
 var R,R2: TRect;
     D: PCenterDialog;
 begin
-  R.Assign(0,0,38,10);
+  R.Assign(0,0,38,12);
   New(D, Init(R, 'About'));
   with D^ do
   begin
@@ -171,9 +171,13 @@ begin
     R2.Move(0,2);
     Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr)));
     R2.Move(0,2);
-    Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998 by')));
+    Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-99 by')));
     R2.Move(0,2);
     Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
+    R2.Move(0,1);
+    Insert(New(PStaticText, Init(R2, ^C'and')));
+    R2.Move(0,1);
+    Insert(New(PStaticText, Init(R2, ^C'Peter Vreman')));
   end;
   InsertOK(D);
   Desktop^.ExecView(D);
@@ -182,7 +186,15 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:48  peter
+  Revision 1.3  1999-01-12 14:29:34  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.2  1998/12/28 15:47:48  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

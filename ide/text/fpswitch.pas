@@ -23,10 +23,8 @@ uses
   FPConst;
 
 const
-     MinStackSize    = 1024;
-     MaxStackSize    = 67107840;
-     MinHeapSize     = 1024;
-     MaxHeapSize     = 67107840;
+     MinMemSize      = 1024;     { min. local heap and stack size }
+     MaxMemSize      = 67107840; { max. local heap and stack size }
 
 type
     TSwitchMode = (om_Normal,om_Debug,om_Release);
@@ -36,7 +34,7 @@ type
     PSwitchItem = ^TSwitchItem;
     TSwitchItem = object(TObject)
       Typ       : TSwitchItemTyp;
-      Name      : string[30];
+      Name      : string[50];
       Param     : string[10];
       constructor Init(const n,p:string);
       function  NeedParam:boolean;virtual;
@@ -117,6 +115,10 @@ const
       ('NORMAL','DEBUG','RELEASE');
 
 var
+    LibLinkerSwitches,
+    DebugInfoSwitches,
+    ProfileInfoSwitches,
+    MemorySizeSwitches,
     SyntaxSwitches,
     VerboseSwitches,
     CodegenSwitches,
@@ -540,6 +542,10 @@ begin
      DirectorySwitches^.WriteItemsCfg;
      MemorySwitches^.WriteItemsCfg;
      ConditionalSwitches^.WriteItemsCfg;
+     LibLinkerSwitches^.WriteItemsCfg;
+     DebugInfoSwitches^.WriteItemsCfg;
+     ProfileInfoSwitches^.WriteItemsCfg;
+     MemorySizeSwitches^.WriteItemsCfg;
      Writeln(CfgFile,'#ENDIF');
      Writeln(CfgFile,'');
    end;
@@ -572,11 +578,17 @@ begin
         Delete(s,1,2);
         case c of
          'd' : ConditionalSwitches^.ReadItemsCfg(s);
+         'X' : LibLinkerSwitches^.ReadItemsCfg(s);
+         'g' : DebugInfoSwitches^.ReadItemsCfg(s);
+         'p' : ProfileInfoSwitches^.ReadItemsCfg(s);
          'S' : SyntaxSwitches^.ReadItemsCfg(s);
          'F' : DirectorySwitches^.ReadItemsCfg(s);
          'T' : TargetSwitches^.ReadItemsCfg(s);
          'R' : AsmReaderSwitches^.ReadItemsCfg(s);
-         'C' : CodegenSwitches^.ReadItemsCfg(s);
+         'C' : begin
+                 CodegenSwitches^.ReadItemsCfg(s);
+                 MemorySizeSwitches^.ReadItemsCfg(s);
+               end;
          'v' : VerboseSwitches^.ReadItemsCfg(s);
          'O' : begin
                  if not OptimizationSwitches^.ReadItemsCfg(s) then
@@ -693,6 +705,31 @@ begin
      AddStringItem('~O~bject directories','o',true);
      AddStringItem('~E~XE & PPU directories','E',true);
    end;
+  New(LibLinkerSwitches,InitSelect('X'));
+  with LibLinkerSwitches^ do
+   begin
+     AddSelectItem('~D~ynamic libraries','D');
+     AddSelectItem('~S~tatic libraries','S');
+   end;
+  New(DebugInfoSwitches,InitSelect('g'));
+  with DebugInfoSwitches^ do
+   begin
+     AddSelectItem('~S~trip all symbols from executable','-');
+     AddSelectItem('Generate ~g~sym symbol information','g');
+     AddSelectItem('Generate ~d~bx symbol information','d');
+   end;
+  New(ProfileInfoSwitches,InitSelect('p'));
+  with ProfileInfoSwitches^ do
+   begin
+     AddSelectItem('~N~o profile information','-');
+     AddSelectItem('Generate profile code for g~p~rof','g');
+   end;
+  New(MemorySizeSwitches,Init('C'));
+  with MemorySizeSwitches^ do
+   begin
+     AddLongIntItem('~S~tack size','s');
+     AddLongIntItem('Local ~h~eap size','h');
+   end;
   SwitchesPath:=LocateFile(SwitchesName);
   if SwitchesPath='' then
     SwitchesPath:=SwitchesName;
@@ -718,7 +755,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-04 11:49:50  peter
+  Revision 1.3  1999-01-12 14:29:39  peter
+    + Implemented still missing 'switch' entries in Options menu
+    + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
+      ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as
+      ASCII chars and inserted directly in the text.
+    + Added symbol browser
+    * splitted fp.pas to fpide.pas
+
+  Revision 1.2  1999/01/04 11:49:50  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.
