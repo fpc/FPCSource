@@ -474,16 +474,16 @@ install:
 #####################################################################
 
 pstar:
-        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier=1 USETAR=y FULLZIPNAME=docs=fpcdocps
+        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdocps
 
 pszip:
-        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier= USEZIP=y FULLZIPNAME=docs=ps
+        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-ps
 
 pdftar:
         $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdoc
 
 pdfzip:
-        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y FULLZIPNAME=docs-pdf
+        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-pdf
 
 dvidist:
         $(MAKE) zipinstall ZIPTARGET=dviinstall FULLZIPNAME=doc-dvi
@@ -566,7 +566,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.8  2005-02-14 17:53:11  peter
+# Revision 1.9  2005-02-18 23:04:15  michael
+# + Fixed psdist target zip names
+#
+# Revision 1.8  2005/02/14 17:53:11  peter
 #   * baseunix moved to unix
 #
 # Revision 1.7  2005/02/11 16:26:38  peter
