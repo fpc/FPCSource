@@ -890,6 +890,7 @@ implementation
                        p^.left^.right := nil;
                        must_be_valid := false;
                        count_ref := true;
+                       make_not_regable(p^.left^.left);
                        firstcallparan(p^.left, nil);
                        if codegenerror then exit;
                        p^.left^.right := hp;
@@ -911,6 +912,7 @@ implementation
                   count_ref:=true;
                   hpp^.right:=nil;
                   {hpp = destination}
+                  make_not_regable(hpp^.left);
                   firstcallparan(hpp,nil);
                   if codegenerror then
                     exit;
@@ -1119,7 +1121,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-08-05 16:53:23  peter
+  Revision 1.47  1999-08-06 12:43:13  jonas
+    * fix for regvars with the val code
+
+  Revision 1.46  1999/08/05 16:53:23  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
