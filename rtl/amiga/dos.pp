@@ -3,6 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998 by Nils Sjoholm and Carl Eric Codere
     members of the Free Pascal development team
+      Date conversion routine taken from SWAG
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,39 +16,12 @@
 
 Unit Dos;
 
-    {
-       History:
-       10.02.1998  First version for Amiga.
-                   Just GetDate and GetTime.
-
-       11.02.1998  Added AmigaToDt and DtToAmiga
-                   Changed GetDate and GetTime to
-                   use AmigaToDt and DtToAmiga.
-
-                   Added DiskSize and DiskFree.
-                   They are using a string as arg
-                   have to try to fix that.
-
-       12.02.1998  Added Fsplit and FExpand.
-                   Cleaned up the unit and removed
-                   stuff that was not used yet.
-
-       13.02.1998  Added CToPas and PasToC and removed
-                   the uses of strings.
-
-       14.02.1998  Removed AmigaToDt and DtToAmiga
-                   from public area.
-                   Added deviceids and devicenames
-                   arrays so now diskfree and disksize
-                   is compatible with dos.
-    }
 
 {--------------------------------------------------------------------}
 { LEFT TO DO:                                                        }
 {--------------------------------------------------------------------}
 { o DiskFree / Disksize don't work as expected                       }
 { o Implement SetDate and SetTime                                    }
-{ o Implement Setftime                                               }
 { o Implement EnvCount,EnvStr                                        }
 { o FindFirst should only work with correct attributes               }
 {--------------------------------------------------------------------}
@@ -183,6 +157,21 @@ Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
 implementation
+
+const
+  DaysPerMonth :  Array[1..12] of ShortInt =
+(031,028,031,030,031,030,031,031,030,031,030,031);
+  DaysPerYear  :  Array[1..12] of Integer  =
+(031,059,090,120,151,181,212,243,273,304,334,365);
+  DaysPerLeapYear :    Array[1..12] of Integer  =
+(031,060,091,121,152,182,213,244,274,305,335,366);
+  SecsPerYear      : LongInt  = 31536000;
+  SecsPerLeapYear  : LongInt  = 31622400;
+  SecsPerDay       : LongInt  = 86400;
+  SecsPerHour      : Integer  = 3600;
+  SecsPerMinute    : ShortInt = 60;
+  TICKSPERSECOND    = 50;
+
 
 
 Type
@@ -431,6 +420,7 @@ CONST
     _LVOCli        = -492;
     _LVOExecute    = -222;
     _LVOSystemTagList = -606;
+    _LVOSetFileDate = -396;
 
     LDF_READ   = 1;
     LDF_DEVICES = 4;
@@ -501,7 +491,7 @@ BEGIN
     MOVEA.L (A7)+,A6
     TST.L   D0
     BEQ.B   @end
-    MOVEQ   #1,D0
+    MOVE.B  #1,D0
     @end: MOVE.B  D0,@RESULT
   END;
 END;
@@ -509,7 +499,7 @@ END;
 function Lock(const name : string;
            accessmode : Longint) : BPTR;
 var
- buffer: Array[0..50] of char;
+ buffer: Array[0..255] of char;
 Begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
@@ -548,8 +538,9 @@ BEGIN
     MOVEA.L (A7)+,A6
     TST.L   D0
     BEQ.B   @end
-    MOVEQ   #1,D0
-    @end: MOVE.B  D0,@RESULT
+    MOVE.B  #1,D0
+    @end:
+     MOVE.B  D0,@RESULT
   END;
 END;
 
@@ -565,7 +556,7 @@ BEGIN
     MOVEA.L (A7)+,A6
     TST.L   D0
     BEQ.B   @end
-    MOVEQ   #1,D0
+    MOVE.B  #1,D0
     @end: MOVE.B  D0,@RESULT
   END;
 END;
@@ -766,6 +757,95 @@ Function SetProtection(const name: string; mask:longint): longint;
       move.l  d0,@RESULT
    end;
  end;
+
+
+Function IsLeapYear(Source : Word) : Boolean;
+Begin
+  If (Source Mod 4 = 0) Then
+    IsLeapYear := True
+  Else
+    IsLeapYear := False;
+End;
+
+
+Procedure Amiga2DateStamp(Date : LongInt; Var TotalDays,Minutes,Ticks: longint);
+{ Converts a value in seconds past 1978 to a value in AMIGA DateStamp format }
+{ Taken from SWAG and modified to work with the Amiga format - CEC           }
+Var
+  LocalDate : LongInt; Done : Boolean; X : ShortInt; TotDays : Integer;
+  Y: Word;
+  M: Word;
+  D: Word;
+  H: Word;
+  Min: Word;
+  S : Word;
+Begin
+  Y   := 1978; M := 1; D := 1; H := 0; Min := 0; S := 0;
+  TotalDays := 0;
+  Minutes := 0;
+  Ticks := 0;
+  LocalDate := Date;
+  Done := False;
+  While Not Done Do
+  Begin
+    If LocalDate >= SecsPerYear Then
+    Begin
+      Inc(Y,1);
+      Dec(LocalDate,SecsPerYear);
+      Inc(TotalDays,DaysPerYear[12]);
+    End
+    Else
+      Done := True;
+    If (IsLeapYear(Y+1)) And (LocalDate >= SecsPerLeapYear) And
+       (Not Done) Then
+    Begin
+      Inc(Y,1);
+      Dec(LocalDate,SecsPerLeapYear);
+      Inc(TotalDays,DaysPerLeapYear[12]);
+    End;
+  End; { END WHILE }
+  M := 1; D := 1;
+  Done := False;
+  TotDays := LocalDate Div SecsPerDay;
+  { Total number of days }
+  TotalDays := TotalDays + TotDays;
+    Dec(LocalDate,TotDays*SecsPerDay);
+  { Absolute hours since start of day }
+  H := LocalDate Div SecsPerHour;
+  { Convert to minutes }
+  Minutes := H*60;
+    Dec(LocalDate,(H * SecsPerHour));
+  { Find the remaining minutes to add }
+  Min := LocalDate Div SecsPerMinute;
+    Dec(LocalDate,(Min * SecsPerMinute));
+  Minutes:=Minutes+Min;
+  { Find the number of seconds and convert to ticks }
+  S := LocalDate;
+  Ticks:=TICKSPERSECOND*S;
+End;
+
+
+  Function SetFileDate(name: string; p : pDateStamp): longint;
+  var
+    buffer : array[0..255] of char;
+  Begin
+    move(name[1],buffer,length(name));
+    buffer[length(name)]:=#0;
+     asm
+       move.l a6,d6           { save base pointer }
+       move.l d2,-(sp)        { save reserved reg }
+       lea    buffer,a0
+       move.l a0,d1
+       move.l p,d2
+       move.l _DosBase,a6
+       jsr    _LVOSetFileDate(a6)
+       move.l (sp)+,d2        { restore reserved reg }
+       move.l d6,a6           { restore base pointer }
+       move.l d0,@Result
+     end;
+  end;
+
+
 
 
 
@@ -1045,12 +1125,38 @@ var
  Anchor : pAnchorPath;
  Result : Longint;
  index : Integer;
+ s     : string;
+ j     : integer;
 Begin
  DosError:=0;
  New(Anchor);
  {----- allow backslash as slash         -----}
  for index:=1 to length(path) do
    if path[index]='\' then path[index]:='/';
+ { remove any dot characters and replace by their current }
+ { directory equivalent.                                  }
+ if pos('../',path) = 1 then
+ { look for parent directory }
+    Begin
+       delete(path,1,3);
+       getdir(0,s);
+       j:=length(s);
+       while (s[j] <> '/') AND (s[j] <> ':') AND (j > 0 ) do
+         dec(j);
+       if j > 0 then
+         s:=copy(s,1,j);
+       path:=s+path;
+    end
+ else
+ if pos('./',path) = 1 then
+ { look for current directory }
+    Begin
+       delete(path,1,2);
+       getdir(0,s);
+       if (s[length(s)] <> '/') and (s[length(s)] <> ':') then
+          s:=s+'/';
+       path:=s+path;
+    end;
  {----- replace * by #? AmigaOs strings  -----}
  repeat
   index:= pos('*',Path);
@@ -1212,11 +1318,40 @@ var
     FLock  : BPTR;
     buffer : array[0..255] of char;
     i :integer;
+    j :integer;
+    temp : string;
 begin
+
    { allow backslash as slash }
     for i:=1 to length(path) do
        if path[i]='\' then path[i]:='/';
-    FLock := Lock(Path,-2);
+
+   temp:=path;
+   if pos('../',temp) = 1 then
+     delete(temp,1,3);
+   if pos('./',temp) = 1 then
+      delete(temp,1,2);
+   {First remove all references to '/./'}
+    while pos('/./',temp)<>0 do
+      delete(temp,pos('/./',temp),3);
+   {Now remove also all references to '/../' + of course previous dirs..}
+    repeat
+      i:=pos('/../',temp);
+      {Find the pos of the previous dir}
+      if i>1 then
+        begin
+          j:=i-1;
+          while (j>1) and (temp[j]<>'/') do
+             dec (j);{temp[1] is always '/'}
+          delete(temp,j,i-j+4);
+        end
+      else
+      if i=1 then  {i=1, so we have temp='/../something', just delete '/../'}
+       delete(temp,1,4);
+    until i=0;
+
+
+    FLock := Lock(temp,-2);
     if FLock <> 0 then begin
        if NameFromLock(FLock,buffer,255) then begin
           Unlock(FLock);
@@ -1307,22 +1442,33 @@ end;
 
   Procedure setftime(var f; time : longint);
    var
-    ClockData: pClockData;
+    DateStamp: pDateStamp;
+    Str: String;
+    i: Integer;
+    Days, Minutes,Ticks: longint;
+    FLock: longint;
   Begin
-    DosError:=0;
-    New(ClockData);
-(*    { We must find the number of days since jan-1978 }
-    ds_Days:=Time div 3600;
-    ds_Minute:=Time mod 3600;
-    ds_Tick:=
-    Amiga2Date(Time, ClockData);
-
-
-        ds_Days         : Longint;      { Number of days since Jan. 1, 1978 }
-        ds_Minute       : Longint;      { Number of minutes past midnight }
-        ds_Tick         : Longint;      { Number of ticks past minute }*)
-
-    Dispose(ClockData);
+    new(DateStamp);
+    Str := StrPas(filerec(f).name);
+    for i:=1 to length(Str) do
+     if str[i]='\' then str[i]:='/';
+    { Check first of all, if file exists }
+    FLock := Lock(Str, SHARED_LOCK);
+    IF FLock <> 0 then
+      begin
+        Unlock(FLock);
+        Amiga2DateStamp(time,Days,Minutes,ticks);
+        DateStamp^.ds_Days:=Days;
+        DateStamp^.ds_Minute:=Minutes;
+        DateStamp^.ds_Tick:=Ticks;
+        if SetFileDate(Str,DateStamp) <> 0 then
+            DosError:=0
+        else
+            DosError:=6;
+      end
+    else
+      DosError:=2;
+    if assigned(DateStamp) then Dispose(DateStamp);
   End;
 
   Procedure getfattr(var f; var attr : word);
@@ -1336,10 +1482,10 @@ end;
     DosError:=0;
     flags:=0;
     New(info);
-    { open with shared lock }
     Str := StrPas(filerec(f).name);
     for i:=1 to length(Str) do
      if str[i]='\' then str[i]:='/';
+    { open with shared lock to check if file exists }
     MyLock:=Lock(Str,SHARED_LOCK);
     if MyLock <> 0 then
       Begin
@@ -1521,13 +1667,44 @@ End.
 
 {
   $Log$
-  Revision 1.6  1998-08-13 13:18:45  carl
+  Revision 1.7  1998-08-17 12:30:42  carl
+    * FExpand removes dot characters
+    * Findfirst single/double dot expansion
+    + SetFtime implemented
+
+  Revision 1.6  1998/08/13 13:18:45  carl
     * FSearch bugfix
     * FSplit bugfix
     + GetFAttr,SetFAttr and GetFTime accept dos dir separators
 
   Revision 1.5  1998/08/04 13:37:10  carl
     * bugfix of findfirst, was not convberting correctl backslahes
+
+       History (Nils Sjoholm):
+       10.02.1998  First version for Amiga.
+                   Just GetDate and GetTime.
+
+       11.02.1998  Added AmigaToDt and DtToAmiga
+                   Changed GetDate and GetTime to
+                   use AmigaToDt and DtToAmiga.
+
+                   Added DiskSize and DiskFree.
+                   They are using a string as arg
+                   have to try to fix that.
+
+       12.02.1998  Added Fsplit and FExpand.
+                   Cleaned up the unit and removed
+                   stuff that was not used yet.
+
+       13.02.1998  Added CToPas and PasToC and removed
+                   the uses of strings.
+
+       14.02.1998  Removed AmigaToDt and DtToAmiga
+                   from public area.
+                   Added deviceids and devicenames
+                   arrays so now diskfree and disksize
+                   is compatible with dos.
+
 
 
 }
