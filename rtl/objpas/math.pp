@@ -604,13 +604,11 @@ begin
     StdDev:=StdDev+Sqr(Data[i]);
     end;
   Mean:=Mean/N;
-  StdDev:=StdDev/sqr(N)-Sqr(Mean);
-{  // the following depends on the definition of standard deviation...
+  StdDev:=(StdDev-N*Sqr(Mean));
   If N>1 then
     StdDev:=Sqrt(Stddev/(N-1))
   else  
     StdDev:=0;
-}
 end;
 
 function variance(const data : array of float) : float;
@@ -644,7 +642,7 @@ function totalvariance(const data : Pfloat;Const N : Integer) : float;
     else
       begin
       SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/(N-1);
+      Result := SS-Sqr(S)/N;
       end;
   end;
 
@@ -858,7 +856,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.23  2000-07-08 06:45:07  michael
+    Revision 1.24  2000-07-08 07:03:20  michael
+    + fixed meanandstddev
+
+    Revision 1.23  2000/07/08 06:45:07  michael
     + Added some functions
 
     Revision 1.22  2000/07/06 21:59:25  michael
