@@ -647,11 +647,9 @@ implementation
            hreg: TRegister;
            hdef: POrdDef;
            procedureprefix : string;
-           hr: TReference;
+           hr, hr2: TReference;
            dummycoll : tdefcoll;
            has_code, has_32bit_code, oldregisterdef: boolean;
-           pushed2: TPushed;
-           unusedregs: TRegisterSet;
 
           begin
            node:=p^.left;
@@ -677,47 +675,21 @@ implementation
           {hp = destination now, save for later use}
            dest_para := hp;
 
-          {the function result will be in EAX, so we need to reserve it so
-           that secondpass(dest_para^.left) won't use it}
-           hreg := getexplicitregister32(R_EAX);
           {if EAX is already in use, it's a register variable. Since we don't
            need another register besides EAX, release the one we got}
            If hreg <> R_EAX Then ungetregister32(hreg);
 
-          {load the address of the destination}
-           secondpass(dest_para^.left);
+          {load and push the address of the destination}
+           dummycoll.paratyp:=vs_var;
+           dummycoll.data:=dest_para^.resulttype;
+           secondcallparan(dest_para,@dummycoll,false,false,false,0);
+           if codegenerror then
+             exit;
 
-          {unget EAX (if we got it before), since otherwise pushusedregisters
-           will push it on the stack.}
-           If (hreg = R_EAX) then Ungetregister32(hreg);
-
-          {save which registers are (not) used now, we'll need it after the
-           function call}
-           UnusedRegs := Unused;
-
-          {(if necessary) save the address loading of dest_para and possibly
-           register variables}
+          {save the regvars}
            pushusedregisters(pushed,$ff);
 
-          {only now load the address of the code parameter, since we want
-           to handle it before the destination after the function call}
-
-           If has_code and (not has_32bit_code) Then
-             Begin
-              {make sure this secondpass doesn't use EAX either}
-               hreg := getexplicitregister32(R_EAX);
-               If hreg <> R_EAX Then ungetregister32(hreg);
-               secondpass(code_para^.left);
-               If hreg = R_EAX Then ungetregister32(hreg);
-              {maybe secondpass(code_para^.left) required more registers than
-               secondpass(dest_para^.left). The registers where we can store
-               the result afterwards have to be unused in both cases}
-               UnusedRegs := UnusedRegs * Unused;
-               pushusedregisters(pushed2, $ff)
-             End;
-
-          {now that we've already pushed the results from
-           secondpass(code_para^.left) and secondpass(dest_para^.left) on the
+          {now that we've already pushed the addres of dest_para^.left on the
            stack, we can put the real parameters on the stack}
 
            If has_32bit_code Then
@@ -770,41 +742,51 @@ implementation
 
            If (dest_para^.resulttype^.deftype = orddef) Then
              Begin
-              {restore which registers are used by register variables and/or
-               the address loading of the dest/code_para, so we can store the
-               result in a safe place}
-               unused := UnusedRegs;
-              {as of now, hreg now holds the location of the result, if it was
-               integer}
+              {store the result in a safe place, because EAX may be used by a
+               register variable}
                hreg := getexplicitregister32(R_EAX);
                emit_reg_reg(A_MOV,S_L,R_EAX,hreg);
+              {as of now, hreg now holds the location of the result, if it was
+               integer}
              End;
+
+           { restore the register vars}
+
+           popusedregisters(pushed);
 
            If has_code and Not(has_32bit_code) Then
              {only 16bit code is possible}
              Begin
-              {restore the address loaded by secondpass(code_para)}
-               popusedregisters(pushed2);
+              {load the address of the code parameter}
+               secondpass(code_para^.left);
               {move the code to its destination}
                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,NewReference(hr),R_EDI)));
                emit_mov_reg_loc(R_DI,code_para^.left^.location);
                Disposetree(code_para);
              End;
 
-          {restore the addresses loaded by secondpass(dest_para)}
-           popusedregisters(pushed);
+          {restore the address of the result}
+           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+
+          {set up hr2 to a refernce with EDI as base register}
+           clear_reference(hr2);
+           hr2.base := R_EDI;
+
           {save the function result in the destination variable}
            Case dest_para^.left^.resulttype^.deftype of
              floatdef:
-               floatstore(PFloatDef(dest_para^.left^.resulttype)^.typ,dest_para^.left^.location.reference);
+               floatstore(PFloatDef(dest_para^.left^.resulttype)^.typ, hr2);
              orddef:
                Case PordDef(dest_para^.left^.resulttype)^.typ of
                  u8bit,s8bit:
-                   emit_mov_reg_loc(RegToReg8(hreg),dest_para^.left^.location);
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_B,
+                     RegToReg8(hreg),newreference(hr2))));
                  u16bit,s16bit:
-                   emit_mov_reg_loc(RegToReg16(hreg),dest_para^.left^.location);
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_W,
+                     RegToReg16(hreg),newreference(hr2))));
                  u32bit,s32bit:
-                   emit_mov_reg_loc(hreg,dest_para^.left^.location);
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV, S_L,
+                     hreg,newreference(hr2))));
                  {u64bit,s64bitint: ???}
                End;
            End;
@@ -1290,7 +1272,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-05-01 13:24:08  peter
+  Revision 1.46  1999-05-05 16:18:20  jonas
+    * changes to handle_val so register vars are pushed/poped only once
+
+  Revision 1.45  1999/05/01 13:24:08  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
