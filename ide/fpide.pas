@@ -801,9 +801,11 @@ begin
 { Leave the messages window in the bottom }
   if assigned(MessagesWindow) and (MessagesWindow^.GetState(sfVisible)) then
    R.B.Y:=Min(MessagesWindow^.Origin.Y,R.B.Y);
+{$ifndef NODEBUG}
 { Leave the watch window in the bottom }
   if assigned(WatchesWindow) and (WatchesWindow^.GetState(sfVisible)) then
    R.B.Y:=Min(WatchesWindow^.Origin.Y,R.B.Y);
+{$endif NODEBUG}
 end;
 
 
@@ -1241,7 +1243,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.34  2004-12-19 20:38:35  hajny
+  Revision 1.35  2004-12-22 15:24:07  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.34  2004/12/19 20:38:35  hajny
     + confirmation box after video mode switch (bug 2933)
 
   Revision 1.33  2004/11/20 14:21:19  florian

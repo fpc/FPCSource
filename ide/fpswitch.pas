@@ -932,34 +932,6 @@ begin
      for t:=low(tsystem) to high(tsystem) do
        if assigned(targetinfos[t]) then
          AddSelectItem(targetinfos[t]^.name,targetinfos[t]^.shortname,idNone);
-{$ifdef dummy}
-{$ifdef I386}
-     {AddSelectItem('DOS (GO32V~1~)','go32v1',idNone);}
-     AddSelectItem('~D~OS (GO32V2)','go32v2',idNone);
-     AddSelectItem('~F~reeBSD','freebsd',idNone);
-     AddSelectItem('~L~inux','linux',idNone);
-     AddSelectItem('~N~etBSD','netbsd',idNone);
-     AddSelectItem('~O~S/2','os2',idNone);
-     AddSelectItem('~W~IN32','win32',idNone);
-     AddSelectItem('N~e~tWare Clib','netware',idNone);
-     AddSelectItem('O~p~enBSD','openbsd',idNone);
-     AddSelectItem('Netware Lib~c~','netwlibc',idNone);
-{$endif I386}
-{$ifdef M68K}
-     AddSelectItem('~A~miga','amiga',idNone);
-     AddSelectItem('A~t~ari','atari',idNone);
-     AddSelectItem('~L~inux','linux',idNone);
-     AddSelectItem('~N~etBSD','netbsd',idNone);
-     AddSelectItem('~P~alm OS','palmos',idNone);
-     {AddSelectItem('~M~ac OS','macos',idNone); }
-{$endif M68K}
-{$ifdef powerpc}
-     AddSelectItem('~L~inux','linux',idNone);
-     AddSelectItem('~N~etBSD','netbsd',idNone);
-     AddSelectItem('~M~ac OS','macos',idNone);
-     AddSelectItem('Macos ~X~(Darwin)','darwin',idNone);
-{$endif powerpc}
-{$endif dummy}
    end;
   New(AsmReaderSwitches,InitSelect('R'));
   with AsmReaderSwitches^ do
@@ -1113,49 +1085,7 @@ begin
             end;
        end;
        { set appriopriate default target }
-{$ifdef i386}
-  {$ifdef go32v2}
-       TargetSwitches^.SetCurrSelParam('go32v2');
-  {$endif}
-  {$ifdef linux}
-       TargetSwitches^.SetCurrSelParam('linux');
-  {$endif}
-  {$ifdef freebsd}
-       TargetSwitches^.SetCurrSelParam('freebsd');
-  {$endif}
-  {$ifdef os2}
-       TargetSwitches^.SetCurrSelParam('os2');
-  {$endif}
-  {$ifdef win32}
-       TargetSwitches^.SetCurrSelParam('win32');
-  {$endif}
-  {$ifdef netwlibc}
-       TargetSwitches^.SetCurrSelParam('netwlibc');
-  {$else}
-    {$ifdef netware}
-       TargetSwitches^.SetCurrSelParam('netware');
-    {$endif}
-  {$endif}
-  {$ifdef netbsd}
-       TargetSwitches^.SetCurrSelParam('netbsd');
-  {$endif}
-  {$ifdef openbsd}
-       TargetSwitches^.SetCurrSelParam('openbsd');
-  {$endif}
-{$endif i386}
-{$ifdef m68k}
-  {$ifdef linux}
-       TargetSwitches^.SetCurrSelParam('linux');
-  {$endif linux}
-{$endif m68k}
-{$ifdef powerpc}
-  {$ifdef linux}
-       TargetSwitches^.SetCurrSelParam('linux');
-  {$endif linux}
-  {$ifdef Darwin}
-       TargetSwitches^.SetCurrSelParam('darwin');
-  {$endif}
-{$endif powerpc}
+       TargetSwitches^.SetCurrSelParam(target_info.shortname);
     end;
   SwitchesMode:=OldSwitchesMode;
 end;
@@ -1282,7 +1212,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2004-11-20 10:10:32  florian
+  Revision 1.21  2004-12-22 15:24:07  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.20  2004/11/20 10:10:32  florian
     * renamed Delphi 2 extensions on to Object pascal support
 
   Revision 1.19  2004/11/14 21:45:29  florian

@@ -59,14 +59,16 @@ const ClipboardWindow  : PClipboardWindow = nil;
       PrevMainFile     : string = '';
       EXEFile          : string = '';
       CompilationPhase : TCompPhase = cpNothing;
+{$ifndef NODEBUG}
       GDBWindow        : PGDBWindow = nil;
       DisassemblyWindow : PDisassemblyWindow = nil;
       BreakpointsWindow : PBreakpointsWindow = nil;
       WatchesWindow    : PWatchesWindow = nil;
-      UserScreenWindow : PScreenWindow = nil;
       StackWindow      : PStackWindow = nil;
       RegistersWindow  : PRegistersWindow = nil;
       FPUWindow        : PFPUWindow = nil;
+{$endif NODEBUG}
+      UserScreenWindow : PScreenWindow = nil;
 
       HeapView         : PFPHeapView = nil;
       ClockView        : PFPClockView = nil;
@@ -125,7 +127,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.9  2004-11-08 20:28:28  peter
+  Revision 1.10  2004-12-22 15:24:07  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.9  2004/11/08 20:28:28  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

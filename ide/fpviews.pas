@@ -129,8 +129,10 @@ type
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
       CompileStamp : longint;
       CodeCompleteTip: PFPToolTip;
+{$ifndef NODEBUG}
     private
       ShouldHandleBreakpoints : boolean;
+{$endif NODEBUG}
     public
       { Syntax highlight }
       function  IsReservedWord(const S: string): boolean; virtual;
@@ -187,6 +189,7 @@ type
       destructor  Done; virtual;
     end;
 
+{$ifndef NODEBUG}
     PGDBSourceEditor = ^TGDBSourceEditor;
     TGDBSourceEditor = object(TSourceEditor)
       function   InsertNewLine : Sw_integer;virtual;
@@ -265,6 +268,7 @@ type
       function    GetPalette: PPalette;virtual;
       destructor  Done; virtual;
     end;
+{$endif NODEBUG}
 
     PClipboardWindow = ^TClipboardWindow;
     TClipboardWindow = object(TSourceWindow)
@@ -434,7 +438,9 @@ function FirstEditorWindow: PSourceWindow;
 function EditorWindowFile(const Name : String): PSourceWindow;
 procedure AskToReloadAllModifiedFiles;
 
+{$ifndef NODEBUG}
 function InDisassemblyWindow :boolean;
+{$endif NODEBUG}
 
 function  NewTabItem(AView: PView; ANext: PTabItem): PTabItem;
 procedure DisposeTabItem(P: PTabItem);
@@ -558,18 +564,6 @@ const
      Store:   @TFPDesktop.Store
   );
 
-  RGDBSourceEditor: TStreamRec = (
-     ObjType: 1507;
-     VmtLink: Ofs(TypeOf(TGDBSourceEditor)^);
-     Load:    @TGDBSourceEditor.Load;
-     Store:   @TGDBSourceEditor.Store
-  );
-  RGDBWindow: TStreamRec = (
-     ObjType: 1508;
-     VmtLink: Ofs(TypeOf(TGDBWindow)^);
-     Load:    @TGDBWindow.Load;
-     Store:   @TGDBWindow.Store
-  );
   RFPASCIIChart: TStreamRec = (
      ObjType: 1509;
      VmtLink: Ofs(TypeOf(TFPASCIIChart)^);
@@ -581,6 +575,19 @@ const
      VmtLink: Ofs(TypeOf(TFPDlgWindow)^);
      Load:    @TFPDlgWindow.Load;
      Store:   @TFPDlgWindow.Store
+  );
+{$ifndef NODEBUG}
+  RGDBWindow: TStreamRec = (
+     ObjType: 1508;
+     VmtLink: Ofs(TypeOf(TGDBWindow)^);
+     Load:    @TGDBWindow.Load;
+     Store:   @TGDBWindow.Store
+  );
+  RGDBSourceEditor: TStreamRec = (
+     ObjType: 1507;
+     VmtLink: Ofs(TypeOf(TGDBSourceEditor)^);
+     Load:    @TGDBSourceEditor.Load;
+     Store:   @TGDBSourceEditor.Store
   );
   RDisassemblyEditor: TStreamRec = (
      ObjType: 1512;
@@ -594,6 +601,7 @@ const
      Load:    @TDisassemblyWindow.Load;
      Store:   @TDisassemblyWindow.Store
   );
+{$endif NODEBUG}
 const
   GlobalNoNameCount : integer = 0;
 var
@@ -717,6 +725,8 @@ begin
   EditorWindowFile:=pointer(Desktop^.FirstThat(@EditorWindow));
 end;
 
+
+{$ifndef NODEBUG}
 function InDisassemblyWindow :boolean;
 var
   PW : PWindow;
@@ -734,6 +744,8 @@ begin
   InDisassemblyWindow:=Assigned(PW) and
     (TypeOf(PW^)=TypeOf(TDisassemblyWindow));
 end;
+{$endif NODEBUG}
+
 
 function GetEditorCurWord(Editor: PEditor; ValidSpecChars: TCharSet): string;
 var S: string;
@@ -1445,16 +1457,23 @@ end;
 procedure TSourceEditor.DeleteLine(I: sw_integer);
 begin
   inherited DeleteLine(I);
+{$ifndef NODEBUG}
   If ShouldHandleBreakpoints then
     BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
+{$endif NODEBUG}
 end;
 
 procedure TSourceEditor.BackSpace;
+{$ifndef NODEBUG}
 var
   MoveBreakpointToPreviousLine,WasEnabled : boolean;
   PBStart,PBEnd : PBreakpoint;
   I : longint;
+{$endif NODEBUG}
 begin
+{$ifdef NODEBUG}
+  inherited Backspace;
+{$else}
   MoveBreakpointToPreviousLine:=(CurPos.X=0) and (CurPos.Y>0);
   If MoveBreakpointToPreviousLine then
     begin
@@ -1493,13 +1512,19 @@ begin
         end;
       BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
     end;
+{$endif NODEBUG}
 end;
 
 function TSourceEditor.InsertNewLine : Sw_integer;
+{$ifndef NODEBUG}
 var
   MoveBreakpointToNextLine : boolean;
   I : longint;
+{$endif NODEBUG}
 begin
+{$ifdef NODEBUG}
+  InsertNewLine:=inherited InsertNewLine;
+{$else}
   ShouldHandleBreakpoints:=false;
   MoveBreakpointToNextLine:=Cursor.x<Length(RTrim(GetDisplayText(CurPos.Y)));
   I:=CurPos.Y+1;
@@ -1509,19 +1534,23 @@ begin
   else
     BreakpointsCollection^.AdaptBreakpoints(@Self,I,1);
   ShouldHandleBreakpoints:=true;
+{$endif NODEBUG}
 end;
 
 procedure TSourceEditor.DelChar;
 var
   S: string;
   I,CI : sw_integer;
+{$ifndef NODEBUG}
   PBStart,PBEnd : PBreakpoint;
   MoveBreakpointOneLineUp,WasEnabled : boolean;
+{$endif NODEBUG}
 begin
   if IsReadOnly then Exit;
   S:=GetLineText(CurPos.Y);
   I:=CurPos.Y+1;
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+{$ifndef NODEBUG}
   if ((CI>length(S)) or (S='')) and (CurPos.Y<GetLineCount-1) then
     begin
       MoveBreakpointOneLineUp:=true;
@@ -1531,7 +1560,9 @@ begin
     end
   else
     MoveBreakpointOneLineUp:=false;
+{$endif NODEBUG}
   Inherited DelChar;
+{$ifndef NODEBUG}
   if MoveBreakpointOneLineUp then
     begin
       ShouldHandleBreakpoints:=true;
@@ -1561,20 +1592,25 @@ begin
         end;
       BreakpointsCollection^.AdaptBreakpoints(@Self,I,-1);
     end;
+{$endif NODEBUG}
 end;
 
 procedure TSourceEditor.DelSelect;
+{$ifndef NODEBUG}
 var
   MoveBreakpointToFirstLine,WasEnabled : boolean;
   PBStart,PBEnd : PBreakpoint;
   I,J : longint;
+{$endif NODEBUG}
 begin
+{$ifdef NODEBUG}
+  inherited DelSelect;
+{$else}
   ShouldHandleBreakpoints:=false;
   J:=SelEnd.Y-SelStart.Y;
   MoveBreakpointToFirstLine:=J>0;
   PBEnd:=BreakpointsCollection^.FindBreakpointAt(@Self,SelEnd.Y);
   PBStart:=BreakpointsCollection^.FindBreakpointAt(@Self,SelEnd.Y);
-
   I:=SelStart.Y;
   inherited DelSelect;
   if MoveBreakpointToFirstLine and assigned(PBEnd) then
@@ -1603,20 +1639,25 @@ begin
     end;
   BreakpointsCollection^.AdaptBreakpoints(@Self,I,-J);
   ShouldHandleBreakpoints:=true;
+{$endif NODEBUG}
 end;
 
 
 function TSourceEditor.InsertLine(LineNo: sw_integer; const S: string): PCustomLine;
 begin
   InsertLine := inherited InsertLine(LineNo,S);
+{$ifndef NODEBUG}
   If ShouldHandleBreakpoints then
     BreakpointsCollection^.AdaptBreakpoints(@Self,LineNo,1);
+{$endif NODEBUG}
 end;
 
 procedure TSourceEditor.AddLine(const S: string);
 begin
   inherited AddLine(S);
+{$ifndef NODEBUG}
   BreakpointsCollection^.AdaptBreakpoints(@Self,GetLineCount,1);
+{$endif NODEBUG}
 end;
 
 
@@ -2040,8 +2081,10 @@ begin
         end;
    end;
   Insert(Editor);
+{$ifndef NODEBUG}
   If assigned(BreakpointsCollection) then
     BreakpointsCollection^.ShowBreakpoints(@Self);
+{$endif NODEBUG}
   UpdateTitle;
 end;
 
@@ -2146,8 +2189,10 @@ begin
   inherited Load(S);
   GetSubViewPtr(S,Indicator);
   GetSubViewPtr(S,Editor);
+{$ifndef NODEBUG}
   If assigned(BreakpointsCollection) then
     BreakpointsCollection^.ShowBreakpoints(@Self);
+{$endif NODEBUG}
   PopStatus;
 end;
 
@@ -2179,6 +2224,9 @@ begin
     Message(Application,evBroadcast,cmUpdate,@Self);}
   PopStatus;
 end;
+
+
+{$ifndef NODEBUG}
 
 function TGDBSourceEditor.Valid(Command: Word): Boolean;
 var OK: boolean;
@@ -2723,6 +2771,7 @@ begin
     DisassemblyWindow:=nil;
   inherited Done;
 end;
+{$endif NODEBUG}
 
 
 
@@ -4429,17 +4478,23 @@ begin
   RegisterType(RClipboardWindow);
   RegisterType(RMessageListBox);
   RegisterType(RFPDesktop);
-  RegisterType(RGDBSourceEditor);
-  RegisterType(RGDBWindow);
   RegisterType(RFPASCIIChart);
   RegisterType(RFPDlgWindow);
+{$ifndef NODEBUG}
+  RegisterType(RGDBWindow);
+  RegisterType(RGDBSourceEditor);
+{$endif NODEBUG}
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.52  2004-12-19 13:55:42  florian
+  Revision 1.53  2004-12-22 15:24:07  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.52  2004/12/19 13:55:42  florian
     * x86_64 compilation fixed
 
   Revision 1.51  2004/11/20 14:21:19  florian

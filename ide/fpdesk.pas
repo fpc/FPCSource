@@ -350,6 +350,7 @@ begin
        end;
      hcCompilerMessagesWindow:
        W:=CompilerMessageWindow;
+{$ifndef NODEBUG}
      hcGDBWindow:
        begin
          InitGDBWindow;
@@ -405,6 +406,7 @@ begin
            end;
          W:=BreakpointsWindow;
        end;
+{$endif NODEBUG}
      hcASCIITableWindow:
        begin
          if ASCIIChart=nil then
@@ -944,7 +946,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2004-11-11 15:20:52  florian
+  Revision 1.12  2004-12-22 15:24:07  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.11  2004/11/11 15:20:52  florian
     * applied Peter's patch from yesterday
 
   Revision 1.10  2004/11/08 20:28:26  peter

@@ -14,6 +14,11 @@
 
  **********************************************************************}
 unit FPRegs;
+{$ifdef NODEBUG}
+interface
+implementation
+end.
+{$else}
 
 interface
 
@@ -1066,10 +1071,15 @@ begin
 end;
 
 end.
+{$endif}
 
 {
   $Log$
-  Revision 1.4  2004-11-11 15:20:52  florian
+  Revision 1.5  2004-12-22 15:24:07  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.4  2004/11/11 15:20:52  florian
     * applied Peter's patch from yesterday
 
   Revision 1.3  2004/02/06 21:34:43  jonas

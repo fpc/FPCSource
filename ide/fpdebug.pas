@@ -14,6 +14,12 @@
 
  **********************************************************************}
 unit FPDebug;
+{$ifdef NODEBUG}
+interface
+implementation
+end.
+{$else}
+
 interface
 
 {$i globdir.inc}
@@ -3655,10 +3661,15 @@ begin
 end;
 
 end.
+{$endif}
 
 {
   $Log$
-  Revision 1.58  2004-12-19 18:39:50  florian
+  Revision 1.59  2004-12-22 15:24:06  peter
+    * fixed NODEBUG
+    * set default target to the default target of the compiler
+
+  Revision 1.58  2004/12/19 18:39:50  florian
     * made 64 bit safe
 
   Revision 1.57  2004/12/06 20:39:25  peter
