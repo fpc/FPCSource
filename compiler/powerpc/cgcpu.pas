@@ -146,7 +146,7 @@ const
                         A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
   TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
-                       C_LT,C_GE,C_LE,C_NE,C_LE,C_NG,C_GE,C_NL);
+                       C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
 
   implementation
 
@@ -1719,7 +1719,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2002-09-08 13:03:26  jonas
+  Revision 1.56  2002-09-08 20:11:56  jonas
+    * fixed TOpCmp2AsmCond array (some unsigned equivalents were wrong)
+
+  Revision 1.55  2002/09/08 13:03:26  jonas
     * several large offset-related fixes
 
   Revision 1.54  2002/09/07 17:54:58  florian
