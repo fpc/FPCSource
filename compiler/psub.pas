@@ -1590,6 +1590,7 @@ begin
          begin
             procinfo^.aktproccode^.concat(new(pai_section,init(sec_data)));
             procinfo^.aktproccode^.concatlist(procinfo^.aktlocaldata);
+            procinfo^.aktproccode^.concat(new(pai_section,init(sec_code)));
          end;
        { now we can insert a cut }
        if (cs_create_smart in aktmoduleswitches) then
@@ -1969,7 +1970,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2000-02-04 20:00:22  florian
+  Revision 1.47  2000-02-08 13:55:13  peter
+    * reset section back to code after localdata
+
+  Revision 1.46  2000/02/04 20:00:22  florian
     * an exception in a construcor calls now the destructor (this applies only
       to classes)
 
