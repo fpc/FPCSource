@@ -100,6 +100,12 @@ implementation
        {$endif}
        ;
 
+
+    const
+      { Maximum number of loops when spilling registers }
+      maxspillingcounter = 20;
+
+
 {****************************************************************************
                       PROCEDURE/FUNCTION BODY PARSING
 ****************************************************************************}
@@ -576,7 +582,7 @@ implementation
         usesacc,
         usesfpu,
         usesacchi      : boolean;
-
+        spillingcounter : integer;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -682,11 +688,19 @@ implementation
         if not(cs_no_regalloc in aktglobalswitches) then
           begin
             {Do register allocation.}
+            spillingcounter:=0;
             repeat
               rg.prepare_colouring;
               rg.colour_registers;
               rg.epilogue_colouring;
-            until (rg.spillednodes='') or not rg.spill_registers(aktproccode,rg.spillednodes);
+              if rg.spillednodes='' then
+                break;
+              if not rg.spill_registers(aktproccode,rg.spillednodes) then
+                break;
+              inc(spillingcounter);
+              if spillingcounter>maxspillingcounter then
+                internalerror(200309041);
+            until false;
             aktproccode.translate_registers(rg.colour);
 (*
 {$ifndef NoOpt}
@@ -1301,7 +1315,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2003-09-03 15:55:01  peter
+  Revision 1.141  2003-09-04 14:46:12  peter
+    * abort with IE when spilling requires > 20 loops
+
+  Revision 1.140  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.139  2003/09/03 11:18:37  florian
