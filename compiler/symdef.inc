@@ -2233,29 +2233,34 @@
 
 
     function tabstractprocdef.demangled_paras : string;
+
       var s : string;
-          p : pdefcoll;
+
+      procedure doconcat(p : pdefcoll);
+
+        begin
+           if assigned(p^.next) then
+             doconcat(p^.next)
+           else
+             s:='(';
+           if assigned(p^.data^.sym) then
+             s:=s+p^.data^.sym^.name
+           else if p^.paratyp=vs_var then
+             s:=s+'var'
+           else if p^.paratyp=vs_const then
+             s:=s+'const';
+           if p<>para1 then
+             s:=s+','
+           else
+             s:=s+')';
+        end;
+
       begin
         s:='';
-        p:=para1;
-        if assigned(p) then
-          begin
-             s:=s+'(';
-             while assigned(p) do
-               begin
-                  if assigned(p^.data^.sym) then
-                    s:=s+p^.data^.sym^.name
-                  else if p^.paratyp=vs_var then
-                    s:=s+'var'
-                  else if p^.paratyp=vs_const then
-                    s:=s+'const';
-                  p:=p^.next;
-                  if assigned(p) then
-                    s:=s+','
-                  else
-                    s:=s+')';
-               end;
-          end;
+        { a recursive solution is the easiest way to inverse the parameter }
+        { collection                                                       }
+        if assigned(para1) then
+          doconcat(para1);
         demangled_paras:=s;
       end;
 
@@ -3489,7 +3494,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.126  1999-06-02 10:11:50  florian
+  Revision 1.127  1999-06-02 10:26:50  florian
+    * corrected order of parameter type for -vb
+
+  Revision 1.126  1999/06/02 10:11:50  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
