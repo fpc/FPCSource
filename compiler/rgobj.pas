@@ -667,6 +667,8 @@ implementation
        else
 {$ifndef ALLOWDUPREG}
          internalerror(200301103)
+{$else ALLOWDUPREG}
+          list.concat(Tai_regalloc.alloc(r));
 {$endif ALLOWDUPREG}
          ;
     end;
@@ -693,6 +695,8 @@ implementation
        else
 {$ifndef ALLOWDUPREG}
          internalerror(200305061)
+{$else ALLOWDUPREG}
+          list.concat(Tai_regalloc.alloc(reg));
 {$endif ALLOWDUPREG}
          ;
     end;
@@ -714,7 +718,11 @@ implementation
               end;
          end
        else
+{$ifndef ALLOWDUPREG}
          internalerror(200305061);
+{$else ALLOWDUPREG}
+          list.concat(Tai_regalloc.dealloc(reg));
+{$endif ALLOWDUPREG}
     end;
 
 
@@ -1796,7 +1804,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-10-21 15:15:36  peter
+  Revision 1.92  2003-10-29 21:29:14  jonas
+    * some ALLOWDUPREG improvements
+
+  Revision 1.91  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.90  2003/10/19 12:36:36  florian
