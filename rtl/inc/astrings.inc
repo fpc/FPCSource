@@ -249,8 +249,13 @@ end;
 { old style helper }
 {$ifndef hascompilerproc}
 Procedure fpc_ShortStr_To_AnsiStr (Var S1 : Pointer; Const S2 : ShortString);[Public, alias: 'FPC_SHORTSTR_TO_ANSISTR'];
+Var
+  Size : SizeInt;
 begin
-  s1 := pointer(fpc_ShortStr_To_AnsiStr(s2));
+  Size:=Length(S2);
+  Setlength (ansistring(s1),Size);
+  if Size>0 then
+    Move(S2[1],s1^,Size);
 end;
 {$endif hascompilerproc}
 
@@ -864,7 +869,10 @@ end;
 
 {
   $Log$
-  Revision 1.48  2004-10-24 20:01:41  peter
+  Revision 1.49  2004-10-31 16:21:30  peter
+    * fix shortstr_to_ansistring for 1.0.x
+
+  Revision 1.48  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.47  2004/07/12 17:58:19  peter
