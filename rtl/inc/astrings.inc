@@ -297,7 +297,8 @@ begin
          inc(i);
        end;
       Pointer(a):=NewAnsistring(i);
-      Move (P[0],Pointer(A)^,i)
+      SetLength(A,i);
+      Move (P[0],Pointer(A)^,i);
     end;
 end;
 
@@ -665,7 +666,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-08-24 07:37:21  jonas
+  Revision 1.5  2000-08-29 18:39:42  peter
+    * fixed chararray to ansistring (merged)
+
+  Revision 1.4  2000/08/24 07:37:21  jonas
     * fixed bug in setlength (it sometimes read after the end of the heap)
       and small improvement to ansistring_to_chararray conversion (merged
       from fixes branch)
@@ -675,5 +679,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
- 
+
 }
