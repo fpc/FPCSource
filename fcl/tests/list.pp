@@ -1,6 +1,6 @@
 Program TestList;
 
-Uses classes;
+Uses classes,legacymem;
 
 const a1 : pchar = '0';
       a2 : pchar = '1';
@@ -27,7 +27,7 @@ end;
 Procedure DumpMem;
 
 begin
-  Writeln ('    Memavail : ',memavail,' (=',StartMem-Memavail,' Bytes lost).')
+  Writeln ('    usedbytes : ',getusedbytes,' (=',getusedbytes-StartMem,' Bytes lost).')
 end;
 
 Procedure DumpList;
@@ -46,7 +46,7 @@ end;
 
 
 begin
-  StartMem:=Memavail;
+  StartMem:=getusedbytes;
   Writeln ('Creating List');
   List:=TList.Create;
   DumpList;
@@ -97,7 +97,10 @@ begin
   List.Free;
   DumpMem;
 end.  $Log$
-end.  Revision 1.4  2005-02-14 17:13:18  peter
+end.  Revision 1.5  2005-03-16 13:30:17  marco
+end.   * fixed with legacymem (I hope)
+end.
+end.  Revision 1.4  2005/02/14 17:13:18  peter
 end.    * truncate log
 end.
 }
