@@ -258,6 +258,10 @@ implementation
 
 uses Mouse,
      Resource,
+{$ifdef WinClipSupported}
+     WinClip,
+     FpConst,
+{$endif WinClipSupported}
 {$ifdef FVISION}
      FVConsts,
 {$else}
@@ -297,6 +301,9 @@ const
 const
   MessageDialog  : PCenterDialog = nil;
   UserButtonCmd  : array[Low(UserButtonName)..High(UserButtonName)] of word = (cmUserBtn1,cmUserBtn2,cmUserBtn3,cmUserBtn4);
+{$ifdef WinClipSupported}
+  FromWinClipCmds    : TCommandSet = ([cmPasteWin]);
+{$endif WinClipSupported}
 
 function ColorIndex(Color: byte): word;
 begin
@@ -328,6 +335,10 @@ var
   Ch: Char;
   Result: Word;
   ItemShown, P: PMenuItem;
+{$ifdef WinClipSupported}
+  PPW: PMenuItem;
+  WinClipEmpty: boolean;
+{$endif WinClipSupported}
   Target: PMenuView;
   R: TRect;
   E: TEvent;
@@ -426,6 +437,14 @@ begin
   AutoSelect := False; E.What:=evNothing;
   Result := 0;
   ItemShown := nil;
+{$ifdef WinClipSupported}
+  PPW:=SearchMenuItem(Menu,cmPasteWin);
+  if Assigned(PPW) then
+    begin
+      WinClipEmpty:=GetTextWinClipboardSize=0;
+      SetCmdState(FromWinClipCmds,Not WinClipEmpty);
+    end;
+{$endif WinClipSupported}
   Current := Menu^.Default;
   MouseActive := False;
   if UpdateMenu(Menu) then
@@ -435,6 +454,23 @@ begin
        TrackKey(true);
   repeat
     Action := DoNothing;
+{$ifdef WinClipSupported}
+    If Assigned(PPW) then
+      begin
+        If WinClipEmpty and (GetTextWinClipboardSize>0) then
+          begin
+            WinClipEmpty:=false;
+            SetCmdState(FromWinClipCmds,true);
+            DrawView;
+          end
+        else if Not WinClipEmpty and (GetTextWinClipboardSize=0) then
+          begin
+            WinClipEmpty:=true;
+            SetCmdState(FromWinClipCmds,false);
+            DrawView;
+          end;
+      end;
+{$endif WinClipSupported}
     GetEvent(E);
     case E.What of
       evMouseDown:
@@ -2496,7 +2532,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2002-09-09 07:06:53  pierre
+  Revision 1.7  2004-02-10 07:16:28  pierre
+  * fix webbug 2932
+
+  Revision 1.6  2002/09/09 07:06:53  pierre
    * avoid a int64 warning
 
   Revision 1.5  2002/09/07 15:40:50  peter

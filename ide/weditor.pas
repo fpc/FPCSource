@@ -731,7 +731,6 @@ const
 
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
-     FromWinClipCmds    : TCommandSet = ([cmPasteWin]);
      NulClipCmds        : TCommandSet = ([cmClear]);
      UndoCmd            : TCommandSet = ([cmUndo]);
      RedoCmd            : TCommandSet = ([cmRedo]);
@@ -6679,9 +6678,6 @@ begin
       CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
            (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
       SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
-{$ifdef WinClipSupported}
-      SetCmdState(FromWinClipCmds,GetTextWinClipboardSize>0);
-{$endif WinClipSupported}
       SetCmdState(UndoCmd,(GetUndoActionCount>0));
       SetCmdState(RedoCmd,(GetRedoActionCount>0));
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
@@ -7277,7 +7273,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.42  2003-01-31 12:04:50  pierre
+  Revision 1.43  2004-02-10 07:16:28  pierre
+  * fix webbug 2932
+
+  Revision 1.42  2003/01/31 12:04:50  pierre
    * try to fix the selection extension better
 
   Revision 1.41  2003/01/29 00:29:14  pierre
