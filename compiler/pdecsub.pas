@@ -829,6 +829,7 @@ implementation
         isclassmethod : boolean;
       begin
         pd:=nil;
+        isclassmethod:=false;
         { read class method }
         if try_to_consume(_CLASS) then
          begin
@@ -836,10 +837,11 @@ implementation
            if not(token in [_FUNCTION,_PROCEDURE]) then
              Message(parser_e_procedure_or_function_expected);
 
-           isclassmethod:=true;
-         end
-        else
-         isclassmethod:=false;
+           if is_interface(aclass) then
+             Message(parser_e_no_static_method_in_interfaces)
+           else
+             isclassmethod:=true;
+         end;
         case token of
           _FUNCTION :
             begin
@@ -2346,7 +2348,10 @@ const
 end.
 {
   $Log$
-  Revision 1.220  2004-12-15 19:30:32  peter
+  Revision 1.221  2004-12-26 20:12:23  peter
+    * don't allow class methods in interfaces
+
+  Revision 1.220  2004/12/15 19:30:32  peter
     * syscall with sysv abi for morphos
 
   Revision 1.219  2004/12/15 16:00:16  peter

@@ -990,6 +990,9 @@ parser_w_implicit_uses_of_variants_unit=03211_W_Implicit uses of Variants unit
 % The Variant type is used in the unit without any used unit using the Variants unit. The
 % compiler has implicitly added the Variants unit to the uses list. To remove this warning
 % the Variants unit needs to be added to the uses statement.
+parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't be used in INTERFACES
+% The specifier \var{class} and directive \var{static} can't be used in interfaces
+% because all methods of an interfaces must be public.
 % \end{description}
 #
 # Type Checking
