@@ -1338,7 +1338,14 @@ implementation
                    begin
                      right:=caddnode.create(muln,right,
                        cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
-                   end;
+                   end
+                 else
+                   if is_zero_based_array(ld) and
+                      (tarraydef(ld).elementtype.def.size>1) then
+                     begin
+                       right:=caddnode.create(muln,right,
+                         cordconstnode.create(tarraydef(ld).elementtype.def.size,sinttype,true));
+                     end;
                end
              else
                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -2130,7 +2137,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2005-01-26 16:23:28  peter
+  Revision 1.138  2005-01-31 16:15:04  peter
+    * zero based array with elementsize>1 fix
+
+  Revision 1.137  2005/01/26 16:23:28  peter
     * detect arithmetic overflows for constants at compile time
     * use try..except instead of setjmp
 
