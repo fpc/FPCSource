@@ -50,12 +50,12 @@ type
     function  CalcKey(Key: string): boolean;
     procedure Clear;
     procedure Draw; virtual;
-    function GetPalette: PPalette; virtual;
+    function  GetPalette: PPalette; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
     procedure Store(var S: TStream);
   private
     procedure GetDisplay(var R: extended);
-    procedure SetDisplay(R: extended);
+    procedure SetDisplay(R: extended;ShouldKeepZeroes : boolean);
     procedure Error;
   end;
 
@@ -66,6 +66,8 @@ type
     procedure   HandleEvent(var Event: TEvent); virtual;
     procedure   Show; virtual;
     procedure   Close; virtual;
+    constructor Load(var S: TStream);
+    procedure   Store(var S: TStream);
   end;
 
 {$ifndef NOOBJREG}
@@ -156,14 +158,26 @@ begin
   R:=DispNumber;
 end;
 
-procedure TCalcDisplay.SetDisplay(R: extended);
+procedure TCalcDisplay.SetDisplay(R: extended;ShouldKeepZeroes : boolean);
 var
   S: string[MaxDigits];
+  i,KeepZeroes : byte;
 begin
   DispNumber:=R;
+  KeepZeroes:=0;
+  if ShouldKeepZeroes and (pos('.',Number)>0) then
+    for i:=length(Number) downto pos('.',Number)+1 do
+      if Number[i]='0' then
+        inc(KeepZeroes)
+      else
+        break;
+
   Str(R: 0: MaxDecimals, S);
   if Pos('.',S)<>0 then
      while (length(S)>1) and (S[length(S)]='0') do Dec(S[0]);
+  if KeepZeroes>0 then
+    for i:=1 to KeepZeroes do
+      S:=S+'0';
   if S[1] <> '-' then Sign := ' ' else
   begin
     Delete(S, 1, 1);
@@ -193,9 +207,7 @@ begin
   if Status = csFirst then
   begin
     Status := csValid;
-{    Number := '0';
-    Sign := ' ';}
-    SetDisplay(0);
+    SetDisplay(0,false);
   end;
 end;
 begin
@@ -209,14 +221,15 @@ begin
         begin
 {          Status := csValid;}
           GetDisplay(R);
-          if Key='1/X' then begin if R=0 then Error else SetDisplay(1/R) end else
-          if Key='SQR' then begin if R<0 then Error else SetDisplay(sqrt(R)) end else
-          if Key='X^2' then SetDisplay(R*R) else
+          if Key='1/X' then begin if R=0 then Error else SetDisplay(1/R,false) end else
+          if Key='SQR' then begin if R<0 then Error else SetDisplay(sqrt(R),false) end else
+          if Key='LOG' then begin if R<=0 then Error else SetDisplay(ln(R),false) end else
+          if Key='X^2' then SetDisplay(R*R,false) else
           if Key='M+' then Memory:=Memory+R else
           if Key='M-' then Memory:=Memory-R else
-          if Key='M'#26 then SetDisplay(Memory) else
+          if Key='M'#26 then SetDisplay(Memory,false) else
           if Key='M'#27 then Memory:=R else
-          if Key='M'#29 then begin D:=Memory; Memory:=R; SetDisplay(D); end;
+          if Key='M'#29 then begin D:=Memory; Memory:=R; SetDisplay(D,false); end;
         end;
      end
   else
@@ -227,7 +240,7 @@ begin
         CheckFirst;
         if Number = '0' then Number := '';
         Number := Number + Key;
-        SetDisplay(StrToExtended(Number)); { !!! }
+        SetDisplay(StrToExtended(Number),true);
       end;
     '.':
       begin
@@ -238,7 +251,7 @@ begin
       begin
         CheckFirst;
         if Length(Number) = 1 then Number := '0' else Dec(Number[0]);
-        SetDisplay(StrToExtended(Number)); { !!! }
+        SetDisplay(StrToExtended(Number),true); { !!! }
       end;
     '_', #241:
       if Sign = ' ' then Sign := '-' else Sign := ' ';
@@ -254,11 +267,11 @@ begin
               '*', '/': R := R / 100;
             end;
           case _Operator of
-            '^': SetDisplay(Power(Operand,R));
-            '+': SetDisplay(Operand + R);
-            '-': SetDisplay(Operand - R);
-            '*': SetDisplay(Operand * R);
-            '/': if R = 0 then Error else SetDisplay(Operand / R);
+            '^': SetDisplay(Power(Operand,R),false);
+            '+': SetDisplay(Operand + R,false);
+            '-': SetDisplay(Operand - R,false);
+            '*': SetDisplay(Operand * R,false);
+            '/': if R = 0 then Error else SetDisplay(Operand / R,false);
           end;
         end;
         _Operator := Key[1];
@@ -400,7 +413,7 @@ begin
          begin
            CD^.GetDisplay(R);
            if R<>0 then begin
-                          CD^.SetDisplay(0);
+                          CD^.SetDisplay(0,false);
                           CD^.DrawView;
                         end
                    else Close;
@@ -408,9 +421,10 @@ begin
          end;
      end;
   end;
-  inherited HandleEvent(Event);
+  { lets CD try to handle this }
   if Event.What=evKeyDown then
      Message(CD,Event.What,Event.KeyCode,Event.InfoPtr);
+  inherited HandleEvent(Event);
 end;
 
 procedure TCalculator.Show;
@@ -424,6 +438,20 @@ begin
   Hide;
 end;
 
+constructor TCalculator.Load(var S: TStream);
+begin
+  inherited Load(S);
+  GetSubViewPtr(S,CD);
+end;
+
+procedure TCalculator.Store(var S: TStream);
+begin
+  inherited Store(S);
+  PutSubViewPtr(S,CD);
+end;                                                                                                                                                                                                                                                           
+
+                                                                                                                                                                                                                                                               
+
 procedure RegisterFPCalc;
 begin
 {$ifndef NOOBJREG}
@@ -436,7 +464,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-06-28 19:25:35  peter
+  Revision 1.6  1999-09-07 09:20:52  pierre
+    * traling zero after . could not be inserted
+    * load/store was missing => CD not set on loading.
+    * log function was not implemented : ln is used,
+      should it rather be decimal logarithm ?
+
+  Revision 1.5  1999/06/28 19:25:35  peter
     * fixes from gabor
 
   Revision 1.4  1999/04/07 21:55:41  peter
