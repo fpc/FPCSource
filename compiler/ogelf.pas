@@ -706,6 +706,18 @@ interface
         inc(nsects);
         strtabsect^.secshidx:=nsects;
         inc(nsects);
+      { For the stab section we need an HdrSym which can now be
+        calculated more easily }
+        if assigned(sects[sec_stab]) then
+         begin
+           hstab.strpos:=1;
+           hstab.ntype:=0;
+           hstab.nother:=0;
+           hstab.ndesc:=(sects[sec_stab]^.datasize div sizeof(telf32stab))-1{+1 according to gas output PM};
+           hstab.nvalue:=sects[sec_stabstr]^.datasize;
+           sects[sec_stab]^.data^.seek(0);
+           sects[sec_stab]^.data^.write(hstab,sizeof(hstab));
+         end;
       { Create the relocation sections }
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) and
@@ -766,18 +778,6 @@ interface
          if assigned(sects[sec]) and
             assigned(sects[sec]^.data) then
           begin
-            { For the stab section we need an HdrSym which can now be
-                calculated more easily }
-            if sec=sec_stab then
-             begin
-               hstab.strpos:=1;
-               hstab.ntype:=0;
-               hstab.nother:=0;
-               hstab.ndesc:=(sects[sec_stab]^.datasize div sizeof(telf32stab))-1{+1 according to gas output PM};
-               hstab.nvalue:=sects[sec_stabstr]^.datasize;
-               sects[sec_stab]^.data^.seek(0);
-               sects[sec_stab]^.data^.write(hstab,sizeof(hstab));
-             end;
             sects[sec]^.alignsection;
             hp:=sects[sec]^.data^.firstblock;
             while assigned(hp) do
@@ -841,7 +841,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2000-11-12 22:20:37  peter
+  Revision 1.2  2000-11-12 22:45:14  peter
+    * moved setting of stab hdrsym
+
+  Revision 1.1  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
 }
