@@ -205,6 +205,9 @@ implementation
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin
+                currpi:=currpi.parent;
+                if not assigned(currpi) then
+                  internalerror(200311201);
                 hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
                 if not assigned(hsym) then
                   internalerror(200309282);
@@ -212,7 +215,6 @@ implementation
                   internalerror(200309283);
                 reference_reset_base(href,location.register,hsym.localloc.reference.offset);
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
-                currpi:=currpi.parent;
               end;
           end;
       end;
@@ -876,7 +878,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-11-04 15:35:13  peter
+  Revision 1.81  2003-11-23 17:03:35  peter
+    * fixed parentfp loading, it was using the offset of the current
+      nested proc instead of the parent
+
+  Revision 1.80  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.79  2003/10/10 17:48:13  peter
