@@ -12,7 +12,7 @@ Compiler:
   + .so creation for linux works also with classes
   + Library writing works better, also linux library support
   + better FPU code generation
-  + only one PPU is used per unit also when static,shared and smart linked
+  + only one PPU is used per unit also when static, shared and smart linked
   + assembler understands KNI instructions
   + fail in class constructors works
   + resourcestrings support
@@ -33,15 +33,15 @@ Compiler:
   * lot of other fixes
 
 RTL:
-  + New graph unit for go32v2,win32,linux
+  + New graph unit for GO32v2, Win32, Linux
   + Delphi style GetMem/Freemem/ReAllocMem which knows the size of
     the allocated block itself. Specifying wrong size for freemem gives
     now also a Runtime Error
-  + ports unit for go32v2, which contains the port[] support. It's now
-    compatible with linux ports unit
+  + ports unit for both GO32v2 and OS/2, which contains the port[] support.
+    It's now compatible with Linux ports unit
   + timezone support for linux
-  + primitive routines Compare[Byte,Word,Dword],Index[Byte,Word,Dword]
-  * better ioresult setting for go32v2
+  + primitive routines Compare[Byte,Word,Dword], Index[Byte,Word,Dword]
+  * better ioresult setting for GO32v2
   * some pchar fixes in sysutils unit
   * lot of RTTI fixes for typinfo
   * ansistrings speedups
@@ -49,14 +49,14 @@ RTL:
 
 Utils:
   + fpcmake util to create a Makefile from Makefile.fpc
-  + delp util to delete all created files after compiling (exe,o,ppu)
+  + delp util to delete all created files after compiling (exe, o, ppu)
   + fprcp util for preprocessing win32 resource files
   + data2inc util to convert data into .inc files
-  + binobj for binary to .o/.inc files, also with crypt,compression support
+  + binobj for binary to .o/.inc files, also with crypt, compression support
   + ppufiles show all created files needed by a unit
   + rstconv util to convert .rst files to gettext files
   + plex,pyacc Pascal Lex/Yacc
-  * ppudump,ppufiles updated for new ppu version
+  * ppudump, ppufiles updated for new ppu version
 
 
 ******************************************************************************
