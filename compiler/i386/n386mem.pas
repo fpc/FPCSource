@@ -1002,7 +1002,6 @@ implementation
                       withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
                     end;
 {$endif GDB}
-                  del_reference(left.location.reference);
                 end;
 
                { right can be optimize out !!! }
@@ -1053,7 +1052,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-21 18:16:13  florian
+  Revision 1.3  2000-10-31 14:18:53  jonas
+    * merged double deleting of left location when using a temp in
+      secondwith (merged from fixes branch). This also fixes web bug1194
+
+  Revision 1.2  2000/10/21 18:16:13  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
