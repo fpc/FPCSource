@@ -86,16 +86,21 @@ ifdef INTERACTIVE
 override DOTESTOPT+=-i
 endif
 
+ifdef DOALL
+override DOTESTOPT=-a
+endif
+
+
 #
 # Test run targets
 #
 
 DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/dos test/units/objects
 
-%.log : %.pp
+%.log : %.pp $(DOTEST)
         $(DOTEST) $(DOTESTOPT) $<
 
-%.elg : %.pp
+%.elg : %.pp $(DOTEST)
         $(DOTEST) $(DOTESTOPT) -e $<
 
 #
