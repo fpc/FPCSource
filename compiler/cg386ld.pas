@@ -142,21 +142,27 @@ implementation
                                                        if symtabletype=unitsymtable then
                                                          concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                                                     end;
-                                   objectsymtable : begin
-                                                       if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
-                                                         begin
-                                                            stringdispose(p^.location.reference.symbol);
-                                                            p^.location.reference.symbol:=
-                                                               stringdup(p^.symtableentry^.mangledname);
-                                                            if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
-                                                              concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-                                                         end
-                                                       else
-                                                         begin
-                                                            p^.location.reference.base:=R_ESI;
-                                                            p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                                                         end;
-                                                    end;
+                                   stt_exceptsymtable:
+                                     begin
+                                        p^.location.reference.base:=procinfo.framepointer;
+                                        p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
+                                     end;
+                                   objectsymtable:
+                                     begin
+                                        if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
+                                          begin
+                                             stringdispose(p^.location.reference.symbol);
+                                             p^.location.reference.symbol:=
+                                                stringdup(p^.symtableentry^.mangledname);
+                                             if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
+                                               concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                                          end
+                                        else
+                                          begin
+                                             p^.location.reference.base:=R_ESI;
+                                             p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
+                                          end;
+                                     end;
                                    withsymtable:
                                      begin
                                         hregister:=getregister32;
@@ -559,7 +565,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-07-26 21:58:57  florian
+  Revision 1.7  1998-07-30 13:30:33  florian
+    * final implemenation of exception support, maybe it needs
+      some fixes :)
+
+  Revision 1.6  1998/07/26 21:58:57  florian
    + better support for switch $H
    + index access to ansi strings added
    + assigment of data (records/arrays) containing ansi strings

@@ -224,8 +224,9 @@ implementation
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
              secondgoto,secondsimplenewdispose,secondtryexcept,
-             secondon,secondraise,
-             secondnothing,secondtryfinally,secondis,secondas,seconderror,
+             secondraise,
+             secondnothing,secondtryfinally,secondon,secondis,
+             secondas,seconderror,
              secondfail,secondadd,secondprocinline,
              secondnothing,secondloadvmt);
       var
@@ -506,7 +507,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1998-07-30 11:18:15  florian
+  Revision 1.45  1998-07-30 13:30:34  florian
+    * final implemenation of exception support, maybe it needs
+      some fixes :)
+
+  Revision 1.44  1998/07/30 11:18:15  florian
     + first implementation of try ... except on .. do end;
     * limitiation of 65535 bytes parameters for cdecl removed
 

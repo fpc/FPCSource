@@ -5084,8 +5084,8 @@ unit pass_1;
              firstnothing,first_while_repeat,first_while_repeat,firstfor,
              firstexitn,firstwith,firstcase,firstlabel,
              firstgoto,firstsimplenewdispose,firsttryexcept,
-             firstonn,firstraise,
-             firstnothing,firsttryfinally,firstis,firstas,firstadd,
+             firstraise,firstnothing,firsttryfinally,
+             firstonn,firstis,firstas,firstadd,
              firstnothing,firstadd,firstprocinline,firstnothing,firstloadvmt);
 
       var
@@ -5173,7 +5173,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.47  1998-07-30 11:18:17  florian
+  Revision 1.48  1998-07-30 13:30:35  florian
+    * final implemenation of exception support, maybe it needs
+      some fixes :)
+
+  Revision 1.47  1998/07/30 11:18:17  florian
     + first implementation of try ... except on .. do end;
     * limitiation of 65535 bytes parameters for cdecl removed
 

@@ -619,17 +619,27 @@ do_jmp:
 
       begin
          getlabel(nextonlabel);
+
+         { push the vmt }
+         exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
+           newcsymbol(p^.excepttype^.vmt_mangledname,0))));
+         maybe_concat_external(p^.excepttype^.owner,
+           p^.excepttype^.vmt_mangledname);
+
          emitcall('FPC_CATCHES',true);
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JE,nextonlabel);
          ref.symbol:=nil;
          gettempofsizereference(4,ref);
-         { what a hack ! }
-         pvarsym(p^.exceptsymtable^.root)^.address:=ref.offset;
 
-         emitpushreferenceaddr(exprasmlist,ref);
-         emitcall('FPC_LOADEXCEPTIONPOINTER',true);
+         { what a hack ! }
+         if assigned(p^.exceptsymtable) then
+           pvarsym(p^.exceptsymtable^.root)^.address:=ref.offset;
+
+         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+           R_EAX,newreference(ref))));
+
          if assigned(p^.right) then
            secondpass(p^.right);
          { clear some stuff }
@@ -720,7 +730,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.7  1998-07-30 11:18:13  florian
+  Revision 1.8  1998-07-30 13:30:32  florian
+    * final implemenation of exception support, maybe it needs
+      some fixes :)
+
+  Revision 1.7  1998/07/30 11:18:13  florian
     + first implementation of try ... except on .. do end;
     * limitiation of 65535 bytes parameters for cdecl removed
 

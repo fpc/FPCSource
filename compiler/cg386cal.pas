@@ -810,7 +810,7 @@ implementation
                                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     { insert the vmt }
                                     exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
-                                    newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
+                                      newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
                                     maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                       pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
                                     extended_new:=true;
@@ -2290,7 +2290,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-07-24 22:16:52  florian
+  Revision 1.12  1998-07-30 13:30:31  florian
+    * final implemenation of exception support, maybe it needs
+      some fixes :)
+
+  Revision 1.11  1998/07/24 22:16:52  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 

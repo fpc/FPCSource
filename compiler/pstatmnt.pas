@@ -547,6 +547,7 @@ unit pstatmnt;
                                sym:=new(pvarsym,init(pattern,nil));
                                exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
                                exceptsymtable^.insert(sym);
+                               consume(ID);
                                consume(COLON);
                                getsym(pattern,false);
                                consume(ID);
@@ -568,7 +569,7 @@ unit pstatmnt;
                                sym^.definition:=ot;
                                { insert the exception symtable stack }
                                exceptsymtable^.next:=symtablestack;
-                               symtablestack^.next:=exceptsymtable;
+                               symtablestack:=exceptsymtable;
                             end
                           else
                             begin
@@ -595,7 +596,6 @@ unit pstatmnt;
                      else
                        consume(ID);
                      consume(_DO);
-                     statement;
                      if p_specific=nil then
                        begin
                           last:=gennode(onn,nil,statement);
@@ -1242,7 +1242,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.28  1998-07-30 11:18:18  florian
+  Revision 1.29  1998-07-30 13:30:37  florian
+    * final implemenation of exception support, maybe it needs
+      some fixes :)
+
+  Revision 1.28  1998/07/30 11:18:18  florian
     + first implementation of try ... except on .. do end;
     * limitiation of 65535 bytes parameters for cdecl removed
 
