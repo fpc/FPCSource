@@ -41,14 +41,18 @@ FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 var
  AMode: word;
 begin
-   if (Mode AND stOpenRead) = stOpenRead then
-   { Read access only }
-     AMode := $8001
-   else
-   { Read/write access or Write access }
-     AMode := $8402;
-   if (Mode AND stCreate) = stCreate then
-     AMode := $8404;
+  if Mode=stCreate then
+    Begin
+      AMode:=$8302;
+    end
+  else
+    Begin
+      Case (Mode and 3) of
+       0 : AMode:=$8001;
+       1 : AMode:=$8404;
+       2 : AMode:=$8404;
+      end;
+    end;
    asm
      xorl  %eax, %eax
      movw  %ax, DosStreamError
@@ -169,7 +173,10 @@ END;
 
 {
   $Log$
-  Revision 1.3  1998-07-02 12:25:27  carl
+  Revision 1.4  1998-07-06 12:26:19  carl
+    * Glurbl.... now work perfectly! Do not change :)
+
+  Revision 1.3  1998/07/02 12:25:27  carl
     * NOTHING would work, FileOpen is now correct!!
 
   Revision 1.2  1998/05/31 14:18:18  peter
