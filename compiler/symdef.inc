@@ -372,7 +372,7 @@
     procedure tdef.generate_rtti;
       begin
          has_rtti:=true;
-         getlabel(rtti_label);
+         getdatalabel(rtti_label);
          write_child_rtti_data;
          rttilist^.concat(new(pai_label,init(rtti_label)));
          write_rtti_data;
@@ -397,7 +397,7 @@
     procedure tdef.generate_inittable;
       begin
          has_inittable:=true;
-         getlabel(inittable_label);
+         getdatalabel(inittable_label);
          write_child_init_data;
          rttilist^.concat(new(pai_label,init(inittable_label)));
          write_init_data;
@@ -3271,7 +3271,7 @@ Const local_symtable_index : longint = $8001;
     procedure tobjectdef.generate_rtti;
       begin
          has_rtti:=true;
-         getlabel(rtti_label);
+         getdatalabel(rtti_label);
          write_child_rtti_data;
          rttilist^.concat(new(pai_symbol,init_global(rtti_name)));
          rttilist^.concat(new(pai_label,init(rtti_label)));
@@ -3380,7 +3380,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.116  1999-05-16 02:26:51  peter
+  Revision 1.117  1999-05-17 21:57:15  florian
+    * new temporary ansistring handling
+
+  Revision 1.116  1999/05/16 02:26:51  peter
     * fixed loading of classrefdef
 
   Revision 1.115  1999/05/14 17:52:26  peter

@@ -250,9 +250,6 @@ implementation
           end;
       end;
 
-    var
-       ltemptoremove : plinkedlist;
-
     procedure second_string_to_string(pto,pfrom : ptree;convtyp : tconverttype);
 
       var
@@ -320,8 +317,6 @@ implementation
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
                       gettempansistringreference(pto^.location.reference);
-                      ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
-                      exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                       pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
                       emit_push_lea_loc(pto^.location);
@@ -499,8 +494,6 @@ implementation
            st_ansistring :
              begin
                gettempansistringreference(pto^.location.reference);
-               ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
-               exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                push_int(l);
@@ -546,8 +539,6 @@ implementation
            st_ansistring :
              begin
                gettempansistringreference(pto^.location.reference);
-               ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
-               exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                release_loc(pfrom^.location);
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
@@ -1066,8 +1057,6 @@ implementation
              begin
                 pto^.location.loc:=LOC_REFERENCE;
                 gettempansistringreference(pto^.location.reference);
-                ltemptoremove^.concat(new(ptemptodestroy,init(pto^.location.reference,pto^.resulttype)));
-                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(pto^.location.reference))));
                 case pfrom^.location.loc of
                   LOC_REFERENCE,LOC_MEM:
                     begin
@@ -1146,26 +1135,16 @@ implementation
            second_nothing, {arrayconstructor_to_set}
            second_load_smallset
          );
-      var
-         oldrl,oldlrl : plinkedlist;
 {$ifdef TESTOBJEXT2}
       var
          r : preference;
          nillabel : plabel;
 {$endif TESTOBJEXT2}
       begin
-         { the ansi string disposing is a little bit hairy: }
-         oldrl:=temptoremove;
-         temptoremove:=new(plinkedlist,init);
 
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
          { type conversion (FK)                                        }
 
-         { this is necessary, because second_bool_2_int, have to change   }
-         { true- and false label before calling secondpass               }
-         { the helper routines need access to the release list }
-         oldlrl:=ltemptoremove;
-         ltemptoremove:=oldrl;
          if not(p^.convtyp in [tc_bool_2_int,tc_bool_2_bool]) then
            begin
               secondpass(p^.left);
@@ -1213,11 +1192,6 @@ implementation
                           exprasmlist^.concat(new(pai_label,init(nillabel)));
                        end;
 {$endif TESTOBJEXT2}
-         { clean up all temp. objects (ansi/widestrings) }
-         removetemps(exprasmlist,temptoremove);
-         dispose(temptoremove,done);
-         temptoremove:=oldrl;
-         ltemptoremove:=oldlrl;
       end;
 
 
@@ -1331,7 +1305,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  1999-05-12 00:19:40  peter
+  Revision 1.72  1999-05-17 21:57:00  florian
+    * new temporary ansistring handling
+
+  Revision 1.71  1999/05/12 00:19:40  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

@@ -45,4 +45,10 @@ Changes in the syntax or semantic of FPC:
   13/05/99   Classes are now only allowed in the ObjFpc or Delphi mode. Use
              {$mode objfpc} or {$mode delphi}. Or from commandline -S2 or -Sd
   16/05/99   Remove options -Up (use now -Fu) and -Fg (use now -Fl)
+  17/05/99   Redesign of ansistring temporary handling, please report
+             any problems
+  17/05/99   Most stuff of the objpas unit is now in the system unit
+             because the new temporary ansistring handling support
+             exceptions and exceptions need the class OOP model
+             
 

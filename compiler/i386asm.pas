@@ -305,6 +305,7 @@ uses
          opcode:=op;
          opsize:=_size;
          ops:=0;
+         condition:=c_none;
          fillchar(oper,sizeof(oper),0);
 {$ifndef NOAG386BIN}
          insentry:=nil;
@@ -1573,7 +1574,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-16 17:00:45  peter
+  Revision 1.8  1999-05-17 21:57:09  florian
+    * new temporary ansistring handling
+
+  Revision 1.7  1999/05/16 17:00:45  peter
     * fixed sym_ofs_ref op loading
 
   Revision 1.6  1999/05/12 00:19:50  peter

@@ -717,6 +717,10 @@ do_jmp:
 
          if assigned(p^.right) then
            secondpass(p^.right);
+         exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+           newreference(ref))));
+         emitcall('FPC_DESTROYEXCEPTION',true);
+
          { clear some stuff }
          ungetiftemp(ref);
          emitjmp(C_None,endexceptlabel);
@@ -733,7 +737,7 @@ do_jmp:
     procedure secondtryfinally(var p : ptree);
 
       var
-         finallylabel,noreraiselabel,endfinallylabel : plabel;
+         finallylabel,noreraiselabel : plabel;
 
       begin
          { we modify EAX }
@@ -741,7 +745,6 @@ do_jmp:
 
          getlabel(finallylabel);
          getlabel(noreraiselabel);
-         getlabel(endfinallylabel);
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR',true);
          exprasmlist^.concat(new(pai386,
@@ -772,7 +775,6 @@ do_jmp:
          emitcall('FPC_RERAISE',true);
          emitlab(noreraiselabel);
          emitcall('FPC_POPADDRSTACK',true);
-         emitlab(endfinallylabel);
       end;
 
 
@@ -798,7 +800,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.36  1999-05-13 21:59:21  peter
+  Revision 1.37  1999-05-17 21:57:01  florian
+    * new temporary ansistring handling
+
+  Revision 1.36  1999/05/13 21:59:21  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

@@ -146,9 +146,7 @@ implementation
         href       : treference;
         pushed,
         cmpop      : boolean;
-        savedunused : tregisterset;
         hr : treference;
-        oldrl : plinkedlist;
 
       begin
         { string operations are not commutative }
@@ -160,8 +158,6 @@ implementation
                 case p^.treetype of
                    addn:
                      begin
-                        oldrl:=temptoremove;
-                        temptoremove:=new(plinkedlist,init);
                         cmpop:=false;
                         secondpass(p^.left);
 
@@ -184,41 +180,24 @@ implementation
                             ungetregister32(p^.left^.location.register);
                         end;
 
-                        savedunused:=unused;
                         { push the still used registers }
                         pushusedregisters(pushedregs,$ff);
                         { push data }
+                        clear_location(p^.location);
+                        p^.location.loc:=LOC_MEM;
+                        gettempansistringreference(p^.location.reference);
+                        emitpushreferenceaddr(exprasmlist,p^.location.reference);
                         emit_push_loc(p^.right^.location);
                         emit_push_loc(p^.left^.location);
                         emitcall('FPC_ANSISTR_CONCAT',true);
-                        unused:=savedunused;
-                        clear_location(p^.location);
-                        p^.location.register:=getexplicitregister32(R_EAX);
-                        p^.location.loc:=LOC_REGISTER;
-                        emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
-
-                        { unused:=unused-[R_EAX]; }
-                        removetemps(exprasmlist,temptoremove);
-                        dispose(temptoremove,done);
-                        temptoremove:=oldrl;
-                        { unused:=unused+[R_EAX]; }
-
                         popusedregisters(pushedregs);
                         maybe_loadesi;
-                        { done with temptoremove !! (PM)
-                        ungetiftemp(p^.left^.location.reference);
-                        ungetiftemp(p^.right^.location.reference); }
-                        reset_reference(hr);
-                        gettempansistringreference(hr);
-                        addtemptodestroy(p^.resulttype,hr);
-                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
-                          newreference(hr))));
+                        ungetiftempansi(p^.left^.location.reference);
+                        ungetiftempansi(p^.right^.location.reference);
                      end;
                    ltn,lten,gtn,gten,
                    equaln,unequaln:
                      begin
-                        oldrl:=temptoremove;
-                        temptoremove:=new(plinkedlist,init);
                         secondpass(p^.left);
                         pushed:=maybe_push(p^.right^.registers32,p);
                         secondpass(p^.right);
@@ -252,11 +231,6 @@ implementation
                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                         end;
                         emitcall('FPC_ANSISTR_COMPARE',true);
-                        unused:=unused-[R_EAX];
-                        removetemps(exprasmlist,temptoremove);
-                        dispose(temptoremove,done);
-                        temptoremove:=oldrl;
-                        unused:=unused+[R_EAX];
                         emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                         popusedregisters(pushedregs);
                         maybe_loadesi;
@@ -2056,7 +2030,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-05-10 14:37:49  pierre
+  Revision 1.56  1999-05-17 21:56:58  florian
+    * new temporary ansistring handling
+
+  Revision 1.55  1999/05/10 14:37:49  pierre
    problem with EAX being overwritten before used in A_MULL code fixed
 
   Revision 1.54  1999/05/09 17:58:42  jonas

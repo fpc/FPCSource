@@ -1231,9 +1231,6 @@ implementation
               end;
             else internalerror(9);
          end;
-         { remove temp. objects, we don't generate them here }
-         removetemps(exprasmlist,temptoremove);
-         temptoremove^.clear;
          { reset pushedparasize }
          pushedparasize:=oldpushedparasize;
       end;
@@ -1241,7 +1238,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-05-12 15:46:26  pierre
+  Revision 1.50  1999-05-17 21:57:03  florian
+    * new temporary ansistring handling
+
+  Revision 1.49  1999/05/12 15:46:26  pierre
    * handle_str disposetree was badly placed
 
   Revision 1.48  1999/05/12 00:19:42  peter

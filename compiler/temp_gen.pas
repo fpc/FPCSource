@@ -81,7 +81,6 @@ unit temp_gen;
     function ungetiftempansi(const ref : treference) : boolean;
     procedure gettempansistringreference(var ref : treference);
 
-
   implementation
 
     uses
@@ -359,8 +358,8 @@ unit temp_gen;
          end;
       end;
 
-
     function istemp(const ref : treference) : boolean;
+
       begin
          { ref.index = R_NO was missing
            led to problems with local arrays
@@ -498,7 +497,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1999-05-17 12:49:16  pierre
+  Revision 1.24  1999-05-17 21:57:17  florian
+    * new temporary ansistring handling
+
+  Revision 1.23  1999/05/17 12:49:16  pierre
     * several problems with EXTDEBUG fixed
 
   Revision 1.22  1999/05/15 21:33:21  peter

@@ -1527,7 +1527,7 @@ unit pdecl;
               if (aktclass^.options and oo_can_have_published)<>0 then
                 aktclass^.generate_rtti;
               { write class name }
-              getlabel(classnamelabel);
+              getdatalabel(classnamelabel);
               datasegment^.concat(new(pai_label,init(classnamelabel)));
               datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
               datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
@@ -2230,7 +2230,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.116  1999-05-13 21:59:34  peter
+  Revision 1.117  1999-05-17 21:57:12  florian
+    * new temporary ansistring handling
+
+  Revision 1.116  1999/05/13 21:59:34  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

@@ -50,6 +50,8 @@ unit hcodegen;
                                 { no register variables                        }
        pi_is_assembler = $40;   { set if the procedure is declared as ASSEMBLER
                                   => don't optimize}
+       pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
+                                        { needs to be finalized                     }
     type
        pprocinfo = ^tprocinfo;
        tprocinfo = record
@@ -142,7 +144,6 @@ unit hcodegen;
        pushedparasize : longint;
 
        make_const_global : boolean;
-       temptoremove : plinkedlist;
 
     { message calls with codegenerror support }
     procedure cgmessage(const t : tmsgconst);
@@ -321,7 +322,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  1999-05-01 13:24:22  peter
+  Revision 1.31  1999-05-17 21:57:08  florian
+    * new temporary ansistring handling
+
+  Revision 1.30  1999/05/01 13:24:22  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

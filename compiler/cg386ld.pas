@@ -356,13 +356,10 @@ implementation
          hregister : tregister;
          loc : tloc;
          r : preference;
-         oldrl : plinkedlist;
 {$ifndef OLDASM}
          ai : pai386;
 {$endif}
       begin
-         oldrl:=temptoremove;
-         temptoremove:=new(plinkedlist,init);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -672,9 +669,6 @@ implementation
 {$EndIf regallocfix}
                            end;
          end;
-         removetemps(exprasmlist,temptoremove);
-         dispose(temptoremove,done);
-         temptoremove:=oldrl;
          freelabel(truelabel);
          freelabel(falselabel);
          truelabel:=otlabel;
@@ -851,7 +845,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-05-12 00:19:43  peter
+  Revision 1.55  1999-05-17 21:57:04  florian
+    * new temporary ansistring handling
+
+  Revision 1.54  1999/05/12 00:19:43  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

@@ -98,13 +98,17 @@ implementation
             if assigned(hp^.right) then
              begin
                cleartempgen;
+               {!!!!!!
                oldrl:=temptoremove;
                temptoremove:=new(plinkedlist,init);
+               }
                secondpass(hp^.right);
-               { release temp. ansi strings }
+               { !!!!!!!
+                 some temporary data which can't be released elsewhere
                removetemps(exprasmlist,temptoremove);
                dispose(temptoremove,done);
                temptoremove:=oldrl;
+               }
              end;
             hp:=hp^.left;
           end;
@@ -359,7 +363,7 @@ implementation
       label
          nextreg;
       begin
-         temptoremove:=nil;
+         {!!!!!!!! temptoremove:=nil; }
          cleartempgen;
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
@@ -553,7 +557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-05-02 21:33:54  florian
+  Revision 1.21  1999-05-17 21:57:11  florian
+    * new temporary ansistring handling
+
+  Revision 1.20  1999/05/02 21:33:54  florian
     * several bugs regarding -Or fixed
 
   Revision 1.19  1999/05/01 13:24:28  peter

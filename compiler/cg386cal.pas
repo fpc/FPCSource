@@ -228,7 +228,6 @@ implementation
          { we must pop this size also after !! }
 {         must_pop : boolean; }
          pop_size : longint;
-         oldrl : plinkedlist;
 
       label
          dont_call;
@@ -242,10 +241,6 @@ implementation
          loadesi:=true;
          no_virtual_call:=false;
          unusedregisters:=unused;
-
-         { save old ansi string release list }
-         oldrl:=temptoremove;
-         temptoremove:=new(plinkedlist,init);
 
          if not assigned(p^.procdefinition) then
           exit;
@@ -1017,6 +1012,37 @@ implementation
                   else
                     p^.location.loc:=LOC_FPU;
                 end
+              else if is_ansistring(p^.resulttype) or
+                is_widestring(p^.resulttype) then
+                begin
+                   gettempansistringreference(hr);
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EAX,
+                     newreference(hr))));
+                   p^.location.loc:=LOC_REFERENCE;
+                   p^.location.reference:=hr;
+                   { unnessary ansi/wide strings are imm. disposed }
+                   if not(p^.return_value_used) then
+                     begin
+                        pushusedregisters(pushedregs,$ff);
+                        emitpushreferenceaddr(exprasmlist,hr);
+                        if is_ansistring(p^.resulttype) then
+                          begin
+                             exprasmlist^.concat(new(pai386,
+                               op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
+                             if not (cs_compilesystem in aktmoduleswitches) then
+                               concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
+                          end
+                        else
+                          begin
+                             exprasmlist^.concat(new(pai386,
+                               op_sym(A_CALL,S_NO,newasmsymbol('FPC_WIDESTR_DECR_REF'))));
+                             if not (cs_compilesystem in aktmoduleswitches) then
+                               concat_external('FPC_WIDESTR_DECR_REF',EXT_NEAR);
+                          end;
+                        ungetiftemp(hr);
+                        popusedregisters(pushedregs);
+                     end;
+                end
               else
                 begin
                    p^.location.loc:=LOC_REGISTER;
@@ -1029,42 +1055,6 @@ implementation
                        hregister:=getexplicitregister32(R_EAX);
                        emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                        p^.location.register:=hregister;
-                       if is_ansistring(p^.resulttype) or
-                         is_widestring(p^.resulttype) then
-                         begin
-                            gettempansistringreference(hr);
-                            exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
-                              newreference(hr))));
-{$ifdef AnsiStrRef}
-                            ungetregister(hregister);
-                            p^.location.loc:=LOC_REFERENCE;
-                            p^.location.reference:=hr;
-{$endif}
-                            { unnessary ansi/wide strings are imm. disposed }
-                            if not(p^.return_value_used) then
-                              begin
-                                 pushusedregisters(pushedregs,$ff);
-                                 emitpushreferenceaddr(exprasmlist,hr);
-                                 if is_ansistring(p^.resulttype) then
-                                   begin
-                                      exprasmlist^.concat(new(pai386,
-                                        op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
-                                      if not (cs_compilesystem in aktmoduleswitches) then
-                                      concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
-                                   end
-                                 else
-                                   begin
-                                      exprasmlist^.concat(new(pai386,
-                                        op_sym(A_CALL,S_NO,newasmsymbol('FPC_WIDESTR_DECR_REF'))));
-                                      if not (cs_compilesystem in aktmoduleswitches) then
-                                      concat_external('FPC_WIDESTR_DECR_REF',EXT_NEAR);
-                                   end;
-                                 ungetiftemp(hr);
-                                 popusedregisters(pushedregs);
-                              end
-                            else
-                              oldrl^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
-                         end;
                     end;
                 end;
              end;
@@ -1078,11 +1068,6 @@ implementation
            end;
          if pop_size>0 then
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
-
-         { release temp. ansi strings }
-         removetemps(exprasmlist,temptoremove);
-         dispose(temptoremove,done);
-         temptoremove:=oldrl;
 
          { restore registers }
          popusedregisters(pushed);
@@ -1215,7 +1200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  1999-05-01 13:24:02  peter
+  Revision 1.79  1999-05-17 21:56:59  florian
+    * new temporary ansistring handling
+
+  Revision 1.78  1999/05/01 13:24:02  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

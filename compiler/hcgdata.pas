@@ -169,7 +169,7 @@ implementation
     procedure writenames(p : pprocdeftree);
 
       begin
-         getlabel(p^.nl);
+         getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
          datasegment^.concat(new(pai_label,init(p^.nl)));
@@ -211,7 +211,7 @@ implementation
            writenames(root);
 
          { now start writing of the message string table }
-         getlabel(r);
+         getdatalabel(r);
          datasegment^.concat(new(pai_label,init(r)));
          genstrmsgtab:=r;
          datasegment^.concat(new(pai_const,init_32bit(count)));
@@ -250,7 +250,7 @@ implementation
          _class^.publicsyms^.foreach(insertmsgint);
 
          { now start writing of the message string table }
-         getlabel(r);
+         getdatalabel(r);
          datasegment^.concat(new(pai_label,init(r)));
          genintmsgtab:=r;
          datasegment^.concat(new(pai_const,init_32bit(count)));
@@ -566,7 +566,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-05-13 21:59:27  peter
+  Revision 1.5  1999-05-17 21:57:07  florian
+    * new temporary ansistring handling
+
+  Revision 1.4  1999/05/13 21:59:27  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing
