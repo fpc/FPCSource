@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit ncgcadd;
+unit ncgadd;
 
 {$i fpcdefs.inc}
 
@@ -30,19 +30,33 @@ interface
        node,nadd,cpubase,cginfo;
 
     type
-       tppcaddnode = class(taddnode)
-          function pass_1: tnode; override;
+       tcgaddnode = class(taddnode)
+{          function pass_1: tnode; override;}
           procedure pass_2;override;
          private
           procedure pass_left_and_right;
+          { load left and right nodes into registers }
           procedure load_left_right(cmpop, load_constants: boolean);
+          { free used registers, except result location }
           procedure clear_left_right(cmpop: boolean);
-          function  getresflags : tresflags;
-          procedure emit_compare(unsigned : boolean);
-          procedure second_addfloat;
-          procedure second_addboolean;
-          procedure second_addsmallset;
-          procedure second_add64bit;   { done }
+
+          procedure second_opfloat;
+          procedure second_opboolean;
+          procedure second_opsmallset;
+          procedure second_op64bit;
+
+{          procedure second_addfloat;virtual;}
+          procedure second_addboolean;virtual;
+          procedure second_addsmallset;virtual;
+          procedure second_add64bit;virtual;
+          procedure second_addordinal;virtual;
+{          procedure second_cmpfloat;virtual;}
+          procedure second_cmpboolean;virtual;
+          procedure second_cmpsmallset;virtual;
+          procedure second_cmp64bit;virtual;
+          procedure second_cmpordinal;virtual;
+       
+
        end;
 
   implementation
@@ -62,7 +76,7 @@ interface
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
+(*
     function tcgaddnode.getresflags(unsigned : boolean) : tresflags;
       begin
          case nodetype of
@@ -105,7 +119,7 @@ interface
              end;
          end;
       end;
-
+*)
 
     procedure tcgaddnode.pass_left_and_right;
       var
@@ -182,10 +196,32 @@ interface
       end;
 
 
+    procedure tcgaddnode.clear_left_right(cmpop: boolean);
+      begin
+        if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
+           (cmpop or
+            (location.register <> right.location.register)) then
+          begin
+            rg.ungetregister(exprasmlist,right.location.register);
+            if is_64bitint(right.resulttype.def) then
+              rg.ungetregister(exprasmlist,right.location.registerhigh);
+          end;
+        if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
+           (cmpop or
+            (location.register <> left.location.register)) then
+          begin
+            rg.ungetregister(exprasmlist,left.location.register);
+            if is_64bitint(left.resulttype.def) then
+              rg.ungetregister(exprasmlist,left.location.registerhigh);
+          end;
+      end;
+
+
+
 {*****************************************************************************
-                                AddSmallSet
+                                Smallsets
 *****************************************************************************}
-    procedure tppcaddnode.second_opsmallset;
+    procedure tcgaddnode.second_opsmallset;
       var
        cmpop : boolean;
       begin
@@ -199,9 +235,10 @@ interface
             (tsetdef(right.resulttype.def).settype<>smallset)) then
          internalerror(200203301);
 
-        if nodetype in [equaln,unequaln,gtn,gten,lte,lten] then
+        if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
           cmpop := true;
 
+        { load non-constant values (left and right) into registers }
         load_left_right(cmpop,false);
 
         if cmpop then
@@ -267,7 +304,7 @@ interface
      end;
      
 
-    procedure tppcaddnode.second_addsmallset;
+    procedure tcgaddnode.second_addsmallset;
       var
         cgop   : TOpCg;
         tmpreg : tregister;
@@ -278,7 +315,7 @@ interface
 
         opdone := false;
         
-        location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+        location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
 
         if  (location.register = R_NO) then
           location.register := rg.getregisterint(exprasmlist);
@@ -343,16 +380,16 @@ interface
                       tmpreg := cg.get_scratch_reg_int(exprasmlist);
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
-                      cg.a_op_reg(OP_NOT,OS_INT,right.location.register);
-                      cg.a_op_reg_reg(OP_AND,OS_INT,right.location.register,tmpreg);
-                      cg.a_load_reg_reg(OS_INT,tmpreg,location.register);
+                      cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_INT,right.location.register,right.location.register);
+                      cg.a_op_reg_reg(exprasmlist,OP_AND,OS_INT,right.location.register,tmpreg);
+                      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tmpreg,location.register);
                       cg.free_scratch_reg(exprasmlist,tmpreg);
                     end
                   else
                     begin
-                      cg.a_op_reg(OP_NOT,OS_INT,right.location.register);
-                      cg.a_op_reg_reg(OP_AND,OS_INT,right.location.register,left.location.register);
-                      cg.a_load_reg_reg(OS_INT,left.location.register,location.register);
+                      cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_INT,right.location.register,right.location.register);
+                      cg.a_op_reg_reg(exprasmlist,OP_AND,OS_INT,right.location.register,left.location.register);
+                      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,left.location.register,location.register);
                     end;
                 end;
             end;
@@ -378,21 +415,30 @@ interface
       end;
 
 {*****************************************************************************
-                                AddBoolean
+                                Boolean
 *****************************************************************************}
 
-    procedure tppcaddnode.second_opboolean
+    procedure tcgaddnode.second_opboolean;
+      var 
+       cmpop : boolean;
       begin
+        cmpop := false;
         { calculate the operator which is more difficult }
         firstcomplex(self);
 
+        if cmpop then
+            second_cmpboolean
+        else
+            second_addboolean;
+
+
       end;
 
-    procedure tppcaddnode.second_cmpboolean;
+    procedure tcgaddnode.second_cmpboolean;
       begin
       end;
     
-    procedure tppcaddnode.second_addboolean;
+    procedure tcgaddnode.second_addboolean;
       var
         cgop      : TOpCg;
         cgsize  : TCgSize;
@@ -541,12 +587,13 @@ interface
                end;
            end;
          end;*)
+        { free used register (except the result register) }
         clear_left_right(cmpop);
       end;
 
 
 {*****************************************************************************
-                                Add64bit
+                                64-bit
 *****************************************************************************}
 
     procedure tcgaddnode.second_op64bit;
@@ -558,7 +605,7 @@ interface
 
         pass_left_and_right;
  
-        if nodetype in [equaln,unequaln,gtn,gten,lte,lten] then
+        if nodetype in [equaln,unequaln,gtn,gten,ltn,lten] then
           cmpop := true;
 
         if cmpop then
@@ -566,6 +613,7 @@ interface
         else
             second_add64bit;
 
+        { free used register (except the result register) }
         clear_left_right(cmpop);
      end;
 
@@ -669,10 +717,11 @@ interface
      end;
 
 
-    procedure tppcaddnode.second_add64bit;
+    procedure tcgaddnode.second_add64bit;
       var
         op         : TOpCG;
         unsigned   : boolean;
+        checkoverflow : boolean;
 
       begin
 
@@ -680,11 +729,20 @@ interface
                    (torddef(left.resulttype.def).typ=u64bit)) or
                   ((right.resulttype.def.deftype=orddef) and
                    (torddef(right.resulttype.def).typ=u64bit));
+        { assume no overflow checking is required }
+        checkoverflow := false;
+
         case nodetype of
           addn :
-              op:=OP_ADD;
+             begin
+                op:=OP_ADD;
+                checkoverflow := true;
+             end;
           subn :
-              op:=OP_SUB;
+             begin 
+                op:=OP_SUB;
+                checkoverflow := true;
+             end;
           xorn:
             op:=OP_XOR;
           orn:
@@ -706,7 +764,6 @@ interface
             (nodetype in [addn,subn]));
 
         case nodetype of
-          begin
               xorn,orn,andn,addn:
                 begin
                   if (location.registerlow = R_NO) then
@@ -767,16 +824,239 @@ interface
               else
                 internalerror(2002072803);
             end;
-          end
+
         { emit overflow check if enabled }        
-        cg.g_overflowcheck(exprasmlist,self);
+        if checkoverflow then
+           cg.g_overflowcheck(exprasmlist,self);
 
       end;
 
+{*****************************************************************************
+                                Floats
+*****************************************************************************}
 
+    procedure tcgaddnode.second_opfloat;
+     begin
+     end;
+
+{*****************************************************************************
+                                Ordinals
+*****************************************************************************}
+    procedure tcgaddnode.second_cmpordinal;
+     var
+      unsigned : boolean;
+     begin
+       { set result location }
+       location_reset(location,LOC_FLAGS,OS_NO);
+
+       { load values into registers (except constants) }
+       load_left_right(true, false);
+
+       { determine if the comparison will be unsigned }
+       unsigned:=not(is_signed(left.resulttype.def)) or
+                   not(is_signed(right.resulttype.def));
+
+     end;
+
+
+    procedure tcgaddnode.second_addordinal;
+     var
+      unsigned : boolean; 
+      checkoverflow : boolean;
+      cgop : topcg;
+      tmpreg : tregister;
+     begin
+       { set result location }
+       location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+
+       { determine if the comparison will be unsigned }
+       unsigned:=not(is_signed(left.resulttype.def)) or
+                   not(is_signed(right.resulttype.def));
+
+       { load values into registers  }
+       load_left_right(false, (cs_check_overflow in aktlocalswitches) and
+          (nodetype in [addn,subn,muln]));
+
+       if (location.register = R_NO) then
+         location.register := rg.getregisterint(exprasmlist);
+
+       { assume no overflow checking is require }
+       checkoverflow := false;
+
+       case nodetype of
+         addn:
+           begin
+             cgop := OP_ADD;
+             checkoverflow := true;
+           end;
+         xorn :
+           begin
+             cgop := OP_XOR;
+           end;
+         orn :
+           begin
+             cgop := OP_OR;
+           end;
+         andn: 
+           begin
+             cgop := OP_AND;
+           end;
+         muln:
+           begin
+             checkoverflow := true;
+             if unsigned then
+               cgop := OP_MUL
+             else
+               cgop := OP_IMUL;
+           end;
+         subn :
+           begin
+             checkoverflow := true;
+             cgop := OP_SUB;
+           end;          
+       end;
+
+      if nodetype <> subn then
+       begin
+         if (left.location.loc = LOC_CONSTANT) then
+           swapleftright;
+         if (right.location.loc <> LOC_CONSTANT) then
+           cg.a_op_reg_reg_reg(exprasmlist,cgop,OS_INT,
+            left.location.register,right.location.register,
+            location.register)
+         else
+           cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,
+            aword(right.location.value),left.location.register,
+            location.register);
+       end
+     else  { subtract is a special case since its not commutative }
+       begin
+         if (nf_swaped in flags) then
+           swapleftright;
+         if left.location.loc <> LOC_CONSTANT then
+           begin
+             if right.location.loc <> LOC_CONSTANT then
+                 cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                 right.location.register,left.location.register,
+                 location.register)
+             else
+                cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                aword(right.location.value),left.location.register,
+                 location.register);
+           end
+         else
+           begin
+             tmpreg := cg.get_scratch_reg_int(exprasmlist);
+             cg.a_load_const_reg(exprasmlist,OS_INT,
+               aword(left.location.value),tmpreg);
+             cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
+               right.location.register,tmpreg,location.register);
+             cg.free_scratch_reg(exprasmlist,tmpreg);
+           end;
+       end;
+
+       { emit overflow check if required }        
+       if checkoverflow then
+        cg.g_overflowcheck(exprasmlist,self);
+     end; 
+
+{*****************************************************************************
+                                pass_2
+*****************************************************************************}
+
+    procedure tcgaddnode.pass_2;
+    { is also being used for xor, and "mul", "sub, or and comparative }
+    { operators                                                }
+      var
+         cmpop      : boolean;
+         cgop       : topcg;
+         op         : tasmop;
+         tmpreg     : tregister;
+
+         { true, if unsigned types are compared }
+         unsigned : boolean;
+
+         regstopush: tregisterset;
+
+      begin
+         { to make it more readable, string and set (not smallset!) have their
+           own procedures }
+         case left.resulttype.def.deftype of
+           orddef :
+             begin
+               { handling boolean expressions }
+               if is_boolean(left.resulttype.def) and
+                  is_boolean(right.resulttype.def) then
+                 begin
+                   second_opboolean;
+                   exit;
+                 end
+               { 64bit operations }
+               else if is_64bitint(left.resulttype.def) then
+                 begin
+                   second_op64bit;
+                   exit;
+                 end;
+             end;
+           stringdef :
+             begin
+               { this should already be handled in pass1 }
+               internalerror(2002072402);
+               exit;
+             end;
+           setdef :
+             begin
+               { normalsets are already handled in pass1 }
+               if (tsetdef(left.resulttype.def).settype<>smallset) then
+                internalerror(200109041);
+               second_opsmallset;
+               exit;
+             end;
+           arraydef :
+             begin
+{$ifdef SUPPORT_MMX}
+               if is_mmx_able_array(left.resulttype.def) then
+                begin
+                  second_opmmx;
+                  exit;
+                end;
+{$endif SUPPORT_MMX}
+             end;
+           floatdef :
+             begin
+               second_opfloat;
+               exit;
+             end;
+         end;
+
+         {*********************** ordinals / integrals *******************}
+
+         cmpop:=nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
+
+         { normally nothing should be in flags   }
+         if (left.location.loc = LOC_FLAGS) or
+            (right.location.loc = LOC_FLAGS) then
+           internalerror(2002072602);
+
+
+         pass_left_and_right;
+
+         if cmpop then
+             second_cmpordinal
+         else
+             second_addordinal;
+
+        { free used register (except the result register) }
+        clear_left_right(cmpop);
+      end;
+
+end.
 {
   $Log$
-  Revision 1.1  2002-12-07 19:51:35  carl
+  Revision 1.2  2002-12-08 15:02:17  carl
+    + more fixes
+
+  Revision 1.1  2002/12/07 19:51:35  carl
     + first version (uncompilable!)
 
 }
