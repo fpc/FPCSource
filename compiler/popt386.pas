@@ -1432,7 +1432,7 @@ end;
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput);
 
 var
-  p,hp1 : pai;
+  p,hp1,hp2: pai;
 Begin
   P := Pai(AsmL^.First);
   While Assigned(p) Do
@@ -1441,6 +1441,18 @@ Begin
         Ait_Instruction:
           Begin
             Case Pai386(p)^._operator Of
+              A_CALL:
+                If GetNextInstruction(p, hp1) And
+                   (hp1^.typ = ait_labeled_instruction) And
+                   (Pai_Labeled(hp1)^._operator = A_JMP) Then
+                  Begin
+                    hp2 := New(Pai386,op_csymbol(A_PUSH,S_L,NewCSymbol(Lab2Str(Pai_Labeled(hp1)^.lab),0)));
+                    hp2^.fileinfo := p^.fileinfo;
+                    InsertLLItem(AsmL, p^.previous, p, hp2);
+                    Pai386(p)^._operator := A_JMP;
+                    AsmL^.Remove(hp1);
+                    Dispose(hp1, Done)
+                  End;
               A_MOV:
                 Begin
                   If (Pai386(p)^.op1t = top_reg) And
@@ -1530,8 +1542,8 @@ End.
 
 {
  $Log$
- Revision 1.21  1998-10-28 19:51:15  jonas
-   * bugfix in fpu optimizations for single division/substraction
+ Revision 1.22  1998-10-29 18:37:55  jonas
+   + change "call x; jmp y" to "push y; jmp x" (suggestion from Daniel)
 
  Revision 1.19  1998/10/23 15:38:23  jonas
    + some small FPU peephole optimizations (use value in FP regs instead of loading it
