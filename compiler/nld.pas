@@ -357,11 +357,18 @@ implementation
               begin
                 if assigned(left) then
                   firstpass(left);
-                if (cs_regvars in aktglobalswitches) and
-                   (symtable.symtabletype in [localsymtable]) and
-                   not(pi_has_assembler_block in current_procinfo.flags) and
-                   (tvarsym(symtableentry).varregable<>vr_none) then
-                  expectloc:=LOC_CREGISTER
+                if not is_addr_param_load and
+                   tvarsym(symtableentry).is_regvar then
+                  begin
+                    case tvarsym(symtableentry).varregable of
+                      vr_intreg :
+                        expectloc:=LOC_CREGISTER;
+                      vr_fpureg :
+                        expectloc:=LOC_CFPUREGISTER;
+                      vr_mmreg :
+                        expectloc:=LOC_CMMREGISTER;
+                    end
+                  end
                 else
                   if (tvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;
@@ -1156,7 +1163,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2004-10-10 20:22:53  peter
+  Revision 1.133  2004-10-11 15:48:15  peter
+    * small regvar for para fixes
+    * function tvarsym.is_regvar added
+    * tvarsym.getvaluesize removed, use getsize instead
+
+  Revision 1.132  2004/10/10 20:22:53  peter
     * symtable allocation rewritten
     * loading of parameters to local temps/regs cleanup
     * regvar support for parameters

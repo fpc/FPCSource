@@ -1461,7 +1461,7 @@ implementation
               { which needs extra code to do the code page transistion             }
               { constant ordinal to pointer }
               if (resulttype.def.deftype=pointerdef) and
-	         (convtype<>tc_cchar_2_pchar) then
+                 (convtype<>tc_cchar_2_pchar) then
                 begin
                    hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resulttype);
                    result:=hp;
@@ -1531,12 +1531,17 @@ implementation
 
       begin
         first_int_to_int:=nil;
-        if (left.expectloc<>LOC_REGISTER) and
-           not is_void(left.resulttype.def) and
-           (resulttype.def.size>left.resulttype.def.size) then
-           expectloc:=LOC_REGISTER
-        else
-           expectloc:=left.expectloc;
+        expectloc:=left.expectloc;
+        if not is_void(left.resulttype.def) then
+          begin
+            if (left.expectloc<>LOC_REGISTER) and
+               (resulttype.def.size>left.resulttype.def.size) then
+              expectloc:=LOC_REGISTER
+            else
+              if (left.expectloc=LOC_CREGISTER) and
+                 (resulttype.def.size<left.resulttype.def.size) then
+                expectloc:=LOC_REGISTER;
+          end;
 {$ifndef cpu64bit}
         if is_64bit(resulttype.def) then
           registersint:=max(registersint,2)
@@ -2450,7 +2455,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.153  2004-09-26 17:45:30  peter
+  Revision 1.154  2004-10-11 15:48:15  peter
+    * small regvar for para fixes
+    * function tvarsym.is_regvar added
+    * tvarsym.getvaluesize removed, use getsize instead
+
+  Revision 1.153  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.152  2004/08/08 16:00:56  florian

@@ -63,7 +63,7 @@ unit cgcpu;
           procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);override;
           { generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); override;
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword); override;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aword); override;
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
           procedure g_restore_frame_pointer(list : taasmoutput);override;
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
@@ -998,7 +998,7 @@ unit cgcpu;
       begin
       end;
 
-    procedure tcg68k.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
+    procedure tcg68k.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aword);
       begin
       end;
 
@@ -1313,7 +1313,12 @@ end.
 
 {
   $Log$
-  Revision 1.29  2004-09-25 14:23:54  peter
+  Revision 1.30  2004-10-11 15:48:15  peter
+    * small regvar for para fixes
+    * function tvarsym.is_regvar added
+    * tvarsym.getvaluesize removed, use getsize instead
+
+  Revision 1.29  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -704,7 +704,7 @@ implementation
          begin
            loadref:=true;
            case tvarsym(p).localloc.loc of
-             LOC_REGISTER :
+             LOC_CREGISTER :
                begin
                  reference_reset_base(href1,tvarsym(p).localloc.register,0);
                  loadref:=false;
@@ -724,26 +724,13 @@ implementation
                   hsym:=tvarsym(tsym(p).owner.search('high'+p.name));
                   if not assigned(hsym) then
                     internalerror(200306061);
-                  case hsym.localloc.loc of
-                    LOC_REFERENCE :
-                      begin
-                        { this code is only executed before the code for the body and the entry/exit code is generated
-                          so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                        }
-                        include(current_procinfo.flags,pi_do_call);
-                        cg.g_copyvaluepara_openarray(list,href1,hsym.localloc.reference,tarraydef(tvarsym(p).vartype.def).elesize)
-                      end
-                    else
-                      internalerror(200309182);
-                  end;
+                  cg.g_copyvaluepara_openarray(list,href1,hsym.localloc,tarraydef(tvarsym(p).vartype.def).elesize);
                 end;
             end
            else
             begin
-              if tvarsym(p).localloc.loc<>LOC_REFERENCE then
-                internalerror(200309183);
               { Allocate space for the local copy }
-              l:=tvarsym(p).getvaluesize;
+              l:=tvarsym(p).getsize;
               localcopyloc.loc:=LOC_REFERENCE;
               localcopyloc.size:=int_cgsize(l);
               tg.GetLocal(list,l,tvarsym(p).vartype.def,localcopyloc.reference);
@@ -895,7 +882,7 @@ implementation
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
-           not is_class(tvarsym(p).vartype.def) and
+           not is_class_or_interface(tvarsym(p).vartype.def) and
            tvarsym(p).vartype.def.needs_inittable then
          begin
            case tvarsym(p).varspez of
@@ -930,7 +917,7 @@ implementation
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
-           not is_class(tvarsym(p).vartype.def) and
+           not is_class_or_interface(tvarsym(p).vartype.def) and
            tvarsym(p).vartype.def.needs_inittable then
          begin
            if (tvarsym(p).varspez=vs_value) then
@@ -1258,7 +1245,9 @@ implementation
       var
         hp      : tparaitem;
         paraloc : pcgparalocation;
+{$ifdef sparc}
         tempref,
+{$endif sparc}
         href    : treference;
       begin
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1827,7 +1816,7 @@ implementation
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
-        l:=sym.getvaluesize;
+        l:=sym.getsize;
         if (vo_is_thread_var in sym.varoptions) then
           inc(l,sizeof(aint));
         varalign:=var_align(l);
@@ -1877,10 +1866,7 @@ implementation
                           cgsize:=def_cgsize(vartype.def);
 {$ifndef OLDREGVARS}
                         { When there is assembler code we can't use regvars }
-                        if (cs_regvars in aktglobalswitches) and
-                           not(pi_has_assembler_block in current_procinfo.flags) and
-                           not(pi_uses_exceptions in current_procinfo.flags) and
-                           (varregable<>vr_none) then
+                        if is_regvar then
                           begin
                             localloc.size:=cgsize;
                             case varregable of
@@ -1930,13 +1916,13 @@ implementation
                                       if isaddr then
                                         tg.GetLocal(list,sizeof(aint),voidpointertype.def,localloc.reference)
                                       else
-                                        tg.GetLocal(list,getvaluesize,vartype.def,localloc.reference);
+                                        tg.GetLocal(list,getsize,vartype.def,localloc.reference);
                                     end;
                                 end;
                               localsymtable,
                               stt_exceptsymtable :
                                 begin
-                                  tg.GetLocal(list,getvaluesize,vartype.def,localloc.reference);
+                                  tg.GetLocal(list,getsize,vartype.def,localloc.reference);
                                 end;
                               staticsymtable :
                                 begin
@@ -2216,7 +2202,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.225  2004-10-10 21:08:55  peter
+  Revision 1.226  2004-10-11 15:48:15  peter
+    * small regvar for para fixes
+    * function tvarsym.is_regvar added
+    * tvarsym.getvaluesize removed, use getsize instead
+
+  Revision 1.225  2004/10/10 21:08:55  peter
     * parameter regvar fixes
 
   Revision 1.224  2004/10/10 20:51:46  peter

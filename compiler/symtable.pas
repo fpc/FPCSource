@@ -988,7 +988,7 @@ implementation
         { this symbol can't be loaded to a register }
         tvarsym(sym).varregable:=vr_none;
         { Calculate field offset }
-        l:=tvarsym(sym).getvaluesize;
+        l:=tvarsym(sym).getsize;
         vardef:=tvarsym(sym).vartype.def;
         varalign:=vardef.alignment;
         { Calc the alignment size for C style records }
@@ -1104,7 +1104,7 @@ implementation
             { update alignment of this record }
             varalign:=ps.vartype.def.alignment;
             if varalign=0 then
-              varalign:=size_2_align(ps.getvaluesize);
+              varalign:=size_2_align(ps.getsize);
             varalignrecord:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
             recordalignment:=max(recordalignment,varalignrecord);
 
@@ -2314,7 +2314,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.156  2004-10-08 17:09:43  peter
+  Revision 1.157  2004-10-11 15:48:15  peter
+    * small regvar for para fixes
+    * function tvarsym.is_regvar added
+    * tvarsym.getvaluesize removed, use getsize instead
+
+  Revision 1.156  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.155  2004/08/17 16:29:21  jonas

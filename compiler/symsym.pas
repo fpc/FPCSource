@@ -166,7 +166,7 @@ interface
           procedure generate_mangledname;override;
           procedure set_mangledname(const s:string);
           function  getsize : longint;
-          function  getvaluesize : longint;
+          function  is_regvar:boolean;
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
@@ -1421,23 +1421,23 @@ implementation
 
     function tvarsym.getsize : longint;
       begin
-        if assigned(vartype.def) then
-          getsize:=vartype.def.size
-        else
-          getsize:=0;
-      end;
-
-
-    function tvarsym.getvaluesize : longint;
-      begin
         if assigned(vartype.def) and
-           (varspez=vs_value) and
            ((vartype.def.deftype<>arraydef) or
             tarraydef(vartype.def).isDynamicArray or
             (tarraydef(vartype.def).highrange>=tarraydef(vartype.def).lowrange)) then
-          getvaluesize:=vartype.def.size
+          result:=vartype.def.size
         else
-          getvaluesize:=0;
+          result:=0;
+      end;
+
+
+    function tvarsym.is_regvar:boolean;
+      begin
+        result:=(cs_regvars in aktglobalswitches) and
+                not(pi_has_assembler_block in current_procinfo.flags) and
+                not(pi_uses_exceptions in current_procinfo.flags) and
+                not(vo_has_local_copy in varoptions) and
+                (varregable<>vr_none);
       end;
 
 
@@ -2223,7 +2223,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.183  2004-10-10 21:08:55  peter
+  Revision 1.184  2004-10-11 15:48:15  peter
+    * small regvar for para fixes
+    * function tvarsym.is_regvar added
+    * tvarsym.getvaluesize removed, use getsize instead
+
+  Revision 1.183  2004/10/10 21:08:55  peter
     * parameter regvar fixes
 
   Revision 1.182  2004/10/10 20:22:53  peter
