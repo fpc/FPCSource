@@ -136,7 +136,7 @@ SYSTEMUNIT=sysos2
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi dive dos crt objects printer sysutils math typinfo varutils ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard callspec
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi dive dos crt objects printer sysutils math typinfo varutils ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard
 override TARGET_LOADERS+=prt0 prt1 code2 code3
 override TARGET_RSTS+=math varutils
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
@@ -827,4 +827,3 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
