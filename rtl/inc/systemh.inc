@@ -176,6 +176,7 @@ Type
 
 {$ifdef CPU64}
   StrLenInt = Int64;
+  StrLenUInt = QWord;
   SizeInt = Int64;
   SizeUInt = QWord;
   PtrInt = Int64;
@@ -184,6 +185,7 @@ Type
 
 {$ifdef CPU32}
   StrLenInt = Longint;
+  StrLenUInt = DWord;
   SizeInt = Longint;
   SizeUInt = DWord;
   PtrInt = Longint;
@@ -726,7 +728,11 @@ const
 
 {
   $Log$
-  Revision 1.85  2004-02-20 11:01:20  daniel
+  Revision 1.86  2004-02-20 22:15:16  florian
+    + x86_64 dependend sysutils part added
+    * some 64 bit adaptions
+
+  Revision 1.85  2004/02/20 11:01:20  daniel
     * Applied
 
   Revision 1.84  2004/02/02 20:39:27  florian

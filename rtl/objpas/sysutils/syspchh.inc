@@ -22,36 +22,40 @@
 }
 
 { shared with strings unit }
-function strlen(p : pchar) : longint;
+function strlen(p : pchar) : strlenint;
 function strcopy(dest,source : pchar) : pchar;
-function strlcopy(dest,source : pchar;maxlen : longint) : pchar;
+function strlcopy(dest,source : pchar;maxlen : strlenint) : pchar;
 function strecopy(dest,source : pchar) : pchar;
 function strend(p : pchar) : pchar;
 function strcat(dest,source : pchar) : pchar;
-function strcomp(str1,str2 : pchar) : longint;
-function strlcomp(str1,str2 : pchar;l : longint) : longint;
-function stricomp(str1,str2 : pchar) : longint;
-function strmove(dest,source : pchar;l : longint) : pchar;
-function strlcat(dest,source : pchar;l : longint) : pchar;
+function strcomp(str1,str2 : pchar) : strlenint;
+function strlcomp(str1,str2 : pchar;l : strlenint) : strlenint;
+function stricomp(str1,str2 : pchar) : strlenint;
+function strmove(dest,source : pchar;l : strlenint) : pchar;
+function strlcat(dest,source : pchar;l : strlenint) : pchar;
 function strscan(p : pchar;c : char) : pchar;
 function strrscan(p : pchar;c : char) : pchar;
 function strlower(p : pchar) : pchar;
 function strupper(p : pchar) : pchar;
-function strlicomp(str1,str2 : pchar;l : longint) : longint;
+function strlicomp(str1,str2 : pchar;l : strlenint) : strlenint;
 function strpos(str1,str2 : pchar) : pchar;
 function strnew(p : pchar) : pchar;
 
 { Different from strings unit - ansistrings or different behaviour }
 function StrPas(Str: PChar): string;
 function StrPCopy(Dest: PChar; Source: string): PChar;
-function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
+function StrPLCopy(Dest: PChar; Source: string; MaxLen: strlenuint): PChar;
 function StrAlloc(Size: cardinal): PChar;
-function StrBufSize(Str: PChar): cardinal;
+function StrBufSize(Str: PChar): strlenuint;
 procedure StrDispose(Str: PChar);
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-02-20 22:15:16  florian
+    + x86_64 dependend sysutils part added
+    * some 64 bit adaptions
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.3  2002/09/07 16:01:22  peter
