@@ -493,7 +493,7 @@ unit cg64f32;
              if from_signed and to_signed then
                begin
                  getlabel(endlabel);
-                 a_jmp_cond(list,OC_NONE,endlabel);
+                 a_jmp_always(list,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
                  a_label(list,neglabel);
@@ -591,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-04-07 13:21:18  carl
+  Revision 1.8  2002-04-21 15:28:51  carl
+  * a_jmp_cond -> a_jmp_always
+
+  Revision 1.7  2002/04/07 13:21:18  carl
   + more documentation
 
   Revision 1.6  2002/04/03 10:41:35  jonas
