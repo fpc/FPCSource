@@ -414,7 +414,7 @@ Procedure AssignFile(Var f:TypedFile;c:char);
                              pushl message
                              pushl %esi
                              movl p,%edi
-                             call %edi
+                             call *%edi
                           end;
                           exit;
                        end;
@@ -460,7 +460,7 @@ Procedure AssignFile(Var f:TypedFile;c:char);
                              pushl message
                              pushl %esi
                              movl p,%edi
-                             call %edi
+                             call *%edi
                           end;
                           exit;
                        end;
@@ -597,7 +597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-02-22 23:30:54  florian
+  Revision 1.21  1999-02-23 14:04:36  pierre
+   * call %edi => call *%edi
+
+  Revision 1.20  1999/02/22 23:30:54  florian
     + TObject.Dispatch and TObject.DispatchStr added, working
 
   Revision 1.19  1998/12/24 10:12:03  michael
