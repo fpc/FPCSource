@@ -192,7 +192,7 @@ interface
          function  calcsize(p:PInsEntry):longint;
          procedure gencode(sec:TAsmObjectData);
          function  NeedAddrPrefix(opidx:byte):boolean;
-         procedure Swatoperands;
+         procedure Swapoperands;
     {$endif NOAG386BIN}
       end;
 
@@ -649,7 +649,7 @@ implementation
       end;
 
 
-    procedure taicpu.Swatoperands;
+    procedure taicpu.Swapoperands;
       var
         p : TOper;
       begin
@@ -675,7 +675,7 @@ implementation
       begin
         if FOperandOrder<>order then
          begin
-           Swatoperands;
+           Swapoperands;
            FOperandOrder:=order;
          end;
       end;
@@ -1796,7 +1796,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-20 11:57:59  florian
+  Revision 1.3  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.2  2002/07/20 11:57:59  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

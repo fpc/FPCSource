@@ -111,7 +111,7 @@ interface
            st_shortstring :
              begin
                inc(left.location.reference.offset);
-               location.register:=rg.getregisterint(exprasmlist);
+               location.register:=rg.getaddressregister(exprasmlist);
                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
            st_ansistring :
@@ -121,12 +121,12 @@ interface
                 begin
                   reference_reset(hr);
                   hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=rg.getregisterint(exprasmlist);
+                  location.register:=rg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  location.register:=rg.getregisterint(exprasmlist);
+                  location.register:=rg.getaddressregister(exprasmlist);
                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
                 end;
              end;
@@ -142,7 +142,7 @@ interface
                 begin
                   reference_reset(hr);
                   hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=rg.getregisterint(exprasmlist);
+                  location.register:=rg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
                else
@@ -185,7 +185,7 @@ interface
       begin
          location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=rg.getregisterint(exprasmlist);
+         location.register:=rg.getaddressregister(exprasmlist);
          cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
       end;
 
@@ -196,7 +196,17 @@ interface
         location_reset(location,LOC_REFERENCE,OS_NO);
         case left.location.loc of
           LOC_REGISTER :
-            location.reference.base:=left.location.register;
+            begin
+              if not rg.isaddressregister(left.location.register) then
+                begin
+                  location_release(exprasmlist,left.location);
+                  location.reference.base:=rg.getaddressregister(exprasmlist);
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,
+                          left.location.register,location.reference.base);
+                end
+              else
+                location.reference.base := left.location.register;
+            end;
           LOC_CREGISTER :
             begin
               location.reference.base:=rg.getregisterint(exprasmlist);
@@ -207,7 +217,7 @@ interface
           LOC_CREFERENCE :
             begin
               location_release(exprasmlist,left.location);
-              location.reference.base:=rg.getregisterint(exprasmlist);
+              location.reference.base:=rg.getaddressregister(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
                 location.reference.base);
             end;
@@ -279,7 +289,7 @@ interface
           begin
              location_release(exprasmlist,left.location);
              location_reset(location,LOC_REGISTER,OS_ADDR);
-             location.register:=rg.getregisterint(exprasmlist);
+             location.register:=rg.getaddressregister(exprasmlist);
              cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
           end;
       end;
@@ -332,11 +342,21 @@ interface
          objectlibrary.getlabel(l1);
          case left.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
-              location.register:=left.location.register;
+              begin
+                 if not rg.isaddressregister(left.location.register) then
+                   begin
+                     location_release(exprasmlist,left.location);
+                     location.register:=rg.getaddressregister(exprasmlist);
+                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,
+                              left.location.register,location.register);
+                   end
+                 else
+                    location.register := left.location.register;
+              end;
             LOC_CREFERENCE,LOC_REFERENCE:
               begin
                 location_release(exprasmlist,left.location);
-                location.register:=rg.getregisterint(exprasmlist);
+                location.register:=rg.getaddressregister(exprasmlist);
                 cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,location.register);
               end;
             else
@@ -503,7 +523,13 @@ end.
 
 {
   $Log$
-  Revision 1.24  2002-08-12 20:39:17  florian
+  Revision 1.25  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.24  2002/08/12 20:39:17  florian
     * casting of classes to interface fixed when the interface was
       implemented by a parent class
 

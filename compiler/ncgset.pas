@@ -85,7 +85,7 @@ implementation
       paramgr,
       pass_2,
       ncon,
-      cga,tgobj,ncgutil,regvars,rgobj;
+      tgobj,ncgutil,regvars,rgobj;
 
 
 {*****************************************************************************
@@ -956,7 +956,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-08-11 14:32:27  peter
+  Revision 1.17  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.16  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.15  2002/08/11 13:24:12  peter

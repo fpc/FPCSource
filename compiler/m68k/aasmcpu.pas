@@ -71,9 +71,11 @@ type
 
      constructor op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
      { for DBxx opcodes }
-     constructor op_sym_reg(op: tasmop; _size : topsize; _op1 :tasmsymbol; _op2: tregister);
+     constructor op_reg_sym(op: tasmop; _size : topsize; _op1: tregister; _op2 :tasmsymbol);
      constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
-
+     
+     constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
+     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
   private
      procedure loadreglist(opidx:longint;r:tregisterlist);
@@ -81,6 +83,12 @@ type
   end;
 
 
+  tai_align = class(tai_align_abstract)
+        { nothing to add }
+  end;
+  
+  procedure InitAsm;
+  procedure DoneAsm;
 
 
 implementation
@@ -331,15 +339,33 @@ implementation
       end;
 
 
-     constructor taicpu.op_sym_reg(op: tasmop; _size : topsize; _op1 :tasmsymbol; _op2: tregister);
+     constructor taicpu.op_reg_sym(op: tasmop; _size : topsize; _op1: tregister; _op2 :tasmsymbol);
       begin
          inherited create(op);
          init(_size);
          ops:=2;
-         loadsymbol(0,_op1,0);
-         loadreg(1,_op2);
+         loadreg(0,_op1);
+         loadsymbol(1,_op2,0);
       end;
 
+
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+      begin
+         inherited create(op);
+         init(_size);
+         ops:=2;
+         loadsymbol(0,_op1,_op1ofs);
+         loadref(1,_op2);
+      end;
+
+
+    constructor taicpu.op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
+      begin
+         inherited create(op);
+         init(_size);
+         ops:=1;
+         loadsymbol(0,_op1,_op1ofs);
+      end;
 
     constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
@@ -383,7 +409,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-08-12 15:08:43  carl
+  Revision 1.3  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.2  2002/08/12 15:08:43  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

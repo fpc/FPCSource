@@ -158,22 +158,22 @@ implementation
 {$ifdef m68k}
     procedure dir_appid;
       begin
-        if system_info.target<>system_m68k_palmos then
+        if target_info.system<>system_m68k_palmos then
           Message(scan_w_appid_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
-        current_scanner^.skipspace;
-        palmos_applicationid:=current_scanner^.readcomment;
+        current_scanner.skipspace;
+        palmos_applicationid:=current_scanner.readcomment;
       end;
 
     procedure dir_appname;
       begin
-        if system_info.target<>system_m68k_palmos then
+        if target_info.system<>system_m68k_palmos then
           Message(scan_w_appname_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
-        current_scanner^.skipspace;
-        palmos_applicationname:=current_scanner^.readcomment;
+        current_scanner.skipspace;
+        palmos_applicationname:=current_scanner.readcomment;
       end;
 {$endif m68k}
 
@@ -948,7 +948,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-07-26 21:15:42  florian
+  Revision 1.19  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.18  2002/07/26 21:15:42  florian
     * rewrote the system handling
 
   Revision 1.17  2002/07/20 17:16:03  florian

@@ -79,7 +79,7 @@ type
       OPR_REFERENCE : (ref:treference);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGLIST   : (reglist:pregisterlist);
+      OPR_REGLIST   : (reglist:tregisterlist);
 {$else not m68k}
       OPR_REGLIST   : ();
 {$endif m68k}
@@ -115,7 +115,7 @@ type
     Procedure InitOperands;virtual;
     Procedure BuildOpcode;virtual;
     procedure ConcatInstruction(p:TAAsmoutput);virtual;
-    Procedure Swatoperands;
+    Procedure Swapoperands;
   end;
 
 
@@ -1080,7 +1080,7 @@ begin
 end;
 
 
-Procedure TInstruction.Swatoperands;
+Procedure TInstruction.Swapoperands;
 Var
   p : toperand;
 Begin
@@ -1592,7 +1592,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  2002-08-12 15:08:40  carl
+  Revision 1.42  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.41  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

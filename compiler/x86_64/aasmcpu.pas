@@ -196,7 +196,7 @@ interface
          function  calcsize(p:PInsEntry):longint;
          procedure gencode(sec:TAsmObjectData);
          function  NeedAddrPrefix(opidx:byte):boolean;
-         procedure Swatoperands;
+         procedure Swapoperands;
     {$endif NOAG386BIN}
       end;
 
@@ -652,7 +652,7 @@ implementation
       end;
 
 
-    procedure taicpu.Swatoperands;
+    procedure taicpu.Swapoperands;
       var
         p : TOper;
       begin
@@ -678,7 +678,7 @@ implementation
       begin
         if FOperandOrder<>order then
          begin
-           Swatoperands;
+           Swapoperands;
            FOperandOrder:=order;
          end;
       end;
@@ -1799,7 +1799,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:33  florian
+  Revision 1.3  2002-08-13 18:01:53  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.2  2002/07/25 22:55:33  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian

@@ -94,7 +94,6 @@ implementation
       cpubase,cpuinfo,
       nld,ncon,
       ncgutil,
-      cga,
       tgobj,rgobj,paramgr,
       regvars,cgobj,cgcpu,cg64f32;
 
@@ -1226,7 +1225,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-08-11 14:32:26  peter
+  Revision 1.35  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.34  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.33  2002/08/11 13:24:11  peter

@@ -1902,7 +1902,7 @@ Begin
           instr:=T386IntelInstruction.Create;
           instr.BuildOpcode;
           { We need AT&T style operands }
-          instr.Swatoperands;
+          instr.Swapoperands;
           { Must be done with args in ATT order }
           instr.CheckNonCommutativeOpcodes;
           instr.AddReferenceSizes;
@@ -1959,7 +1959,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2002-08-11 14:32:31  peter
+  Revision 1.32  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.31  2002/08/11 14:32:31  peter
     * renamed current_library to objectlibrary
 
   Revision 1.30  2002/08/11 13:24:17  peter

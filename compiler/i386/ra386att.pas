@@ -1620,7 +1620,7 @@ procedure T386AttInstruction.InitOperands;
 var
   i : longint;
 begin
-  for i:=1to 3 do
+  for i:=1to max_operands do
    Operands[i]:=T386AttOperand.Create;
 end;
 
@@ -2129,7 +2129,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2002-08-12 15:08:42  carl
+  Revision 1.30  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.29  2002/08/12 15:08:42  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

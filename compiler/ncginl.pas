@@ -32,7 +32,6 @@ interface
     type
        tcginlinenode = class(tinlinenode)
           procedure pass_2;override;
-          procedure second_assigned;virtual; abstract;
           procedure second_assert;virtual;
           procedure second_sizeoftypeof;virtual;
           procedure second_length;virtual;
@@ -60,7 +59,7 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      cga,tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -105,10 +104,6 @@ implementation
                begin
                   second_TypeInfo;
                end;
-            in_assigned_x :
-              begin
-                 second_Assigned;
-              end;
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -411,38 +406,6 @@ implementation
 
 
 {*****************************************************************************
-                         ASSIGNED GENERIC HANDLING
-*****************************************************************************}
-(*
-      procedure tcginlinenode.second_Assigned;
-        var
-         hreg : tregister;
-         ptrvalidlabel : tasmlabel;
-        begin
-          secondpass(tcallparanode(left).left);
-          location_release(exprasmlist,tcallparanode(left).left.location);
-          hreg := rg.getregisterint(exprasmlist);
-          if (tcallparanode(left).left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-            begin
-              { if pointer is non-nil, and is in register, this directly the value we can use }
-              cg.a_load_reg_reg(exprasmlist, OS_ADDR, tcallparanode(left).left.location.register, hreg);
-            end
-          else
-            begin
-              objectlibrary.getlabel(ptrvalidlabel);
-              cg.a_load_const_reg(exprasmlist, OS_INT, 1, hreg);
-              cg.a_cmp_const_ref_label(exprasmlist, OS_ADDR, OC_NE, 0,
-                  tcallparanode(left).left.location.reference, ptrvalidlabel);
-              cg.a_load_const_reg(exprasmlist, OS_INT, 0, hreg);
-              cg.a_label(exprasmlist,ptrvalidlabel);
-            end;
-          location.register := hreg;
-          location_reset(location,LOC_REGISTER,OS_INT);
-          WriteLn('Exiting assigned node!');
-        end;
-
-*)
-{*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
       procedure tcginlinenode.second_IncludeExclude;
@@ -641,7 +604,13 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-08-11 14:32:26  peter
+  Revision 1.13  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.12  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.11  2002/08/11 13:24:11  peter

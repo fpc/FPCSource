@@ -40,7 +40,7 @@ implementation
 uses
   globals,
   symconst,symtype,symsym,symdef,symtable,
-  ninl;
+  ninl,globtype;
 
 procedure insertinternsyms(p : tsymtable);
 {
@@ -294,7 +294,7 @@ begin
   if (cs_fp_emulation in aktmoduleswitches) then
    begin
      s64floattype.setdef(tfloatdef.create(s32real));
-     s80floattype.setdef(tfloatdef.create(s32real)))
+     s80floattype.setdef(tfloatdef.create(s32real));
    end
   else
    begin
@@ -315,7 +315,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2002-08-11 15:28:00  florian
+  Revision 1.34  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.33  2002/08/11 15:28:00  florian
     + support of explicit type case <any ordinal type>->pointer
       (delphi mode only)
 

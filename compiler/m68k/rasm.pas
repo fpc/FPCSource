@@ -44,10 +44,33 @@ Unit Rasm;
 
 Interface
 
+{$i fpcdefs.inc}
+
 Uses
-  globtype,cpubase,tree;
+  node;
 
    function assemble: tnode;
+
+
+
+Implementation
+
+    uses
+       { common }
+       cutils,cclasses,
+       { global }
+       globtype,globals,verbose,
+       systems,
+       { aasm }
+       cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
+       { symtable }
+       symconst,symbase,symtype,symsym,symtable,
+       { pass 1 }
+       nbas,
+       { parser }
+       scanner,agcpugas,
+       rautils
+       ;
 
 const
  { this variable is TRUE if the lookup tables have already been setup  }
@@ -70,15 +93,8 @@ var
  iasmregs: array[firstasmreg..lastasmreg] of string[6];
 
 
-Implementation
-
-uses
-  files,globals,systems,RAUtils,strings,hcodegen,scanner,aasm,
-  cpuasm,cobjects,verbose,symconst,symtable;
-
-
 type
- tmotorolatoken = (
+ tasmtoken = (
    AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_HEXNUM,AS_OCTALNUM,
    AS_BINNUM,AS_COMMA,AS_LBRACKET,AS_RBRACKET,AS_LPAREN,
    AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,AS_INTNUM,
@@ -88,6 +104,8 @@ type
    AS_DB,AS_DW,AS_DD,AS_XDEF,AS_END,
      {------------------ Assembler Operators  --------------------}
    AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR);
+
+
 
 const
    firstdirective = AS_DB;
@@ -112,12 +130,11 @@ const
   firsttoken : boolean = TRUE;
   operandnum : byte = 0;
 var
- p : paasmoutput;
- actasmtoken: tmotorolatoken;
+ actasmtoken: tasmtoken;
  actasmpattern: string;
  c: char;
- Instr: TInstruction;
  old_exit : pointer;
+ curlist : taasmoutput;
 
    Procedure SetupTables;
    { creates uppercased symbol tables for speed access }
@@ -129,10 +146,10 @@ var
      { opcodes }
      new(iasmops);
      for i:=firstop to lastop do
-      iasmops^[i] := upper(mot_op2str[i]);
+      iasmops^[i] := upper(gas_op2str[i]);
      { opcodes }
      for j:=firstasmreg to lastasmreg do
-      iasmregs[j] := upper(mot_reg2str[j]);
+      iasmregs[j] := upper(std_reg2str[j]);
    end;
 
 
@@ -169,7 +186,7 @@ var
 
 
 
-   Procedure is_asmdirective(const s: string; var token: tmotorolatoken);
+   Procedure is_asmdirective(const s: string; var token: tasmtoken);
   {*********************************************************************}
   { FUNCTION is_asmdirective(s: string; var token: tinteltoken):Boolean }
   {  Description: Determines if the s string is a valid directive       }
@@ -183,14 +200,14 @@ var
      begin
         if s=_asmdirectives[i] then
         begin
-           token := tmotorolatoken(longint(firstdirective)+i);
+           token := tasmtoken(longint(firstdirective)+i);
            exit;
         end;
      end;
    end;
 
 
-   Procedure is_register(const s: string; var token: tmotorolatoken);
+   Procedure is_register(const s: string; var token: tasmtoken);
   {*********************************************************************}
   { PROCEDURE is_register(s: string; var token: tinteltoken);           }
   {  Description: Determines if the s string is a valid register, if    }
@@ -217,14 +234,14 @@ var
 
 
 
-  Function GetToken: tmotorolatoken;
+  Function GetToken: tasmtoken;
   {*********************************************************************}
   { FUNCTION GetToken: tinteltoken;                                     }
   {  Description: This routine returns intel assembler tokens and       }
   {  does some minor syntax error checking.                             }
   {*********************************************************************}
   var
-   token: tmotorolatoken;
+   token: tasmtoken;
    forcelabel: boolean;
   begin
     forcelabel := FALSE;
@@ -233,10 +250,10 @@ var
     token := AS_NONE;
     { while space and tab , continue scan... }
     while c in [' ',#9] do
-     c:=current_scanner^.asmgetchar;
+     c:=current_scanner.asmgetchar;
 
     if not (c in [newline,#13,'{',';']) then
-     current_scanner^.gettokenpos;
+     current_scanner.gettokenpos;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
     if firsttoken and not (c in [newline,#13,'{',';']) then
@@ -247,7 +264,7 @@ var
       begin
         token := AS_LLABEL;   { this is a local label }
         { Let us point to the next character }
-        c := current_scanner^.asmgetchar;
+        c := current_scanner.asmgetchar;
       end;
 
 
@@ -257,7 +274,7 @@ var
          { if there is an at_sign, then this must absolutely be a label }
          if c = '@' then forcelabel:=TRUE;
          actasmpattern := actasmpattern + c;
-         c := current_scanner^.asmgetchar;
+         c := current_scanner.asmgetchar;
       end;
 
       uppervar(actasmpattern);
@@ -269,7 +286,7 @@ var
              AS_LLABEL: ; { do nothing }
            end; { end case }
            { let us point to the next character }
-           c := current_scanner^.asmgetchar;
+           c := current_scanner.asmgetchar;
            gettoken := token;
            exit;
       end;
@@ -305,11 +322,11 @@ var
                 {                - @Result, @Code or @Data special variables.     }
                             begin
                              actasmpattern := c;
-                             c:= current_scanner^.asmgetchar;
+                             c:= current_scanner.asmgetchar;
                              while c in  ['A'..'Z','a'..'z','0'..'9','_','@','.'] do
                              begin
                                actasmpattern := actasmpattern + c;
-                               c := current_scanner^.asmgetchar;
+                               c := current_scanner.asmgetchar;
                              end;
                              uppervar(actasmpattern);
                              gettoken := AS_ID;
@@ -318,11 +335,11 @@ var
       { identifier, register, opcode, prefix or directive }
          'A'..'Z','a'..'z','_': begin
                              actasmpattern := c;
-                             c:= current_scanner^.asmgetchar;
+                             c:= current_scanner.asmgetchar;
                              while c in  ['A'..'Z','a'..'z','0'..'9','_','.'] do
                              begin
                                actasmpattern := actasmpattern + c;
-                               c := current_scanner^.asmgetchar;
+                               c := current_scanner.asmgetchar;
                              end;
                              uppervar(actasmpattern);
 
@@ -348,7 +365,7 @@ var
                           end;
            { override operator... not supported }
            '&':       begin
-                         c:=current_scanner^.asmgetchar;
+                         c:=current_scanner.asmgetchar;
                          gettoken := AS_AND;
                       end;
            { string or character }
@@ -359,7 +376,7 @@ var
                          begin
                            if c = '''' then
                            begin
-                              c:=current_scanner^.asmgetchar;
+                              c:=current_scanner.asmgetchar;
                               if c=newline then
                               begin
                                  Message(scan_f_string_exceeds_line);
@@ -368,11 +385,11 @@ var
                               repeat
                                   if c=''''then
                                    begin
-                                       c:=current_scanner^.asmgetchar;
+                                       c:=current_scanner.asmgetchar;
                                        if c='''' then
                                         begin
                                                actasmpattern:=actasmpattern+'''';
-                                               c:=current_scanner^.asmgetchar;
+                                               c:=current_scanner.asmgetchar;
                                                if c=newline then
                                                begin
                                                     Message(scan_f_string_exceeds_line);
@@ -384,7 +401,7 @@ var
                                    else
                                    begin
                                           actasmpattern:=actasmpattern+c;
-                                          c:=current_scanner^.asmgetchar;
+                                          c:=current_scanner.asmgetchar;
                                           if c=newline then
                                             begin
                                                Message(scan_f_string_exceeds_line);
@@ -400,101 +417,101 @@ var
                    exit;
                  end;
            '$' :  begin
-                    c:=current_scanner^.asmgetchar;
+                    c:=current_scanner.asmgetchar;
                     while c in ['0'..'9','A'..'F','a'..'f'] do
                     begin
                       actasmpattern := actasmpattern + c;
-                      c := current_scanner^.asmgetchar;
+                      c := current_scanner.asmgetchar;
                     end;
                    gettoken := AS_HEXNUM;
                    exit;
                   end;
            ',' : begin
                    gettoken := AS_COMMA;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            '(' : begin
                    gettoken := AS_LPAREN;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            ')' : begin
                    gettoken := AS_RPAREN;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            ':' : begin
                    gettoken := AS_COLON;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
 {           '.' : begin
                    gettoken := AS_DOT;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end; }
            '+' : begin
                    gettoken := AS_PLUS;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            '-' : begin
                    gettoken := AS_MINUS;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            '*' : begin
                    gettoken := AS_STAR;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            '/' : begin
                    gettoken := AS_SLASH;
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    exit;
                  end;
            '<' : begin
-                   c := current_scanner^.asmgetchar;
+                   c := current_scanner.asmgetchar;
                    { invalid characters }
                    if c <> '<' then
                     Message(asmr_e_invalid_char_smaller);
                    { still assume << }
                    gettoken := AS_SHL;
-                   c := current_scanner^.asmgetchar;
+                   c := current_scanner.asmgetchar;
                    exit;
                  end;
            '>' : begin
-                   c := current_scanner^.asmgetchar;
+                   c := current_scanner.asmgetchar;
                    { invalid characters }
                    if c <> '>' then
                     Message(asmr_e_invalid_char_greater);
                    { still assume << }
                    gettoken := AS_SHR;
-                   c := current_scanner^.asmgetchar;
+                   c := current_scanner.asmgetchar;
                    exit;
                  end;
            '|' : begin
                    gettoken := AS_OR;
-                   c := current_scanner^.asmgetchar;
+                   c := current_scanner.asmgetchar;
                    exit;
                  end;
            '^' : begin
                   gettoken := AS_XOR;
-                  c := current_scanner^.asmgetchar;
+                  c := current_scanner.asmgetchar;
                   exit;
                  end;
            '#' : begin
                   gettoken:=AS_APPT;
-                  c:=current_scanner^.asmgetchar;
+                  c:=current_scanner.asmgetchar;
                   exit;
                  end;
            '%' : begin
-                   c:=current_scanner^.asmgetchar;
+                   c:=current_scanner.asmgetchar;
                    while c in ['0','1'] do
                    Begin
                      actasmpattern := actasmpattern + c;
-                     c := current_scanner^.asmgetchar;
+                     c := current_scanner.asmgetchar;
                    end;
                    gettoken := AS_BINNUM;
                    exit;
@@ -502,25 +519,25 @@ var
            { integer number }
            '0'..'9': begin
                         actasmpattern := c;
-                        c := current_scanner^.asmgetchar;
+                        c := current_scanner.asmgetchar;
                         while c in ['0'..'9'] do
                           Begin
                              actasmpattern := actasmpattern + c;
-                             c:= current_scanner^.asmgetchar;
+                             c:= current_scanner.asmgetchar;
                           end;
                         gettoken := AS_INTNUM;
                         exit;
                      end;
          ';' : begin
                   repeat
-                     c:=current_scanner^.asmgetchar;
+                     c:=current_scanner.asmgetchar;
                   until c=newline;
                   firsttoken := TRUE;
                   gettoken:=AS_SEPARATOR;
                end;
 
          '{',#13,newline : begin
-                            c:=current_scanner^.asmgetchar;
+                            c:=current_scanner.asmgetchar;
                             firsttoken := TRUE;
                             gettoken:=AS_SEPARATOR;
                            end;
@@ -538,11 +555,11 @@ var
   {                     Routines for the parsing                        }
   {---------------------------------------------------------------------}
 
-     procedure consume(t : tmotorolatoken);
+     procedure consume(t : tasmtoken);
 
      begin
        if t<>actasmtoken then
-        Message(asmr_e_syntax_error);
+          Message(asmr_e_syntax_error);
        actasmtoken:=gettoken;
        { if the token must be ignored, then }
        { get another token to parse.        }
@@ -578,7 +595,7 @@ var
    end;
 
 
-   function findopcode(s: string): tasmop;
+   function findopcode(s: string; var opsize: topsize): tasmop;
   {*********************************************************************}
   { FUNCTION findopcode(s: string): tasmop;                             }
   {  Description: Determines if the s string is a valid opcode          }
@@ -597,12 +614,12 @@ var
        case op_size[1] of
        { For the motorola only opsize size is used to }
        { determine the size of the operands.             }
-       'B': instr.opsize := S_B;
-       'W': instr.opsize := S_W;
-       'L': instr.opsize := S_L;
-       'S': instr.opsize := S_FS;
-       'D': instr.opsize := S_FL;
-       'X': instr.opsize := S_FX;
+       'B': opsize := S_B;
+       'W': opsize := S_W;
+       'L': opsize := S_L;
+       'S': opsize := S_FS;
+       'D': opsize := S_FD;
+       'X': opsize := S_FX;
        else
         Message1(asmr_e_unknown_opcode,s);
        end;
@@ -617,353 +634,8 @@ var
        end;
    end;
 
-  Procedure InitAsmRef(var instr: TInstruction);
-  {*********************************************************************}
-  {  Description: This routine first check if the instruction is of     }
-  {  type OPR_NONE, or OPR_REFERENCE , if not it gives out an error.    }
-  {  If the operandtype = OPR_NONE or <> OPR_REFERENCE then it sets up  }
-  {  the operand type to OPR_REFERENCE, as well as setting up the ref   }
-  {  to point to the default segment.                                   }
-  {*********************************************************************}
-   Begin
-     With instr do
-     Begin
-        case operands[operandnum]^.opr.typ of
-          OPR_REFERENCE: exit;
-          OPR_NONE: ;
-        else
-          Message(asmr_e_invalid_operand_type);
-        end;
-        operands[operandnum]^.opr.ref.direction := dir_none;
-        operands[operandnum]^.opr.typ := OPR_REFERENCE;
-        operands[operandnum]^.opr.ref.segment := R_NO;
-     end;
-   end;
 
 
-
-
-  Function CalculateExpression(expression: string): longint;
-  var
-    expr: TExprParse;
-  Begin
-   expr.Init;
-   CalculateExpression := expr.Evaluate(expression);
-   expr.Done;
-  end;
-
-
-  Procedure ConcatOpCode(var instr: TInstruction);
-  var
-    fits : boolean;
-    instruc: tasmop;
-  Begin
-     fits := FALSE;
-    { setup specific instructions for first pass }
-    instruc := instr.opcode;
-
-    { Setup special operands }
-    { Convert to general form as to conform to the m68k opcode table }
-    if (instruc = A_ADDA) or (instruc = A_ADDI)
-       then instruc := A_ADD
-    else
-    { CMPM excluded because of GAS v1.34 BUG }
-    if (instruc = A_CMPA) or
-       (instruc = A_CMPI) then
-       instruc := A_CMP
-    else
-    if instruc = A_EORI then
-      instruc := A_EOR
-    else
-    if instruc = A_MOVEA then
-     instruc := A_MOVE
-    else
-    if instruc = A_ORI then
-      instruc := A_OR
-    else
-    if (instruc = A_SUBA) or (instruc = A_SUBI) then
-      instruc :=  A_SUB;
-
-    { Setup operand types }
-
-(*
-    in instruc <> A_MOVEM then
-    Begin
-
-      while not(fits) do
-        begin
-         { set the instruction cache, if the instruction }
-         { occurs the first time                         }
-         if (it[i].i=instruc) and (ins_cache[instruc]=-1) then
-             ins_cache[instruc]:=i;
-
-         if (it[i].i=instruc) and (instr.ops=it[i].ops) then
-         begin
-            { first fit }
-           case instr.ops of
-             0 : begin
-                   fits:=true;
-                   break;
-                end;
-            1 :
-                Begin
-                  if (optyp1 and it[i].o1)<>0 then
-                  Begin
-                    fits:=true;
-                     break;
-                  end;
-                end;
-            2 : if ((optyp1 and it[i].o1)<>0) and
-                 ((optyp2 and it[i].o2)<>0) then
-                 Begin
-                       fits:=true;
-                       break;
-                 end
-            3 : if ((optyp1 and it[i].o1)<>0) and
-                 ((optyp2 and it[i].o2)<>0) and
-                 ((optyp3 and it[i].o3)<>0) then
-                 Begin
-                   fits:=true;
-                   break;
-                 end;
-           end; { end case }
-        end; { endif }
-        if it[i].i=A_NONE then
-        begin
-          { NO MATCH! }
-          Message(asmr_e_invalid_combination_opcode_and_operand);
-          exit;
-        end;
-        inc(i);
-       end; { end while }
-             *)
-  fits:=TRUE;
-
-  { We add the opcode to the opcode linked list }
-  if fits then
-  Begin
-    case instr.ops of
-
-     0:
-        if instr.opsize <> S_NO then
-          p^.concat(new(paicpu,op_none(instruc,instr.opsize)))
-        else
-          p^.concat(new(paicpu,op_none(instruc,S_NO)));
-     1: Begin
-          case instr.operands[1]^.opr.typ of
-           OPR_SYMBOL: Begin
-                             p^.concat(new(paicpu,op_sym_ofs(instruc,
-                               instr.opsize, instr.operands[1]^.opr.symbol,instr.operands[1]^.opr.symofs)));
-                         end;
-           OPR_CONSTANT: Begin
-                             p^.concat(new(paicpu,op_const(instruc,
-                               instr.opsize, instr.operands[1]^.opr.val)));
-                         end;
-           OPR_REGISTER:  p^.concat(new(paicpu,op_reg(instruc,
-                            instr.opsize,instr.operands[1]^.opr.reg)));
-           OPR_REFERENCE:
-                          if instr.opsize <> S_NO then
-                          Begin
-                           p^.concat(new(paicpu,op_ref(instruc,
-                            instr.opsize,newreference(instr.operands[1]^.opr.ref))));
-                          end
-                          else
-                          Begin
-                              { special jmp and call case with }
-                              { symbolic references.           }
-                              if instruc in [A_BSR,A_JMP,A_JSR,A_BRA,A_PEA] then
-                              Begin
-                                p^.concat(new(paicpu,op_ref(instruc,
-                                  S_NO,newreference(instr.operands[1]^.opr.ref))));
-                              end
-                              else
-                                Message(asmr_e_invalid_opcode_and_operand);
-                          end;
-           OPR_NONE: Begin
-                       Message(asmr_e_invalid_opcode_and_operand);
-                     end;
-          else
-           Begin
-             Message(asmr_e_invalid_opcode_and_operand);
-           end;
-          end;
-        end;
-     2:
-        Begin
-                With instr do
-                Begin
-                { source }
-                  case operands[1]^.opr.typ of
-                  { reg,reg     }
-                  { reg,ref     }
-                   OPR_REGISTER:
-                     Begin
-                       case operands[2]^.opr.typ of
-                         OPR_REGISTER:
-                            Begin
-                               p^.concat(new(paicpu,op_reg_reg(instruc,
-                               opsize,operands[1]^.opr.reg,operands[2]^.opr.reg)));
-                            end;
-                         OPR_REFERENCE:
-                                  p^.concat(new(paicpu,op_reg_ref(instruc,
-                                  opsize,operands[1]^.opr.reg,newreference(operands[2]^.opr.ref))));
-                       else { else case }
-                         Begin
-                           Message(asmr_e_invalid_opcode_and_operand);
-                         end;
-                       end; { end second operand case for OPR_REGISTER }
-                     end;
-                  { reglist, ref }
-                   OPR_REGLIST:
-                          Begin
-                            case operands[2]^.opr.typ of
-                              OPR_REFERENCE :
-                                  p^.concat(new(paicpu,op_reglist_ref(instruc,
-                                  opsize,operands[1]^.opr.reglist^,newreference(operands[2]^.opr.ref))));
-                            else
-                             Begin
-                               Message(asmr_e_invalid_opcode_and_operand);
-                             end;
-                            end; { end second operand case for OPR_REGLIST }
-                          end;
-
-                  { const,reg   }
-                  { const,const }
-                  { const,ref   }
-                   OPR_CONSTANT:
-                      case instr.operands[2]^.opr.typ of
-                      { constant, constant does not have a specific size. }
-                        OPR_CONSTANT:
-                           p^.concat(new(paicpu,op_const_const(instruc,
-                           S_NO,operands[1]^.opr.val,operands[2]^.opr.val)));
-                        OPR_REFERENCE:
-                           Begin
-                                 p^.concat(new(paicpu,op_const_ref(instruc,
-                                 opsize,operands[1]^.opr.val,
-                                 newreference(operands[2]^.opr.ref))))
-                           end;
-                        OPR_REGISTER:
-                           Begin
-                                 p^.concat(new(paicpu,op_const_reg(instruc,
-                                 opsize,operands[1]^.opr.val,
-                                 operands[2]^.opr.reg)))
-                           end;
-                      else
-                         Begin
-                           Message(asmr_e_invalid_opcode_and_operand);
-                         end;
-                      end; { end second operand case for OPR_CONSTANT }
-                   { ref,reg     }
-                   { ref,ref     }
-                   OPR_REFERENCE:
-                      case instr.operands[2]^.opr.typ of
-                         OPR_REGISTER:
-                            Begin
-                              p^.concat(new(paicpu,op_ref_reg(instruc,
-                               opsize,newreference(operands[1]^.opr.ref),
-                               operands[2]^.opr.reg)));
-                            end;
-                         OPR_REGLIST:
-                            Begin
-                              p^.concat(new(paicpu,op_ref_reglist(instruc,
-                               opsize,newreference(operands[1]^.opr.ref),
-                               operands[2]^.opr.reglist^)));
-                            end;
-                         OPR_REFERENCE: { special opcodes }
-                            p^.concat(new(paicpu,op_ref_ref(instruc,
-                            opsize,newreference(operands[1]^.opr.ref),
-                            newreference(operands[2]^.opr.ref))));
-                      else
-                         Begin
-                           Message(asmr_e_invalid_opcode_and_operand);
-                         end;
-                      end; { end second operand case for OPR_REFERENCE }
-           OPR_SYMBOL: case operands[2]^.opr.typ of
-                        OPR_REFERENCE:
-                           Begin
-                                 p^.concat(new(paicpu,op_sym_ofs_ref(instruc,
-                                   opsize,instr.operands[1]^.opr.symbol,instr.operands[1]^.opr.symofs,
-                                   newreference(operands[2]^.opr.ref))))
-                           end;
-                        OPR_REGISTER:
-                           Begin
-                                 p^.concat(new(paicpu,op_sym_ofs_reg(instruc,
-                                   opsize,instr.operands[1]^.opr.symbol,instr.operands[1]^.opr.symofs,
-                                   operands[2]^.opr.reg)))
-                           end;
-                      else
-                         Begin
-                           Message(asmr_e_invalid_opcode_and_operand);
-                         end;
-                      end; { end second operand case for OPR_SYMBOL }
-                  else
-                     Begin
-                       Message(asmr_e_invalid_opcode_and_operand);
-                     end;
-                  end; { end first operand case }
-                end; { end with }
-        end;
-     3: Begin
-           if (instruc = A_DIVSL) or (instruc = A_DIVUL) or (instruc = A_MULU)
-           or (instruc = A_MULS) or (instruc = A_DIVS) or (instruc = A_DIVU) then
-           Begin
-             if (instr.operands[1]^.opr.typ <> OPR_REGISTER)
-             or (instr.operands[2]^.opr.typ <> OPR_REGISTER)
-             or (instr.operands[3]^.opr.typ <> OPR_REGISTER) then
-             Begin
-               Message(asmr_e_invalid_opcode_and_operand);
-             end
-             else
-             Begin
-               p^.concat(new(paicpu, op_reg_reg_reg(instruc,instr.opsize,
-                 instr.operands[1]^.opr.reg,instr.operands[2]^.opr.reg,instr.operands[3]^.opr.reg)));
-             end;
-           end
-           else
-            Message(asmr_e_invalid_opcode_and_operand);
-        end;
-  end; { end case }
- end;
- end;
-
-
-    Procedure ConcatLabeledInstr(var instr: TInstruction);
-    Begin
-       if ((instr.opcode >= A_BCC) and (instr.opcode <= A_BVS))
-       or (instr.opcode = A_BRA) or (instr.opcode = A_BSR)
-       or (instr.opcode = A_JMP) or (instr.opcode = A_JSR)
-       or ((instr.opcode >= A_FBEQ) and (instr.opcode <= A_FBNGLE))
-       then
-       Begin
-        if instr.ops > 2 then
-          Message(asmr_e_invalid_opcode_and_operand)
-        else if instr.operands[1]^.opr.typ <> OPR_SYMBOL then
-          Message(asmr_e_invalid_opcode_and_operand)
-        else if (instr.operands[1]^.opr.typ = OPR_SYMBOL) and
-         (instr.ops = 1) then
-           if assigned(instr.operands[1]^.opr.symbol) and
-              (instr.operands[1]^.opr.symofs=0) then
-             p^.concat(new(pai_labeled,init_sym(instr.opcode,
-               instr.operands[1]^.opr.symbol)))
-           else
-            Message(asmr_e_invalid_opcode_and_operand);
-       end
-       else
-       if ((instr.opcode >= A_DBCC) and (instr.opcode <= A_DBF))
-       or ((instr.opcode >= A_FDBEQ) and (instr.opcode <= A_FBDNGLE)) then
-       begin
-         if (instr.ops<>2) or
-            (instr.operands[1]^.opr.typ <> OPR_REGISTER) or
-            (instr.operands[2]^.opr.typ <> OPR_SYMBOL) or
-            (instr.operands[2]^.opr.symofs <> 0) then
-           Message(asmr_e_invalid_opcode_and_operand)
-         else
-          p^.concat(new(pai_labeled,init_reg_sym(instr.opcode,
-           instr.operands[2]^.opr.symbol,instr.operands[1]^.opr.reg)));
-       end
-       else
-        Message(asmr_e_invalid_opcode_and_operand);
-    end;
 
     Function BuildExpression(allow_symbol : boolean; asmsym : pstring) : longint;
   {*********************************************************************}
@@ -981,8 +653,9 @@ var
   {*********************************************************************}
   var expr: string;
       hs, tempstr: string;
-      sym : psym;
-      hl : pasmlabel;
+      sym : tsym;
+      srsymtable : tsymtable;
+      hl : tasmlabel;
       l : longint;
       errorflag: boolean;
   Begin
@@ -1071,31 +744,39 @@ var
                     if (length(tempstr)>1) and (tempstr[1]='@') then
                       begin
                         CreateLocalLabel(tempstr,hl,false);
-                        hs:=hl^.name
+                        hs:=hl.name
                       end
                     else if SearchLabel(tempstr,hl,false) then
-                      hs:=hl^.name
+                      hs:=hl.name
                     else
                       begin
-                        getsym(tempstr,false);
-                        sym:=srsym;
+                        searchsym(tempstr,sym,srsymtable);
                         if assigned(sym) then
-                          begin
-                             case srsym^.typ of
-                               varsym :
-                                 begin
-                                   if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
-                                    Message(asmr_e_no_local_or_para_allowed);
-                                   hs:=pvarsym(srsym)^.mangledname;
-                                 end;
-                               typedconstsym :
-                                 hs:=ptypedconstsym(srsym)^.mangledname;
-                               procsym :
-                                 hs:=pprocsym(srsym)^.mangledname;
-                               else
-                                 Message(asmr_e_wrong_sym_type);
-                             end;
-                          end
+                         begin
+                           case sym.typ of
+                             varsym :
+                               begin
+                                 if sym.owner.symtabletype in [localsymtable,parasymtable] then
+                                      Message(asmr_e_no_local_or_para_allowed);
+                                 hs:=tvarsym(sym).mangledname;
+                               end;
+                             typedconstsym :
+                                   hs:=ttypedconstsym(sym).mangledname;
+                             procsym :
+                               begin
+                                 if assigned(tprocsym(sym).defs^.next) then
+                                      Message(asmr_w_calling_overload_func);
+                                 hs:=tprocsym(sym).defs^.def.mangledname;
+                               end;
+                             typesym :
+                               begin
+                                 if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
+                                      Message(asmr_e_wrong_sym_type);
+                               end;
+                             else
+                               Message(asmr_e_wrong_sym_type);
+                           end;
+                        end
                         else
                            Message1(sym_e_unknown_id,tempstr);
                       end;
@@ -1255,11 +936,11 @@ var
             Begin
                r:=0;
                Message(asmr_e_invalid_float_expr);
-               ConcatRealConstant(p,r,typ);
+               ConcatRealConstant(curlist,r,typ);
             End
           else
             Begin
-              ConcatRealConstant(p,r,typ);
+              ConcatRealConstant(curlist,r,typ);
             End;
         end
       else
@@ -1268,8 +949,99 @@ var
   end;
 
 
+  Procedure BuildConstant(maxvalue: longint);
+  {*********************************************************************}
+  { PROCEDURE BuildConstant                                             }
+  {  Description: This routine takes care of parsing a DB,DD,or DW      }
+  {  line and adding those to the assembler node. Expressions, range-   }
+  {  checking are fullly taken care of.                                 }
+  {   maxvalue: $ff -> indicates that this is a DB node.                }
+  {             $ffff -> indicates that this is a DW node.              }
+  {             $ffffffff -> indicates that this is a DD node.          }
+  {*********************************************************************}
+  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
+  {*********************************************************************}
+  var
+   strlength: byte;
+   expr: string;
+   tempstr: string;
+   value : longint;
+  Begin
+      Repeat
+        Case actasmtoken of
+          AS_STRING: Begin
+                      if maxvalue = $ff then
+                         strlength := 1
+                      else
+                         Message(asmr_e_string_not_allowed_as_const);
+                      expr := actasmpattern;
+                      if length(expr) > 1 then
+                       Message(asmr_e_string_not_allowed_as_const);
+                      Consume(AS_STRING);
+                      Case actasmtoken of
+                       AS_COMMA: Consume(AS_COMMA);
+                       AS_SEPARATOR: ;
+                      else
+                       Message(asmr_e_invalid_string_expression);
+                      end; { end case }
+                      ConcatString(curlist,expr);
+                    end;
+          AS_INTNUM,AS_BINNUM,
+          AS_OCTALNUM,AS_HEXNUM:
+                    Begin
+                      value:=BuildExpression(false,nil);
+                      ConcatConstant(curlist,value,maxvalue);
+                    end;
+          AS_ID:
+                     Begin
+                      value:=BuildExpression(false,nil);
+                      if value > maxvalue then
+                      Begin
+                         Message(asmr_e_constant_out_of_bounds);
+                         { assuming a value of maxvalue }
+                         value := maxvalue;
+                      end;
+                      ConcatConstant(curlist,value,maxvalue);
+                  end;
+          { These terms can start an assembler expression }
+          AS_PLUS,AS_MINUS,AS_LPAREN,AS_NOT: Begin
+                                          value := BuildExpression(false,nil);
+                                          ConcatConstant(curlist,value,maxvalue);
+                                         end;
+          AS_COMMA:  BEGIN
+                       Consume(AS_COMMA);
+                     END;
+          AS_SEPARATOR: ;
 
-  Procedure BuildScaling(Var instr: TInstruction);
+        else
+         Begin
+           Message(asmr_e_syntax_error);
+         end;
+    end; { end case }
+   Until actasmtoken = AS_SEPARATOR;
+  end;
+
+
+
+
+
+
+{****************************************************************************
+                                Tm68kOperand
+****************************************************************************}
+
+type
+  TM68kOperand=class(TOperand)
+    Procedure BuildOperand;override;
+  private
+    labeled : boolean;
+    Procedure BuildReference;
+    Function BuildRefExpression: longint;
+    Procedure BuildScaling;
+  end;
+
+
+  Procedure TM68kOperand.BuildScaling;
   {*********************************************************************}
   {  Takes care of parsing expression starting from the scaling value   }
   {  up to and including possible field specifiers.                     }
@@ -1281,8 +1053,8 @@ var
       code: integer;
   Begin
      Consume(AS_STAR);
-     if (instr.operands[operandnum]^.opr.ref.scalefactor <> 0)
-     and (instr.operands[operandnum]^.opr.ref.scalefactor <> 1) then
+     if (opr.ref.scalefactor <> 0)
+     and (opr.ref.scalefactor <> 1) then
       Message(asmr_e_wrong_base_index);
      case actasmtoken of
         AS_INTNUM: str := actasmpattern;
@@ -1297,17 +1069,17 @@ var
       Message(asmr_e_wrong_scale_factor);
      if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) and (code = 0) then
      begin
-        instr.operands[operandnum]^.opr.ref.scalefactor := l;
+        opr.ref.scalefactor := l;
      end
      else
      Begin
         Message(asmr_e_wrong_scale_factor);
-        instr.operands[operandnum]^.opr.ref.scalefactor := 0;
+        opr.ref.scalefactor := 0;
      end;
-     if instr.operands[operandnum]^.opr.ref.index = R_NO then
+     if opr.ref.index = R_NO then
      Begin
         Message(asmr_e_wrong_base_index);
-        instr.operands[operandnum]^.opr.ref.scalefactor := 0;
+        opr.ref.scalefactor := 0;
      end;
     { Consume the scaling number }
     Consume(actasmtoken);
@@ -1324,9 +1096,9 @@ var
   end;
 
 
-  Function BuildRefExpression: longint;
+  Function TM68kOperand.BuildRefExpression: longint;
   {*********************************************************************}
-  { FUNCTION BuildExpression: longint                                   }
+  { FUNCTION BuildRefExpression: longint                                   }
   {  Description: This routine calculates a constant expression to      }
   {  a given value. The return value is the value calculated from       }
   {  the expression.                                                    }
@@ -1457,8 +1229,9 @@ var
     Until false;
   end;
 
-
-  Procedure BuildReference(var Instr: TInstruction);
+  
+  
+  Procedure TM68kOperand.BuildReference;
   {*********************************************************************}
   { PROCEDURE BuildBracketExpression                                    }
   {  Description: This routine builds up an expression after a LPAREN   }
@@ -1477,8 +1250,7 @@ var
      Case actasmtoken of
         { // (reg ... // }
         AS_REGISTER: Begin
-                        instr.operands[operandnum]^.opr.ref.base :=
-                           findregister(actasmpattern);
+                        opr.ref.base := findregister(actasmpattern);
                         Consume(AS_REGISTER);
                         { can either be a register or a right parenthesis }
                          { // (reg)       // }
@@ -1488,10 +1260,10 @@ var
                            Consume(AS_RPAREN);
                            if actasmtoken = AS_PLUS then
                            Begin
-                             if (instr.operands[operandnum]^.opr.ref.direction <> dir_none) then
+                             if (opr.ref.direction <> dir_none) then
                               Message(asmr_e_no_inc_and_dec_together)
                              else
-                               instr.operands[operandnum]^.opr.ref.direction := dir_inc;
+                               opr.ref.direction := dir_inc;
                              Consume(AS_PLUS);
                            end;
                            if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
@@ -1507,7 +1279,7 @@ var
                        Consume(AS_COMMA);
                        if actasmtoken = AS_REGISTER then
                        Begin
-                         instr.operands[operandnum]^.opr.ref.index :=
+                         opr.ref.index :=
                            findregister(actasmpattern);
                          Consume(AS_REGISTER);
                          { check for scaling ... }
@@ -1526,7 +1298,7 @@ var
                               end;
                            AS_STAR:
                               Begin
-                                BuildScaling(instr);
+                                BuildScaling;
                               end;
                          else
                            Begin
@@ -1546,41 +1318,42 @@ var
        AS_HEXNUM,AS_OCTALNUM,   { direct address }
        AS_BINNUM,AS_INTNUM: Begin
                                 case actasmtoken of
-                                        AS_INTNUM: str := actasmpattern;
-                                        AS_HEXNUM: str := Tostr(ValHexadecimal(actasmpattern));
-                                        AS_BINNUM: str := Tostr(ValBinary(actasmpattern));
-                                        AS_OCTALNUM: str := Tostr(ValOctal(actasmpattern));
+                                 AS_INTNUM: str := actasmpattern;
+                                 AS_HEXNUM: str := Tostr(ValHexadecimal(actasmpattern));
+                                 AS_BINNUM: str := Tostr(ValBinary(actasmpattern));
+                                 AS_OCTALNUM: str := Tostr(ValOctal(actasmpattern));
                                 else
-                                        Message(asmr_e_syntax_error);
+                                  Message(asmr_e_syntax_error);
                                 end;
                                 Consume(actasmtoken);
                                 val(str, l, code);
                                 if code <> 0 then
-                                     Message(asmr_e_invalid_reference_syntax)
+                                  Message(asmr_e_invalid_reference_syntax)
                                 else
-                                     instr.operands[operandnum]^.opr.ref.offset := l;
+                                  opr.ref.offset := l;
                                 Consume(AS_RPAREN);
                                 if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
                                 Begin
-                                      { error recovery ... }
-                                      Message(asmr_e_invalid_reference_syntax);
-                                      while actasmtoken <> AS_SEPARATOR do
-                                        Consume(actasmtoken);
+                                  { error recovery ... }
+                                  Message(asmr_e_invalid_reference_syntax);
+                                  while actasmtoken <> AS_SEPARATOR do
+                                    Consume(actasmtoken);
                                 end;
                                 exit;
                             end;
      else
        Begin
-
          Message(asmr_e_invalid_reference_syntax);
          while (actasmtoken <> AS_SEPARATOR) do
            Consume(actasmtoken);
        end;
      end; { end case }
   end;
+  
 
 
-  Procedure BuildOperand(var instr: TInstruction);
+
+  Procedure TM68kOperand.BuildOperand;
   {*********************************************************************}
   { EXIT CONDITION:  On exit the routine should point to either the     }
   {       AS_COMMA or AS_SEPARATOR token.                               }
@@ -1588,10 +1361,10 @@ var
   var
     tempstr: string;
     expr: string;
-    lab: Pasmlabel;
+    lab: tasmlabel;
     l : longint;
     i: tregister;
-    hl: pasmlabel;
+    hl: tasmlabel;
     reg_one, reg_two: tregister;
     reglist: set of tregister;
   Begin
@@ -1602,23 +1375,23 @@ var
    { // Memory reference //  }
      AS_LPAREN:
                Begin
-                  initAsmRef(instr);
-                  BuildReference(instr);
+                  InitRef;
+                  BuildReference;
                end;
    { // Constant expression //  }
      AS_APPT:  Begin
                       Consume(AS_APPT);
-                      if not (instr.operands[operandnum]^.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
+                      if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
                          Message(asmr_e_invalid_operand_type);
                       { identifiers are handled by BuildExpression }
-                      instr.operands[operandnum]^.opr.typ := OPR_CONSTANT;
-                      instr.operands[operandnum]^.opr.val :=BuildExpression(true,@tempstr);
+                      opr.typ := OPR_CONSTANT;
+                      opr.val :=BuildExpression(true,@tempstr);
                       if tempstr<>'' then
                         begin
-                          l:=instr.operands[operandnum]^.opr.val;
-                          instr.operands[operandnum]^.opr.typ := OPR_SYMBOL;
-                          instr.operands[operandnum]^.opr.symofs := l;
-                          instr.operands[operandnum]^.opr.symbol := objectlibrary.newasmsymbol(tempstr);
+                          l:=opr.val;
+                          opr.typ := OPR_SYMBOL;
+                          opr.symofs := l;
+                          opr.symbol := objectlibrary.newasmsymbol(tempstr);
                         end;
                  end;
    { // Constant memory offset .              // }
@@ -1626,33 +1399,34 @@ var
      AS_HEXNUM,AS_INTNUM,
      AS_BINNUM,AS_OCTALNUM,AS_PLUS:
                    Begin
-                      InitAsmRef(instr);
-                      instr.operands[operandnum]^.opr.ref.offset:=BuildRefExpression;
-                      BuildReference(instr);
+                      InitRef;
+                      opr.ref.offset:=BuildRefExpression;
+                      BuildReference;
                    end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  Begin
+              InitRef;
               if actasmpattern[1] = '@' then
               { // Label or Special symbol reference // }
               Begin
                  if actasmpattern = '@RESULT' then
-                   Begin
-                      InitAsmRef(instr);
-                      instr.operands[operandnum]^.SetUpResult;
-                   end
+                    SetUpResult
+                 else 
+                 if actasmpattern = 'SELF' then
+                    SetUpSelf
                  else
-                  if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
+                 if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
                     Message(asmr_w_CODE_and_DATA_not_supported)
-                   else
+                 else
                   Begin
                     delete(actasmpattern,1,1);
                     if actasmpattern = '' then
                      Message(asmr_e_null_label_ref_not_allowed);
                     CreateLocalLabel(actasmpattern,lab,false);
-                    instr.operands[operandnum]^.opr.typ := OPR_SYMBOL;
-                    instr.operands[operandnum]^.opr.symbol := lab;
-                    instr.operands[operandnum]^.opr.symofs := 0;
-                    instr.labeled := TRUE;
+                    opr.typ := OPR_SYMBOL;
+                    opr.symbol := lab;
+                    opr.symofs := 0;
+                    labeled := TRUE;
                   end;
                 Consume(AS_ID);
                 if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
@@ -1662,98 +1436,71 @@ var
               { or a procedure (such as in CALL ID)      }
               else
                Begin
-                   { is it a constant ? }
-                   if SearchIConstant(actasmpattern,l) then
+                 { is it a constant ? }
+                 if SearchIConstant(actasmpattern,l) then
                    Begin
-                      InitAsmRef(instr);
-                      instr.operands[operandnum]^.opr.ref.offset:=BuildRefExpression;
-                      BuildReference(instr);
-
-{                      if not (instr.operands[operandnum].opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                        Message(asmr_e_invalid_operand_type);
-                      instr.operands[operandnum].opr.typ := OPR_CONSTANT;
-                      instr.operands[operandnum].val :=BuildExpression;}
-                    end
-                   else { is it a label variable ? }
-                    Begin
+                     InitRef;
+                     opr.ref.offset:=BuildRefExpression;
+                     BuildReference;
+                   end
+                 else { is it a label variable ? }
+                   Begin
                      { // ID[ , ID.Field.Field or simple ID // }
                      { check if this is a label, if so then }
                      { emit it as a label.                  }
                      if SearchLabel(actasmpattern,hl,false) then
-                     Begin
-                        instr.operands[operandnum]^.opr.typ := OPR_SYMBOL;
-                        instr.operands[operandnum]^.opr.symbol := hl;
-                        instr.operands[operandnum]^.opr.symofs := 0;
-                        instr.labeled := TRUE;
-                        Consume(AS_ID);
-                        if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
-                         Message(asmr_e_syntax_error);
-                     end
-                     else
-                     { is it a normal variable ? }
-                     Begin
-                      initAsmRef(instr);
-                      if not instr.operands[operandnum]^.SetUpVar(actasmpattern,false) then
-                      Begin
-                         { not a variable.. }
-                         { check special variables.. }
-                         if actasmpattern = 'SELF' then
-                          { special self variable }
-                         Begin
-                           if assigned(procinfo^._class) then
-                             Begin
-                               instr.operands[operandnum]^.opr.ref.offset := procinfo^.selfpointer_offset;
-                               instr.operands[operandnum]^.opr.ref.base := procinfo^.framepointer;
-                             end
-                           else
-                             Message(asmr_e_cannot_use_SELF_outside_a_method);
-                         end
-                         else
-                         if (cs_compilesystem in aktmoduleswitches) then
-                         Begin
-                           if not assigned(instr.operands[operandnum]^.opr.ref.symbol) then
-                            Begin
-                             if getasmsymbol(actasmpattern) =nil then
-                               Message1(asmr_w_id_supposed_external,actasmpattern);
-                             instr.operands[operandnum]^.opr.ref.symbol:=objectlibrary.newasmsymbol(actasmpattern);
-                            end
-                           else
-                             Message(asmr_e_syntax_error);
-                         end
-                         else
-                           Message1(asmr_e_unknown_label_identifier,actasmpattern);
-                      end;
-                      expr := actasmpattern;
-                      Consume(AS_ID);
-                      case actasmtoken of
-                           AS_LPAREN: { indexing }
-                                        BuildReference(instr);
-                           AS_SEPARATOR,AS_COMMA: ;
+                       Begin
+                         opr.typ := OPR_SYMBOL;
+                         opr.symbol := hl;
+                         opr.symofs := 0;
+                         labeled := TRUE;
+                         Consume(AS_ID);
+                         if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+                          Message(asmr_e_syntax_error);
+                       end
                       else
-                           Message(asmr_e_syntax_error);
-                      end;
-                     end;
+                      { is it a normal variable ? }
+                      if (cs_compilesystem in aktmoduleswitches) then
+                        begin
+                          if not SetupDirectVar(expr) then
+                            Begin
+                              { not found, finally ... add it anyways ... }
+                              Message1(asmr_w_id_supposed_external,expr);
+                              opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
+                            end;
+                        end
+                       else
+                          Message1(sym_e_unknown_id,actasmpattern);
+                   end;       
+                   expr := actasmpattern;
+                   Consume(AS_ID);
+                   case actasmtoken of
+                      AS_LPAREN: { indexing }
+                        BuildReference;
+                      AS_SEPARATOR,AS_COMMA: ;
+                    else
+                        Message(asmr_e_syntax_error);
                     end;
                end;
-            end;
+             end;
    { // Pre-decrement mode reference or constant mem offset.   // }
      AS_MINUS:    Begin
                    Consume(AS_MINUS);
                    if actasmtoken = AS_LPAREN then
                    Begin
-                     InitAsmRef(instr);
+                     InitRef;
                      { indicate pre-decrement mode }
-                     instr.operands[operandnum]^.opr.ref.direction := dir_dec;
-                     BuildReference(instr);
+                     opr.ref.direction := dir_dec;
+                     BuildReference;
                    end
                    else
                    if actasmtoken in [AS_OCTALNUM,AS_HEXNUM,AS_BINNUM,AS_INTNUM] then
                    Begin
-                      InitAsmRef(instr);
-                      instr.operands[operandnum]^.opr.ref.offset:=BuildRefExpression;
+                      InitRef;
+                      opr.ref.offset:=BuildRefExpression;
                       { negate because was preceded by a negative sign! }
-                      instr.operands[operandnum]^.opr.ref.offset:=-instr.operands[operandnum]^.opr.ref.offset;
-                      BuildReference(instr);
+                      opr.ref.offset:=-opr.ref.offset;
+                      BuildReference;
                    end
                    else
                    Begin
@@ -1770,10 +1517,10 @@ var
                    { // Simple register // }
                    if (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA) then
                    Begin
-                        if not (instr.operands[operandnum]^.opr.typ in [OPR_NONE,OPR_REGISTER]) then
+                        if not (opr.typ in [OPR_NONE,OPR_REGISTER]) then
                          Message(asmr_e_invalid_operand_type);
-                        instr.operands[operandnum]^.opr.typ := OPR_REGISTER;
-                        instr.operands[operandnum]^.opr.reg := findregister(tempstr);
+                        opr.typ := OPR_REGISTER;
+                        opr.reg := findregister(tempstr);
                    end
                    else
                    { HERE WE MUST HANDLE THE SPECIAL CASE OF MOVEM AND FMOVEM }
@@ -1800,8 +1547,8 @@ var
                           end;
                          end; { end case }
                        end; { end while }
-                       instr.operands[operandnum]^.opr.typ:= OPR_REGLIST;
-                       instr.operands[operandnum]^.opr.reglist := newreglist(reglist);
+                       opr.typ:= OPR_REGLIST;
+                       opr.reglist := reglist;
                      end
                      else
                       { error recovery ... }
@@ -1845,8 +1592,8 @@ var
                          Consume(actasmtoken);
                       end;
                       { set up instruction }
-                      instr.operands[operandnum]^.opr.typ:= OPR_REGLIST;
-                      instr.operands[operandnum]^.opr.reglist := newreglist(reglist);
+                      opr.typ:= OPR_REGLIST;
+                      opr.reglist := reglist;
                      end;
                    end
                    else
@@ -1859,11 +1606,11 @@ var
                        if (actasmtoken = AS_REGISTER) then
                        Begin
                          { set up old field, since register is valid }
-                         instr.operands[operandnum]^.opr.typ := OPR_REGISTER;
-                         instr.operands[operandnum]^.opr.reg := findregister(tempstr);
+                         opr.typ := OPR_REGISTER;
+                         opr.reg := findregister(tempstr);
                          Inc(operandnum);
-                         instr.operands[operandnum]^.opr.typ := OPR_REGISTER;
-                         instr.operands[operandnum]^.opr.reg := findregister(actasmpattern);
+                         opr.typ := OPR_REGISTER;
+                         opr.reg := findregister(actasmpattern);
                          Consume(AS_REGISTER);
                          if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
                          Begin
@@ -1898,77 +1645,6 @@ var
 
 
 
-  Procedure BuildConstant(maxvalue: longint);
-  {*********************************************************************}
-  { PROCEDURE BuildConstant                                             }
-  {  Description: This routine takes care of parsing a DB,DD,or DW      }
-  {  line and adding those to the assembler node. Expressions, range-   }
-  {  checking are fullly taken care of.                                 }
-  {   maxvalue: $ff -> indicates that this is a DB node.                }
-  {             $ffff -> indicates that this is a DW node.              }
-  {             $ffffffff -> indicates that this is a DD node.          }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-  {*********************************************************************}
-  var
-   strlength: byte;
-   expr: string;
-   tempstr: string;
-   value : longint;
-  Begin
-      Repeat
-        Case actasmtoken of
-          AS_STRING: Begin
-                      if maxvalue = $ff then
-                         strlength := 1
-                      else
-                         Message(asmr_e_string_not_allowed_as_const);
-                      expr := actasmpattern;
-                      if length(expr) > 1 then
-                       Message(asmr_e_string_not_allowed_as_const);
-                      Consume(AS_STRING);
-                      Case actasmtoken of
-                       AS_COMMA: Consume(AS_COMMA);
-                       AS_SEPARATOR: ;
-                      else
-                       Message(asmr_e_invalid_string_expression);
-                      end; { end case }
-                      ConcatString(p,expr);
-                    end;
-          AS_INTNUM,AS_BINNUM,
-          AS_OCTALNUM,AS_HEXNUM:
-                    Begin
-                      value:=BuildExpression(false,nil);
-                      ConcatConstant(p,value,maxvalue);
-                    end;
-          AS_ID:
-                     Begin
-                      value:=BuildExpression(false,nil);
-                      if value > maxvalue then
-                      Begin
-                         Message(asmr_e_constant_out_of_bounds);
-                         { assuming a value of maxvalue }
-                         value := maxvalue;
-                      end;
-                      ConcatConstant(p,value,maxvalue);
-                  end;
-          { These terms can start an assembler expression }
-          AS_PLUS,AS_MINUS,AS_LPAREN,AS_NOT: Begin
-                                          value := BuildExpression(false,nil);
-                                          ConcatConstant(p,value,maxvalue);
-                                         end;
-          AS_COMMA:  BEGIN
-                       Consume(AS_COMMA);
-                     END;
-          AS_SEPARATOR: ;
-
-        else
-         Begin
-           Message(asmr_e_syntax_error);
-         end;
-    end; { end case }
-   Until actasmtoken = AS_SEPARATOR;
-  end;
 
 
   Procedure BuildStringConstant(asciiz: boolean);
@@ -1991,7 +1667,7 @@ var
                       expr:=actasmpattern;
                       if asciiz then
                        expr:=expr+#0;
-                      ConcatPasString(p,expr);
+                      ConcatPasString(curlist,expr);
                       Consume(AS_STRING);
                     end;
           AS_COMMA:  BEGIN
@@ -2010,9 +1686,28 @@ var
   end;
 
 
+{*****************************************************************************
+                                TM68kInstruction
+*****************************************************************************}
+
+type
+  TM68kInstruction=class(TInstruction)
+    procedure InitOperands;override;
+    procedure BuildOpcode;override;
+    procedure ConcatInstruction(p : taasmoutput);override;
+    Procedure ConcatLabeledInstr(p : taasmoutput);
+  end;
+
+    procedure TM68kInstruction.InitOperands;
+    var
+      i : longint;
+    begin
+      for i:=1to max_operands do
+       Operands[i]:=TM68kOperand.Create;
+    end;
 
 
-  Procedure BuildOpCode;
+  Procedure TM68kInstruction.BuildOpCode;
   {*********************************************************************}
   { PROCEDURE BuildOpcode;                                              }
   {  Description: Parses the intel opcode and operands, and writes it   }
@@ -2022,13 +1717,11 @@ var
   { On ENTRY: Token should point to AS_OPCODE                           }
   {*********************************************************************}
   var asmtok: tasmop;
-      op: tasmop;
       expr: string;
-      segreg: tregister;
+      operandnum : longint;
   Begin
     expr := '';
     asmtok := A_NONE; { assmume no prefix          }
-    segreg := R_NO;   { assume no segment override }
 
     { //  opcode                          // }
     { allow for newline as in gas styled syntax }
@@ -2045,8 +1738,7 @@ var
     end
     else
     Begin
-      op := findopcode(actasmpattern);
-      instr.opcode:=op;
+      opcode := findopcode(actasmpattern,opsize);
       Consume(AS_OPCODE);
       { // Zero operand opcode ? // }
       if actasmtoken = AS_SEPARATOR then
@@ -2069,26 +1761,331 @@ var
          { // End of asm operands for this opcode // }
          AS_SEPARATOR: ;
        else
-         BuildOperand(instr);
+         Operands[operandnum].BuildOperand;
      end; { end case }
     end; { end while }
   end;
 
 
 
+ procedure TM68kInstruction.ConcatInstruction(p : taasmoutput);
+  var
+    fits : boolean;
+  Begin
+     fits := FALSE;
+    { setup specific opcodetions for first pass }
 
-  Function Assemble: Ptree;
+    { Setup special operands }
+    { Convert to general form as to conform to the m68k opcode table }
+    if (opcode = A_ADDA) or (opcode = A_ADDI)
+       then opcode := A_ADD
+    else
+    { CMPM excluded because of GAS v1.34 BUG }
+    if (opcode = A_CMPA) or
+       (opcode = A_CMPI) then
+       opcode := A_CMP
+    else
+    if opcode = A_EORI then
+      opcode := A_EOR
+    else
+    if opcode = A_MOVEA then
+     opcode := A_MOVE
+    else
+    if opcode = A_ORI then
+      opcode := A_OR
+    else
+    if (opcode = A_SUBA) or (opcode = A_SUBI) then
+      opcode :=  A_SUB;
+
+    { Setup operand types }
+
+(*
+    in opcode <> A_MOVEM then
+    Begin
+
+      while not(fits) do
+        begin
+         { set the opcodetion cache, if the opcodetion }
+         { occurs the first time                         }
+         if (it[i].i=opcode) and (ins_cache[opcode]=-1) then
+             ins_cache[opcode]:=i;
+
+         if (it[i].i=opcode) and (instr.ops=it[i].ops) then
+         begin
+            { first fit }
+           case instr.ops of
+             0 : begin
+                   fits:=true;
+                   break;
+                end;
+            1 :
+                Begin
+                  if (optyp1 and it[i].o1)<>0 then
+                  Begin
+                    fits:=true;
+                     break;
+                  end;
+                end;
+            2 : if ((optyp1 and it[i].o1)<>0) and
+                 ((optyp2 and it[i].o2)<>0) then
+                 Begin
+                       fits:=true;
+                       break;
+                 end
+            3 : if ((optyp1 and it[i].o1)<>0) and
+                 ((optyp2 and it[i].o2)<>0) and
+                 ((optyp3 and it[i].o3)<>0) then
+                 Begin
+                   fits:=true;
+                   break;
+                 end;
+           end; { end case }
+        end; { endif }
+        if it[i].i=A_NONE then
+        begin
+          { NO MATCH! }
+          Message(asmr_e_invalid_combination_opcode_and_operand);
+          exit;
+        end;
+        inc(i);
+       end; { end while }
+             *)
+  fits:=TRUE;
+
+  { We add the opcode to the opcode linked list }
+  if fits then
+  Begin
+    case ops of
+     0:
+        if opsize <> S_NO then
+          p.concat((taicpu.op_none(opcode,opsize)))
+        else
+          p.concat((taicpu.op_none(opcode,S_NO)));
+     1: Begin
+          case operands[1].opr.typ of
+           OPR_SYMBOL: 
+              Begin
+                p.concat((taicpu.op_sym_ofs(opcode,
+                  opsize, operands[1].opr.symbol,operands[1].opr.symofs)));
+              end;
+           OPR_CONSTANT: 
+              Begin
+                p.concat((taicpu.op_const(opcode,
+                  opsize, operands[1].opr.val)));
+              end;
+           OPR_REGISTER:  
+              p.concat((taicpu.op_reg(opcode,opsize,operands[1].opr.reg)));
+           OPR_REFERENCE:
+              if opsize <> S_NO then
+                Begin
+                  p.concat((taicpu.op_ref(opcode,
+                    opsize,operands[1].opr.ref)));
+                end
+               else
+                Begin
+                  { special jmp and call case with }
+                  { symbolic references.           }
+                  if opcode in [A_BSR,A_JMP,A_JSR,A_BRA,A_PEA] then
+                    Begin
+                      p.concat((taicpu.op_ref(opcode,
+                        S_NO,operands[1].opr.ref)));
+                    end
+                  else
+                    Message(asmr_e_invalid_opcode_and_operand);
+                end;
+           OPR_NONE: 
+                Message(asmr_e_invalid_opcode_and_operand);
+          else
+           Begin
+             Message(asmr_e_invalid_opcode_and_operand);
+           end;
+          end;
+        end;
+     2: Begin
+                { source }
+                  case operands[1].opr.typ of
+                  { reg,reg     }
+                  { reg,ref     }
+                   OPR_REGISTER:
+                     Begin
+                       case operands[2].opr.typ of
+                         OPR_REGISTER:
+                            Begin
+                               p.concat((taicpu.op_reg_reg(opcode,
+                               opsize,operands[1].opr.reg,operands[2].opr.reg)));
+                            end;
+                         OPR_REFERENCE:
+                                  p.concat((taicpu.op_reg_ref(opcode,
+                                  opsize,operands[1].opr.reg,operands[2].opr.ref)));
+                       else { else case }
+                         Begin
+                           Message(asmr_e_invalid_opcode_and_operand);
+                         end;
+                       end; { end second operand case for OPR_REGISTER }
+                     end;
+                  { reglist, ref }
+                   OPR_REGLIST:
+                          Begin
+                            case operands[2].opr.typ of
+                              OPR_REFERENCE :
+                                  p.concat((taicpu.op_reglist_ref(opcode,
+                                  opsize,operands[1].opr.reglist,operands[2].opr.ref)));
+                            else
+                             Begin
+                               Message(asmr_e_invalid_opcode_and_operand);
+                             end;
+                            end; { end second operand case for OPR_REGLIST }
+                          end;
+
+                  { const,reg   }
+                  { const,const }
+                  { const,ref   }
+                   OPR_CONSTANT:
+                      case operands[2].opr.typ of
+                      { constant, constant does not have a specific size. }
+                        OPR_CONSTANT:
+                           p.concat((taicpu.op_const_const(opcode,
+                           S_NO,operands[1].opr.val,operands[2].opr.val)));
+                        OPR_REFERENCE:
+                           Begin
+                                 p.concat((taicpu.op_const_ref(opcode,
+                                 opsize,operands[1].opr.val,
+                                 operands[2].opr.ref)))
+                           end;
+                        OPR_REGISTER:
+                           Begin
+                                 p.concat((taicpu.op_const_reg(opcode,
+                                 opsize,operands[1].opr.val,
+                                 operands[2].opr.reg)))
+                           end;
+                      else
+                         Begin
+                           Message(asmr_e_invalid_opcode_and_operand);
+                         end;
+                      end; { end second operand case for OPR_CONSTANT }
+                   { ref,reg     }
+                   { ref,ref     }
+                   OPR_REFERENCE:
+                      case operands[2].opr.typ of
+                         OPR_REGISTER:
+                            Begin
+                              p.concat((taicpu.op_ref_reg(opcode,
+                               opsize,operands[1].opr.ref,
+                               operands[2].opr.reg)));
+                            end;
+                         OPR_REGLIST:
+                            Begin
+                              p.concat((taicpu.op_ref_reglist(opcode,
+                               opsize,operands[1].opr.ref,
+                               operands[2].opr.reglist)));
+                            end;
+                         OPR_REFERENCE: { special opcodes }
+                            p.concat((taicpu.op_ref_ref(opcode,
+                            opsize,operands[1].opr.ref,
+                            operands[2].opr.ref)));
+                      else
+                         Begin
+                           Message(asmr_e_invalid_opcode_and_operand);
+                         end;
+                      end; { end second operand case for OPR_REFERENCE }
+           OPR_SYMBOL: case operands[2].opr.typ of
+                        OPR_REFERENCE:
+                           Begin
+                                 p.concat((taicpu.op_sym_ofs_ref(opcode,
+                                   opsize,operands[1].opr.symbol,operands[1].opr.symofs,
+                                   operands[2].opr.ref)))
+                           end;
+                        OPR_REGISTER:
+                           Begin
+                                 p.concat((taicpu.op_sym_ofs_reg(opcode,
+                                   opsize,operands[1].opr.symbol,operands[1].opr.symofs,
+                                   operands[2].opr.reg)))
+                           end;
+                      else
+                         Begin
+                           Message(asmr_e_invalid_opcode_and_operand);
+                         end;
+                      end; { end second operand case for OPR_SYMBOL }
+                  else
+                     Begin
+                       Message(asmr_e_invalid_opcode_and_operand);
+                     end;
+                  end; { end first operand case }
+        end;
+     3: Begin
+           if (opcode = A_DIVSL) or (opcode = A_DIVUL) or (opcode = A_MULU)
+           or (opcode = A_MULS) or (opcode = A_DIVS) or (opcode = A_DIVU) then
+           Begin
+             if (operands[1].opr.typ <> OPR_REGISTER)
+             or (operands[2].opr.typ <> OPR_REGISTER)
+             or (operands[3].opr.typ <> OPR_REGISTER) then
+             Begin
+               Message(asmr_e_invalid_opcode_and_operand);
+             end
+             else
+             Begin
+               p.concat((taicpu. op_reg_reg_reg(opcode,opsize,
+                 operands[1].opr.reg,operands[2].opr.reg,operands[3].opr.reg)));
+             end;
+           end
+           else
+            Message(asmr_e_invalid_opcode_and_operand);
+        end;
+  end; { end case }
+ end;
+ end;
+
+
+    Procedure TM68kInstruction.ConcatLabeledInstr(p : taasmoutput);
+    Begin
+       if ((opcode >= A_BCC) and (opcode <= A_BVS))
+       or (opcode = A_BRA) or (opcode = A_BSR)
+       or (opcode = A_JMP) or (opcode = A_JSR)
+       or ((opcode >= A_FBEQ) and (opcode <= A_FBNGLE))
+       then
+       Begin
+        if ops > 2 then
+          Message(asmr_e_invalid_opcode_and_operand)
+        else if operands[1].opr.typ <> OPR_SYMBOL then
+          Message(asmr_e_invalid_opcode_and_operand)
+        else if (operands[1].opr.typ = OPR_SYMBOL) and
+         (ops = 1) then
+           if assigned(operands[1].opr.symbol) and
+              (operands[1].opr.symofs=0) then
+             p.concat(taicpu.op_sym(opcode,S_NO,
+               operands[1].opr.symbol))
+           else
+            Message(asmr_e_invalid_opcode_and_operand);
+       end
+       else
+       if ((opcode >= A_DBCC) and (opcode <= A_DBF))
+       or ((opcode >= A_FDBEQ) and (opcode <= A_FBDNGLE)) then
+       begin
+         if (ops<>2) or
+            (operands[1].opr.typ <> OPR_REGISTER) or
+            (operands[2].opr.typ <> OPR_SYMBOL) or
+            (operands[2].opr.symofs <> 0) then
+           Message(asmr_e_invalid_opcode_and_operand)
+         else
+          p.concat(taicpu.op_reg_sym(opcode,opsize,operands[1].opr.reg,
+           operands[2].opr.symbol));
+       end
+       else
+        Message(asmr_e_invalid_opcode_and_operand);
+    end;
+
+
+  Function Assemble: tnode;
   {*********************************************************************}
   { PROCEDURE Assemble;                                                 }
   {  Description: Parses the att assembler syntax, parsing is done      }
   {  according to GAs rules.                                            }
   {*********************************************************************}
   Var
-   hl: pasmlabel;
-   labelptr,nextlabel : pasmlabel;
+   hl: tasmlabel;
+   labelptr,nextlabel : tasmlabel;
    commname : string;
-   store_p : paasmoutput;
-
+   instr      : TM68kInstruction;
   Begin
     Message(asmr_d_start_reading);
     firsttoken := TRUE;
@@ -2099,12 +2096,10 @@ var
       SetupTables;
       _asmsorted := TRUE;
     end;
-    p:=new(paasmoutput,init);
-    { save pointer code section }
-    store_p:=p;
+    curlist:=TAAsmoutput.Create;
     { setup label linked list }
-    new(LocalLabelList,Init);
-    c:=current_scanner^.asmgetchar;
+    LocalLabelList:=TLocalLabelList.Create;
+    c:=current_scanner.asmgetchar;
     actasmtoken:=gettoken;
     while actasmtoken<>AS_END do
     Begin
@@ -2112,14 +2107,14 @@ var
         AS_LLABEL:
           Begin
             if CreateLocalLabel(actasmpattern,hl,true) then
-              ConcatLabel(p,hl);
+              ConcatLabel(curlist,hl);
             Consume(AS_LLABEL);
           end;
         AS_LABEL: Begin
                      { when looking for Pascal labels, these must }
                      { be in uppercase.                           }
                      if SearchLabel(upper(actasmpattern),hl,true) then
-                       ConcatLabel(p,hl)
+                       ConcatLabel(curlist,hl)
                      else
                      Begin
                        Message1(asmr_e_unknown_label_identifier,actasmpattern);
@@ -2150,7 +2145,7 @@ var
                       if actasmtoken <> AS_ID then
                        Message(asmr_e_invalid_global_def)
                       else
-                        ConcatPublic(p,actasmpattern);
+                        ConcatPublic(curlist,actasmpattern);
                       Consume(actasmtoken);
                       if actasmtoken <> AS_SEPARATOR then
                       Begin
@@ -2172,6 +2167,17 @@ var
                      Consume(actasmtoken);
                   end;
         AS_OPCODE: Begin
+                    instr:=TM68kInstruction.Create;
+                    instr.BuildOpcode;
+{                    instr.AddReferenceSizes;}
+{                    instr.SetInstructionOpsize;}
+{                    instr.CheckOperandSizes;}
+                    if instr.labeled then
+                       instr.ConcatLabeledInstr(curlist)
+                    else
+                      instr.ConcatInstruction(curlist);
+                    instr.Free;
+{        
                    instr.init;
                    BuildOpcode;
                    instr.ops := operandnum;
@@ -2179,7 +2185,7 @@ var
                      ConcatLabeledInstr(instr)
                    else
                      ConcatOpCode(instr);
-                   instr.done;
+                   instr.done;}
                   end;
         AS_SEPARATOR:Begin
                      Consume(AS_SEPARATOR);
@@ -2196,10 +2202,11 @@ var
     end; { end case }
   end; { end while }
   { Check LocalLabelList }
-  LocalLabelList^.CheckEmitted;
-  dispose(LocalLabelList,Done);
+  LocalLabelList.CheckEmitted;
+  LocalLabelList.Free;
 
-  assemble := genasmnode(p);
+  { Return the list in an asmnode }
+  assemble:=casmnode.create(curlist);
   Message(asmr_d_finish_reading);
 end;
 
@@ -2218,7 +2225,13 @@ Begin
 end.
 {
   $Log$
-  Revision 1.4  2002-08-12 15:08:44  carl
+  Revision 1.5  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.4  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

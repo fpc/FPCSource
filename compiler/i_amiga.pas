@@ -58,7 +58,7 @@ unit i_amiga;
             newline      : #10;
             dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_none;
+            assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
@@ -85,7 +85,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-08-12 15:08:39  carl
+  Revision 1.3  2002-08-13 18:01:51  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.2  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

@@ -30,7 +30,7 @@ fpcdir=..
 unexport FPC_VERSION
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc
+CYCLETARGETS=i386 powerpc m68k
 
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA

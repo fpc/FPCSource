@@ -63,7 +63,7 @@ implementation
       cginfo,cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
-      ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
+      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
 {*****************************************************************************
                              TCGCALLPARANODE
@@ -1502,7 +1502,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-08-12 15:08:39  carl
+  Revision 1.8  2002-08-13 18:01:51  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.7  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

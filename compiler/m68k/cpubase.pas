@@ -86,10 +86,10 @@ uses
          { (this may include 68040 mmu instructions)          }
          a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
          { useful for assembly langage output }
-         a_label,a_none,a_dbxx,a_setxx,a_bxx,a_fbxx);
+         a_label,a_none,a_dbxx,a_sxx,a_bxx,a_fbxx);
 
       {# This should define the array of instructions as string }
-      op2strtable=array[tasmop] of string[8];
+      op2strtable=array[tasmop] of string[11];
 
     Const
       {# First value of opcode enumeration }
@@ -123,7 +123,7 @@ uses
       treg64 = tregister64;
 
       {# Type definition for the array of string of register nnames }
-      reg2strtable = array[tregister] of string[5];
+      reg2strtable = array[tregister] of string[7];
 
     Const
       {# First register in the tregister enumeration }
@@ -131,15 +131,6 @@ uses
       {# Last register in the tregister enumeration }
       lastreg  = high(tregister);
 
-(*      
-     gas_reg2str : reg2strtable =
-      ('', '%d0','%d1','%d2','%d3','%d4','%d5','%d6','%d7',
-       '%a0','%a1','%a2','%a3','%a4','%a5','%a6','%sp',
-       '-(%sp)','(%sp)+',
-       '%ccr','%fp0','%fp1','%fp2','%fp3','%fp4','%fp5',
-       '%fp6','%fp7','%fpcr','%sr','%ssp','%dfc',
-       '%sfc','%vbr','%fpsr');
-*)
      std_reg2str : reg2strtable =
       ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
        'a0','a1','a2','a3','a4','a5','a6','sp',
@@ -313,7 +304,7 @@ uses
        { S_FS  = single type (32 bit) }
        { S_FD  = double/64bit integer }
        { S_FX  = Extended type      }
-       topsize = (S_NO,S_B,S_W,S_L,S_FS,S_FD,S_FX);
+       topsize = (S_NO,S_B,S_W,S_L,S_FS,S_FD,S_FX,S_IQ);
 
 {*****************************************************************************
                                  Constants
@@ -561,7 +552,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-08-12 15:08:44  carl
+  Revision 1.5  2002-08-13 18:01:52  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
+
+  Revision 1.4  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
