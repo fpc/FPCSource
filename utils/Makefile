@@ -28,7 +28,7 @@ NEEDUNITDIR=../fcl/$(OS_TARGET)
 # Real targets
 #####################################################################
 
-EXEOBJECTS=ppudump ppumove ppdep ptop rstconv
+EXEOBJECTS=ppudump ppumove ppdep ptop rstconv fpcmake
 UNITOBJECTS=
 
 EXTRACLEANUNITS=ppu ptopu
@@ -137,7 +137,10 @@ h2pas_install:
 
 #
 # $Log$
-# Revision 1.5  1999-07-27 13:02:32  peter
+# Revision 1.6  1999-11-04 12:06:57  michael
+# * Added fpcmake
+#
+# Revision 1.5  1999/07/27 13:02:32  peter
 #   * add to needunits
 #
 # Revision 1.4	1999/07/23 18:23:45  michael
