@@ -12,8 +12,12 @@ begin
   if not (paramstr(1)='-son') then
     begin
     Writeln ('Calling son');
-    Assignstream (Si,So,'/home/michael/fpk/rtl/linux/ex38a -son');
-    if linuxerror<>0 then writeln ('AssignStream failed !');
+    Assignstream (Si,So,'./ex38 -son');
+    if linuxerror<>0 then 
+      begin
+      writeln ('AssignStream failed !');
+      halt(1);
+      end;
     Writeln ('Speaking to son');
     For i:=1 to 10 do 
       begin
@@ -42,6 +46,6 @@ begin
       else 
          writeln ('Who are you ?');
       end;
-//    close (output);
+    close (output);
     end 
 end.
