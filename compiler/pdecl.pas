@@ -137,6 +137,7 @@ unit pdecl;
                       else Message(cg_e_illegal_expression);
                    end;
                    consume(SEMICOLON);
+                   disposetree(p);
                 end;
               COLON:
                 begin
@@ -2037,7 +2038,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.54  1998-09-17 13:41:16  pierre
+  Revision 1.55  1998-09-21 13:24:44  daniel
+  * Memory leak fixed.
+
+  Revision 1.54  1998/09/17 13:41:16  pierre
   sizeof(TPOINT) problem
 
   Revision 1.53.2.1  1998/09/17 13:12:09  pierre
