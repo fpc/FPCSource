@@ -438,8 +438,8 @@ implementation
          inherited create(s);
          { force the correct indexnr. must be after create! }
          indexnr:=nr;
-         ppufile.getsmallset(symoptions);
          ppufile.getposinfo(fileinfo);
+         ppufile.getsmallset(symoptions);
          lastref:=nil;
          defref:=nil;
          refs:=0;
@@ -555,8 +555,8 @@ implementation
       begin
          ppufile.putword(indexnr);
          ppufile.putstring(_realname^);
-         ppufile.putsmallset(symoptions);
          ppufile.putposinfo(fileinfo);
+         ppufile.putsmallset(symoptions);
       end;
 
 
@@ -2563,7 +2563,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-01-15 01:44:33  peter
+  Revision 1.94  2003-03-17 15:54:22  peter
+    * store symoptions also for procdef
+    * check symoptions (private,public) when calculating possible
+      overload candidates
+
+  Revision 1.93  2003/01/15 01:44:33  peter
     * merged methodpointer fixes from 1.0.x
 
   Revision 1.92  2003/01/09 21:52:38  peter

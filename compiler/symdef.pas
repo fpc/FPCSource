@@ -481,11 +481,13 @@ interface
           overloadnumber : word;
           messageinf : tmessageinf;
 {$ifndef EXTDEBUG}
-          { where is this function defined, needed here because there
+          { where is this function defined and what were the symbol
+            flags, needed here because there
             is only one symbol for all overloaded functions
             EXTDEBUG has fileinfo in tdef (PFV) }
           fileinfo : tfileposinfo;
 {$endif}
+          symoptions : tsymoptions;
           { symbol owning this definition }
           procsym : tsym;
           { alias names }
@@ -543,6 +545,7 @@ interface
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
+          function  is_visible_for_proc(currprocdef:tprocdef):boolean;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -3414,6 +3417,7 @@ implementation
          _class := tobjectdef(ppufile.getderef);
          procsym := tsym(ppufile.getderef);
          ppufile.getposinfo(fileinfo);
+         ppufile.getsmallset(symoptions);
          { inline stuff }
          if proccalloption=pocall_inline then
           begin
@@ -3540,6 +3544,7 @@ implementation
          ppufile.putderef(_class);
          ppufile.putderef(procsym);
          ppufile.putposinfo(fileinfo);
+         ppufile.putsmallset(symoptions);
 
          { inline stuff references to localsymtable, no influence
            on the crc }
@@ -3632,6 +3637,38 @@ implementation
       begin
         result:=assigned(owner) and
                 (owner.symtabletype<>objectsymtable);
+      end;
+
+
+    function tprocdef.is_visible_for_proc(currprocdef:tprocdef):boolean;
+      begin
+        is_visible_for_proc:=false;
+
+        { private symbols are allowed when we are in the same
+          module as they are defined }
+        if (sp_private in symoptions) and
+           assigned(owner.defowner) and
+           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+           (owner.defowner.owner.unitid<>0) then
+          exit;
+
+        { protected symbols are vissible in the module that defines them and
+          also visible to related objects }
+        if (sp_protected in symoptions) and
+           (
+            (
+             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+             (owner.defowner.owner.unitid<>0)
+            ) and
+            not(
+                assigned(currprocdef) and
+                assigned(currprocdef._class) and
+                currprocdef._class.is_related(tobjectdef(owner.defowner))
+               )
+           ) then
+          exit;
+
+        is_visible_for_proc:=true;
       end;
 
 
@@ -5656,7 +5693,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2003-02-19 22:00:14  daniel
+  Revision 1.130  2003-03-17 15:54:22  peter
+    * store symoptions also for procdef
+    * check symoptions (private,public) when calculating possible
+      overload candidates
+
+  Revision 1.129  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

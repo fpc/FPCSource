@@ -548,6 +548,56 @@ begin
 end;
 
 
+procedure readsymoptions;
+type
+  tsymoption=(sp_none,
+    sp_public,
+    sp_private,
+    sp_published,
+    sp_protected,
+    sp_forwarddef,
+    sp_static,
+    sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
+  );
+  tsymoptions=set of tsymoption;
+  tsymopt=record
+    mask : tsymoption;
+    str  : string[30];
+  end;
+const
+  symopts=7;
+  symopt : array[1..symopts] of tsymopt=(
+     (mask:sp_public;         str:'Public'),
+     (mask:sp_private;        str:'Private'),
+     (mask:sp_published;      str:'Published'),
+     (mask:sp_protected;      str:'Protected'),
+     (mask:sp_forwarddef;     str:'ForwardDef'),
+     (mask:sp_static;         str:'Static'),
+     (mask:sp_primary_typesym;str:'PrimaryTypeSym')
+  );
+var
+  symoptions : tsymoptions;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(symoptions);
+  if symoptions<>[] then
+   begin
+     first:=true;
+     for i:=1to symopts do
+      if (symopt[i].mask in symoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symopt[i].str);
+       end;
+   end;
+  writeln;
+end;
+
+
 { Read abstract procdef and return if inline procdef }
 type
   tproccalloption=(pocall_none,
@@ -669,7 +719,7 @@ var
   procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
-  paraloc  : array[0..10] of byte;
+  paraloc  : array[0..15] of byte;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -720,6 +770,8 @@ begin
        readsymref;
        write(space,'    Symbol  : ');
        readsymref;
+       write(space,'   Location : ');
+       writeln('<not yet implemented>');
        ppufile.getdata(paraloc,sizeof(paraloc));
        dec(params);
      until params=0;
@@ -728,57 +780,13 @@ end;
 
 
 procedure readcommonsym(const s:string);
-type
-  tsymoption=(sp_none,
-    sp_public,
-    sp_private,
-    sp_published,
-    sp_protected,
-    sp_forwarddef,
-    sp_static,
-    sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
-  );
-  tsymoptions=set of tsymoption;
-  tsymopt=record
-    mask : tsymoption;
-    str  : string[30];
-  end;
-const
-  symopts=7;
-  symopt : array[1..symopts] of tsymopt=(
-     (mask:sp_public;         str:'Public'),
-     (mask:sp_private;        str:'Private'),
-     (mask:sp_published;      str:'Published'),
-     (mask:sp_protected;      str:'Protected'),
-     (mask:sp_forwarddef;     str:'ForwardDef'),
-     (mask:sp_static;         str:'Static'),
-     (mask:sp_primary_typesym;str:'PrimaryTypeSym')
-  );
-var
-  symoptions : tsymoptions;
-  i      : longint;
-  first  : boolean;
 begin
   writeln(space,'** Symbol Nr. ',ppufile.getword,' **');
   writeln(space,s,ppufile.getstring);
-  ppufile.getsmallset(symoptions);
-  if symoptions<>[] then
-   begin
-     write(space,'    File Pos: ');
-     readposinfo;
-     write(space,'  SymOptions: ');
-     first:=true;
-     for i:=1to symopts do
-      if (symopt[i].mask in symoptions) then
-       begin
-         if first then
-           first:=false
-         else
-           write(', ');
-         write(symopt[i].str);
-       end;
-     writeln;
-   end;
+  write(space,'    File Pos: ');
+  readposinfo;
+  write(space,'  SymOptions: ');
+  readsymoptions;
 end;
 
 
@@ -1282,7 +1290,13 @@ begin
            begin
              readcommondef('Procedure definition');
              calloption:=read_abstract_proc_def;
-             write  (space,'   Used Registers : ');
+             write  (space,'     Used IntRegs : ');
+             getnormalset(regs);
+             writeln('<not yet implemented>');
+             write  (space,'   Used OtherRegs : ');
+             getnormalset(regs);
+             writeln('<not yet implemented>');
+{$ifdef OLDRA}
              case ttargetcpu(header.cpu) of
                i386 :
                  getusedregisters_i386
@@ -1292,6 +1306,7 @@ begin
                    writeln('<not yet implemented>');
                  end;
              end;
+{$endif OLDRA}
              if (getbyte<>0) then
                writeln(space,'     Mangled name : ',getstring);
              writeln(space,'  Overload Number : ',getword);
@@ -1302,6 +1317,8 @@ begin
              readsymref;
              write  (space,'         File Pos : ');
              readposinfo;
+             write  (space,'       SymOptions : ');
+             readsymoptions;
              if (calloption=pocall_inline) then
               begin
                 write  (space,'       FuncretSym : ');
@@ -1910,7 +1927,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-01-03 22:16:29  peter
+  Revision 1.36  2003-03-17 15:54:22  peter
+    * store symoptions also for procdef
+    * check symoptions (private,public) when calculating possible
+      overload candidates
+
+  Revision 1.35  2003/01/03 22:16:29  peter
     * updated for absolutesym and varsym
 
   Revision 1.34  2002/11/17 16:32:04  carl

@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=30;
+  CurrentPPUVersion=31;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -985,7 +985,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2003-01-08 18:43:56  daniel
+  Revision 1.30  2003-03-17 15:54:22  peter
+    * store symoptions also for procdef
+    * check symoptions (private,public) when calculating possible
+      overload candidates
+
+  Revision 1.29  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.28  2002/11/15 01:58:53  peter

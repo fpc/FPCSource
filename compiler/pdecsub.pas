@@ -632,8 +632,9 @@ implementation
         { add procsym to the procdef }
         aktprocdef.procsym:=aktprocsym;
 
-        { save file position }
+        { save file position and symbol options }
         aktprocdef.fileinfo:=procstartfilepos;
+        aktprocdef.symoptions:=current_object_option;
 
         { this must also be inserted in the right symtable !! PM }
         { otherwise we get subbtle problems with
@@ -2116,7 +2117,12 @@ const
 end.
 {
   $Log$
-  Revision 1.105  2003-01-15 20:02:28  carl
+  Revision 1.106  2003-03-17 15:54:22  peter
+    * store symoptions also for procdef
+    * check symoptions (private,public) when calculating possible
+      overload candidates
+
+  Revision 1.105  2003/01/15 20:02:28  carl
     * fix highname problem
 
   Revision 1.104  2003/01/12 15:42:23  peter
