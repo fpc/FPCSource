@@ -154,7 +154,12 @@ implementation
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
-              if push_addr_param(p^.resulttype) then
+              { open array must always push the address, this is needed to
+                also push addr of small arrays (PFV) }
+
+              if (assigned(defcoll^.data) and
+                  is_open_array(defcoll^.data)) or
+                 push_addr_param(p^.resulttype) then
                 begin
                    maybe_push_high;
                    inc(pushedparasize,4);
@@ -927,7 +932,8 @@ implementation
                    { this fails if popsize > 0 PM }
                    p^.location.loc:=LOC_FLAGS;
                    p^.location.resflags:=F_NE;
-                   
+
+
                    if extended_new then
                      begin
 {$ifdef test_dest_loc}
@@ -1211,7 +1217,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  1999-08-25 11:59:39  jonas
+  Revision 1.103  1999-09-07 07:54:23  peter
+    * small array push to open array fixed, open array always needs addr
+      pushing
+
+  Revision 1.102  1999/08/25 11:59:39  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.101  1999/08/23 23:38:18  pierre
