@@ -337,7 +337,7 @@ interface
 {$endif}
           { For a t1:=t2 tree, mark the part of the tree t1 that gets
             written to (normally the loadnode) as write access. }
-          procedure mark_write;virtual;abstract;
+          procedure mark_write;virtual;
           procedure det_temp;virtual;abstract;
 
           procedure pass_2;virtual;abstract;
@@ -695,6 +695,10 @@ implementation
          getcopy:=p;
       end;
 
+    procedure tnode.mark_write;
+      begin
+      end;
+
     procedure tnode.insertintolist(l : tnodelist);
 
       begin
@@ -972,7 +976,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-01-03 12:15:56  daniel
+  Revision 1.48  2003-01-03 21:03:02  peter
+    * made mark_write dummy instead of abstract
+
+  Revision 1.47  2003/01/03 12:15:56  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 
