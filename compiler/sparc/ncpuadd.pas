@@ -40,12 +40,12 @@ implementation
 uses
   globtype,systems,
   cutils,verbose,globals,
-  symconst,symdef,paramgr,
+  symconst,symdef,SymType,paramgr,
   aasmbase,aasmtai,aasmcpu,defutil,htypechk,
   cgbase,pass_2,regvars,
   cpupara,
   ncon,nset,
-  cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+  ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 const
   opsize_2_cgSize:array[S_B..S_L]of TCgSize=(OS_8,OS_16,OS_32);
 procedure TSparcAddNode.second_addboolean;
@@ -376,9 +376,9 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
       //      getlabel(hl4);
             IF unsigned
             THEN
-              emitjmp(C_NB,hl4)
+              exprasmList.concat(Taicpu.Op_sym(A_JMPL,S_NO,hl4))
             ELSE
-              emitjmp(C_NO,hl4);
+              exprasmList.concat(Taicpu.Op_sym(A_JMPL,S_NO,hl4));
             cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
             cg.a_label(exprasmlist,hl4);
           end;
@@ -412,6 +412,17 @@ procedure TSparcAddNode.set_result_location(cmpOp,unsigned:Boolean);
       end
     ELSE
       location_copy(location,left.location);
+  end;
+function def_opsize(p1:tdef):topsize;
+  begin
+    case p1.size of
+      1:def_opsize:=S_B;
+      2:def_opsize:=S_W;
+      4:def_opsize:=S_L;
+      8:def_opsize:=S_L;
+      else
+        InternalError(130820001);
+    end;
   end;
 procedure TSparcAddNode.pass_2;
 {is also being used for "xor", and "mul", "sub", or and comparative operators}
@@ -558,7 +569,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.3  2002-12-25 20:59:49  mazen
+    Revision 1.4  2002-12-30 21:17:22  mazen
+    - unit cga no more used in sparc compiler.
+
+    Revision 1.3  2002/12/25 20:59:49  mazen
     - many emitXXX removed from cga.pas in order to remove that file.
 
     Revision 1.2  2002/12/22 19:26:32  mazen

@@ -59,7 +59,7 @@ implementation
       cgbase,cgobj,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,cginfo,
-      ncgutil,cga,cgcpu,cg64f32,rgobj;
+      ncgutil,cgcpu,cg64f32,rgobj;
 
 {*****************************************************************************
                              TSparcMODDIVNODE
@@ -475,7 +475,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-12-21 23:22:59  mazen
+  Revision 1.2  2002-12-30 21:17:22  mazen
+  - unit cga no more used in sparc compiler.
+
+  Revision 1.1  2002/12/21 23:22:59  mazen
   + added shift support
 
   Revision 1.20  2002/11/25 17:43:28  peter

@@ -45,7 +45,7 @@ uses
   cginfo,cgbase,pass_1,pass_2,
   cpubase,paramgr,
   nbas,ncon,ncal,ncnv,nld,
-  cga,tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+  tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 {*****************************************************************************
                               TSparcInlineNode
 *****************************************************************************}
@@ -120,7 +120,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-11-30 20:03:49  mazen
+  Revision 1.2  2002-12-30 21:17:22  mazen
+  - unit cga no more used in sparc compiler.
+
+  Revision 1.1  2002/11/30 20:03:49  mazen
   + ncpuinln node
 
   Revision 1.3  2002/09/18 09:19:37  jonas
