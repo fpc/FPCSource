@@ -1466,8 +1466,9 @@ Begin
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
   Redir:=not IsAtty(TextRec(Output).Handle);
-{ Get Size of terminal }
+{ Get Size of terminal and set WindMax to the window }
   GetConsoleBuf;
+  WindMax:=((ScreenHeight-1) Shl 8)+(ScreenWidth-1);
 {Get Current X&Y or Reset to Home}
   if Redir then
    begin
@@ -1492,7 +1493,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.13  1998-11-16 10:21:27  peter
+  Revision 1.14  1999-01-15 12:47:16  peter
+    * init window size to the size of the console instead of 80,25
+
+  Revision 1.13  1998/11/16 10:21:27  peter
     * fixes for H+
 
   Revision 1.12  1998/11/10 15:01:01  peter
