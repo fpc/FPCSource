@@ -42,7 +42,13 @@ Const
   fmOpenRead       = $0000;
   fmOpenWrite      = $0001;
   fmOpenReadWrite  = $0002;
-  
+  { Share modes}
+  fmShareCompat    = $0000;
+  fmShareExclusive = $0010;
+  fmShareDenyWrite = $0020;
+  fmShareDenyRead  = $0030;
+  fmShareDenyNone  = $0040;
+            
   { File seek origins }    
   fsFromBeginning = 0;
   fsFromCurrent   = 1;
@@ -71,7 +77,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2001-01-18 22:09:09  michael
+  + Merged fixes from fixbranch - file modes
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }

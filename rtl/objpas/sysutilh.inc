@@ -1,6 +1,5 @@
 {
     $Id$
-
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -139,7 +138,10 @@ Type
 
 {
   $Log$
-  Revision 1.6  2000-12-07 09:15:18  florian
+  Revision 1.7  2001-01-18 22:09:09  michael
+  + Merged fixes from fixbranch - file modes
+
+  Revision 1.6  2000/12/07 09:15:18  florian
     + tintegerset added
 
   Revision 1.5  2000/09/24 21:55:07  peter

@@ -1277,7 +1277,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2000-12-16 15:58:18  jonas
+  Revision 1.11  2001-01-18 22:09:09  michael
+  + Merged fixes from fixbranch - file modes
+
+  Revision 1.10  2000/12/16 15:58:18  jonas
     * removed warnings about possible range check errors
 
   Revision 1.9  2000/12/07 21:58:30  michael

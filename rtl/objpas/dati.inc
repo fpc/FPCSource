@@ -673,7 +673,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-12-16 15:57:16  jonas
+  Revision 1.4  2001-01-18 22:09:09  michael
+  + Merged fixes from fixbranch - file modes
+
+  Revision 1.3  2000/12/16 15:57:16  jonas
     * removed 64bit evaluations when range checking is on
 
   Revision 1.2  2000/07/13 11:33:50  michael
