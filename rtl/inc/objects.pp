@@ -297,7 +297,7 @@ TYPE
    PStreamRec = ^TStreamRec;                          { Stream record ptr }
    TStreamRec = RECORD
       ObjType: Sw_Word;                               { Object type id }
-      VmtLink: Sw_Word;                               { VMT link }
+      VmtLink: pointer;                               { VMT link }
       Load : Pointer;                                 { Object load code }
       Store: Pointer;                                 { Object store code }
       Next : PStreamRec;                              { Next stream record }
@@ -969,7 +969,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TStream.Get: PObject;
 
-TYPE LoadPtr = FUNCTION (Var S: TStream; Link: Sw_Word; Iv: Pointer): PObject;
+TYPE LoadPtr = FUNCTION (Var S: TStream; Link: pointer; Iv: Pointer): PObject;
 
 VAR ObjType: Sw_Word; P: PStreamRec;
 BEGIN
@@ -1075,12 +1075,12 @@ END;
 PROCEDURE TStream.Put (P: PObject);
 TYPE StorePtr = PROCEDURE (Var S: TStream; AnObject: PObject);
 
-VAR ObjType: Sw_Word; Link: Sw_Word; Q: PStreamRec; VmtPtr: ^Sw_Word;
+VAR ObjType: Sw_Word; Link: pointer; Q: PStreamRec; VmtPtr: ^pointer;
 BEGIN
    VmtPtr := Pointer(P);                              { Xfer object to ptr }
    Link := VmtPtr^;                                   { VMT link }
    ObjType := 0;                                      { Set objtype to zero }
-   If (P<>Nil) AND (Link<>0) Then Begin               { We have a VMT link }
+   If (P<>Nil) AND (Link<>Nil) Then Begin               { We have a VMT link }
      Q := StreamTypes;                                { Current reg list }
      While (Q <> Nil) AND (Q^.VMTLink <> Link)        { Find link match OR }
        Do Q := Q^.Next;                               { Find end of chain }
@@ -2734,7 +2734,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.9  1998-10-22 18:23:55  peter
+  Revision 1.10  1998-10-23 16:51:18  pierre
+   * vmtlink type changed to pointer
+
+  Revision 1.9  1998/10/22 18:23:55  peter
     + packed record for conversion records
 
   Revision 1.8  1998/09/09 15:29:02  peter
