@@ -33,13 +33,12 @@ interface
 
 
     uses
-{$ifdef Delphi}
+{$IFDEF USE_SYSUTILS}
       sysutils,
-      dmisc,
-{$else Delphi}
+{$ELSE USE_SYSUTILS}
       strings,
       dos,
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
       systems,globtype,globals,aasmbase,aasmtai,ogbase;
 
     const
@@ -94,7 +93,7 @@ interface
 
         {# Actually does the call to the assembler file. Returns false
            if the assembling of the file failed.}
-        Function  CallAssembler(const command,para:string):Boolean;
+        Function  CallAssembler(const command:string; const para:TCmdStr):Boolean;
 
         Function  DoAssemble:boolean;virtual;
         Procedure RemoveAsm;
@@ -284,27 +283,45 @@ Implementation
 
     procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
       var
+{$IFDEF USE_SYSUTILS}
+        dir : TSearchRec;
+{$ELSE USE_SYSUTILS}
         dir : searchrec;
+{$ENDIF USE_SYSUTILS}
         hs  : string;
       begin
         if PathExists(s) then
          begin
            { the path exists, now we clean only all the .o and .s files }
            { .o files }
+{$IFDEF USE_SYSUTILS}
+           if findfirst(s+source_info.dirsep+'*'+target_info.objext,faAnyFile,dir) = 0
+           then repeat
+              RemoveFile(s+source_info.dirsep+dir.name);
+           until findnext(dir) <> 0;
+{$ELSE USE_SYSUTILS}
            findfirst(s+source_info.dirsep+'*'+target_info.objext,anyfile,dir);
            while (doserror=0) do
             begin
               RemoveFile(s+source_info.dirsep+dir.name);
               findnext(dir);
             end;
+{$ENDIF USE_SYSUTILS}
            findclose(dir);
            { .s files }
+{$IFDEF USE_SYSUTILS}
+           if findfirst(s+source_info.dirsep+'*'+target_info.asmext,faAnyFile,dir) = 0
+           then repeat
+             RemoveFile(s+source_info.dirsep+dir.name);
+           until findnext(dir) <> 0;
+{$ELSE USE_SYSUTILS}
            findfirst(s+source_info.dirsep+'*'+target_info.asmext,anyfile,dir);
            while (doserror=0) do
             begin
               RemoveFile(s+source_info.dirsep+dir.name);
               findnext(dir);
             end;
+{$ENDIF USE_SYSUTILS}
            findclose(dir);
          end
         else
@@ -358,10 +375,30 @@ Implementation
       end;
 
 
-    Function TExternalAssembler.CallAssembler(const command,para:string):Boolean;
+    Function TExternalAssembler.CallAssembler(const command:string; const para:TCmdStr):Boolean;
+{$IFDEF USE_SYSUTILS}
+      var
+        DosExitCode:Integer;
+{$ENDIF USE_SYSUTILS}
       begin
         callassembler:=true;
         if not(cs_asm_extern in aktglobalswitches) then
+{$IFDEF USE_SYSUTILS}
+        try
+          DosExitCode := ExecuteProcess(command,para);
+          if DosExitCode <>0
+          then begin
+            Message1(exec_e_error_while_assembling,tostr(dosexitcode));
+            callassembler:=false;
+          end;
+        except on E:EOSError do
+          begin
+            Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
+            aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+            callassembler:=false;
+          end
+        end
+{$ELSE USE_SYSUTILS}
          begin
            swapvectors;
            exec(command,para);
@@ -379,6 +416,7 @@ Implementation
               callassembler:=false;
              end;
          end
+{$ENDIF USE_SYSUTILS}
         else
          AsmRes.AddAsmCommand(command,para,name);
       end;
@@ -405,7 +443,7 @@ Implementation
 
     Function TExternalAssembler.DoAssemble:boolean;
       var
-        s : string;
+        s : TCmdStr;
       begin
         DoAssemble:=true;
         if DoPipe then
@@ -567,7 +605,7 @@ Implementation
     procedure TExternalAssembler.AsmClose;
       var
         f : file;
-        l : longint;
+        FileAge : longint;
       begin
         AsmFlush;
 {$ifdef hasunix}
@@ -588,10 +626,18 @@ Implementation
               {$I+}
               if ioresult=0 then
                begin
-                 getftime(f,l);
+{$IFDEF USE_SYSUTILS}
+                 FileAge := FileGetDate(GetFileHandle(f));
+{$ELSE USE_SYSUTILS}
+                 GetFTime(f, FileAge);
+{$ENDIF USE_SYSUTILS}
                  close(f);
                  reset(outfile,1);
-                 setftime(outfile,l);
+{$IFDEF USE_SYSUTILS}
+                 FileSetDate(GetFileHandle(outFile),FileAge);
+{$ELSE USE_SYSUTILS}
+                 SetFTime(f, FileAge);
+{$ENDIF USE_SYSUTILS}
                end;
             end;
            close(outfile);
@@ -1638,7 +1684,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.79  2004-10-13 17:58:54  peter
+  Revision 1.80  2004-10-14 14:47:52  mazen
+  * Merge is complete for this file, cycles !
+
+  Revision 1.79  2004/10/13 17:58:54  peter
     * reverted USE_SYSUTILS patch until  ll patches are readyt
 
   Revision 1.77  2004/10/08 15:52:40  florian
