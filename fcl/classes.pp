@@ -1179,7 +1179,7 @@ implementation
   procedure TStream.SetPosition(Pos: Longint);
 
     begin
-       GetPosition:=Seek(soFromBeginning,Pos);
+       Seek(soFromBeginning,Pos);
     end;
 
   function TStream.GetSize: Longint;
@@ -1196,7 +1196,7 @@ implementation
   procedure TStream.SetSize(NewSize: Longint);
 
     begin
-       SetPosition(Pos);
+       // SetPosition(Pos);
     end;
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
@@ -1252,7 +1252,7 @@ implementation
     begin
        Reader.Create(Self,1024);
        if assigned(Instance) then
-         ReadComponent:=Writer.ReadRootComponent(Instance)
+         ReadComponent:=Reader.ReadRootComponent(Instance)
        else
          begin
             {!!!!!}
@@ -1283,6 +1283,7 @@ implementation
        startpos,s : longint;
 
     begin
+(* 
 {$ifdef Win16Res}
        { Numeric resource type }
        WriteByte($ff);
@@ -1303,6 +1304,7 @@ implementation
        SetPosition(startpos-4);
        WriteDWord(s);
 {$endif}
+*)
     end;
 
   procedure TStream.WriteDescendent(Instance, Ancestor: TComponent);
@@ -1323,10 +1325,160 @@ implementation
        {!!!!!}
     end;
 
+
+{****************************************************************************}
+{*                             TList                                        *}
+{****************************************************************************}
+
+{  TList = class(TObject)
+  private
+    FList: PPointerList;
+    FCount: Integer;
+    FCapacity: Integer;
+}
+
+function TList.Get(Index: Integer): Pointer;
+
+begin
+end;
+
+
+
+procedure TList.Grow;
+
+begin
+end;
+
+
+
+procedure TList.Put(Index: Integer; Item: Pointer);
+
+begin
+end;
+
+
+
+procedure TList.SetCapacity(NewCapacity: Integer);
+
+begin
+end;
+
+
+
+procedure TList.SetCount(NewCount: Integer);
+
+begin
+end;
+
+
+
+destructor TList.Destroy;
+
+begin
+  CLear;
+  inherited Destroy;
+end;
+
+
+piFunction TList.Add(Item: Pointer): Integer;
+
+begin
+//  Self.Insert (Count,Item);
+end;
+
+
+
+Procedure TList.Clear;
+
+begin
+end;
+
+
+
+Procedure TList.Delete(Index: Integer);
+
+
+
+begin
+end;
+
+
+//    class procedure Error(const Msg: string; Data: Integer); virtual;
+procedure TList.Exchange(Index1, Index2: Integer);
+
+
+begin
+end;
+
+
+
+function TList.Expand: TList;
+
+
+begin
+end;
+
+
+function TList.First: Pointer;
+
+begin
+end;
+
+
+
+function TList.IndexOf(Item: Pointer): Integer;
+
+begin
+end;
+
+
+
+procedure TList.Insert(Index: Integer; Item: Pointer);
+
+begin
+end;
+
+
+
+function TList.Last: Pointer;
+
+begin
+end;
+
+
+procedure TList.Move(CurIndex, NewIndex: Integer);
+
+begin
+end;
+
+
+function TList.Remove(Item: Pointer): Integer;
+
+begin
+end;
+
+
+
+procedure TList.Pack;
+begin
+end;
+
+
+
+procedure TList.Sort(Compare: TListSortCompare);
+
+begin
+end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.6  1998-05-01 22:17:19  florian
+  Revision 1.7  1998-05-04 09:39:51  michael
+  + Started implementation of TList
+
+  Revision 1.6  1998/05/01 22:17:19  florian
     + TBits implemented
     + TStream partial implemented
 
