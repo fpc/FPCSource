@@ -1281,8 +1281,18 @@ begin
                    if (hd^.proccalloptions-[pocall_internconst,pocall_internproc]<>
                        aktprocsym^.definition^.proccalloptions-[pocall_internconst,pocall_internproc]) then
                     begin
-                      { only trigger an error, becuase it doesn't hurt }
-                      MessagePos(aktprocsym^.definition^.fileinfo,parser_e_call_convention_dont_match_forward);
+                      { only trigger an error, becuase it doesn't hurt, for delphi check
+                        if the current implementation has no proccalloptions, then
+                        take the options from the interface }
+                      if (m_delphi in aktmodeswitches) then
+                       begin
+                         if (aktprocsym^.definition^.proccalloptions=[]) then
+                          aktprocsym^.definition^.proccalloptions:=hd^.proccalloptions
+                         else
+                          MessagePos(aktprocsym^.definition^.fileinfo,parser_e_call_convention_dont_match_forward);
+                       end
+                      else
+                       MessagePos(aktprocsym^.definition^.fileinfo,parser_e_call_convention_dont_match_forward);
                       { set the mangledname to the interface name so it doesn't trigger
                         the Note about different manglednames (PFV) }
                       aktprocsym^.definition^.setmangledname(hd^.mangledname);
@@ -2077,7 +2087,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-09-24 21:19:51  peter
+  Revision 1.15  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.14  2000/09/24 21:19:51  peter
     * delphi compile fixes
 
   Revision 1.13  2000/09/24 15:06:24  peter

@@ -244,8 +244,38 @@ begin
 end;
 
 
+procedure LoadPrefixes;
+
+  function loadprefix(w:longint):string;
+  var
+    s : string;
+    idx : longint;
+  begin
+    s:=msg^.get(w);
+    idx:=pos('_',s);
+    if idx>0 then
+     LoadPrefix:=Copy(s,idx+1,255)
+    else
+     LoadPrefix:=s;
+  end;
+
+begin
+{ Load the prefixes }
+  fatalstr:=LoadPrefix(general_i_fatal);
+  errorstr:=LoadPrefix(general_i_error);
+  warningstr:=LoadPrefix(general_i_warning);
+  notestr:=LoadPrefix(general_i_note);
+  hintstr:=LoadPrefix(general_i_hint);
+end;
+
+
 procedure LoadMsgFile(const fn:string);
 begin
+  { reload the internal messages if not already loaded }
+{$ifndef EXTERN_MSG}
+  if not msg^.msgintern then
+   msg^.LoadIntern(@msgtxt,msgtxtsize);
+{$endif}
   if not msg^.LoadExtern(fn) then
    begin
 {$ifdef EXTERN_MSG}
@@ -255,6 +285,8 @@ begin
      msg^.LoadIntern(@msgtxt,msgtxtsize);
 {$endif}
    end;
+  { reload the prefixes using the new messages }
+  LoadPrefixes;
 end;
 
 
@@ -568,6 +600,7 @@ begin
   FillChar(Status,sizeof(TCompilerStatus),0);
   status.verbosity:=V_Default;
   Status.MaxErrorCount:=50;
+  LoadPrefixes;
 end;
 
 
@@ -583,7 +616,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:33  peter
+  Revision 1.6  2000-09-24 21:33:48  peter
+    * message updates merges
+
+  Revision 1.5  2000/09/24 15:06:33  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:55  peter

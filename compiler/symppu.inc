@@ -521,15 +521,15 @@
            { if we don't have the sources why tell }
               if current_module^.sources_avail then
 {$endif ndef EXTDEBUG}
-               if not was_defined_at_startup and was_used and
-                 mac^.defined_at_startup then
-                 Comment(V_Hint,'Conditional '+hs+' was not set at startup '+
-                 'in last compilation of '+current_module^.mainsource^);
+               if (not was_defined_at_startup) and
+                  was_used and
+                  mac^.defined_at_startup then
+                Message2(unit_h_cond_not_set_in_last_compile,hs,current_module^.mainsource^);
              end
            else { not assigned }
-             if was_defined_at_startup and was_used then
-               Comment(V_Hint,'Conditional '+hs+' was set at startup '+
-               'in last compilation of '+current_module^.mainsource^);
+             if was_defined_at_startup and
+                was_used then
+              Message2(unit_h_cond_not_set_in_last_compile,hs,current_module^.mainsource^);
          end;
       end;
 
@@ -736,7 +736,10 @@
 
 {
   $Log$
-  Revision 1.3  2000-09-21 20:56:19  pierre
+  Revision 1.4  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.3  2000/09/21 20:56:19  pierre
    * fix for bugs 1084/1128 (merged)
 
   Revision 1.2  2000/07/13 11:32:49  michael

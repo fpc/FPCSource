@@ -705,10 +705,10 @@ begin
               'S' : begin
                       for j:=1 to length(more) do
                        case more[j] of
-                        '2' : initmodeswitches:=objfpcmodeswitches;
+                        '2' : SetCompileMode('OBJFPC');
                         'a' : initlocalswitches:=InitLocalswitches+[cs_do_assertion];
                         'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
-                        'd' : initmodeswitches:=delphimodeswitches;
+                        'd' : SetCompileMode('DELPHI');
                         'e' : begin
                                 SetErrorFlags(more);
                                 break;
@@ -717,8 +717,8 @@ begin
                         'h' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
                         'i' : initmoduleswitches:=initmoduleswitches+[cs_support_inline];
                         'm' : initmoduleswitches:=initmoduleswitches+[cs_support_macro];
-                        'o':  initmodeswitches:=tpmodeswitches;
-                        'p' : initmodeswitches:=gpcmodeswitches;
+                        'o' : SetCompileMode('TP');
+                        'p' : SetCompileMode('GPC');
                         's' : initglobalswitches:=initglobalswitches+[cs_constructor_name];
                         't' : initmoduleswitches:=initmoduleswitches+[cs_static_keyword];
                         'v' : Message1(option_obsolete_switch,'-Sv');
@@ -1490,7 +1490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 15:06:20  peter
+  Revision 1.10  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.9  2000/09/24 15:06:20  peter
     * use defines.inc
 
   Revision 1.8  2000/09/18 12:28:41  marco

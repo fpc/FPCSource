@@ -245,6 +245,8 @@ interface
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
+    Function SetCompileMode(const s:string):boolean;
+
     procedure InitGlobals;
     procedure DoneGlobals;
 
@@ -993,6 +995,44 @@ implementation
       {$endif}
 
 
+    Function SetCompileMode(const s:string):boolean;
+      var
+        b : boolean;
+      begin
+        b:=true;
+        if s='DEFAULT' then
+          aktmodeswitches:=initmodeswitches
+        else
+         if s='DELPHI' then
+          aktmodeswitches:=delphimodeswitches
+        else
+         if s='TP' then
+          aktmodeswitches:=tpmodeswitches
+        else
+         if s='FPC' then
+          aktmodeswitches:=fpcmodeswitches
+        else
+         if s='OBJFPC' then
+          aktmodeswitches:=objfpcmodeswitches
+        else
+         if s='GPC' then
+          aktmodeswitches:=gpcmodeswitches
+        else
+         b:=false;
+
+        if b then
+         begin
+           { turn ansistrings on by default ? }
+           if (m_default_ansistring in aktmodeswitches) then
+            include(aktlocalswitches,cs_ansistrings)
+           else
+            exclude(aktlocalswitches,cs_ansistrings);
+         end;
+
+        SetCompileMode:=b;
+      end;
+
+
 {****************************************************************************
                                     Init
 ****************************************************************************}
@@ -1132,7 +1172,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-09-24 21:19:50  peter
+  Revision 1.13  2000-09-24 21:33:46  peter
+    * message updates merges
+
+  Revision 1.12  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.11  2000/09/24 15:12:40  peter

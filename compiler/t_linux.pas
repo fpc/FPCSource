@@ -120,7 +120,7 @@ begin
   { first test the index value }
   if (hp^.options and eo_index)<>0 then
    begin
-     Comment(V_Error,'can''t export with index under linux');
+     Message1(parser_e_no_export_with_index_for_target,'linux');
      exit;
    end;
   { use pascal name is none specified }
@@ -181,7 +181,7 @@ begin
 {$endif i386}
       end
      else
-      Comment(V_Error,'Exporting of variables is not supported under linux');
+      Message1(parser_e_no_export_of_variables_for_target,'linux');
      hp2:=pexported_item(hp2^.next);
    end;
 end;
@@ -455,7 +455,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:31  peter
+  Revision 1.7  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.6  2000/09/24 15:06:31  peter
     * use defines.inc
 
   Revision 1.5  2000/09/10 20:26:55  peter

@@ -366,7 +366,7 @@ const
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   if (length(hs)>1) then
-                   Message(scan_w_illegal_switch)
+                   Message1(scan_w_illegal_switch,hs)
                   else
                    begin
                      state:=current_scanner^.ReadState;
@@ -497,7 +497,7 @@ const
               begin
                 current_scanner^.readchar;
                 if c='=' then
-                  Comment(V_Warning,'Marco support has been turned off');
+                  Message(scan_w_macro_support_turned_off);
               end;
           end;
       end;
@@ -941,7 +941,7 @@ const
             if set_string_asm(current_scanner^.readid) then
              aktoutputformat:=target_asm.id
             else
-             Message(scan_w_illegal_switch);
+             Message1(scan_w_illegal_switch,pattern);
           end;
       end;
 
@@ -1002,26 +1002,10 @@ const
           begin
             current_scanner^.skipspace;
             current_scanner^.readstring;
-            if pattern='DEFAULT' then
-             aktmodeswitches:=initmodeswitches
-            else
-             if pattern='DELPHI' then
-              aktmodeswitches:=delphimodeswitches
-            else
-             if pattern='TP' then
-              aktmodeswitches:=tpmodeswitches
-            else
-             if pattern='FPC' then
-              aktmodeswitches:=fpcmodeswitches
-            else
-             if pattern='OBJFPC' then
-              aktmodeswitches:=objfpcmodeswitches
-            else
-             if pattern='GPC' then
-              aktmodeswitches:=gpcmodeswitches
-            else
-             Message(scan_w_illegal_switch);
+            if not SetCompileMode(pattern) then
+             Message1(scan_w_illegal_switch,pattern);
           end;
+
       end;
 
 
@@ -1452,7 +1436,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:27  peter
+  Revision 1.8  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.7  2000/09/24 15:06:27  peter
     * use defines.inc
 
   Revision 1.6  2000/09/11 17:00:23  florian

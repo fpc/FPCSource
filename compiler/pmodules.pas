@@ -901,7 +901,7 @@ implementation
         { can't have local browser when no global browser }
         if (cs_local_browser in aktmoduleswitches) and
            not(cs_browser in aktmoduleswitches) then
-          aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
+          exclude(aktmoduleswitches,cs_local_browser);
 
         { define a symbol in delphi,objfpc,tp,gpc mode }
         if (m_delphi in aktmodeswitches) then
@@ -915,10 +915,6 @@ implementation
         else
          if (m_gpc in aktmodeswitches) then
           def_symbol('FPC_GPC');
-
-        { turn ansistrings on by default ? }
-        if (m_default_ansistring in aktmodeswitches) then
-          aktlocalswitches:=aktlocalswitches+[cs_ansistrings];
       end;
 
 
@@ -1384,12 +1380,12 @@ implementation
   {$ifndef Dont_use_double_checksum}
          if not(cs_compilesystem in aktmoduleswitches) then
            if store_interface_crc<>current_module^.interface_crc then
-             Do_comment(V_Warning,current_module^.ppufilename^+' Interface CRC changed '+
+             Comment(V_Warning,current_module^.ppufilename^+' Interface CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
   {$ifdef EXTDEBUG}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module^.crc) and simplify_ppu then
-             Do_comment(V_Warning,current_module^.ppufilename^+' implementation CRC changed '+
+             Comment(V_Warning,current_module^.ppufilename^+' implementation CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
   {$endif EXTDEBUG}
   {$endif ndef Dont_use_Double_checksum}
@@ -1714,7 +1710,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-09-24 15:06:22  peter
+  Revision 1.11  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.10  2000/09/24 15:06:22  peter
     * use defines.inc
 
   Revision 1.9  2000/08/31 07:53:02  michael

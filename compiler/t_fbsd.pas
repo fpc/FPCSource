@@ -121,7 +121,7 @@ begin
   { first test the index value }
   if (hp^.options and eo_index)<>0 then
    begin
-     Comment(V_Error,'can''t export with index under linux');
+     Message1(parser_e_no_export_with_index_for_target,'freebsd');
      exit;
    end;
   { use pascal name is none specified }
@@ -182,7 +182,7 @@ begin
 {$endif i386}
       end
      else
-      Comment(V_Error,'Exporting of variables is not supported under linux');
+      Message1(parser_e_no_export_of_variables_for_target,'freebsd');
      hp2:=pexported_item(hp2^.next);
    end;
 end;
@@ -457,7 +457,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:12:12  peter
+  Revision 1.3  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.2  2000/09/24 15:12:12  peter
     * renamed to be 8.3
 
   Revision 1.2  2000/09/16 12:24:00  peter

@@ -181,13 +181,13 @@ begin
            if (flags and uf_static_linked)=0 then
             begin
               { if smart not avail then try static linking }
-              if (flags and uf_static_linked)<>0 then
+              if (flags and uf_smart_linked)<>0 then
                begin
-                 Comment(V_Tried,'unit '+modulename^+' can''t be static linked, switching to smart linking');
+                 Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
                  mask:=mask or link_smart;
                end
               else
-               Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+               Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
             end
            else
              mask:=mask or link_static;
@@ -200,11 +200,11 @@ begin
               { if smart not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Tried,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                 Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
                  mask:=mask or link_static;
                end
               else
-               Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+               Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
             end
            else
             mask:=mask or link_smart;
@@ -217,11 +217,11 @@ begin
               { if shared not avail then try static linking }
               if (flags and uf_static_linked)<>0 then
                begin
-                 Comment(V_Tried,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                 Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
                  mask:=mask or link_static;
                end
               else
-               Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
+               Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
             end
            else
             mask:=mask or link_shared;
@@ -541,7 +541,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 15:06:18  peter
+  Revision 1.9  2000-09-24 21:33:46  peter
+    * message updates merges
+
+  Revision 1.8  2000/09/24 15:06:18  peter
     * use defines.inc
 
   Revision 1.7  2000/09/16 12:22:52  peter

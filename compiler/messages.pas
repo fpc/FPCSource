@@ -38,6 +38,7 @@ type
   PMessage=^TMessage;
   TMessage=object
     msgfilename : string;
+    msgintern   : boolean;
     msgallocsize,
     msgsize,
     msgparts,
@@ -49,6 +50,7 @@ type
     destructor  Done;
     function  LoadIntern(p:pointer;n:longint):boolean;
     function  LoadExtern(const fn:string):boolean;
+    procedure ClearIdx;
     procedure CreateIdx;
     function  GetPChar(nr:longint):pchar;
     function  Get(nr:longint):string;
@@ -111,6 +113,8 @@ begin
   msgtxt:=pchar(p);
   msgsize:=n;
   msgallocsize:=0;
+  msgintern:=true;
+  ClearIdx;
   CreateIdx;
   LoadIntern:=true;
 end;
@@ -298,9 +302,24 @@ begin
    end;
   close(f);
   freemem(buf,bufsize);
-{ now we can create the index }
+{ now we can create the index, clear if the previous load was also
+  an external file, because those can't be reused }
+  if not msgintern then
+   ClearIdx;
   CreateIdx;
+{ set that we've loaded an external file }
+  msgintern:=false;
   LoadExtern:=true;
+end;
+
+
+procedure TMessage.ClearIdx;
+var
+  i : longint;
+begin
+  { clear }
+  for i:=1to msgparts do
+   fillchar(msgidx[i]^,msgidxmax[i]*4,0);
 end;
 
 
@@ -314,9 +333,6 @@ var
   i   : longint;
   numpart,numidx : longint;
 begin
-  { clear }
-  for i:=1to msgparts do
-   fillchar(msgidx[i]^,msgidxmax[i]*4,0);
   { process msgtxt buffer }
   number:='00000';
   hp:=msgtxt;
@@ -432,7 +448,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:18  peter
+  Revision 1.4  2000-09-24 21:33:46  peter
+    * message updates merges
+
+  Revision 1.3  2000/09/24 15:06:18  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:43  michael

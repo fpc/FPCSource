@@ -206,7 +206,7 @@ begin
                     operands[i]^.size:=opsize
                   else
                    begin
-                     Comment(V_Error,'No size specified and unable to determine the size of the operands');
+                     Message(asmr_e_unable_to_determine_reference_size);
                      { recovery }
                      operands[i]^.size:=S_L;
                    end;
@@ -456,7 +456,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:25  peter
+  Revision 1.6  2000-09-24 21:33:47  peter
+    * message updates merges
+
+  Revision 1.5  2000/09/24 15:06:25  peter
     * use defines.inc
 
   Revision 1.4  2000/09/16 12:22:52  peter

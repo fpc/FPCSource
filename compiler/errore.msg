@@ -101,6 +101,16 @@ general_i_writingresourcefile=01010_I_Writing Resource String Table file: $1
 general_e_errorwritingresourcefile=01011_E_Writing Resource String Table file: $1
 % This message is shown when the compiler encountered an error when writing
 % the Resource String Table file
+general_i_fatal=01012_I_Fatal:
+% Prefix for Fatal Errors
+general_i_error=01013_I_Error:
+% Prefix for Errors
+general_i_warning=01014_I_Warning:
+% Prefix for Warnings
+general_i_note=01015_I_Note:
+% Prefix for Notes
+general_i_hint=01016_I_Hint:
+% Prefix for Hints
 % \end{description}
 #
 # Scanner
@@ -277,6 +287,10 @@ scan_w_only_one_resourcefile_supported=02056_W_Only one resource file is support
 % The target you are compiling for supports only one resource file. This is the
 % case of OS/2 (EMX) currently. The first resource file found is used, the
 % others are discarded.
+scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
+% A macro declaration has been found, but macro support is currently off,
+% so the declaration will be ignored. To turn macro support on compile with
+% -Sm on the commandline or add {$MACRO ON} in the source
 % \end{description}
 #
 # Parser
@@ -705,7 +719,6 @@ parser_e_no_local_operator=03116_E_Local operators not supported
 % definitions.
 parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure directive $1 not allowed in interface section
 % This procedure directive is not allowed in the \var{interface} section of
-
 % a unit. You can only use it in the \var{implementation} section.
 parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive $1 not allowed in implementation section
 % This procedure directive is not defined in the \var{implementation} section of
@@ -732,7 +745,6 @@ parser_h_maybe_deref_caret_missing=03126_H_may be pointer dereference is missing
 % The compiler thinks that a pointer may need a dereference.
 parser_f_assembler_reader_not_supported=03127_F_Selected assembler reader not supported
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
-
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
 parser_e_proc_dir_conflict=03128_E_Procedure directive $1 has conflicts with other directives
@@ -852,6 +864,13 @@ parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
 parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
 % You need to use {$mode objfpc} or {$mode delphi} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
+parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $1
+% Exporting of functions or procedures with a specified index is not
+% support on all targets. The only platforms currently supporting
+% export with index are OS/2 and Win32.
+parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
+% Exporting of variables is not support on all targets. The only platform
+% currently supporting export of variables is Win32.
 % \end{description}
 #
 # Type Checking
@@ -1085,8 +1104,6 @@ sym_h_local_symbol_not_used=05028_H_Local $1 $2 is not used
 sym_n_private_identifier_not_used=05029_N_Private field $1.$2 is never used
 sym_n_private_identifier_only_set=05030_N_Private field $1.$2 is assigned but never used
 sym_n_private_method_not_used=05031_N_Private method $1.$2 never used
-
-
 sym_e_set_expected=05032_E_Set type expected
 % The variable or expression isn't of type \var{set}. This happens in an
 % \var{in} statement.
@@ -1417,6 +1434,10 @@ asmr_e_cannot_access_object_field_directly=07082_E_Can't access fields of object
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
+asmr_e_unable_to_determine_reference_size=07083_E_No size specified and unable to determine the size of the operands
+% You should specify explicitly a size for the reference, because
+% compiler is unable to determine what size (byte,word,dword,etc.) it
+% should use for the reference.
 #
 # Assembler/binary writers
 #
@@ -1474,6 +1495,11 @@ exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not suppor
 exec_i_closing_script=09020_I_Closing script $1
 exec_w_res_not_found=09021_W_resource compiler not found, switching to external mode
 exec_i_compilingresource=09022_I_Compiling resource $1
+exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be static linked, switching to smart linking
+exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart linked, switching to static linking
+exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
+exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
+exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or static linked
 %\end{description}
 # EndOfTeX
 
@@ -1599,6 +1625,16 @@ unit_u_second_load_unit=10036_U_Second load for unit $1
 unit_u_check_time=10037_U_PPU Check file $1 time $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
+unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
+% when recompilation of an unit is required the compiler will check that
+% the same conditionals are set for the recompiliation. The compiler has
+% found a conditional that currently is defined, but was not used the last
+% time the unit was compiled.
+unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
+% when recompilation of an unit is required the compiler will check that
+% the same conditionals are set for the recompiliation. The compiler has
+% found a conditional that was used the last time the unit was compiled, but
+% the conditional is currently not defined.
 % \end{description}
 # EndOfTeX
 

@@ -11,6 +11,11 @@ const
   general_f_no_memory_left=01009;
   general_i_writingresourcefile=01010;
   general_e_errorwritingresourcefile=01011;
+  general_i_fatal=01012;
+  general_i_error=01013;
+  general_i_warning=01014;
+  general_i_note=01015;
+  general_i_hint=01016;
   scan_f_end_of_file=02000;
   scan_f_string_exceeds_line=02001;
   scan_f_illegal_char=02002;
@@ -68,6 +73,7 @@ const
   scan_w_include_env_not_found=02054;
   scan_e_invalid_maxfpureg_value=02055;
   scan_w_only_one_resourcefile_supported=02056;
+  scan_w_macro_support_turned_off=02057;
   parser_e_syntax_error=03000;
   parser_w_proc_far_ignored=03001;
   parser_w_proc_near_ignored=03002;
@@ -231,6 +237,8 @@ const
   parser_e_dlltool_unit_var_problem=03160;
   parser_e_dlltool_unit_var_problem2=03161;
   parser_f_need_objfpc_or_delphi_mode=03162;
+  parser_e_no_export_with_index_for_target=03163;
+  parser_e_no_export_of_variables_for_target=03164;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -430,6 +438,7 @@ const
   asmr_n_align_is_target_specific=07080;
   asmr_e_cannot_access_field_directly_for_parameters=07081;
   asmr_e_cannot_access_object_field_directly=07082;
+  asmr_e_unable_to_determine_reference_size=07083;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -467,6 +476,11 @@ const
   exec_i_closing_script=09020;
   exec_w_res_not_found=09021;
   exec_i_compilingresource=09022;
+  exec_t_unit_not_static_linkable_switch_to_smart=09023;
+  exec_t_unit_not_smart_linkable_switch_to_static=09024;
+  exec_t_unit_not_shared_linkable_switch_to_static=09025;
+  exec_e_unit_not_smart_or_static_linkable=09026;
+  exec_e_unit_not_shared_or_static_linkable=09027;
   execinfo_f_cant_process_executable=09023;
   execinfo_f_cant_open_executable=09024;
   execinfo_x_codesize=09025;
@@ -512,6 +526,8 @@ const
   unit_u_start_parse_implementation=10035;
   unit_u_second_load_unit=10036;
   unit_u_check_time=10037;
+  unit_h_cond_not_set_in_last_compile=10038;
+  unit_h_cond_set_in_last_compile=10039;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -539,9 +555,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 30276;
+  MsgTxtSize = 31005;
 
   MsgIdxMax : array[1..20] of longint=(
-    12,57,163,34,41,41,83,14,30,38,
+    17,58,165,34,41,41,84,14,30,40,
     26,1,1,1,1,1,1,1,1,1
   );

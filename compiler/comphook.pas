@@ -53,6 +53,14 @@ Const
   V_All          = $ffffffff;
   V_Default      = V_Fatal + V_Error + V_Normal;
 
+const
+  { RHIDE expect gcc like error output }
+  fatalstr      : string[20] = 'Fatal:';
+  errorstr      : string[20] = 'Error:';
+  warningstr    : string[20] = 'Warning:';
+  notestr       : string[20] = 'Note:';
+  hintstr       : string[20] = 'Hint:';
+
 type
   PCompilerStatus = ^TCompilerStatus;
   TCompilerStatus = record
@@ -220,14 +228,8 @@ end;
 
 Function def_comment(Level:Longint;const s:string):boolean;
 const
-  { RHIDE expect gcc like error output }
-  rh_errorstr='error: ';
-  rh_warningstr='warning: ';
-  fatalstr='Fatal: ';
-  errorstr='Error: ';
-  warningstr='Warning: ';
-  notestr='Note: ';
-  hintstr='Hint: ';
+  rh_errorstr   = 'error:';
+  rh_warningstr = 'warning:';
 var
   hs : string;
 begin
@@ -269,18 +271,18 @@ begin
         if status.currentcolumn>0 then
          begin
            if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs
-                 +tostr(status.currentcolumn)+': '
+             hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs+' '+
+                 tostr(status.currentcolumn)+': '
            else
-             hs:=status.currentsource+'('+tostr(status.currentline)
-                 +','+tostr(status.currentcolumn)+') '+hs;
+             hs:=status.currentsource+'('+tostr(status.currentline)+
+                 ','+tostr(status.currentcolumn)+') '+hs+' ';
          end
         else
          begin
            if status.use_gccoutput then
-             hs:=gccfilename(status.currentsource)+': '+hs+tostr(status.currentline)+': '
+             hs:=gccfilename(status.currentsource)+': '+hs+' '+tostr(status.currentline)+': '
            else
-             hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs;
+             hs:=status.currentsource+'('+tostr(status.currentline)+') '+hs+' ';
          end;
       end;
    { add the message to the text }
@@ -359,7 +361,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:13  peter
+  Revision 1.7  2000-09-24 21:33:46  peter
+    * message updates merges
+
+  Revision 1.6  2000/09/24 15:06:13  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:50  peter
