@@ -64,14 +64,14 @@ end;
 Procedure TComponent.ReadLeft(Reader: TReader);
 
 begin
-//  LongRec(FDesignInfo).Lo:=Reader.ReadInteger;
+  LongRec(FDesignInfo).Lo:=Reader.ReadInteger;
 end;
 
 
 Procedure TComponent.ReadTop(Reader: TReader);
 
 begin
-//  LongRec(FDesignInfo).Hi:=Reader.ReadInteger;
+  LongRec(FDesignInfo).Hi:=Reader.ReadInteger;
 end;
 
 
@@ -173,12 +173,10 @@ begin
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
-{
-  Filer.Defineproperty('left',readleft,writeleft,
+  Filer.Defineproperty('left',@readleft,@writeleft,
                        (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
-  Filer.Defineproperty('top',readtop,writetop,
+  Filer.Defineproperty('top',@readtop,@writetop,
                        (longrec(FDesignInfo).Hi<>Longrec(temp).Hi));
-}
 end;
 
 
@@ -233,7 +231,7 @@ begin
   If (Operation=opRemove) and Assigned(FFreeNotifies) then
     begin
     FFreeNotifies.Remove(AComponent);
-    If FFreeNotifies.Count=0 then
+	    If FFreeNotifies.Count=0 then
       begin
       FFreeNotifies.Free;
       FFreenotifies:=Nil;
@@ -535,7 +533,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-01-06 21:54:50  peter
+  Revision 1.6  2002-01-09 10:40:24  michael
+  + re-enabled Top/Left property writing
+
+  Revision 1.5  2002/01/06 21:54:50  peter
     * action classes added
 
   Revision 1.4  2001/12/03 21:39:58  peter
