@@ -495,6 +495,7 @@ implementation
       begin
         resultloc:=procdefinition.funcret_paraloc[callerside];
         cgsize:=resultloc.size;
+
         { structured results are easy to handle....
           needed also when result_no_used !! }
         if (procdefinition.proctypeoption<>potype_constructor) and
@@ -504,114 +505,132 @@ implementation
             if location.loc<>LOC_REFERENCE then
              internalerror(200304241);
           end
-        { ansi/widestrings must be registered, so we can dispose them }
-        else if resulttype.def.needs_inittable then
+        else
+          { ansi/widestrings must be registered, so we can dispose them }
+          if resulttype.def.needs_inittable then
+            begin
+              { the FUNCTION_RESULT_REG is already allocated }
+              if not assigned(funcretnode) then
+                begin
+                  location_reset(location,LOC_REFERENCE,OS_ADDR);
+                  location.reference:=refcountedtemp;
+                  { a_load_reg_ref may allocate registers! }
+                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
+                  cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                end
+              else
+                begin
+                  cg.ungetregister(exprasmlist,resultloc.register);
+                  hregister := cg.getaddressregister(exprasmlist);
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultloc.register,hregister);
+                  { in case of a regular funcretnode with ret_in_param, the }
+                  { original funcretnode isn't touched -> make sure it's    }
+                  { the same here (not sure if it's necessary)              }
+                  tempnode := funcretnode.getcopy;
+                  tempnode.pass_2;
+                  location := tempnode.location;
+                  tempnode.free;
+                  cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference,false);
+                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
+                  cg.ungetregister(exprasmlist,hregister);
+               end;
+
+              { When the result is not used we need to finalize the result and
+                can release the temp }
+              if not(cnf_return_value_used in callnodeflags) then
+                begin
+                  cg.g_finalize(exprasmlist,resulttype.def,location.reference,false);
+                  tg.ungetiftemp(exprasmlist,location.reference)
+                end;
+            end
+        else
+          { normal (ordinal,float,pointer) result value }
           begin
-            { the FUNCTION_RESULT_REG is already allocated }
-            if not assigned(funcretnode) then
+            { we have only to handle the result if it is used }
+            if (cnf_return_value_used in callnodeflags) then
               begin
-                location_reset(location,LOC_REFERENCE,OS_ADDR);
-                location.reference:=refcountedtemp;
-                { a_load_reg_ref may allocate registers! }
-                cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
-                cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                location.loc:=resultloc.loc;
+                case resultloc.loc of
+                   LOC_FPUREGISTER:
+                     begin
+                       location_reset(location,LOC_FPUREGISTER,cgsize);
+                       location.register:=procdefinition.funcret_paraloc[callerside].register;
+{$ifdef x86}
+                       tcgx86(cg).inc_fpu_stack;
+{$else x86}
+                       cg.ungetregister(exprasmlist,location.register);
+                       hregister:=cg.getfpuregister(exprasmlist,location.size);
+                       cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
+                       location.register:=hregister;
+{$endif x86}
+                     end;
+
+                   LOC_REGISTER:
+                     begin
+                       if cgsize<>OS_NO then
+                        begin
+                          location_reset(location,LOC_REGISTER,cgsize);
+{$ifndef cpu64bit}
+                          if cgsize in [OS_64,OS_S64] then
+                           begin
+                             { Move the function result to free registers, preferably the
+                               FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
+                             { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
+                               are already allocated }
+                             cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
+                             location.registerlow:=cg.getintregister(exprasmlist,OS_32);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_LOW_REG,location.registerlow);
+                             cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
+                             location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_HIGH_REG,location.registerhigh);
+                           end
+                          else
+{$endif cpu64bit}
+                           begin
+                             { Move the function result to a free register, preferably the
+                               FUNCTION_RESULT_REG, so no move is necessary.}
+                             { the FUNCTION_RESULT_REG is already allocated }
+                             cg.ungetregister(exprasmlist,resultloc.register);
+                             { change register size after the unget because the
+                               getregister was done for the full register
+
+                               def_cgsize(resulttype.def) is used here because
+                               it could be a constructor call }
+                             location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
+                             cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultloc.register,location.register);
+                           end;
+                        end
+                       else
+                        begin
+                          if resulttype.def.size>0 then
+                            internalerror(200305131);
+                        end;
+                     end;
+
+                   LOC_MMREGISTER:
+                     begin
+                       location_reset(location,LOC_MMREGISTER,cgsize);
+                       cg.ungetregister(exprasmlist,resultloc.register);
+                       location.register:=cg.getmmregister(exprasmlist,cgsize);
+                       cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultloc.register,location.register,mms_movescalar);
+                     end;
+
+                   else
+                     internalerror(200405023);
+                end;
               end
             else
               begin
-                cg.ungetregister(exprasmlist,resultloc.register);
-                hregister := cg.getaddressregister(exprasmlist);
-                cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultloc.register,hregister);
-                { in case of a regular funcretnode with ret_in_param, the }
-                { original funcretnode isn't touched -> make sure it's    }
-                { the same here (not sure if it's necessary)              }
-                tempnode := funcretnode.getcopy;
-                tempnode.pass_2;
-                location := tempnode.location;
-                tempnode.free;
-                cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference,false);
-                cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                cg.ungetregister(exprasmlist,hregister);
-             end;
-          end
-        { we have only to handle the result if it is used }
-        else if (cnf_return_value_used in callnodeflags) then
-          begin
-            location.loc:=resultloc.loc;
-            case resultloc.loc of
-               LOC_FPUREGISTER:
-                 begin
-                   location_reset(location,LOC_FPUREGISTER,cgsize);
-                   location.register:=procdefinition.funcret_paraloc[callerside].register;
 {$ifdef x86}
-                   tcgx86(cg).inc_fpu_stack;
-{$else x86}
-                   cg.ungetregister(exprasmlist,location.register);
-                   hregister:=cg.getfpuregister(exprasmlist,location.size);
-                   cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
-                   location.register:=hregister;
+                { release FPU stack }
+                if resultloc.loc=LOC_FPUREGISTER then
+                  emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
 {$endif x86}
-                 end;
-
-               LOC_REGISTER:
-                 begin
-                   if cgsize<>OS_NO then
-                    begin
-                      location_reset(location,LOC_REGISTER,cgsize);
-{$ifndef cpu64bit}
-                      if cgsize in [OS_64,OS_S64] then
-                       begin
-                         { Move the function result to free registers, preferably the
-                           FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
-                         { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
-                           are already allocated }
-                         cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
-                         location.registerlow:=cg.getintregister(exprasmlist,OS_32);
-                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_LOW_REG,location.registerlow);
-                         cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
-                         location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
-                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_HIGH_REG,location.registerhigh);
-                       end
-                      else
-{$endif cpu64bit}
-                       begin
-                         { Move the function result to a free register, preferably the
-                           FUNCTION_RESULT_REG, so no move is necessary.}
-                         { the FUNCTION_RESULT_REG is already allocated }
-                         cg.ungetregister(exprasmlist,resultloc.register);
-                         { change register size after the unget because the
-                           getregister was done for the full register
-
-                           def_cgsize(resulttype.def) is used here because
-                           it could be a constructor call }
-                         location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
-                         cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultloc.register,location.register);
-                       end;
-                    end
-                   else
-                    begin
-                      if resulttype.def.size>0 then
-                        internalerror(200305131);
-                    end;
-                 end;
-
-               LOC_MMREGISTER:
-                 begin
-                   location_reset(location,LOC_MMREGISTER,cgsize);
-                   cg.ungetregister(exprasmlist,resultloc.register);
-                   location.register:=cg.getmmregister(exprasmlist,cgsize);
-                   cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultloc.register,location.register,mms_movescalar);
-                 end;
-
-               else
-                 internalerror(200405023);
-             end;
-          end
-        else
-          begin
-            if cgsize<>OS_NO then
-              paramanager.freeparaloc(exprasmlist,resultloc);
-            location_reset(location,LOC_VOID,OS_NO);
-          end;
+                if cgsize<>OS_NO then
+                  paramanager.freeparaloc(exprasmlist,resultloc);
+                location_reset(location,LOC_VOID,OS_NO);
+              end;
+           end;
       end;
 
 
@@ -1024,26 +1043,6 @@ implementation
 
          { release temps of paras }
          release_para_temps;
-
-         { if return value is not used }
-         if (not(cnf_return_value_used in callnodeflags)) and (not is_void(resulttype.def)) then
-           begin
-              if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-                begin
-                   { data which must be finalized ? }
-                   if (resulttype.def.needs_inittable) then
-                      cg.g_finalize(exprasmlist,resulttype.def,location.reference,false);
-                   { release unused temp }
-                   tg.ungetiftemp(exprasmlist,location.reference)
-                end
-              else if location.loc=LOC_FPUREGISTER then
-                begin
-{$ifdef x86}
-                  { release FPU stack }
-                  emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-{$endif x86}
-                end;
-           end;
       end;
 
 
@@ -1264,7 +1263,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.172  2004-07-11 19:01:13  peter
+  Revision 1.173  2004-07-12 10:47:42  michael
+  + Fix for bug 3207 from Peter
+
+  Revision 1.172  2004/07/11 19:01:13  peter
     * comps are passed in int registers
 
   Revision 1.171  2004/07/09 23:41:04  jonas
