@@ -76,7 +76,6 @@ Type
   ValReal = Real;
 
   {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
 {$endif}
 
 { Zero - terminated strings }
@@ -492,7 +491,10 @@ const
 
 {
   $Log$
-  Revision 1.20  2001-04-23 18:25:45  peter
+  Revision 1.21  2001-05-09 19:57:07  peter
+  *** empty log message ***
+
+  Revision 1.20  2001/04/23 18:25:45  peter
     * m68k updates
 
   Revision 1.19  2001/04/13 18:06:07  peter

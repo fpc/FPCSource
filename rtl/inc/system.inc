@@ -104,6 +104,9 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
 { Include set support which is processor specific}
 {$I set.inc}
+{ Include generic pascal routines for sets if the processor }
+{ specific routines are not available.                      }
+{$I genset.inc}
 
 
 {****************************************************************************
@@ -636,7 +639,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2001-04-13 18:06:28  peter
+  Revision 1.13  2001-05-09 19:57:07  peter
+  *** empty log message ***
+
+  Revision 1.12  2001/04/13 18:06:28  peter
     * removed rtllite define
 
   Revision 1.11  2000/12/16 15:56:19  jonas

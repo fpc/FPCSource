@@ -756,7 +756,7 @@ end;
 procedure int_boundcheck(l : longint; range : pointer);[public,alias: 'FPC_BOUNDCHECK'];
   type
     prange = ^trange;
-    trange = record
+    trange = packed record
                min,max : longint;
              end;
 begin
@@ -771,7 +771,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-04-21 12:16:28  peter
+  Revision 1.10  2001-05-09 19:57:07  peter
+  *** empty log message ***
+
+  Revision 1.9  2001/04/21 12:16:28  peter
     * int_str cardinal fix (merged)
 
   Revision 1.8  2001/04/13 18:06:28  peter

@@ -63,7 +63,10 @@ ___fpc_brk_addr:
 
 #
 # $Log$
-# Revision 1.1  2000-10-15 09:09:24  peter
+# Revision 1.2  2001-05-09 19:57:07  peter
+# *** empty log message ***
+#
+# Revision 1.1  2000/10/15 09:09:24  peter
 #   * startup code also needed syslinux->system updates
 #
 #

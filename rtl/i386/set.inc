@@ -14,6 +14,7 @@
 
  **********************************************************************}
 
+{$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 procedure do_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL'];
 {
   load a normal set p from a smallset l
@@ -29,7 +30,7 @@ asm
         stosl
 end;
 
-
+{$define FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
 procedure do_create_element(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_CREATE_ELEMENT'];
 {
   create a new set in p from an element b
@@ -53,6 +54,8 @@ asm
         popl    %eax
 end;
 
+
+{$define FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
 procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
@@ -71,6 +74,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
 procedure do_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE'];
 {
   suppresses the element b to the set pointed by p
@@ -90,6 +94,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
 procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
 {
   adds the range [l..h] to the set pointed to by p
@@ -123,7 +128,7 @@ asm
         subl   $4,%ebx
         jnz    .Lset_range_loop
 .Lset_range_hi:
-        movb   h,%cl              
+        movb   h,%cl
         movl   %edx,%ebx            // save current bitmask
         andb   $31,%cl
         subb   $31,%cl              // cl := (31 - (hi and 31)) = shift count to
@@ -136,6 +141,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE'];
 {
   tests if the element b is in the set p the carryflag is set if it present
@@ -154,7 +160,7 @@ asm
 end;
 
 
-
+{$define FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
 procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS'];
 {
   adds set1 and set2 into set dest
@@ -174,7 +180,7 @@ asm
 end;
 
 
-
+{$define FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
 procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS'];
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
@@ -194,6 +200,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
 procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS'];
 {
   computes the diff from set1 to set2 result in dest
@@ -215,6 +222,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
 procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS'];
 {
    computes the symetric diff from set1 to set2 result in dest
@@ -235,6 +243,7 @@ asm
 end;
 
 
+{$define FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
 procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
 {
   compares set1 and set2 zeroflag is set if they are equal
@@ -257,7 +266,10 @@ asm
     .LMCOMPSETEND:
 end;
 
+
+
 {$IfNDef NoSetInclusion}
+{$define FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
 procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
@@ -447,11 +459,14 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-09-21 16:09:19  jonas
+  Revision 1.4  2001-05-09 19:57:07  peter
+  *** empty log message ***
+
+  Revision 1.3  2000/09/21 16:09:19  jonas
     + new, much faster do_set_range based on the PowerPC version (which
       will be committed tomorrow)
 
   Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
- 
+
 }
