@@ -37,6 +37,8 @@ unit cgcpu;
 
     type
       tcgarm = class(tcg)
+        { true, if the next arithmetic operation should modify the flags }
+        setflags : boolean;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -387,7 +389,7 @@ unit cgcpu;
                  end;
              end;
            else
-             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
+             list.concat(setoppostfix(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1),toppostfix(ord(setflags)*ord(PF_S))));
          end;
        end;
 
@@ -1208,7 +1210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2004-01-22 02:22:47  florian
+  Revision 1.37  2004-01-22 20:13:18  florian
+    * fixed several issues with flags
+
+  Revision 1.36  2004/01/22 02:22:47  florian
     * op_const_reg_reg with OP_SAR fixed
 
   Revision 1.35  2004/01/22 01:47:15  florian

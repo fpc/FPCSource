@@ -301,7 +301,7 @@ interface
                end;
           end
         else
-          exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
+          exprasmlist.concat(taicpu.op_reg_reg(A_CMP,right.location.register,left.location.register));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
@@ -314,7 +314,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-01-22 01:47:15  florian
+  Revision 1.7  2004-01-22 20:13:18  florian
+    * fixed several issues with flags
+
+  Revision 1.6  2004/01/22 01:47:15  florian
     * improved register usage
     + implemented second_cmp64bit
 

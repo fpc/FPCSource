@@ -509,7 +509,7 @@ unit cpubase;
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_NE,F_CC,F_CS,F_PL,F_MI,F_VC,F_VS,F_LS,F_HI,
+          (F_NE,F_EQ,F_CC,F_CS,F_PL,F_MI,F_VC,F_VS,F_LS,F_HI,
           F_LT,F_GE,F_LE,F_GT);
       begin
         f:=inv_flags[f];
@@ -566,7 +566,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.23  2004-01-21 19:01:03  florian
+  Revision 1.24  2004-01-22 20:13:18  florian
+    * fixed several issues with flags
+
+  Revision 1.23  2004/01/21 19:01:03  florian
     * fixed handling of max. distance of pc relative symbols
 
   Revision 1.22  2003/12/26 14:02:30  peter

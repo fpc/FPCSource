@@ -65,7 +65,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj;
+      rgobj,tgobj,cgobj,cgcpu;
 
 
 {*****************************************************************************
@@ -158,13 +158,17 @@ implementation
                    href:=left.location.reference;
                    inc(href.offset,4);
                    cg.ungetregister(exprasmlist,hregister);
+                   tcgarm(cg).setflags:=true;
                    cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
+                   tcgarm(cg).setflags:=false;
                  end
                 else
                  begin
                    location_force_reg(exprasmlist,left.location,left.location.size,true);
                    location_release(exprasmlist,left.location);
+                   tcgarm(cg).setflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                   tcgarm(cg).setflags:=false;
                  end;
               end;
             LOC_FLAGS :
@@ -179,12 +183,16 @@ implementation
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
                    cg.ungetregister(exprasmlist,hregister);
                    location_release(exprasmlist,left.location);
+                   tcgarm(cg).setflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
+                   tcgarm(cg).setflags:=false;
                  end
                 else
                  begin
                    location_release(exprasmlist,left.location);
+                   tcgarm(cg).setflags:=true;
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                   tcgarm(cg).setflags:=false;
                  end;
               end;
             LOC_JUMP :
@@ -198,7 +206,9 @@ implementation
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
                 cg.ungetregister(exprasmlist,hregister);
+                tcgarm(cg).setflags:=true;
                 cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
+                tcgarm(cg).setflags:=false;
               end;
             else
               internalerror(200311301);
@@ -217,7 +227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-11-30 19:35:29  florian
+  Revision 1.8  2004-01-22 20:13:18  florian
+    * fixed several issues with flags
+
+  Revision 1.7  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.6  2003/11/04 22:30:15  florian
