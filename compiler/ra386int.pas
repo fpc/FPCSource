@@ -255,12 +255,6 @@ begin
   if firsttoken and not (c in [newline,#13,'{',';']) then
    begin
      firsttoken:=FALSE;
-     if c = '@' then
-      begin
-        actasmtoken:=AS_LLABEL;   { this is a local label }
-        { Let us point to the next character }
-        c:=current_scanner^.asmgetchar;
-      end;
      len:=0;
      while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
       begin
@@ -276,11 +270,10 @@ begin
      { label ? }
      if c = ':' then
       begin
-        case actasmtoken of
-          AS_NONE:
-            actasmtoken:=AS_LABEL;
-          AS_LLABEL: ; { do nothing }
-        end; { end case }
+        if actasmpattern[1]='@' then
+          actasmtoken:=AS_LLABEL
+        else
+          actasmtoken:=AS_LABEL;
         { let us point to the next character }
         c:=current_scanner^.asmgetchar;
         exit;
@@ -1612,7 +1605,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  1999-05-27 19:44:59  peter
+  Revision 1.36  1999-06-01 19:56:37  peter
+    * fixed llabel with delete the first @
+
+  Revision 1.35  1999/05/27 19:44:59  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
