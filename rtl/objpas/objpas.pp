@@ -155,7 +155,7 @@ interface
     Type
        PVarRec = ^TVarRec;
        TVarRec = record
-         case Byte of
+         case vtType: Byte of
            vtInteger    : (VInteger: Integer; VType:Longint);
            vtBoolean    : (VBoolean: Boolean);
            vtChar       : (VChar: Char);
@@ -398,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-09-23 10:00:47  peter
+  Revision 1.13  1998-09-23 12:18:32  michael
+  + added VType in TVArRec
+
+  Revision 1.12  1998/09/23 10:00:47  peter
     * tvarrec should be 8 bytes
 
   Revision 1.11  1998/09/22 15:30:07  peter
