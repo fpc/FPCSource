@@ -930,11 +930,13 @@ Begin
                 sym:=srsym;
                 if assigned(sym) then
                  begin
-                   if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
-                     Message(asmr_e_no_local_or_para_allowed);
                    case srsym^.typ of
                      varsym :
-                       hs:=pvarsym(srsym)^.mangledname;
+                       begin
+                         if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
+                          Message(asmr_e_no_local_or_para_allowed);
+                         hs:=pvarsym(srsym)^.mangledname;
+                       end;
                      typedconstsym :
                        hs:=ptypedconstsym(srsym)^.mangledname;
                      procsym :
@@ -1992,7 +1994,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2000-04-04 13:48:44  pierre
+  Revision 1.74  2000-04-29 12:51:33  peter
+    * fixed offset support intel reader, the gotoffset variable was not
+      always reset
+    * moved check for local/para to be only used for varsym
+
+  Revision 1.73  2000/04/04 13:48:44  pierre
     + TOperand.SetCorrectSize virtual method added
       to be able to change the suffix according to the instruction
       (FIADD word ptr w need a s as ATT suffix

@@ -865,11 +865,13 @@ Begin
                 sym:=srsym;
                 if assigned(sym) then
                  begin
-                   if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
-                     Message(asmr_e_no_local_or_para_allowed);
                    case srsym^.typ of
                      varsym :
-                       hs:=pvarsym(srsym)^.mangledname;
+                       begin
+                         if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
+                          Message(asmr_e_no_local_or_para_allowed);
+                         hs:=pvarsym(srsym)^.mangledname;
+                       end;
                      typedconstsym :
                        hs:=ptypedconstsym(srsym)^.mangledname;
                      procsym :
@@ -1066,8 +1068,8 @@ Begin
                 inc(opr.ref.offset,opr.val);
               end;
              Consume(AS_ID);
-             GotOffset:=false;
            end;
+          GotOffset:=false;
         end;
 
       AS_PLUS :
@@ -1814,7 +1816,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2000-03-28 22:11:48  pierre
+  Revision 1.64  2000-04-29 12:51:34  peter
+    * fixed offset support intel reader, the gotoffset variable was not
+      always reset
+    * moved check for local/para to be only used for varsym
+
+  Revision 1.63  2000/03/28 22:11:48  pierre
    + add a warning if esi is base and index in object assembler code
 
   Revision 1.62  2000/03/27 21:18:55  pierre
