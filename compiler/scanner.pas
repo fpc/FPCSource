@@ -2383,7 +2383,7 @@ implementation
                     readchar;
                     c:=upcase(c);
                     if (block_type=bt_type) or
-                       (lasttoken=_ID) or
+                       (lasttoken=_ID) or (lasttoken=_NIL) or
                        (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
                      begin
                        token:=_CARET;
@@ -2798,7 +2798,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.47  2002-09-06 14:58:42  carl
+  Revision 1.48  2002-09-16 19:05:48  peter
+    * parse ^ after nil as caret
+
+  Revision 1.47  2002/09/06 14:58:42  carl
     * bugfix of bug report 2072 (merged)
 
   Revision 1.46  2002/09/05 19:27:05  peter
