@@ -1,15 +1,7 @@
 {
      $Id$
 }
-{ How this works:                                                        }
-{    QueryAdapter - Va chercher tout les modes videos et drivers         }
-{      disponibles sur cette carte, et les mets dans une linked list     }
-{      en ordre de driver number, et a l'interieur de cela, dans un      }
-{      ordre croissant de mode number.                                   }
-{   DetectGraph - Verifie si la liste chainee de drivers existe, sinon   }
-{      apelle QueryAdapter                                               }
-{   InitGraph - Appelle DetectGraph, et verifie que le mode demande existe}
-{      bel et bien et est disponible sur ce PC                           }
+
 {$ifndef fpc}
   {$ifndef noasmgraph}
     {$define asmgraph}
@@ -114,6 +106,7 @@
           pop es
        end ['ESI','EDI','ECX','EAX']
     end;
+
 {$endif tp}
 
  {************************************************************************}
@@ -178,14 +171,15 @@
      end;
 {$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
-     PortW[$3ce] := $f01;
-     PortW[$3ce] := Pixel shl 8;
-     PortB[$3ce] := 8;
-     PortW[$3cf] := $80 shr (x and $7) + (Pixel shl 8);
-     dummy := Mem[$a000: offset];
-     Mem[$a000: offset] := dummy;
-     PortW[$3ce] := $ff08;
-     PortB[$3ce] := 1;
+     PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
+     PortW[$3ce] := Pixel shl 8; { Index 00 : Enable correct plane and write color }
+
+     Port[$3ce] := 8;
+     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+     dummy := Mem[$a000: offset];  { Latch the data into host space.  }
+     Mem[$a000: offset] := dummy;  { Write the data into video memory }
+     PortW[$3ce] := $ff08;         { Enable all bit planes.           }
+     PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
 {$else asmgraph}
       asm
  {$ifndef fpc}
@@ -275,15 +269,15 @@
     Y:= Y + StartYViewPort;
 {$ifndef asmgraph}
     offset := Y * 80 + (x shr 3) + VideoOfs;
-    PortB[$3ce] := 4;
+    Port[$3ce] := 4;
     shift := 7 - (X and 7);
-    PortB[$3cf] := 0;
+    Port[$3cf] := 0;
     dummy := (Mem[$a000:offset] shr shift) and 1;
-    PortB[$3cf] := 1;
+    Port[$3cf] := 1;
     dummy := dummy or (((Mem[$a000:offset] shr shift) and 1) shl 1);
-    PortB[$3cf] := 2;
+    Port[$3cf] := 2;
     dummy := dummy or (((Mem[$a000:offset] shr shift) and 1) shl 2);
-    PortB[$3cf] := 3;
+    Port[$3cf] := 3;
     dummy := dummy or (((Mem[$a000:offset] shr shift) and 1) shl 3);
     GetPixel16 := dummy;
 {$else asmgraph}
@@ -431,7 +425,7 @@ Begin
 {$ifdef logging}
   LogLn('GetScanLine16 start, length to get: '+strf(ViewWidth+1)+' at y = '+strf(y));
 {$Endif logging}
-  PortB[$3ce] := 4;
+  Port[$3ce] := 4;
   offset := (Y + StartYViewPort) * 80 + (StartXViewPort shr 3) + VideoOfs;
 {$ifdef logging}
   LogLn('Offset: '+HexStr(offset,4)+' - ' + strf(offset));
@@ -463,7 +457,7 @@ Begin
 {$Endif logging}
   If amount = 0 Then Exit;
   { first get everything from plane 3 (4th plane) }
-  PortB[$3cf] := 3;
+  Port[$3cf] := 3;
   Count := 0;
   For Count := 1 to (amount shr 5) Do
     Begin
@@ -485,7 +479,7 @@ Begin
   Repeat
     Dec(Index,Count*32);
     Dec(plane);
-    PortB[$3cf] := plane;
+    Port[$3cf] := plane;
     Count := 0;
     For Count := 1 to (amount shr 5) Do
       Begin
@@ -585,12 +579,12 @@ End;
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
     PortW[$3ce] := Color shl 8;
-    PortB[$3ce] := 8;
-    PortW[$3cf] := $80 shr (X and 7) + (Color shl 8);
+    Port[$3ce] := 8;
+    Port[$3cf] := $80 shr (X and 7);
     dummy := Mem[$a000: offset];
     Mem[$a000: offset] := dummy;
     PortW[$3ce] := $ff08;
-    PortB[$3ce] := 1;
+    PortW[$3ce] := $0001;
 {$else asmgraph}
     asm
   {$ifndef fpc}
@@ -685,7 +679,7 @@ End;
 {$endif asmgraph}
  end;
 
-{$ifndef tp}
+
   procedure HLine16(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
 
    var
@@ -734,28 +728,28 @@ End;
 {$endif}
     if HLength=0 then
       LMask:=LMask and RMask;
-    port[$3ce]:=0;
+    Port[$3ce]:=0;
     If CurrentWriteMode <> NotPut Then
-      port[$3cf]:= CurrentColor
-    else port[$3cf]:= not CurrentColor;
-    port[$3ce]:=1;
-    port[$3cf]:=$f;
-    port[$3ce]:=3;
+      Port[$3cf]:= CurrentColor
+    else Port[$3cf]:= not CurrentColor;
+    Port[$3ce]:=1;
+    Port[$3cf]:=$f;
+    Port[$3ce]:=3;
     case CurrentWriteMode of
        XORPut:
-         port[$3cf]:=3 shl 3;
+         Port[$3cf]:=3 shl 3;
        ANDPut:
-         port[$3cf]:=1 shl 3;
+         Port[$3cf]:=1 shl 3;
        ORPut:
-         port[$3cf]:=2 shl 3;
+         Port[$3cf]:=2 shl 3;
        NormalPut, NotPut:
-         port[$3cf]:=0
+         Port[$3cf]:=0
        else
-         port[$3cf]:=0
+         Port[$3cf]:=0
     end;
 
-    port[$3ce]:=8;
-    port[$3cf]:=LMask;
+    Port[$3ce]:=8;
+    Port[$3cf]:=LMask;
 {$ifopt r+}
 {$define rangeOn}
 {$r-}
@@ -773,18 +767,22 @@ End;
 {$undef overflowOn}
 {$q+}
 {$endif}
-    port[$3ce]:=8;
+    Port[$3ce]:=8;
     if HLength>0 then
       begin
          dec(HLength);
          inc(ScrOfs);
          if HLength>0 then
            begin
-              port[$3cf]:=$ff;
+              Port[$3cf]:=$ff;
+{$ifndef tp}
               seg_bytemove(dosmemselector,$a0000+ScrOfs,dosmemselector,$a0000+ScrOfs,HLength);
+{$else}
+              move(Ptr(SegA000,ScrOfs)^, Ptr(SegA000,ScrOfs)^, HLength);
+{$endif}
               ScrOfs:=ScrOfs+HLength;
            end;
-         port[$3cf]:=RMask;
+         Port[$3cf]:=RMask;
 {$ifopt r+}
 {$define rangeOn}
 {$r-}
@@ -803,14 +801,14 @@ End;
 {$q+}
 {$endif}
       end;
-    // clean up
-    port[$3cf]:=0;
-    port[$3ce]:=8;
-    port[$3cf]:=$ff;
-    port[$3ce]:=1;
-    port[$3cf]:=0;
-    port[$3ce]:=3;
-    port[$3cf]:=0;
+    { clean up }
+    Port[$3cf]:=0;
+    Port[$3ce]:=8;
+    Port[$3cf]:=$ff;
+    Port[$3ce]:=1;
+    Port[$3cf]:=0;
+    Port[$3ce]:=3;
+    Port[$3cf]:=0;
    end;
 
   procedure VLine16(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
@@ -840,26 +838,26 @@ End;
       end;
     ScrOfs:=y*ScrWidth+x div 8;
     BitMask:=$80 shr (x and 7);
-    port[$3ce]:=0;
+    Port[$3ce]:=0;
     If CurrentWriteMode <> NotPut Then
-      port[$3cf]:= CurrentColor
-    else port[$3cf]:= not CurrentColor;
-    port[$3ce]:=1;
-    port[$3cf]:=$f;
-    port[$3ce]:=8;
-    port[$3cf]:=BitMask;
-    port[$3ce]:=3;
+      Port[$3cf]:= CurrentColor
+    else Port[$3cf]:= not CurrentColor;
+    Port[$3ce]:=1;
+    Port[$3cf]:=$f;
+    Port[$3ce]:=8;
+    Port[$3cf]:=BitMask;
+    Port[$3ce]:=3;
     case CurrentWriteMode of
        XORPut:
-         port[$3cf]:=3 shl 3;
+         Port[$3cf]:=3 shl 3;
        ANDPut:
-         port[$3cf]:=1 shl 3;
+         Port[$3cf]:=1 shl 3;
        ORPut:
-         port[$3cf]:=2 shl 3;
+         Port[$3cf]:=2 shl 3;
        NormalPut, NotPut:
-         port[$3cf]:=0
+         Port[$3cf]:=0
        else
-         port[$3cf]:=0
+         Port[$3cf]:=0
     end;
     for i:=y to y2 do
       begin
@@ -882,37 +880,36 @@ End;
 {$endif}
          ScrOfs:=ScrOfs+ScrWidth;
       end;
-    // clean up
-    port[$3cf]:=0;
-    port[$3ce]:=8;
-    port[$3cf]:=$ff;
-    port[$3ce]:=1;
-    port[$3cf]:=0;
-    port[$3ce]:=3;
-    port[$3cf]:=0;
+    { clean up }
+    Port[$3cf]:=0;
+    Port[$3ce]:=8;
+    Port[$3cf]:=$ff;
+    Port[$3ce]:=1;
+    Port[$3cf]:=0;
+    Port[$3ce]:=3;
+    Port[$3cf]:=0;
   End;
-{$endif tp}
 
 
  procedure SetVisual480(page: word); {$ifndef fpc}far;{$endif fpc}
- { no page flipping support in 640x480 mode }
+ { no page flipping supPort in 640x480 mode }
   begin
     VideoOfs := 0;
   end;
 
  procedure SetActive480(page: word); {$ifndef fpc}far;{$endif fpc}
- { no page flipping support in 640x480 mode }
+ { no page flipping supPort in 640x480 mode }
   begin
     VideoOfs := 0;
   end;
 
 
  procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page support... }
+  { two page supPort... }
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supported. }
+      mov ax,[page]    { only lower byte is supPorted. }
       mov ah,05h
 {$ifdef fpc}
       push ebp
@@ -937,7 +934,7 @@ End;
   end;
 
  procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page support... }
+  { two page supPort... }
   begin
     case page of
      0 : VideoOfs := 0;
@@ -949,11 +946,11 @@ End;
   end;
 
  procedure SetVisual350(page: word); {$ifndef fpc}far;{$endif fpc}
-  { one page support... }
+  { one page supPort... }
   begin
     if page > HardwarePages then exit;
     asm
-      mov ax,[page]    { only lower byte is supported. }
+      mov ax,[page]    { only lower byte is supPorted. }
       mov ah,05h
 {$ifdef fpc}
       push ebp
@@ -966,7 +963,7 @@ End;
   end;
 
  procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
-  { one page support... }
+  { one page supPort... }
   begin
     case page of
      0 : VideoOfs := 0;
@@ -1030,7 +1027,7 @@ End;
       add    edi, [VideoOfs]
       shl    ebx, 6
       add    edi, ebx
-      mov    ax, pixel
+      mov    ax, [pixel]
       mov    fs:[edi+ebx*4+$a0000], al
   {$endif fpc}
     end;
@@ -1125,12 +1122,12 @@ End;
 
 
  procedure SetVisual320(page: word); {$ifndef fpc}far;{$endif fpc}
-  { no page support... }
+  { no page supPort... }
   begin
   end;
 
  procedure SetActive320(page: word); {$ifndef fpc}far;{$endif fpc}
-  { no page support... }
+  { no page supPort... }
   begin
    VideoOfs := 0;
   end;
@@ -1161,7 +1158,7 @@ const CrtAddress: word = 0;
 {$ifdef fpc}
     pop ebp
 {$EndIf fpc}
-     MOV DX,03C4h   {select memory-mode-register at sequencer port    }
+     MOV DX,03C4h   {select memory-mode-register at sequencer Port    }
      MOV AL,04
      OUT DX,AL
      INC DX         {read in data via the according data register     }
@@ -1195,7 +1192,7 @@ const CrtAddress: word = 0;
      pop es
 {$EndIf fpc}
      MOV DX,CRTAddress  {address the underline-location-register at }
-     MOV AL,14h         {the CRT-controller port, read out the according      }
+     MOV AL,14h         {the CRT-controller Port, read out the according      }
      OUT DX,AL          {data register:                            }
      INC DX
      IN  AL,DX
@@ -1280,7 +1277,7 @@ const CrtAddress: word = 0;
  end;
 
  procedure SetVisualX(page: word); {$ifndef fpc}far;{$endif fpc}
-  { 4 page support... }
+  { 4 page supPort... }
 
    Procedure SetVisibleStart(AOffset: word); Assembler;
    (* Select where the left corner of the screen will be *)
@@ -1336,7 +1333,7 @@ const CrtAddress: word = 0;
   end;
 
  procedure SetActiveX(page: word); {$ifndef fpc}far;{$endif fpc}
-  { 4 page support... }
+  { 4 page supPort... }
   begin
    case page of
      0: VideoOfs := 0;
@@ -1415,8 +1412,12 @@ const CrtAddress: word = 0;
    dummy := CurrentColor;
    offset := y * 80 + x shr 2 + VideoOfs;
    PortW[$3c4] := FirstPlane shl (x and 3);
-   If CurrentWriteMode = XorPut Then
-     dummy := dummy xor Mem[$a000: offset];
+   case CurrentWriteMode of
+     XorPut: dummy := dummy xor Mem[$a000:offset];
+     OrPut: dummy := dummy or Mem[$a000:offset];
+     AndPut: dummy := dummy and Mem[$a000:offset];
+     NotPut: dummy := Not dummy;
+   end;
    Mem[$a000: offset] := Dummy;
  end;
 {$else asmgraph}
@@ -1462,7 +1463,7 @@ const CrtAddress: word = 0;
   SavePtr : pointer;    { pointer to video state                 }
   StateSize: word;      { size in 64 byte blocks for video state }
   VideoMode: byte;      { old video mode before graph mode       }
-  SaveSupported : Boolean;    { Save/Restore video state supported? }
+  SaveSupPorted : Boolean;    { Save/Restore video state supPorted? }
 
 
       {**************************************************************}
@@ -1477,7 +1478,7 @@ const CrtAddress: word = 0;
   PtrLong: longint;
   regs: TDPMIRegisters;
   begin
-    SaveSupported := FALSE;
+    SaveSupPorted := FALSE;
     SavePtr := nil;
     { Get the video mode }
     asm
@@ -1499,10 +1500,10 @@ const CrtAddress: word = 0;
       mov  [StateSize], bx
       cmp  al,01ch
       jnz  @notok
-      mov  [SaveSupported],TRUE
+      mov  [SaveSupPorted],TRUE
      @notok:
     end;
-    if SaveSupported then
+    if SaveSupPorted then
       begin
 
 {$ifndef fpc}
@@ -1558,11 +1559,11 @@ const CrtAddress: word = 0;
      end;
      { then restore all state information }
 {$ifndef fpc}
-     if assigned(SavePtr) and (SaveSupported=TRUE) then
+     if assigned(SavePtr) and (SaveSupPorted=TRUE) then
 {$else fpc}
-     { No far pointer support, so it's possible that that assigned(SavePtr) }
+     { No far pointer supPort, so it's possible that that assigned(SavePtr) }
      { would return false under FPC. Just check if it's different from nil. }
-     if (SavePtr <> nil) and (SaveSupported=TRUE) then
+     if (SavePtr <> nil) and (SaveSupPorted=TRUE) then
 {$endif fpc}
       begin
         FillChar(regs, sizeof(regs), #0);
@@ -1594,7 +1595,7 @@ const CrtAddress: word = 0;
  Procedure SaveStateVGA; far;
   begin
     SavePtr := nil;
-    SaveSupported := FALSE;
+    SaveSupPorted := FALSE;
     { Get the video mode }
     asm
       mov  ah,0fh
@@ -1609,10 +1610,10 @@ const CrtAddress: word = 0;
       mov  [StateSize], bx
       cmp  al,01ch
       jnz  @notok
-      mov  [SaveSupported],TRUE
+      mov  [SaveSupPorted],TRUE
      @notok:
     end;
-    if SaveSupported then
+    if SaveSupPorted then
       Begin
         GetMem(SavePtr, 64*StateSize); { values returned in 64-byte blocks }
         if not assigned(SavePtr) then
@@ -1646,7 +1647,7 @@ const CrtAddress: word = 0;
      end;
 
      { then restore all state information }
-     if assigned(SavePtr) and (SaveSupported=TRUE) then
+     if assigned(SavePtr) and (SaveSupPorted=TRUE) then
        begin
          { restore state, according to Ralph Brown Interrupt list }
          asm
@@ -1695,15 +1696,12 @@ const CrtAddress: word = 0;
         out dx, al
         inc dx              { Point to DAC registers            }
         mov ax, [RedValue]  { Get RedValue                      }
-  {      and ax, $ff        } { mask out all upper bits           }
         shr al, 2           { convert to LSB RGB format         }
         out dx, al
         mov ax, [GreenValue]{ Get RedValue                      }
-  {      and ax, $ff        } { mask out all upper bits           }
         shr al, 2           { convert to LSB RGB format         }
         out dx, al
         mov ax, [BlueValue] { Get RedValue                      }
-  {      and ax, $ff        } { mask out all upper bits           }
         shr al, 2           { convert to LSB RGB format         }
         out dx, al
       end
@@ -1754,8 +1752,8 @@ const CrtAddress: word = 0;
 
   function QueryAdapterInfo:PModeInfo;
   { This routine returns the head pointer to the list }
-  { of supported graphics modes.                      }
-  { Returns nil if no graphics mode supported.        }
+  { of supPorted graphics modes.                      }
+  { Returns nil if no graphics mode supPorted.        }
   { This list is READ ONLY!                           }
    var
     EGADetected : Boolean;
@@ -1772,8 +1770,8 @@ const CrtAddress: word = 0;
 
      EGADetected := FALSE;
      VGADetected := FALSE;
-     { check if Hercules adapter supported ... }
-     { check if EGA adapter supported...       }
+     { check if Hercules adapter supPorted ... }
+     { check if EGA adapter supPorted...       }
      asm
        mov ah,12h
        mov bx,0FF10h
@@ -1792,7 +1790,7 @@ const CrtAddress: word = 0;
 {$ifdef logging}
      LogLn('EGA detected: '+strf(Longint(EGADetected)));
 {$endif logging}
-     { check if VGA adapter supported...       }
+     { check if VGA adapter supPorted...       }
      if EGADetected then
        begin
         asm
@@ -1804,11 +1802,11 @@ const CrtAddress: word = 0;
 {$ifdef fpc}
          pop ebp
 {$endif fpc}
-         cmp al,1ah         { check if supported...          }
+         cmp al,1ah         { check if supPorted...          }
          jne @novga
          { now check if this is the ATI EGA }
          mov ax,1c00h       { get state size for save...     }
-                            { ... all important data         }
+                            { ... all imPortant data         }
          mov cx,07h
 {$ifdef fpc}
          push ebp
@@ -1959,12 +1957,12 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     { check if VESA adapter supported...      }
-{$ifndef noSupportVESA}
+     { check if VESA adapter supPorted...      }
+{$ifndef noSupPortVESA}
      hasVesa := getVesaInfo(VESAInfo);
-{$else noSupportVESA}
+{$else noSupPortVESA}
      hasVESA := false;
-{$endif noSupportVESA}
+{$endif noSupPortVESA}
      if hasVesa then
        begin
          { We have to set and restore the entire VESA state }
@@ -1979,7 +1977,7 @@ const CrtAddress: word = 0;
 {$ifdef logging}
          LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
-         { now check all supported modes...}
+         { now check all supPorted modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
              InitMode(mode);
@@ -1987,7 +1985,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='320 x 200 VESA';
              mode.MaxColor := 32768;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2013,7 +2011,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='320 x 200 VESA';
              mode.MaxColor := 65536;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2039,7 +2037,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 400 VESA';
              mode.MaxColor := 256;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2067,7 +2065,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 480 VESA';
              mode.MaxColor := 256;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2094,7 +2092,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 400 VESA';
              mode.MaxColor := 32768;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2120,7 +2118,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 480 VESA';
              mode.MaxColor := 65536;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2146,7 +2144,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 16;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
@@ -2157,7 +2155,7 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
-(*             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16; *)
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2172,7 +2170,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 256;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2200,7 +2198,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 32768;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2226,7 +2224,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 65536;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2252,7 +2250,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 16;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2263,7 +2261,7 @@ const CrtAddress: word = 0;
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
-(*             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16; *)
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2278,7 +2276,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 256;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2306,7 +2304,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 32768;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2333,7 +2331,7 @@ const CrtAddress: word = 0;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 65536;
              mode.DirectColor := TRUE;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
@@ -2358,7 +2356,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 16;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
@@ -2369,7 +2367,7 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
-(*             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16; *)
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2384,7 +2382,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 256;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
@@ -2412,7 +2410,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 32768;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := TRUE;
@@ -2438,7 +2436,7 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 65536;
-             { the ModeInfo is automatically set if the mode is supported }
+             { the ModeInfo is automatically set if the mode is supPorted }
              { by the call to SearchVESAMode.                             }
              mode.HardwarePages := VESAModeInfo.NumberOfPages;
              mode.DirectColor := TRUE;
@@ -2462,7 +2460,12 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.22  1999-10-08 14:28:18  jonas
+Revision 1.23  1999-10-24 03:34:37  carl
+  - Removed some old french comments.
+  * Bugfix of problems with register access in noasmmoded
+  + GetPixVESA16
+
+Revision 1.22  1999/10/08 14:28:18  jonas
   * fixed set/getvgargbpalette for VGA 16 color modes
 
 Revision 1.21  1999/09/27 23:34:40  peter
@@ -2505,7 +2508,7 @@ Revision 1.15  1999/09/22 13:13:34  jonas
 
 Revision 1.14  1999/09/18 22:21:09  jonas
   + hlinevesa256 and vlinevesa256
-  + support for not/xor/or/andput in vesamodes with 32k/64k colors
+  + supPort for not/xor/or/andput in vesamodes with 32k/64k colors
   * lots of changes to avoid warnings under FPC
 
 Revision 1.13  1999/09/18 16:03:36  jonas
@@ -2526,8 +2529,8 @@ Revision 1.11  1999/09/12 17:28:59  jonas
     why
 
 Revision 1.10  1999/09/11 19:43:01  jonas
-  * FloodFill: did not take into account current viewport settings
-  * GetScanLine: only get line inside viewport, data outside of it
+  * FloodFill: did not take into account current viewPort settings
+  * GetScanLine: only get line inside viewPort, data outside of it
     is not used anyway
   * InternalEllipseDefault: fix for when xradius or yradius = 0 and
     increase xradius and yradius always by one (TP does this too)
@@ -2536,12 +2539,12 @@ Revision 1.10  1999/09/11 19:43:01  jonas
     places where it doesn't matter
 
 Revision 1.9  1999/08/01 14:50:51  jonas
-  * fixed hline16 and vline16 for notput (also TP supports copy, and, or, xor and
+  * fixed hline16 and vline16 for notput (also TP supPorts copy, and, or, xor and
     notput for lines!!)
-  * fixed directputpixel16 to support all the different put types
+  * fixed directputpixel16 to supPort all the different put types
 
 Revision 1.8  1999/07/18 15:07:19  jonas
-  + xor-, and and- orput support for VESA256 modes
+  + xor-, and and- orput supPort for VESA256 modes
   * compile with -dlogging if you want some info to be logged to grlog.txt
 
 Revision 1.7  1999/07/14 18:18:02  florian
@@ -2555,10 +2558,10 @@ Revision 1.5  1999/07/14 14:32:12  florian
 
 Revision 1.4  1999/07/12 13:27:08  jonas
   + added Log and Id tags
-  * added first FPC support, only VGA works to some extend for now
+  * added first FPC supPort, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal
     equivalents are used
-  * use -dsupportVESA to support VESA (crashes under FPC for now)
+  * use -dsupPortVESA to supPort VESA (crashes under FPC for now)
   * only dispose vesainfo at closegrph if a vesa card was detected
   * changed int32 to longint (int32 is not declared under FPC)
   * changed the declaration of almost every procedure in graph.inc to
