@@ -7,26 +7,26 @@
                    Copyright (c) 1999-2000 by Florian Kl„mpfl
                     Copyright (c) 1999-2000 by Ramon Bosque
 
- The FPK-Pascal runtime library is distributed under the Library GNU Public
+ The Free Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
  distribute the source code of this unit with any product that uses it.
  Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the FPK Pascal compiler,
+ this, and that is, when you compile a program with the Free Pascal Compiler,
  you do not need to ship source code with that program, AS LONG AS YOU ARE
  USING UNMODIFIED CODE! If you modify this code, you MUST change the next
  line:
 
- <This an official, unmodified FPK Pascal source code file.>
+ <This an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
 
  You should have received a copy of the Library GNU General Public License
- along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.
 
@@ -1228,7 +1228,10 @@ function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flMod
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 16:41:48  daniel
+  Revision 1.9  2000-01-09 20:48:04  hajny
+    * FPK changed to FPC
+
+  Revision 1.8  2000/01/07 16:41:48  daniel
     * copyright 2000
 
   Revision 1.7  2000/01/07 16:32:32  daniel

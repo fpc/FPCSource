@@ -461,7 +461,7 @@ begin
     end;
     es.sizearg:=j;
     es.numenv:=0;
-    {Typecasting of sets in FPK is a bit hard.}
+    {Typecasting of sets in FPC is a bit hard.}
     es.mode1:=byte(runflags);
     es.mode2:=byte(winflags);
 
@@ -1001,7 +1001,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-01-07 16:41:45  daniel
+  Revision 1.19  2000-01-09 20:51:03  hajny
+    * FPK changed to FPC
+
+  Revision 1.18  2000/01/07 16:41:45  daniel
     * copyright 2000
 
   Revision 1.17  1999/10/13 12:21:56  daniel

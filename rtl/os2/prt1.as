@@ -1,6 +1,6 @@
 / prt1.s (emx+fpk) -- Made from crt2.s and dos.s,
 /                                         Copyright (c) 1990-1999-2000 by Eberhard Mattes.
-/                     Changed for FPK-Pascal in 1997 Dani‰l Mantione.
+/                     Changed for Free Pascal in 1997 Daniel Mantione.
 /                                         This code is _not_ under the Library GNU Public
 /                                         License, because the original is not. See copying.emx
 /                                         for details. You should have received it with this

@@ -1,11 +1,11 @@
 {****************************************************************************
 
                             Standard CRT unit.
-                    FPK-Pascal runtime library for OS/2.
-                    Copyright (c) 1997 Dani‰l Mantione.
+                    Free Pascal runtime library for OS/2.
+                    Copyright (c) 1997 Daniel Mantione.
 
       This file may be reproduced and modified under the same conditions
-                      as all other FPK-Pascal source code.
+                      as all other Free Pascal source code.
 
 ****************************************************************************}
 

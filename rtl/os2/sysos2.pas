@@ -1,28 +1,28 @@
 {****************************************************************************
 
-                     FPK-Pascal -- OS/2 runtime library
+                     Free Pascal -- OS/2 runtime library
 
                   Copyright (c) 1999-2000 by Florian Kl„mpfl
-                   Copyright (c) 1999-2000 by Dani‰l Mantione
+                   Copyright (c) 1999-2000 by Daniel Mantione
 
- FPK-Pascal is distributed under the GNU Public License v2. So is this unit.
+ Free Pascal is distributed under the GNU Public License v2. So is this unit.
  The GNU Public License requires you to distribute the source code of this
  unit with any product that uses it. We grant you an exception to this, and
- that is, when you compile a program with the FPK Pascal compiler, you do not
+ that is, when you compile a program with the Free Pascal Compiler, you do not
  need to ship source code with that program, AS LONG AS YOU ARE USING
  UNMODIFIED CODE! If you modify this code, you MUST change the next line:
 
- <This an official, unmodified FPK Pascal source code file.>
+ <This an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
 
  You should have received a copy of the Library GNU General Public License
- along with FPK-Pascal; see the file COPYING.LIB.  If not, write to
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.
 
@@ -34,7 +34,7 @@ unit sysos2;
 
     People:
 
-        DM - Dani‰l Mantione
+        DM - Daniel Mantione
 
     Date:           Description of change:              Changed by:
 
@@ -637,7 +637,7 @@ begin
             dir[0]:=char(i);
             inc(i);
         end;
-    { upcase the string (FPKPascal function) }
+    { upcase the string (FPC function) }
     dir:=upcase(dir);
     if drivenr<>0 then   { Drive was supplied. We know it }
         dir[1]:=char(65+drivenr-1)
@@ -750,7 +750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2000-01-07 16:41:50  daniel
+  Revision 1.21  2000-01-09 20:45:58  hajny
+    * FPK changed to FPC
+
+  Revision 1.20  2000/01/07 16:41:50  daniel
     * copyright 2000
 
   Revision 1.19  2000/01/07 16:32:33  daniel

@@ -2,20 +2,20 @@
 
 EMX - Interface unit for the EMX dynamic runtime library.
 
-Part of FPK Pascal runtime library for OS/2
+Part of Free Pascal runtime library for OS/2
 
 
 History:
     2 June 1997 : Creation.
 
-This unit is copyright (c) 1999-2000 by Dani‰l Mantione.
-FPK Pascal is copyright (c) -1999-2000 by Florian Klaempfl.
-EMX.DLL is copyright (c) -1999-2000 by Eberhard Mattes.
+This unit is Copyright (c) 1999-2000 by Daniel Mantione.
+Free Pascal is Ccopyright (c) -1999-2000 by Florian Klaempfl.
+EMX.DLL is Copyright (c) -1999-2000 by Eberhard Mattes.
 
 Modifying this unit is allowed, under the following conditions:
 
 - You will not make anyone beleive that you or someone else wrote this.
-- Unless you are developing on the official version of FPK, you will make a
+- Unless you are developing on the official version of FPC, you will make a
   note in this file that it is not the original one.
 
 ****************************************************************************}

@@ -14,11 +14,11 @@
  USING UNMODIFIED CODE! If you modify this code, you MUST change the next
  line:
 
- <This an official, unmodified FPK Pascal source code file.>
+ <This an official, unmodified Free Pascal source code file.>
 
  Send us your modified files, we can work together if you want!
 
- FPK-Pascal is distributed in the hope that it will be useful,
+ Free Pascal is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  Library GNU General Public License for more details.
@@ -254,7 +254,7 @@ const
 
        PFONTMETRICS = ^FONTMETRICS;
        
-  { Nun folgen einige FPKPascal-spezifische Typen: }
+  { Nun folgen einige Free Pascal-spezifische Typen: }
   
       { null. term. Strings sind in den Header Dateien oft als }
       { array[0..0] of byte deklariert, der folgende Typ er-   }
@@ -289,7 +289,10 @@ const
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 16:41:48  daniel
+  Revision 1.10  2000-01-09 20:48:04  hajny
+    * FPK changed to FPC
+
+  Revision 1.9  2000/01/07 16:41:48  daniel
     * copyright 2000
 
   Revision 1.8  2000/01/07 16:32:32  daniel

@@ -1,5 +1,5 @@
 / code2.as (emx+fpk) -- Copyright (c) 1992-1999-2000 by Eberhard Mattes
-/                       Changed for FPK-Pascal in 1999-2000 by Dani‰l Mantione.
+/                       Changed for Free Pascal in 1999-2000 by Daniel Mantione.
 /                       This code is _not_ under the Library GNU Public
 /                       License, because the original is not. See copying.emx
 /                       for details. You should have received it with this
