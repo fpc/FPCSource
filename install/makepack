@@ -6,6 +6,10 @@
 
 set -e
 
+# Set this to "yes" if you want to force making the documentation.
+# if it is not equal to yes, the documentation is assumed present in a file docs.tar.gz
+MAKEDOCS=no
+
 # Al
 
 unset FPCDIR
@@ -70,11 +74,18 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
-if [ "$CROSS" == "" ]; then
-  ${MAKE} makepackdocs
-  if [ $? != 0 ]; then
-    echo "Failed to make documentation archive."
-    exit 1
+if [ "$CROSS" = "" ]; then
+  if [ ! -f docs.tar.gz ]; then
+    if [ "$MAKEDOCS" != "yes" ]; then
+      echo "No documentation available. Please copy the file docs.tar.gz to this directory."
+      exit 1
+    else
+      ${MAKE} makepackdocs
+      if [ $? != 0 ]; then
+        echo "Failed to make documentation archive."
+        exit 1
+      fi
+    fi
   fi
   ${MAKE}  sourcezip
   if [ $? != 0 ]; then
