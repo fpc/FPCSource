@@ -3,6 +3,7 @@
 \(
 \synt{array\ type} \\
 \synt{record\ type} \\
+\synt{object\ type} \\
 \synt{class\ type} \\
 \synt{class\ reference\ type}\\
 \synt{set\ type}\\

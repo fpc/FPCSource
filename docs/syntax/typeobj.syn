@@ -7,8 +7,9 @@
 \begin{rep}[b]
   \synt{component\ list} \\ 
   \synt{object\ visibility\ specifier} 
-\end{rep} \lit*{end} 
+\end{rep}
 \]
+\lit*{end}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{heritage} \lit*( \synt{object\ type\ identifier} \lit* )

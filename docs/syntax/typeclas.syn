@@ -7,8 +7,9 @@
 \begin{rep}[b]
   \synt{component\ list} \\ 
   \synt{class\ visibility\ specifier} 
-\end{rep} \lit*{end} 
+\end{rep}
 \]
+\lit*{end} 
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{heritage} \lit*( \synt{class\ type\ identifier} \lit* )
