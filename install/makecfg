@@ -8,18 +8,32 @@
 #
 #   Needs 4 Arguments:
 #    $1 = filename to create
-#    $2 = Path to the RTL Units
+#    $2 = Path to the RTL Units (with subdirs /linuxunits /sharedunits /staticunits)
 #    $3 = Path to the .msg files
 #    $4 = Path to the GCC lib
 #
+if [ $# != 4 ]; then
+  echo 'Usage :' 
+  echo 'makecfg filename rtlpath msgpath libgccpath'
+  echo 'filename   = filename to create'
+  echo 'rtlpath    = Path to the RTL Units'
+  echo '             (with subdirs /linuxunits /sharedunits /staticunits)'
+  echo 'msgpath    = Path to the .msg files'
+  echo 'libgccpath = Path to the GCC lib'
+  exit 1
+fi
 cat <<EOFCREATE >$1
 #!/bin/sh
 #
 #  Generate Free Pascal configuration file
 #
 if [ -f /etc/ppc386.cfg ] ; then
-  mv -f /etc/ppc386.cfg /etc/ppc386.orig
-  echo Saved old config to /etc/ppc386.orig
+  mv /etc/ppc386.cfg /etc/ppc386.orig  >/dev/null 2>&1
+  if [ \$? == 0 ]; then
+    echo Saved old config to /etc/ppc386.orig
+  else
+    echo Could not save old config. Bailing out...
+  fi
 fi
 echo Writing sample configuration file to /etc/ppc386.cfg
 cat <<EOFCFG > /etc/ppc386.cfg
@@ -129,7 +143,16 @@ cat <<EOFCFG > /etc/ppc386.cfg
 #-Fi/pp/inc;/pp/rtl/inc
 
 # searchpath for units (does the same as -Up)
--Fu$2
+# For statically, smartlinked units
+#IFDEF FPC_LINK_STATIC
+-Fu$2/staticunits
+#ENDIF
+# For Dynamically linked units
+#IFDEF FPC_LINK_DYNAMIC
+-Fu$2/sharedunits
+#ENDIF
+# For normal units
+-Fu$2/linuxunits
 #-Fu/pp/units;/pp/rtl/dos/go32v2
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 
