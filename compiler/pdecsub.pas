@@ -1422,6 +1422,7 @@ const
            case idtoken of
              _LIBRARY,
              _PLATFORM,
+             _UNIMPLEMENTED,
              _DEPRECATED :
                exit;
            end;
@@ -2057,7 +2058,12 @@ const
 end.
 {
   $Log$
-  Revision 1.83  2002-11-27 02:35:28  peter
+  Revision 1.84  2002-11-29 22:31:19  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.83  2002/11/27 02:35:28  peter
     * fixed typo in method comparing
 
   Revision 1.82  2002/11/25 17:43:21  peter

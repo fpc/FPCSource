@@ -1191,6 +1191,7 @@ implementation
         lasttokenpos:=inputstart+(inputpointer-inputbuffer);
         akttokenpos.line:=line_no;
         akttokenpos.column:=lasttokenpos-lastlinepos;
+        if not assigned(inputfile) then RunError(204);
         akttokenpos.fileindex:=inputfile.ref_index;
         aktfilepos:=akttokenpos;
       end;
@@ -2801,7 +2802,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.49  2002-11-26 22:56:40  peter
+  Revision 1.50  2002-11-29 22:31:19  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.49  2002/11/26 22:56:40  peter
     * fix macro nesting check
 
   Revision 1.48  2002/09/16 19:05:48  peter

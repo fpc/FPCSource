@@ -228,6 +228,11 @@ implementation
                 include(symopt,sp_hint_platform);
                 try_consume_hintdirective:=true;
               end;
+            _UNIMPLEMENTED :
+              begin
+                include(symopt,sp_hint_unimplemented);
+                try_consume_hintdirective:=true;
+              end;
             else
               break;
           end;
@@ -238,7 +243,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-09-09 17:34:15  peter
+  Revision 1.20  2002-11-29 22:31:19  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.19  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

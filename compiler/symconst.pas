@@ -115,6 +115,7 @@ type
     sp_hint_deprecated,
     sp_hint_platform,
     sp_hint_library,
+    sp_hint_unimplemented,
     sp_has_overloaded
   );
   tsymoptions=set of tsymoption;
@@ -337,7 +338,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-10-20 15:34:16  peter
+  Revision 1.37  2002-11-29 22:31:20  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.36  2002/10/20 15:34:16  peter
     * removed df_unique flag. It breaks code. For a good type=type <id>
       a def copy is required
 

@@ -61,13 +61,13 @@ interface
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para,m_hintdirective,m_duplicate_names];
+          m_out,m_default_para,m_hintdirective,m_duplicate_names,m_hintdirective];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
-          m_cvar_support,m_initfinal,m_add_pointer];
+          m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective];
        objfpcmodeswitches : tmodeswitches=
          [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
-          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out,m_default_para];
+          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out,m_default_para,m_hintdirective];
        tpmodeswitches     : tmodeswitches=
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
        gpcmodeswitches    : tmodeswitches=
@@ -1516,7 +1516,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-11-20 10:11:46  mazen
+  Revision 1.72  2002-11-29 22:31:19  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.71  2002/11/20 10:11:46  mazen
   + TSearchPathList.AddPath supports a local path in addition to file name
 
   Revision 1.70  2002/11/16 14:49:12  carl

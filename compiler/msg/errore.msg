@@ -1160,7 +1160,7 @@ type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of
 #
 # Symtable
 #
-# 05042 is the last used one
+# 05045 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1288,6 +1288,20 @@ sym_w_segment_too_large=05041_W_Data element might be too large
 sym_e_no_matching_implementation_found=05042_E_No matching implementation for interface method "$1" found
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
+sym_w_deprecated_symbol=05043_W_Symbol "$1" is deprecated
+% This means that a symbol (a variable, routine, etc...) which is 
+% declared as \var{deprecated} is used. Deprecated symbols may no longer 
+% be available in newer versions of the unit / library. Usage of this symbol
+% should be avoided as much as possible.
+sym_w_non_portable_symbol=05044_W_Symbol "$1" is not portable
+% This means that a symbol (a variable, routine, etc...) which is 
+% declared as \var{platform} is used. This symbol's value, usage
+% and availability is platform specific and should not be used
+% if the source code must be portable.
+sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
+% This means that a symbol (a variable, routine, etc...) which is 
+% declared as \var{unimplemented} is used. This symbol is defined,
+% but is not yet implemented on this specific platform.
 % \end{description}
 #
 # Codegenerator

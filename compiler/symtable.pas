@@ -604,6 +604,13 @@ implementation
               allow_only_static then
              Message(sym_e_only_static_in_static);
 
+          if sp_hint_deprecated in hp.symoptions then
+             Message1(sym_w_deprecated_symbol,lower(hp.name));
+          if sp_hint_platform in hp.symoptions then
+             Message1(sym_w_non_portable_symbol,lower(hp.name));
+          if sp_hint_unimplemented in hp.symoptions then
+             Message1(sym_w_non_implemented_symbol,lower(hp.name));
+
            { unit uses count }
            if (unitid<>0) and
               (symtabletype = globalsymtable) and
@@ -2337,7 +2344,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-11-27 20:04:09  peter
+  Revision 1.82  2002-11-29 22:31:20  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.81  2002/11/27 20:04:09  peter
     * tvarsym.get_push_size replaced by paramanager.push_size
 
   Revision 1.80  2002/11/22 22:45:49  carl

@@ -220,7 +220,8 @@ type
     _SAVEREGISTERS,
     _IMPLEMENTATION,
     _INITIALIZATION,
-    _RESOURCESTRING
+    _RESOURCESTRING,
+    _UNIMPLEMENTED
   );
 
 const
@@ -443,7 +444,8 @@ const
       (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
-      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN)
+      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN),
+      (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN)
   );
 
 var
@@ -497,7 +499,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-07-16 15:34:21  florian
+  Revision 1.20  2002-11-29 22:31:21  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.19  2002/07/16 15:34:21  florian
     * exit is now a syssym instead of a keyword
 
   Revision 1.18  2002/05/18 13:34:21  peter

@@ -68,7 +68,7 @@ implementation
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
 
-      procedure insert_syms(sc : tsinglelist;tt : ttype;is_threadvar : boolean);
+      procedure insert_syms(sc : tsinglelist;tt : ttype;is_threadvar : boolean; addsymopts : tsymoptions);
       { inserts the symbols of sc in st with def as definition or sym as ttypesym, sc is disposed }
         var
           vs,vs2 : tvarsym;
@@ -77,6 +77,8 @@ implementation
            while assigned(vs) do
              begin
                 vs.vartype:=tt;
+                { insert any additional hint directives }
+                vs.symoptions := vs.symoptions + addsymopts;
                 if (sp_static in current_object_option) then
                   include(vs.symoptions,sp_static);
                 if is_threadvar then
@@ -284,6 +286,10 @@ implementation
                  end
                 else
                  Message(parser_e_absolute_only_to_var_or_const);
+                { try to consume the hint directives with absolute symbols }
+                dummysymoptions:=[];
+                try_consume_hintdirective(dummysymoptions);
+                abssym.symoptions := abssym.symoptions + dummysymoptions;
                 pt.free;
                 symdone:=true;
               end;
@@ -310,12 +316,13 @@ implementation
                   readtypedconst(tt,tconstsym,true);
                   symdone:=true;
                end;
-             { hint directive }
-{$ifdef fpc}
-             {$warning hintdirective not stored in syms}
-{$endif}
-             dummysymoptions:=[];
-             try_consume_hintdirective(dummysymoptions);
+             { if the symbol is not completely handled, then try to parse the 
+               hint directives }
+             if not symdone then
+               begin
+                 dummysymoptions:=[];
+                 try_consume_hintdirective(dummysymoptions);
+               end;
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,_RKLAMMER])) then
                consume(_SEMICOLON);
@@ -343,6 +350,7 @@ implementation
                      Message(parser_e_absolute_only_one_var);
                    { set type of the var }
                    vs.vartype:=tt;
+                   vs.symoptions := vs.symoptions + dummysymoptions;
                    { defaults }
                    is_dll:=false;
                    is_cdecl:=false;
@@ -427,7 +435,7 @@ implementation
                  if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     include(current_object_option,sp_static);
-                    insert_syms(sc,tt,false);
+                    insert_syms(sc,tt,false,dummysymoptions);
                     exclude(current_object_option,sp_static);
                     consume(_STATIC);
                     consume(_SEMICOLON);
@@ -451,7 +459,7 @@ implementation
                       Message(parser_e_only_publishable_classes_can__be_published);
                       exclude(current_object_option,sp_published);
                     end;
-                  insert_syms(sc,tt,is_threadvar);
+                  insert_syms(sc,tt,is_threadvar,dummysymoptions);
                   current_object_option:=old_current_object_option;
                end;
            end;
@@ -579,7 +587,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-11-25 17:43:21  peter
+  Revision 1.41  2002-11-29 22:31:19  carl
+    + unimplemented hint directive added
+    * hint directive parsing implemented
+    * warning on these directives
+
+  Revision 1.40  2002/11/25 17:43:21  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -360,6 +360,9 @@ const
   sym_e_segment_too_large=05040;
   sym_w_segment_too_large=05041;
   sym_e_no_matching_implementation_found=05042;
+  sym_w_deprecated_symbol=05043;
+  sym_w_non_portable_symbol=05044;
+  sym_w_non_implemented_symbol=05055;
   cg_e_break_not_allowed=06000;
   cg_e_continue_not_allowed=06001;
   cg_e_too_complex_expr=06002;
@@ -636,9 +639,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35444;
+  MsgTxtSize = 35553;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,62,190,50,43,41,98,19,35,43,
+    17,62,190,50,56,41,98,19,35,43,
     40,1,1,1,1,1,1,1,1,1
   );
