@@ -397,6 +397,7 @@ implementation
         paras   : tnode;
         npara,
         ppn     : tcallparanode;
+        dims,
         counter : integer;
         isarray : boolean;
         def     : tdef;
@@ -417,7 +418,7 @@ implementation
            exit;
          end;
 
-        counter:=0;
+        dims:=0;
         if assigned(paras) then
          begin
            { check type of lengths }
@@ -426,11 +427,11 @@ implementation
             begin
               set_varstate(ppn.left,vs_used,true);
               inserttypeconv(ppn.left,s32bittype);
-              inc(counter);
+              inc(dims);
               ppn:=tcallparanode(ppn.right);
             end;
          end;
-        if counter=0 then
+        if dims=0 then
          begin
            CGMessage(parser_e_wrong_parameter_size);
            paras.free;
@@ -453,7 +454,7 @@ implementation
          end;
 
         { only dynamic arrays accept more dimensions }
-        if (counter>1) then
+        if (dims>1) then
          begin
            if (not isarray) then
             CGMessage(type_e_mismatch)
@@ -461,6 +462,7 @@ implementation
             begin
               { check if the amount of dimensions is valid }
               def := tarraydef(destppn.resulttype.def).elementtype.def;
+              counter:=dims;
               while counter > 1 do
                 begin
                   if not(is_dynamic_array(def)) then
@@ -481,7 +483,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
-            temp := ctempcreatenode.create(s32bittype,counter*s32bittype.def.size,tt_persistent);
+            temp := ctempcreatenode.create(s32bittype,dims*s32bittype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { load array of lengths }
@@ -732,7 +734,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2003-11-29 16:19:54  peter
+  Revision 1.26  2004-01-22 16:44:35  peter
+    * fixed allocation of dimension buffer for setlength(dynarr)
+
+  Revision 1.25  2003/11/29 16:19:54  peter
     * Initialize() added
 
   Revision 1.24  2003/11/10 22:02:52  peter
