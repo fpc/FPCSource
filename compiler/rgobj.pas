@@ -485,8 +485,9 @@ implementation
          worklist_moves:=Tlinkedlist.create;
          { Usable registers }
          fillchar(usable_registers,sizeof(usable_registers),0);
-         for i:=low(Ausable) to high(Ausable) do
-           usable_registers[i]:=Ausable[i];
+         if high(Ausable)>0 then
+           for i:=low(Ausable) to high(Ausable) do
+             usable_registers[i]:=Ausable[i];
          usable_registers_cnt:=high(Ausable)+1;
       end;
 
@@ -1742,7 +1743,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.85  2003-10-17 14:38:32  peter
+  Revision 1.86  2003-10-17 15:25:18  florian
+    * fixed more ppc stuff
+
+  Revision 1.85  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

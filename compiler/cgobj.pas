@@ -73,14 +73,14 @@ unit cgobj;
           {# Gets a register suitable to do integer operations on.}
           function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           {# Gets a register suitable to do integer operations on.}
-          function getaddressregister(list:Taasmoutput):Tregister;virtual;abstract;
+          function getaddressregister(list:Taasmoutput):Tregister;virtual;
           function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           function getflagregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
           procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
-          procedure ungetreference(list:Taasmoutput;const r:Treference);virtual;abstract;
+          procedure ungetreference(list:Taasmoutput;const r:Treference);virtual;
 
           procedure add_move_instruction(instr:Taicpu);virtual;abstract;
 
@@ -563,20 +563,33 @@ implementation
       setsubreg(result,subreg);
     end;
 
-    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
 
+    function tcg.getaddressregister(list:Taasmoutput):Tregister;
+      begin
+        result:=getintregister(list,OS_ADDR);
+      end;
+
+
+    procedure tcg.ungetreference(list:Taasmoutput;const r:Treference);
+      begin
+        if r.base<>NR_NO then
+          ungetregister(list,r.base);
+      end;
+
+
+    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
       begin
          list.concat(tai_regalloc.alloc(r));
       end;
 
-    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
 
+    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
       begin
          list.concat(tai_regalloc.dealloc(r));
       end;
 
-    procedure tcg.a_label(list : taasmoutput;l : tasmlabel);
 
+    procedure tcg.a_label(list : taasmoutput;l : tasmlabel);
       begin
          list.concat(tai_label.create(l));
       end;
@@ -1774,7 +1787,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.131  2003-10-17 14:38:32  peter
+  Revision 1.132  2003-10-17 15:25:18  florian
+    * fixed more ppc stuff
+
+  Revision 1.131  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

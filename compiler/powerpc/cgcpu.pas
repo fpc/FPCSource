@@ -47,11 +47,8 @@ unit cgcpu;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
-        {!!!
-        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
-        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
         procedure add_move_instruction(instr:Taicpu);override;
-        }
+        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -178,7 +175,7 @@ const
 
     procedure tcgppc.init_register_allocators;
       begin
-        rgfpu:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+        rgint:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
              RS_R9,RS_R10,RS_R11,RS_R12,RS_R31,RS_R30,RS_R29,
              RS_R28,RS_R27,RS_R26,RS_R25,RS_R24,RS_R23,RS_R22,
@@ -251,6 +248,28 @@ const
           else
             internalerror(200310091);
         end;
+      end;
+
+
+    procedure tcgppc.add_move_instruction(instr:Taicpu);
+      begin
+        rgint.add_move_instruction(instr);
+      end;
+
+
+    procedure tcgppc.do_register_allocation(list:Taasmoutput;headertai:tai);
+      begin
+        { Int }
+        rgint.do_register_allocation(list,headertai);
+        rgint.translate_registers(list);
+
+        { FPU }
+        rgfpu.do_register_allocation(list,headertai);
+        rgfpu.translate_registers(list);
+
+        { MM }
+        rgmm.do_register_allocation(list,headertai);
+        rgmm.translate_registers(list);
       end;
 
 
@@ -2436,7 +2455,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2003-10-17 15:08:34  peter
+  Revision 1.133  2003-10-17 15:25:18  florian
+    * fixed more ppc stuff
+
+  Revision 1.132  2003/10/17 15:08:34  peter
     * commented out more obsolete constants
 
   Revision 1.131  2003/10/17 14:52:07  peter

@@ -43,7 +43,6 @@ unit cgx86;
         procedure done_register_allocators;override;
 
         function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getaddressregister(list:Taasmoutput):Tregister;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
@@ -209,12 +208,6 @@ unit cgx86;
     function Tcgx86.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
         result:=rgint.getregister(list,cgsize2subreg(size));
-      end;
-
-
-    function Tcgx86.getaddressregister(list:Taasmoutput):Tregister;
-      begin
-        result:=rgint.getregister(list,R_SUBWHOLE);
       end;
 
 
@@ -1753,7 +1746,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.80  2003-10-17 14:38:32  peter
+  Revision 1.81  2003-10-17 15:25:18  florian
+    * fixed more ppc stuff
+
+  Revision 1.80  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 
