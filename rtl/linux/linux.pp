@@ -3828,44 +3828,39 @@ end;
 
 
 
-function ReadPortB (Port : Longint): Byte;
+function ReadPortB (Port : Longint): Byte; assembler;
 {
   Reads a byte from port 'Port'
 }
-begin
-        asm
-        xorl %eax,%eax
-        movl port,%edx
-        inb %dx,%al
-        end ['EAX','EDX'];
-end;
+
+asm
+  xorl %eax,%eax
+  movl port,%edx
+  inb %dx,%al
+end ['EAX','EDX'];
 
 
 
-function ReadPortW (Port : Longint): Word;
+function ReadPortW (Port : Longint): Word; assembler;
 {
   Reads a word from port 'Port'
 }
-begin
-        asm
-        xorl %eax,%eax
-        movl port,%edx
-        inw %dx,%ax
-        end ['EAX','EDX'];
-end;
+asm
+  xorl %eax,%eax
+  movl port,%edx
+  inw %dx,%ax
+end ['EAX','EDX'];
 
 
 
-function ReadPortL (Port : Longint): LongInt;
+function ReadPortL (Port : Longint): LongInt; assembler;
 {
   Reads a LongInt from port 'Port'
 }
-begin
-        asm
-        movl port,%edx
-        inl %dx,%eax
-        end ['EAX','EDX'];
-end;
+asm
+  movl port,%edx
+  inl %dx,%eax
+end ['EAX','EDX'];
 
 
 
@@ -3930,7 +3925,10 @@ End.
 
 {
   $Log$
-  Revision 1.65  2000-03-23 17:10:32  jonas
+  Revision 1.66  2000-03-27 13:25:48  jonas
+    * fixed readport* functions (thanks Florian ;)
+
+  Revision 1.65  2000/03/23 17:10:32  jonas
     * fixes for port reading
 
   Revision 1.64  2000/03/17 13:27:00  sg
