@@ -1,3 +1,4 @@
+{ %norun }
 { %cpu=i386 }
 { %opt=-s -Amasm -TWin32 -Rintel }
 { Source provided for Free Pascal Bug Report 3540 }

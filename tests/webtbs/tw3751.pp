@@ -4,7 +4,11 @@
 {$mode delphi}
 program turn;
 
-uses cthreads, classes, sysutils;
+uses
+{$ifdef unix}
+  cthreads,
+{$endif}
+  classes, sysutils;
 
 type
 
