@@ -206,8 +206,10 @@ Type
   { MCBS functions }
   {$i sysansih.inc}
 
+{$ifdef HASWIDESTRING}
   { wide string functions }
   {$i syswideh.inc}
+{$endif}
 
   { Read filename handling functions declaration }
   {$i finah.inc}
@@ -230,7 +232,10 @@ Type
 
 {
   $Log$
-  Revision 1.10  2005-02-01 20:22:50  florian
+  Revision 1.11  2005-02-03 16:21:59  peter
+    * 1.0.x fix
+
+  Revision 1.10  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
 
   Revision 1.9  2004/08/31 11:03:35  michael

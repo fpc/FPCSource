@@ -66,9 +66,11 @@
 
   { MCBS functions }
   {$i sysansi.inc}
-  
+
+{$ifdef HASWIDESTRING}  
   { wide string functions }
   {$i syswide.inc}
+{$endif}
 
   { CPU Specific code }
   {$i sysutilp.inc}
