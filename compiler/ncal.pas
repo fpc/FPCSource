@@ -1339,6 +1339,11 @@ type
                     begin
                       if not assigned(currpara) then
                         internalerror(200402261);
+                      if not assigned(currpara.defaultvalue) then
+                        begin
+                          CGMessage(parser_e_wrong_parameter_size);
+                          goto errorexit;
+                        end;
                       currpara:=tparaitem(currpara.previous);
                     end;
                 end;
@@ -2041,7 +2046,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.229  2004-02-26 16:09:49  peter
+  Revision 1.230  2004-03-04 17:25:16  peter
+    * fix check for parameter length when calling procvar, broken by the
+      previous default parameter for procvar fix
+
+  Revision 1.229  2004/02/26 16:09:49  peter
     * fix procvars with default paras
 
   Revision 1.228  2004/02/24 16:12:39  peter
