@@ -5335,6 +5335,16 @@ const
   TME_QUERY     = $40000000;
   TME_CANCEL    = DWORD($80000000);
   HOVER_DEFAULT = DWORD($FFFFFFFF);
+
+// Manually added, bug 3270
+  COLOR_HOTLIGHT                = 26;
+  COLOR_GRADIENTACTIVECAPTION   = 27;
+  COLOR_GRADIENTINACTIVECAPTION = 28;
+  COLOR_MENUHILIGHT             = 29;
+  COLOR_MENUBAR                 = 30;
+  
+  WM_APP                        = $8000;
+
         
 
 {$endif read_interface}
@@ -5920,7 +5930,10 @@ const
 
 {
   $Log$
-  Revision 1.17  2004-07-27 12:03:15  michael
+  Revision 1.18  2004-08-26 15:57:23  michael
+  + Some missing functions/defines as per bug 3270 from Frank Kintrup
+
+  Revision 1.17  2004/07/27 12:03:15  michael
   + More TrackMouseEvent
 
   Revision 1.16  2004/02/06 22:47:19  marco

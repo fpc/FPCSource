@@ -910,6 +910,8 @@ function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):
 function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL; external 'comctl32' name 'ImageList_SetIconSize';
 function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external 'comctl32' name 'ImageList_GetImageInfo';
 function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external 'comctl32' name 'ImageList_Merge';
+function ImageList_SetImageCount(himl: HIMAGELIST; uNewCount: UINT): Integer; external 'comctl32.dll' name 'ImageList_SetImageCount';
+
 function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;dxBitmap:longint;
   dyBitmap:longint; uStructSize:UINT):HWND; external 'comctl32' name 'CreateToolbarEx';
 function CreateMappedBitmap(hInstance:HINST; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external 'comctl32' name 'CreateMappedBitmap';
@@ -2332,7 +2334,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2004-02-08 17:11:34  marco
+  Revision 1.20  2004-08-26 15:57:23  michael
+  + Some missing functions/defines as per bug 3270 from Frank Kintrup
+
+  Revision 1.19  2004/02/08 17:11:34  marco
    * getsystemtimeasfiletime
 
   Revision 1.18  2003/01/02 22:07:00  peter
