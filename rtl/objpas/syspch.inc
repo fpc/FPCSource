@@ -54,6 +54,23 @@ begin
 end;
 
 
+{ Allocates a new string using StrAlloc, you need StrDispose to dispose the
+  string }
+
+function strnew(p : pchar) : pchar;
+var
+  len : longint;
+begin
+  strnew:=nil;
+  if (p=nil) or (p^=#0) then
+   exit;
+  len:=strlen(p)+1;
+  StrNew:=StrAlloc(Len);
+  if strnew<>nil then
+   strmove(strnew,p,len);
+end;
+
+
 {  StrPCopy copies the pascal string Source to Dest and returns Dest  }
 
 function StrPCopy(Dest: PChar; Source: string): PChar;
@@ -101,7 +118,11 @@ end ;
 
 {
   $Log$
-  Revision 1.7  1999-11-06 14:41:31  peter
+  Revision 1.8  1999-12-10 15:02:12  peter
+    * strnew is ofcourse also different between sysutils and strings, just
+      like stralloc/strdispose.
+
+  Revision 1.7  1999/11/06 14:41:31  peter
     * truncated log
 
   Revision 1.6  1999/08/24 13:14:50  peter

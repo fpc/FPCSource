@@ -66,23 +66,13 @@
            end;
       end;
 
-    function strnew(p : pchar) : pchar;
-
-      var
-         len : longint;
-
-      begin
-         strnew:=nil;
-         if (p=nil) or (p^=#0) then
-           exit;
-         len:=strlen(p)+1;
-         getmem(strnew,len);
-         if strnew<>nil then
-           strmove(strnew,p,len);
-      end;
 {
   $Log$
-  Revision 1.4  1999-09-13 11:42:42  peter
+  Revision 1.5  1999-12-10 15:02:12  peter
+    * strnew is ofcourse also different between sysutils and strings, just
+      like stralloc/strdispose.
+
+  Revision 1.4  1999/09/13 11:42:42  peter
     * fixed strlcat
 
   Revision 1.3  1999/09/01 09:25:10  peter

@@ -103,13 +103,6 @@ implementation
 
 { Functions, different from the one in sysutils }
 
-    procedure strdispose(p : pchar);
-
-      begin
-         if p<>nil then
-           freemem(p,strlen(p)+1);
-      end;
-
     function stralloc(L : longint) : pchar;
 
       begin
@@ -117,11 +110,37 @@ implementation
          GetMem (Stralloc,l);
       end;
 
+    function strnew(p : pchar) : pchar;
+
+      var
+         len : longint;
+
+      begin
+         strnew:=nil;
+         if (p=nil) or (p^=#0) then
+           exit;
+         len:=strlen(p)+1;
+         getmem(strnew,len);
+         if strnew<>nil then
+           strmove(strnew,p,len);
+      end;
+
+    procedure strdispose(p : pchar);
+
+      begin
+         if p<>nil then
+           freemem(p,strlen(p)+1);
+      end;
+
 end.
 
 {
   $Log$
-  Revision 1.1  1999-02-25 07:42:03  michael
+  Revision 1.2  1999-12-10 15:02:12  peter
+    * strnew is ofcourse also different between sysutils and strings, just
+      like stralloc/strdispose.
+
+  Revision 1.1  1999/02/25 07:42:03  michael
   * Joined strings and sysutils
 
   Revision 1.7  1998/08/05 08:59:53  michael
