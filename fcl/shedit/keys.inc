@@ -97,70 +97,60 @@ end;
 
 procedure TSHTextEdit.CursorUp;
 begin
-  if FCursorY>0 then
-   dec(FCursorY);
-  AdjustRangeToCursor;
+  if FCursorY > 0 then
+    Dec(FCursorY);
 end;
 
 
 procedure TSHTextEdit.CursorDown;
 begin
-  if FCursorY<FDoc.LineCount-1 then
-   inc(FCursorY);
-  AdjustRangeToCursor;
+  if FCursorY < FDoc.LineCount - 1 then
+    Inc(FCursorY);
 end;
 
 
 procedure TSHTextEdit.CursorLeft;
 begin
-  dec(FCursorX);
+  Dec(FCursorX);
   if FCursorX < 0 then
-   begin
-     if FCursorY>0 then
-      begin
-        dec(FCursorY);
-        FCursorX:=FDoc.LineLen[FCursorY];
-      end
-     else
-      FCursorX:=0;
-   end;
-  AdjustRangeToCursor;
+    if FCursorY>0 then begin
+      Dec(FCursorY);
+      FCursorX := FDoc.LineLen[FCursorY];
+    end else
+      FCursorX := 0;
 end;
 
 
 procedure TSHTextEdit.CursorRight;
 begin
-  inc(FCursorX);
-  AdjustRangeToCursor;
+  Inc(FCursorX);
 end;
 
 
 procedure TSHTextEdit.CursorDocBegin;
 begin
-  FCursorX:=0;
-  FCursorY:=0;
-  AdjustRangeToCursor;
+  FCursorX := 0;
+  FCursorY := 0;
 end;
 
 
 procedure TSHTextEdit.CursorDocEnd;
 begin
-  FCursorY:=FDoc.LineCount-1;
-  FCursorX:=FDoc.LineLen[FCursorY];
-  AdjustRangeToCursor;
+  FCursorY := FDoc.LineCount-1;
+  FCursorX := FDoc.LineLen[FCursorY];
 end;
 
 
 procedure TSHTextEdit.CursorHome;
 begin
-  FCursorX:=0;
+  FCursorX := 0;
   AdjustRangeToCursor;
 end;
 
 
 procedure TSHTextEdit.CursorEnd;
 begin
-  FCursorX:=FDoc.LineLen[FCursorY];
+  FCursorX := FDoc.LineLen[FCursorY];
   AdjustRangeToCursor;
 end;
 
@@ -168,18 +158,16 @@ end;
 procedure TSHTextEdit.CursorPageUp;
 begin
   Dec(FCursorY, FWidget.PageHeight);
-  if FCursorY<0 then
-    FCursorY:=0;
-  AdjustRangeToCursor;
+  if FCursorY < 0 then
+    FCursorY := 0;
 end;
 
 
 procedure TSHTextEdit.CursorPageDown;
 begin
   Inc(FCursorY, FWidget.PageHeight);
-  if FCursorY > FDoc.LineCount-1 then
-    FCursorY:=FDoc.LineCount-1;
-  AdjustRangeToCursor;
+  if FCursorY > FDoc.LineCount - 1 then
+    FCursorY := FDoc.LineCount - 1;
 end;
 
 
@@ -497,12 +485,16 @@ begin
       Result := False;		// Key has not been processed
 
   EndSelectionChange;
+  AdjustRangeToCursor;
 end;
 
 
 {
   $Log$
-  Revision 1.11  2000-01-23 23:58:25  sg
+  Revision 1.12  2000-02-22 14:28:35  sg
+  * "AdjustRangeToCursor" now is called after each pressed key
+
+  Revision 1.11  2000/01/23 23:58:25  sg
   * KeyPressed now returns a Boolean which indicates if the key has been
     processed or not
 
