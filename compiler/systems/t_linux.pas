@@ -211,7 +211,7 @@ var
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
+     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
@@ -436,6 +436,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
+  GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
 begin
@@ -445,11 +446,15 @@ begin
 { Create some replacements }
   StaticStr:='';
   StripStr:='';
+  GCSectionsStr:='';
   DynLinkStr:='';
   if (cs_link_staticflag in aktglobalswitches) then
    StaticStr:='-static';
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
+  if (cs_link_smart in aktglobalswitches) and
+     (tf_smartlink_sections in target_info.flags) then
+   GCSectionsStr:='--gc-sections';
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
@@ -470,6 +475,7 @@ begin
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
@@ -579,7 +585,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2004-10-14 18:16:17  mazen
+  Revision 1.26  2004-10-24 13:36:26  peter
+    * gc-sections added when section smartlinking is used
+
+  Revision 1.25  2004/10/14 18:16:17  mazen
   * USE_SYSUTILS merged successfully : cycles with and without defines
   * Need to be optimized in performance
 

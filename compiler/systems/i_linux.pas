@@ -33,7 +33,7 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size];
+            flags        : [tf_needs_symbol_size{,tf_smartlink_sections}];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -88,7 +88,8 @@ unit i_linux;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_default
           );
 
        system_m68k_linux_info : tsysteminfo =
@@ -151,7 +152,8 @@ unit i_linux;
             heapsize     : 128*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_default
           );
 
        system_powerpc_linux_info : tsysteminfo =
@@ -278,7 +280,8 @@ unit i_linux;
             heapsize     : 256*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_default
           );
 
        system_x86_64_linux_info : tsysteminfo =
@@ -341,7 +344,8 @@ unit i_linux;
             heapsize     : 256*1024;
             stacksize    : 256*1024;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_default
           );
 
        system_sparc_linux_info : tsysteminfo =
@@ -404,7 +408,8 @@ unit i_linux;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_default
           );
 
        system_arm_linux_info : tsysteminfo =
@@ -467,7 +472,8 @@ unit i_linux;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_default
           );
 
   implementation
@@ -514,7 +520,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2004-08-15 13:30:18  florian
+  Revision 1.30  2004-10-24 13:36:26  peter
+    * gc-sections added when section smartlinking is used
+
+  Revision 1.29  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 
