@@ -2617,6 +2617,272 @@ end;
       Memory functions
 --------------------------------}
 
+{$IFDEF I386}
+
+Procedure WritePort (Port : Longint; Value : Byte);
+{
+  Writes 'Value' to port 'Port'
+}
+begin
+        asm
+        movl port,%edx
+        movb value,%al
+        outb %al,%dx
+        end ['EAX','EDX'];
+end;
+
+Procedure WritePort (Port : Longint; Value : Word);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+        asm
+        movl port,%edx
+        movw value,%ax
+        outw %ax,%dx
+        end ['EAX','EDX'];
+end;
+
+
+
+Procedure WritePort (Port : Longint; Value : Longint);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+        asm
+        movl port,%edx
+        movl value,%eax
+        outl %eax,%dx
+        end ['EAX','EDX'];
+end;
+
+
+Procedure WritePortB (Port : Longint; Value : Byte);
+{
+  Writes 'Value' to port 'Port'
+}
+begin
+        asm
+        movl port,%edx
+        movb value,%al
+        outb %al,%dx
+        end ['EAX','EDX'];
+end;
+
+Procedure WritePortW (Port : Longint; Value : Word);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+        asm
+        movl port,%edx
+        movw value,%ax
+        outw %ax,%dx
+        end ['EAX','EDX'];
+end;
+
+
+
+Procedure WritePortL (Port : Longint; Value : Longint);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+        asm
+        movl port,%edx
+        movl value,%eax
+        outl %eax,%dx
+        end ['EAX','EDX'];
+end;
+
+
+
+Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
+{
+  Writes 'Count' longints from 'Buf' to Port
+}
+begin
+  asm
+        movl count,%ecx
+        movl buf,%esi
+        movl port,%edx
+        cld
+        rep
+        outsl
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
+{
+  Writes 'Count' words from 'Buf' to Port
+}
+begin
+  asm
+        movl count,%ecx
+        movl buf,%esi
+        movl port,%edx
+        cld
+        rep
+        outsw
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
+{
+  Writes 'Count' bytes from 'Buf' to Port
+}
+begin
+  asm
+        movl count,%ecx
+        movl buf,%esi
+        movl port,%edx
+        cld
+        rep
+        outsb
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure ReadPort (Port : Longint; Var Value : Byte);
+{
+  Reads 'Value' from port 'Port'
+}
+begin
+        asm
+        movl port,%edx
+        inb %dx,%al
+        movl value,%edx
+        movb %al,(%edx)
+        end ['EAX','EDX'];
+end;
+
+
+
+Procedure ReadPort (Port : Longint; Var Value : Word);
+{
+  Reads 'Value' from port 'Port'
+}
+begin
+        asm
+        movl port,%edx
+        inw %dx,%ax
+        movl value,%edx
+        movw %ax,(%edx)
+        end ['EAX','EDX'];
+end;
+
+
+
+Procedure ReadPort (Port : Longint; Var Value : Longint);
+{
+  Reads 'Value' from port 'Port'
+}
+begin
+        asm
+        movl port,%edx
+        inl %dx,%eax
+        movl value,%edx
+        movl %eax,(%edx)
+        end ['EAX','EDX'];
+end;
+
+
+
+function ReadPortB (Port : Longint): Byte; assembler;
+{
+  Reads a byte from port 'Port'
+}
+
+asm
+  xorl %eax,%eax
+  movl port,%edx
+  inb %dx,%al
+end ['EAX','EDX'];
+
+
+
+function ReadPortW (Port : Longint): Word; assembler;
+{
+  Reads a word from port 'Port'
+}
+asm
+  xorl %eax,%eax
+  movl port,%edx
+  inw %dx,%ax
+end ['EAX','EDX'];
+
+
+
+function ReadPortL (Port : Longint): LongInt; assembler;
+{
+  Reads a LongInt from port 'Port'
+}
+asm
+  movl port,%edx
+  inl %dx,%eax
+end ['EAX','EDX'];
+
+
+
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
+{
+  Reads 'Count' longints from port 'Port' to 'Buf'.
+}
+begin
+  asm
+        movl count,%ecx
+        movl buf,%edi
+        movl port,%edx
+        cld
+        rep
+        insl
+  end ['ECX','EDI','EDX'];
+end;
+
+
+
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
+{
+  Reads 'Count' words from port 'Port' to 'Buf'.
+}
+begin
+  asm
+        movl count,%ecx
+        movl buf,%edi
+        movl port,%edx
+        cld
+        rep
+        insw
+  end ['ECX','EDI','EDX'];
+end;
+
+
+
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
+{
+  Reads 'Count' bytes from port 'Port' to 'Buf'.
+}
+begin
+  asm
+        movl count,%ecx
+        movl buf,%edi
+        movl port,%edx
+        cld
+        rep
+        insb
+  end ['ECX','EDI','EDX'];
+end;
+{$ENDIF}
 
 
 Initialization
@@ -2629,7 +2895,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-12-28 20:42:12  peter
+  Revision 1.7  2001-02-11 18:55:07  peter
+    * readded removed readport* from implementation
+
+  Revision 1.6  2000/12/28 20:42:12  peter
     * ttyname fix from the mailinglist (merged)
 
   Revision 1.5  2000/10/26 22:51:12  peter
