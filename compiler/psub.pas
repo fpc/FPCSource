@@ -204,6 +204,8 @@ implementation
              { there's always a call to FPC_DO_EXIT in the main program }
              include(current_procinfo.flags,pi_do_call);
            end;
+         if ([cs_check_range,cs_check_overflow] * aktlocalswitches <> []) then
+           include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -1251,7 +1253,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2003-06-17 16:34:44  jonas
+  Revision 1.130  2003-07-05 20:15:24  jonas
+    * set pi_do_call if range/overflow checking is on
+
+  Revision 1.129  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
