@@ -923,12 +923,14 @@ implementation
              p:=expr;
 
              { When a colon follows a intconst then transform it into a label }
-             if try_to_consume(_COLON) then
+             if (p.nodetype=ordconstn) and
+                try_to_consume(_COLON) then
               begin
                 s:=tostr(tordconstnode(p).value);
                 p.free;
                 searchsym(s,srsym,srsymtable);
-                if assigned(srsym) then
+                if assigned(srsym) and
+                   (srsym.typ=labelsym) then
                  begin
                    if tlabelsym(srsym).defined then
                     Message(sym_e_label_already_defined);
@@ -954,11 +956,11 @@ implementation
                  resulttypepass(tlabelnode(p).left);
                end
              else
-               begin
-                 { change a load of a procvar to a call. this is also
-                   supported in fpc mode }
-                 maybe_call_procvar(p,false);
-               end;
+
+             { change a load of a procvar to a call. this is also
+               supported in fpc mode }
+             if p.nodetype in [vecn,derefn,typeconvn,subscriptn,loadn] then
+               maybe_call_procvar(p,false);
 
              { blockn support because a read/write is changed into a blocknode }
              { with a separate statement for each read/write operation (JM)    }
@@ -1100,7 +1102,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2004-02-26 16:14:48  peter
+  Revision 1.132  2004-03-04 17:22:10  peter
+    * better check for maybe_call_procvar
+
+  Revision 1.131  2004/02/26 16:14:48  peter
     * withsymtables need to have the original tobject owner instead of
       the parent objectdef. Needed to check for visibility
 
