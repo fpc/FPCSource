@@ -141,13 +141,13 @@ implementation
               current_module.imports.concat(hp1);
            end;
          { search for reuse of old import item }
-         if assigned(aprocdef) then
+         if name<>'' then
            begin
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
               begin
-                if hp2.procdef=aprocdef then
-                 break;
+                if (hp2.name^=name) then
+                  break;
                 hp2:=twin32imported_item(hp2.next);
               end;
            end
@@ -156,8 +156,8 @@ implementation
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
               begin
-                if hp2.func^=func then
-                 break;
+                if (hp2.ordnr=index) then
+                  break;
                 hp2:=twin32imported_item(hp2.next);
               end;
            end;
@@ -1623,7 +1623,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2004-11-16 20:32:41  peter
+  Revision 1.44  2004-11-17 22:22:12  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.43  2004/11/16 20:32:41  peter
   * fixes for win32 mangledname
 
   Revision 1.42  2004/11/08 22:09:59  peter

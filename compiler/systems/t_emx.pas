@@ -41,7 +41,7 @@ implementation
      strings,
      dos,
      cutils,cclasses,
-     globtype,comphook,systems,symsym,symdef,
+     globtype,comphook,systems,symconst,symsym,symdef,
      globals,verbose,fmodule,script,
      import,link,i_emx,ppu;
 
@@ -291,7 +291,7 @@ var tmp1,tmp2,tmp3:string;
     func : string;
 begin
     { force the current mangledname }
-    aprocdef.has_mangledname:=true;
+    include(aprocdef.procoptions,po_has_mangledname);
     func:=aprocdef.mangledname;
 
     aout_init;
@@ -513,7 +513,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-10-25 15:38:41  peter
+  Revision 1.11  2004-11-17 22:22:12  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.10  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

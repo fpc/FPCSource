@@ -562,8 +562,10 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward : boolean;
-          { check the problems of manglednames }
-          has_mangledname : boolean;
+          { import info }
+          import_dll,
+          import_name : pstring;
+          import_nr   : word;
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
@@ -3586,7 +3588,6 @@ implementation
       begin
          inherited create(level);
          deftype:=procdef;
-         has_mangledname:=false;
          _mangledname:=nil;
          fileinfo:=aktfilepos;
          extnumber:=$ffff;
@@ -3606,7 +3607,9 @@ implementation
          interfacedef:=false;
          hasforward:=false;
          _class := nil;
-
+         import_dll:=nil;
+         import_name:=nil;
+         import_nr:=0;
          new(inlininginfo);
          fillchar(inlininginfo^,sizeof(tinlininginfo),0);
 {$ifdef GDB}
@@ -3622,8 +3625,7 @@ implementation
          inherited ppuload(ppufile);
          deftype:=procdef;
 
-         has_mangledname:=boolean(ppufile.getbyte);
-         if has_mangledname then
+         if po_has_mangledname in procoptions then
           _mangledname:=stringdup(ppufile.getstring)
          else
           _mangledname:=nil;
@@ -3637,6 +3639,10 @@ implementation
          { library symbol for AmigaOS/MorphOS }
          ppufile.getderef(libsymderef);
 {$endif powerpc}
+         { import stuff }
+         import_dll:=nil;
+         import_name:=nil;
+         import_nr:=0;
          { inline stuff }
          if proccalloption=pocall_inline then
            begin
@@ -3647,7 +3653,6 @@ implementation
            end
          else
            funcretsym:=nil;
-
          { load para symtable }
          parast:=tparasymtable.create(level);
          tparasymtable(parast).ppuload(ppufile);
@@ -3662,13 +3667,11 @@ implementation
           end
          else
           localst:=nil;
-
          { inline stuff }
          if proccalloption=pocall_inline then
            inlininginfo^.code:=ppuloadnodetree(ppufile)
          else
            inlininginfo := nil;
-
          { default values for no persistent data }
          if (cs_link_deffile in aktglobalswitches) and
             (tf_need_export in target_info.flags) and
@@ -3716,6 +3719,8 @@ implementation
             memprocnodetree.start;
 {$endif MEMDEBUG}
           end;
+         stringdispose(import_dll);
+         stringdispose(import_name);
          if assigned(inlininginfo) then
            dispose(inlininginfo);
          if (po_msgstr in procoptions) then
@@ -3753,8 +3758,7 @@ implementation
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
          ppufile.do_interface_crc:=oldintfcrc;
-         ppufile.putbyte(byte(has_mangledname));
-         if has_mangledname then
+         if po_has_mangledname in procoptions then
           ppufile.putstring(_mangledname^);
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
@@ -4364,13 +4368,17 @@ implementation
 
     procedure tprocdef.setmangledname(const s : string);
       begin
-        stringdispose(_mangledname);
+        { This is not allowed anymore, the forward declaration
+          already needs to create the correct mangledname, no changes
+          afterwards are allowed (PFV) }
+        if assigned(_mangledname) then
+          internalerror(200411171);
       {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(s));
       {$else}
         _mangledname:=stringdup(s);
       {$endif}
-        has_mangledname:=true;
+        include(procoptions,po_has_mangledname);
       end;
 
 
@@ -6126,7 +6134,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.272  2004-11-16 22:09:57  peter
+  Revision 1.273  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.272  2004/11/16 22:09:57  peter
   * _mangledname for symbols moved only to symbols that really need it
   * overload number removed, add function result type to the mangledname fo
     procdefs

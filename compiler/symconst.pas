@@ -244,7 +244,10 @@ type
       conventions like that one of MorphOS }
     po_explicitparaloc,
     { no stackframe will be generated, used by lowlevel assembler like get_frame }
-    po_nostackframe
+    po_nostackframe,
+    po_has_mangledname,
+    po_has_public_name,
+    po_forward
   );
   tprocoptions=set of tprocoption;
 
@@ -302,7 +305,8 @@ type
     vo_is_loop_counter, { used to detect assignments to loop counter }
     vo_is_hidden_para,
     vo_has_explicit_paraloc,
-    vo_is_syscall_lib
+    vo_is_syscall_lib,
+    vo_has_mangledname
   );
   tvaroptions=set of tvaroption;
 
@@ -423,7 +427,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.93  2004-11-15 23:35:31  peter
+  Revision 1.94  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.93  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

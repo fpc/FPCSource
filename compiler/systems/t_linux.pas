@@ -82,13 +82,6 @@ procedure timportliblinux.importprocedure(aprocdef:tprocdef;const module:string;
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
-  { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
-   begin
-     aprocdef.setmangledname(name);
-   end
-  else
-    message(parser_e_empty_import_name);
 end;
 
 
@@ -284,12 +277,10 @@ Var
   s,s1,s2      : string;
   found1,
   found2,
-  linkdynamic,
   linklibc     : boolean;
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
-  linkdynamic:=not(SharedLibFiles.empty);
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   if isdll then
    begin
@@ -398,7 +389,6 @@ begin
         else
          begin
            linklibc:=true;
-           linkdynamic:=false; { libc will include the ld-linux for us }
          end;
       end;
      { be sure that libc is the last lib }
@@ -407,10 +397,6 @@ begin
      { when we have -static for the linker the we also need libgcc }
      if (cs_link_staticflag in aktglobalswitches) then
       LinkRes.Add('-lgcc');
-     { the dyn. linker should be passed only with -dynamic-linker to ld
-     if linkdynamic and (Info.DynamicLinker<>'') then
-      LinkRes.AddFileName(Info.DynamicLinker);
-     }
      LinkRes.Add(')');
    end;
 
@@ -592,7 +578,11 @@ end.
 
 {
   $Log$
-  Revision 1.29  2004-11-08 22:09:59  peter
+  Revision 1.30  2004-11-17 22:22:12  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.29  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.28  2004/11/05 12:27:27  florian

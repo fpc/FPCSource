@@ -983,6 +983,13 @@ parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop 
 parser_e_no_local_var_external=03209_E_Can't declare local variable as EXTERNAL
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
+parser_e_proc_already_external=03210_E_Procedure is already declared EXTERNAL
+% The procedure is already declared with the EXTERNAL directive in an interface or
+% forward declaration.
+parser_e_proc_no_external_allowed=03211_E_Can't declare procedure as EXTERNAL
+% The procedure is already declared in an interface or forward declaration. The compiler
+% expects the code for this procedure to be available in this unit. The EXTERNAL directive
+% needs to be moved to the interface or forward declaration.
 % \end{description}
 #
 # Type Checking

@@ -2468,6 +2468,7 @@ implementation
     var
       p:tnode;
     begin
+      result:=0;
       p:=comp_expr(true);
       if not codegenerror then
        begin
@@ -2475,7 +2476,7 @@ implementation
             not(is_integer(p.resulttype.def)) then
           Message(parser_e_illegal_expression)
          else
-          get_intconst:=tordconstnode(p).value;
+          result:=tordconstnode(p).value;
        end;
       p.free;
     end;
@@ -2504,7 +2505,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.172  2004-11-15 23:35:31  peter
+  Revision 1.173  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.172  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

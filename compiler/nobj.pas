@@ -573,6 +573,9 @@ implementation
 
 
     procedure tclassheader.eachsym(sym : tnamedindexitem;arg:pointer);
+      const
+        po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
+                   po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       label
          handlenextdef;
       var
@@ -695,10 +698,8 @@ implementation
                                      { the flags have to match except abstract and override }
                                      { only if both are virtual !!  }
                                      if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
-                                         (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
-                                         ((procdefcoll^.data.procoptions-
-                                             [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])<>
-                                          (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])) then
+                                        (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
+                                        ((procdefcoll^.data.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
                                         begin
                                           MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                                           tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
@@ -1399,7 +1400,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.81  2004-11-15 23:35:31  peter
+  Revision 1.82  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.81  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

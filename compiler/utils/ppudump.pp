@@ -810,7 +810,6 @@ type
     po_msgint,            { method for int message handling }
     po_exports,           { Procedure has export directive (needed for OS/2) }
     po_external,          { Procedure is external (in other object or lib)}
-    po_saveregisters,     { save all registers }
     po_overload,          { procedure is declared with overload directive }
     po_varargs,           { printf like arguments }
     po_internconst,       { procedure has constant evaluator intern }
@@ -827,8 +826,9 @@ type
     po_explicitparaloc,
     { no stackframe will be generated, used by lowlevel assembler like get_frame }
     po_nostackframe,
-    { localst is valid }
-    po_haslocalst
+    po_has_mangledname,
+    po_has_public_name,
+    po_forward
   );
   tprocoptions=set of tprocoption;
 procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
@@ -870,7 +870,7 @@ const
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator')
   );
-  procopts=24;
+  procopts=25;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -885,7 +885,6 @@ const
      (mask:po_msgint;          str:'MsgInt'),
      (mask:po_exports;         str:'Exports'),
      (mask:po_external;        str:'External'),
-     (mask:po_saveregisters;   str:'SaveRegisters'),
      (mask:po_overload;        str:'Overload'),
      (mask:po_varargs;         str:'VarArgs'),
      (mask:po_internconst;     str:'InternConst'),
@@ -895,7 +894,9 @@ const
      (mask:po_reintroduce;     str:'ReIntroduce'),
      (mask:po_explicitparaloc; str:'ExplicitParaloc'),
      (mask:po_nostackframe;    str:'NoStackFrame'),
-     (mask:po_haslocalst;      str:'HasLocalst')
+     (mask:po_has_mangledname; str:'HasMangledName'),
+     (mask:po_has_public_name; str:'HasPublicName'),
+     (mask:po_forward;         str:'Forward')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -960,7 +961,9 @@ type
     vo_is_parentfp,
     vo_is_loop_counter, { used to detect assignments to loop counter }
     vo_is_hidden_para,
-    vo_has_explicit_paraloc
+    vo_has_explicit_paraloc,
+    vo_is_syscall_lib,
+    vo_has_mangledname
   );
   tvaroptions=set of tvaroption;
   { register variable }
@@ -976,7 +979,7 @@ type
     str  : string[30];
   end;
 const
-  varopts=16;
+  varopts=18;
   varopt : array[1..varopts] of tvaropt=(
      (mask:vo_is_C_var;        str:'CVar'),
      (mask:vo_is_external;     str:'External'),
@@ -993,7 +996,9 @@ const
      (mask:vo_is_parentfp;     str:'ParentFP'),
      (mask:vo_is_loop_counter; str:'LoopCounter'),
      (mask:vo_is_hidden_para;  str:'Hidden'),
-     (mask:vo_has_explicit_paraloc;str:'ExplicitParaloc')
+     (mask:vo_has_explicit_paraloc;str:'ExplicitParaloc'),
+     (mask:vo_is_syscall_lib;  str:'SysCallLib'),
+     (mask:vo_has_mangledname; str:'HasMangledName')
   );
 var
   i : longint;
@@ -1225,7 +1230,7 @@ begin
              readabstractvarsym('Global Variable symbol ',varoptions);
              write  (space,' DefaultConst : ');
              readderef;
-             if (vo_is_C_var in varoptions) then
+             if (vo_has_mangledname in varoptions) then
                writeln(space,' Mangledname : ',getstring);
            end;
 
@@ -1435,7 +1440,7 @@ begin
            begin
              readcommondef('Procedure definition');
              read_abstract_proc_def(calloption,procoptions);
-             if (getbyte<>0) then
+             if (po_has_mangledname in procoptions) then
                writeln(space,'     Mangled name : ',getstring);
              writeln(space,'  Overload Number : ',getword);
              writeln(space,'           Number : ',getword);
@@ -1469,8 +1474,7 @@ begin
              readdefinitions('parast',false);
              readsymbols('parast');
              { localst }
-             if (po_haslocalst in procoptions) or
-                (calloption = pocall_inline) then
+             if (calloption = pocall_inline) then
               begin
                 readdefinitions('localst',false);
                 readsymbols('localst');
@@ -2083,7 +2087,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-11-16 20:49:08  peter
+  Revision 1.61  2004-11-17 22:22:12  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.60  2004/11/16 20:49:08  peter
   * fixed rangecheck error with derefdata
 
   Revision 1.59  2004/11/15 23:35:31  peter

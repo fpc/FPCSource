@@ -92,7 +92,7 @@ implementation
        pass_2,
 {$endif}
        { parser }
-       scanner,
+       scanner,import,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
        tgobj,cgobj,
@@ -1201,6 +1201,9 @@ implementation
               end;
            end;
 
+         { Set mangled name }
+         proc_set_mangledname(pd);
+
          { compile procedure when a body is needed }
          if (pd_body in pdflags) then
            begin
@@ -1214,6 +1217,15 @@ implementation
 
              { Insert mangledname }
              pd.aliasnames.insert(pd.mangledname);
+
+             { Handle Export of this procedure }
+             if (po_exports in pd.procoptions) and
+                (target_info.system in [system_i386_os2,system_i386_emx]) then
+               begin
+                 pd.aliasnames.insert(pd.procsym.realname);
+                 if cs_link_deffile in aktglobalswitches then
+                   deffile.AddExport(pd.mangledname);
+               end;
 
              { Insert result variables in the localst }
              insert_funcret_local(pd);
@@ -1264,6 +1276,34 @@ implementation
                current_procinfo.free;
 
              consume(_SEMICOLON);
+           end
+         else
+           begin
+             { Handle imports }
+             if (po_external in pd.procoptions) then
+               begin
+                 { Import DLL specified? }
+                 if assigned(pd.import_dll) then
+                   begin
+                     { create importlib if not already done }
+                     if not(current_module.uses_imports) then
+                       begin
+                         current_module.uses_imports:=true;
+                         importlib.preparelib(current_module.modulename^);
+                       end;
+
+                     if assigned(pd.import_name) then
+                       importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,pd.import_name^)
+                     else
+                       importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,'');
+                   end
+                 else
+                   begin
+                     { add mangledname to external list for DLL scanning }
+                     if target_info.DllScanSupported then
+                       current_module.externals.insert(tExternalsItem.create(pd.mangledname));
+                   end;
+               end;
            end;
 
          { Restore old state }
@@ -1398,7 +1438,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.216  2004-11-16 20:32:41  peter
+  Revision 1.217  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.216  2004/11/16 20:32:41  peter
   * fixes for win32 mangledname
 
   Revision 1.215  2004/11/15 23:35:31  peter

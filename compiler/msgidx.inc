@@ -273,6 +273,8 @@ const
   parser_e_macpas_exit_wrong_param=03207;
   parser_e_illegal_assignment_to_count_var=03208;
   parser_e_no_local_var_external=03209;
+  parser_e_proc_already_external=03210;
+  parser_e_proc_no_external_allowed=03211;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -647,9 +649,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 37659;
+  MsgTxtSize = 37750;
 
   MsgIdxMax : array[1..20] of longint=(
-    18,67,210,59,57,46,99,20,35,60,
+    18,67,212,59,57,46,99,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

@@ -47,6 +47,7 @@ interface
     procedure insert_funcret_local(pd:tprocdef);
 
     function  proc_add_definition(var pd:tprocdef):boolean;
+    procedure proc_set_mangledname(pd:tprocdef);
 
     procedure handle_calling_convention(pd:tabstractprocdef);
 
@@ -1007,13 +1008,6 @@ begin
     Message(parser_e_methods_dont_be_export);
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_export);
-  { only os/2 and emx need this }
-  if target_info.system in [system_i386_os2,system_i386_emx] then
-   begin
-     tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
-     if cs_link_deffile in aktglobalswitches then
-       deffile.AddExport(tprocdef(pd).mangledname);
-   end;
 end;
 
 procedure pd_forward(pd:tabstractprocdef);
@@ -1023,19 +1017,34 @@ begin
   tprocdef(pd).forwarddef:=true;
 end;
 
+
 procedure pd_alias(pd:tabstractprocdef);
 begin
   if pd.deftype<>procdef then
     internalerror(200304266);
   consume(_COLON);
   tprocdef(pd).aliasnames.insert(get_stringconst);
+  include(pd.procoptions,po_has_public_name);
 end;
+
+
+procedure pd_public(pd:tabstractprocdef);
+begin
+  if pd.deftype<>procdef then
+    internalerror(200304266);
+  if try_to_consume(_NAME) then
+    begin
+      tprocdef(pd).aliasnames.insert(get_stringconst);
+      include(pd.procoptions,po_has_public_name);
+    end;
+end;
+
 
 procedure pd_asmname(pd:tabstractprocdef);
 begin
   if pd.deftype<>procdef then
     internalerror(200304267);
-  tprocdef(pd).setmangledname(target_info.Cprefix+pattern);
+  tprocdef(pd).aliasnames.insert(target_info.Cprefix+pattern);
   if token=_CCHAR then
     consume(_CCHAR)
   else
@@ -1051,12 +1060,22 @@ begin
   pd.parast.foreach_static(@check_inline_para,pd);
 end;
 
-procedure pd_intern(pd:tabstractprocdef);
+procedure pd_internconst(pd:tabstractprocdef);
 begin
   if pd.deftype<>procdef then
     internalerror(200304268);
   consume(_COLON);
   tprocdef(pd).extnumber:=get_intconst;
+end;
+
+procedure pd_internproc(pd:tabstractprocdef);
+begin
+  if pd.deftype<>procdef then
+    internalerror(200304268);
+  consume(_COLON);
+  tprocdef(pd).extnumber:=get_intconst;
+  { the proc is defined }
+  tprocdef(pd).forwarddef:=false;
 end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
@@ -1222,66 +1241,52 @@ procedure pd_external(pd:tabstractprocdef);
   that case either import_nr<>0 or import_name<>nil is true, so
   the procedure is either imported by number or by name. (DM)
 }
-var
-  import_dll,
-  import_name : string;
-  import_nr   : word;
 begin
   if pd.deftype<>procdef then
     internalerror(2003042615);
-  tprocdef(pd).forwarddef:=false;
-  { forbid local external procedures }
-  if pd.parast.symtablelevel>normal_function_level then
-    Message(parser_e_no_local_proc_external);
-  { If the procedure should be imported from a DLL, a constant string follows.
-    This isn't really correct, an contant string expression follows
-    so we check if an semicolon follows, else a string constant have to
-    follow (FK) }
-  import_nr:=0;
-  import_name:='';
-  if not(token=_SEMICOLON) and not(idtoken=_NAME) then
+  with tprocdef(pd) do
     begin
-      import_dll:=get_stringconst;
-      if (idtoken=_NAME) then
-       begin
-         consume(_NAME);
-         import_name:=get_stringconst;
-       end;
-      if (idtoken=_INDEX) then
-       begin
-         {After the word index follows the index number in the DLL.}
-         consume(_INDEX);
-         import_nr:=get_intconst;
-       end;
-      { default is to used the realname of the procedure }
-      if (import_nr=0) and (import_name='') then
-        import_name:=tprocdef(pd).procsym.realname;
-      { create importlib if not already done }
-      if not(current_module.uses_imports) then
-       begin
-         current_module.uses_imports:=true;
-         importlib.preparelib(current_module.modulename^);
-       end;
-      importlib.importprocedure(tprocdef(pd),import_dll,import_nr,import_name);
-    end
-  else
-    begin
-      if (idtoken=_NAME) then
-       begin
-         consume(_NAME);
-         import_name:=get_stringconst;
-         tprocdef(pd).setmangledname(import_name);
-       end
-      else if (m_mac in aktmodeswitches) and (token=_SEMICOLON) then
+      forwarddef:=false;
+      { forbid local external procedures }
+      if parast.symtablelevel>normal_function_level then
+        Message(parser_e_no_local_proc_external);
+      { If the procedure should be imported from a DLL, a constant string follows.
+        This isn't really correct, an contant string expression follows
+        so we check if an semicolon follows, else a string constant have to
+        follow (FK) }
+      if not(token=_SEMICOLON) and not(idtoken=_NAME) then
         begin
-          {In MacPas a single "external" has the same effect as "external name 'xxx'"}
-          { don't do this if the procedure is also cdecl; in that case the c-prefix  }
-          { must also be used (handled later)                                        }
-          if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-            tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
+          import_dll:=stringdup(get_stringconst);
+          if (idtoken=_NAME) then
+           begin
+             consume(_NAME);
+             import_name:=stringdup(get_stringconst);
+             if import_name^='' then
+               message(parser_e_empty_import_name);
+           end;
+          if (idtoken=_INDEX) then
+           begin
+             {After the word index follows the index number in the DLL.}
+             consume(_INDEX);
+             import_nr:=get_intconst;
+           end;
+          { default is to used the realname of the procedure }
+          if (import_nr=0) and not assigned(import_name) then
+            import_name:=stringdup(procsym.realname);
+        end
+      else
+        begin
+          if (idtoken=_NAME) then
+           begin
+             consume(_NAME);
+             import_name:=stringdup(get_stringconst);
+             if import_name^='' then
+               message(parser_e_empty_import_name);
+           end;
         end;
     end;
 end;
+
 
 type
    pd_handler=procedure(pd:tabstractprocdef);
@@ -1428,8 +1433,8 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_INTERNCONST;
-      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
-      handler  : @pd_intern;
+      pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf];
+      handler  : @pd_internconst;
       pocall   : pocall_none;
       pooption : [po_internconst];
       mutexclpocall : [];
@@ -1437,8 +1442,8 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
-      handler  : @pd_intern;
+      pd_flags : [pd_interface,pd_notobject,pd_notobjintf];
+      handler  : @pd_internproc;
       pocall   : pocall_internproc;
       pooption : [];
       mutexclpocall : [];
@@ -1520,7 +1525,7 @@ const
     ),(
       idtok:_PUBLIC;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
-      handler  : nil;
+      handler  : @pd_public;
       pocall   : pocall_none;
       pooption : [po_public];
       mutexclpocall : [pocall_internproc,pocall_inline];
@@ -1793,6 +1798,85 @@ const
       end;
 
 
+
+    procedure proc_set_mangledname(pd:tprocdef);
+      begin
+        { When the mangledname is already set we aren't allowed to change
+          it because it can already be used somewhere (PFV) }
+        if not(po_has_mangledname in pd.procoptions) then
+          begin
+            { External Procedures }
+            if (po_external in pd.procoptions) then
+              begin
+                { external name specified }
+                if assigned(pd.import_name) then
+                  begin
+                    { Win32 imports need to use the normal name since to functions
+                      can refer to the same DLL function. This is also needed for compatability
+                      with Delphi and TP7 }
+                    if assigned(pd.import_dll) and
+                       not(target_info.system in [system_i386_win32,system_i386_wdosx]) then
+                      pd.setmangledname(pd.import_name^);
+                  end
+                else
+                  begin
+                    { Default names when importing variables }
+                    case pd.proccalloption of
+                      pocall_cdecl :
+                        begin
+                          if assigned(pd._class) then
+                           pd.setmangledname(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
+                          else
+                           pd.setmangledname(target_info.Cprefix+pd.procsym.realname);
+                        end;
+                      pocall_cppdecl :
+                        begin
+                          pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
+                        end;
+                      else
+                        begin
+                          {In MacPas a single "external" has the same effect as "external name 'xxx'" }
+                          if (m_mac in aktmodeswitches) then
+                            tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
+                        end;
+                    end;
+                  end;
+              end
+            else
+            { Normal procedures }
+              begin
+                case pd.proccalloption of
+                  pocall_compilerproc :
+                    begin
+                      pd.setmangledname(lower(pd.procsym.name));
+                    end;
+                end;
+              end;
+          end;
+
+        { Public/exported alias names }
+        if (po_public in pd.procoptions) and
+           not(po_has_public_name in pd.procoptions) then
+          begin
+            case pd.proccalloption of
+              pocall_cdecl :
+                begin
+                  if assigned(pd._class) then
+                   pd.aliasnames.insert(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
+                  else
+                   pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                end;
+              pocall_cppdecl :
+                begin
+                  pd.aliasnames.insert(target_info.Cprefix+pd.cplusplusmangledname);
+                end;
+            end;
+            { prevent adding the alias a second time }
+            include(pd.procoptions,po_has_public_name);
+          end;
+      end;
+
+
     procedure handle_calling_convention(pd:tabstractprocdef);
       begin
         { set the default calling convention if none provided }
@@ -1806,39 +1890,11 @@ const
 
         { handle proccall specific settings }
         case pd.proccalloption of
-          pocall_cdecl :
-            begin
-              { set mangledname }
-              if (pd.deftype=procdef) then
-               begin
-                 if not tprocdef(pd).has_mangledname then
-                  begin
-                    if assigned(tprocdef(pd)._class) then
-                     tprocdef(pd).setmangledname(target_info.Cprefix+tprocdef(pd)._class.objrealname^+'_'+tprocdef(pd).procsym.realname)
-                    else
-                     tprocdef(pd).setmangledname(target_info.Cprefix+tprocdef(pd).procsym.realname);
-                  end;
-                 { check C cdecl para types }
-                 pd.parast.foreach_static(@check_c_para,nil);
-               end;
-            end;
+          pocall_cdecl,
           pocall_cppdecl :
             begin
-              { set mangledname }
-              if (pd.deftype=procdef) then
-               begin
-                 if not tprocdef(pd).has_mangledname then
-                  tprocdef(pd).setmangledname(target_info.Cprefix+tprocdef(pd).cplusplusmangledname);
-                 { check C cdecl para types }
-                 pd.parast.foreach_static(@check_c_para,nil);
-               end;
-            end;
-          pocall_compilerproc :
-            begin
-              if (pd.deftype<>procdef) then
-               internalerror(200110232);
-              if (target_info.system<>system_i386_watcom) then
-                tprocdef(pd).setmangledname(lower(tprocdef(pd).procsym.name));
+              { check C cdecl para types }
+              pd.parast.foreach_static(@check_c_para,nil);
             end;
           pocall_far16 :
             begin
@@ -1898,12 +1954,6 @@ const
 
         { Calculate parameter tlist }
         pd.calcparas;
-
-        { add mangledname to external list, must be done after pd.calcparas }
-        if (pd.deftype=procdef) and
-           (po_external in pd.procoptions) and
-           target_info.DllScanSupported then
-          current_module.externals.insert(tExternalsItem.create(tprocdef(pd).mangledname));
       end;
 
 
@@ -2074,10 +2124,6 @@ const
                    else
                     if (pd.proccalloption=pocall_internproc) then
                      hd.proccalloption:=pd.proccalloption;
-                   if (po_internconst in hd.procoptions) then
-                    include(pd.procoptions,po_internconst)
-                   else if (po_internconst in pd.procoptions) then
-                    include(hd.procoptions,po_internconst);
 
                    { Check calling convention }
                    if (hd.proccalloption<>pd.proccalloption) then
@@ -2125,7 +2171,24 @@ const
                        { This error is non-fatal, we can recover }
                      end;
 
-                   { Check manglednames }
+                   { Forward declaration is external? }
+                   if (po_external in hd.procoptions) then
+                     MessagePos(pd.fileinfo,parser_e_proc_already_external)
+                   else
+                     { Body declaration is external? }
+                     if (po_external in pd.procoptions) then
+                       begin
+                         { Win32 supports declaration in interface and external in
+                           implementation for dll imports. Support this for backwards
+                           compatibility with Tp7 and Delphi }
+                         if not(
+                                (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+                                assigned(pd.import_dll)
+                               ) then
+                           MessagePos(pd.fileinfo,parser_e_proc_no_external_allowed);
+                       end;
+
+                   { Check parameters }
                    if (m_repeat_forward in aktmodeswitches) or
                       (pd.minparacount>0) then
                     begin
@@ -2174,13 +2237,18 @@ const
                    hd.fileinfo:=pd.fileinfo;
                    if assigned(hd.funcretsym) then
                      hd.funcretsym.fileinfo:=pd.fileinfo;
-                   { update mangledname if the implementation has a fixed mangledname set }
-                   if pd.has_mangledname then
-                    begin
-                      { rename also asmsymbol first, because the name can already be used }
-                      objectlibrary.renameasmsymbol(hd.mangledname,pd.mangledname);
-                      hd.setmangledname(pd.mangledname);
-                    end;
+                   { import names }
+                   if assigned(pd.import_dll) then
+                     begin
+                       stringdispose(hd.import_dll);
+                       hd.import_name:=stringdup(pd.import_dll^);
+                     end;
+                   if assigned(pd.import_name) then
+                     begin
+                       stringdispose(hd.import_name);
+                       hd.import_name:=stringdup(pd.import_name^);
+                     end;
+                   hd.import_nr:=pd.import_nr;
                    { for compilerproc defines we need to rename and update the
                      symbolname to lowercase }
                    if (pd.proccalloption=pocall_compilerproc) then
@@ -2208,7 +2276,10 @@ const
                   if (po_abstractmethod in hd.procoptions) then
                     MessagePos(pd.fileinfo,parser_e_abstract_no_definition)
                   else
-                    MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters);
+                    begin
+                      MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters);
+                      aprocsym.write_parameter_lists(pd);
+                    end;
                  end;
 
                { we found one proc with the same arguments, there are no others
@@ -2257,7 +2328,11 @@ const
 end.
 {
   $Log$
-  Revision 1.207  2004-11-16 22:09:57  peter
+  Revision 1.208  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.207  2004/11/16 22:09:57  peter
   * _mangledname for symbols moved only to symbols that really need it
   * overload number removed, add function result type to the mangledname fo
     procdefs

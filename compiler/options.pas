@@ -1736,6 +1736,7 @@ begin
   def_symbol('HAS_ADDR_STACK_ON_STACK');
   def_symbol('NOBOUNDCHECK');
   def_symbol('HASCOMPILERPROC');
+  def_symbol('INTERNCONSTINTF');
   def_symbol('VALUEGETMEM');
   def_symbol('VALUEFREEMEM');
   def_symbol('HASCURRENCY');
@@ -2089,7 +2090,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.152  2004-11-01 12:43:28  peter
+  Revision 1.153  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.152  2004/11/01 12:43:28  peter
     * shortstr compare with empty string fixed
     * removed special i386 code
 

@@ -218,7 +218,6 @@ interface
       private
           _mangledname : pstring;
       public
-          has_mangledname : boolean;
           constructor create(const n : string;vsp:tvarspez;const tt : ttype);
           constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
           constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
@@ -233,8 +232,6 @@ interface
       end;
 
       tabsolutevarsym = class(tabstractvarsym)
-      private
-          _mangledname : pstring;
       public
          abstyp  : absolutetyp;
 {$ifdef i386}
@@ -1537,8 +1534,7 @@ implementation
       begin
          inherited ppuload(ppufile);
          typ:=globalvarsym;
-         has_mangledname:=boolean(ppufile.getbyte);
-         if has_mangledname then
+         if vo_has_mangledname in varoptions then
            _mangledname:=stringdup(ppufile.getstring)
          else
            _mangledname:=nil;
@@ -1564,8 +1560,7 @@ implementation
     procedure tglobalvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putbyte(byte(has_mangledname));
-         if has_mangledname then
+         if vo_has_mangledname in varoptions then
            ppufile.putstring(_mangledname^);
          ppufile.writeentry(ibglobalvarsym);
       end;
@@ -1593,7 +1588,7 @@ implementation
       {$else}
         _mangledname:=stringdup(s);
       {$endif}
-        has_mangledname:=true;
+        include(varoptions,vo_has_mangledname);
       end;
 
 
@@ -2560,7 +2555,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.193  2004-11-16 22:09:57  peter
+  Revision 1.194  2004-11-17 22:21:35  peter
+  mangledname setting moved to place after the complete proc declaration is read
+  import generation moved to place where body is also parsed (still gives problems with win32)
+
+  Revision 1.193  2004/11/16 22:09:57  peter
   * _mangledname for symbols moved only to symbols that really need it
   * overload number removed, add function result type to the mangledname fo
     procdefs
