@@ -210,7 +210,7 @@ const
 {$IFDEF MAC}
 type
    FNameStr = String;
-   THandle = ???????
+   THandle = Integer;
 const
    MaxReadBytes = $fffe;
    invalidhandle = -1;
@@ -687,7 +687,6 @@ CONST
 {                        STREAM REGISTRATION RECORDS                        }
 {---------------------------------------------------------------------------}
 
-{$ifndef VER0_99_8}
 CONST
    RCollection: TStreamRec = (
      ObjType: 50;
@@ -718,7 +717,6 @@ CONST
      VmtLink: Ofs(TypeOf(TStrListMaker)^);
      Load: Nil;
      Store: @TStrListMaker.Store);
-{$endif VER0_99_8}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
@@ -734,7 +732,7 @@ type
   PointerConstructor = function(VMT: pointer; Obj: pointer; Param1: pointer): pointer;
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
-function CurrentFramePointer: FramePointer;assembler;
+function PreviousFramePointer: FramePointer;assembler;
 asm
 {$ifdef i386}
     movl (%ebp), %eax
@@ -1191,7 +1189,7 @@ BEGIN
        Success := SetFilePos(Handle, 0, 0, Position); { Reset to file start }
    End Else Success := 103;                           { Open file failed }
    If (Handle = 0) OR (Success <> 0) Then Begin       { Open failed }
-     Handle := invalidhandle;                         { Reset invalid handle }
+     Handle := InvalidHandle;                         { Reset invalid handle }
      Error(stInitError, Success);                     { Call stream error }
    End;
 END;
@@ -1201,7 +1199,7 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TDosStream.Done;
 BEGIN
-   If (Handle <> -1) Then FileClose(Handle);          { Close the file }
+   If (Handle <> InvalidHandle) Then FileClose(Handle);          { Close the file }
    Inherited Done;                                    { Call ancestor }
 END;
 
@@ -1210,9 +1208,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Close;
 BEGIN
-   If (Handle <> -1) Then FileClose(Handle);          { Close the file }
+   If (Handle <> InvalidHandle) Then FileClose(Handle);          { Close the file }
    Position := 0;                                     { Zero the position }
-   Handle := invalidhandle;                           { Handle now invalid }
+   Handle := -1;                                      { Handle now invalid }
 END;
 
 {--TDosStream---------------------------------------------------------------}
@@ -1236,8 +1234,7 @@ VAR Success: Integer; Li: LongInt;
 BEGIN
    If (Status=stOk) Then Begin                        { Check status okay }
      If (Pos < 0) Then Pos := 0;                      { Negatives removed }
-     If (Handle = invalidhandle) Then Success := 103
-     Else                                             { File not open }
+     If (Handle = InvalidHandle) Then Success := 103 Else        { File not open }
        Success := SetFilePos(Handle, Pos, 0, Li);     { Set file position }
      If ((Success = -1) OR (Li <> Pos)) Then Begin    { We have an error }
        If (Success = -1) Then Error(stSeekError, 0)   { General seek error }
@@ -1252,11 +1249,11 @@ END;
 PROCEDURE TDosStream.Open (OpenMode: Word);
 BEGIN
    If (Status=stOk) Then Begin                        { Check status okay }
-     If (Handle = -1) Then Begin                      { File not open }
+     If (Handle = InvalidHandle) Then Begin                      { File not open }
        Handle := FileOpen(FName, OpenMode);           { Open the file }
        Position := 0;                                 { Reset position }
        If (Handle=0) Then Begin                       { File open failed }
-         Handle := invalidhandle;                     { Reset handle }
+         Handle := InvalidHandle;                                { Reset handle }
          Error(stOpenError, 103);                     { Call stream error }
        End;
      End Else Error(stOpenError, 104);                { File already open }
@@ -1271,7 +1268,7 @@ VAR Success: Integer; W, BytesMoved: Sw_Word; P: PByteArray;
 BEGIN
    If (Position + Count > StreamSize) Then            { Insufficient data }
      Error(stReadError, 0);                           { Read beyond end!!! }
-   If (Handle = -1) Then Error(stReadError, 103);     { File not open }
+   If (Handle = InvalidHandle) Then Error(stReadError, 103);     { File not open }
    P := @Buf;                                         { Transfer address }
    While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
      W := Count;                                      { Transfer read size }
@@ -1297,7 +1294,7 @@ END;
 PROCEDURE TDosStream.Write (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W, BytesMoved: Sw_Word; P: PByteArray;
 BEGIN
-   If (Handle = -1) Then Error(stWriteError, 103);    { File not open }
+   If (Handle = InvalidHandle) Then Error(stWriteError, 103);    { File not open }
    P := @Buf;                                         { Transfer address }
    While (Count>0) AND (Status=stOk) Do Begin         { Check status & count }
      W := Count;                                      { Transfer read size }
@@ -1359,7 +1356,7 @@ PROCEDURE TBufStream.Flush;
 VAR Success: Integer; W: Sw_Word;
 BEGIN
    If (LastMode=2) AND (BufPtr<>0) Then Begin         { Must update file }
-     If (Handle = -1) Then Success := 103             { File is not open }
+     If (Handle = InvalidHandle) Then Success := 103             { File is not open }
        Else Success := FileWrite(Handle, Buffer^,
          BufPtr, W);                                  { Write to file }
      If (Success<>0) OR (W<>BufPtr) Then              { We have an error }
@@ -1412,7 +1409,7 @@ VAR Success: Integer; W, Bw: Sw_Word; P: PByteArray;
 BEGIN
    If (Position + Count > StreamSize) Then            { Read pas stream end }
      Error(stReadError, 0);                           { Call stream error }
-   If (Handle = -1) Then Error(stReadError, 103);     { File not open }
+   If (Handle = InvalidHandle) Then Error(stReadError, 103);     { File not open }
    P := @Buf;                                         { Transfer address }
    If (LastMode=2) Then Flush;                        { Flush write buffer }
    LastMode := 1;                                     { Now set read mode }
@@ -1451,7 +1448,7 @@ END;
 PROCEDURE TBufStream.Write (Var Buf; Count: Sw_Word);
 VAR Success: Integer; W: Sw_Word; P: PByteArray;
 BEGIN
-   If (Handle = -1) Then Error(stWriteError, 103);    { File not open }
+   If (Handle = InvalidHandle) Then Error(stWriteError, 103);    { File not open }
    If (LastMode=1) Then Flush;                        { Flush read buffer }
    LastMode := 2;                                     { Now set write mode }
    P := @Buf;                                         { Transfer address }
@@ -1717,7 +1714,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
+       IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1733,7 +1730,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
+     IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -1846,7 +1843,7 @@ PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
-    CallPointerLocal(Action,CurrentFramePointer,Items^[I-1]);   { Call with each item }
+    CallPointerLocal(Action,PreviousFramePointer,Items^[I-1]);   { Call with each item }
 END;
 
 {--TCollection--------------------------------------------------------------}
@@ -2652,11 +2649,9 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE RegisterObjects;
 BEGIN
-{$ifndef VER0_99_8}
    RegisterType(RCollection);                         { Register object }
    RegisterType(RStringCollection);                   { Register object }
    RegisterType(RStrCollection);                      { Register object }
-{$endif}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2697,11 +2692,18 @@ END;
 END.
 {
   $Log$
-  Revision 1.21  1998-12-23 20:30:45  michael
-  removed CR characters
+  Revision 1.22  1998-12-30 10:26:16  peter
+    * reinserted old version, because daniel skipped 3 versions !!
 
-  Revision 1.20  1998/12/23 13:31:48  daniel
-  + invalidhandle constant
+  Revision 1.19  1998/12/18 17:21:28  peter
+    * fixed firstthat,lastthat
+
+  Revision 1.18  1998/12/16 21:57:20  peter
+    * fixed currentframe,previousframe
+    + testcall to test the callspec unit
+
+  Revision 1.17  1998/12/16 00:22:25  peter
+    * more temp symbols removed
 
   Revision 1.16  1998/12/08 10:11:27  peter
     * tpoint contains now sw_integer (needed to support 64k files in the
