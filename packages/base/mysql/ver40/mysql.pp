@@ -111,7 +111,7 @@ in define line 34 *)
 
 type
        PMYSQL_ROW = ^MYSQL_ROW;
-       MYSQL_ROW = char;
+       MYSQL_ROW = ppchar;
     { return data as array of strings  }
 
        PMYSQL_FIELD_OFFSET = ^MYSQL_FIELD_OFFSET;
