@@ -151,7 +151,7 @@ unit cgx86;
     uses
        globals,verbose,systems,cutils,
        dwarf,
-       symdef,defutil,paramgr,tgobj,procinfo;
+       symdef,defutil,paramgr,procinfo;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIV,
@@ -502,8 +502,8 @@ unit cgx86;
                   tmpsize:=OS_32;
                 end
               else
-                tmpsize:=tosize;
 {$endif x86_64}
+                tmpsize:=tosize;
               list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
               a_load_reg_ref(list,tmpsize,tosize,tmpreg,ref);
             end;
@@ -1626,7 +1626,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.133  2004-10-31 21:45:04  peter
+  Revision 1.134  2004-11-01 10:30:06  peter
+    * fixed uninited var in a_load_reg_ref
+
+  Revision 1.133  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 
