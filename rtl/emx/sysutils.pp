@@ -25,6 +25,9 @@ interface
 uses
  Dos;
 
+type
+  THandle = type Longint;
+  
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -983,7 +986,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-04-02 21:06:41  hajny
+  Revision 1.5  2003-04-04 02:02:44  yuri
+  * THandle added
+
+  Revision 1.4  2003/04/02 21:06:41  hajny
     * Yuri's fix merged from os2
 
   Revision 1.3  2003/03/29 15:01:20  hajny
