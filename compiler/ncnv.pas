@@ -707,6 +707,7 @@ implementation
                else
                  left := caddnode.create(orn,left,
                    cordconstnode.create(1 shl 8,s32bittype));
+               left := ctypeconvnode.create(left,u16bittype);
                left.toggleflag(nf_explizit);
                resulttypepass(left);
              end;
@@ -2026,8 +2027,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2002-09-04 19:38:42  jonas
-    - removed unnecessary typeconversion from char_to_string
+  Revision 1.77  2002-09-05 05:56:07  jonas
+    - reverted my last commit, it was completely bogus :(
 
   Revision 1.75  2002/09/02 19:24:42  peter
     * array of char support for Str()
