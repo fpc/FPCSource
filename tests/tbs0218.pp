@@ -18,7 +18,7 @@ Begin
   Writeln('r=',r:8:5);
   Writeln('r=',r:7:4);
   Str(r:7:4,s);
-  Writeln('r=',s,' (as string)')
+  Writeln('r=',s,' (as string)');
   str(r,s);
   val(s,rr,code);
   if r<>rr then halt(1);
