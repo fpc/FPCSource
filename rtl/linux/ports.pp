@@ -74,7 +74,7 @@ end;
 function tport.readport(p : Longint) : byte;
 
 begin
-  linux.readport (p,Result);
+  readport := linux.readportb (p);
 end;
 
 procedure tportw.writeport(p : longint;data : word);
@@ -86,7 +86,7 @@ end;
 function tportw.readport(p : longint) : word;
 
 begin
-  linux.Readport(P,Result);
+  readport := linux.readportw(p);
 end;
 
 procedure tportl.writeport(p : longint;data : longint);
@@ -98,7 +98,7 @@ end;
 function tportl.readport(p : longint) : longint;
 
 begin
-  Linux.readport(p,Result);
+  readPort := Linux.readportl(p);
 end;
 
 end.

@@ -3649,16 +3649,14 @@ end;
 
 {$IFDEF I386}
 
-{$asmmode direct}
-
 Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
 }
 begin
         asm
-        movl 8(%ebp),%edx
-        movb 12(%ebp),%al
+        movl port,%edx
+        movb value,%al
         outb %al,%dx
         end ['EAX','EDX'];
 end;
@@ -3670,8 +3668,8 @@ Procedure WritePort (Port : Longint; Value : Word);
 
 begin
         asm
-        movl 8(%ebp),%edx
-        movw 12(%ebp),%ax
+        movl port,%edx
+        movw value,%ax
         outw %ax,%dx
         end ['EAX','EDX'];
 end;
@@ -3685,8 +3683,8 @@ Procedure WritePort (Port : Longint; Value : Longint);
 
 begin
         asm
-        movl 8(%ebp),%edx
-        movl 12(%ebp),%eax
+        movl port,%edx
+        movl value,%eax
         outl %eax,%dx
         end ['EAX','EDX'];
 end;
@@ -3698,8 +3696,8 @@ Procedure WritePortB (Port : Longint; Value : Byte);
 }
 begin
         asm
-        movl 8(%ebp),%edx
-        movb 12(%ebp),%al
+        movl port,%edx
+        movb value,%al
         outb %al,%dx
         end ['EAX','EDX'];
 end;
@@ -3711,8 +3709,8 @@ Procedure WritePortW (Port : Longint; Value : Word);
 
 begin
         asm
-        movl 8(%ebp),%edx
-        movw 12(%ebp),%ax
+        movl port,%edx
+        movw value,%ax
         outw %ax,%dx
         end ['EAX','EDX'];
 end;
@@ -3726,8 +3724,8 @@ Procedure WritePortL (Port : Longint; Value : Longint);
 
 begin
         asm
-        movl 8(%ebp),%edx
-        movl 12(%ebp),%eax
+        movl port,%edx
+        movl value,%eax
         outl %eax,%dx
         end ['EAX','EDX'];
 end;
@@ -3740,9 +3738,9 @@ Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%esi
-        movl 8(%ebp),%edx
+        movl count,%ecx
+        movl buf,%esi
+        movl port,%edx
         cld
         rep
         outsl
@@ -3757,9 +3755,9 @@ Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%esi
-        movl 8(%ebp),%edx
+        movl count,%ecx
+        movl buf,%esi
+        movl port,%edx
         cld
         rep
         outsw
@@ -3774,9 +3772,9 @@ Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%esi
-        movl 8(%ebp),%edx
+        movl count,%ecx
+        movl buf,%esi
+        movl port,%edx
         cld
         rep
         outsb
@@ -3791,10 +3789,10 @@ Procedure ReadPort (Port : Longint; Var Value : Byte);
 }
 begin
         asm
-        movl 8(%ebp),%edx
+        movl port,%edx
         inb %dx,%al
-        andl $255,%eax
-        movl %eax,12(%ebp)
+        movl value,%edx
+        movb %al,(%edx)
         end ['EAX','EDX'];
 end;
 
@@ -3806,10 +3804,10 @@ Procedure ReadPort (Port : Longint; Var Value : Word);
 }
 begin
         asm
-        movl 8(%ebp),%edx
+        movl port,%edx
         inw %dx,%ax
-        andl $65535,%eax
-        movl %eax,12(%ebp)
+        movl value,%edx
+        movw %ax,(%edx)
         end ['EAX','EDX'];
 end;
 
@@ -3821,9 +3819,10 @@ Procedure ReadPort (Port : Longint; Var Value : Longint);
 }
 begin
         asm
-        movl 8(%ebp),%edx
+        movl port,%edx
         inl %dx,%eax
-        movl %eax,12(%ebp)
+        movl value,%edx
+        movl %eax,(%edx)
         end ['EAX','EDX'];
 end;
 
@@ -3835,9 +3834,9 @@ function ReadPortB (Port : Longint): Byte;
 }
 begin
         asm
-        movl 8(%ebp),%edx
+        xorl %eax,%eax
+        movl port,%edx
         inb %dx,%al
-        andl $255,%eax
         end ['EAX','EDX'];
 end;
 
@@ -3849,9 +3848,9 @@ function ReadPortW (Port : Longint): Word;
 }
 begin
         asm
-        movl 8(%ebp),%edx
+        xorl %eax,%eax
+        movl port,%edx
         inw %dx,%ax
-        andl $65535,%eax
         end ['EAX','EDX'];
 end;
 
@@ -3863,7 +3862,7 @@ function ReadPortL (Port : Longint): LongInt;
 }
 begin
         asm
-        movl 8(%ebp),%edx
+        movl port,%edx
         inl %dx,%eax
         end ['EAX','EDX'];
 end;
@@ -3876,9 +3875,9 @@ Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edi
-        movl 8(%ebp),%edx
+        movl count,%ecx
+        movl buf,%edi
+        movl port,%edx
         cld
         rep
         insl
@@ -3893,9 +3892,9 @@ Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edi
-        movl 8(%ebp),%edx
+        movl count,%ecx
+        movl buf,%edi
+        movl port,%edx
         cld
         rep
         insw
@@ -3910,9 +3909,9 @@ Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
 }
 begin
   asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edi
-        movl 8(%ebp),%edx
+        movl count,%ecx
+        movl buf,%edi
+        movl port,%edx
         cld
         rep
         insb
@@ -3931,7 +3930,10 @@ End.
 
 {
   $Log$
-  Revision 1.64  2000-03-17 13:27:00  sg
+  Revision 1.65  2000-03-23 17:10:32  jonas
+    * fixes for port reading
+
+  Revision 1.64  2000/03/17 13:27:00  sg
   * Added WritePort[B|W|L] for single data access
   * Added ReadPort[B|W|L] functions
 
