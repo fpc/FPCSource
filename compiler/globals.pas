@@ -129,8 +129,8 @@ unit globals;
        initmoduleswitches : tmoduleswitches;
        initlocalswitches  : tlocalswitches;
        initmodeswitches   : tmodeswitches;
-       initpackenum,
-       initpackrecords    : longint;
+       initpackenum       : longint;
+       initpackrecords    : tpackrecords;
        initoutputformat   : tasm;
        initoptprocessor   : tprocessors;
        initasmmode        : tasmmode;
@@ -139,8 +139,8 @@ unit globals;
        aktmoduleswitches : tmoduleswitches;
        aktlocalswitches  : tlocalswitches;
        aktmodeswitches   : tmodeswitches;
-       aktpackenum,
-       aktpackrecords    : longint;
+       aktpackenum       : longint;
+       aktpackrecords    : tpackrecords;
        aktoutputformat   : tasm;
        aktoptprocessor   : tprocessors;
        aktasmmode        : tasmmode;
@@ -1172,7 +1172,7 @@ unit globals;
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
-        initpackrecords:=2;
+        initpackrecords:=packrecord_2;
         initoutputformat:=target_asm.id;
         initasmmode:=asmmode_i386_att;
         initdefines.init;
@@ -1184,7 +1184,7 @@ unit globals;
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
         initmodeswitches:=fpcmodeswitches;
         initpackenum:=4;
-        initpackrecords:=2;
+        initpackrecords:=packrecord_2;
         initoutputformat:=as_m68k_as;
         initasmmode:=asmmode_m68k_mot;
         initdefines.init;
@@ -1210,7 +1210,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1999-07-18 10:19:52  florian
+  Revision 1.14  1999-07-23 16:05:19  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.13  1999/07/18 10:19:52  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

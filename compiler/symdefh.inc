@@ -32,9 +32,8 @@
 
        pdef = ^tdef;
        tdef = object(tsymtableentry)
-          deftype  : tdeftype;
-          savesize : longint;
-          sym      : ptypesym;  { which type the definition was generated this def }
+          deftype   : tdeftype;
+          sym       : ptypesym;  { which type the definition was generated this def }
 
           has_inittable : boolean;
           { adress of init informations }
@@ -59,6 +58,7 @@
           function  typename:string;
           procedure write;virtual;
           function  size:longint;virtual;
+          function  alignment:longint;virtual;
 {$ifdef GDB}
           function  NumberString:string;
           procedure set_globalnb;
@@ -91,6 +91,8 @@
           function is_publishable : boolean;virtual;
           function is_in_current : boolean;
           function gettypename:string;virtual;
+       private
+          savesize  : longint;
        end;
 
        targconvtyp = (act_convertable,act_equal,act_exact);
@@ -173,8 +175,6 @@
        tobjectdef = object(tdef)
           childof : pobjectdef;
           objname : pstring;
-          { privatesyms : psymtable;
-          protectedsyms : psymtable; }
           publicsyms : psymtable;
           options : longint;
           { to be able to have a variable vmt position }
@@ -185,6 +185,7 @@
           procedure check_forwards;
           function isrelated(d : pobjectdef) : boolean;
           function size : longint;virtual;
+          function alignment:longint;virtual;
           constructor load;
           procedure write;virtual;
           function vmt_mangledname : string;
@@ -246,6 +247,7 @@
 {$endif GDB}
           procedure deref;virtual;
           function size : longint;virtual;
+          function alignment : longint;virtual;
           { generates the ranges needed by the asm instruction BOUND (i386)
             or CMP2 (Motorola) }
           procedure genrangecheck;
@@ -264,6 +266,8 @@
           constructor load;
           destructor done;virtual;
           procedure write;virtual;
+          function size:longint;virtual;
+          function alignment : longint;virtual;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -521,7 +525,12 @@
 
 {
   $Log$
-  Revision 1.33  1999-06-22 16:24:45  pierre
+  Revision 1.34  1999-07-23 16:05:30  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.33  1999/06/22 16:24:45  pierre
    * local browser stuff corrected
 
   Revision 1.32  1999/06/02 10:11:51  florian

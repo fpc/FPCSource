@@ -1035,6 +1035,7 @@
 
     procedure tvarsym.insert_in_data;
       var
+         varalign,
          l,ali,modulo : longint;
          storefilepos : tfileposinfo;
       begin
@@ -1147,42 +1148,61 @@
                  begin
                  { this symbol can't be loaded to a register }
                    var_options:=var_options and not vo_regable;
+                 { get the alignment size }
+                   if (aktpackrecords=packrecord_C) and
+                      (owner^.dataalignment<4) then
+                    begin
+                      varalign:=definition^.alignment;
+                      if varalign>0 then
+                       begin
+                         if varalign>owner^.dataalignment then
+                          owner^.dataalignment:=varalign;
+                       end
+                      else
+                       begin
+                         if l>=4 then
+                          owner^.dataalignment:=4
+                         else
+                          if l>=2 then
+                           owner^.dataalignment:=2;
+                       end;
+                    end;
                  { align record and object fields }
-                   if (l=1) or (aktpackrecords=1) then
+                   if (l=1) or (owner^.dataalignment=1) then
                     begin
                       address:=owner^.datasize;
                       inc(owner^.datasize,l)
                     end
                    else
-                    if (l=2) or (aktpackrecords=2) then
+                    if (l=2) or (owner^.dataalignment=2) then
                      begin
                        owner^.datasize:=(owner^.datasize+1) and (not 1);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l)
                      end
                    else
-                    if (l<=4) or (aktpackrecords=4) then
+                    if (l<=4) or (owner^.dataalignment=4) then
                      begin
                        owner^.datasize:=(owner^.datasize+3) and (not 3);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
                      end
                    else
-                    if (l<=8) or (aktpackrecords=8) then
+                    if (l<=8) or (owner^.dataalignment=8) then
                      begin
                        owner^.datasize:=(owner^.datasize+7) and (not 7);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
                      end
                    else
-                    if (l<=16) or (aktpackrecords=16) then
+                    if (l<=16) or (owner^.dataalignment=16) then
                      begin
                        owner^.datasize:=(owner^.datasize+15) and (not 15);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
                      end
                    else
-                    if (l<=32) or (aktpackrecords=32) then
+                    if (l<=32) or (owner^.dataalignment=32) then
                      begin
                        owner^.datasize:=(owner^.datasize+31) and (not 31);
                        address:=owner^.datasize;
@@ -1982,7 +2002,12 @@
 
 {
   $Log$
-  Revision 1.99  1999-07-23 11:33:23  peter
+  Revision 1.100  1999-07-23 16:05:32  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.99  1999/07/23 11:33:23  peter
     * removed oldppu from propertysym
 
   Revision 1.98  1999/07/22 09:37:55  florian

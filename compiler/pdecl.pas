@@ -1439,7 +1439,7 @@ unit pdecl;
                 intmessagetable:=genintmsgtab(aktclass)
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
-                
+
 
               { table for string messages }
               if (aktclass^.options and oo_hasmsgstr)<>0 then
@@ -1533,24 +1533,24 @@ unit pdecl;
          storetypeforwardsallowed : boolean;
 
       begin
+         { create recdef }
          symtable:=new(psymtable,init(recordsymtable));
+         record_dec:=new(precdef,init(symtable));
+         { update symtable stack }
          symtable^.next:=symtablestack;
          symtablestack:=symtable;
+         { parse record }
          consume(_RECORD);
          storetypeforwardsallowed:=typecanbeforward;
          if m_tp in aktmodeswitches then
            typecanbeforward:=false;
          read_var_decs(true,false,false);
-
-         { may be scale record size to a size of n*4 ? }
-         if ((symtablestack^.datasize mod aktpackrecords)<>0) then
-           inc(symtablestack^.datasize,aktpackrecords-(symtablestack^.datasize mod aktpackrecords));
-
          consume(_END);
          typecanbeforward:=storetypeforwardsallowed;
-
+         { may be scale record size to a size of n*4 ? }
+         symtablestack^.datasize:=align(symtablestack^.datasize,symtablestack^.dataalignment);
+         { restore symtable stack }
          symtablestack:=symtable^.next;
-         record_dec:=new(precdef,init(symtable));
       end;
 
 
@@ -1644,7 +1644,8 @@ unit pdecl;
          aufsym : penumsym;
          ap : parraydef;
          s : stringid;
-         l,v,oldaktpackrecords : longint;
+         l,v : longint;
+         oldaktpackrecords : tpackrecords;
          hs : string;
 
       procedure expr_type;
@@ -1894,7 +1895,7 @@ unit pdecl;
                  else
                    begin
                       oldaktpackrecords:=aktpackrecords;
-                      aktpackrecords:=1;
+                      aktpackrecords:=packrecord_1;
                       if token in [_CLASS,_OBJECT] then
                         p:=object_dec(name,nil)
                       else
@@ -2187,7 +2188,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.134  1999-07-22 09:37:50  florian
+  Revision 1.135  1999-07-23 16:05:23  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.134  1999/07/22 09:37:50  florian
     + resourcestring implemented
     + start of longstring support
 

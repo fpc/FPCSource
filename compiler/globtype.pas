@@ -123,6 +123,19 @@ interface
          bt_general,bt_type,bt_const
        );
 
+       { packrecords types }
+       tpackrecords = (packrecord_none,
+         packrecord_1,packrecord_2,packrecord_4,
+         packrecord_8,packrecord_16,packrecord_32,
+         packrecord_C
+       );
+
+    const
+       packrecordalignment : array[tpackrecords] of byte=(0,
+         1,2,4,8,16,32,1
+       );
+
+    type
        stringid = string[maxidlen];
 
        tnormalset = set of byte; { 256 elements set }
@@ -149,7 +162,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1999-07-10 10:26:19  peter
+  Revision 1.13  1999-07-23 16:05:21  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.12  1999/07/10 10:26:19  peter
     * merged
 
   Revision 1.11  1999/07/03 00:29:49  peter

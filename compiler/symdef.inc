@@ -241,6 +241,13 @@
       end;
 
 
+    function tdef.alignment : longint;
+      begin
+         { normal alignment by default }
+         alignment:=0;
+      end;
+
+
 {$ifdef GDB}
    procedure tdef.set_globalnb;
      begin
@@ -1779,6 +1786,13 @@
       end;
 
 
+    function tarraydef.alignment : longint;
+      begin
+         { alignment is the size of the elements }
+         alignment:=definition^.size;
+      end;
+
+
     function tarraydef.needs_inittable : boolean;
       begin
          needs_inittable:=definition^.needs_inittable;
@@ -1831,6 +1845,7 @@
          symtable:=p;
          savesize:=symtable^.datasize;
          symtable^.defowner := @self;
+         symtable^.dataalignment:=packrecordalignment[aktpackrecords];
       end;
 
 
@@ -1851,9 +1866,11 @@
 
     destructor trecdef.done;
       begin
-         if assigned(symtable) then dispose(symtable,done);
+         if assigned(symtable) then
+           dispose(symtable,done);
          inherited done;
       end;
+
 
     var
        binittable : boolean;
@@ -1909,6 +1926,16 @@
          read_member:=oldread_member;
       end;
 
+    function trecdef.size:longint;
+      begin
+        size:=symtable^.datasize;
+      end;
+
+
+    function trecdef.alignment:longint;
+      begin
+        alignment:=symtable^.dataalignment;
+      end;
 
 {$ifdef GDB}
     Const StabRecString : pchar = Nil;
@@ -2862,16 +2889,11 @@ Const local_symtable_index : longint = $8001;
         publicsyms:=new(psymtable,init(objectsymtable));
         publicsyms^.name := stringdup(n);
         { create space for vmt !! }
-{$ifdef OLDVMTSTYLE}
-        publicsyms^.datasize:=target_os.size_of_pointer;
-        options:=oo_hasvmt;
-        vmt_offset:=0;
-{$else }
         options:=0;
         vmt_offset:=0;
         publicsyms^.datasize:=0;
-{$endif }
         publicsyms^.defowner:=@self;
+        publicsyms^.dataalignment:=packrecordalignment[aktpackrecords];
         set_parent(c);
         objname:=stringdup(n);
      end;
@@ -2944,15 +2966,16 @@ Const local_symtable_index : longint = $8001;
         else
           begin
              { first round up to multiple of 4 }
-             if (aktpackrecords=2) then
+             if (publicsyms^.dataalignment=2) then
                begin
                  if (publicsyms^.datasize and 1)<>0 then
                    inc(publicsyms^.datasize);
-               end;
-             if (aktpackrecords>=4) then
+               end
+             else
+              if (publicsyms^.dataalignment>=4) then
                begin
-                  if (publicsyms^.datasize mod 4) <> 0 then
-                    publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
+                 if (publicsyms^.datasize mod 4) <> 0 then
+                   publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
                end;
              vmt_offset:=publicsyms^.datasize;
              publicsyms^.datasize:=publicsyms^.datasize+target_os.size_of_pointer;
@@ -3002,14 +3025,19 @@ Const local_symtable_index : longint = $8001;
      end;
 
 
-   function tobjectdef.size : longint;
-     begin
+    function tobjectdef.size : longint;
+      begin
         if (options and oo_is_class)<>0 then
           size:=target_os.size_of_pointer
-
         else
           size:=publicsyms^.datasize;
-     end;
+      end;
+
+
+    function tobjectdef.alignment:longint;
+      begin
+        alignment:=publicsyms^.dataalignment;
+      end;
 
 
     procedure tobjectdef.deref;
@@ -3467,7 +3495,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.132  1999-07-18 14:47:32  florian
+  Revision 1.133  1999-07-23 16:05:28  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.132  1999/07/18 14:47:32  florian
     * bug 487 fixed, (inc(<property>) isn't allowed)
     * more fixes to compile with Delphi
 

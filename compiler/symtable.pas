@@ -147,6 +147,7 @@ unit symtable;
           unitid    : integer;     { each symtable gets a number }
           name      : pstring;
           datasize  : longint;
+          dataalignment : longint;
           symindex,
           defindex  : pindexarray;
           symsearch : pdictionary;
@@ -1028,6 +1029,7 @@ implementation
          name:=nil;
          address_fixup:=0;
          datasize:=0;
+         dataalignment:=1;
          new(symindex,init(indexgrowsize));
          new(defindex,init(indexgrowsize));
          if symtabletype<>withsymtable then
@@ -1150,8 +1152,9 @@ implementation
           Message(unit_f_ppu_read_error);
          { skip amount of symbols, not used currently }
          current_ppu^.getlongint;
-         { load datasize of this symboltable }
+         { load datasize,dataalignment of this symboltable }
          datasize:=current_ppu^.getlongint;
+         dataalignment:=current_ppu^.getlongint;
       { now read the symbols }
          repeat
            b:=current_ppu^.readentry;
@@ -1208,6 +1211,7 @@ implementation
          datasize to the ibsymdef entry }
          current_ppu^.putlongint(symindex^.count);
          current_ppu^.putlongint(datasize);
+         current_ppu^.putlongint(dataalignment);
          current_ppu^.writeentry(ibstartsyms);
        { foreach is used to write all symbols }
          pd:=psym(symindex^.first);
@@ -2334,7 +2338,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-07-23 12:02:20  peter
+  Revision 1.29  1999-07-23 16:05:33  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.28  1999/07/23 12:02:20  peter
     * fixed crash in previous commit
 
   Revision 1.27  1999/07/23 11:37:50  peter

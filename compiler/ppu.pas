@@ -37,7 +37,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=16;
+  CurrentPPUVersion=17;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -386,7 +386,7 @@ begin
      Id[3]:='U';
      Ver[1]:='0';
      Ver[2]:='1';
-     Ver[3]:='6';
+     Ver[3]:='7';
    end;
 end;
 
@@ -871,7 +871,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-07-05 16:21:30  peter
+  Revision 1.36  1999-07-23 16:05:25  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.35  1999/07/05 16:21:30  peter
     * fixed linking for units without linking necessary
 
   Revision 1.34  1999/07/03 00:29:57  peter

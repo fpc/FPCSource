@@ -345,12 +345,12 @@ unit ptconst;
                    else
                      begin
 {$ifdef i386}
-                        for l:=0 to def^.savesize-1 do
+                        for l:=0 to def^.size-1 do
                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[l])));
 {$endif}
 {$ifdef m68k}
                         j:=0;
-                        for l:=0 to ((def^.savesize-1) div 4) do
+                        for l:=0 to ((def^.size-1) div 4) do
                         { HORRIBLE HACK because of endian       }
                         { now use intel endian for constant sets }
                          begin
@@ -725,7 +725,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.47  1999-07-03 14:14:28  florian
+  Revision 1.48  1999-07-23 16:05:26  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.47  1999/07/03 14:14:28  florian
     + start of val(int64/qword)
     * longbool, wordbool constants weren't written, fixed
 

@@ -181,7 +181,7 @@ unit parser;
          oldaktlocalswitches  : tlocalswitches;
          oldaktmoduleswitches : tmoduleswitches;
          oldaktfilepos      : tfileposinfo;
-         oldaktpackrecords  : word;
+         oldaktpackrecords  : tpackrecords;
          oldaktoutputformat : tasm;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
@@ -466,7 +466,12 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.76  1999-07-22 09:37:49  florian
+  Revision 1.77  1999-07-23 16:05:22  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.76  1999/07/22 09:37:49  florian
     + resourcestring implemented
     + start of longstring support
 

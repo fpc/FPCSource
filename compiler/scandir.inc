@@ -749,20 +749,23 @@ const
         if not(c in ['0'..'9']) then
          begin
            hs:=current_scanner^.readid;
-           if (hs='NORMAL') or (hs='DEFAULT') then
-            aktpackrecords:=2
+           if (hs='C') then
+            aktpackrecords:=packrecord_C
+           else
+            if (hs='NORMAL') or (hs='DEFAULT') then
+             aktpackrecords:=packrecord_2
            else
             Message(scan_w_only_pack_records);
          end
         else
          begin
            case current_scanner^.readval of
-            1 : aktpackrecords:=1;
-            2 : aktpackrecords:=2;
-            4 : aktpackrecords:=4;
-            8 : aktpackrecords:=8;
-           16 : aktpackrecords:=16;
-           32 : aktpackrecords:=32;
+             1 : aktpackrecords:=packrecord_1;
+             2 : aktpackrecords:=packrecord_2;
+             4 : aktpackrecords:=packrecord_4;
+             8 : aktpackrecords:=packrecord_8;
+            16 : aktpackrecords:=packrecord_16;
+            32 : aktpackrecords:=packrecord_32;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -1085,7 +1088,12 @@ const
 
 {
   $Log$
-  Revision 1.55  1999-07-16 10:04:36  peter
+  Revision 1.56  1999-07-23 16:05:27  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.55  1999/07/16 10:04:36  peter
     * merged
 
   Revision 1.54  1999/07/03 00:29:58  peter

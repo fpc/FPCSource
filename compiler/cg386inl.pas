@@ -1097,7 +1097,7 @@ implementation
                              if porddef(ppointerdef(p^.left^.left^.resulttype)^.definition)=voiddef then
                               addvalue:=1
                              else
-                              addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.savesize;
+                              addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.size;
                            end;
                 else
                  internalerror(10081);
@@ -1313,7 +1313,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-07-05 20:13:10  peter
+  Revision 1.63  1999-07-23 16:05:18  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.62  1999/07/05 20:13:10  peter
     * removed temp defines
 
   Revision 1.61  1999/07/03 14:14:27  florian
