@@ -70,7 +70,8 @@ unit cpupi;
            begin
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
-             inc(framepointer_offset,ofs);
+             { use space reserved for compilers in link area }
+             framepointer_offset := 12;
              // inc(selfpointer_offset,ofs);
              // inc(vmtpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
@@ -99,7 +100,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-05-23 18:51:26  jonas
+  Revision 1.21  2003-05-24 11:47:27  jonas
+    * fixed framepointer storage: it's now always stored at r1+12, which is
+      a place in the link area reserved for compiler use.
+
+  Revision 1.20  2003/05/23 18:51:26  jonas
     * fixed support for nested procedures and more parameters than those
       which fit in registers (untested/probably not working: calling a
       nested procedure from a deeper nested procedure)

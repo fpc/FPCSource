@@ -106,10 +106,9 @@ implementation
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister1);
-            { !!!!!!!!!! not true anymore!!!!!!! (JM)       }
             { the previous frame pointer is always saved at }
-            { previous_framepointer-sizeof(pointer)         }
-            reference_reset_base(href,hregister1,-POINTER_SIZE);
+            { previous_framepointer+12 (in the link area)   }
+            reference_reset_base(href,hregister1,12);
             i:=current_procdef.parast.symtablelevel-1;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
@@ -131,7 +130,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-05-23 18:51:26  jonas
+  Revision 1.15  2003-05-24 11:47:27  jonas
+    * fixed framepointer storage: it's now always stored at r1+12, which is
+      a place in the link area reserved for compiler use.
+
+  Revision 1.14  2003/05/23 18:51:26  jonas
     * fixed support for nested procedures and more parameters than those
       which fit in registers (untested/probably not working: calling a
       nested procedure from a deeper nested procedure)

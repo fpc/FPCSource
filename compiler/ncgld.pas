@@ -205,7 +205,11 @@ implementation
                                        while (i>symtable.symtablelevel) do
                                          begin
                                             { make a reference }
+{$ifdef powerpc}
+                                            reference_reset_base(href,hregister,current_procinfo.framepointer_offset);
+{$else powerpc}
                                             reference_reset_base(href,hregister,target_info.first_parm_offset);
+{$endif powerpc}
                                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                                             dec(i);
                                          end;
@@ -915,7 +919,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-05-23 14:27:35  peter
+  Revision 1.61  2003-05-24 11:47:27  jonas
+    * fixed framepointer storage: it's now always stored at r1+12, which is
+      a place in the link area reserved for compiler use.
+
+  Revision 1.60  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
