@@ -95,11 +95,14 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
     Function fpSymlink	   (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
     Function fpReadLink	   (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
-
+    Function FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
 
 {
    $Log$
-   Revision 1.11  2004-12-22 13:53:51  marco
+   Revision 1.12  2004-12-31 14:27:49  marco
+    * fpumask
+
+   Revision 1.11  2004/12/22 13:53:51  marco
     * fpgettimeofday moved from baseunix to unix
 
    Revision 1.10  2004/11/23 13:33:55  jonas
