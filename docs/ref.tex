@@ -549,6 +549,7 @@ Integer \\
 Shortint \\
 SmallInt \\
 Longint \\
+Longword \\
 Int64 \\
 Byte \\
 Word \\
@@ -566,36 +567,42 @@ Type & Range & Size in bytes \\ \hline
 Byte & 0 .. 255 & 1 \\
 Shortint & -128 .. 127 & 1\\
 Smallint & -32768 .. 32767 & 2\\
-Integer & either smallint, longint or int64  & size 2,4 or 8 \\
 Word & 0 .. 65535 & 2 \\
+Integer & either smallint, longint or int64  & size 2,4 or 8 \\
+Cardinal & either word, longword or qword  & size 2,4 or 8 \\
 Longint & -2147483648 .. 2147483647 & 4\\
-Cardinal & 0..4294967295 & 4 \\
+Longword & 0..4294967295 & 4 \\
 Int64 & -9223372036854775808 .. 9223372036854775807 & 8 \\
 QWord & 0 .. 18446744073709551615 & 8 \\ \hline
 \end{FPCltable}
 
 The \var{integer} type maps to the smallint type in the default
 \fpc mode. It maps to either a longint or int64 in either Delphi or ObjFPC
-mode. This is summarized in \seet{integer32type} for 32-bit processors
-(such as Intel 80x86, Motorola 680x0, PowerPC 32-bit, SPARC v7, MIPS32), and
-in \seet{integer64type} for 64-bit processors (such as Alpha AXP,
-SPARC v9 or later, Intel Itanium, MIPS64).
+mode. The \var{cardinal} type is currently always mapped to the 
+longword type.
 
-\begin{FPCltable}{lcr}{\var{Integer} type mapping for 32-bit processors}{integer32type}
-Compiler mode & Range & Size in bytes \\ \hline
-<default> & -32768 .. 32767 & 2\\
-tp & -32768 .. 32767 & 2\\
-Delphi    & -2147483648 .. 2147483647 & 4\\
-ObjFPC    & -2147483648 .. 2147483647 & 4\\
-\end{FPCltable}
+%  This IS NOT TRUE, this is a 32-bit compiler, so the integer type
+% will always be the same independently the CPU type.
+%This is summarized in \seet{integer32type} for 32-bit processors
+%(such as Intel 80x86, Motorola 680x0, PowerPC 32-bit, SPARC v7, MIPS32), and
+%in \seet{integer64type} for 64-bit processors (such as Alpha AXP,
+%SPARC v9 or later, Intel Itanium, MIPS64).
 
-\begin{FPCltable}{lcr}{\var{Integer} type mapping for 64-bit processors}{integer64type}
-Compiler mode & Range & Size in bytes \\ \hline
-<default> & -32768 .. 32767 & 2\\
-tp & -32768 .. 32767 & 2\\
-Delphi    & -9223372036854775808 .. 9223372036854775807 & 8 \\
-ObjFPC   &  -9223372036854775808 .. 9223372036854775807 & 8 \\
-\end{FPCltable}
+%\begin{FPCltable}{lcr}{\var{Integer} type mapping for 32-bit processors}{integer32type}
+%Compiler mode & Range & Size in bytes \\ \hline
+%<default> & -32768 .. 32767 & 2\\
+%tp & -32768 .. 32767 & 2\\
+%Delphi    & -2147483648 .. 2147483647 & 4\\
+%ObjFPC    & -2147483648 .. 2147483647 & 4\\
+%\end{FPCltable}
+
+%\begin{FPCltable}{lcr}{\var{Integer} type mapping for 64-bit processors}{integer64type}
+%Compiler mode & Range & Size in bytes \\ \hline
+%<default> & -32768 .. 32767 & 2\\
+%tp & -32768 .. 32767 & 2\\
+%Delphi    & -9223372036854775808 .. 9223372036854775807 & 8 \\
+%ObjFPC   &  -9223372036854775808 .. 9223372036854775807 & 8 \\
+%\end{FPCltable}
 
 \fpc does automatic type conversion in expressions where different kinds of
 integer types are used.
