@@ -2227,7 +2227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-01-06 15:23:42  florian
+  Revision 1.9  2002-01-06 15:37:20  florian
+    * log fixed
+
+  Revision 1.8  2002/01/06 15:23:42  florian
     * SetRGBColor with cached pens fixed
 
   Revision 1.7  2001/06/06 17:20:22  jonas
@@ -2252,11 +2255,4 @@ end.
 
   Revision 1.2  2000/07/13 11:33:57  michael
   + removed logs
-
-<<<<<<< graph.pp
 }
-=======
-  Revision 1.1  1999/11/03 20:23:02  florian
-    + first release of win32 gui support
-}
->>>>>>> 1.1.2.1
