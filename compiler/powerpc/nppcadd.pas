@@ -85,9 +85,6 @@ interface
 *****************************************************************************}
 
     procedure tppcaddnode.pass_left_and_right;
-      var
-        tmpreg     : tregister;
-        pushedfpu  : boolean;
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
@@ -97,20 +94,7 @@ interface
          swapleftright;
 
         secondpass(left);
-
-        { are too few registers free? }
-        if location.loc=LOC_FPUREGISTER then
-          pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
-        else
-          pushedfpu:=false;
         secondpass(right);
-        if pushedfpu then
-          begin
-            tmpreg := cg.getfpuregister(exprasmlist,left.location.size);
-            cg.a_loadfpu_loc_reg(exprasmlist,left.location,tmpreg);
-            location_reset(left.location,LOC_FPUREGISTER,left.location.size);
-            left.location.register := tmpreg;
-          end;
       end;
 
 
@@ -1494,7 +1478,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2004-06-20 08:55:32  florian
+  Revision 1.46  2004-07-17 14:47:16  jonas
+    - removed useless maybe_pushfpu code for ppc
+
+  Revision 1.45  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.44  2004/06/17 16:55:46  peter
