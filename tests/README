@@ -25,6 +25,8 @@ ts010005.pp       tests method overriding
 ts010006.pp       tests libraries
 ts010015.pp       tests typed files.
 ts010016.pp       tests conversion of smallsets in normsets in consts 
+ts010017.pp       tests the problem of iocheck inside iocheck routines
+ts010018.pp       tests the problem of enums inside objects
 
 ts10100.pp        tests for delphi object model
 -

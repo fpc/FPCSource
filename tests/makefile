@@ -149,13 +149,22 @@ alltf : $(patsubst %.pp,%.ref,$(wildcard tf*.pp))
 
 allto : $(patsubst %.pp,%.res,$(wildcard to*.pp))
 
-allexec: $(patsubst %.pp,%.elg,$(wildcard test*.pp)) $(patsubst %.pp,%.elg,$(wildcard ts*.pp)) 
+allexec : alltsexec alltestexec
+
+alltestexec: $(patsubst %.pp,%.elg,$(wildcard test*.pp)) 
+
+alltsexec: $(patsubst %.pp,%.elg,$(wildcard ts*.pp)) 
 
 clean :
 	-rm *.re* *.o *.ppu ts*.exe tf*.exe log faillist
 
 # $Log$
-# Revision 1.6  1998-10-22 14:35:40  pierre
+# Revision 1.7  1998-10-22 16:41:11  pierre
+#   * added two small tests
+#     iocheck inside iocheck
+#     enums inside objects
+#
+# Revision 1.6  1998/10/22 14:35:40  pierre
 #   + added allexec tests if executables compiled
 #     don't return with an error code
 #   * some changes in test files for dos
