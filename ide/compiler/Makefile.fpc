@@ -32,7 +32,8 @@ endif
 override FPCOPT+=-dBrowserCol -dGDB
 ifeq ($(CPU_TARGET),i386)
 # the x86 dir doesn't hurt for 1.0.x though we could leave it away
-override FPCOPT+=-dSUPPORT_MMX -Fu$(COMPILERDIR)/x86
+override FPCOPT+= -Fu$(COMPILERDIR)/x86
+#-dSUPPORT_MMX
 endif
 
 [rules]
