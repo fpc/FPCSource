@@ -5,7 +5,7 @@ unit ub0170;
 
 interface
 
-   procedure a;
+   procedure a;external name '_assembler_a';
    procedure c;
 
    const is_called : boolean = false;
@@ -22,8 +22,6 @@ implementation
         Writeln('b called');
         Is_called:=true;
      end;
-
-   procedure a;external name '_assembler_a';
 
 end.
 
