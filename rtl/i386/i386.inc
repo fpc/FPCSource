@@ -322,7 +322,6 @@ asm
 {$else OBJECTVMTOFFSET}
         movl    (%eax),%ebx
 {$endif OBJECTVMTOFFSET}
-        movl    (%eax),%ebx
       { temporary Variable }
         subl    $4,%esp
         movl    %esp,%edi
@@ -713,7 +712,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  1998-10-16 13:37:46  pierre
+  Revision 1.29  1998-10-19 08:49:16  pierre
+   * removed old code forgotten about vmtoffset
+
+  Revision 1.28  1998/10/16 13:37:46  pierre
     * added code for vmt_offset in destructors
 
   Revision 1.27  1998/10/16 08:53:50  peter
