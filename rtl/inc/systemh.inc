@@ -27,6 +27,11 @@
 {$I-,Q-,H-,R-,V-}
 {$mode objfpc}
 
+{ don't use FPU registervariables on the i386 }
+{$ifdef i386}
+  {$maxfpuregisters 0}
+{$endif i386}
+
 { needed for insert,delete,readln }
 {$P+}
 
@@ -79,11 +84,11 @@ Type
 { Zero - terminated strings }
   PChar       = ^Char;
   PPChar      = ^PChar;
-{ Delphi types }  
+{ Delphi types }
   TAnsiChar   = Char;
   AnsiChar    = TAnsiChar;
   PAnsiChar   = PChar;
-  
+
 {$ifdef HASWIDECHAR}
   PWideChar   = ^WideChar;
 {$endif HASWIDECHAR}
@@ -433,7 +438,14 @@ const
 
 {
   $Log$
-  Revision 1.79  2000-03-14 10:20:18  michael
+  Revision 1.80  2000-03-26 11:36:28  jonas
+    + $maxfpuregisters 0 for i386 in systemh (to avoid requiring too much
+      empty FPU registers for sysstem routines
+    * fixed bug in str_real when using :x:0
+    * str_real now doesn't call exp() anymore at runtime, so it should
+      require less free FPU registers now (and be slightly faster)
+
+  Revision 1.79  2000/03/14 10:20:18  michael
   + Added constants and types for Delphi compatibility
 
   Revision 1.78  2000/02/09 16:59:31  peter

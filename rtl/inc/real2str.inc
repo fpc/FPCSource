@@ -62,7 +62,7 @@ type
 var
   roundCorr, corrVal: valReal;
   intPart, spos, endpos, fracCount: longint;
-  correct, currprec, maxPrec: longint;
+  correct, currprec: longint;
   temp : string;
   power : string[10];
   sign : boolean;
@@ -84,7 +84,6 @@ var
       dec(lastPos);
     until carry = 0;
   end;
-
 
   procedure getIntPart(d: extended);
   var
@@ -164,6 +163,8 @@ begin
          maxlen:=16;
          minlen:=8;
          explen:=4;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((16-4-3)*ln(10)));
       end;
     rt_s64real :
       begin
@@ -172,9 +173,13 @@ begin
 { 0.99999999999e-400 (JM)                                              }
 {$ifdef support_extended}
          maxlen:=23;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((23-5-3)*ln(10)));
 {$else support_extended}
 {$ifdef support_double}
          maxlen := 22;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((22-4-3)*ln(10)));
 {$endif support_double}
 {$endif support_extended}
          minlen:=9;
@@ -185,6 +190,8 @@ begin
          maxlen:=26;
          minlen:=10;
          explen:=6;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((26-6-3)*ln(10)));
       end;
     rt_c64bit  :
       begin
@@ -192,18 +199,24 @@ begin
          minlen:=9;
          { according to TP (was 5) (FK) }
          explen:=6;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((22-6-3)*ln(10)));
       end;
     rt_f16bit  :
       begin
          maxlen:=16;
          minlen:=8;
          explen:=4;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((16-4-3)*ln(10)));
       end;
     rt_f32bit  :
       begin
          maxlen:=16;
          minlen:=8;
          explen:=4;
+         { correction used with comparing to avoid rounding/precision errors }
+         roundCorr := (1/exp((16-4-3)*ln(10)));
       end;
     end;
   { check parameters }
@@ -253,7 +266,6 @@ begin
         d:=-d;
       { determine precision : maximal precision is : }
       currPrec := maxlen-explen-2;
-      maxPrec := currPrec;
       { this is also the maximal number of decimals !!}
       if f>currprec then
         f:=currprec;
@@ -270,8 +282,6 @@ begin
       { leading zero, may be necessary for things like str(9.999:0:2) to }
       { be able to insert an extra character at the start of the string  }
       temp := ' 0';
-      { correction used with comparing to avoid rounding/precision errors }
-      roundCorr := (1/exp(maxPrec*ln(10)));
       { position in the temporary output string }
       spos := 2;
       { get the integer part }
@@ -306,19 +316,15 @@ begin
       { always calculate at least 1 fractional digit for rounding }
       if (currPrec >= 0) then
         begin
-          if (currPrec > 0) then
-            { round }
+          corrVal := 0.5;
+          for fracCount := 1 to currPrec do
+            corrVal := corrVal / 10.0;
+          if d >= corrVal then
+            d := d + corrVal;
+          if int(d) = 1 then
             begin
-              corrVal := 0.5;
-              for fracCount := 1 to currPrec do
-                corrVal := corrVal / 10.0;
-              if d > corrVal then
-                d := d + corrVal;
-              if int(d) = 1 then
-                begin
-                  roundStr(temp,spos);
-                  d := frac(d);
-                end;
+              roundStr(temp,spos);
+              d := frac(d);
             end;
           { calculate the necessary fractional digits }
           for fracCount := 1 to currPrec do
@@ -393,7 +399,14 @@ end;
 
 {
   $Log$
-  Revision 1.29  2000-03-21 12:00:30  jonas
+  Revision 1.30  2000-03-26 11:36:28  jonas
+    + $maxfpuregisters 0 for i386 in systemh (to avoid requiring too much
+      empty FPU registers for sysstem routines
+    * fixed bug in str_real when using :x:0
+    * str_real now doesn't call exp() anymore at runtime, so it should
+      require less free FPU registers now (and be slightly faster)
+
+  Revision 1.29  2000/03/21 12:00:30  jonas
     * fixed more bugs due to inexact nature of FPU
 
   Revision 1.28  2000/03/17 20:20:33  jonas
