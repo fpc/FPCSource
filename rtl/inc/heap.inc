@@ -114,7 +114,7 @@ const
 procedure GetMemoryManager(var MemMgr:TMemoryManager);
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -134,7 +134,7 @@ end;
 procedure SetMemoryManager(const MemMgr:TMemoryManager);
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -154,7 +154,7 @@ end;
 function IsMemoryManagerSet:Boolean;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -176,7 +176,7 @@ end;
 procedure GetMem(Var p:pointer;Size:Longint);
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -196,7 +196,7 @@ end;
 procedure FreeMem(p:pointer;Size:Longint);
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -216,7 +216,7 @@ end;
 function MaxAvail:Longint;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -236,7 +236,7 @@ end;
 function MemAvail:Longint;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -257,7 +257,7 @@ end;
 function HeapSize:Longint;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -277,7 +277,7 @@ end;
 function MemSize(p:pointer):Longint;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -298,7 +298,7 @@ end;
 function FreeMem(p:pointer):Longint;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -318,7 +318,7 @@ end;
 function GetMem(size:longint):pointer;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -338,7 +338,7 @@ end;
 function AllocMem(Size:Longint):pointer;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -358,7 +358,7 @@ end;
 function ReAllocMem(var p:pointer;Size:Longint):pointer;
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -381,7 +381,7 @@ end;
 function AsmGetMem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -412,7 +412,7 @@ end;
 procedure AsmFreeMem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
 {$ifdef MT}
-  if IsMultiThreaded then
+  if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
@@ -1256,7 +1256,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-01-02 13:43:09  jonas
+  Revision 1.12  2002-02-10 15:33:45  carl
+  * fixed some missing IsMultiThreaded variables
+
+  Revision 1.11  2002/01/02 13:43:09  jonas
     * fix for web bug 1727 from Peter (corrected)
 
   Revision 1.9  2001/12/03 21:39:20  peter
