@@ -1676,13 +1676,23 @@ const
                begin
                  hd:=pd.nextoverloaded;
 
-                 { check the parameters }
-                 if (not(m_repeat_forward in aktmodeswitches) and
-                     (aktprocsym.definition.maxparacount=0)) or
-                    (equal_paras(aktprocsym.definition.para,hd.para,cp_none) and
-                    { for operators equal_paras is not enough !! }
-                    ((aktprocsym.definition.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
-                     is_equal(hd.rettype.def,aktprocsym.definition.rettype.def))) then
+                 { check the parameters, for delphi/tp it is possible to
+                   leave the parameters away in the implementation (forwarddef=false).
+                   But for an overload declared function this is not allowed }
+                 if { check if empty implementation arguments match is allowed }
+                    (
+                     not(m_repeat_forward in aktmodeswitches) and
+                     (aktprocsym.definition.maxparacount=0) and
+                     not(aktprocsym.definition.forwarddef) and
+                     not(po_overload in hd.procoptions)
+                    ) or
+                    { check arguments }
+                    (
+                     equal_paras(aktprocsym.definition.para,hd.para,cp_none) and
+                     { for operators equal_paras is not enough !! }
+                     ((aktprocsym.definition.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
+                      is_equal(hd.rettype.def,aktprocsym.definition.rettype.def))
+                    ) then
                    begin
                      if not equal_paras(aktprocsym.definition.para,hd.para,cp_all) and
                         ((m_repeat_forward in aktmodeswitches) or
@@ -1796,34 +1806,22 @@ const
                          { copy all aliasnames }
                          while not aktprocsym.definition.aliasnames.empty do
                           hd.aliasnames.insert(aktprocsym.definition.aliasnames.getfirst);
-                         { switch parast for warning in implementation  PM
-                           This can't be done, because the parasymtable is also
-                           stored in the ppu and loaded when only the interface
-                           units are loaded. Using the implementation parast can
-                           cause problems with redefined types in units only included
-                           in the implementation uses (PFV) }
-                         {if (m_repeat_forward in aktmodeswitches) or
-                            aktprocsym.definition.haspara then
-                           begin
-                              storeparast:=hd.parast;
-                              hd.parast:=aktprocsym.definition.parast;
-                              aktprocsym.definition.parast:=storeparast;
-                           end;}
                          if pd=aktprocsym.definition then
                            p:=nil
                          else
                            p:=pd;
                          aktprocsym.definition:=hd;
                          check_identical_proc:=true;
+                         break;
                        end
                      else
                      { abstract methods aren't forward defined, but this }
                      { needs another error message                   }
-                       if not(po_abstractmethod in pd.nextoverloaded.procoptions) then
-                         MessagePos(aktprocsym.definition.fileinfo,parser_e_overloaded_have_same_parameters)
+                       if (po_abstractmethod in pd.nextoverloaded.procoptions) then
+                          MessagePos(aktprocsym.definition.fileinfo,parser_e_abstract_no_definition)
                        else
-                         MessagePos(aktprocsym.definition.fileinfo,parser_e_abstract_no_definition);
-                     break;
+                          MessagePos(aktprocsym.definition.fileinfo,parser_e_overloaded_have_same_parameters);
+                       break;
                    end;
 
                  { check for allowing overload directive }
@@ -1831,14 +1829,14 @@ const
                   begin
                     { overload directive turns on overloading }
                     if ((po_overload in aktprocsym.definition.procoptions) or
-                        ((po_overload in hd.procoptions))) then
+                        (po_overload in hd.procoptions)) then
                      begin
                        { check if all procs have overloading, but not if the proc was
                          already declared forward, then the check is already done }
-                       if not(hd.hasforward) and
-                          (aktprocsym.definition.forwarddef=hd.forwarddef) and
-                          not((po_overload in aktprocsym.definition.procoptions) and
-                              ((po_overload in hd.procoptions))) then
+                       if not(hd.hasforward or
+                              (aktprocsym.definition.forwarddef<>hd.forwarddef) or
+                              ((po_overload in aktprocsym.definition.procoptions) and
+                               (po_overload in hd.procoptions))) then
                         begin
                           MessagePos1(aktprocsym.definition.fileinfo,parser_e_no_overload_for_all_procs,aktprocsym.realname);
                           break;
@@ -1888,7 +1886,12 @@ const
 end.
 {
   $Log$
-  Revision 1.28  2001-07-01 20:16:16  peter
+  Revision 1.29  2001-07-09 21:11:14  peter
+    * fixed overload checking for delphi. Empty parameters are only
+      allowed in implementation and not when the forward declaration
+      contains overload directive
+
+  Revision 1.28  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
