@@ -426,6 +426,13 @@ var
 {$ifdef GDB}
                   lastfileinfo.line:=-1;
 {$endif GDB}
+                end
+               else
+                begin
+{$ifdef EXTDEBUG}
+                  AsmWrite(target_asm.comment);
+                  AsmWriteln(' sec_none');
+{$endif EXTDEBUG}
                 end;
              end;
 
@@ -813,7 +820,10 @@ var
 end.
 {
   $Log$
-  Revision 1.23  2003-04-25 20:59:33  peter
+  Revision 1.24  2003-04-28 21:17:53  peter
+    * write sec_none info in extdebug
+
+  Revision 1.23  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
