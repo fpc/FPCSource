@@ -41,6 +41,13 @@ interface
        ts80real = extended;
        ts64comp = comp;
 {$endif}
+{$ifdef alpha}
+       bestreal = extended;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = comp;
+{$endif}
        pbestreal=^bestreal;
 
        { Switches which can be changed locally }
@@ -162,7 +169,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1999-07-23 16:05:21  peter
+  Revision 1.14  1999-08-01 23:04:48  michael
+  + Changes for Alpha
+
+  Revision 1.13  1999/07/23 16:05:21  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

@@ -34,6 +34,9 @@ unit hcodegen;
 {$ifdef m68k}
       ,m68k
 {$endif}
+{$ifdef alpha}
+      ,procbase
+{$endif}
       ;
 
     const
@@ -298,7 +301,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  1999-07-22 09:37:42  florian
+  Revision 1.35  1999-08-01 23:04:49  michael
+  + Changes for Alpha
+
+  Revision 1.34  1999/07/22 09:37:42  florian
     + resourcestring implemented
     + start of longstring support
 

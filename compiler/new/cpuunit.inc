@@ -23,29 +23,15 @@
 {$ifdef i386}
        ,i386base
        ,i386asm
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
-{$ifdef alpha}
-       ,alpha
-{$endif}
-{$ifdef sparc}
-       ,sparc
-{$endif}
-{$ifdef powerpc}
-       ,powerpc
-{$endif}
-{$ifdef arm}
-       ,arm
-{$endif}
-{ hehehe, we're optimistic }
-{$ifdef merced}
-       ,merced
+{$else}
+       ,procbase
 {$endif}
 {
   $Log$
-  Revision 1.2  1999-08-01 18:22:34  florian
+  Revision 1.3  1999-08-01 23:04:51  michael
+  + Changes for Alpha
+
+  Revision 1.2  1999/08/01 18:22:34  florian
    * made it again compilable
 
   Revision 1.1  1998/12/15 22:16:03  florian

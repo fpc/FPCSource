@@ -274,7 +274,9 @@ unit tree;
           punarynode = ^tunarynode;
           tunarynode = object(tnode)
              left : pnode;
+{$ifdef extdebug}
              procedure dowrite;virtual;
+{$endif extdebug}
              constructor init(l : pnode);
           end;
 
@@ -576,6 +578,7 @@ unit tree;
          left:=l;
       end;
 
+{$ifdef extdebug}
     procedure tunarynode.dowrite;
 
       begin
@@ -585,6 +588,7 @@ unit tree;
          writeln(')');
          dec(byte(indention[0]),2);
       end;
+{$endif}         
 
 {****************************************************************************
                             TBINARYNODE
@@ -1891,7 +1895,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.7  1999-08-01 18:22:39  florian
+  Revision 1.8  1999-08-01 23:04:52  michael
+  + Changes for Alpha
+
+  Revision 1.7  1999/08/01 18:22:39  florian
    * made it again compilable
 
   Revision 1.6  1999/01/24 22:32:36  florian
