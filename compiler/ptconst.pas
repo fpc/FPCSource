@@ -139,6 +139,8 @@ implementation
                     uwidechar :
                       begin
                          if is_constcharnode(p) then
+                           inserttypeconv(p,cwidechartype);
+                         if is_constwidecharnode(p) then
                            curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value))
                          else
                            Message(cg_e_illegal_expression);
@@ -985,7 +987,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-12-07 14:15:33  carl
+  Revision 1.63  2002-12-26 12:34:54  florian
+    * fixed support for type widechar consts
+
+  Revision 1.62  2002/12/07 14:15:33  carl
     + add some explicit typecasts to remove some warnings
 
   Revision 1.61  2002/11/25 18:43:33  carl
