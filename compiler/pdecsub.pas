@@ -1260,7 +1260,10 @@ begin
       else if (m_mac in aktmodeswitches) and (token=_SEMICOLON) then
         begin
           {In MacPas a single "external" has the same effect as "external name 'xxx'"}
-          tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
+          { don't do this if the procedure is also cdecl; in that case the c-prefix  }
+          { must also be used (handled later)                                        }
+          if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+            tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
         end;
     end;
 end;
@@ -2266,7 +2269,12 @@ const
 end.
 {
   $Log$
-  Revision 1.185  2004-08-08 12:35:09  florian
+  Revision 1.186  2004-08-13 17:53:37  jonas
+    * only set the mangled name immediately for external procedures in macpas
+      mode if the procedure isn't cdecl (so that the c-prefix is taken into
+      account, necessary for Mac OS X)
+
+  Revision 1.185  2004/08/08 12:35:09  florian
     * proc. var declarations in a class doesn't eat a public anymore
 
   Revision 1.184  2004/07/17 13:51:57  florian
