@@ -2136,7 +2136,7 @@ option_help_pages=11025_[
 **2Mdelphi_tries to be Delphi compatible
 **2Mtp_tries to be TP/BP 7.0 compatible
 **2Mgpc_tries to be gpc compatible
-**2Mmac_tries to be compatible to the macintosh pascal dialects
+**2Mmacpas_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
 **1o<x>_change the name of the executable produced to <x>
 **1pg_generate profile code for gprof (defines FPC_PROFILE)
@@ -2253,6 +2253,7 @@ P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
 P*2Tmorphos_MorphOS
 P*2WC_Specify console type application (MacOS only)
+P*2WG_Specify graphic type application (MacOS only)
 P*2WT_Specify tool type application (MPW tool, MacOS only)
 **1*_
 **1?_shows this help

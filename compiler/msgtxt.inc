@@ -761,115 +761,115 @@ const msgtxt : array[0..000151,1..240] of char=(
   '**2Mdelphi_tries to be Delphi compatible'#010+
   '**2Mtp_tries to be TP/BP 7.0 compatible'#010+
   '**2Mgpc_tries to be gpc compatible'#010+
-  '**2Mmac_tries to be compatible to the macintosh pascal dialects'#010+
-  '**1n_don'#039't read ','the default config file'#010+
+  '**2Mmacpas_tries to be compatible to the macintosh pascal dialects'#010+
+  '**1n_don'#039't re','ad the default config file'#010+
   '**1o<x>_change the name of the executable produced to <x>'#010+
   '**1pg_generate profile code for gprof (defines FPC_PROFILE)'#010+
   '*L1P_use pipes instead of creating temporary assembler files'#010+
   '**1S<x>_syntax options:'#010+
-  '**2S2_same as',' -Mobjfpc'#010+
+  '**2S2_same',' as -Mobjfpc'#010+
   '**2Sc_supports operators like C (*=,+=,/= and -=)'#010+
   '**2Sa_include assertion code.'#010+
   '**2Sd_same as -Mdelphi'#010+
   '**2Se<x>_compiler stops after the <x> errors (default is 1)'#010+
   '**2Sg_allow LABEL and GOTO'#010+
   '**2Sh_Use ansistrings'#010+
-  '**2Si_support C++ ','styled INLINE'#010+
+  '**2Si_support C','++ styled INLINE'#010+
   '**2Sm_support macros like C (global)'#010+
   '**2So_same as -Mtp'#010+
   '**2Sp_same as -Mgpc'#010+
   '**2Ss_constructor name must be init (destructor must be done)'#010+
   '**2St_allow static keyword in objects'#010+
   '**1s_don'#039't call assembler and linker'#010+
-  '**2sh_Generat','e script to link on host'#010+
+  '**2sh_Gene','rate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
   '**2sr_Skip register allocation phase (optimizations will be disabled)'#010+
   '**1u<x>_undefines the symbol <x>'#010+
   '**1U_unit options:'#010+
   '**2Un_don'#039't check the unit name'#010+
-  '**2Ur_generate releas','e unit files'#010+
+  '**2Ur_generate rel','ease unit files'#010+
   '**2Us_compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
   '**2*_e : Show errors (default)       d : Show debug info'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
-  '**2*_n : Show notes','                  t : Show tried/used files'#010+
+  '**2*_n : Show no','tes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  m : Show defined macros'#010+
   '**2*_i : Show general info           p : Show compiled procedures'#010+
   '**2*_l : Show linenumbers            c : Show conditionals'#010+
-  '**2*_a : S','how everything             0 : Show nothing (except errors'+
+  '**2*_a ',': Show everything             0 : Show nothing (except errors'+
   ')'#010+
   '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#010+
   '**2*_    declarations if an error    x : Executable info (Win32 only)'#010+
   '**2*_    occurs'#010+
-  '**1V_write fpcdebug.txt ','file with lots of debugging info'#010+
+  '**1V_write fpcdebug.t','xt file with lots of debugging info'#010+
   '**1X_executable options:'#010+
   '*L2Xc_link with the c library'#010+
   '**2Xs_strip all symbols from executable'#010+
   '**2XD_try to link dynamic          (defines FPC_LINK_DYNAMIC)'#010+
-  '**2XS_try to link static (default) (defines FPC_LI','NK_STATIC)'#010+
+  '**2XS_try to link static (default) (defines FPC','_LINK_STATIC)'#010+
   '**2XX_try to link smart            (defines FPC_LINK_SMART)'#010+
   '**0*_Processor specific options:'#010+
   '3*1A<x>_output format:'#010+
   '3*2Aas_assemble using GNU AS'#010+
   '3*2Anasmcoff_coff (Go32v2) file using Nasm'#010+
-  '3*2Anasmelf_elf32 (Linux) file using Nasm',#010+
+  '3*2Anasmelf_elf32 (Linux) file using N','asm'#010+
   '3*2Awasm_obj file using Wasm (Watcom)'#010+
   '3*2Anasmobj_obj file using Nasm'#010+
   '3*2Amasm_obj file using Masm (Microsoft)'#010+
   '3*2Atasm_obj file using Tasm (Borland)'#010+
   '3*2Acoff_coff (Go32v2) using internal writer'#010+
-  '3*2Apecoff_pecoff (Win32) using internal wri','ter'#010+
+  '3*2Apecoff_pecoff (Win32) using internal ','writer'#010+
   '3*1R<x>_assembler reading style:'#010+
   '3*2Ratt_read AT&T style assembler'#010+
   '3*2Rintel_read Intel style assembler'#010+
   '3*2Rdirect_copy assembler text directly to assembler file'#010+
   '3*1O<x>_optimizations:'#010+
   '3*2Og_generate smaller code'#010+
-  '3*2OG_generate faster c','ode (default)'#010+
+  '3*2OG_generate faste','r code (default)'#010+
   '3*2Or_keep certain variables in registers'#010+
   '3*2Ou_enable uncertain optimizations (see docs)'#010+
   '3*2O1_level 1 optimizations (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
-  '3*2O3_level 3 optimizations (','-O2 repeatedly, max 5 times)'#010+
+  '3*2O3_level 3 optimization','s (-O2 repeatedly, max 5 times)'#010+
   '3*2Op<x>_target processor:'#010+
   '3*3Op1_set target processor to 386/486'#010+
   '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
-  '3*1T<x>_Target operating system:'#010+
-  '3*2','Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
+  '3*1T<x>_Target operating system:'#010,
+  '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
-  '3*2Twatcom_Watcom compatible DOS exte','nder'#010+
+  '3*2Twatcom_Watcom compatible DOS e','xtender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bit'#010+
   '3*1W<x>_Win32-like target options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
-  '3*2WF_S','pecify full-screen type application (OS/2 only)'#010+
+  '3*2W','F_Specify full-screen type application (OS/2 only)'#010+
   '3*2WG_Specify graphic type application'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
-  '6*2A','gas_GNU Motorola assembler'#010+
+  '6','*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
   '6*2Amot_Standard Motorola assembler'#010+
   '6*1O_optimizations:'#010+
   '6*2Oa_turn on the optimizer'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
-  '6*2Ox_optimize maximum (still BUGGY','!!!)'#010+
+  '6*2Ox_optimize maximum (still BU','GGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
   '6*2O2_set target processor to a MC68020+ (default)'#010+
   '6*1R<x>_assembler reading style:'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2Tamiga_Commodore Amiga'#010+
-  '6*2Tatari_Atar','i ST/STe/TT'#010+
+  '6*2Tatari_A','tari ST/STe/TT'#010+
   '6*2Tlinux_Linux-68k'#010+
   '6*2Tmacos_Macintosh m68k (not supported)'#010+
   '6*2Tpalmos_PalmOS'#010+
@@ -877,8 +877,9 @@ const msgtxt : array[0..000151,1..240] of char=(
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_MacOS (classic) on PowerPC'#010+
-  'P*2Tmorphos','_MorphOS'#010+
+  'P*2Tmorp','hos_MorphOS'#010+
   'P*2WC_Specify console type application (MacOS only)'#010+
+  'P*2WG_Specify graphic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
