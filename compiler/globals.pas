@@ -302,7 +302,7 @@ interface
     function  FindExe(const bin:string;var foundfile:string):boolean;
     function  GetShortName(const n:string):string;
 
-    Procedure Shell(const command:string);
+    function Shell(const command:string): longint;
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
@@ -1326,17 +1326,21 @@ implementation
       end;
 
 
-    Procedure Shell(const command:string);
+    function Shell(const command:string): longint;
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
       {$ifdef hasunix}
       begin
-        {$ifdef havelinuxrtl10}Linux{$else}Unix{$endif}.Shell(command);
+        result := {$ifdef havelinuxrtl10}Linux{$else}Unix{$endif}.Shell(command);
       end;
       {$else}
       {$ifdef amiga}
       begin
         exec('',command);
+        if (doserror <> 0) then
+          result := doserror
+        else
+          result := dosexitcode;
       end;
       {$else}
       var
@@ -1344,6 +1348,10 @@ implementation
       begin
         comspec:=getenv('COMSPEC');
         Exec(comspec,' /C '+command);
+        if (doserror <> 0) then
+          result := doserror
+        else
+          result := dosexitcode;
       end;
       {$endif}
       {$endif}
@@ -1905,7 +1913,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2004-07-05 23:28:24  olle
+  Revision 1.133  2004-07-17 15:51:57  jonas
+    * shell now returns an exitcode
+    * print an error if linking failed when linking was done using a script
+
+  Revision 1.132  2004/07/05 23:28:24  olle
     + FixFileName now handles Mac OS paths
 
   Revision 1.131  2004/06/20 08:55:29  florian

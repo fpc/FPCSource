@@ -479,17 +479,20 @@ end;
 
 
 Function TExternalLinker.DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
+var
+  exitcode: longint;
 begin
   DoExec:=true;
   if not(cs_link_extern in aktglobalswitches) then
    begin
      if useshell then
-       shell(maybequoted(command)+' '+para)
+       exitcode := shell(maybequoted(command)+' '+para)
      else
        begin
          swapvectors;
          exec(command,para);
          swapvectors;
+         exitcode := dosexitcode;
        end;
      if (doserror<>0) then
       begin
@@ -498,7 +501,7 @@ begin
          DoExec:=false;
       end
      else
-      if (dosexitcode<>0) then
+      if (exitcode<>0) then
        begin
         Message(exec_e_error_while_linking);
         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
@@ -676,7 +679,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2004-06-20 08:55:29  florian
+  Revision 1.43  2004-07-17 15:51:57  jonas
+    * shell now returns an exitcode
+    * print an error if linking failed when linking was done using a script
+
+  Revision 1.42  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.41  2004/02/24 00:53:49  olle
