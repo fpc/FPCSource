@@ -238,7 +238,7 @@ uses
       last_supreg = RS_R31;
 
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R13..RS_R31];
+      VOLATILE_INTREGISTERS = [RS_R3..RS_R12];
       {Number of first and last imaginary register.}
       first_imreg     = $21;
       last_imreg      = $ff;
@@ -880,7 +880,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-06-17 16:34:44  jonas
+  Revision 1.60  2003-07-06 15:28:24  jonas
+    * VOLATILE_REGISTERS was wrong (it was more or less the inverted set
+      of what it had to be :/ )
+
+  Revision 1.59  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
