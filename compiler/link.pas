@@ -171,10 +171,10 @@ begin
   if LastLDBin='' then
    begin
      LastLDBin:=FindExe(target_link.linkbin,ldfound);
-     if (not ldfound) and (not externlink) then
+     if (not ldfound) and not(cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_linker_not_found,LastLDBin);
-        externlink:=true;
+        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
       end;
      if ldfound then
       Message1(exec_u_using_linker,LastLDBin);
@@ -197,7 +197,7 @@ begin
      exit;
    end;
   findobjectfile:=search(s,'.;'+unitsearchpath+';'+exepath,found)+s;
-  if (not externlink) and (not found) then
+  if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
 end;
 
@@ -215,7 +215,7 @@ begin
      exit;
    end;
   findlibraryfile:=search(s,'.;'+librarysearchpath+';'+exepath,found)+s;
-  if (not externlink) and (not found) then
+  if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
 end;
 
@@ -242,7 +242,7 @@ end;
 Function TLinker.DoExec(const command,para:string;info,useshell:boolean):boolean;
 begin
   DoExec:=true;
-  if not externlink then
+  if not(cs_link_extern in aktglobalswitches) then
    begin
      swapvectors;
      if useshell then
@@ -260,10 +260,11 @@ begin
       if (dosError<>0) then
        begin
          Message(exec_w_cant_call_linker);
-         ExternLink:=true;
+         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
        end;
    end;
-  if externlink then
+{ Update asmres when externmode is set }
+  if cs_link_extern in aktglobalswitches then
    begin
      if info then
       AsmRes.AddLinkCommand(Command,Para,ExeName)
@@ -291,10 +292,9 @@ begin
   prtobj:='prt0';
   case target_info.target of
 {$ifdef i386}
-
    target_Win32 : prtobj:='';
    target_linux : begin
-                    if cs_profile in aktswitches then
+                    if cs_profile in aktmoduleswitches then
                      begin
                        prtobj:='gprt0';
                        AddSharedLibrary('gmon');
@@ -304,7 +304,7 @@ begin
 {$endif i386}
 {$ifdef m68k}
    target_linux : begin
-                    if cs_profile in aktswitches then
+                    if cs_profile in aktmoduleswitches then
                      begin
                        prtobj:='gprt0';
                        AddSharedLibrary('gmon');
@@ -312,7 +312,6 @@ begin
                      end;
                   end;
 {$endif}
-
   end;
 
 { Fix command line options }
@@ -404,7 +403,7 @@ begin
   WriteResponseFile;
 
 { Call linker }
-  if not externlink then
+  if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,ExeName);
   s:=target_link.linkcmd;
   Replace(s,'$EXE',exename);
@@ -419,15 +418,15 @@ begin
      Replace(s,'$HEAPKB',tostr((heapsize+1023) shr 10));
      Replace(s,'$STACKKB',tostr((stacksize+1023) shr 10));
      bindbin:=FindExe(target_link.bindbin,bindfound);
-     if (not bindfound) and (not externlink) then
+     if (not bindfound) and not(cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_binder_not_found,bindbin);
-        externlink:=true;
+        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
       end;
      DoExec(bindbin,s,false,false);
    end;
 {Remove ReponseFile}
-  if (success) and (not externlink) then
+  if (success) and not(cs_link_extern in aktglobalswitches) then
    begin
      assign(dummy,LinkResName);
      {$I-}
@@ -449,17 +448,17 @@ var
   f       : file;
 begin
   arbin:=FindExe(target_ar.arbin,arfound);
-  if (not arfound) and (not externlink) then
+  if (not arfound) and not(cs_link_extern in aktglobalswitches) then
    begin
      Message(exec_w_ar_not_found);
-     externlink:=true;
+     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
   s:=target_ar.arcmd;
   Replace(s,'$LIB',staticlibname);
   Replace(s,'$FILES',FixPath(path)+'*'+target_info.objext);
   DoExec(arbin,s,false,true);
 { Clean up }
-  if (not writeasmfile) and (not externlink) then
+  if not(cs_asm_leave in aktglobalswitches) and not(cs_link_extern in aktglobalswitches) then
    begin
      for cnt:=1to filescnt do
       begin
@@ -486,7 +485,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-06-17 14:10:13  peter
+  Revision 1.15  1998-08-10 14:50:02  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.14  1998/06/17 14:10:13  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 

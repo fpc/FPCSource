@@ -1019,7 +1019,7 @@ end;
 
   Procedure FWaitWarning;
   begin
-    if (target_info.target=target_GO32V2) and (cs_fp_emulation in aktswitches) then
+    if (target_info.target=target_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
      Message(assem_w_fwait_emu_prob);
   end;
 {$endif i386}
@@ -1628,7 +1628,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-07-14 21:46:38  peter
+  Revision 1.6  1998-08-10 14:49:40  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.5  1998/07/14 21:46:38  peter
     * updated messages file
 
   Revision 1.4  1998/06/04 23:51:31  peter

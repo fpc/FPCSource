@@ -294,7 +294,7 @@ Begin
                       (Pai386(p)^.op3t = Top_None)) And
                      (aktoptprocessor < PentiumPro) And
                      (Longint(Pai386(p)^.op1) <= 12) And
-                     Not(CS_LittleSize in AktSwitches) And
+                     Not(CS_LittleSize in aktglobalswitches) And
                      (Not(GetNextInstruction(p, hp1)) Or
                        {GetNextInstruction(p, hp1) And}
                        Not((Pai(hp1)^.typ = ait_labeled_instruction) And
@@ -840,7 +840,7 @@ Begin
                           S_BW:
                             Begin
                               If (TRegister(Pai386(p)^.op1) = Reg16ToReg8(TRegister(Pai386(p)^.op2))) And
-                                 Not(CS_LittleSize In AktSwitches)
+                                 Not(CS_LittleSize In aktglobalswitches)
                                 Then
                                   {Change "movzbw %al, %ax" to "andw $0x0ffh, %ax"}
                                   Begin
@@ -869,7 +869,7 @@ Begin
                           S_BL:
                             Begin
                               If (TRegister(Pai386(p)^.op1) = Reg32ToReg8(TRegister(Pai386(p)^.op2))) And
-                                 Not(CS_LittleSize in AktSwitches)
+                                 Not(CS_LittleSize in aktglobalswitches)
                                 Then
                                   {Change "movzbl %al, %eax" to "andl $0x0ffh, %eax"}
                                   Begin
@@ -898,7 +898,7 @@ Begin
                           S_WL:
                             Begin
                               If (TRegister(Pai386(p)^.op1) = Reg32ToReg16(TRegister(Pai386(p)^.op2))) And
-                                 Not(CS_LittleSize In AktSwitches)
+                                 Not(CS_LittleSize In aktglobalswitches)
                                 Then
                                  {Change "movzwl %ax, %eax" to "andl $0x0ffffh, %eax"}
                                   Begin
@@ -967,7 +967,7 @@ Begin
                       (Pai386(hp1)^._operator=A_PUSH) and
                       (Pai386(hp1)^.op1t = top_reg) And
                       (Pai386(hp1)^.op1=Pai386(p)^.op1) then
-                     If (Not(cs_maxoptimieren in aktswitches)) Then
+                     If (Not(cs_maxoptimize in aktglobalswitches)) Then
                        Begin
                          hp2:=pai(hp1^.next);
                          asml^.remove(p);
@@ -1067,7 +1067,7 @@ Begin
                         If TmpBool2 Or
                            ((aktoptprocessor < PentiumPro) And
                             (Longint(Pai386(p)^.op1) <= 3) And
-                            Not(CS_LittleSize in AktSwitches))
+                            Not(CS_LittleSize in aktglobalswitches))
                           Then
                             Begin
                               If Not(TmpBool2) And
@@ -1137,7 +1137,7 @@ Begin
                     Then
                       If (Longint(Pai386(p)^.op1) > Longint(Pai386(hp1)^.op1)) And
                          (Pai386(p)^.op2t = Top_reg) And
-                         Not(CS_LittleSize In AktSwitches) And
+                         Not(CS_LittleSize In aktglobalswitches) And
                          ((Pai386(p)^.Size = S_B) Or
                           (Pai386(p)^.Size = S_L))
                         Then
@@ -1152,7 +1152,7 @@ Begin
                         Else
                           If (Longint(Pai386(p)^.op1) < Longint(Pai386(hp1)^.op1)) And
                              (Pai386(p)^.op2t = Top_reg) And
-                             Not(CS_LittleSize In AktSwitches) And
+                             Not(CS_LittleSize In aktglobalswitches) And
                              ((Pai386(p)^.Size = S_B) Or
                               (Pai386(p)^.Size = S_L))
                             Then
@@ -1312,7 +1312,7 @@ Begin
                           S_BL:
                             Begin
                               If IsGP32Reg(TRegister(Pai386(p)^.op2)) And
-                                 Not(CS_LittleSize in AktSwitches) And
+                                 Not(CS_LittleSize in aktglobalswitches) And
                                  (aktoptprocessor >= Pentium) And
                                  (aktoptprocessor < PentiumPro)
                                 Then
@@ -1336,7 +1336,7 @@ Begin
                         If (Pai386(p)^.op1t = top_ref) And
                            (PReference(Pai386(p)^.op1)^.base <> TRegister(Pai386(p)^.op2)) And
                            (PReference(Pai386(p)^.op1)^.index <> TRegister(Pai386(p)^.op2)) And
-                           Not(CS_LittleSize in AktSwitches) And
+                           Not(CS_LittleSize in aktglobalswitches) And
                            IsGP32Reg(TRegister(Pai386(p)^.op2)) And
                            (aktoptprocessor >= Pentium) And
                            (aktoptprocessor < PentiumPro) And
@@ -1365,7 +1365,10 @@ End.
 
 {
  $Log$
- Revision 1.5  1998-08-06 19:40:28  jonas
+ Revision 1.6  1998-08-10 14:50:14  peter
+   + localswitches, moduleswitches, globalswitches splitting
+
+ Revision 1.5  1998/08/06 19:40:28  jonas
    * removed $ before and after Log in comment
 
  Revision 1.4  1998/08/05 16:27:17  jonas

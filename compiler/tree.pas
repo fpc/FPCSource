@@ -194,7 +194,7 @@ unit tree;
           { line : longint;
           fileindex,colon : word; }
           fileinfo : tfileposinfo;
-          pragmas : Tcswitches;
+          localswitches : tlocalswitches;
 {$ifdef extdebug}
           firstpasscount : longint;
 {$endif extdebug}
@@ -317,34 +317,29 @@ unit tree;
 
       begin
          new(hp);
-
          { makes error tracking easier }
-         fillchar(hp^,sizeof(ttree),#0);
+         fillchar(hp^,sizeof(ttree),0);
+         { reset }
          hp^.location.loc:=LOC_INVALID;
-
-         { new node is error free }
-         hp^.error:=false;
-
-         { we know also the position }
-         hp^.fileinfo:=tokenpos;
-         hp^.pragmas:=aktswitches;
+         { save local info }
+         hp^.fileinfo:=aktfilepos;
+         hp^.localswitches:=aktlocalswitches;
          getnode:=hp;
       end;
 
-    procedure putnode(p : ptree);
 
+    procedure putnode(p : ptree);
       begin
          { clean up the contents of a node }
-         if p^.treetype=asmn then
-           if assigned(p^.p_asm) then
-             dispose(p^.p_asm,done);
-
-         if p^.treetype=setconstrn then
-          if assigned(p^.constset) then
-            dispose(p^.constset);
-
-         if (p^.location.loc=LOC_MEM) or (p^.location.loc=LOC_REFERENCE) and
-           assigned(p^.location.reference.symbol) then
+         case p^.treetype of
+          asmn : if assigned(p^.p_asm) then
+                  dispose(p^.p_asm,done);
+    setconstrn : if assigned(p^.constset) then
+                  dispose(p^.constset);
+         end;
+         { reference info }
+         if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+            assigned(p^.location.reference.symbol) then
            stringdispose(p^.location.reference.symbol);
 
 {$ifndef UseAnsiString}
@@ -1562,7 +1557,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.26  1998-08-10 09:57:19  peter
+  Revision 1.27  1998-08-10 14:50:35  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.26  1998/08/10 09:57:19  peter
     - Remove InitTree which was empty and obsolete
 
   Revision 1.25  1998/08/02 16:42:02  florian

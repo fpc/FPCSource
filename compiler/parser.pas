@@ -63,6 +63,9 @@ unit parser;
 
          usedunits.init;
 
+         { global switches }
+         aktglobalswitches:=initglobalswitches;
+
          { memory sizes }
          if heapsize=0 then
           heapsize:=target_info.heapsize;
@@ -122,7 +125,8 @@ unit parser;
          oldexternals,
          oldconsts     : paasmoutput;
        { akt.. things }
-         oldaktswitches     : tcswitches;
+         oldaktlocalswitches  : tlocalswitches;
+         oldaktmoduleswitches : tmoduleswitches;
          oldaktfilepos      : tfileposinfo;
          oldaktpackrecords  : word;
          oldaktoutputformat : tasm;
@@ -165,7 +169,8 @@ unit parser;
          oldexports:=exportssection;
          oldresource:=resourcesection;
        { save akt... state }
-         oldaktswitches:=aktswitches;
+         oldaktlocalswitches:=aktlocalswitches;
+         oldaktmoduleswitches:=aktmoduleswitches;
          oldaktpackrecords:=aktpackrecords;
          oldaktoutputformat:=aktoutputformat;
          oldaktoptprocessor:=aktoptprocessor;
@@ -200,14 +205,15 @@ unit parser;
           end;
 
        { Load current state from the init values }
-         aktswitches:=initswitches;
+         aktlocalswitches:=initlocalswitches;
+         aktmoduleswitches:=initmoduleswitches;
          aktpackrecords:=initpackrecords;
          aktoutputformat:=initoutputformat;
          aktoptprocessor:=initoptprocessor;
          aktasmmode:=initasmmode;
          { we need this to make the system unit }
          if compile_system then
-          aktswitches:=aktswitches+[cs_compilesystem];
+          aktmoduleswitches:=aktmoduleswitches+[cs_compilesystem];
 
        { startup scanner }
          current_scanner:=new(pscannerfile,Init(filename));
@@ -259,7 +265,7 @@ unit parser;
            begin
              GenerateAsm(filename);
 
-             if (cs_smartlink in aktswitches) then
+             if (cs_smartlink in aktmoduleswitches) then
               begin
                 Linker.SetLibName(current_module^.libfilename^);
                 Linker.MakeStaticLibrary(SmartLinkPath(FileName),SmartLinkFilesCnt);
@@ -273,12 +279,10 @@ unit parser;
            { Check linking  => we are at first level in compile }
              if (compile_level=1) then
               begin
-                if gendeffile then
+                if (cs_link_deffile in aktglobalswitches) then
                  deffile.writefile;
                 if (not current_module^.is_unit) then
                  begin
-                   if (cs_no_linking in initswitches) then
-                     externlink:=true;
                    if Linker.ExeName='' then
                      Linker.SetExeName(FileName);
                    Linker.MakeExecutable;
@@ -356,7 +360,8 @@ done:
          aktprocsym:=oldaktprocsym;
          procprefix:=oldprocprefix;
        { restore current state }
-         aktswitches:=oldaktswitches;
+         aktlocalswitches:=oldaktlocalswitches;
+         aktmoduleswitches:=oldaktmoduleswitches;
          aktpackrecords:=oldaktpackrecords;
          aktoutputformat:=oldaktoutputformat;
          aktoptprocessor:=oldaktoptprocessor;
@@ -390,7 +395,10 @@ done:
 end.
 {
   $Log$
-  Revision 1.32  1998-08-10 10:18:28  peter
+  Revision 1.33  1998-08-10 14:50:07  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.32  1998/08/10 10:18:28  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

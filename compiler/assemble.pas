@@ -127,7 +127,9 @@ end;
 
 Function DoPipe:boolean;
 begin
-  DoPipe:=use_pipe and (not WriteAsmFile) and (aktoutputformat=as_o);
+  DoPipe:=(cs_asm_pipe in aktglobalswitches) and
+          not(cs_asm_leave in aktglobalswitches) and
+          (aktoutputformat=as_o);
 end;
 
 
@@ -143,10 +145,10 @@ begin
    begin
      lastas:=ord(target_asm.id);
      LastASBin:=FindExe(target_asm.asmbin,asfound);
-     if (not asfound) and (not externasm) then
+     if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
       begin
         Message1(exec_w_assembler_not_found,LastASBin);
-        externasm:=true;
+        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
       end;
      if asfound then
       Message1(exec_u_using_assembler,LastASBin);
@@ -157,7 +159,7 @@ end;
 
 Function TAsmList.CallAssembler(const command,para:string):Boolean;
 begin
-  if not externasm then
+  if not(cs_asm_extern in aktglobalswitches) then
    begin
      swapvectors;
      exec(command,para);
@@ -165,7 +167,7 @@ begin
      if (doserror<>0) then
       begin
         Message(exec_w_cant_call_assembler);
-        externasm:=true;
+        aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
         exit;
       end
      else
@@ -175,7 +177,7 @@ begin
         callassembler:=false;
        end;
    end;
-  if externasm then
+  if cs_asm_extern in aktglobalswitches then
    AsmRes.AddAsmCommand(command,para,name);
   callassembler:=true;
 end;
@@ -186,9 +188,9 @@ var
   g : file;
   i : word;
 begin
-  if writeasmfile then
+  if cs_asm_leave in aktglobalswitches then
    exit;
-  if ExternAsm then
+  if cs_asm_extern in aktglobalswitches then
    AsmRes.AddDeleteCommand(asmfile)
   else
    begin
@@ -208,7 +210,7 @@ begin
   DoAssemble:=true;
   if DoPipe then
    exit;
-  if (SmartLinkFilesCnt<=1) and (not externasm) then
+  if (SmartLinkFilesCnt<=1) and not(cs_asm_extern in aktglobalswitches) then
    Message1(exec_i_assembling,name);
   s:=target_asm.asmcmd;
   Replace(s,'$ASM',AsmFile);
@@ -297,7 +299,7 @@ end;
 
 procedure TAsmList.AsmCreate;
 begin
-  if (cs_smartlink in aktswitches) then
+  if (cs_smartlink in aktmoduleswitches) then
    NextSmartName;
 {$ifdef linux}
   if DoPipe then
@@ -375,7 +377,7 @@ begin
   OutCnt:=0;
 {Smartlinking}
   SmartLinkFilesCnt:=0;
-  if (cs_smartlink in aktswitches) then
+  if (cs_smartlink in aktmoduleswitches) then
    begin
      path:=SmartLinkPath(name);
      {$I-}
@@ -450,7 +452,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-07-14 21:46:40  peter
+  Revision 1.14  1998-08-10 14:49:41  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.13  1998/07/14 21:46:40  peter
     * updated messages file
 
   Revision 1.12  1998/07/08 14:58:34  daniel

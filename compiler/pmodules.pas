@@ -70,14 +70,14 @@ unit pmodules;
         procedure fixseg(p:paasmoutput;sec:tsection);
         begin
           p^.insert(new(pai_section,init(sec)));
-          if (cs_smartlink in aktswitches) then
+          if (cs_smartlink in aktmoduleswitches) then
            p^.insert(new(pai_cut,init));
           p^.concat(new(pai_section,init(sec_none)));
         end;
 
       begin
       {Insert Ident of the compiler}
-        if (not (cs_smartlink in aktswitches))
+        if (not (cs_smartlink in aktmoduleswitches))
 {$ifndef EXTDEBUG}
            and (not current_module^.is_unit)
 {$endif}
@@ -95,7 +95,7 @@ unit pmodules;
 
     procedure insertheap;
       begin
-         if (cs_smartlink in aktswitches) then
+         if (cs_smartlink in aktmoduleswitches) then
            begin
              bsssegment^.concat(new(pai_cut,init));
              datasegment^.concat(new(pai_cut,init));
@@ -608,7 +608,7 @@ unit pmodules;
       begin
       { if the current file isn't a system unit the the system unit
         will be loaded }
-        if not(cs_compilesystem in aktswitches) then
+        if not(cs_compilesystem in aktmoduleswitches) then
           begin
 {$ifndef OLDPPU}
             hp:=loadunit(upper(target_info.system_unit),true);
@@ -687,7 +687,7 @@ unit pmodules;
          while assigned(hp) do
            begin
 {$IfDef GDB}
-              if (cs_debuginfo in aktswitches) and
+              if (cs_debuginfo in aktmoduleswitches) and
                 not hp^.is_stab_written then
                 begin
                    punitsymtable(hp^.u^.symtable)^.concattypestabto(debuglist);
@@ -771,9 +771,9 @@ unit pmodules;
              i:=pos('.',s2^);
              if i>0 then
               s2^:=Copy(s2^,1,i-1);
-             if (cs_compilesystem in aktswitches)  then
+             if (cs_compilesystem in aktmoduleswitches)  then
               begin
-                if (cs_check_unit_name in aktswitches) and
+                if (cs_check_unit_name in aktglobalswitches) and
                    ((length(current_module^.modulename^)>8) or
                     (current_module^.modulename^<>s1^) or
                     (current_module^.modulename^<>s2^)) then
@@ -786,7 +786,7 @@ unit pmodules;
              dispose(s1);
 
           { Add Object File }
-             if (cs_smartlink in aktswitches) then
+             if (cs_smartlink in aktmoduleswitches) then
               current_module^.linkstaticlibs.insert(current_module^.libfilename^)
              else
               current_module^.linkofiles.insert(current_module^.objfilename^);
@@ -826,17 +826,17 @@ unit pmodules;
          if (compile_level=1) then
            begin
               loaded_units.insert(current_module);
-              if cs_unit_to_lib in initswitches then
+              if cs_createlib in initmoduleswitches then
                 begin
                 current_module^.flags:=current_module^.flags or uf_in_library;
-                if cs_shared_lib in initswitches then
+                if cs_shared_lib in initmoduleswitches then
                   current_module^.flags:=current_module^.flags or uf_shared_library;
                 end;
            end;
 
 
          { insert qualifier for the system unit (allows system.writeln) }
-         if not(cs_compilesystem in aktswitches) then
+         if not(cs_compilesystem in aktmoduleswitches) then
            begin
               { insert the system unit }
               { it is allways the first }
@@ -878,7 +878,7 @@ unit pmodules;
 
 {$ifdef GDB}
          { add all used definitions even for implementation}
-         if (cs_debuginfo in aktswitches) then
+         if (cs_debuginfo in aktmoduleswitches) then
            begin
               { all types }
               punitsymtable(refsymtable)^.concattypestabto(debuglist);
@@ -989,7 +989,7 @@ unit pmodules;
 
 {$ifdef GDB}
          { add all used definitions even for implementation}
-         if (cs_debuginfo in aktswitches) then
+         if (cs_debuginfo in aktmoduleswitches) then
             begin
                   { all types }
                   punitsymtable(symtablestack)^.concattypestabto(debuglist);
@@ -1036,20 +1036,6 @@ unit pmodules;
          st    : psymtable;
          names : Tstringcontainer;
       begin
-         { Trying to compile the system unit... }
-         { if no unit defined... then issue a   }
-         { fatal error (avoids pointer problems)}
-         { when referencing the non-existant    }
-         { system unit.                         }
-
-         { System Unit should be compiled using proc_unit !! (PFV) }
-{         if (cs_compilesystem in aktswitches) then
-         Begin
-           if token<>_UNIT then
-            Message1(scan_f_syn_expected,'UNIT');
-           consume(_UNIT);
-         end;}
-
          parse_only:=false;
          if islibrary then
            begin
@@ -1143,7 +1129,7 @@ unit pmodules;
 
          consume(POINT);
 
-         if (cs_smartlink in aktswitches) then
+         if (cs_smartlink in aktmoduleswitches) then
           current_module^.linkstaticlibs.insert(current_module^.libfilename^)
          else
           current_module^.linkofiles.insert(current_module^.objfilename^);
@@ -1166,7 +1152,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.37  1998-08-10 10:18:31  peter
+  Revision 1.38  1998-08-10 14:50:13  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.37  1998/08/10 10:18:31  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

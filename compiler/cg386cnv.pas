@@ -62,9 +62,9 @@ implementation
            exit;
          { range checking is different for u32bit }
          { lets try to generate it allways }
-         if (cs_rangechecking in aktswitches)  and
+         if (cs_check_range in aktlocalswitches)  and
            { with $R+ explicit type conversations in TP aren't range checked! }
-           (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
+           (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) and
            ((porddef(p1)^.low>porddef(p2)^.low) or
            (porddef(p1)^.high<porddef(p2)^.high) or
            (porddef(p1)^.typ=u32bit) or
@@ -161,9 +161,9 @@ implementation
       begin
          ref:=false;
          { problems with enums !! }
-         if (cs_rangechecking in aktswitches)  and
+         if (cs_check_range in aktlocalswitches)  and
            { with $R+ explicit type conversations in TP aren't range checked! }
-           (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
+           (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) and
            (p^.resulttype^.deftype=orddef) and
            (hp^.resulttype^.deftype=orddef) then
            begin
@@ -1180,9 +1180,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-08-05 16:00:09  florian
+  Revision 1.10  1998-08-10 14:49:47  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.9  1998/08/05 16:00:09  florian
     * some fixes for ansi strings
-    * $log$ to $Log$ changed
+    * $log$ to $Log$
+    * $log$ to Revision 1.10  1998-08-10 14:49:47  peter
+    * $log$ to   + localswitches, moduleswitches, globalswitches splitting
+    * $log$ to changed
 
   Revision 1.8  1998/07/18 22:54:24  florian
     * some ansi/wide/longstring support fixed:

@@ -53,12 +53,12 @@ begin
    'O' : begin
            for j:=3 to length(opt) do
            case opt[j] of
-            '-' : initswitches:=initswitches-[cs_optimize,cs_maxoptimieren,cs_littlesize];
-            'a' : initswitches:=initswitches+[cs_optimize];
-            'g' : initswitches:=initswitches+[cs_littlesize];
-            'G' : initswitches:=initswitches-[cs_littlesize];
-            'x' : initswitches:=initswitches+[cs_optimize,cs_maxoptimieren];
-            'z' : initswitches:=initswitches+[cs_optimize,cs_uncertainopts];
+            '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_maxoptimize,cs_littlesize];
+            'a' : initglobalswitches:=initglobalswitches+[cs_optimize];
+            'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
+            'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
+            'x' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_maxoptimize];
+            'z' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_uncertainopts];
             '2' : initoptprocessor:=pentium2;
             '3' : initoptprocessor:=int386;
             '4' : initoptprocessor:=int486;
@@ -89,7 +89,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-06-16 08:56:22  peter
+  Revision 1.9  1998-08-10 14:50:04  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.8  1998/06/16 08:56:22  peter
     + targetcpu
     * cleaner pmodules for newppu
 

@@ -150,7 +150,7 @@ unit hcodegen;
     { to be able to force to have a global label for const }
     const
        make_const_global : boolean = false;
-       
+
 implementation
 
      uses
@@ -364,7 +364,7 @@ implementation
       { we must use the number directly !!! (PM) }
     function constlabel2str(l : plabel;ctype:tconsttype):string;
       begin
-        if (cs_smartlink in aktswitches) or
+        if (cs_smartlink in aktmoduleswitches) or
            make_const_global {or (aktoutputformat in [as_tasm])} then
          constlabel2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
         else
@@ -373,7 +373,7 @@ implementation
 
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
       begin
-        if (cs_smartlink in aktswitches) or
+        if (cs_smartlink in aktmoduleswitches) or
            make_const_global {or (aktoutputformat in [as_tasm])} then
          constlabelnb2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
         else
@@ -385,11 +385,11 @@ implementation
       var
         s : string;
       begin
-        if (cs_smartlink in aktswitches) or
+        if (cs_smartlink in aktmoduleswitches) or
            make_const_global {or (aktoutputformat in [as_tasm])} then
          begin
            s:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
-           if (cs_smartlink in aktswitches) then
+           if (cs_smartlink in aktmoduleswitches) then
             begin
               consts^.concat(new(pai_cut,init));
               consts^.concat(new(pai_symbol,init_global(s)))
@@ -405,7 +405,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  1998-07-28 21:52:51  florian
+  Revision 1.12  1998-08-10 14:50:01  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.11  1998/07/28 21:52:51  florian
     + implementation of raise and try..finally
     + some misc. exception stuff
 
@@ -422,8 +425,6 @@ end.
 
   Revision 1.7  1998/06/04 09:55:38  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.6  1998/05/23 01:21:08  peter
     + aktasmmode, aktoptprocessor, aktoutputformat

@@ -108,11 +108,11 @@ begin
   p^.insert(new(ptypesym,init('s32real',c64floatdef)));
   { mappings... }
   p^.insert(new(ptypesym,init('REAL',new(pfloatdef,init(s32real)))));
-  if (cs_fp_emulation) in aktswitches then
+  if (cs_fp_emulation) in aktmoduleswitches then
     p^.insert(new(ptypesym,init('DOUBLE',new(pfloatdef,init(s32real)))))
   else
     p^.insert(new(ptypesym,init('DOUBLE',new(pfloatdef,init(s64real)))));
-  if (cs_fp_emulation) in aktswitches then
+  if (cs_fp_emulation) in aktmoduleswitches then
     p^.insert(new(ptypesym,init('EXTENDED',new(pfloatdef,init(s32real)))))
   else
     p^.insert(new(ptypesym,init('EXTENDED',new(pfloatdef,init(s80real)))));
@@ -217,7 +217,7 @@ begin
 {$endif}
 {$ifdef m68k}
   c64floatdef:=new(pfloatdef,init(s32real));
-  if (cs_fp_emulation in aktswitches) then
+  if (cs_fp_emulation in aktmoduleswitches) then
    s80floatdef:=new(pfloatdef,init(s32real))
   else
    s80floatdef:=new(pfloatdef,init(s80real));
@@ -232,7 +232,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-25 14:04:24  peter
+  Revision 1.5  1998-08-10 14:50:19  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.4  1998/06/25 14:04:24  peter
     + internal inc/dec
 
   Revision 1.3  1998/06/04 23:51:55  peter

@@ -807,7 +807,7 @@ implementation
                    { we must put it here directly, because sign of operation }
                    { is in unsigned VAR!!                                    }
                    begin
-                     if cs_check_overflow in aktswitches  then
+                     if cs_check_overflow in aktlocalswitches  then
                      begin
                        getlabel(hl4);
                        if unsigned then
@@ -1198,7 +1198,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-06-25 08:48:04  florian
+  Revision 1.4  1998-08-10 14:49:42  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.3  1998/06/25 08:48:04  florian
     * first version of rtti support
 
   Revision 1.2  1998/06/08 13:13:28  pierre

@@ -36,7 +36,7 @@ unit pass_1;
 
      uses
         cobjects,verbose,comphook,systems,globals,
-	aasm,symtable,types,strings,hcodegen,files
+        aasm,symtable,types,strings,hcodegen,files
 {$ifdef i386}
         ,i386
         ,tgeni386
@@ -488,7 +488,7 @@ unit pass_1;
          { procedure variable can be assigned to an void pointer }
          { Not anymore. Use the @ operator now.}
          else
-           if not (cs_tp_compatible in aktswitches) then
+           if not (cs_tp_compatible in aktmoduleswitches) then
              begin
                 if (def_from^.deftype=procvardef) and
                   (def_to^.deftype=pointerdef) and
@@ -1149,12 +1149,12 @@ unit pass_1;
                  equaln,unequaln : ;
                  ltn,lten,gtn,gten:
                    begin
-                      if not(cs_extsyntax in aktswitches) then
+                      if not(cs_extsyntax in aktmoduleswitches) then
                         Message(sym_e_type_mismatch);
                    end;
                  subn:
                    begin
-                      if not(cs_extsyntax in aktswitches) then
+                      if not(cs_extsyntax in aktmoduleswitches) then
                         Message(sym_e_type_mismatch);
                       p^.resulttype:=s32bitdef;
                       exit;
@@ -1249,7 +1249,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               if p^.treetype=addn then
                 begin
-                   if not(cs_extsyntax in aktswitches) then
+                   if not(cs_extsyntax in aktmoduleswitches) then
                      Message(sym_e_type_mismatch);
                 end
               else Message(sym_e_type_mismatch);
@@ -1261,7 +1261,7 @@ unit pass_1;
               firstpass(p^.right);
               calcregisters(p,1,0,0);
               case p^.treetype of
-                 addn,subn : if not(cs_extsyntax in aktswitches) then
+                 addn,subn : if not(cs_extsyntax in aktmoduleswitches) then
                                Message(sym_e_type_mismatch);
                  else Message(sym_e_type_mismatch);
               end;
@@ -1287,7 +1287,7 @@ unit pass_1;
               end;
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktswitches) and is_mmx_able_array(ld)
+         else if (cs_mmx in aktmoduleswitches) and is_mmx_able_array(ld)
            and is_mmx_able_array(rd) and is_equal(ld,rd) then
            begin
               firstpass(p^.right);
@@ -1498,7 +1498,7 @@ unit pass_1;
          {why this !!! lost of dummy type definitions
          one per const string !!!
          p^.resulttype:=new(pstringdef,init(length(p^.values^)));}
-         if cs_ansistrings in aktswitches then
+         if cs_ansistrings in aktlocalswitches then
            p^.resulttype:=cansistringdef
          else
            p^.resulttype:=cstringdef;
@@ -1555,7 +1555,7 @@ unit pass_1;
                 p^.location.loc:=LOC_FPU;
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktswitches) and
+         else if (cs_mmx in aktmoduleswitches) and
            is_mmx_able_array(p^.left^.resulttype) then
              begin
                if (p^.left^.location.loc<>LOC_MMXREGISTER) and
@@ -1563,7 +1563,7 @@ unit pass_1;
                  p^.registersmmx:=1;
                { if saturation is on, p^.left^.resulttype isn't
                  "mmx able" (FK)
-               if (cs_mmx_saturation in aktswitches^) and
+               if (cs_mmx_saturation in aktmoduleswitches^) and
                  (porddef(parraydef(p^.resulttype)^.definition)^.typ in
                  [s32bit,u32bit]) then
                  Message(sym_e_type_mismatch);
@@ -1628,7 +1628,7 @@ unit pass_1;
                    { result is a procedure variable }
                    { No, to be TP compatible, you must return a pointer to
                      the procedure that is stored in the procvar.}
-                   if not(cs_tp_compatible in aktswitches) then
+                   if not(cs_tp_compatible in aktmoduleswitches) then
                      begin
                         p^.resulttype:=new(pprocvardef,init);
 
@@ -1653,7 +1653,7 @@ unit pass_1;
                 end
               else
                 begin
-                  if not(cs_typed_addresses in aktswitches) then
+                  if not(cs_typed_addresses in aktlocalswitches) then
                     p^.resulttype:=voidpointerdef
                   else p^.resulttype:=new(ppointerdef,init(p^.left^.resulttype));
                 end;
@@ -1740,7 +1740,7 @@ unit pass_1;
            end
          else
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktswitches) and
+           if (cs_mmx in aktmoduleswitches) and
              is_mmx_able_array(p^.left^.resulttype) then
              begin
                if (p^.left^.location.loc<>LOC_MMXREGISTER) and
@@ -1799,7 +1799,7 @@ unit pass_1;
          if ((p^.right^.treetype=addn) or (p^.right^.treetype=subn)) and
             equal_trees(p^.left,p^.right^.left) and
             (ret_in_acc(p^.left^.resulttype)) and
-            (not cs_rangechecking in aktswitches^) then
+            (not cs_rangechecking in aktmoduleswitches^) then
            begin
               disposetree(p^.right^.left);
               hp:=p^.right;
@@ -2468,7 +2468,7 @@ unit pass_1;
            own resulttype. They will therefore always be incompatible with
            a procvar. Because isconvertable cannot check for procedures we
            use an extra check for them.}
-           if (cs_tp_compatible in aktswitches) and
+           if (cs_tp_compatible in aktmoduleswitches) and
              ((is_procsym_load(p^.left) or is_procsym_call(p^.left)) and
              (p^.resulttype^.deftype=procvardef)) then
              begin
@@ -2654,7 +2654,7 @@ unit pass_1;
             if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
               begin
                  { perform range checking }
-                 if not(p^.explizit and (cs_tp_compatible in aktswitches)) then
+                 if not(p^.explizit and (cs_tp_compatible in aktmoduleswitches)) then
                    testrange(p^.resulttype,p^.left^.value);
                  hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
                  disposetree(p);
@@ -2818,7 +2818,7 @@ unit pass_1;
                      end;
                 end;
               { check var strings }
-              if (cs_strict_var_strings in aktswitches) and
+              if (cs_strict_var_strings in aktlocalswitches) and
                  is_shortstring(p^.left^.resulttype) and
                  is_shortstring(defcoll^.data) and
                  (defcoll^.paratyp=vs_var) and
@@ -3434,7 +3434,7 @@ unit pass_1;
               else
                 begin
 {$ifdef SUPPORT_MMX}
-                   if (cs_mmx in aktswitches) and
+                   if (cs_mmx in aktmoduleswitches) and
                      is_mmx_able_array(p^.resulttype) then
                      begin
                         p^.location.loc:=LOC_MMXREGISTER;
@@ -4294,7 +4294,7 @@ unit pass_1;
          cleartempgen;
          { right is the statement itself calln assignn or a complex one }
          firstpass(p^.right);
-         if (not (cs_extsyntax in aktswitches)) and
+         if (not (cs_extsyntax in aktmoduleswitches)) and
             assigned(p^.right^.resulttype) and
             (p^.right^.resulttype<>pdef(voiddef)) then
            Message(cg_e_illegal_expression);
@@ -4331,7 +4331,7 @@ unit pass_1;
          hp:=p^.left;
          while assigned(hp) do
            begin
-              if cs_maxoptimieren in aktswitches then
+              if cs_maxoptimize in aktglobalswitches then
                 begin
                    { Codeumstellungen }
 
@@ -4372,7 +4372,7 @@ unit pass_1;
                 begin
                    cleartempgen;
                    firstpass(hp^.right);
-                   if (not (cs_extsyntax in aktswitches)) and
+                   if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp^.right^.resulttype) and
                       (hp^.right^.resulttype<>pdef(voiddef)) then
                      Message(cg_e_illegal_expression);
@@ -4410,8 +4410,8 @@ unit pass_1;
       begin
          old_t_times:=t_times;
 
-                 { Registergewichtung bestimmen }
-         if not(cs_littlesize in aktswitches ) then
+         { Registergewichtung bestimmen }
+         if not(cs_littlesize in aktglobalswitches ) then
            t_times:=t_times*8;
 
          cleartempgen;
@@ -4481,7 +4481,7 @@ unit pass_1;
 {$endif SUPPORT_MMX}
 
          { determines registers weigths }
-         if not(cs_littlesize in aktswitches ) then
+         if not(cs_littlesize in aktglobalswitches) then
            t_times:=t_times div 2;
          if t_times=0 then
            t_times:=1;
@@ -4589,7 +4589,7 @@ unit pass_1;
          { Registergewichtung bestimmen
            (nicht genau), }
          old_t_times:=t_times;
-         if not(cs_littlesize in aktswitches ) then
+         if not(cs_littlesize in aktglobalswitches) then
            t_times:=t_times*8;
 
          cleartempgen;
@@ -4717,7 +4717,7 @@ unit pass_1;
 
          {   estimates the repeat of each instruction }
          old_t_times:=t_times;
-         if not(cs_littlesize in aktswitches ) then
+         if not(cs_littlesize in aktglobalswitches) then
            begin
               t_times:=t_times div case_count_labels(p^.nodes);
               if t_times<1 then
@@ -5093,12 +5093,12 @@ unit pass_1;
              firstnothing,firstadd,firstprocinline,firstnothing,firstloadvmt);
 
       var
-         oldcodegenerror : boolean;
-         oldswitches : Tcswitches;
-         oldpos : tfileposinfo;
+         oldcodegenerror  : boolean;
+         oldlocalswitches : tlocalswitches;
+         oldpos           : tfileposinfo;
 {$ifdef extdebug}
          str1,str2 : string;
-         oldp : ptree;
+         oldp      : ptree;
          not_first : boolean;
 {$endif extdebug}
 
@@ -5109,7 +5109,7 @@ unit pass_1;
 {$endif extdebug}
          oldcodegenerror:=codegenerror;
          oldpos:=aktfilepos;
-         oldswitches:=aktswitches;
+         oldlocalswitches:=aktlocalswitches;
 {$ifdef extdebug}
          if p^.firstpasscount>0 then
            begin
@@ -5124,7 +5124,7 @@ unit pass_1;
 {$endif extdebug}
 
          aktfilepos:=p^.fileinfo;
-         aktswitches:=p^.pragmas;
+         aktlocalswitches:=p^.localswitches;
          if not p^.error then
            begin
               codegenerror:=false;
@@ -5151,7 +5151,7 @@ unit pass_1;
          if count_ref then
            inc(p^.firstpasscount);
 {$endif extdebug}
-         aktswitches:=oldswitches;
+         aktlocalswitches:=oldlocalswitches;
          aktfilepos:=oldpos;
       end;
 
@@ -5177,7 +5177,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.51  1998-08-10 10:18:29  peter
+  Revision 1.52  1998-08-10 14:50:08  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.51  1998/08/10 10:18:29  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

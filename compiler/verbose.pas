@@ -25,9 +25,12 @@ interface
 
 uses messages;
 
-{$IFNDEF EXTERN_MSG}
-  {$i msgtxt.inc}
-{$ENDIF}
+{$ifndef TP}
+  {$ifndef EXTERN_MSG}
+    {$i msgtxt.inc}
+  {$endif}
+{$endif}
+
 
 {$i msgidx.inc}
 
@@ -364,14 +367,19 @@ begin
 end;
 
 begin
-{$IFNDEF EXTERN_MSG}
-  msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
-{$ENDIF}
+{$ifndef TP}
+  {$ifndef EXTERN_MSG}
+    msg:=new(pmessage,Init(@msgtxt,ord(endmsgconst)));
+  {$endif}
+{$endif}
 end.
 
 {
   $Log$
-  Revision 1.12  1998-08-10 10:18:37  peter
+  Revision 1.13  1998-08-10 14:50:37  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.12  1998/08/10 10:18:37  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

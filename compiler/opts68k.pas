@@ -52,11 +52,11 @@ begin
    'O' : begin
            for j:=3 to length(opt) do
             case opt[j] of
-             '-' : initswitches:=initswitches-[cs_optimize,cs_maxoptimieren,cs_littlesize];
-             'a' : initswitches:=initswitches+[cs_optimize];
-             'g' : initswitches:=initswitches+[cs_littlesize];
-             'G' : initswitches:=initswitches-[cs_littlesize];
-             'x' : initswitches:=initswitches+[cs_optimize,cs_maxoptimieren];
+             '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_maxoptimize,cs_littlesize];
+             'a' : initglobalswitches:=initglobalswitches+[cs_optimize];
+             'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
+             'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
+             'x' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_maxoptimize];
              '2' : initoptprocessor:=MC68020;
              else
               IllegalPara(opt);
@@ -75,7 +75,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-06-04 23:51:47  peter
+  Revision 1.3  1998-08-10 14:50:06  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.2  1998/06/04 23:51:47  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

@@ -394,8 +394,8 @@ implementation
            end
          else
            begin
-                 { quick hack, to overcome Delphi 2 }
-              if (cs_maxoptimieren in aktswitches) and
+              { quick hack, to overcome Delphi 2 }
+              if (cs_maxoptimize in aktglobalswitches) and
                 (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    extraoffset:=0;
@@ -502,7 +502,7 @@ implementation
                     end;
               end;
             { produce possible range check code: }
-            if cs_rangechecking in aktswitches  then
+            if cs_check_range in aktlocalswitches then
               begin
                  if p^.left^.resulttype^.deftype=arraydef then
                    begin
@@ -608,7 +608,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-07-26 21:58:58  florian
+  Revision 1.6  1998-08-10 14:49:49  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.5  1998/07/26 21:58:58  florian
    + better support for switch $H
    + index access to ansi strings added
    + assigment of data (records/arrays) containing ansi strings

@@ -674,7 +674,7 @@
            begin
               { generate two constant for bounds }
               getlabelnr(rangenr);
-              if (cs_smartlink in aktswitches) then
+              if (cs_smartlink in aktmoduleswitches) then
                 datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.mainsource^+tostr(rangenr))))
               else
                 datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr))));
@@ -689,7 +689,7 @@
                    datasegment^.concat(new(pai_const,init_32bit(low)));
                    datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
                    inc(nextlabelnr);
-                   if (cs_smartlink in aktswitches) then
+                   if (cs_smartlink in aktmoduleswitches) then
                      datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.mainsource^+tostr(rangenr+1))))
                    else
                      datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr+1))));
@@ -1825,7 +1825,7 @@
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
-         if (cs_browser in aktswitches) and make_ref then
+         if (cs_browser in aktmoduleswitches) and make_ref then
           begin
             defref:=new(pref,init(defref,@tokenpos));
             inc(refcount);
@@ -1873,7 +1873,7 @@
          nextoverloaded:=pprocdef(readdefref);
          _class := pobjectdef(readdefref);
 
-         if gendeffile and ((options and poexports)<>0) then
+         if (cs_link_deffile in aktglobalswitches) and ((options and poexports)<>0) then
            deffile.AddExport(mangledname);
 
          parast:=nil;
@@ -2359,7 +2359,7 @@
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
          { it !                                  }
-         if (name^='TOBJECT') and not(cs_compilesystem in aktswitches) and
+         if (name^='TOBJECT') and not(cs_compilesystem in aktmoduleswitches) and
            isclass and (childof=pointer($ffffffff)) then
            class_tobject:=@self;
       end;
@@ -2666,7 +2666,10 @@
 
 {
   $Log$
-  Revision 1.20  1998-07-18 22:54:30  florian
+  Revision 1.21  1998-08-10 14:50:28  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.20  1998/07/18 22:54:30  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions

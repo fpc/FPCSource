@@ -62,6 +62,12 @@
 unit compiler;
 interface
 
+{ Use exception catching so the compiler goes futher after a Stop }
+{$ifdef i386}
+  {$define USEEXCEPT}
+{$endif}
+
+
 uses
 {$ifdef fpc}
   {$ifdef GO32V2}
@@ -72,9 +78,9 @@ uses
     catch,
   {$endif LINUX}
 {$endif}
-{$ifdef TP}
+{$ifdef USEEXCEPT}
   tpexcept,
-{$endif}
+{$endif USEEXCEPT}
   dos,verbose,comphook,systems,
   globals,options,parser,symtable,link,import;
 
@@ -88,10 +94,12 @@ var
   CompilerInited : boolean;
   recoverpos : jmp_buf;
 
+{$ifdef USEEXCEPT}
 procedure RecoverStop;{$ifndef FPC}far;{$endif}
 begin
   LongJmp(recoverpos,1);
 end;
+{$endif USEEXCEPT}
 
 
 procedure DoneCompiler;
@@ -135,12 +143,14 @@ function Compile(const cmd:string):longint;
 
 var
   starttime  : real;
+{$ifdef USEEXCEPT}  
   olddo_stop : tstopprocedure;
-{$ifdef TP}  
+{$endif}  
+{$ifdef TP}
   oldfreelist,
   oldheapptr,
   oldheaporg : pointer;
-{$endif}  
+{$endif}
 {$IfDef Extdebug}
   EntryMemAvail : longint;
 {$EndIf}
@@ -173,10 +183,12 @@ begin
   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
 {$endif}
 
+{$ifdef USEEXCEPT}
   olddo_stop:=do_stop;
   do_stop:=recoverstop;
   if setjmp(recoverpos)=0 then
    begin
+{$endif USEEXCEPT}   
      starttime:=getrealtime;
      parser.compile(inputdir+inputfile+inputextension,false);
      if status.errorcount=0 then
@@ -187,9 +199,11 @@ begin
       end;
    { Stop the compiler, frees also memory }
      DoneCompiler;
+{$ifdef USEEXCEPT}
    end;
 { Stop is always called, so we come here when a program is compiled or not }
   do_stop:=olddo_stop;
+{$endif USEEXCEPT}
 {$ifdef EXTDEBUG}
   Comment(V_Info,'Memory Lost = '+tostr(EntryMemAvail-MemAvail));
 {$endif EXTDEBUG}
@@ -210,7 +224,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-08-10 10:18:24  peter
+  Revision 1.2  1998-08-10 14:49:56  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.1  1998/08/10 10:18:24  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

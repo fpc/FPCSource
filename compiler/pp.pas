@@ -35,7 +35,7 @@
                       MMX which allows the compiler to generate
                       MMX instructions
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
-                      use external messagefiles
+                      use external messagefiles, default for TP
   NOAG386INT          no Intel Assembler output
   NOAG386NSM          no NASM output
   -----------------------------------------------------------------
@@ -236,14 +236,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1998-08-10 10:18:32  peter
+  Revision 1.25  1998-08-10 14:50:16  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.24  1998/08/10 10:18:32  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 
   Revision 1.23  1998/08/05 16:00:16  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.24  1998-08-10 10:18:32  peter
+    * $log$ to Revision 1.25  1998-08-10 14:50:16  peter
+    * $log$ to   + localswitches, moduleswitches, globalswitches splitting
+    * $log$ to
+    * $log$ to Revision 1.24  1998/08/10 10:18:32  peter
     * $log$ to   + Compiler,Comphook unit which are the new interface units to the
     * $log$ to     compiler
     * $log$ to changed

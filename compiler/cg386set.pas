@@ -74,7 +74,7 @@ implementation
                      too much comparisions. 8 comparisions are, however, still
                      smalller than emitting the set.}
                     maxcompares:=5;
-                    if cs_littlesize in aktswitches then
+                    if cs_littlesize in aktglobalswitches then
                          maxcompares:=8;
                     for i:=0 to 255 do
                          if i in byteset(Aset^) then
@@ -641,7 +641,7 @@ implementation
       begin
          getlabel(endlabel);
          getlabel(elselabel);
-         if (cs_smartlink in aktswitches) then
+         if (cs_smartlink in aktmoduleswitches) then
            jumpsegment:=procinfo.aktlocaldata
          else
            jumpsegment:=datasegment;
@@ -680,7 +680,7 @@ implementation
             else internalerror(2002);
          end;
          { now generate the jumps }
-           if cs_optimize in aktswitches then
+           if cs_optimize in aktglobalswitches then
            begin
               { procedures are empirically passed on }
               { consumption can also be calculated   }
@@ -697,7 +697,7 @@ implementation
               jumptable_no_range:=(lv=min_label) and (hv=max_label);
 
               { optimize for size ? }
-              if cs_littlesize in aktswitches  then
+              if cs_littlesize in aktglobalswitches  then
                 begin
                    if (labels<=2) or ((max_label-min_label)>3*labels) then
                   { a linear list is always smaller than a jump tree }
@@ -763,7 +763,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-06-25 08:48:10  florian
+  Revision 1.4  1998-08-10 14:49:51  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.3  1998/06/25 08:48:10  florian
     * first version of rtti support
 
   Revision 1.2  1998/06/16 08:56:18  peter

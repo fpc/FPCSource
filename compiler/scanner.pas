@@ -579,8 +579,8 @@ implementation
 
     procedure tscannerfile.dec_comment_level;
       begin
-         if (cs_tp_compatible in aktswitches) or
-            (cs_delphi2_compatible in aktswitches) then
+         if (cs_tp_compatible in aktmoduleswitches) or
+            (cs_delphi2_compatible in aktmoduleswitches) then
            comment_level:=0
          else
            dec(comment_level);
@@ -1046,7 +1046,7 @@ implementation
            else
             begin
             { this takes some time ... }
-              if support_macros then
+              if (cs_support_macro in aktmoduleswitches) then
                begin
                  mac:=pmacrosym(macros^.search(pattern));
                  if assigned(mac) and (assigned(mac^.buftext)) then
@@ -1182,7 +1182,7 @@ implementation
                       end;
                 '+' : begin
                         readchar;
-                        if (c='=') and support_c_operators then
+                        if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
                          begin
                            readchar;
                            yylex:=_PLUSASN;
@@ -1193,7 +1193,7 @@ implementation
                       end;
                 '-' : begin
                         readchar;
-                        if (c='=') and support_c_operators then
+                        if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
                          begin
                            readchar;
                            yylex:=_MINUSASN;
@@ -1215,7 +1215,7 @@ implementation
                       end;
                 '*' : begin
                         readchar;
-                        if (c='=') and support_c_operators then
+                        if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
                          begin
                            readchar;
                            yylex:=_STARASN;
@@ -1234,7 +1234,7 @@ implementation
                         readchar;
                         case c of
                          '=' : begin
-                                 if support_c_operators then
+                                 if (cs_support_c_operators in aktmoduleswitches) then
                                   begin
                                     readchar;
                                     yylex:=_SLASHASN;
@@ -1548,7 +1548,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.38  1998-08-10 10:18:34  peter
+  Revision 1.39  1998-08-10 14:50:26  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.38  1998/08/10 10:18:34  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

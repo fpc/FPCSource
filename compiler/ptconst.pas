@@ -399,7 +399,7 @@ unit ptconst;
                    exit;
                 end
               else
-              if not(cs_tp_compatible in aktswitches) then
+              if not(cs_tp_compatible in aktmoduleswitches) then
                 if token=KLAMMERAFFE then
                   consume(KLAMMERAFFE);
               getsym(pattern,true);
@@ -492,7 +492,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.10  1998-07-21 11:16:25  florian
+  Revision 1.11  1998-08-10 14:50:20  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.10  1998/07/21 11:16:25  florian
     * bug0147 fixed
 
   Revision 1.9  1998/07/20 22:17:16  florian

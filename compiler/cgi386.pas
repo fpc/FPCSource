@@ -230,17 +230,16 @@ implementation
              secondfail,secondadd,secondprocinline,
              secondnothing,secondloadvmt);
       var
-         oldcodegenerror : boolean;
-         oldswitches : Tcswitches;
-         oldpos : tfileposinfo;
-
+         oldcodegenerror  : boolean;
+         oldlocalswitches : tlocalswitches;
+         oldpos           : tfileposinfo;
       begin
          oldcodegenerror:=codegenerror;
-         oldswitches:=aktswitches;
+         oldlocalswitches:=aktlocalswitches;
          oldpos:=aktfilepos;
 
          aktfilepos:=p^.fileinfo;
-         aktswitches:=p^.pragmas;
+         aktlocalswitches:=p^.localswitches;
          if not(p^.error) then
            begin
               codegenerror:=false;
@@ -251,7 +250,7 @@ implementation
          else
            codegenerror:=true;
 
-         aktswitches:=oldswitches;
+         aktlocalswitches:=oldlocalswitches;
          aktfilepos:=oldpos;
       end;
 
@@ -295,7 +294,7 @@ implementation
                    { parameter get a less value }
                    if parasym then
                      begin
-                        if cs_littlesize in aktswitches  then
+                        if cs_littlesize in aktglobalswitches  then
                           dec(j,1)
                         else
                           dec(j,100);
@@ -332,7 +331,7 @@ implementation
       begin
          cleartempgen;
          { when size optimization only count occurrence }
-         if cs_littlesize in aktswitches then
+         if cs_littlesize in aktglobalswitches then
            t_times:=1
          else
            { reference for repetition is 100 }
@@ -358,7 +357,7 @@ implementation
               { max. optimizations     }
               { only if no asm is used }
               { and no try statement   }
-              if (cs_maxoptimieren in aktswitches) and
+              if (cs_maxoptimize in aktglobalswitches) and
                 ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
                 begin
                    { can we omit the stack frame ? }
@@ -507,7 +506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1998-08-10 10:18:23  peter
+  Revision 1.47  1998-08-10 14:49:53  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.46  1998/08/10 10:18:23  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

@@ -39,7 +39,7 @@
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
-         if (cs_browser in aktswitches) and make_ref then
+         if (cs_browser in aktmoduleswitches) and make_ref then
           begin
             defref:=new(pref,init(defref,@tokenpos));
             inc(refcount);
@@ -269,7 +269,7 @@
          if object_options then
            writebyte(byte(properties));
 {$ifdef UseBrowser}
-{         if cs_browser in aktswitches then
+{         if cs_browser in aktmoduleswitches then
            write_references; }
 {$endif UseBrowser}
       end;
@@ -919,7 +919,7 @@
               exit;
            end;
          case owner^.symtabletype of
-           staticsymtable : if (cs_smartlink in aktswitches) then
+           staticsymtable : if (cs_smartlink in aktmoduleswitches) then
                               prefix:='_'+owner^.name^+'$$$_'
                             else
                               prefix:='_';
@@ -1005,13 +1005,13 @@
                             address:=owner^.datasize;
                           end;
          staticsymtable : begin
-                            if (cs_smartlink in aktswitches) then
+                            if (cs_smartlink in aktmoduleswitches) then
                               bsssegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
-                            if cs_debuginfo in aktswitches then
+                            if cs_debuginfo in aktmoduleswitches then
                                concatstabto(bsssegment);
 {$endif GDB}
-                            if (cs_smartlink in aktswitches) or
+                            if (cs_smartlink in aktmoduleswitches) or
                                ((var_options and vo_is_c_var)<>0) then
                               bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
                             else
@@ -1022,10 +1022,10 @@
                             var_options:=var_options and not vo_regable;
                           end;
          globalsymtable : begin
-                            if (cs_smartlink in aktswitches) then
+                            if (cs_smartlink in aktmoduleswitches) then
                               bsssegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
-                            if cs_debuginfo in aktswitches then
+                            if cs_debuginfo in aktmoduleswitches then
                               concatstabto(bsssegment);
 {$endif GDB}
                             bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
@@ -1262,10 +1262,10 @@
         begin
            if owner^.symtabletype=globalsymtable then
              begin
-                if (cs_smartlink in aktswitches) then
+                if (cs_smartlink in aktmoduleswitches) then
                   datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
-                if cs_debuginfo in aktswitches then
+                if cs_debuginfo in aktmoduleswitches then
                   concatstabto(datasegment);
 {$endif GDB}
                 datasegment^.concat(new(pai_symbol,init_global(mangledname)));
@@ -1273,13 +1273,13 @@
            else
              if owner^.symtabletype<>unitsymtable then
                begin
-                 if (cs_smartlink in aktswitches) then
+                 if (cs_smartlink in aktmoduleswitches) then
                    datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
-                 if cs_debuginfo in aktswitches then
+                 if cs_debuginfo in aktmoduleswitches then
                    concatstabto(datasegment);
 {$endif GDB}
-                 if (cs_smartlink in aktswitches) then
+                 if (cs_smartlink in aktmoduleswitches) then
                    datasegment^.concat(new(pai_symbol,init_global(mangledname)))
                  else
                    datasegment^.concat(new(pai_symbol,init(mangledname)));
@@ -1652,7 +1652,10 @@
 
 {
   $Log$
-  Revision 1.26  1998-08-10 10:18:35  peter
+  Revision 1.27  1998-08-10 14:50:31  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.26  1998/08/10 10:18:35  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

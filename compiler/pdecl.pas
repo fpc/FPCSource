@@ -163,7 +163,7 @@ unit pdecl;
 
       begin
          consume(_LABEL);
-         if not(cs_support_goto in aktswitches) then
+         if not(cs_support_goto in aktmoduleswitches) then
            Message(sym_e_goto_and_label_not_supported);
          repeat
            if not(token in [ID,INTCONST]) then
@@ -306,7 +306,7 @@ unit pdecl;
              if (token=ID) then
               begin
                 { Check for C Variable declarations }
-                if support_c_var and
+                if (cs_support_c_var in aktmoduleswitches) and
                    not(is_record or is_object) and
                    ((pattern='EXPORT') or
                     (pattern='EXTERNAL') or
@@ -372,7 +372,7 @@ unit pdecl;
                    symdone:=true;
                  end
                 else
-                 if (is_object) and (cs_static_keyword in aktswitches) and (pattern='STATIC') then
+                 if (is_object) and (cs_static_keyword in aktglobalswitches) and (pattern='STATIC') then
                   begin
                     current_object_option:=current_object_option or sp_static;
                     insert_syms(symtablestack,sc,p);
@@ -489,7 +489,7 @@ unit pdecl;
              in ansistring mode ?? (PM) Yes!!! (FK) }
           else
             begin
-               if cs_ansistrings in aktswitches then
+               if cs_ansistrings in aktlocalswitches then
                  d:=new(pstringdef,ansiinit(0))
                else
 {$ifndef GDB}
@@ -595,7 +595,7 @@ unit pdecl;
            { must be at same level as in implementation }
            _proc_head(poconstructor);
 
-           if (cs_checkconsname in aktswitches) and (aktprocsym^.name<>'INIT') then
+           if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
 
            consume(SEMICOLON);
@@ -899,7 +899,7 @@ unit pdecl;
         begin
            consume(_DESTRUCTOR);
            _proc_head(podestructor);
-           if (cs_checkconsname in aktswitches) and (aktprocsym^.name<>'DONE') then
+           if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
            consume(SEMICOLON);
            if assigned(aktprocsym^.definition^.para1) then
@@ -1085,7 +1085,7 @@ unit pdecl;
            begin
               aktclass^.options:=aktclass^.options or oois_class;
 
-              if (cs_generate_rtti in aktswitches) or
+              if (cs_generate_rtti in aktmoduleswitches) or
                   (assigned(aktclass^.childof) and
                    ((aktclass^.childof^.options and oo_can_have_published)<>0)
                   ) then
@@ -1184,7 +1184,7 @@ unit pdecl;
                           { the method is defined }
                             aktprocsym^.definition^.forwarddef:=false;
                           end;
-                         if (cs_static_keyword in aktswitches) and (pattern='STATIC') then
+                         if (cs_static_keyword in aktglobalswitches) and (pattern='STATIC') then
                           begin
                             consume(ID);
                             consume(SEMICOLON);
@@ -1268,11 +1268,11 @@ unit pdecl;
          testcurobject:=0;
          curobjectname:='';
 
-         if (cs_smartlink in aktswitches) then
+         if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
          { generate the VMT }
-         if cs_debuginfo in aktswitches then
+         if cs_debuginfo in aktmoduleswitches then
            begin
               do_count_dbx:=true;
               if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
@@ -1881,7 +1881,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.35  1998-07-26 21:59:00  florian
+  Revision 1.36  1998-08-10 14:50:09  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.35  1998/07/26 21:59:00  florian
    + better support for switch $H
    + index access to ansi strings added
    + assigment of data (records/arrays) containing ansi strings

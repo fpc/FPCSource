@@ -363,7 +363,7 @@ const
                mac^.buftext:=nil;
              end;
           end;
-        if support_macros then
+        if (cs_support_macro in aktmoduleswitches) then
           begin
           { key words are never substituted }
              hs2:=pattern;
@@ -454,9 +454,9 @@ const
       end;
 
 
-    procedure dir_switch(t:tdirectivetoken);
+    procedure dir_moduleswitch(t:tdirectivetoken);
       var
-        sw : tcswitch;
+        sw : tmoduleswitch;
       begin
         case t of
 {$ifdef SUPPORT_MMX}
@@ -467,9 +467,9 @@ const
         end;
         current_scanner^.skipspace;
         if c='-' then
-         aktswitches:=aktswitches-[sw]
+         aktmoduleswitches:=aktmoduleswitches-[sw]
         else
-         aktswitches:=aktswitches+[sw];
+         aktmoduleswitches:=aktmoduleswitches+[sw];
       end;
 
 
@@ -640,12 +640,12 @@ const
          {_DIR_L} dir_linkobject,
          {_DIR_LINKLIB} dir_linklib,
          {_DIR_MESSAGE} dir_message,
-         {_DIR_MMX} dir_switch,
+         {_DIR_MMX} dir_moduleswitch,
          {_DIR_NOTE} dir_message,
          {_DIR_OUTPUT_FORMAT} dir_outputformat,
          {_DIR_PACKRECORDS} dir_packrecords,
-         {_DIR_SATURATION} dir_switch,
-         {_DIR_SMARTLINK} dir_switch,
+         {_DIR_SATURATION} dir_moduleswitch,
+         {_DIR_SMARTLINK} dir_moduleswitch,
          {_DIR_STOP} dir_message,
          {_DIR_UNDEF} dir_undef,
          {_DIR_WAIT} dir_wait,
@@ -706,7 +706,10 @@ const
 
 {
   $Log$
-  Revision 1.17  1998-08-10 09:56:04  peter
+  Revision 1.18  1998-08-10 14:50:25  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.17  1998/08/10 09:56:04  peter
     * path to the include file is also written to the debug output
 
   Revision 1.16  1998/08/04 22:03:44  michael

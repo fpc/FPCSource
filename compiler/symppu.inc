@@ -177,7 +177,7 @@
        { create unit flags }
          with Current_Module^ do
           begin
-            if cs_smartlink in aktswitches then
+            if cs_smartlink in aktmoduleswitches then
              begin
                flags:=flags or uf_smartlink;
                if SplitName(ppufilename^)<>SplitName(libfilename^) then
@@ -697,7 +697,10 @@
 
 {
   $Log$
-  Revision 1.7  1998-07-14 14:47:07  peter
+  Revision 1.8  1998-08-10 14:50:29  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.7  1998/07/14 14:47:07  peter
     * released NEWINPUT
 
   Revision 1.6  1998/07/07 11:20:14  peter

@@ -409,7 +409,7 @@ implementation
                                    exprasmlist^.concat(new(pai386,
                                      op_csymbol(A_CALL,S_NO,newcsymbol('ADDREF',0))));
 
-                                   if not (cs_compilesystem in aktswitches) then
+                                   if not (cs_compilesystem in aktmoduleswitches) then
                                      concat_external('ADDREF',EXT_NEAR);
 
                                    { decrement destination reference counter }
@@ -422,7 +422,7 @@ implementation
                                    exprasmlist^.concat(new(pai386,
                                      op_csymbol(A_CALL,S_NO,newcsymbol('DECREF',0))));
 
-                                   if not (cs_compilesystem in aktswitches) then
+                                   if not(cs_compilesystem in aktmoduleswitches) then
                                      concat_external('DECREF',EXT_NEAR);
 
                                 end;
@@ -565,7 +565,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-07-30 13:30:33  florian
+  Revision 1.8  1998-08-10 14:49:48  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.7  1998/07/30 13:30:33  florian
     * final implemenation of exception support, maybe it needs
       some fixes :)
 

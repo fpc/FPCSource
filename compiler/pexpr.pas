@@ -960,7 +960,7 @@ unit pexpr;
               begin
                  { allow post fix operators }
                  again:=true;
-                 if (cs_delphi2_compatible in aktswitches) and
+                 if (cs_delphi2_compatible in aktmoduleswitches) and
                     (pattern='RESULT') and
                    assigned(aktprocsym) and
                    (procinfo.retdef<>pdef(voiddef)) then
@@ -992,7 +992,7 @@ unit pexpr;
                         ((procinfo.flags and pi_operator)<>0))}) and
                         (procinfo.retdef<>pdef(voiddef)) and
                         (token<>LKLAMMER) and
-                        (not ((cs_tp_compatible in aktswitches) and
+                        (not ((cs_tp_compatible in aktmoduleswitches) and
                         (afterassignment or in_args))) then
                         begin
                            p1:=genzeronode(funcretn);
@@ -1788,7 +1788,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.30  1998-07-28 21:52:54  florian
+  Revision 1.31  1998-08-10 14:50:11  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.30  1998/07/28 21:52:54  florian
     + implementation of raise and try..finally
     + some misc. exception stuff
 

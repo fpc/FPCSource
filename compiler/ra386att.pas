@@ -1523,7 +1523,7 @@ const
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
     if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktswitches) or (aktoptprocessor>int386)) then
+       ((cs_compilesystem in aktmoduleswitches) or (aktoptprocessor>int386)) then
       begin
          Message1(assem_w_opcode_not_in_table,att_op2str[instruc]);
          fits:=true;
@@ -2085,7 +2085,7 @@ const
           end;
        end
        else
-       if (cs_compilesystem in aktswitches) then
+       if (cs_compilesystem in aktmoduleswitches) then
        begin
         for i:=1 to instr.numops do
           if instr.operands[i].operandtype=OPR_LABINSTR then
@@ -3074,7 +3074,7 @@ const
                          else
                          { check for direct symbolic names   }
                          { only if compiling the system unit }
-                         if (cs_compilesystem in aktswitches) then
+                         if (cs_compilesystem in aktmoduleswitches) then
                          begin
                            if not SearchDirectVar(instr,actasmpattern,operandnum) then
                            Begin
@@ -3130,7 +3130,7 @@ const
                                  begin
                                   {  check for direct symbolic names   }
                                    { only if compiling the system unit }
-                                   if (cs_compilesystem in aktswitches) then
+                                   if (cs_compilesystem in aktmoduleswitches) then
                                    begin
                                      if not SearchDirectVar(instr,actasmpattern,operandnum) then
                                         Message(assem_e_invalid_seg_override);
@@ -3437,7 +3437,7 @@ const
                        ConcatLabel(p,A_LABEL, hl)
                      else
                      Begin
-                       if (cs_compilesystem in aktswitches) then
+                       if (cs_compilesystem in aktmoduleswitches) then
                        begin
                           Message1(assem_e_unknown_label_identifer,actasmpattern);
                           { once again we don't know what it represents }
@@ -3457,7 +3457,7 @@ const
                  { -- this should only be allowed for system development -- }
                  {    i think this should be fixed in the dos unit, and     }
                  {    not here.                                             }
-                   if (cs_compilesystem in aktswitches) then
+                   if (cs_compilesystem in aktmoduleswitches) then
                        p:=datasegment
                    else
                        Message(assem_e_switching_sections_not_allowed);
@@ -3467,7 +3467,7 @@ const
                  { -- this should only be allowed for system development -- }
                  {    i think this should be fixed in the dos unit, and     }
                  {    not here.                                             }
-                   if (cs_compilesystem in aktswitches) then
+                   if (cs_compilesystem in aktmoduleswitches) then
                         p:=store_p
                    else
                        Message(assem_e_switching_sections_not_allowed);
@@ -3503,7 +3503,7 @@ const
                    { direct label names like this... anyhow     }
                    { procedural calls in asm blocks are         }
                    { supposedely replaced automatically         }
-                   if (cs_compilesystem in aktswitches) then
+                   if (cs_compilesystem in aktmoduleswitches) then
                    begin
                      Consume(AS_GLOBAL);
                       if actasmtoken <> AS_ID then
@@ -3542,7 +3542,7 @@ const
                  { -- this should only be allowed for system development -- }
                  { -- otherwise may mess up future enhancements we might -- }
                  { -- add.                                               -- }
-                   if (cs_compilesystem in aktswitches) then
+                   if (cs_compilesystem in aktmoduleswitches) then
                    begin
                      Consume(AS_LCOMM);
                       if actasmtoken <> AS_ID then
@@ -3576,7 +3576,7 @@ const
                  { -- this should only be allowed for system development -- }
                  { -- otherwise may mess up future enhancements we might -- }
                  { -- add.                                               -- }
-                   if (cs_compilesystem in aktswitches) then
+                   if (cs_compilesystem in aktmoduleswitches) then
                    begin
                      Consume(AS_COMM);
                       if actasmtoken <> AS_ID then
@@ -3675,7 +3675,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-07-14 14:46:58  peter
+  Revision 1.6  1998-08-10 14:50:21  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.5  1998/07/14 14:46:58  peter
     * released NEWINPUT
 
   Revision 1.4  1998/07/08 15:06:41  daniel

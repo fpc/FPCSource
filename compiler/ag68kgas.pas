@@ -245,7 +245,7 @@ unit ag68kgas;
        begin
        { write debugger informations }
 {$ifdef GDB}
-         if cs_debuginfo in aktswitches then
+         if cs_debuginfo in aktmoduleswitches then
           begin
             if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,
                    ait_label,ait_cut,ait_align,ait_stab_function_name]) then
@@ -327,7 +327,7 @@ unit ag68kgas;
                        { ------------------------------------------------------- }
                        if pai_datablock(hp)^.size <> 1 then
                         begin
-                          if not(cs_littlesize in aktswitches) then
+                          if not(cs_littlesize in aktglobalswitches) then
                            AsmWriteLn(#9#9'.align 4')
                           else
                            AsmWriteLn(#9#9'.align 2');
@@ -432,7 +432,7 @@ unit ag68kgas;
                           [ait_const_32bit,ait_const_16bit,ait_const_symbol,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
-                          if not(cs_littlesize in aktswitches) then
+                          if not(cs_littlesize in aktglobalswitches) then
                            AsmWriteLn(#9#9'.align 4')
                           else
                            AsmWriteLn(#9#9'.align 2');
@@ -458,7 +458,7 @@ ait_labeled_instruction : begin
                           [ait_const_32bit,ait_const_16bit,ait_const_symbol,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
-                          if not(cs_littlesize in aktswitches) then
+                          if not(cs_littlesize in aktglobalswitches) then
                            AsmWriteLn(#9#9'.align 4')
                           else
                            AsmWriteLn(#9#9'.align 2');
@@ -605,7 +605,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.7  1998-07-14 14:46:38  peter
+  Revision 1.8  1998-08-10 14:49:36  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.7  1998/07/14 14:46:38  peter
     * released NEWINPUT
 
   Revision 1.6  1998/07/10 10:50:54  peter

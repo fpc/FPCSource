@@ -755,7 +755,7 @@ uses
            end
          else
            begin
-             if (l^.is_data) and (cs_smartlink in aktswitches) then
+             if (l^.is_data) and (cs_smartlink in aktmoduleswitches) then
               lab2str:='_$'+current_module^.modulename^+'$_L'+tostr(l^.nb)
              else
               lab2str:=target_asm.labelprefix+tostr(l^.nb);
@@ -832,7 +832,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.12  1998-07-14 14:46:36  peter
+  Revision 1.13  1998-08-10 14:49:33  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.12  1998/07/14 14:46:36  peter
     * released NEWINPUT
 
   Revision 1.11  1998/07/07 11:19:50  peter

@@ -290,7 +290,7 @@ unit ag68kmot;
                        { ------------------------------------------------------- }
                        if pai_datablock(hp)^.size <> 1 then
                         begin
-                          if not(cs_littlesize in aktswitches) then
+                          if not(cs_littlesize in aktglobalswitches) then
                            AsmWriteLn(#9'CNOP 0,4')
                           else
                            AsmWriteLn(#9'CNOP 0,2');
@@ -395,7 +395,7 @@ unit ag68kmot;
                           [ait_const_32bit,ait_const_16bit,ait_const_symbol,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
-                          if not(cs_littlesize in aktswitches) then
+                          if not(cs_littlesize in aktglobalswitches) then
                            AsmWriteLn(#9'CNOP 0,4')
                           else
                            AsmWriteLn(#9'CNOP 0,2');
@@ -429,7 +429,7 @@ ait_labeled_instruction :
                           [ait_const_32bit,ait_const_16bit,ait_const_symbol,
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
-                          if not(cs_littlesize in aktswitches) then
+                          if not(cs_littlesize in aktglobalswitches) then
                            AsmWriteLn(#9'CNOP 0,4')
                           else
                            AsmWriteLn(#9'CNOP 0,2');
@@ -523,7 +523,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.6  1998-07-10 10:50:56  peter
+  Revision 1.7  1998-08-10 14:49:38  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.6  1998/07/10 10:50:56  peter
     * m68k updates
 
   Revision 1.5  1998/06/05 17:46:06  peter

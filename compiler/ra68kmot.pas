@@ -1641,7 +1641,7 @@ var
                              Message(assem_e_cannot_use_SELF_outside_a_method);
                          end
                          else
-                         if (cs_compilesystem in aktswitches) then
+                         if (cs_compilesystem in aktmoduleswitches) then
                          Begin
                            if not assigned(instr.operands[operandnum].ref.symbol) then
                            Begin
@@ -1782,7 +1782,7 @@ var
                    { DIVSL/DIVS/MULS/MULU with long for MC68020 only }
                    if (actasmtoken = AS_COLON) then
                    Begin
-                     if (aktoptprocessor = MC68020) or (cs_compilesystem in aktswitches) then
+                     if (aktoptprocessor = MC68020) or (cs_compilesystem in aktmoduleswitches) then
                      Begin
                        Consume(AS_COLON);
                        if (actasmtoken = AS_REGISTER) then
@@ -2093,7 +2093,7 @@ var
                    { direct label names like this... anyhow     }
                    { procedural calls in asm blocks are         }
                    { supposedely replaced automatically         }
-                   if (cs_compilesystem in aktswitches) then
+                   if (cs_compilesystem in aktmoduleswitches) then
                    begin
                      Consume(AS_XDEF);
                       if actasmtoken <> AS_ID then
@@ -2177,7 +2177,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.4  1998-07-14 14:47:02  peter
+  Revision 1.5  1998-08-10 14:50:23  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.4  1998/07/14 14:47:02  peter
     * released NEWINPUT
 
   Revision 1.3  1998/07/10 10:51:02  peter

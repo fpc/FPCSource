@@ -963,7 +963,7 @@ unit pstatmnt;
          filepos:=tokenpos;
          case token of
             _GOTO : begin
-                       if not(cs_support_goto in aktswitches)then
+                       if not(cs_support_goto in aktmoduleswitches)then
                         Message(sym_e_goto_and_label_not_supported);
                        consume(_GOTO);
                        if (token<>INTCONST) and (token<>ID) then
@@ -1029,7 +1029,7 @@ unit pstatmnt;
            begin
               if (token=INTCONST) or
                 ((token=ID) and
-                not((cs_delphi2_compatible in aktswitches) and
+                not((cs_delphi2_compatible in aktmoduleswitches) and
                 (pattern='RESULT'))) then
                 begin
                    getsym(pattern,true);
@@ -1240,7 +1240,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.31  1998-08-02 16:41:59  florian
+  Revision 1.32  1998-08-10 14:50:17  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.31  1998/08/02 16:41:59  florian
     * on o : tobject do should also work now, the exceptsymtable shouldn't be
       disposed by dellexlevel
 

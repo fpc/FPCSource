@@ -31,65 +31,43 @@ implementation
 uses globals,verbose,files,systems;
 
 {****************************************************************************
-                       Special functions for some switches
-****************************************************************************}
-
-{$ifndef FPC}
-  {$F+}
-{$endif}
-
-procedure sw_stackcheck;
-begin
-{$ifdef i386}
-  if target_info.target=target_Linux then
-   Message(scan_n_stack_check_global_under_linux);
-{$endif}
-
-end;
-
-{$ifndef FPC}
-  {$F-}
-{$endif}
-
-{****************************************************************************
                           Main Switches Parsing
 ****************************************************************************}
 
 type
-  TSwitchType=(local,unitglobal,programglobal,illegal,unsupported);
+  TSwitchType=(localsw,modulesw,globalsw,illegalsw,unsupportedsw);
   SwitchRec=record
     typesw : TSwitchType;
-    setsw  : tcswitch;
-    proc   : procedure;
+    setsw  : byte;
   end;
 const
   SwitchTable:array['A'..'Z'] of SwitchRec=(
-   {A} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {B} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {C} (typesw:local; setsw:cs_do_assertion; proc:nil),
-   {D} (typesw:unitglobal; setsw:cs_debuginfo; proc:nil),
-   {E} (typesw:programglobal; setsw:cs_fp_emulation; proc:nil),
-   {F} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {G} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {H} (typesw:local; setsw:cs_ansistrings; proc:nil),
-   {I} (typesw:local; setsw:cs_iocheck; proc:nil),
-   {J} (typesw:illegal; setsw:cs_none; proc:nil),
-   {K} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {L} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {M} (typesw:local; setsw:cs_generate_rtti; proc:nil),
-   {N} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {O} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {P} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {Q} (typesw:local; setsw:cs_check_overflow; proc:nil),
-   {R} (typesw:local; setsw:cs_rangechecking; proc:nil),
-   {S} (typesw:local; setsw:cs_check_stack; proc:nil),
-   {T} (typesw:local; setsw:cs_typed_addresses; proc:nil),
-   {U} (typesw:illegal; setsw:cs_none; proc:nil),
-   {V} (typesw:local; setsw:cs_strict_var_strings; proc:nil),
-   {W} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {X} (typesw:unitglobal; setsw:cs_extsyntax; proc:nil),
-   {Y} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {Z} (typesw:illegal; setsw:cs_none; proc:nil)
+   {A} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {B} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
+   {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
+   {E} (typesw:globalsw; setsw:ord(cs_fp_emulation)),
+   {F} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {G} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {H} (typesw:localsw; setsw:ord(cs_ansistrings)),
+   {I} (typesw:localsw; setsw:ord(cs_check_io)),
+   {J} (typesw:illegalsw; setsw:ord(cs_localnone)),
+   {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
+   {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {P} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {Q} (typesw:localsw; setsw:ord(cs_check_overflow)),
+   {R} (typesw:localsw; setsw:ord(cs_check_range)),
+   {S} (typesw:localsw; setsw:ord(cs_check_stack)),
+   {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
+   {U} (typesw:illegalsw; setsw:ord(cs_localnone)),
+   {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
+   {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
+   {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
     );
 
 procedure HandleSwitch(switch,state:char);
@@ -105,30 +83,35 @@ begin
   with SwitchTable[switch] do
    begin
      case typesw of
-       illegal : Message1(scan_w_illegal_switch,'$'+switch);
-   unsupported : Message1(scan_w_unsupported_switch,'$'+switch);
-    unitglobal,
- programglobal,
-         local : begin
-                   if (typesw=local) or
-                      ((typesw=unitglobal) and current_module^.in_main) or
-                      ((typesw=programglobal) and current_module^.in_main and (current_module=main_module)) then
+       illegalsw : Message1(scan_w_illegal_switch,'$'+switch);
+   unsupportedsw : Message1(scan_w_unsupported_switch,'$'+switch);
+       localsw : begin
+                   if state='+' then
+                    aktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
+                   else
+                    aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
+                 end;
+      modulesw : begin
+                   if current_module^.in_main then
                     begin
                       if state='+' then
-                       aktswitches:=aktswitches+[setsw]
+                       aktmoduleswitches:=aktmoduleswitches+[tmoduleswitch(setsw)]
                       else
-                       aktswitches:=aktswitches-[setsw];
+                       aktmoduleswitches:=aktmoduleswitches-[tmoduleswitch(setsw)];
                     end
                    else
                     Message(scan_w_switch_is_global);
-
-                    {$ifdef FPC}
-                    if assigned(proc) then
-                      proc();
-                    {$else}
-                    if @proc<>nil then
-                      proc;
-                    {$endif}
+                 end;
+      globalsw : begin
+                   if current_module^.in_main and (current_module=main_module) then
+                    begin
+                      if state='+' then
+                       aktglobalswitches:=aktglobalswitches+[tglobalswitch(setsw)]
+                      else
+                       aktglobalswitches:=aktglobalswitches-[tglobalswitch(setsw)];
+                    end
+                   else
+                    Message(scan_w_switch_is_global);
                  end;
       end;
    end;
@@ -150,7 +133,13 @@ begin
 { Check the switch }
   with SwitchTable[switch] do
    begin
-     found:=(setsw in aktswitches);
+     case typesw of
+      localsw : found:=(tlocalswitch(setsw) in aktlocalswitches);
+     modulesw : found:=(tmoduleswitch(setsw) in aktmoduleswitches);
+     globalsw : found:=(tglobalswitch(setsw) in aktglobalswitches);
+     else
+      found:=false;
+     end;
      if state='-' then
       found:=not found;
      CheckSwitch:=found;
@@ -161,7 +150,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-07-24 22:17:00  florian
+  Revision 1.8  1998-08-10 14:50:27  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.7  1998/07/24 22:17:00  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 

@@ -538,7 +538,7 @@ unit files;
            singlepathstring:=FixPath(copy(unitpath,start,i-start));
            delete(unitpath,start,i-start+1);
          { Check for PPL file }
-           if not (cs_link_static in aktswitches) then
+           if not (cs_link_static in aktglobalswitches) then
             begin
               Found:=UnitExists(target_info.unitlibext);
               if Found then
@@ -548,7 +548,7 @@ unit files;
                End;
              end;
          { Check for PPU file }
-           if not (cs_link_dynamic in aktswitches) and not Found then
+           if not (cs_link_dynamic in aktglobalswitches) and not Found then
             begin
               Found:=UnitExists(target_info.unitext);
               if Found then
@@ -886,7 +886,7 @@ unit files;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
        { set smartlink flag }
-         if (cs_smartlink in aktswitches) then
+         if (cs_smartlink in aktmoduleswitches) then
           flags:=flags or uf_smartlink;
        { search the PPU file if it is an unit }
          if is_unit then
@@ -1003,7 +1003,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.31  1998-07-14 14:46:48  peter
+  Revision 1.32  1998-08-10 14:49:58  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.31  1998/07/14 14:46:48  peter
     * released NEWINPUT
 
   Revision 1.30  1998/07/07 11:19:55  peter

@@ -631,13 +631,14 @@ implementation
             { virtual methods too }
             ((p^.procdefinition^.options and povirtualmethod)=0) then
            begin
-              if ((p^.procdefinition^.options and poiocheck)<>0)
-                and (cs_iocheck in aktswitches) then
+              if ((p^.procdefinition^.options and poiocheck)<>0) and
+                 (cs_check_io in aktlocalswitches) then
                 begin
                    getlabel(iolabel);
                    emitl(A_LABEL,iolabel);
                 end
-              else iolabel:=nil;
+              else
+                iolabel:=nil;
 
               { save all used registers }
               pushusedregisters(pushed,p^.procdefinition^.usedregisters);
@@ -1048,7 +1049,7 @@ implementation
                    if p^.procdefinition^.extnumber=-1 then
                         internalerror($Da);
                    r^.offset:=p^.procdefinition^.extnumber*4+12;
-                   if (cs_rangechecking in aktswitches) then
+                   if (cs_check_range in aktlocalswitches) then
                      begin
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
                         emitcall('CHECK_OBJECT',true);
@@ -1124,7 +1125,7 @@ implementation
                 { the pentium has two pipes and pop reg is pairable }
                 { but the registers must be different!              }
                 else if (pushedparasize=8) and
-                  not(cs_littlesize in aktswitches) and
+                  not(cs_littlesize in aktglobalswitches) and
                   (aktoptprocessor=pentium) and
                   (procinfo._class=nil) then
                     begin
@@ -1390,7 +1391,7 @@ implementation
 
         begin
            { I/O check }
-           if cs_iocheck in aktswitches then
+           if cs_check_io in aktlocalswitches then
              begin
                 getlabel(iolabel);
                 emitl(A_LABEL,iolabel);
@@ -1810,7 +1811,7 @@ implementation
                  secondpass(p^.left);
                  if codegenerror then
                    exit;
-                 if cs_do_assertion in aktswitches then
+                 if cs_do_assertion in aktlocalswitches then
                    begin
                       maketojumpbool(p^.left);
                       emitl(A_LABEL,falselabel);
@@ -2046,7 +2047,7 @@ implementation
               { write the add instruction }
                 if addconstant then
                  begin
-                   if (addvalue=1) and not(cs_check_overflow in aktswitches) then
+                   if (addvalue=1) and not(cs_check_overflow in aktlocalswitches) then
                     exprasmlist^.concat(new(pai386,op_ref(incdecop[p^.inlinenumber],opsize,
                       newreference(p^.left^.left^.location.reference))))
                    else
@@ -2290,7 +2291,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-07-30 13:30:31  florian
+  Revision 1.13  1998-08-10 14:49:45  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.12  1998/07/30 13:30:31  florian
     * final implemenation of exception support, maybe it needs
       some fixes :)
 

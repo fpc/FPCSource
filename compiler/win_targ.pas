@@ -91,13 +91,13 @@ unit win_targ;
          while assigned(hp1) do
            begin
               { Insert cuts for smartlinking }
-              if (cs_smartlink in aktswitches) then
+              if (cs_smartlink in aktmoduleswitches) then
                 begin
                   importssection^.concat(new(pai_cut,init));
                   codesegment^.concat(new(pai_cut,init));
                 end;
 {$IfDef GDB}
-              if (cs_debuginfo in aktswitches) then
+              if (cs_debuginfo in aktmoduleswitches) then
                 codesegment^.concat(new(pai_stab_function_name,init(nil)));
 {$EndIf GDB}
 
@@ -179,7 +179,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-10 10:43:18  peter
+  Revision 1.6  1998-08-10 14:50:38  peter
+    + localswitches, moduleswitches, globalswitches splitting
+
+  Revision 1.5  1998/06/10 10:43:18  peter
     * write also the .dll extension (needed for NT)
 
   Revision 1.4  1998/06/08 22:59:56  peter
