@@ -511,9 +511,9 @@ BEGIN
    if dosregs.ax<>$FFFF then
     begin
      if Free then
-      Do_DiskData:=dosregs.ax*dosregs.bx*dosregs.cx
+      Do_DiskData:=int64(dosregs.ax)*dosregs.bx*dosregs.cx
      else
-      Do_DiskData:=dosregs.ax*dosregs.cx*dosregs.dx;
+      Do_DiskData:=int64(dosregs.ax)*dosregs.cx*dosregs.dx;
     end
    else
     do_diskdata:=-1;
@@ -1140,7 +1140,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.19  2000-01-23 16:31:23  peter
+  Revision 1.20  2000-02-02 17:34:49  pierre
+   * use int64 typecast to avoid overflows in diskfree and disksize
+
+  Revision 1.19  2000/01/23 16:31:23  peter
     * hasint64diskspace define changed to int64 so it's default now
 
   Revision 1.18  2000/01/23 12:28:38  marco
@@ -1229,6 +1232,5 @@ end.
     * go32v1 compiles again
 
 }
-
 
 
