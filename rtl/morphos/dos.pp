@@ -170,6 +170,7 @@ implementation
 {$include timerd.inc}
 {$include doslibd.inc}
 {$include doslibf.inc}
+{$include utilf.inc}
 
 const
   DaysPerMonth :  Array[1..12] of ShortInt =
@@ -211,7 +212,7 @@ var
   cd : pClockData;
 Begin
   New(cd);
-  util_Amiga2Date(SecsPast,cd);
+  Amiga2Date(SecsPast,cd);
   Dt.sec   := cd^.sec;
   Dt.min   := cd^.min;
   Dt.hour  := cd^.hour;
@@ -233,7 +234,7 @@ Begin
   cd^.mday  := Dt.day;
   cd^.month := Dt.month;
   cd^.year  := Dt.year;
-  temp := util_Date2Amiga(cd);
+  temp := Date2Amiga(cd);
   Dispose(cd);
   DtToAmiga := temp;
 end;
@@ -383,7 +384,7 @@ begin
     IOReq := NIL;
     if port <> NIL then
     begin
-        IOReq := AllocMem2(size, MEMF_CLEAR or MEMF_PUBLIC);
+        IOReq := execAllocMem(size, MEMF_CLEAR or MEMF_PUBLIC);
         if IOReq <> NIL then
         begin
             IOReq^.io_Message.mn_Node.ln_Type   := 7;
@@ -401,7 +402,7 @@ begin
         ioReq^.io_Message.mn_Node.ln_Type := $FF;
         ioReq^.io_Message.mn_ReplyPort    := pMsgPort(-1);
         ioReq^.io_Device                  := pDevice(-1);
-        FreeMem2(ioReq, ioReq^.io_Message.mn_Length);
+        execFreeMem(ioReq, ioReq^.io_Message.mn_Length);
     end
 end;
 
@@ -412,7 +413,7 @@ var
 begin
    sigbit := AllocSignal(-1);
    if sigbit = -1 then CreatePort := nil;
-   port := AllocMem2(sizeof(tMsgPort),MEMF_CLEAR or MEMF_PUBLIC);
+   port := execAllocMem(sizeof(tMsgPort),MEMF_CLEAR or MEMF_PUBLIC);
    if port = nil then begin
       FreeSignal(sigbit);
       CreatePort := nil;
@@ -442,7 +443,7 @@ begin
         port^.mp_Node.ln_Type     := $FF;
         port^.mp_MsgList.lh_Head  := pNode(-1);
         FreeSignal(port^.mp_SigBit);
-        FreeMem2(port, sizeof(tMsgPort));
+        execFreeMem(port, sizeof(tMsgPort));
     end;
 end;
 
@@ -529,7 +530,7 @@ Var
 begin
   New(cd);
   get_sys_time(@oldtime);
-  util_Amiga2Date(oldtime.tv_secs,cd);
+  Amiga2Date(oldtime.tv_secs,cd);
   Year  := cd^.year;
   Month := cd^.month;
   MDay  := cd^.mday;
@@ -544,11 +545,11 @@ var
 Begin
   new(cd);
   get_sys_time(@oldtime);
-  util_Amiga2Date(oldtime.tv_secs,cd);
+  Amiga2Date(oldtime.tv_secs,cd);
   cd^.year := Year;
   cd^.month := Month;
   cd^.mday := Day;
-  set_new_time(util_Date2Amiga(cd),0);
+  set_new_time(Date2Amiga(cd),0);
   dispose(cd);
   End;
 
@@ -559,7 +560,7 @@ Var
 begin
   New(cd);
   get_sys_time(@oldtime);
-  util_Amiga2Date(oldtime.tv_secs,cd);
+  Amiga2Date(oldtime.tv_secs,cd);
   Hour   := cd^.hour;
   Minute := cd^.min;
   Second := cd^.sec;
@@ -575,11 +576,11 @@ var
 Begin
   new(cd);
   get_sys_time(@oldtime);
-  util_Amiga2Date(oldtime.tv_secs,cd);
+  Amiga2Date(oldtime.tv_secs,cd);
   cd^.hour := Hour;
   cd^.min := Minute;
   cd^.sec := Second;
-  set_new_time(util_Date2Amiga(cd), Sec100 * 10000);
+  set_new_time(Date2Amiga(cd), Sec100 * 10000);
   dispose(cd);
   End;
 
@@ -1316,7 +1317,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2004-06-26 20:48:24  karoly
+  Revision 1.7  2004-08-03 15:59:41  karoly
+    * more cleanup & more includes
+
+  Revision 1.6  2004/06/26 20:48:24  karoly
     * more cleanup + changes to use new includes
 
   Revision 1.5  2004/06/13 22:51:08  karoly

@@ -54,27 +54,6 @@ const
   BreakOn : Boolean = True;
 
 
-{*****************************************************************************
-                           MorphOS structures
-*****************************************************************************}
-
-{$include execd.inc}
-{$include timerd.inc}
-{$include doslibd.inc}
-
-type
-  PClockData = ^TClockData;
-  TClockData = packed Record
-    sec  : Word;
-    min  : Word;
-    hour : Word;
-    mday : Word;
-    month: Word;
-    year : Word;
-    wday : Word;
-  end;
-
-
 var
   MOS_ExecBase   : Pointer; external name '_ExecBase';
   MOS_DOSBase    : Pointer;
@@ -82,7 +61,7 @@ var
 
   MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   MOS_origDir  : LongInt; { original directory on startup }
-  MOS_ambMsg   : PMessage; 
+  MOS_ambMsg   : Pointer; 
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
   
@@ -91,20 +70,18 @@ var
   envp: PPChar;
 
 
-{*****************************************************************************
-                           MorphOS functions
-*****************************************************************************}
-
-{ utility.library functions }
-
-function util_Date2Amiga(date: PClockData location 'a0'): LongInt; SysCall MOS_UtilityBase 126;
-procedure util_Amiga2Date(amigatime: LongInt location 'd0';
-                          resultat: PClockData location 'a0'); SysCall MOS_UtilityBase 120;
-
-
 implementation
 
 {$I system.inc}
+
+
+{*****************************************************************************
+                           MorphOS structures
+*****************************************************************************}
+
+{$include execd.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
 
 
 {*****************************************************************************
@@ -940,7 +917,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-06-26 20:48:24  karoly
+  Revision 1.17  2004-08-03 15:59:41  karoly
+    * more cleanup & more includes
+
+  Revision 1.16  2004/06/26 20:48:24  karoly
     * more cleanup + changes to use new includes
 
   Revision 1.15  2004/06/23 13:27:32  karoly
