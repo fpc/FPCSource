@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 1.0.6
+                               Version 1.2.0
 
 
 ****************************************************************************
@@ -77,8 +77,9 @@ Win32:
  - 8 MB RAM (16+ MB recommended)
 OS/2 and DOS (extender EMX):
  - either DOS 5.0 and above or OS/2 v3.x and above (including eComStation;
-  OS/2 v2.x might work at least in some cases, but is not officially
-  supported any more)
+  OS/2 v2.1 might work at least in some cases, but is not officially
+  supported any more, OS/2 v2.0 will not run any FPC application using
+  units Dos or DosCalls - this includes the compiler itself)
  - 3 MB RAM (8+ MB recommended) for DOS
   or 8 MB (12 or more MB recommended depending on OS version) for OS/2
  - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
