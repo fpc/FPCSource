@@ -369,8 +369,6 @@ end;
 
 
 procedure tppufile.close;
-var
-  i : word;
 begin
   if Mode<>0 then
    begin
@@ -378,7 +376,7 @@ begin
      {$I-}
       system.close(f);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
      Mode:=0;
      closed:=true;
    end;
@@ -395,7 +393,6 @@ function tppufile.GetPPUVersion:longint;
 var
   l    : longint;
   code : integer;
-
 begin
   Val(header.ver[1]+header.ver[2]+header.ver[3],l,code);
   if code=0 then
@@ -437,7 +434,6 @@ var
 {$else delphi}
   i      : word;
 {$endif delphi}
-
 begin
   open:=false;
   assign(f,fname);
@@ -958,8 +954,6 @@ end;
 
 
     procedure tppufile.tempclose;
-      var
-        i : word;
       begin
         if not closed then
          begin
@@ -967,7 +961,7 @@ end;
            {$I-}
             system.close(f);
            {$I+}
-           i:=ioresult;
+           if ioresult<>0 then;
            closed:=true;
            tempclosed:=true;
          end;
@@ -1000,7 +994,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  1999-11-21 01:42:37  pierre
+  Revision 1.51  1999-11-23 09:42:38  peter
+    * makefile updates to work with new fpcmake
+
+  Revision 1.50  1999/11/21 01:42:37  pierre
    * Nextoverloading ordering fix
 
   Revision 1.49  1999/11/18 15:34:48  pierre

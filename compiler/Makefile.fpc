@@ -268,11 +268,13 @@ cvstest:
 # Installation
 #####################################################################
 
+MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
+
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
 ifdef inlinux
-        $(MKDIR) $(LIBINSTALLDIR)
-        $(INSTALLEXE) $(EXENAME) $(LIBINSTALLDIR)
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
 else
         $(MKDIR) $(BININSTALLDIR)
 ifdef UPXPROG
@@ -283,7 +285,7 @@ endif
 
 installlib: quickinstall
 ifdef inlinux
-        $(INSTALLEXE) $(COMPILERUTILS)/samplecfg $(LIBINSTALLDIR)/samplecfg
+        $(INSTALLEXE) $(COMPILERUTILS)/samplecfg $(BASEINSTALLDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
@@ -292,7 +294,7 @@ endif
 install: installlib
 ifdef inlinux
         $(MKDIR) $(BININSTALLDIR)
-        ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
+        ln -sf $(BASEINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
 endif
 
 
