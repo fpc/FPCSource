@@ -1009,8 +1009,6 @@ implementation
             (pfrom^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(pto^.location,pfrom^.location);
-              freelabel(truelabel);
-              freelabel(falselabel);
               truelabel:=oldtruelabel;
               falselabel:=oldfalselabel;
               exit;
@@ -1105,8 +1103,6 @@ implementation
          else
            internalerror(10061);
          end;
-         freelabel(truelabel);
-         freelabel(falselabel);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
       end;
@@ -1490,7 +1486,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  1999-12-21 11:49:51  pierre
+  Revision 1.97  1999-12-22 01:01:46  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.96  1999/12/21 11:49:51  pierre
    * array of char to short string bug fixed
 
   Revision 1.95  1999/12/01 12:42:31  peter

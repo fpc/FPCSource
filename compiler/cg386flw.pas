@@ -97,9 +97,6 @@ implementation
          secondpass(p^.left);
          maketojumpbool(p^.left);
          emitlab(lbreak);
-         freelabel(lloop);
-         freelabel(lcont);
-         freelabel(lbreak);
          truelabel:=otlabel;
          falselabel:=oflabel;
 
@@ -154,8 +151,6 @@ implementation
            begin
               emitlab(truelabel);
            end;
-         freelabel(truelabel);
-         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -366,9 +361,6 @@ implementation
          if temptovalue then
            ungetiftemp(temp1);
 
-         freelabel(aktcontinuelabel);
-         freelabel(aktbreaklabel);
-         freelabel(l3);
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -473,8 +465,6 @@ implementation
                         end;
               end;
 do_jmp:
-              freelabel(truelabel);
-              freelabel(falselabel);
               truelabel:=otlabel;
               falselabel:=oflabel;
               emitjmp(C_None,aktexit2label);
@@ -888,7 +878,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.63  1999-12-19 17:02:45  peter
+  Revision 1.64  1999-12-22 01:01:46  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.63  1999/12/19 17:02:45  peter
     * support exit,break,continue in try...except
     * support break,continue in try...finally
 

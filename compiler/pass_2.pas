@@ -120,65 +120,94 @@ implementation
 
 
     procedure secondasm(var p : ptree);
+
+        procedure ReLabel(var p:pasmsymbol);
+        begin
+          if p^.proclocal then
+           begin
+             if not assigned(p^.altsymbol) then
+              p^.GenerateAltSymbol;
+             p:=p^.altsymbol;
+           end;
+        end;
+
       var
         hp,hp2 : pai;
         localfixup,parafixup,
         i : longint;
         r : preference;
+        skipnode : boolean;
       begin
-         if (pocall_inline in aktprocsym^.definition^.proccalloptions) then
+         if inlining_procedure then
            begin
              localfixup:=aktprocsym^.definition^.localst^.address_fixup;
              parafixup:=aktprocsym^.definition^.parast^.address_fixup;
-             { first reallocate all local labels }
-             hp:=pai(p^.p_asm^.first);
-             while assigned(hp) do
-              begin
-                if hp^.typ=ait_label then
-                  if Copy(pai_label(hp)^.l^.name,1,length(target_asm.labelprefix))
-                     = target_asm.labelprefix then
-                    begin
-                      getlabel(pai_label(hp)^.l);
-                    end;
-                hp:=pai(hp^.next);
-              end;
+             ResetAsmSymbolListAltSymbol;
              hp:=pai(p^.p_asm^.first);
              while assigned(hp) do
               begin
                 hp2:=pai(hp^.getcopy);
+                skipnode:=false;
                 case hp2^.typ of
+                  ait_label :
+                     begin
+                       { regenerate the labels by setting altsymbol }
+                       ReLabel(pai_label(hp2)^.l);
+                     end;
+                  ait_const_rva,
+                  ait_const_symbol :
+                     begin
+                       ReLabel(pai_const_symbol(hp2)^.sym);
+                     end;
                   ait_instruction :
                      begin
 {$ifdef i386}
                        { fixup the references }
                        for i:=1 to paicpu(hp2)^.ops do
-                        if paicpu(hp2)^.oper[i-1].typ=top_ref then
-                         begin
-                           r:=paicpu(hp2)^.oper[i-1].ref;
-                           case r^.options of
-                             ref_parafixup :
-                               r^.offsetfixup:=parafixup;
-                             ref_localfixup :
-                               r^.offsetfixup:=localfixup;
-                           end;
+                        case paicpu(hp2)^.oper[i-1].typ of
+                          top_ref :
+                            begin
+                              r:=paicpu(hp2)^.oper[i-1].ref;
+                              case r^.options of
+                                ref_parafixup :
+                                  r^.offsetfixup:=parafixup;
+                                ref_localfixup :
+                                  r^.offsetfixup:=localfixup;
+                              end;
+                              if assigned(r^.symbol) then
+                               ReLabel(r^.symbol);
+                            end;
+                          top_symbol :
+                            begin
+                              ReLabel(paicpu(hp2)^.oper[i-1].sym);
+                            end;
                          end;
-                       exprasmlist^.concat(hp2);
 {$endif i386}
                      end;
                    ait_marker :
                      begin
                      { it's not an assembler block anymore }
-                       if not(pai_marker(hp2)^.kind in [AsmBlockStart, AsmBlockEnd]) then
-                        exprasmlist^.concat(hp2);
+                       if (pai_marker(hp2)^.kind in [AsmBlockStart, AsmBlockEnd]) then
+                        skipnode:=true;
                      end;
                    else
-                     exprasmlist^.concat(hp2);
                 end;
+                if not skipnode then
+                 exprasmlist^.concat(hp2)
+                else
+                 dispose(hp2,done);
                 hp:=pai(hp^.next);
               end
            end
          else
-           exprasmlist^.concatlist(p^.p_asm);
+           begin
+             { if the routine is an inline routine, then we must hold a copy
+               becuase it can be necessary for inlining later }
+             if (pocall_inline in aktprocsym^.definition^.proccalloptions) then
+               exprasmlist^.concatlistcopy(p^.p_asm)
+             else
+               exprasmlist^.concatlist(p^.p_asm);
+           end;
          if not p^.object_preserved then
           begin
 {$ifdef i386}
@@ -712,7 +741,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  1999-12-19 23:37:18  pierre
+  Revision 1.47  1999-12-22 01:01:52  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.46  1999/12/19 23:37:18  pierre
    * fix for web bug735
 
   Revision 1.45  1999/12/14 09:58:42  florian

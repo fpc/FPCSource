@@ -423,6 +423,7 @@ type tmsgconst=(
   asmw_e_immediate_or_reference_expected,
   asmw_e_value_exceeds_bounds,
   asmw_e_short_jmp_out_of_range,
+  asmw_e_undefined_label,
   exec_w_source_os_redefined,
   exec_i_assembling_pipe,
   exec_d_cant_create_asmfile,

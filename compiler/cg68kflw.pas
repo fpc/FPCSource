@@ -113,8 +113,6 @@ implementation
               truelabel:=otlabel;
               falselabel:=oflabel;
            end;
-         freelabel(l1);
-         freelabel(l2);
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -160,8 +158,6 @@ implementation
            emitl(A_LABEL,falselabel);
          if not(assigned(p^.right)) then
            emitl(A_LABEL,truelabel);
-         freelabel(truelabel);
-         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -362,9 +358,6 @@ implementation
          if temptovalue then
            ungetiftemp(temp1);
 
-         freelabel(aktcontinuelabel);
-         freelabel(aktbreaklabel);
-         freelabel(l3);
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
       end;
@@ -487,8 +480,6 @@ implementation
                         end;
               end;
 do_jmp:
-              freelabel(truelabel);
-              freelabel(falselabel);
               truelabel:=otlabel;
               falselabel:=oflabel;
               emitl(A_JMP,aktexit2label);
@@ -779,7 +770,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.12  1999-11-09 23:06:44  peter
+  Revision 1.13  1999-12-22 01:01:47  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.12  1999/11/09 23:06:44  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 

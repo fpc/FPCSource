@@ -183,8 +183,6 @@ implementation
                    push_value_para(p^.left,inlined,para_offset,align);
                 end;
            end;
-         freelabel(truelabel);
-         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
          { push from right to left }
@@ -1158,19 +1156,24 @@ implementation
            oldprocsym : pprocsym;
            para_size : longint;
            oldprocinfo : pprocinfo;
-           { just dummies for genentrycode }
+           oldinlining_procedure,
            nostackframe,make_global : boolean;
            proc_names : tstringcontainer;
            inlineentrycode,inlineexitcode : paasmoutput;
            oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
        begin
+          oldinlining_procedure:=inlining_procedure;
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
           oldquickexitlabel:=quickexitlabel;
           getlabel(aktexitlabel);
           getlabel(aktexit2label);
           oldprocsym:=aktprocsym;
-          oldprocinfo:=procinfo;
+          { save old procinfo }
+          getmem(oldprocinfo,sizeof(tprocinfo));
+          move(procinfo^,oldprocinfo^,sizeof(tprocinfo));
+          { we're inlining a procedure }
+          inlining_procedure:=true;
           { set the return value }
           aktprocsym:=p^.inlineprocsym;
           procinfo^.returntype:=aktprocsym^.definition^.rettype;
@@ -1211,13 +1214,15 @@ implementation
               ungetpersistanttemp(st^.address_fixup);
               st^.address_fixup:=0;
             end;
+          { restore procinfo }
+          move(oldprocinfo^,procinfo^,sizeof(tprocinfo));
+          freemem(oldprocinfo,sizeof(tprocinfo));
+          { restore }
           aktprocsym:=oldprocsym;
-          freelabel(aktexitlabel);
-          freelabel(aktexit2label);
           aktexitlabel:=oldexitlabel;
           aktexit2label:=oldexit2label;
           quickexitlabel:=oldquickexitlabel;
-          procinfo:=oldprocinfo;
+          inlining_procedure:=oldinlining_procedure;
        end;
 
 
@@ -1225,7 +1230,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  1999-12-13 21:49:54  pierre
+  Revision 1.113  1999-12-22 01:01:46  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.112  1999/12/13 21:49:54  pierre
    * bug in extdebugg code for inlined procedures
 
   Revision 1.111  1999/11/30 10:40:42  peter

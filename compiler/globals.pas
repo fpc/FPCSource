@@ -138,6 +138,7 @@ unit globals;
        make_ref : boolean;
        resolving_forward : boolean;      { used to add forward reference as second ref }
        use_esp_stackframe : boolean;     { to test for call with ESP as stack frame }
+       inlining_procedure : boolean;     { are we inlining a procedure }
 
 {$ifdef TP}
        use_big      : boolean;
@@ -1421,7 +1422,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  1999-12-20 23:23:28  pierre
+  Revision 1.42  1999-12-22 01:01:48  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.41  1999/12/20 23:23:28  pierre
    + $description $version
 
   Revision 1.40  1999/12/20 21:42:34  pierre

@@ -1639,14 +1639,6 @@ begin
 
    { restore filepos, the switches are already set }
    aktfilepos:=savepos;
-   { free labels }
-   freelabel(aktexitlabel);
-   freelabel(aktexit2label);
-   if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
-     begin
-       freelabel(faillabel);
-       freelabel(quickexitlabel);
-     end;
    { restore labels }
    aktexitlabel:=oldexitlabel;
    aktexit2label:=oldexit2label;
@@ -1941,7 +1933,14 @@ end.
 
 {
   $Log$
-  Revision 1.38  1999-12-06 18:17:09  peter
+  Revision 1.39  1999-12-22 01:01:52  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.38  1999/12/06 18:17:09  peter
     * newcg compiler compiles again
 
   Revision 1.37  1999/11/30 10:40:48  peter

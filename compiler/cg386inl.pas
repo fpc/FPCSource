@@ -903,8 +903,6 @@ implementation
                  { call }
                  emitcall('FPC_ASSERT');
                  emitlab(truelabel);
-                 freelabel(truelabel);
-                 freelabel(falselabel);
                  truelabel:=otlabel;
                  falselabel:=oflabel;
               end;
@@ -1481,7 +1479,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  1999-12-20 21:42:35  pierre
+  Revision 1.86  1999-12-22 01:01:46  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.85  1999/12/20 21:42:35  pierre
     + dllversion global variable
     * FPC_USE_CPREFIX code removed, not necessary anymore
       as we use .edata direct writing by default now.

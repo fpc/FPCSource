@@ -1357,6 +1357,7 @@ asmw_e_invalid_effective_address=E_Asm: Invalid effective address
 asmw_e_immediate_or_reference_expected=E_Asm: Immediate or reference expected
 asmw_e_value_exceeds_bounds=E_Asm: $1 value exceeds bounds $2
 asmw_e_short_jmp_out_of_range=E_Asm: Short jump is out of range $1
+asmw_e_undefined_label=E_Asm: Undefined label $1
 
 
 #

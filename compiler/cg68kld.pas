@@ -388,8 +388,6 @@ implementation
 
                            end;
          end;
-         freelabel(truelabel);
-         freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -473,7 +471,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-11-10 00:06:08  pierre
+  Revision 1.11  1999-12-22 01:01:47  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.10  1999/11/10 00:06:08  pierre
    * adapted to procinfo as pointer
 
   Revision 1.9  1999/09/16 23:05:51  florian

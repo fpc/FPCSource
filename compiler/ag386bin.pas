@@ -740,7 +740,7 @@ unit ag386bin;
         objectalloc^.setsection(sec_code);
         objectoutput^.defaultsection(sec_code);
 
-        { Pass 1 }
+      { Pass 1 }
         currpass:=1;
 {$ifdef GDB}
         StartFileLineInfo;
@@ -754,8 +754,13 @@ unit ag386bin;
            hp:=TreePass1(hp);
            MaybeNextList(hp);
          end;
+        { check for undefined labels }
+        CheckAsmSymbolListUndefined;
         { set section sizes }
         objectoutput^.setsectionsizes(objectalloc^.secsize);
+        { leave if errors have occured }
+        if errorcount>0 then
+         exit;
 
       { Pass 2 }
         currpass:=2;
@@ -792,9 +797,14 @@ unit ag386bin;
            StartFileLineInfo;
 {$endif GDB}
            TreePass1(hp);
-
-         { set section sizes }
+           { check for undefined labels }
+           CheckAsmSymbolListUndefined;
+           { set section sizes }
            objectoutput^.setsectionsizes(objectalloc^.secsize);
+           { leave if errors have occured }
+           if errorcount>0 then
+            exit;
+
          { Pass 2 }
            currpass:=2;
 {$ifdef GDB}
@@ -805,6 +815,9 @@ unit ag386bin;
            if not MaybeNextList(hp) then
             break;
 
+           { leave if errors have occured }
+           if errorcount>0 then
+            exit;
            { write the current objectfile }
            objectoutput^.donewriting;
 
@@ -879,6 +892,11 @@ unit ag386bin;
         else
           writetree;
 
+        { leave if errors have occured }
+        if errorcount>0 then
+         exit;
+
+        { write last objectfile }
         objectoutput^.donewriting;
       end;
 
@@ -910,7 +928,14 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.30  1999-12-08 10:39:59  pierre
+  Revision 1.31  1999-12-22 01:01:46  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.30  1999/12/08 10:39:59  pierre
     + allow use of unit var in exports of DLL for win32
       by using direct export writing by default instead of use of DEFFILE
       that does not allow assembler labels that do not

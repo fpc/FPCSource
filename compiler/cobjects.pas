@@ -1496,13 +1496,11 @@ end;
 
 
     function tdictionary.insertnode(newnode:Pnamedindexobject;var currnode:Pnamedindexobject):Pnamedindexobject;
-      var
-        s1,s2:^string;
       begin
         if currnode=nil then
          begin
            currnode:=newnode;
-           insertnode:=currnode;
+           insertnode:=newnode;
          end
         { first check speedvalue, to allow a fast insert }
         else
@@ -1513,27 +1511,13 @@ end;
           insertnode:=insertnode(newnode,currnode^.left)
         else
          begin
-           new(s1);
-           new(s2);
-           s1^:=currnode^._name^;
-           s2^:=newnode^._name^;
-           if s1^>s2^ then
-            begin
-              dispose(s2);
-              dispose(s1);
-              insertnode:=insertnode(newnode,currnode^.right);
-            end
+           if currnode^._name^>newnode^._name^ then
+            insertnode:=insertnode(newnode,currnode^.right)
            else
-            if s1^<s2^ then
-             begin
-               dispose(s2);
-               dispose(s1);
-               insertnode:=insertnode(newnode,currnode^.left);
-             end
+            if currnode^._name^<newnode^._name^ then
+             insertnode:=insertnode(newnode,currnode^.left)
            else
             begin
-              dispose(s2);
-              dispose(s1);
               if replace_existing and
                  assigned(currnode) then
                 begin
@@ -2334,7 +2318,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  1999-12-06 18:21:03  peter
+  Revision 1.49  1999-12-22 01:01:48  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.48  1999/12/06 18:21:03  peter
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.

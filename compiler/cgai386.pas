@@ -3362,7 +3362,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,parasize)));
        end;
 
-      exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
+      if not inlined then
+        exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
 
 {$ifdef GDB}
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
@@ -3446,7 +3447,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.64  1999-12-20 21:42:35  pierre
+  Revision 1.65  1999-12-22 01:01:47  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.64  1999/12/20 21:42:35  pierre
     + dllversion global variable
     * FPC_USE_CPREFIX code removed, not necessary anymore
       as we use .edata direct writing by default now.

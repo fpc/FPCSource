@@ -152,7 +152,6 @@ unit pstatmnt;
                      (p^._low = hcaselabel^._high + 1) then
                     begin
                       p^._low := hcaselabel^._low;
-                      freelabel(hcaselabel^._at);
                       dispose(hcaselabel);
                     end
                   else
@@ -164,7 +163,6 @@ unit pstatmnt;
                        (p^._high+1 = hcaselabel^._low) then
                       begin
                         p^._high := hcaselabel^._high;
-                        freelabel(hcaselabel^._at);
                         dispose(hcaselabel);
                       end
                     else
@@ -1328,7 +1326,14 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.116  1999-12-14 09:58:42  florian
+  Revision 1.117  1999-12-22 01:01:52  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.116  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.115  1999/12/01 22:43:17  peter

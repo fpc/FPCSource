@@ -1102,8 +1102,6 @@ implementation
          else
            internalerror(10061);
          end;
-         freelabel(truelabel);
-         freelabel(falselabel);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
      end;
@@ -1361,7 +1359,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-09-16 23:05:51  florian
+  Revision 1.15  1999-12-22 01:01:47  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.14  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.13  1999/08/25 11:59:48  jonas

@@ -92,7 +92,8 @@ unit aasm;
        pasmsymbol = ^tasmsymbol;
        tasmsymbol = object(tnamedindexobject)
          typ     : TAsmsymtype;
-         { this need te incremented with every symbol loading into the
+         proclocal : boolean;
+         { this need to be incremented with every symbol loading into the
            paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
          refs    : longint;
          { the next fields are filled in the binary writer }
@@ -100,10 +101,14 @@ unit aasm;
          section : tsection;
          address,
          size    : longint;
+         { alternate symbol which can be used for 'renaming' needed for
+           inlining }
+         altsymbol : pasmsymbol;
          constructor init(const s:string;_typ:TAsmsymtype);
          procedure reset;
          function  is_used:boolean;
          procedure setaddress(sec:tsection;offset,len:longint);
+         procedure GenerateAltSymbol;
        end;
 
        pasmlabel = ^tasmlabel;
@@ -337,6 +342,7 @@ type
       asmsymbollist : pasmsymbollist;
 
     const
+      nextaltnr   : longint = 1;
       nextlabelnr : longint = 1;
       countlabelref : boolean = true;
 
@@ -344,8 +350,6 @@ type
     procedure getlabel(var l : pasmlabel);
     { make l as a new label and flag is_data }
     procedure getdatalabel(var l : pasmlabel);
-    { free a label }
-    procedure freelabel(var l : pasmlabel);
     {just get a label number }
     procedure getlabelnr(var l : longint);
 
@@ -355,7 +359,8 @@ type
     function  renameasmsymbol(const sold, snew : string):pasmsymbol;
 
     procedure ResetAsmsymbolList;
-
+    procedure ResetAsmSymbolListAltSymbol;
+    procedure CheckAsmSymbolListUndefined;
 
 implementation
 
@@ -813,6 +818,17 @@ uses
         typ:=_typ;
       end;
 
+    procedure tasmsymbol.GenerateAltSymbol;
+      begin
+        if not assigned(altsymbol) then
+         begin
+           new(altsymbol,init(name+'_'+tostr(nextaltnr),typ));
+           { also copy the amount of references }
+           altsymbol^.refs:=refs;
+           inc(nextaltnr);
+         end;
+      end;
+
     procedure tasmsymbol.reset;
       begin
         section:=sec_none;
@@ -820,6 +836,7 @@ uses
         size:=0;
         idx:=-1;
         typ:=AS_EXTERNAL;
+        proclocal:=false;
         { mainly used to remove unused labels from the codesegment }
         refs:=0;
       end;
@@ -846,6 +863,7 @@ uses
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
         inherited init(target_asm.labelprefix+tostr(labelnr),AS_LOCAL);
+        proclocal:=true;
         is_set:=false;
       end;
 
@@ -918,40 +936,9 @@ uses
 
     { renames an asmsymbol }
     function renameasmsymbol(const sold, snew : string):pasmsymbol;
-{$ifdef nodictonaryrename}
-      var
-        hpold,hpnew : pasmsymbol;
-      begin
-        hpnew:=pasmsymbol(asmsymbollist^.search(snew));
-        if assigned(hpnew) then
-          internalerror(405405);
-        hpold:=pasmsymbol(asmsymbollist^.search(sold));
-        if not assigned(hpold) then
-          internalerror(405406);
-
-        hpnew:=new(pasmsymbol,init(sold));
-        { replace the old one }
-        { WARNING this heavily depends on the
-          feature that tdictionnary.insert does not delete
-          the tree element that it replaces !! }
-        asmsymbollist^.replace_existing:=true;
-        asmsymbollist^.insert(hpnew);
-        asmsymbollist^.replace_existing:=false;
-        { restore the tree }
-        hpnew^.left:=hpold^.left;
-        hpnew^.right:=hpold^.right;
-        stringdispose(hpold^._name);
-        hpold^._name:=stringdup(snew);
-        hpold^.speedvalue:=getspeedvalue(snew);
-        { now reinsert it at right location !! }
-        asmsymbollist^.insert(hpold);
-        renameasmsymbol:=hpold;
-      end;
-{$else}
       begin
         renameasmsymbol:=pasmsymbol(asmsymbollist^.rename(sold,snew));
       end;
-{$endif}
 
 
     procedure ResetAsmSym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
@@ -963,6 +950,32 @@ uses
     procedure ResetAsmsymbolList;
       begin
         asmsymbollist^.foreach({$ifndef TP}@{$endif}resetasmsym);
+      end;
+
+
+    procedure ResetAltSym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
+      begin
+        pasmsymbol(p)^.altsymbol:=nil;
+      end;
+
+
+    procedure ResetAsmSymbolListAltSymbol;
+      begin
+        asmsymbollist^.foreach({$ifndef TP}@{$endif}resetaltsym);
+      end;
+
+
+    procedure checkundefinedasmsym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
+      begin
+        if (pasmsymbol(p)^.refs>0) and
+           (pasmsymbol(p)^.section=Sec_none) and
+           (pasmsymbol(p)^.typ<>AS_EXTERNAL) then
+         Message1(asmw_e_undefined_label,pasmsymbol(p)^.name);
+      end;
+
+    procedure CheckAsmSymbolListUndefined;
+      begin
+        asmsymbollist^.foreach({$ifndef TP}@{$endif}checkundefinedasmsym);
       end;
 
 
@@ -984,11 +997,14 @@ uses
       end;
 
 
-    procedure freelabel(var l : pasmlabel);
+    procedure RegenerateLabel(var l : pasmlabel);
       begin
-        { nothing to do, the dispose of the asmsymbollist will do it }
-        l:=nil;
+        if l^.proclocal then
+         getlabel(pasmlabel(l^.altsymbol))
+        else
+         getdatalabel(pasmlabel(l^.altsymbol));
       end;
+
 
     procedure getlabelnr(var l : longint);
       begin
@@ -1012,7 +1028,14 @@ uses
 end.
 {
   $Log$
-  Revision 1.68  1999-11-06 14:34:16  peter
+  Revision 1.69  1999-12-22 01:01:46  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.68  1999/11/06 14:34:16  peter
     * truncated log to 20 revs
 
   Revision 1.67  1999/11/05 16:01:45  jonas

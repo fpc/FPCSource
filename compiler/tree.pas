@@ -481,9 +481,6 @@ unit tree;
            deletecaselabels(p^.greater);
          if assigned(p^.less) then
            deletecaselabels(p^.less);
-         freelabel(p^._at);
-         if p^.firstlabel then
-          freelabel(p^.statement);
          dispose(p);
       end;
 
@@ -1898,7 +1895,14 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.105  1999-12-14 09:58:42  florian
+  Revision 1.106  1999-12-22 01:01:52  peter
+    - removed freelabel()
+    * added undefined label detection in internal assembler, this prevents
+      a lot of ld crashes and wrong .o files
+    * .o files aren't written anymore if errors have occured
+    * inlining of assembler labels is now correct
+
+  Revision 1.105  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.104  1999/11/30 10:40:59  peter
