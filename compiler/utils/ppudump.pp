@@ -58,7 +58,6 @@ type
 var
   ppufile     : tppufile;
   space       : string;
-  read_member : boolean;
   unitnumber,
   unitindex   : longint;
   verbose     : longint;
@@ -883,11 +882,37 @@ begin
 end;
 
 
+procedure readnodetree;
+var
+  l : longint;
+  p : pointer;
+begin
+  with ppufile do
+   begin
+     if space<>'' then
+      Writeln(space,'------ nodetree ------');
+     if readentry=ibnodetree then
+      begin
+        l:=entrysize;
+        Writeln(space,'Tree size : ',l);
+        { Read data to prevent error that entry is not completly read }
+        getmem(p,l);
+        getdata(p^,l);
+        freemem(p);
+      end
+     else
+      begin
+        Writeln('!! ibnodetree not found');
+      end;
+   end;
+end;
+
+
 {****************************************************************************
                              Read Symbols Part
 ****************************************************************************}
 
-procedure readsymbols;
+procedure readsymbols(const s:string);
 type
   { options for variables }
   tvaroption=(vo_none,
@@ -931,7 +956,7 @@ begin
   with ppufile do
    begin
      if space<>'' then
-      Writeln(space,'-----------------------------');
+      Writeln(space,'------ ',s,' ------');
      if readentry=ibstartsyms then
       begin
         totalsyms:=getlongint;
@@ -1169,7 +1194,7 @@ end;
                          Read defintions Part
 ****************************************************************************}
 
-procedure readdefinitions(start_read : boolean);
+procedure readdefinitions(const s:string;start_read : boolean);
 type
   tsettype  = (normset,smallset,varset);
   tbasetype = (
@@ -1191,7 +1216,6 @@ type
   );
 var
   b : byte;
-  oldread_member : boolean;
   totaldefs,l,j,
   defcnt : longint;
   calloption : tproccalloption;
@@ -1200,7 +1224,7 @@ begin
   with ppufile do
    begin
      if space<>'' then
-      Writeln(space,'-----------------------------');
+      Writeln(space,'------ ',s,' ------');
      if not start_read then
        if readentry=ibstartdefs then
          begin
@@ -1277,6 +1301,7 @@ begin
                writeln(space,'     Mangled name : ',getstring);
              writeln(space,'  Overload Number : ',getword);
              writeln(space,'           Number : ',getword);
+             writeln(space,'            Level : ',getbyte);
              write  (space,'            Class : ');
              readderef;
              write  (space,'          Procsym : ');
@@ -1290,17 +1315,22 @@ begin
                 write  (space,'       FuncretSym : ');
                 readderef;
               end;
+             if not EndOfEntry then
+              Writeln('!! Entry has more information stored');
              space:='    '+space;
              { parast }
-             readdefinitions(false);
-             readsymbols;
+             readdefinitions('parast',false);
+             readsymbols('parast');
              { localst }
              if (calloption=pocall_inline) or
                 ((ppufile.header.flags and uf_local_browser) <> 0) then
               begin
-                readdefinitions(false);
-                readsymbols;
+                readdefinitions('localst',false);
+                readsymbols('localst');
               end;
+             { code }
+             if (calloption=pocall_inline) then
+               readnodetree;
              delete(space,1,4);
            end;
 
@@ -1308,10 +1338,12 @@ begin
            begin
              readcommondef('Procedural type (ProcVar) definition');
              read_abstract_proc_def;
+             if not EndOfEntry then
+              Writeln('!! Entry has more information stored');
              space:='    '+space;
              { parast }
-             readdefinitions(false);
-             readsymbols;
+             readdefinitions('parast',false);
+             readsymbols('parast');
              delete(space,1,4);
            end;
 
@@ -1343,13 +1375,12 @@ begin
            begin
              readcommondef('Record definition');
              writeln(space,'             Size : ',getlongint);
+             if not EndOfEntry then
+              Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
              space:='    '+space;
-             oldread_member:=read_member;
-             read_member:=true;
-             readdefinitions(false);
-             readsymbols;
-             read_member:=oldread_member;
+             readdefinitions('fields',false);
+             readsymbols('fields');
              Delete(space,1,4);
            end;
 
@@ -1394,13 +1425,12 @@ begin
                  end;
               end;
 
-           {read the record definitions and symbols}
+             if not EndOfEntry then
+              Writeln('!! Entry has more information stored');
+             {read the record definitions and symbols}
              space:='    '+space;
-             oldread_member:=read_member;
-             read_member:=true;
-             readdefinitions(false);
-             readsymbols;
-             read_member:=oldread_member;
+             readdefinitions('fields',false);
+             readsymbols('fields');
              Delete(space,1,4);
            end;
 
@@ -1744,7 +1774,7 @@ begin
      Writeln;
      Writeln('Interface definitions');
      Writeln('----------------------');
-     readdefinitions(false);
+     readdefinitions('interface',false);
    end
   else
    ppufile.skipuntilentry(ibenddefs);
@@ -1754,7 +1784,7 @@ begin
      Writeln;
      Writeln('Interface Symbols');
      Writeln('------------------');
-     readsymbols;
+     readsymbols('interface');
    end
   else
    ppufile.skipuntilentry(ibendsyms);
@@ -1776,7 +1806,7 @@ begin
         Writeln;
         Writeln('Static definitions');
         Writeln('----------------------');
-        readdefinitions(false);
+        readdefinitions('implementation',false);
       end
      else
       ppufile.skipuntilentry(ibenddefs);
@@ -1786,7 +1816,7 @@ begin
         Writeln;
         Writeln('Static Symbols');
         Writeln('------------------');
-        readsymbols;
+        readsymbols('implementation');
       end;
    end;
 {read the browser units stuff}
@@ -1899,7 +1929,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-10-22 20:40:00  peter
+  Revision 1.48  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.47  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.46  2003/07/02 22:18:04  peter

@@ -262,7 +262,7 @@ implementation
         newstatement : tstatementnode;
         htype        : ttype;
       begin
-        result:=internalstatements(newstatement,true);
+        result:=internalstatements(newstatement);
 
         if assigned(current_procinfo.procdef._class) then
           begin
@@ -361,7 +361,7 @@ implementation
         para : tcallparanode;
         newstatement : tstatementnode;
       begin
-        result:=internalstatements(newstatement,true);
+        result:=internalstatements(newstatement);
 
         if assigned(current_procinfo.procdef._class) then
           begin
@@ -451,7 +451,7 @@ implementation
         pd : tprocdef;
         newstatement : tstatementnode;
       begin
-        generate_except_block:=internalstatements(newstatement,true);
+        generate_except_block:=internalstatements(newstatement);
 
         { a constructor needs call destructor (if available) when it
           is not inherited }
@@ -529,7 +529,7 @@ implementation
         { Generate procedure by combining init+body+final,
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
-        newblock:=internalstatements(newstatement,true);
+        newblock:=internalstatements(newstatement);
         if (pi_needs_implicit_finally in current_procinfo.flags) and
            { but it's useless in init/final code of units }
            not(current_procinfo.procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
@@ -539,7 +539,7 @@ implementation
             aktfilepos:=exitpos;
             exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
-            finalcode:=internalstatements(codestatement,true);
+            finalcode:=internalstatements(codestatement);
             addstatement(codestatement,bodyexitcode);
             addstatement(codestatement,final_asmnode);
             { Initialize before try...finally...end frame }
@@ -1312,7 +1312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2003-11-07 15:58:32  florian
+  Revision 1.171  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.170  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

@@ -277,6 +277,7 @@ interface
           parent : tnode;
           { there are some properties about the node stored }
           flags : tnodeflags;
+          ppuidx : longint;
           { the number of registers needed to evalute the node }
           registers32,registersfpu : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
@@ -298,6 +299,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
           procedure buildderefimpl;virtual;
           procedure derefimpl;virtual;
+          procedure derefnode;virtual;
 
           { toggles the flag }
           procedure toggleflag(f : tnodeflag);
@@ -359,6 +361,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure derefnode;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -377,6 +380,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure derefnode;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -397,8 +401,11 @@ interface
       { array with all class types for tnodes }
       nodeclass : tnodeclassarray;
 
+    function nodeppuidxget(i:longint):tnode;
     function ppuloadnode(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
+    function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
+    procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
 
     const
       printnodespacing = '   ';
@@ -415,7 +422,7 @@ interface
 implementation
 
     uses
-       cutils,verbose;
+       cutils,verbose,ppu;
 
     const
       ppunodemarker = 255;
@@ -425,10 +432,51 @@ implementation
                                  Helpers
  ****************************************************************************}
 
+    var
+      nodeppudata : tdynamicarray;
+      nodeppuidx  : longint;
+
+
+    procedure nodeppuidxcreate;
+      begin
+        nodeppudata:=tdynamicarray.create(1024);
+        nodeppuidx:=0;
+      end;
+
+
+    procedure nodeppuidxfree;
+      begin
+        nodeppudata.free;
+        nodeppudata:=nil;
+      end;
+
+
+    procedure nodeppuidxadd(n:tnode);
+      begin
+        if n.ppuidx<0 then
+          internalerror(200311072);
+        nodeppudata.seek(n.ppuidx*sizeof(pointer));
+        nodeppudata.write(n,sizeof(pointer));
+      end;
+
+
+    function nodeppuidxget(i:longint):tnode;
+      var
+        l : longint;
+      begin
+        if i<0 then
+          internalerror(200311072);
+        nodeppudata.seek(i*sizeof(pointer));
+        if nodeppudata.read(result,sizeof(pointer))<>sizeof(pointer) then
+          internalerror(200311073);
+      end;
+
+
     function ppuloadnode(ppufile:tcompilerppufile):tnode;
       var
         b : byte;
         t : tnodetype;
+        hppuidx : longint;
       begin
         { marker }
         b:=ppufile.getbyte;
@@ -442,12 +490,15 @@ implementation
          begin
            if not assigned(nodeclass[t]) then
              internalerror(200208153);
+           hppuidx:=ppufile.getlongint;
            //writeln('load: ',nodetype2str[t]);
            { generate node of the correct class }
-           ppuloadnode:=nodeclass[t].ppuload(t,ppufile);
+           result:=nodeclass[t].ppuload(t,ppufile);
+           result.ppuidx:=hppuidx;
+           nodeppuidxadd(result);
          end
         else
-         ppuloadnode:=nil;
+         result:=nil;
       end;
 
 
@@ -458,12 +509,36 @@ implementation
         { type, read by ppuloadnode }
         if assigned(n) then
          begin
+           if n.ppuidx=-1 then
+             internalerror(200311071);
+           n.ppuidx:=nodeppuidx;
+           inc(nodeppuidx);
            ppufile.putbyte(byte(n.nodetype));
+           ppufile.putlongint(n.ppuidx);
            //writeln('write: ',nodetype2str[n.nodetype]);
            n.ppuwrite(ppufile);
          end
         else
          ppufile.putbyte(byte(emptynode));
+      end;
+
+
+    function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
+      begin
+        if ppufile.readentry<>ibnodetree then
+          Message(unit_f_ppu_read_error);
+        nodeppuidxcreate;
+        result:=ppuloadnode(ppufile);
+        result.derefnode;
+        nodeppuidxfree;
+      end;
+
+
+    procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
+      begin
+        nodeppuidx:=0;
+        ppuwritenode(ppufile,n);
+        ppufile.writeentry(ibnodetree);
       end;
 
 
@@ -516,6 +591,7 @@ implementation
          firstpasscount:=0;
 {$endif EXTDEBUG}
          flags:=[];
+         ppuidx:=-1;
       end;
 
     constructor tnode.createforcopy;
@@ -546,6 +622,7 @@ implementation
         maxfirstpasscount:=0;
         firstpasscount:=0;
 {$endif EXTDEBUG}
+        ppuidx:=-1;
       end;
 
 
@@ -568,6 +645,11 @@ implementation
     procedure tnode.derefimpl;
       begin
         resulttype.resolve;
+      end;
+
+
+    procedure tnode.derefnode;
+      begin
       end;
 
 
@@ -760,6 +842,14 @@ implementation
       end;
 
 
+    procedure tunarynode.derefnode;
+      begin
+        inherited derefnode;
+        if assigned(left) then
+          left.derefnode;
+      end;
+
+
     function tunarynode.docompare(p : tnode) : boolean;
       begin
          docompare:=(inherited docompare(p) and
@@ -862,6 +952,14 @@ implementation
         inherited derefimpl;
         if assigned(right) then
           right.derefimpl;
+      end;
+
+
+    procedure tbinarynode.derefnode;
+      begin
+        inherited derefnode;
+        if assigned(right) then
+          right.derefnode;
       end;
 
 
@@ -994,7 +1092,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-10-23 14:44:07  peter
+  Revision 1.74  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.73  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

@@ -118,7 +118,7 @@ implementation
               consume_emptystats;
            end;
          consume(_END);
-         statements_til_end:=cblocknode.create(first,true);
+         statements_til_end:=cblocknode.create(first);
       end;
 
 
@@ -326,7 +326,7 @@ implementation
            end;
          consume(_UNTIL);
 
-         first:=cblocknode.create(first,true);
+         first:=cblocknode.create(first);
          p_e:=comp_expr(true);
          repeat_statement:=genloopnode(whilerepeatn,p_e,first,nil,true);
       end;
@@ -427,7 +427,7 @@ implementation
              begin
                calltempp:=nil;
                { complex load, load in temp first }
-               newblock:=internalstatements(newstatement,false);
+               newblock:=internalstatements(newstatement);
                { when right is a call then load it first in a temp }
                if p.nodetype=calln then
                  begin
@@ -620,7 +620,7 @@ implementation
                 break;
               consume_emptystats;
            end;
-         p_try_block:=cblocknode.create(first,true);
+         p_try_block:=cblocknode.create(first);
 
          if try_to_consume(_FINALLY) then
            begin
@@ -1042,7 +1042,7 @@ implementation
          if (starttoken<>_INITIALIZATION) or (token<>_FINALIZATION) then
            consume(_END);
 
-         last:=cblocknode.create(first,true);
+         last:=cblocknode.create(first);
          last.set_tree_filepos(filepos);
          statement_block:=last;
       end;
@@ -1130,7 +1130,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2003-10-29 20:34:20  peter
+  Revision 1.120  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.119  2003/10/29 20:34:20  peter
     * move check for unused object constructor result to blocknode
 
   Revision 1.117  2003/10/29 15:40:20  peter

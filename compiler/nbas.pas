@@ -78,7 +78,7 @@ interface
        tstatementnodeclass = class of tstatementnode;
 
        tblocknode = class(tunarynode)
-          constructor create(l : tnode;releasetemp : boolean);virtual;
+          constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef state_tracking}
@@ -86,6 +86,8 @@ interface
 {$endif state_tracking}
        end;
        tblocknodeclass = class of tblocknode;
+
+       ttempcreatenode = class;
 
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
@@ -100,6 +102,7 @@ interface
          temptype                   : ttemptype;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
+         owner                      : ttempcreatenode;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -115,6 +118,10 @@ interface
           { freeing it. In this last case, you should use only one reference    }
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(const _restype: ttype; _size: longint; _temptype: ttemptype); virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype: tnode; override;
@@ -127,7 +134,10 @@ interface
         ttemprefnode = class(tnode)
           constructor create(const temp: ttempcreatenode); virtual;
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy: tnode; override;
+          procedure derefnode;override;
           function pass_1 : tnode; override;
           function det_resulttype : tnode; override;
           procedure mark_write;override;
@@ -135,16 +145,21 @@ interface
          protected
           tempinfo: ptempinfo;
           offset : longint;
+        private
+          tempidx : longint;
         end;
        ttemprefnodeclass = class of ttemprefnode;
 
         { a node which removes a temp }
         ttempdeletenode = class(tnode)
-          constructor create(const temp: ttempcreatenode);
+          constructor create(const temp: ttempcreatenode); virtual;
           { this will convert the persistant temp to a normal temp
             for returning to the other nodes }
           constructor create_normal_temp(const temp: ttempcreatenode);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy: tnode; override;
+          procedure derefnode;override;
           function pass_1: tnode; override;
           function det_resulttype: tnode; override;
           function docompare(p: tnode): boolean; override;
@@ -152,6 +167,8 @@ interface
          protected
           tempinfo: ptempinfo;
           release_to_normal : boolean;
+        private
+          tempidx : longint;
         end;
        ttempdeletenodeclass = class of ttempdeletenode;
 
@@ -167,7 +184,7 @@ interface
 
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
-       function  internalstatements(var laststatement:tstatementnode;releasetemp : boolean):tblocknode;
+       function  internalstatements(var laststatement:tstatementnode):tblocknode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
 
@@ -176,7 +193,7 @@ implementation
     uses
       cutils,
       verbose,globals,globtype,systems,
-      symconst,symdef,symsym,symutil,defutil,defcmp,
+      symconst,symdef,defutil,defcmp,
       pass_1,
       nld,ncal,nflw,
       procinfo
@@ -187,11 +204,11 @@ implementation
                                      Helpers
 *****************************************************************************}
 
-    function internalstatements(var laststatement:tstatementnode;releasetemp : boolean):tblocknode;
+    function internalstatements(var laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create,nil);
-        internalstatements := cblocknode.create(laststatement,releasetemp);
+        internalstatements := cblocknode.create(laststatement);
       end;
 
 
@@ -327,7 +344,7 @@ implementation
                              TBLOCKNODE
 *****************************************************************************}
 
-    constructor tblocknode.create(l : tnode;releasetemp : boolean);
+    constructor tblocknode.create(l : tnode);
 
       begin
          inherited create(blockn,l);
@@ -633,6 +650,7 @@ implementation
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.restype := _restype;
         tempinfo^.temptype := _temptype;
+        tempinfo^.owner:=self;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -644,6 +662,7 @@ implementation
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
+        n.tempinfo^.owner:=n;
         n.tempinfo^.restype := tempinfo^.restype;
         n.tempinfo^.temptype := tempinfo^.temptype;
 
@@ -660,6 +679,41 @@ implementation
 
         result := n;
       end;
+
+
+    constructor ttempcreatenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+
+        size:=ppufile.getlongint;
+        new(tempinfo);
+        fillchar(tempinfo^,sizeof(tempinfo^),0);
+        ppufile.gettype(tempinfo^.restype);
+        tempinfo^.temptype := ttemptype(ppufile.getbyte);
+        tempinfo^.owner:=self;
+      end;
+
+
+    procedure ttempcreatenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putlongint(size);
+        ppufile.puttype(tempinfo^.restype);
+        ppufile.putbyte(byte(tempinfo^.temptype));
+      end;
+
+
+    procedure ttempcreatenode.buildderefimpl;
+      begin
+        tempinfo^.restype.buildderef;
+      end;
+
+
+    procedure ttempcreatenode.derefimpl;
+      begin
+        tempinfo^.restype.resolve;
+      end;
+
 
     function ttempcreatenode.pass_1 : tnode;
       begin
@@ -701,11 +755,13 @@ implementation
         offset:=0;
       end;
 
+
     constructor ttemprefnode.create_offset(const temp: ttempcreatenode;aoffset:longint);
       begin
         self.create(temp);
         offset := aoffset;
       end;
+
 
     function ttemprefnode.getcopy: tnode;
       var
@@ -736,6 +792,34 @@ implementation
 
         result := n;
       end;
+
+
+    constructor ttemprefnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        tempidx:=ppufile.getlongint;
+        offset:=ppufile.getlongint;
+      end;
+
+
+    procedure ttemprefnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putlongint(tempinfo^.owner.ppuidx);
+        ppufile.putlongint(offset);
+      end;
+
+
+    procedure ttemprefnode.derefnode;
+      var
+        temp : ttempcreatenode;
+      begin
+        temp:=ttempcreatenode(nodeppuidxget(tempidx));
+        if temp.nodetype<>tempcreaten then
+          internalerror(200311075);
+        tempinfo:=temp.tempinfo;
+      end;
+
 
     function ttemprefnode.pass_1 : tnode;
       begin
@@ -818,6 +902,33 @@ implementation
         result := n;
       end;
 
+    constructor ttempdeletenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        tempidx:=ppufile.getlongint;
+        release_to_normal:=(ppufile.getbyte<>0);
+      end;
+
+
+    procedure ttempdeletenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putlongint(tempinfo^.owner.ppuidx);
+        ppufile.putbyte(byte(release_to_normal));
+      end;
+
+
+    procedure ttempdeletenode.derefnode;
+      var
+        temp : ttempcreatenode;
+      begin
+        temp:=ttempcreatenode(nodeppuidxget(tempidx));
+        if temp.nodetype<>tempcreaten then
+          internalerror(200311075);
+        tempinfo:=temp.tempinfo;
+      end;
+
+
     function ttempdeletenode.pass_1 : tnode;
       begin
          expectloc:=LOC_VOID;
@@ -854,7 +965,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-11-04 15:35:13  peter
+  Revision 1.73  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.72  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.71  2003/10/31 15:51:47  peter

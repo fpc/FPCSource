@@ -63,6 +63,9 @@ unit procinfo;
           parent : tprocinfo;
           {# the definition of the routine itself }
           procdef : tprocdef;
+          { procinfo of the main procedure that is inlining
+            the current function, only used in tcgcallnode.inlined_pass2 }
+          inlining_procinfo : tprocinfo;
           { file location of begin of procedure }
           entrypos  : tfileposinfo;
           { file location of end of procedure }
@@ -205,7 +208,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-10-17 14:38:32  peter
+  Revision 1.8  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.7  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

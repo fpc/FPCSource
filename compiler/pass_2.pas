@@ -49,11 +49,10 @@ implementation
      cutils,
 {$endif}
      globtype,systems,verbose,
-     cclasses,globals,
-     symconst,symbase,symtype,symsym,paramgr,
+     globals,
+     paramgr,
      aasmtai,
-     pass_1,cgbase,
-     procinfo,
+     cgbase,
      nflw,cgobj;
 
 {*****************************************************************************
@@ -163,7 +162,8 @@ implementation
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=aktlocalswitches;
             oldpos:=aktfilepos;
-            aktfilepos:=p.fileinfo;
+            if not inlining_procedure then
+              aktfilepos:=p.fileinfo;
             aktlocalswitches:=p.localswitches;
             codegenerror:=false;
 {$ifdef EXTDEBUG}
@@ -210,7 +210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2003-10-30 16:22:40  peter
+  Revision 1.74  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.73  2003/10/30 16:22:40  peter
     * call firstpass before allocation and codegeneration is started
     * move leftover code from pass_2.generatecode() to psub
 

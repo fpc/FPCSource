@@ -234,7 +234,7 @@ implementation
 
                   { create statements with call to getmem+initialize or
                     finalize+freemem }
-                  new_dispose_statement:=internalstatements(newstatement,true);
+                  new_dispose_statement:=internalstatements(newstatement);
 
                   if is_new then
                    begin
@@ -317,7 +317,7 @@ implementation
               Message(parser_w_use_extended_syntax_for_objects);
 
             { create statements with call to getmem+initialize }
-            newblock:=internalstatements(newstatement,true);
+            newblock:=internalstatements(newstatement);
 
             { create temp for result }
             temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,tt_persistent);
@@ -477,7 +477,7 @@ implementation
          begin
             { create statements with call initialize the arguments and
               call fpc_dynarr_setlength }
-            newblock:=internalstatements(newstatement,true);
+            newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
             temp := ctempcreatenode.create(s32bittype,counter*s32bittype.def.size,tt_persistent);
@@ -640,7 +640,7 @@ implementation
              end;
 
             { create statements with call }
-            copynode:=internalstatements(newstatement,true);
+            copynode:=internalstatements(newstatement);
 
             if (counter=3) then
              begin
@@ -693,7 +693,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-11-04 19:05:03  peter
+  Revision 1.24  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.23  2003/11/04 19:05:03  peter
     * fixed initialize call after getmem
 
   Revision 1.22  2003/10/17 14:38:32  peter

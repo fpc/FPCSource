@@ -1707,6 +1707,8 @@ implementation
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
+           (assigned(current_procinfo) and
+            (current_procinfo.procdef.proccalloption=pocall_inline)) or
            DLLSource then
           curconstSegment.concat(Tai_symbol.Createdataname_global(sym.mangledname,l))
         else
@@ -1741,6 +1743,8 @@ implementation
         if (sym.owner.symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
            DLLSource or
+           (assigned(current_procinfo) and
+            (current_procinfo.procdef.proccalloption=pocall_inline)) or
            (vo_is_exported in sym.varoptions) or
            (vo_is_C_var in sym.varoptions) then
           bssSegment.concat(Tai_datablock.Create_global(sym.mangledname,l))
@@ -1961,7 +1965,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2003-11-07 15:58:32  florian
+  Revision 1.166  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.165  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

@@ -355,7 +355,7 @@ implementation
         { create a blocknode in which the successive write/read statements will be  }
         { put, since they belong together. Also create a dummy statement already to }
         { make inserting of additional statements easier                            }
-        newblock:=internalstatements(newstatement,true);
+        newblock:=internalstatements(newstatement);
 
         { if we don't have a filepara, create one containing the default }
         if not assigned(filepara) then
@@ -902,7 +902,7 @@ implementation
         { create the blocknode which will hold the generated statements + }
         { an initial dummy statement                                      }
 
-        newblock:=internalstatements(newstatement,true);
+        newblock:=internalstatements(newstatement);
 
         { do we need a temp for code? Yes, if no code specified, or if  }
         { code is not a 32bit parameter (we already checked whether the }
@@ -2358,7 +2358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2003-10-21 15:15:36  peter
+  Revision 1.122  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.121  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.120  2003/10/08 19:19:45  peter

@@ -3606,6 +3606,8 @@ implementation
 
 
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
+      var
+        level : byte;
       begin
          inherited ppuload(ppufile);
          deftype:=procdef;
@@ -3617,35 +3619,37 @@ implementation
           _mangledname:=nil;
          overloadnumber:=ppufile.getword;
          extnumber:=ppufile.getword;
+         level:=ppufile.getbyte;
          ppufile.getderef(_classderef);
          ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
          ppufile.getsmallset(symoptions);
          { inline stuff }
          if proccalloption=pocall_inline then
-          begin
-            ppufile.getderef(funcretsymderef);
-            code:=ppuloadnode(ppufile);
-          end
+           ppufile.getderef(funcretsymderef)
          else
-          begin
-            code := nil;
-            funcretsym:=nil;
-          end;
+           funcretsym:=nil;
+
          { load para symtable }
-         parast:=tparasymtable.create(unknown_level);
+         parast:=tparasymtable.create(level);
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
          { load local symtable }
          if (proccalloption=pocall_inline) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
-            localst:=tlocalsymtable.create(unknown_level);
+            localst:=tlocalsymtable.create(level);
             tlocalsymtable(localst).ppuload(ppufile);
             localst.defowner:=self;
           end
          else
           localst:=nil;
+
+         { inline stuff }
+         if proccalloption=pocall_inline then
+           code:=ppuloadnodetree(ppufile)
+         else
+           code := nil;
 
          { default values for no persistent data }
          if (cs_link_deffile in aktglobalswitches) and
@@ -3734,21 +3738,17 @@ implementation
           ppufile.putstring(mangledname);
          ppufile.putword(overloadnumber);
          ppufile.putword(extnumber);
+         ppufile.putbyte(parast.symtablelevel);
          ppufile.putderef(_classderef);
          ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
          ppufile.putsmallset(symoptions);
 
-         { inline stuff references to localsymtable, no influence
-           on the crc }
+         { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         { inline stuff }
          if proccalloption=pocall_inline then
-          begin
-            ppufile.putderef(funcretsymderef);
-            ppuwritenode(ppufile,code);
-          end;
+           ppufile.putderef(funcretsymderef);
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
@@ -3765,13 +3765,17 @@ implementation
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
             if not assigned(localst) then
-             begin
-               localst:=tlocalsymtable.create(unknown_level);
-               localst.defowner:=self;
-             end;
+              insert_localst;
             tlocalsymtable(localst).ppuwrite(ppufile);
             ppufile.do_crc:=oldintfcrc;
           end;
+
+         { node tree for inlining }
+         oldintfcrc:=ppufile.do_crc;
+         ppufile.do_crc:=false;
+         if proccalloption=pocall_inline then
+           ppuwritenodetree(ppufile,code);
+         ppufile.do_crc:=oldintfcrc;
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
@@ -4158,6 +4162,7 @@ implementation
          { locals }
          if assigned(localst) then
           begin
+            tlocalsymtable(localst).buildderef;
             tlocalsymtable(localst).buildderefimpl;
             funcretsymderef.build(funcretsym);
           end;
@@ -6112,7 +6117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.189  2003-11-08 23:31:27  florian
+  Revision 1.190  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.189  2003/11/08 23:31:27  florian
     * tstoreddef.getcopy returns now an errordef instead of nil; this
       allows easier error recovery
 

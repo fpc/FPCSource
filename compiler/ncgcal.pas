@@ -941,7 +941,6 @@ implementation
       end;
 
 
-
     procedure tcgcallnode.inlined_pass_2;
       var
          oldaktcallnode : tcallnode;
@@ -963,23 +962,52 @@ implementation
          { we're inlining a procedure }
          inlining_procedure:=true;
 
-         { calculate registers to pass the parameters }
-         paramanager.create_inline_paraloc_info(procdefinition);
-
-         { create temp procinfo }
-         current_procinfo:=cprocinfo.create(nil);
-         current_procinfo.procdef:=tprocdef(procdefinition);
-
          { Add inling start }
          exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
          exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
 {$endif extdebug}
 
+         { calculate registers to pass the parameters }
+         paramanager.create_inline_paraloc_info(procdefinition);
+
          { Allocate parameters and locals }
-         gen_alloc_inline_parast(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
-         if current_procinfo.procdef.localst.symtabletype=localsymtable then
-           gen_alloc_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
+         gen_alloc_inline_parast(exprasmlist,tparasymtable(procdefinition.parast));
+         if tprocdef(procdefinition).localst.symtabletype=localsymtable then
+           gen_alloc_localst(exprasmlist,tlocalsymtable(tprocdef(procdefinition).localst));
+
+         { if we allocate the temp. location for ansi- or widestrings }
+         { already here, we avoid later a push/pop                    }
+         if resulttype.def.needs_inittable and
+            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+           begin
+             tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+           end;
+
+         { Push parameters, still use the old current_procinfo. This
+           is required that have the correct information available like
+           _class and nested procedure }
+         oldaktcallnode:=aktcallnode;
+         aktcallnode:=self;
+         if assigned(left) then
+           tcallparanode(left).secondcallparan;
+         aktcallnode:=oldaktcallnode;
+
+         { create temp procinfo that will be used for the inlinecode tree }
+         current_procinfo:=cprocinfo.create(nil);
+         current_procinfo.procdef:=tprocdef(procdefinition);
+
+         { when the oldprocinfo is also being inlined reuse the
+           inlining_procinfo }
+         if assigned(oldprocinfo.inlining_procinfo) then
+           current_procinfo.inlining_procinfo:=oldprocinfo.inlining_procinfo
+         else
+           current_procinfo.inlining_procinfo:=oldprocinfo;
+
+         { takes care of local data initialization }
+         inlineentrycode:=TAAsmoutput.Create;
+         inlineexitcode:=TAAsmoutput.Create;
 
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) then
@@ -991,37 +1019,17 @@ implementation
              { Here we must include the para and local symtable info }
              procdefinition.concatstabto(withdebuglist);
 
-             mangled_length:=length(oldprocinfo.procdef.mangledname);
+             mangled_length:=length(current_procinfo.inlining_procinfo.procdef.mangledname);
              getmem(pp,mangled_length+50);
              strpcopy(pp,'192,0,0,'+startlabel.name);
              if (target_info.use_function_relative_addresses) then
                begin
                  strpcopy(strend(pp),'-');
-                 strpcopy(strend(pp),oldprocinfo.procdef.mangledname);
+                 strpcopy(strend(pp),current_procinfo.inlining_procinfo.procdef.mangledname);
                end;
              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
            end;
 {$endif GDB}
-
-         { if we allocate the temp. location for ansi- or widestrings }
-         { already here, we avoid later a push/pop                    }
-         if resulttype.def.needs_inittable and
-            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-           begin
-             tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
-           end;
-
-         { Push parameters }
-         oldaktcallnode:=aktcallnode;
-         aktcallnode:=self;
-         if assigned(left) then
-           tcallparanode(left).secondcallparan;
-         aktcallnode:=oldaktcallnode;
-
-         { takes care of local data initialization }
-         inlineentrycode:=TAAsmoutput.Create;
-         inlineexitcode:=TAAsmoutput.Create;
 
          gen_load_para_value(inlineentrycode);
          gen_initialize_code(inlineentrycode,true);
@@ -1093,26 +1101,23 @@ implementation
          if current_procinfo.procdef.localst.symtabletype=localsymtable then
            gen_free_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
 
-         { release procinfo }
-         current_procinfo.free;
-         current_procinfo:=oldprocinfo;
-
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) then
            begin
              cg.a_label(exprasmlist,endlabel);
              strpcopy(pp,'224,0,0,'+endlabel.name);
-            if (target_info.use_function_relative_addresses) then
-              begin
-                strpcopy(strend(pp),'-');
-                strpcopy(strend(pp),oldprocinfo.procdef.mangledname);
-              end;
+             if (target_info.use_function_relative_addresses) then
+               begin
+                 strpcopy(strend(pp),'-');
+                 strpcopy(strend(pp),current_procinfo.inlining_procinfo.procdef.mangledname);
+               end;
              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
              freemem(pp,mangled_length+50);
            end;
 {$endif GDB}
 
          { restore }
+         current_procinfo.free;
          current_procinfo:=oldprocinfo;
          inlining_procedure:=oldinlining_procedure;
       end;
@@ -1133,7 +1138,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2003-11-07 15:58:32  florian
+  Revision 1.139  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.138  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

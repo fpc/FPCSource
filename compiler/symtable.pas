@@ -499,7 +499,7 @@ implementation
       var
         hp : tdef;
       begin
-        { deref the implementation part of definitions }
+        { definitions }
         hp:=tdef(defindex.first);
         while assigned(hp) do
          begin
@@ -547,7 +547,7 @@ implementation
       var
         hp : tdef;
       begin
-        { deref the implementation part of definitions }
+        { definitions }
         hp:=tdef(defindex.first);
         while assigned(hp) do
          begin
@@ -2298,7 +2298,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2003-11-08 17:08:44  florian
+  Revision 1.123  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.122  2003/11/08 17:08:44  florian
     * fixed strange error message about expecting erroneous types,
       usually this is caused by other errors so it isn't important
 

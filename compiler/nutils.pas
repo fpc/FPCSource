@@ -163,7 +163,7 @@ implementation
         newstatement : tstatementnode;
         srsym : tsym;
       begin
-        result:=internalstatements(newstatement,true);
+        result:=internalstatements(newstatement);
 
         { call fail helper and exit normal }
         if is_class(current_procinfo.procdef._class) then
@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-10-01 20:34:49  peter
+  Revision 1.8  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.7  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -99,7 +99,9 @@ interface
          destructor destroy;override;
          function  realname:string;
          procedure buildderef;virtual;abstract;
+         procedure buildderefimpl;virtual;abstract;
          procedure deref;virtual;abstract;
+         procedure derefimpl;virtual;abstract;
          function  gettypedef:tdef;virtual;
       end;
 
@@ -941,7 +943,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2003-10-28 15:36:01  peter
+  Revision 1.34  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.33  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.32  2003/10/23 14:44:07  peter

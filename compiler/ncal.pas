@@ -998,6 +998,9 @@ type
 
 
     procedure tcallnode.derefimpl;
+      var
+        pt : tcallparanode;
+        currpara : tparaitem;
       begin
         inherited derefimpl;
         symtableprocentry:=tprocsym(symtableprocentryderef.resolve);
@@ -1009,6 +1012,22 @@ type
           _funcretnode.derefimpl;
         if assigned(inlinecode) then
           inlinecode.derefimpl;
+        { Connect paraitems }
+        pt:=tcallparanode(left);
+        while assigned(pt) and
+              (nf_varargs_para in pt.flags) do
+          pt:=tcallparanode(pt.right);
+        currpara:=tparaitem(procdefinition.Para.last);
+        while assigned(currpara) do
+          begin
+            if not assigned(pt) then
+              internalerror(200311077);
+            pt.paraitem:=currpara;
+            pt:=tcallparanode(pt.right);
+            currpara:=tparaitem(currpara.previous);
+          end;
+        if assigned(currpara) or assigned(pt) then
+          internalerror(200311078);
       end;
 
 
@@ -1862,7 +1881,7 @@ type
                   end
                  else
                   begin
-                    hiddentree:=internalstatements(newstatement,false);
+                    hiddentree:=internalstatements(newstatement);
                     { need to use resulttype instead of procdefinition.rettype,
                       because they can be different }
                     temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent);
@@ -2160,7 +2179,7 @@ type
                 currpara:=tparaitem(currpara.next);
               end;
            end;
-           
+
           { handle predefined procedures }
           is_const:=(po_internconst in procdefinition.procoptions) and
                     ((block_type in [bt_const,bt_type]) or
@@ -2589,7 +2608,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.206  2003-11-10 19:09:29  peter
+  Revision 1.207  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.206  2003/11/10 19:09:29  peter
     * procvar default value support
 
   Revision 1.205  2003/11/06 15:54:32  peter

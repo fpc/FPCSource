@@ -41,7 +41,12 @@ interface
 
        tloadparentfpnode = class(tunarynode)
           parentpd : tprocdef;
+          parentpdderef : tderef;
           constructor create(pd:tprocdef);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function getcopy : tnode;override;
@@ -183,6 +188,34 @@ implementation
         if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
           internalerror(200309284);
         parentpd:=pd;
+      end;
+
+
+    constructor tloadparentfpnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.getderef(parentpdderef);
+      end;
+
+
+    procedure tloadparentfpnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(parentpdderef);
+      end;
+
+
+    procedure tloadparentfpnode.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        parentpdderef.build(parentpd);
+      end;
+
+
+    procedure tloadparentfpnode.derefimpl;
+      begin
+        inherited derefimpl;
+        parentpd:=tprocdef(parentpdderef.resolve);
       end;
 
 
@@ -924,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-11-05 14:18:03  marco
+  Revision 1.72  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.71  2003/11/05 14:18:03  marco
    * fix from Peter arraysize warning (nav Newsgroup msg)
 
   Revision 1.70  2003/10/31 18:44:18  peter

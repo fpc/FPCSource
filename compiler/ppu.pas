@@ -112,7 +112,7 @@ const
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
   {implementation/objectdata}
-  ibnode           = 80;
+  ibnodetree       = 80;
   ibasmsymbols     = 81;
 
 { unit flags }
@@ -993,7 +993,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  2003-10-22 20:40:00  peter
+  Revision 1.44  2003-11-10 22:02:52  peter
+    * cross unit inlining fixed
+
+  Revision 1.43  2003/10/22 20:40:00  peter
     * write derefdata in a separate ppu entry
 
   Revision 1.42  2003/09/23 17:56:05  peter
