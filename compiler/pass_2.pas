@@ -82,6 +82,8 @@ implementation
     procedure secondstatement(var p : ptree);
       var
          hp : ptree;
+         oldrl : plinkedlist;
+
       begin
          hp:=p;
          while assigned(hp) do
@@ -89,7 +91,13 @@ implementation
             if assigned(hp^.right) then
              begin
                cleartempgen;
+               oldrl:=temptoremove;
+               temptoremove:=new(plinkedlist,init);
                secondpass(hp^.right);
+               removetemps(exprasmlist,temptoremove);
+               releasedata(temptoremove);
+               dispose(temptoremove,done);
+               temptoremove:=oldrl;
              end;
             hp:=hp^.left;
           end;
@@ -297,6 +305,7 @@ implementation
       label
          nextreg;
       begin
+         temptoremove:=nil;
          cleartempgen;
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
@@ -486,7 +495,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-26 22:58:19  florian
+  Revision 1.8  1998-10-29 15:42:49  florian
+    + partial disposing of temp. ansistrings
+
+  Revision 1.7  1998/10/26 22:58:19  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 

@@ -117,6 +117,7 @@ implementation
         pushed,
         cmpop      : boolean;
         savedunused : tregisterset;
+        hr : treference;
 
       begin
         { string operations are not commutative }
@@ -146,7 +147,6 @@ implementation
                           LOC_REGISTER,LOC_CREGISTER:
                             ungetregister32(p^.left^.location.register);
                         end;
-                        { that's not nice, but how can we avoid, }
 
                         savedunused:=unused;
                         { push the still used registers }
@@ -172,6 +172,10 @@ implementation
                         maybe_loadesi;
                         ungetiftemp(p^.left^.location.reference);
                         ungetiftemp(p^.right^.location.reference);
+                        gettempofsizereference(4,hr);
+                        temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
+                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
+                          newreference(hr))));
                      end;
                    ltn,lten,gtn,gten,
                    equaln,unequaln:
@@ -1398,7 +1402,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-10-28 18:26:12  pierre
+  Revision 1.23  1998-10-29 15:42:43  florian
+    + partial disposing of temp. ansistrings
+
+  Revision 1.22  1998/10/28 18:26:12  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 

@@ -96,10 +96,11 @@ unit hcodegen;
        { some kind of temp. types needs to be destructed }
        { for example ansistring, this is done using this }
        { list                                            }
+       ptemptodestroy = ^ttemptodestroy;
        ttemptodestroy = object(tlinkedlist_item)
-          typ : tdef;
+          typ : pdef;
           address : treference;
-          constructor init(const a : treference;t : tdef);
+          constructor init(const a : treference;p : pdef);
        end;
 
     var
@@ -168,7 +169,7 @@ unit hcodegen;
        make_const_global : boolean = false;
 
     var
-       temptoremove : tlinkedlist;
+       temptoremove : plinkedlist;
 
 implementation
 
@@ -391,19 +392,22 @@ implementation
            end;
       end;
 
-    constructor ttemptodestroy.init(const a : treference;t : tdef);
+    constructor ttemptodestroy.init(const a : treference;p : pdef);
 
       begin
          inherited init;
          address:=a;
-         typ:=t;
+         typ:=p;
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.19  1998-10-26 22:58:18  florian
+  Revision 1.20  1998-10-29 15:42:48  florian
+    + partial disposing of temp. ansistrings
+
+  Revision 1.19  1998/10/26 22:58:18  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 

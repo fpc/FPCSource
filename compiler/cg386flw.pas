@@ -112,9 +112,14 @@ implementation
 *****************************************************************************}
 
     procedure secondifn(var p : ptree);
+
       var
          hl,otlabel,oflabel : plabel;
+         oldrl : plinkedlist;
+
       begin
+         oldrl:=temptoremove;
+         temptoremove:=new(plinkedlist,init);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -125,6 +130,7 @@ implementation
          if assigned(p^.right) then
            begin
               emitl(A_LABEL,truelabel);
+              removetemps(exprasmlist,temptoremove);
               cleartempgen;
               secondpass(p^.right);
            end;
@@ -138,19 +144,29 @@ implementation
                    emitl(A_JMP,hl);
                 end;
               emitl(A_LABEL,falselabel);
+              removetemps(exprasmlist,temptoremove);
               cleartempgen;
               secondpass(p^.t1);
               if assigned(p^.right) then
                 emitl(A_LABEL,hl);
            end
          else
-           emitl(A_LABEL,falselabel);
+           begin
+              emitl(A_LABEL,falselabel);
+              removetemps(exprasmlist,temptoremove);
+           end;
          if not(assigned(p^.right)) then
-           emitl(A_LABEL,truelabel);
+           begin
+              emitl(A_LABEL,truelabel);
+              removetemps(exprasmlist,temptoremove);
+           end;
          freelabel(truelabel);
          freelabel(falselabel);
          truelabel:=otlabel;
          falselabel:=oflabel;
+         releasedata(temptoremove);
+         dispose(temptoremove,done);
+         temptoremove:=oldrl;
       end;
 
 
@@ -737,7 +753,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.21  1998-10-26 22:58:16  florian
+  Revision 1.22  1998-10-29 15:42:44  florian
+    + partial disposing of temp. ansistrings
+
+  Revision 1.21  1998/10/26 22:58:16  florian
     * new introduded problem with classes fix, the parent class wasn't set
       correct, if the class was defined forward before
 
