@@ -22,7 +22,7 @@ uses
 {$endif win32}
   Objects,Dialogs,Drivers,Views,
   GDBCon,GDBInt,Menus,
-  WViews,
+  WViews,WEditor,
   FPViews;
 
 type
@@ -177,7 +177,7 @@ type
     private
       Breakpoint : PBreakpoint;
       TypeRB   : PRadioButtons;
-      NameIL  : PInputLine;
+      NameIL  : PEditorInputLine;
       ConditionsIL: PInputLine;
       LineIL    : PInputLine;
       IgnoreIL  : PInputLine;
@@ -237,7 +237,7 @@ type
       function    Execute: Word; virtual;
     private
       Watch : PWatch;
-      NameIL  : PInputLine;
+      NameIL  : PEditorInputLine;
       TextST : PAdvancedStaticText;
     end;
 
@@ -397,7 +397,7 @@ uses
   Systems,Globals,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
-  Validate,WEditor,WUtils,Wconsts;
+  Validate,WUtils,Wconsts;
 
 const
   RBreakpointsWindow: TStreamRec = (
@@ -2328,9 +2328,13 @@ begin
   Breakpoint:=ABreakpoint;
 
   GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
-  Inc(R.A.Y); R.B.Y:=R.A.Y+1;
+  Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.B.X-3;
   New(NameIL, Init(R, 255)); Insert(NameIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_name, NameIL)));
+  R2.Copy(R); R2.A.X:=R2.B.X; R2.B.X:=R2.A.X+3;
+  Insert(New(PHistory, Init(R2, NameIL, hidWatchDialog)));
+  R.Copy(R3); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
+  R2.Copy(R); R2.Move(-1,-1);
+  Insert(New(PLabel, Init(R2, label_breakpoint_name, NameIL)));
   R.Move(0,3);
   New(ConditionsIL, Init(R, 255)); Insert(ConditionsIL);
   R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_conditions, ConditionsIL)));
@@ -2386,7 +2390,12 @@ begin
   S1:=GetStr(Breakpoint^.Conditions);
   ConditionsIL^.SetData(S1);
 
+  if assigned(FirstEditorWindow) then
+    FindReplaceEditor:=FirstEditorWindow^.Editor;
+
   R:=inherited Execute;
+
+  FindReplaceEditor:=nil;
   if R=cmOK then
   begin
     TypeRB^.GetData(R);
@@ -3038,12 +3047,13 @@ begin
   GetExtent(R); R.Grow(-3,-2);
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
   New(NameIL, Init(R, 255)); Insert(NameIL);
+  R2.Copy(R); R2.A.X:=R2.B.X; R2.B.X:=R2.A.X+3;
+  Insert(New(PHistory, Init(R2, NameIL, hidWatchDialog)));
   R2.Copy(R); R2.Move(-1,-1);
   Insert(New(PLabel, Init(R2, label_watch_expressiontowatch, NameIL)));
   GetExtent(R);
-  R.Grow(-1,-1);
+  R.Grow(-3,-1);
   R.A.Y:=R.A.Y+3;
-  R.B.X:=R.A.X+36;
   TextST:=New(PAdvancedStaticText, Init(R, label_watch_values));
   Insert(TextST);
 
@@ -3059,15 +3069,8 @@ begin
   S1:=GetStr(Watch^.expr);
   NameIL^.SetData(S1);
 
-  if assigned(Watch^.Current_value) then
-    S1:=GetPChar(Watch^.Current_value)
-  else
-    S1:='';
-
-  if assigned(Watch^.Last_value) then
-    S2:=GetPChar(Watch^.Last_value)
-  else
-    S2:='';
+  S1:=GetPChar(Watch^.Current_value);
+  S2:=GetPChar(Watch^.Last_value);
 
   ClearFormatParams;
   AddFormatParamStr(S1);
@@ -3081,7 +3084,13 @@ begin
 
   TextST^.SetText(S1);
 
+  if assigned(FirstEditorWindow) then
+    FindReplaceEditor:=FirstEditorWindow^.Editor;
+
   R:=inherited Execute;
+
+  FindReplaceEditor:=nil;
+
   if R=cmOK then
   begin
     NameIL^.GetData(S1);
@@ -4158,7 +4167,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2002-09-02 10:18:09  pierre
+  Revision 1.25  2002-09-03 13:59:47  pierre
+   + added history for watches and breakpoints
+
+  Revision 1.24  2002/09/02 10:18:09  pierre
    * fix problems with breakpoint lists
 
   Revision 1.23  2002/08/13 08:59:12  pierre
