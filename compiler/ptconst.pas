@@ -201,12 +201,28 @@ unit ptconst;
               else
                 if p^.treetype=addrn then
                   begin
+                    hp:=p^.left;
+                    while assigned(hp) and (hp^.treetype=subscriptn) do
+                      hp:=hp^.left;
                     if (is_equal(ppointerdef(p^.resulttype)^.definition,ppointerdef(def)^.definition) or
                        (is_equal(ppointerdef(p^.resulttype)^.definition,voiddef)) or
                        (is_equal(ppointerdef(def)^.definition,voiddef))) and
-                       (p^.left^.treetype = loadn) then
+                       (hp^.treetype = loadn) then
                       begin
-                        if token=POINT then
+                        firstpass(p^.left);
+                        hp:=p^.left;
+                        offset:=0;
+                        while assigned(hp) and (hp^.treetype<>loadn) do
+                          begin
+                             if hp^.treetype=subscriptn then
+                               inc(offset,hp^.vs^.address)
+                             else
+                               Message(cg_e_illegal_expression);
+                             hp:=hp^.left;
+                          end;
+                        datasegment^.concat(new(pai_const_symbol_offset,init(
+                               strpnew(hp^.symtableentry^.mangledname),offset)));
+                        (*if token=POINT then
                           begin
                              offset:=0;
                              while token=POINT do
@@ -229,9 +245,9 @@ unit ptconst;
                           begin
                              datasegment^.concat(new(pai_const,init_symbol(
                                strpnew(p^.left^.symtableentry^.mangledname))));
-                          end;
-                        maybe_concat_external(p^.left^.symtableentry^.owner,
-                          p^.left^.symtableentry^.mangledname);
+                          end;   *)
+                        maybe_concat_external(hp^.symtableentry^.owner,
+                          hp^.symtableentry^.mangledname);
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -631,7 +647,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.28  1998-11-17 10:40:16  peter
+  Revision 1.29  1998-11-23 18:26:44  pierre
+   * fix for bug0182
+
+  Revision 1.28  1998/11/17 10:40:16  peter
     * H+ fixes
 
   Revision 1.27  1998/11/16 12:12:23  peter
