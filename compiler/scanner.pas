@@ -310,6 +310,8 @@ implementation
         inputpointer:=inputfile^.saveinputpointer;
         lastlinepos:=inputfile^.savelastlinepos;
         line_no:=inputfile^.saveline_no;
+        if not inputfile^.is_macro then
+          parser_current_file:=inputfile^.name^;
       end;
 
 
@@ -1504,7 +1506,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  1999-01-19 12:14:38  peter
+  Revision 1.71  1999-01-27 13:05:45  pierre
+   * give include file name on error
+
+  Revision 1.70  1999/01/19 12:14:38  peter
     * fixed eof bug with includefiles
 
   Revision 1.69  1998/12/11 00:03:46  peter

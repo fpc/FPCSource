@@ -42,9 +42,6 @@ unit parser;
     procedure initparser;
     procedure doneparser;
 
-    const
-       parser_current_file : string = '';
-
   implementation
 
     uses
@@ -446,7 +443,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.66  1999-01-23 23:29:35  florian
+  Revision 1.67  1999-01-27 13:05:44  pierre
+   * give include file name on error
+
+  Revision 1.66  1999/01/23 23:29:35  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

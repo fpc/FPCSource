@@ -115,8 +115,6 @@ uses
   catch,
 {$endif}
 {$endif FPC}
-  { added for parser_current_file info }
-  parser,
   globals,compiler
   ;
 
@@ -269,7 +267,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  1999-01-22 12:19:30  pierre
+  Revision 1.40  1999-01-27 13:05:41  pierre
+   * give include file name on error
+
+  Revision 1.39  1999/01/22 12:19:30  pierre
    + currently compiled file name added on errors
 
   Revision 1.38  1999/01/19 10:19:03  florian
